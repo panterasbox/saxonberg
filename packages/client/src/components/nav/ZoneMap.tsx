@@ -8,7 +8,8 @@
  * - The `viewBox` is in cell units, y flipped (north is +y in the world,
  *   down in SVG). Strokes do not scale.
  * - Layers, bottom to top, each a `<g data-layer>` so a lens is an overlay
- *   and never a second renderer.
+ *   and never a second renderer. Places sit above the ways (edges and
+ *   stubs), so a way's hit band never takes a place's click.
  * - ⛔ No SVG title element anywhere (the no-native-title gate): every mark is a
  *   focusable `<g role="button">` with an `aria-label`, wrapped in a
  *   `<Tip>` when the caller gives it a document.
@@ -567,9 +568,10 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
       }}
     >
       <g data-layer="edges">{edgeEls}</g>
+      {/* Places above every way: a way's hit band never takes a place's click. */}
+      <g data-layer="stubs">{stubEls}</g>
       <g data-layer="places">{placeEls}</g>
       <g data-layer="glyphs">{glyphEls}</g>
-      <g data-layer="stubs">{stubEls}</g>
       <g data-layer="lens-boundaries">{boundaryEls}</g>
       <g data-layer="lens-refusals">{refusalEls}</g>
       <g data-layer="lens-frontier">{frontierEls}</g>

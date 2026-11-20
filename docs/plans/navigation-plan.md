@@ -1156,12 +1156,15 @@ Read first, in this order:
   makes (`KnowledgeGraph.fromClaims`). Without it every way seen from a
   walked room drew as an opening even when its far room was walked.
   A link seen from both ends draws once, in its latest state.
-- **D18 — A way that must be climbed says what works, as data** (a
-  server fix the drive found). `Exit`'s `exitMode` refusal said *"you'll
-  have to climb"* in words only; it now carries `works: { mode, command }`
-  (`climb down`) when exactly one way works, as the clearance refusal
-  already did. The arm shows the mode glyph; the drive takes the way by
-  that command.
+- **D18 — A way you cannot take in your own mode names the mode that
+  works, as data — only if trying it would get you through** (a server
+  fix the drives found, corrected once). `Exit.takeFor`, after an
+  `exitMode` refusal, probes the way's own mode (`canTraverseExit`, the
+  probe `go` asks) and only on a yes sends `works: { mode, command }`
+  (`climb down`). The first cut put `works` in the gate itself and the
+  browser walk caught it lying: with the pit sprung and no rope at the
+  lip, the card offered `climb down` and the game answered *"I don't
+  understand 'climb'"*. The refusal's words are unchanged.
 - **D19 — No ages on the card.** Claims are stamped in GAME time
   (`NavigationApi.mapNow` = the world clock) and the client holds no game
   "now", so *walked 3 days ago* cannot be said honestly. The card lists a

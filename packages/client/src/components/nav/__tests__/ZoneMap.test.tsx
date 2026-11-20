@@ -70,7 +70,7 @@ describe("ZoneMap", () => {
     const { container } = render(<ZoneMap view={fixture()} level={0} lenses={new Set()} />);
     expect(screen.queryAllByTestId("nav-frontier")).toHaveLength(0);
     const layers = [...container.querySelectorAll("[data-layer]")].map((g) => g.getAttribute("data-layer"));
-    expect(layers).toEqual(["edges", "places", "glyphs", "stubs", "lens-boundaries", "lens-refusals", "lens-frontier", "lens-route", "ticks", "here"]);
+    expect(layers).toEqual(["edges", "stubs", "places", "glyphs", "lens-boundaries", "lens-refusals", "lens-frontier", "lens-route", "ticks", "here"]);
   });
 
   it("a place click goes to the handler; the thumbnail has none", () => {

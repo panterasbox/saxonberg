@@ -52,6 +52,10 @@ async function coords(page: Page): Promise<string> {
 }
 
 test.describe('navigation card — the zone map, the ways, the sections', () => {
+  // A click on a covered or moving mark must FAIL and name its step, not
+  // wait out the test's whole budget.
+  test.use({ actionTimeout: 20_000 });
+
   test('1–10 · the Delve: drawn from your own walk, the map is how you move', async ({ browser }) => {
     test.setTimeout(600_000);
     const { page, close } = await openWorldAs(browser, 'navcard', {
@@ -120,9 +124,9 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
 
       // 10 · every way says where it leads: the preview strip and the tooltip.
       const south = page.getByTestId('nav-exit-south');
-      await south.focus();
-      await expect(page.getByTestId('nav-preview')).toContainText(/south/);
+      // (Read by focus — the tooltip first: a second focus fires nothing.)
       expect(await tipText(page, south)).toMatch(/south/);
+      await expect(page.getByTestId('nav-preview')).toContainText(/south/);
       // A mark has a tooltip with how you know it.
       expect(await tipText(page, places(page).first())).toMatch(/walked/);
 
@@ -239,9 +243,21 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       await page.setViewportSize({ width: 2048, height: 1100 });
 
       // A section set by hand is remembered across a reload.
+      // Let the card settle (it re-fills after the resize) before pressing:
+      // a click at a position read mid-relayout lands on something else.
+      let last = -1;
+      await expect
+        .poll(async () => {
+          const n = await page.locator('[data-testid^="nav-section-"][data-open="true"]').count();
+          const settled = n === last;
+          last = n;
+          return settled;
+        }, { timeout: 30_000, intervals: [1_000] })
+        .toBe(true);
       const you = page.getByTestId('nav-section-you');
       const was = await you.getAttribute('data-open');
-      await page.getByTestId('nav-section-you-toggle').click();
+      await page.getByTestId('nav-section-you-toggle').focus();
+      await page.keyboard.press('Enter');
       const now = was === 'true' ? 'false' : 'true';
       await expect(you).toHaveAttribute('data-open', now);
       await expect(you).toHaveAttribute('data-set', 'true');
