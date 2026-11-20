@@ -2,8 +2,7 @@
 
 > **Status: UNBUILT** — opened 2026-11-20 (owner, in the listing-resolution
 > conversation). Design in progress; decisions below are the owner's.
-> **Left:** the rest of the trait vocabulary (shipped ·
-> validated · catalogued · paper · append-only · tree · kernel words ·
+> **Left:** the rest of the trait vocabulary (paper · append-only · tree · kernel words ·
 > secret) · retiring the closed
 > `DOCUMENT_KINDS` list and everything that enumerates it · the five
 > defects below.
@@ -200,6 +199,48 @@ traits:
   refused.** Shipped documents leave with their pack, so the conflict is
   filed documents — world state nobody could then write or reset
   correctly.
+
+### The installer trio (owner, 2026-11-20)
+
+Replaces `PackLogic`'s `DOCUMENT_VALIDATORS` (22 entries) and the
+`invalidateDocumentKind` switch.
+
+**`validated` is not a trait.** The 22 validators were 15 catalogue
+`parse` calls, 5 value-class `fromData` hydrations and 3 hand-written
+shape checks. So:
+- **Shape is data** — a `fields:` schema in the declaration
+  (`label: { type: string, required: true }`), checked at install and on
+  every save. Topic, help-concept, standby-reason and lower-third-panel
+  need nothing else; command-view's JSON schema moves into its
+  declaration.
+- **Meaning is the catalogue's** — a catalogued kind is checked by the
+  service that reads it (the `parse` 15 kinds already have). No separate
+  validator reference.
+- The `fromData` validators (`Emote`, `Recipe`, `Archetype`, `StandbyReason`,
+  `LowerThirdPanel`) go — hydrating into a class to validate is the rule-3
+  smell.
+
+**`catalogued`** — `by` (the serving singleton's path, checked at
+install) and `load`: `per-path` · `whole` · `boot` (all three in use).
+- **One interface every catalogue implements: forget these changed and
+  deleted paths.** The installer and the CMS both call it after any edit.
+  The go-live switch retires; each case becomes that catalogue's own
+  forget (the command catalogue reloads a view, the soul catalogue drops
+  its cache, the recipe catalogue re-warms). Recipe, archetype,
+  help-concept and blueprint get declared catalogues — **defect 1 fixed
+  by construction.**
+- **A reader with a private cache must be the kind's catalogue** —
+  `NameBank`'s static cache becomes the name-bank catalogue or stops
+  caching.
+
+**`shipped`** — `dir` (a top-level dir of a pack's `content/`), `ext`,
+`vanish` (delete · archive · keep).
+- Command views' rule (any `cmd/` dir anywhere in the tree, the path
+  content-relative — special-cased in four places today) becomes a
+  parameter: `shipped: { in-tree: cmd }`.
+- **Reserved dir names derive from `shipped` declarations only** — runtime
+  kinds stop reserving `maps/`, `herds/` (**defect 3**). Two kinds claiming
+  one dir is refused, naming both.
 
 ## Related
 
