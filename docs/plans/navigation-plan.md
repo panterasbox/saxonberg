@@ -1112,6 +1112,61 @@ Read first, in this order:
   `packages/wire/src/harness/nav.ts`; `e2e/tests/helpers.ts`,
   `e2e/tests/navigation-server-walk.spec.ts`, `tooltips-walk.spec.ts`
 
+## Build log *(for the reviewer who has forgotten)*
+
+### Decisions the build made (D17–)
+
+- **D17 — A far side is joined by the row path a look recorded.** An edge
+  claim from a `look` has `to: null` and `toLabel` = the far row's path;
+  a singleton place's handle IS its row path, so `to ?? toLabel` matched
+  against a place your map holds is the same join the server's planner
+  makes (`KnowledgeGraph.fromClaims`). Without it every way seen from a
+  walked room drew as an opening even when its far room was walked.
+  A link seen from both ends draws once, in its latest state.
+- **D18 — A way that must be climbed says what works, as data** (a
+  server fix the drive found). `Exit`'s `exitMode` refusal said *"you'll
+  have to climb"* in words only; it now carries `works: { mode, command }`
+  (`climb down`) when exactly one way works, as the clearance refusal
+  already did. The arm shows the mode glyph; the drive takes the way by
+  that command.
+- **D19 — No ages on the card.** Claims are stamped in GAME time
+  (`NavigationApi.mapNow` = the world clock) and the client holds no game
+  "now", so *walked 3 days ago* cannot be said honestly. The card lists a
+  place's sources in the order learned, without an age. (A game "now" on
+  the wire is the attach point — navigation-server-slate.)
+- **D20 — The card fills the height of the panel it is docked in** — the
+  nearest scrolling ancestor — rather than threading flex through `Card`
+  (whose `ChangeMark` wrapper breaks a flex chain). Overflow = the panel's
+  `scrollHeight − clientHeight`.
+- **D21 — The Delve's claims file under `last-counted-mile`**, the
+  covering Locality's document; `last-counted-mile/delve` is the zone's
+  address, not a Locality.
+- **D22 — The wire drive's light is the general store's torch**, cloned
+  with a seat over `/world/terminus` (the clone gate is the ROW's title; a
+  lantern clones empty of oil; a seat over `/trade/mining` is refused —
+  an organization holds it).
+
+### Waves
+
+- **W0 ✅** `58e100b5c` — the Delve's address, Terminus City (the board
+  test and comments follow), `nav.card`, `navSelectors`, the wire drive
+  begun.
+- **W1 ✅** `46f7308d5` — `ZoneMap`, `MapArea`, the 22 rem panel (it no
+  longer closes itself for a column; only a narrow window drops it).
+- **W2 ✅** `03aab7f2e` — click to go / route; the route note drawn.
+- **W3 ✅** `23f9aea1f` — `Ways`, `useRadialGestures`, the icon names;
+  `wayLeadsTo`. ✔ The plan's stop-and-ask check: the bank's locked
+  `pumphouse` door's radial offers `unlock` and `open` (wire step 11).
+- **fix** `7ac294907` — D18, and the drive's first seven steps green on a
+  fresh world. ⚠ The Delve's traps are real: corridor-1's dart springs,
+  corridor-2's pit drops a walker to `pit-below` (that is how step 5
+  reaches level −1); on a kept world they stay sprung, so the step falls
+  back to `search` and `climb down`.
+- **W4 ✅** `951e2eef7` — the eight sections, `fitSections`, `nav.card`
+  actions, the crumbs, the status bar's outdoors; `NavigatorBody` and
+  `whereaboutsOf` deleted; the navigation-server walk reads the new card
+  (it opens the two sections it reads, since the card may fold them).
+
 ## Drive record
 
 *(appended at build time)*
