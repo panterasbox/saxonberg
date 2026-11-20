@@ -103,6 +103,22 @@ something like `online` the answer should be very legible."*
     shared (the who-list trackers), so a different address from `#id`, a
     session's Stuff id. The character is open (`~abc` is the candidate).
 
+15. **Built-in relations always win** (owner, 2026-11-20). A player's own
+    relation names (contact lists, kept lists) share a holder's `@`
+    namespace with the built-ins (`@here`, `@inventory`, …); a built-in
+    can never be masked — a player cannot hide their inventory from other
+    people's queries with a list named `inventory`. Making a list whose
+    name a built-in shadows is **allowed, with a warning** that some
+    queries will never reach it (a soft limit, not a refusal).
+16. **People are reached through your lists with MQL** —
+    `contacts remove @friends:iffy` targets Iffy through the list and the
+    verb takes her off it; no label matcher. **Notify policies apply to
+    MQL relations** (`@friends`, `@party`); their private `contacts:` /
+    `managed:` / `mql:` ref syntax retires.
+17. **Outfits, console tabs, wallet accounts** are resolved by their
+    holder with the shared naming rule (an account answers to its bank's
+    or corpo's keywords).
+
 ## Consequences to plan for
 
 - **23 views scope to `online`:** `dm`, `whisper`, `shout`, `say`, `react`,
