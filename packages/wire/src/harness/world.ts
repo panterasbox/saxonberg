@@ -32,6 +32,7 @@ import { readFileSync, existsSync } from 'fs';
 import {
   bootOwnedWorld,
   describeStop,
+  liveDatabaseRefusal,
   listenerPid,
   stopWorldWithin,
   WIRE_PORT,
@@ -579,6 +580,64 @@ export async function stageShip(handle: string, spec: ShipStageSpec): Promise<Sh
     throw new Error(`stageShip('${handle}') failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
   }
   return out as ShipStageResult;
+}
+
+/* ──────────────────────── the purge ──────────────────────── */
+
+/** What a purge removed — the server's `PurgeReport`. */
+export interface PurgeReport {
+  characters: number;
+  things: number;
+  seats: number;
+  offices: number;
+  appointments: number;
+  accounts: number;
+  sunkMinor: number;
+  titles: number;
+  documents: number;
+  skipped: string[];
+}
+
+/**
+ * ⭐ Purge what wire runs left in the world (test-world-lifecycle D4): every
+ * `wire-` test character, what it held, the seats and offices it was given,
+ * the money it was minted (retired to the reserve on the record), and the
+ * strays in the scaffold. The runner calls it when a run starts (a crashed
+ * run's leftovers) and before it stops the world. Returns the report, or
+ * `null` (said) when the world is not a test world — attach mode against a
+ * dev server, where the route does not exist — or when `WIRE_KEEP_LITTER=1`.
+ *
+ * @throws when the database is the live one (never posts), or the world
+ *   refuses — the server's own message.
+ */
+export async function purgeLitter(): Promise<PurgeReport | null> {
+  if (process.env.WIRE_KEEP_LITTER === '1') {
+    console.log('wire: purge skipped — WIRE_KEEP_LITTER=1 keeps what runs left');
+    return null;
+  }
+  if (!isOwnedTestWorld()) {
+    console.log(`wire: purge skipped — ${SERVER_URL()} is not a test world this run owns`);
+    return null;
+  }
+  const refusal = liveDatabaseRefusal();
+  if (refusal) throw new Error(refusal);
+  const res = await postTestRoute('/auth/test-purge', {});
+  const out = (await res.json()) as Partial<PurgeReport> & { error?: string };
+  if (!res.ok || typeof out.characters !== 'number') {
+    throw new Error(`purgeLitter failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out as PurgeReport;
+}
+
+/** The line a purge prints. */
+export function describePurge(r: PurgeReport): string {
+  return (
+    `wire: purged ${r.characters} test character(s), ${r.things} thing(s), ${r.seats} seat(s), ` +
+    `${r.offices} office(s), ${r.appointments} appointment(s); retired ${r.sunkMinor} from ` +
+    `${r.accounts} account(s); ${r.titles} title(s) returned; ${r.documents} row(s) deleted` +
+    (r.skipped.length > 0 ? `\n  left: ${r.skipped.join('; ')}` : '') +
+    `\n  (not reached: money paid to non-test parties and clones outside the scaffold — unmigrated drives, build 2)`
+  );
 }
 
 /* ──────────────────────── stop and restart ──────────────────────── */

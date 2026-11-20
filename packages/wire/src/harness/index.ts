@@ -54,9 +54,11 @@ export {
   stageShip,
   restartWorld,
   stopWorld,
+  purgeLitter,
+  describePurge,
   stopWorldWithin,
   WIRE_STOP_GRACE,
   lastShutdownReport,
   stageStandingHistory,
 } from './world';
-export type { ShipStagePlace, ShipStageSpec, ShipStageResult, ShutdownReport, TimedStop } from './world';
+export type { ShipStagePlace, ShipStageSpec, ShipStageResult, ShutdownReport, TimedStop, PurgeReport } from './world';

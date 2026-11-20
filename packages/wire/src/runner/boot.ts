@@ -33,6 +33,32 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(HERE, '..', '..', '..', '..');
 const SERVER_DIR = join(REPO_ROOT, 'packages', 'server');
 
+/** The one database a wire run may never touch: it backs the live box (docs/deployment.md). */
+const LIVE_DATABASE = 'saxonberg_demo';
+
+/**
+ * ⛔ Refuse the live database. The worktree's `packages/server/.env` (or the
+ * environment) names the database every owned world and every purge acts on;
+ * when it is the live one, a wire run would boot a test world over it and
+ * purge from it. Returns the refusal, or null. Reads the name only — never
+ * prints the file.
+ */
+export function liveDatabaseRefusal(): string | null {
+  let name = process.env.MONGODB_DATABASE ?? null;
+  if (!name) {
+    try {
+      const env = readFileSync(join(SERVER_DIR, '.env'), 'utf8');
+      name = /^\s*MONGODB_DATABASE\s*=\s*["']?([^"'\s#]+)/m.exec(env)?.[1] ?? null;
+    } catch {
+      name = null; // no .env: the server's own default, which is not the live one
+    }
+  }
+  return name === LIVE_DATABASE
+    ? `wire: refusing — the database is '${LIVE_DATABASE}', which backs the live box. ` +
+        `A wire run boots and purges test worlds; point MONGODB_DATABASE at the worktree's own.`
+    : null;
+}
+
 /** Wire's own port. 2010 = dev, 2011 = platform e2e, 2012 = here. */
 export const WIRE_PORT = Number(process.env.WIRE_PORT ?? 2012);
 
@@ -163,6 +189,8 @@ async function answering(url: string): Promise<boolean> {
  * (`lint:wire-content` refuses a test file that imports it).
  */
 export async function bootOwnedWorld(): Promise<string> {
+  const refusal = liveDatabaseRefusal();
+  if (refusal) throw new Error(refusal);
   const url = `http://localhost:${WIRE_PORT}`;
   mkdirSync(dirname(WIRE_LOG), { recursive: true });
 

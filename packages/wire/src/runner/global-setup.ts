@@ -20,6 +20,7 @@
 import { mkdirSync, readdirSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 import { readRunReport } from '../harness/registry';
+import { describePurge, purgeLitter } from '../harness/world';
 import {
   bootOwnedWorld,
   forgetKeptWorld,
@@ -56,6 +57,20 @@ async function probe(url: string): Promise<boolean> {
     return res.ok;
   } catch {
     return false;
+  }
+}
+
+/**
+ * ⭐ Purge what wire runs left (test-world-lifecycle D4) and say what went.
+ * Cleanup never turns a run red: a failed purge is printed loudly and the
+ * run goes on (the next run's start purges again).
+ */
+async function purge(when: 'start' | 'end'): Promise<void> {
+  try {
+    const r = await purgeLitter();
+    if (r) console.log(`${describePurge(r)}  [run ${when}]`);
+  } catch (err) {
+    console.warn(`wire: purge at run ${when} FAILED — ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -118,6 +133,7 @@ export async function setup(): Promise<void> {
       process.env.WIRE_SERVER_URL = kept.url;
       process.env.WIRE_SERVER_LOG = WIRE_LOG;
       console.log(`\nwire: REUSING the kept world at ${kept.url} (pid ${kept.pid})\n`);
+      await purge('start');
       return;
     }
     forgetKeptWorld();
@@ -140,6 +156,7 @@ export async function setup(): Promise<void> {
     console.log(
       `wire: world up in ${((Date.now() - started) / 1000).toFixed(1)}s\n`
     );
+    await purge('start');
     return;
   }
 
@@ -163,6 +180,7 @@ export async function setup(): Promise<void> {
 }
 
 export async function teardown(): Promise<void> {
+  await purge('end');
   await stopOwnedWorld();
   // ⭐ A restart test leaves its rebooted world standing for the files
   // after it (stopping it starved every later file of a world); this is

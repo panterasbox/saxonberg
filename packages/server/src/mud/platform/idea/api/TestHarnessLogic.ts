@@ -26,6 +26,17 @@ import { ConsumerApi } from '../../../api/consumer';
 import { RenownApi } from '../../../api/renown';
 import { ProducerApi } from '../../../api/producer';
 import { Quantity } from '../../../lib/quantity';
+import { BankingApi } from '../../../api/banking';
+import { CompactApi } from '../../../api/compact';
+import { EmploymentApi } from '../../../api/employment';
+import { GroupApi } from '../../../api/group';
+import { ParcelApi } from '../../../api/parcel';
+import { Money } from '../../../lib/banking/Money';
+import { Collections } from '../../../lib/persistence/Collections';
+import { Group } from '../../../lib/social/Group';
+import { User } from '../../../lib/identity/User';
+import { GoogleProfile } from '../../../lib/identity/GoogleProfile';
+import { Refusal } from '../../../lib/errors';
 import { PersistedRecord } from '../../../lib/persistence/PersistedRecord';
 import type { ContentEntry, MixinSlice } from '../../../lib/persistence/PersistenceSlice';
 import Condition from '../Condition';
@@ -41,6 +52,59 @@ import {
   type WeatherPinMode,
   type WeatherType,
 } from '../../../lib/weather/WeatherType';
+
+/**
+ * What a wire purge removed (test-world-lifecycle D4) — every category and
+ * its count, so the harness can print it and a drive can assert on it.
+ */
+export interface PurgeReport {
+  /** Test characters removed (profile + user + body + per-player rows). */
+  characters: number;
+  /** Things destructed: what the bodies carried, and the strays in the scaffold. */
+  things: number;
+  /** Committee and group member rows removed. */
+  seats: number;
+  /** Offices vacated back to the founder default. */
+  offices: number;
+  /** Business seats vacated. */
+  appointments: number;
+  /** Accounts whose balance was retired to the reserve. */
+  accounts: number;
+  /** Minor units retired to the reserve (`reserve retire`, reason `wire purge`). */
+  sunkMinor: number;
+  /** Titles under the scaffold handed back to the fixture pack's claim. */
+  titles: number;
+  /** Per-player rows deleted (snapshots, frames, transcripts, beliefs, dispositions). */
+  documents: number;
+  /** What was found and left, with why. */
+  skipped: string[];
+}
+
+/** The handle shape the wire harness mints (`uniqueHandle`). */
+const WIRE_HANDLE = /^wire-/;
+/** The synthetic domain the test-auth seam issues. */
+const TEST_EMAIL = /@e2e\.local$/i;
+/**
+ * Named survivors — `founder` above all (its seats are the suite's authority).
+ * The same list `scripts/purge-test-characters.ts` keeps for the browser tests.
+ */
+const NEVER_PURGE = new Set(['founder', 'dev', 'default', 'altplayer', 'walker', 'smith', 'smith2', 'diag', 'speaker']);
+/** The fixture pack: its rows are the scaffold, and its claims take back what a test held. */
+const FIXTURE_PACK = 'test-fixtures';
+const SCAFFOLD_ROOT = '/world/testbed';
+/** The fixture pack's title claims, longest first: an extent goes back to the group that claims it. */
+const SCAFFOLD_CLAIMS: ReadonlyArray<{ extent: string; group: string }> = [
+  { extent: '/world/testbed/annex', group: 'testbed-annex' },
+  { extent: '/world/testbed', group: 'testbed' },
+];
+/** Per-player rows, by the key each is filed under. */
+const PER_PLAYER_ROWS: ReadonlyArray<{ collection: string; key: string }> = [
+  { collection: Collections.HolderSnapshots, key: 'owner' },
+  { collection: Collections.PlayerFrames, key: 'owner' },
+  { collection: Collections.Transcripts, key: 'owner' },
+  { collection: Collections.Beliefs, key: 'viewerId' },
+  { collection: Collections.DispositionEvents, key: 'owner' },
+];
 
 const TestHarnessApiCallers = SecurityPolicies.FromModule(
   '/api/test-harness#TestHarnessApi',
@@ -654,6 +718,143 @@ export class TestHarnessLogic extends ApiLogic {
     // whoever is out in it — not at the next boundary, hours away.
     await WeatherApi.onBoundary();
     return { locality: where, pin };
+  }
+
+  /**
+   * See {@link TestHarnessApi.purgeTestLitter}: remove what wire runs left
+   * in this world (test-world-lifecycle D4). Test litter is a profile whose
+   * handle starts `wire-` AND whose email ends `@e2e.local` — never a named
+   * survivor. Each owner removes its own: the seats, offices and business
+   * appointments are vacated, every balance is retired to the reserve (D10),
+   * a scaffold title goes back to its claim, the body and what it carries are
+   * destructed, then the per-player rows and the profile go. The append-only
+   * ledgers are never touched. Then the scaffold: strays in its places
+   * (anything not an authored prop, cast member or connected body) are
+   * destructed, and the balances its rows hold are retired.
+   */
+  @CallSecurity(TestHarnessApiCallers)
+  public async purgeTestLitter(): Promise<PurgeReport> {
+    const report: PurgeReport = {
+      characters: 0, things: 0, seats: 0, offices: 0, appointments: 0,
+      accounts: 0, sunkMinor: 0, titles: 0, documents: 0, skipped: [],
+    };
+    const profiles = (await GoogleProfile.find<GoogleProfile>({})).filter(
+      (p) => !NEVER_PURGE.has(p.displayName) && WIRE_HANDLE.test(p.displayName) && TEST_EMAIL.test(p.email),
+    );
+    const connected = new Set(PlayerApi.connectedAvatars().map((a) => a.getIdentityPath()));
+    const roster = await CompactApi.officeRoster();
+    const groups = await GroupApi.registry();
+
+    for (const profile of profiles) {
+      const users = await User.find<User>({ googleProfileId: String(profile._id) });
+      const identities = users.flatMap((u) => u.playerIds.map((pid) => ({ user: u, pid, key: `/platform/agent/Avatar/${pid}` })));
+      if (identities.some((i) => connected.has(i.key))) {
+        report.skipped.push(`${profile.displayName} (connected)`);
+        continue;
+      }
+      for (const { user, pid, key } of identities) {
+        // Offices: back to the founder default.
+        for (const row of roster) {
+          if (row.holderPlayerId === pid && (await CompactApi.vacateOfficeForTest(row.key))) report.offices++;
+        }
+        // Group member rows (committee seats).
+        for (const group of await Group.find<Group>({ memberIds: key })) {
+          if (group.removeMember(key)) {
+            await group.save();
+            if (group._id) groups.managed().fireChange(String(group._id));
+            report.seats++;
+          }
+        }
+        // Titles under the scaffold, back to the pack's claim.
+        const held = await ParcelApi.extentsHeldBy(async (o) => o.kind === 'player' && o.templatePath === key);
+        for (const extent of held) {
+          const claim = SCAFFOLD_CLAIMS.find((c) => extent === c.extent || extent.startsWith(`${c.extent}/`));
+          if (!claim) {
+            report.skipped.push(`${profile.displayName} holds ${extent}, outside the scaffold`);
+            continue;
+          }
+          await ParcelApi.transfer(extent, { kind: 'group', name: claim.group });
+          report.titles++;
+        }
+        // The body: loaded so each owner can act on it, then destructed.
+        const body = PlayerApi.findAvatarByPlayerId(pid) ?? (await PlayerApi.loadAvatarsForUser(user)).find((a) => a.getIdentityPath() === key);
+        if (body) {
+          report.appointments += (await EmploymentApi.vacate(body as unknown as Stuff)).length;
+          if (MixinApi.isContainer(body)) {
+            for (const thing of [...body.getContents()]) {
+              if (thing.isDestroyed()) continue;
+              await StuffApi.destruct(thing);
+              report.things++;
+            }
+          }
+          await StuffApi.destruct(body as unknown as Stuff);
+        }
+        await this.retireAccountsOf(key, report);
+      }
+      // The body's onDestruct saves once more; let it land before the rows go.
+      await PersistApi.whenQuiet();
+      for (const { key } of identities) {
+        for (const r of PER_PLAYER_ROWS) report.documents += await PersistApi.deleteMany(r.collection, { [r.key]: key });
+      }
+      for (const u of users) if (u._id) await PersistApi.delete(Collections.Users, String(u._id));
+      if (profile._id) await PersistApi.delete(Collections.GoogleProfiles, String(profile._id));
+      report.characters++;
+    }
+
+    await this.sweepScaffold(report, connected);
+    return report;
+  }
+
+  /** Retire every balance an owner holds to the reserve (D10), reason `wire purge`. */
+  private async retireAccountsOf(ownerKey: string, report: PurgeReport): Promise<void> {
+    for (const accountId of await BankingApi.accountIdsOf(ownerKey)) {
+      const minor = BankingApi.balanceOf(accountId).minor;
+      if (minor <= 0) continue;
+      try {
+        await BankingApi.retire(accountId, Money.of(minor, BankingApi.balanceOf(accountId).currency), 'wire purge');
+        report.accounts++;
+        report.sunkMinor += minor;
+      } catch (err) {
+        if (!(err instanceof Refusal)) throw err;
+        report.skipped.push(`${accountId}: ${err.reason}`);
+      }
+    }
+  }
+
+  /**
+   * The scaffold's own litter: in every place the fixture pack ships that is
+   * loaded, destruct what is neither one of its authored `props:` / `cast:`
+   * nor a connected body; then retire what every scaffold row's accounts
+   * hold (the shop's takings, the venue's float, the staff's wages). The
+   * places come from the pack's own rows, never a world scan (P7).
+   */
+  private async sweepScaffold(report: PurgeReport, connected: Set<string | null>): Promise<void> {
+    const rows = (await PersistApi.find(Collections.Content, { sourcePack: FIXTURE_PACK })) as Array<{
+      path?: string;
+      data?: { props?: unknown[]; cast?: unknown[] };
+    }>;
+    for (const row of rows) {
+      if (!row.path || !row.path.startsWith(SCAFFOLD_ROOT)) continue;
+      await this.retireAccountsOf(row.path, report);
+      const place = StuffApi.findByTemplatePath(row.path);
+      if (!place || !MixinApi.isContainer(place)) continue;
+      const authored = new Set(
+        [...(row.data?.props ?? []), ...(row.data?.cast ?? [])].map((e) =>
+          typeof e === 'string' ? e : String((e as { template?: unknown }).template ?? ''),
+        ),
+      );
+      if (authored.size === 0 && !row.data?.props && !row.data?.cast) continue;
+      for (const thing of [...place.getContents()]) {
+        if (thing.isDestroyed()) continue;
+        if (authored.has(thing.getTemplatePath() ?? '')) continue;
+        if (PlayerApi.isAvatarStuff(thing)) {
+          if (!connected.has(thing.getIdentityPath())) report.skipped.push(`${thing.getPresentation()} (a body in ${row.path})`);
+          continue;
+        }
+        await StuffApi.destruct(thing);
+        report.things++;
+      }
+    }
   }
 
   private async localityOf(scope: string) {

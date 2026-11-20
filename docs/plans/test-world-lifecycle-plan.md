@@ -381,6 +381,27 @@ append-only ledgers (`bank_ledger`, `renown_events`, `participation_events`,
 `accountability_events`, `authoring_events`, …) are never deleted from — the
 e2e script's rule, kept.
 
+**The census (W5, written before the code).** Every collection in
+`src/schema/` that a test identity (`/platform/agent/Avatar/<playerId>`)
+can leave a row in:
+
+| class | collections | what the purge does |
+|---|---|---|
+| **owner primitive** | `groups` (member rows) | `Group.removeMember` + save + `fireChange`, per group naming the identity |
+| | `office_holders` | `CompactApi.vacateOfficeForTest` (new, `@TestOnly`, the mirror of `assignOfficeForTest`) for each office whose holder is the player |
+| | business seats (on the body + the Business's roster) | `EmploymentApi.vacate(body)` — a body loaded for it |
+| | `bank_accounts` / `bank_supply` | `BankingApi.retire` of each account's balance, reason `wire purge` (D10); the empty account row stays (an empty account is not money) |
+| | `parcels` | `ParcelApi.transfer` of any extent under `/world/testbed` the player holds back to the fixture pack's claim group |
+| | the body and what it carries | `StuffApi.destruct` (contents first), then wait for the store to go quiet — the body's `onDestruct` fires a final save |
+| **delete** | `google_profiles`, `users`, `holder_snapshots` (`owner`), `player_frames` (`owner`), `transcripts` (`owner`), `beliefs` (`viewerId`), `disposition_events` (`owner` — the "per-player cleanup cascade" its schema doc names; no code ran it) | keyed deletes after the body is gone |
+| **leave — append-only ledgers** | `bank_ledger`, `renown_events`, `participation_events`, `producer_events`, `accountability_events`, `authoring_events`, `chattel_events`, `contract_events`, `parcel_events`, `forum_events`, `chronicles`, `wiki_revisions` | never deleted from (the e2e script's rule) |
+| **leave — warmed projections** | `participation`, `renown`, `producer`, `positions` | a dead subject's row is inert, and deleting under a warmed index is re-written by the next pass; a fresh character has a fresh identity |
+| **not reached** | `forum_*`, `wiki`, `channels`, `contracts`, `chattel` rows of destructed things | written only by unmigrated drives (build 2) or derived from bodies already destructed; reported, not deleted |
+
+Re-staging doors and traps (D4 step 2) is **dropped**: D3 already makes every
+drive stage a door's or trap's state before it uses it, so the purge would be
+a second writer of the same fact.
+
 *When:* `global-setup` calls it once the world answers (a crashed run's
 leftovers) and `teardown` calls it before the stop. In attach mode against a
 world that is not a test world the route's `@TestOnly` static is withheld: the

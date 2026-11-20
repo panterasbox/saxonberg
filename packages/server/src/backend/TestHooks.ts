@@ -59,6 +59,7 @@ import {
   type WeatherPinReport,
   type ShipStageSpec,
   type ShipStageReport,
+  type PurgeReport,
 } from '../mud/api/test-harness';
 import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
 import { ParcelApi } from '../mud/api/parcel';
@@ -461,6 +462,12 @@ export class TestHooks {
     return ExecutionContextApi.runRoot(TestHooks, 'stageShip', () =>
       TestHarnessApi.stageShip(handle, spec)
     );
+  }
+
+  /** TEST-ONLY: purge what wire runs left (test-world-lifecycle D4) — `TestHarnessApi.purgeTestLitter`. */
+  public static async purgeLitter(): Promise<PurgeReport> {
+    TestHooks.#assertTestMode('purgeLitter');
+    return ExecutionContextApi.runRoot(TestHooks, 'purgeLitter', () => TestHarnessApi.purgeTestLitter());
   }
 
   /** TEST-ONLY: stage an outage — the next `calls` record reads/writes fail (failure-model D8). */
