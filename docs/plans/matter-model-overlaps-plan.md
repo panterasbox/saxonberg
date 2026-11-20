@@ -1334,7 +1334,7 @@ Decisions the plan did not make:
   drive's). `assembly.dirty` drive 17 should still pass (4 fills → spent line;
   refire look says "charred oak").
 
-### W5 — graining is crystallization (D12–D15) ✅ done (c89d499d4, PENDING)
+### W5 — graining is crystallization (D12–D15) ✅ done (c89d499d4, 336b91ad3)
 
 - ⭐ **First commit:** `StirTargetMixin`; `Compounding`, `ManualBuild` and
   `Bulkable` compose it; `StirController` calls the one method;
