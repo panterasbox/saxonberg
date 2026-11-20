@@ -199,7 +199,64 @@ Kansas City undertaker, invented the automatic exchange in 1889 — by local leg
 operator, a rival undertaker's wife, routed his customers' calls to her husband. **A person in the
 switch is a pen, and a pen can be abused**; the exchange is a machine for the same reason.
 
-## 3b. Every paper is a publisher on the same parts **[DECIDED — the owner]**
+## 3b. The truth, the wire, and the papers **[DECIDED in shape — the owner]**
+
+The owner: *"connection notifications is the one thing that's actually using our global event bus. I
+think we might want to revisit that. We do need an actual source of truth on connections that's true,
+but I think now we want to limit who can see it so you're always filtered through someone's actual
+published and editorialized feed. This way privileged people can log in silently if they need to but
+if certain people need to pierce that they can through whatever institutions we come up with to work
+as operator under those conditions."*
+
+**What ships today (2026-11-20):** the four connection events (`PlayerLoggedIn` ·
+`PlayerReconnected` · `PlayerDisconnected` · `PlayerLoggedOut`, fired from `Avatar.enter` /
+`onLinkdead`) go out on the **open** event bus, and five things listen:
+
+| listener | what it does |
+|---|---|
+| `SocialLogic` | the presence notifications, filtered by each viewer's notify rules (social-graph.md § the presence fan-out) |
+| `PresenceLogic` | the live `who` roster, pushed to **every** online viewer, unfiltered (*presence-public, not notify-gated*) |
+| `AttendantLogic` | frees a shopkeeper's queue spot on a drop |
+| `StreamLogic` + the Twitch/YouTube/Kick readers | stops a streamer's chat readers on logout |
+| `BroadcastFeed` | the overlay player count, and ⚠ *"a first arrival goes on every streamer's ticker"* |
+
+⚠ **The codebase already holds the argument against it**: participation.md locked the
+command-dispatched event with `EventApi.restrictSubscribe` because the bus is open by default and
+author-reachable, so an ungated per-player event is a **snooping side-channel**. Connection events
+are the same case — any subscriber can watch every player come and go.
+
+### Three tiers
+
+| tier | what | read by |
+|---|---|---|
+| **1 · the connection record** | the truth — every session, silent ones included; **state with one owner, never a broadcast** | **grant holders only**: the moderators' directory (§ 3a), and the system mechanisms that need it (the queue release, the stream readers) under a restricted allowlist |
+| **2 · the wire** | the aether exchange's public register — the truth **minus silent sessions and minus aether-dark places** | **publishers** — the news wire to the papers; anyone who publishes may subscribe |
+| **3 · the papers** | the Post's register, the Terminus Times, a guild roster, your notify lists | **players** — presence always reaches you through somebody's published, editorialized feed |
+
+### Silence, and piercing it
+
+- **A silent session is a grant** [LEAN — grants only, fork 15]: the operator doing maintenance, a
+  moderator investigating, institutions not yet designed. It is written to the truth and kept off
+  the wire. Players keep *there is no appear offline*, apart from aether-dark places.
+- ⭐⭐ **The grant never hides you from the truth.** The moderators' directory reads tier 1, silent
+  sessions included, and **every use of the silence grant is recorded there.** Silence hides you
+  from the public, never from accountability.
+- **Piercing silence** is a read of tier 1 — the moderators' directory, a court order, or an
+  operator-under-conditions institution — logged like every single-person lookup.
+
+### What each listener becomes
+
+- **Notifications and the live `who` roster** stop listening to the bus and become **subscriptions
+  to a directory** (the subscription substrate's one wire): the `who` card subscribes to your default
+  directory, which subscribes to the wire; notify rules read your lists' feeds. A friend's silent
+  login tells you nothing — correct.
+- **The queue release and the stream readers** read tier 1 under a system grant (a restricted
+  allowlist, the command-dispatched precedent).
+- ⚠ **`BroadcastFeed`** is a public presence publication that goes through no paper; a silent login
+  must never reach a streamer's ticker. Its arrivals and player count read **the wire**, or a paper
+  the streamer chooses.
+
+## 3c. Every paper is a publisher on the same parts **[DECIDED — the owner]**
 
 *"It's the Terminus Times or whatever their version of the Post is. So this stuff has to work the same
 no matter who the publisher is."* The directory machinery does not know whose it is: the Post in
@@ -521,6 +578,9 @@ can trust, and above it a market of lists people care about getting onto.
   `@` addresses and relations and becomes the profile verb (§ 4).
 - **Contacts and notify groups** are the private lists § 5 generalizes; their ids-only storage is
   already the rule.
+- ⚠ **The connection events on the open bus** (§ 3b) — a kernel change to shipped code: the record
+  becomes state with one owner; `SocialLogic` and `PresenceLogic` move to directory subscriptions;
+  `AttendantLogic` and the stream readers to a restricted allowlist; `BroadcastFeed` to the wire.
 - ⚠ Verify that a fresh, non-author player can write their own home through the document gate.
 
 ## 12. Open
@@ -539,11 +599,15 @@ can trust, and above it a market of lists people care about getting onto.
 8. **An *open to talk* status on the floor**, or the lounge named as the ice-breaker (§ 10a).
 9. ~~Presence = connected~~ — **decided**: public presence follows the aether's reach; the
    moderators' view is complete (§ 3a). Open: whether a moderator's lookup of one person is logged.
-14. **Readers as a field on every directory** (keeper · group · grant · anyone), and **the Compact
-    publishing the moderators' directory** — both leaned, to confirm at requirements.
-10. **Players in a city directory only by publishing their residence** (§ 3b).
+10. **Players in a city directory only by publishing their residence** (§ 3c).
 11. **Every locality with content gets a paper and a city directory by default**, or only those that
     author one.
 12. **The aggregate-count rule** against pile-ons, and whether publishing a list needs a standing
     floor (§ 7.8).
 13. **A path from `who` to a first search** — the querying lesson.
+14. **Readers as a field on every directory** (keeper · group · grant · anyone), and **the Compact
+    publishing the moderators' directory** — both leaned, to confirm at requirements.
+15. **Silence only by grant**, or also an unlisted listing players may choose (the unlisted phone
+    number) — lean: grants only (§ 3b).
+16. **Who holds the silence grant and the piercing grant** — the operator's maintenance seat,
+    investigating moderators, the court; the institutions are not yet designed (§ 3b).
