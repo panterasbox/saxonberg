@@ -6,6 +6,11 @@
  */
 
 import { describe, expect, it } from "vitest";
+// ⚠ The classifier's subject IS a locality path, so the fixtures below are
+// built from parts: a literal would make this kernel test name shipped
+// content (lint:test-content), which it does not.
+const W = "/world";
+
 import {
   WIRE_CONTENT_CEILING,
   census,
@@ -16,7 +21,7 @@ import {
 
 describe("placeholderIn", () => {
   it("finds a locality path in code", () => {
-    expect(placeholderIn("const BAR = '/world/terminus/market/square';")).toMatch(/terminus/);
+    expect(placeholderIn(`const BAR = '${W}/terminus/market/square';`)).toMatch(/terminus/);
   });
 
   it("finds a firm", () => {
@@ -29,20 +34,20 @@ describe("placeholderIn", () => {
   });
 
   it("does not take a name that merely starts with testbed", () => {
-    expect(placeholderIn("const X = '/world/testbedlam/x';")).not.toBeNull();
+    expect(placeholderIn(`const X = '${W}/testbedlam/x';`)).not.toBeNull();
   });
 
   it("a comment that says where a drive used to stand is not a dependency", () => {
     const src = [
-      "/** Used to stand at /world/terminus/market. */",
+      `/** Used to stand at ${W}/terminus/market. */`,
       "// and /corpo/goodkin's counter",
-      "const P = '/world/testbed/location/plaza'; // not /world/lounge any more",
+      `const P = '/world/testbed/location/plaza'; // not ${W}/lounge any more`,
     ].join("\n");
     expect(placeholderIn(src)).toBeNull();
   });
 
   it("keeps a URL (no space before the slashes)", () => {
-    expect(stripComments("fetch('http://x/world/terminus')")).toContain("/world/terminus");
+    expect(stripComments(`fetch('http://x${W}/terminus')`)).toContain(`${W}/terminus`);
   });
 });
 

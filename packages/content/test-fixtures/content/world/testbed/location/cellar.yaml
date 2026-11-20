@@ -1,0 +1,23 @@
+# The cellar — a small unlit sealed room behind a locked door
+# (test-world-lifecycle D2; the Wharfside pump house is the exemplar). The
+# door is on the shop's `down` and the cellar's `up` — ⚠ not a named word as
+# the pump house's is: a named exit between two rows of ONE zone throws at
+# hydrate (lint:locations), and the cellar lies under the shop. The cellar
+# is the door's free side. Nothing in it is lit, and the shut door passes no
+# light, so it is dark. East is the passage. ⚠ TEST-ONLY.
+class: /platform/location/Hall
+data:
+  shortDescription: testbed cellar
+  keywords: [cellar, testbed]
+  register: definite
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  roof: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  longDescription: |
+    A small stone cellar under the shop. A door leads up and out, and a passage runs east.
+  coords: { x: 1, y: 0, z: -1 }
+  exits:
+    up:
+      destination: /world/testbed/building/location/shop
+      door: /world/testbed/thing/cellar-door
+    east:
+      destination: /world/testbed/location/passage

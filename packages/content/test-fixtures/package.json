@@ -1,0 +1,16 @@
+{
+  "name": "@saxonberg/content-test-fixtures",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The wire suite's own scaffold: the testbed locality at /world/testbed. Test-only: it installs only in a test world.",
+  "type": "module",
+  "dependencies": {
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-trade-shopkeeping": "workspace:*",
+    "@saxonberg/server": "workspace:*",
+    "@saxonberg/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@saxonberg/wire": "workspace:*"
+  }
+}

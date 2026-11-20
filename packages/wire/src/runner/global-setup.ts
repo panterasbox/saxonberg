@@ -17,7 +17,7 @@
  * `boot.ts`, which carries that argument in full.
  */
 
-import { mkdirSync, readdirSync, rmSync } from 'fs';
+import { existsSync, mkdirSync, readdirSync, rmSync } from 'fs';
 import { dirname, join } from 'path';
 import { readRunReport } from '../harness/registry';
 import { describePurge, purgeLitter } from '../harness/world';
@@ -43,10 +43,21 @@ import {
 const REPORT = join(dirname(WIRE_LOG), 'declarations.json');
 
 /** The soak files an ordinary run skipped, for the report's last line. */
-const soakFiles = (): string[] =>
-  readdirSync(join(dirname(dirname(WIRE_LOG)), 'tests'))
-    .filter((f) => f.includes('.soak.'))
-    .sort();
+const soakFiles = (): string[] => {
+  const wire = dirname(dirname(WIRE_LOG));
+  const own = readdirSync(join(wire, 'tests')).filter((f) => f.includes('.soak.'));
+  // …and every pack's `wire/` (test-world-lifecycle D6), by path.
+  const content = join(wire, '..', 'content');
+  const packs = readdirSync(content).flatMap((pack) => {
+    const dir = join(content, pack, 'wire');
+    if (!existsSync(dir)) return [];
+    return readdirSync(dir, { recursive: true })
+      .map(String)
+      .filter((f) => f.includes('.soak.'))
+      .map((f) => `${pack}/wire/${f}`);
+  });
+  return [...own, ...packs].sort();
+};
 
 /** Is a world answering the test-auth seam at this URL? */
 async function probe(url: string): Promise<boolean> {

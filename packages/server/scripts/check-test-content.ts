@@ -65,7 +65,13 @@ export const ALLOWLIST_FILE = join(HERE, "test-content-allowlist.txt");
 /** What vitest considers a test file (the `check-test-bootstrap` rule). */
 const TEST_FILE_RE = /\.(test|spec)\.(c|m)?[jt]sx?$/;
 /** A shipped-content path: `/world/<locality>…`. */
-export const OFFENDER_RE = /\/world\/[a-z]/;
+/**
+ * A `/world/<x>` path — but not `/world/testbed`, the test-only scaffold
+ * (the `test-fixtures` pack, refused outside a test world): it is the
+ * suite's own, never placeholder content (test-world-lifecycle D7, the same
+ * exemption `lint:wire-content` makes).
+ */
+export const OFFENDER_RE = /\/world\/(?!testbed(?:\/|\b))[a-z]/;
 
 /** Is a repo-relative test path outside the kernel's jurisdiction (a content test beside its content)? */
 export function isExemptPath(rel: string): boolean {

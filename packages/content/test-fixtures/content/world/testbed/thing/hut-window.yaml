@@ -1,0 +1,14 @@
+# The hut's window onto the plaza (test-world-lifecycle D2; the glazier's
+# hut's west window is the exemplar). It passes light and sight, never a
+# body. ⚠ TEST-ONLY.
+class: /platform/thing/Window
+data:
+  shortDescription: hut window
+  keywords: [window, "hut window"]
+  register: definite
+  longDescription: >-
+    A plain glazed window between the hut and the plaza.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 3
+  baseTransmissivity: 0.9
+  open: true

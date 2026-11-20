@@ -632,12 +632,28 @@ exclude). Acceptance: no test file imports `bootOwnedWorld` /
 line; `navigation-server`'s restart step passes through the new path.
 Commit: `refactor(wire): one stop and restart path — grace, budget, heap flag`.
 
+> ✅ **W0 done** (`10cb43f58`). The timed stop moved into `runner/boot.ts`
+> (`stopWorldWithin`, `listenerPid`, `describeStop`, `lastShutdownReport`)
+> so the runner's own teardown uses it; `world.ts` re-exports it and adds
+> `stopWorld` / `restartWorld({graceMs})`, both returning the `TimedStop`.
+> **17** drives carried a copy, not 18 (five local functions, eleven inline
+> preflight + boot blocks, repair's hand-rolled SIGTERM); every
+> `afterAll(stopOwnedWorld)` went too. Confirmed by hand that `tsx` passes
+> `--heapsnapshot-near-heap-limit` through to node's `execArgv`. The live
+> checks (heap flag on a listener, navigation-server's restart) ride the
+> first world boot, W3's.
+
 **W1 — The census gate.** D7. Files: `packages/server/scripts/
 check-wire-content.ts` (+ `__tests__`), `packages/server/package.json`
 (`lint:wire-content`), `docs/lint-family.md` (one entry). Acceptance: the
 script prints today's count and passes; a planted literal fails it; the
 restart-copy check is at 0. Commit: `lint(wire-content): census of locality
 paths in wire drives, gated at today's count`.
+
+> ✅ **W1 done** (`5e4eafd10`). **120** at the census: 119 drives + the
+> harness's `crowd.ts`. Extra paths on the command line are scanned as
+> drives, which is how step 8 plants a file. A planted literal and a planted
+> `bootOwnedWorld` import each exit 1.
 
 **W2 — The test-only mark.** D1. Files: `PackLogic.ts`, `mud/api/pack.ts`,
 `PackLogic` unit tests (a fixture pack root with `testOnly: true`: installed
@@ -647,6 +663,11 @@ it), `scripts/pack-roots.ts` if it validates manifest keys,
 `docs/subsystems/content-packs.md` § The manifest. Acceptance: those tests;
 every existing pack still parses. Commit: `feat(packs): a pack can declare
 itself test-only`.
+
+> ✅ **W2 done** (`c51db7c73`). `discover()` is split: `discoverAll` (no
+> gate) and `discover` (gated). `pack status` lists a refused pack even with
+> no install record (`PackStatusReport.refused`). `pack-roots.ts` validates
+> no manifest keys, so it was untouched.
 
 **W3 — The fixture pack, and the runner finds its drive.** D2, D6. Files:
 `packages/content/test-fixtures/**`, root `package.json` (+ `pnpm install`),
@@ -680,6 +701,20 @@ character. Acceptance: after a run of the pack drive, the report's counts are
 non-zero and a second call returns all zeros; `reserve supply` is equal
 before and after; a profile named `founder` is never touched (a test).
 Commit: `feat(wire): a run purges what it made`.
+
+> ✅ **W5 done** — `reserve retire` (`c2db8d579`) and the purge
+> (`3b937b3ed`); written before W3/W4 while the scaffold rows were authored.
+> Decisions the plan did not settle: the retire controller's refusals are
+> wordless over six new platform reason rows (`reserve-*` worded so the
+> override can share them when it migrates); the non-positive check lives
+> on the bank (a controller threshold raised `lint:controller-decisions`);
+> `PnlCategory` gains `retire` and the dashboard prints `retired on the
+> record`; the holder is told when present (the statement carries the row
+> always). The purge needed one new `@TestOnly` static,
+> `CompactApi.vacateOfficeForTest` (the office vacate is gated to its
+> controller), and loads an offline character's body so
+> `EmploymentApi.vacate` can act on it. Door/trap re-staging dropped (see
+> the census).
 
 **W6 — Migrations, whole files (19).** D8. One commit per small group
 (crowd family; doors — boundary, lock-reconciliation; money — work,

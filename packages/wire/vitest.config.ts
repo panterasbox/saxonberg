@@ -61,9 +61,17 @@ const SOAK = process.env.WIRE_SOAK === '1';
 
 export default defineConfig({
   test: {
+    // ⭐ Two roots: this package's own drives, and every pack's `wire/` —
+    // a drive that belongs to a pack lives in that pack (test-world-
+    // lifecycle D6), and the sequencer sorts by name across both.
     include: SOAK
-      ? ['tests/**/*.soak.wire.test.ts', 'tests/**/*.soak.dirty.wire.test.ts']
-      : ['tests/**/*.wire.test.ts'],
+      ? [
+          'tests/**/*.soak.wire.test.ts',
+          'tests/**/*.soak.dirty.wire.test.ts',
+          '../content/*/wire/**/*.soak.wire.test.ts',
+          '../content/*/wire/**/*.soak.dirty.wire.test.ts',
+        ]
+      : ['tests/**/*.wire.test.ts', '../content/*/wire/**/*.wire.test.ts'],
     exclude: SOAK
       ? [...configDefaults.exclude]
       : [...configDefaults.exclude, '**/*.soak.*'],

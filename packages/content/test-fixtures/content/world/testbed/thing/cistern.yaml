@@ -1,0 +1,16 @@
+# The testbed's cistern — the water source its title cites, so the works'
+# basin runs (the lounge's cistern is the exemplar). ⚠ TEST-ONLY.
+class: /platform/thing/SingletonWaterStore
+data:
+  shortDescription: cistern
+  keywords: [cistern, tank, water]
+  register: definite
+  longDescription: >-
+    A tall tank on a brick stand in the corner, with a pipe out of its foot
+    that runs to the basin.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  interiorCapacity: 4000
+  initialLevelL: 3800
+  standsM: 6
+  mass: 500

@@ -62,3 +62,4 @@ export {
   stageStandingHistory,
 } from './world';
 export type { ShipStagePlace, ShipStageSpec, ShipStageResult, ShutdownReport, TimedStop, PurgeReport } from './world';
+export * from './scaffold';
