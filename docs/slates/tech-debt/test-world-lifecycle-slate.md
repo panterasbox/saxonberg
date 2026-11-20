@@ -97,6 +97,19 @@ runtime; content-specific drives live with their pack; two builds.
   a locked door, no carryable lamp (envelope hands trade-mining's safety
   lamp), and an unfuelled forge — stage what a drive needs, or add the piece
   to the fixture pack when two drives want it.
+- **Kernel findings build 1's drive surfaced and did NOT fix** (each worked
+  around in the drive, said at the site; each wants its owner's build):
+  - **A death that fires inside a governed eval leaves no corpse.** The dying
+    clock reconciles on READ, so the death runs in whatever context read
+    the expired window; under `eval --parcel <x>`'s jurisdiction bound the
+    corpse — unplaced at mint — is outside the bound and its applier is
+    refused (`setConditionAtDeath`), so the NPC dies and leaves nothing.
+    Mortality / call-security: a death is the world's act, not the
+    reader's, or an unplaced mint by in-jurisdiction work is in it.
+  - **A handed Book is not titled to its holder** (`shelf consign` answers
+    "isn't yours to sell"; a handed rope or rag is). Chattel / paper.
+  - **`tend` with nothing tendable in sight asks "Tend what?" with an empty
+    list** — a prompt a player cannot usefully answer. The binder.
 - **Stale paths in other builds' retained plans** (`envelope-plan`,
   `location-graph-plan`, `client-surface-plan`, `sandbox-overlay-plan`) still
   name the drives' old `.dirty.` filenames; they are history and were left.
