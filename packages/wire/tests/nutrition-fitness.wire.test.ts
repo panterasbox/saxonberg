@@ -324,11 +324,13 @@ suite('7 · heat', () => {
     expectOk(await H.cmd(`get #${bar}`));
     H.close();
     H = await Session.open(hName, { startLocation: LANE });
-    await hand(H, COAT);
     // By NAME here: a re-login materializes a fresh body, and what it
     // carries comes back with new ids — `#bar` names nothing now. `drop`
     // binds what is carried, so the floor's strays cannot take the word.
+    // ⚠ And the bar goes down BEFORE the coat is handed: with both hands on
+    // the bar the coat is set down at the feet, and `wear` finds nothing.
     expectOk(await H.cmd('drop barbell'));
+    await hand(H, COAT);
     // Donning is an engagement (three kilos of wool take a moment);
     // the hands are busy until it lands.
     const donning = await H.cmd('wear gambeson');

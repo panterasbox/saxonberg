@@ -18,7 +18,7 @@
     },
     "decisions": {
       "consign": "ok",
-      "reclaim by another": "declined not-owner",
+      "reclaim by another": "declined not-listed",
       "reclaim by the consignor": "ok",
       "payment refused": "declined withdraw-refused Your balance is under # zorkmids",
       "competence": "Competence You have not yet practiced anything."
