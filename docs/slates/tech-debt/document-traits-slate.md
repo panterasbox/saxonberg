@@ -1,9 +1,8 @@
 # Document traits — free-text kinds composing code-defined traits
 
 > **Status: UNBUILT** — opened 2026-11-20 (owner, in the listing-resolution
-> conversation). Design in progress; decisions below are the owner's.
-> **Left:** the rest of the trait vocabulary (paper · append-only · tree · kernel words ·
-> secret) · retiring the closed
+> conversation). The vocabulary and the declaration are decided (below, the owner's).
+> **Left:** retiring the closed
 > `DOCUMENT_KINDS` list and everything that enumerates it · the five
 > defects below.
 > **Size:** a build.
@@ -241,6 +240,35 @@ install) and `load`: `per-path` · `whole` · `boot` (all three in use).
 - **Reserved dir names derive from `shipped` declarations only** — runtime
   kinds stop reserving `maps/`, `herds/` (**defect 3**). Two kinds claiming
   one dir is refused, naming both.
+
+### The small ones (owner, 2026-11-20)
+
+- **`paper`** — `{ template: … }`, a Liquid template (`ProseApi`) over the
+  document's data. Retires the `pagesOf` switch. No template ⇒ the summary
+  line (title + date). `instrument` gets a template over its real fields
+  (**defect 2**). A recipe teaching when read stays the reader's act.
+- **`ledger`** — writes may add, never alter (the constitution's **A2**,
+  unenforced until now). `ledger: immutable` — written once, a new version
+  is a new path (edition, rate-card). `ledger: { grows: [field…] }` — the
+  named fields only gain entries; a save that drops or changes an earlier
+  one is refused (the bore log, an instrument's history, map claims).
+- **`tree`** — `{ parent: folder | field }`: parent, ancestors, and a
+  nearest-ancestor lookup (aroma, topic, reason). Map is prefixed by
+  place, not a tree.
+- **Kernel words are not a trait** — a bare word resolving to
+  `/platform/<dir>/<word>` is `named` (by leaf) + `catalogued` with
+  `load: boot`.
+- **`secret`** — never listed (`ls`, prefix scans), never paper, never in
+  the CMS tree, readable only by exact path (stream-token). Explicit, so a
+  later trait cannot expose it by accident.
+
+## The vocabulary, complete
+
+`shipped` · `catalogued` · `named` · `titled` · `dated` · `filed` ·
+`paper` · `ledger` · `tree` · `secret` — plus a `fields:` schema on any
+declaration. Ten traits, every one parameterized by data; the only code
+they name is a catalogue (a service) and a filed transport (closed, a
+security path).
 
 ## Related
 
