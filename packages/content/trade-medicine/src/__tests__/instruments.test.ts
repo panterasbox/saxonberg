@@ -26,6 +26,7 @@ import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class Medic extends AdvancementMixin(Creature) {
   static override _mixinName: string = 'Medic';
@@ -127,10 +128,7 @@ describe('set — a splint', () => {
   it('⭐⭐ sets a fracture (it reads as set, at a graded quality)', async () => {
     const me = makeStuff(() => new Medic());
     const frac = fractureOn(me);
-    await makeStuff(() => new SetController()).execute(
-      { splint: tool() },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SetController()).execute({ splint: tool() }, ctx$)))(ctxFor(me));
     expect(frac.dressed).toBe(true);
     expect(frac.careQuality).toBeGreaterThan(0);
   });
@@ -138,10 +136,7 @@ describe('set — a splint', () => {
   it('⚠ refuses without a splint', async () => {
     const me = makeStuff(() => new Medic());
     fractureOn(me);
-    await makeStuff(() => new SetController()).execute(
-      { splint: empty() },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SetController()).execute({ splint: empty() }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-splint' }),
     );
@@ -149,10 +144,7 @@ describe('set — a splint', () => {
 
   it('⚠ refuses a body with no broken bone', async () => {
     const me = makeStuff(() => new Medic());
-    await makeStuff(() => new SetController()).execute(
-      { splint: tool() },
-      ctxFor(me),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SetController()).execute({ splint: tool() }, ctx$)))(ctxFor(me));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-set' }),
     );
@@ -169,10 +161,7 @@ describe('operate — a surgeon\'s kit', () => {
     const surgeon = makeStuff(() => new Medic());
     const patient = makeStuff(() => new Creature());
     patient.setPosture(Postures.Lie);
-    await makeStuff(() => new OperateController()).execute(
-      { patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() },
-      ctxFor(surgeon),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-operate' }),
     );
@@ -185,10 +174,7 @@ describe('operate — a surgeon\'s kit', () => {
     const patient = makeStuff(() => new Creature());
     patient.setPosture(Postures.Lie);
     ruptureOn(patient);
-    await makeStuff(() => new OperateController()).execute(
-      { patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() },
-      ctxFor(surgeon),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'unskilled' }),
     );
@@ -200,10 +186,7 @@ describe('operate — a surgeon\'s kit', () => {
     const patient = makeStuff(() => new Creature());
     patient.setPosture(Postures.Stand);
     ruptureOn(patient);
-    await makeStuff(() => new OperateController()).execute(
-      { patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() },
-      ctxFor(surgeon),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'not-lying' }),
     );
@@ -215,10 +198,7 @@ describe('operate — a surgeon\'s kit', () => {
     const patient = makeStuff(() => new Creature());
     patient.setPosture(Postures.Lie);
     ruptureOn(patient);
-    await makeStuff(() => new OperateController()).execute(
-      { patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() },
-      ctxFor(surgeon),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'needs-anaesthesia' }),
     );

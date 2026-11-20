@@ -18,6 +18,7 @@ import { Template } from '../../../../../lib/stuff/Template';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -54,10 +55,10 @@ describe('cp (content tree)', () => {
       .spyOn(TemplateApi, 'writeTemplate')
       .mockResolvedValue({ ok: false, reason: 'access-denied', path: '/rag' });
     const c = ctx();
-    await makeStuff(() => new CpController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new CpController()).execute(
       { src: '/stuff/thing/rag', dst: '~/rag' } as never,
       c,
-    );
+    ));
     expect(write).toHaveBeenCalledWith('/rag', {
       class: '/platform/thing/Thing',
       extends: undefined,
@@ -72,10 +73,10 @@ describe('cp (content tree)', () => {
     quiet();
     vi.spyOn(TemplateApi, 'writeTemplate').mockResolvedValue({ ok: true, paths: ['/home/a/rag'] });
     const c = ctx();
-    await makeStuff(() => new CpController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new CpController()).execute(
       { src: '/stuff/thing/rag', dst: '/home/a/rag' } as never,
       c,
-    );
+    ));
     expect(c.note).not.toHaveBeenCalled();
   });
 });

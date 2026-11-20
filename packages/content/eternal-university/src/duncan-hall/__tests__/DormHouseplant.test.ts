@@ -20,6 +20,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -84,6 +85,7 @@ import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { rememberFabric } from '@saxonberg/server/mud/lib/material/__tests__/fabrics';
 import { standMaterials } from '@saxonberg/server/mud/lib/material/__tests__/materials';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 // Every test here simulates hundreds of game-days of growth through the real
 // verb path, and the acceptance walk runs two full stage ladders. The default
@@ -238,6 +240,12 @@ function seedDomain(): void {
     '/system/arcana/thing/mana-lamp',
     `${CONTENT}arcana/content/system/arcana/thing/mana-lamp.yaml`,
   );
+  // The dorm's phone charger (aether-devices D12) — the energy pack's row
+  // and class, seated by `props:` beside the lamp.
+  addSeed(
+    '/system/energy/thing/charger',
+    `${CONTENT}energy/content/system/energy/thing/charger.yaml`,
+  );
   addSeed(
     '/stuff/idea/material/bulk/water',
     `${CONTENT}base-library/content/stuff/idea/material/bulk/water.yaml`,
@@ -300,6 +308,7 @@ function installStore(): void {
   // dorm's own wall lamp) resolves — the same registration a pack test
   // makes for a sibling pack.
   ModuleApi.registerPackSource(`${PACKS}arcana/src`, '/system/arcana');
+  ModuleApi.registerPackSource(`${PACKS}energy/src`, '/system/energy');
   seedDomain();
   // The materials the seeded rows cite — loaded with each row in a world
   // (constituents, load-on-use W8); this store ships no material rows, so
@@ -360,13 +369,13 @@ function installStore(): void {
     const idx = arr.findIndex((d) => d._id === id);
     if (idx >= 0) arr.splice(idx, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   // Every marshaller PRODUCTION seeds, read off disk — this scenario walks
   // real content (materials with conductivity, an Avatar's body state), and
   // a unit whose marshaller is missing falls through to a clone of a
@@ -479,7 +488,7 @@ async function run(
 ): Promise<void> {
   await withRootContext(null, 'houseplant.test', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await controller.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model as never, ctx));
   });
 }
 

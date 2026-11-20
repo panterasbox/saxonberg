@@ -51,6 +51,13 @@ import type { SaleAnswer } from '../../PlatBook';
 const TOPIC = 'act.deed';
 
 export default class TitleBuyController extends TitleBookControllerBase {
+  /**
+   * ⭐ The class's half of `title buy`'s `compellable: consent` (call-security
+   * pass D11): a purchase at the counter at its posted price may be asked of
+   * you — and you are asked first, every time. Held by `lint:compellable`.
+   */
+  static override compellable = true;
+
   async execute(model: TitleBookModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const desk = this.deskOf(model, context, 'buy');

@@ -57,6 +57,7 @@ import {
   installV1QuantityMarshallers,
   installV1QuantityTagTables,
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestActor extends ThermalMixin(
   CommandGiverMixin(
@@ -145,10 +146,10 @@ async function run(
     command: verb === 'heat' ? heatCmd : stirCmd,
   });
   const ctrl = makeStuff(ctrlMake);
-  await ctrl.execute(
+  await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
     target === null ? ({} as never) : ({ [argName]: ref(target) } as never),
     ctx,
-  );
+  ));
   now += 60_000;
   WorldClockApi._advanceForTesting(60_000);
   await new Promise<void>((resolve) => setTimeout(resolve, 0));

@@ -16,6 +16,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CombatApi } from '../../../../api/combat';
 import { AccountabilityApi } from '../../../../api/accountability';
@@ -64,6 +65,7 @@ beforeEach(() => {
       return id;
     },
   );
+  spySaveMany(pm);
 });
 
 afterEach(() => {

@@ -19,6 +19,13 @@
 # placeholder in the meantime. The asset subsystem owns how these URLs
 # are produced; char-gen only consumes the field.
 
+# ⭐ `startingKit` — what EVERY new character is handed after dressing
+# (aether-devices D11): today a Hollis Pal phone, its title BOUND to the
+# new person (worthless to anyone else, unsellable), put away in a pocket.
+# The same for everyone until lineage chooses the brand.
+startingKit:
+  - { item: /stuff/thing/gear/hollis-pal, bound: true, into: pocket }
+
 species:
   - key: human
     path: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens

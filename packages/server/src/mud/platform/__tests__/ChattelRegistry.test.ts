@@ -26,6 +26,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../idea/ChattelRegistry";
 import Good from "../../lib/stuff/Good";
@@ -43,6 +44,8 @@ import TemplateApplier from "../idea/TemplateApplier";
 import { ChattelEvent } from "../../lib/chattel/ChattelEvent";
 import { Document } from "../../lib/persistence/Document";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
+import { ChattelRecord } from "../../lib/chattel/ChattelRecord";
+import { PersistApi } from "../../api/persist";
 import { makeStuffAtPath } from "../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import type { Stuff } from "../../lib/stuff/Stuff";
@@ -129,13 +132,13 @@ function installStore(): void {
       );
     },
   );
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   // Thing composes WetMixin's marshalled Quantity gauge — register the
   // v1 quantity marshallers so the round-trip's restore can resolve it.
   installV1QuantityMarshallers();
@@ -216,6 +219,30 @@ describe("chattel possession core", () => {
     expect(events.map((e) => e.event)).toEqual(["mint", "transfer"]);
     expect(events[1]?.from).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
     expect(events[1]?.to).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
+  });
+
+  it("⭐ a stamp and a transfer write the title in one keyed write — no read of the row (db-performance H4)", async () => {
+    const torch = makeTorch();
+    // The production read path (the test's fake builds its saveMany on its own find).
+    const find = vi.spyOn(PersistApi, "find");
+    await torch.stampChattel(makeOwner("alice"));
+    await torch.transferChattel(makeOwner("bob"));
+    expect(find.mock.calls.filter(([c]) => c === "chattel")).toHaveLength(0);
+    const rows = await ChattelRecord.find<ChattelRecord>({ chattelId: torch.getChattelId() });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
+  });
+
+  it("⭐ a good placed where it already stands is not written again (db-performance H4)", async () => {
+    const torch = makeTorch();
+    await torch.stampChattel(makeOwner("alice"));
+    const many = vi.spyOn(PersistApi, "saveMany");
+    await torch.setChattelPlace("/test/place/a");
+    await torch.setChattelPlace("/test/place/a");
+    await torch.setChattelPlace("/test/place/b");
+    expect(many.mock.calls.filter(([c]) => c === "chattel")).toHaveLength(2);
+    const [row] = await ChattelRecord.find<ChattelRecord>({ chattelId: torch.getChattelId() });
+    expect(row!.place).toBe("/test/place/b");
   });
 
   /**
@@ -447,5 +474,36 @@ describe("chattel possession core", () => {
     // A fresh, unrelated clone is unaffected — resolves via author fallback.
     const fresh = makeTorch();
     expect(await fresh.chattelOwner()).toBeNull();
+  });
+});
+
+describe("a bound title (aether-devices D10)", () => {
+  it("a bound title refuses transfer and re-stamp to anyone else; reads bound; survives an index rebuild", async () => {
+    const pal = makeTorch();
+    const alice = makeOwner("alice");
+    const bob = makeOwner("bob");
+
+    expect((await pal.stampChattel(alice, { bound: true })).ok).toBe(true);
+    expect(pal.isTitleBound()).toBe(true);
+
+    const moved = await pal.transferChattel(bob);
+    expect(moved).toEqual({ ok: false, reason: "bound" });
+    expect(await pal.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
+
+    expect((await pal.stampChattel(bob)).ok).toBe(false);
+    // Re-stamping to the same owner is not a move.
+    expect((await pal.stampChattel(alice)).ok).toBe(true);
+
+    // A restart rebuilds the index from the rows: still bound.
+    const reg = StuffApi.findByTemplatePath<ChattelRegistry>("/platform/idea/ChattelRegistry")!;
+    await reg.onCreate(); // the boot path: rebuild the index from the rows
+    expect(pal.isTitleBound()).toBe(true);
+  });
+
+  it("an unbound title still transfers", async () => {
+    const torch = makeTorch();
+    await torch.stampChattel(makeOwner("alice"));
+    expect(torch.isTitleBound()).toBe(false);
+    expect((await torch.transferChattel(makeOwner("bob"))).ok).toBe(true);
   });
 });

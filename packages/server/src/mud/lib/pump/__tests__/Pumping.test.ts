@@ -18,6 +18,7 @@
  */
 
 import { PoweredMixin } from '../../supply/Powered';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
@@ -83,7 +84,7 @@ function installInMemoryStore(initial: Doc[] = []): void {
     if (typeof query.path === 'string') return store.filter((d) => d.path === query.path);
     return store.slice();
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({ save, find } as unknown as PersistenceManager);
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({ save, find }) as unknown as PersistenceManager);
 }
 
 function installRootBiome(): void {

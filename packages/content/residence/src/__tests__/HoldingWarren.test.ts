@@ -10,6 +10,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { Lock } from "@saxonberg/server/mud/lib/lock/Lock";
@@ -50,6 +51,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 type MemberStuff = Stuff & Container;
 
@@ -261,13 +263,13 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,
@@ -699,13 +701,13 @@ describe('the maintenance act (D4/D5)', () => {
       const t = i as { hasCapability?(c: string): boolean };
       return typeof t.hasCapability === 'function' && t.hasCapability('upkeep');
     });
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       {
         ...(kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }),
         ...(target === undefined ? {} : { target: { stuff: target, raw: 'target' } }),
       } as CommandModel,
       ctx,
-    );
+    ));
     return ctx;
   }
 

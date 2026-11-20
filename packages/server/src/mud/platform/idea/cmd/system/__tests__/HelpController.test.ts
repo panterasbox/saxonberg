@@ -24,6 +24,7 @@ import { Mml } from "../../../../../api/mml";
 import { HelpApi } from "../../../../../api/help";
 import { StuffApi } from "../../../../../api/stuff";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 function topic(id: string, body: string): HelpTopic {
   return {
@@ -141,7 +142,7 @@ describe("help controllers", () => {
       verb: "help",
       command: undefined as unknown as CommandDefinition,
     });
-    await ctrl.execute(model as CommandModel, ctx as CommandContext);
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model as CommandModel, ctx$)))(ctx as CommandContext);
     return { topic: topicName, body: (selfBody as Mml)?.toString() ?? "" };
   }
 
@@ -229,7 +230,7 @@ describe("help controllers", () => {
       notes.push(n as { kind: string });
       realNote(n);
     });
-    await ctrl.execute({ topic: "nope" } as CommandModel, ctx as CommandContext);
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ topic: "nope" } as CommandModel, ctx$)))(ctx as CommandContext);
     expect(notes.some((n) => n.kind === "controller-rejected")).toBe(true);
   });
 });

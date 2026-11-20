@@ -18,6 +18,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
 import SubjectCatalogue from '../../platform/idea/SubjectCatalogue';
@@ -34,6 +35,7 @@ import {
   SubjectSubscriberMixin,
   type SubjectSubscriber,
 } from '../../lib/forum/SubjectSubscriber';
+import { TestHarnessApi } from '../test-harness';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -62,11 +64,11 @@ async function makeArgumentBoard(creator: Stuff & SubjectSubscriber) {
     open: true,
     organizer: 'ordered',
   });
-  const spine = await creator.postThread(
+  const spine = await TestHarnessApi.actAs(creator, () => creator.postThread(
     board,
     'Ranked-choice voting',
     'Adopt ranked-choice voting.',
-  );
+  ));
   return { board, subject, spine };
 }
 
@@ -83,6 +85,7 @@ beforeEach(() => {
       return id;
     },
   );
+  spySaveMany(pm);
   vi.spyOn(pm, 'find').mockImplementation(
     async (c: string, query: Record<string, unknown>) =>
       [...col(c).values()].filter((d) =>
@@ -126,28 +129,28 @@ describe('typed-edge contribution (attachClaim)', () => {
     const creator = makeActor();
     const { spine } = await makeArgumentBoard(creator);
 
-    const pro = await creator.attachClaim(
+    const pro = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       spine,
       'supports',
       'Reduces the spoiler effect.',
-    );
-    const con = await creator.attachClaim(
+    ));
+    const con = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       spine,
       'objects-to',
       'Ballots are harder to count.',
-    );
-    const question = await creator.attachClaim(
+    ));
+    const question = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       spine,
       'responds-to',
       'What does ranked-choice mean exactly?',
-    );
+    ));
     // Depth-2 rebuttal: an objection attached to the PRO (an argument
     // about an argument) — depth in the tree, not a fourth edge.
-    const rebuttal = await creator.attachClaim(
+    const rebuttal = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       pro,
       'objects-to',
       'The Maine 2018 data is thin.',
-    );
+    ));
 
     expect(pro.getRelation()).toBe('supports');
     expect(con.getRelation()).toBe('objects-to');
@@ -165,7 +168,7 @@ describe('organizer-scoped vocabulary', () => {
   it('an argument board refuses a popularity reply', async () => {
     const creator = makeActor();
     const { spine } = await makeArgumentBoard(creator);
-    await expect(creator.replyToEntry(spine, 'just a reply')).rejects.toThrow(
+    await expect(TestHarnessApi.actAs(creator, () => creator.replyToEntry(spine, 'just a reply'))).rejects.toThrow(
       /--pro|--con|argument/i,
     );
   });
@@ -175,9 +178,9 @@ describe('organizer-scoped vocabulary', () => {
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', {
       open: true,
     });
-    const thread = await creator.postThread(board, 'Hi', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'Hi', 'body'));
     await expect(
-      creator.attachClaim(thread, 'supports', 'nope'),
+      TestHarnessApi.actAs(creator, () => creator.attachClaim(thread, 'supports', 'nope')),
     ).rejects.toThrow(/not valid on an open/i);
   });
 });
@@ -186,13 +189,13 @@ describe('voting is unavailable on an argument board', () => {
   it('refuses castVote', async () => {
     const creator = makeActor();
     const { spine } = await makeArgumentBoard(creator);
-    const con = await creator.attachClaim(
+    const con = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       spine,
       'objects-to',
       'A concern.',
-    );
+    ));
     const voter = makeActor();
-    await expect(voter.castVote(con, 'up')).rejects.toThrow(
+    await expect(TestHarnessApi.actAs(voter, () => voter.castVote(con, 'up'))).rejects.toThrow(
       /argument board/i,
     );
   });
@@ -202,17 +205,17 @@ describe('edit-in-place with a lossless trail', () => {
   it('mutates the body and appends one entry-edited event carrying the prior body', async () => {
     const creator = makeActor();
     const { spine } = await makeArgumentBoard(creator);
-    const con = await creator.attachClaim(
+    const con = await TestHarnessApi.actAs(creator, () => creator.attachClaim(
       spine,
       'objects-to',
       'Ballots are harder to count.',
-    );
+    ));
     const priorBody = con.getBody();
 
-    const edited = await creator.editEntryBody(
+    const edited = await TestHarnessApi.actAs(creator, () => creator.editEntryBody(
       con,
       'Counting is fine with modern software.',
-    );
+    ));
 
     // Edit-in-place: the body changed and an edit stamp landed.
     expect(edited.getBody()).not.toBe(priorBody);

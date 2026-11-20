@@ -1,32 +1,25 @@
 /**
- * CredentialWalletUpdate — the credential wallet as a hosted update: the
- * born-with **wallet app**. Composes {@link CredentialWalletMixin} (the
- * holder) and `AetherHostedMixin` (the must-be-hosted relation) around a bare
- * `Idea`. Injected once into an attunement host by
- * `Avatar.installDefaultLoadout` (the `CommsUpdate` / `ForumsUpdate`
- * precedent), replacing the per-credential `PaymentImplantUpdate` and
- * `TravelCredentialUpdate` twins with a single app holding both records.
+ * WalletApp — the credential wallet, as an app installed on the person.
+ * Composes {@link CredentialWalletMixin} (the holder) on `App`, one app
+ * holding every credential kind. Row: `/platform/idea/app/wallet`.
  *
  * It affords the **payment verbs** to its host (the `self` bucket — a wallet
  * app is born holding a payment credential). Travel adds no holder-verbs:
  * `register` is afforded by the terminal, `teleport` is a general verb.
  *
- * Session-durable in v1: re-cloned each login from a seed that ships both an
+ * Session-durable: re-cloned each login from a row that ships both an
  * empty payment record and a floored travel record, so the born-with
- * University Avenue hop survives and accounts re-link via `openAccount`.
+ * University Avenue hop survives and accounts re-link in the loadout.
  */
 
-import { Idea } from "../../lib/stuff/Idea";
 import { CredentialWalletMixin } from "../../lib/credential/CredentialWallet";
 import type { CredentialKind } from "../../lib/credential/Credential";
-import { AetherHostedMixin } from "../../lib/augmentation/AetherHosted";
+import App from "./App";
 import { TemplatePaths } from "../../lib/paths";
 import type { CommandContributions } from "../../api/command";
 
-export default class CredentialWalletUpdate extends CredentialWalletMixin(
-  AetherHostedMixin(Idea),
-) {
-  static readonly TEMPLATE_PATH = TemplatePaths.credentialWalletUpdate;
+export default class WalletApp extends CredentialWalletMixin(App) {
+  static readonly TEMPLATE_PATH = TemplatePaths.walletApp;
 
   /** Born holding an (empty) payment record, a floored travel record, and an
    *  (empty) keychain — the implant keychain a lease adds a dorm keyway to. */
@@ -38,7 +31,7 @@ export default class CredentialWalletUpdate extends CredentialWalletMixin(
 
   /**
    * The wallet app affords the payment verbs to its host. Carried via the
-   * `self` bucket (a hosted update confers its `self` verbs to the host).
+   * `self` bucket (an app confers its `self` verbs to the host).
    */
   static commandContributions: CommandContributions = {
     // ⚠ `draw` and `fulfill` rode this list until controllers-are-io W7

@@ -23,6 +23,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import type { CommandContext } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Box extends SealableMixin(Holder) {}
 
@@ -52,7 +53,7 @@ async function lens(av: Avatar, state?: 'on' | 'off'): Promise<void> {
     location: null,
     note: () => undefined,
   } as unknown as CommandContext;
-  await ctrl.execute({}, context);
+  await TestHarnessApi.actAs(context.commandGiver, () => ctrl.execute({}, context));
 }
 
 describe('lens — the builder lens', () => {

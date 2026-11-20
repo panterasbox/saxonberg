@@ -469,7 +469,7 @@ export default class ReactionRegistry extends Idea {
     this.flushHandle = ScheduleApi.recurring(
       this.config().cadenceMs,
       () => this.flush(),
-      { mode: 'fixed-rate', propagateAttribution: false },
+      { mode: 'fixed-rate', propagateAttribution: false, system: 'reactions' },
     );
   }
 

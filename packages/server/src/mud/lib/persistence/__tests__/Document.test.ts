@@ -9,6 +9,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from './pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Document } from '../Document';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
@@ -51,6 +52,7 @@ function stubPM(): PMStubs {
     saves.push({ collection, doc });
     return 'inserted-id';
   });
+  spySaveMany(pm);
   vi.spyOn(pm, 'findById').mockImplementation(async (collection, id) => {
     findByIds.push({ collection, id });
     return nextFindByIdResult;

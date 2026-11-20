@@ -36,6 +36,7 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../../api/stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import type { FieldMeta } from '../../../../../lib/mixin';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const Base = OrganismMixin(
   ContainerMixin(
@@ -132,7 +133,7 @@ describe('TasteController', () => {
       via: { detailPath: ['apple'] },
     };
     const c = makeStuff(() => new TasteController());
-    c.execute(modelOf(target), ctxOf(fix));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => c.execute(modelOf(target), ctx$)))(ctxOf(fix));
     const f = fix.giver.received.at(-1);
     expect(f?.topic).toBe('sense.survey');
     expect(f?.body).toContain('tart');

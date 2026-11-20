@@ -69,6 +69,7 @@ import {
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends AdvancementMixin(
   SensorMixin(
@@ -507,10 +508,10 @@ describe('the area crop', () => {
       const p = standingCrop(ground, 100);
       const sickle = makeSickle(10); // 10 m² × 0.5 kg = 5 kg → 2 × 2 kg + 1 carried
       const ctx = makeContext(giver, ground, 'harvest');
-      await makeStuff(() => new HarvestController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestController()).execute(
         { target: one(p, 'grain'), tool: one(sickle, 'sickle') } as ModelData as never,
         ctx,
-      );
+      ));
       await settle();
       expect(crops(giver)).toHaveLength(2);
       expect(p.getHarvestCarryKg()).toBeCloseTo(1);
@@ -521,10 +522,7 @@ describe('the area crop', () => {
     it('bare hands cut the small hand swath', async () => {
       const { giver, ground } = scene();
       const p = standingCrop(ground, 100);
-      await makeStuff(() => new HarvestController()).execute(
-        { target: one(p, 'grain') } as ModelData as never,
-        makeContext(giver, ground, 'harvest'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({ target: one(p, 'grain') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'harvest'));
       await settle();
       // 2 m² × 0.5 kg = 1 kg: not yet a 2 kg good — carried.
       expect(crops(giver)).toHaveLength(0);
@@ -536,10 +534,7 @@ describe('the area crop', () => {
       const { giver, ground } = scene();
       const p = standingCrop(ground, 100);
       const before = ground.nutrientFraction()!;
-      await makeStuff(() => new HarvestController()).execute(
-        { target: one(p, 'grain'), tool: one(makeSickle(50), 'sickle') } as ModelData as never,
-        makeContext(giver, ground, 'harvest'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({ target: one(p, 'grain'), tool: one(makeSickle(50), 'sickle') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'harvest'));
       await settle();
       const after = ground.nutrientFraction()!;
       // Half the area: half of the 20-point draw.
@@ -549,10 +544,7 @@ describe('the area crop', () => {
     it('⭐ a monocarp ends at its last swath, the remainder made up', async () => {
       const { giver, ground } = scene();
       const p = standingCrop(ground, 3); // 1.5 kg — under one good
-      await makeStuff(() => new HarvestController()).execute(
-        { target: one(p, 'grain'), tool: one(makeSickle(10), 'sickle') } as ModelData as never,
-        makeContext(giver, ground, 'harvest'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({ target: one(p, 'grain'), tool: one(makeSickle(10), 'sickle') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'harvest'));
       await settle();
       expect(p.isDestroyed()).toBe(true);
       const got = crops(giver);
@@ -567,10 +559,10 @@ describe('the area crop', () => {
       const p = standingCrop(ground, 100);
       (p as unknown as { growthStage: string }).growthStage = 'young';
       const ctx = makeContext(giver, ground, 'harvest');
-      await makeStuff(() => new HarvestController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestController()).execute(
         { target: one(p, 'grain') } as ModelData as never,
         ctx,
-      );
+      ));
       expect(noteReasons(ctx)).toContain('not-mature');
     });
 
@@ -592,10 +584,10 @@ describe('the area crop', () => {
       const stand = standingCrop(ground, 100);
       (stand as unknown as { growthStage: string }).growthStage = 'established';
       const ctx = makeContext(giver, ground, 'harvest');
-      await makeStuff(() => new HarvestController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestController()).execute(
         { target: one(stand, 'grain') } as ModelData as never,
         ctx,
-      );
+      ));
       expect(said.join(' ')).toMatch(/still in ear/);
       expect(said.join(' ')).not.toMatch(/established/);
 
@@ -607,10 +599,10 @@ describe('the area crop', () => {
       (labeled as unknown as { growthStage: string }).growthStage = 'established';
       said.length = 0;
       const ctx2 = makeContext(giver, ground, 'harvest');
-      await makeStuff(() => new HarvestController()).execute(
+      await TestHarnessApi.actAs(ctx2.commandGiver, () => makeStuff(() => new HarvestController()).execute(
         { target: one(labeled, 'trial') } as ModelData as never,
         ctx2,
-      );
+      ));
       expect(noteReasons(ctx2)).not.toContain('needs-tool');
       expect(said.join(' ')).toMatch(/still in ear/);
     });
@@ -621,10 +613,7 @@ describe('the area crop', () => {
       const { giver, ground } = scene();
       const seed = makeSeed(3); // 3 kg at 0.1 kg/m² = 30 m²
       ContainmentApi.move(seed, giver);
-      await makeStuff(() => new PlantController()).execute(
-        { seed: one(seed, 'seed') } as ModelData as never,
-        makeContext(giver, ground, 'sow'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlantController()).execute({ seed: one(seed, 'seed') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'sow'));
       await settle();
       const crop = ground
         .getContents()
@@ -644,10 +633,7 @@ describe('the area crop', () => {
         return g;
       }, freshPath('/trade/farming/thing/crop/_grain'));
       ContainmentApi.move(grain, giver);
-      await makeStuff(() => new PlantController()).execute(
-        { seed: one(grain, 'grain') } as ModelData as never,
-        makeContext(giver, ground, 'sow'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlantController()).execute({ seed: one(grain, 'grain') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'sow'));
       await settle();
       const crop = ground.getContents().find((s): s is Plant => s instanceof Plant);
       expect(crop!.getSownAreaM2()).toBeCloseTo(30);
@@ -667,10 +653,7 @@ describe('the area crop', () => {
         return t;
       }, freshPath('/trade/farming/thing/_drill'));
       ContainmentApi.move(drill, ground);
-      await makeStuff(() => new PlantController()).execute(
-        { seed: one(seed, 'seed'), drill: one(drill, 'drill', 'with') } as ModelData as never,
-        makeContext(giver, ground, 'sow'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlantController()).execute({ seed: one(seed, 'seed'), drill: one(drill, 'drill', 'with') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'sow'));
       await settle();
       const crop = ground.getContents().find((s): s is Plant => s instanceof Plant);
       // One pass is the drill's swath, not the hand's 400 m².
@@ -686,9 +669,9 @@ describe('the area crop', () => {
       const seed = makeSeed(100); // enough for 1,000 m²
       ContainmentApi.move(seed, giver);
       const ctrl = () => makeStuff(() => new PlantController());
-      await ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, makeContext(giver, ground, 'sow'));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'sow'));
       await settle();
-      await ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, makeContext(giver, ground, 'sow'));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, ctx$)))(makeContext(giver, ground, 'sow'));
       await settle();
       const sown = ground.getContents().filter((s): s is Plant => s instanceof Plant);
       expect(sown).toHaveLength(1);
@@ -704,10 +687,10 @@ describe('the area crop', () => {
       const seed = makeSeed(3);
       ContainmentApi.move(seed, giver);
       const ctx = makeContext(giver, ground, 'sow');
-      await makeStuff(() => new PlantController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PlantController()).execute(
         { seed: one(seed, 'seed') } as ModelData as never,
         ctx,
-      );
+      ));
       expect(noteReasons(ctx)).toContain('ground-refuses-sowing');
       expect(seed.isDestroyed()).toBe(false);
     });
@@ -722,10 +705,10 @@ describe('the area crop', () => {
       const seed = makeSeed(3);
       ContainmentApi.move(seed, giver);
       const ctx = makeContext(giver, ground, 'sow');
-      await makeStuff(() => new PlantController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PlantController()).execute(
         { seed: one(seed, 'seed') } as ModelData as never,
         ctx,
-      );
+      ));
       expect(noteReasons(ctx)).toContain('other-crop-stands');
     });
 
@@ -737,10 +720,10 @@ describe('the area crop', () => {
       const seed = makeSeed(3);
       ContainmentApi.move(seed, giver);
       const ctx = makeContext(giver, ground, 'sow');
-      await makeStuff(() => new PlantController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PlantController()).execute(
         { seed: one(seed, 'seed') } as ModelData as never,
         ctx,
-      );
+      ));
       await settle();
       expect(noteReasons(ctx)).not.toContain('other-crop-stands');
       expect(stand.getSownAreaM2()).toBeCloseTo(130);
@@ -756,10 +739,10 @@ describe('the area crop', () => {
       const seed = makeSeed(3);
       ContainmentApi.move(seed, giver);
       const ctx = makeContext(giver, ground, 'sow');
-      await makeStuff(() => new PlantController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PlantController()).execute(
         { seed: one(seed, 'seed') } as ModelData as never,
         ctx,
-      );
+      ));
       expect(noteReasons(ctx)).toContain('not-broadcast');
     });
   });
@@ -823,14 +806,11 @@ describe('the area crop', () => {
       const laneN = lane.nutrientFraction();
 
       // Named by the lane end's stand, cut at the top end.
-      await makeStuff(() => new HarvestController()).execute(
-        {
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({
           target: one(thriving, 'grain'),
           part: one(top, 'the top end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
-        } as ModelData as never,
-        makeContext(giver, field, 'harvest'),
-      );
+        } as ModelData as never, ctx$)))(makeContext(giver, field, 'harvest'));
       await settle();
       expect(starved.standingAreaM2()).toBe(90);
       expect(thriving.standingAreaM2()).toBe(100);
@@ -841,14 +821,11 @@ describe('the area crop', () => {
       expect(top.nutrientFraction()!).toBeLessThan(1);
       expect(lane.nutrientFraction()).toBe(laneN);
 
-      await makeStuff(() => new HarvestController()).execute(
-        {
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({
           target: one(starved, 'grain'),
           part: one(lane, 'the lane end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
-        } as ModelData as never,
-        makeContext(giver, field, 'harvest'),
-      );
+        } as ModelData as never, ctx$)))(makeContext(giver, field, 'harvest'));
       await settle();
       expect(thriving.standingAreaM2()).toBe(90);
       const second = crops(giver).filter((c) => !first.includes(c));
@@ -868,26 +845,20 @@ describe('the area crop', () => {
       ContainmentApi.move(trial, field);
       (trial as unknown as { growthStage: string }).growthStage = 'mature';
       // The binder handed us the labeled plant (the word names both).
-      await makeStuff(() => new HarvestController()).execute(
-        {
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({
           target: one(trial, 'grain'),
           part: one(top, 'the top end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
-        } as ModelData as never,
-        makeContext(giver, field, 'harvest'),
-      );
+        } as ModelData as never, ctx$)))(makeContext(giver, field, 'harvest'));
       await settle();
       expect(stand.standingAreaM2()).toBe(90);
       expect(trial.isDestroyed()).toBe(false);
       // Named by its label, the labeled plant is what is cut.
-      await makeStuff(() => new HarvestController()).execute(
-        {
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute({
           target: one(trial, 'trial'),
           part: one(top, 'the top end', 'at'),
           tool: one(makeSickle(10), 'sickle'),
-        } as ModelData as never,
-        makeContext(giver, field, 'harvest'),
-      );
+        } as ModelData as never, ctx$)))(makeContext(giver, field, 'harvest'));
       await settle();
       expect(stand.standingAreaM2()).toBe(90);
     });
@@ -896,10 +867,10 @@ describe('the area crop', () => {
       const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
       const stand = standAt(field, parts[0]!, 0.9);
       const ctx = makeContext(giver, field, 'harvest');
-      await makeStuff(() => new HarvestController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestController()).execute(
         { target: one(stand, 'grain') } as ModelData as never,
         ctx,
-      );
+      ));
       await settle();
       expect(noteReasons(ctx)).toContain('part-unnamed');
       expect(JSON.stringify(giver.received)).toContain('Which part?');
@@ -930,10 +901,10 @@ describe('the area crop', () => {
             return parts[0];
           },
         });
-        await makeStuff(() => new HarvestAskingController()).execute(
+        await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestAskingController()).execute(
           { target: one(stand, 'grain'), tool: one(makeSickle(10), 'sickle') } as ModelData as never,
           ctx,
-        );
+        ));
         await settle();
         expect(asked).toHaveLength(1);
         expect(asked[0]!.label).toBe('which part');
@@ -947,10 +918,10 @@ describe('the area crop', () => {
         const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
         const stand = standAt(field, parts[0]!, 0.9);
         const ctx = makeContext(giver, field, 'harvest');
-        await makeStuff(() => new HarvestAskingController()).execute(
+        await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestAskingController()).execute(
           { target: one(stand, 'grain') } as ModelData as never,
           ctx,
-        );
+        ));
         await settle();
         expect(noteReasons(ctx)).toContain('part-unnamed');
         expect(JSON.stringify(giver.received)).toContain('Which part?');
@@ -966,10 +937,10 @@ describe('the area crop', () => {
             throw new Error('cancelled');
           },
         });
-        await makeStuff(() => new HarvestAskingController()).execute(
+        await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestAskingController()).execute(
           { target: one(stand, 'grain') } as ModelData as never,
           ctx,
-        );
+        ));
         await settle();
         expect(stand.standingAreaM2()).toBe(100);
       });
@@ -979,10 +950,10 @@ describe('the area crop', () => {
       const { giver, field, parts } = dividedScene([['top-end', 100], ['lane-end', 100]]);
       const stand = standAt(field, parts[0]!, 0.9);
       const ctx = makeContext(giver, field, 'harvest');
-      await makeStuff(() => new HarvestController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HarvestController()).execute(
         { target: one(stand, 'grain'), part: one(parts[1]!, 'the lane end', 'at') } as ModelData as never,
         ctx,
-      );
+      ));
       expect(noteReasons(ctx)).toContain('nothing-sown-there');
     });
 
@@ -994,13 +965,10 @@ describe('the area crop', () => {
       const ctrl = () => makeStuff(() => new PlantController());
 
       const unnamed = makeContext(giver, field, 'sow');
-      await ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, unnamed);
+      await TestHarnessApi.actAs(unnamed.commandGiver, () => ctrl().execute({ seed: one(seed, 'seed') } as ModelData as never, unnamed));
       expect(noteReasons(unnamed)).toContain('part-unnamed');
 
-      await ctrl().execute(
-        { seed: one(seed, 'seed'), part: one(gate, 'the gate end', 'at') } as ModelData as never,
-        makeContext(giver, field, 'sow'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl().execute({ seed: one(seed, 'seed'), part: one(gate, 'the gate end', 'at') } as ModelData as never, ctx$)))(makeContext(giver, field, 'sow'));
       await settle();
       const sown = field.getContents().filter((s): s is Plant => s instanceof Plant);
       expect(sown).toHaveLength(1);
@@ -1010,17 +978,14 @@ describe('the area crop', () => {
       expect(sown[0]!.getSownAreaM2()).toBeCloseTo(100);
 
       const full = makeContext(giver, field, 'sow');
-      await ctrl().execute(
+      await TestHarnessApi.actAs(full.commandGiver, () => ctrl().execute(
         { seed: one(seed, 'seed'), part: one(gate, 'the gate end', 'at') } as ModelData as never,
         full,
-      );
+      ));
       expect(noteReasons(full)).toContain('part-sown');
 
       // The middle is its own ground: a second stand, rooted there.
-      await ctrl().execute(
-        { seed: one(seed, 'seed'), part: one(middle, 'the middle', 'at') } as ModelData as never,
-        makeContext(giver, field, 'sow'),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl().execute({ seed: one(seed, 'seed'), part: one(middle, 'the middle', 'at') } as ModelData as never, ctx$)))(makeContext(giver, field, 'sow'));
       await settle();
       const both = field.getContents().filter((s): s is Plant => s instanceof Plant);
       expect(both).toHaveLength(2);
@@ -1032,10 +997,10 @@ describe('the area crop', () => {
       const seed = makeSeed(100);
       ContainmentApi.move(seed, giver);
       const ctx = makeContext(giver, field, 'sow');
-      await makeStuff(() => new PlantController()).execute(
+      await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new PlantController()).execute(
         { seed: one(seed, 'seed') } as ModelData as never,
         ctx,
-      );
+      ));
       await settle();
       expect(noteReasons(ctx)).not.toContain('part-unnamed');
       const sown = field.getContents().find((s): s is Plant => s instanceof Plant);

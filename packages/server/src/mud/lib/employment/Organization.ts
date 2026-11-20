@@ -58,6 +58,7 @@ import type {
 // eslint-disable-next-line no-restricted-imports -- the F4 org face: an organization's appoint()/dismiss()/roster reads forward into the employment logic singleton exactly as the api/employment facade does (the Combustible/Energized precedent)
 import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
 import { EmploymentApi } from '../../api/employment';
+import { AccessApi } from '../../api/access';
 
 /**
  * The organization's own mutation surface: itself, or the employment engine
@@ -696,6 +697,8 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       applicant: Stuff,
       positionKey: string,
     ): Promise<ApplicationVerdict> {
+      // who is acting must be who is named (call-security pass D5)
+      AccessApi.requireActor(applicant);
       const verdict = await this.considerApplicant(applicant, positionKey);
       if (!verdict.ok) return verdict;
       const hired = await this.appoint(applicant, positionKey);

@@ -1098,6 +1098,20 @@ a WORKER thread, so the harness's thirty sockets are not what it measures.
 command line); a profile is written at a clean exit — stop the world with
 SIGTERM. Slice it by the server uptime the crowd record marks per phase.
 
+⭐ **`/stats.db` is the database's own numbers** (db-performance, 2026-11):
+`pool` — `inUse` and `waiting` now, and since boot `waited` (check-outs
+that started with every connection taken), `waitMs` (time spent getting
+one) and `peakWaiting`; `roundTrips` (connection check-outs — one per wire
+command, cursor `getMore`s included: the figure the host's latency
+multiplies); `ops` and `byOp` — PersistenceManager calls and their wall
+time, in total and per `<op> <collection>`. Always on: two clock reads and
+a map write per op, honest enough to rank hot paths on any box (a COUNT is
+evidence anywhere; a time only on the quiet box). `callers` — the query
+trace's per-caller table — appears only with `SAXONBERG_QUERY_TRACE=1`,
+which costs a stack per op, so a traced run's timings are not evidence.
+`db-performance.dirty` is the third quiet-box file; `DBP_WORK=1` runs its
+working and stop steps for their counts on a box that is not quiet.
+
 ⭐ **The tripwire is armed in every wire world**: the room's own reading
 (the light walk, the sound gather, the smell fold, a card's projection)
 holds the world still, and a write inside it THROWS in a test world
@@ -1237,6 +1251,20 @@ all four shapes have now been tried in one file:
 ⚠ The third row is the one that costs the most time, because the failure
 surfaces far away: no instrument in hand reads as *the instrument is not
 in reach*, which looks like a defect in the reading ladder.
+
+## ⭐ Tests state who acts — `TestHarnessApi.actAs` (call-security pass)
+
+A protective method checks the actor it is handed against who the engine
+says is acting (`AccessApi.requireActor`), and a command run on a body is
+gated unless that body is acting. A unit test that calls such a method, or
+a controller's `execute(model, ctx)`, with no frame at all is "nobody
+acting" and is refused. Say who acts:
+`TestHarnessApi.actAs(person, () => thing.lock(person))`;
+`TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model, ctx))`.
+There is no test-environment branch in the check. A test that spies
+`ExecutionContextApi.getActingAuthor` to set a REST principal spies
+`getActor` alike. Staging through `TestHarnessApi.stage` runs as the
+system (`test-stage`) and may set state on anybody's behalf.
 
 ## Open: test seams a drive would want
 

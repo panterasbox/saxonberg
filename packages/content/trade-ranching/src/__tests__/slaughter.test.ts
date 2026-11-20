@@ -22,6 +22,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import SlaughterController from '../idea/cmd/ranching/SlaughterController';
 import HerdRegistry, { type HerdRecord } from '../idea/HerdRegistry';
@@ -56,6 +57,7 @@ import type {
 } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
 const SHEEP_PATH = '/stuff/idea/species/_test/sheep';
@@ -110,7 +112,7 @@ function installStore(): void {
       }),
     );
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: vi.fn(
@@ -119,7 +121,7 @@ function installStore(): void {
     ),
     delete: vi.fn(async () => undefined),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   Document.setMarshallerResolver(
     () => undefined,
     async () => undefined,
@@ -280,7 +282,7 @@ describe('slaughter', () => {
     expect(liveKg).toBeGreaterThan(70);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx(giver));
 
     // The animal is gone and exactly one body stands in its place.
     expect(ewe.isDestroyed()).toBe(true);
@@ -300,7 +302,7 @@ describe('slaughter', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx(giver));
 
     // Nothing but the body. No meat, no hide: a blade and a butcher's
     // hand are what turn a carcass into cuts.
@@ -315,13 +317,13 @@ describe('slaughter', () => {
     sheepSpecies();
     const r = registry();
     await r.file(HERD);
-    await r.draft('delight-flock', 3, giver);
+    await TestHarnessApi.actAs(giver, () => r.draft('delight-flock', 3, giver));
 
     const ewe = await head(SHEEP_PATH, { flesh: 61, herd: ['delight-flock', 3] });
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx(giver));
 
     const back = await r.read('delight-flock');
     expect(back?.tally).toBe(11);
@@ -339,7 +341,7 @@ describe('slaughter', () => {
     sheepSpecies();
     const r = registry();
     await r.file(HERD);
-    await r.draft('delight-flock', 3, giver);
+    await TestHarnessApi.actAs(giver, () => r.draft('delight-flock', 3, giver));
     vi.spyOn(HerdRegistry.prototype, 'returnHead').mockRejectedValue(
       new Error('the store is down'),
     );
@@ -349,7 +351,7 @@ describe('slaughter', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx(giver));
 
     expect(corpses).toHaveLength(1);
     expect(reasons()).toContain('book-write-failed');
@@ -362,7 +364,7 @@ describe('slaughter', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx(giver));
 
     expect(corpses).toHaveLength(1);
     expect(reasons()).toEqual([]);
@@ -410,7 +412,7 @@ describe('the three refusals do not read alike', () => {
     ContainmentApi.move(moss, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(moss), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(moss), ctx$)))(ctx(giver));
 
     expect(reasons()).toContain('named-animal');
     expect(corpses).toHaveLength(0);
@@ -430,7 +432,7 @@ describe('the three refusals do not read alike', () => {
     ContainmentApi.move(collie, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(collie), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(collie), ctx$)))(ctx(giver));
 
     expect(reasons()).toContain('no-yield');
     expect(corpses).toHaveLength(0);
@@ -450,7 +452,7 @@ describe('the three refusals do not read alike', () => {
     ContainmentApi.move(somebody, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(somebody), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(somebody), ctx$)))(ctx(giver));
 
     expect(reasons()).toContain('sentient');
     expect(corpses).toHaveLength(0);
@@ -461,7 +463,7 @@ describe('the three refusals do not read alike', () => {
     const ewe = await head(SHEEP_PATH);
     ContainmentApi.move(ewe, yard);
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe, []), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe, []), ctx$)))(ctx(giver));
     expect(reasons()).toEqual(['no-blade']);
     expect(ewe.isAlive()).toBe(true);
   });
@@ -470,13 +472,13 @@ describe('the three refusals do not read alike', () => {
     sheepSpecies();
     const r = registry();
     await r.file(HERD);
-    await r.draft('delight-flock', 3, giver);
+    await TestHarnessApi.actAs(giver, () => r.draft('delight-flock', 3, giver));
     armKnife();
     vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
     const ewe = await head(SHEEP_PATH, { herd: ['delight-flock', 3] });
     ContainmentApi.move(ewe, yard);
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx(giver));
     expect(reasons()).toEqual(['not-keeper']);
     expect(ewe.isAlive()).toBe(true);
   });
@@ -488,7 +490,7 @@ describe('the three refusals do not read alike', () => {
     ContainmentApi.move(ewe, yard);
 
     const ctrl = makeStuff(() => new SlaughterController());
-    await ctrl.execute(model(ewe), ctx(giver));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx(giver));
 
     expect(reasons()).toContain('not-an-animal');
     expect(corpses).toHaveLength(0);

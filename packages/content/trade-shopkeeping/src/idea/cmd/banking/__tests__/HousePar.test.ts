@@ -33,6 +33,7 @@ import {
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import HouseParController from '../HouseParController';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const BIZ = '/stuff/test/bar/business';
 const DAVE = '/platform/agent/Avatar/dave';
@@ -89,10 +90,7 @@ describe('`house par` — the shop keeps the sheet', () => {
     ContainmentApi.move(tablet, dave as never);
     const run = (level: string, extra: Record<string, string> = {}) =>
       asActor(dave, () =>
-        makeStuff(() => new HouseParController()).execute(
-          { subcommand: 'par', category: 'gin', level, ...extra } as never,
-          ctx(dave, loc, `house par gin ${level}`),
-        ),
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HouseParController()).execute({ subcommand: 'par', category: 'gin', level, ...extra } as never, ctx$)))(ctx(dave, loc, `house par gin ${level}`)),
       );
     await run('6L', { from: '/stuff/test/distillery' });
     expect(biz.getParLines()[0]?.serialize()).toEqual({

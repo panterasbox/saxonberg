@@ -11,6 +11,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import SearchController from '../../../platform/idea/cmd/perception/SearchController';
@@ -50,6 +51,7 @@ import { EngagedMixin } from '../../../lib/activity/Engaged';
 import { BeliefStoreMixin } from '../../../lib/belief/BeliefStore';
 import { makeStuff
 } from '../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const PH = '/platform/idea/TemplateApplier';
 const HINT = 'a hairline seam and a thread of cool air from the north wall';
@@ -115,7 +117,7 @@ function installStore(): void {
   const store = [...(KERNEL_CONTENT_ROWS as unknown as typeof docs), ...docs].map(
     (d, i) => ({ ...d, _id: String(i + 1) }),
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save: vi.fn(async () => '1'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {
       if (collection !== Collections.Content) return [];
@@ -127,7 +129,7 @@ function installStore(): void {
     findById: vi.fn(async (_c: string, id: string) =>
       store.find((d) => d._id === id) ?? null,
     ),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function stub(verb: string): CommandDefinition {
@@ -220,7 +222,7 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
 
     // Search the bar → the broad scan discovers the concealed north exit.
     const searchC = makeStuff(() => new SearchController());
-    await searchC.execute({} as CommandModel, ctx(patron, bar as never, 'search'));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => searchC.execute({} as CommandModel, ctx$)))(ctx(patron, bar as never, 'search'));
     WorldClockApi._advanceForTesting(6000);
     await new Promise((r) => setTimeout(r, 0));
 
@@ -236,10 +238,7 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
       '/world/lounge/location/office',
     );
     const goC = makeStuff(() => new GoController());
-    await goC.execute(
-      { target: resolveTarget(patron, 'north') } as CommandModel,
-      ctx(patron, bar as never, 'go'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => goC.execute({ target: resolveTarget(patron, 'north') } as CommandModel, ctx$)))(ctx(patron, bar as never, 'go'));
     expect(
       (patron as unknown as { getContainer(): unknown }).getContainer(),
     ).toBe(office);

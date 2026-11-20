@@ -1,0 +1,16 @@
+# A charger — a small powered pad you set a phone on (aether-devices D6).
+# `put phone on charger`: while it sits in a place on a live supply, a
+# battery resting on it fills. Carried, it is not plugged in. Nobody is
+# billed for charging (metered billing is a deferred seam).
+class: /system/energy/thing/Charger
+data:
+  shortDescription: phone charger
+  keywords: [charger, "phone charger", pad]
+  register: indefinite
+  longDescription: >
+    A flat pad of grey composite the size of a saucer, a braided lead
+    trailing from it to the wall, and a small light set into one edge.
+  _materialPath: /stuff/idea/material/glass/glass
+  mass: 0.2
+  dimensions: { width: 0.1, depth: 0.1, height: 0.012 }
+  placements: [/platform/placements/on]

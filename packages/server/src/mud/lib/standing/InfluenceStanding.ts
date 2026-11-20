@@ -26,6 +26,19 @@ import { Band } from './Band';
  */
 export type Stock = 'consumer' | 'capital' | 'producer';
 
+/**
+ * ⭐ One entry of a stock's warmed read index (db-performance D5): the
+ * figure a scoring pass computed and the instant it computed it at, so a
+ * read decays it to now — an idle subject needs no pass for its standing
+ * to fall. `at` absent: read flat (a test seam, or a row written before
+ * the instant was kept). Participation and producer keep real-time ms;
+ * renown keeps game seconds and the three sums its figure is built from.
+ */
+export interface StandingPoint {
+  value: number;
+  at?: number;
+}
+
 export class InfluenceStanding {
   constructor(
     public readonly subject: string,

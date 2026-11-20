@@ -16,6 +16,7 @@ import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { OrganismMixin } from '../../lib/species/Organism';
 import { AetherMixin } from '../../lib/message/Aether';
+import { AetherHostMixin } from '../../lib/augmentation/AetherHost';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import Good from '../../lib/stuff/Good';
 import AetherImplant from '../../platform/thing/AetherImplant';
@@ -26,7 +27,7 @@ import {
 import { buildAllModalities } from '../../lib/perception/modalities/__tests__/test-helpers';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
-class AvatarLike extends SlottedMixin(AetherMixin(OrganismMixin(Good))) {
+class AvatarLike extends SlottedMixin(AetherHostMixin(AetherMixin(OrganismMixin(Good)))) {
   static fieldMeta: FieldMeta = {};
   // staticSlots is consulted by Slotted to know what slot names exist.
   // The test's cranial slot accepts SlottableMixin (the AetherImplant
@@ -106,7 +107,7 @@ describe('PerceptionApi.sensorium — augment-conferred ESP modalities', () => {
   });
 });
 
-// ─── Step 3.2: hosted-update modality grants (substrate proof) ──────
+// ─── Step 3.2: hosted-app modality grants (substrate proof) ──────
 
 import { AetherHostedMixin } from '../../lib/augmentation/AetherHosted';
 import { Idea } from '../../lib/stuff/Idea';
@@ -122,9 +123,9 @@ function GrantingMixin<TBase extends MixinConstructor>(Base: TBase) {
   };
 }
 class GrantingUpdate extends GrantingMixin(AetherHostedMixin(Idea)) {}
-class BareHost extends AetherMixin(Idea) {}
+class BareHost extends AetherHostMixin(AetherMixin(Idea)) {}
 
-describe('PerceptionApi.sensorium — hosted-update modality grants', () => {
+describe('PerceptionApi.sensorium — hosted-app modality grants', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     buildAllModalities();
@@ -133,13 +134,13 @@ describe('PerceptionApi.sensorium — hosted-update modality grants', () => {
     StuffApi.clearAll();
   });
 
-  it("unions a hosted update's _grantsModalities into the host sensorium", () => {
+  it("unions an app's _grantsModalities into the host sensorium", () => {
     const host = makeStuff(() => new BareHost());
     expect(PerceptionApi.sensorium(host).map((m) => m.getName())).not.toContain(
       'verbal-esp',
     );
     const update = makeStuff(() => new GrantingUpdate());
-    (host as unknown as { hostUpdate: (u: unknown) => void }).hostUpdate(update);
+    (host as unknown as { hostApp: (u: unknown) => void }).hostApp(update);
     expect(PerceptionApi.sensorium(host).map((m) => m.getName())).toContain(
       'verbal-esp',
     );

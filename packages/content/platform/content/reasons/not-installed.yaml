@@ -1,0 +1,6 @@
+# `apps uninstall <app>` naming an app the device does not run (aether-devices D3).
+facts:
+  device: thing
+  app: text
+says: "{{ device | item | cap }} has no '{{ app }}' installed."
+topic: act.deed

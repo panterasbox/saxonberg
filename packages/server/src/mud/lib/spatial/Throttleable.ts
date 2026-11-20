@@ -10,6 +10,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TrajectoryLog, type Piecewise, type Breakpoint } from '../Trajectory';
 import type { Sealable, OpenAnswer, OpenFacts } from './Sealable';
+import { AccessApi } from '../../api/access';
 
 /** One worked opening on a throttled gate: who set it, to what, and when. */
 export interface WorkRecord {
@@ -140,6 +141,7 @@ export function ThrottleableMixin<TBase extends NestingConstructor<Stuff & Seala
 
     /** ⭐ Opened BY AN AMOUNT (controller-liquidity W7c): a named setting is worked; bare, it opens full. */
     public override openPlanFor(by: Stuff, setting: string | null): OpenAnswer {
+      AccessApi.requireActor(by);
       if (setting === null) return super.openPlanFor(by, setting);
       const may = this.canOpen(by);
       if (!may.ok) return may;

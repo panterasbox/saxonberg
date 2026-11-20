@@ -16,6 +16,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Location from '../../location/Location';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
@@ -195,7 +196,7 @@ beforeEach(() => {
   dustMaterial();
 
   snapshots = [];
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     save: vi.fn(async (col: string, doc: Record<string, unknown>) => {
       if (col !== 'holder_snapshots') return 'id';
@@ -211,7 +212,7 @@ beforeEach(() => {
     ),
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'test' });
   vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
     if (path === BLOCK || path === LUMP) return block(1, path);

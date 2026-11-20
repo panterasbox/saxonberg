@@ -23,6 +23,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { AdvancementMixin } from '../../../lib/advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
@@ -78,6 +79,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
 import type Interactive from '../../../platform/idea/Interactive';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 const PH = TemplateApplier.templatePath;
 // The trap rows are the generic-objects pack's (content-packs wave 3).
@@ -164,7 +166,7 @@ function installStore(docs: Doc[]): void {
   const store = [...(KERNEL_CONTENT_ROWS as unknown as Doc[]), ...docs].map(
     (d, i) => ({ ...d, _id: String(i + 1) }),
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => false,
     save: vi.fn(async () => '1'),
     find: vi.fn(async (collection: string, query: Record<string, unknown>) => {
@@ -177,7 +179,7 @@ function installStore(docs: Doc[]): void {
     findById: vi.fn(
       async (_c: string, id: string) => store.find((d) => d._id === id) ?? null,
     ),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 // A delver: Mobile (traverses + springs traps) + Sensor + BeliefStore (records
@@ -568,10 +570,7 @@ describe('The Sunken Delve — search reveals the secrets', () => {
 
     // Search the corridor — the broad scan (untrained + searchBonus 4 reaches
     // `hidden` = 4) discovers both. Not Engaged → resolves synchronously.
-    await makeStuff(() => new SearchController()).execute(
-      {},
-      ctx(m, room('corridor-1'), 'search'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new SearchController()).execute({}, ctx$)))(ctx(m, room('corridor-1'), 'search'));
 
     // After: both are discovered, present, and usable.
     expect(PerceptionApi.hasDiscovered(m, secret as never)).toBe(true);
@@ -597,18 +596,12 @@ describe('The Sunken Delve — disarm is found-gated', () => {
       ({ stuff: dart as unknown as Stuff, raw: 'dart' }) as MqlOneResult;
 
     // Undiscovered — you can't defuse what you can't see.
-    await makeStuff(() => new DisarmController()).execute(
-      { target: tgt() },
-      ctx(m, room('corridor-1'), 'disarm'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: tgt() }, ctx$)))(ctx(m, room('corridor-1'), 'disarm'));
     expect(dart.isArmed()).toBe(true);
 
     // Discover it, then disarm succeeds (sync — the delver isn't Engaged).
     PerceptionApi.recordDiscovery(m, dart as unknown as Stuff);
-    await makeStuff(() => new DisarmController()).execute(
-      { target: tgt() },
-      ctx(m, room('corridor-1'), 'disarm'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: tgt() }, ctx$)))(ctx(m, room('corridor-1'), 'disarm'));
     expect(dart.getHazardState()).toBe('disarmed');
   });
 });

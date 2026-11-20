@@ -605,6 +605,8 @@ export default class Tract extends TractBase {
    * measured; more than is left; a crop standing across the line.
    */
   public async markField(giver: Stuff, name: string, share: number | null): Promise<MarkOutcome> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(giver);
     const gate = await this.markingRefusal(giver);
     if (gate) return gate;
     const key = fieldKeyOf(name);
@@ -665,6 +667,8 @@ export default class Tract extends TractBase {
    * when it is not yours, or while a crop stands in it.
    */
   public async unmarkField(giver: Stuff, field: Stuff & Field): Promise<MarkOutcome> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(giver);
     const gate = await this.markingRefusal(giver, false);
     if (gate) return gate;
     const crop = field.cropsOn()[0] ?? null;
@@ -732,6 +736,8 @@ export default class Tract extends TractBase {
    * cannot be divided.
    */
   private async markingRefusal(giver: Stuff, askZoning = true): Promise<MarkOutcome | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(giver);
     const where = this.groundPath();
     const covering = await ParcelApi.coveringParcelOf(where);
     if (covering) {

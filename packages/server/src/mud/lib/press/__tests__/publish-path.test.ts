@@ -18,6 +18,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OrganizationEntity from '../../../platform/idea/Organization';
 import PressBoard from '../../../platform/idea/PressBoard';
@@ -70,6 +71,7 @@ function installStore(): void {
       return id;
     },
   );
+  spySaveMany(pm);
 }
 
 /** A publisher with `holder` in its one publishing position. */

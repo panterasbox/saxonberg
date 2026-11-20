@@ -14,6 +14,7 @@ import { Mml } from '../../../../../api/mml';
 import { StuffApi } from '../../../../../api/stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 describe('ClearController', () => {
   let topic: string | undefined;
@@ -48,7 +49,7 @@ describe('ClearController', () => {
     const ctrl = makeStuff(() => new ClearController());
     const ctx = { commandGiver: {} } as unknown as CommandContext;
 
-    ctrl.execute({} as CommandModel, ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({} as CommandModel, ctx));
 
     expect(topic).toBe('shell.control');
     // Empty body → the client's frame buffer skips it (no scrollback

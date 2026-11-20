@@ -1,0 +1,33 @@
+verbs: [force]
+category: author
+controller: /platform/idea/cmd/author/ForceController
+description: "Make a character run a command"
+help: |
+  `force <who> <command>` makes a character run a command — as
+  themselves, through their own verbs and gates.
+
+  A character nobody plays — an NPC, an animal — is driven by its
+  KEEPER: whoever holds title over its row, because they authored its
+  mind. Anything goes, speech included. Owning an animal is not keeping
+  it: a pet's owner does not drive it, and is told when its keeper does.
+  Every use is recorded where the keeper reads `errors`.
+
+  A player's character is never yours to drive. It is asked first,
+  every time, and only for what may be asked of anyone (a purchase at a
+  counter, not speech, not giving things away) — so for a player,
+  `force` is the same question any code that asks them would put.
+examples:
+  - cmd: force dave say Last orders.
+    note: Make an NPC you keep say something
+  - cmd: force cat follow me
+    note: Drive an animal whose row you keep
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: class:Agent
+  - name: line
+    type: string
+    required: true
+    greedy: true

@@ -9,6 +9,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
 import SubjectCatalogue from '../../platform/idea/SubjectCatalogue';
@@ -28,6 +29,7 @@ import {
   SubjectSubscriberMixin,
   type SubjectSubscriber,
 } from '../../lib/forum/SubjectSubscriber';
+import { TestHarnessApi } from '../test-harness';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -64,6 +66,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(pm, 'find').mockImplementation(
     async (c: string, query: Record<string, unknown>) =>
       [...col(c).values()].filter((d) =>
@@ -105,9 +108,9 @@ async function freshBoard() {
 describe('forum event log (dual-write, persist-then-fire)', () => {
   it('appends exactly one row per mutation and fires after it persists', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await creator.postThread(board, 'T', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'T', 'body'));
     const voter = makeActor();
-    await voter.castVote(thread, 'up');
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up'));
 
     // makeForum mints a `board-created` event; the mutations under test
     // are the post + the vote. Filter the setup event out.
@@ -136,11 +139,11 @@ describe('forum event log (dual-write, persist-then-fire)', () => {
 
   it('the log is append-only — a vote toggle adds rows, never mutates', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await creator.postThread(board, 'T', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'T', 'body'));
     const voter = makeActor();
-    await voter.castVote(thread, 'up'); // up
-    await voter.castVote(thread, 'up'); // toggle off
-    await voter.castVote(thread, 'down'); // down
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up')); // up
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up')); // toggle off
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'down')); // down
     // board-created + post + 3 votes = 5 rows, none rewritten.
     expect(col(Collections.ForumEvents).size).toBe(5);
   });
@@ -149,29 +152,29 @@ describe('forum event log (dual-write, persist-then-fire)', () => {
 describe('forum voting', () => {
   it('auto-upvotes the author (+1, locked)', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await creator.postThread(board, 'T', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'T', 'body'));
     expect(thread.up).toBe(1);
     expect(thread.getScore()).toBe(1);
     // The author's own vote row is locked.
-    await expect(creator.castVote(thread, 'down')).rejects.toThrow(
+    await expect(TestHarnessApi.actAs(creator, () => creator.castVote(thread, 'down'))).rejects.toThrow(
       /your own entry/
     );
   });
 
   it('toggles up → none → down for a non-author voter', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await creator.postThread(board, 'T', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'T', 'body'));
     const voter = makeActor();
 
-    let e = await voter.castVote(thread, 'up');
+    let e = await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up'));
     expect(e.up).toBe(2); // author + voter
     expect(await ForumsApi.getVoteState(e, voterId(voter))).toBe('up');
 
-    e = await voter.castVote(thread, 'up'); // toggle off
+    e = await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up')); // toggle off
     expect(e.up).toBe(1);
     expect(await ForumsApi.getVoteState(e, voterId(voter))).toBeNull();
 
-    e = await voter.castVote(thread, 'down');
+    e = await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'down'));
     expect(e.up).toBe(1);
     expect(e.down).toBe(1);
     expect(e.getScore()).toBe(0);
@@ -179,10 +182,10 @@ describe('forum voting', () => {
 
   it('one row per (entry, voter) — re-voting does not stack', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await creator.postThread(board, 'T', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'T', 'body'));
     const voter = makeActor();
-    await voter.castVote(thread, 'up');
-    await voter.castVote(thread, 'down');
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'up'));
+    await TestHarnessApi.actAs(voter, () => voter.castVote(thread, 'down'));
     const rows = [...col(Collections.ForumVotes).values()].filter(
       (r) => r.entry === thread._id && r.voter === voterId(voter)
     );
@@ -193,9 +196,9 @@ describe('forum voting', () => {
 describe('forum sorts + anti-snowball', () => {
   it('orders threads by top / new / controversial; ranking ignores the display gate', async () => {
     const { creator, board } = await freshBoard();
-    const a = await creator.postThread(board, 'A', 'a');
-    const b = await creator.postThread(board, 'B', 'b');
-    const c = await creator.postThread(board, 'C', 'c');
+    const a = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'A', 'a'));
+    const b = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'B', 'b'));
+    const c = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'C', 'c'));
 
     // Stamp controlled aggregates + ages directly in the store.
     setEntry(a._id!, { up: 10, down: 0, createdAt: new Date(1000) });
@@ -216,7 +219,7 @@ describe('forum sorts + anti-snowball', () => {
 
   it('anti-snowball hides the displayed score until K votes / T minutes', async () => {
     const { creator, board } = await freshBoard();
-    const thread = await creator.postThread(board, 'T', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'T', 'body'));
     // Fresh entry, < 5 votes, < 30 min → display hidden.
     setEntry(thread._id!, { up: 2, down: 0, createdAt: new Date() });
     const fresh = await ForumsApi.getEntry(thread._id!);

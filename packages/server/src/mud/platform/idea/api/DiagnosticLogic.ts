@@ -245,6 +245,14 @@ async function packRecipients(packId: string): Promise<Stuff[]> {
 const CONTENT_ERROR = 'content-error';
 
 /**
+ * ⭐ The channels whose row is the code KEEPER's business, routed to
+ * whoever holds title over its path (failure-model D6; call-security pass
+ * D7: a protective method refused a lying claim, and the code that lied is
+ * at `path`). One routing set, never a branch per channel.
+ */
+const TITLE_ROUTED: ReadonlySet<string> = new Set([CONTENT_ERROR, 'call-security', 'force']);
+
+/**
  * Who holds title over `path` and is online: a player, a group's members,
  * an organization's committee. Untitled → nobody (the row is still listed
  * to whoever holds an extent over it).
@@ -265,7 +273,7 @@ async function titleRecipients(path: string): Promise<Stuff[]> {
 function pushToAuthor(ev: DiagnosticEvent): void {
   // ⭐ A content error goes to whoever holds title over the row
   // (failure-model D6) — the maintainer, never an unrelated wizard.
-  if (ev.channel === CONTENT_ERROR && ev.path) {
+  if (TITLE_ROUTED.has(ev.channel) && ev.path) {
     void titleRecipients(ev.path)
       .then((who) => { for (const av of who) pushTo(av, ev); })
       .catch(() => undefined);
@@ -323,7 +331,7 @@ export class DiagnosticLogic extends ApiLogic {
   public async record(d: RuntimeDiagnostic): Promise<void> {
     if (!connected()) return;
     // A content error's reader is the row's title holder, not its last author.
-    const author = d.path && d.channel !== CONTENT_ERROR ? await ProvenanceApi.authorOf(d.path) : null;
+    const author = d.path && !TITLE_ROUTED.has(d.channel ?? '') ? await ProvenanceApi.authorOf(d.path) : null;
     const row = makeRow({
       source: 'runtime',
       severity: d.severity ?? 'error',

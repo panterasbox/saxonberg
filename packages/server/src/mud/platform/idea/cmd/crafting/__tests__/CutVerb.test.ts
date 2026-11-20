@@ -26,6 +26,7 @@ import type { CommandContext } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { TestActor, makeContext, ref, many } from './branch-fixtures';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let made: string[] = [];
 
@@ -85,7 +86,7 @@ afterEach(() => {
 
 async function run(model: Record<string, unknown>): Promise<CommandContext> {
   const ctx = makeContext(actor as unknown as Stuff, room as unknown as Stuff, 'cut');
-  await makeStuff(() => new CutController()).execute(model as never, ctx);
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new CutController()).execute(model as never, ctx));
   return ctx;
 }
 

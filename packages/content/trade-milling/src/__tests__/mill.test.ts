@@ -59,6 +59,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const PACK = join(here, '..', '..');
@@ -218,7 +219,7 @@ async function mill(
 ): Promise<CommandContext> {
   const c = ctx();
   const ctrl = makeStuff(() => new MillController());
-  await ctrl.execute(
+  await TestHarnessApi.actAs(c.commandGiver, () => ctrl.execute(
     {
       // The binder's shape — a controller test skips the binder.
       ...(grain ? { grain: { stuff: grain, raw: 'grain' } } : {}),
@@ -226,7 +227,7 @@ async function mill(
       ...(extraction !== undefined ? { extraction } : {}),
     } as never,
     c,
-  );
+  ));
   return c;
 }
 

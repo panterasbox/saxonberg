@@ -13,6 +13,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { PersistableApi } from "../../../../api/persistable";
 import { StuffApi } from "../../../../api/stuff";
@@ -128,13 +129,13 @@ beforeEach(() => {
     const i = snapshots.findIndex((d) => d._id === id);
     if (i >= 0) snapshots.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     isConnected: () => true,
     save,
     find,
     findById: vi.fn(),
     delete: del,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   vi.spyOn(StuffApi, "clone").mockImplementation(
     ((path: string) => mockClone(path)) as unknown as typeof StuffApi.clone,

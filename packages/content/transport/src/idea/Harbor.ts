@@ -58,6 +58,7 @@ import type { LineFrame } from '@saxonberg/server/mud/lib/expanse/LineFrame';
 import { Expanse } from '@saxonberg/server/mud/lib/expanse/Expanse';
 import type { Bill } from '@saxonberg/server/mud/lib/banking/Payable';
 import HarborBook, { type BerthRecord, type BerthBookRecord, type HarborCriterion } from '../thing/HarborBook';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 export type { BerthRecord, HailRecord, HarborCriterion } from '../thing/HarborBook';
 
@@ -543,6 +544,8 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
    * her are told. Returns the refusal, or `null` when written.
    */
   public async assignBy(ship: Ship, place: string, by: Stuff, nowS: number): Promise<string | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     if (!this.keptBy(by)) return 'You do not keep this harbor.';
     const book = await this.liveBook();
     const s = ship as unknown as Stuff;
@@ -580,6 +583,8 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
    * Those aboard her are told. Returns the refusal, or `null`.
    */
   public async sendToRoads(ship: Ship, by: Stuff, nowS: number): Promise<string | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     if (!this.keptBy(by)) return 'You do not keep this harbor.';
     const book = await this.liveBook();
     const s = ship as unknown as Stuff;

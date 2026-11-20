@@ -38,6 +38,7 @@ import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { ArrangementSpec } from '@saxonberg/types';
 import { MAX_SAVED_ARRANGEMENTS_PER_MODE } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -109,7 +110,7 @@ describe('the client-layout controllers', () => {
   async function run(model: LayoutModel): Promise<CommandContext> {
     const picked = controllerFor(model);
     const ctx = makeContext(actor, location);
-    await picked.controller.execute(picked.model as never, ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => picked.controller.execute(picked.model as never, ctx$)))(ctx as never);
     return ctx;
   }
 
@@ -210,7 +211,7 @@ describe('the client-layout controllers', () => {
         ],
       } as never,
     });
-    await controller.execute({ name: 'wide' } as never, ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute({ name: 'wide' } as never, ctx$)))(ctx as never);
     expect(saved().explore?.wide).toEqual({
       cards: [
         { cardId: 'who', size: 'medium', pinned: true, placed: { col: 1, row: 0 } },
@@ -234,7 +235,7 @@ describe('the client-layout controllers', () => {
     await run({ name: 'default' });
     const recalled = makeStuff(() => new ClientLayoutRecallController());
     const ctx = makeContext(actor, location);
-    await recalled.execute({ name: 'list' } as never, ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => recalled.execute({ name: 'list' } as never, ctx$)))(ctx as never);
     expect(rejection(ctx)).toBeUndefined();
     expect(actor.getCockpitArrangement()).toBe('list');
   });

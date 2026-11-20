@@ -26,6 +26,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { AdvancementMixin } from '../../advancement/Advancement';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Trap from '../../../platform/thing/Trap';
@@ -121,6 +122,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockResolvedValue([] as never);
   vi.spyOn(pm, 'save').mockResolvedValue('id-0' as never);
+  spySaveMany(pm);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;

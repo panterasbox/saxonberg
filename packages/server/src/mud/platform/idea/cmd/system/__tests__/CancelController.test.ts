@@ -37,6 +37,7 @@ import {
   type ModelData,
 } from '../../../../../api/command';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // CommandGiver shape that composes EngagedMixin so isEngaged is true.
 class TestActor extends SensorMixin(
@@ -129,10 +130,10 @@ describe('CancelController', () => {
 
     const controller = makeStuff(() => new CancelController());
     const ctx = makeContext(actor, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel() as Parameters<CancelController['execute']>[0],
       ctx,
-    );
+    ));
 
     expect(actor.getEngagements().length).toBe(0);
     expect(ctx.getStatus()).toBe('ok');
@@ -150,10 +151,10 @@ describe('CancelController', () => {
 
     const controller = makeStuff(() => new CancelController());
     const ctx = makeContext(actor, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel('walking') as Parameters<CancelController['execute']>[0],
       ctx,
-    );
+    ));
 
     expect(actor.getEngagementBySlot('body')).toBeUndefined();
     expect(actor.getEngagementBySlot('attention')).toBe(
@@ -168,10 +169,10 @@ describe('CancelController', () => {
 
     const controller = makeStuff(() => new CancelController());
     const ctx = makeContext(actor, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel('forging') as Parameters<CancelController['execute']>[0],
       ctx,
-    );
+    ));
 
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
@@ -190,10 +191,10 @@ describe('CancelController', () => {
     const controller = makeStuff(() => new CancelController());
     const ctx = makeContext(actor, loc);
     expect(() =>
-      controller.execute(
+      TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
         makeModel() as Parameters<CancelController['execute']>[0],
         ctx,
-      ),
+      )),
     ).not.toThrow();
     expect(ctx.getStatus()).toBe('ok');
   });

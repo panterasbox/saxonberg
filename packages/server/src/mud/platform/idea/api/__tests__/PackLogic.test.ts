@@ -12,6 +12,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spyPersistSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs';
 import { tmpdir } from 'os';
@@ -80,6 +81,7 @@ function stubPersist(): void {
       return id;
     },
   );
+  spyPersistSaveMany();
   vi.spyOn(PersistApi, 'delete').mockImplementation(
     async (_col: string, id: string) => {
       const i = rows.findIndex((r) => r._id === id);
@@ -426,6 +428,7 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     expect(hollis!.inserted.sort()).toEqual([
       '/corpo/hollis', // the org chart (content-packs wave 3)
       '/stuff/idea/corpo/Brand/hollis-cane',
+      '/stuff/idea/corpo/Brand/hollis-pal',
       '/stuff/idea/corpo/Brand/old-hollis',
       '/stuff/idea/corpo/Corpo/hollis',
       // Capital + the mark, nothing else: Hollis's bottling floor is a

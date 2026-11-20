@@ -20,6 +20,7 @@ export {
 } from "../../../../backend/PersistenceManager";
 
 import { vi } from "vitest";
+import { withSaveMany } from "./pm-fake";
 import { KERNEL_CONTENT_ROWS } from "../../../../test-bootstrap";
 import {
   PersistenceManager as PM,
@@ -151,6 +152,8 @@ export function installStore(docs: Doc[]): Doc[] {
     }),
     isConnected: () => true,
   });
+  // A batched write (db-performance) lands in the same store.
+  withSaveMany(fake);
   vi.spyOn(PM, "get").mockReturnValue(fake);
   return store;
 }

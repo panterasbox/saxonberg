@@ -11,6 +11,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -44,6 +45,7 @@ const COLLEGE_ROW = fileURLToPath(
 );
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const DORMS_OWNER: ParcelOwner = { kind: 'group', name: 'duncan-hall' };
 
@@ -98,13 +100,13 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function seedDormsParcel(): void {
@@ -245,7 +247,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // it asks who may.
     makeStuffAtPath(() => new DormWarrenForPaths(), DormWarrenForPaths.WARREN_PATH);
     const ctrl = makeStuffAtPath(() => new ProvisionController(), "/world/terminus/eternal/duncan-hall/idea/cmd/ProvisionController");
-    await ctrl.execute({ player: { stuff: tenant } } as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ player: { stuff: tenant } } as never, ctx));
     const notes = ctx.getNotes();
     expect(notes.map((n) => (n as { reason?: string }).reason)).toContain('not-authorized');
     expect(JSON.stringify(notes)).toContain("hall's committee");

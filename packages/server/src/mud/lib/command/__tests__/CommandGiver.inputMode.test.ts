@@ -11,6 +11,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Place from '../../stuff/Place';
 import { CommandGiverMixin } from '../CommandGiver';
@@ -28,6 +29,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import type { MessageFrame } from '@saxonberg/types';
 import { Idea } from '../../stuff/Idea';
 import type Interactive from '../../../platform/idea/Interactive';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 class TestGiver extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   CommandGiverMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -80,19 +82,19 @@ describe('executeCommand per-bar input mode', () => {
 
   it('prepends the submitting bar’s prefix to a bare line', async () => {
     giver.setClientState('cockpit.inputModes', { main: 'chat' });
-    await giver.executeCommand('hello', {
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('hello', {
       interactive: fakeInteractive,
       barId: 'main',
-    });
+    }));
     expect(echoedText(giver)).toContain('chat hello');
   });
 
   it('leaves a command from a different, un-moded bar unaffected', async () => {
     giver.setClientState('cockpit.inputModes', { main: 'chat' });
-    await giver.executeCommand('hello', {
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('hello', {
       interactive: fakeInteractive,
       barId: 'other',
-    });
+    }));
     const body = echoedText(giver);
     expect(body).toContain('hello');
     expect(body).not.toContain('chat hello');
@@ -100,25 +102,25 @@ describe('executeCommand per-bar input mode', () => {
 
   it('does not prefix forced (programmatic) dispatch', async () => {
     giver.setClientState('cockpit.inputModes', { main: 'chat' });
-    await giver.executeCommand('hello', {
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('hello', {
       interactive: fakeInteractive,
       barId: 'main',
       forced: true,
-    });
+    }));
     expect(echoedText(giver)).not.toContain('chat hello');
   });
 
   it('does not prefix non-interactive (script / NPC) dispatch', async () => {
     giver.setClientState('cockpit.inputModes', { main: 'chat' });
-    await giver.executeCommand('hello', { barId: 'main' });
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('hello', { barId: 'main' }));
     expect(echoedText(giver)).not.toContain('chat hello');
   });
 
   it('is a verbatim no-op when the bar has no mode', async () => {
-    await giver.executeCommand('hello', {
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('hello', {
       interactive: fakeInteractive,
       barId: 'main',
-    });
+    }));
     expect(echoedText(giver)).toContain('hello');
     expect(echoedText(giver)).not.toContain('chat');
   });
@@ -166,19 +168,19 @@ describe('executeCommand per-bar input mode', () => {
         return [];
       },
     );
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: vi.fn(),
       find,
       findById: vi.fn(),
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
 
     await CommandApi.preloadAll();
 
     // Set it the way a player does — through dispatch, from `world`.
-    await giver.executeCommand('cockpit cli --prefix "chat"', {
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('cockpit cli --prefix "chat"', {
       interactive: fakeInteractive,
       barId: 'world',
-    });
+    }));
 
     // It landed under the REAL bar, not the `'main'` fallback.
     const modes = giver.getClientState<Record<string, string>>(
@@ -190,10 +192,10 @@ describe('executeCommand per-bar input mode', () => {
     // (Drop the frames from the setting command so `echoedText` reads
     // this dispatch's echo rather than the previous one's.)
     giver.received.length = 0;
-    await giver.executeCommand('hello', {
+    await TestHarnessApi.actAs(giver, () => giver.executeCommand('hello', {
       interactive: fakeInteractive,
       barId: 'world',
-    });
+    }));
     expect(echoedText(giver)).toContain('chat hello');
   });
 });

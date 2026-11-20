@@ -63,6 +63,7 @@ import {
 } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import '../../../WorldClockRegistry';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends AdvancementMixin(
   SensorMixin(
@@ -299,7 +300,7 @@ describe('harvest <plant>', () => {
     const plant = ripe(bed);
 
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(plant, 'carrots')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'carrots')), ctx$)))(makeContext(giver, room));
 
     const crop = giver.getContents().find((s) => s instanceof Crop);
     expect(crop).toBeDefined();
@@ -314,7 +315,7 @@ describe('harvest <plant>', () => {
     const plant = ripe(bed);
 
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(plant, 'carrots')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'carrots')), ctx$)))(makeContext(giver, room));
 
     const crop = crafted(giver.getContents().find((s) => s instanceof Crop));
     expect(crop.getMaker()).toBeTruthy();
@@ -334,11 +335,8 @@ describe('harvest <plant>', () => {
     expect(kept.getGrowthStage()).toBe(neglected.getGrowthStage());
 
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(kept, 'carrots')), makeContext(giver, room));
-    await ctrl.execute(
-      model(one(neglected, 'carrots')),
-      makeContext(giver, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(kept, 'carrots')), ctx$)))(makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(neglected, 'carrots')), ctx$)))(makeContext(giver, room));
 
     const raw = giver.getContents().filter((s) => s instanceof Crop);
     expect(raw).toHaveLength(2);
@@ -357,7 +355,7 @@ describe('harvest <plant>', () => {
     const bands: string[] = [];
     for (const worst of [1.0, 0.85, 0.7, 0.4, 0.1]) {
       const p = ripe(bed, worst);
-      await ctrl.execute(model(one(p, 'carrots')), makeContext(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(p, 'carrots')), ctx$)))(makeContext(giver, room));
       const crops = giver.getContents().filter((s) => s instanceof Crop);
       bands.push(crafted(crops[crops.length - 1]).getGrade().getBand());
     }
@@ -378,7 +376,7 @@ describe('harvest <plant>', () => {
     const levels: number[] = [];
     for (let round = 0; round < 3; round++) {
       const p = ripe(bed);
-      await ctrl.execute(model(one(p, 'carrots')), makeContext(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(p, 'carrots')), ctx$)))(makeContext(giver, room));
       levels.push(bed.nutrientFraction()!);
     }
     // 15 points a crop: 100 → 85 → 70 → 55, monotonically down.
@@ -390,7 +388,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const ctrl = makeStuff(() => new HarvestController());
     const p = ripe(bed);
-    await ctrl.execute(model(one(p, 'carrots')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(p, 'carrots')), ctx$)))(makeContext(giver, room));
     expect(bed.nutrientFraction()).toBe(0.85);
 
     bed.feedSoil(15);
@@ -405,7 +403,7 @@ describe('harvest <plant>', () => {
 
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(p, 'carrots')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(p, 'carrots')), ctx));
 
     expect(noteReasons(ctx)).toContain('not-mature');
     const detail = ctx
@@ -445,7 +443,7 @@ describe('harvest <plant>', () => {
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
     // The binder handed over the FIRST match — the green one.
-    await ctrl.execute(model(one(green, 'carrots')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(green, 'carrots')), ctx));
 
     expect(noteReasons(ctx)).not.toContain('not-mature');
     expect(giver.getContents().some((s) => s instanceof Crop)).toBe(true);
@@ -460,7 +458,7 @@ describe('harvest <plant>', () => {
     forceStage(p, 'young');
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(p, 'carrots')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(p, 'carrots')), ctx));
     expect(noteReasons(ctx)).toContain('not-mature');
   });
 
@@ -472,7 +470,7 @@ describe('harvest <plant>', () => {
 
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(p, 'carrots')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(p, 'carrots')), ctx));
 
     expect(noteReasons(ctx)).toContain('not-harvestable');
     expect(p.isDestroyed()).toBe(false);
@@ -482,7 +480,7 @@ describe('harvest <plant>', () => {
     const { giver, room } = scene();
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(room, 'room')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(room, 'room')), ctx));
     expect(noteReasons(ctx)).toContain('not-a-plant');
   });
 
@@ -490,7 +488,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const plant = ripe(bed);
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(plant, 'carrots')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'carrots')), ctx$)))(makeContext(giver, room));
 
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.discipline).toBe('horticulture');
@@ -525,7 +523,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const tree = ripeTree(bed, 0.7); // a `fine` cycle
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(tree, 'cherries')), ctx$)))(makeContext(giver, room));
 
     const crops = giver.getContents().filter((s) => s instanceof Crop);
     expect(crops).toHaveLength(3);
@@ -542,7 +540,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const tree = ripeTree(bed, 0.4); // a neglected first cycle
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(tree, 'cherries')), ctx$)))(makeContext(giver, room));
     let crops = giver.getContents().filter((s) => s instanceof Crop);
     expect(crafted(crops[0]).getGrade().getBand()).toBe('fair');
 
@@ -553,7 +551,7 @@ describe('harvest <plant>', () => {
     (tree as unknown as { _flowering: boolean })._flowering = true;
     (tree as unknown as { _seedSet: boolean })._seedSet = true;
     (tree as unknown as { _fruitFill: number })._fruitFill = 1;
-    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(tree, 'cherries')), ctx$)))(makeContext(giver, room));
     crops = giver.getContents().filter((s) => s instanceof Crop);
     expect(crops).toHaveLength(6);
     expect(crafted(crops[5]).getGrade().getBand()).toBe('masterful');
@@ -563,7 +561,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const tree = ripeTree(bed);
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(tree, 'cherries')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(tree, 'cherries')), ctx$)))(makeContext(giver, room));
     expect(bed.nutrientFraction()).toBe(0.85);
   });
 
@@ -575,7 +573,7 @@ describe('harvest <plant>', () => {
     const tree = ripeTree(bed);
 
     const ctrl = makeStuff(() => new HarvestController());
-    await ctrl.execute(model(one(bed, 'bed')), makeContext(giver, room));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx$)))(makeContext(giver, room));
 
     const crops = giver.getContents().filter((s) => s instanceof Crop);
     expect(crops).toHaveLength(3); // the tree's set, not the seedling
@@ -591,7 +589,7 @@ describe('harvest <plant>', () => {
 
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
     expect(noteReasons(ctx)).toContain('not-mature');
     const detail = ctx
       .getNotes()
@@ -604,7 +602,7 @@ describe('harvest <plant>', () => {
     const { giver, room, bed } = scene();
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(bed, 'bed')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(bed, 'bed')), ctx));
     expect(noteReasons(ctx)).toContain('nothing-growing');
   });
 
@@ -614,7 +612,7 @@ describe('harvest <plant>', () => {
     (tree as unknown as { _fruitFill: number })._fruitFill = 0.4; // filling
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(tree, 'cherries')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(tree, 'cherries')), ctx));
     expect(noteReasons(ctx)).toContain('nothing-ripe');
     expect(tree.isDestroyed()).toBe(false);
     expect(bed.nutrientFraction()).toBe(1); // nothing exported
@@ -644,7 +642,7 @@ describe('harvest <plant>', () => {
     const stool = ripeStool(bed);
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(stool, 'stool')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(stool, 'stool')), ctx));
     expect(noteReasons(ctx)).toContain('needs-tool');
     expect(stool.isDestroyed()).toBe(false);
     expect(giver.getContents().some((s) => s instanceof Crop)).toBe(false);
@@ -662,7 +660,7 @@ describe('harvest <plant>', () => {
     ContainmentApi.move(trowel, giver);
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(stool, 'stool'), one(trowel, 'trowel')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(stool, 'stool'), one(trowel, 'trowel')), ctx));
     expect(noteReasons(ctx)).toContain('needs-tool');
   });
 
@@ -673,7 +671,7 @@ describe('harvest <plant>', () => {
     ContainmentApi.move(hook, giver);
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(stool, 'stool'), one(hook, 'billhook')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(stool, 'stool'), one(hook, 'billhook')), ctx));
     expect(noteReasons(ctx)).not.toContain('needs-tool');
     expect(giver.getContents().filter((s) => s instanceof Crop)).toHaveLength(3);
     expect(stool.isDestroyed()).toBe(false);
@@ -691,7 +689,7 @@ describe('harvest <plant>', () => {
     }, freshPath('/trade/forestry/thing/_trowel2'));
     const ctrl = makeStuff(() => new HarvestController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(plant, 'carrots'), one(trowel, 'trowel')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model(one(plant, 'carrots'), one(trowel, 'trowel')), ctx));
     expect(noteReasons(ctx)).not.toContain('needs-tool');
     expect(plant.isDestroyed()).toBe(true);
     expect(deeds[0]!.discipline).toBe('horticulture');
@@ -718,7 +716,7 @@ describe('harvest <plant>', () => {
       const { giver, room, bed } = scene();
       const plant = ripe(bed);
       const ctrl = makeStuff(() => new HarvestController());
-      await ctrl.execute(model(one(plant, 'carrots')), makeContext(giver, room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(one(plant, 'carrots')), ctx$)))(makeContext(giver, room));
       const crop = crafted(giver.getContents().find((s) => s instanceof Crop));
       expect(crop.getMaker()).toBe(giver.getIdentityPath());
     });
@@ -728,14 +726,8 @@ describe('harvest <plant>', () => {
       const b = scene();
       const pa = ripe(a.bed, 0.7);
       const pb = ripe(b.bed, 0.7);
-      await makeStuff(() => new HarvestController()).execute(
-        model(one(pa, 'carrots')),
-        makeContext(a.giver, a.room),
-      );
-      await makeStuff(() => new HarvestWordedController()).execute(
-        model(one(pb, 'carrots')),
-        makeContext(b.giver, b.room),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestController()).execute(model(one(pa, 'carrots')), ctx$)))(makeContext(a.giver, a.room));
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HarvestWordedController()).execute(model(one(pb, 'carrots')), ctx$)))(makeContext(b.giver, b.room));
       const ca = crafted(a.giver.getContents().find((s) => s instanceof Crop));
       const cb = crafted(b.giver.getContents().find((s) => s instanceof Crop));
       expect(pb.isDestroyed()).toBe(pa.isDestroyed());

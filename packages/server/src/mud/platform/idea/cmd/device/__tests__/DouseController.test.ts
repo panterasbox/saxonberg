@@ -44,6 +44,7 @@ import {
   type CommandModel,
 } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FakeAvatarBase = CommandGiverMixin(
   NamedMixin(MobileMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -96,10 +97,7 @@ describe('DouseController — a furnace', () => {
     lamp.ignite();
     expect(lamp.isLit()).toBe(true);
 
-    await makeStuff(() => new DouseController()).execute(
-      { target: one(lamp, 'lantern') } as CommandModel,
-      ctxFor(avatar, room),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new DouseController()).execute({ target: one(lamp, 'lantern') } as CommandModel, ctx$)))(ctxFor(avatar, room));
 
     expect(lamp.isLit()).toBe(false);
     expect(lamp.getEmittedFlux().rawValue()).toBe(0);
@@ -108,10 +106,10 @@ describe('DouseController — a furnace', () => {
   it('refuses an unlit one, and that refusal is honest', async () => {
     expect(lamp.isLit()).toBe(false);
     const ctx = ctxFor(avatar, room);
-    await makeStuff(() => new DouseController()).execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new DouseController()).execute(
       { target: one(lamp, 'lantern') } as CommandModel,
       ctx,
-    );
+    ));
     expect(lamp.isLit()).toBe(false);
   });
 });

@@ -274,7 +274,7 @@ every `creditSignature`/`creditDeed` re-invokes the owner's
 the owner's `conferredVerbs` (the pure band × Catalog-conferral
 decision), resolves the yaml-paths to `CommandDefinition`s, and reconciles
 the giver's affordance stack — `popCommandSource` then a conditional
-`pushCommandSource`, mirroring the hosted-update delta. The affording
+`pushCommandSource`, mirroring the hosted-app delta. The affording
 `source` is the `DisciplineCatalogue`, so `getAffordances` attributes the
 verb to "your competence in the catalog." A read-time-dynamic
 `getAffordances` was **rejected** — it's a hot sync path and a band read
@@ -680,3 +680,15 @@ read a ledger missing the row it was just told about.
 - 2026-11-09 — documents path identity: the discipline dictionary left
   the boot list; it loads on a character's first band read and a cold
   read throws. See git log for the `reqs/documents-path-identity` branch.
+
+## The fold is cached per owner (db-performance, 2026-11)
+
+`bandsFor` read the whole transcript of its owner on every call. A third
+`DerivedStandingCache` (`foldCache`) now holds the fold per owner, under
+the practising and digest caches, which derive from it. The ledger has one
+writer (`buildAndSave`), which refreshes the fold before the two. ⚠ Inside
+a sandbox circle the cache is bypassed — a circle reads its own stamped
+rows beside the field's, so its view is not the cached one — and a deed
+written in a circle does not refresh the field's fold. Tests that reuse an
+owner id across a store reset clear it with
+`DerivedStandingCache._clearAllForTesting()`.

@@ -275,16 +275,16 @@ export class RecordLogic extends ApiLogic {
     if (!connected()) return;
 
     const touched = new Set<string>();
-    for (const row of batch) {
-      touched.add(row.owner);
-      try {
-        await PersistApi.save(
-          Collections.PlayerFrames,
-          row as unknown as Record<string, unknown>,
-        );
-      } catch (err) {
-        console.warn('[record] frame write failed', err);
-      }
+    for (const row of batch) touched.add(row.owner);
+    // ⭐ One round trip for the drain, not one per frame (db-performance
+    // H5): every row is an insert, so the batch is a list of docs.
+    try {
+      await PersistApi.saveMany(
+        Collections.PlayerFrames,
+        batch.map((row) => ({ doc: row as unknown as Record<string, unknown> })),
+      );
+    } catch (err) {
+      console.warn(`[record] frame write failed (${batch.length} row(s))`, err);
     }
 
     const window = readInt(AppSettingKeys.recordFrameWindow, DEFAULT_WINDOW);

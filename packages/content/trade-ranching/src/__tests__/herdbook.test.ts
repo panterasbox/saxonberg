@@ -18,6 +18,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import HerdRegistry, {
   HERD_PREFIX,
@@ -39,6 +40,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /**
  * ⭐ The keeper (controller-liquidity D9): whoever holds the herd's home
@@ -91,13 +93,13 @@ function installStore(): void {
       }),
     );
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById: vi.fn(async (c: string, id: string) => col(c).find((d) => d._id === id) ?? null),
     delete: vi.fn(async () => undefined),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,
@@ -130,6 +132,13 @@ const HERD: HerdRecord = {
   founded: 1_000,
   drafted: [],
   overlay: {},
+};
+
+
+/** One person both acting and named (call-security pass D15): `keeper()` makes a new one per call. */
+const asOne = <T,>(make: () => Stuff, act: (who: Stuff) => T): T => {
+  const who = make();
+  return TestHarnessApi.actAs(who, () => act(who));
 };
 
 describe('the herdbook', () => {
@@ -191,9 +200,9 @@ describe('the herdbook', () => {
   it('⭐ drafting and returning move one head across the boundary', async () => {
     const r = registry();
     await r.file(HERD);
-    expect(await r.draft('kestrel-flock', 17, keeper())).toBe(true);
+    expect(await asOne(keeper, (who) => r.draft('kestrel-flock', 17, who))).toBe(true);
     // Twice is a refusal, not a second animal.
-    expect(await r.draft('kestrel-flock', 17, keeper())).toBe(false);
+    expect(await asOne(keeper, (who) => r.draft('kestrel-flock', 17, who))).toBe(false);
     expect((await r.read('kestrel-flock'))?.drafted).toEqual([{ index: 17 }]);
 
     expect(
@@ -210,15 +219,15 @@ describe('the herdbook', () => {
     await r.file(HERD);
     vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
     const stranger = makeStuff(() => new Idea());
-    expect(await r.draft('kestrel-flock', 17, stranger)).toBe('not-keeper');
+    expect(await TestHarnessApi.actAs(stranger, () => r.draft('kestrel-flock', 17, stranger))).toBe('not-keeper');
     expect((await r.read('kestrel-flock'))?.drafted).toEqual([]);
   });
 
   it('refuses a head that is not in the tally, or not out', async () => {
     const r = registry();
     await r.file(HERD);
-    expect(await r.draft('kestrel-flock', 40, keeper())).toBe(false);
-    expect(await r.draft('kestrel-flock', -1, keeper())).toBe(false);
+    expect(await asOne(keeper, (who) => r.draft('kestrel-flock', 40, who))).toBe(false);
+    expect(await asOne(keeper, (who) => r.draft('kestrel-flock', -1, who))).toBe(false);
     expect(await r.returnHead('kestrel-flock', 3, {})).toBe(false);
   });
 });
@@ -333,7 +342,7 @@ describe('the herdbook fixture', () => {
 
     // The herd lives a bit: one head out, and the register remembers
     // something about another.
-    await reg.draft('college-herd', 2, keeper());
+    await asOne(keeper, (who) => reg.draft('college-herd', 2, who));
     const live = (await reg.read('college-herd'))!;
     live.overlay['4'] = { flesh: 31, note: 'the thin one' };
     await reg.update(live);
@@ -615,7 +624,7 @@ describe('the herd’s sex mix and dry periods', () => {
   it('a dry-off stamp folds into the head’s overlay on return', async () => {
     const r = registry();
     await r.file(HERD);
-    await r.draft('kestrel-flock', 5, keeper());
+    await asOne(keeper, (who) => r.draft('kestrel-flock', 5, who));
     await r.returnHead('kestrel-flock', 5, { driedOffAt: { milk: 123_456 } });
     expect((await r.overlayFor('kestrel-flock', 5))?.driedOffAt).toEqual({ milk: 123_456 });
   });

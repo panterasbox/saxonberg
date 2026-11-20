@@ -16,6 +16,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PressBoard from '../idea/PressBoard';
 import {
@@ -118,6 +119,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   await AppSettings.warm();
 });
 

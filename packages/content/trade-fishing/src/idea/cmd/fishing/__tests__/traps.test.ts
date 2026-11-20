@@ -26,12 +26,13 @@ import Trap from '../../../../thing/Trap';
 import Bait from '../../../../thing/Bait';
 import Fish from '../../../../agent/Fish';
 import type { SpeciesStanding } from '../../../../lib/FisheryRead';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 class Angler extends TestActor {}
 type Runnable = Stuff & { execute(model: never, ctx: CommandContext): unknown };
 async function run(Controller: new () => Runnable, model: Record<string, unknown>, actor: Stuff, where: Stuff, text: string): Promise<CommandContext> {
   const ctx = makeContext(actor, where, text);
-  await makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx);
+  await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx));
   return ctx;
 }
 const rejected = (ctx: CommandContext): string | null => {

@@ -11,6 +11,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Panel from '../thing/Panel';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
@@ -152,6 +153,7 @@ beforeEach(() => {
       return _id;
     },
   );
+  spyPersistSaveMany();
   vi.spyOn(PersistApi, 'delete').mockImplementation(async (col: string, id: string) => {
     if (col !== Collections.HolderSnapshots) return;
     const i = snapshots.findIndex((d) => d._id === id);

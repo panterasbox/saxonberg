@@ -1,14 +1,18 @@
 # Database performance — where the world waits on Mongo
 
-> **Status: UNBUILT** — found 2026-11-08 by the controllers-are-io build's
-> /finalize investigation (MR !527), measured on a fresh world from this
-> branch and from master, same scenario, same box.
-> **Left:** participation and renown keyed on the person (§ 1) · a recompute
-> that scales with the living, not with history (§ 2) · the pool and
-> per-operation latency to Atlas (§ 3) · the hot callers: payroll, bank,
-> transcripts, consignment (§ 4) · boot time (§ 5) · the unexplained 4 GB heap
-> (§ 6) · the serial shutdown capture (§ 5)
-> **Size:** a build (§§ 1–2 could be one wave of it; § 5 is a tail)
+> **Status: PARTIAL** — the db-performance build (MR !636, 2026-11-19)
+> shipped §§ 1, 2, 4 and the shutdown half of § 5: participation and the
+> producer actor keyed on the person, passes that score who changed with
+> decay read at read, `saveMany`, six hot-path cuts, a batched shutdown
+> save that includes connected bodies, and `/stats.db`. Record: the
+> subsystem docs (participation, renown, persistence, banking,
+> advancement, chattel, provenance) and § *What db-performance left*.
+> **Left:** the 21 connection waits at pool 24 (§ 3 — `documents`/`beliefs`
+> per-act reads, then a closer database) · the three scoring services as
+> one shape · a bounded first pass after a start · renown's raw-id
+> fallback · the scale envelope (§ 7). Out: cold boot and the 4 GB heap
+> (→ test-world-lifecycle)
+> **Size:** a tail (§ 3's remainder) + a build (§ 7)
 
 ## Why this exists
 
@@ -33,6 +37,13 @@ wanna know that too."*
 | 6 | 4 GB heap | ? unknown | not reproduced since the churn fix; never root-caused |
 
 ## 1. ⚠⚠⚠ Participation and renown key a person on lineage
+
+> ⚠ **Re-verified 2026-11-18 (db-performance plan):** still true. Every
+> player body is cloned from the `PrimaryAvatar` row, so the instance
+> `getTemplatePath()` is shared; `Avatar.getTemplatePath(pid)` is a STATIC
+> that builds the identity string (a first requirements draft misread it
+> and "corrected" this section wrongly). Renown is fixed; participation,
+> the `Login` roster read, and the producer stock's ACTOR are not.
 
 `RenownLogic.durableKey` and its copy in `ConsumerLogic` (the comment says
 *"the substrate shares no code"*) both return
@@ -146,6 +157,51 @@ a player's act refused in words, an author's or a generator's failing with a
 diagnostic naming who and what. Never a silent trim. Open: the numbers (set
 from the benches), and who may raise a budget (lens 7 — tier B, whoever
 ships the code).
+
+## What db-performance left (2026-11-19)
+
+Measured by the build's quiet-box drive (`db-performance.dirty`), thirty
+players working:
+
+- **§ 3 is not closed.** At the build's ceiling of 24 connections, 21
+  check-outs still waited (1 119 at the start, 396 at 10, 196 at 16): ~5.6
+  round trips a command against a ~100 ms database with thirty acting in
+  one instant. The largest remaining per-act ops: `find documents` 366 /
+  `save documents` 184 and `find beliefs` 154 / `save beliefs` 124 —
+  callers unnamed; a `DBP_TRACE=1` run names them. After those, the
+  question is deployment's (a closer database).
+- **After the master merge** (aether-devices, call-security-pass) the
+  final drive read 115 waits at pool 24 (21 the run before — the hosted
+  database's latency varies run to run) and `find transcripts` rose to
+  0.49 a command (0.003 before; 1.49 at W0). The cached competence read is
+  proven by its test; the new reads are another caller (a lead, not
+  verified: `Cast`'s dossier re-seed reads `transcriptEntries()` as the
+  merged content loads Casts).
+- **H4** (chattel title and place) halved its writes but not its path:
+  the `chattel_events` audit appends are one per title change, by design
+  (owner ruling: keep).
+- **The three scoring services are one shape written three times** —
+  larger now (dirty set, fingerprint, sums, combine). Unifying them is its
+  own refactor; attach point: the module-private pass in each logic file.
+- **A bounded first pass after a start** — the first pass is full by
+  design (no cursor). Worth doing only if a large world's boot pass shows.
+- **Renown's raw-`stuffId` fallback** for a subject with no identity was
+  left (participation's was removed): not measured as a cost.
+
+## Reuse ledger for the plan (2026-11-18)
+
+Written at /requirements. Every row is one the plan must account for.
+
+| concept the build needs | what already does it | reuse / generalize |
+|---|---|---|
+| the person's durable key | `Stuff.getIdentityPath()` (renown, employment, profile, standing, advancement's `ownerKeyOf` all use it) | **reuse** — participation's `durableKey`, `Login`'s band read, the standing product and the producer event's actor move onto it |
+| scoring only what changed | the three scoring services' recurring pass (`ConsumerLogic`, `RenownLogic`, `ProducerLogic`, 60 s, whole-history `find({})`) · derive-on-read caches already serve every read | **generalize** — the pass re-scores the subjects with events since the last pass; no new scheduler |
+| batched writes | nothing: no `bulkWrite` anywhere in server src; `PersistApi.save` per row | **genuinely new** as a capability of the persistence layer — searched `bulkWrite`, `insertMany`, `saveMany` in packages/server/src and every pack `src/` |
+| the database's numbers | `PersistenceManager`'s pool checkout counter (`whenQuiet`) · `SAXONBERG_QUERY_TRACE` per-caller counts and time · `/stats` (connections, objects, cpu, loop) | **generalize** — `/stats` gains the pool and round-trip fields from the counters that exist |
+| a read cache for hot callers | `DerivedStandingCache` (advancement's practising/digest) · `AccountBalance.cachedBalance` · the resident `content` cache | **reuse** the pattern per caller the measurement ranks; no new cache type |
+| the shutdown save | `PersistableLogic.captureAtShutdownImpl` (serial over every host) · the per-record queue | **generalize** — batched or concurrent captures through the same spine |
+| the crowd drive and the quiet box | `runCrowd`, `quietBoxRefusal`, `foreignMeter`, `call-security-performance.dirty` (baseline JSON, `WIRE_CPU_PROF`, restart helper) | **reuse** — a new wire file for the working crowd, same shape |
+| frame records | `RecordLogic`'s 1 s drain, one save per row | **generalize** — the drain writes its batch at once |
 
 ## See also
 

@@ -34,6 +34,7 @@ import {
 import Location from '../../../../../lib/location/Location';
 import CartesianZone from '../../../location/CartesianZone';
 import { Idea } from '../../../../../lib/stuff/Idea';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const VIEWER = '/platform/agent/Avatar/p1';
 const SQUARE = '/test/town/market/square';
@@ -155,7 +156,7 @@ async function run(
       seen.push(n as { reason?: string; detail?: string });
     },
   );
-  await controller.execute(args as never, context as never);
+  await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(args as never, ctx$)))(context as never);
   const rejected = seen.find((n) => n.reason !== undefined);
   const words = rejected?.reason === 'needs-input' ? [...said, rejected.detail ?? ''] : said;
   return { reason: rejected?.reason ?? null, text: words.join('\n'), notes: seen };

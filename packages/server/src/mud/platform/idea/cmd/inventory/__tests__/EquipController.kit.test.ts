@@ -56,6 +56,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../../../../lib/material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 beforeEach(() => {
   standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
@@ -204,7 +205,7 @@ describe('bare `equip` — the whole kit', () => {
     ContainmentApi.move(cuirass as never, body as never);
     ContainmentApi.move(shirt as never, body as never);
 
-    await makeStuff(() => new EquipController()).execute({} as never, ctx(body, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EquipController()).execute({} as never, ctx$)))(ctx(body, loc));
     await settle();
 
     // `wornStack()` is outermost-first, so the plate on top and the
@@ -223,7 +224,7 @@ describe('bare `equip` — the whole kit', () => {
     for (const kw of ['shirt', 'jerkin', 'cloak']) {
       ContainmentApi.move(garment(plan, fabricPath('woven'), kw) as never, body as never);
     }
-    await makeStuff(() => new EquipController()).execute({} as never, ctx(body, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EquipController()).execute({} as never, ctx$)))(ctx(body, loc));
     await settle();
     expect(worn(body).sort()).toEqual(['cloak', 'jerkin', 'shirt']);
   });
@@ -247,7 +248,7 @@ describe('bare `equip` — the whole kit', () => {
       b.send = () => {};
       return b as never;
     });
-    await makeStuff(() => new EquipController()).execute({} as never, ctx(body, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EquipController()).execute({} as never, ctx$)))(ctx(body, loc));
     await settle();
     spy.mockRestore();
     expect(worn(body).sort()).toEqual(['cloak', 'shirt']);
@@ -260,10 +261,10 @@ describe('bare `equip` — the whole kit', () => {
     ContainmentApi.move(shirt as never, body as never);
     body.occupyAll(shirt as never, ['torso']);
     const c = ctx(body, loc, 'wear');
-    await makeStuff(() => new WearController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new WearController()).execute(
       { target: { stuff: shirt as never, raw: 'shirt' } } as never,
       c,
-    );
+    ));
     expect(
       c.getNotes().some((n) => (n as { reason?: string }).reason === 'already-worn'),
     ).toBe(true);
@@ -272,7 +273,7 @@ describe('bare `equip` — the whole kit', () => {
   it('says so when there is nothing to put on', async () => {
     const { body, loc } = standUp();
     const c = ctx(body, loc);
-    await makeStuff(() => new EquipController()).execute({} as never, c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new EquipController()).execute({} as never, c));
     await settle();
     expect(
       c.getNotes().some(
@@ -293,10 +294,7 @@ describe('⭐ `--from` — dressing out of a container', () => {
     // `mustBeInInventory` would have refused this outright.
     expect(shirt.getContainer()).toBe(chest);
 
-    await makeStuff(() => new EquipController()).execute(
-      { from: { stuff: chest as never, raw: 'chest' } } as never,
-      ctx(body, loc),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new EquipController()).execute({ from: { stuff: chest as never, raw: 'chest' } } as never, ctx$)))(ctx(body, loc));
     await settle();
     expect(worn(body)).toEqual(['shirt']);
   });
@@ -309,13 +307,13 @@ describe('⭐ `--from` — dressing out of a container', () => {
     const odd = garment('/stuff/idea/bodyplan/_test/elsewhere', fabricPath('woven'), 'tabard');
     ContainmentApi.move(odd as never, chest as never);
     const c = ctx(body, loc);
-    await makeStuff(() => new EquipController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new EquipController()).execute(
       {
         target: { stuff: odd as never, raw: 'tabard' },
         from: { stuff: chest as never, raw: 'chest' },
       } as never,
       c,
-    );
+    ));
     await settle();
     expect(odd.getContainer()).toBe(chest);
     expect(c.getNotes().map((n) => (n as { reason?: string }).reason)).toEqual(['wrong-fit']);
@@ -331,7 +329,7 @@ describe('`unequip`', () => {
       body.occupyAll(g as never, ['torso']);
     }
     expect(worn(body)).toHaveLength(3);
-    await makeStuff(() => new UnequipController()).execute({} as never, ctx(body, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UnequipController()).execute({} as never, ctx$)))(ctx(body, loc));
     // One layer is coming off; the other two wait their turn.
     expect(worn(body)).toHaveLength(2);
     await settle();
@@ -348,7 +346,7 @@ describe('`unequip`', () => {
     body.occupyAll(cuirass as never, ['torso']);
     expect(worn(body)).toEqual(['cuirass', 'shirt']);
 
-    await makeStuff(() => new UnequipController()).execute({} as never, ctx(body, loc));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new UnequipController()).execute({} as never, ctx$)))(ctx(body, loc));
     await settle();
     expect(worn(body)).toEqual([]);
   });
@@ -358,10 +356,7 @@ describe('`unequip`', () => {
     const shirt = garment(plan, fabricPath('woven'), 'shirt');
     ContainmentApi.move(shirt as never, body as never);
     const ctrl = makeStuff(() => new WearController());
-    await ctrl.execute(
-      { target: { stuff: shirt as never, raw: 'shirt' } } as never,
-      ctx(body, loc, 'wear'),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ target: { stuff: shirt as never, raw: 'shirt' } } as never, ctx$)))(ctx(body, loc, 'wear'));
     // ⚠ What `_executeOne` does in its `finally`, before any dressing
     // step can complete: a completion that called back into the
     // controller ran on a dead proxy and nothing went on.
@@ -376,7 +371,7 @@ describe('`unequip`', () => {
     ContainmentApi.move(shirt as never, body as never);
     body.occupyAll(shirt as never, ['torso']);
     const c = ctx(body, loc, 'remove');
-    await makeStuff(() => new UnequipController()).execute({ manner: 'apron' } as never, c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new UnequipController()).execute({ manner: 'apron' } as never, c));
     await settle();
     expect(worn(body)).toEqual(['shirt']);
     expect(
@@ -391,10 +386,10 @@ describe('`unequip`', () => {
     body.occupyAll(shirt as never, ['torso']);
     const c = ctx(body, loc, 'remove');
     // The binder's shape for a named word that matched nothing.
-    await makeStuff(() => new RemoveController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new RemoveController()).execute(
       { target: { raw: 'coat', stuff: null } } as never,
       c,
-    );
+    ));
     await settle();
     expect(worn(body)).toEqual(['shirt']);
     expect(
@@ -405,7 +400,7 @@ describe('`unequip`', () => {
   it('refuses readably with nothing on', async () => {
     const { body, loc } = standUp();
     const c = ctx(body, loc);
-    await makeStuff(() => new UnequipController()).execute({} as never, c);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new UnequipController()).execute({} as never, c));
     expect(
       c.getNotes().some(
         (n) => (n as { reason?: string }).reason === 'nothing-worn',
@@ -447,10 +442,10 @@ describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', ()
   it('⚠ `wear` runs the covering ladder and refuses under the plate', async () => {
     const { body, loc, gauntlet } = armoured();
     const c = ctx(body, loc, 'wear');
-    await makeStuff(() => new WearController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new WearController()).execute(
       { target: { stuff: gauntlet as never, raw: 'gauntlet' } } as never,
       c,
-    );
+    ));
     await settle();
     expect(
       c.getNotes().some(
@@ -463,10 +458,10 @@ describe('⭐⭐ the VERB is real input — `wear` vs `wield` on one object', ()
   it('⭐ `wield` skips it — a thing in your hand covers nothing', async () => {
     const { body, loc, gauntlet } = armoured();
     const c = ctx(body, loc, 'wield');
-    await makeStuff(() => new WieldController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new WieldController()).execute(
       { target: { stuff: gauntlet as never, raw: 'gauntlet' } } as never,
       c,
-    );
+    ));
     await settle();
     expect(
       c.getNotes().some(

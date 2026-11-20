@@ -44,6 +44,7 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 /** Run a controller execute with `actor` tagged as the acting author. */
 async function executeAs(
@@ -70,10 +71,7 @@ function makeDish(): CraftVessel {
 
 async function addIngredient(item: Stuff): Promise<void> {
   await executeAs(actor, () =>
-    makeStuff(() => new PourController()).execute(
-      { source: ref(item, 'x'), target: ref(pot, 'pot') } as never,
-      makeContext(actor, room, `add ${item.getPresentation()}`),
-    ),
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute({ source: ref(item, 'x'), target: ref(pot, 'pot') } as never, ctx$)))(makeContext(actor, room, `add ${item.getPresentation()}`)),
   );
   await completeStep(3000);
 }
@@ -99,10 +97,7 @@ describe('the by-hand cooking path', () => {
     ContainmentApi.move(veg, room);
 
     await executeAs(actor, () =>
-      makeStuff(() => new PourController()).execute(
-        { source: ref(veg, 'veg'), target: ref(pot, 'pot') } as never,
-        makeContext(actor, room, 'add vegetables'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PourController()).execute({ source: ref(veg, 'veg'), target: ref(pot, 'pot') } as never, ctx$)))(makeContext(actor, room, 'add vegetables')),
     );
     // Not at dispatch —
     expect(veg.isDestroyed()).toBe(false);
@@ -138,27 +133,18 @@ describe('the by-hand cooking path', () => {
     await addIngredient(makeStock(MEAT, 0.4));
 
     await executeAs(actor, () =>
-      makeStuff(() => new StirController()).execute(
-        { vessel: ref(pot, 'pot') } as never,
-        makeContext(actor, room, 'stir pot'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new StirController()).execute({ vessel: ref(pot, 'pot') } as never, ctx$)))(makeContext(actor, room, 'stir pot')),
     );
     await completeStep(4000);
 
     await executeAs(actor, () =>
-      makeStuff(() => new HeatController()).execute(
-        { target: ref(pot, 'pot') } as never,
-        makeContext(actor, room, 'heat pot'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HeatController()).execute({ target: ref(pot, 'pot') } as never, ctx$)))(makeContext(actor, room, 'heat pot')),
     );
     await completeStep(4000);
     expect(pot.getHeatedToK()).toBeCloseTo(500, 6);
 
     await executeAs(actor, () =>
-      makeStuff(() => new PlateController()).execute(
-        { vessel: ref(pot, 'pot'), dish: ref(dish, 'dish') } as never,
-        makeContext(actor, room, 'plate pot into dish'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlateController()).execute({ vessel: ref(pot, 'pot'), dish: ref(dish, 'dish') } as never, ctx$)))(makeContext(actor, room, 'plate pot into dish')),
     );
     await completeStep(2500);
 
@@ -197,17 +183,11 @@ describe('the by-hand cooking path', () => {
     await addIngredient(makeStock(VEG, 0.6)); // one veg — no recipe matches
 
     await executeAs(actor, () =>
-      makeStuff(() => new HeatController()).execute(
-        { target: ref(pot, 'pot') } as never,
-        makeContext(actor, room, 'heat pot'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new HeatController()).execute({ target: ref(pot, 'pot') } as never, ctx$)))(makeContext(actor, room, 'heat pot')),
     );
     await completeStep(4000);
     await executeAs(actor, () =>
-      makeStuff(() => new PlateController()).execute(
-        { vessel: ref(pot, 'pot'), dish: ref(dish, 'dish') } as never,
-        makeContext(actor, room, 'plate pot into dish'),
-      ),
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new PlateController()).execute({ vessel: ref(pot, 'pot'), dish: ref(dish, 'dish') } as never, ctx$)))(makeContext(actor, room, 'plate pot into dish')),
     );
     await completeStep(2500);
 

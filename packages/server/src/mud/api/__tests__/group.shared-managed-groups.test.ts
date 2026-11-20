@@ -10,6 +10,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { GroupApi } from '../group';
 import { Group } from '../../lib/social/Group';
@@ -47,6 +48,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
 });
 
 afterEach(() => {

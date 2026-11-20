@@ -57,12 +57,16 @@ import { ShellApi } from '../../api/shell';
 import type { Alias } from '../shell/Alias';
 import { StuffApi } from '../../api/stuff';
 import { DiagnosticApi } from '../../api/diagnostics';
+import { PlayerApi } from '../../api/player';
+import { AccessApi } from '../../api/access';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
 import type { CommandSchemaPayload } from '../../api/command';
-import { Final, Unshadowable } from '../security/decorators';
+import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Refusal } from '../errors';
-import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
+import { ExecutionContextApi, FrameKind, OMNI_SCOPE } from '../../api/execution-context';
+import { ProxyApi } from '../../api/proxy';
 import { MudlogApi } from '../../api/mudlog';
 import { Mml } from '../../api/mml';
 import { EventApi } from '../../api/event';
@@ -295,8 +299,6 @@ const detachedContexts = new WeakSet<CommandContext>();
  */
 const ASKED = new WeakSet<CommandContext>();
 
-/** Frame `target` marker for a detached async command body. */
-const ASYNC_BODY_TARGET = { module: 'CommandGiverMixin' } as const;
 
 /**
  * Assemble + fire the single dispatch-response envelope for a completed
@@ -421,7 +423,10 @@ function runDetachedBody(
   ctx: CommandContext,
   fn: () => Promise<void>
 ): void {
-  void ExecutionContextApi.runRoot(ASYNC_BODY_TARGET, 'executeAsyncBody', () => {
+  // ⭐ Rooted AT the giver (call-security pass): the detached body's
+  // controller is the giver's own, exactly as on the synchronous path, and
+  // `CommandController.execute` admits only the giver its context names.
+  void ExecutionContextApi.runRoot(ctx.commandGiver, 'executeAsyncBody', () => {
     ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
     ExecutionContextApi.updateCurrentFrameMetadata({
       commandContext: ctx,
@@ -502,6 +507,13 @@ export interface CommandGiver {
     commandText: string,
     opts?: ExecuteCommandOpts
   ): Promise<void>;
+  /**
+   * The sources whose verbs sit on this giver's recency stack in `bucket`
+   * — for `environment`, everything this body carries at any depth that
+   * affords a verb outward (kept exact on every move by the containment
+   * chokepoint). A read of the stack; the `'self'` sentinel is excluded.
+   */
+  getCommandSources(bucket: RecencyBucket): Stuff[];
   forceCommand(commandText: string, opts?: ExecuteCommandOpts): Promise<void>;
   pushCommandSource(
     source: RecencySource,
@@ -512,7 +524,7 @@ export interface CommandGiver {
   resetCommandSources(reason: 'self-moved'): void;
   /**
    * Idempotent self-entry seed. On the interface so command-routing
-   * orchestration (the hosted-update delta) can guarantee the `'self'`
+   * orchestration (the hosted-app delta) can guarantee the `'self'`
    * entry exists before layering other sources on the stack.
    * @internal
    */
@@ -544,6 +556,72 @@ export interface CommandGiver {
 async function resolveActorParser(actor: Stuff): Promise<Parser> {
   const spec = ShellApi.resolveSetting<string>(actor, 'shell.parser') ?? 'script';
   return CommandApi.resolveParser(spec);
+}
+
+/**
+ * ⭐ The record of a keeper driving a body: a `force` diagnostic at the
+ * body's row (its keepers read it in `errors`), and — when somebody else
+ * owns the body as chattel (a pet, a beast) — one at the owner's home, so
+ * the owner is told who made their animal do what.
+ */
+async function recordDrive(body: Stuff, compeller: Compeller, line: string): Promise<void> {
+  const what = `${compeller.name} made ${body.getIdentityPath() ?? body.getTemplatePath() ?? 'a body'} run \`${line}\``;
+  const rows: Array<{ path: string | null }> = [{ path: body.getTemplatePath() }];
+  if (MixinApi.isChattel(body)) {
+    const owner = await body.chattelOwner().catch(() => null);
+    if (owner?.kind === 'player') {
+      const id = owner.templatePath.slice(owner.templatePath.lastIndexOf('/') + 1);
+      const actorPath = (compeller.actor as Stuff | null)?.getIdentityPath() ?? null;
+      if (owner.templatePath !== actorPath) rows.push({ path: `/home/${id}` });
+    }
+  }
+  for (const { path } of rows) {
+    await DiagnosticApi.record({ path, channel: 'force', severity: 'info', message: what }).catch(() => undefined);
+  }
+}
+
+/** Who compelled a command, as the gate reads it (call-security pass D8). */
+interface Compeller {
+  /** The acting person or object; `null` when nobody is acting. */
+  actor: unknown | null;
+  /** Its name for a diagnostic. */
+  name: string;
+  /** Running in a sandbox circle or a governed `eval` (D14). */
+  sandboxed: boolean;
+}
+
+/**
+ * ⭐ Is `giver` being asked to run a command by somebody else's code? `null`
+ * when it is the giver's own act: it is acting already (its brain, its
+ * player's line, a continuation it started), the system is acting, or the
+ * call came from the giver's own code — the caller of `executeCommand`,
+ * looking past the giver's own `forceCommand` (an arrival reflex, a login
+ * `embody`, the socket root). Identity as in `requireActor`: the same
+ * object, never an id. Read before the command frame is tagged.
+ */
+function compelledBy(giver: Stuff): Compeller | null {
+  if (ExecutionContextApi.actingSystem() !== null) return null;
+  const self = ProxyApi.identityOf(giver);
+  const actor = ExecutionContextApi.getActor();
+  if (actor != null && ProxyApi.identityOf(actor) === self) return null;
+  const stack = ExecutionContextApi.getCallStack();
+  let i = stack.length - 1;
+  let caller: unknown = stack[i]?.caller ?? null;
+  while (
+    i > 0 &&
+    stack[i - 1]!.method === 'forceCommand' &&
+    ProxyApi.identityOf(stack[i - 1]!.target) === self
+  ) {
+    i -= 1;
+    caller = stack[i]!.caller;
+  }
+  if (caller != null && ProxyApi.identityOf(caller) === self) return null;
+  const scope = ExecutionContextApi.getCircleScope();
+  return {
+    actor: actor ?? null,
+    name: actor == null ? 'nobody' : ((actor as Stuff).getIdentityPath() ?? 'something'),
+    sandboxed: (scope !== null && scope !== OMNI_SCOPE) || ExecutionContextApi.getJurisdictionBound() !== null,
+  };
 }
 
 /**
@@ -594,6 +672,16 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      */
     private _commandStack: RecencyEntry[] = [];
 
+    getCommandSources(bucket: RecencyBucket): Stuff[] {
+      const out: Stuff[] = [];
+      for (const e of this._commandStack) {
+        if (e.bucket === bucket && e.source !== 'self' && !out.includes(e.source)) {
+          out.push(e.source);
+        }
+      }
+      return out;
+    }
+
     /** Monotonic sequence allocator for stack entries. */
     private _commandSeq = 0;
 
@@ -614,7 +702,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       await super.onCreate(_context);
       const defs = CommandApi.collectSelfDefs(this.constructor);
       this.pushCommandSource('self', 'self', defs);
-      this._seedHostedUpdateSources();
+      this._seedHostedAppSources();
     }
 
     /**
@@ -732,14 +820,14 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         this.pushCommandSource('self', 'self', defs);
       }
       // Safety net for the no-`onCreate` construction path (test
-      // helpers, ad-hoc scripts): surface any hosted updates' verbs
+      // helpers, ad-hoc scripts): surface any apps' verbs
       // even when the host gained them outside a host/unhost delta.
       // Idempotent — `pushCommandSource` dedupes by (source, bucket).
-      this._seedHostedUpdateSources();
+      this._seedHostedAppSources();
     }
 
     /**
-     * Push each hosted update's `self`-bucket command contributions
+     * Push each app's `self`-bucket command contributions
      * onto this giver's recency stack, with the update Stuff as the
      * affording source (so `getAffordances()` resolves `commandSource`
      * to the update — the "verb dispatch routes through the
@@ -747,9 +835,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      *
      * @internal
      */
-    private _seedHostedUpdateSources(): void {
+    private _seedHostedAppSources(): void {
       const giver = this as unknown as Stuff;
-      for (const { source, defs } of CommandApi.collectHostedUpdateDefs(
+      for (const { source, defs } of CommandApi.collectHostedAppDefs(
         giver
       )) {
         this.pushCommandSource(source, 'self', defs);
@@ -860,10 +948,112 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       return this.executeCommand(commandText, { ...opts, forced: true });
     }
 
+    /**
+     * ⭐ A command another body's code asked of this one (call-security pass
+     * D8–D9). Refused outright unless every verb that could claim the line
+     * is compellable with consent on BOTH keys — the view's `compellable:`
+     * and its controller class's `static compellable` — and then this body's
+     * OWN player is asked, worded by the engine from the line after this
+     * body's aliases. Nobody to ask is `cannot-consent`; no is
+     * `compel-declined`. Every refusal is THROWN to the compelling code,
+     * before any validator, binder or controller has run. Code with nobody
+     * acting, or sandboxed code (`eval`, a circle), never compels (D14).
+     */
+    @CallSecurity(SecurityPolicies.SelfOnly)
+    async _askCompelled(commandText: string, compeller: Compeller): Promise<Interactive | undefined> {
+      // The compeller is the gate's own read of who is acting; proven here,
+      // so the method answers for nobody else (and only the giver calls it).
+      AccessApi.requireActor(compeller.actor as Stuff | null);
+      const giver = this as unknown as Stuff & CommandGiver;
+      const refuse = (reason: string, why: string): never => {
+        void DiagnosticApi.record({
+          path: ExecutionContextApi.getActingCodePath(),
+          channel: 'call-security',
+          severity: 'warning',
+          message: `${why}: ${compeller.name} tried to make ${giver.getIdentityPath() ?? 'a body'} run \`${commandText}\``,
+        }).catch(() => undefined);
+        throw new Refusal(reason, { who: giver });
+      };
+      if (compeller.actor === null) return refuse('not-compellable', 'compelled with nobody acting');
+      if (compeller.sandboxed) return refuse('not-compellable', 'compelled from sandboxed code');
+      // ⭐⭐ The KEEPER drives a body nobody plays (owner ruling 2026-11-19):
+      // whoever holds title over an NPC's or an animal's ROW authored its
+      // mind, and may make it do anything — no consent to ask, no never-list
+      // (a player's body is never theirs to drive). Ownership of a pet is
+      // title to a THING, not its will: the owner does not drive it, and is
+      // told when its keeper does. Every drive is recorded.
+      if (!PlayerApi.isAvatarStuff(giver)) {
+        const row = giver.getTemplatePath();
+        const keeper = row !== null && (await AccessApi.canAtPath(compeller.actor as Stuff, 'write-template', row));
+        if (!keeper) return refuse('cannot-consent', `drove a body whose row it does not keep`);
+        await recordDrive(giver, compeller, commandText);
+        return undefined;
+      }
+      const parser = await resolveActorParser(giver);
+      const parsed = await parser.parse(commandText, {
+        commandGiver: giver,
+        location: MixinApi.isContainable(giver) ? giver.getContainer() : null,
+        available: this.getAvailableCommands(),
+      });
+      if (!parsed.parsed) return refuse('not-compellable', 'compelled a line that is not one command');
+      let line = parsed.parsed;
+      let lineText = commandText;
+      if (MixinApi.isAlias(giver)) {
+        const expanded = ShellApi.expandAliases(line, giver as Stuff & Alias);
+        line = expanded.parsed;
+        if (expanded.expansion) lineText = expanded.expansion.expandedText;
+      }
+      const second = line.rawTokens[1];
+      const word = second && second.kind === 'word' ? second.value.toLowerCase() : undefined;
+      const claimants = this.getAvailableCommands().filter((d) => d.verbs.includes(line.verb));
+      if (claimants.length === 0) return refuse('not-compellable', 'compelled a verb this body has not got');
+      for (const d of claimants) {
+        const sub = word !== undefined && d.getSubcommand(word) ? word : undefined;
+        if (d.compellableFor(sub) !== 'consent') return refuse('not-compellable', 'compelled a never-verb');
+        const path = sub !== undefined ? d.controllerForSubcommand(sub) : d.resolvedController;
+        if (!path) return refuse('not-compellable', 'compelled a verb with no controller');
+        // ⭐ The second key: the CLASS must agree (D11) — a view alone is
+        // content anyone with title can save.
+        const controller = await StuffApi.clone<CommandController>(path);
+        const agrees = (controller.constructor as { compellable?: unknown }).compellable === true;
+        await StuffApi.destruct(controller);
+        if (!agrees) return refuse('not-compellable', `the view at ${d.filePath} says consent and ${path} does not`);
+      }
+      const interactive = MixinApi.isHasInteractive(giver) ? [...giver.getInteractives()][0] : undefined;
+      if (!interactive) throw new Refusal('cannot-consent', { who: giver });
+      const asker = compeller.actor as Stuff;
+      let yes = false;
+      try {
+        yes = await interactive.promptConfirm(
+          // ⭐ As THIS body knows the asker (recognition-aware) — the realtor
+          // is "a land agent" to someone he has not introduced himself to;
+          // the drive found the name leaking through the presentation.
+          `${asker.describeFor(giver)} would have you run \`${lineText}\`. Let them?`,
+          'no',
+        );
+      } catch {
+        // @quiet a prompt that ends unanswered (cancelled, disconnected) is a no.
+        yes = false;
+      }
+      if (!yes) throw new Refusal('compel-declined', { who: giver });
+      return interactive;
+    }
+
     async executeCommand(
       commandText: string,
       opts: ExecuteCommandOpts = {}
     ): Promise<void> {
+      // ⭐⭐ The compulsion gate (call-security pass D8) — read BEFORE this
+      // frame is tagged, so "who is acting" is still whoever asked.
+      const compeller = compelledBy(this as unknown as Stuff);
+      if (compeller !== null) {
+        // ⭐ Once its player has said yes, the command's outcome — a
+        // refusal included — is THEIRS to read: it reports to the client
+        // that consented (a forced command had no client to report to, and
+        // the walk found a refused purchase saying nothing at all).
+        const consented = await this._askCompelled(commandText, compeller);
+        opts = { ...opts, interactive: opts.interactive ?? consented };
+      }
       ExecutionContextApi.tagCurrentFrame(FrameKind.Command);
 
       // Derive the dispatch context. `verb` and `command` are
@@ -1184,9 +1374,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // via `EventApi.restrictSubscribe` (it fires on private commands too —
       // inventory / settings / whisper / dm / char-gen — so an open-subscribe
       // broadcast would be a snooping side-channel). Emit stays open; only
-      // the blessed consumers may listen. The optional location/actor
-      // templatePaths feed the producer faucet's credit routing; the consumer
-      // tap ignores them. See docs/subsystems/participation.md.
+      // the blessed consumers may listen. The optional location templatePath
+      // and actor identity feed the producer faucet's credit routing; the
+      // consumer tap ignores them. See docs/subsystems/participation.md.
       if (args.verb !== undefined && args.originInteractiveId !== undefined) {
         EventApi.fire(
           new CommandDispatchedEvent({
@@ -1196,7 +1386,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             realAt: Date.now(),
             locationTemplatePath:
               args.location?.getTemplatePath() ?? undefined,
-            actorTemplatePath: giverAsStuff.getTemplatePath() ?? undefined,
+            // The person, never the lineage: every player body is cloned
+            // from one row, so a lineage actor is every player at once.
+            actorIdentityPath: giverAsStuff.getIdentityPath() ?? undefined,
           })
         );
       }
@@ -1249,6 +1441,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * that need "I might handle this depending on state" use
      * dynamic contributions on the recency stack.
      */
+    /** ⭐ The giver's own dispatch only (call-security pass): a side door around the compulsion gate otherwise. */
+    @CallSecurity(SecurityPolicies.SelfOnly)
     async _runChain(
       parsed: ReturnType<typeof CommandLineApi.parsePipeline>['commands'][0],
       outer: CommandContext,
@@ -1315,6 +1509,22 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
                 fills: bound.fills,
               };
               if (bound.target) opts.target = bound.target;
+              // ⭐ An emote to someone elsewhere needs a tuner at both ends
+              // (aether-devices D7, D8): the sender's half is asked here,
+              // and a line that cannot go is HELD whole and re-run when it
+              // can. Within the room nothing is asked — the room carries it.
+              if (
+                bound.target &&
+                !speaker.sharesPlaceWith(bound.target) &&
+                MixinApi.isComms(speaker)
+              ) {
+                const refusal = speaker.sendOrHold(outer.commandText);
+                if (refusal) {
+                  // The reason's row words it (failure-model D11).
+                  outer.refuse(refusal);
+                  return outer;
+                }
+              }
               speaker.emote(emote, opts);
               return outer;
             }
@@ -1790,6 +2000,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * controller (subcommand omitted, no verb-level fallback) returns
      * a player-facing failure rather than throwing.
      */
+    /** ⭐ The giver's own dispatch only (call-security pass): a side door around the compulsion gate otherwise. */
+    @CallSecurity(SecurityPolicies.SelfOnly)
     async _executeOne(
       command: CommandDefinition,
       model: CommandModel,

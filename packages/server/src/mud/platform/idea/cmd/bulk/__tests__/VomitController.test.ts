@@ -31,6 +31,7 @@ import {
   makeStuffAtPath,
 } from "../../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { TestHarnessApi } from "../../../../../api/test-harness";
 
 // ⭐ `NamedMixin` is composed EXPLICITLY, which is what a class that has
 // a proper name now does — it is off the creature base, because a body
@@ -106,7 +107,7 @@ function ctxFor(actor: Stuff, loc: Stuff): CommandContext {
   });
 }
 const runVomit = (actor: TestEater, loc: Stuff) =>
-  makeStuff(() => new VomitController()).execute({} as never, ctxFor(actor, loc));
+  ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new VomitController()).execute({} as never, ctx$)))(ctxFor(actor, loc));
 
 describe("VomitController", () => {
   let loc: Stuff;

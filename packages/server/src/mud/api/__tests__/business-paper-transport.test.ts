@@ -24,6 +24,7 @@
  */
 
 import '../../../test-bootstrap';
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../document';
 import { StuffApi } from '../stuff';
@@ -65,6 +66,7 @@ function installStore(): void {
       return id;
     },
   );
+  spySaveMany(pm);
 }
 
 function carrier(): BusinessEntity {

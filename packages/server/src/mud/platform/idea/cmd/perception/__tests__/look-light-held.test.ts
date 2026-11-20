@@ -43,6 +43,7 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Room extends NamedMixin(Location) {
   static _mixinName = 'HeldLightTestRoom';
@@ -88,7 +89,7 @@ async function walksFor(n: number): Promise<number> {
   const walk = vi.spyOn(Traversal.prototype, 'walk');
   await withRootContext(null, 'held-light.test', () => {
     ExecutionContextApi.tagActingAuthor(alice as never);
-    return makeStuff(() => new LookController()).execute({ target: { stuff: room, raw: '' } } as never, ctx());
+    return ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new LookController()).execute({ target: { stuff: room, raw: '' } } as never, ctx$)))(ctx());
   });
   const count = walk.mock.calls.length;
   vi.restoreAllMocks();

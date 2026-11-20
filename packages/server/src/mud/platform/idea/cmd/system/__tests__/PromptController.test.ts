@@ -29,6 +29,7 @@ import EventRegistry from '../../../EventRegistry';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 // Test actor — composes HasInteractive + CommandGiver + Sensor.
 class TestActor extends SensorMixin(
@@ -98,10 +99,10 @@ describe('PromptController — prompt cancel', () => {
 
     const controller = makeStuff(() => new PromptController());
     const ctx = makeContext(actor, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel('cancel') as Parameters<PromptController['execute']>[0],
       ctx,
-    );
+    ));
 
     // Both prompts cancelled.
     expect(PromptApi._getInteractivePromptCountForTesting(interactive)).toBe(0);
@@ -122,10 +123,10 @@ describe('PromptController — prompt cancel', () => {
 
     const controller = makeStuff(() => new PromptController());
     const ctx = makeContext(actor, loc);
-    await controller.execute(
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
       makeModel('cancel') as Parameters<PromptController['execute']>[0],
       ctx,
-    );
+    ));
 
     expect(ctx.getStatus()).toBe('ok');
     // No prompts existed, none to cancel.

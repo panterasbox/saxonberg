@@ -25,6 +25,7 @@ import { makeStuff, withRootContext } from '../../../../../lib/security/__tests_
 import { PerceptionApi } from '../../../../../api/perception';
 import { MessageApi } from '../../../../../api/message';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 function stubCommand(verb: string): CommandDefinition {
   return CommandDefinition.fromYaml(
@@ -71,10 +72,7 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['bookcase']);
 
     const controller = makeStuff(() => new LookController());
-    controller.execute(
-      makeModel(target),
-      makeContext(world, 'look bookcase'),
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(target), ctx$)))(makeContext(world, 'look bookcase'));
   });
 
   it('look bookcase:book renders the nested book detail', () => {
@@ -84,10 +82,7 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['bookcase', 'book']);
 
     const controller = makeStuff(() => new LookController());
-    controller.execute(
-      makeModel(target),
-      makeContext(world, 'look bookcase:book'),
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(target), ctx$)))(makeContext(world, 'look bookcase:book'));
   });
 
   it('look at a detail on an inventory item (host=apple, via=engraving)', () => {
@@ -103,10 +98,7 @@ describe('LookController — detail rendering', () => {
     expect(target.via?.detailPath).toEqual(['engraving']);
 
     const controller = makeStuff(() => new LookController());
-    controller.execute(
-      makeModel(target),
-      makeContext(world, 'look engraving'),
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(target), ctx$)))(makeContext(world, 'look engraving'));
   });
 
   it("falls back politely when the host isn't Detailed", () => {
@@ -123,7 +115,7 @@ describe('LookController — detail rendering', () => {
 
     const controller = makeStuff(() => new LookController());
     const ctx = makeContext(world, 'look whatever');
-    controller.execute(makeModel(target), ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(target), ctx));
     expect(ctx.getNotes()).toContainEqual(
       expect.objectContaining({
         kind: 'controller-rejected',
@@ -152,10 +144,7 @@ describe('LookController — look observes once (controller-liquidity W8)', () =
 
   const run = (target: MqlOneResult, text: string): Promise<void> =>
     withRootContext(null, 'look.test', async () => {
-      await makeStuff(() => new LookController()).execute(
-        makeModel(target),
-        makeContext(world, text),
-      );
+      await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new LookController()).execute(makeModel(target), ctx$)))(makeContext(world, text));
     });
 
   it('⭐ bare `look` makes ONE perception moment, of the place', async () => {

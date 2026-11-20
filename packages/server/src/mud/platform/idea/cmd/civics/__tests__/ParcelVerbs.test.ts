@@ -35,6 +35,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 function makeAvatar(playerId: string): Avatar {
   const av = makeStuffAtPath(() => new Avatar(), `/platform/agent/Avatar/${playerId}`);
@@ -88,7 +89,7 @@ async function runController(
 ): Promise<void> {
   await withRootContext(null, "parcel.test", () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return controller.execute(model as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(model as never, ctx));
   });
 }
 

@@ -20,6 +20,7 @@ import { Mml } from '../../../../../api/mml';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { GitStatusResult } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 interface GitModel extends CommandModel {
   subcommand?: string;
@@ -94,7 +95,7 @@ describe('git controllers', () => {
 
   // ⭐ The view's routing: each form names its own controller.
   const run = (m: GitModel) =>
-    makeStuff(() => new (({ diff: GitDiffController, log: GitLogController, publish: GitPublishController, revert: GitRevertController } as Record<string, new () => GitStatusController>)[m.subcommand ?? ''] ?? GitStatusController)()).execute(m as never, ctx);
+    TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new (({ diff: GitDiffController, log: GitLogController, publish: GitPublishController, revert: GitRevertController } as Record<string, new () => GitStatusController>)[m.subcommand ?? ''] ?? GitStatusController)()).execute(m as never, ctx));
 
   it('defaults a bare invocation to status', async () => {
     await run({});

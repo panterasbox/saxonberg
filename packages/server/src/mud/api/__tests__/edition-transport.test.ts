@@ -10,6 +10,7 @@
  */
 
 import '../../../test-bootstrap';
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../document';
 import { StuffApi } from '../stuff';
@@ -39,6 +40,7 @@ beforeEach(() => {
     if (col === 'documents') store.set(id, { ...doc, _id: id });
     return id;
   });
+  spySaveMany(pm);
 });
 
 afterEach(() => {

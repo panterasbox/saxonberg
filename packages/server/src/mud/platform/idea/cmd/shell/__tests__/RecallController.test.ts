@@ -25,6 +25,7 @@ import {
 } from '../../../../../lib/persistence/__tests__/record-test-db';
 import type { Note } from '@saxonberg/types';
 import type { MessageFrame } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let db: RecordTestDb;
 let giver: Avatar;
@@ -64,7 +65,7 @@ async function run(
   });
   await ExecutionContextApi.runRoot(null, 'recall.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    await ctrl.execute(model as never, ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
   });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }

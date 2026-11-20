@@ -19,6 +19,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { withHands } from '../../../lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -173,13 +174,13 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,

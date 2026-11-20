@@ -485,7 +485,8 @@ export default class Login extends LoginBase {
       const lastSeen = a.getLastSeen();
       if (lastSeen !== undefined) out.lastSeen = lastSeen;
 
-      const subject = a.getTemplatePath();
+      // The person, never the lineage every player body shares (D1).
+      const subject = a.getIdentityPath();
       if (subject) {
         out.playStanding = InfluenceApi.bandOf(subject, "consumer").name;
       }

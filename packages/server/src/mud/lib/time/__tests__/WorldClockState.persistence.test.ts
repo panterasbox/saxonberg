@@ -8,6 +8,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { WorldClockState } from '../WorldClockState';
 import { WorldClockApi } from '../../../api/worldclock';
@@ -32,6 +33,7 @@ function stubPM(): PMStubs {
     saves.push({ collection, doc: doc as Record<string, unknown> });
     return 'inserted-id';
   });
+  spySaveMany(pm);
   vi.spyOn(pm, 'find').mockImplementation(async () => nextFindResult);
 
   return {

@@ -2,10 +2,9 @@
  * TalkController — the deliberate opener for tree-bearing NPCs.
  *
  * `talk to <npc>` engages a conversational character:
- * the controller narrows the target to a `Behaved` host, finds its
- * dialogue (`engage`-triggered) spec, resolves the brain by path (the
- * same `resolveExportSync` seam `BehavedMixin` uses), and calls the
- * brain's `open` responder seam. It does **not** walk the tree itself —
+ * the controller narrows the target to a `Behaved` host and asks it to
+ * `converse` — the NPC picks its own dialogue (`engage`) spec and opens it
+ * AS ITSELF (call-security pass D10). It does **not** walk the tree itself —
  * it hands off and returns. The NPC leads (its root beat is spoken by
  * the conversation), so the opener emits **no player line**; a silent or
  * busy target is declined gracefully.
@@ -17,11 +16,8 @@ import { CommandController } from "../../../../lib/command/CommandController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
-import { StuffApi } from "../../../../api/stuff";
 import { Mml } from "../../../../api/mml";
 import type { MqlOneResult } from "../../../../api/mql";
-import type { BrainStatics } from "../../../../lib/behavior/brain";
-import { BRAIN_EXPORT } from "../../../../lib/behavior/brain";
 
 /** Diegetic world-action topic for the private decline lines. */
 const TOPIC = "act.deed";
@@ -56,36 +52,10 @@ export default class TalkController extends CommandController<TalkModel> {
       );
     }
 
-    // Find a dialogue spec whose brain exposes the `open` responder seam.
-    let descriptor: BrainStatics | null = null;
-    let config: Record<string, unknown> = {};
-    for (const spec of target.getBehaviors()) {
-      if (spec.trigger !== "engage") continue;
-      const resolved = StuffApi.resolveExportSync(
-        spec.brain,
-        BRAIN_EXPORT,
-      ) as BrainStatics | null;
-      if (resolved?.open) {
-        descriptor = resolved;
-        config = spec.config ?? {};
-        break;
-      }
-    }
-    if (!descriptor?.open) {
-      return this.decline(
-        context,
-        Mml.compose`${Mml.actor(target)} has nothing to say.`,
-        "not-conversational",
-        target.stuffId,
-      );
-    }
-
-    const result = await descriptor.open({
-      player: giver,
-      npc: target,
-      config,
-      interactive: context.interactive,
-    });
+    // ⭐ The NPC opens its own conversation (call-security pass D10): its
+    // spec, its brain, run as the NPC — so every line the conversation
+    // dispatches is the NPC's own act, never the asking player's.
+    const result = await target.converse(giver, context.interactive);
 
     if (result.ok) return; // The NPC leads — no player line on open.
 
@@ -104,6 +74,7 @@ export default class TalkController extends CommandController<TalkModel> {
           "no-viewer",
         );
       case "no-tree":
+      case "not-conversational":
       default:
         return this.decline(
           context,

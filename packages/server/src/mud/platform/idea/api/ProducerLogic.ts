@@ -55,6 +55,23 @@ const ProducerBootCallers = SecurityPolicies.AnyOf(
  */
 const PRODUCER_RECOMPUTE_MS = 60_000;
 
+/**
+ * ⭐ The authors whose ledger rows changed since the last pass
+ * (db-performance D4) — `null` = everything, what a fresh module holds, so
+ * the first pass after a start or a hot reload is full. Marked after each
+ * write; taken by a pass before its first await.
+ */
+let dirty: Set<string> | null = null;
+/** What the last pass scored with (D6): a change forces a full pass. */
+let lastFingerprint: string | null = null;
+/** Rows per `saveMany`. */
+const STANDING_WRITE_CHUNK = 500;
+
+/** Mark `author` for the next pass (a no-op while a full pass is owed). */
+function markDirty(author: string): void {
+  dirty?.add(author);
+}
+
 /** Persistence is a no-op unless Mongo is connected (tests, pre-boot). */
 function active(): boolean {
   return PersistApi.isConnected();
@@ -86,6 +103,11 @@ function decayHalfLifeS(): number {
   return settingNumber(AppSettingKeys.producerDecayHalfLife, 1_209_600);
 }
 
+/** What scoring reads from settings — the producer figure is one decay of weights. */
+function fingerprint(): string {
+  return String(decayHalfLifeS());
+}
+
 /** The band cutoffs from AppSettings (stock-agnostic), or the fallback. */
 function bandThresholds(): readonly BandThreshold[] {
   try {
@@ -108,16 +130,26 @@ function bandThresholds(): readonly BandThreshold[] {
  * module-private free function (no intra-singleton self-call to trip the
  * gate).
  */
-async function appendImpl(fields: ProducerEventFields): Promise<void> {
+async function appendImpl(
+  fields: ProducerEventFields,
+  creditedBucket: Map<string, number>,
+): Promise<void> {
   if (!active()) return;
   const realAt = fields.realAt ?? Date.now();
   const bucket = bucketOf(realAt);
+  // ⭐ The last bucket each author×actor pair is known credited in
+  // (db-performance H1): a burst reads the ledger once, not per command.
+  const pair = `${fields.author}\u0000${fields.actor}`;
+  if (creditedBucket.get(pair) === bucket) return;
   const existing = await ProducerEvent.find({
     author: fields.author,
     actor: fields.actor,
     bucket,
   });
-  if (existing.length > 0) return; // already credited this author for this actor-bucket
+  if (existing.length > 0) {
+    creditedBucket.set(pair, bucket);
+    return; // already credited this author for this actor-bucket
+  }
   const ev = new ProducerEvent();
   ev.author = fields.author;
   ev.actor = fields.actor;
@@ -128,8 +160,10 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
   ev.at = fields.at ?? WorldClockApi.getNow().rawValue();
   ev.realAt = realAt;
   await ev.save();
+  creditedBucket.set(pair, bucket);
   // AFTER the write, never before. The AUTHOR is the subject whose
   // standing moved; the actor merely generated the engagement.
+  markDirty(ev.author);
   SubscriptionApi.poke(SUBSCRIPTION_SOURCES.mql, null, { durableSubject: ev.author });
 }
 
@@ -140,13 +174,16 @@ async function appendImpl(fields: ProducerEventFields): Promise<void> {
  * author UNLESS it is the engaging player (`author !== actor` — the **A≠P**
  * exclusion: engaging your own released content earns you nothing). The
  * `{author, actor, bucket}` dedup lives in {@link appendImpl}. Skipped when
- * the signal carries no location / actor templatePath (an incorporeal or
- * un-templated giver).
+ * the signal carries no location templatePath or actor identity (an
+ * incorporeal giver, or one with no identity).
  */
-async function appendFromEngagement(p: CommandDispatchedPayload): Promise<void> {
+async function appendFromEngagement(
+  p: CommandDispatchedPayload,
+  creditedBucket: Map<string, number>,
+): Promise<void> {
   if (!active()) return;
   const location = p.locationTemplatePath;
-  const actor = p.actorTemplatePath;
+  const actor = p.actorIdentityPath;
   if (!location || !actor) return;
   const shares = await CreditRouting.resolve(location);
   for (const share of shares) {
@@ -158,7 +195,7 @@ async function appendFromEngagement(p: CommandDispatchedPayload): Promise<void> 
       weight: share.weight,
       at: p.at,
       realAt: p.realAt,
-    });
+    }, creditedBucket);
   }
 }
 
@@ -184,66 +221,70 @@ function scoreEvents(
   return total;
 }
 
-/** Upsert the materialized standing row (find-or-insert by {subject, '*'}). */
-async function upsertStanding(
-  subject: string,
-  value: number,
-  nowS: number,
-  realNow: number
-): Promise<void> {
-  const [existing] = await ProducerStanding.find({
-    subject,
-    scope: PRODUCER_WIDE,
-  });
-  const row = existing ?? new ProducerStanding();
-  row.subject = subject;
-  row.scope = PRODUCER_WIDE;
-  row.value = value;
-  row.recomputedAt = nowS;
-  row.recomputedRealAt = realNow;
-  await row.save();
+/**
+ * ⭐ The pass (db-performance D4): re-score the authors whose rows changed
+ * since the last one (all of them on the first pass after a start, on a
+ * changed value function, or when `full` is asked), write their standings
+ * in ONE chunked `saveMany` keyed on `{subject, scope}`, and put each into
+ * the read index. An idle world's pass makes no round trip; decay between
+ * passes is the read's (D5). A failed pass puts its authors back.
+ */
+async function recomputeImpl(opts: { full?: boolean } = {}): Promise<void> {
+  if (!active()) return;
+  const fp = fingerprint();
+  if (opts.full || fp !== lastFingerprint) dirty = null;
+  const taken = dirty;
+  dirty = new Set();
+  if (taken !== null && taken.size === 0) return;
+  try {
+    const halfLifeS = decayHalfLifeS();
+    const nowS = WorldClockApi.getNow().rawValue();
+    const realNow = Date.now();
+
+    const events =
+      taken === null
+        ? await ProducerEvent.find({})
+        : await ProducerEvent.find({ author: { $in: [...taken] } });
+    const byAuthor = new Map<string, ProducerEvent[]>();
+    for (const ev of events) {
+      const list = byAuthor.get(ev.author);
+      if (list) list.push(ev);
+      else byAuthor.set(ev.author, [ev]);
+    }
+
+    const rows: ProducerStanding[] = [];
+    for (const [author, list] of byAuthor) {
+      const row = new ProducerStanding();
+      row.subject = author;
+      row.scope = PRODUCER_WIDE;
+      row.value = scoreEvents(list, realNow, halfLifeS);
+      row.recomputedAt = nowS;
+      row.recomputedRealAt = realNow;
+      rows.push(row);
+    }
+    const writes = await Promise.all(rows.map((r) => r.toBatchWrite({ key: ['subject', 'scope'] })));
+    for (let i = 0; i < writes.length; i += STANDING_WRITE_CHUNK) {
+      await PersistApi.saveMany(ProducerStanding.collectionName, writes.slice(i, i + STANDING_WRITE_CHUNK));
+    }
+    for (const row of rows) row.remember();
+    lastFingerprint = fp;
+  } catch (err) {
+    if (taken === null) dirty = null;
+    else for (const a of taken) markDirty(a);
+    throw err;
+  }
 }
 
 /**
- * The batch recompute: re-score every author's production from the raw
- * attributed-engagement log into the materialized aggregate. Reads ONLY the
- * producer log + AppSettings. Compact-wide only — no scope partition.
- * Groups by `author` (the routing key).
+ * Sync read off the warmed standing index, decayed to NOW (D5) — what a
+ * pass at this instant would store, to rounding. Neutral 0 for a missing
+ * author; a point with no instant reads flat.
  */
-async function recomputeImpl(): Promise<void> {
-  if (!active()) return;
-  const halfLifeS = decayHalfLifeS();
-  const nowS = WorldClockApi.getNow().rawValue();
-  const realNow = Date.now();
-
-  const all = await ProducerEvent.find({});
-  const byAuthor = new Map<string, ProducerEvent[]>();
-  for (const ev of all) {
-    const list = byAuthor.get(ev.author);
-    if (list) list.push(ev);
-    else byAuthor.set(ev.author, [ev]);
-  }
-
-  for (const [author, events] of byAuthor) {
-    await upsertStanding(
-      author,
-      scoreEvents(events, realNow, halfLifeS),
-      nowS,
-      realNow
-    );
-  }
-
-  // Refresh the read cache from the rebuilt rows.
-  await ProducerStanding.warm();
-}
-
-/** Sync read off the warmed standing cache; neutral 0 for a missing author. */
 function producerOfImpl(authorId: string): number {
-  return (
-    ProducerStanding.cached().get(
-      ProducerStanding.key(authorId, PRODUCER_WIDE)
-    ) ?? 0
-  );
+  const p = ProducerStanding.cached().get(ProducerStanding.key(authorId, PRODUCER_WIDE));
+  if (!p) return 0;
+  if (p.at === undefined) return p.value;
+  return p.value * Decay.byHalfLife(Math.max(0, (Date.now() - p.at) / 1000), decayHalfLifeS());
 }
 
 /**
@@ -325,6 +366,12 @@ function standingForAccountImpl(
  */
 @Unshadowable
 export class ProducerLogic extends ApiLogic {
+  /**
+   * ⭐ Author×actor → the last bucket that pair is known credited in
+   * (db-performance H1). Instance state: a fresh singleton starts empty.
+   */
+  private creditedBucket = new Map<string, number>();
+
   /** The recurring recompute handle — retained so re-install is a no-op. */
   private recomputeHandle: ScheduleHandle | null = null;
   /** The scheduled pass in flight, if any — a fire while it runs is skipped. */
@@ -364,7 +411,7 @@ export class ProducerLogic extends ApiLogic {
     this.engagementSub = EventApi.on<CommandDispatchedPayload>(
       CommandDispatchedEvent.KIND,
       (p) => {
-        void appendFromEngagement(p).catch((err) =>
+        void appendFromEngagement(p, this.creditedBucket).catch((err) =>
           console.error('ProducerLogic: engagement append failed', err)
         );
       }
@@ -374,7 +421,7 @@ export class ProducerLogic extends ApiLogic {
   /** See {@link ProducerApi.append}. */
   @CallSecurity(ProducerApiCallers)
   public async append(fields: ProducerEventFields): Promise<void> {
-    return appendImpl(fields);
+    return appendImpl(fields, this.creditedBucket);
   }
 
   /**
@@ -403,8 +450,8 @@ export class ProducerLogic extends ApiLogic {
 
   /** See {@link ProducerApi.recompute}. */
   @CallSecurity(ProducerApiCallers)
-  public async recompute(): Promise<void> {
-    return recomputeImpl();
+  public async recompute(opts?: { full?: boolean }): Promise<void> {
+    return recomputeImpl(opts);
   }
 
   /** See {@link ProducerApi.producerOf}. */

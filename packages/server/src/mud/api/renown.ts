@@ -79,14 +79,16 @@ export class RenownApi {
   }
 
   /**
-   * Re-score every subject's standing from the raw event log through the
-   * current value-function into the materialized aggregate — the batch the
-   * recompute schedule fires (and the `renownOf` cache is refreshed from).
-   * Applies the value-function at recompute time, so re-legislating it
-   * re-scores history; reads only the log + AppSettings, never belief.
+   * Run a scoring pass now: re-score the subjects whose renown events
+   * changed since the last pass (every subject on the first pass after a
+   * start, or when the value function or an emote's valence changed) into
+   * the materialized aggregate. `{ full: true }` re-scores every subject —
+   * what a caller that wrote ledger rows directly needs. Applies the
+   * value-function at recompute time, so re-legislating it re-scores
+   * history; decay between passes is applied at read.
    */
-  public static async recompute(): Promise<void> {
-    return logic().recompute();
+  public static async recompute(opts?: { full?: boolean }): Promise<void> {
+    return logic().recompute(opts);
   }
 
   /**

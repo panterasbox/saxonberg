@@ -12,6 +12,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { withSaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { CmsApi } from "../../../../api/cms";
 import { AccessApi } from "../../../../api/access";
@@ -54,13 +55,13 @@ beforeEach(() => {
     }
     return (doc._id as string) ?? "id";
   });
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     isConnected: () => true,
     save,
     find,
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   vi.spyOn(AccessApi, "can").mockResolvedValue(true);
   vi.spyOn(AccessApi, "canAtPath").mockResolvedValue(true);

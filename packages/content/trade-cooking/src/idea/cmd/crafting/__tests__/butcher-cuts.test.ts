@@ -41,6 +41,7 @@ import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const SPECIES = '/stuff/idea/species/_test/cutbeast';
 const PLAN = '/stuff/idea/species/BodyPlan/_test/cutplan';
@@ -193,7 +194,7 @@ describe('⭐⭐ the tool is the depth', () => {
     const minted = installCloneStub();
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body), ctx$)))(ctx());
 
     // The boneless loin came off; the bone-in shoulder did not.
     const kept = survivors(minted).filter((c) => MixinApi.isCut(c));
@@ -210,10 +211,7 @@ describe('⭐⭐ the tool is the depth', () => {
     const minted = installCloneStub();
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(
-      model(body, { tools: { stuff: [tool('saw')] } as unknown as MqlManyResult }),
-      ctx(),
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body, { tools: { stuff: [tool('saw')] } as unknown as MqlManyResult }), ctx$)))(ctx());
     const stems = survivors(minted)
       .filter((c) => MixinApi.isCut(c))
       .map((c) => (c as unknown as Cut).getTissues()[0]);
@@ -230,11 +228,11 @@ describe('⭐⭐⭐ the carcass reduces', () => {
     installCloneStub();
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body), ctx$)))(ctx());
     expect(body.hasTissue(LOIN_M)).toBe(false);
 
     const minted2 = installCloneStub();
-    await ctrl.execute(model(body), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body), ctx$)))(ctx());
     // Nothing new off the loin — it is already gone.
     const again = survivors(minted2)
       .filter((c) => MixinApi.isCut(c))
@@ -247,13 +245,10 @@ describe('⭐⭐⭐ the carcass reduces', () => {
     const minted = installCloneStub();
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(
-      model(body, {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body, {
         cut: 'loin',
         tools: { stuff: [tool('saw')] } as unknown as MqlManyResult,
-      }),
-      ctx(),
-    );
+      }), ctx$)))(ctx());
     // ⭐ The saw was in hand and the shoulder was reachable — it was not
     // asked for, so it is still on the body.
     expect(body.hasTissue(LOIN_M)).toBe(false);
@@ -267,7 +262,7 @@ describe('⭐⭐⭐ the carcass reduces', () => {
     installCloneStub();
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body, { cut: 'porterhouse' }), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body, { cut: 'porterhouse' }), ctx$)))(ctx());
     expect(notes.map((n) => n.reason)).toContain('no-such-cut');
     expect(body.isDestroyed()).toBe(false);
   });
@@ -279,7 +274,7 @@ describe('⭐⭐ the cut knows what it is OF', () => {
     const minted = installCloneStub();
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body), ctx$)))(ctx());
     const loin = survivors(minted).find(
       (c) => MixinApi.isCut(c) && (c as unknown as Cut).getTissues()[0] === LOIN_M,
     ) as unknown as Cut;
@@ -294,7 +289,7 @@ describe('⭐⭐ the cut knows what it is OF', () => {
     // 30 % of 100 kg is the loin, in one piece.
     const body = corpse(sp, 100);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body), ctx$)))(ctx());
     const loin = survivors(minted).find(
       (c) => MixinApi.isCut(c) && (c as unknown as Cut).getTissues()[0] === LOIN_M,
     )!;
@@ -315,7 +310,7 @@ describe('⭐⭐⭐ the hand decides JOINT or TRIM', () => {
     const minted = installCloneStub('standard');
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body), ctx$)))(ctx());
     const kept = survivors(minted).filter((c) => MixinApi.isCut(c));
     // Nothing claims the loin muscle: what came off is trim.
     expect(
@@ -329,7 +324,7 @@ describe('⭐⭐⭐ the hand decides JOINT or TRIM', () => {
     const minted = installCloneStub('easy');
     const body = corpse(sp);
     const ctrl = makeStuff(() => new ButcherController());
-    await ctrl.execute(model(body), ctx());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body), ctx$)))(ctx());
     expect(
       survivors(minted)
         .filter((c) => MixinApi.isCut(c))

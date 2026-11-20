@@ -10,6 +10,7 @@
  */
 
 import "@saxonberg/server/test-bootstrap";
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fixture';
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -206,13 +207,13 @@ function installStore(): void {
     const idx = arr.findIndex((d) => d._id === id);
     if (idx >= 0) arr.splice(idx, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   // Thing-based fixtures carry marshalled Quantity fields (mass, …) — seed
   // the marshaller singletons + a no-op preload resolver.
   installV1QuantityMarshallers();

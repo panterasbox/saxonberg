@@ -89,6 +89,8 @@ async function gateMutation(
   actor: Stuff | null,
   path: string,
 ): Promise<string | null> {
+  // who is acting must be who is named (call-security pass D5)
+  AccessApi.requireActor(actor);
   if (actor !== null && isOwnHomePath(actor, path)) return null;
   if (!(await AccessApi.canAtPath(actor, "write-document", path))) {
     return "you don't have permission to write that document";
@@ -1095,6 +1097,8 @@ export class DocumentLogic extends ApiLogic {
   /** See {@link DocumentApi.callUp}. */
   @CallSecurity(DocumentApiCallers)
   public async callUp(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(reader);
     return callUpImpl(reader, word);
   }
 

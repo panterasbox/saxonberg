@@ -28,6 +28,7 @@ import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
 import { attachGraph } from "../../../../lib/location/__tests__/attachments-fixture";
+import { TestHarnessApi } from "../../../../api/test-harness";
 
 class Worker extends EmployedMixin(MobileMixin(ContainerMixin(ContainableMixin(Idea)))) {
   static _mixinName = "FulfillingWorker";
@@ -102,7 +103,7 @@ describe("the paid mend's hand, through the real roster", () => {
     await EmploymentApi.ensureOperatorAt(ROOM);
     expect(smith.isOnShift()).toBe(true);
     expect(smith.isFulfilling()).toBe(true);
-    const hand = await CraftingApi.fulfillingHand(customer as never, tariff as never);
+    const hand = await TestHarnessApi.actAs(customer as never, () => CraftingApi.fulfillingHand(customer as never, tariff as never));
     expect(hand).toBe(smith);
   });
 
@@ -114,14 +115,14 @@ describe("the paid mend's hand, through the real roster", () => {
     await world(true);
     atHour(23);
     await EmploymentApi.ensureOperatorAt(ROOM);
-    expect(await CraftingApi.fulfillingHand(customer as never, tariff as never)).toBeNull();
+    expect(await TestHarnessApi.actAs(customer as never, () => CraftingApi.fulfillingHand(customer as never, tariff as never))).toBeNull();
   });
 
   it("off shift, with no proprietor to cover, there is nobody", async () => {
     await world(false);
     atHour(23);
     await EmploymentApi.ensureOperatorAt(ROOM);
-    expect(await CraftingApi.fulfillingHand(customer as never, tariff as never)).toBeNull();
+    expect(await TestHarnessApi.actAs(customer as never, () => CraftingApi.fulfillingHand(customer as never, tariff as never))).toBeNull();
   });
 
   it("⭐⭐ a proprietor who is ALSO rostered keeps her own shift while another hand is on (the drive's finding)", async () => {
@@ -134,6 +135,6 @@ describe("the paid mend's hand, through the real roster", () => {
     await EmploymentApi.ensureOperatorAt(ROOM);
     await EmploymentApi.ensureOperatorAt(ROOM); // and again — it must hold
     expect(smith.isOnShift()).toBe(true);
-    expect(await CraftingApi.fulfillingHand(customer as never, tariff as never)).toBe(smith);
+    expect(await TestHarnessApi.actAs(customer as never, () => CraftingApi.fulfillingHand(customer as never, tariff as never))).toBe(smith);
   });
 });

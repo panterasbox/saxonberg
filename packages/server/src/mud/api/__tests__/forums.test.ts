@@ -16,6 +16,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spySaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ForumsApi } from '../forums';
 import SubjectCatalogue from '../../platform/idea/SubjectCatalogue';
@@ -33,6 +34,7 @@ import {
   SubjectSubscriberMixin,
   type SubjectSubscriber,
 } from '../../lib/forum/SubjectSubscriber';
+import { TestHarnessApi } from '../test-harness';
 
 let store: Map<string, Map<string, Record<string, unknown>>>;
 let idCounter = 0;
@@ -64,6 +66,7 @@ beforeEach(() => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(pm, 'find').mockImplementation(
     async (c: string, query: Record<string, unknown>) =>
       [...col(c).values()].filter((d) =>
@@ -107,12 +110,12 @@ describe('ForumsApi threads + replies', () => {
     const { board } = await ForumsApi.makeForum(creator, 'Gossip', {
       open: true,
     });
-    const thread = await creator.postThread(
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(
       board,
       'Best soup?',
       'What is the best soup?'
-    );
-    const reply = await creator.replyToEntry(thread, 'Tomato, obviously.');
+    ));
+    const reply = await TestHarnessApi.actAs(creator, () => creator.replyToEntry(thread, 'Tomato, obviously.'));
 
     const threads = await ForumsApi.readBoard(board);
     expect(threads).toHaveLength(1);
@@ -130,12 +133,12 @@ describe('ForumsApi threads + replies', () => {
       open: true,
     });
     // Thread A with a comment and a nested reply-to-the-comment.
-    const a = await creator.postThread(board, 'A', 'a');
-    const c1 = await creator.replyToEntry(a, 'comment on A');
-    const c2 = await creator.replyToEntry(c1, 'nested reply to the comment');
+    const a = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'A', 'a'));
+    const c1 = await TestHarnessApi.actAs(creator, () => creator.replyToEntry(a, 'comment on A'));
+    const c2 = await TestHarnessApi.actAs(creator, () => creator.replyToEntry(c1, 'nested reply to the comment'));
     // A SEPARATE thread B (same board) with its own reply.
-    const b = await creator.postThread(board, 'B', 'b');
-    const bReply = await creator.replyToEntry(b, 'comment on B');
+    const b = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'B', 'b'));
+    const bReply = await TestHarnessApi.actAs(creator, () => creator.replyToEntry(b, 'comment on B'));
 
     const { posts } = await ForumsApi.readThread(a);
     const ids = posts.map((p) => p._id);
@@ -156,7 +159,7 @@ describe('ForumsApi.promoteThread', () => {
     const { board, subject } = await ForumsApi.makeForum(creator, 'Gossip', {
       open: true,
     });
-    const thread = await creator.postThread(board, 'Best soup?', 'body');
+    const thread = await TestHarnessApi.actAs(creator, () => creator.postThread(board, 'Best soup?', 'body'));
 
     const threadSubject = await creator.promoteThread(
       thread,

@@ -28,6 +28,7 @@ import {
 } from "@saxonberg/server/mud/api/command";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import { makeStuff } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
+import { TestHarnessApi } from "@saxonberg/server/mud/api/test-harness";
 
 class Giver extends SensorMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea)))),
@@ -81,10 +82,10 @@ describe("ProcureCardController", () => {
 
     const settle = vi.spyOn(BankingApi, "settle");
     const c = ctx(giver, loc, clerk);
-    await makeStuff(() => new ProcureCardController()).execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new ProcureCardController()).execute(
       {} as CommandModel,
       c,
-    );
+    ));
 
     const carried = giver.getContents().filter((s) =>
       MixinApi.isCredentialWallet(s),

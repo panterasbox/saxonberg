@@ -18,6 +18,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { spySaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
 import Trap from '../../../platform/thing/Trap';
@@ -63,6 +64,7 @@ import type { Trauma } from '../../../platform/idea/Condition';
 import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 import type { MqlOneResult } from '../../../api/mql';
 import type { CommandContext } from '../../../api/command';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 let n = 0;
 let real = 0;
@@ -190,6 +192,7 @@ beforeEach(() => {
   vi.spyOn(pm, 'isConnected').mockReturnValue(true);
   vi.spyOn(pm, 'find').mockResolvedValue([] as never);
   vi.spyOn(pm, 'save').mockResolvedValue('id-0' as never);
+  spySaveMany(pm);
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
     const b: Record<string, unknown> = {};
     b.topic = () => b;
@@ -420,7 +423,7 @@ describe('disarm — found-gated', () => {
     ContainmentApi.move(m, makeStuff(() => new Place()));
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     const context = ctx(m, m.getContainer());
-    await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context));
     expect(trap.isArmed()).toBe(true); // still live — you can't defuse what you can't see
   });
 
@@ -435,7 +438,7 @@ describe('disarm — found-gated', () => {
     const trap = makeTrap({ channel: 'edge', energy: 2, siteSelector: FEET });
     PerceptionApi.recordDiscovery(m, trap as unknown as Good);
     const context = ctx(m, m.getContainer());
-    await makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context);
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new DisarmController()).execute({ target: target(trap) }, context));
     expect(trap.getHazardState()).toBe('disarmed');
   });
 });
@@ -460,6 +463,7 @@ describe('HazardMixin — player-placed accountability (the trap producer)', () 
         return _id as never;
       },
     );
+    spySaveMany(pm);
     vi.spyOn(pm, 'find').mockImplementation(
       async (_col: string, query: Record<string, unknown>) =>
         store.filter((d) =>

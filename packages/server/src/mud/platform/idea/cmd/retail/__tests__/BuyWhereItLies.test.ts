@@ -24,6 +24,7 @@ import { CommandDefinition } from '../../../../../lib/command/CommandDefinition'
 import Place from '../../../../../lib/stuff/Place';
 import { makeStuff, makeStuffAtPath, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
 import type { ChattelOwner } from '../../../../../api/chattel';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Stock extends StockBase {}
 class Rowboat extends HirableMixin(Good) {}
@@ -64,7 +65,7 @@ async function buy(stock: Stock, thing = 'rowboat'): Promise<CommandContext> {
   });
   await withRootContext(null, 'buy-where-it-lies.test', () => {
     ExecutionContextApi.tagActingAuthor(av);
-    return makeStuff(() => new BuyController()).execute({ counter: { stuff: stock as never, raw: '' }, thing } as never, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new BuyController()).execute({ counter: { stuff: stock as never, raw: '' }, thing } as never, ctx));
   });
   return ctx;
 }

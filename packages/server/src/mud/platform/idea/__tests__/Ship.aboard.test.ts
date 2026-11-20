@@ -13,6 +13,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ship from '../Ship';
@@ -44,6 +45,7 @@ import type { MapClaim } from '../../../lib/location/MapClaim';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '../../../api/test-harness';
 
 /** The warren row every authored ship names (zone-instancing D12). */
 const AUTHORED_SHIP_WARREN = '/platform/idea/ShipWarren/authored';
@@ -140,13 +142,13 @@ function installStore(): void {
     const i = arr.findIndex((d) => d._id === id);
     if (i >= 0) arr.splice(i, 1);
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   installV1QuantityMarshallers();
   Document.setMarshallerResolver(
     () => undefined,
@@ -232,7 +234,7 @@ async function run(
   vi.spyOn(context as unknown as { note(n: unknown): void }, 'note').mockImplementation((n: unknown) => {
     seen.push(n as { reason?: string });
   });
-  await controller.execute(model as never, context as never);
+  await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(model as never, ctx$)))(context as never);
   return { reason: seen.find((n) => n.reason !== undefined)?.reason ?? null, text: said.join('\n') };
 }
 

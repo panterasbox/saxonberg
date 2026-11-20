@@ -25,6 +25,7 @@ import {
 } from '../../../../../api/command';
 import type Interactive from '../../../Interactive';
 import '../../../../../api/material';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TangibleThing extends TangibleMixin(NamedMixin(Good)) {}
 
@@ -84,10 +85,7 @@ describe('WeighController', () => {
     ContainmentApi.move(avatar, room);
 
     const ctrl = await StuffApi.create(() => new WeighController());
-    await ctrl.execute(
-      makeModel({ target: { stuff: sword, raw: 'sword' } }),
-      makeContext(avatar, room)
-    );
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(makeModel({ target: { stuff: sword, raw: 'sword' } }), ctx$)))(makeContext(avatar, room));
     const frame = avatar.received[0] as { body: string };
     expect(frame.body).toContain('<quantity channel="mass" unit="kg"');
     expect(frame.body).toContain('value="3"');

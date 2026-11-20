@@ -94,6 +94,16 @@ beforeEach(async () => {
       return id;
     }
   );
+  // The pass writes its standings as one keyed batch (db-performance W3).
+  vi.spyOn(pm, 'saveMany').mockImplementation(async (c: string, writes) => {
+    for (const w of writes) {
+      const key = w.key ?? [];
+      const hit = [...col(c).values()].find((d) => key.length > 0 && key.every((k) => d[k] === w.doc[k]));
+      const id = (hit?._id as string | undefined) ?? `id-${idCounter++}`;
+      col(c).set(id, { ...(hit ?? {}), ...w.doc, _id: id });
+    }
+    return writes.length;
+  });
   WorldClockApi._setNowProviderForTesting(() => 4242);
   RenownStanding._resetForTesting();
   stubEmotes(emote('cheer', 1), emote('boo', -1));
@@ -111,7 +121,7 @@ describe('RenownLogic.recompute', () => {
   it('AC#2 materializes a signed standing renownOf returns', async () => {
     await RenownApi.append({ subject: S, source: R, signal: { emote: 'cheer' } });
     expect(RenownApi.renownOf(S)).toBe(0); // not yet recomputed
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
     expect(RenownApi.renownOf(S)).toBe(1);
   });
 
@@ -128,7 +138,7 @@ describe('RenownLogic.recompute', () => {
       signal: { emote: 'boo' },
       groups: ['managed:g2'],
     });
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
     expect(RenownApi.renownOf(S, null)).toBe(0); // +1 + -1, Compact-wide
     expect(RenownApi.renownOf(S, 'managed:g1')).toBe(1); // esteemed by the guild
     expect(RenownApi.renownOf(S, 'managed:g2')).toBe(-1); // notorious in g2
@@ -136,14 +146,14 @@ describe('RenownLogic.recompute', () => {
 
   it('AC#4 re-valuing the emote re-scores; the log stays byte-identical', async () => {
     await RenownApi.append({ subject: S, source: R, signal: { emote: 'cheer' } });
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
     expect(RenownApi.renownOf(S)).toBe(1);
 
     const logBefore = JSON.stringify([...col('renown_events').values()]);
 
     // The polity legislates: a cheer is now worth 2 (re-valued on the emote).
     stubEmotes(emote('cheer', 2), emote('boo', -1));
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
 
     expect(RenownApi.renownOf(S)).toBe(2); // re-scored from the same log
     const logAfter = JSON.stringify([...col('renown_events').values()]);
@@ -153,7 +163,7 @@ describe('RenownLogic.recompute', () => {
   it('AC#5 dropping the aggregate + replaying the log reproduces standings', async () => {
     await RenownApi.append({ subject: S, source: R, signal: { emote: 'cheer' }, groups: ['managed:g1'] });
     await RenownApi.append({ subject: S, source: R, signal: { emote: 'cheer' } });
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
     const before = RenownApi.renownOf(S);
     const beforeG1 = RenownApi.renownOf(S, 'managed:g1');
 
@@ -163,7 +173,7 @@ describe('RenownLogic.recompute', () => {
     expect(RenownApi.renownOf(S)).toBe(0); // gone
 
     // Replay the log.
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
     expect(RenownApi.renownOf(S)).toBe(before);
     expect(RenownApi.renownOf(S, 'managed:g1')).toBe(beforeG1);
   });
@@ -178,7 +188,7 @@ describe('RenownLogic.recompute', () => {
         signal: {},
       });
     }
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
     // receptionValence × ln(1 + 10), decay ≈ 0 at age 0.
     expect(RenownApi.renownOf(S)).toBeCloseTo(0.1 * Math.log(11), 6);
   });
@@ -195,7 +205,7 @@ describe('RenownLogic.recompute', () => {
           signal: {},
         });
       }
-      await RenownApi.recompute();
+      await RenownApi.recompute({ full: true });
       return RenownApi.renownOf(S);
     };
     const one = await renownAfter(1);
@@ -208,11 +218,12 @@ describe('RenownLogic.recompute', () => {
   it('AC#6 the recompute never reads the belief store', async () => {
     await RenownApi.append({ subject: S, source: R, signal: { emote: 'cheer' } });
     findCols = []; // reset the find-collection recorder
-    await RenownApi.recompute();
+    await RenownApi.recompute({ full: true });
     expect(findCols.length).toBeGreaterThan(0);
     expect(findCols).not.toContain('beliefs');
-    // It only touches the renown log + the materialized aggregate (emote
-    // valences come from SoulApi.all(), stubbed — no collection read).
-    expect(new Set(findCols)).toEqual(new Set(['renown_events', 'renown']));
+    // It reads only the renown log — the pass writes the aggregate and puts
+    // each row in the read index, never re-reading it (db-performance W3);
+    // emote valences come from SoulApi.all(), stubbed — no collection read.
+    expect(new Set(findCols)).toEqual(new Set(['renown_events']));
   });
 });

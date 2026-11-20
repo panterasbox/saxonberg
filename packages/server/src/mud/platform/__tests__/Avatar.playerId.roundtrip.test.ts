@@ -19,6 +19,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Avatar from '../agent/PrimaryAvatar';
 import ShadeAvatar from '../agent/ShadeAvatar';
@@ -63,13 +64,13 @@ function installStore(): void {
     snapshots.push({ ...doc, _id });
     return _id;
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     save,
     find,
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 }
 
 function species(): Species {

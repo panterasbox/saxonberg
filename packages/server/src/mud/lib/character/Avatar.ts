@@ -29,10 +29,10 @@ import type { Stuff, EvictionContext } from "../stuff/Stuff";
 import type { VetoResult } from "../errors";
 import { SpeciesApi } from "../../api/species";
 import AetherImplant from "../../platform/thing/AetherImplant";
-import CommsUpdate from "../../platform/idea/CommsUpdate";
-import CredentialWalletUpdate from "../../platform/idea/CredentialWalletUpdate";
-import ForumsUpdate from "../../platform/idea/ForumsUpdate";
-import CalendarUpdate from "../../platform/idea/CalendarUpdate";
+import App from "../../platform/idea/App";
+import WalletApp from "../../platform/idea/WalletApp";
+import ForumsApp from "../../platform/idea/ForumsApp";
+import CalendarApp from "../../platform/idea/CalendarApp";
 import { MessageApi } from "../../api/message";
 import { MagicApi } from "../../api/magic";
 import { Mml } from "../../api/mml";
@@ -55,6 +55,8 @@ import { ClientStateMixin } from "../connection/ClientState";
 import { BroadcastMixin } from "../livestream/Broadcast";
 import { SaxonbergClientMixin } from "../connection/SaxonbergClient";
 import { AetherMixin } from "../message/Aether";
+import { AetherHostMixin } from "../augmentation/AetherHost";
+import { CommsMixin } from "../comms/Comms";
 import { ContactsMixin } from "../social/Contacts";
 import { WardrobeMixin } from "../slot/Wardrobe";
 import { NotifyPolicyMixin } from "../social/NotifyPolicy";
@@ -155,10 +157,9 @@ export interface AvatarInitContext {
   isGuest?: boolean;
 }
 
-// AetherMixin composes onto Avatar — players have implants (per the
-// char-gen / augmentation slates' diegetic story); NPCs opt in
-// per-class by composing AetherMixin themselves when content requires
-// it. The mixin gates `tell` and (future) chat / remote-emote.
+// AetherMixin composes onto Avatar — every played body can perceive the
+// aether once a tuner confers it; no NPC ever does. AetherHostMixin beside
+// it: a person hosts their own apps (the wallet, calendar and forums).
 // PersistableMixin is composed **outermost** so its persistence-host
 // behaviors (materialize/seed on `onCreate`, capture-on-destruct
 // backstop, the persistable `canEvict` fall-through) wrap the rest. Avatar
@@ -188,9 +189,14 @@ const AvatarBase = PersistableMixin(
         BroadcastMixin(
         ClientStateMixin(
           HasInteractiveMixin(
+            // ⭐ A person's comms — `dm`, `reply`, `broadcast`, `chat` and
+            // what waits (aether-devices D2). On the person, never on an
+            // app: Messages is what it looks for on the host that tunes.
+            CommsMixin(
+            AetherHostMixin(
             AetherMixin(
               // ⭐ A played person keeps a personal calendar (D12) — dated
-              // reminders on the implant. Inside PersistableMixin, so the
+              // reminders in the calendar app on the person. Inside PersistableMixin, so the
               // entries ride the Avatar snapshot; the ping re-arms at login.
               CalendarMixin(
                 NotifyPolicyMixin(
@@ -224,6 +230,8 @@ const AvatarBase = PersistableMixin(
         ),
       ),
     ),
+  ),
+  ),
   ),
   ),
   ),
@@ -831,9 +839,9 @@ export default abstract class Avatar extends AvatarBase {
    * installs unconditionally and there is no spine to drive.
    *
    * ⚠ The floor is not optional for a vessel. `installDefaultLoadout`
-   * is what puts the aether implant in the cranial slot, and without
-   * it a player inside their own circle can *receive* a channel
-   * message and cannot send one.
+   * is what installs the person's own apps (and a shade's Messages). A
+   * circle body gets no tuner by design (aether-devices: the holodeck
+   * forces no decision on its user) — what it brings in, it has.
    *
    * The body of record overrides this entirely — see its own
    * `onCreate`, which is the only place registration and the
@@ -971,6 +979,8 @@ export default abstract class Avatar extends AvatarBase {
     this.openArrangementGuarded(interactive);
     this.markSessionStarted(interactive);
     if (opts.firstArrival === true) this.announceFirstArrival(interactive);
+    // Whatever waited while you were gone (aether-devices D8).
+    await this.flushHeld();
   }
 
   /**
@@ -1340,28 +1350,25 @@ export default abstract class Avatar extends AvatarBase {
   }
 
   /**
-   * Install the v1 default loadout — attune the avatar, then inject the
-   * default hosted updates (comms + the travel credential). Called from
-   * `onCreate`, runs once per clone (every login, since the runtime
-   * Avatar is destructed at logout and re-cloned on the next session).
+   * Install the default loadout — the guest's implant, then the person's
+   * own apps (forums, the wallet, the calendar; Messages too when the
+   * person is tuned by nature). Called from `onCreate`, and again after a
+   * returning player's materialize.
    *
-   * Keys off **whether the avatar is attuned by any source**: if
-   * `AetherMixin` isn't already active (a born-attuned species confers
-   * it intrinsically), occupy the `AetherImplant` in the cranial slot to
-   * confer it. Either way the avatar is then an `AetherHost`, so inject
-   * the two default updates onto it.
+   * Attunement (aether-devices D11): a GUEST is seated an `AetherImplant`
+   * in an empty cranial slot (a guest's phone would leak into the
+   * economy). Everyone else is tuned by the phone the starting kit puts in
+   * their pocket, or by their nature; a circle body gets no tuner.
    *
-   * Idempotency keys off **"already hosts a comms update"** — correct
-   * for both paths (a born-attuned avatar never occupies cranial).
-   * Session-durable persistence is preserved: the credential update is
-   * re-cloned each session, so `registered` resets to the born-with
-   * floor each login.
+   * ⭐ Every step is idempotent, so there is no "already ran" guard: the
+   * implant only fills an empty slot, and `installApp` returns an app
+   * already installed (aether-devices D2) — a restored person's installed
+   * list stands their apps up first. The wallet relinks every time.
    *
-   * Stand-in for char-gen's baseline issuance; when char-gen ships, the
-   * loadout install moves there. Defensive wrapper around the whole body
-   * so a missing seed / species / body plan in a fresh dev DB doesn't
-   * crash the clone cascade — failures log and the sense / dm verbs
-   * surface their own polite refusals downstream.
+   * Defensive wrapper around the whole body so a missing seed / species /
+   * body plan in a fresh dev DB doesn't crash the clone cascade — failures
+   * log and the sense / dm verbs surface their own polite refusals
+   * downstream.
    */
   protected async installDefaultLoadout(): Promise<void> {
     try {
@@ -1371,23 +1378,18 @@ export default abstract class Avatar extends AvatarBase {
       // intrinsic conferral resolves).
       await SpeciesApi.preloadAnatomy(this);
 
-      // Avatar composes AetherMixin, so the host surface
-      // (`getHostedUpdates` / `hostUpdate`) is on `this` directly — no
-      // cast. The `isAether` guards stay as cheap runtime checks.
+      // ⭐ No "already ran" guard: every step below is idempotent — the
+      // implant only fills an empty cranial slot, `installApp` returns an
+      // app already installed (aether-devices D2). A restored person's
+      // installed list stands their apps up before this runs, and the
+      // wallet still relinks below.
 
-      // Idempotency: already hosting a comms update means the loadout
-      // ran on this clone.
-      if (
-        MixinApi.isAether(this) &&
-        this.getHostedUpdates().some((u) => MixinApi.isComms(u))
-      ) {
-        return;
-      }
-
-      // Attune by some source. A born-attuned species already has
-      // AetherMixin active — skip the implant. Otherwise occupy the
-      // cranial implant to confer attunement.
-      if (!MixinApi.isActive(this, "AetherMixin")) {
+      // ⭐ The free implant is a GUEST's (aether-devices D11): a guest is
+      // throwaway, so a phone would leak into the economy through every
+      // guest. Everyone else is tuned by the phone in their pocket (the
+      // starting kit), or by their nature. A guest already attuned by
+      // species gets none.
+      if (this.isGuest === true && !MixinApi.isActive(this, "AetherMixin")) {
         try {
           // ⚠ An implant already CARRIED (a record from before worn
           // owned goods were restored, or any other way it fell out of
@@ -1419,24 +1421,18 @@ export default abstract class Avatar extends AvatarBase {
         }
       }
 
-      // Inject the default updates — only if attunement made this a
-      // usable host (implant occupied or species-born).
-      if (!MixinApi.isAether(this)) return;
-      const comms = await StuffApi.clone<CommsUpdate>(
-        CommsUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(comms);
-      const forums = await StuffApi.clone<ForumsUpdate>(
-        ForumsUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(forums);
+      // Install the default apps through the one way software gets onto a
+      // host (aether-devices D2). Messages goes on the person only when the
+      // person is their own host — tuned by nature (a shade, a born-attuned
+      // species); everyone else finds it on the device that tunes them.
+      if (this.isOwnAetherHost()) await this.installApp(App.MESSAGES_PATH);
+      await this.installApp(ForumsApp.TEMPLATE_PATH);
       // One wallet app holds every credential kind (payment + travel),
       // replacing the per-credential implant twins. Its seed ships an empty
       // payment record and a floored travel record.
-      const wallet = await StuffApi.clone<CredentialWalletUpdate>(
-        CredentialWalletUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(wallet);
+      const wallet = (await this.installApp(
+        WalletApp.TEMPLATE_PATH,
+      )) as unknown as WalletApp;
       // ⭐ The accounts are the record; the wallet app is re-cloned every
       // login, so it links again whatever this person banks with — after
       // a server restart it held none, and nothing they bought anywhere
@@ -1446,12 +1442,8 @@ export default abstract class Avatar extends AvatarBase {
         const pay = wallet.ensureCredential("payment");
         for (const id of await BankingApi.accountIdsOf(me)) pay.linkAccount(id);
       }
-      // ⭐ The personal calendar surface (D12) — beside comms/forums/wallet,
-      // re-provisioned every login exactly as they are.
-      const calendar = await StuffApi.clone<CalendarUpdate>(
-        CalendarUpdate.TEMPLATE_PATH,
-      );
-      this.hostUpdate(calendar);
+      // ⭐ The personal calendar surface (D12) — beside comms/forums/wallet.
+      await this.installApp(CalendarApp.TEMPLATE_PATH);
     } catch (err) {
       console.warn(
         `Avatar.installDefaultLoadout skipped for ${this.stuffId}:`,
@@ -1504,6 +1496,20 @@ export default abstract class Avatar extends AvatarBase {
     for (const interactive of this.interactives) {
       interactive.send(message);
     }
+  }
+
+  /**
+   * ⭐ Held, never silent (aether-devices D8). A frame that came over the
+   * aether and cannot be taken now — no tuner, Messages missing, a screen
+   * you cannot see — is HELD by the person's comms before the sense gate
+   * would drop it, and delivered under *"While you were away…"* when it
+   * can be. Every producer (a dm, a channel line, a remote emote, a forum
+   * notice) is covered without being touched. Everything else falls
+   * through to the sense gate unchanged.
+   */
+  protected override filterMessage(frame: MessageFrame): MessageFrame | null {
+    if (this.holdIfUnreachable(frame)) return null;
+    return super.filterMessage(frame);
   }
 
   /**
@@ -1720,6 +1726,12 @@ export default abstract class Avatar extends AvatarBase {
       await super.executeCommand(...args);
     } finally {
       this.commandsInFlight -= 1;
+      // ⭐ The act says something (aether-devices D8): an act can change
+      // what tunes this person without moving the device — taking a pack
+      // off puts the phone in it within reach — so after every act the
+      // person checks whether what they hold can now go. Nothing held,
+      // nothing scheduled (`scheduleFlushIfMovable` returns at once).
+      this.noticeTuning();
     }
   }
 

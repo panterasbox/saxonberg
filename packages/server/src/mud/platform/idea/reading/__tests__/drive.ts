@@ -24,6 +24,7 @@ import type Reading from '../../../../lib/instrument/Reading';
 import type { CommandContext } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../../../api/test-harness';
 
 /**
  * Stub the channel LOOKUP and nothing else.
@@ -62,14 +63,14 @@ export async function driveMeasure(
 ): Promise<void> {
   stubLookup(reading);
   const ctrl = await StuffApi.create(() => new MeasureController());
-  await ctrl.execute(
+  await TestHarnessApi.actAs(context.commandGiver, () => ctrl.execute(
     {
       channel: opts.channel ?? reading.getChannel(),
       subject: opts.subject,
       tool: { stuff: opts.tools ?? [] },
     } as never,
     context,
-  );
+  ));
 }
 
 /** `analyze <channel> …` — the trained-eye rung, through the verb. */
@@ -80,14 +81,14 @@ export async function driveAnalyze(
 ): Promise<void> {
   stubLookup(reading);
   const ctrl = await StuffApi.create(() => new AnalyzeController());
-  await ctrl.execute(
+  await TestHarnessApi.actAs(context.commandGiver, () => ctrl.execute(
     {
       channel: opts.channel ?? reading.getChannel(),
       subject: opts.subject,
       tool: { stuff: opts.tools ?? [] },
     } as never,
     context,
-  );
+  ));
 }
 
 /**

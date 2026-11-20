@@ -9,6 +9,7 @@
  */
 
 import "../../../test-bootstrap";
+import { spyPersistSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { stubRegistries } from '../../platform/idea/api/__tests__/pack-harness';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'fs';
@@ -71,6 +72,7 @@ function stubPersist(): void {
       return id;
     },
   );
+  spyPersistSaveMany();
   vi.spyOn(PersistApi, 'delete').mockImplementation(async () => {});
   vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation(
     async () => class {} as never,

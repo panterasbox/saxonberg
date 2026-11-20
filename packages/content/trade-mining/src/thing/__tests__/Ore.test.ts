@@ -17,6 +17,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { withSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Ore from '../Ore';
 import OreMaterial from '@saxonberg/server/mud/platform/idea/material/Ore';
@@ -57,13 +58,13 @@ describe('the ore lump', () => {
     installV1QuantityMarshallers();
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     Document.setMarshallerResolver(() => undefined, async () => undefined);
-    vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+    vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
       save: async () => '1',
       find: async () => [],
       findById: async () => null,
       delete: async () => undefined,
       isConnected: () => true,
-    } as unknown as PersistenceManager);
+    }) as unknown as PersistenceManager);
     // A split clones the row — the stack the lot was cut from.
     vi.spyOn(StuffApi, 'clone').mockImplementation((async () => {
       const o = makeStuff(() => new Ore());

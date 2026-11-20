@@ -37,6 +37,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import express, { type Express } from 'express';
 import request from 'supertest';
@@ -75,6 +76,7 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { ParcelOwner } from '../../lib/parcel/ParcelRecord';
+import { TestHarnessApi } from '../test-harness';
 
 /* ── the box ─────────────────────────────────────────────────────── */
 
@@ -145,13 +147,13 @@ function installStore(): void {
       return arr.filter((d) => keys.every((k) => d[k] === query[k]));
     },
   );
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
     findById,
     delete: del,
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   Document.setMarshallerResolver(
     () => undefined,
     async () => undefined,
@@ -248,10 +250,10 @@ async function runAppoint(
   const ctx = contextFor(giver, 'appoint');
   await withRootContext(null, 'cold-box', () => {
     ExecutionContextApi.tagActingAuthor(giver);
-    return makeStuff(() => new HouseAppointController()).execute(
+    return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HouseAppointController()).execute(
       model as never,
       ctx,
-    );
+    ));
   });
   return ctx;
 }

@@ -22,6 +22,7 @@ import type { CommandContributions } from '../../api/command';
 import type { ActOutcome, ActRefusal } from '../../lib/craft/ActPlan';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import Coin from './Coin';
+import { AccessApi } from '../../api/access';
 
 /** Why `collectBy` refused. */
 export type CollectRefusalReason = 'no-house' | 'not-on-shift';
@@ -68,6 +69,8 @@ export default class TipJar extends TipJarBase {
    * anybody here*, so any jar on your own premises was yours.
    */
   public collectBy(actor: Stuff): CollectAnswer {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(actor);
     const house = this.houseOf();
     const housePath = house?.getIdentityPath();
     if (!housePath) return { ok: false, reason: 'no-house' };

@@ -23,6 +23,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { StackableMixin } from '../../stuff/Stackable';
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import ChattelRegistry from "../../../platform/idea/ChattelRegistry";
@@ -90,7 +91,7 @@ function col(c: string): Doc[] {
 function installStore(): void {
   store = new Map();
   idCounter = 0;
-  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+  vi.spyOn(PersistenceManager, "get").mockReturnValue(withSaveMany({
     save: vi.fn(async (c: string, doc: Doc) => {
       const arr = col(c);
       if (doc._id) {
@@ -118,7 +119,7 @@ function installStore(): void {
       if (i >= 0) arr.splice(i, 1);
     }),
     isConnected: () => true,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   Document.setMarshallerResolver(
     () => undefined,
     async () => undefined,

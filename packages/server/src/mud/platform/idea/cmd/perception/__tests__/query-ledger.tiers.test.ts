@@ -26,6 +26,7 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, hold, wornBag, wornGarment, pack, type Body } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 let said: string[];
 
@@ -48,9 +49,7 @@ const meDeep = (me: Body): Stuff[] => [...(me as unknown as Holder).getDeepConte
 const query = (me: Body, model: Record<string, unknown> = {}, set: Stuff[] = meI(me)): Promise<string> =>
   withRootContext(null, 'tiers.test', async () => {
     said = [];
-    makeStuff(() => new QueryController()).execute(
-      { set: { stuff: set, raw: 'me:i' }, ledger: true, ...model } as never, ctx(me),
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new QueryController()).execute({ set: { stuff: set, raw: 'me:i' }, ledger: true, ...model } as never, ctx$)))(ctx(me));
     return said.join('\n');
   });
 

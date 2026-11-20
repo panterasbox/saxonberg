@@ -34,6 +34,7 @@ import {
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { makeHarness, makeContext } from '@saxonberg/server/mud/api/__tests__/card-harness';
+import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const DAVE = '/platform/agent/Avatar/dave';
 
@@ -90,7 +91,7 @@ describe('the stock card', () => {
     });
     await withRootContext(null, 'stock-card.test', () => {
       ExecutionContextApi.tagActingAuthor(h.avatar);
-      return makeStuff(() => new HouseStockController()).execute({ subcommand: 'stock' } as never, ctx);
+      return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new HouseStockController()).execute({ subcommand: 'stock' } as never, ctx));
     });
 
     const opened = h.ofType('card-opened');

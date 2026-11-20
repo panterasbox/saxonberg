@@ -40,6 +40,7 @@ import {
   type ModelData,
 } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const TestGiverBase = FocusedMixin(
   CommandGiverMixin(ContainerMixin(ContainableMixin(SensorMixin(Idea))))
@@ -107,32 +108,26 @@ describe('FocusController', () => {
 
   it('reports the current focus when no fragment is given', () => {
     giver.setFocus('bookcase:book');
-    controller.execute(makeModel(), makeContext(giver, location));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(), ctx$)))(makeContext(giver, location));
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('bookcase:book');
   });
 
   it("defaults to 'here' focus when nothing has set it", () => {
-    controller.execute(makeModel(), makeContext(giver, location));
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel(), ctx$)))(makeContext(giver, location));
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('here');
   });
 
   it('sets focus to the player-typed fragment', () => {
-    controller.execute(
-      makeModel({ fragment: fragmentField([], 'inventory') } as ModelData),
-      makeContext(giver, location, 'inventory')
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ fragment: fragmentField([], 'inventory') } as ModelData), ctx$)))(makeContext(giver, location, 'inventory'));
     expect(giver.getFocus()).toBe('inventory');
   });
 
   it('reports the resolved match count alongside the focus', () => {
     const a = makeStuff(() => new TestThing()) as Stuff;
     const b = makeStuff(() => new TestThing()) as Stuff;
-    controller.execute(
-      makeModel({ fragment: fragmentField([a, b], 'flowers') } as ModelData),
-      makeContext(giver, location, 'flowers')
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ fragment: fragmentField([a, b], 'flowers') } as ModelData), ctx$)))(makeContext(giver, location, 'flowers'));
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('flowers');
     expect(body).toContain('2 objects');
@@ -140,10 +135,7 @@ describe('FocusController', () => {
 
   it('"1 object" when exactly one resolves', () => {
     const a = makeStuff(() => new TestThing()) as Stuff;
-    controller.execute(
-      makeModel({ fragment: fragmentField([a], 'rose') } as ModelData),
-      makeContext(giver, location, 'rose')
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ fragment: fragmentField([a], 'rose') } as ModelData), ctx$)))(makeContext(giver, location, 'rose'));
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('1 object');
     expect(body).not.toContain('1 objects');
@@ -152,10 +144,7 @@ describe('FocusController', () => {
   it('still sets focus when the fragment resolves to nothing now', () => {
     // `focus online` when no one's online — the dispatcher's
     // resolveMany returns []; controller still anchors focus.
-    controller.execute(
-      makeModel({ fragment: fragmentField([], 'online') } as ModelData),
-      makeContext(giver, location, 'online')
-    );
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute(makeModel({ fragment: fragmentField([], 'online') } as ModelData), ctx$)))(makeContext(giver, location, 'online'));
     expect(giver.getFocus()).toBe('online');
     const body = giver.received[0]?.body ?? '';
     expect(body).toContain('0 objects');

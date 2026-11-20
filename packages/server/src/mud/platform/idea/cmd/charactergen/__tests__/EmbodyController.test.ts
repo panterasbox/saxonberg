@@ -28,6 +28,7 @@ import type {
   CharGenStatePayload,
   CharGenFieldState,
 } from '@saxonberg/types';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const SAPIENS_PATH =
   '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens';
@@ -118,9 +119,9 @@ describe('EmbodyController step model', () => {
   /** `embody confirm` is its own controller (W7c); everything else edits. */
   function run(rest: string): Promise<void> {
     if (rest === 'confirm') {
-      return makeStuff(() => new EmbodyConfirmController()).execute({} as never, ctx);
+      return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new EmbodyConfirmController()).execute({} as never, ctx));
     }
-    return ctrl.execute({ rest } as EmbodyModelLike, ctx);
+    return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ rest } as EmbodyModelLike, ctx));
   }
   type EmbodyModelLike = CommandModel & { rest?: string };
 
@@ -372,5 +373,15 @@ describe('EmbodyController step model', () => {
     expect(login.getCharacterDraft()!.name).toBeUndefined();
     expect(frames.at(-1)!.error?.field).toBe('name');
     expect(frames.at(-1)!.error?.message).toMatch(/letters/i);
+  });
+});
+
+describe('EmbodyController.loadConfig — the starting kit (aether-devices D11)', () => {
+  // ⚠ The loader copies its keys by name; `startingKit` was left out once
+  // and every new player arrived with no phone (the drive's first run).
+  it('carries the starting kit: a bound Hollis Pal, into a pocket', async () => {
+    const { default: EmbodyController } = await import('../EmbodyController');
+    const kit = EmbodyController.loadConfig().startingKit ?? [];
+    expect(kit).toContainEqual({ item: '/stuff/thing/gear/hollis-pal', bound: true, into: 'pocket' });
   });
 });

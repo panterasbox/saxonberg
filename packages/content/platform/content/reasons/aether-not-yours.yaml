@@ -1,0 +1,6 @@
+# An owner-locked phone in somebody else's hands (aether-devices D10).
+facts:
+  kept: text?
+  cap: text?
+says: "That phone runs only for its owner.{% if kept %} Held — it goes when you can send.{% endif %}{% if cap %} You are already holding {{ cap }} — this one was not kept.{% endif %}"
+topic: speech.comms

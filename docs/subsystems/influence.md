@@ -189,14 +189,18 @@ CommandDispatchedEvent ─► CreditRouting.resolve ─► producer_events ─�
 - **`ProducerEvent`** (`producer_events`) — the append-only log, one row per
   attributed-engagement bucket. Fields: `author` (the credited author's
   durable `templatePath` — the **routing key**), `actor` (the engaging
-  player's templatePath), `zonePath`, `weight` (default 1), `bucket`
+  PERSON's identity path — ⚠ the lineage until db-performance W1, which
+  made every player one actor and the A≠P exclusion never fire),
+  `zonePath`, `weight` (default 1), `bucket`
   (`floor(realAt/bucketMs)`), `kind: 'engagement'`, `at`/`realAt`. Append is
   find-or-skip on **`{author, actor, bucket}`** — one player engaging one
   author's content credits that author **once per bucket** (anti-inflation).
 - **`ProducerStanding`** (`producer`) — the rebuildable per-author
   aggregate (subject = author, `scope = '*'`): the recency-decayed,
   weight-scaled attributed-bucket count. Drop it, replay the log, get
-  identical standings.
+  identical standings. Its pass re-scores only the authors whose rows
+  changed and its decay is applied at read — participation's shape
+  (participation.md § The pass scores who changed).
 - **`ProducerApi`** (`api/producer.ts`) → **`ProducerLogic`**
   (`platform/idea/api/ProducerLogic.ts`, `/platform/idea/api/producer`): `boot` / `append` /
   `recompute` / `producerOf(authorId)` / `standingOf(authorId)` /
@@ -219,8 +223,9 @@ per-Player; the rollup is a deferred franchise-gate read.
 Labor reuses the consumer's `CommandDispatchedEvent` (the recognized,
 interactive dispatch from `CommandGiverMixin._emitInputEcho`) — no second
 signal. The payload now carries two **optional** fields,
-`locationTemplatePath` and `actorTemplatePath` (the giver's location + own
-templatePath), read at the fire block; the consumer tap ignores them, so its
+`locationTemplatePath` and `actorIdentityPath` (the giver's location's
+templatePath + the giver's own identity — the person, never the lineage
+every player body shares; db-performance W1), read at the fire block; the consumer tap ignores them, so its
 participation rows are byte-identical whether present or not.
 
 Both `ConsumerLogic.installDispatchTap` and `ProducerLogic.installEngagementTap`

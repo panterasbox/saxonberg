@@ -1,4 +1,5 @@
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ZoneApi } from '../zone';
 import { ZoneLogic } from '../../platform/idea/api/ZoneLogic';
@@ -48,10 +49,10 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
     return store.slice();
   });
 
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   return store;
 }

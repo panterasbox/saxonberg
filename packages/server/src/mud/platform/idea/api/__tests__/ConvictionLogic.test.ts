@@ -10,6 +10,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { spySaveMany } from '../../../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ConvictionApi } from '../../../../api/conviction';
 import { InfluenceApi } from '../../../../api/influence';
@@ -51,6 +52,7 @@ beforeEach(async () => {
       return id;
     }
   );
+  spySaveMany(pm);
   vi.spyOn(pm, 'delete').mockImplementation(async (_col: string, id: string) => {
     store.delete(id);
   });

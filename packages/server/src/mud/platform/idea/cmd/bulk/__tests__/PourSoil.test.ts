@@ -27,6 +27,7 @@ import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers, installV1QuantityTagTables } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestGiver extends SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))) {
   static _mixinName = 'TestGiverPour';
@@ -89,13 +90,13 @@ describe('pour sack into pot (the drive repro)', () => {
 
     const c = ctx(giver, room);
     const ctrl = makeStuff(() => new PourController());
-    await ctrl.execute(
+    await TestHarnessApi.actAs(c.commandGiver, () => ctrl.execute(
       {
         source: { stuff: sack, raw: 'sack' },
         target: { stuff: pot, raw: 'pot' },
       } as never,
       c,
-    );
+    ));
     console.log('NOTES:', JSON.stringify(c.getNotes()));
     expect(pot.getSoilVolume()).toBeGreaterThan(0);
     expect(pot.hasSoil()).toBe(true);

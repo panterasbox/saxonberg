@@ -1818,6 +1818,8 @@ async function repossess(loan: ContractRecord): Promise<void> {
     if (!MixinApi.isChattel(item)) continue;
     const owner = await item.chattelOwner();
     if (!owner || owner.kind === "group" || owner.templatePath !== loan.issuer.templatePath) continue;
+    // A bound title never moves (aether-devices D10); it stays where it is.
+    if (item.isTitleBound()) continue;
     await item.transferChattel(lender as unknown as Stuff);
     ContainmentApi.move(item as unknown as Stuff & Containable, lenderCounter);
     if (MixinApi.isConsignmentShelf(shelf)) shelf.removeListing(item.getChattelId());

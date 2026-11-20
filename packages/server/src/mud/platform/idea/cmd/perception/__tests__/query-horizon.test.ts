@@ -30,6 +30,7 @@ import {
   makeStuffAtPath,
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Room extends VisibleMixin(NamedMixin(ContainerMixin(Place))) {
   static _mixinName = 'HorizonRoom';
@@ -80,10 +81,7 @@ async function lookHorizon(view: HorizonView, set: Stuff[] = view.things.map((t)
     return b as never;
   });
   await withRootContext(null, 'horizon.test', () =>
-    makeStuff(() => new QueryController()).execute(
-      { set: { stuff: set, raw: 'horizon', isSet: true } } as never,
-      ctx(),
-    ),
+    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new QueryController()).execute({ set: { stuff: set, raw: 'horizon', isSet: true } } as never, ctx$)))(ctx()),
   );
   return bodies;
 }
@@ -161,16 +159,13 @@ describe('⭐ a set that came through a FEATURE names the feature (maritime brow
       return b as never;
     });
     await withRootContext(null, 'query.test', () =>
-      makeStuff(() => new QueryController()).execute(
-        {
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new QueryController()).execute({
           set: {
             stuff: [room, chest],
             vias: [{ detailPath: ['sea'] }, undefined],
             raw: 'all sea',
           },
-        } as never,
-        ctx(),
-      ),
+        } as never, ctx$)))(ctx()),
     );
     expect(bodies.join('\n')).toMatch(/the sea/);
     expect(bodies.join('\n')).toMatch(/sea chest/);

@@ -28,6 +28,7 @@ import { StuffApi } from '../../../../../api/stuff';
 import { ShadowApi } from '../../../../../api/shadow';
 import { ContainmentApi } from '../../../../../api/containment';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class TestActor extends SaxonbergClientMixin(ClientStateMixin(HasInteractiveMixin(
   SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -91,7 +92,7 @@ describe('CliController', () => {
   it('sets a bar prefix and pushes the whole map', async () => {
     const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
-    await controller.execute(makeModel({ prefix: 'chat gossip' }), ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({ prefix: 'chat gossip' }), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ main: 'chat gossip' });
     expect(pushSpy).toHaveBeenCalledWith('cockpit.inputModes', {
       main: 'chat gossip',
@@ -102,7 +103,7 @@ describe('CliController', () => {
     actor.setClientState('cockpit.inputModes', { main: 'chat gossip' });
     const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'chat');
-    await controller.execute(makeModel({ prefix: 'tell bob' }), ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({ prefix: 'tell bob' }), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ main: 'chat gossip', chat: 'tell bob' });
   });
 
@@ -113,7 +114,7 @@ describe('CliController', () => {
     });
     const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
-    await controller.execute(makeModel({ clear: true }), ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({ clear: true }), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ chat: 'tell bob' });
   });
 
@@ -127,7 +128,7 @@ describe('CliController', () => {
     actor.setClientState('cockpit.inputModes', { main: 'chat gossip' });
     const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
-    await controller.execute(makeModel({}), ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({}), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ main: 'chat gossip' });
   });
 
@@ -140,7 +141,7 @@ describe('CliController', () => {
   it('`off` is an ordinary prefix, not a magic word', async () => {
     const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
-    await controller.execute(makeModel({ prefix: 'off' }), ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({ prefix: 'off' }), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ main: 'off' });
   });
 
@@ -150,10 +151,7 @@ describe('CliController', () => {
     // stream-chat.
     const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
-    await controller.execute(
-      makeModel({ prefix: 'chat', cli: 'stream-chat' }),
-      ctx as never,
-    );
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({ prefix: 'chat', cli: 'stream-chat' }), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ 'stream-chat': 'chat' });
   });
 
@@ -164,10 +162,7 @@ describe('CliController', () => {
     });
     const controller = makeStuff(() => new CliController());
     const ctx = makeContext(actor, location, 'main');
-    await controller.execute(
-      makeModel({ clear: true, cli: 'stream-chat' }),
-      ctx as never,
-    );
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({ clear: true, cli: 'stream-chat' }), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ main: 'chat gossip' });
   });
 
@@ -182,7 +177,7 @@ describe('CliController', () => {
       verb: 'cockpit',
       command: stubCommand(),
     });
-    await controller.execute(makeModel({ prefix: 'chat' }), ctx as never);
+    await ((ctx$) => TestHarnessApi.actAs((ctx$ as { commandGiver: unknown }).commandGiver, () => controller.execute(makeModel({ prefix: 'chat' }), ctx$)))(ctx as never);
     expect(modes(actor)).toEqual({ main: 'chat' });
   });
 });

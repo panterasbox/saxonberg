@@ -15,6 +15,7 @@
  */
 
 import "../../../test-bootstrap";
+import { withSaveMany } from '../../lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AccessApi } from '../access';
 import AccessRegistry from '../../platform/idea/AccessRegistry';
@@ -26,6 +27,7 @@ import { AccessLogic } from '../../platform/idea/api/AccessLogic';
 import { makeStuffAtPath,
   EXIT_KIND_TEST_ROWS,
 } from '../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../test-harness';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -73,10 +75,10 @@ function installInMemoryStore(initial: Doc[] = []): Doc[] {
     return store.slice();
   });
 
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     save,
     find,
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
 
   return store;
 }
@@ -182,26 +184,26 @@ describe('AccessApi.sourceWriteRefusal — the ONE source-write predicate (wizar
 
   it('a .ts refuses a non-wizard who holds title — authoring code asks for the axis', async () => {
     stub(false, true);
-    expect(await AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x/Y.ts')).toMatch(/wizard axis/);
+    expect(await TestHarnessApi.actAs(someone, () => AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x/Y.ts'))).toMatch(/wizard axis/);
   });
 
   it('a .yaml admits a non-wizard who holds title — content is not code', async () => {
     stub(false, true);
-    expect(await AccessApi.sourceWriteRefusal(someone, '/content/lounge/content/x.yaml')).toBeNull();
+    expect(await TestHarnessApi.actAs(someone, () => AccessApi.sourceWriteRefusal(someone, '/content/lounge/content/x.yaml'))).toBeNull();
   });
 
   it('both refuse a wizard without title — the axis confers no title', async () => {
     stub(true, false);
-    expect(await AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x/Y.ts')).toMatch(/no title/);
-    expect(await AccessApi.sourceWriteRefusal(someone, '/content/lounge/content/x.yaml')).toMatch(/no title/);
+    expect(await TestHarnessApi.actAs(someone, () => AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x/Y.ts'))).toMatch(/no title/);
+    expect(await TestHarnessApi.actAs(someone, () => AccessApi.sourceWriteRefusal(someone, '/content/lounge/content/x.yaml'))).toMatch(/no title/);
   });
 
   it('every script extension counts as code; a directory does not', async () => {
     stub(false, true);
     for (const ext of ['ts', 'tsx', 'mts', 'cts', 'js', 'mjs', 'cjs']) {
-      expect(await AccessApi.sourceWriteRefusal(someone, `/server/a.${ext}`), ext).not.toBeNull();
+      expect(await TestHarnessApi.actAs(someone, () => AccessApi.sourceWriteRefusal(someone, `/server/a.${ext}`)), ext).not.toBeNull();
     }
-    expect(await AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x', 'mkdir')).toBeNull();
+    expect(await TestHarnessApi.actAs(someone, () => AccessApi.sourceWriteRefusal(someone, '/server/src/mud/lib/x', 'mkdir'))).toBeNull();
   });
 
   it('a null actor is refused before anything is asked', async () => {

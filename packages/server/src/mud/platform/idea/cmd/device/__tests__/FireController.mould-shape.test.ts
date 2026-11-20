@@ -48,6 +48,7 @@ import {
   makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 const FEED = '/stuff/idea/material/_mould/feed';
 const AGENT = '/stuff/idea/material/_mould/agent';
@@ -121,10 +122,10 @@ async function fire(hold?: string): Promise<CommandContext> {
   const context = makeContext(actor, room, 'fire');
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
-    await makeStuff(() => new FireController()).execute(
+    await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new FireController()).execute(
       { kiln: { stuff: kiln, raw: 'kiln' }, hold } as never,
       context,
-    );
+    ));
   });
   return context;
 }

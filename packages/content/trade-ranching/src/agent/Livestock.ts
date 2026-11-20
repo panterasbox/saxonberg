@@ -63,6 +63,7 @@ import type HerdRegistry from '../idea/HerdRegistry';
 import { DEFAULT_FEMALE_FRACTION } from '../idea/HerdRegistry';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { SlaughterRefusal } from '@saxonberg/server/mud/lib/species/Organism';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 /** The register this head was drafted out of (the Herdbook's own constant). */
 const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
@@ -311,6 +312,8 @@ export default class Livestock extends LivestockBase {
    * write out of the book. A head in no herd answers `null` (no book).
    */
   public async cullRefusal(by: Stuff): Promise<'not-keeper' | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     if (!this.herdId) return null;
     const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
     const herd = await registry.read(this.herdId);
@@ -323,6 +326,8 @@ export default class Livestock extends LivestockBase {
    * is its keeper's to cull (D9, C19) — asked before the kill.
    */
   public override async slaughterRefusal(by: Stuff): Promise<SlaughterRefusal | null> {
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
     const base = await super.slaughterRefusal(by);
     if (base !== null) return base;
     return this.cullRefusal(by);

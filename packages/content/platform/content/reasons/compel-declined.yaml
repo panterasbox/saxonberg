@@ -1,0 +1,4 @@
+# The body's own player was asked and said no, or did not answer (D9).
+facts:
+  who: thing
+says: "{{ who | item | cap }} said no."

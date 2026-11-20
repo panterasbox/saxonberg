@@ -71,6 +71,7 @@ export const PINNED_VIEW_KEYS: Readonly<Record<ViewSurface, Readonly<Record<stri
     fallthrough: "an unknown first word falls from subcommands through to args",
     opens_card: "the one card its controller may open (a declared gate, not the push)",
     async: "the controller detaches from the giver's input chain by default",
+    compellable: "whether another body's code may ask you to run it (never, or consent — you are asked first; help says so)",
   },
   subcommand: {
     description: "the subcommand's one-line help",
@@ -80,6 +81,7 @@ export const PINNED_VIEW_KEYS: Readonly<Record<ViewSurface, Readonly<Record<stri
     args: "the subcommand's positional slots",
     options: "the subcommand's --flags",
     validators: "subcommand-level preconditions, after the verb's",
+    compellable: "the subcommand's own answer to the verb's compellable",
   },
   arg: {
     requires: "the mixin a bound object must compose (or `any`)",

@@ -32,6 +32,7 @@ import {
   makeStuff,
   withRootContext,
 } from '../../../../../lib/security/__tests__/test-setup';
+import { TestHarnessApi } from '../../../../../api/test-harness';
 
 class Room extends VisibleMixin(NamedMixin(ContainerMixin(Place))) {
   static _mixinName = 'SegRoom';
@@ -89,10 +90,10 @@ async function look(target: Stuff, text: string): Promise<{ body: string; segmen
   const c = ctx(text);
   await withRootContext(null, 'seg.test', () => {
     ExecutionContextApi.tagActingAuthor(looker as never);
-    return makeStuff(() => new LookController()).execute(
+    return TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new LookController()).execute(
       { target: { stuff: target, raw: '' } } as never,
       c,
-    );
+    ));
   });
   // The carded body is the longest one (the room/thing description).
   const body = bodies.reduce((a, b) => (b.length > a.length ? b : a), '');

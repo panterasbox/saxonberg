@@ -4,7 +4,7 @@
  * Lists the dated reminders a clinician (or a competent self-treater)
  * wrote to your implant, overdue first, each rendered with the shared
  * game date (`DefaultCalendar.formatDate`) — never a raw second count.
- * The verb is afforded by the `CalendarUpdate` hosted app's
+ * The verb is afforded by the `CalendarApp` hosted app's
  * `commandContributions.self`; the entries live on the Avatar
  * (`CalendarMixin`), so the controller reads the giver directly.
  */

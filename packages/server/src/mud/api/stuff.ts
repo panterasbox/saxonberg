@@ -188,7 +188,7 @@ export class StuffApi {
    * global. A genuine cycle is the same path reappearing within a single
    * `clone()`'s own recursive descent (hydrate/onCreate re-entering
    * `clone()`). Two INDEPENDENT concurrent clones of the same shared
-   * template — e.g. two avatars each cloning `/platform/idea/CommsUpdate` for
+   * template — e.g. two avatars each cloning `/platform/idea/app/forums` for
    * their loadout, whose `await` points interleave — must NOT see each
    * other's in-flight paths. A single module-global `Set` conflated
    * "concurrent" with "circular" and spuriously threw on the second

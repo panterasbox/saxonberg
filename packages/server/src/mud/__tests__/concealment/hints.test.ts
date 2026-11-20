@@ -41,6 +41,7 @@ import { PerceptionMixin } from '../../lib/perception/Perception';
 import { BeliefStoreMixin } from '../../lib/belief/BeliefStore';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
+import { TestHarnessApi } from '../../api/test-harness';
 
 class Viewer extends BeliefStoreMixin(
   PerceptionMixin(
@@ -102,10 +103,10 @@ async function runLook(viewer: Viewer, room: Room): Promise<string> {
     verb: 'look',
     command: stubLook(),
   });
-  await controller.execute(
+  await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(
     { target: { stuff: room as unknown as Stuff, raw: 'here' } } as CommandModel,
     ctx,
-  );
+  ));
   return JSON.stringify(viewer.received);
 }
 

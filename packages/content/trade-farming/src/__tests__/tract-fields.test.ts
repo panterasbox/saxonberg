@@ -18,6 +18,7 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
+import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Tract, { type FieldSpec } from '../location/Tract';
 import Field from '../thing/Field';
@@ -460,6 +461,7 @@ describe('⭐ R4 / D26 — a field survives a restart on its OWN record', () => 
         return _id;
       },
     );
+    spyPersistSaveMany();
     vi.spyOn(PersistApi, 'delete').mockResolvedValue(undefined as never);
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'farm' });
     makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
