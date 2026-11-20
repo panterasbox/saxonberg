@@ -891,4 +891,36 @@ shipped list), `docs/lint-family.md`. Index files (`CLAUDE.md`,
 
 ## Drive record
 
-*(appended at build time)*
+*(in progress — 2026-11-20)*
+
+**Steps 1, 5a, 6, 7, 8 and the migrated set, run on a world booted from this
+branch (port 2014).** Run by run:
+
+| run | what | result | found |
+|---|---|---|---|
+| 1 | the scaffold drive (steps 1, 7; W4 twice) | 8/10 | the end purge treated every pack row as a singleton (two stand-in clones broke it); the low door wants `stoop`; the open yard at night reads by moonlight |
+| 2 | the 30 migrated files | world died at avatar-family | ⭐ **a pre-existing kernel defect**: a body disconnecting INSIDE a sandbox circle threw an uncaught SecurityError out of the socket's close handler (`setLeaveIntent`) and exited the server — fixed (inbound transport set), regression test red without it |
+| 3 | the 31-file set, fixed code | 230/262 | the burner wrote fuel during a held-still light walk (fixed + test); `TestHooks.#grantParcels` kept a grant when a PARENT extent was held (fixed); the nav harness pinned `spoiler: 1` after tooltips made it 2 (red on master); refusal wordings the failure-model build changed (red on master); ~12 drive fixes |
+| 4 | the 17 failing files, fresh world | 171/194 | `reload --strict` renamed `--force` (red on master); envelope step 8 depends on the MOON (master too); the binder now prompts for a missing target (harness `cmdOrPrompt`); `wallet beneficiary` needs the heir present |
+| 5 | 6 files, kept world | 66/74 | `hand` returned before a fresh good's title was derived (fire-and-forget custody) — the harness now waits; ids do not survive a re-login; `me` removed by one-view-one-word (red on master) |
+| 6 | 3 files, fresh world | 42/44 | the shopkeeping shelf refuses a stranger `not-listed` (decision baseline line updated); the coat handed into full hands landed on the floor |
+
+The purge, live: run 4's end purge took 136 characters, 416 things, 27
+seats, 2 appointments, retired 17 000 to the reserve and returned 1 title;
+a start purge after a clean end finds only what the drives between left.
+Step 6 (restart with players holding things) and step 8 (the gate) are green
+in every run since run 3. Envelope step 8 ran on a waxing-gibbous night and
+recorded "the moon is up all night" — the honest result, not a pass.
+
+Kernel findings left for their owners are in the slate § Build 2 (a death
+under a governed eval leaves no corpse; empty-list prompts; unknown options
+ignored; overcast does not dim moonlight; fresh-good title race for players;
+an absent heir cannot be named).
+
+**Not yet run:** `tools/wire-indifference` (steps 2–5: the ordinary-world
+refusal, fresh · reuse · after the whole suite · Terminus absent, clean, a
+killed run) and the full suite. The first full-suite attempt queued behind
+build-2's, then the client package failed on a stale install (the tooltips
+merge added `@floating-ui/react-dom`; installed) and the run was stopped for
+low memory during the server package (another worktree's `tsc` held 3.4 GB).
+Both wait for a quiet box.
