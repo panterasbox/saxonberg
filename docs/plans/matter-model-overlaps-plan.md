@@ -1272,7 +1272,7 @@ ceiling fell 43 → 42 (Bulkable's capacity cluster joined through
   the callback checks `isDestroyed()` instead. (Host-bound, it broke every unit
   test that read a weeping vessel under a clock.)
 
-### W4 — one wall exchange (D11)
+### W4 — one wall exchange (D11) ✅ done (daa4cfa8d, 83535f542)
 
 - `Faced.exchangeWith` takes the leach, the memory and the own-material
   give; `Bulkable.reconcileFaceExchange` shrinks to the clock, the call
@@ -1302,6 +1302,37 @@ ceiling fell 43 → 42 (Bulkable's capacity cluster joined through
   `wallSpent` and a coat's `spent`. ⭐ The potash drive
   (`potash.dirty.wire.test.ts`) pins the oak note in the hopper's lye.
 - **Commit:** `feat(faces): one exchange through the wall, two sources`.
+
+**Build note (W4).** Two commits: `ExtractionMixin` first (composed by `Wood`,
+`ToxicMetal`, `ToxicAlloy`, `PigmentPaint`; `leaches` moved off `Toxicity`),
+then the exchange. `Faced.exchangeWith` runs leach → (sealed stops) → the giving
+layer's `imparts × (1 − spent)`, LINEAR toward target over `faces.wallGiveDays`
+(90; path-independent, so reads cannot climb it) → the memory (gives back toward
+what it holds counting the held material's own smell as present, the two meet
+halfway at a game-day's rate, then learns `aromaRetained` of dissolved + smells).
+Decisions the plan did not make:
+- `Faced.wallExchanges(contents)` (the sparse pre-check the slot asks before its
+  clock) and `wallGiveLeft(face)` (the look line and the repair rung) added.
+- The re-fire coat is named by the kind's BILL (`Bill.refire`, loaded with the
+  kind) — no recipe has steps; `refireFace(face, coatPath)` shaves the face (coats,
+  spent and memory go) and lays a SET coat 2 mm. Repair rung 3 gates on
+  `bill.refire` + `wallGiveLeft('inside') === 0`.
+- Memory gate: unsealed AND (body tagged `absorbent` OR porous past
+  `holdsWaterBelow`) — NOT "tagged fired", which would make tight stoneware
+  remember (faces.md says it keeps nothing). The own-material give needs a
+  liquid; the memory does not (as shipped).
+- The char coat is `/stuff/idea/material/wood/charred-oak` (`Wood`, `extends:` oak,
+  porous so it seals nothing); the look says *"coated … with charred oak"*. To keep
+  `lint:material-kinds` from rising, oak authors `thermalExpansion`, `wetStrength`,
+  `elasticity` (ceiling 6067 → 5962 → 5955). `silent-catch` 1020 → 1019.
+- `washSite` calls `washAbsorbed` only when a face has absorbed something (a spy
+  on `washSite` drops the call frame, and the gate is `FromMixin(Soilable)`);
+  strength `0.35·fT·fEffort` (×1.3 with a cleanser), capped at `washClears`.
+- ⚠ test:near was killed by the host for low memory (not a failure); the touched
+  dirs were run directly instead. ⚠ For W8: a water-filled oak pail/tub now tastes of oak (meant). The potash
+  drive gained `smell hopper` → /oak/ (expect.soft) — NOT RUN (wire tests are the
+  drive's). `assembly.dirty` drive 17 should still pass (4 fills → spent line;
+  refire look says "charred oak").
 
 ### W5 — graining is crystallization (D12–D15)
 
