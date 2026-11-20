@@ -146,15 +146,15 @@ export default class Vat extends VatBase {
   }
 
   /**
-   * ⭐ The authored closure is the CEILING; the joints are the floor
-   * (assembly D10). A cask holds what its build allows only while every
-   * structural member is sound and every joint is tight — a sprung stave
-   * or a slack hoop and it weeps, whatever the row says. A vat of one
-   * piece never leaks this way.
+   * ⭐ A cask left empty dries out before anything asks whether it holds
+   * (assembly AC 6): the drying is reconciled first, then the one leak read
+   * (`Bulkable.getClosure` → `isLiquidTight`, matter-model-overlaps D4)
+   * decides — a sprung stave or a slack hoop and it weeps, whatever the row
+   * says.
    */
   public override getClosure(): ClosureLevel {
     this.reconcileDrying();
-    return this.leaks() ? 'open' : super.getClosure();
+    return super.getClosure();
   }
 
   /** Re-entry guard: `reconcileDrying` reads the joints it may slacken. */

@@ -297,12 +297,14 @@ act (an animal's naming is also its promotion).
 The derived reads: `getCondition()` = the host's own gauge min every
 line's condition, and 0 for any failed structural line; `isBroken()` = a
 failed structural line, a joint at or below the broken dial, or the
-condition test; `leaks()` = any structural line failed or any joint
-slack. ⭐ Everything downstream reads those and nothing else:
+condition test; `jointLeakShare()` = slack joints and failed structural
+members, each at its own share of what the whole holds an hour (the joints'
+term of the one leak, matter-model-overlaps D4; `leaks()` retired). ⭐
+Everything downstream reads those and nothing else:
 
 | host | what a part's state moves |
 |---|---|
-| `Vat` | `getClosure()` is `'open'` while `leaks()` — the authored closure is the ceiling, the joints the floor (a vat with no joints never leaks this way) |
+| any vessel (`Bulkable`) | `getClosure()` is `'open'` while it is not liquid-tight — its joints' share is one of the leak's three terms; what it holds runs out by the drip ([faces.md](./faces.md) § Holding water). `Vat` keeps only its drying reconcile |
 | `Lamp` | `getEmittedFlux()` × `lamp.crackedGlassFlux` (0.35) per failed `facing` pane — the room is darker; the ONE funnel for what a pane does to the light |
 | `Chair` | `getRestQuality()` scales by structural condition; a failed cushion leaves you on the bare frame (`chair.bareFrameRest`, 0.5) |
 | an instrument | `Reading.ceilingOf` already reads `getCondition()` — a damaged compass reads coarser for free |
@@ -531,6 +533,19 @@ are untouched.
   clock; after `cask.dryOutDays` (7) empty every joint slackens once by
   0.6 with every stave sound — the joint failing with no part damaged,
   and `repair` drives the hoops back down consuming nothing.
+- ⭐⭐ **A sprung stave drains what the cask holds** (matter-model-overlaps
+  D4, D9). The joints are the cask's term of the one leak:
+  `Assembled.jointLeakShare()` = slack joints × `crafting.joint.slackSharePerHour`
+  (0.1) + failed structural members × `crafting.joint.failedSharePerHour`
+  (0.4) — a SHARE of what it holds an hour, so a sprung stave is over the
+  liquid-tight line on a cask of any size (a pour runs through; `leaks()`
+  was the boolean and is gone) and a full 25 L cask with one sprung stave
+  is about a third down after a game hour (1 − e^−0.4). The loss runs out
+  by the one drip into what the cask stands in or on, else the floor, and
+  the cask arms ONE wake for when it runs dry. A dried-out cask's slack
+  hoops spill a refill the same way. The mend is `fit stave to cask` (a
+  sprung stave is fitted, one at a time; `fit`'s help says so); `repair`
+  tightens a slack hoop. `PipeRun.isComplete` reads `jointLeakShare() === 0`.
 - **Character is spent and re-fired** (on `MaturingMixin`, true of every
   vat): `fillCount`, `fillsSinceRefire`, `impartsSpent` (each fill after
   the first adds `maturing.impartsSpentPerFill`, ~a third), `charLevel`,

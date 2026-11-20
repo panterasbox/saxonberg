@@ -359,7 +359,10 @@ book) is [harbor.md § Berthing](./harbor.md). Her side:
 ## The hull: coat, seams, leak
 
 ⭐ **A ship's hull is hers, the same fabric model as a house's** (paint,
-merged into harbors). `Ship` composes `DurableMixin(FacedMixin(...))`:
+merged into harbors). `Ship` composes `DurableMixin(FlawedMixin(FacedMixin(...)))`
+— ⭐ `FlawedMixin` is the flaw RECORD split out of `IntegrityMixin`
+(matter-model-overlaps D5): she carries a hole without being an article
+you can drop, ring or break:
 
 - **Coats** (tar, paint) weather **wherever she is**, at sea most of all
   ([painting.md](./painting.md), [faces.md](./faces.md)).
@@ -369,12 +372,28 @@ merged into harbors). `Ship` composes `DurableMixin(FacedMixin(...))`:
   (default 45 game days from sound to worn). Ships author no coat, so they
   start bare. Players read the house's words: *sound · worn · badly worn ·
   broken*.
-- **The leak** reads her condition in five **seam bands** (≥0.9 sound,
-  ≥0.7 weathered, ≥0.5 worn, ≥0.25 shabby, else dilapidated) as litres a
-  second per meter of length (`ship.leak.<band>`), plus `ship.leak.holed`
-  for a hole. `getCondition()` / `reconcileWeather()` integrate the bilge
-  **first**, so the leak is integrated band by band along the hull's line
-  and the bilge stamp never trails it.
+- **The leak** is the one hull read, `Bilge.hullLeakLps()` (matter-model-
+  overlaps D4, shared with the boat): her **seams** — her `Durable` WEAR
+  condition in five **seam bands** (≥0.9 sound, ≥0.7 weathered, ≥0.5 worn,
+  ≥0.25 shabby, else dilapidated; `SEAM_BANDS` lives on `Bilge` now) as
+  litres a second per meter of length (`ship.leak.<band>`) — plus her
+  **flaws**, the ONE hole rule `Flawed.flawLeakLPerHour(hullDraftM(),
+  hullLengthM())` (`flaws.leak.holedLPerHour` 640 L/h × √draft × length: the
+  Hesper's hole ≈ 5.8 L/s, near the 7.5 she shipped with). `getCondition()`
+  / `reconcileWeather()` integrate the bilge **first**, so the leak is
+  integrated band by band along the hull's line and the bilge stamp never
+  trails it.
+- **Holed** is DERIVED (`isHoled()`: an unpatched `holed` flaw) — no flag.
+  A night course into a snag-choked stretch at speed stops her `holed`
+  (`snagVerdict`, [river.md](./river.md)); `onStop` integrates her bilge to
+  now, then `addFlaw('holed')`. A holed ship refuses every course (*"…until
+  she is patched"*). ⭐ **`repair <ship>`**, from the quay alongside or an
+  open deck, patches it with stock of her authored **`hull.material`**
+  (`Flawed.patchMaterial()`; every shipped ship row is oak) — ⛔ a ship
+  that authors none is refused (`no-hull-material`), never patched with
+  whatever is at hand. `repair` never does `maintain`'s work: her
+  `keptByUpkeep()` is true, so the mend ladder skips its wear rung on her
+  (and on a `Building`).
 - **`maintain`** aboard (or named from the quay) with a **caulker's kit**
   (Hobb's, 12) caulks her sound, charges the water already in at the old
   rate, and credits **seamanship**. The residence pack's
@@ -494,12 +513,22 @@ craft: a **thing** in a water room, not a place ([river.md](./river.md)).
 The harbors build gave it the ship's water and the ship's market,
 scaled down. It lives in this doc because the bilge is one substrate:
 
-- **Bilge and leak**: `Boat` composes `BilgeMixin` and `FacedMixin` (her
-  outside takes tar). She leaks from her **state**, never the calendar:
-  holes (`boat.leak.holed` 0.3 L/s each, a `holed` flaw) and a coat that
-  no longer holds water (`boat.leak.seep` 0.02), integrated only while
-  afloat. She goes down with what is in her (`room.sink(boat)`), or swamps
-  where she lies at a columnless stop.
+- **Bilge and leak**: `Boat` composes `BilgeMixin` and `DurableMixin` over
+  `FacedMixin` (matter-model-overlaps D7). She leaks from her **state**,
+  never the calendar, by the ship's own read at a boat's length
+  (`Bilge.hullLeakLps`): her **seams** — under her tar her fabric, worn at
+  the house's rate once it has gone (`bareWearPerDay`), in the ship's seam
+  bands — and every hole stove in her by the one hole rule (the rowboat's
+  0.4 L/s, under one bucket's 0.5). The shipped boats author a pitch coat,
+  so they are tight until it goes. Integrated only while afloat. She goes
+  down with what is in her (`room.sink(boat)`), or swamps where she lies at
+  a columnless stop.
+- **Stove in by play**: paddled into a snag-choked stretch in the dark
+  faster than the water can be read, `Propel` asks the one snag rule and
+  `Boat.stove(words)` writes the `holed` flaw and tells everyone aboard
+  ([river.md](./river.md)). `repair` patches it with her own planking (her
+  wear rung is `repair` too — she is not kept by upkeep); a patched boat
+  leaks only by her seams.
 - **`bail`** is the bucket over any `LiftSource` ([pump.md § The
   bucket](./pump.md)). Unnamed, it takes the boat you sit in. A bucketful
   is 10 L a 20 s spell by hand (beats one hole), and goes *"out over her
@@ -548,10 +577,10 @@ stamp back and integrates over the hull's line extrapolated backward.
 | key | value | meaning |
 |---|---|---|
 | `ship.leak.sound/weathered/worn/shabby/dilapidated` | 0 / 0.0005 / 0.004 / 0.02 / 0.08 | L/s per meter of length by seam band |
-| `ship.leak.holed` | 0.25 | a hole on top of the seams, L/s/m |
+| `flaws.leak.holedLPerHour` (`faces.yaml`) | 640 | the one hole rule: L/h at a metre of head and a meter of hull (a hull's head her draft, her scale her length) |
 | `ship.settlingActs` | 6 | commands each person aboard has once she settles |
 | `ship.settlingRealS` | 600 | the backstop, real seconds |
-| `boat.leak.holed` / `boat.leak.seep` | 0.3 / 0.02 | a boat's leak, L/s |
+| `crafting.repair.patchKg` (`crafting.yaml`) | 2 | kg of the hull's own material a patch draws, per hole |
 | `structure.weather.daysToWorn` (`structure.yaml`) | 45 | the house's and the hull's dial |
 
 ⭐ Sized so *nothing fails over a weekend away* and *a neglected season

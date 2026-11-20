@@ -33,6 +33,18 @@ settings:
   - key: crafting.joint.slackThreshold
     value: "0.5"
 
+  # ⭐ What a vessel's joints let out (matter-model-overlaps D4), as a SHARE
+  # of what it holds an hour — so a sprung stave is over the liquid-tight
+  # line on a cask of any size and the fall shows at the same pace on all
+  # of them. Each slack joint lets out this much ...
+  - key: crafting.joint.slackSharePerHour
+    value: "0.1"
+  # ... and each failed structural member (a sprung stave) this much: a
+  # full 25 L cask with one sprung stave is about a third down after an
+  # hour (1 − e^−0.4 ≈ 0.33) — a watchable fall, not an empty cask.
+  - key: crafting.joint.failedSharePerHour
+    value: "0.4"
+
   - key: crafting.greenWearFactor
     value: "2"
 
@@ -62,6 +74,12 @@ settings:
 
   - key: crafting.repair.metalHeatK
     value: "900"
+
+  # ⭐ A patch over a hole draws this many kilograms of the hull's OWN
+  # material (matter-model-overlaps D8) — a plank's worth for a boat or a
+  # ship; with none authored the patch is refused.
+  - key: crafting.repair.patchKg
+    value: "2"
 
   # ── the bar: ice per iced drink (kg), scooped from the reachable ice bin.
   - key: crafting.iceKg

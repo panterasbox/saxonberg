@@ -23,6 +23,10 @@ help: |
 
   With nobody paddling, a boat goes where the water takes it. A killick
   (`anchor`) holds her in slack water.
+
+  A reach choked with snags is seen by day and you hold her off it; paddle
+  into one in the dark faster than you can read the water and she is stove
+  in, and takes water until she is bailed and patched.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

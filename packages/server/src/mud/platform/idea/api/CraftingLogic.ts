@@ -3969,8 +3969,11 @@ async function runMendLadder(
   // here at the top of the ladder.
   const assembled = MixinApi.isAssembled(item) && !item.isOnePiece();
   if (MixinApi.isAssembled(item) && assembled) await mendAssembly(item, m);
-  else await mendOnePiece(item, m);
+  // ⭐ A fabric kept by upkeep (a ship's caulking, a building's plaster) is
+  // `maintain`'s, never `repair`'s wear rung (matter-model-overlaps D8).
+  else if (!item.keptByUpkeep()) await mendOnePiece(item, m);
   await mendCracks(item, m);
+  await mendHoles(item, m);
   return { ok: true, m, item, assembled, conditionBefore };
 }
 
@@ -4372,6 +4375,53 @@ async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
   m.faults.push({
     part: '', kind: 'cracked', named: 'it', action: 'riveted', discipline, band,
     mendable: true, result: 'sound', stockKg: 0,
+  });
+}
+
+/**
+ * ⭐ A hole is PATCHED (matter-model-overlaps D8) — a stove-in boat, a ship
+ * holed on a snag. A `holed` flaw is a fault of its own, whatever the
+ * thing's condition: the hand fits a patch of the hull's OWN material
+ * (`Flawed.patchMaterial` — a boat's planking, a ship's authored
+ * `hull.material`), drawn as stock (`crafting.repair.patchKg` a hole) with
+ * that material's instrument. ⛔ No default material: a hull that authors
+ * none is refused by reason (`no-hull-material`). The patch is recorded
+ * ONCE, as a mend; the flaws it closed read it (`Flawed.getFlaws`).
+ */
+async function mendHoles(item: Stuff, m: MendContext): Promise<void> {
+  if (!MixinApi.isFlawed(item) || !MixinApi.isDurable(item)) return;
+  const open = item.getFlaws().filter((f) => f.kind === 'holed' && !f.mended);
+  if (open.length === 0) return;
+  const crafted = MixinApi.isCrafted(item);
+  const discipline = disciplineOf(
+    {
+      recipe: crafted ? item.getRecipe() : '',
+      template: item.getTemplatePath() ?? '',
+      castDiscipline: crafted ? (item.getCastFrom()?.discipline ?? '') : '',
+    },
+    m.catalogue,
+  );
+  const { band, terms } = await termsFor(m.hand, discipline);
+  const material = item.patchMaterial();
+  if (material === null) {
+    m.faults.push(unmendable('', 'holed', 'patched', 'it', discipline, band, 'no-hull-material', ''));
+    return;
+  }
+  const how = instrumentFor(material, m, dial(AppSettingKeys.craftingRepairMetalHeatK, 900));
+  if (!how.ok) {
+    m.faults.push(unmendable('', 'holed', 'patched', 'it', discipline, band, how.reason, how.detail));
+    return;
+  }
+  const needKg = dial(AppSettingKeys.craftingRepairPatchKg, 2) * open.length * terms.stock;
+  if (!m.stock.draw(material, needKg)) {
+    const stock = material.hasTag('metal') ? 'metal' : material.getName() || 'stock';
+    m.faults.push(unmendable('', 'holed', 'patched', 'it', discipline, band, 'insufficient-input', stock));
+    return;
+  }
+  if (m.commit) item.recordMend(mendRecord(m, band, discipline, 'patched', 'sound'));
+  m.faults.push({
+    part: '', kind: 'holed', named: 'it', action: 'patched', discipline, band,
+    mendable: true, result: 'sound', stockKg: needKg,
   });
 }
 

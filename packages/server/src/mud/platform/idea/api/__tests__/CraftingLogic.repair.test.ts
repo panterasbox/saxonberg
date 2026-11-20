@@ -209,6 +209,70 @@ describe('CraftingLogic.repair', () => {
     expect(await repairAs(bowl)).toMatchObject({ ok: false });
   });
 
+  it('⭐⭐ a hole is PATCHED with stock of the hull\'s own material and its tool (matter-model-overlaps D8)', async () => {
+    const OAK = '/stuff/idea/material/_test/rp-oak';
+    registerMaterial(OAK, 'oak', ['wood', 'organic']);
+    const hull = makeStuff(() => new Tool());
+    hull.setMaterial(mat(OAK));
+    hull.setMass(Quantity.of(120, 'kg'));
+    hull.setLongDescription('A boat.');
+    hull.addFlaw('holed', true);
+    ContainmentApi.move(hull, room);
+    const plank = makeStuff(() => new Good());
+    plank.setMaterial(mat(OAK));
+    plank.setMass(Quantity.of(3, 'kg'));
+    ContainmentApi.move(plank, room);
+    // No edge: the hole is named, and the cure with it.
+    expect(await repairAs(hull)).toMatchObject({ ok: false, reason: 'missing-tool', detail: 'cutting' });
+    const adze = makeStuff(() => new Tool());
+    adze.setCapabilities(['cutting']);
+    ContainmentApi.move(adze, room);
+    const outcome = await repairAs(hull);
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.mended.map((x) => x.kind)).toEqual(['patched']);
+    // `crafting.repair.patchKg` 2 kg of oak: the 3 kg plank is within 2×, consumed whole.
+    expect(plank.isDestroyed()).toBe(true);
+    expect(hull.getFlaws()[0]).toMatchObject({ kind: 'holed', mended: 'patched' });
+    expect(hull.flawLeakLPerHour(0.25, 4.5)).toBe(0);
+    expect(hull.getMarkupLong(hull as never, {})).toMatch(/hole in it has been patched/);
+  });
+
+  it('⛔ a hull that authors no material REFUSES the patch — never whatever is at hand (D8)', async () => {
+    const hull = makeStuff(() => new Tool());
+    hull.setMass(Quantity.of(120, 'kg'));
+    hull.addFlaw('holed', true);
+    ContainmentApi.move(hull, room);
+    const kit = makeStuff(() => new Tool());
+    kit.setCapabilities(['mending', 'cutting']);
+    ContainmentApi.move(kit, room);
+    expect(hull.patchMaterial()).toBeNull();
+    expect(await repairAs(hull)).toMatchObject({ ok: false, reason: 'no-hull-material' });
+  });
+
+  it('⭐ a fabric kept by upkeep is never wear-mended by `repair` — that is `maintain`\'s (D8)', async () => {
+    const LEATHER2 = mat(LEATHER);
+    class Kept extends Garment {
+      public override keptByUpkeep(): boolean {
+        return true;
+      }
+    }
+    const roof = makeStuff(() => new Kept());
+    roof.setMaterial(LEATHER2);
+    roof.setMass(Quantity.of(4, 'kg'));
+    roof.setCondition(0.5);
+    ContainmentApi.move(roof, room);
+    const kit = makeStuff(() => new Tool());
+    kit.setCapabilities(['mending']);
+    ContainmentApi.move(kit, room);
+    const hide = makeStuff(() => new Good());
+    hide.setMaterial(LEATHER2);
+    hide.setMass(Quantity.of(2, 'kg'));
+    ContainmentApi.move(hide, room);
+    expect(await repairAs(roof)).toMatchObject({ ok: false, detail: 'nothing-to-repair' });
+    expect(roof.getCondition()).toBe(0.5);
+  });
+
   it('a control-bearing mender floors the repaired grade; never lowers it', async () => {
     const machine = makeStuff(() => new Tool());
     machine.setCapabilities([{ kind: 'mending', rate: 3, control: 'fine' }]);

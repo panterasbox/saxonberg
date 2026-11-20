@@ -141,6 +141,16 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
         .send();
       return;
     }
+    if (outcome.mended.some((x) => x.kind === 'patched') && outcome.mended.every((x) => x.kind === 'patched')) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You trim the hole in ${Mml.thing(item)} clean and fit a patch over it of her own stuff, fastened tight. The water stops coming in there.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} patches ${Mml.thing(item)}.`)
+        .send();
+      return;
+    }
     if (outcome.rung === 'refired') {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -218,6 +228,8 @@ function skippedPhrase(skip: SkippedPart): string {
         : `${part} has failed, and wants a new one fitted`;
     case 'not-skilled':
       return `${part} wants a surer hand — ${skip.detail ?? 'more skill than yours'}`;
+    case 'no-hull-material':
+      return `the hole in ${part} cannot be patched: nothing says what ${part === 'it' ? 'it is' : 'she is'} planked with`;
     default:
       return `${part} could not be mended`;
   }

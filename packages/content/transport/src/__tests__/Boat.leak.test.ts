@@ -1,8 +1,10 @@
 /**
  * Boat — ⭐ the leak and bailing.
  *
- * - a boat leaks from her STATE — a hole stove in her — never the
- *   calendar; ashore nothing comes in;
+ * - a boat leaks from her STATE — a hole stove in her, and her seams once
+ *   her tar has gone — never the calendar; ashore nothing comes in; the
+ *   read is the ship's (`Bilge.hullLeakLps`) at a boat's length
+ *   (matter-model-overlaps D4, D7);
  * - the water in her takes her freeboard; bailed (a bucketful a spell,
  *   more than a hole lets in) she stays up; left, she goes down with what
  *   is in her;
@@ -16,7 +18,8 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import Material from '@saxonberg/server/mud/lib/material/Material';
 import SeaPatch from '@saxonberg/content-water/src/location/SeaPatch';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Boat from '../thing/Boat';
@@ -83,14 +86,15 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
     lay(boat, water, 80);
     vi.spyOn(MixinApi, 'isWaterPlace').mockReturnValue(true);
     boat.reconcileBilge();
-    (boat as unknown as { addFlaw(k: string, v: boolean): void }).addFlaw('holed', true);
-    expect(boat.leakLps()).toBeCloseTo(0.3, 9);
+    boat.addFlaw('holed', true);
+    // The one hole rule: 640 L/h × √0.25 × 4.5 = 0.4 L/s.
+    expect(boat.leakLps()).toBeCloseTo(0.4, 9);
     now += 1000;
-    expect(boat.bilgeNowL()).toBeCloseTo(300, 6);
-    expect(boat.freeboardNowM()).toBeCloseTo(0.4 - 380 / 4095, 6);
+    expect(boat.bilgeNowL()).toBeCloseTo(400, 6);
+    expect(boat.freeboardNowM()).toBeCloseTo(0.4 - 480 / 4095, 6);
     expect(boat.describeBoat().join(' ')).toMatch(/water/);
 
-    // Bailing: a bucketful each twenty seconds out-runs the hole.
+    // Bailing: a bucketful each twenty seconds out-runs the hole (8 L in, 10 out).
     expect(await boat.bucketRefusal({} as never, null)).toBeNull();
     const before = boat.bilgeNowL();
     const hand = { isDestroyed: () => false } as never;
@@ -100,7 +104,7 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
       expect(litres).toBe(10);
       if (i === 0) expect(String(await boat.bucketLanded(hand, { litres, vessel: null, tipped: 0, escaped: false }))).toMatch(/bucketful of water out over her side/);
     }
-    expect(boat.bilgeNowL()).toBeLessThan(before - 100);
+    expect(boat.bilgeNowL()).toBeLessThan(before - 50);
     expect(await boat.reconcileFloat()).toBe(false);
 
     // Left: the water takes the last of her freeboard and she goes down.
@@ -109,6 +113,54 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
     expect(boat.freeboardNowM()).toBeLessThanOrEqual(0);
     expect(await boat.reconcileFloat()).toBe(true);
     expect(sink).toHaveBeenCalledWith(boat);
+  });
+
+  it('⭐ she is Durable: under her tar her seams are her fabric (D7)', () => {
+    const boat = rowboat();
+    expect(MixinApi.isDurable(boat as unknown as Stuff)).toBe(true);
+    expect(boat.bareWearPerDay()).toBeCloseTo(0.5 / 45, 9);
+    expect(boat.hullLengthM()).toBe(4.5);
+    expect(boat.hullDraftM()).toBe(0.25);
+  });
+
+  it('⭐⭐ a BARE boat\'s seams open with the weather; a TARRED one\'s do not (D7)', () => {
+    const pitch = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName('pitch');
+      return m;
+    }, '/stuff/idea/material/_boat/pitch') as unknown as Material;
+    const bare = rowboat();
+    const tarred = rowboat();
+    // The row's `coats:` door (the applier's phase-1 setter), as a shipped boat is tarred.
+    void (tarred as unknown as { setCoats(v: unknown): unknown }).setCoats({
+      outside: [{ material: pitch.getTemplatePath()!, thicknessM: 0.001, state: 'set' }],
+    });
+    // Ashore (no place to read the air from): a bare body takes the weather
+    // all the same; a coat waits.
+    bare.reconcileWeather();
+    tarred.reconcileWeather();
+    now = T0 + 60 * 86_400;
+    bare.reconcileWeather();
+    tarred.reconcileWeather();
+    // Sixty days bare at the house's rate: 1 − 60 × 0.5/45 ≈ 0.33 → shabby.
+    expect(bare.getWearCondition()).toBeCloseTo(1 - (60 * 0.5) / 45, 6);
+    expect(bare.hullLeakLps()).toBeCloseTo(4.5 * 0.02, 9);
+    expect(tarred.getWearCondition()).toBe(1);
+    expect(tarred.hullLeakLps()).toBe(0);
+  });
+
+  it('⭐⭐ stove in on a snag she is holed; patched, she leaks only by her seams (D7, D8)', () => {
+    const boat = rowboat();
+    boat.setCondition(0.6); // worn seams: 4.5 × 0.004 L/s
+    boat.reconcileBilge();
+    expect(boat.hullLeakLps()).toBeCloseTo(4.5 * 0.004, 9);
+    boat.stove('Something under the water takes her.');
+    expect(boat.getFlaws().map((f) => f.kind)).toEqual(['holed']);
+    expect(boat.hullLeakLps()).toBeCloseTo(4.5 * 0.004 + 0.4, 9);
+    now += 10;
+    boat.recordMend({ at: now, by: '/test/hand', byName: 'a boatwright', band: 'competent', discipline: '', kind: 'patched', result: 'sound' });
+    expect(boat.getFlaws()[0]?.mended).toBe('patched');
+    expect(boat.hullLeakLps()).toBeCloseTo(4.5 * 0.004, 9);
   });
 
   it('a dry boat has nothing to bail', async () => {

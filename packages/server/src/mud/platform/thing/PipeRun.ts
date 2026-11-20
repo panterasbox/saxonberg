@@ -188,7 +188,7 @@ export default class PipeRun extends PipeRunBase {
   /** Every length laid, every joint tight? */
   public isComplete(): boolean {
     this.ensureParts();
-    return !this.leaks();
+    return this.jointLeakShare() === 0;
   }
 
   /** ⭐ Does this run carry water? Complete, and not burst. */

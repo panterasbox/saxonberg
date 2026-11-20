@@ -1230,6 +1230,48 @@ is 0. Decisions the plan did not make:
   with no authored material refuses the patch.
 - **Commit:** `feat(bulk): one leak — pores, flaws and joints`.
 
+**Build note (W3).** `FlawedMixin` split out (`Integrity extends FlawedMixin(Base)`,
+now a `NestingConstructor` so the record's members reach the class); the flaw
+look line moved with it and words a patch. `lint:mixin-clusters` on the cut:
+Flawed one cluster (record), Integrity one (article) — the split is clean; the
+ceiling fell 43 → 42 (Bulkable's capacity cluster joined through
+`isLiquidTight`; Bilge's new leak read joined its store via a default
+`leakedBetween = hullLeakLps × dt`). Decisions the plan did not make:
+- Pores term gate = `isPermeable()`, REDEFINED as *neither face holds*
+  (`!holdsWater(out) && !holdsWater(in)`): D4's "either face sealed → 0", plus
+  the shipped "tight body (≤ 0.03) never weeps". `weeps()` (the look line,
+  evaporative cooling) follows. The filter rate still applies when something
+  under it takes what comes through; `leakLPerHour`/`isLiquidTight` use the
+  weep rate, so a filter candle is still liquid-tight.
+- `Durable.getCondition` keeps reading `isIntegrity` (not `isFlawed`): a ship's
+  hole is in her LEAK, never her seams' band — `hullLeakLps` and `hullBand`
+  read her wear condition, so a hole is not counted twice.
+- `Boat.stove` is UNGATED, beside its ungated sibling `capsize`: `Propel` is a
+  scheduler-run engagement (a root frame), so a `FromModule(Propel)` gate is
+  never the caller and fails closed. Recorded, not hidden.
+- `snagVerdict({obstruction, sogMps, nowS})` — no `lyingIn`: lying-in only
+  changes `planPassage`'s words. `Propel` asks it of the stretch a stroke
+  ENTERS (so a boat lying in a choked reach can paddle out).
+- Dials: `flaws.leak.holedLPerHour` 640 (rowboat 0.4 L/s < a bucket's 0.5;
+  Hesper ≈ 5.8 L/s, 78 % of her shipped 7.5 — one knob cannot meet both
+  exactly; bailable won), `crackLPerHour` 4, `dregsL` 0.05,
+  `failedSharePerHour` 0.4 (25 L cask −33 % in an hour), `slackSharePerHour`
+  0.1, `faces.holdsLiquidBelowSharePerHour` 0.05, `crafting.repair.patchKg` 2.
+- The leak integrates by midpoint steps (≤ 2 % of what is left each), runs out
+  at the dregs, and drips the pore share `through: 'pores'` and the rest plain;
+  a float crumb under 1e-9 L is debited so the wake is not re-armed. The wake
+  is armed on the first read after a fill too (the just-filled path).
+- `no-hull-material` reason row shipped (`/platform/reasons/`);
+  `CraftingDecline` words the repair arm with the same sentence (the repair
+  family still words its own declines). Boats are tarred in their rows (pitch,
+  which has no weathering rate, so a tarred boat stays tight); ship rows author
+  `hull.material: oak`. `Ship.recordMend`/`Boat.recordMend` integrate the bilge
+  before a patch; `Building` and `Ship` answer `keptByUpkeep()`.
+- The leak's wake is NOT host-bound (unlike `percolationWakeAtS`): host binding
+  subscribes to the event registry, and every porous pot of water arms one —
+  the callback checks `isDestroyed()` instead. (Host-bound, it broke every unit
+  test that read a weeping vessel under a clock.)
+
 ### W4 — one wall exchange (D11)
 
 - `Faced.exchangeWith` takes the leach, the memory and the own-material

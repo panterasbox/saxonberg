@@ -294,9 +294,10 @@ export interface Container {
    */
   fitRefusal(item: Stuff): FitRefusal | null;
   /**
-   * ⭐ How tight it closes against the wet (D22): a bulk vessel's authored
-   * `closure`; any other — shut and of a material that takes no water →
-   * `liquidTight`, else `open`.
+   * ⭐ How tight it closes against the wet (D22): a bulk vessel's closure
+   * (its authored one, or `open` when it leaks — `Bulkable.getClosure`);
+   * any other — shut, with no open crack or hole, and of a material that
+   * takes no water → `liquidTight`, else `open`.
    */
   closureLevel(): ClosureLevel;
   /**
@@ -566,6 +567,12 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (MixinApi.isBulkable(self)) return self.getClosure();
       if (MixinApi.isSealable(self) && !self.isOpen()) {
+        // ⭐ A crack or a hole lets the wet through a shut lid as it does a
+        // vessel's wall (matter-model-overlaps D4): the one flaw record.
+        if (MixinApi.isFlawed(self) && self.getFlaws().some((f) => (f.kind === 'crack' || f.kind === 'holed') && !f.mended)) {
+          return 'open';
+        }
+        // An absorbent material wicks the wet through (a canvas sack).
         const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
         const takesWater =
           mat !== null && MixinApi.hasPorosity(mat)

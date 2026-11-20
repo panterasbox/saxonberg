@@ -103,10 +103,38 @@ water absorption (`waterAbsorptionCapacity` / 100) for a `fired` or `porous`
 material. The firing swaps the material (terracotta 15 %, earthenware 8 %,
 stoneware 1.5 %), so porosity follows the heat-work without a field of its own.
 
-`holdsWater(face)` is true for a set (or run) top coat whose MATERIAL is tight
+`isSealed(face)` is true for a set (or run) top coat whose MATERIAL is tight
 (its own water absorption at or under `faces.holdsWaterBelow`, 0.03 — every
-glaze is 0; a limewash would not be), or for a body at or under the same dial. So stoneware holds water bare, terracotta
-weeps, and a glazed crock holds.
+glaze is 0; a limewash would not be). `holdsWater(face)` is `isSealed(face)`
+or a body at or under the same dial. So stoneware holds water bare,
+terracotta weeps, and a glazed crock holds. `isPermeable()` — the pores'
+half of a weep — is a porous body with NEITHER face sealed: a coat on
+either face stops the flow through the wall.
+
+⭐⭐ **One leak** (matter-model-overlaps D4). ⚠ A crack is no longer a face's
+question: it is a FLAW (`FlawedMixin`, the record split out of
+`IntegrityMixin`), and a cracked glazed crock leaks at the CRACK's rate
+while its faces still hold. What a vessel loses is one read on the thing
+that holds, `Bulkable.leakLPerHour()`, summing three terms:
+
+- **pores** — a Faced vessel whose wall `isPermeable`: `porosity ×
+  thermal.evaporation.seepLPerHourPerL × held` (the weep, below);
+- **flaws** — `Flawed.flawLeakLPerHour(∛(held/1000), 1)`, the ONE hole rule
+  for every crack and hole: `flaws.leak.<kind>LPerHour × √head × scale`
+  (crack 4, holed 640 L/h — a hull passes her draft and her length,
+  [ship.md](./ship.md));
+- **joints** — `Assembled.jointLeakShare() × held` (a sprung stave,
+  [assembly.md](./assembly.md)).
+
+`Bulkable.isLiquidTight()` asks the same three at capacity, as a share of
+capacity an hour, under `faces.holdsLiquidBelowSharePerHour` (0.05);
+`getClosure()` is `open` when it is not, so EVERY vessel — not only a cask —
+spills a pour it cannot hold ([bulk.md](./bulk.md) § Closure scale). What a
+vessel already holds drains on read in the wall's exchange, moved by the one
+drip (the pores' share `through: 'pores'`, the rest plainly), and a vessel
+losing liquid arms ONE game-clock wake (`leakWakeAtS`, persisted and
+re-armed by its setter) at the computable moment it runs out
+(`flaws.leak.dregsL`, 0.05 L) or the vessel under it brims.
 
 ## ⭐⭐ The lead leach — the inside face gives to the contents (M7)
 
@@ -140,8 +168,8 @@ recorded in [maturation.md](./maturation.md) for later and not migrated.
 
 ## The weeping jar (M8)
 
-The same face exchange: a vessel holding a LIQUID whose `inside` or `outside`
-does not hold water loses `porosity × thermal.evaporation.seepLPerHourPerL` (0.02)
+The pores' term of the one leak: a vessel holding a LIQUID whose wall
+`isPermeable` (neither face sealed, a porous body) loses `porosity × thermal.evaporation.seepLPerHourPerL` (0.02)
 litres per hour per litre held into its own `wet()`. So its outside stays wet.
 `ThermalMixin.evaporativeDepressionK(airK)` = wetness × (T_air − T_wetbulb) ×
 `thermal.evaporation.efficiency` (0.8) — and a vessel that is WEEPING counts its
@@ -239,6 +267,9 @@ weather reaches them, set by the air, fade in the sun, and a durable host's
 condition wears at `bareWearPerDay` once they are gone — none for a good,
 a building's dial for a building and for a ship's hull (harbors: `Ship`
 composes `Faced` over `Durable`, her seams the fabric, and they leak as
-they open — [ship.md](./ship.md)). Transport's `Boat` composes `Faced`
-too (no fabric; a coat that has opened lets water in). See
+they open — [ship.md](./ship.md)). ⭐ Transport's `Boat` composes `Faced`
+over `Durable` too (matter-model-overlaps D7): under her tar her fabric is
+her seams, worn at the house's rate once it has gone and read by the ship's
+seam bands at her length (`Bilge.hullLeakLps`). The shipped boats are
+tarred, so they are tight until the pitch goes. See
 [painting.md](./painting.md).

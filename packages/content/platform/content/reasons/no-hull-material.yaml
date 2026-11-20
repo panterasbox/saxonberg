@@ -1,0 +1,6 @@
+# ⭐ A hole in a hull that authors no material of its own (matter-model-
+# overlaps D8): a patch is of the hull's OWN material, and with none
+# authored `repair` refuses — never a patch of whatever is at hand.
+# (`CraftingDecline` words the repair arm with this same sentence.)
+facts: {}
+says: "There is a hole in her, and nothing says what she is planked with — there is nothing to patch it from."

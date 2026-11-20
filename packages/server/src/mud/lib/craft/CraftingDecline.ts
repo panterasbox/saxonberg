@@ -130,6 +130,9 @@ export class CraftingDecline {
         return detail
           ? `That doesn't fit anywhere in it. It is made of ${detail}.`
           : "That doesn't fit anywhere in it.";
+      case 'no-hull-material':
+        // ⭐ Mirrors the reason row `/platform/reasons/no-hull-material`.
+        return 'There is a hole in her, and nothing says what she is planked with — there is nothing to patch it from.';
       case 'insufficient-heat':
         return 'Nothing here runs hot enough for that — the forge is cold, or there is no fire at all.';
       case 'no-recipe':

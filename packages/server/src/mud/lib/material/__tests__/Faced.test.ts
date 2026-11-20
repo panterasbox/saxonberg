@@ -242,12 +242,17 @@ describe('⭐ a crack and a rivet (B100)', () => {
       m.setInteriorCapacity(Quantity.of(3, 'L'));
       return m;
     });
-    expect(j.holdsWater('inside')).toBe(true);
+    expect(j.isLiquidTight()).toBe(true);
     j.addFlaw('crack', true);
-    expect(j.holdsWater('inside')).toBe(false);
-    expect(j.isPermeable()).toBe(true);
-    j.recordMend({ at: WorldClockApi.getNow().rawValue() + 1, by: '', byName: 'a tinker', band: 'competent', discipline: 'pottery', kind: 'riveted', result: 'sound' });
+    // ⭐ A crack is a FLAW, not a pore (matter-model-overlaps D4): the faces
+    // still hold, and the crack lets the water through at its own rate.
     expect(j.holdsWater('inside')).toBe(true);
+    expect(j.isPermeable()).toBe(false);
+    expect(j.isLiquidTight()).toBe(false);
+    expect(j.getClosure()).toBe('open');
+    j.recordMend({ at: WorldClockApi.getNow().rawValue() + 1, by: '', byName: 'a tinker', band: 'competent', discipline: 'pottery', kind: 'riveted', result: 'sound' });
+    expect(j.isLiquidTight()).toBe(true);
+    expect(j.getClosure()).toBe('liquidTight');
   });
 });
 

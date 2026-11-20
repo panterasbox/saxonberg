@@ -275,6 +275,7 @@ import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tool';
 import type { Durable } from '../lib/material/Durable';
 import type { Integrity } from '../lib/material/Integrity';
+import type { Flawed } from '../lib/material/Flawed';
 import type { Assembled } from '../lib/craft/Assembled';
 import type { Seasoning } from '../lib/material/Seasoning';
 import type { Keen } from '../lib/material/Keen';
@@ -2386,6 +2387,11 @@ export class MixinApi {
   /** An article that carries the one damage record — flaws, integrity, impact, ring. */
   public static isIntegrity(obj: Stuff): obj is Stuff & Integrity & Tangible {
     return this.hasMixin(obj, Mixins.Integrity);
+  }
+
+  /** Carries the flaw record — an article (through `Integrity`) or a ship's hull (D5). */
+  public static isFlawed(obj: Stuff): obj is Stuff & Flawed {
+    return this.hasMixin(obj, Mixins.Flawed);
   }
 
   public static isDurable(obj: Stuff): obj is Stuff & Durable {

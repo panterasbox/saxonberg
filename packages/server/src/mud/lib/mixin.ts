@@ -724,6 +724,8 @@ export const Mixins = {
   // Composed by tools, weapons, and armor alike — durability is not "tool".
   Durable: 'DurableMixin',
   Integrity: 'IntegrityMixin',
+  /** ⭐ Carries flaws — a crack, a hole — and what they let through (matter-model-overlaps D5). */
+  Flawed: 'FlawedMixin',
   /** ⭐ Made of parts that keep their identity (assembly D3). */
   Assembled: 'AssembledMixin',
   /** ⭐ Converted wood that dries at its species' rate (assembly D2). */
@@ -1158,6 +1160,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   IntegrityMixin: "{} isn't something that can crack or break",
+  FlawedMixin: "{} has no flaws to speak of",
   AssembledMixin: "{} isn't made of parts",
   SeasoningMixin: "{} doesn't season",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what

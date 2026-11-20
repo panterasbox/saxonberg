@@ -95,6 +95,14 @@ export default abstract class Building
     return 0.5 / days;
   }
 
+  /**
+   * ⭐ Its fabric is kept by `maintain` (matter-model-overlaps D8): `repair`
+   * never does the plasterer's work, so the mend ladder skips its wear rung.
+   */
+  public override keptByUpkeep(): boolean {
+    return true;
+  }
+
   /** Reconcile on read: the weather since the last look, first. */
   public override getCondition(): number {
     this.reconcileWeather();

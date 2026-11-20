@@ -278,8 +278,15 @@ export interface Assembled {
   glueJoints(glue: string): number;
   /** Materialize the record from the bill if it has none (a found thing). */
   ensureParts(): void;
-  /** Any structural line failed, or any joint slack. */
-  leaks(): boolean;
+  /**
+   * ⭐ What its joints let out, as the SHARE of what it holds an hour
+   * (matter-model-overlaps D4): each slack joint ×
+   * `crafting.joint.slackSharePerHour` plus each failed structural member
+   * (a sprung stave) × `crafting.joint.failedSharePerHour`. `0` is tight.
+   * A share, not litres, so a sprung stave is over the liquid-tight line on
+   * a cask of any size. A thing of one piece has no joints, and answers 0.
+   */
+  jointLeakShare(): number;
   /**
    * @hook May `by` fit `count` members to `part` now? (water-supply D10)
    * The default says yes; a plumber's service run refuses its LAST length
@@ -947,10 +954,13 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     async afterMembersFitted(_by: Stuff): Promise<void> {}
 
-    leaks(): boolean {
+    jointLeakShare(): number {
+      const failed = this.getParts().reduce((n, l) => n + (l.role === 'structural' ? Math.max(0, l.failed) : 0), 0);
+      const slack = this.slackJoints().length;
+      if (failed === 0 && slack === 0) return 0;
       return (
-        this.getParts().some((l) => l.role === 'structural' && l.failed > 0) ||
-        this.slackJoints().length > 0
+        slack * dial(AppSettingKeys.craftingJointSlackSharePerHour, 0.1) +
+        failed * dial(AppSettingKeys.craftingJointFailedSharePerHour, 0.4)
       );
     }
 

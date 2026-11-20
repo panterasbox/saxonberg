@@ -62,6 +62,14 @@ export interface Durable {
   recordMend(record: MendRecord): void;
   /** The condition as a word anyone can see (repair D10). */
   getConditionWord(): ConditionWord;
+  /**
+   * @hook ⭐ Is this thing's fabric kept by UPKEEP — `maintain` with a kit —
+   * rather than mended by `repair` (matter-model-overlaps D8)? A ship's
+   * caulking and a building's fabric are; `repair` on them patches what is
+   * holed and never does the caulker's or the plasterer's work, so the mend
+   * ladder skips its wear rung. `false` by default: a tool, a cask, a boat.
+   */
+  keptByUpkeep(): boolean;
 }
 
 /**
@@ -83,7 +91,7 @@ export interface MendRecord {
   discipline: string;
   /** The part mended, when the thing is made of parts. */
   part?: string;
-  kind: 'mended' | 'reforged' | 'tightened' | 'riveted';
+  kind: 'mended' | 'reforged' | 'tightened' | 'riveted' | 'patched';
   /** Whether it came back sound or short of it. */
   result: 'sound' | 'short';
   /**
@@ -217,6 +225,10 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getConditionWord(): ConditionWord {
       return conditionWord(this.getCondition(), this.isBroken());
+    }
+
+    keptByUpkeep(): boolean {
+      return false;
     }
 
     recordMend(record: MendRecord): void {

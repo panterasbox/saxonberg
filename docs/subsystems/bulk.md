@@ -284,6 +284,19 @@ open < liquidTight < sealed        (default: liquidTight)
 A holder retains matter when `closure ≥ requiredClosureFor(material)`.
 v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `open` vessel doesn't retain it — it **drains through** (below).
+
+⭐⭐ **The closure a vessel KEEPS is not only the authored one**
+(matter-model-overlaps D4): `getClosure()` returns `open` whenever the
+vessel is not liquid-tight — `isLiquidTight()`, the one leak read (pores,
+flaws, joints) at capacity, as a share of capacity an hour, under
+`faces.holdsLiquidBelowSharePerHour` (0.05). So a cracked crock, a holed
+pail, a cask with a sprung stave or slack hoops all drain a pour through,
+with no host of their own deciding it (`Vat.getClosure` keeps only its
+drying reconcile). What such a vessel already holds runs out on read by the
+one drip ([faces.md](./faces.md) § Holding water, and porosity), with ONE
+wake at the moment it runs out. A shut non-bulk container
+(`Container.closureLevel`) is `open` on an unmended crack or hole, and
+keeps its clause that an absorbent material wicks the wet through.
 ⭐⭐ **`sealed` is exercised now (the fire build, 2026-10)**, and the
 phase→required-level mapping is no longer a mapping: `requiredClosureFor`
 **derives** from the material's `boilingPoint` against

@@ -1951,6 +1951,19 @@ export const AppSettingKeys = {
    * run THROUGH a porous body into a vessel it stands on or in — the
    * ceramic water filter (ceramics S9, W8). A free flow, not a weep. */
   facesFilterLPerHourPerL: "faces.filterLPerHourPerL",
+  /** Faces — ⭐ a vessel that loses more than this share of what it holds
+   * an hour, full (its pores, flaws and joints together), is not
+   * liquid-tight: a pour into it runs through (matter-model-overlaps D4). */
+  facesHoldsLiquidBelowSharePerHour: "faces.holdsLiquidBelowSharePerHour",
+  /** Flaws — ⭐ L/h an open crack lets through at a metre of head and a
+   * scale of one (the one hole rule, matter-model-overlaps D4). */
+  flawsLeakCrackLPerHour: "flaws.leak.crackLPerHour",
+  /** Flaws — ⭐ L/h a hole lets through at a metre of head and a meter of
+   * hull: a vessel's scale is one, a hull's her length (D4). */
+  flawsLeakHoledLPerHour: "flaws.leak.holedLPerHour",
+  /** Flaws — the litres a leaking vessel is down to when it is EMPTY: the
+   * dregs it runs out at, and the moment its one wake is armed for (D9). */
+  flawsLeakDregsL: "flaws.leak.dregsL",
   /** Impact — ⭐ the share of a brittle body's toughness × volume that a
    * blow must exceed to break it, with volume weighted by itself again
    * (a thicker wall is disproportionately stronger) (ceramics M5). */
@@ -2216,6 +2229,12 @@ export const AppSettingKeys = {
    * the head rocks on its haft, and `repair` tightens it before anything
    * else (assembly D6). */
   craftingJointSlackThreshold: "crafting.joint.slackThreshold",
+  /** Assembly — ⭐ the share of what a vessel holds an hour that runs out
+   * through each SLACK joint (matter-model-overlaps D4). */
+  craftingJointSlackSharePerHour: "crafting.joint.slackSharePerHour",
+  /** Assembly — ⭐ the share of what a vessel holds an hour that runs out
+   * past each FAILED structural member — a sprung stave (D4). */
+  craftingJointFailedSharePerHour: "crafting.joint.failedSharePerHour",
   /** Assembly — how much faster a part worked GREEN wears than a seasoned
    * one (assembly D2: green wood warps and gives). */
   craftingGreenWearFactor: "crafting.greenWearFactor",
@@ -2244,6 +2263,9 @@ export const AppSettingKeys = {
   craftingRepairBrokenFactor: "crafting.repair.brokenFactor",
   /** Crafting — reachable heat (K) metal repair requires (forge-grade). */
   craftingRepairMetalHeatK: "crafting.repair.metalHeatK",
+  /** Crafting — ⭐ kilograms of the hull's own material a patch over one
+   * hole draws (matter-model-overlaps D8). */
+  craftingRepairPatchKg: "crafting.repair.patchKg",
   /** Crafting — kilograms of ice an iced drink takes from the reachable
    * ice bin at the fill (the bar's scoop). */
   craftingIceKg: "crafting.iceKg",
@@ -3087,6 +3109,10 @@ export const AppSettingTiers: Readonly<
   facesHoldsWaterBelow: "B",
   facesAromaRetained: "B",
   facesFilterLPerHourPerL: "B",
+  facesHoldsLiquidBelowSharePerHour: "B",
+  flawsLeakCrackLPerHour: "B",
+  flawsLeakHoledLPerHour: "B",
+  flawsLeakDregsL: "B",
   impactFractureShare: "B",
   impactReferenceVolumeM3: "B",
   impactDropHeightM: "B",
@@ -3164,6 +3190,8 @@ export const AppSettingTiers: Readonly<
   craftingKeennessSharpenDurationMs: "B",
   craftingSalvageRate: "B",
   craftingJointSlackThreshold: "B",
+  craftingJointSlackSharePerHour: "B",
+  craftingJointFailedSharePerHour: "B",
   craftingGreenWearFactor: "B",
   woodSeasonedThreshold: "B",
   maturingImpartsSpentPerFill: "B",
@@ -3174,6 +3202,7 @@ export const AppSettingTiers: Readonly<
   craftingRepairCostFactor: "B",
   craftingRepairBrokenFactor: "B",
   craftingRepairMetalHeatK: "B",
+  craftingRepairPatchKg: "B",
   craftingIceKg: "B",
   craftingProportionTolerance: "B",
   craftingProportionMinScale: "B",

@@ -244,8 +244,19 @@ export interface Faced {
    * a hot tub — is set the moment it is that cold. Returns how many set.
    */
   coolCoats(atK: number): number;
-  /** Does this face keep water in? A sound fused coat, or a tight body. */
+  /**
+   * Does this face keep water in? Its coat is sealed, or the body is tight.
+   * ⚠ A crack is not this question's: it is a flaw, and lets water through
+   * at the crack's rate whatever the faces are (`Flawed.flawLeakLPerHour`).
+   */
   holdsWater(face: FaceName): boolean;
+  /**
+   * ⭐ Is this face SEALED — a `set` or `run` top coat whose material's own
+   * water absorption is at or under `faces.holdsWaterBelow` (a glaze, a
+   * pitch)? A question about a coat; the body is not asked
+   * (matter-model-overlaps D4).
+   */
+  isSealed(face: FaceName): boolean;
   /** The body's open porosity, `0..1` — read off its (fired) material. */
   porosity(): number;
   /** How hard this good is to get clean, `≥ 1` — a crazed coat or a bare porous body holds dirt. */
@@ -257,10 +268,11 @@ export interface Faced {
    * outside is a wet film for as long as it does (the weeping jar).
    */
   /**
-   * Does the WALL let water through — either face open (no tight coat over
-   * a porous body, or an open crack)? The face's half of a weep, without
-   * reading the contents (the bulk's own exchange asks it from inside its
-   * reconcile).
+   * Does the WALL let water through its pores — a porous body with neither
+   * face sealed (matter-model-overlaps D4: a coat on EITHER face stops the
+   * flow through the wall)? The face's half of a weep, without reading the
+   * contents (the bulk's own exchange asks it from inside its reconcile).
+   * A crack is a flaw, not a pore: `Flawed` answers for it.
    */
   isPermeable(): boolean;
   weeps(): boolean;
@@ -598,7 +610,7 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     public isPermeable(): boolean {
-      return !this.holdsWater('outside') || !this.holdsWater('inside');
+      return !this.holdsWater('outside') && !this.holdsWater('inside');
     }
 
     public getCoats(face: FaceName): readonly CoatLayer[] {
@@ -793,21 +805,22 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     public holdsWater(face: FaceName): boolean {
-      // ⭐ An OPEN crack through the wall leaks whatever is laid on it (M5).
-      // A riveted one holds — what a tinker's rivets (and the putty under
-      // the staples) are for; the mould reads the same rule (B100).
-      const self = this as unknown as Stuff;
-      if (MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended)) return false;
+      // ⭐ A sealed coat holds; else a tight body does. ⚠ A crack is no
+      // longer read here (matter-model-overlaps D4): it is a flaw, and a
+      // cracked glazed crock leaks at the CRACK's rate, not the pores'.
+      return this.isSealed(face) || this.porosity() <= dial(AppSettingKeys.facesHoldsWaterBelow, 0.03);
+    }
+
+    public isSealed(face: FaceName): boolean {
       // ⭐ A sound coat holds water when its MATERIAL is tight — a glaze is,
       // a limewash would not be; a run coat still covers. Crazed and crawled
       // coats have opened, and the body answers.
-      const tight = dial(AppSettingKeys.facesHoldsWaterBelow, 0.03);
       const top = this.getCoats(face)[0];
-      if (top !== undefined && (top.state === 'set' || top.state === 'run')) {
-        const coat = materialAt(top.material);
-        if (coat !== null && (MixinApi.hasPorosity(coat) ? coat.getWaterAbsorptionCapacity().rawValue() : 0) / 100 <= tight) return true;
-      }
-      return this.porosity() <= tight;
+      if (top === undefined || (top.state !== 'set' && top.state !== 'run')) return false;
+      const coat = materialAt(top.material);
+      if (coat === null) return false;
+      const absorbs = MixinApi.hasPorosity(coat) ? coat.getWaterAbsorptionCapacity().rawValue() : 0;
+      return absorbs / 100 <= dial(AppSettingKeys.facesHoldsWaterBelow, 0.03);
     }
 
     public cleansAs(): number {

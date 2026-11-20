@@ -34,5 +34,7 @@ data:
   deckHeightM: 2
   mastheadHeightM: 9
   speedKn: 5
-  hull: { lengthM: 9, beamM: 3, draftM: 1.2, depthM: 1.8 }
+  # ⭐ `material`: what she is planked with — a patch over a hole in her is
+  # of it (matter-model-overlaps D8); with none, `repair` refuses the patch.
+  hull: { lengthM: 9, beamM: 3, draftM: 1.2, depthM: 1.8, material: /stuff/idea/material/wood/oak }
   house: /stuff/idea/Business/ship-company
