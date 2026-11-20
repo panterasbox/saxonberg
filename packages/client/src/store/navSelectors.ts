@@ -610,3 +610,38 @@ export function routeCommandFor(
   const group = place.group?.split("/").filter(Boolean).pop();
   return `route to ${group ? `${quoteWord(group)} ` : ""}${quoteWord(word)}`;
 }
+
+/** Where a way leads, as your map knows it (D10), and how you know. */
+export interface LeadsTo {
+  name: string;
+  /** `seen` when it is the ways section's (you can see it from here). */
+  channel: Channel;
+  lastSeen?: number;
+}
+
+/**
+ * ⭐ Where a way from where you stand leads (D10): your map's edge from
+ * here names a far place → that place's own name, with its source and
+ * date; else the ways section's destination (you can see it from here),
+ * marked `seen`; else unknown.
+ */
+export function wayLeadsTo(
+  copy: Record<string, CopyClaim>,
+  standing: Standing,
+  way: { direction: string; destination?: string },
+): LeadsTo | undefined {
+  const here = placeAt(copy, standing.zone, standing.at);
+  if (here) {
+    const dir = longDirection(way.direction);
+    const edge = (indexOf(copy).edgeClaims.get(here.key) ?? [])
+      .filter((c) => c.dir !== undefined && longDirection(c.dir) === dir)
+      .sort((a, b) => b.lastSeen - a.lastSeen)
+      .map((c) => pathOf(c.to) ?? pathOf(c.toLabel))
+      .find((k) => k !== undefined && indexOf(copy).places.has(k));
+    if (edge) {
+      const far = indexOf(copy).places.get(edge)!;
+      return { name: far.name, channel: far.sources[0]!.channel, lastSeen: far.lastSeen };
+    }
+  }
+  return way.destination ? { name: way.destination, channel: "seen" } : undefined;
+}

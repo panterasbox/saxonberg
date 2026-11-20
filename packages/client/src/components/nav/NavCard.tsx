@@ -19,12 +19,16 @@ import {
   neighborDirection,
   placeAt,
   routeCommandFor,
+  wayLeadsTo,
   type Standing,
   type ViewEdge,
   type ViewPlace,
 } from "../../store/navSelectors";
 import { NavigatorBody } from "../cards/NavigatorBody";
+import { wayDoc } from "../doc/docs";
 import { MapArea } from "./MapArea";
+import { ChangeMark } from "../cards/ChangeMark";
+import { Ways } from "./Ways";
 import type { LensName } from "./ZoneMap";
 
 const DEFAULT_LENSES: ReadonlySet<LensName> = new Set<LensName>(["frontier", "route"]);
@@ -75,7 +79,27 @@ export function NavCard(props: NavCardProps): React.ReactElement {
         onEdgeClick={(e) => run(commandFor({ edge: e }))}
         {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
       />
-      {where ? <NavigatorBody where={where} {...props} /> : null}
+      <ChangeMark surface="nav:ways">
+        <Ways
+          ways={sections.ways?.ways ?? []}
+          leadsTo={(w) => (standing ? wayLeadsTo(mapCopy, standing, w)?.name : w.destination)}
+          tipFor={(w) => {
+            const to = standing ? wayLeadsTo(mapCopy, standing, w)?.name : w.destination;
+            const doc = wayDoc(w.direction, `go ${w.direction}`, {
+              ...(to ? { to } : {}),
+              ...(w.boundary ? { through: `${w.boundary.name}${w.state === "open" ? "" : ` (${w.state})`}` } : {}),
+            });
+            if (w.take && !w.take.ok) {
+              const works = w.take.works?.command;
+              return { ...doc, prose: w.take.reason, ...(works ? { hint: `${works} would get you through.` } : {}) };
+            }
+            return doc;
+          }}
+          onSendCommand={props.onSendCommand}
+          {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
+        />
+      </ChangeMark>
+      {where ? <NavigatorBody where={where} hideWays {...props} /> : null}
     </div>
   );
 }

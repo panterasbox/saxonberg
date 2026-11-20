@@ -16,6 +16,27 @@
  */
 
 import {
+  ArrowDown,
+  ArrowDownLeft,
+  ArrowDownRight,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ArrowUpLeft,
+  ArrowUpRight,
+  Bird,
+  ChevronsDown,
+  ChevronsUp,
+  CircleDashed,
+  DoorClosed,
+  Eye,
+  Footprints,
+  Lock,
+  LogOut,
+  Mountain,
+  Signpost,
+  TriangleAlert,
+  Waves,
   Box,
   CircleHelp,
   Lightbulb,
@@ -45,6 +66,34 @@ export const ICONS = {
   "kind.agent": User,
   "kind.thing": Box,
   "kind.idea": Lightbulb,
+  // ── the ways (navigation card W3) ──────────────────────────────
+  "dir.north": ArrowUp,
+  "dir.northeast": ArrowUpRight,
+  "dir.east": ArrowRight,
+  "dir.southeast": ArrowDownRight,
+  "dir.south": ArrowDown,
+  "dir.southwest": ArrowDownLeft,
+  "dir.west": ArrowLeft,
+  "dir.northwest": ArrowUpLeft,
+  "dir.up": ChevronsUp,
+  "dir.down": ChevronsDown,
+  /** A way with a name, not a bearing (`out`, `pumphouse`). */
+  "dir.named": Signpost,
+  "way.locked": Lock,
+  "way.shut": DoorClosed,
+  /** A window: it shows the far side and passes no body. */
+  "way.window": Eye,
+  /** Not for you as you stand — trying says why. */
+  "way.refuses": TriangleAlert,
+  /** Open as far as you know: you cannot see the far side. */
+  "way.unseen": CircleDashed,
+  /** It leaves this zone. */
+  "way.leaves": LogOut,
+  // ── the ways a body moves, when a way needs one ───────────────
+  "mode.walk": Footprints,
+  "mode.climb": Mountain,
+  "mode.swim": Waves,
+  "mode.fly": Bird,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

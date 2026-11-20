@@ -25,6 +25,8 @@ import { wayDoc } from "../doc/docs";
 
 interface NavigatorBodyProps {
   where: Whereabouts;
+  /** The navigation card draws the ways itself (W3); this body keeps the rest until W4. */
+  hideWays?: boolean;
   onSendCommand: (command: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }
@@ -122,7 +124,7 @@ const Unknown = styled.span`
 `;
 
 
-export function NavigatorBody({ where, onSendCommand, onCommandPreview }: NavigatorBodyProps): React.ReactElement {
+export function NavigatorBody({ where, hideWays, onSendCommand, onCommandPreview }: NavigatorBodyProps): React.ReactElement {
   const preview = onCommandPreview ?? (() => undefined);
   const inZone = new Map(where.exits.filter((e) => !e.crossesZone).map((e) => [e.direction, e]));
   const leaving = where.exits.filter((e) => e.crossesZone);
@@ -193,7 +195,7 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
       </Crumbs>
       </ChangeMark>
 
-      <ChangeMark surface="nav:ways">
+      {hideWays ? null : <ChangeMark surface="nav:ways">
       <div>
         <Label>Ways out</Label>
         <Rose data-testid="nav-rose">
@@ -233,7 +235,7 @@ export function NavigatorBody({ where, onSendCommand, onCommandPreview }: Naviga
         ) : null}
         {where.exits.length === 0 ? <Unknown>No way out that you can see.</Unknown> : null}
       </div>
-      </ChangeMark>
+      </ChangeMark>}
 
       <ChangeMark surface="nav:place">
       <div data-testid="nav-conditions">

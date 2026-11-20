@@ -29,7 +29,7 @@ import { thingTip } from "../../services/tooltipSource";
 import { commandDoc } from "../doc/docs";
 import styled from "styled-components";
 import { tokens } from "./tokens";
-import { useStore } from "../../store/index";
+import { useRadialGestures } from "./useRadialGestures";
 
 const NameButton = styled.button`
   background: none;
@@ -106,7 +106,6 @@ interface EntityNameProps {
  * `pointerdown`, not `click`: a tap must still SEND the command, so the
  * two cannot share an event.
  */
-const LONG_PRESS_MS = 450;
 
 export function EntityName({
   stuffId,
@@ -116,21 +115,7 @@ export function EntityName({
   onClick,
 }: EntityNameProps): React.ReactElement {
   const previewEnabled = !!(onPreview && command);
-  const pressTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const openRadial = React.useCallback(() => {
-    if (!stuffId) return;
-    useStore.getState().openRadial({ stuffId, displayName: label });
-  }, [stuffId, label]);
-
-  const cancelPress = React.useCallback(() => {
-    if (pressTimer.current !== null) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
-  }, []);
-
-  React.useEffect(() => cancelPress, [cancelPress]);
+  const gestures = useRadialGestures(stuffId, label);
 
   // ⭐ Its tooltip (tooltips W6): a named thing's live describe; a name with
   // no subject, the command it runs. A touch long press opens THAT (the
@@ -142,29 +127,10 @@ export function EntityName({
     <NameButton
       data-stuff-id={stuffId}
       onClick={onClick}
-      // Right-click on a pointer device, long-press on a touch one.
-      // Both are "tell me about this" rather than "do the default
-      // thing", which is what keeps the primary click sending the
-      // command it previews.
-      onContextMenu={
-        stuffId
-          ? (e) => {
-              e.preventDefault();
-              openRadial();
-            }
-          : undefined
-      }
-      onPointerDown={
-        stuffId
-          ? (e: React.PointerEvent) => {
-              if (e.pointerType !== "mouse") return;
-              cancelPress();
-              pressTimer.current = setTimeout(openRadial, LONG_PRESS_MS);
-            }
-          : undefined
-      }
-      onPointerUp={stuffId ? cancelPress : undefined}
-      onPointerLeave={stuffId ? cancelPress : undefined}
+      // Right-click on a pointer device, a mouse hold too — "tell me about
+      // this" rather than "do the default thing", which is what keeps the
+      // primary click sending the command it previews.
+      {...gestures}
       onMouseEnter={
         previewEnabled ? () => onPreview!(command!) : undefined
       }
