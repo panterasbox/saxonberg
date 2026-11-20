@@ -30,6 +30,7 @@ import {
 import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import { PersistApi } from '../../../api/persist';
+import { SecurityApi } from '../../../api/security';
 import { StuffApi, type ClassResolution } from '../../../api/stuff';
 import { ModuleApi } from '../../../api/module';
 import { HotReloadApi } from '../../../api/hot-reload';
@@ -394,7 +395,7 @@ function dependsOnOf(root: string): string[] {
 /** Parse + validate a pack root's `pack.yaml`. */
 /** The closed manifest key set — anything else is a typo, and a typo is an error. */
 const MANIFEST_KEYS: ReadonlySet<string> = new Set([
-  'id', 'version', 'description', 'root', 'requires', 'boot', 'maintainers',
+  'id', 'version', 'description', 'root', 'requires', 'boot', 'maintainers', 'testOnly',
 ]);
 const BOOT_ROLES: ReadonlySet<string> = new Set(['sync-read', 'producer']);
 const GROUP_ROLES: ReadonlySet<string> = new Set(['owner', 'admin', 'member']);
@@ -621,6 +622,9 @@ function readManifest(root: string): PackManifest {
       `PackApi: manifest at ${file} has a malformed 'root' (want an absolute path like '/${m.id}')`,
     );
   }
+  if (m.testOnly !== undefined && typeof m.testOnly !== 'boolean') {
+    throw new Error(`PackApi: manifest at ${file} has a malformed 'testOnly' (want true or false)`);
+  }
   return {
     id: m.id,
     version: m.version,
@@ -631,6 +635,7 @@ function readManifest(root: string): PackManifest {
     requires: readRequires(m, file),
     boot: readBoot(m, file),
     maintainers: readMaintainers(m, m.id, file),
+    testOnly: m.testOnly === true,
   };
 }
 
@@ -810,8 +815,57 @@ function packFilter(): ReadonlySet<string> | null {
   return new Set(raw.split(',').map((s) => s.trim()).filter((s) => s.length > 0));
 }
 
-/** Discover + order the shipped packs (or use explicit roots for tests). */
-function discover(packRoots?: string[]): ResolvedPack[] {
+/**
+ * ⭐ The test-only gate (test-world-lifecycle D1). A pack whose manifest says
+ * `testOnly: true` is the test suite's own scaffold: it installs ONLY in a
+ * test environment (`SecurityApi.isTestEnvironment()` — the wire runner's
+ * world, CI's, the soak lane's, a unit test) and is refused everywhere else,
+ * so the live world can never hold it. Enforced here, in the one function
+ * every reader of the pack set goes through, so no caller can forget.
+ *
+ * - a pack that is NOT test-only and depends on one throws, in every world
+ *   (a live pack can never come to need a fixture);
+ * - outside a test environment a test-only pack is dropped from the set, and
+ *   `SAXONBERG_PACKS` naming one throws.
+ */
+function testOnlyRefusals(all: ResolvedPack[]): ResolvedPack[] {
+  const testOnly = new Set(all.filter((p) => p.manifest.testOnly).map((p) => p.manifest.id));
+  for (const p of all) {
+    if (p.manifest.testOnly) continue;
+    const dep = p.manifest.dependsOn.find((d) => testOnly.has(d));
+    if (dep) {
+      throw new Error(
+        `PackApi: '${p.manifest.id}' depends on '${dep}', a test-only pack — ` +
+          `a pack a live world installs can never need a test fixture`,
+      );
+    }
+  }
+  return SecurityApi.isTestEnvironment() ? [] : all.filter((p) => p.manifest.testOnly);
+}
+
+/**
+ * Say, once per boot and per pack, that a test-only pack was refused — and,
+ * when an earlier test boot installed it into this database, that its rows
+ * remain (nothing deletes them: no migration).
+ */
+async function reportTestOnlyRefusals(refused: ResolvedPack[]): Promise<void> {
+  for (const p of refused) {
+    const id = p.manifest.id;
+    const record = await loadRecord(id);
+    let tail = '';
+    if (record) {
+      const rows = (await PersistApi.find(Collections.Content, { sourcePack: id })).length;
+      tail = `; ${rows} row(s) from an earlier test boot remain in this database`;
+    }
+    console.warn(
+      `PackApi: '${id}' REFUSED — a test-only pack installs only in a test world ` +
+        `(SAXONBERG_TEST_WORLD=1)${tail}`,
+    );
+  }
+}
+
+/** Every shipped pack, ordered, with no test-only gate and no filter applied. */
+function discoverAll(packRoots?: string[]): ResolvedPack[] {
   let roots = packRoots;
   if (!roots) {
     const deployment = deploymentRootDir();
@@ -819,14 +873,27 @@ function discover(packRoots?: string[]): ResolvedPack[] {
       resolvePackRootByName(n, deployment),
     );
   }
-  const ordered = orderByDependsOn(roots.map(resolvePack));
+  return orderByDependsOn(roots.map(resolvePack));
+}
+
+/** Discover + order the shipped packs (or use explicit roots for tests). */
+function discover(packRoots?: string[]): ResolvedPack[] {
+  const all = discoverAll(packRoots);
+  const refused = new Set(testOnlyRefusals(all).map((p) => p.manifest.id));
+  const ordered = all.filter((p) => !refused.has(p.manifest.id));
   registerSources(ordered);
   const filter = packFilter();
   if (!filter) return ordered;
-  const known = new Set(ordered.map((p) => p.manifest.id));
+  const known = new Set(all.map((p) => p.manifest.id));
   for (const id of filter) {
     if (!known.has(id)) {
       throw new Error(`PackApi: SAXONBERG_PACKS names '${id}', which no shipped pack provides`);
+    }
+    if (refused.has(id)) {
+      throw new Error(
+        `PackApi: SAXONBERG_PACKS names '${id}', a test-only pack — this is not a test world ` +
+          `(SAXONBERG_TEST_WORLD=1)`,
+      );
     }
   }
   return ordered.filter((p) => filter.has(p.manifest.id));
@@ -3965,6 +4032,7 @@ export class PackLogic extends ApiLogic {
   ): Promise<PackReconcileResult[]> {
     const packs = discover(packRoots);
     if (packs.length > 0) requireConnection(packs[0]!.manifest.id);
+    await reportTestOnlyRefusals(testOnlyRefusals(discoverAll(packRoots)));
 
     // Read every pack first: the flat-key check needs the whole install
     // set before any pack writes.
@@ -4054,6 +4122,7 @@ export class PackLogic extends ApiLogic {
   @CallSecurity(PackApiCallers)
   public async status(packId?: string, packRoots?: string[]): Promise<PackStatusReport[]> {
     const discovered = discover(packRoots);
+    const refused = new Set(testOnlyRefusals(discoverAll(packRoots)).map((p) => p.manifest.id));
     const manifests = new Map(discovered.map((p) => [p.manifest.id, p.manifest]));
     const resolved = new Map(discovered.map((p) => [p.manifest.id, p]));
     const records = (await PersistApi.find(
@@ -4061,7 +4130,7 @@ export class PackLogic extends ApiLogic {
       {},
     )) as unknown as StoredRecord[];
     const byId = new Map(records.map((r) => [r.packId, r]));
-    const ids = new Set([...manifests.keys(), ...byId.keys()]);
+    const ids = new Set([...manifests.keys(), ...byId.keys(), ...refused]);
     const out: PackStatusReport[] = [];
     for (const id of [...ids].sort()) {
       if (packId && id !== packId) continue;
@@ -4082,6 +4151,7 @@ export class PackLogic extends ApiLogic {
       out.push({
         packId: id,
         discovered: m !== undefined,
+        refused: refused.has(id) ? 'test-only' : null,
         manifestVersion: m?.version ?? null,
         rung,
         code,
@@ -4358,6 +4428,7 @@ export class PackLogic extends ApiLogic {
         root: `/${record.packId}`,
         requires: record.requires ?? { groups: [], title: [] },
         boot: record.boot ?? [],
+        testOnly: false,
         maintainers: record.maintainers ?? defaultMaintainers(record.packId),
       };
       const result = emptyResult(record.packId);

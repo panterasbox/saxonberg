@@ -124,7 +124,8 @@ boot:                     # which rows are eager, and why — see § The boot un
 ```
 
 **The key set is closed** (`MANIFEST_KEYS` in `PackLogic`): `id`,
-`version`, `description`, `root`, `requires`, `boot`, `maintainers`.
+`version`, `description`, `root`, `requires`, `boot`, `maintainers`,
+`testOnly`.
 **`dependsOn` is not a key** — it is *derived* from the pack's
 `package.json`: every `@saxonberg/content-<id>` dependency is a pack id
 (the `@saxonberg/server` and `@saxonberg/types` lines are the kernel).
@@ -182,6 +183,34 @@ it omits is **ignored** — not installed, and (because `bootManifest`
 reads the same filter) not booted, even when an earlier unfiltered boot
 left its record behind. Unset or empty means every discovered pack.
 `platform` always sorts first: every other pack `dependsOn` it.
+
+### ⭐ A test-only pack (`testOnly: true`)
+
+A pack whose manifest says `testOnly: true` is the test suite's own
+scaffold — `test-fixtures` at `/world/testbed` is the first
+(test-world-lifecycle, 2026-11; [testing.md](../testing.md) § The
+scaffold). It installs **only in a test environment**
+(`SecurityApi.isTestEnvironment()`: a world the wire runner, CI or the soak
+lane booted with `SAXONBERG_TEST_WORLD=1`, or a unit test under `VITEST`),
+and discovery enforces it in the one function every reader of the pack set
+goes through:
+
+- **Outside a test world** the pack is dropped from the set, and the
+  installer prints, once per boot: `PackApi: '<id>' REFUSED — a test-only
+  pack installs only in a test world (SAXONBERG_TEST_WORLD=1)` — with `; N
+  row(s) from an earlier test boot remain in this database` when an earlier
+  test boot installed it there (nothing deletes them; no migration).
+  `pack status` lists it as `refused (test-only)`.
+- **`SAXONBERG_PACKS` naming it** outside a test world **throws** — an
+  operator setting cannot say yes for the live world.
+- **A pack that is not test-only and depends on one throws**, in every
+  world: a pack a live world installs can never come to need a fixture.
+  (A test-only pack may depend on another.)
+
+Its dependency line sits in the root `package.json` like every pack's; the
+live world discovers it and refuses it on every boot, which is the point.
+A mark on the pack rather than on rows is deliberate: a per-row flag would
+let a live pack ship half-test content.
 
 ## The installer — reconcile by `sourcePack` stamp + content-kind
 
