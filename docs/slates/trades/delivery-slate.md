@@ -16,7 +16,7 @@
 > network walk / lines on exits / the easement (⚠ `cut` shipped STORED) ·
 > post — the `delivers` brain, the carrier round, mailboxes · the aether-line
 > ↔ comms unification (⚠ contradicted: the line is mana; the aether is the
-> internet) · aether-mail + the inbox · the broadcast / field carry + the
+> internet) · aether-mail + the inbox (⭐ inbox sorting, requests, verified senders designed 2026-11-20 — § The three products) · the broadcast / field carry + the
 > zone-varying ambient field · per-parcel billing (the boundary) · Q2 · Q3 ·
 > Q7's mail / broadcast half
 > **Size:** a build
@@ -682,6 +682,38 @@ Document** + an **inbox Document** (each in its own collection), the
 **async-browse views**, the `world.mail.*` / `world.forum.*` engine `Topic`
 genres, and **generalizing the per-surface override beyond chat**. Transport,
 audience, addressing, and threading already exist or are slated.
+
+### ⭐⭐ Designed 2026-11-20 — the inbox: relationships, requests, and verified senders
+
+From the directory design ([directory-slate § 4a](../society/directory-slate.md)): every player
+gets an inbox with their phone, and the owner: *"there's also nothing to stop anyone watching the
+Post's feed to spam everyone in its listing so … we're gonna need some kind of inbox filtering and
+management in the app."* Lens pass run 2026-11-20.
+
+- ⭐ **Sorted by relationship** **[DECIDED — lens 2]**. Messages from your relations (contacts,
+  notify groups, party, guild) go to the **inbox**; a first message from anyone else goes to
+  **requests** (as Instagram's message requests). Replying or accepting **creates the relationship** —
+  the *mutual act* of the directory slate's stranger remodel. Spam lands where it can be ignored; a
+  real stranger asking for help still gets through.
+- **Filters are lists** — your block list is a list; a **shared** block list is a published list,
+  carrying a meaning line and recorded sources (the directory slate's law of lists; the lesson of
+  Twitter's shared blocklists). No new filtering machinery.
+- ⭐ **Facts about a sender, never a score** **[DECIDED — lens 1, measurement.md]**. A request shows
+  what the record knows — *"this sender started 300 conversations with strangers today"*, *"here since:
+  yesterday"* — and the reader decides. The record judges nothing.
+- ⚠⚠ **Verified institutional senders** **[finding — lens 3b]**. Names are not unique; a message
+  from an institution shows its identity (the organization's path and charter) distinctly from any
+  name, so a throwaway named like the Post cannot phish newcomers.
+- **Bulk unsolicited messaging is conduct** — and ⚠ **a spam case judges a person, so it needs a
+  written criterion** **[finding — lens 7]**: e.g. unsolicited first messages above a set daily
+  number, reported as spam by enough recipients. Appeal: moderation, then the court. Tier C.
+- **Postage stays out** **[DECIDED — lens 4]**. A charge to open a conversation with a stranger would
+  make spam cost something (Bill Gates proposed email postage in 2004; Hashcash was the computational
+  form), but *a DM almost always works* and a newcomer must never be stranded. Revisit only if the
+  record shows the requests box failing; if ever priced, only the sender pays, only at volume, and
+  replies and messages to people marked open to talk or mentoring stay free.
+- ⭐ **The inbox is store-and-forward** **[lens 5]**: asynchronous by nature, so a message waits for
+  a player in an aether-dark place and arrives when they are back in reach — how mail always worked.
 
 ### Broadcast / field (Layer-1 carry, payload-agnostic)
 
