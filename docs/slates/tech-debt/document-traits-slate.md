@@ -4,7 +4,7 @@
 > conversation). Design in progress; decisions below are the owner's.
 > **Left:** the rest of the trait vocabulary (shipped ·
 > validated · catalogued · paper · append-only · tree · kernel words ·
-> secret) · where a kind's declaration lives · retiring the closed
+> secret) · retiring the closed
 > `DOCUMENT_KINDS` list and everything that enumerates it · the five
 > defects below.
 > **Size:** a build.
@@ -163,6 +163,43 @@ written and wiped at the next reset. The one live case, the
 `venue-eighty-six` list the enforcement brain writes
 (`lib/behavior/enforces.ts:152`), gets a declaration (likely
 `filed: business`).
+
+### Where a kind is declared — a `kind` document (owner, 2026-11-20)
+
+One kind is reserved by fiat and known to the installer: **`kind`**. Every
+other kind is declared by a document of kind `kind` at
+**`<root>/kinds/<kind>`**, shipped by whoever owns it:
+
+```yaml
+# trade-ranching/content/kinds/herd.yaml  → /trade/ranching/kinds/herd
+traits:
+  filed: register
+  named:  { leaf: false }
+  titled: { field: name }
+  dated:  { field: founded, unit: game-s }
+```
+
+- **The kind's name is the leaf.** The namespace is global; a second
+  declaration of the same leaf anywhere is refused, naming both.
+- **Title on the declaration's path governs who may change the kind** —
+  the ordinary path rule; no new authority.
+- **Why a document, not a manifest block:** it is edited live through the
+  CMS under the same gate; it needs no pack (an author in their own extent
+  can declare a kind at runtime); and it describes itself (`kind` is
+  titled and named by leaf, so `ls …/kinds` and `help` read like anything
+  else).
+- **The installer reads every pack's `kinds/` first**, then documents
+  against them. A pack shipping documents of a kind another pack declares
+  must `requires` that pack.
+- **Service references** (a catalogue, a validator) are paths, resolved
+  and checked at install like a command view's `controller:`.
+- **A live edit the existing documents do not satisfy is refused**, naming
+  them (turning on `unique` over a shared word; making a kind `filed` with
+  documents at plain-save paths).
+- **Removing a declaration while documents of that kind exist is
+  refused.** Shipped documents leave with their pack, so the conflict is
+  filed documents — world state nobody could then write or reset
+  correctly.
 
 ## Related
 
