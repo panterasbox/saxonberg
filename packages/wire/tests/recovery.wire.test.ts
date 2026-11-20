@@ -78,7 +78,10 @@ suite('the medical verbs are AFFORDED — the body affords its own first aid', (
   it('⭐ the SELF-afforded verbs (`dose`, `tend`, `undress`) answer anywhere a body is', async () => {
     // These ride VitalsMixin.self — every body affords them, waterless
     // corridor or not.
-    for (const verb of ['dose', 'tend', 'undress']) {
+    // ⚠ `tend` with nothing named and nothing tendable in sight ASKS "Tend
+    // what?" (an empty prompt the step would wait out); naming the body
+    // asks the question this step is about — is the verb afforded.
+    for (const verb of ['dose', 'tend me', 'undress']) {
       const said = await (await player.cmd(verb)).said();
       expect(afforded(said), `${verb} answered: ${said}`).toBe(true);
     }

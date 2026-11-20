@@ -106,7 +106,7 @@ suite('navigation-server — the blocking drive', () => {
     record.push(`2: plaza claims ${JSON.stringify(sq.map((c) => [c.channel, c.at]))}`);
     expect(sq.some((c) => c.channel === 'walked')).toBe(true);
     const at = sq.find((c) => c.at)?.at;
-    expect(at?.zone?.spoiler).toBe(1);
+    expect(at?.zone?.spoiler).toBe(2);
     expect(typeof at?.x).toBe('number');
     expect(typeof at?.level).toBe('number');
   }, 120_000);
@@ -175,7 +175,7 @@ suite('navigation-server — the blocking drive', () => {
   }, 120_000);
 
   it('7 · `route to` a known room: the plan arrives as data and says what the prose says', async () => {
-    const r = await walker.s.cmd('route to the bank');
+    const r = await walker.s.cmd('route to the testbed bank');
     const note = (r.notes as Array<{ kind: string; plans?: { legs: { dir: string }[] }[] }>).find((n) => n.kind === 'route-plan');
     const prose = await words(r);
     record.push(`7: route → ${prose.slice(0, 120)} · note ${JSON.stringify(note?.plans?.[0]?.legs)}`);

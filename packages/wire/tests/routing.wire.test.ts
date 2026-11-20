@@ -300,7 +300,7 @@ suite('routing — the drive', () => {
     const res = await s.cmd('config navigation.attendedSearchBudget 999999');
     expectRefused(res);
     const out = plain(await res.said());
-    expect(out).toMatch(/permission/i);
+    expect(out).toMatch(/permission|must hold the prime minister/i);
   });
 
   /* ── 10, 13 · a locality's map; a TPA terminal — content ───────── */

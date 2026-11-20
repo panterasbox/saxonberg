@@ -29,7 +29,7 @@
  * the lounge bar, the Goodkin banking hall and the Terminus bakery; it now
  * stands in the testbed hall, bank and shop, with fresh characters on the
  * testbed committee, the testbed bank's Business as the house that appoints
- * and pays, and a handed notebook (a platform row) as the consigned good.
+ * and pays, and a handed rope (a platform row) as the consigned good.
  * ⚠ The baseline's COUNTS and TIMES were recorded on Terminus's cast and the
  * Goodkin branch: they are not comparable with a reading here, and want
  * re-recording (`DBP_RECORD=1`, the timed half on a quiet box). Its
@@ -56,7 +56,7 @@ import {
   SHOP,
   PLAZA,
   BANK_BUSINESS,
-  NOTEBOOK,
+  ROPE,
 } from '../src/harness';
 import type { CrowdRecord, TimedStop } from '../src/harness';
 
@@ -84,7 +84,10 @@ const ROOM = HALL;
 /** The bank's Business: the house that appoints the thirty and pays them. */
 const HOUSE = BANK_BUSINESS;
 /** What a consignor puts on the shop's shelf (a platform row, handed). */
-const GOOD = NOTEBOOK;
+// ⚠ Rope, not the notebook: a handed Book is not titled to its holder
+// (`shelf consign` answers "isn't yours to sell" — a finding, recorded in the
+// test-world-lifecycle slate), and a handed rope is.
+const GOOD = ROPE;
 const RAG = '/stuff/thing/rag';
 /** The office `reserve override` asks for (`requiresGovernor`). */
 const GOVERNOR = 'central-bank-governor';
@@ -500,7 +503,7 @@ suite('7 — nothing a check decided changed', () => {
     decided('payment refused', `${r.status} ${reason?.reason ?? '-'} ${(await r.said()).slice(0, 240)}`);
   }, 180_000);
 
-  it('7b — a consigned notebook: its consignor reclaims it; a third player may not', async () => {
+  it('7b — a consigned rope: its consignor reclaims it; a third player may not', async () => {
     const owner = await standIn(BANK, 'dbp-consignor');
     await owner.cmd('bank open');
     owner.close();
@@ -508,7 +511,7 @@ suite('7 — nothing a check decided changed', () => {
     const at = await Session.open(owner.handle, { startLocation: SHOP });
     const other = await standIn(SHOP, 'dbp-other');
     try {
-      // ⚠ Named by id, not by word: the shop's counter sells notebooks, and
+      // ⚠ Named by id, not by word: the shop's counter sells rope, and
       // another drive's consignment may share the shelf.
       const good = await hand(at, GOOD);
       const on = await at.cmd(`shelf consign #${good} --ask 5`);
@@ -608,7 +611,7 @@ suite('7 — nothing a check decided changed', () => {
             await timed(w, 'bank deposit coins', paid);
             await timed(w, 'bank');
           }));
-          // To the shop: each consigns a notebook and reads their standing.
+          // To the shop: each consigns a rope and reads their standing.
           // ⚠ The Terminus run also fired a farm hand's consignment beat
           // alongside (an NPC with the shopkeeping `consigns` brain); the
           // testbed has no such NPC, so that load is not in this reading.

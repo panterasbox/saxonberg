@@ -312,7 +312,12 @@ export class TestHooks {
       }
       const owner = cover.getOwner();
       const mine = owner?.kind === 'player' && owner.templatePath === identity;
-      if (mine || held.some((h) => path === h || path.startsWith(`${h}/`))) {
+      // ⚠ An EXACT held extent, never a parent's: a nested parcel with an
+      // owner of its own (the scaffold's annex, under a testbed committee
+      // seat) is not held through its parent — the prefix test kept the grant
+      // and the character then held no authority over it (test-world-
+      // lifecycle drive).
+      if (mine || held.includes(path)) {
         console.info(`TestHooks: ${identity} already holds ${path} (kept)`);
         continue;
       }

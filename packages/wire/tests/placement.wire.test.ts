@@ -33,14 +33,16 @@ declareFile({
 });
 
 let drinker: Session;
+/** The drive's own notebook — named by id: the shelf holds the scaffold's three like it. */
+let mine = '';
 
 beforeAll(async () => {
   drinker = await standIn(HALL, 'place-hall');
   // ⭐ Staged: a notebook of the drive's own, set on the shelf, so the shelf
   // holds something whatever an earlier drive took off it. Step 3 takes one
   // back, so the shelf ends as it began.
-  await hand(drinker, NOTEBOOK);
-  expectOk(await drinker.cmd('put notebook on shelf'));
+  mine = await hand(drinker, NOTEBOOK);
+  expectOk(await drinker.cmd(`put #${mine} on shelf`));
 }, 180_000);
 
 afterAll(() => {
@@ -68,12 +70,14 @@ suite('A — nothing that worked has stopped working', () => {
   }, 60_000);
 
   it('3. put something down on the shelf and pick it up again', async () => {
-    expectOk(await drinker.cmd('get notebook'));
-    const put = await drinker.cmd('put notebook on shelf');
+    // ⚠ By id: `get notebook` binds every like notebook on the shelf, and
+    // the second has nowhere to go (first scaffold run: nowhere-to-carry).
+    expectOk(await drinker.cmd(`get #${mine}`));
+    const put = await drinker.cmd(`put #${mine} on shelf`);
     expectOk(put);
     expect(await put.said(), 'the prose reads as it always did').toMatch(
       / on /i,
     );
-    expectOk(await drinker.cmd('get notebook'));
+    expectOk(await drinker.cmd(`get #${mine}`));
   }, 120_000);
 });

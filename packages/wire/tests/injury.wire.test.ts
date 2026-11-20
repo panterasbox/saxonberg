@@ -66,7 +66,7 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
-import { Session, declareFile, expectOk, standIn, PLAZA, SHOP } from '../src/harness';
+import { Session, declareFile, expectOk, standIn, PLAZA, SHOP, WORKS } from '../src/harness';
 
 /** Every command here is a read: the file is clean. */
 declareFile({
@@ -191,12 +191,17 @@ suite('⭐⭐ steps 15-16 — the caustic and the verb that stops it', () => {
   }, 60_000);
 
   it('⭐ …and it answers a body with nothing on it, rather than erroring', async () => {
-    const out = await player.cmd('rinse');
+    // At water: `rinse` rides the WaterFixture's peers bucket, so it answers
+    // standing at the works basin (on master it stood at the crossroads
+    // water butt; on the plaza it is rightly "I don't understand").
+    const atWater = await standIn(WORKS, 'injury-rinse');
+    const out = await atWater.cmd('rinse');
     const said = (await out.said()).toLowerCase();
     expect(
       /nothing|water would help/.test(said),
       `an honest refusal, not a crash — got: ${said}`,
     ).toBe(true);
+    atWater.close();
   }, 60_000);
 
 });

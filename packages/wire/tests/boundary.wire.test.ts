@@ -157,10 +157,10 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
     expect(await exitsLine(inside)).toMatch(new RegExp(`${UP} \\((the cellar door|something), locked\\)`, 'i'));
     const shut = await say(bank, `go ${DOWN}`);
     expect(shut.r.status).not.toBe('ok');
-    expect(shut.w).toMatch(/locked/i);
+    expect(shut.w).toMatch(/\block(ed| holds)\b/i);
     // ⭐ open refuses on the bolt from either side (a locked door does not open).
-    expect((await say(bank, 'open "cellar door"')).w).toMatch(/locked/i);
-    expect((await say(inside, 'open door')).w).toMatch(/locked/i);
+    expect((await say(bank, 'open "cellar door"')).w).toMatch(/\block(ed| holds)\b/i);
+    expect((await say(inside, 'open door')).w).toMatch(/\block(ed| holds)\b/i);
   }, 120_000);
 
   it('2. [instant · staged] the inside is the free side: unlock with no key, and the bank sees it', async () => {

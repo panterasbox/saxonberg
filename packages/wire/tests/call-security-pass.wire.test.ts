@@ -225,9 +225,14 @@ suite("⭐⭐ a protective act decides on who is acting", () => {
   it("3. [staged] `eval` naming somebody else as the actor is refused; the door stays locked", async () => {
     await stage(CELLAR_DOOR, "setOpen", false);
     await stage(CELLAR_DOOR, "setLocked", true);
+    // ⚠ Ryn by ID, not `PlayerApi.findAvatarByName`: that walks EVERY
+    // registered body and asks each its name, and a governed eval may not
+    // touch a body outside its jurisdiction — so any character elsewhere
+    // turned the step into a boundary error (first scaffold run).
+    const rynId = String((await ryn.queryOne('me', 'ref'))?.stuffId ?? '');
     const said = await evalSaid(
       sol,
-      `StuffApi.findByTemplatePath('${CELLAR_DOOR}').unlock(PlayerApi.findAvatarByName('${ryn.handle}'))`,
+      `StuffApi.findByTemplatePath('${CELLAR_DOOR}').unlock(StuffApi.findById('${rynId}'))`,
     );
     record.push(`step 3 said: ${said}`);
     expect(said).toMatch(/not-acting-for|can't act for/i);

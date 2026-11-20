@@ -59,6 +59,7 @@ import {
   uniqueHandle,
   plain,
   expectOk,
+  PLAZA,
 } from '../src/harness';
 
 /*
@@ -72,7 +73,7 @@ import {
  */
 declareFile({
   file: 'avatar-family.wire.test.ts',
-  packs: ['platform', 'wiki-starter', 'generic-objects'],
+  packs: ['platform', 'test-fixtures', 'wiki-starter', 'generic-objects'],
 });
 
 // ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
@@ -297,6 +298,12 @@ suite('8 — the estate keeps its own succession state', () => {
      * that cannot report your heir until you open a bank account is a
      * read gap a player would hit too.
      */
+    // ⭐ A checkpoint owns its position: step 4 now walks Ada THROUGH the
+    // circle door (the scaffold made it reachable), and a login that names
+    // no place brings her back inside the circle. The estate is the field
+    // body's, so Ada starts this step standing in the field.
+    ada.close();
+    ada = await Session.open(adaHandle, { startLocation: PLAZA });
     const heirName = 'Bequesta';
     const heir = await Session.embody(uniqueHandle('avfam-heir'), {
       name: heirName,
@@ -318,7 +325,7 @@ suite('8 — the estate keeps its own succession state', () => {
     const again = await ada.cmd(`wallet beneficiary ${heirName}`);
     expect(
       again.status,
-      'the estate layer is live on a body materialized from the record',
+      `the estate layer is live on a body materialized from the record: ${JSON.stringify(again.notes)}`,
     ).toBe('ok');
   }, 240_000);
 });

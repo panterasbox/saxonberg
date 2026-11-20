@@ -77,11 +77,15 @@ async function probe(url: string): Promise<boolean> {
  * run goes on (the next run's start purges again).
  */
 async function purge(when: 'start' | 'end'): Promise<void> {
+  const t0 = Date.now();
   try {
     const r = await purgeLitter();
-    if (r) console.log(`${describePurge(r)}  [run ${when}]`);
+    if (r) console.log(`${describePurge(r)}  [run ${when}, ${((Date.now() - t0) / 1000).toFixed(1)}s]`);
   } catch (err) {
-    console.warn(`wire: purge at run ${when} FAILED — ${err instanceof Error ? err.message : String(err)}`);
+    console.warn(
+      `wire: purge at run ${when} FAILED after ${((Date.now() - t0) / 1000).toFixed(1)}s — ` +
+        `${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 }
 

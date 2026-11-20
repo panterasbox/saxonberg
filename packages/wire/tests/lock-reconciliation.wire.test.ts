@@ -65,7 +65,7 @@
  * (locked, keyway `testbed-gate`, no key anywhere) instead of the
  * university gate on University Avenue. The gate's state is STAGED shut
  * and locked before the steps, never assumed from how the last drive left
- * it; the newcomer is a fresh character on the plaza, not the world's
+ * it; the newcomer is a fresh character in the annex lot, not the world's
  * default landing.
  */
 
@@ -79,6 +79,7 @@ import {
   stage,
   PLAZA,
   YARD,
+  LOT,
   GATE,
   EXITS,
   type CommandResult,
@@ -161,7 +162,9 @@ beforeAll(async () => {
   // `lock`/`unlock`/`drive` are conferred by mixins on the BODY and on the
   // environment, so if the affordance does not reach a newcomer it does
   // not reach anybody.
-  newcomer = await at(PLAZA, 'new');
+  // The annex's lot: nothing lockable in reach, as the world's default
+  // landing had none — bare `lock` must answer, not ask which door.
+  newcomer = await at(LOT, 'new');
   avenue = await at(CROSSING, 'avenue');
   await newcomer.drainProse();
   await avenue.drainProse();

@@ -47,6 +47,8 @@ import {
   stage,
   standIn,
   advanceWorldClock,
+  pinWeather,
+  unpinWeather,
   worldClockNow,
   isOwnedTestWorld,
   APPROACH,
@@ -196,7 +198,15 @@ suite('⭐⭐ night is real', () => {
   beforeAll(async () => {
     dark = await at(APPROACH, 'dark');
     await assertItIsDark(dark);
+    // ⭐ Staged: an overcast sky over the testbed. Under a clear one the
+    // moon lights an open lane (the first scaffold run read the approach
+    // at 01:00 by moonlight); "genuinely dark" is a cloudy midnight.
+    await pinWeather('overcast', APPROACH);
   }, 180_000);
+
+  afterAll(async () => {
+    await unpinWeather(APPROACH).catch(() => undefined);
+  });
 
   it('step 8 — a midnight on an unlit road is genuinely dark', async () => {
     // ⭐ The instrument first, so a failure here says WHAT the light is

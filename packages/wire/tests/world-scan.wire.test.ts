@@ -377,10 +377,10 @@ suite('the seat moves', () => {
     // ⚠ `office assign <player> <office>`, founder-only, with the player
     // resolved from the `online` scope — which is the documented open
     // defect this step may trip over.
-    const who = String(
-      (await player.queryOne('me', ['displayName']) as { displayName?: string })
-        ?.displayName ?? player.handle,
-    );
+    // ⚠ By HANDLE: the founder perceives the player as "a human", and the
+    // scaffold's plaza holds several strangers, so the presented name binds
+    // ambiguously and the verb asks which (first scaffold run).
+    const who = player.handle;
     const assign = await founder.cmd(`office assign ${who} prime-minister`);
     if (assign.status !== 'ok') {
       // ⚠ `governance.md` records an open defect in the handoff verb's

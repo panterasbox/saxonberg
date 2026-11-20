@@ -190,9 +190,10 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
 
   it('6 · "Owned by" and "Made by" name B as A knows them, not their true name', async () => {
     const bId = await stuffIdOf(b);
-    const bName = String(
-      ((await b.queryOne('me', ['displayName'])) as { displayName?: string }).displayName ?? '',
-    );
+    // B's TRUE name is its handle (a test character is named by it). Not
+    // `me`'s displayName: that is B's presentation, which reads "a human" —
+    // the very form A is meant to see, so the check could not fail.
+    const bName = b.handle;
     expect(bName.length).toBeGreaterThan(0);
     // B's own pint (handed in step 5 — a fresh good is its holder's), set
     // down on the floor, with B stamped as its maker and the glass used (an
@@ -221,12 +222,20 @@ suite('privacy on the wire (steps 5–8, staged)', () => {
     // refused at the corpse's applier and leaves no body at all).
     // (The NAME half of this step — a named NPC's corpse is a stranger —
     // is client-surface-content's: the testbed has no named NPC.)
+    // ⚠⚠ A window of 30 game-seconds, not 1, and A's reads close it. The
+    // dying clock reconciles on READ, so the death fires inside whatever
+    // read notices the window expired — and one that fires inside the
+    // staging eval runs under its jurisdiction bound, where the corpse
+    // (unplaced at mint) is outside it: the NPC dies and leaves NO body
+    // (first scaffold run; a kernel finding, recorded in the slate). With a
+    // longer window the eval returns first and the death lands on A's read.
     const victim = await standInNpc(w);
-    await stage(`#${victim}`, `(this.beginDying('exsanguination', 1), 'dying')`);
+    await stage(`#${victim}`, `(this.beginDying('exsanguination', 30), 'dying')`);
     let found = false;
     for (let i = 0; i < 30 && !found; i++) {
       await new Promise((r) => setTimeout(r, 1_000));
       found = (await a.query('body', { fields: ['displayName'] })).length > 0;
+      if (!found) await a.cmd(`look #${victim}`);
     }
     expect(found, 'a body in the hall within 30s').toBe(true);
     a.clearCaptures();
