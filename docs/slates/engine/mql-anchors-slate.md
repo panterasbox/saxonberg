@@ -137,6 +137,24 @@ something like `online` the answer should be very legible."*
     `bob:~` lists them. A home path is never valid mid-query. Listing your
     own relations is `me:~`.
 
+19. **`~all` — everyone on any of your lists** (owner, 2026-11-20 — the
+    one meta-relation; *"what if you have a list of people you don't
+    know?"*, so not `~known`). Verbs that name a person reach them through
+    their **view's default scope** — `dm` scopes `[~here, ~all]` — never a
+    binder special case.
+20. **Your own groups are resident on you** — they load with your avatar
+    and stay current through the membership hook (`onMembershipChange`),
+    so a group you belong to answers as a relation of `me` synchronously
+    (`~bookclub:iffy`). Notify keeps matching groups asynchronously, as
+    today; only its private string syntax goes.
+21. **Offline people wait for the person handle**
+    ([person-targeting-slate](./person-targeting-slate.md) § 3 — a verb
+    declares a body or a person; a person handle is minted on demand from
+    an identity and touches records only). Not this build: `contacts
+    remove` resolves its own entries by the shared rule when the query
+    binds nothing (offline contacts stay removable, as today); `dm` to an
+    offline player stays unsupported, as today.
+
 ## ⭐ The standing question for an unresolved expression (owner, 2026-11-20)
 
 > **When an MQL expression cannot be resolved — a set nobody can name, a

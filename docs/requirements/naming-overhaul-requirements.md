@@ -118,7 +118,10 @@ every matcher into one of those.
   a one-line meaning `me:~` shows. `here` and its like survive only as
   removable default player aliases.
 - **`online` goes**, and with it every view scoped to it; a stranger is
-  reached by their player id or by getting a relation first.
+  reached by their player id or by getting a relation first. A verb that
+  names a person reaches the people you keep through its view's default
+  scope — `dm` scopes `[~here, ~all]`, `~all` being everyone on any of
+  your lists. Your own groups answer as relations too.
 - **`:members` retires** into `~` relations.
 - **The affordance selector is `source::verb`** — `glass::drink cocktail`,
   `me:i:watch::wind` — freeing `@` for player addresses.
@@ -142,9 +145,11 @@ every matcher into one of those.
   player's own labels by their holder.
 - **No player argument requires an internal path or key** — a business,
   an office, a position, an operation is named in words.
-- **One way to say how long** — `rent`, `fire` and the stream verbs read
-  a duration the same way, in game time, each verb stating its own
-  granularity and bounds.
+- **One way to say how long** — `rent` and `fire` read a duration the
+  same way, in game time, each verb stating its own granularity and
+  bounds. The stream verbs keep their own reading on the wall clock (a
+  streamer's *back in 15m* is a real-world act) until something else
+  shows what real time needs.
 - **It stays this way** — a census of hand-rolled matchers falls to zero
   and is held there.
 
@@ -158,6 +163,10 @@ every matcher into one of those.
 - **What `look` shows and how the client renders it** — the async
   augmenter pass, `look <exit>`. → the look design conversation after the
   client work, with [carded-prose](../slates/client/carded-prose-slate.md).
+- **Offline people as targets** — the person handle (a verb declares a
+  body or a person). → [person-targeting-slate](../slates/engine/person-targeting-slate.md) § 3.
+  `contacts remove` keeps working on offline contacts by matching its own
+  entries; `dm` to an offline player stays unsupported, as today.
 - **Who is online** — the owner's player-kept who-list feature. → its own
   build (unslated). Until it ships, strangers are reached by player id.
 - **Recipe, maturation-profile, fraction-schedule, archetype as content.**
@@ -271,7 +280,8 @@ no light step.
     the room; `look here` does too (the default alias).
 10b. *(staged: a wizard with a workroom)* `goto ~/workroom` lands in it.
 11. *(staged: a contact list "friends" holding a player elsewhere)*
-    `dm ~friends:<them> hello` reaches them in another room. `dm <them>`
+    `dm ~friends:<them> hello` and `dm <them> hello` (through `~all`)
+    reach them in another room. `dm <them>`
     with no relation and no player id is refused, saying how to reach
     them; `dm @<their id> hello` works.
 12. *(staged)* Make a contact list named `inventory` — allowed, with a

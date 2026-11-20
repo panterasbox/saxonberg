@@ -16,6 +16,12 @@
 > handle and records-only reach · per-record permissions
 > **Size:** a build
 
+> ⚠ **Partly superseded 2026-11-20** by [mql-anchors-slate](./mql-anchors-slate.md):
+> lists and groups are **`~name` relations** (`me:~friends:iffy`, `~all`), not bracketed
+> filters (§ 2's `online:[contacts.friends]:bobalu`); **`online` goes** (§ 0's "fine for now");
+> a player is addressed by `@<id>`. § 3's body-or-person and the person handle STAND — they are
+> the designed answer for offline people, deferred to this slate's own build.
+
 ## 0. The problem **[DECIDED — the owner]**
 
 *"The main way to do this right now is the `online` predicate that just is a list of all the
