@@ -227,6 +227,24 @@ suite('navigation card — the wire drive', () => {
     expect(menu.verbs.map((v) => v.verb)).toEqual(expect.arrayContaining(['unlock', 'open']));
   }, 120_000);
 
+  it('16, 24 · a first visit writes the Locality claims — Terminus, then Terminus City; a second character holds none', async () => {
+    const visitor = await session(uniqueHandle('navc-visit'), BANK);
+    expectOk(await run(visitor, 'look', '16'));
+    await beat();
+    const localities = (nav: NavClient): WireClaim[] => nav.claims((c) => c.kind === 'locality');
+    await expect.poll(() => localities(visitor.nav).length, { timeout: 15_000 }).toBeGreaterThan(0);
+    const named = Object.fromEntries(localities(visitor.nav).map((c) => [String(c.place), c.name]));
+    record.push(`16: locality claims ${JSON.stringify(named)}`);
+    expect(named['terminus']).toBe('Terminus');
+    expect(named['terminus/city']).toBe('Terminus City');
+    // The chain the section sends is the order the crumbs take.
+    const chain = visitor.nav.section('localities')?.chain.map((c) => c.address) ?? [];
+    expect(chain.slice(0, 2)).toEqual(['terminus', 'terminus/city']);
+    const stranger = await session(uniqueHandle('navc-stranger'), TREELINE);
+    await beat();
+    expect(localities(stranger.nav).some((c) => String(c.place).startsWith('terminus'))).toBe(false);
+  }, 120_000);
+
   it('17 · two players, two maps: a second character holds none of the Delve', async () => {
     const other = await session(uniqueHandle('navc-other'), TREELINE);
     await beat();
