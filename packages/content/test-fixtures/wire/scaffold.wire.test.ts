@@ -165,7 +165,7 @@ suite.skipIf(!isOwnedTestWorld())('staging works twice on one world (W4)', () =>
       await fundedAccount(handle, 500, `scaffold drive, round ${round}`);
       const s = await Session.open(handle, { startLocation: BANK });
       open.push(s);
-      expect(squash(await s.prose('bank')), `round ${round}`).toMatch(/5\b|five/i);
+      expect(squash(await s.prose('bank')), `round ${round}`).toMatch(/\b500\b/);
     }
   });
 
