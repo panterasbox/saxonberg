@@ -648,7 +648,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         durationMs: STIR_LIQUID_MS,
         effortW: STIR_LIQUID_EFFORT_W,
         facts: { kind: 'liquid' },
-        onComplete: () => ({ ok: true, facts: { kind: 'liquid', started: false } }),
+        // ⭐ What the stir started is the phase engine's to say (D14).
+        onComplete: () => ({
+          ok: true,
+          facts: { kind: 'liquid', started: MixinApi.isThermal(self) ? self.noteAgitated() : false },
+        }),
       };
     }
 

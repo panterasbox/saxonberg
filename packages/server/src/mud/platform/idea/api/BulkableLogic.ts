@@ -1129,12 +1129,21 @@ function strainTagOf(material: Material): string {
 
 /**
  * A payload as it lands in a vessel: everything it carries but the old
- * wall's clock. `faceCheckedS` is when the SOURCE's wall last exchanged
- * with it, a fact about that wall, so it never rides a pour.
+ * vessel's clocks. `faceCheckedS` is when the SOURCE's wall last exchanged
+ * with it, and `liquorDrainStampS`/`liquorDrainDueS` how far a mould's
+ * spent liquor has run out of THAT mould (matter-model-overlaps D13) —
+ * facts about the vessel, so they never ride a pour.
  */
 function withoutWallClock(payload: BulkPayload | null): BulkPayload | null {
-  if (payload === null || payload.faceCheckedS === undefined) return payload;
-  const { faceCheckedS: _c, ...rest } = payload;
+  if (
+    payload === null ||
+    (payload.faceCheckedS === undefined &&
+      payload.liquorDrainStampS === undefined &&
+      payload.liquorDrainDueS === undefined)
+  ) {
+    return payload;
+  }
+  const { faceCheckedS: _c, liquorDrainStampS: _s, liquorDrainDueS: _d, ...rest } = payload;
   return Object.keys(rest).length > 0 ? rest : null;
 }
 

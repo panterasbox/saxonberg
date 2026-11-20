@@ -54,3 +54,25 @@ data:
   concentratesTo:
     - { fromW: 0.66, becomes: /trade/forestry/idea/material/maple-syrup }
     - { fromW: 0.9, becomes: /trade/forestry/idea/material/maple-strike }
+  # ⭐ Maple sets as sugar does (matter-model-overlaps D12): sucrose's
+  # solubility, held above the boil all the way up the elevation curve; the
+  # crop maple sugar and the mother liquor maple syrup, which runs out of a
+  # mould in a day; a strike cooled unstarted holds (a piece of maple sugar
+  # put in, or a stir, starts it). Nearly all its solids are sucrose.
+  solubility:
+    - [273, 0.86]
+    - [293, 0.89]
+    - [323, 0.98]
+    - [353, 1.10]
+    - [373, 1.20]
+    - [395, 1.38]
+    - [405, 1.49]
+    - [423, 1.57]
+    - [443, 1.62]
+  crystallizesTo:
+    product: /trade/forestry/idea/material/maple-sugar
+    residue: /trade/forestry/idea/material/maple-syrup
+    drainDays: 1
+    metastableRatio: 1.7
+    purity: 0.97
+    minCrystalPurity: 0.86

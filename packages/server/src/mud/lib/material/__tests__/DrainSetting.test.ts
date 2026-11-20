@@ -36,17 +36,22 @@ describe('DrainSetting', () => {
     expect(d.ratePerDay(0, 0.5)).toBeCloseTo(0.25, 9);
   });
 
-  it('drains water down to what the pressing keeps, plus a poorer pool\'s extra', () => {
-    const d = new DrainSetting({ ...CURD, drainPerBand: 0.05 });
+  it('drains water down to what the pressing keeps', () => {
+    const d = new DrainSetting(CURD);
     // 10 kg, half water, pressed to the reference: keeps 0.4 of the water.
-    expect(d.drainedKg(10, 0.5, 1, 0, 0.15)).toBeCloseTo(10 * 0.6 * 0.5, 9);
-    expect(d.drainedKg(10, 0.5, 1, 2, 0.15)).toBeCloseTo(10 * (0.6 * 0.5 + 0.1), 9);
+    expect(d.drainedKg(10, 0.5, 1, 0.15)).toBeCloseTo(10 * 0.6 * 0.5, 9);
   });
 
-  it('a shape names what it sets as, else `becomes`', () => {
-    const d = new DrainSetting({ ...CURD, becomes: '/m/loaf', becomesAs: { '/t/block': '/m/raw' } });
-    expect(d.becomesFor('/t/block')).toBe('/m/raw');
-    expect(d.becomesFor('/t/cone')).toBe('/m/loaf');
+  it('names what it sets as — `becomes`, else nothing (the pool\'s own)', () => {
+    expect(new DrainSetting({ ...CURD, becomes: '/m/cheese' }).getBecomes()).toBe('/m/cheese');
+    expect(new DrainSetting(CURD).getBecomes()).toBe('');
+  });
+
+  it('⭐ a sugar loaf\'s shape keys and per-band extra are gone (matter-model-overlaps D12)', () => {
+    // The strike crystallizes now — `crystallizesTo.productAs` names the
+    // crop's material by shape — so a drain set refuses the retired keys.
+    expect(new DrainSetting({ ...CURD, becomesAs: { '/t': '/m' } } as never).toSpec()).not.toHaveProperty('becomesAs');
+    expect(new DrainSetting({ ...CURD, drainPerBand: 0.05 } as never).toSpec()).not.toHaveProperty('drainPerBand');
   });
 
   it('refuses a spec it cannot evaluate, and round-trips the one it can', () => {

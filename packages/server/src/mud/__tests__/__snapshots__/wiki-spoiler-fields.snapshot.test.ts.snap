@@ -1356,6 +1356,7 @@ ThermalMixin.barrier = 0
 ThermalMixin.coatsCheckedS = 0
 ThermalMixin.kineticRecord = 0
 ThermalMixin.lastAmbientK = 0
+ThermalMixin.liquorWakeAtS = 0
 ThermalMixin.shockCheckedS = 0
 ThermalMixin.stampedTemperatureK = 0
 ThermalMixin.thermalClockStamp = 0

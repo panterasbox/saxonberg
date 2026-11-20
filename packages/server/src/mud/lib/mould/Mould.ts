@@ -25,6 +25,10 @@
  *     a weight put ON the mould, or a screw press it stands in). A slip
  *     whose drain is `absorbedByMould` sets only in an ABSORBENT mould,
  *     whose own wetness takes the water and slows the next cast;
+ *   - **crystallizing** — a liquor past its solubility, once started, sets
+ *     its crop in the cavity and its spent liquor runs out over the row's
+ *     `drainDays` (a sugar cone; the phase engine's crystallize arm,
+ *     matter-model-overlaps D13);
  *   - **curing** — the material's own `kinetics:` set (`Kinetics.poolSet`,
  *     a point curve with a ladder): plaster slurry takes up its water and
  *     is hard in a quarter-hour, no act;
@@ -369,7 +373,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public blown = false;
     /**
      * Kilograms of drainings the set has driven out of the pool so far —
-     * into the vessel below, or away (sugar D16; R1-D8).
+     * into the vessel below, or away (R1-D8).
      */
     public setDrainedKg = 0;
     /**
@@ -864,7 +868,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         0;
       const overpress = mouldDial(AppSettingKeys.mouldOverpressExponent, 0.15);
       return (pressed: number): number =>
-        drain.drainedKg(poolKg, waterFraction, pressed, this.poolBandsBelowFine(), overpress);
+        drain.drainedKg(poolKg, waterFraction, pressed, overpress);
     }
 
     /**
@@ -909,9 +913,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const cap = self.waterCapacityKg();
         if (cap > 0) self.wet(Math.min(1 - wetness, (poolKg - massKg) / cap));
       }
-      // The shape this mould casts it as may name what it becomes (a
-      // hogshead's block is raw sugar, a cone's loaf is loaf sugar).
-      const becomesPath = drain.becomesFor(this.castTemplateFor(material));
+      const becomesPath = drain.getBecomes();
       const becomes = becomesPath ? MaterialApi.materials().peek(becomesPath) ?? material : material;
       this.assertCanRelease();
       const payload = self.getBulkPayload('interior');
@@ -1174,13 +1176,6 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const batch = band !== undefined && Grade.isBand(band) ? Grade.of(band) : null;
       if (own === null) return batch;
       return batch === null ? own : own.min(batch);
-    }
-
-    /** Grade bands the pool sets below `fine` (0 when ungraded). */
-    private poolBandsBelowFine(): number {
-      const grade = this.castGrade();
-      if (grade === null) return 0;
-      return Math.max(0, Grade.of('fine').getOrdinal() - grade.getOrdinal());
     }
 
     /**

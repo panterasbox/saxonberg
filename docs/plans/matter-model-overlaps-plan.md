@@ -1334,7 +1334,7 @@ Decisions the plan did not make:
   drive's). `assembly.dirty` drive 17 should still pass (4 fills → spent line;
   refire look says "charred oak").
 
-### W5 — graining is crystallization (D12–D15)
+### W5 — graining is crystallization (D12–D15) ✅ done (c89d499d4, PENDING)
 
 - ⭐ **First commit:** `StirTargetMixin`; `Compounding`, `ManualBuild` and
   `Bulkable` compose it; `StirController` calls the one method;
@@ -1369,6 +1369,50 @@ Decisions the plan did not make:
   maple sets; the brain seeds.
 - **Commit:** `feat(thermal): sugar grains by solubility, and crystals
   wait to be started`.
+
+**Build note (W5).** Two commits: `StirTargetMixin` first (Bulkable,
+ManualBuild and `KneadVesselMixin` compose it — Compounding through
+KneadVessel, whose own answer is `wrong-work`, so "too stiff — knead it" is
+the protocol's, not a fourth composer's override); then the arm. Decisions
+the plan did not make:
+- ⚠ N7 re-planned: `metastableRatio`, `purity`, `minCrystalPurity` and a
+  new `gradeByPurity` (`[[purity, band]…]` — D12's "the row's authored
+  thresholds" needed a home) live ON `CrystallizesTo`, not loose on
+  `Solution`: as loose capability fields `lint:material-kinds`' data-gap
+  ratchet rose 5955 → 6422 (four gaps on every solution row), and the brief
+  forbids a raise. They are facts about how it crystallizes, so the record
+  is their honest home; `getMetastableRatio/getPurity/getMinCrystalPurity/
+  gradeAtPurity` read them with defaults. Cost: a child row cannot override
+  one of them without restating the record, so strike/molasses/blackstrap
+  carry no row purity — a payload-less strike is 0.8 and will NOT grain
+  (a staged one must carry `payload.purity`; the shipped flow always does).
+  Sugar: poor · fair 0.88 · fine 0.92, purity 0.8, min 0.86; Copper: first
+  lime +0.08, each further −0.03, skim +0.05 — which reproduces the shipped
+  `liquorBand` table exactly (untempered → blackstrap, once+skimmed fine,
+  unskimmed or twice-limed fair). A dissolved block folds in at the row's
+  purity by mass. Caramel and burnt sugar `crystallizesTo: null`.
+- Solubility curve extended past 395 K (1.38 · 405 1.49 · 423 1.57 · 443
+  1.62) so it stays above `s(w)` at every boiling point the elevation curve
+  reaches; a rows test walks it (min margin ≈ 0.01 at w 0.98).
+- `noteAgitated` is UNGATED (W3's `Boat.stove` reason: a stir completes on
+  the scheduler, a root frame). `supersaturation()` → `{ratio, started}` and
+  returns `null` under `minCrystalPurity` (blackstrap holds nothing back, so
+  neither the reading nor the brain fusses over it). Coarse = deep cooling
+  was the ONLY term; the drying edge is not coarse (salt pans unchanged).
+- The drain stamps are stripped on landing (`withoutWallClock` also drops
+  `liquorDrainStampS/DueS`). The wake is `Thermal.liquorWakeAtS` (persisted,
+  setter re-arms, not host-bound — the leak's rule).
+- Brain: the seed step runs after the pour (`get #piece` → `put #piece in
+  #mould`, else `stir #mould`); she keeps one piece back from milling so the
+  next strike has a seed. ⚠ Fixed W0's flagged shipped defect:
+  `put block in <kettle>` had no `get` (now `get block` first).
+- ⚠ Fixed a W4 leftover: forestry's `wood-vocabulary` test refused
+  `charred-oak` (an `extends:` row not named `-brash`).
+- metastableRatio: salt 1.1, alum 1.3, saltpeter 1.4 (cooled liquors still
+  pass it, so their crops set as before). Maple: `drainDays` 1, no grade table.
+- For W8: the libations drive has no `empty-build` wording; a struck cone
+  in the drive needs a seed or a stir — the boiler brain does it, a staged
+  cone must carry `nucleated` or a piece.
 
 ### W6 — one vaporization, and the nose (D16–D18)
 

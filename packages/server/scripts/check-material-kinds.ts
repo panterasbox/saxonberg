@@ -56,7 +56,13 @@ import {
 // row (+12, oak's own gaps inherited) and oak's `imparts` were outweighed by
 // three figures oak now authors (`thermalExpansion`, `wetStrength`,
 // `elasticity`), which every oak-extending row inherits.
-export const DATA_GAP_CEILING = 5955; // was 5962, and 6067 before W4 (controller-liquidity W15 merge: −3, re-pinned at the merged floor — sulfurous iron's `castTemplate` among them).
+// matter-model-overlaps W5: −5 — raw liquor and maple sap now author
+// `solubility` + `crystallizesTo`, filled down every sugar and maple liquor
+// that `extends:` them, net of the new `maple-sugar` row's own gaps and the
+// strike's dropped `drainSetting`; graining's new facts (metastable ratio,
+// purity, grade table) ride `crystallizesTo` itself, so no solution row
+// gained a loose gap.
+export const DATA_GAP_CEILING = 5950; // was 5955, 5962, and 6067 before W4 (controller-liquidity W15 merge: −3, re-pinned at the merged floor — sulfurous iron's `castTemplate` among them).
 
 const GATE = 'check-material-kinds';
 const LIB = join(MUD, 'lib', 'material');

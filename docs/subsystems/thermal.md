@@ -1132,12 +1132,54 @@ passes under it.
   - Rough scale: 4 kW delivered boils off ~5 L an hour. Silk's 12 L copper
     on a range now boils dry in about three hours unattended.
 
-## ⭐⭐ Crystallizing — the third arm (ceramics S17, W8)
+## ⭐⭐ Crystallizing — the third arm (ceramics S17, W8; matter-model-overlaps D12–D14)
 
 `reconcileBulkPhase` has three arms, and the third fires at ANY temperature,
-so it runs first: **a solution sets crystals when it holds more than its
-material dissolves at its heat**, whether the water left (a salt pan in the
-sun) or the heat did (alum liquor cooling).
+so it runs before the boil and the freeze: **a solution sets crystals when
+it holds more than its material dissolves at its heat — once something has
+STARTED it** — whether the water left (a salt pan in the sun) or the heat
+did (alum liquor cooling, a sugar strike in its cone). This is the one
+model of graining: sugar, maple, salt, alum and saltpeter all set here, and
+the strike's old drain-set swap (`becomesAs`, `drainPerBand`, the band
+rule) is gone.
+
+- ⭐⭐ **Supersaturation waits (D14).** Past saturation a liquor HOLDS until
+  one of four terms fires, and there is one piece of state:
+  - **a seed** — derived: the vessel holds a solid of the crop (its
+    `product` or a `productAs` material) — `put piece in cone`, or the crop
+    already set there. ⭐ The seed joins the first crop (its mass, and the
+    piece is gone);
+  - **a stir** — `payload.nucleated`, stamped by `Thermal.noteAgitated()`
+    (the `stir` protocol's liquid arm, `StirTargetMixin` on `Bulkable`), and
+    by every set, so a crop once started keeps growing as the liquor cools;
+  - **deep cooling** — derived: held/solubility ≥ the row's
+    `crystallizesTo.metastableRatio` (sucrose 1.7 — a strike cooled to 20 °C is at 1.53 and
+    holds; salt 1.1; alum 1.3; saltpeter 1.4; absent = 1, any excess starts
+    at once). ⭐ A crop started THIS way alone is a coarse mass, a grade
+    lower;
+  - **the drying edge** — derived: the liquor is losing water in the open,
+    on the boil plateau or in a maturing vessel with an active batch (the
+    shipped `concentrating` test) — so a salt pan and a boiling brine hearth
+    behave as they always did.
+
+  A read that finds the liquor back UNDER saturation clears `nucleated`;
+  the flag rides the payload through a pour. `Thermal.supersaturation()` →
+  `{ ratio, started } | null` is the read (`null` for a liquor too impure
+  ever to grain); the sugar pack's `analyze boil` words a held liquor from
+  it.
+- ⭐⭐ **What is left is less pure (D12).** A sugar liquor carries
+  `payload.purity` — the crystallizing solute's share of its dissolved
+  solids — starting at the row's `crystallizesTo.purity` (raw liquor 0.8)
+  and raised by
+  the sugar pack's tempering and skimming. The crystals are solute ONLY, so
+  for `x` kg set out of `S` the liquor left is `(S·p − x)/(S − x)` pure:
+  molasses is poorer than its strike by arithmetic, and each re-strike
+  poorer again. The liquor's `payload.grade` is read off its purity by the
+  row's `gradeByPurity` thresholds, and a liquor under `minCrystalPurity`
+  (all four facts live ON `crystallizesTo` — they are how it crystallizes,
+  and a loose capability field would be a gap on every solution row)
+  will not grain at all — blackstrap, which the strike arrow names by
+  `ConcentrationArrow.minPurity` (it had `minBand`).
 
 - **The facts are the solution's.** `Material.solubility: [[K, kgPerL]…]`
   (K ascending, piecewise linear, flat past the ends — `solubilityAt(T)`),
@@ -1149,21 +1191,33 @@ sun) or the heat did (alum liquor cooling).
   it as the volume falls (`Maturing.rescaleDissolvedSolids`) — the salt is
   conserved, so a pan of sea water at 35 g/L saturates near a ninth of its
   volume.
-- **The excess sets.** `(held − solubilityAt(T)) × L` kg of `product`: in a
-  mold, kept in its shape (`castInto`), and a crop already there of that
-  material GROWS rather than a second one minting; in any other vessel, the
-  product's own `castTemplate` beside it, grown the same way. The liquor
-  keeps its volume (a solute's share is small, and the volume is the
-  water's — the evaporative window moves it).
+- **The excess sets.** `(held − solubilityAt(T)) × L` kg (never more
+  solute than there is): in a mold, kept in its shape (`castInto`), its
+  material the shape's — `crystallizesTo.productAs[cast template]`, else
+  `product` (a cone's loaf is loaf sugar, a hogshead's block raw sugar) —
+  and a crop already there of that material GROWS rather than a second one
+  minting; in any other vessel, the product's own `castTemplate` beside it,
+  grown the same way. Its grade is `min(batch, mould)` (`carryPayload`), a
+  band lower when it started on its own. The liquor keeps its volume (a
+  solute's share is small, and the volume is the water's — the evaporative
+  window moves it).
 - **The liquor left is saturated, and its fate is the one choice.** ⭐ While
   the vessel is still CONCENTRATING it (a maturing host whose batch is
   `active` — the pan the sun is working) it stays, its own material, so the
   total crop is the same however often anybody reads the pan. Otherwise it
   is SPENT: its material swaps to `crystallizesTo.residue` (brine →
   bittern; alum and saltpeter liquors name themselves, the mother liquor
-  that goes back to the boil) and, in a mold, it runs off by the one drip
-  (`BulkableApi.drip`, matter-model-overlaps D10) — into the vessel the mold
-  stands in or on, else to the ground ([mould.md](./mould.md)). ⭐ A spent
+  that goes back to the boil; a strike → molasses) and, in a mold, it runs
+  off by the one drip (`BulkableApi.drip`, matter-model-overlaps D10) — into
+  the vessel the mold stands in or on, else to the ground
+  ([mould.md](./mould.md)). ⭐ With `crystallizesTo.drainDays` it runs out
+  over those game-days (D13): two payload stamps (`liquorDrainStampS`,
+  `liquorDrainDueS` — facts about the MOULD, stripped on landing like
+  `faceCheckedS`), each read drips the share of what is left that the time
+  since is of the time still to go, and ONE persisted wake
+  (`Thermal.liquorWakeAtS`, re-armed by its setter) runs the rest out at
+  the due time with nobody reading. Without `drainDays` it leaves at once,
+  as salt's bittern does. ⭐ A spent
   pan's bittern with nothing under the pan runs to the ground; a pan still
   concentrating keeps its brine. A mold standing over nothing at all (no
   vessel, no floor) throws `DetachedError`, checked before the liquor
@@ -1176,11 +1230,27 @@ sun) or the heat did (alum liquor cooling).
   product is the brine itself taken to 3 % of its volume, and the salt is
   what that water could not keep; `food/salt`'s `castTemplate` is
   `/stuff/thing/salt-crystals`.
+- **Sugar and maple (D12).** `trade-sugar`'s `raw-liquor` authors sucrose's
+  solubility in kg per litre of solution (by `s = w / (1 − 0.375 w)`, the
+  kernel's `solidsMassFraction`): 0.89 at 293 K, 0.98 at 323, 1.10 at 353,
+  1.20 at 373, 1.38 at the strike's boil (395 K) and on up past every
+  boiling point the elevation curve reaches — so the pan never grains on
+  the fire (a row test walks the curve). `crystallizesTo { loaf-sugar,
+  molasses, productAs: { raw-sugar-block: raw-sugar }, drainDays: 4,
+  metastableRatio: 1.7, purity: 0.8, minCrystalPurity: 0.86, gradeByPurity:
+  poor · fair 0.88 · fine 0.92 }`; every sugar liquor inherits them by `extends:` (caramel and
+  burnt sugar null `crystallizesTo` — broken down, they will not grain).
+  The four arrows stay as what the boil REACHES (syrup, strike, caramel,
+  burnt): names, and no solute leaves at one. A clean strike (0.93) leaves
+  first molasses at ≈ 0.89 (fair), whose re-strike leaves ≈ 0.84 (poor, under
+  0.86): the season ends in blackstrap by arithmetic. Maple sap authors the
+  same fields (purity 0.97, the crop `trade-forestry`'s `maple-sugar`, its
+  mother liquor maple syrup, `drainDays` 1).
 - ⚠ A cooling crystallization in a plain vessel (no maturing batch) sets and
-  spends at the first read past saturation; a liquor that names itself as
-  the residue keeps setting as it cools further, so the crop is still whole.
-  Sugar's staged boil (`concentrateIfReached`) is the boil arm's sibling and
-  lands after this arm at the merge.
+  spends at the first read past saturation once started; a liquor that names
+  itself as the residue keeps setting as it cools further (it is stamped
+  `nucleated`), so the crop is still whole. Sugar's staged boil
+  (`concentrateIfReached`) is the boil arm's sibling.
 
 ## Note — the potash build (2026-10-19)
 

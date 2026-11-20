@@ -73,7 +73,9 @@ describe('the wood vocabulary — ten woods, ten trees, each naming the other', 
     // wood PRODUCT shares the directory and names no one tree — sawdust,
     // from the saw's kerf (storage-and-ice W1) — and is counted apart.
     // ⭐ A BRASH row is a tree's wood by `extends:` (potash D18) — the same
-    // timber with a richer ash — so it is neither a tree nor a product.
+    // timber with a richer ash — so it is neither a tree nor a product; so
+    // is a CHARRED row, a cask's inside burnt to a coat (matter-model-
+    // overlaps W4, `charred-oak`).
     const all = readdirSync(WOOD_DIR)
       .filter((f) => f.endsWith('.yaml'))
       .map((f) => ({
@@ -85,7 +87,7 @@ describe('the wood vocabulary — ten woods, ten trees, each naming the other', 
       }))
       .filter((r) => {
         if (!r.doc.extends) return true;
-        expect(r.name, r.name).toMatch(/-brash$/);
+        expect(r.name, r.name).toMatch(/-brash$|^charred-/);
         expect(TEN.map((w) => `/stuff/idea/material/wood/${w}`)).toContain(r.doc.extends);
         return false;
       });

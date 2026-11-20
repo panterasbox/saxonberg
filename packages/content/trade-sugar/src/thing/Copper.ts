@@ -1,26 +1,28 @@
 /**
- * The sugar copper — ⭐ the pan a refinery boils its liquor in, and the
- * thing whose GRADE decides whether the liquor will grain.
+ * The sugar copper — ⭐ the pan a refinery boils its liquor in, where the
+ * boiler's tempering and skimming decide whether the liquor will grain.
  *
  * A `Vat` (lidless, 120 L) that also holds a block of raw sugar long enough
  * to dissolve it. Everything the boil does — the climbing boiling point,
  * the water boiled off, the stages — is the kernel's plateau reading the
  * liquor's own material (sugar D1). What this class adds is the three
- * acts a boiler does to the liquor before it boils, and the grade those
- * acts write:
+ * acts a boiler does to the liquor before it boils, and the PURITY those
+ * acts write (matter-model-overlaps D12 — *temper and skim grade the
+ * liquor*):
  *
  * - **dissolve** — a raw-sugar block put into the copper's water goes
  *   into solution. Physics, not a recipe: a block in a dry copper is
  *   refused, and the liquor's strength is whatever block-to-water you
- *   gave it.
- * - **temper** — lime into the liquor. It is what lets a liquor grain at
- *   all: an untempered pan grades `poor`, below the strike arrow's
- *   `minBand`, so it boils to blackstrap. Over-limed, it grains dark.
- * - **skim** — the scum lifted into a pail. An unskimmed pan grains dark.
+ *   gave it. The block brings its sugar at the liquor row's own purity.
+ * - **temper** — lime into the liquor: the first lump throws down the
+ *   non-sugars (`TEMPER_LIFT`), and every lump after it darkens what it
+ *   meant to clean (`OVERLIME_DROP`). Untempered, the liquor is under the
+ *   strike arrow's `minPurity` and boils to blackstrap.
+ * - **skim** — the scum lifted into a pail (`SKIM_LIFT`, once).
  *
- * ⚠ The band is on the COPPER, because that is what the kernel's arrow
- * reads (`concentrateIfReached` asks the vessel's grade); the flags that
- * decide it ride the liquor's payload, so a pour carries them.
+ * ⭐ Everything rides the LIQUOR's payload (`purity`, and the grade read
+ * off it by the row's `gradeByPurity`), so a pour carries it; the copper
+ * keeps its own making and is never graded by what it boiled.
  */
 
 import Vat from '@saxonberg/server/mud/platform/thing/Vat';
@@ -30,7 +32,6 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -42,6 +43,12 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 const SUGAR_KG_PER_L = 1.6;
 /** The share of the liquor a skim lifts off with the scum. */
 const SKIM_SHARE = 0.05;
+/** Purity the first lump of lime adds — the non-sugars it throws down. */
+const TEMPER_LIFT = 0.08;
+/** Purity every lump past the first takes — over-limed, it grains dark. */
+const OVERLIME_DROP = 0.03;
+/** Purity a skim adds — the scum is the rest of the non-sugars. */
+const SKIM_LIFT = 0.05;
 
 declare module '@saxonberg/server/mud/lib/bulk/Bulkable' {
   interface BulkPayload {
@@ -134,10 +141,18 @@ export default class Copper extends ContainerMixin(Vat) {
       const liquor = MaterialApi.materials().need(this.boilsTo);
       if (liquor) this.setBulkMaterial('interior', liquor);
     }
+    // ⭐ The block's sugar comes in at the liquor row's own purity, folded
+    // by mass into what the liquor already held (D12).
+    const liquorMat = this.getBulkMaterial('interior');
+    const rowPurity = liquorMat !== null && MixinApi.hasSolution(liquorMat) ? liquorMat.getPurity() : 1;
+    const heldKg = fresh ? 0 : solidsBefore * litres;
+    const purityBefore = payload.purity ?? rowPurity;
+    const purity = heldKg + kg > 0 ? (heldKg * purityBefore + kg * rowPurity) / (heldKg + kg) : rowPurity;
     this.setBulkAmount('interior', Quantity.of(after, 'L'));
     this.setBulkPayload('interior', {
       ...(fresh ? {} : payload),
       dissolvedSolidsKgPerL: solids,
+      purity,
       ...(fresh ? { limed: 0, skimmed: false } : {}),
     });
     this.gradeLiquor();
@@ -157,7 +172,8 @@ export default class Copper extends ContainerMixin(Vat) {
     }
     const payload = this.getBulkPayload('interior') ?? {};
     const limed = (payload.limed ?? 0) + 1;
-    this.setBulkPayload('interior', { ...payload, limed });
+    const purity = this.purityOf(payload.purity) + (limed === 1 ? TEMPER_LIFT : -OVERLIME_DROP);
+    this.setBulkPayload('interior', { ...payload, limed, purity: clampPurity(purity) });
     if (MixinApi.isStackable(lime) && lime.getQuantity() > 1) {
       lime.setQuantity(lime.getQuantity() - 1);
     } else {
@@ -192,30 +208,36 @@ export default class Copper extends ContainerMixin(Vat) {
     const had = pail.getBulkAmount('interior').rawValue();
     pail.setBulkMaterial('interior', skimmings);
     pail.setBulkAmount('interior', Quantity.of(had + lift, 'L'));
-    this.setBulkPayload('interior', { ...(this.getBulkPayload('interior') ?? {}), skimmed: true });
+    const after = this.getBulkPayload('interior') ?? {};
+    this.setBulkPayload('interior', {
+      ...after,
+      skimmed: true,
+      purity: clampPurity(this.purityOf(after.purity) + SKIM_LIFT),
+    });
     this.gradeLiquor();
     return { ok: true, facts: {} };
   }
 
-  /**
-   * ⭐ The band the liquor will grain at — written onto the LIQUOR's
-   * payload (matter-model-overlaps D2), which the strike arrow reads; the
-   * copper keeps its own making. Untempered will not grain at all; over-limed
-   * or unskimmed grains dark; tempered once and skimmed grains clean.
-   */
-  public liquorBand(): string {
-    const payload = this.getBulkPayload('interior') ?? {};
-    const limed = payload.limed ?? 0;
-    if (limed === 0) return 'poor';
-    if (limed >= 2 || !payload.skimmed) return 'fair';
-    return 'fine';
+  /** The liquor's purity — its payload's, else its row's. */
+  private purityOf(held: number | undefined): number {
+    if (held !== undefined) return held;
+    const mat = this.getBulkMaterial('interior');
+    return mat !== null && MixinApi.hasSolution(mat) ? mat.getPurity() : 1;
   }
 
+  /**
+   * ⭐ The liquor's grade, read off its purity by its row's thresholds
+   * (`gradeByPurity`, D12) and written onto the LIQUOR's payload; the copper
+   * keeps its own making.
+   */
   private gradeLiquor(): void {
     if (!this.holdsLiquor()) return;
-    const band = this.liquorBand();
-    if (!Grade.isBand(band)) return;
-    this.setBulkPayload('interior', { ...(this.getBulkPayload('interior') ?? {}), grade: band });
+    const mat = this.getBulkMaterial('interior');
+    if (mat === null || !MixinApi.hasSolution(mat)) return;
+    const payload = this.getBulkPayload('interior') ?? {};
+    const band = mat.gradeAtPurity(this.purityOf(payload.purity));
+    if (band === null) return;
+    this.setBulkPayload('interior', { ...payload, grade: band });
   }
 
   private holdsLiquor(): boolean {
@@ -223,6 +245,11 @@ export default class Copper extends ContainerMixin(Vat) {
     const mat = this.getBulkMaterial('interior');
     return mat !== null && MixinApi.hasSolution(mat) && mat.getSolidsKgPerL() > 0;
   }
+}
+
+/** A purity kept to a share. */
+function clampPurity(p: number): number {
+  return Math.min(1, Math.max(0.01, p));
 }
 
 function isRawSugar(thing: Stuff): boolean {

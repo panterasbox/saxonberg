@@ -120,9 +120,9 @@ fair.
 | process | the material's fact | driven by |
 |---|---|---|
 | **freezing** | `meltingPoint` + `latentHeatOfFusion` | the thermal reconcile — `Thermal.reconcileBulkPhase` asks `castInto` when the pool sets (passing `temperatureK`, the set edge) |
-| **draining** | `Material.drainSetting { days, becomes?, becomesAs?, moisture, loadRef, absorbedByMould? }`, read as a `DrainSetting` value class (`loadRatio`, `ratePerDay`, `moistureAt`, `drainedKg`, `becomesFor` — the cure's `Kinetics` shape, B104) | `MouldMixin.reconcileSetting` integrates it |
+| **draining** | `Material.drainSetting { days, becomes?, drains?, moisture, loadRef, absorbedByMould? }`, read as a `DrainSetting` value class (`loadRatio`, `ratePerDay`, `moistureAt`, `drainedKg`, `getBecomes` — the cure's `Kinetics` shape, B104) — curd, slip, hard soap curd, latex | `MouldMixin.reconcileSetting` integrates it |
 | **curing** | the material's `kinetics:` set (`Kinetics.poolSet()` — a point curve with a ladder) | `MouldMixin.reconcileSetting` — no act, no load; the rate at the mould's temperature |
-| **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue }` (on the SOLUTION) | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`; in a mold the crop sets in its shape (`castInto`) and grows, the spent liquor runs off by the one drip (`BulkableApi.drip`) |
+| **crystallizing** | `Material.solubility` + `crystallizesTo { product, residue, productAs?, drainDays?, metastableRatio?, purity?, minCrystalPurity?, gradeByPurity? }` (on the SOLUTION) — a sugar strike, salt, alum | the thermal reconcile — the crystallize arm of `reconcileBulkPhase`, once something starts it (a seed, a stir, deep cooling, the drying edge); in a mold the crop sets in its shape (`castInto`), its material the shape's (`productAs`), and grows; the spent liquor runs off by the one drip (`BulkableApi.drip`), over `drainDays` when the row says ([thermal.md](./thermal.md) § Crystallizing) |
 | **release at once** | a plastic charge with green strength in a `pressKind: press` mould | `MouldMixin.pressRelease()`, when the load beats its stiffness |
 
 ### ⭐⭐ When a set advances — banked at its own changes, finished on its own wake (crowded-rooms D8)
@@ -172,6 +172,14 @@ reference, so it too presses a little past `loaded`). Its mass is the
 pool's less the water driven out (the material's `water` nutrient, else a
 `/water` composition share); its material is `becomes`.
 
+⭐ **A sugar strike is NOT a drain set** (matter-model-overlaps D12): it
+crystallizes, and its molasses is the mother liquor the crop leaves — the
+phase engine's arm, which drains it out of the cone over four days. The
+drain set's `becomesAs` (the strike's shape → material map) moved to
+`crystallizesTo.productAs`, and `drainPerBand` (a poorer strike gives up
+more) is gone: a poorer strike gives up more because there is less sucrose
+in it to set, by the purity mass balance.
+
 ⭐ **The absorbed drain — slip casting (D24).** A drain marked
 `absorbedByMould` sets only in an **`absorbent`** mould, and the MOULD is
 the sink: the water driven off goes into the mould's own wetness
@@ -192,8 +200,9 @@ more: a hoop on a bare board pools its whey on the floor, a cone lifted off
 its pot pools its molasses there, and a floor already wet with something
 else lets the rest soak into the ground (said on the drip's result). A mold
 standing over nothing at all — no vessel and no floor — throws
-`DetachedError`. Sugar's signature and body, shipped first here (D32): a
-sugar cone on its curing pot, and the salt pan on its **bittern tub**.
+`DetachedError`. Shipped consumers: a sugar cone on its curing pot (the
+crystallize arm's timed drain, below), and the salt pan on its **bittern
+tub**.
 
 ⭐ **A mold's foot is open** (`passesDripsThrough() → true`): what drips
 off a thing set IN a mold — molasses off a clayed loaf in its cone — runs
@@ -204,7 +213,10 @@ first caller: a pan whose brine has set its salt runs the spent liquor —
 swapped to `crystallizesTo.residue`, bittern — down into the tub, up to the
 tub's room; a tub already holding a different liquor is skipped, and what
 the tub cannot take — or all of it, with no tub — runs to the ground. A pan
-still concentrating keeps its brine.
+still concentrating keeps its brine. ⭐ A sugar cone keeps its molasses in
+the pool and lets it run over the row's `drainDays` (four), a share each
+read and the rest on one wake at the due time (D13); its grade is the one
+read off its purity, not a band drop.
 ⭐ The `/trade/quarrying/thing/SaltPan` (`MaturingMixin` over the kernel
 `Mould`, the evaporative `brine` profile taking the water) stands on a
 `/trade/quarrying/thing/Tub` (`PlacingMixin` over `Vat`) at the Rejection
@@ -348,9 +360,9 @@ taken from — repair D1, review R2-D6), freshness, pathogens, a set's moisture,
 `alloying` (ceramics ruling C), `madeFrom`.
 
 **Which material the cast is** (`SetPool.stampMaterial`): a drain set
-stamps `becomes` — or, when `becomesAs` names the shape this mould casts,
-that shape's material (sugar, 2026-10-26: one strike sets as loaf sugar in
-a cone and as raw sugar in a hogshead's block); a freeze stamps the pool's
+stamps `becomes`; a crop stamps the shape's material
+(`crystallizesTo.productAs` — one strike sets as loaf sugar in a cone and as
+raw sugar in a hogshead's block — else `product`); a freeze stamps the pool's
 material when the pool is not `liquid`-tagged (one ingot row serves
 copper, tin and iron) and otherwise keeps the shape row's own (an ice
 block is ice, never water).
@@ -397,9 +409,9 @@ bending). Pressing IS moulding, because the cavity is the shared thing (M2).
 ## ⭐ The mould keeps its drainings (sugar, 2026-10)
 
 A drain set no longer throws away what it drives out. `DrainSetting`
-gains `drains` (what the drained matter IS, e.g. molasses off a sugar
-loaf) and `drainPerBand` (an extra share per grade band below `fine`: a
-poor strike gives up more and keeps less). The drainings run to what is
+gains `drains` (what the drained matter IS, e.g. whey off a curd). (The
+sugar strike that first used it crystallizes now — matter-model-overlaps
+D12 — and `drainPerBand` went with it.) The drainings run to what is
 under the mould (the one drip, above) **as the set progresses**: each step
 drains `total × progress`, tracked in `setDrainedKg`, and the remainder goes
 at the set.
@@ -413,15 +425,15 @@ does not, and the drainings are their own material at its own strength. The
 grade — on the drainings' PAYLOAD (D2) — is one band below what the pool
 sets at (`min(payload.grade, mould grade)`, the cast's own), never above
 what the vessel below already held (the grade rides `TransferVia.grade`,
-and a top-up takes the lower); `drainPerBand` reads the same grade. What
+and a top-up takes the lower). What
 that vessel has no room for — or all of it, when nothing is beneath or the
 vessel holds a different liquor — runs on to the floor. ⚠ The pool is
 therefore DEBITED as it sets: the set reads the
 charge it started from as what is in it plus `setDrainedKg` at the
 drainings' density, and the cast's mass is that charge less what drained.
-Consumers: a sugar cone on its curing pot (molasses), and a cheese hoop
-standing on a vessel (both curds author `drains: whey`); a mould on a board
-pools its drainings on the floor.
+Consumers: a cheese hoop standing on a vessel (both curds author `drains:
+whey`); a mould on a board pools its drainings on the floor. (A sugar cone's
+molasses is the crystallize arm's mother liquor, above.)
 
 ## ⭐ Percolation — a liquid through a porous solid (sugar, 2026-10)
 
@@ -444,7 +456,8 @@ bottom as the reach advances — the share of what is left that this stretch
 lets through — as the host says it left (`@hook percolateOut`), by the one
 drip (`BulkableApi.drip({ off: heap, … })`): into the vessel the heap is
 in, else the one it stands on, else onto the floor. A clayed sugar loaf
-is the first consumer: its head washes white past a third of the reach,
+(set by the crystallize arm — the claying is percolation, not the set) is
+the first consumer: its head washes white past a third of the reach,
 its middle past two-thirds, its foot when the water is through, and
 the molasses it carries out drips — through its cone's open foot into the
 pot below, else onto the floor. ⭐ Ash is the second (cordage W7, potash):

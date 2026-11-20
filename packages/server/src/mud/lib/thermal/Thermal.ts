@@ -40,6 +40,7 @@ import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
 import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { ConcentrationArrow } from '../material/Material';
+import type { CrystallizesTo } from '../material/Solution';
 import type { Meltable } from './Meltable';
 import { ContainmentApi } from '../../api/containment';
 import type { MixinConstructor, FieldMeta } from "../mixin";
@@ -56,7 +57,7 @@ import { PerceptionApi } from "../../api/perception";
 import { StuffApi } from "../../api/stuff";
 import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from "../../api/biome";
-import { WorldClockApi } from "../../api/worldclock";
+import { WorldClockApi, type ClockHandle } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
 import { Decay } from "../Decay";
 import { AppApi } from "../../api/app";
@@ -105,6 +106,28 @@ declare module "../bulk/Bulkable" {
      * boils water off; a pour folds it by volume.
      */
     dissolvedSolidsKgPerL?: number;
+    /**
+     * ⭐ Something has started this liquor crystallizing (matter-model-
+     * overlaps D14) — a stir stamped it (`noteAgitated`), or a set did. A
+     * supersaturated liquor with this unset and no seed, no drying edge and
+     * not past its `metastableRatio` HOLDS. A read that finds it back under
+     * saturation clears it; it rides the payload through a pour.
+     */
+    nucleated?: boolean;
+    /**
+     * ⭐ The crystallizing solute's share of these dissolved solids (D12) —
+     * absent: the material's own `purity`. Tempering and skimming raise it;
+     * every crop takes out solute only, so what is left is less pure by the
+     * mass balance `(S·p − x)/(S − x)`.
+     */
+    purity?: number;
+    /**
+     * ⭐ The spent liquor running out of a mould (D13): the game-second the
+     * drain was last integrated to, and the one it is through. Both cleared
+     * when it is.
+     */
+    liquorDrainStampS?: number;
+    liquorDrainDueS?: number;
   }
 }
 
@@ -330,6 +353,23 @@ type ThermalHost = Stuff & Tangible & Containable;
 
 export interface Thermal {
   reconcilePhase(): void;
+  /**
+   * ⭐ The held liquor was stirred (matter-model-overlaps D14): a liquor
+   * holding more than it can keep is started (`payload.nucleated`) and the
+   * phase pass runs, so the crop sets now. Returns whether anything started.
+   */
+  noteAgitated(): boolean;
+  /**
+   * ⭐ How far the held liquor is past saturation — held/solubility at its
+   * temperature — and whether anything has started it (stirred, seeded, on
+   * a drying edge, or past its metastable ratio); `null` when it is not a
+   * crystallizing solution, or too impure ever to grain.
+   */
+  supersaturation(): { ratio: number; started: boolean } | null;
+  /** When a mould's spent liquor is through running out (D13), or `0`. */
+  getLiquorWakeAtS(): number;
+  /** Set (or clear, `0`) that moment, and arm its wake. */
+  setLiquorWakeAtS(value: number): void;
   reachableHeatK(): number;
   /** The hottest lit burner in reach, or `null` — the fire, not its heat. */
   reachableHeatSource(): (Stuff & Burner) | null;
@@ -649,7 +689,73 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       kineticRecord: { persistent: true, runtimeState: true },
       coatsCheckedS: { persistent: true, runtimeState: true },
       shockCheckedS: { persistent: true, runtimeState: true },
+      // ⭐ The spent liquor's drain is through (D13) — re-armed on restore.
+      liquorWakeAtS: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ Game-seconds the spent liquor in this mould has run out (D13), or
+     * `0`. Persisted and re-armed by {@link setLiquorWakeAtS}, so a restart
+     * mid-drain empties the cone on time with nobody reading it.
+     */
+    public liquorWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _liquorWake: ClockHandle | null = null;
+
+    public getLiquorWakeAtS(): number {
+      return this.liquorWakeAtS;
+    }
+
+    /** Set (or clear, `0`) when the spent liquor is through, and arm it. */
+    public setLiquorWakeAtS(value: number): void {
+      this._liquorWake?.cancel();
+      this._liquorWake = null;
+      this.liquorWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.liquorWakeAtS === 0) return;
+      this._liquorWake = WorldClockApi.at(
+        Quantity.of(this.liquorWakeAtS, 's'),
+        () => {
+          this._liquorWake = null;
+          // A wake on a body destroyed since it was armed does nothing (the
+          // leak wake's rule — not host-bound).
+          if ((this as unknown as Stuff).isDestroyed()) return;
+          this.liquorWakeAtS = 0;
+          this.reconcilePhase();
+        },
+        { tag: 'liquor-drain' },
+      );
+    }
+
+    /**
+     * See {@link Thermal.noteAgitated}. ⚠ Ungated: a stir's completion runs
+     * on the scheduler (a root frame), where a `FromMixin` gate never finds
+     * its caller (W3's `Boat.stove`); and all it can do is start a liquor
+     * that is already past saturation.
+     */
+    public noteAgitated(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return false;
+      const over = this.supersaturation();
+      if (over === null || !(over.ratio > 1 + 1e-9)) return false;
+      self.setBulkPayload('interior', { ...(self.getBulkPayload('interior') ?? {}), nucleated: true });
+      this.reconcilePhase();
+      return true;
+    }
+
+    public supersaturation(): { ratio: number; started: boolean } | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return null;
+      const mat = self.getBulkMaterial('interior');
+      if (!mat || !MixinApi.hasSolution(mat) || !(self.getBulkAmount('interior').rawValue() > 0)) return null;
+      const temp = this.getTemperature().rawValue();
+      const hold = holdOf(self as Stuff & Bulkable & Thermal, 'interior', mat, temp);
+      if (hold === null) return null;
+      // Too impure to grain at all: it is not holding anything back.
+      const purity = self.getBulkPayload('interior')?.purity ?? mat.getPurity();
+      if (purity < mat.getMinCrystalPurity() - 1e-9) return null;
+      const terms = nucleationOf(self as Stuff & Bulkable & Thermal, 'interior', mat, hold, false);
+      return { ratio: hold.held / hold.solubility, started: terms.started };
+    }
 
     /** See {@link Thermal.getKineticRecord}. */
     public kineticRecord: KineticRecordData | null = null;
@@ -2096,6 +2202,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 const PENDING_CASTS = new Set<Promise<unknown>>();
 /** The crop each vessel is minting, by stuff id (see `setCrystals`). */
 const CROPS_MINTING = new Map<string, { kg: number }>();
+/** Game-seconds in a game-day — a spent liquor's `drainDays`. */
+const SECONDS_PER_GAME_DAY = 86_400;
 
 /** `look` reads each change in words, through the senses its row names. */
 function kineticAugmenter(
@@ -2532,12 +2640,12 @@ const SOLIDS_CEILING_KG_PER_L = 1.58;
  * ⭐ The boil-down's stages (sugar D1): once the liquor's mass fraction
  * has reached an arrow's `fromW`, the highest such arrow fires — the
  * material swaps and the payload carries (minus the boil clock), the
- * `purifyIfHeld` shape. An arrow with `minBand` reads the LIQUOR's grade,
- * its payload's (the tempering and skimming write it; an ungraded liquor
- * is below every band) and below the band fires
- * `elseBecomes` instead: what will not grain is blackstrap. An arrow that
- * names the material already in the pan, or a row nothing resolves, leaves
- * it alone.
+ * `purifyIfHeld` shape. An arrow with `minPurity` reads the LIQUOR's
+ * purity — its payload's (tempering and skimming write it, each crop
+ * lowers it), else the row's — and below it fires `elseBecomes` instead:
+ * what will not grain is blackstrap (matter-model-overlaps D12). An arrow
+ * that names the material already in the pan, or a row nothing resolves,
+ * leaves it alone.
  */
 function concentrateIfReached(
   v: Stuff & Bulkable & Thermal,
@@ -2555,12 +2663,9 @@ function concentrateIfReached(
   for (const a of arrows) if (a.fromW <= w) arrow = a;
   if (arrow === null) return;
   let into = arrow.becomes;
-  if (arrow.minBand && arrow.elseBecomes) {
-    const held = payload.grade;
-    const band = held !== undefined && Grade.isBand(held) ? Grade.of(held) : null;
-    if (band === null || band.compareTo(Grade.of(arrow.minBand)) < 0) {
-      into = arrow.elseBecomes;
-    }
+  if (arrow.minPurity !== undefined && arrow.elseBecomes) {
+    const purity = payload.purity ?? mat.getPurity();
+    if (purity < arrow.minPurity - 1e-9) into = arrow.elseBecomes;
   }
   if (into === mat.getTemplatePath()) return;
   const next = MaterialApi.materials().peek(into);
@@ -2649,11 +2754,11 @@ function reconcileBulkPhase(
   if (!mat) return;
   const temp = v.getTemperature().rawValue();
 
-  // ⭐⭐ **Crystallizing** (ceramics S17), the third arm — and the one that
-  // fires at ANY temperature: a solution sets crystals when it holds more
-  // than its material dissolves at its heat, whether the water left
-  // (a salt pan in the sun) or the heat did (alum liquor cooling).
-  if (crystallizeIfOver(v, aff, mat, temp)) return;
+  // ⭐ A mould's spent liquor runs out over its days (matter-model-overlaps
+  // D13) — integrated first, so what is left is what the rest reads.
+  if (drainSpentLiquor(v, aff, clock.nowS)) {
+    if (!(v.getBulkAmount(aff).rawValue() > 0)) return;
+  }
 
   // ⭐ The boil climbs as the solution thickens (sugar D1): the boiling
   // point is the material's at the liquor's own concentration. Water and
@@ -2666,6 +2771,14 @@ function reconcileBulkPhase(
     : MixinApi.hasVolatility(mat)
       ? mat.getBoilingPoint().rawValue()
       : 0;
+
+  // ⭐⭐ **Crystallizing** (ceramics S17), the third arm — and the one that
+  // fires at ANY temperature: a solution sets crystals when it holds more
+  // than its material dissolves at its heat, whether the water left
+  // (a salt pan in the sun) or the heat did (alum liquor cooling) — once
+  // something STARTS it (D14; the boil plateau is one of the four).
+  if (crystallizeIfOver(v, aff, mat, temp, bp > 0 && temp >= bp, clock.nowS)) return;
+
   if (bp > 0 && temp >= bp) {
     // ⭐⭐ **A gas does not boil away** — it is ALREADY above its boiling
     // point everywhere anybody stands, which is what makes it a gas, and
@@ -2849,27 +2962,101 @@ async function setLump(
 }
 
 /**
- * ⭐⭐ **The crystallize arm** (ceramics S17, D32). A bulk whose material
- * authors `solubility` and `crystallizesTo`, holding more dissolved solids
- * (`payload.dissolvedSolidsKgPerL`, else the material's own
- * `solidsKgPerL`) than `solubilityAt(T)`, sets the EXCESS:
+ * The hold a crystallizing liquor is in (D14): its dissolved solids (the
+ * payload's, else the row's) against what it dissolves at `tempK`, and what
+ * it sets — `null` when the material authors no solubility or no crop.
+ */
+function holdOf(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+  tempK: number,
+): { held: number; solubility: number; into: CrystallizesTo } | null {
+  if (!MixinApi.hasSolution(mat)) return null;
+  const solubility = mat.solubilityAt(tempK);
+  const into = mat.getCrystallizesTo();
+  if (solubility === null || !(solubility > 0) || into === null) return null;
+  const held = v.getBulkPayload(aff)?.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
+  return { held, solubility, into };
+}
+
+/**
+ * ⭐⭐ **What starts a crop** (D14) — four terms, one piece of state:
  *
- *  - in a mold, kept in the mold's shape (`castInto`) — and a crop
- *    already setting there GROWS rather than a second one minting;
+ *  - a SEED — derived: the vessel holds a solid of the crop (a piece of
+ *    sugar put in the cone, or the crop already set there);
+ *  - a STIR — `payload.nucleated`, stamped by `noteAgitated` (and by every
+ *    set, so a crop once started keeps growing as the liquor cools);
+ *  - DEEP COOLING — derived: held/solubility at or past the material's
+ *    `metastableRatio` (absent, 1: any excess starts at once, as shipped);
+ *  - the DRYING EDGE — derived: the liquor is losing water in the open, on
+ *    the boil plateau or in a maturing vessel with an active batch (a salt
+ *    pan, a boiling brine).
+ *
+ * `coarse` — deep cooling was the only term: it started on its own, and a
+ * crop that does is a coarse mass, a band lower.
+ */
+function nucleationOf(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+  hold: { held: number; solubility: number; into: CrystallizesTo },
+  boiling: boolean,
+): { started: boolean; coarse: boolean } {
+  const host = v as unknown as Stuff;
+  const stirred = v.getBulkPayload(aff)?.nucleated === true;
+  const seeded = seedsOf(host, hold.into).length > 0;
+  const drying = boiling || (MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active');
+  const ratio = MixinApi.hasSolution(mat) ? mat.getMetastableRatio() : 1;
+  const deep = hold.held / hold.solubility >= ratio - 1e-9;
+  const started = stirred || seeded || drying || deep;
+  return { started, coarse: started && !stirred && !seeded && !drying };
+}
+
+/**
+ * The solids of the crop a vessel HOLDS — its product, or what the product
+ * sets as in a shape (`productAs`) — the seed term (D14).
+ */
+function seedsOf(host: Stuff, into: CrystallizesTo): Stuff[] {
+  if (!MixinApi.isContainer(host)) return [];
+  const crops = new Set([into.product, ...Object.values(into.productAs ?? {})]);
+  return (host.getContents() as unknown as Stuff[]).filter(
+    (c) => !c.isDestroyed() && MixinApi.isTangible(c) && crops.has(c.getMaterial()?.getTemplatePath() ?? ''),
+  );
+}
+
+/**
+ * ⭐⭐ **The crystallize arm** (ceramics S17, D32; matter-model-overlaps
+ * D12–D14). A bulk whose material authors `solubility` and
+ * `crystallizesTo`, holding more dissolved solids (`payload.
+ * dissolvedSolidsKgPerL`, else the material's own `solidsKgPerL`) than
+ * `solubilityAt(T)`, sets the EXCESS — **once something has started it**
+ * ({@link nucleationOf}); until then it HOLDS, supersaturated. A liquor
+ * whose purity is under the row's `minCrystalPurity` will not grain at all
+ * (blackstrap). Where the crop goes:
+ *
+ *  - in a mold, kept in the mold's shape (`castInto`) — its material the
+ *    shape's (`productAs`, else `product`) — and a crop already setting
+ *    there GROWS rather than a second one minting;
  *  - in any other vessel, a lump of crystals beside it (the product's own
  *    `castTemplate`), grown the same way.
  *
- * The liquor left is SATURATED, and what becomes of it is the one choice:
+ * Its grade is the batch's, `min`'d with the mould's (`carryPayload`), one
+ * band lower when the liquor started on its own. The crystals take out
+ * solute ONLY, so the liquor left is less pure — `(S·p − x)/(S − x)` for `x`
+ * set out of `S` solids — and its grade is read off that purity by the
+ * row's thresholds. What becomes of the saturated liquor is the one choice:
  *
  *  - ⭐ while the vessel is still concentrating it (a maturing host with an
  *    active batch — the pan the sun is working) it STAYS, its own
  *    material, so the crop keeps growing as the water keeps leaving and
  *    the total set is the same however often anybody looks;
  *  - otherwise the liquor is SPENT: its material swaps to
- *    `crystallizesTo.residue` (brine's bittern) and, in a mold, it runs
- *    off by the one drip (`BulkableApi.drip` — into the vessel the mold
- *    stands in or on, else to the ground; matter-model-overlaps D10). In
- *    any other vessel the residue stays, the mother liquor.
+ *    `crystallizesTo.residue` (brine's bittern, a strike's molasses) and,
+ *    in a mold, it runs off by the one drip (`BulkableApi.drip` — into the
+ *    vessel the mold stands in or on, else to the ground) — at once, or
+ *    over the row's `drainDays` ({@link drainSpentLiquor}). In any other
+ *    vessel the residue stays, the mother liquor.
  *
  * Returns true when it changed the slot (the caller stops for this read).
  */
@@ -2878,16 +3065,29 @@ function crystallizeIfOver(
   aff: BulkAffordance,
   mat: Material,
   tempK: number,
+  boiling: boolean,
+  nowS: number | null,
 ): boolean {
   if (!MixinApi.hasSolution(mat)) return false;
-  const solubility = mat.solubilityAt(tempK);
-  const into = mat.getCrystallizesTo();
-  if (solubility === null || into === null) return false;
+  const hold = holdOf(v, aff, mat, tempK);
+  if (hold === null) return false;
+  const { held, solubility, into } = hold;
   const litres = v.getBulkAmount(aff).rawValue();
   if (!(litres > 0)) return false;
   const payload: BulkPayload = v.getBulkPayload(aff) ?? {};
-  const held = payload.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
-  if (!(held > solubility + 1e-9)) return false;
+  if (!(held > solubility + 1e-9)) {
+    // Back under saturation: whatever started it has nothing left to start.
+    if (payload.nucleated === true && held < solubility - 1e-9) {
+      const { nucleated: _n, ...rest } = payload;
+      v.setBulkPayload(aff, Object.keys(rest).length > 0 ? rest : null);
+    }
+    return false;
+  }
+  // ⭐ Too impure to grain at all — blackstrap holds whatever it holds.
+  const purity = payload.purity ?? mat.getPurity();
+  if (purity < mat.getMinCrystalPurity() - 1e-9) return false;
+  const terms = nucleationOf(v, aff, mat, hold, boiling);
+  if (!terms.started) return false; // ⭐ supersaturated, and HOLDING
   const product = MaterialApi.materials().peek(into.product);
   if (!product) return false;
 
@@ -2896,7 +3096,8 @@ function crystallizeIfOver(
   // nowhere has no beside — the solids used to leave the liquor and vanish.
   const host = v as unknown as Stuff;
   const concentrating = MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active';
-  if (!MixinApi.isMould(v)) {
+  const mould = MixinApi.isMould(host) ? host : null;
+  if (mould === null) {
     const at = MixinApi.isContainable(v) ? (v.getContainer() as unknown as Stuff | null) : null;
     if (at === null || !MixinApi.isContainer(at)) {
       throw new DetachedError(`${v.getPresentation()} set crystals standing nowhere: they have no place`);
@@ -2906,23 +3107,49 @@ function crystallizeIfOver(
     // standing over nothing at all has nowhere for it.
     throw new DetachedError(`${v.getPresentation()} has spent liquor and nothing under it: it has no place`);
   }
-  const excessKg = (held - solubility) * litres;
+  // The crop's shape, and what the crop IS in that shape (D13).
+  const shape = mould ? mould.castTemplateFor(product) : MixinApi.hasFusion(product)
+    ? product.getCastTemplate()
+    : '';
+  const crop = MaterialApi.materials().peek(mat.productFor(shape)) ?? product;
+
+  // ⭐ The mass balance (D12): the crystals are solute only.
+  const solidsKg = held * litres;
+  const excessKg = Math.min((held - solubility) * litres, solidsKg * purity);
+  const leftKg = solidsKg - excessKg;
+  const leftPurity = purity < 1 && leftKg > 0 ? Math.max(0, (solidsKg * purity - excessKg) / leftKg) : purity;
   // ⚠ The liquor keeps its volume: a solute's share of a solution's volume
   // is small, and the volume is what the water does (the evaporative window
   // moves it) — subtracting the crystals' volume made a pan whose window
   // had run ahead of its reads lose its whole liquor to the crop.
   const liquorL = litres;
-
-  const liquorPayload: BulkPayload = { ...payload, dissolvedSolidsKgPerL: solubility };
+  const spentAs = concentrating ? mat : (MaterialApi.materials().peek(into.residue) ?? mat);
+  const gradeLeft = purity < 1 && MixinApi.hasSolution(spentAs) ? spentAs.gradeAtPurity(leftPurity) : null;
+  const liquorPayload: BulkPayload = {
+    ...payload,
+    dissolvedSolidsKgPerL: leftKg / liquorL,
+    nucleated: true,
+    ...(purity < 1 ? { purity: leftPurity } : {}),
+    ...(gradeLeft !== null ? { grade: gradeLeft } : {}),
+  };
   v.setBulkAmount(aff, Quantity.of(liquorL, 'L'));
   v.setBulkPayload(aff, liquorPayload);
   if (!concentrating) {
-    const residue = MaterialApi.materials().peek(into.residue);
-    if (residue && liquorL > 0) v.setBulkMaterial(aff, residue);
-    // ⭐ A spent pan's bittern runs to what is under it, and with nothing
-    // under the pan, to the ground (the one drip).
-    if (MixinApi.isMould(v) && liquorL > 0) {
-      BulkableApi.drip({ from: v.getBulk(aff), litres: liquorL });
+    if (spentAs !== mat && liquorL > 0) v.setBulkMaterial(aff, spentAs);
+    if (mould !== null && liquorL > 0) {
+      const days = into.drainDays ?? 0;
+      if (days > 0 && nowS !== null && nowS > 0) {
+        // ⭐ It runs out over its days (D13): two stamps and one wake.
+        if (liquorPayload.liquorDrainDueS === undefined) {
+          const due = nowS + days * SECONDS_PER_GAME_DAY;
+          v.setBulkPayload(aff, { ...liquorPayload, liquorDrainStampS: nowS, liquorDrainDueS: due });
+          v.setLiquorWakeAtS(due);
+        }
+      } else {
+        // ⭐ A spent pan's bittern runs to what is under it, and with
+        // nothing under the pan, to the ground (the one drip) — at once.
+        BulkableApi.drip({ from: v.getBulk(aff), litres: liquorL });
+      }
     }
     if (liquorL <= 0) {
       v.setBulkMaterial(aff, null);
@@ -2931,10 +3158,64 @@ function crystallizeIfOver(
   }
   // A set runs inside a read: nothing waits on the crop, so a failure is said.
   // ⭐ The crystals are the batch set solid: they take the liquor's payload
-  // — its grade, maker and time made — as any pool sets into its cast (D3).
-  void setCrystals(v, product, excessKg, payload).catch((err: unknown) => {
+  // — its grade, maker and time made — as any pool sets into its cast (D3);
+  // started on its own, they are a coarse mass a band lower (D13).
+  const cropPayload = terms.coarse ? coarsened(payload, mould) : payload;
+  void setCrystals(v, crop, shape, excessKg, cropPayload, into).catch((err: unknown) => {
     console.error('Thermal: the crystals could not be set', err);
   });
+  return true;
+}
+
+/**
+ * A crop that started on its own is a coarse mass (D13): its grade —
+ * `min(batch, mould)` — one band lower. Neither graded: nothing to lower.
+ */
+function coarsened(payload: BulkPayload, mould: Stuff | null): BulkPayload {
+  const batch = payload.grade !== undefined && Grade.isBand(payload.grade) ? Grade.of(payload.grade) : null;
+  const own = mould !== null && MixinApi.isGraded(mould) ? mould.getGrade() : null;
+  const grade = own === null ? batch : batch === null ? own : own.min(batch);
+  if (grade === null) return payload;
+  return { ...payload, grade: Grade.fromOrdinal(grade.getOrdinal() - 1).getBand() };
+}
+
+/**
+ * ⭐ A mould's spent liquor running out over the row's `drainDays` (D13):
+ * the share of what is left that the time since the last integration is of
+ * the time still to go, dripped by the one drip — all of it at the due
+ * time, when the stamps and the wake clear. Returns true when it moved
+ * anything.
+ */
+function drainSpentLiquor(v: Stuff & Bulkable & Thermal, aff: BulkAffordance, nowS: number | null): boolean {
+  if (!MixinApi.isMould(v as unknown as Stuff)) return false;
+  const payload = v.getBulkPayload(aff);
+  const due = payload?.liquorDrainDueS;
+  if (payload === null || due === undefined || nowS === null || !(nowS > 0)) return false;
+  const stamp = payload.liquorDrainStampS ?? nowS;
+  if (!(nowS > stamp)) return false;
+  const litres = v.getBulkAmount(aff).rawValue();
+  const through = nowS >= due;
+  const share = through ? 1 : (nowS - stamp) / (due - stamp);
+  if (litres > 0) {
+    if (!MixinApi.isContainable(v) || v.dripSlots().length === 0) {
+      throw new DetachedError(`${v.getPresentation()} is draining its liquor over nothing: it has no place`);
+    }
+    BulkableApi.drip({ from: v.getBulk(aff), litres: litres * share });
+  }
+  const after = v.getBulkPayload(aff);
+  if (through || !(v.getBulkAmount(aff).rawValue() > 1e-9)) {
+    if (v.getBulkAmount(aff).rawValue() <= 1e-9) {
+      v.setBulkAmount(aff, Quantity.of(0, 'L'));
+      v.setBulkMaterial(aff, null);
+      v.setBulkPayload(aff, null);
+    } else if (after !== null) {
+      const { liquorDrainStampS: _s, liquorDrainDueS: _d, ...rest } = after;
+      v.setBulkPayload(aff, Object.keys(rest).length > 0 ? rest : null);
+    }
+    if (v.getLiquorWakeAtS() !== 0) v.setLiquorWakeAtS(0);
+    return true;
+  }
+  if (after !== null) v.setBulkPayload(aff, { ...after, liquorDrainStampS: nowS });
   return true;
 }
 
@@ -2947,8 +3228,10 @@ function crystallizeIfOver(
 async function setCrystals(
   v: Stuff & Bulkable & Thermal,
   product: Material,
+  shape: string,
   kg: number,
   liquor: BulkPayload | null,
+  into: CrystallizesTo,
 ): Promise<void> {
   if (!(kg > 0)) return;
   const self = v as unknown as Stuff;
@@ -2968,9 +3251,6 @@ async function setCrystals(
   if (scope === null || !MixinApi.isContainer(scope as Stuff)) {
     throw new DetachedError(`${self.getPresentation()} has no place for its crystals`);
   }
-  const shape = mould ? mould.castTemplateFor(product) : MixinApi.hasFusion(product)
-      ? product.getCastTemplate()
-      : '';
   for (const c of scope.getContents()) {
     const s = c as unknown as Stuff;
     if (s === self || s.isDestroyed() || !MixinApi.isTangible(s)) continue;
@@ -2979,6 +3259,10 @@ async function setCrystals(
     s.setMass(Quantity.of(s.getMass().rawValue() + kg, 'kg'));
     return;
   }
+  // ⭐ The seed joins the first crop (D14): its mass is in the cast, and the
+  // piece is gone into it.
+  const seeds = seedsOf(self, into);
+  for (const seed of seeds) if (MixinApi.isTangible(seed)) kg += seed.getMass().rawValue();
   const crop = { kg };
   CROPS_MINTING.set(self.stuffId, crop);
   try {
@@ -3002,6 +3286,7 @@ async function setCrystals(
     }
     // Whatever joined the crop while it was minting is in it now.
     if (MixinApi.isTangible(cast)) cast.setMass(Quantity.of(crop.kg, 'kg'));
+    for (const seed of seeds) if (!seed.isDestroyed()) await StuffApi.destruct(seed);
   } finally {
     CROPS_MINTING.delete(self.stuffId);
   }

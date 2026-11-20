@@ -4,8 +4,9 @@
  * A solution's boiling point climbs as it thickens; the latent-heat
  * boil-off drives the thickening; and what the liquor BECOMES at each
  * stage is an arrow on its material — the `purifiedByBoiling` shape, keyed
- * on concentration rather than time. An arrow with a `minBand` reads the
- * vessel's grade: what will not grain is blackstrap.
+ * on concentration rather than time. An arrow with a `minPurity` reads the
+ * liquor's purity (matter-model-overlaps D12): what will not grain is
+ * blackstrap.
  */
 
 import '../../../../test-bootstrap';
@@ -83,7 +84,7 @@ function liquor(leaf: string, opts: {
 function stagedMaterials(): void {
   const arrows: ConcentrationArrow[] = [
     { fromW: 0.68, becomes: path('syrup') },
-    { fromW: 0.9, becomes: path('strike'), minBand: 'fair', elseBecomes: path('blackstrap') },
+    { fromW: 0.9, becomes: path('strike'), minPurity: 0.86, elseBecomes: path('blackstrap') },
     { fromW: 0.985, becomes: path('caramel') },
   ];
   liquor('raw-liquor', { solids: 0.6, arrows });
@@ -110,15 +111,15 @@ async function arch(): Promise<TestArch> {
   return f;
 }
 
-async function copperOf(f: TestArch, mat: string, litres: number, band = 'fine'): Promise<Copper> {
+async function copperOf(f: TestArch, mat: string, litres: number, purity = 0.93): Promise<Copper> {
   const c = makeStuff(() => new Copper());
   c.interiorBulk = true;
   c.setInteriorCapacity(Quantity.of(120, 'L'));
   c.setBulkMaterial('interior', StuffApi.findByTemplatePath<Water>(mat)!);
   c.setBulkAmount('interior', Quantity.of(litres, 'L'));
-  // The LIQUOR's grade (its payload's, matter-model-overlaps D2) is what
+  // The LIQUOR's purity (its payload's, matter-model-overlaps D12) is what
   // the strike arrow reads — never the copper's own making.
-  c.setBulkPayload('interior', { grade: Grade.of(band).getBand() });
+  c.setBulkPayload('interior', { purity });
   c.setStampedTemperatureK(373);
   c.setLastAmbientK(373);
   await ContainmentApi.move(c, f, Placements.ON);
@@ -176,8 +177,8 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
     expect(c.getBulkAmount('interior').rawValue()).toBeGreaterThan(20);
   });
 
-  it('⭐ a pan below the band will not grain — the strike arrow fires blackstrap', async () => {
-    const c = await copperOf(await arch(), path('raw-liquor'), 60, 'poor');
+  it('⭐ a liquor under the purity will not grain — the strike arrow fires blackstrap', async () => {
+    const c = await copperOf(await arch(), path('raw-liquor'), 60, 0.8);
     boilUntil(c, () => matOf(c) === path('blackstrap') || matOf(c) === path('strike'));
     expect(matOf(c)).toBe(path('blackstrap'));
     // Blackstrap has no arrows: it boils on and never becomes anything.
@@ -214,10 +215,10 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
     const m = StuffApi.findByTemplatePath<Water>(path('raw-liquor'))!;
     expect(() => m.setBoilingPointElevation([[0.5, 1], [0.4, 2]])).toThrow(RangeError);
     expect(() =>
-      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minBand: 'fair' } as ConcentrationArrow]),
+      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minPurity: 0.86 } as ConcentrationArrow]),
     ).toThrow(RangeError);
     expect(() =>
-      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minBand: 'grand' as never, elseBecomes: 'y' }]),
+      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minPurity: 1.5, elseBecomes: 'y' }]),
     ).toThrow(RangeError);
   });
 

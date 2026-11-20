@@ -443,7 +443,9 @@ mismatch check and the closure read the ARRIVING material.
 
 `{ through: 'set', arrivesAs }` is its inverse — what a filter holds back, a
 set lets through — and is how a mould's drainings leave a setting solid
-(whey off a curd, molasses out of a sugar cone; [mould.md](./mould.md)).
+(whey off a curd; [mould.md](./mould.md)). A sugar cone's molasses is the
+crystallize arm's mother liquor, which leaves by the plain drip
+([thermal.md](./thermal.md) § Crystallizing).
 The **suspended** passes (the microbial load and the pathogens at the pool's
 concentration: a crock of whey is a living starter because it carries the
 culture, and a spoiled curd's whey cannot come out clean); the **dissolved**
@@ -454,7 +456,10 @@ bookkeeping, and the batch's GRADE (the mould grades its drainings, one band
 below what sets) — and neither do its
 water state or its dissolved-solids strength, which the set is what changed
 (a sugar loaf IS the sugar): the drainings arrive as `arrivesAs`, whole, at
-that material's own. The payload is a whitelist (`throughSet`), so a field a
+that material's own. ⭐ And whatever lands never carries the source
+vessel's clocks: `faceCheckedS` and a mould's liquor-drain stamps
+(`liquorDrainStampS`/`DueS`, matter-model-overlaps D13) are stripped on
+landing. The payload is a whitelist (`throughSet`), so a field a
 later subsystem declares stays with the solid until it says otherwise.
 
 `grade` on a `TransferVia` is the batch grade what arrives carries as its
@@ -615,6 +620,8 @@ reduced it to facts nothing else can recover:
 | `formedToxins` | toxins that AROSE (a spoiled batch's ptomaine). Nothing in the composition implies them. | `lib/metabolism` |
 | `maker` · `grade` · `craftedAt` | ⭐ the batch's making — who made it (an identity path), how well, and when. A fact about the contents, not the vessel: the batch is the payload's (matter-model-overlaps D2). Absent = nobody made it / ungraded (not `fair`). | `lib/craft/Crafted` |
 | `freshness` | live state: microbial load + its clock stamp. | `lib/material/Freshness` |
+| `purity` · `nucleated` | ⭐ a crystallizing liquor's state (matter-model-overlaps D12, D14): the solute's share of what is dissolved — raised by tempering, lowered by every crop by the mass balance — and whether something has started it. Neither is in the row: the same strike is pure or poor by what was done to it. | `lib/thermal/Thermal` |
+| `liquorDrainStampS` · `liquorDrainDueS` | a mould's spent liquor running out over its days (D13) — a fact about THAT mould, stripped on landing. | `lib/thermal/Thermal` |
 
 Everything else is **read**: the tastes and the tags (`BlendLabel` unions
 the ingredients'), the whole nutrition label (`BlendLabel`, each part's
