@@ -159,6 +159,59 @@ posts to the journal directly, accrues and is reconciled monthly
 against the real invoice, or merely *reports* usage for a human to
 enter — is open, below.
 
+## ⭐⭐ The first books — starting December 2026 **[DECIDED — the owner, 2026-11-20]**
+
+The owner: *"if we wanna start using it we can start the month of December … AWS and Claude … those
+are my two main costs."* The front page's Fund line reads these books
+([front-page-slate § 6](../client/front-page-slate.md)).
+
+### What the costs actually were (AWS Cost Explorer, pulled 2026-11-20)
+
+| month | AWS | notes |
+|---|---|---|
+| Aug | $31.76 | the old EC2 stack, before its teardown |
+| Sep | $46.00 | **$33.00 domain registration** (annual) + Lightsail $8.83 |
+| Oct | $15.31 | Lightsail $11.99 · Route 53 $1.01 · Secrets Manager $0.80 · EC2-Other $1.50 |
+| Nov (to the 20th) | $9.81 | Lightsail $7.35 · Route 53 $1.01 · EC2-Other $0.95 · Secrets Manager $0.51 |
+
+⚠ **Residue still billing**: Secrets Manager and EC2-Other (~$1.50/month together) — the
+deployment doc records the old stack's secrets as force-deleted, so a secret and an orphaned volume
+or snapshot likely survived. Find and remove, or book them honestly.
+
+### The chart of accounts
+
+```
+Expenses:Infrastructure:Hosting      Lightsail
+Expenses:Infrastructure:DNS          Route 53
+Expenses:Infrastructure:Secrets      Secrets Manager (until removed)
+Expenses:Infrastructure:Domains      registrar renewals; saxonberg.gg / panterasbox.gg when bought
+Expenses:Infrastructure:Email        Google Workspace (~$5/month, the owner's estimate — book the invoice)
+Expenses:Making:Claude               $200/month
+Expenses:Show:Video                  Descript
+Expenses:Show:Equipment              replacements only, recorded when bought
+Income:Support:Twitch                subs, bits (affiliate already; streaming starts after New Year)
+Income:Support:YouTube               memberships, Super Chat
+Income:Support:Kick
+Equity:Founder                       what the founder puts in personally
+```
+
+- ⭐ **Descript is booked in full.** The owner also uses it for work, but *"if I stop using it for
+  Saxonberg I will probably drop it and make work pay for their own"* — the cost exists because of
+  Saxonberg, so the whole charge is Saxonberg's (the marginal-cost test, not a time split).
+- **The streaming setup bought during 2020 is sunk** — not booked. **Replacements from now on are**,
+  under `Expenses:Show:Equipment`, in the month bought.
+- ⭐⭐ **`Equity:Founder` is not support.** The founder pays everything today; if those payments
+  counted as support, the front page's *support last month* would only say *the founder pays*. So
+  **support = `Income:Support:*` only** (money from other people), and the founder's money is
+  recorded as the founder's. **Running costs** are what was spent, whoever paid. Support is an honest
+  **$0** until the stream starts.
+- **Cash basis to start** — a cost is booked when paid, so the $33 domain appears in the month it
+  renews. Spreading annual costs (accrual) is the open question below, revisited only if it
+  confuses.
+- **The chart by office** (§ *The chart of accounts is the executive*) arrives as offices are
+  filled; until then the accounts are by function, and every seat they would belong to is the
+  founder's.
+
 ## Lens pass
 
 1. **Pedagogy** — ⭐ better than expected. Real double-entry in a real
