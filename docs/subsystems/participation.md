@@ -50,7 +50,7 @@ CommandDispatchedEvent ─► participation_events ─► participation ─► I
   command cadence). Restricting the receive side to the two blessed
   consumers closes that while keeping the bus's producer-ignorant
   decoupling. The labor faucet **shares this same signal** (the event now
-  also carries optional `locationTemplatePath`/`actorTemplatePath` for credit
+  also carries optional `locationTemplatePath`/`actorIdentityPath` for credit
   routing); both taps must assert the *full pair* so an HMR re-assert never
   evicts the other — the clobber trap detailed in [influence.md](./influence.md).
 

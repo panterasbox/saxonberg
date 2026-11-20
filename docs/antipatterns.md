@@ -6830,3 +6830,20 @@ compulsion gate: a player is asked (and only for a verb whose view says
 plays answers only to its keeper (title over its row). The side doors are
 shut (`SelfOnly`, `CommandGiverOf`). For authors, the verb is
 `force <who> <command>`. See call-security.md § *Compulsion*.
+
+## A Round Trip Per Row
+
+**Don't:** find a row only to save over it (`const r = (await X.find({k}))[0]
+?? new X(); r.f = v; await r.save()`), or `save` row after row in a loop.
+Every call is a round trip to a database ~100 ms away; the drain that saved
+one frame at a time was 12.7 round trips per command in the thirty-player
+drive, and the scoring passes found-and-saved every subject every minute.
+Nor re-score or re-decay a figure on a timer so that it stays current.
+
+**Do:** write the row by its key — `PersistApi.saveMany(collection,
+[await row.toBatchWrite({ key: ['k'], fields?, insert? })])` is one atomic
+round trip (an upsert, or a partial update with `insert: false`), and a
+batch of rows is the same one call. Re-score only what changed and derive
+decay when the figure is READ. ⚠ Not for a hooked collection (refused) or a
+row whose `_id` you need back (`save`). See persistence.md § `saveMany` and
+participation.md § The pass scores who changed.

@@ -1,6 +1,7 @@
 /**
- * ⭐⭐ The db-performance drive (2026-11; requirements
- * `db-performance-requirements.md`, plan `db-performance-plan.md`). The world
+ * ⭐⭐ The db-performance drive (2026-11; MR !636 — its
+ * record and what it left are in db-performance-slate § What db-performance
+ * left, and the subsystem docs it names). The world
  * talks to a hosted database ~100 ms away; this build makes it ask less, ask
  * in batches, save everything when it stops, and key participation on the
  * person. The drive proves it against the running world.
@@ -109,7 +110,7 @@ const sumWhere = (ops: Record<string, number>, re: RegExp): number =>
   Object.entries(ops).reduce((acc, [k, n]) => (re.test(k) ? acc + n : acc), 0);
 
 /**
- * The hot paths (plan D11), by the byOp keys that are theirs. A path's cost
+ * The hot paths (db-performance D11), by the byOp keys that are theirs. A path's cost
  * is its ops per command typed in the working phase.
  */
 const PATHS: Record<string, RegExp> = {
@@ -119,7 +120,7 @@ const PATHS: Record<string, RegExp> = {
   'H4 chattel place and stamp': /^(find|save|saveMany) (chattel|chattel_events)$/,
   'H5 frames': /^(save|saveMany) player_frames$/,
   'captures': /^(find|save|saveMany) holder_snapshots$/,
-  // Found by W0, not in the plan's table: the producer tap's
+  // Found by W0, not among the planned paths: the producer tap's
   // "who authored this place" on every command (P1 line in the plan).
   'H6 authorship read': /^find authoring_events$/,
 };
@@ -387,7 +388,7 @@ suite('4 — each person’s own standing, across death', () => {
     a = await Session.open(uniqueHandle('dbp-alice'), { startLocation: BAR, wizard: true, committees: [LOUNGE] });
     b = await Session.open(uniqueHandle('dbp-bram'), { startLocation: BAR, wizard: true, committees: [LOUNGE] });
     // A participation row is one per person per bucket: short buckets, so
-    // a death inside the step shows (plan D13). Restored in afterAll.
+    // a death inside the step shows (db-performance D13). Restored in afterAll.
     expect(await founder.prose('config participation.bucketSeconds 2')).toMatch(/participation\.bucketSeconds/);
   }, 240_000);
 
@@ -712,7 +713,7 @@ suite('7 — nothing a check decided changed', () => {
 );
 
 /**
- * The hot paths this build took (plan D11): the frame drain (W2), the
+ * The hot paths this build took (db-performance D11): the frame drain (W2), the
  * capture write (W4), and W5's four cuts in W0's rank order.
  */
 const TAKEN: string[] = [

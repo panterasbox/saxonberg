@@ -223,8 +223,9 @@ per-Player; the rollup is a deferred franchise-gate read.
 Labor reuses the consumer's `CommandDispatchedEvent` (the recognized,
 interactive dispatch from `CommandGiverMixin._emitInputEcho`) — no second
 signal. The payload now carries two **optional** fields,
-`locationTemplatePath` and `actorTemplatePath` (the giver's location + own
-templatePath), read at the fire block; the consumer tap ignores them, so its
+`locationTemplatePath` and `actorIdentityPath` (the giver's location's
+templatePath + the giver's own identity — the person, never the lineage
+every player body shares; db-performance W1), read at the fire block; the consumer tap ignores them, so its
 participation rows are byte-identical whether present or not.
 
 Both `ConsumerLogic.installDispatchTap` and `ProducerLogic.installEngagementTap`

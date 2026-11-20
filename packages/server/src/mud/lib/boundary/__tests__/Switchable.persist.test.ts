@@ -17,6 +17,7 @@ import { ParcelApi } from '../../../api/parcel';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { PersistableMixin } from '../../persistence/Persistable';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
+import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { Idea } from '../../stuff/Idea';
 import { SwitchableMixin } from '../Switchable';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -46,13 +47,13 @@ beforeEach(() => {
     snapshots.push({ ...doc, _id });
     return _id;
   });
-  vi.spyOn(PersistenceManager, 'get').mockReturnValue({
+  vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     save,
     find,
     findById: vi.fn(),
     delete: vi.fn(),
-  } as unknown as PersistenceManager);
+  }) as unknown as PersistenceManager);
   vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({
     kind: 'group',
     name: 'test',
