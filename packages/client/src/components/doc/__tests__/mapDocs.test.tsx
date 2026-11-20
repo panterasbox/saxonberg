@@ -11,9 +11,11 @@ import { useStore } from "../../../store/index";
 import { DocView } from "../blocks";
 import { crumbDoc, edgeDoc, placeDoc, wayDoc, zoneDoc, PATH_LABEL } from "../docs";
 
+const links = { onCommandClick: () => {}, onCommandPreview: () => {} };
+
 /** ⛔ No action buttons — the spoiler block's own reveal is the one control a document has. */
 const noButton = (doc: TooltipDoc): void => {
-  const { container, unmount } = render(<DocView doc={doc} />);
+  const { container, unmount } = render(<DocView doc={doc} {...links} />);
   const actions = [...container.querySelectorAll("button")].filter((b) => !b.closest('[data-testid="doc-spoiler"]'));
   expect(actions).toEqual([]);
   unmount();
@@ -82,6 +84,14 @@ describe("map documents", () => {
     expect(named.facts?.map((f) => f.label)).toEqual(["first came", "your map", "kind", "government"]);
     expect(named.command).toBe("map terminus/city");
     expect(crumbDoc({ address: "terminus/city" }, { claims: 0 }).header?.name).toBe("Unnamed");
+    // W8: the civic facts, when the server answered for a Locality you hold.
+    const civic = crumbDoc(
+      { address: "terminus/city", name: "Terminus City" },
+      { claim: { channel: "walked" }, claims: 3 },
+      { seats: [{ seat: "Mayor", holder: "Odo" }, { seat: "Clerk", holder: null }], resident: false, forecast: "cirrus — a front may be moving in" },
+    );
+    const rows = Object.fromEntries((civic.facts ?? []).map((f) => [f.label, f.value]));
+    expect(rows).toMatchObject({ "you are": "a visitor", Mayor: "Odo", Clerk: "vacant", forecast: "cirrus — a front may be moving in" });
     noButton(named);
   });
 
@@ -93,7 +103,7 @@ describe("map documents", () => {
 
   it("the zone thumbnail block draws from your copy, and is absent when your map has nothing there", () => {
     const tag = (path: string) => ({ path, spoiler: 2 as const });
-    const first = render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} />);
+    const first = render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} {...links} />);
     expect(screen.queryByTestId("doc-zone-thumb")).toBeNull();
     first.unmount();
     useStore.getState().applyMapSnapshot({
@@ -104,7 +114,7 @@ describe("map documents", () => {
         },
       ],
     });
-    render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} />);
+    render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} {...links} />);
     expect(screen.getByTestId("doc-zone-thumb")).toBeTruthy();
     expect(screen.getByTestId("nav-thumb")).toBeTruthy();
   });

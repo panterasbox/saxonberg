@@ -51,6 +51,8 @@ import type {
   MqlQueryResultEnvelope,
   TooltipDoc,
   WikiExcerptResultEnvelope,
+  LocalityFacts,
+  LocalityFactsResultEnvelope,
 } from "@saxonberg/types";
 import {
   INTENTIONAL_LEAVE_CLOSE_CODE,
@@ -1000,12 +1002,24 @@ class WebSocketClient {
     );
   }
 
+  /**
+   * ⭐ A Locality's civic facts, for a crumb's tooltip (navigation card W8).
+   * `null`: a place your map does not hold, or no answer in time — one
+   * answer.
+   */
+  public localityFacts(address: string): Promise<LocalityFacts | null> {
+    const requestId = nanoid();
+    return this.oneShot(requestId, { type: "locality-facts", payload: { requestId, address } }).then((env) =>
+      env && env.type === "locality-facts-result" ? (env as LocalityFactsResultEnvelope).facts : null,
+    );
+  }
+
   private applyOneShotSideEffects(envelope: Envelope): void {
     const id =
       envelope.type === "mql-query-result" || envelope.type === "mql-query-error"
         ? (envelope as { queryId: string }).queryId
-        : envelope.type === "wiki-excerpt-result"
-          ? (envelope as WikiExcerptResultEnvelope).requestId
+        : envelope.type === "wiki-excerpt-result" || envelope.type === "locality-facts-result"
+          ? (envelope as WikiExcerptResultEnvelope | LocalityFactsResultEnvelope).requestId
           : null;
     if (id === null) return;
     this.oneShots.get(id)?.(envelope);

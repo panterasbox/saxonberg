@@ -19,7 +19,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { NavWay, TooltipDoc } from "@saxonberg/types";
+import type { NavWay, TooltipDoc, WireClaim } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import {
   boundariesView,
@@ -33,9 +33,12 @@ import {
   zoneView,
   type Standing,
   type ViewEdge,
+  type Crumb,
   type ViewPlace,
   type ZoneView,
 } from "../../store/navSelectors";
+import { websocketClient } from "../../services/websocket";
+import type { TipSpec } from "../tooltip/useTip";
 import { readNavCard, setLens, setSection } from "../../store/navCardActions";
 import { escapeTarget, lookCommand, useLinkMode } from "../cards/clickTarget";
 import { ChangeMark } from "../cards/ChangeMark";
@@ -196,6 +199,27 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     return null;
   };
 
+  /**
+   * A crumb, from your claim — and, when you hold one, its civic facts,
+   * asked for only when the tooltip opens (W8).
+   */
+  const crumbTip = (c: Crumb): TipSpec | TooltipDoc => {
+    const known: { claim?: WireClaim; claims: number } = c.ship ? { claims: 0 } : localityKnowledge(mapCopy, c.address);
+    const doc = crumbDoc(c, known);
+    if (c.ship || !c.name || !known.claim) return doc;
+    return {
+      key: `crumb:${c.address}`,
+      resolve: async () => {
+        const facts = await websocketClient.localityFacts(c.address);
+        return crumbDoc(
+          c,
+          known,
+          facts ? { seats: facts.seats, resident: facts.resident, ...(facts.forecast ? { forecast: facts.forecast } : {}) } : null,
+        );
+      },
+    };
+  };
+
   /** A way from here: what it is, where it leads, what stops you (D12). */
   const wayTip = (w: NavWay): TooltipDoc => {
     const to = standing ? wayLeadsTo(mapCopy, standing, w) : undefined;
@@ -255,7 +279,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
         <Crumbs
           crumbs={crumbs}
           placeName={sections.place?.name ?? ""}
-          tipFor={(c) => crumbDoc(c, c.ship ? { claims: 0 } : localityKnowledge(mapCopy, c.address))}
+          tipFor={(c) => crumbTip(c)}
           onSendCommand={props.onSendCommand}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
         />,

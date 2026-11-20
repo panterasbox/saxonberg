@@ -2096,6 +2096,37 @@ export interface WikiExcerptResultEnvelope {
 }
 
 /**
+ * ⭐ Ask for a Locality's civic facts — a crumb's tooltip (navigation card
+ * W8). Answered only for a Locality the asker's own map holds a claim for:
+ * a place you have not been gets the same `null` as no such place.
+ */
+export interface LocalityFactsMessage {
+  type: 'locality-facts';
+  requestId: string;
+  /** The Locality's address (`terminus/city`) — a crumb's own. */
+  address: string;
+}
+
+/** A Locality's civic facts, as a crumb's tooltip shows them. */
+export interface LocalityFacts {
+  government?: { key: string; name: string };
+  /** Each seat and who holds it now — a name, never a path; `null` = vacant. */
+  seats: { seat: string; holder: string | null }[];
+  /** Whether you are a resident under that government (else a visitor). */
+  resident: boolean;
+  /** The weather coming where you stand — inside every crumb's Locality. */
+  forecast?: string;
+}
+
+export interface LocalityFactsResultEnvelope {
+  type: 'locality-facts-result';
+  frameId: number;
+  requestId: string;
+  address: string;
+  facts: LocalityFacts | null;
+}
+
+/**
  * Ask the server what a viewer can do with one object, right now —
  * the request behind the radial menu. Correlated by `requestId`; the
  * subject is named by `stuffId`, the same token every identity tag
@@ -3274,6 +3305,7 @@ export type Envelope =
   | AffordanceResultEnvelope
   | AffordanceErrorEnvelope
   | WikiExcerptResultEnvelope
+  | LocalityFactsResultEnvelope
   | StreamStateEnvelope
   | StreamEventEnvelope
   | ControlResultEnvelope
@@ -3302,6 +3334,7 @@ export type EnvelopeTemplate =
   | Omit<AffordanceResultEnvelope, 'frameId'>
   | Omit<AffordanceErrorEnvelope, 'frameId'>
   | Omit<WikiExcerptResultEnvelope, 'frameId'>
+  | Omit<LocalityFactsResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
   | Omit<StreamEventEnvelope, 'frameId'>
   | Omit<ControlResultEnvelope, 'frameId'>

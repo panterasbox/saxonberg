@@ -14,6 +14,7 @@ import styled from "styled-components";
 import type { NavSections, TooltipDoc } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
+import type { TipSpec } from "../tooltip/useTip";
 import type { Crumb } from "../../store/navSelectors";
 
 const Root = styled.nav`
@@ -47,7 +48,7 @@ export interface CrumbsProps {
   crumbs: readonly Crumb[];
   /** The place you stand in — the de-stutter compares against it. */
   placeName: string;
-  tipFor?: (crumb: Crumb) => TooltipDoc | null;
+  tipFor?: (crumb: Crumb) => TipSpec | TooltipDoc | null;
   onSendCommand: (command: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }
