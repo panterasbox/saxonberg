@@ -990,6 +990,70 @@ one student; a tailor's shop whose single set of tools never returns; a
 job board with no expiry; and a money faucet with no sink. Most should
 turn out to be a producer that should be producing.
 
+### ⭐⭐⭐ The scaffold — a drive proves a SYSTEM, whatever the world holds (test-world-lifecycle, 2026-11)
+
+The owner: *"we have all sorts of wizard tools and other capabilities for
+doing things at runtime in a running world — why can't tests just use that
+stuff to stage whatever state they need regardless of whatever state the
+world's already in? … at some point all this placeholder content is going
+away for the real thing and we're still gonna need tests."* So a kernel or
+platform drive:
+
+- **stands in the scaffold** — the test-only `test-fixtures` pack at
+  `/world/testbed` (`packages/wire/src/harness/scaffold.ts` names every
+  place, thing, NPC and exit word; read its header map). Thirteen places on
+  one zone and an annex: an outdoor plaza with a noticeboard and a greeter,
+  a lit bank with an independent teller counter, a venue hall with three
+  seats on three criteria, a shopfront that restocks to par, an unlit
+  cellar behind a locked door with a free side, a trap, a forge and basin,
+  a low door, a window, a keyless gate, a climb, a named Building, two
+  Localities. It is never consumed: drives use it and stage around it.
+  ⚠ The pack is `testOnly: true` — it installs only in a test world
+  (`SAXONBERG_TEST_WORLD=1`, which every owned, kept, CI and soak world
+  sets) and the live world refuses it on every boot
+  ([content-packs.md](./subsystems/content-packs.md) § A test-only pack);
+- **stages what it consumes**, inside the drive — `standIn(place, prefix)`
+  logs a fresh character in at a scaffold place; `fundedAccount(handle, n)`
+  opens an account at the testbed bank and funds it by the recorded
+  `reserve override` (the governor's seat is put back); `standInNpc(s)`
+  clones an NPC a drive may harm; `hand`, `stage`, `arrive` as before. A
+  door, a trap or a seat is staged before it is relied on — never assumed
+  from how the last drive left it;
+- **names no placeholder content** — `lint:wire-content` counts the files
+  that still do (110 after build 1, ceiling only falls) and refuses any
+  file carrying its own restart. ⚠ A `Session.open` with no
+  `startLocation` lands on the world's default, which the regex cannot see:
+  a migrated drive uses `standIn`, and the char-gen / re-login steps that
+  land by default on purpose assert nothing about where.
+
+A pass, per migrated file, is **fresh · the same world again · after the
+whole suite · with Terminus and its dependents absent** —
+`tools/wire-indifference` runs all four (and the purge's own checks);
+`--refusal` boots an ordinary world and shows it refusing the pack.
+
+⭐ **A run cleans up after itself.** The runner purges once the world
+answers (what a crashed run left) and again before it stops it
+(`POST /auth/test-purge` → `TestHarnessApi.purgeTestLitter`): every
+`wire-` character with an `@e2e.local` email — never `founder` — is
+removed by each owner's own primitive (offices back to the founder
+default, committee seats, scaffold titles, business seats), its money is
+**retired to the reserve on the record** (`reserve retire`, reason `wire
+purge`), its body and rows go, and strays in the scaffold's places are
+destructed. The append-only ledgers are never touched. It prints one line
+of counts; `WIRE_KEEP_LITTER=1` skips it (to inspect a character a kept
+world holds). It never runs against `saxonberg_demo` — the runner refuses to
+boot there at all.
+
+⭐ **A drive can live in its pack.** The runner's second root is
+`packages/content/*/wire/**/*.wire.test.ts`; such a drive imports
+`@saxonberg/wire/harness` (a devDependency of the pack). The fixture pack's
+own drive (`test-fixtures/wire/scaffold.wire.test.ts`) is the first.
+
+⚠ **The old advice to drop the database before a dirty run is retired**
+for every migrated drive: they run twice on one world by construction.
+Build 2 (test-world-lifecycle-slate § Build 2) moves the pack drives, the
+sweeps, the locality flows and the `-content` halves the same way.
+
 ### Attach or own
 
 `pnpm wire` **attaches** to a world already running on 2010. It never
@@ -1217,24 +1281,27 @@ If you get `X is not a function` at collection time with no obvious
 cause, you have found another import cycle — the same import fixes it,
 and it is worth saying so at the site.
 
-## ⚠⚠ A fresh DB needs a bigger boot budget than the default (2026-10)
+## ⭐ One stop, one restart, one budget (test-world-lifecycle W0, 2026-11)
 
-`bootOwnedWorld`'s budget is `WIRE_BOOT_TIMEOUT ?? 420_000`. A **fresh**
-database does not make it: installing the full pack set from the
-checkout took the drilling drive past seven minutes, and the harness
-gave up with
+Every stop the harness makes — the runner's teardown, `stopWorld()`,
+`restartWorld()`, the preflight it runs before a boot — SIGTERMs the
+**listener** and waits up to `WIRE_STOP_GRACE` (default **240 s**: a loaded
+world measured ~3.5 min to capture what it held) for its shutdown save,
+kills only when that runs out, and prints `wire: world stopped in <s>s —
+shutdown captured N host(s), F failed` (or `KILLED at the grace`). Both
+return the `TimedStop`, so a drive asserts `killed === false`. ⛔ A drive
+never carries its own restart: the 17 copies this replaced killed the world
+two seconds after asking it to stop, before its save, and dropped the heap
+flag; `lint:wire-content` refuses a test file that imports the runner's
+boot or names the preflight.
 
-    wire: the owned server did not answer on http://localhost:2013
-    within 420s
-
-while the server log's last line was `AppBootstrap: world open — the
-cast may act`. **The world was fine; the probe had stopped asking.**
-
-⭐ So a run immediately after `reset:db` wants
-`WIRE_BOOT_TIMEOUT=900000`, and a run on a warm DB does not. Worth
-knowing before concluding anything about a boot that appears to hang —
-and worth reading the server log's own last line first, which says
-plainly whether the world is up.
+**The boot budget** is `WIRE_BOOT_TIMEOUT`, default **900 s**, read by the
+boot and the reuse wait alike (the old 420 s cut a fresh boot off — the
+drilling drive found it with the world fine and the probe no longer
+asking). **The heap flag** — `--heapsnapshot-near-heap-limit=1` into
+`.wire/heap/` — rides every world the runner starts, owned, kept or
+restarted (`WIRE_HEAP_SNAPSHOT=0` drops it; CI excludes the directory from
+its artifact).
 
 ### ⭐⭐ And three mint shapes, so the next drive starts from the answer
 
