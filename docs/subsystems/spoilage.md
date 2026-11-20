@@ -621,7 +621,11 @@ air drier than the weather** — a fire, a kiln, salt — rather than being the
 only way to take water out.
 
 ⭐ **What replaces the prohibition is EXPOSURE, not a weaker prohibition.**
-Three rungs, and between them they keep the store sparse:
+Three rungs, and between them they keep the store sparse. They are
+`Wet.weatherReach()` (matter-model-overlaps D19 moved them there from this
+mixin's private `exposureOf`): the SAME reach decides how much rain lands
+on a thing's film and how much soaks into its body, so rain and drying can
+never disagree about where a thing stands.
 
 | the host is… | exposure | what happens |
 |---|---|---|
@@ -657,8 +661,18 @@ the shared walk does for every exposed host, segment by segment:
 
 - **the air is the ENCLOSING scope's** — a stack placed `in` a drying
   chamber reads the chamber's air, not the room's;
-- **rain puts water back** — `cure.rewetPerMm` of moisture per mm, scaled
-  by exposure (a segment's rain is `0` under a roof);
+- ⭐⭐ **rain SOAKS back in, bounded** (matter-model-overlaps D19) — off the
+  rain record (a segment's rain is `0` under a roof): what lands is
+  `mm × cure.rewetPerMm × exposure`, and it soaks in at the body's own rate
+  — `dryingRatePerHour()` × `cure.soakFactor` (4) toward full,
+  `(1 − moisture)(1 − e^(−k·t))` in a segment — never more than landed.
+  So a body stops at what it can hold however hard it rains, and ordinary
+  rain is all taken (the bound is out of its way: green ware's timing did
+  not move). ⭐ **Through a sealed outside the soak is ZERO** — a glazed pot
+  takes no rain into its body, while its film takes a fifth
+  ([weather.md § Wetness](./weather.md)). The unbounded per-mm add is gone;
+  `cure.rewetPerMm` survives only as the millimetre-to-moisture
+  conversion;
 - **drying too fast CHECKS it** — dryness gained per hour (per segment, so a
   hot afternoon is not averaged away by the night) × the host's
   `dryingCrackRisk()` hook past `cure.crackRate` lays one `check` flaw. The
@@ -693,6 +707,11 @@ built to return to dry. Internal moisture must not: hang `a_w` on it and
 a dried fish walks through fog and comes back fresh. The honest coupling
 runs the other way and is much weaker — humid storage slowly raises
 `moisture` (the passive arm above) — a term, not the carrier.
+⭐ **Two records, one rain** (D19): rain feeds the film (`Wet.takeRain`,
+pushed where somebody is) and the soak (above, off the rain record, for a
+brick nobody stands beside) through one reach and one face, and no water
+moves between them — the soak never debits the film, so nothing is counted
+out of one into the other.
 
 The acts are `trade-cooking`'s: `cure` (salt, consumed from a sack) and
 `smoke` (a fire, deliberately **13 K under the kill** so that smoking

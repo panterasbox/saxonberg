@@ -89,7 +89,12 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   ⭐ The formula is the BODY's (`TangibleMixin.getWetIgnitionPenaltyK`, and
   `getIgnitionPointK` = autoignition + it): `stoke`, `light` and a hot
   pour (`canReceiveAtK`) read the one number, so a soaked board survives a
-  pour that would light a dry one (ceramics review R2-B1). ⚠ A firing
+  pour that would light a dry one (ceramics review R2-B1). ⭐ It adds the
+  TWO waters — the film's saturation plus the held moisture above the
+  `dried` band — and matter-model-overlaps D19 left it untouched: rain now
+  lands on the film by reach and soaks the held water off the rain record
+  ([spoilage.md](./spoilage.md)), but they stay two records and this stays
+  their sum. ⚠ A firing
   chamber catching its contents (`Burner.catchContents`) reads the DRY
   point on purpose: a piece that has sat at that heat in a drawing chamber
   has driven its water off, and the thermal model has no boiling plateau

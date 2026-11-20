@@ -98,7 +98,15 @@ no common ancestor, which is the kernel test). Each composer composes
   **bone-dry** is fireable (`isFireable`).
 - **The weather**, read off the piece's own record on every read:
   - its wetness rising past `green.slumpWetting` (rain on an open yard)
-    SLUMPS it — the hack cover is what stops it;
+    SLUMPS it — the hack cover is what stops it. ⭐ Rain lands by the
+    piece's reach (matter-model-overlaps D19, `Wet.takeRain`: a brick on
+    the ground takes a third of a segment's push, which still soaks it past
+    the slump line, so the timing did not move);
+  - ⭐ rain also SOAKS into its held water off the rain record — bounded at
+    its drying rate × `cure.soakFactor` up to full, none under the cover
+    ([spoilage.md § Drying is a RATE](./spoilage.md)) — so a wet week holds
+    the exposed bricks back from bone-dry while the covered ones dry, with
+    nobody watching;
   - its temperature below freezing (frost) or above boiling (a wet piece in a
     kiln — the steam burst) while it still holds water SHATTERS it — the
     ruin is the fact, with no crack flaw beside it (B99);

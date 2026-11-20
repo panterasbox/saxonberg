@@ -1350,6 +1350,10 @@ export const AppSettingKeys = {
   wetnessSkinFilmKgPerM2: "wetness.skinFilmKgPerM2",
   /** Wetness — saturation gained per game-hour of standing in rain. */
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
+  /** Wetness — the share of the rain landing on a SEALED outside face (a
+   * glaze) that runs off rather than wetting it (`Wet.takeRain`, D19). The
+   * film only; a sealed face soaks nothing into its body at all. */
+  wetnessShedShare: "wetness.shedShare",
   /** Wetness — saturation an immersion event drives toward (full soak). */
   wetnessImmersionSaturation: "wetness.immersionSaturation",
   /** Wetness — ⭐ the ONE wet law's cutoff (`Material.permeability()`): a
@@ -1491,6 +1495,12 @@ export const AppSettingKeys = {
    * a fraction of its moisture, before its exposure scales it.
    */
   cureRewetPerMm: "cure.rewetPerMm",
+  /**
+   * Curing — how much faster a porous body takes up rain that lands on it
+   * than it dries: the soak runs at the body's drying rate × this toward
+   * full, capped by what landed (`Moist.reconcileWater`, D19).
+   */
+  cureSoakFactor: "cure.soakFactor",
   /** Curing — the relative humidity (%) assumed where nothing authors one. */
   cureAmbientHumidity: "cure.ambientHumidity",
   /** Curing — moisture at/below which a thing reads thoroughly dried. */
@@ -2961,6 +2971,7 @@ export const AppSettingTiers: Readonly<
   wetnessBlotTakes: "B",
   wetnessSkinFilmKgPerM2: "B",
   wetnessRainAccrualPerHour: "B",
+  wetnessShedShare: "B",
   wetnessImmersionSaturation: "B",
   wetnessImpermeableBelowPct: "B",
   wetnessBandDampAt: "B",
@@ -2995,6 +3006,7 @@ export const AppSettingTiers: Readonly<
   cureGroundExposure: "B",
   cureCrackRate: "B",
   cureRewetPerMm: "B",
+  cureSoakFactor: "B",
   cureAmbientHumidity: "B",
   cureBandDriedAt: "B",
   cureBandDryingAt: "B",

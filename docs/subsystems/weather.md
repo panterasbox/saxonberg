@@ -635,9 +635,20 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
 - **Accrual is *pushed***, not pulled: "is it raining here" is an *async*
   resolve, which the sync getter can't do — so precipitation exposure
   (the presence-gated boundary fan-out, source-indifferent) and immersion
-  (the electricity co-immersion path) call `wet(delta)` from their async
-  contexts. **"Shelter dries faster" emerges** — a sheltered object gets
-  no accrual push, so the reconcile's drain wins.
+  (the electricity co-immersion path) push from their async contexts.
+  **"Shelter dries faster" emerges** — a sheltered object gets no accrual
+  push, so the reconcile's drain wins.
+- ⭐⭐ **Rain lands by exposure, and a sealed face sheds it**
+  (matter-model-overlaps D19). The rain push calls `Wet.takeRain(delta)` on
+  every undressed occupant: it takes `delta × weatherReach()` — the ONE
+  exposure the water state's drying reads too (on a rack the rack's
+  `airExposure`, on bare ground `cure.groundExposure` 0.35, shut in a sack
+  or a pack `0`) — and a fifth of that (`1 − wetness.shedShare`, 0.8) when
+  its outside face is sealed (`Faced.isSealed('outside')`: a glaze). The
+  film only: what a porous body soaks INTO its held water is the water
+  state's, off the rain record and never debited from this film
+  ([spoilage.md § The water state](./spoilage.md)) — two records fed by
+  one rain through one reach and one face.
 - **Rain on a dressed body** (`Attired.exposeToRain`): each garment takes
   the rain at the share of the body it is outermost on, and the body takes
   `permeability × saturation` of what each outer layer passes. ⚠ An

@@ -27,6 +27,12 @@ settings:
   - key: wetness.rainAccrualPerHour
     value: "1.5"
 
+  # ⭐ A sealed outside face (a glaze) sheds this share of the rain that
+  # lands on it: its film takes a fifth (Wet.takeRain). The film only — a
+  # sealed face soaks nothing into its body at all.
+  - key: wetness.shedShare
+    value: "0.8"
+
   - key: wetness.immersionSaturation
     value: "1"
 

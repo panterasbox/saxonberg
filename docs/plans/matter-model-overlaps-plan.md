@@ -1491,6 +1491,21 @@ default keeps 0.9 when lit); `ventChamberAir` on `_goOut`/`_setLit(false)`
 - **Commit:** `feat(wetness): rain lands by exposure, sheds off a sealed
   face, soaks into a porous body`.
 
+**Build note (W7).** `Wet.weatherReach()` (the moved `exposureOf`, reading
+`where.isPlace()` instead of `instanceof Place` — Wet is composed by `Thing`, so
+importing `Place` would cycle) and `Wet.takeRain(delta)`; `Moisture` asks its host's
+`weatherReach()` through `MixinApi.isWet` and THROWS for a Moist host that is not Wet
+(every composer is a Thing). The soak per segment is
+`min(landed, (1 − m)(1 − e^(−k·soakFactor·t)))`, drying first then soak, `k` the host's
+`dryingRatePerHour()` else `cure.dryingPerHour`; `cure.soakFactor` = 4 (the bound only
+binds near full in ordinary rain: green-ware tests and the ceramics/quarrying suites
+did not move). ⚠ The plan's slump worry was the wrong record: slump reads the FILM,
+and a ground brick's film now takes 0.35 × a 6 h push of 9 — still past
+`green.slumpWetting` 0.15 in one segment, so slump timing does not move.
+Attended vs unattended reads agree to < 0.005, not exactly (order of drying and
+soaking inside a segment a look cuts; the old linear add had the same property).
+`lint:duck-typing` did not fall (the cast was not a counted probe).
+
 ### W8 — the drive
 
 - `packages/wire/tests/matter-model-overlaps.dirty.wire.test.ts`,

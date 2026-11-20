@@ -46,13 +46,15 @@
  * kitchen is the worst place to hang a ham.
  *
  * ⭐ **What changes it without an act is the AIR, and only where the air
- * reaches** (`exposureOf`):
+ * reaches** (`Wet.weatherReach()` — the one exposure rain and drying share):
  *
  *   - **exposed** — on a rack, a hack, the open ground, a drying room —
  *     it comes to terms with the air it is in: it DRIES toward that air's
  *     equilibrium at that air's rate (the host's `dryingRatePerHour` hook
  *     sets the base: a board seasons at its species' pace), and rain on it
- *     puts water back (`cure.rewetPerMm`, scaled by exposure). Dried faster
+ *     SOAKS back in — what lands (`cure.rewetPerMm` × exposure) at the
+ *     body's rate × `cure.soakFactor`, up to full, none through a sealed
+ *     outside (D19). Dried faster
  *     than it stands (`dryingCrackRisk` × the rate past `cure.crackRate`),
  *     it CHECKS — a visible `check` flaw on an article's integrity. This is
  *     what green ware, timber and soap read: the one model of a solid
@@ -114,8 +116,10 @@ const WATER_DEFAULTS = {
   AMBIENT_HUMIDITY_PCT: 60,
   /** Dryness gained per hour × crack risk past which a drying solid checks. */
   CRACK_RATE: 0.05,
-  /** Moisture taken back per mm of rain, before exposure scales it. */
+  /** Moisture offered per mm of rain (what lands), before exposure scales it. */
   REWET_PER_MM: 0.002,
+  /** The soak's rate over the body's drying rate (`cure.soakFactor`). */
+  SOAK_FACTOR: 4,
   /** Moisture at/below which a thing reads thoroughly dried. */
   BAND_DRIED_AT: 0.5,
   /** Moisture below which a thing reads partly dried. */
@@ -197,48 +201,6 @@ function waterAugmenter(
   const line = host.waterPhrase();
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
-}
-
-/**
- * How much of a host the air reaches, `[0, 1]`. `0` is **enclosed** —
- * nothing dries.
- *
- * ⭐ Three rungs, and they are the whole exposure model:
- *
- *   - **enclosed** (`0`) — the immediate container is not a `Place`: a
- *     body's inventory, a sack, a chest, a pot. A ham in a closed sack
- *     does not dry, which is honest and is what keeps the store sparse
- *     for every carried and stored good in the world.
- *   - **on a support** — the support's own {@link Placing.getAirExposure}
- *     (default `1`). A rack, a hook, a slatted shelf; an author turns it
- *     down for a close surface.
- *   - **on bare ground** — the `cure.groundExposure` dial (`0.35`): one
- *     face to the air and nothing underneath, which is exactly why turf
- *     is built into an openwork lattice rather than heaped.
- *
- * ⚠ `ContainmentApi.move` onto a placing host moves an item into **the
- * host's container** and then stamps `restingOn`, so the container is the room
- * either way and `getPlacement()` is the only thing that tells a racked
- * thing from a dropped one. That is why this reads the support and not
- * the container.
- */
-function exposureOf(host: Stuff): number {
-  if (!MixinApi.isContainable(host)) return 0;
-  const where = host.getContainer();
-  if (where === null) return 0;
-  // ⚠ `instanceof Place` rather than a mixin predicate: a `Vessel` is
-  // Atmospheric too, and the question here is "is this the open world or
-  // the inside of something". The `Display.ts` precedent.
-  // ⭐ …except a COMPARTMENT with its own air (a drying chamber): a stack
-  // put `in` the loft is the loft's contents since size and carrying W9, and
-  // the loft's air reaches all of it (what the loft's `in` placement gave it
-  // at the Placing default, 1). Not a thing you go inside (a coach's cabin).
-  if (!(where instanceof Place)) return isChamber(where) ? 1 : 0;
-  const support = host.getPlacement()?.host ?? null;
-  if (support !== null) return clamp01(support.getAirExposure());
-  return clamp01(
-    dial(AppSettingKeys.cureGroundExposure, WATER_DEFAULTS.GROUND_EXPOSURE),
-  );
 }
 
 /**
@@ -754,7 +716,7 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       const moisture = this.getMoisture();
       if (moisture <= driedAt) return 0;
       const scope = exposedScopeOf(self);
-      const exposure = exposureOf(self);
+      const exposure = this.reach();
       if (scope === null || exposure <= 0) return null;
       const air = BiomeApi.airFor(scope);
       const factor = air.evaporationFactor();
@@ -766,6 +728,19 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       const hours = Math.log((moisture - equilibrium) / (driedAt - equilibrium)) / k;
       if (!Number.isFinite(hours) || hours <= 0) return 0;
       return hours;
+    }
+
+    /**
+     * How much of this the weather reaches — the host's `Wet.weatherReach()`
+     * (D19: rain and drying ask one exposure). Every Thing is Wet; a host
+     * that is not has no exposure model, and says so.
+     */
+    private reach(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isWet(self)) {
+        throw new Error(`MoistureMixin: ${self.getTemplatePath() ?? 'a host'} holds water but is not Wet (no weatherReach)`);
+      }
+      return self.weatherReach();
     }
 
     // ---------- writes ----------
@@ -821,7 +796,7 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       if (this._reconcilingCure) return;
 
       const self = this as unknown as Stuff;
-      const exposure = exposureOf(self);
+      const exposure = this.reach();
 
       // Enclosed and untreated: nothing to lose, nothing to regain.
       if (exposure <= 0 && this._moisture >= 1) return;
@@ -874,6 +849,16 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
         const risk = this.dryingCrackRisk();
         const crackRate = dial(AppSettingKeys.cureCrackRate, WATER_DEFAULTS.CRACK_RATE);
         const rewetPerMm = dial(AppSettingKeys.cureRewetPerMm, WATER_DEFAULTS.REWET_PER_MM);
+        // ⭐ The soak (D19): what lands soaks in at the body's own rate —
+        // its drying rate × `cure.soakFactor` toward full — never more than
+        // landed, and NOTHING through a sealed outside (a glazed pot takes no
+        // rain into its body). Carried by the rain record alone: it never
+        // debits the Wet film, which is fed by the same rain through the same
+        // reach and face (`Wet.takeRain`), so no water moves between them.
+        const soakPerHour =
+          (ratePerHour ?? dial(AppSettingKeys.cureDryingPerHour, WATER_DEFAULTS.DRYING_PER_HOUR)) *
+          dial(AppSettingKeys.cureSoakFactor, WATER_DEFAULTS.SOAK_FACTOR);
+        const sealed = MixinApi.isFaced(self) && self.isSealed('outside');
         let checked = false;
         for (const seg of BiomeApi.airSegmentsFor(
           scope,
@@ -896,10 +881,12 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
             const perHour = (before - moisture) / span / (seg.durationS / 3600);
             if (perHour * risk > crackRate) checked = true;
           }
-          // ⭐ Rain puts water back (a segment's rain is 0 under a roof).
-          if (seg.rainMmPerH > 0) {
-            const mm = seg.rainMmPerH * (seg.durationS / 3600);
-            moisture = clamp01(moisture + mm * rewetPerMm * exposure);
+          // ⭐ Rain soaks back in (a segment's rain is 0 under a roof).
+          if (seg.rainMmPerH > 0 && !sealed) {
+            const hours = seg.durationS / 3600;
+            const landed = seg.rainMmPerH * hours * rewetPerMm * exposure;
+            const room = (1 - moisture) * (1 - Math.exp(-soakPerHour * hours));
+            moisture = clamp01(moisture + Math.min(landed, Math.max(0, room)));
           }
           this._airHumidityPct = seg.air.humidityPct;
         }
