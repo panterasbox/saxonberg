@@ -4,7 +4,7 @@ import { openWorldAs, runCommand, tipText } from './helpers';
 /**
  * ⭐⭐ **The navigation-server build's browser walk** — what a person sees.
  *
- * The wire drive (`packages/wire/tests/navigation-server.dirty.wire.test.ts`)
+ * The wire drive (`packages/wire/tests/navigation-server.wire.test.ts`)
  * asserts what reached the socket. This walks a real Chromium against the
  * real client: the navigator card now carries NO payload and reads the
  * where-you-are subscription from the store, so `map` must still show where

@@ -83,7 +83,7 @@ function probeSource(v: 'v1' | 'v2'): string {
       : "  public get shape(): string {\n    return 'getter';\n  }";
   return `/**
  * ⚠ WIRE PROBE — written and removed by
- * packages/wire/tests/call-security-performance.dirty.wire.test.ts. Never
+ * packages/wire/tests/call-security-performance.wire.test.ts. Never
  * committed.
  */
 import Good from './Good';

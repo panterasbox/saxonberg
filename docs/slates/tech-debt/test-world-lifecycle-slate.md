@@ -85,7 +85,21 @@ runtime; content-specific drives live with their pack; two builds.
 - **The 11 content halves** build 1 split out (`<name>-content.dirty`) of
   failure-model, call-security-pass, navigation-server, routing,
   location-graph, placement, envelope, injury, wizard-axis,
-  nutrition-fitness, trades-and-labor — each to its pack.
+  nutrition-fitness, trades-and-labor — each to its pack. ⭐ Build 1 split
+  **13**, not 11: client-surface and recovery each had one content step too
+  (a NAMED NPC's corpse keeps her name private — the testbed ships only
+  unnamed Extras, so a named `Cast` to kill is a scaffold piece build 2 may
+  want; the infirmary ward's furnishings).
+- **What build 1 found that build 2 inherits:** a pack with fixtures of its
+  own needs only `testOnly: true` on a second pack — the gate, the purge and
+  the runner's second include root all work unchanged; a pack drive imports
+  `@saxonberg/wire/harness`. The scaffold has no lit room on the free side of
+  a locked door, no carryable lamp (envelope hands trade-mining's safety
+  lamp), and an unfuelled forge — stage what a drive needs, or add the piece
+  to the fixture pack when two drives want it.
+- **Stale paths in other builds' retained plans** (`envelope-plan`,
+  `location-graph-plan`, `client-surface-plan`, `sandbox-overlay-plan`) still
+  name the drives' old `.dirty.` filenames; they are history and were left.
 - The placeholder-content count reaches zero; the soak lane's per-dirty-world
   drops go with the last dirty file.
 

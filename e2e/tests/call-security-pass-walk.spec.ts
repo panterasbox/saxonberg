@@ -6,7 +6,7 @@ import { openWorldAs, openWorldAsFounder, runCommand } from './helpers';
  * ⭐⭐ **The call-security pass's live walk** — the half the wire drive cannot
  * see (review question B3).
  *
- * The wire drive (`packages/wire/tests/call-security-pass.dirty.wire.test.ts`)
+ * The wire drive (`packages/wire/tests/call-security-pass.wire.test.ts`)
  * asserts the envelopes. This is a real Chromium against the real client: an
  * honest player's gate still opens; and the realtor's purchase is asked of the
  * buyer in the ENGINE's words, on the buyer's own prompt — answered no, then

@@ -31,7 +31,7 @@
  * way to one:
  *
  *   - the realm's keyed doors are the dorm and holding family, and
- *     `avatar-family.dirty.wire.test.ts` measured why a drive cannot
+ *     `avatar-family.wire.test.ts` measured why a drive cannot
  *     shortcut to them: a `startLocation` stands the ROOM up but not its
  *     `props:`, and the key arrives with provisioning (Katie), which is
  *     the residence flow;

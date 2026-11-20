@@ -1119,7 +1119,7 @@ A round trip is honest only on an idle box. Every number written into a
 plan, an MR or a slate comes from a quiet-box run with the load beside it;
 profiles on a busy box are for SHARES, never times.
 
-**The procedure** (`tests/crowd-timing.dirty.wire.test.ts`):
+**The procedure** (`tests/crowd-timing.wire.test.ts`):
 
 1. Take the suite lock (`tools/lib/suite-lock.sh`).
 2. List other Saxonberg servers (`pgrep -af preload.js`, then
@@ -1143,7 +1143,7 @@ profiles on a busy box are for SHARES, never times.
 profile is honest on a busy box: `WIRE_CPU_PROF=<dir>` profiles the world,
 and `packages/server/scripts/profile-layer.ts <file> --from <s> --to <s>`
 reads the call-security layer's self time over an uptime window (the crowd
-record's `marks`). `call-security-performance.dirty.wire.test.ts` is the
+record's `marks`). `call-security-performance.wire.test.ts` is the
 second quiet-box file: its gates are relative to a committed baseline
 (`CSP_RECORD=1` writes it), and its refusal and hot-reload steps run on
 every MR.

@@ -5,7 +5,7 @@ import { openWorldAs, runCommand } from './helpers';
 /**
  * ⭐⭐ **The broadcast-ready walk** — the half the wire drive cannot see.
  *
- * The wire drive (`packages/wire/tests/broadcast-ready.dirty.wire.test.ts`)
+ * The wire drive (`packages/wire/tests/broadcast-ready.wire.test.ts`)
  * reads the overlay's feed and the Stream Deck's door. This is a real
  * Chromium against the real client: the controls card opens on `stream`
  * and its chips send real commands; on air the type grows and a tell

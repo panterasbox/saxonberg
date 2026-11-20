@@ -344,7 +344,7 @@ roster, the whole seats-as-positions story — would be describing a
 handoff that cannot happen.
 
 ⚠⚠ **Reproduced over the raw WebSocket, 2026-09-08** — so it is not the
-e2e harness. `world-scan.dirty.wire.test.ts` step 14 moves the
+e2e harness. `world-scan.wire.test.ts` step 14 moves the
 `prime-minister` seat to a throwaway character to prove the world-read
 ability **arrives and leaves with the office**; `office assign` answers
 *"No such player."* against a session that is connected and in the room,

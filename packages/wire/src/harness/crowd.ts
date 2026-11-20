@@ -9,7 +9,7 @@
  * loop stalled, read from the server side by sampling `/healthz` (a timer in
  * this process is not the server's loop).
  *
- * The greeting COUNT is deterministic and gates in `crowd.dirty.wire.test.ts`;
+ * The greeting COUNT is deterministic and gates in `crowd.wire.test.ts`;
  * the TIMING is honest only on an idle box, so its bound lives in
  * `crowd.soak.wire.test.ts`. No `eval`, no wizard: thirty ordinary players.
  */
