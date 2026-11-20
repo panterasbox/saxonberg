@@ -1123,7 +1123,7 @@ Decisions the plan did not make:
   `controller-liquidity`'s `newMineKinds` sees it only by its title — check
   in the drive. `help pour` gained the D2 sentence.
 
-### W2 — one drip (D10, D10b) ✅ done
+### W2 — one drip (D10, D10b) ✅ done (b1c679583)
 
 - `Containable.dripSlots`; `BulkableApi.drip` / `BulkableLogic.drip`,
   with the non-bulk-container wetting rule.
