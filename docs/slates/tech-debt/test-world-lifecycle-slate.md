@@ -6,14 +6,14 @@
 > database operations needed for development? … if it's becoming a problem
 > for test stability or even just wasting time we can reclaim."* Not designed;
 > this records the evidence for that conversation.
-> **Left:** in requirements 2026-11-20 →
+> **Left:** in requirements 2026-11-20 (build 1 of 2) →
 > [test-world-lifecycle-requirements.md](../../requirements/test-world-lifecycle-requirements.md):
-> a seeded-snapshot restore instead of drop + cold boot · one harness-owned
-> restart path (shutdown save, the heap flag, the boot budget) · boot timed by
-> phase. Out: dirty files staging their own stock (→ wire-suite-growth, a
-> census) · selective resets (subsumed) · the live-database snapshot
-> (→ live-instance-testing § 8)
-> **Size:** a build (infra)
+> a test-only fixture pack (the scaffold) · runtime staging for what a drive
+> consumes · run cleanup · one restart path · the no-placeholder-content rule
+> as a gate · the 36 kernel/platform drives migrated. **Build 2** (§ Build 2):
+> the 62 pack drives into their packs, building their own sites · the 22
+> sweeps made content-agnostic · the 7 locality flows moved
+> **Size:** two builds
 
 ## What it costs today
 
@@ -54,26 +54,59 @@
    run dirties (the `RESET_DISPOSITIONS` table already classifies them per
    collection: [record-layer.md](../../subsystems/record-layer.md)).
 
+## The conversation, held 2026-11-20
+
+The first answer — snapshot a seeded world and restore it before every run —
+was wrong, and the owner said why: *"if you're relying on staging a whole world
+just to consume a handful of things and then restaging it all again that's
+just stupid … why can't tests just use that stuff to stage whatever state they
+need regardless of whatever state the world's already in? … at some point all
+this placeholder content is going away for the real thing and we're still
+gonna need tests."* So: **a drive proves a system whatever the world's state,
+and names no placeholder content.** Rulings: a **test-only fixture pack**
+holds the scaffold nothing consumes; drives stage what they consume at
+runtime; content-specific drives live with their pack; two builds.
+
+## Build 2 (after build 1)
+
+- **The 62 infrastructure and trade pack drives** move into their packs and
+  stand up their own sites at runtime from their own rows (a clay pit, a wood,
+  a well, a ship on a sea) in the scaffold — none of the 45 trade or 5
+  infrastructure packs owns a place today, so every one borrows Terminus's.
+  Open: does each pack ship test-only fixtures of its own, or build its site
+  at runtime into the fixture pack's ground?
+- **The 22 sweeps** (every controller, every row loads, …) enumerate what is
+  installed and never name it.
+- **The 7 locality flows** (farming, farmstead, crafting, cooking, textiles,
+  pets, pets-offer) move to their locality's pack unchanged.
+- The placeholder-content count reaches zero; the soak lane's per-dirty-world
+  drops go with the last dirty file.
+
 ## Reuse ledger for the plan (2026-11-20)
 
 Surveyed on master `ace3d9b0a`. Every row is one the plan must account for.
 
 | concept | what already does it | reuse or new |
 |---|---|---|
-| owning / attaching / keeping a world | `packages/wire/src/runner/boot.ts` (`bootOwnedWorld`, `stopOwnedWorld`, `WIRE_KEEP_WORLD`, `WIRE_REUSE`, `kept-world.json`), `global-setup.ts` | **reuse** — the restore runs before the owned boot |
+| owning / attaching / keeping a world | `packages/wire/src/runner/boot.ts` (`bootOwnedWorld`, `stopOwnedWorld`, `WIRE_KEEP_WORLD`, `WIRE_REUSE`, `kept-world.json`), `global-setup.ts` | **reuse** — a long-lived kept world becomes the normal case |
 | a timed stop that reads the shutdown save | `harness/world.ts` `stopWorldWithin`, `lastShutdownReport` (db-performance) | **reuse** — the one restart path is built on it |
 | restart | `harness/world.ts` `restartWorld` + **18 files with their own copy** (preflight + `bootOwnedWorld`, most with the 2 s preflight kill) | **generalize** — one harness path; the copies deleted |
 | the kill graces | `stopOwnedWorld`'s 15 s; `dev-preflight.mjs` `PREFLIGHT_GRACE_MS` (2 s default; six files pass 60–300 s) | **generalize** |
 | the heap flag | nothing: `boot.ts` strips `NODE_OPTIONS` on every owned boot | **new** (a flag kept on the spawned world) |
 | the boot budget | `WIRE_BOOT_TIMEOUT` default 420 s; soak passes none; testing.md says use 900 s after `reset:db` | **generalize** |
-| dropping the worktree DB | `packages/server/scripts/reset-db.ts` (refuses `saxonberg_demo`) | **reuse** its refusal; the restore keeps the same guard |
+| dropping the worktree DB | `packages/server/scripts/reset-db.ts` (refuses `saxonberg_demo`) | **kept** for a deliberate cold boot; no longer the way to a fresh run |
 | a per-collection reset classification | `RESET_DISPOSITIONS` (generated), `RecordLogic.wipe` | **not reused** — built for a running world (keeps the clock, wipes snapshots under live hosts); the restore replaces the whole DB |
-| a database dump / restore | **nothing** — no `mongodump`/`mongorestore` usage; the tools are not installed (owner ruling: install them) | **genuinely new** |
-| knowing a snapshot is still valid | nothing (no seeded marker, no pack-graph fingerprint) | **genuinely new** |
+| a database dump / restore | nothing | **rejected** (the conversation) — a world drives cannot dirty needs no reset |
+| a test-only pack | nothing: only command views can be test-only (`testOnly` + `requiresTestWorld`); discovery reads the deployment manifest's `@saxonberg/content-*` deps | **genuinely new** — a pack flag discovery honors only in a test world |
+| the scaffold | nothing: no `/test/` rows in any world; `/world/saxonberg` is an empty executive-held parcel; `Archetype.materialize()` (derived test venue, unit tests only) | **new** (the fixture pack's rows); `Archetype` a candidate for the venue |
+| creating what a drive consumes | `hand` (test-hand), `stage` (test-stage), `arrive`, `house appoint`, `reserve override`, `testharness` | **reuse**; new only where a gap is proven (a funded account at the scaffold bank, an NPC in a role) |
+| cleanup of a run's litter | `purge-test-characters.ts` (e2e handles only); nothing for wire | **generalize** to wire handles, clones, seats, money |
+| drives living in a pack | nothing: the vitest include, `global-setup`'s readdir, the `wire:dirty` glob and `tools/soak` all read `packages/wire/tests` | **generalize** the discovery |
+| the no-content rule | `lint:test-content` (kernel unit tests; skips wire) | **generalize** to wire drives (census, then ratchet) |
 | boot timing by phase | only global-setup's "world up in Xs"; server log has no timestamps; `/stats.db` counts ops | **new** (phase marks), reusing `/stats.db` for attribution |
-| the soak lane's world per dirty file | `build/soak-repair` (in flight): `tools/soak` `worlds_of`/`run_world`, `reset:db` before each world | **reuse** — the restore replaces its drop (merge order with soak-repair) |
+| the soak lane's world per dirty file | `build/soak-repair` (in flight): `tools/soak` `worlds_of`/`run_world`, `reset:db` before each world | **unchanged** in build 1; its drops go when build 2 empties the dirty list |
 | a file staging its own stock | `hand` / `stage` / `arrive` / `stageShip` (`TestAuthRoutes`), `DIRTY_REASON` | **out of scope** — census for wire-suite-growth |
-| the CI wire job | `.gitlab-ci.yml` `wire:` on `node:22`, its own `saxonberg_wire` | **touch** — the tools must be on the image |
+| the CI wire job | `.gitlab-ci.yml` `wire:` on `node:22`, its own `saxonberg_wire` | **touch** — its test world installs the fixture pack |
 
 ## See also
 

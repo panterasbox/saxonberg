@@ -1,235 +1,239 @@
-# Test-world lifecycle — requirements
+# Test-world lifecycle — requirements (build 1 of 2)
 
-**Kind:** infra (test tooling)
-**Leads from:** kernel and tooling. **First consumer:** the wire drives — every
-owned wire run, every drive that restarts its world, and the soak lane.
+**Kind:** infra (test tooling) and a test-only content pack
+**Leads from:** kernel and tooling. **First consumer:** the 36 kernel and
+platform wire drives, migrated in this build; build 2 moves the pack drives.
 
-Every worktree has one database, and a wire run boots a world on it, plays
-through it, and stops and restarts it. Today a fresh world costs a **cold boot
-of 12–13 minutes** after a dropped database, and the drives drop it all the
-time because they consume the world. Restarts are hand-rolled in many places,
-most of them kill the world before it can save, and the soak lane is about to
-pay a cold boot per dirty file. This build makes a fresh world cost about what a
-warm boot costs, gives the harness one correct way to stop and restart a world,
-and measures boot by phase so the next question about it starts from a number.
-Seeding slate:
+A wire drive should prove a SYSTEM, whatever state the world is in, and should
+not care which placeholder content the world happens to hold — that content
+will be replaced, and the drives must outlive it (owner, 2026-11-20). Today
+they do the opposite: 120 of 127 drives stand in Terminus's rooms, bank and
+shops, eat its stock and seats, and so need a dropped database and a 12–13
+minute cold boot to run again. This build gives the suite **a scaffold of its
+own** — a test-only fixture pack, installed only in test worlds, that nothing
+consumes — and the runtime staging a drive needs to make everything it DOES
+consume; moves every kernel and platform drive onto them; cleans up what a run
+leaves behind; and gives the harness one correct way to stop and restart a
+world. Seeding slate:
 [test-world-lifecycle-slate.md](../slates/tech-debt/test-world-lifecycle-slate.md)
-(reuse ledger: § Reuse ledger for the plan).
+(reuse ledger: § Reuse ledger for the plan). Build 2 (the pack drives, the
+sweeps, the locality flows) is recorded there.
 
 ## What already exists
 
 Surveyed on master `ace3d9b0a`, 2026-11-20:
 
-- **Owning, attaching and keeping a world** exist: an owned boot, an attach
-  to a running world, and a kept world a later run can reuse. One port per
-  worktree.
-- **A fresh world is a dropped database and a cold boot**: about 12–13
-  minutes, most of it seeding (every pack row inserted, every venue seeded and
-  snapshotted, every producer stocked). A warm boot on an existing database is
-  about 2.5 minutes. `testing.md`'s boot-cost table (245 s cold / 97 s warm,
-  September) is stale.
-- **The drives eat the world.** 112 wire files are marked dirty and say what
-  they consume: about 45 eat stock they could hand themselves, about 25 deplete
-  persisted ledgers or world structure, others take seats or mint history. A
-  reused world fails later files for staging reasons, not code reasons.
-- **Restarts are hand-rolled.** The harness has a restart and a timed stop
-  that reads the world's own shutdown report; 18 drive files carry their own
-  restart, and most of those kill the world two seconds after asking it to
-  stop — before the shutdown save. Every restart also drops the
-  near-heap-limit diagnostic.
-- **The boot budget is wrong for a fresh world**: 420 s by default, against a
-  12-minute cold boot; the soak lane passes none.
-- **The soak lane** (in flight on its own worktree, soak-repair) now drops the
-  database before every dirty file: up to 26 cold boots per pass.
-- **No snapshot of a database exists anywhere**, and the Mongo command-line
-  tools are not installed. A copy kept as collections inside each worktree's
-  database would breach the cluster's 500-collection cap; a dump on disk costs
-  none.
-- **The nightly reset** classifies every collection (keep / wipe), but it is
-  built for a running world — it keeps the clock and wipes saved places under
-  live hosts — so it is not a test-world reset.
+- **127 wire drives; 4 name no content.** 120 name `/world/...`: 114 lean on
+  Terminus, 75 on its bank, 40 on its general store, 47 seat themselves on its
+  committee. 121 put their characters in a named place; a place that does not
+  exist fails the login.
+- **What they really test:** 36 a kernel or platform system (they need a place
+  to stand, sometimes money, a shop, an NPC); 22 a deliberate sweep across
+  every pack's rows; 22 an infrastructure pack's mechanism (water, transport,
+  ground, energy, residence, medicine); 40 a trade pack's mechanism; 7 a
+  specific locality's own flow.
+- **Runtime staging exists, but only for what already exists.** A drive can
+  hand a character a thing, set a field on an existing object, move the clock,
+  pin the weather, move an existing ship, appoint someone to an existing
+  business, seat a character on a committee, give them arrival cash. It cannot
+  create, from nothing: a place to stand and walk in, a bank account (only
+  Terminus's counter opens one), a venue with positions, an NPC in a role, a
+  shop with stock.
+- **No test-only content exists**, and no pack can be marked test-only; only
+  command views can (`testharness`).
+- **A run leaves litter**: about 400 test characters a run, minted money with
+  no sink, clones and taken seats never returned. Only the browser tests purge
+  their characters.
+- **Restarts are hand-rolled** in 18 drives, most killing the world two
+  seconds after asking it to stop — before its shutdown save — and every
+  restart drops the near-heap-limit diagnostic. The boot budget (420 s) does
+  not fit a fresh boot.
+- **Pack drives cannot live in their packs**: the runner finds drives only in
+  the wire package.
 
-**Therefore what is genuinely new here is:** a seeded database saved to a file
-and restored in place of the drop, a way to know when that file is stale, one
-stop-and-restart path the harness owns, and boot timing by phase. Everything
-else — owned and kept worlds, the timed stop, the drop's guard on the live
-database — is reused.
+**Therefore what is genuinely new here is:** a test-only pack and the gate
+that keeps it out of every other world; the scaffold in it; runtime staging
+for the few things a drive consumes that cannot be handed or set today;
+cleanup of what a run leaves; one restart path; and the rule — enforced —
+that a drive names no placeholder content.
 
 ## Goals
 
-- ⭐ **A fresh world costs about a warm boot, not a cold one.** Starting a
-  world from fresh state — the state a dropped database and a cold boot would
-  give — takes no more than ~4 minutes end to end (restore plus boot), against
-  12–13 today, on the worktree's hosted database.
-- **The fresh state is the same fresh state.** A world started from the
-  snapshot is indistinguishable, to a drive, from one cold-booted on a dropped
-  database: the stock a dirty file consumed is back, the ledgers it depleted
-  are full, the seats it took are vacant.
-- **The snapshot is never silently stale.** It records what it was seeded
-  from; when the content or the pack graph it was seeded from changes, the next
-  run that wants fresh state seeds a new one (one cold boot) and says so. Code
-  edits alone do not invalidate it — the boot after a restore reconciles them.
-- **Every worktree restores only into its own database**, and the live
-  database can never be the target — the same refusal the drop has today.
+- ⭐ **A drive runs in whatever state the world is in.** A migrated drive
+  passes on a fresh world, on a world every other drive has already run in, and
+  run twice in a row — with no database drop between.
+- ⭐ **No kernel or platform drive names placeholder content.** It stands in
+  the scaffold, uses engine rows and its own staged state, and is untouched
+  when Terminus (or any locality) is replaced or removed. All 36 are migrated
+  in this build.
+- **The scaffold is the suite's own, and is never consumed.** A small test
+  locality — rooms joined by exits, lit, walkable — a bank where any test
+  character can open an account, a venue with positions and a seat, a
+  shopfront, and NPCs standing in roles. Drives use it; they do not use it up.
+- **What a drive consumes, it makes.** Stock, money, a seat appointment, a
+  ledger's level: staged at runtime by the drive itself, by tools that work
+  whatever the world holds.
+- **The fixture pack exists only in test worlds.** It installs in a world
+  booted as a test world (the wire runner's, CI's, the soak lane's) and is
+  refused, loudly, by any other — the live world can never hold it.
+- **A run cleans up after itself.** The characters, clones, seats and money a
+  run made are removed when it ends; what a crashed run left is removed at the
+  next start. A world that has hosted a hundred runs holds no more test litter
+  than a fresh one.
 - **A world asked to stop is given the time to save.** Every stop and restart
-  the harness performs waits for the world's own shutdown save (bounded) and
-  reports it; none kills a world mid-save. No drive file carries its own
-  restart.
-- **A restarted world keeps its diagnostics** — the near-heap-limit snapshot
-  is armed on every world the harness starts.
-- **A fresh boot is never cut off by its own budget**: the harness's boot
-  budget fits the boot it is about to do.
-- **Boot reports its phases.** Each boot says how long each phase took
-  (connect and indexes, the pack install, the boot roster, the spawn sweep, the
-  world opening), in the log a developer already reads.
-- **The soak lane starts each dirty world from the snapshot**, not from a
-  cold boot.
-- **The CI wire job** has the tools it needs and behaves as before.
+  the harness performs waits for the world's shutdown save (bounded) and
+  reports it; none kills a world mid-save; no drive carries its own restart; a
+  restarted world keeps its heap diagnostic; a fresh boot is never cut off by
+  its own budget.
+- **A pack can own its drives.** The runner finds a drive that lives in a
+  pack, so build 2's moves need no runner change.
+- **The rule stays kept.** A drive that names placeholder content is refused
+  at the gate; the existing ones are counted and the count only falls (build 2
+  takes it to zero).
 
 ## Non-goals
 
-- **Dirty files staging their own stock** (a file that consumes a knife hands
-  itself one) → [wire-suite-growth-slate](../slates/tech-debt/wire-suite-growth-slate.md),
-  as a census and a ratchet over the `DIRTY_REASON` exports. The restore makes
-  run order not matter; self-staging makes a REUSED world not matter, which is
-  a different and larger job.
-- **Selective resets** (reset only what a run dirtied) → nowhere,
-  deliberately: the restore replaces the whole database, and a per-collection
-  reset of a running world is what the nightly reset already is.
-- **Restoring from a snapshot of the live database** (the soak lane playing
-  against real data) → [live-instance-testing-slate](../slates/tech-debt/live-instance-testing-slate.md)
+- **The 62 infrastructure and trade pack drives** moving into their packs and
+  standing up their own sites (a clay pit, a wood, a well) → **build 2**, this
+  slate.
+- **The 22 sweeps across every pack** becoming content-agnostic (enumerate
+  what is installed, never name it) → build 2.
+- **The 7 locality flows** moving to their locality's pack as they are →
+  build 2.
+- **A snapshot or restore of the database** → nowhere, deliberately: a world
+  that drives cannot dirty needs no reset (it was this draft's first answer,
+  and the wrong one).
+- **Making a cold boot faster** → [db-performance-slate](../slates/tech-debt/db-performance-slate.md)
+  § 5. Boot is measured here only as far as the restart path needs.
+- **Restoring from a snapshot of the live database** →
+  [live-instance-testing-slate](../slates/tech-debt/live-instance-testing-slate.md)
   § 8.
-- **Making a cold boot itself faster** (seeding cost, the per-room horizon
-  stand-up) → [db-performance-slate](../slates/tech-debt/db-performance-slate.md)
-  § 5 and geography-slate item 9; this build measures it and stops paying it,
-  it does not shrink it.
-- **A schedule for the soak lane** → [crowded-rooms-slate](../slates/tech-debt/crowded-rooms-slate.md)
-  § The soak lane is not a schedule.
-- **A wire-tier purge of test characters** → wire-suite-growth § 8.
+- **A schedule for the soak lane** → [crowded-rooms-slate](../slates/tech-debt/crowded-rooms-slate.md).
 
 ## Placement
 
-Test tooling and the harness, plus the boot's own phase reporting in the
-kernel. No pack, no content, no world change. The snapshot is a worktree-local
-file, not a database and not a collection. A second worktree needs nothing but
-its own first seeding.
+- **The fixture pack** is a content pack of its own, owned by the test suite,
+  holding a place under the world's place axis (a test locality) and the
+  scaffold's rows. It depends only on the platform pack and, for the
+  shopfront, the shopkeeping pack. A second scaffold (build 2's per-pack
+  sites) needs no new pack mechanism.
+- **The test-only gate** belongs to the pack mechanism: a pack can declare
+  itself test-only, and only a test world installs it.
+- **Staging, cleanup and the restart path** belong to the test tooling and the
+  harness; any server side of them is test-only, as the existing test routes
+  are.
 
 ## Collisions
 
-None in the world. In the tooling:
+None in the world: the fixture pack's locality is new and stands apart from
+every authored place, reachable only by test characters. In the tooling:
 
-- **soak-repair** (the soak worktree, in flight): it edits the soak lane's
-  runner and the wire runner's log pipe, and drops before each dirty world.
-  This build replaces that drop with a restore. Whichever merges second merges
-  the other in first; this build does not wait on it.
-- **The 18 drive files with their own restart** move onto the harness's one
-  path — a textual change in each, owned by no other build.
-- **The CI wire job** runs against its own database on its own image; the
-  image gains the tools.
-- **tooltips** (build-2) touches the wire harness's session only; no overlap.
+- **soak-repair** (the soak worktree, in flight) edits the soak lane runner and
+  drops the database before each dirty soak world. Unchanged by this build
+  except that the soak lane's world installs the fixture pack; the drops go
+  when build 2 empties the dirty list. Whichever merges second merges the other
+  in first.
+- **The 18 drives with their own restart** move onto the harness's one path.
+- **The CI wire job** boots a test world, so it installs the fixture pack.
+- **The live deploy** must never install it — the gate's whole purpose.
 
 ## Surface decisions
 
-### What a fresh world is made from
+### Scaffold, or built at runtime
 
-**Answer:** a file — the worktree's database as a seeded world leaves it, saved
-once and restored before any run that wants fresh state. Restoring replaces the
-database's contents; it creates no database and no collection beyond the
-world's own.
-**Why:** one database per worktree and the 500-collection cap rule out a copy
-kept in the cluster; a file costs nothing there.
+**Answer:** a test-only fixture pack for the scaffold — the places, the bank,
+the venue, the shopfront, the NPCs — and runtime staging for everything a drive
+consumes (owner ruling, 2026-11-20).
+**Why:** authored scaffold is stable, reviewable and loads like any content;
+consumables staged by the drive are what make the world's state irrelevant.
 
-### Which tools
+### What the scaffold holds
 
-**Answer:** the official Mongo dump and restore tools, installed on every
-machine and on the CI image (owner ruling, 2026-11-20).
-**Why:** exact (types, indexes) and fast; the alternative, a dump written with
-the driver the server already ships, avoids an install but owns fidelity bugs.
+**Answer:** exactly what the 36 kernel and platform drives stand on, and no
+more: a few rooms joined by exits (lit, and one unlit), a bank counter any test
+character can open an account at, a venue with positions and a seat, a
+shopfront, and NPCs in roles. Each piece is generic — it represents a kind, not
+a story.
+**Why:** a scaffold that grows past its consumers becomes the placeholder
+content it replaces.
 
-### When the snapshot is stale
+### What "the world's state doesn't matter" means
 
-**Answer:** when the content or pack graph it was seeded from differs from the
-checkout's. Code changes alone do not stale it.
-**Why:** content and packs decide what a seeded world holds; code changes are
-frequent, and the boot after a restore reconciles changed rows — reseeding on
-every edit would bring the cold boot back. A run that truly wants a cold boot
-can still drop the database, as today.
+**Answer:** a migrated drive asserts only on what it staged or reads from the
+scaffold; it never depends on another drive having run or not run, on stock
+being present, or on a seat being vacant. It must pass three ways: fresh, after
+the whole suite, and twice in a row.
+**Why:** the owner's definition — tests stage whatever state they need,
+regardless of the world's.
 
-### Who restores, and when
+### Cleanup
 
-**Answer:** an owned wire run starts from the snapshot by default, in place of
-the drop a developer types today; attaching to a running or kept world does not
-restore. The soak lane restores before each dirty world.
-**Why:** the default should be the state a drive expects; the drop survives
-only for the run that wants a true cold boot.
+**Answer:** each run removes what it made — its characters, its clones, its
+appointments, its money — at the end, and the next run removes a crashed run's
+leftovers at the start. The scaffold is never removed; the fixture pack owns
+it.
+**Why:** a long-lived world that accumulates litter becomes a state that
+matters again.
 
 ### How long a stop may take
 
 **Answer:** a stop waits for the world's own shutdown save, bounded by a grace
-that fits a loaded world (the db-performance build measured ~2 s for 178 hosts;
-the grace is generous against that), and reports what the save said. A world
-that overruns the grace is killed and the report says so.
-**Why:** a kill mid-save loses what the world held — the failure this harness
+that fits a loaded world, and reports what the save said; a world that overruns
+it is killed and the report says so.
+**Why:** a kill mid-save loses what the world held — a failure the harness
 should never manufacture.
 
 ## Lens pass
 
-1. **Pedagogy:** none — no Discipline, no player surface.
-2. **Creative expression:** none directly; every drive author gets a fresh
-   world for free, and writing a drive that restarts its world stops meaning
-   copying a restart.
-3. **Immersion and participation:** none — nothing a player sees.
+1. **Pedagogy:** none.
+2. **Creative expression:** ⭐ the deciding limb — content authors can replace
+   Terminus without breaking a single systems drive, and a drive author writes
+   against a stable scaffold instead of hunting for a room that still has a
+   knife in it.
+3. **Immersion and participation:** none for players — the test locality is
+   reachable only in test worlds.
 4. **Values:** none undecided.
-5. **Continuity:** no epoch content. The snapshot is versioned by what it was
-   seeded from, so it cannot outlive the world it describes.
-6. **Economy:** the developer's hours and the shared box. A cold boot per run
-   is hours per build and a 3 GB world standing longer than it needs to; the
-   restore shortens both. The cluster's collection cap is respected.
-7. **Governance:** none — no person is judged. The live database's refusal is
-   the one rule, and it is inherited unchanged.
+5. **Continuity:** the scaffold represents kinds, not an epoch's story; it
+   survives a content reset by construction.
+6. **Economy:** the developer's hours and the shared box: no drop, no cold
+   boot per run, no 3 GB world standing through one.
+7. **Governance:** none. The one rule — test-only means never live — is a
+   hard gate, not a judgment.
 
 ## The drive
 
-Infra with no player surface: the drive is what a developer (or an agent) does
-with the wire tooling, against the worktree's own hosted database. Every step
-is `instant`, `short` or `staged`; **no soak drive**, deliberately. It ends
-with a restart (step 6).
+Infra: the drive is what a developer (or an agent) does with the wire tooling,
+on the worktree's own world. Every step is `instant`, `short` or `staged`; **no
+soak drive**, deliberately. It carries a restart (step 6).
 
 ### Blocking drive
 
-1. **A cold boot, measured** (`short`, `staged`). Drop the worktree database
-   and boot a world. The log reports each boot phase with its duration; the
-   phases add up to the boot. (Recorded as the baseline every later step is
-   compared with.)
-2. **The snapshot is made** (`short`, `staged`). With no snapshot present, a
-   run that wants fresh state seeds the world once and saves it; the run says
-   it did, and the snapshot records what it was seeded from.
-3. **A dirtied world, made fresh** (`short`, `player` for the observations).
-   Run a dirty drive that consumes the world (a felled wood, a bought lot, a
-   taken seat, consumed stock). Start a new owned run: it starts from the
-   snapshot, and a player finds the wood standing, the lot for sale, the seat
-   vacant and the stock on the counter — exactly as after a cold boot. The
-   fresh start, restore plus boot, takes no more than ~4 minutes.
-4. **A stale snapshot is noticed** (`instant`, `staged`). Change a pack's
-   content in the checkout; the next run that wants fresh state says the
-   snapshot is stale, seeds a new one, and uses it. A code-only change does
-   not.
-5. **A refused target** (`instant`, `staged`). Pointed at the live database,
-   the restore refuses, before it touches anything, in the same words the drop
-   uses.
+1. **The scaffold is there** (`instant`, `player`). A test character logs in to
+   the test locality, walks its rooms by their exits, looks in the light and in
+   the unlit room, opens an account at its bank, reads its venue's openings,
+   and finds its NPCs at their posts.
+2. **Only in a test world** (`short`, `staged`). A world booted as an ordinary
+   (non-test) world refuses to install the fixture pack, says so, and holds
+   none of its rows.
+3. **Indifferent to state** (`short`, `staged`). Run the migrated kernel and
+   platform drives on a fresh world; run them again on the same world without a
+   drop; run them after the whole suite has dirtied it. All pass all three
+   times.
+4. **No placeholder content** (`instant`, `staged`). With Terminus's pack left
+   out of the world, the migrated drives still pass.
+5. **Clean after itself** (`short`, `staged`). After a full run, the world
+   holds no test characters, clones, appointments or minted money the run made;
+   a run killed partway leaves litter that the next run's start removes.
 6. **A loaded world stops and comes back** (`short`, `player`). With players
-   connected and holding things, a drive restarts the world through the
-   harness: the stop waits for the shutdown save, the save is reported (count,
-   time, failures), nobody is killed mid-save, the restarted world has its
-   heap diagnostic armed, and every player comes back where they stood, holding
-   what they held.
-7. **The drives run on it** (`short`, `staged`). Two dirty drives that each
-   consumed the other's preconditions on a shared world now pass in either
-   order, each starting fresh; a drive that used to carry its own restart runs
-   on the harness's.
-8. **The soak lane** (`short`, `staged`). The soak lane runs two dirty soak
-   files; each starts from the snapshot, neither pays a cold boot, and the
-   lane's report says so.
+   connected in the scaffold and holding things, a drive restarts the world
+   through the harness: the stop waits for the save and reports it, nobody is
+   killed mid-save, the heap diagnostic is armed on the new world, and every
+   player comes back where they stood, holding what they held.
+7. **A pack's drive is found** (`instant`, `staged`). A drive placed in a pack
+   runs with the suite.
+8. **The rule holds** (`instant`, `staged`). A drive that names a locality
+   path is refused at the gate; the count of drives still naming one is
+   reported and cannot rise.
 
 ### Soak drive
 
@@ -237,28 +241,27 @@ None. Nothing here moves with the game clock.
 
 ## Acceptance criteria
 
-- A world started from fresh state is ready in about a warm boot's time
-  (≤ ~4 minutes, restore plus boot), not 12–13 minutes.
-- A world started from the snapshot holds exactly what a cold boot on a
-  dropped database would: consumed stock, depleted ledgers and taken seats are
-  restored.
-- A stale snapshot is detected and replaced, never silently used; a
-  code-only change does not stale it.
-- The restore never targets the live database.
-- Every stop and restart the harness performs waits for the world's shutdown
-  save and reports it; no drive file carries its own restart.
-- A restarted world has the heap diagnostic armed.
-- A boot reports each phase's duration.
-- The soak lane's dirty worlds start from the snapshot.
-- The CI wire job passes as before, with the tools available.
+- All 36 kernel and platform drives pass on a fresh world, again on the same
+  world without a drop, and after the whole suite — and with Terminus's pack
+  absent.
+- None of them names placeholder content.
+- The fixture pack installs only in a test world; any other world refuses it.
+- A test character can stand, walk, bank, find work and find NPCs in the
+  scaffold.
+- A run leaves no test characters, clones, appointments or minted money; a
+  crashed run's leftovers are removed by the next.
+- Every stop and restart waits for the shutdown save and reports it; no drive
+  carries its own restart; a restarted world has its heap diagnostic.
+- A drive that lives in a pack runs with the suite.
+- A drive that names a locality is refused, and the number still doing so
+  cannot rise.
 
 ## Cross-references
 
 - [test-world-lifecycle-slate.md](../slates/tech-debt/test-world-lifecycle-slate.md)
-  (seeding slate, reuse ledger)
-- [testing.md](../testing.md) (the wire tier, attach or own, the boot cost, the
-  soak lane) · [deployment.md](../deployment.md) (the Mongo environment policy)
-- [db-performance-slate.md](../slates/tech-debt/db-performance-slate.md) § 5 ·
-  [wire-suite-growth-slate.md](../slates/tech-debt/wire-suite-growth-slate.md) ·
-  [live-instance-testing-slate.md](../slates/tech-debt/live-instance-testing-slate.md) § 8 ·
-  [soak-lane-slate.md](../slates/tech-debt/soak-lane-slate.md)
+  (seeding slate, reuse ledger, build 2)
+- [testing.md](../testing.md) (the wire tier, attach or own, the soak lane) ·
+  [content-packs.md](../subsystems/content-packs.md) (discovery, the installer)
+- [wire-suite-growth-slate.md](../slates/tech-debt/wire-suite-growth-slate.md)
+  (§ 8 world litter) · [db-performance-slate.md](../slates/tech-debt/db-performance-slate.md)
+  § 5 · [soak-lane-slate.md](../slates/tech-debt/soak-lane-slate.md)
