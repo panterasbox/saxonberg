@@ -6,6 +6,8 @@
 # A wet mould drinks slower; let it dry between casts.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: plaster mould
   keywords: [mould, mold, "plaster mould", "plaster mold"]
   register: indefinite
