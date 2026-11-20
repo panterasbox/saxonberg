@@ -106,8 +106,13 @@ runtime; content-specific drives live with their pack; two builds.
     refused (`setConditionAtDeath`), so the NPC dies and leaves nothing.
     Mortality / call-security: a death is the world's act, not the
     reader's, or an unplaced mint by in-jurisdiction work is in it.
-  - **A handed Book is not titled to its holder** (`shelf consign` answers
-    "isn't yours to sell"; a handed rope or rag is). Chattel / paper.
+  - **A fresh good's title is derived fire-and-forget after a move**
+    (ContainmentLogic's custody step), so an act on it at once — `shelf
+    consign` — can read "isn't yours to sell" while the world is busy. The
+    harness's `hand` now waits for the title; a player who picks a fresh good
+    up and sells it in the same breath could still meet it. Chattel.
+    (First recorded here as "a handed Book is not titled" — wrong: it was
+    this race.)
   - **`tend` / `lock` with nothing in reach ask "Tend what?" / "Lock
     what?" with an empty list** — a prompt a player cannot usefully answer.
     The binder.

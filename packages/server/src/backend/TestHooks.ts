@@ -675,6 +675,17 @@ export class TestHooks {
       // body places it, or the move throws — a hand that cannot take it is
       // the test's finding, never a silent drop at the feet.
       ContainmentApi.move(thing, into);
+      // ⭐ Return once the good is the holder's. A fresh good's title is
+      // derived fire-and-forget after the move (ContainmentLogic's custody
+      // step), so a drive that acted at once — `shelf consign` — read "isn't
+      // yours to sell" whenever the world was busy (test-world-lifecycle
+      // drive). Bounded: a good the move does not title stays untitled.
+      if (MixinApi.isChattel(thing)) {
+        const until = Date.now() + 5_000;
+        while (thing.stampedOwner() === null && Date.now() < until) {
+          await new Promise((r) => setTimeout(r, 25));
+        }
+      }
       return thing.stuffId;
     });
   }

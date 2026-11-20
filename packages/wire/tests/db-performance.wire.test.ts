@@ -84,9 +84,9 @@ const ROOM = HALL;
 /** The bank's Business: the house that appoints the thirty and pays them. */
 const HOUSE = BANK_BUSINESS;
 /** What a consignor puts on the shop's shelf (a platform row, handed). */
-// ⚠ Rope, not the notebook: a handed Book is not titled to its holder
-// (`shelf consign` answers "isn't yours to sell" — a finding, recorded in the
-// test-world-lifecycle slate), and a handed rope is.
+// The shop's rope, handed. (⚠ The harness's `hand` now returns once the good
+// is titled to its holder: the title is derived fire-and-forget after a move,
+// and a consign issued at once read "isn't yours to sell" under load.)
 const GOOD = ROPE;
 const RAG = '/stuff/thing/rag';
 /** The office `reserve override` asks for (`requiresGovernor`). */

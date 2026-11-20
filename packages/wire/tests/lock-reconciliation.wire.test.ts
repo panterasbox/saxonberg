@@ -434,14 +434,17 @@ suite('7–9. the adjudications, read the way a player meets them', () => {
     );
   }, 120_000);
 
-  it('⭐ 10. `score` and `me` both render a card', async () => {
-    for (const word of ['score', 'me', 'player']) {
+  it('⭐ 10. `score` and `player` both render a card', async () => {
+    // ⚠ `me` is gone: one view, one word (controllers-are-io) deleted the
+    // synonym words, and `score.yaml` declares no default alias — this step
+    // was red on master since.
+    for (const word of ['score', 'player']) {
       expectUnderstood(await newcomer.cmd(word), word);
     }
     const mine = plain(await (await newcomer.cmd('score')).said());
     expect(
       mine.length,
-      '`me` should render an identity card, not nothing',
+      '`score` should render an identity card, not nothing',
     ).toBeGreaterThan(20);
   }, 120_000);
 });
