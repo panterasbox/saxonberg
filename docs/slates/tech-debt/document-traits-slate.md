@@ -2,7 +2,7 @@
 
 > **Status: UNBUILT** — opened 2026-11-20 (owner, in the listing-resolution
 > conversation). Design in progress; decisions below are the owner's.
-> **Left:** the rest of the trait vocabulary (filed · dated · shipped ·
+> **Left:** the rest of the trait vocabulary (shipped ·
 > validated · catalogued · paper · append-only · tree · kernel words ·
 > secret) · where a kind's declaration lives · retiring the closed
 > `DOCUMENT_KINDS` list and everything that enumerates it · the five
@@ -114,6 +114,55 @@ metadata; restate it in trait terms. Flagged as possibly Ideas: `herd`,
   tie instead of failing install.
 - Retires: `form`'s `key ?? leaf` (authored keywords) and placement's
   first-preposition word (the keywords field).
+
+### `filed` — written by its transport, and only by it
+
+The write transports are the eight narrow-by-construction paths already
+in `DocumentApi`: **register** (a society's book about somebody else —
+herd, fishery, body, bore, ship, berth-book), **business** (a business's
+own papers — bill-of-lading, warehouse-receipt, rate-card), **release**
+(the press), **instrument** (a contract's papers into each party's home),
+**map** (a player's map claims), **stream-token**, **berth** (a landing's
+roll), **edition** (a frozen printing). ⚠ `water-right` has none — its
+registry writes with the plain `save`, ungated.
+
+- **Declares** which transport writes it (`filed: register`). The
+  transports stay code and closed — each is a security path; a pack
+  declares that its kind is register-filed, it cannot invent a transport.
+- **Gives:** the kind is writable **only** through its transport — the
+  plain `save` refuses a filed kind (today a branch owner could write a
+  herd record by plain `save`; title on the path is the only gate). The
+  transport checks the kind's declaration instead of a list
+  (`saveToRegister`'s declared check and `BUSINESS_DOCUMENT_KINDS` retire).
+  No content dir unless also `shipped` (defect 3). Kept across the nightly
+  reset — a filed document is world state.
+- Path schemes (slug, hash, home key) stay with the transport.
+
+### `dated` — when it happened, for ordering
+
+- **Declares** the field, its **unit** (game seconds, or real ms for an
+  out-of-character kind — today only `stream-token`), and **indexed**
+  (the date on the card so newest-first and ranges are database queries;
+  default **off**).
+- **Gives:** one ordering for listings, `ls`, a register's pages and "the
+  current one" (the newest rate card); the date beside the title in a
+  summary line.
+- One "when" per kind — a receipt's `settledAtS` is just data.
+- Indexed: **release, bill-of-lading, warehouse-receipt, rate-card** (they
+  grow per event and are read newest first). Maps not.
+- ⚠ Expiry (release `expiresAt`, edition `validUntilS`) is not this trait —
+  a lifecycle trait for later.
+- ⭐ **Release and edition move to game time** (owner, 2026-11-20 — *game
+  clock only*): `publishedAt` and `frozenAtMs` are real ms today; both are
+  in-world.
+
+### Undeclared kinds are refused
+
+Writing a kind nobody declared is **refused** (refuse/skip/throw), not
+written and wiped at the next reset. The one live case, the
+`venue-eighty-six` list the enforcement brain writes
+(`lib/behavior/enforces.ts:152`), gets a declaration (likely
+`filed: business`).
 
 ## Related
 
