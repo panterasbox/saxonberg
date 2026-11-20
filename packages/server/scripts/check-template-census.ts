@@ -52,6 +52,7 @@ import { join, dirname, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { packSources,
+  nonTemplateDirs,
   effectiveRow,
   inheritanceIndex,
   fieldMetaEntries,
@@ -65,11 +66,8 @@ const REPO_ROOT = resolve(SERVER_ROOT, '../..');
 const CONTENT = join(REPO_ROOT, 'packages/content');
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
-/** Kind dirs the template walk never enters (mirrors `nonTemplateDirs`). */
-const NON_TEMPLATE_DIRS = new Set([
-  'settings', 'subjects', 'descriptor-banks', 'quantity', 'wiki',
-  'emotes', 'recipes', 'name-banks', 'blueprints', 'archetypes', 'msh',
-]);
+/** Kind dirs the template walk never enters — the shared reader's, from the kind declarations. */
+const NON_TEMPLATE_DIRS = new Set([...nonTemplateDirs(CONTENT), 'wiki']);
 
 interface Finding { clause: string; file: string; detail: string }
 const findings: Finding[] = [];

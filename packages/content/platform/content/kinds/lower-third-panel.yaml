@@ -1,3 +1,9 @@
 title: Lower-third panel
 traits:
   shipped: { dir: lower-third-panels }
+fields:
+  weight: { type: number, required: true }
+  seconds: { type: number, required: true }
+  when: { type: string, required: true }
+  title: { type: string }
+  body: { type: string }

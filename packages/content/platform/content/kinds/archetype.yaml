@@ -1,5 +1,6 @@
 title: Archetype
 traits:
+  catalogued: { by: /platform/idea/ArchetypeCatalogue, load: whole }
   shipped: { dir: archetypes }
   keyworded: {}
   titled: { field: label }

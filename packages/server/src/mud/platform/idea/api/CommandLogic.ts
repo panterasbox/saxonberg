@@ -111,6 +111,12 @@ import { Mml } from '../../../api/mml';
 import { ContentError, Refusal, Unavailable, type RefusalFacts } from '../../../lib/errors';
 import ReasonCatalogue from '../ReasonCatalogue';
 
+/** The document store and the installer — the callers of a kind's service. */
+const DocumentServiceCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('/platform/idea/api/DocumentLogic#DocumentLogic'),
+  SecurityPolicies.FromModule('/platform/idea/api/PackLogic#PackLogic'),
+);
+
 const CommandApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/command#CommandApi'),
   SecurityPolicies.SelfOnly
@@ -837,18 +843,28 @@ export class CommandLogic extends ApiLogic {
   /** See {@link CommandApi.reload}. */
   @CallSecurity(CommandApiCallers)
   public async reload(docPath: string): Promise<boolean> {
-    const key = viewKeyOf(docPath);
-    commands.delete(key);
-    if (!storeAvailable()) return false;
-    const doc = await DocumentApi.read(docPath);
-    if (!doc || doc.getKind() !== 'command-view') return false;
-    const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
-    // ⛔ A CMS reload cannot sneak a test-world verb into a played world.
-    if (!admitsView(cmd)) return false;
-    await resolveCommandValidators(cmd);
-    validateCommandEffects(cmd);
-    commands.set(key, cmd);
-    return true;
+    return reloadView(docPath);
+  }
+
+  /**
+   * ⭐ The command-view kind's service (its declaration's `catalogued.by`):
+   * an edited view reloads from the store, a deleted one drops from the
+   * cache (the next read falls to disk). Every path when omitted.
+   */
+  @CallSecurity(DocumentServiceCallers)
+  public async forget(paths?: readonly string[]): Promise<void> {
+    if (paths === undefined) {
+      commands.clear();
+      return;
+    }
+    for (const p of paths) await reloadView(p);
+  }
+
+  /** A view's meaning, checked at install and at every save: it conforms to the command schema. */
+  @CallSecurity(DocumentServiceCallers)
+  public parse(data: Record<string, unknown>, _path: string): void {
+    const trail = commandViewTrail(data);
+    if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);
   }
 
   /** See {@link CommandApi.preloadAll}. */
@@ -2338,38 +2354,7 @@ export class CommandLogic extends ApiLogic {
   /** See {@link CommandApi.validateCommandView}. */
   @CallSecurity(CommandApiCallers)
   public validateCommandView(view: unknown): string | null {
-    const validate = commandSpecValidator();
-    if (!validate(view)) {
-      return (validate.errors ?? [])
-        .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
-        .join('\n');
-    }
-    /*
-     * ⭐ `opens_card` resolves against the CATALOGUE, not against the
-     * schema.
-     *
-     * JSON Schema could carry the enum, but then the vocabulary would
-     * live in two places and the copy in the schema would drift the
-     * first time a card is added. Checking the real `CARD_IDS` here
-     * means a typo fails at BOOT — the same posture as the lint family —
-     * rather than at first invocation, where it would look like the card
-     * silently not opening.
-     */
-    const raw = (view as { opens_card?: unknown }).opens_card;
-    const declared =
-      raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
-    for (const id of declared) {
-      if (
-        typeof id !== 'string' ||
-        !(CARD_IDS as readonly string[]).includes(id)
-      ) {
-        return (
-          `  /opens_card '${String(id)}' is not a card ` +
-          `(known: ${CARD_IDS.join(', ')})`
-        );
-      }
-    }
-    return null;
+    return commandViewTrail(view);
   }
 
   /** See {@link CommandApi.validateAgainstJsonSchema}. */
@@ -4936,4 +4921,56 @@ function commandSpecValidator(): ValidateFunction {
   );
   _specValidate = new Ajv({ allErrors: true, strict: false }).compile(schema);
   return _specValidate;
+}
+
+/** Why `view` does not conform to the command schema, or null. */
+function commandViewTrail(view: unknown): string | null {
+  const validate = commandSpecValidator();
+  if (!validate(view)) {
+    return (validate.errors ?? [])
+      .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
+      .join('\n');
+  }
+  /*
+   * ⭐ `opens_card` resolves against the CATALOGUE, not against the
+   * schema.
+   *
+   * JSON Schema could carry the enum, but then the vocabulary would
+   * live in two places and the copy in the schema would drift the
+   * first time a card is added. Checking the real `CARD_IDS` here
+   * means a typo fails at BOOT — the same posture as the lint family —
+   * rather than at first invocation, where it would look like the card
+   * silently not opening.
+   */
+  const raw = (view as { opens_card?: unknown }).opens_card;
+  const declared =
+    raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
+  for (const id of declared) {
+    if (
+      typeof id !== 'string' ||
+      !(CARD_IDS as readonly string[]).includes(id)
+    ) {
+      return (
+        `  /opens_card '${String(id)}' is not a card ` +
+        `(known: ${CARD_IDS.join(', ')})`
+      );
+    }
+  }
+  return null;
+}
+
+/** Reload one view from the store (dropping it from the cache first). */
+async function reloadView(docPath: string): Promise<boolean> {
+  const key = viewKeyOf(docPath);
+  commands.delete(key);
+  if (!storeAvailable()) return false;
+  const doc = await DocumentApi.read(docPath);
+  if (!doc || doc.getKind() !== 'command-view') return false;
+  const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+  // ⛔ A CMS reload cannot sneak a test-world verb into a played world.
+  if (!admitsView(cmd)) return false;
+  await resolveCommandValidators(cmd);
+  validateCommandEffects(cmd);
+  commands.set(key, cmd);
+  return true;
 }

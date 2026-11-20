@@ -9,15 +9,12 @@
  *
  * ## ⚠ Why an OBJECT and not a document under the shop's parcel
  *
- * The plan wanted the book in the document tree. `DOCUMENT_KINDS` is a
- * **closed kernel vocabulary and a pack may not extend it** — the
- * `water-right` entry says so outright: *"a pack cannot declare one —
- * the kind's consumer is code and the installer needs its go-live
- * hook."* A Stage-B wave that needs a kernel list edit has found a
- * design error, so this is the design corrected rather than the rule
- * bent.
+ * The plan wanted the book in the document tree. When it was built the
+ * document kinds were a closed kernel list a pack could not extend (since
+ * the naming overhaul a pack declares its own kinds at
+ * `<root>/kinds/<kind>`, so that reason is gone).
  *
- * ⭐ And the object is the better fit for the property that mattered.
+ * ⭐ The object is still the better fit for the property that mattered.
  * "It transfers with the shop" is *more* literally true of a ledger on
  * the counter than of a path under a parcel: whoever owns the fixture
  * owns the book, through the shipped estate slice, with nothing new.

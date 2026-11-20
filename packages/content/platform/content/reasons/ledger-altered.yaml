@@ -1,0 +1,6 @@
+# A save that would change or drop what a ledger already holds.
+facts:
+  path: text
+  why: text
+says: "{{ path }} was not saved — it is a ledger: {{ why }}."
+topic: shell.error

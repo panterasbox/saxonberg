@@ -9,7 +9,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import Species from '../../../platform/idea/species/Species';
-import { NameBank } from '../NameBank';
 import { DocumentApi } from '../../../api/document';
 import { DiagnosticApi } from '../../../api/diagnostics';
 import { SpeciesApi } from '../../../api/species';
@@ -19,11 +18,11 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 
 afterEach(() => {
   vi.restoreAllMocks();
-  NameBank.clearCache();
+  SpeciesApi.nameBanks().forget();
   StuffApi.clearAll();
 });
 
-describe('NameBank.resolve', () => {
+describe('NameBankCatalogue.resolve', () => {
   it('unions the pools across multiple referenced banks', async () => {
     const doc = (key: string, given: string[], surname: string[]): StoredDocument => {
       const d = new StoredDocument();
@@ -37,7 +36,7 @@ describe('NameBank.resolve', () => {
       .spyOn(DocumentApi, 'read')
       .mockImplementation(async (path: string) => banks.find((b) => b.path === path) ?? null);
 
-    const pools = await NameBank.resolve([
+    const pools = await SpeciesApi.nameBanks().resolve([
       '/species-and-names/name-banks/orcish',
       '/species-and-names/name-banks/common',
     ]);
@@ -46,7 +45,7 @@ describe('NameBank.resolve', () => {
     );
     expect(pools.surname).toEqual(expect.arrayContaining(['Ironmaw', 'Reed']));
     // Read by path, once each, and kept: nothing lists the kind.
-    await NameBank.resolve(['/species-and-names/name-banks/common']);
+    await SpeciesApi.nameBanks().resolve(['/species-and-names/name-banks/common']);
     expect(read).toHaveBeenCalledTimes(2);
   });
 
@@ -71,7 +70,7 @@ describe('Species.suggestName', () => {
   }
 
   it('biases the given name toward the real name initial', async () => {
-    vi.spyOn(NameBank, 'resolve').mockResolvedValue({
+    vi.spyOn(SpeciesApi.nameBanks(), 'resolve').mockResolvedValue({
       given: ['Bobalu', 'Bramble', 'Marigold', 'Dello'],
       surname: ['Smallberries', 'Underhill'],
       styles: [],
@@ -87,7 +86,7 @@ describe('Species.suggestName', () => {
   });
 
   it('always returns a given name (intake is never blocked)', async () => {
-    vi.spyOn(NameBank, 'resolve').mockResolvedValue({
+    vi.spyOn(SpeciesApi.nameBanks(), 'resolve').mockResolvedValue({
       given: ['Bobalu'],
       surname: [],
       styles: [],
@@ -100,7 +99,7 @@ describe('Species.suggestName', () => {
   });
 
   it('falls back to the real name when the bank is empty', async () => {
-    vi.spyOn(NameBank, 'resolve').mockResolvedValue({
+    vi.spyOn(SpeciesApi.nameBanks(), 'resolve').mockResolvedValue({
       given: [],
       surname: [],
       styles: [],
@@ -112,7 +111,7 @@ describe('Species.suggestName', () => {
   });
 
   it('rerollName draws without real-name bias', async () => {
-    vi.spyOn(NameBank, 'resolve').mockResolvedValue({
+    vi.spyOn(SpeciesApi.nameBanks(), 'resolve').mockResolvedValue({
       given: ['Aelar', 'Caelen', 'Thalion'],
       surname: ['Moonwhisper'],
       styles: [],

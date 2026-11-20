@@ -27,12 +27,16 @@ import type { EvictionContext } from '../stuff/Stuff';
 import type { StoredDocument } from './StoredDocument';
 
 /**
- * What serves a document kind: it can forget edited paths (every path when
- * omitted) — the go-live of an installer sync or a CMS save. The
- * `DocumentCatalogue`s, the aromas and the topics all do.
+ * ⭐ What serves a document kind — the service a kind's `catalogued.by`
+ * names. It can **forget** edited and deleted paths (every path when
+ * omitted) — the go-live of an installer sync or a CMS save, awaited when it
+ * re-warms — and may **parse** a document, which is how the kind's meaning
+ * is checked at install and at every save (shape is the declaration's
+ * `fields:`).
  */
 export interface ServesDocuments {
-  forget(paths?: readonly string[]): void;
+  forget(paths?: readonly string[]): void | Promise<void>;
+  parse?(data: Record<string, unknown>, path: string): unknown;
 }
 
 /** One kind's memory: what has been read, and what is being read. */

@@ -1,0 +1,8 @@
+# A word that names none of the entries a verb could take; says what could
+# have been named.
+facts:
+  what: text
+  noun: text
+  offered: text
+says: "There is no {{ noun }} called '{{ what }}'.{% if offered != '' %} You could name: {{ offered }}.{% endif %}"
+topic: shell.error

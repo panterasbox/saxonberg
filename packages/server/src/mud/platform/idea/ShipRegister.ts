@@ -67,7 +67,7 @@ import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { FieldMeta } from '../../lib/mixin';
 
-/** The document kind a ship register writes (`DocumentKinds.ship`). */
+/** The document kind a ship register writes (declared at `/platform/kinds/ship`). */
 export const SHIP_ENTRY_KIND = 'ship';
 
 /**

@@ -1,3 +1,4 @@
 title: Command view
 traits:
+  catalogued: { by: /platform/idea/api/command, load: boot }
   shipped: { in-tree: cmd }

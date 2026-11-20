@@ -31,7 +31,7 @@ import { existsSync, readdirSync, readFileSync } from "fs";
 import { join, relative } from "path";
 import ts from "typescript";
 import { parse as parseYaml } from "yaml";
-import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
+import { shippedDirOf, CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
 const REPO_ROOT = join(MUD, "../../../..");
 
@@ -47,7 +47,7 @@ export function reasonRows(contentDir: string = CONTENT): Map<string, Set<string
     const manifest = join(contentDir, pack, "pack.yaml");
     if (!existsSync(manifest)) continue;
     const root = /^root:\s*(\S+)/m.exec(readFileSync(manifest, "utf8"))?.[1];
-    const dir = join(contentDir, pack, "content", "reasons");
+    const dir = join(contentDir, pack, "content", shippedDirOf("reason"));
     if (!root || !existsSync(dir)) continue;
     for (const file of readdirSync(dir)) {
       if (!file.endsWith(".yaml")) continue;

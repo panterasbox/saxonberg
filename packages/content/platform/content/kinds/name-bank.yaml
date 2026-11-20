@@ -1,3 +1,4 @@
 title: Name bank
 traits:
+  catalogued: { by: /platform/idea/NameBankCatalogue, load: per-path }
   shipped: { dir: name-banks }

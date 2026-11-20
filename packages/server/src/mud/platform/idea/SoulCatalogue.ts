@@ -153,6 +153,16 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     this.cache = null;
   }
 
+  /** ⭐ The emote kind's service: an edited emote drops the cache; the next read re-warms. */
+  public forget(_paths?: readonly string[]): void {
+    this.cache = null;
+  }
+
+  /** An emote document's meaning, checked at install and at every save. */
+  public parse(data: Record<string, unknown>, path: string): Emote {
+    return Emote.fromData(data, path);
+  }
+
   /**
    * Resolve a CANONICAL verb to its Emote record. Returns `null` when
    * nothing matches — a search term is not a verb (`;grin` where `grin`

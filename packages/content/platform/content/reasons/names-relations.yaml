@@ -1,0 +1,5 @@
+# `thing:~` lists what can be asked; it binds nothing for a verb.
+facts:
+  query: text
+says: "'{{ query }}' lists relations rather than naming anything — try `query {{ query }}` to read them."
+topic: shell.error

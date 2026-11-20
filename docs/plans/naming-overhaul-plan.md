@@ -767,6 +767,41 @@ templates; writing an undeclared kind is refused `document-kind-undeclared`;
 `grep -r DOCUMENT_KINDS packages` is empty.
 *Commit:* `build(naming-overhaul WA1): kinds are declared — the closed list is gone`.
 
+✅ **Done.** Decided along the way:
+- **The meaning check reads a service's class when it is not resident**
+  (`DocumentLogic.checkMeaningImpl`, reached by the installer as
+  `DocumentApi.checkMeaning`, gated to `PackLogic`). Standing a row-backed
+  catalogue (recipe, soul, blueprint, archetype, help) mid-install would warm
+  it from a store the install has not written yet; every `parse` reads only
+  its arguments. A logic singleton's service path (`/platform/idea/api/command`)
+  resolves to its `<Feature>Logic` class.
+- **The command-view kind's service is `CommandLogic`** (`forget` reloads a
+  view, `parse` checks the schema), gated to the store and the installer —
+  no new catalogue class.
+- **`ServesDocuments` widens** to `forget(): void | Promise<void>` (the
+  recipe/archetype/blueprint go-live re-warms, awaited) and an optional
+  `parse`.
+- **`unique` replaced "every typed word is unique"** in this wave, not A3:
+  the installer's flat-key and store-word checks run for `unique` kinds only
+  (emote, formation, `kind`, and **topic** — a topic key is a muting path two
+  packs must not share, which the topics test caught).
+- **Declarations are read from every shipped pack, ignoring
+  `SAXONBERG_PACKS`** (`discoverUnfiltered`): a declared kind reserves its dir
+  whether or not this boot installs the pack.
+- `lint:typed-words` is deleted (its unique half is `lint:document-kinds` gate
+  6). The per-kind lints (`aromas`, `doneness`, `reachability`,
+  `reason-rows`, `placement-words`, `untitled`, `census`) read their dirs
+  through `pack-roots.shippedDirOf` / `nonTemplateDirs` off the declarations.
+  `check-template-census`'s `DOCUMENT_PATH_FIELDS` (field → dir) stays: it is
+  about which fields cite documents, not the kind list.
+- A pack shipping documents of a kind it neither declares nor depends on the
+  declarer of is refused by `lint:document-kinds` gate 5, not at install
+  (no pack does today).
+- `standby-reason` and `lower-third-panel` lost their `fromData` validators
+  for a `fields:` schema; their enum/positivity checks are now the reader's.
+- Recipe, operation, help-concept, archetype and topic cards now carry title
+  words in `keys.word` (keyworded + titled), as the trait says.
+
 **A2 — Filed, ledger, secret, and the two refusals.**
 *Decisions:* D-A4 (the `by` check), D-A8, D-A11, D-A12.
 *Files:* `DocumentLogic.ts` (each transport passes its `by`;

@@ -1,107 +1,55 @@
 /**
- * The three paper kinds the logistics build adds — and the constraint
- * they are shaped by: **no new Mongo collection** (AC21). A bill of
- * lading, a warehouse receipt and a rate card are rows in `documents`,
- * path-keyed under the filing business's own branch.
+ * The filed record kinds — freight paper (bill of lading, warehouse
+ * receipt, rate card), the fishery and the water body — and the constraint
+ * they are shaped by: **no new Mongo collection** (AC21). Each is a row in
+ * `documents`, path-keyed under its keeper's own branch, declared by the
+ * pack that owns it (`<pack>/content/kinds/<kind>.yaml`).
  *
- * ⭐ All three are `onVanish: 'keep'`, on the `water-right` pattern and
- * for the same reason: they are **records of something that happened**,
- * and no absent file may erase one. `release`'s `'delete'` is safe only
- * because nothing files a release from a pack either; here the stakes of
- * getting it wrong are somebody's shipment.
+ * ⭐ Records of something that happened: nothing ships them (no `shipped`
+ * trait, so no pack file can vanish and erase one, and no content dir is
+ * reserved), and the nightly reset keeps the whole collection.
  */
 
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import {
-  DOCUMENT_KINDS,
-  DECLARED_DOCUMENT_KINDS,
-} from '../DocumentKinds';
+import { existsSync, readdirSync, readFileSync } from 'fs';
+import { join } from 'path';
+import { fileURLToPath } from 'url';
+import YAML from 'yaml';
+import { DocumentKind } from '../DocumentKind';
 import { Collections } from '../../persistence/Collections';
 import { RESET_DISPOSITIONS } from '../../persistence/ResetPolicy';
 
-const PAPER = ['bill-of-lading', 'warehouse-receipt', 'rate-card'] as const;
+const CONTENT = join(fileURLToPath(new URL('.', import.meta.url)), '../../../../../../content');
 
-describe('the freight paper kinds', () => {
-  it('all three are declared, path-keyed, and kept when their file vanishes', () => {
-    for (const kind of PAPER) {
-      const spec = DOCUMENT_KINDS[kind];
-      expect(spec).toBeDefined();
-      expect(spec.kind).toBe(kind);
-      // Path-keyed: a depot's coverage is `list(prefix)`, so the branch
-      // has to be in the path rather than in an index.
-      expect((spec as { words?: unknown }).words).toBeUndefined();
-      expect(spec.onVanish).toBe('keep');
-      expect(spec.ext).toBe('yaml');
-      expect(DECLARED_DOCUMENT_KINDS).toContain(kind);
-      // Path-keyed ⇒ no unique flat-key index is minted for it.
+function declared(name: string): DocumentKind {
+  for (const pack of readdirSync(CONTENT)) {
+    const file = join(CONTENT, pack, 'content', 'kinds', `${name}.yaml`);
+    if (existsSync(file)) return new DocumentKind(name, YAML.parse(readFileSync(file, 'utf8')) ?? {});
+  }
+  throw new Error(`no declaration for ${name}`);
+}
+
+const RECORDS = ['bill-of-lading', 'warehouse-receipt', 'rate-card', 'fishery', 'body'] as const;
+
+describe('the filed record kinds', () => {
+  it('each is declared, runtime-only (nothing ships it) and path-keyed (no words)', () => {
+    for (const name of RECORDS) {
+      const kind = declared(name);
+      expect(kind.shipped()).toBeNull();
+      expect(kind.keyworded()).toBeNull();
     }
   });
 
   it('⚠ AC21 — they add NO collection: they are rows in `documents`', () => {
-    // The vocabulary of collections is closed and generated; if a kind
-    // had brought a collection with it, this list would have grown.
     const names = Object.values(Collections) as string[];
-    for (const kind of PAPER) {
-      expect(names).not.toContain(kind);
-      expect(names).not.toContain(DOCUMENT_KINDS[kind].contentDir);
-    }
+    for (const name of RECORDS) expect(names).not.toContain(name);
     expect(names).toContain('documents');
   });
 
-  it('a filed record survives the nightly reset', () => {
-    // Derived from DECLARED_DOCUMENT_KINDS, so this holds by
-    // construction — asserted because a shipment that evaporates at
-    // 04:00 is the failure nobody would see until a player complained.
-    const d = RESET_DISPOSITIONS[Collections.Documents];
-    expect(d.verb).toBe('wipe-except');
-    const keep = (d as unknown as { keep: { kind: { $in: string[] } } }).keep
-      .kind.$in;
-    for (const kind of PAPER) expect(keep).toContain(kind);
-  });
-
-  it('the fishery kind (fishing A1) is path-keyed and kept, and not flat-keyed', () => {
-    const spec = DOCUMENT_KINDS.fishery;
-    expect(spec.kind).toBe('fishery');
-    expect((spec as { words?: unknown }).words).toBeUndefined();
-    expect(spec.onVanish).toBe('keep');
-    expect(spec.contentDir).toBe('fisheries');
-    expect(DECLARED_DOCUMENT_KINDS).toContain('fishery');
-    const names = Object.values(Collections) as string[];
-    expect(names).not.toContain('fishery');
-    expect(names).not.toContain('fisheries');
-  });
-
-  it('⭐⭐ the body kind (drilling D2) is keyed on the BODY, not the hole', () => {
-    // The reason this kind exists rather than fields on a wellhead: a
-    // reservoir spans holdings, so two bores into one are two straws in
-    // one glass. Path-keyed on `<locality address>/<body key>` so a
-    // country's book is a prefix read, and `keep` because it is a record
-    // of what came out of the ground — recharge is zero, and no absent
-    // pack file may refill a reservoir.
-    const spec = DOCUMENT_KINDS.body;
-    expect(spec.kind).toBe('body');
-    expect((spec as { words?: unknown }).words).toBeUndefined();
-    expect(spec.onVanish).toBe('keep');
-    expect(spec.contentDir).toBe('bodies');
-    expect(spec.ext).toBe('yaml');
-    expect(DECLARED_DOCUMENT_KINDS).toContain('body');
-    const names = Object.values(Collections) as string[];
-    expect(names).not.toContain('body');
-    expect(names).not.toContain('bodies');
-  });
-
-  it('a body\'s withdrawal survives the nightly reset', () => {
-    // A reservoir that refilled at 04:00 would make every well infinite
-    // and nothing would say why.
-    const d = RESET_DISPOSITIONS[Collections.Documents];
-    const keep = (d as unknown as { keep: { kind: { $in: string[] } } }).keep
-      .kind.$in;
-    expect(keep).toContain('body');
-  });
-
-  it('each has its own content dir, and none collides', () => {
-    const dirs = DECLARED_DOCUMENT_KINDS.map((k) => DOCUMENT_KINDS[k].contentDir);
-    expect(new Set(dirs).size).toBe(dirs.length);
+  it('a filed record survives the nightly reset — the collection is kept', () => {
+    // A shipment, or a reservoir's withdrawal, that evaporated at 04:00 is
+    // the failure nobody would see until a player complained.
+    expect(RESET_DISPOSITIONS[Collections.Documents].verb).toBe('keep');
   });
 });

@@ -11,6 +11,7 @@
  */
 
 import { StoredDocument } from '../StoredDocument';
+import { DocumentApi } from '../../../api/document';
 
 function valueAt(row: Record<string, unknown>, dotted: string): unknown {
   let cur: unknown = row;
@@ -124,7 +125,7 @@ export function findDocuments(
     r.keys === undefined && typeof r.kind === 'string' && typeof r.path === 'string' && r.path
       ? {
           ...r,
-          keys: StoredDocument.cardOf(r.kind, r.path, (r.data ?? {}) as Record<string, unknown>),
+          keys: DocumentApi.kinds().byName(r.kind)?.cardOf(r.path, (r.data ?? {}) as Record<string, unknown>) ?? {},
         }
       : r,
   );

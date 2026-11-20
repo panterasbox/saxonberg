@@ -43,6 +43,10 @@ import { SecurityApi } from './security';
 import type { ServesDocuments } from '../lib/document/DocumentCatalogue';
 import type { ApiNeed } from './security';
 import DocumentKindCatalogue from '../platform/idea/DocumentKindCatalogue';
+import type { DocumentKind } from '../lib/document/DocumentKind';
+
+/** The installer — the one caller of the meaning check outside the store. */
+const INSTALLER_CALLERS = SecurityPolicies.FromModule('/platform/idea/api/PackLogic#PackLogic');
 
 /** Where the kind catalogue stands. */
 const KIND_CATALOGUE = '/platform/idea/DocumentKindCatalogue';
@@ -183,6 +187,17 @@ export class DocumentApi {
     return StuffApi.singletonSync(KIND_CATALOGUE, () => new DocumentKindCatalogue());
   }
 
+  /**
+   * ⭐ Check a document's MEANING with the service its kind's declaration
+   * names (`catalogued.by` → `parse`) — the installer's check before any
+   * write, the same the store's write funnel makes at every save. Throws
+   * the service's error. ⚠ The installer's door only.
+   */
+  @CallSecurity(INSTALLER_CALLERS)
+  static checkMeaning(kind: DocumentKind, data: Record<string, unknown>, path: string): Promise<void> {
+    return logic().checkMeaning(kind, data, path);
+  }
+
   /** The stored document at `path`, or null. Callers read its getters. */
   static read(path: string): Promise<StoredDocument | null> {
     return logic().read(path);
@@ -215,7 +230,7 @@ export class DocumentApi {
   /**
    * ⭐ Documents of `kind` found by one key of their **catalogue card** —
    * the keys a kind declares, derived from each document's own data
-   * (`DocumentKinds`). `q.eq` for equality, `q.min`/`q.max` for an
+   * (the kind's declaration — `DocumentKind.cardOf`). `q.eq` for equality, `q.min`/`q.max` for an
    * inclusive range, `q.order` to read in the key's order (the index serves
    * it), `q.prefix` to stay under one path, `q.limit` to cap. Not a second
    * identity: the path is the only name a document has; this is how it is

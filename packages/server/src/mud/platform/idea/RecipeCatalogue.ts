@@ -241,6 +241,20 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     this.broken = new Map();
   }
 
+  /**
+   * ⭐ The recipe kind's service (`catalogued.by`): an edited recipe goes
+   * live by a re-warm — the read surface is SYNC, so the cache is rebuilt
+   * in place rather than dropped.
+   */
+  public async forget(_paths?: readonly string[]): Promise<void> {
+    await this.warm();
+  }
+
+  /** A recipe document's meaning, checked at install and at every save. */
+  public parse(data: Record<string, unknown>, path: string): Recipe {
+    return Recipe.fromData(data, path);
+  }
+
   /** (Re)build the cache + keyword index from `documents {kind: recipe}`. */
   public async warm(): Promise<void> {
     const docs = await DocumentApi.listOfKind('recipe');

@@ -1,5 +1,6 @@
 title: Recipe
 traits:
+  catalogued: { by: /platform/idea/RecipeCatalogue, load: whole }
   shipped: { dir: recipes }
   keyworded: {}
   titled: { field: name }

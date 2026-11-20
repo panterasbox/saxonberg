@@ -21,11 +21,8 @@ import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
 import type { Registrar } from '../../../lib/document/Registrar';
 import type { Berthed } from '../BerthExit';
-import {
-  DECLARED_DOCUMENT_KINDS,
-  DOCUMENT_KINDS,
-  type DeclaredDocumentKind,
-} from '../../../lib/document/DocumentKinds';
+import { DocumentKind, type FilingTransport } from '../../../lib/document/DocumentKind';
+import DocumentKindCatalogue from '../DocumentKindCatalogue';
 import { createHash } from 'node:crypto';
 import { Release } from '../../../lib/press/Release';
 import {
@@ -186,6 +183,104 @@ async function findByKeyImpl(
  * The authorization that the caller may publish as this publisher is
  * `mayPublishAs`, in front of this — see `PressLogic`.
  */
+/* ───────────────────────── the write funnel ───────────────────────── */
+
+/** Where the kind declarations are served. */
+const KIND_CATALOGUE = '/platform/idea/DocumentKindCatalogue';
+
+/** The kind catalogue (resident — `DocumentApi`'s need stands it at boot). */
+function kinds(): DocumentKindCatalogue {
+  return StuffApi.singletonSync(KIND_CATALOGUE, () => new DocumentKindCatalogue());
+}
+
+/** The declared kind named `name`, or null. */
+function kindNamed(name: string): DocumentKind | null {
+  return kinds().byName(name);
+}
+
+/** The resident service that reads `kind`, or null (nothing to forget). */
+function residentService(kind: DocumentKind): ServesDocuments | null {
+  const by = kind.servedBy();
+  if (by === null) return null;
+  if (by === KIND_CATALOGUE) return kinds();
+  return (StuffApi.findByTemplatePath(by) as unknown as ServesDocuments | undefined) ?? null;
+}
+
+/**
+ * ⭐ Check one document's MEANING with the service that reads its kind —
+ * the resident service, else its class's `parse` read without standing it
+ * up (a catalogue that warms in `onCreate` would read the store mid-install;
+ * every `parse` reads only its arguments). A logic singleton's service path
+ * names the feature (`/platform/idea/api/command`) and its class the logic
+ * (`CommandLogic`). Throws the service's error; a kind with no service, or
+ * a service with no `parse`, passes.
+ */
+async function checkMeaningImpl(kind: DocumentKind, data: Record<string, unknown>, path: string): Promise<void> {
+  const by = kind.servedBy();
+  if (by === null) return;
+  let service = residentService(kind);
+  if (service === null) {
+    let Cls = (await StuffApi.resolveExport(by, 'default')) as { prototype: ServesDocuments } | null;
+    if (Cls === null && by.includes('/idea/api/')) {
+      const leaf = by.slice(by.lastIndexOf('/') + 1);
+      const logic = `${leaf.charAt(0).toUpperCase()}${leaf.slice(1)}Logic`;
+      Cls = (await StuffApi.resolveExport(`${by.slice(0, by.lastIndexOf('/'))}/${logic}`, logic)) as {
+        prototype: ServesDocuments;
+      } | null;
+    }
+    if (Cls === null) throw new Error(`document kind '${kind.getName()}': its service ${by} resolves to no class`);
+    service = Cls.prototype;
+  }
+  if (service.parse) service.parse(data, path);
+}
+
+/** Who writes: the plain save, or one of the filing transports. */
+type WriteBy = 'save' | FilingTransport;
+
+/**
+ * ⭐⭐ **The one write.** Every transport keeps its own authority check and
+ * path scheme and then calls this — the only code that constructs or saves
+ * a `StoredDocument`. In order: the kind is declared (else
+ * `document-kind-undeclared`) → the data fits the kind's `fields:` → the
+ * kind's service checks its meaning (`parse`) → the card is derived →
+ * saved → the service forgets the path (the edit is live on the next read).
+ */
+async function writeDocument(req: {
+  kind: string;
+  path: string;
+  owner: string;
+  data: Record<string, unknown>;
+  by: WriteBy;
+  /** The stored row, when the transport already read it. */
+  existing?: StoredDocument | null;
+}): Promise<void> {
+  const { path, data } = req;
+  const kind = kindNamed(req.kind);
+  if (kind === null) throw new Refusal('document-kind-undeclared', { path, kind: req.kind });
+  const shape = kind.fieldFailures(data);
+  if (shape.length > 0) {
+    const why = shape.join('; ');
+    throw new Refusal('invalid-document', { path, why }, { message: why });
+  }
+  {
+    try {
+      await checkMeaningImpl(kind, data, path);
+    } catch (err) {
+      const why = err instanceof Error ? err.message : String(err);
+      throw new Refusal('invalid-document', { path, why }, { message: why, cause: err });
+    }
+  }
+  const existing = req.existing !== undefined ? req.existing : await StoredDocument.findByPath(path);
+  const doc = existing ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = req.owner;
+  doc.kind = kind.getName();
+  doc.data = data;
+  doc.keys = kind.cardOf(path, data);
+  await doc.save();
+  await residentService(kind)?.forget([path]);
+}
+
 async function saveReleaseImpl(
   publisher: Stuff & Publisher,
   path: string,
@@ -210,12 +305,7 @@ async function saveReleaseImpl(
     );
   }
 
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = RELEASE_DOCUMENT_KIND;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: RELEASE_DOCUMENT_KIND, path, owner: owner, data: data, by: 'release' });
 
   // Authorship is still the acting author's, keyed on the path — the
   // publisher owns the document, a person wrote it. DocumentLogic is an
@@ -295,12 +385,7 @@ async function saveAsBusinessImpl(
     );
   }
 
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = kind;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: kind, path, owner: owner, data: data, by: 'business' });
 
   // Authorship is the acting author's, keyed on the path — the carrier
   // owns the paper, a person (or an NPC clerk) wrote it. Same split as
@@ -363,12 +448,7 @@ async function saveInstrumentImpl(
       `DocumentApi.saveInstrument: ${path} is not under ${owner}/${PAPERS_DIR}/`,
     );
   }
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = 'instrument';
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: 'instrument', path, owner: owner, data: data, by: 'instrument' });
 }
 
 /** The directory a player's maps live under, inside their own home. */
@@ -409,12 +489,7 @@ async function saveMapImpl(
     throw new Error('DocumentApi.saveMap: no locality to file under');
   }
   const path = `${owner}/${MAPS_DIR}/${locality}`;
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = 'map';
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: 'map', path, owner: owner, data: data, by: 'map' });
 }
 
 /** The branch every stream token lives under (the platform pack's root
@@ -448,12 +523,7 @@ async function saveStreamTokenImpl(
   const path = streamTokenPath(hash);
   if (!path) throw new Error('DocumentApi.saveStreamToken: not a sha256 hex');
   if (record.playerId.length === 0) throw new Error('DocumentApi.saveStreamToken: no player');
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = STREAM_TOKENS_BRANCH;
-  doc.kind = STREAM_TOKEN_KIND;
-  doc.data = { playerId: record.playerId, scope: record.scope, issuedAt: record.issuedAt };
-  await doc.save();
+  await writeDocument({ kind: STREAM_TOKEN_KIND, path, owner: STREAM_TOKENS_BRANCH, data: { playerId: record.playerId, scope: record.scope, issuedAt: record.issuedAt }, by: 'stream-token' });
 }
 
 /** Revoke a token by its hash. Returns whether a record existed. */
@@ -513,12 +583,14 @@ async function saveBerthImpl(ship: Stuff & Berthed, landingPath: string): Promis
     const has = was.includes(handle);
     if (has === lies) return;
     if (doc === null && !lies) return;
-    const row = doc ?? new StoredDocument();
-    row.path = path;
-    row.owner = landing;
-    row.kind = BERTH_ROLL_KIND;
-    row.data = { lying: lies ? [...was, handle] : was.filter((h) => h !== handle) };
-    await row.save();
+    await writeDocument({
+      kind: BERTH_ROLL_KIND,
+      path,
+      owner: landing,
+      data: { lying: lies ? [...was, handle] : was.filter((h) => h !== handle) },
+      by: 'berth',
+      existing: doc,
+    });
   };
   const prior = berthWrites.get(path) ?? Promise.resolve();
   const mine = prior.catch(() => undefined).then(write);
@@ -637,16 +709,11 @@ async function saveToRegisterImpl(
   }
   // ⚠ The kind is pinned to the register's one kind, and must be a kind
   // the platform knows — a register cannot invent a vocabulary.
-  if (!DECLARED_DOCUMENT_KINDS.includes(kind as DeclaredDocumentKind)) {
+  if (kindNamed(kind) === null) {
     throw new Error(`DocumentApi.saveToRegister: ${kind} is not a document kind`);
   }
 
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = kind;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: kind, path, owner: owner, data: data, by: 'register' });
 }
 
 async function saveImpl(
@@ -657,72 +724,34 @@ async function saveImpl(
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
   if (denial !== null) throw new Refusal("document-access-denied", { path }, { message: denial });
-  // ⭐ The installer's own validator (failure-model D6): a row a pack could
-  // not ship is not stored by a save either. A dynamic import, as the
-  // catalogues reach the store, to keep the pack hub out of this cycle.
-  // The author saving it is told why — a refusal, not a defect.
-  try {
-    (await import("../../../api/pack")).PackApi.validateDocument(kind, data, path);
-  } catch (err) {
-    const why = err instanceof Error ? err.message : String(err);
-    throw new Refusal("invalid-document", { path, why }, { message: why, cause: err });
-  }
-
+  // ⭐ The funnel refuses an undeclared kind, a shape the kind's `fields:`
+  // refuses, and a meaning its service's `parse` refuses — the installer's
+  // own check, so a row a pack could not ship is not stored by a save
+  // either. ⛔ A command view that NAMES code (its `controller:`) is content
+  // (wizard-axis D5): title over the path decided it above.
   const existing = await StoredDocument.findByPath(path);
 
-  if (kind === COMMAND_VIEW_KIND) {
-    // ⛔ A view that NAMES code — its `controller:`, its validators — is
-    // content (wizard-axis D5): title over the path decided it above, and
-    // nothing here asks for the wizard axis.
-    // A malformed view is refused at the chokepoint, never stored.
-    const trail = CommandApi.validateCommandView(data);
-    if (trail !== null) {
-      throw new Error(`command view ${path} does not conform:\n${trail}`);
-    }
-  }
-
   // Persist (find-or-create). Owner = the acting author's durable path.
-  const doc = existing ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = actor?.getIdentityPath() ?? "";
-  doc.kind = kind;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: kind, path, owner: actor?.getIdentityPath() ?? "", data: data, by: 'save', existing });
 
   // Authorship — append a provenance row keyed on the path (author from
   // context, never a param). DocumentLogic is an admitted authoring
   // transport (the `recordAuthoring` gate names `/platform/idea/api/document`).
   await ProvenanceApi.recordAuthoring({ path });
-
-  // Go-live: a command view reaches the dispatcher without a restart.
-  if (kind === COMMAND_VIEW_KIND) await CommandApi.reload(path);
-  forgetEdited(kind, path);
 }
 
 /**
- * The catalogue serving `kind` — the one map from a document kind to the
- * singleton that serves it (documents W5d). A kind read by path alone has
- * none.
+ * The catalogue serving `kind` — its declaration's `catalogued.by`, when
+ * that service is resident. A catalogue nothing has stood up holds nothing
+ * to forget; a kind read by path alone has none.
  */
 function catalogueForImpl(kind: string): ServesDocuments | null {
-  // By the kind's declared path, never by importing every domain Api into
-  // the document store (a hub every module reaches would cycle). A
-  // catalogue nothing has stood up holds nothing to forget.
-  const path = (DOCUMENT_KINDS as Record<string, { catalogue?: string }>)[kind]?.catalogue;
-  return path ? (StuffApi.findByTemplatePath(path) as unknown as ServesDocuments | null) : null;
+  const declared = kindNamed(kind);
+  if (declared === null) return null;
+  const by = declared.servedBy();
+  if (by === KIND_CATALOGUE) return kinds();
+  return by ? ((StuffApi.findByTemplatePath(by) as unknown as ServesDocuments | undefined) ?? null) : null;
 }
-
-/**
- * ⭐ The CMS edit reaches the cache (documents D16): the value class's
- * memory of the edited path is dropped, so the next use re-reads it — the
- * installer's go-live, for one path. A topic re-warms its vocabulary.
- */
-function forgetEdited(kind: string, path: string): void {
-  catalogueForImpl(kind)?.forget([path]);
-}
-
-/** The document kind a command view is stored under. */
-const COMMAND_VIEW_KIND = "command-view";
 
 async function deleteImpl(path: string): Promise<boolean> {
   const actor = actingAuthor();
@@ -732,7 +761,7 @@ async function deleteImpl(path: string): Promise<boolean> {
   if (!doc) return false;
   const kind = doc.kind;
   await doc.delete();
-  forgetEdited(kind, path);
+  await catalogueForImpl(kind)?.forget([path]);
   return true;
 }
 
@@ -778,7 +807,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
   const doc = await StoredDocument.findByPath(path);
   if (doc === null) return null;
   const data = doc.getData();
-  const kind = doc.getKind() as DeclaredDocumentKind;
+  const kind = doc.getKind();
   const str = (v: unknown): string => (typeof v === 'string' ? v : '');
   const pagesFrom = (v: unknown): string[] =>
     Array.isArray(v) ? v.map((p) => (typeof p === 'string' ? p : '')) : [];
@@ -854,11 +883,10 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'kind':
     case 'stream-token': // ⛔ a credential is never paper
       return null;
-    default: {
-      const unreachable: never = kind;
-      void unreachable;
+    default:
+      // A kind somebody declared and nothing here prints (A3 makes every
+      // kind print from its declaration).
       return null;
-    }
   }
 }
 
@@ -898,12 +926,7 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
     ...(req.teaches && req.teaches.length > 0 ? { teaches: req.teaches } : {}),
     ...(req.validUntilS !== undefined ? { validUntilS: req.validUntilS } : {}),
   };
-  const doc = new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = 'edition';
-  doc.data = data as unknown as Record<string, unknown>;
-  await doc.save();
+  await writeDocument({ kind: 'edition', path, owner: owner, data: data as unknown as Record<string, unknown>, by: 'edition' });
   return path;
 }
 
@@ -955,6 +978,12 @@ async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; 
  */
 @Unshadowable
 export class DocumentLogic extends ApiLogic {
+  /** See {@link DocumentApi.checkMeaning}. */
+  @CallSecurity(DocumentApiCallers)
+  public checkMeaning(kind: DocumentKind, data: Record<string, unknown>, path: string): Promise<void> {
+    return checkMeaningImpl(kind, data, path);
+  }
+
   /** See {@link DocumentApi.read}. */
   @CallSecurity(DocumentApiCallers)
   public async read(path: string): Promise<StoredDocument | null> {

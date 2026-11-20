@@ -41,6 +41,20 @@ function* walk(dir: string, ext: string): Generator<string> {
   }
 }
 
+/**
+ * Whether a service path names a class file — directly, or by the logic
+ * singletons' one exception (`/platform/idea/api/command` is
+ * `CommandLogic.ts`: the template is named for the feature, the class for
+ * the logic).
+ */
+function serviceFileExists(by: string, sources: ReturnType<typeof packSources>): boolean {
+  const file = classFileOf(by, sources);
+  if (existsSync(file)) return true;
+  const leaf = file.slice(file.lastIndexOf('/') + 1, -'.ts'.length);
+  const logic = `${file.slice(0, file.lastIndexOf('/') + 1)}${leaf.charAt(0).toUpperCase()}${leaf.slice(1)}Logic.ts`;
+  return by.includes('/idea/api/') && existsSync(logic);
+}
+
 export function checkDocumentKinds(content: string = CONTENT): string[] {
   const findings: string[] = [];
   const sources = packSources(content);
@@ -66,7 +80,7 @@ export function checkDocumentKinds(content: string = CONTENT): string[] {
     }
     declared.set(d.name, { pack: d.pack, file: where, kind });
     const by = kind.servedBy();
-    if (by && !existsSync(classFileOf(by, sources))) {
+    if (by && !serviceFileExists(by, sources)) {
       findings.push(`${where}: catalogued.by '${by}' resolves to no class file`);
     }
   }
