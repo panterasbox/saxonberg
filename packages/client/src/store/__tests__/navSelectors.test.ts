@@ -11,7 +11,7 @@ import {
   routeCommandFor,
 } from "../navSelectors";
 
-const Z = "/world/newbie-wilds/delve";
+const Z = "/test/delve";
 const tag = (path: string) => ({ path, spoiler: 2 as const });
 const DOC = "last-counted-mile/delve";
 
@@ -153,8 +153,8 @@ describe("zoneView — the zone as your map knows it", () => {
     const view = zoneView(
       copyOf(
         place(V, 0, 0),
-        place("/world/newbie-wilds/crossroads/treeline", 4, 4, { zone: "/world/newbie-wilds" }),
-        edge(V, "south", { to: tag("/world/newbie-wilds/crossroads/treeline") }),
+        place("/test/wilds/treeline", 4, 4, { zone: "/test/wilds" }),
+        edge(V, "south", { to: tag("/test/wilds/treeline") }),
       ),
       Z,
     );

@@ -26,12 +26,12 @@ describe("map documents", () => {
 
   it("placeDoc: tier, every channel it was learned on, the path as the one spoiler, what a click does", () => {
     const doc = placeDoc(
-      { name: "the vault", key: "/world/newbie-wilds/delve/vault", tier: "known", keywords: ["vault"], sources: [{ channel: "seen" }, { channel: "searched" }] },
+      { name: "the vault", key: "/test/delve/vault", tier: "known", keywords: ["vault"], sources: [{ channel: "seen" }, { channel: "searched" }] },
       { command: "route to vault" },
     );
     expect(doc.header?.kindWord).toBe("a place you know of");
     expect(doc.facts?.map((f) => f.source)).toEqual(["seen", "searched"]);
-    expect(doc.spoilers).toEqual([{ level: 2, label: PATH_LABEL, text: "/world/newbie-wilds/delve/vault" }]);
+    expect(doc.spoilers).toEqual([{ level: 2, label: PATH_LABEL, text: "/test/delve/vault" }]);
     expect(doc.command).toBe("route to vault");
     // No age: claims are dated in game time and the client has no game now.
     expect(doc.facts?.every((f) => f.at === undefined)).toBe(true);
@@ -96,25 +96,25 @@ describe("map documents", () => {
   });
 
   it("zoneDoc: the zone's path rides the spoiler", () => {
-    const doc = zoneDoc({ zone: { v: 1, id: { path: "/world/newbie-wilds/delve", spoiler: 2 }, label: "The Sunken Delve", cellSizeM: 3 } }, { walked: 4, known: 1, openings: 2 });
-    expect(doc.spoilers?.[0]?.text).toBe("/world/newbie-wilds/delve");
+    const doc = zoneDoc({ zone: { v: 1, id: { path: "/test/delve", spoiler: 2 }, label: "The Sunken Delve", cellSizeM: 3 } }, { walked: 4, known: 1, openings: 2 });
+    expect(doc.spoilers?.[0]?.text).toBe("/test/delve");
     expect(doc.header?.name).toBe("The Sunken Delve");
   });
 
   it("the zone thumbnail block draws from your copy, and is absent when your map has nothing there", () => {
     const tag = (path: string) => ({ path, spoiler: 2 as const });
-    const first = render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} {...links} />);
+    const first = render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/test/wilds", level: 0 } }} {...links} />);
     expect(screen.queryByTestId("doc-zone-thumb")).toBeNull();
     first.unmount();
     useStore.getState().applyMapSnapshot({
       documents: [
         {
           locality: "last-counted-mile",
-          claims: [{ key: "k", kind: "place", place: tag("/world/wilds/treeline"), name: "treeline", channel: "walked", at: { zone: tag("/world/wilds"), x: 0, y: 0, z: 0, level: 0 }, firstSeen: 1, lastSeen: 1 }],
+          claims: [{ key: "k", kind: "place", place: tag("/test/wilds/treeline"), name: "treeline", channel: "walked", at: { zone: tag("/test/wilds"), x: 0, y: 0, z: 0, level: 0 }, firstSeen: 1, lastSeen: 1 }],
         },
       ],
     });
-    render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/world/wilds", level: 0 } }} {...links} />);
+    render(<DocView doc={{ header: { name: "south" }, zoneThumb: { zone: "/test/wilds", level: 0 } }} {...links} />);
     expect(screen.getByTestId("doc-zone-thumb")).toBeTruthy();
     expect(screen.getByTestId("nav-thumb")).toBeTruthy();
   });
