@@ -6,6 +6,8 @@
 > accounts by office · the runtime as a producer of cost data (inference) · where the books live
 > and who may read them · the runtime surface · cash or accrual · surviving incorporation
 > **Size:** a build — not yet scoped
+> ⭐ **Started sooner (the owner, 2026-11-20):** the front page's Fund line reads these books — the
+> first open proposal, running costs, last month's support ([front-page-slate § 6](../client/front-page-slate.md)).
 
 The game should keep its own books. Today it doesn't: the record is a
 credit card statement. There is no legal entity yet and no bank account
@@ -48,7 +50,11 @@ runtime knows which NPC spoke, where, and for how long.
    [banking.md](../../subsystems/banking.md).
 3. **No new Mongo collection.** Per the standing rule, parcel-local
    persistence is the document tree under the owning path.
-4. ⚠⚠ **Contributions confer nothing.** The moment real money is
+4. ⚠⚠ **[CORRECTED 2026-11-20]** This guardrail misread Art. I §2, which reads: *"Real money may
+   fund the world and earn a **voice** in its governance; it may never purchase in-world currency,
+   property, or any gameplay advantage."* Contributions **do** confer a voice — capital standing,
+   through the capital chamber only (the Standing Act's A-tier clause; the founding offering) — and
+   confer **nothing else**. The original text, kept for the record: **Contributions confer nothing.** The moment real money is
    visible and attributable, it is one step from buying standing —
    which Art. I §2 forbids and no amendment can permit. The LLM-NPC
    design already solved the analogous problem and the rule
