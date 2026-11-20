@@ -1,8 +1,8 @@
 /**
  * The sugar copper's three acts (sugar D1/D19): a raw-sugar block
  * dissolves into its water; lime tempers the liquor; the scum is skimmed
- * into a pail — and the copper's grade, which the strike arrow reads,
- * follows what was done.
+ * into a pail — and the LIQUOR's grade (its payload's, matter-model-overlaps
+ * D2), which the strike arrow reads, follows what was done.
  */
 
 import '@saxonberg/server/test-bootstrap';
@@ -19,7 +19,6 @@ import Vat from '@saxonberg/server/mud/platform/thing/Vat';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Copper from '../thing/Copper';
@@ -60,7 +59,7 @@ function lump(mat: Material, kg: number): Provision {
   });
 }
 
-const bandOf = (c: Copper): string => (MixinApi.isGraded(c) ? c.getGrade().getBand() : '');
+const bandOf = (c: Copper): string => c.getBulkPayload('interior')?.grade ?? '';
 const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('the sugar copper', () => {

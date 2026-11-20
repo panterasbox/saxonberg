@@ -102,10 +102,8 @@ async function sourceBottle(
   slot.setMaterial(material);
   slot.setAmount(Quantity.of(litres, 'L'));
   slot.setPayload(payload as never);
-  // ⚠ The documented `Crafted.ts` cast quirk: `CraftVessel` composes
-  // `CraftedMixin`, which composes `GradedMixin`, but TS drops an inner
-  // mixin's surface through a nested generic mixin. Present at runtime.
-  (v as unknown as { setGradeBand(b: string): void }).setGradeBand('fine');
+  // The batch's grade is its payload's (matter-model-overlaps D2).
+  slot.setPayload({ ...(slot.getPayload() ?? {}), grade: 'fine' });
   ContainmentApi.move(v, room);
   return v;
 }

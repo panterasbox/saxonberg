@@ -36,8 +36,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
+import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { ChattelOwner } from '@saxonberg/server/mud/lib/chattel/ChattelRecord';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import type { BulkAffordance, BulkPayload } from '@saxonberg/server/mud/lib/bulk/Bulkable';
@@ -113,6 +112,9 @@ export default class IronPot extends IronPotBase {
       if (kgPerL < SATURATED_KG_PER_L) return;
       const payload = this.getBulkPayload('interior');
       const owner = payload?.contentsOwner ?? null;
+      // ⭐ The lye's grade is its payload's (matter-model-overlaps D2).
+      const band = payload?.grade;
+      const grade = band !== undefined && Grade.isBand(band) ? Grade.of(band) : null;
       const kg = kgPerL * litres;
       this.setBulkAmount('interior', Quantity.of(0, 'L'));
       this.setBulkMaterial('interior', null);
@@ -120,7 +122,7 @@ export default class IronPot extends IronPotBase {
       // Fired from a sync reconcile: a cake that cannot set (its row will not
       // load) is said loudly, never left to reject unheard — an unhandled
       // rejection ends the process.
-      this.setCake(kg, owner).catch((err: unknown) => {
+      this.setCake(kg, owner, grade).catch((err: unknown) => {
         console.error('IronPot: the black salts did not set:', err);
       });
     } finally {
@@ -134,17 +136,15 @@ export default class IronPot extends IronPotBase {
    * the boil concentrates the liquor to saturation, and whoever is standing
    * there is never its owner.
    */
-  private async setCake(alkaliKg: number, owner: ChattelOwner | null): Promise<void> {
+  private async setCake(alkaliKg: number, owner: ChattelOwner | null, grade: Grade | null): Promise<void> {
     // The act names its material, and loads it (load-on-use D2 c) — a
     // missing row throws here rather than losing the salts quietly.
     const material = await MaterialApi.materials().ensure(BLACK_SALTS);
-    const self = this as unknown as Stuff;
-    const grade: Grade | null = MixinApi.isGraded(self) ? self.getGrade() : null;
     const cake = await this.castInto({ material, massKg: alkaliKg / PURITY, payload: null, stampMaterial: true, madeBy: owner });
     if (cake === null) return;
     if (MixinApi.isComposition(cake)) cake.setMakeup([{ materialPath: POTASH, fraction: PURITY }]);
     // ⭐ The cake is graded as the lye was (AC 3): the pour carried the
-    // lye's band onto the pot.
+    // lye's band in its payload, and the pot keeps its own making.
     if (grade !== null && MixinApi.isGraded(cake)) cake.setGrade(grade);
   }
 }

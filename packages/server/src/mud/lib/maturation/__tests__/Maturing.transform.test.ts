@@ -150,7 +150,7 @@ afterEach(() => {
 describe('a pour that changes what a batch is', () => {
   it('rennet into a pitched milk batch rekeys it, keeping strain, days and mark', () => {
     const vat = milkVat();
-    vat.setMaker('/agent/test-cheesemaker');
+    vat.setBulkPayload('interior', { ...(vat.getBulkPayload('interior') ?? {}), maker: '/agent/test-cheesemaker' });
     expect(vat.getMaturationProfile()?.getKey()).toBe('t-soft-curd');
     pour(starter(), vat, 0.2);
     expect(vat.getBatchStrain()).toBe('t-lactic');
@@ -166,7 +166,8 @@ describe('a pour that changes what a batch is', () => {
     expect(vat.getMaturationPhase()).toBe('active');
     expect(vat.getBatchStrain()).toBe('t-lactic');
     expect(vat.batchDays).toBe(daysBefore);
-    expect(vat.getMaker()).toBe('/agent/test-cheesemaker');
+    // The batch's mark rides its contents through the rekey (D2).
+    expect(vat.getBulkPayload('interior')?.maker).toBe('/agent/test-cheesemaker');
     // The volume joined the batch — a transform is matter added.
     expect(vat.getBulkAmount('interior').rawValue()).toBeCloseTo(10.25, 6);
   });
@@ -208,8 +209,9 @@ describe('the scald mark', () => {
     scalded.getMaturationPhase();
     expect(boiled.getBatchPeakK()).toBeGreaterThan(355);
     expect(scalded.getBatchPeakK()).toBeLessThan(355);
-    const band = (v: unknown): string =>
-      (v as { getGradeBand(): string }).getGradeBand();
+    // The scald grades the BATCH — the curd's payload (D2).
+    const band = (v: typeof boiled): string | undefined =>
+      v.getBulkPayload('interior')?.grade;
     expect(band(boiled)).toBe('poor');
     expect(band(scalded)).not.toBe('poor');
   });

@@ -870,7 +870,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         0;
       const overpress = mouldDial(AppSettingKeys.mouldOverpressExponent, 0.15);
       return (pressed: number): number =>
-        drain.drainedKg(poolKg, waterFraction, pressed, this.bandsBelowFine(), overpress);
+        drain.drainedKg(poolKg, waterFraction, pressed, this.poolBandsBelowFine(), overpress);
     }
 
     /**
@@ -1167,11 +1167,26 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return null;
     }
 
-    /** Grade bands this mould's pool sits below `fine` (0 when ungraded). */
-    private bandsBelowFine(): number {
+    /**
+     * ⭐ The grade what sets here will have (D3): the lower of the batch's
+     * (its payload) and this mould's own — a shaping vessel is the one
+     * vessel that passes its own grade on. Either side ungraded, the
+     * other's; `null` when neither is.
+     */
+    private castGrade(): Grade | null {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isGraded(self)) return 0;
-      return Math.max(0, Grade.of('fine').getOrdinal() - self.getGrade().getOrdinal());
+      const own = MixinApi.isGraded(self) ? self.getGrade() : null;
+      const band = MixinApi.isBulkable(self) ? self.getBulkPayload('interior')?.grade : undefined;
+      const batch = band !== undefined && Grade.isBand(band) ? Grade.of(band) : null;
+      if (own === null) return batch;
+      return batch === null ? own : own.min(batch);
+    }
+
+    /** Grade bands the pool sets below `fine` (0 when ungraded). */
+    private poolBandsBelowFine(): number {
+      const grade = this.castGrade();
+      if (grade === null) return 0;
+      return Math.max(0, Grade.of('fine').getOrdinal() - grade.getOrdinal());
     }
 
     /**
@@ -1193,6 +1208,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
       const pool = self.getBulk('interior');
+      // Read before the drainings leave: the pool's grade is what sets.
+      const poolGrade = this.castGrade();
       let into = this.drainsInto();
       const held = into?.getBulkMaterial('interior') ?? null;
       if (held !== null && held.getTemplatePath() !== what.getTemplatePath()) into = null;
@@ -1214,9 +1231,16 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
               mode: 'lenient',
             }, via).applied
           : 0;
-      if (into !== null && caught > 0 && MixinApi.isGraded(self) && MixinApi.isGraded(into)) {
-        const band = Grade.fromOrdinal(self.getGrade().getOrdinal() - 1);
-        into.setGrade(held === null ? band : into.getGrade().min(band));
+      // ⭐ The drainings' grade is their PAYLOAD's (D2), one band below the
+      // pool's — never above what that vessel already held.
+      if (into !== null && caught > 0 && poolGrade !== null) {
+        const band = Grade.fromOrdinal(poolGrade.getOrdinal() - 1);
+        const landed = into.getBulkPayload('interior') ?? {};
+        const was = held !== null && landed.grade !== undefined ? Grade.of(landed.grade) : null;
+        into.setBulkPayload('interior', {
+          ...landed,
+          grade: (was === null ? band : was.min(band)).getBand(),
+        });
       }
       this.setDrainedKg += ((caught + ranAway) / 1000) * density;
     }
@@ -1442,11 +1466,19 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
  */
 function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
   const p = pool.payload;
+  // ⭐⭐ The cast is the BATCH set solid (D3): its maker is the batch's (a
+  // mould's own maker made the mould, not what set in it), and its grade
+  // the lower of the batch's and the mould's — a fine pour into a poor
+  // mould casts poor; being a Mould is the claim that passes it.
   if (MixinApi.isCrafted(cast)) {
-    const mouldMaker = MixinApi.isCrafted(mould) ? mould.getMaker() : '';
-    const maker = p?.maker || mouldMaker;
-    if (maker) cast.setMaker(maker);
-    if (MixinApi.isGraded(mould)) cast.setGrade(mould.getGrade());
+    if (p?.maker) cast.setMaker(p.maker);
+    if (p?.craftedAt !== undefined) cast.setCraftedAt(p.craftedAt);
+  }
+  if (MixinApi.isGraded(cast)) {
+    const own = MixinApi.isGraded(mould) ? mould.getGrade() : null;
+    const batch = p?.grade !== undefined && Grade.isBand(p.grade) ? Grade.of(p.grade) : null;
+    const grade = own === null ? batch : batch === null ? own : own.min(batch);
+    if (grade !== null) cast.setGrade(grade);
   }
   // ⭐ …and WHICH TRADE (repair D1): the mould row's fact, not the pourer's
   // — so a cast part is mended under the trade that cast it. On the one

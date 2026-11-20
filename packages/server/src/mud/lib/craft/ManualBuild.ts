@@ -309,7 +309,9 @@ export function ManualBuildMixin<TBase extends NestingConstructor>(Base: TBase) 
       const { source } = req;
       const slot = BulkableApi.slotFor(source, req.sourceVia);
       if (!slot) return { ok: false, reason: "nothing-in-source", facts: { source, target } };
-      const gradeBand = MixinApi.isGraded(source) ? source.getGradeBand() : "fair";
+      // The serving's grade is the batch's — its payload's (matter-model-
+      // overlaps D2), never the bottle's own making; ungraded pours at fair.
+      const gradeBand = slot.getPayload()?.grade ?? "fair";
       // The onComplete is sync, but a Material singleton may need a load first.
       const mpath = slot.getMaterialPath();
       const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;

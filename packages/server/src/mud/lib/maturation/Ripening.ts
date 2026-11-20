@@ -242,7 +242,7 @@ export function RipeningMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
      * vat's band onto the cast; once it is ripening, `setGrade` is this
      * mixin writing its own derived band. ⚠ Reading the face at the start
      * instead would cap every ungraded wheel at `GradedMixin`'s default
-     * `fair` for ever — Maturing's `batchInputBand` trap, twin.
+     * `fair` for ever — Maturing's `inputGradeCap` trap, twin.
      */
     public setGrade(value: Grade): void {
       if (this.ripeningPhase === 'idle') {

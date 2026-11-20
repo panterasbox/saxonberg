@@ -128,7 +128,7 @@ rack = `pour`, seal = `close`, bottle = `fill`, pitch/feed = `pour`.
 
 `MaturingMixin` composes on a Bulkable host (composition-validated)
 — bulk matter has no identity, vessels do (the pot-as-bed precedent).
-`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Good)))))`;
+`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Good)))))` (Crafted is the cask's OWN making — the batch's mark is its payload's);
 a carboy, a conditioning bottle and the cask are ROWS over it (sizes
 are data). The vat's `category` defaults `'vat'` (rows depart).
 
@@ -199,12 +199,12 @@ conversion at which the interior becomes the product. At 1 the product
 exists only at full conversion, which is what every profile did before
 and what every shipped profile but the two whisky casks still does.
 
-Below 1 it opens a window, and `applyBatchGrade` gains a **third weakest
+Below 1 it opens a window, and `gradeBatch` gains a **third weakest
 link** — a maturity term climbing from `poor` at `productAtFraction` to
 `masterful` at 1:
 
 ```
-band = min(damageBand, batchInputBand, maturityBand)
+band = min(damageBand, inputGradeCap, maturityBand)
 ```
 
 ⭐ So bottling early costs quality and bottling late costs time, and the
@@ -268,17 +268,18 @@ the distiller's deferred cuts rung*). **A new drink is rows alone** —
 proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
 
-⭐⭐ **And the fill now CAPS the batch** (`batchInputBand`). `applyBatchGrade`
-wrote `bandFor(_worstStretch)` and ignored what was poured in, so a
-`poor` must made `fine` wine provided the cellar was kept well — a
-laundry, and a contradiction of `Grade.deriveAtFixedControl`'s
-weakest-link rule one folder over. The band is recorded by a `setGrade`
-**witness while the batch is idle**, which is the part worth copying:
-reading the host's Graded face at `startBatch` would have capped every
-ungraded ferment at `GradedMixin`'s `'fair'` default, for ever, silently.
-Proved both ways in `__tests__/InputBandCap.test.ts` — ⚠ written because
-the fix broke **no** shipped test, which meant either it worked and
-nothing shipped ferments a bad fill, or it never fired.
+⭐⭐ **And the fill CAPS the batch** (`inputGradeCap`). The band was
+`bandFor(_worstStretch)` and ignored what was poured in, so a `poor` must
+made `fine` wine provided the cellar was kept well — a laundry, and a
+contradiction of `Grade.deriveAtFixedControl`'s weakest-link rule one
+folder over. ⭐ The cap is the CONTENTS' grade, read off the payload when the
+batch starts (matter-model-overlaps D2), and `gradeBatch` writes the derived
+band back onto the payload — **never the vessel's own `Graded` face**, which
+is its making (a ferment in a cooper's cask leaves the cask the cooper's).
+Ungraded contents carry no cap, so nothing caps an ungraded ferment at
+`GradedMixin`'s `'fair'` default — the trap the retired `setGrade` witness
+existed to dodge, gone with it. Proved both ways in
+`__tests__/InputBandCap.test.ts`.
 
 ⭐ A fifth `MaturationMechanism`, **`enzymatic`** — *the thing does it to
 itself*. A steeped barleycorn turns its own starch over with its own
@@ -323,11 +324,17 @@ every reconcile. No `Math.random` in the tree (source-scanned).
 
 ## The transfer seam carries the batch's identity (D6/P3, W0)
 
-`BulkableApi.transfer` into an EMPTY destination carries the source
-holder's grade band (Graded→Graded) and the maker's mark
-(Crafted→Crafted: maker/recipe/craftedAt) — the payload rule applied
-to identity. `GradedReceptacle` (⇒ every stock bottle) is Crafted now,
-and a MARKED bottle appends its `renderVerdict()` to look (W7). The
+⭐⭐ **The batch is the contents'** (matter-model-overlaps D2). Its grade,
+maker (an identity path) and time made ride the PAYLOAD, so
+`BulkableApi.transfer` into an EMPTY destination carries them with the
+payload, and a top-up folds the grade to the lower of the two without
+re-signing the maker ([bulk.md](./bulk.md) § `transfer`). The batch is
+signed when it starts (`signBatch`: the maker carried in, else the acting
+author's `getIdentityPath()` — the lineage-key defect `Fractionating`
+recorded is fixed). No pour, ferment or temper writes the vessel's
+`Graded`/`Crafted` again: a bottle holding a MARKED batch appends the
+contents' verdict to look (`renderVerdict(viewer, stamp)`, W7) and says
+nothing of itself. The
 mismatch branch offers a cross-material pour to a Fermenting interior
 as an INOCULATION before declining: a strain-bearing pour into a
 sterile batch is a PITCH (the jar's `batchStrain`, or a material's
@@ -341,8 +348,8 @@ S. pastorianus in base-library). **The lees split at the rack** (P12):
 a finished batch holds `leesFraction` back as a rack floor
 (`getBulkAvailable` shadow); racked down to it, the residual swaps to
 `leesMaterial` and re-keys AT ONCE as a culture batch — strain from
-the lees' culture profile, the Crafted mark untouched (the trace back
-to the harvested batch). A culture's "conversion" is viability:
+the lees' culture profile, the batch's mark untouched on its payload (the
+trace back to the harvested batch). A culture's "conversion" is viability:
 starves over `starveDays` (×0.25 below the band — the cellar; ×3 past
 damage — the shelf), killed above `killK`, fed by a pour of
 sugar-bearing must; dead is terminal and pitches nothing.
@@ -466,7 +473,7 @@ the analysis instead of rediscovering it:
   through a sprung stave or a slack hoop and dries out standing empty
   (`emptySince`, on every vat now); a carboy or a crock is a vat of one
   piece — see [assembly.md](./assembly.md)
-- `platform/idea/api/BulkableLogic.ts` — `carryBatchIdentity` +
+- `platform/idea/api/BulkableLogic.ts` — the payload's grade top-up +
   `tryInoculate` on the transfer
 - `lib/behavior/cellars.ts` (+ `__tests__/`) — the producer beats
 - `platform/thing/instrument/Hydrometer.ts` +
@@ -570,7 +577,7 @@ firm curd — whatever the order of rennet and starter.
 **The scald mark** — `batchPeakK` (persistent, the peak over every
 reconcile's samples since the fill) against the profile's `scaldAboveK`:
 past it the band is capped `poor`, a **fourth weakest link** in
-`applyBatchGrade`. Vacuous for every profile that authors none.
+`gradeBatch`. Vacuous for every profile that authors none.
 
 **`leesShare`** — a `CompositionShare` (`lib/material/`) evaluated against
 the material the batch was MADE from, overriding the literal

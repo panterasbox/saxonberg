@@ -27,7 +27,11 @@
  * - `Fractionating` — the run charge's band and maker off `self`
  * - the two verdict augmenters (`CraftVessel`, `GradedReceptacle`) —
  *   `host.renderVerdict(viewer)` on a used holder
- * - `ConditionReading` — `thing.getGrade().renderBandWord()`
+ *
+ * (W1 removed `ConditionReading`'s `thing.getGrade().renderBandWord()`
+ * from the list: once no batch writes a vessel's grade, that line reads
+ * the thing's OWN making — *"as it stands, it is fine work"* — which is
+ * what it was always for.)
  *
  * ⭐ Census-then-ratchet (docs/lint-family.md): the ceiling is today's
  * count; it may fall and never rise. W1 lowers it to ZERO. A site that W1
@@ -41,8 +45,8 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-/** ⭐ The ceiling. W1 lowers it to 0; never raise it. */
-const BATCH_ON_HOLDER_CEILING = 38;
+/** ⭐ The ceiling. W1 lowered it to 0; never raise it. */
+const BATCH_ON_HOLDER_CEILING = 0;
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MUD = join(HERE, '..', '..', '..');
@@ -73,7 +77,6 @@ const SIGNATURES: readonly Signature[] = [
   { file: join(PACKS, 'trade-potash/src/thing/IronPot.ts'), pattern: /\bisGraded\(self\)\s*\?\s*self\.getGrade\(\)/g },
   { file: join(MUD, 'platform/thing/CraftVessel.ts'), pattern: /\bhost\.renderVerdict\(viewer\)/g },
   { file: join(MUD, 'platform/thing/GradedReceptacle.ts'), pattern: /\bhost\.renderVerdict\(viewer\)/g },
-  { file: join(MUD, 'platform/idea/reading/ConditionReading.ts'), pattern: /\bthing\.getGrade\(\)\.renderBandWord\(\)/g },
 ];
 
 /** Source text with comments removed — a site named in prose is not a site. */

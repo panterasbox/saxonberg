@@ -29,6 +29,7 @@ import { DissolvedAromatics } from '../../../lib/metabolism/DissolvedAromatics';
 import { Concentration } from '../../../lib/bulk/Concentration';
 import type { MqlQuantity, MqlMatchVia } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
+import { Grade, type GradeBand } from '../../../lib/craft/Grade';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -548,16 +549,15 @@ export class BulkableLogic extends ApiLogic {
         // A blend poured into an empty vessel stays that blend (a copy).
         // Same-material pours into a non-empty vessel keep the
         // destination's payload — blend merging is out of scope.
-        if (fromPayload) to.setPayload(fromPayload);
-        // The grade seam (fermentation D6/W0): a fresh fill from a
-        // graded batch carries the batch's identity — band, and the
-        // maker's mark when both sides can hold one. Same rule as the
-        // payload: identity rides into an EMPTY destination only; a
-        // top-up keeps the destination's own identity (blend identity
-        // is out of scope, like blend merging above). ⚠ Not out of a set:
-        // the batch is the solid, and the drainings are not it (the mould
-        // grades them itself).
-        if (!set) carryBatchIdentity(fromHolder, toHolder);
+        // ⭐⭐ The batch's identity — its grade, maker, recipe and when it
+        // was made — rides here, on the PAYLOAD (matter-model-overlaps
+        // D2): it is a fact about the contents, so the vessel it lands in
+        // keeps its own making (a fine wine in a poor bottle stays fine; a
+        // ferment in a cooper's cask leaves the cask the cooper's). ⚠ Out
+        // of a set the drainings take no grade (`throughSet`): the mould
+        // grades them itself.
+        const landed = withoutWallClock(fromPayload);
+        if (landed) to.setPayload(landed);
       }
       // ⭐⭐ Bring the destination CURRENT before the matter lands. Setting
       // a vessel's temperature first reconciles it up to now at the heat it
@@ -668,12 +668,18 @@ export class BulkableLogic extends ApiLogic {
 
       // ⭐⭐ **A top-up is weakest-link on the grade.** Identity rides into
       // an empty destination only (above) — but quality is not identity,
-      // and a vessel that has had a poor pour added to it holds poorer
-      // matter than it did. Without this, topping a bad bottle up from a
-      // good cask would LAUNDER it: the grade is the destination's and the
-      // matter is the mixture. The maker's mark is untouched either way —
-      // a top-up never re-signs somebody else's work.
-      if (!toWasEmpty && !set) carryTopUpGrade(fromHolder, toHolder);
+      // and matter that has had a poor pour added to it is poorer than it
+      // was. Without this, topping a bad bottle up from a good cask would
+      // LAUNDER it. One side ungraded: the other's stands. The maker, the
+      // recipe and the time made are untouched — a top-up never re-signs
+      // somebody else's work.
+      if (!toWasEmpty) {
+        const held = to.getPayload();
+        const grade = lowerGrade(held?.grade, fromPayload?.grade);
+        if (grade !== undefined && grade !== held?.grade) {
+          to.setPayload({ ...(held ?? {}), grade });
+        }
+      }
 
       // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
       // two units of the same labelled type stay that type; anything else
@@ -982,30 +988,29 @@ function strainTagOf(material: Material): string {
   return '';
 }
 
-function carryBatchIdentity(
-  fromHolder: Stuff,
-  toHolder: Stuff | null,
-): void {
-  if (toHolder === null) return;
-  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
-  toHolder.setGrade(fromHolder.getGrade());
-  if (MixinApi.isCrafted(fromHolder) && MixinApi.isCrafted(toHolder)) {
-    toHolder.setMaker(fromHolder.getMaker());
-    toHolder.setRecipe(fromHolder.getRecipe());
-    toHolder.setCraftedAt(fromHolder.getCraftedAt());
-  }
+/**
+ * A payload as it lands in a vessel: everything it carries but the old
+ * wall's clock. `faceCheckedS` is when the SOURCE's wall last exchanged
+ * with it, a fact about that wall, so it never rides a pour.
+ */
+function withoutWallClock(payload: BulkPayload | null): BulkPayload | null {
+  if (payload === null || payload.faceCheckedS === undefined) return payload;
+  const { faceCheckedS: _c, ...rest } = payload;
+  return Object.keys(rest).length > 0 ? rest : null;
 }
 
 /**
- * The top-up rule: the destination's grade falls to the lower of the two.
- * Never raises it — `Grade.min` both ways, which is the same weakest-link
- * doctrine `Grade.deriveAtFixedControl` applies to a craft's inputs.
+ * The top-up rule: the lower of two batch grades, and with one side
+ * ungraded the other's — `Grade.min`, the weakest-link doctrine
+ * `Grade.deriveAtFixedControl` applies to a craft's inputs.
  */
-function carryTopUpGrade(fromHolder: Stuff, toHolder: Stuff | null): void {
-  if (toHolder === null) return;
-  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
-  const blended = toHolder.getGrade().min(fromHolder.getGrade());
-  toHolder.setGrade(blended);
+function lowerGrade(
+  held: GradeBand | undefined,
+  poured: GradeBand | undefined,
+): GradeBand | undefined {
+  if (held === undefined) return poured;
+  if (poured === undefined) return held;
+  return Grade.of(held).min(Grade.of(poured)).getBand();
 }
 
 function computeApplied(

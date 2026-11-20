@@ -7,6 +7,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import type { GradeBand } from '../../../../lib/craft/Grade';
 import { chargeHot } from '../../../../lib/fire/__tests__/burner-fuel';
 import type { Burner } from '../../../../lib/fire/Burner';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -130,7 +131,8 @@ function makeBottle(materialPath: string, band: string, amountL: number) {
   (b as unknown as { interiorMaterial: string }).interiorMaterial = materialPath;
   b.setInteriorCapacity(Quantity.of(1, 'L'));
   b.setInteriorAmount(Quantity.of(amountL, 'L'));
-  b.setGradeBand(band);
+  // The batch's grade is its payload's (matter-model-overlaps D2).
+  BulkableApi.slotFor(b, undefined)!.setPayload({ grade: band as GradeBand });
   return b;
 }
 

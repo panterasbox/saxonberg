@@ -2532,8 +2532,9 @@ const SOLIDS_CEILING_KG_PER_L = 1.58;
  * ⭐ The boil-down's stages (sugar D1): once the liquor's mass fraction
  * has reached an arrow's `fromW`, the highest such arrow fires — the
  * material swaps and the payload carries (minus the boil clock), the
- * `purifyIfHeld` shape. An arrow with `minBand` reads the VESSEL's grade
- * (the tempering and skimming write it) and below the band fires
+ * `purifyIfHeld` shape. An arrow with `minBand` reads the LIQUOR's grade,
+ * its payload's (the tempering and skimming write it; an ungraded liquor
+ * is below every band) and below the band fires
  * `elseBecomes` instead: what will not grain is blackstrap. An arrow that
  * names the material already in the pan, or a row nothing resolves, leaves
  * it alone.
@@ -2555,7 +2556,8 @@ function concentrateIfReached(
   if (arrow === null) return;
   let into = arrow.becomes;
   if (arrow.minBand && arrow.elseBecomes) {
-    const band = MixinApi.isGraded(v) ? v.getGrade() : null;
+    const held = payload.grade;
+    const band = held !== undefined && Grade.isBand(held) ? Grade.of(held) : null;
     if (band === null || band.compareTo(Grade.of(arrow.minBand)) < 0) {
       into = arrow.elseBecomes;
     }
@@ -2924,7 +2926,9 @@ function crystallizeIfOver(
     }
   }
   // A set runs inside a read: nothing waits on the crop, so a failure is said.
-  void setCrystals(v, product, excessKg).catch((err: unknown) => {
+  // ⭐ The crystals are the batch set solid: they take the liquor's payload
+  // — its grade, maker and time made — as any pool sets into its cast (D3).
+  void setCrystals(v, product, excessKg, payload).catch((err: unknown) => {
     console.error('Thermal: the crystals could not be set', err);
   });
   return true;
@@ -2960,6 +2964,7 @@ async function setCrystals(
   v: Stuff & Bulkable & Thermal,
   product: Material,
   kg: number,
+  liquor: BulkPayload | null,
 ): Promise<void> {
   if (!(kg > 0)) return;
   const self = v as unknown as Stuff;
@@ -2995,7 +3000,7 @@ async function setCrystals(
   try {
     let cast: Stuff;
     if (mould) {
-      cast = await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
+      cast = await mould.castInto({ material: product, massKg: kg, payload: liquor, stampMaterial: true });
     } else {
       // ⚠ A row that will not mint, or cannot stand beside the vessel,
       // throws (B105 — it was swallowed, and the crop lost).

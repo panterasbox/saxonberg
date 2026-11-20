@@ -2,11 +2,10 @@
  * GradedReceptacle — a bulk holder that carries a quality {@link Grade} AND
  * the maker's mark: the working stock bottle.
  *
- * Crafted (which composes Graded) rather than merely Graded since the
- * fermentation grade seam (W0/D9): a bottle filled from a graded batch
- * carries the batch's band and its maker — the mark is how a `fine`
- * gin stays attributable on the rail. Store-bought empties default to
- * an empty mark.
+ * Crafted (which composes Graded): the bottle has a making of its own.
+ * The batch it holds carries ITS band and maker on the payload
+ * (matter-model-overlaps D2) — the mark is how a `fine` gin stays
+ * attributable on the rail, and the verdict below renders it.
  *
  * `BrandedMixin(CraftedMixin(BulkableMixin(Good)))` — a `Receptacle` that also
  * has a grade, so the input's quality flows through a craft to the output
@@ -28,29 +27,30 @@ import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { BrandedMixin } from '../../lib/corpo/Branded';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
-import type { Grade } from '../../lib/craft/Grade';
+import { Grade } from '../../lib/craft/Grade';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 
 /**
- * The maker's mark on the rail (fermentation W7/D9): a MARKED bottle
- * appends its quality verdict — band word + maker attribution — to its
- * look. An unmarked store bottle contributes nothing; provenance
- * carries worth, and the mark is how a `fine` gin stays somebody's.
+ * The maker's mark on the rail (fermentation W7/D9): a bottle holding a
+ * MARKED batch appends the batch's quality verdict — band word + maker
+ * attribution — to its look. The mark is the CONTENTS' (its payload's,
+ * matter-model-overlaps D2), never the bottle's: a store bottle refilled
+ * with somebody's fine gin is that somebody's gin. Unmarked contents
+ * contribute nothing; provenance carries worth.
  */
 function verdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
-  if (!MixinApi.isCrafted(host)) return text;
-  if (host.getMaker() === '') return text;
-  // ⭐ Quiet on an unused vessel (client-surface D10): an empty, unsoiled
-  // bottle has nothing to be judged on yet.
-  const used =
-    (MixinApi.isBulkable(host) &&
-      host.hasInteriorBulk() &&
-      !host.getBulk('interior').isEmpty()) ||
-    (MixinApi.isServiceable(host) && host.isSoiled());
-  if (!used) return text;
-  const verdict = host.renderVerdict(viewer);
+  if (!MixinApi.isCrafted(host) || !MixinApi.isBulkable(host) || !host.hasInteriorBulk()) {
+    return text;
+  }
+  const slot = host.getBulk('interior');
+  if (slot.isEmpty()) return text;
+  const payload = slot.getPayload();
+  const maker = payload?.maker ?? '';
+  const band = payload?.grade;
+  if (maker === '' || band === undefined || !Grade.isBand(band)) return text;
+  const verdict = host.renderVerdict(viewer, { grade: Grade.of(band), maker });
   return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 }
 

@@ -323,8 +323,13 @@ credited (`hard`) when the watch is kept. Every other pour is unchanged.
 
 ## What rides onto the cast
 
-The pool's payload is carried onto a cast that can hold it: `maker`
-(payload's, else the mould's), the mould's grade, the mould's `discipline`
+The pool's payload is carried onto a cast that can hold it: ⭐ the batch's
+`maker` and `craftedAt` (the payload's — the fallback to the mould's own
+maker is gone: who made the mould did not make what set in it), the grade
+**`min(payload.grade, mould grade)`** (matter-model-overlaps D3 — a fine
+pour into a poor mould casts poor; being a Mould is the claim that passes
+its own grade, and either side ungraded leaves the other's), the mould's
+`discipline`
 on the one cast record (`castFrom.discipline`, beside any impression it was
 taken from — repair D1, review R2-D6), freshness, pathogens, a set's moisture,
 `alloying` (ceramics ruling C), `madeFrom`.
@@ -392,8 +397,9 @@ remainder goes at the set.
 one move ([bulk.md](./bulk.md) § `TransferVia`). The population and the
 dissolved go with the liquid, the maker goes with it, the solid's identity
 does not, and the drainings are their own material at its own strength. The
-grade is one band below the mould's, never above what the vessel below
-already held. What that vessel has no room for — or all of it, when nothing
+grade — on the drainings' PAYLOAD (D2) — is one band below what the pool
+sets at (`min(payload.grade, mould grade)`, the cast's own), never above
+what the vessel below already held; `drainPerBand` reads the same grade. What that vessel has no room for — or all of it, when nothing
 is beneath or the vessel holds a different liquor — runs away (a transfer to
 no sink). ⚠ The pool is therefore DEBITED as it sets: the set reads the
 charge it started from as what is in it plus `setDrainedKg` at the

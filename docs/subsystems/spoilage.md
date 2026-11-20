@@ -462,7 +462,7 @@ is the right number.
   mistake worth being able to make. **Burnt is the object with the
   band**: no burnt template, no second terminal.
 - ⭐ **Ruined writes the Grade down to `poor`**, monotone, the
-  `Maturing.applyBatchGrade` shape. It only ever lowers, so nothing can
+  `Maturing.gradeBatch` shape. It only ever lowers, so nothing can
   be nursed back by cooling it — a grade that can be recovered is a grade
   worth grinding.
 - **A working stamps the dose it earned**, so every dish comes out of its

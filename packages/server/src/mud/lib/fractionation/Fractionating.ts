@@ -379,13 +379,13 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         ? schedule.getResidueFractionFor(material)
         : 0;
       const self = this as unknown as Stuff;
-      // The charge's identity, captured at the charge: the vat's grade is
-      // what this run has to work with (D10 stretches the heads by it),
-      // and the hand that charged it is who the bottle will name.
-      if (MixinApi.isGraded(self)) this.runChargeBand = self.getGradeBand();
-      if (MixinApi.isCrafted(self) && self.getMaker()) {
-        this.runMaker = self.getMaker();
-      }
+      // The charge's identity, captured at the charge — off the CHARGE's
+      // payload (matter-model-overlaps D2), never the still's own making:
+      // its grade is what this run has to work with (D10 stretches the
+      // heads by it), and the hand that made it is who the bottle will name.
+      const charge = MixinApi.isBulkable(self) ? self.getBulkPayload('interior') : null;
+      if (charge?.grade !== undefined && Grade.isBand(charge.grade)) this.runChargeBand = charge.grade;
+      if (charge?.maker) this.runMaker = charge.maker;
       if (!this.runMaker) {
         // ⚠⚠ `getIdentityPath()`, never `getTemplatePath()`. Every player
         // Avatar shares ONE template path, so a lineage key collapses the
@@ -395,10 +395,8 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         // make every bottle anonymous-and-identical and the self-victim
         // guard would never fire.
         //
-        // ⭐ Finding for review: `MaturingMixin.stampBatchMark`
-        // (`Maturing.ts:815-822`) takes `getTemplatePath()` here. It is
-        // the same defect one subsystem over, and it is not this build's
-        // to fix — recorded in the plan.
+        // (`MaturingMixin` took `getTemplatePath()` here, the same defect
+        // one subsystem over; matter-model-overlaps W1 fixed it.)
         const author = ExecutionContextApi.getActingAuthor() as {
           getIdentityPath?: () => string | null;
         } | null;
@@ -832,19 +830,19 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         aroma = scaleAromatics(chargeAromatics, here.aromaticCarry ?? 1);
         worst = Grade.of(here.gradeBand);
       }
-      const self = this as unknown as Stuff;
-      // ⭐ The host's own Graded face is restamped so the transfer seam's
-      // identity carry and top-up minimum see the DRAW's band rather than
-      // the charge's. Nothing else reads it mid-run.
-      if (worst !== null && MixinApi.isGraded(self)) {
-        const capped =
-          this.runChargeBand && Grade.isBand(this.runChargeBand)
-            ? worst.min(Grade.of(this.runChargeBand))
-            : worst;
-        self.setGrade(capped);
-        worst = capped;
+      // ⭐ The DRAW is graded — its payload carries the span's band, capped
+      // by the charge's — so the transfer carries the band of what was
+      // actually drawn (D2), and the still keeps its own making.
+      if (worst !== null && this.runChargeBand && Grade.isBand(this.runChargeBand)) {
+        worst = worst.min(Grade.of(this.runChargeBand));
+      }
+      // …and by what has happened to the batch since (a churning that came
+      // greasy): the contents' own grade is a ceiling on every draw.
+      if (worst !== null && base?.grade !== undefined && Grade.isBand(base.grade)) {
+        worst = worst.min(Grade.of(base.grade));
       }
       const payload: BulkPayload = { ...(base ?? {}) };
+      if (worst !== null) payload.grade = worst.getBand();
       if (this.runMaker) payload.maker = this.runMaker;
       if (dose.length > 0) payload.dissolvedToxins = dose;
       else delete payload.dissolvedToxins;

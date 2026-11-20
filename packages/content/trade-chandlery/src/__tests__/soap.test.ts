@@ -228,7 +228,8 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     const first = leach(h, rain);
     expect(first).toBeCloseTo((0.45 / 20) * 0.96, 6);
     expect(new LyeStrength(first).band()).toBe('weak');
-    expect((h as unknown as { getGrade(): { getBand(): string } }).getGrade().getBand()).toBe('fair');
+    // The LYE is graded by its strength — its payload (D2), not the hopper.
+    expect(h.getBulkPayload('interior')?.grade).toBe('fair');
 
     // The lye, drawn off and poured back through fresh ash.
     const lye = material(['liquid', 'caustic', 'alkali', 'lye']);
@@ -238,7 +239,7 @@ describe('⭐⭐ the leach is DERIVED: ash, passes, hardness (potash D6)', () =>
     const second = leach(again, lye);
     expect(second).toBeCloseTo(first * 2, 6);
     expect(new LyeStrength(second).band()).toBe('soap-strength');
-    expect((again as unknown as { getGrade(): { getBand(): string } }).getGrade().getBand()).toBe('fine');
+    expect(again.getBulkPayload('interior')?.grade).toBe('fine');
   });
 
   it('⭐ river water (12 °dH) makes a lye about half as strong as rain', () => {

@@ -27,9 +27,7 @@ import { HandWorkedMixin, type HandWorkFacts } from '@saxonberg/server/mud/lib/c
 import type { ActOutcome } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
@@ -96,8 +94,11 @@ export default class Churn extends ChurnBase {
     if (!churned) return null;
     this.setBulkMaterial('interior', churned);
     if (tempK > GREASY_ABOVE_K) {
-      const self = this as unknown as Stuff;
-      if (MixinApi.isGraded(self)) self.setGrade(self.getGrade().min(Grade.of('fair')));
+      // ⭐ Greasy butter is the BUTTER's fault — its payload's grade (D2),
+      // never the churn's making; ungraded cream comes greasy at `fair`.
+      const payload = this.getBulkPayload('interior') ?? {};
+      const was = payload.grade !== undefined && Grade.isBand(payload.grade) ? Grade.of(payload.grade) : Grade.of('fair');
+      this.setBulkPayload('interior', { ...payload, grade: was.min(Grade.of('fair')).getBand() });
       return this.worked('came-greasy');
     }
     return this.worked('came');

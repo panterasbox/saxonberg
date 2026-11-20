@@ -24,9 +24,11 @@ mark** (`CraftedMixin`), **a kind** (so an empty one says *"an empty
 flour sack"* rather than reciting its description — the defect the
 shipped malt sack still has), and **a temperature**.
 
-⭐ **The grade rides the HOLDER, never the payload.** Bulk matter has no
-identity to be graded; a quantity of it in a marked sack does. Same
-convention a bottle of graded gin follows.
+⭐⭐ **The grade rides the PAYLOAD, never the holder** (matter-model-overlaps
+D2, reversing the grain chain's rule). A batch's grade and miller are facts
+about the meal, so the grind writes them onto the sack's contents; the sack
+is just a sack, with a making of its own. Same convention a bottle of
+graded gin follows.
 
 ⭐ `GradedReceptacle` gained `ThermalMixin` (outer of Bulkable, the
 `Receptacle` rule) in the same build — which reaches **every `Bottle`**.
@@ -414,8 +416,8 @@ transfer(from: BulkSlot, to: BulkSlot | null, amount, via?): TransferResult
 vessel into another — a pour, a filter's seep, a mould's spent liquor
 running off into its tub — goes through it, so every fact the matter carries
 (spoilage, water state, pathogens, a vessel's own surface load, the
-dissolved doses, solids, hardness, ownership, the grade top-up rule, the
-receiver's survival) moves by one set of rules. ⚠ The ceramics build
+dissolved doses, solids, hardness, ownership, the batch's grade and maker,
+the receiver's survival) moves by one set of rules. ⚠ The ceramics build
 hand-rolled two copies (the filter's seep and the bittern drain) and they
 silently skipped most of that; the review routed both back here.
 
@@ -435,7 +437,8 @@ culture, and a spoiled curd's whey cannot come out clean); the **dissolved**
 passes (toxins, formed toxins, aromas, hardness); whose it is and who made
 it pass (harm from the whey names the cheesemaker). The pool's **identity**
 does not — recipe, makeup, appearance, keywords, age, treatment, thermal
-bookkeeping, and the batch grade and mark of the holder — and neither do its
+bookkeeping, and the batch's GRADE (the mould grades its drainings, one band
+below what sets) — and neither do its
 water state or its dissolved-solids strength, which the set is what changed
 (a sugar loaf IS the sugar): the drainings arrive as `arrivesAs`, whole, at
 that material's own. The payload is a whitelist (`throughSet`), so a field a
@@ -461,13 +464,16 @@ capacity, `sip`, `pour 2 cups`). Pipeline:
 5. **Apply** — debit the source (skipped for an unbounded source; a
    bounded slot that hits zero clears its material), credit the
    destination (adopting the material when it was empty); a `null` sink
-   just discards. A fresh fill (empty destination) also carries the
-   **batch's identity** — a Graded source holder stamps the
-   destination's grade band, and a Crafted source stamps the maker's
-   mark (maker/recipe/craftedAt) too. The rule mirrors the payload
-   rule exactly: identity rides into an *empty* destination only; a
-   top-up keeps the destination's own identity (the fermentation grade
-   seam, D6).
+   just discards. ⭐⭐ **The batch is the contents'** (matter-model-overlaps
+   D2): a fresh fill (empty destination) carries the payload, and with it
+   the batch's grade, maker, recipe and time made; a top-up folds the
+   destination's grade to the lower of the two (one side ungraded: the
+   other's stands) and never re-signs its maker or recipe. `faceCheckedS`
+   — the old wall's clock — never rides a pour. **The vessel's own
+   `Graded`/`Crafted` face is never written by a pour**: it is the vessel's
+   making, so a fine wine in a poor bottle stays fine and the bottle stays
+   poor, a ferment in a cooper's cask leaves the cask the cooper's, and a
+   potter's jug filled with somebody's milk is still hers to name.
 
 Verb-facing helpers on the same Api:
 
@@ -581,6 +587,7 @@ reduced it to facts nothing else can recover:
 | `appearance` | ⚠ a boundary: rendered by `bulkContentsAugmenter` in `lib/bulk`, which may not import `lib/craft` to ask the recipe. | `lib/bulk` |
 | `keywords` | ⚠ how the blend is FOUND. A missed lookup is not a degraded reading — it is an object that stopped existing. | `lib/bulk` |
 | `formedToxins` | toxins that AROSE (a spoiled batch's ptomaine). Nothing in the composition implies them. | `lib/metabolism` |
+| `maker` · `grade` · `craftedAt` | ⭐ the batch's making — who made it (an identity path), how well, and when. A fact about the contents, not the vessel: the batch is the payload's (matter-model-overlaps D2). Absent = nobody made it / ungraded (not `fair`). | `lib/craft/Crafted` |
 | `freshness` | live state: microbial load + its clock stamp. | `lib/material/Freshness` |
 
 Everything else is **read**: the tastes and the tags (`BlendLabel` unions
@@ -793,13 +800,15 @@ blends by volume on every pour and scales with litres drunk at the ingest.
    *matter*, and without this, pouring good into bad left `poor` while
    pouring bad into good left `fine`: the same mixture with two answers,
    and the second was a laundry. The maker's mark is untouched either
-   way; a top-up never re-signs somebody else's work.
+   way; a top-up never re-signs somebody else's work. (Both now read and
+   write the payload's `grade`, not the holders' — D2.)
 2. **The drawn payload comes from `payloadForDraw(applied)`**, read after
    the clamp, not from `getPayload()`.
 
 **⚠ The insertion count is now EIGHT.** `transfer` carries freshness,
 water activity, pathogens, blood identity, thermal, the payload copy, the
-batch-identity carry and the dissolved blend. `maturation.md` named
+batch-identity carry (since matter-model-overlaps W1, the payload's own
+grade top-up) and the dissolved blend. `maturation.md` named
 poisons as the moment to generalise to a host-side participant hook, and
 this build made the eighth in the shipped shape and **filed the refactor
 with its count** rather than doing it — per *census then ratchet*, because

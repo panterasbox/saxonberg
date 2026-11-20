@@ -140,7 +140,7 @@ export default class Copper extends ContainerMixin(Vat) {
       dissolvedSolidsKgPerL: solids,
       ...(fresh ? { limed: 0, skimmed: false } : {}),
     });
-    this.regrade();
+    this.gradeLiquor();
     // ⚠ Consumed AFTER the move, never inside it (the hive's lesson).
     void Promise.resolve()
       .then(() => StuffApi.destruct(thing))
@@ -163,7 +163,7 @@ export default class Copper extends ContainerMixin(Vat) {
     } else {
       void StuffApi.destruct(lime);
     }
-    this.regrade();
+    this.gradeLiquor();
     return { ok: true, facts: { limed } };
   }
 
@@ -193,13 +193,14 @@ export default class Copper extends ContainerMixin(Vat) {
     pail.setBulkMaterial('interior', skimmings);
     pail.setBulkAmount('interior', Quantity.of(had + lift, 'L'));
     this.setBulkPayload('interior', { ...(this.getBulkPayload('interior') ?? {}), skimmed: true });
-    this.regrade();
+    this.gradeLiquor();
     return { ok: true, facts: {} };
   }
 
   /**
-   * ⭐ The band the liquor will grain at — written onto the copper, which
-   * the strike arrow reads. Untempered will not grain at all; over-limed
+   * ⭐ The band the liquor will grain at — written onto the LIQUOR's
+   * payload (matter-model-overlaps D2), which the strike arrow reads; the
+   * copper keeps its own making. Untempered will not grain at all; over-limed
    * or unskimmed grains dark; tempered once and skimmed grains clean.
    */
   public liquorBand(): string {
@@ -210,9 +211,11 @@ export default class Copper extends ContainerMixin(Vat) {
     return 'fine';
   }
 
-  private regrade(): void {
+  private gradeLiquor(): void {
     if (!this.holdsLiquor()) return;
-    this.setGrade(Grade.of(this.liquorBand()));
+    const band = this.liquorBand();
+    if (!Grade.isBand(band)) return;
+    this.setBulkPayload('interior', { ...(this.getBulkPayload('interior') ?? {}), grade: band });
   }
 
   private holdsLiquor(): boolean {

@@ -22,6 +22,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
+import type { Grade, GradeBand } from './Grade';
 import { NameTakingMixin } from '../description/NameTaking';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../stuff/Stuff';
@@ -69,14 +70,30 @@ function resolveMakerName(maker: string, viewer?: Stuff): string | null {
  */
 declare module '../bulk/Bulkable' {
   interface BulkPayload {
-    /** The maker's durable `templatePath`; absent on matter nobody made. */
+    /**
+     * Who made the batch — an IDENTITY path (`getIdentityPath()`, never a
+     * lineage key: every player Avatar shares one template path); absent
+     * on matter nobody made.
+     */
     maker?: string;
+    /**
+     * ⭐⭐ **The batch's grade** (matter-model-overlaps D2). A grade is a
+     * fact about the CONTENTS, so it rides the payload beside the maker:
+     * a fine wine poured into a poor bottle stays fine, and the bottle
+     * stays poor. `BulkableLogic.transfer` carries it into an empty
+     * destination and folds a top-up to the lower of the two; a set's
+     * drainings never take it (the mould grades them). Absent means
+     * ungraded — not `fair`.
+     */
+    grade?: GradeBand;
+    /** Game-clock seconds the batch was made; absent on matter nobody made. */
+    craftedAt?: number;
   }
 }
 
 export interface CraftedStamp {
   maker: string;
-  grade: import('./Grade').Grade;
+  grade: Grade;
   recipe: string;
   craftedAt: number;
 }
@@ -119,8 +136,21 @@ export interface Crafted extends Graded {
    * *why* + maker attribution. Plain prose, **never a number**. v1 renders
    * uniform prose at a fixed control level. The maker is named as
    * `viewer` knows them.
+   *
+   * ⭐ With `stamp`, the verdict is of THAT mark rather than this thing's
+   * own — a vessel renders its CONTENTS' verdict from the batch's payload
+   * (matter-model-overlaps D2) and says nothing of itself.
    */
-  renderVerdict(viewer?: Stuff): string;
+  renderVerdict(viewer?: Stuff, stamp?: VerdictStamp): string;
+}
+
+/**
+ * The mark a verdict is rendered from when it is not the thing's own: a
+ * batch's grade and maker, read off its payload.
+ */
+export interface VerdictStamp {
+  grade: Grade;
+  maker: string;
 }
 
 /**
@@ -265,11 +295,12 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.craftedAt = spec.craftedAt;
     }
 
-    renderVerdict(viewer?: Stuff): string {
-      const band = (this as unknown as Graded).getGrade().renderBandWord();
+    renderVerdict(viewer?: Stuff, stamp?: VerdictStamp): string {
+      const grade = stamp ? stamp.grade : (this as unknown as Graded).getGrade();
+      const band = grade.renderBandWord();
       const why = VERDICT_PROSE[band] ?? VERDICT_PROSE.fair!;
       let line = `It looks ${band}: ${why}.`;
-      const makerName = resolveMakerName(this.maker, viewer);
+      const makerName = resolveMakerName(stamp ? stamp.maker : this.maker, viewer);
       if (makerName) line += ` Made by ${makerName}.`;
       return line;
     }

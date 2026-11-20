@@ -631,7 +631,8 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
         return {
           kg: litres * (density / 1000),
           materialPath: material.getTemplatePath() ?? '',
-          gradeBand: MixinApi.isGraded(source) ? source.getGradeBand() : '',
+          // The malt's grade is its payload's (matter-model-overlaps D2).
+          gradeBand: slot.getPayload()?.grade ?? '',
           drainL: litres,
         };
       }
@@ -845,7 +846,7 @@ function leadDustDose(): number {
   }
 }
 
-/** Clone a sack, fill it, stamp the grade, the mark and the carried payload. */
+/** Clone a sack, fill it, and mark the meal: its grade, its miller and what it carried. */
 async function fillSack(
   vesselPath: string,
   materialPath: string,
@@ -875,11 +876,15 @@ async function fillSack(
     if (plan !== null) {
       slot.setPayload({ ...(slot.getPayload() ?? {}), makeup: plan.makeup, water: plan.water });
     }
+    // ⭐ The meal's grade and miller are the MEAL's — its payload's
+    // (matter-model-overlaps D2); the sack is just a sack.
+    const marked: BulkPayload = { ...(slot.getPayload() ?? {}) };
+    if (plan !== null) marked.grade = plan.grade.getBand();
+    if (makerPath) marked.maker = makerPath;
+    if (plan !== null || makerPath) slot.setPayload(marked);
   }
   if (MixinApi.isTangible(sack)) {
     sack.setMass(Quantity.of(sack.getMass().rawValue() + Math.max(0, kg), 'kg'));
   }
-  if (plan !== null && MixinApi.isGraded(sack)) sack.setGradeBand(plan.grade.getBand());
-  if (makerPath && MixinApi.isCrafted(sack)) sack.setMaker(makerPath);
   if (landing) await ContainmentApi.move(sack as Stuff & Containable, landing);
 }

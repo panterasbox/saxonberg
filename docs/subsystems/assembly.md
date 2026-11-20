@@ -192,7 +192,7 @@ edge and name and mends are the host's own fields, `fit x to it` refuses
 | `platform/thing/Vat` | `Assembled(Durable(VesselKind(Maturing(Crafted(Sealable(Thermal(Bulkable(Good))))))))` | cask, dry-cask and its `extends:` · carboy, culture jar, crock |
 | `platform/thing/Lamp` | `Assembled(Crafted(Durable(Burner(LightSource(Bulkable(Thermal(Good)))))))` | lantern · torch |
 | `platform/thing/Chair` | `Assembled(Crafted(Durable(Postured(Slotted(Good)))))` | armchair, bed · stool, tub |
-| `platform/thing/Receptacle` | `Assembled(Durable(Thermal(Bulkable(Good))))` — ⚠ NOT Crafted: on a bulk holder Crafted is the BATCH's identity (`wash`/`rinse`/`cool` skip a crafted holder; a pour carries maker and recipe holder to holder) | every receptacle one piece today |
+| `platform/thing/Receptacle` | `Assembled(Durable(Thermal(Bulkable(Good))))` — not Crafted (no recipe mints one). ⭐ On a bulk holder `Crafted` is the VESSEL's own making, never the batch's: a batch's grade, maker and recipe ride its payload (matter-model-overlaps D2), and a draw for washing refuses a crafted product by that payload | every receptacle one piece today |
 | `platform/thing/Assembly` | `AssembledMixin(CraftedMixin(DurableMixin(Good)))` | the made-of-parts thing with no other capability: cask head, frame, cushion, mattress, bellows. A noun — the twin of `Good` on this axis |
 | `platform/thing/Barrel` | `AssembledMixin(DurableMixin(CraftedMixin(SealableMixin(ContainerMixin(Good)))))` | `slack-barrel` — a container of staves, not a vessel |
 | pack: `CookPot` (cooking) — a recipe output that wears | `Assembled(ManualBuild(ToolMixin(Durable(ServingVessel))))` | one piece |

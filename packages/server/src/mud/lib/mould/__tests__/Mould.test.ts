@@ -295,6 +295,41 @@ describe('moulds — the container decides the shape', () => {
     expect(m.setState()).toBe('set');
   });
 
+  it('⭐ a fine pour into a poor mould casts poor; the maker is the batch\'s, never the mould\'s', async () => {
+    const r = room();
+    const m = fillVessel(mould(WHEEL), curd(), 2, 290);
+    m.stamp({ maker: '/platform/agent/Avatar/cooper', grade: Grade.of('poor'), recipe: '', craftedAt: 1 });
+    ContainmentApi.move(m, r);
+    m.setBulkPayload('interior', { grade: 'fine', maker: '/platform/agent/Avatar/milker', craftedAt: 42 });
+    expect(m.setState()).toBe('filled');
+    advanceTo(0.5 * DAY + 60);
+    m.reconcileSetting();
+    await settle();
+    const [cast] = contentsOf(m) as unknown as TestCast[];
+    expect(cast).toBeDefined();
+    expect(cast!.getGrade().getBand()).toBe('poor');
+    expect(cast!.getMaker()).toBe('/platform/agent/Avatar/milker');
+    expect(cast!.getCraftedAt()).toBe(42);
+    // …and the mould is still the cooper's poor mould.
+    expect(m.getMaker()).toBe('/platform/agent/Avatar/cooper');
+  });
+
+  it('a poor pour into a fine mould casts poor too — the lower of the two', async () => {
+    const r = room();
+    const m = fillVessel(mould(WHEEL), curd(), 2, 290);
+    m.stamp({ maker: '', grade: Grade.of('fine'), recipe: '', craftedAt: 0 });
+    ContainmentApi.move(m, r);
+    m.setBulkPayload('interior', { grade: 'poor' });
+    expect(m.setState()).toBe('filled');
+    advanceTo(0.5 * DAY + 60);
+    m.reconcileSetting();
+    await settle();
+    const [cast] = contentsOf(m) as unknown as TestCast[];
+    expect(cast!.getGrade().getBand()).toBe('poor');
+    // No batch maker: the cast names nobody, not the mould's maker.
+    expect(cast!.getMaker()).toBe('');
+  });
+
   it('under a weight of poolKg × loadRef it sets in half the time, drier', async () => {
     const r = room();
     const hoop = makeStuff(() => new TestHoop());
@@ -351,6 +386,9 @@ describe('moulds — the container decides the shape', () => {
       const halfway = pot.getBulkAmount('interior').rawValue();
       expect(halfway).toBeGreaterThan(0);
       expect(pot.getBulkMaterialPath('interior')).toBe(MOLASSES);
+      // The drainings' grade is their PAYLOAD's (matter-model-overlaps D2),
+      // a band below the pool's; the pot keeps its own making.
+      expect(pot.getBulkPayload('interior')?.grade).toBe('fair');
       expect(MixinApi.isGraded(pot) ? pot.getGrade().getBand() : '').toBe('fair');
 
       advanceTo(5 * DAY);

@@ -66,11 +66,15 @@ describe('the churn', () => {
   it('too warm, it comes greasy — butter, but no better than fair', () => {
     at(0);
     const c = churn(298);
-    const g = c as unknown as Graded;
-    g.setGrade(Grade.of('fine'));
+    // The CREAM is fine (its payload's grade, matter-model-overlaps D2).
+    c.setBulkPayload('interior', { ...(c.getBulkPayload('interior') ?? {}), grade: 'fine' });
     expect(c.workByHand()?.facts.result).toBe('came-greasy');
     expect(c.getRunSchedule()?.getKey()).toBe('churning');
-    expect(g.getGrade().compareTo(Grade.of('fair'))).toBeLessThanOrEqual(0);
+    const butter = c.getBulkPayload('interior')?.grade;
+    expect(butter).toBeDefined();
+    expect(Grade.of(butter!).compareTo(Grade.of('fair'))).toBeLessThanOrEqual(0);
+    // …and the churn keeps its own making.
+    expect((c as unknown as Graded).getGradeBand()).toBe('fair');
   });
 
   it('only cream churns', () => {

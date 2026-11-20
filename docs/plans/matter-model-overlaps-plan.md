@@ -1090,6 +1090,39 @@ Findings, one each:
 - **Acceptance:** census (1) at zero. **Commit:** `feat(bulk): a batch's
   grade and maker travel with the contents`.
 
+**Build note (W1).** `BulkPayload.grade`/`craftedAt` declared in `Crafted.ts`;
+`transfer` strips `faceCheckedS` on landing and folds a top-up's grade
+(`lowerGrade`); the two carry functions are gone; census (1) is 0.
+Decisions the plan did not make:
+- Renamed what now writes the payload: `Maturing.signBatch` (identity path)
+  / `gradeBatch`, field `inputGradeCap` (read at `startBatch`, cleared at
+  reset — still persistent state: a reconcile rewrites the payload's grade
+  every pass, so the cap cannot live there); `Copper.gradeLiquor`;
+  `Mould.castGrade()` + `poolBandsBelowFine()` (drainings and
+  `drainPerBand` read the pool's effective grade, min(payload, mould)).
+  The ferment's `recipe: 'ferment:<key>'` stamp is dropped — `recipeId` on
+  the payload is the blend's identity (`BlendIdentity`, `Palate`), so it is
+  not written; an authored-substance craft output likewise gets no
+  `recipeId` (its material is its identity).
+- `ConditionReading`'s signature left the census: with no batch writing a
+  vessel's grade, *"as it stands, it is fine work"* reads the thing's own.
+- Census missed seven sites, moved too: `CraftingLogic.collectCandidate`
+  (a bottle input's grade), `ManualBuild.servingPlan`, `Compounding`'s
+  belly, `Palate.detailsOf`, `Comminuting.chargeFrom` (a bulk feed),
+  `Churn` (greasy → the butter's payload), `WaterDrawable` (skips a crafted
+  PRODUCT by `payload.recipeId`, not a Crafted holder). The bulk/edible
+  `output.stamp` and `mintVessel`'s stamp moved to the out slot's payload;
+  `vessel-not-crafted` is gone (its only reason was the stamp).
+  `Fractionating` also caps a draw by the contents' own grade (a greasy
+  churn's butter stays ≤ fair through the draw). `IronPot` keeps its
+  explicit cake grade = the lye's payload grade.
+- ⚠ For W8: an unauthored mould reads `GradedMixin`'s `fair`, so a world
+  mould now caps its casts at fair (a fine strike in a stock cone → a fair
+  loaf) — D3 as written; a row that should pass finer authors `gradeBand`.
+  A grind's flour sack carries no maker any more (the meal does), so
+  `controller-liquidity`'s `newMineKinds` sees it only by its title — check
+  in the drive. `help pour` gained the D2 sentence.
+
 ### W2 — one drip (D10, D10b)
 
 - `Containable.dripSlots`; `BulkableApi.drip` / `BulkableLogic.drip`,

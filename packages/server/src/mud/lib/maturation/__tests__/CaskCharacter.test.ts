@@ -101,15 +101,9 @@ function pail(band: string, litres: number): Pail {
   p.setInteriorCapacity(Quantity.of(50, 'L'));
   (p as unknown as { interiorMaterial: string }).interiorMaterial = SPIRIT;
   p.setInteriorAmount(Quantity.of(litres, 'L'));
-  graded(p).setGrade(Grade.of(band));
+  // The cut's grade is the SPIRIT's — its payload's (matter-model-overlaps D2).
+  slotOf(p).setPayload({ grade: Grade.of(band).getBand() });
   return p;
-}
-
-function graded(v: unknown): {
-  setGrade(g: Grade): void;
-  getGradeBand(): string;
-} {
-  return v as { setGrade(g: Grade): void; getGradeBand(): string };
 }
 
 function slotOf(v: unknown) {
@@ -286,12 +280,12 @@ describe('⭐⭐ productAtFraction — when to bottle is a decision', () => {
     const v = cask();
     fill(pail('masterful', 25), v, 20);
     age(v, 3); // just past the product edge
-    const young = graded(v).getGradeBand();
+    const young = slotOf(v).getPayload()?.grade;
     expect(young).toBe('poor');
     age(v, 8); // to the end
     // ⭐ And at full conversion the maturity term stops binding, so the
     // band is the FILL's again — the cut's grade, not the cask's.
-    expect(graded(v).getGradeBand()).toBe('masterful');
+    expect(slotOf(v).getPayload()?.grade).toBe('masterful');
   });
 
   it('⚠ never RAISES a band — the input cap still rules', () => {
@@ -302,7 +296,7 @@ describe('⭐⭐ productAtFraction — when to bottle is a decision', () => {
     const v = cask();
     fill(pail('fair', 25), v, 20);
     age(v, 12);
-    expect(graded(v).getGradeBand()).toBe('fair');
+    expect(slotOf(v).getPayload()?.grade).toBe('fair');
   });
 });
 

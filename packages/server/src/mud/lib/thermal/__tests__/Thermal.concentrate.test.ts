@@ -19,7 +19,6 @@ import Water from '../../../platform/idea/material/Water';
 import type { ConcentrationArrow } from '../../material/Material';
 import { ThermalMixin } from '../Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
-import { GradedMixin } from '../../craft/Graded';
 import { Grade } from '../../craft/Grade';
 import { ReservedMixin } from '../../reserve/Reserved';
 import { LightSourceMixin } from '../../perception/LightSource';
@@ -40,7 +39,7 @@ class TestArch extends BurnerMixin(
 ) {
   static _mixinName = 'TestArchConcentrate';
 }
-class Copper extends GradedMixin(ThermalMixin(BulkableMixin(Good))) {
+class Copper extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'TestCopperConcentrate';
 }
 class TestRoom extends Place {}
@@ -117,7 +116,9 @@ async function copperOf(f: TestArch, mat: string, litres: number, band = 'fine')
   c.setInteriorCapacity(Quantity.of(120, 'L'));
   c.setBulkMaterial('interior', StuffApi.findByTemplatePath<Water>(mat)!);
   c.setBulkAmount('interior', Quantity.of(litres, 'L'));
-  c.setGrade(Grade.of(band));
+  // The LIQUOR's grade (its payload's, matter-model-overlaps D2) is what
+  // the strike arrow reads — never the copper's own making.
+  c.setBulkPayload('interior', { grade: Grade.of(band).getBand() });
   c.setStampedTemperatureK(373);
   c.setLastAmbientK(373);
   await ContainmentApi.move(c, f, Placements.ON);

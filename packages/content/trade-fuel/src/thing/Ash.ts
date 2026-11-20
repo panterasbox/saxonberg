@@ -169,8 +169,13 @@ class Ash extends AshBase {
         payload?.dissolvedSolidsKgPerL ??
         (held !== null && MixinApi.hasSolution(held) ? held.getSolidsKgPerL() : 0);
       const kgPerL = carried + (alkaliKg / litres) * kept;
-      into.setBulkPayload('interior', { ...(payload ?? {}), dissolvedSolidsKgPerL: kgPerL });
-      if (MixinApi.isGraded(into)) into.setGrade(Grade.of(new LyeStrength(kgPerL).gradeBand()));
+      // ⭐ The lye's grade is its strength, and it is the LYE's — its
+      // payload's (matter-model-overlaps D2), never the hopper's or pot's.
+      into.setBulkPayload('interior', {
+        ...(payload ?? {}),
+        dissolvedSolidsKgPerL: kgPerL,
+        grade: new LyeStrength(kgPerL).gradeBand(),
+      });
     }
     if (toReach >= 1 && !this._spent) {
       this._spent = true;

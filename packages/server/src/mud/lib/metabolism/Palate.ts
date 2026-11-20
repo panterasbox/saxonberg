@@ -317,7 +317,8 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       const proficient = CompetenceBand.atOrAbove(band, 'proficient');
       return {
         parts,
-        gradeBand: proficient && MixinApi.isGraded(food) ? food.getGradeBand() : null,
+        // The batch's grade (its payload's, D2) — not the bowl's making.
+        gradeBand: proficient ? (payload?.grade ?? null) : null,
         maturedDays: proficient ? (payload?.maturedDays ?? 0) : 0,
       };
     }

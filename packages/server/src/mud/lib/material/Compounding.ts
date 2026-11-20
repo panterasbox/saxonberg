@@ -212,8 +212,9 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
           out.push({
             tags: [...held.getTags()],
             measureL: litres,
-            // A pour's grade is its holder's; so is the belly's.
-            gradeBand: MixinApi.isGraded(self) ? self.getGradeBand() : 'fair',
+            // A pour's grade is its batch's (its payload's, D2); so is the
+            // belly's — never the vessel's own making.
+            gradeBand: slot.getPayload()?.grade ?? 'fair',
             materialPath: held.getTemplatePath() ?? undefined,
             makeup: slot.getPayload()?.makeup,
             freshnessLoad: new Freshness(slot).load(),

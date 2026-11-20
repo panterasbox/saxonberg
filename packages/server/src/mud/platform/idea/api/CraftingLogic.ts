@@ -744,19 +744,22 @@ async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
       return;
     }
   }
-  // Any bulk holder is a source: a graded bottle at its band, an ungraded
-  // holder (the water tap, the ice bin, a mug) at `fair` — the same
+  // Any bulk holder is a source: a graded batch at its band, an ungraded
+  // one (the water tap, the ice bin, a mug) at `fair` — the same
   // fallback an ungraded item input gets.
   if (MixinApi.isBulkable(c)) {
     const slot = BulkableApi.slotFor(c, undefined);
     if (slot) {
       const mpath = slot.getMaterialPath();
       const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;
+      // ⭐ The batch's grade is its payload's (matter-model-overlaps D2),
+      // never the bottle's own making.
+      const band = slot.getPayload()?.grade;
       into.bottles.push({
         stuff: c,
         slot,
         material,
-        grade: MixinApi.isGraded(c) ? c.getGrade() : Grade.of('fair'),
+        grade: band ? Grade.of(band) : Grade.of('fair'),
       });
       return;
     }
@@ -3232,12 +3235,12 @@ async function mintWorkpiece(
 }
 
 /**
- * The vessel terminal mint: fill the destination glass/dish + stamp. For a
- * charge the destination is the compounding vessel itself — its belly
- * becomes the product (the named material, else the recipe's, else the
- * generic pot-luck) once the charge is consumed; the glass finish and the
- * vessel's own stamp are a glass's, so a tub takes neither unless it is
- * Crafted.
+ * The vessel terminal mint: fill the destination glass/dish and mark the
+ * batch. For a charge the destination is the compounding vessel itself —
+ * its belly becomes the product (the named material, else the recipe's,
+ * else the generic pot-luck) once the charge is consumed; the glass finish
+ * is a glass's, so a tub does not take it. The mark — grade, maker, time
+ * made — rides the contents' payload, never the vessel (D2).
  */
 async function mintVessel(
   vessel: Stuff | null,
@@ -3252,9 +3255,6 @@ async function mintVessel(
   }
   if (!MixinApi.isBulkable(vessel)) {
     return { ok: false, reason: 'no-output', detail: 'vessel-not-bulkable' };
-  }
-  if (charge === null && !MixinApi.isCrafted(vessel)) {
-    return { ok: false, reason: 'no-output', detail: 'vessel-not-crafted' };
   }
   const outSlot = BulkableApi.slotFor(vessel, undefined);
   if (!outSlot) {
@@ -3374,14 +3374,15 @@ async function mintVessel(
     );
   }
 
-  if (MixinApi.isCrafted(vessel)) {
-    vessel.stamp({
-      maker: makerPath,
-      grade,
-      recipe: recipeId,
-      craftedAt: WorldClockApi.getNow().rawValue(),
-    });
-  }
+  // ⭐⭐ The build's mark is the BATCH's (matter-model-overlaps D2): its
+  // grade, maker and time made ride the contents' payload, and the shaker
+  // or pot it was built in keeps its own making.
+  outSlot.setPayload({
+    ...(outSlot.getPayload() ?? {}),
+    grade: grade.getBand(),
+    ...(makerPath ? { maker: makerPath } : {}),
+    craftedAt: WorldClockApi.getNow().rawValue(),
+  });
 
   const learned = recipe ? await recordCraftEvidence(makerStuff, recipe) : false;
   return { ok: true, output: vessel, grade, recipeId, learned };
@@ -3682,22 +3683,38 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     await becomeProduct(output, recipe.getOutputTemplate());
   }
 
-  if (!MixinApi.isCrafted(output)) {
-    throw new Error(
-      `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
-        `compose CraftedMixin`,
-    );
+  // ⚠ The IDENTITY path, never the lineage: every player Avatar shares one
+  // templatePath, so a lineage stamp named every player maker the same
+  // person (antipatterns § Keying a PERSON on getTemplatePath()). The
+  // manual-build mint has always stamped identity; this agrees with it.
+  const madeBy = maker.getIdentityPath() ?? '';
+  const craftedAt = WorldClockApi.getNow().rawValue();
+  if (application === 'bulk' || application === 'edible') {
+    // ⭐⭐ A bulk or plated output is a BATCH in a claimed glass, bowl or
+    // pot (matter-model-overlaps D2): its mark rides the contents, and the
+    // vessel keeps its own making — a potter's bowl stays the potter's
+    // whatever the cook puts in it.
+    const outSlot = BulkableApi.slotFor(output, undefined);
+    if (!outSlot) {
+      throw new Error(
+        `CraftingLogic: output '${recipe.getOutputTemplate()}' holds no batch`,
+      );
+    }
+    outSlot.setPayload({
+      ...(outSlot.getPayload() ?? {}),
+      grade: grade.getBand(),
+      ...(madeBy ? { maker: madeBy } : {}),
+      craftedAt,
+    });
+  } else {
+    if (!MixinApi.isCrafted(output)) {
+      throw new Error(
+        `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
+          `compose CraftedMixin`,
+      );
+    }
+    output.stamp({ maker: madeBy, grade, recipe: recipe.getRecipeId(), craftedAt });
   }
-  output.stamp({
-    // ⚠ The IDENTITY path, never the lineage: every player Avatar shares one
-    // templatePath, so a lineage stamp named every player maker the same
-    // person (antipatterns § Keying a PERSON on getTemplatePath()). The
-    // manual-build mint has always stamped identity; this agrees with it.
-    maker: maker.getIdentityPath() ?? '',
-    grade,
-    recipe: recipe.getRecipeId(),
-    craftedAt: WorldClockApi.getNow().rawValue(),
-  });
 
   // ⭐ **And the hand that made it** (cleanliness D6): the recipe row says
   // what making this dirties — grease on the renderer's hands and apron,

@@ -159,7 +159,11 @@ the Hydrator; per-field invariants ride accessor pairs.
   module-private `resolveMakerName` → `getPresentation()`) — **never a
   number**. The crafted instance's `templatePath` still points at the
   shared output template; the mark is the per-instance overlay. The future
-  corpos(marks) build extends this.
+  corpos(marks) build extends this. ⭐⭐ **On a bulk holder it is the
+  VESSEL's own making, never the batch's** (matter-model-overlaps D2): a
+  batch's grade, maker (identity path) and `craftedAt` ride its
+  `BulkPayload`, and `renderVerdict(viewer, stamp)` renders a vessel's
+  CONTENTS' verdict from that stamp and says nothing of the vessel.
 - ⚠ **`MakerMixin` (`Maker.ts`) is GONE** — retired by the
   trades-and-labor build. *Who fulfils an order here* is the SEAT's
   (`Position.fulfills`, read off the shift), never a mixin. It was never
@@ -376,9 +380,13 @@ The gated forwarding pair (the `ProvenanceApi`↔`ProvenanceLogic` shape):
      item input's Material** + the summed consumed mass onto the
      cloned Tangible (an iron ingot makes an iron knife —
      mass-conserving; the `ThermalLogic` casting-stamp surface).
-10. **Stamp** — assert `isCrafted(output)` (else throw — output
-    template misauthored), `output.stamp({maker, grade, recipe,
-    craftedAt})`.
+10. **Stamp** — a `tangible`/`assembled` output: assert
+    `isCrafted(output)` (else throw — output template misauthored),
+    `output.stamp({maker, grade, recipe, craftedAt})`. ⭐ A `bulk`/`edible`
+    output is a BATCH in a claimed glass, bowl or pot: its `grade`, `maker`
+    and `craftedAt` go on the out slot's payload (matter-model-overlaps D2)
+    and the vessel keeps its own making — a potter's bowl is still the
+    potter's whatever the cook plates in it.
 11. **Consume inputs** — `consumeBulkInputs` (strict `BulkableApi`
     debits) + `consumeItemInputs` (a glob debited by exactly the
     matched units, destructed when fully drawn; a discrete Tangible
@@ -1008,7 +1016,9 @@ both the shaker and the mixing glass — `capabilities` decide which recipe
 tool it satisfies). At `strain`, **`CraftingApi.mintFromBuild`**
 reverse-matches the accumulated contributions to a recipe and mints the
 graded, maker's-marked drink into the glass, **reusing the one quality
-model** (weakest-link `Grade`, the `applyBulkOutput` fill).
+model** (weakest-link `Grade`, the `applyBulkOutput` fill). The mark is the
+drink's payload's, never the shaker's or the glass's (D2), so the vessel
+need not be Crafted.
 
 ⭐⭐ **A recipe is a proportion, not a list of minimums** (ceramics re-plan
 R1-D2/D3; `matchBuild` → `buildFit`). A build is a recipe when:
