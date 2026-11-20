@@ -1,2 +1,4 @@
 title: Rate card
-traits: {}
+traits:
+  ledger: immutable
+  filed: business

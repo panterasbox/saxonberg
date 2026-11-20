@@ -1,2 +1,3 @@
 title: Map
-traits: {}
+traits:
+  filed: map

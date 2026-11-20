@@ -1,3 +1,4 @@
 title: Warehouse receipt
 traits:
+  filed: business
   titled: { field: what }

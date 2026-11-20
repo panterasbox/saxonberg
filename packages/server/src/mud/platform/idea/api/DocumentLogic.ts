@@ -119,8 +119,12 @@ async function documentsUnder(prefix: string): Promise<StoredDocument[]> {
   });
 }
 
+/**
+ * Every document under `prefix` — except a `secret` kind's, which is never
+ * listed (a stream token is read by its exact path only).
+ */
 async function listImpl(prefix: string): Promise<StoredDocument[]> {
-  return documentsUnder(prefix);
+  return (await documentsUnder(prefix)).filter((d) => kindNamed(d.getKind())?.isSecret() !== true);
 }
 
 async function listOfKindImpl(kind: string): Promise<StoredDocument[]> {
@@ -234,6 +238,65 @@ async function checkMeaningImpl(kind: DocumentKind, data: Record<string, unknown
   if (service.parse) service.parse(data, path);
 }
 
+/**
+ * ⭐ A declaration edit the existing documents do not satisfy is refused,
+ * naming them (D-A8): every document of the kind must still fit the new
+ * `fields:`; a newly `unique` kind must have no word two documents share;
+ * and a kind's filing may not change while any document of it exists —
+ * they were written by some other path, by definition.
+ */
+async function vetDeclarationEdit(path: string, data: Record<string, unknown>): Promise<void> {
+  const name = path.slice(path.lastIndexOf('/') + 1);
+  const next = new DocumentKind(name, data);
+  const before = kindNamed(name);
+  const docs = await StoredDocument.findByKind(name);
+  if (docs.length === 0) return;
+  if ((before?.filedBy() ?? null) !== next.filedBy()) {
+    throw new Refusal('kind-in-use', {
+      kind: name,
+      why: `its filing cannot change while ${docs.length} ${name} document(s) exist`,
+    });
+  }
+  const misfits = docs.filter((d) => next.fieldFailures(d.getData()).length > 0).map((d) => d.getPath());
+  if (misfits.length > 0) {
+    throw new Refusal('kind-in-use', {
+      kind: name,
+      why: `these documents would not fit it: ${misfits.slice(0, 5).join(', ')}${misfits.length > 5 ? ' …' : ''}`,
+    });
+  }
+  if (next.isUnique()) {
+    const seen = new Map<string, string>();
+    for (const d of docs) {
+      for (const w of next.keywordsOf(d.getPath(), d.getData())) {
+        const first = seen.get(w);
+        if (first !== undefined && first !== d.getPath()) {
+          throw new Refusal('kind-in-use', {
+            kind: name,
+            why: `'${w}' would name two documents — ${first} and ${d.getPath()}`,
+          });
+        }
+        seen.set(w, d.getPath());
+      }
+    }
+  }
+}
+
+/**
+ * ⭐ A declaration may not be removed while documents of its kind that no
+ * pack shipped exist (filed world state nobody could then write or keep
+ * correctly). Shipped documents leave with their pack.
+ */
+async function vetDeclarationDelete(path: string): Promise<void> {
+  const name = path.slice(path.lastIndexOf('/') + 1);
+  const filed = await StoredDocument.find<StoredDocument>({ kind: name, sourcePack: { $in: [null] } });
+  if (filed.length > 0) {
+    throw new Refusal('kind-in-use', {
+      kind: name,
+      why: `${filed.length} ${name} document(s) no pack shipped still exist (${filed[0]!.getPath()}…)`,
+    });
+  }
+}
+
 /** Who writes: the plain save, or one of the filing transports. */
 type WriteBy = 'save' | FilingTransport;
 
@@ -257,6 +320,20 @@ async function writeDocument(req: {
   const { path, data } = req;
   const kind = kindNamed(req.kind);
   if (kind === null) throw new Refusal('document-kind-undeclared', { path, kind: req.kind });
+  // ⭐ A filed kind is written by its transport and only by it — the plain
+  // save refuses (title on the path is not enough to write somebody's herd
+  // record); a transport writing a kind it does not file is a defect.
+  const filedBy = kind.filedBy();
+  if (req.by === 'save') {
+    if (filedBy !== null) {
+      throw new Refusal('document-filed', { path, kind: kind.getName(), transport: filedBy });
+    }
+  } else if (filedBy !== req.by) {
+    throw new Error(
+      `DocumentApi: the ${req.by} transport cannot write a ${kind.getName()} ` +
+        `(${filedBy === null ? 'it is not filed' : `it is filed by ${filedBy}`})`,
+    );
+  }
   const shape = kind.fieldFailures(data);
   if (shape.length > 0) {
     const why = shape.join('; ');
@@ -271,6 +348,11 @@ async function writeDocument(req: {
     }
   }
   const existing = req.existing !== undefined ? req.existing : await StoredDocument.findByPath(path);
+  // ⭐ A ledger only grows (the constitution's A2): an immutable kind is
+  // written once; a growing field keeps every earlier entry.
+  const altered = kind.ledgerFailures(existing?.getKind() === kind.getName() ? existing.getData() : null, data);
+  if (altered.length > 0) throw new Refusal('ledger-altered', { path, why: altered.join('; ') });
+  if (kind.getName() === DocumentKind.BOOTSTRAP_NAME) await vetDeclarationEdit(path, data);
   const doc = existing ?? new StoredDocument();
   doc.path = path;
   doc.owner = req.owner;
@@ -279,6 +361,8 @@ async function writeDocument(req: {
   doc.keys = kind.cardOf(path, data);
   await doc.save();
   await residentService(kind)?.forget([path]);
+  // A declaration is read back at once — every later write asks it.
+  if (kind.getName() === DocumentKind.BOOTSTRAP_NAME) await kinds().ensure(path);
 }
 
 async function saveReleaseImpl(
@@ -314,17 +398,6 @@ async function saveReleaseImpl(
   await ProvenanceApi.recordAuthoring({ path });
 }
 
-/**
- * The kinds {@link saveAsBusinessImpl} may write. **Closed, and the whole
- * containment argument.** A business-owned write is an ownership bypass;
- * pinning the kind is what stops it being a general forgery tool — it can
- * never write a `command-view`, a `recipe` or a `release`.
- */
-const BUSINESS_DOCUMENT_KINDS: readonly string[] = [
-  'bill-of-lading',
-  'warehouse-receipt',
-  'rate-card',
-];
 
 /**
  * Write a document **owned by a Business** rather than by the acting
@@ -346,7 +419,7 @@ const BUSINESS_DOCUMENT_KINDS: readonly string[] = [
  *      cannot stamp its ownership anywhere else in the tree — and this is
  *      also what makes a depot's records cover *exactly* what it handled,
  *      read by prefix (logistics D12/AC17).
- *   3. **The `kind` is checked against {@link BUSINESS_DOCUMENT_KINDS}.**
+ *   3. **The `kind` must be declared `filed: business`.**
  *
  * ⚠ Deliberately **no caller-module allowlist**, unlike `saveRelease`.
  * The callers are pack registries — the haulage trade's today, a second
@@ -378,11 +451,8 @@ async function saveAsBusinessImpl(
       `DocumentApi.saveAsBusiness: ${path} is not under ${owner}'s own branch`,
     );
   }
-  if (!BUSINESS_DOCUMENT_KINDS.includes(kind)) {
-    throw new Error(
-      `DocumentApi.saveAsBusiness: '${kind}' is not a business-filed kind ` +
-        `(${BUSINESS_DOCUMENT_KINDS.join(', ')})`,
-    );
+  if (kindNamed(kind)?.filedBy() !== 'business') {
+    throw new Error(`DocumentApi.saveAsBusiness: '${kind}' is not a business-filed kind (filed: business)`);
   }
 
   await writeDocument({ kind: kind, path, owner: owner, data: data, by: 'business' });
@@ -709,8 +779,8 @@ async function saveToRegisterImpl(
   }
   // ⚠ The kind is pinned to the register's one kind, and must be a kind
   // the platform knows — a register cannot invent a vocabulary.
-  if (kindNamed(kind) === null) {
-    throw new Error(`DocumentApi.saveToRegister: ${kind} is not a document kind`);
+  if (kindNamed(kind)?.filedBy() !== 'register') {
+    throw new Error(`DocumentApi.saveToRegister: ${kind} is not a register-filed kind (filed: register)`);
   }
 
   await writeDocument({ kind: kind, path, owner: owner, data: data, by: 'register' });
@@ -760,6 +830,7 @@ async function deleteImpl(path: string): Promise<boolean> {
   const doc = await StoredDocument.findByPath(path);
   if (!doc) return false;
   const kind = doc.kind;
+  if (kind === DocumentKind.BOOTSTRAP_NAME) await vetDeclarationDelete(path);
   await doc.delete();
   await catalogueForImpl(kind)?.forget([path]);
   return true;

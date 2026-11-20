@@ -1,4 +1,5 @@
 title: Herd
 traits:
+  filed: register
   keyworded: { leaf: false }
   titled: { field: name }

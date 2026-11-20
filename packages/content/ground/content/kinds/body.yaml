@@ -1,2 +1,3 @@
 title: Water body
-traits: {}
+traits:
+  filed: register

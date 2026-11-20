@@ -44,17 +44,21 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { RegistrarMixin, type Registrar } from '@saxonberg/server/mud/lib/document/Registrar';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { EvictionContext, Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 
 /** Where the register lives in the path-addressed document tree. */
 export const WATER_RIGHTS_PREFIX = '/system/water/rights';
 
-/** The document kind the platform declares for a filed right. */
+/** The document kind this pack declares for a filed right (`/system/water/kinds/water-right`, `filed: register`). */
 export const WATER_RIGHT_KIND = 'water-right';
+
+/** Who owns the filed rights — the water system, never the holder. */
+const WATER_RIGHTS_OWNER = '/system/water';
 
 /**
  * What a right is claimed FOR.
@@ -151,7 +155,14 @@ export interface AllocationResult {
   strandedNavigation: WaterRight[];
 }
 
-export default class WaterRightRegistry extends Idea {
+export default class WaterRightRegistry extends RegistrarMixin(Idea) {
+  constructor() {
+    super();
+    this.registerPrefix = WATER_RIGHTS_PREFIX;
+    this.registerOwner = WATER_RIGHTS_OWNER;
+    this.registerKind = WATER_RIGHT_KIND;
+  }
+
   /** A load-bearing process-lifetime singleton is never culled. */
   public canEvict(_context: EvictionContext): VetoResult {
     return { ok: false, reason: 'system singleton; never culled' };
@@ -170,10 +181,10 @@ export default class WaterRightRegistry extends Idea {
   /**
    * File a right, validated.
    *
-   * ⚠ **The validation is the pack's; the KIND is the platform's.** A
-   * pack cannot declare a document kind — the installer needs a go-live
-   * hook for it and that is code — but what counts as a legitimate
-   * right is entirely this subsystem's business, and it lives here.
+   * ⚠ **The validation is the pack's, and so is the kind** (declared at
+   * `/system/water/kinds/water-right`, `filed: register`): what counts as
+   * a legitimate right is entirely this subsystem's business, and it lives
+   * here.
    *
    * Throws with a named cause rather than returning false: filing a
    * malformed right is a programming error at the caller, and a silent
@@ -213,7 +224,9 @@ export default class WaterRightRegistry extends Idea {
     }
 
     const path = pathOf(right.reachRef, right.rightId);
-    await DocumentApi.save(path, WATER_RIGHT_KIND, {
+    // ⭐ Filed through the register — the kind is `filed: register`, so a
+    // plain save over this branch is refused.
+    await DocumentApi.saveToRegister(this as unknown as Stuff & Registrar, path, {
       ...right,
       // A derived right is never a filed one. Strip the flag rather than
       // storing a lie that a later read would believe.
@@ -240,7 +253,7 @@ export default class WaterRightRegistry extends Idea {
     if (doc === null) return false;
     const right = rightOf(doc.getData());
     if (right === null || !right.transferable) return false;
-    await DocumentApi.save(pathOf(reachRef, rightId), WATER_RIGHT_KIND, {
+    await DocumentApi.saveToRegister(this as unknown as Stuff & Registrar, pathOf(reachRef, rightId), {
       ...right,
       holderRef: newHolderRef,
     });

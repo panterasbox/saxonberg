@@ -1,4 +1,6 @@
 title: Edition
 traits:
+  ledger: immutable
+  filed: edition
   shipped: { dir: editions, vanish: keep }
   titled: { field: title }

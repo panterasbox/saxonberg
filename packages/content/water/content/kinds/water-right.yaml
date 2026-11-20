@@ -1,3 +1,4 @@
 title: Water right
 traits:
+  filed: register
   titled: { field: name }

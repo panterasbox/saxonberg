@@ -1,2 +1,4 @@
 title: Bore
-traits: {}
+traits:
+  ledger: { grows: [lines] }
+  filed: register

@@ -819,6 +819,19 @@ turning `unique` on for `form` with two forms sharing `brick` refuses naming
 both; deleting `herd`'s declaration with a filed herd refuses.
 *Commit:* `build(naming-overhaul WA2): filed records, enforced ledgers, secret kinds`.
 
+✅ **Done.** Filed: register (herd, fishery, body, bore, ship, berth-book,
+water-right), business (bill-of-lading, warehouse-receipt, rate-card),
+release, instrument, map, stream-token, berth (berth-roll), edition. Ledgers:
+edition and rate-card `immutable`, bore `{ grows: [lines] }`, instrument
+`{ grows: [history] }`. **Map is not a ledger** — `growMap` bumps existing
+claims in place. Decided: **D-A11 → `venue-eighty-six` stays plain** (not
+filed): the enforcing brain writes through `save` under the venue-records
+carve-out and holds no Business to file through. A transport writing a kind
+it does not file is a typed throw; the plain save on a filed kind is the
+`document-filed` refusal. Declaration edits re-read at once
+(`kinds().ensure(path)` after the save). The forged-release test now
+expects the refusal outright — stronger than "never reaches the window".
+
 **A3 — Titled, dated, paper, tree, keyworded.**
 *Decisions:* D-A2, D-A10.
 *Files:* `DocumentLogic.pagesOfImpl` (the switch becomes: secret → null;

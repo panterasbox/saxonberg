@@ -1,2 +1,4 @@
 title: Instrument
-traits: {}
+traits:
+  ledger: { grows: [history] }
+  filed: instrument

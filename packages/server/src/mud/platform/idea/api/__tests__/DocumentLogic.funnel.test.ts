@@ -19,7 +19,9 @@ import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { Refusal } from '../../../../lib/errors';
+import { StoredDocument } from '../../../../lib/document/StoredDocument';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
+import { RegistrarMixin, type Registrar } from '../../../../lib/document/Registrar';
 
 let rows: Record<string, unknown>[];
 let actor: Stuff;
@@ -46,7 +48,15 @@ beforeEach(() => {
   vi.spyOn(PersistenceManager, 'get').mockReturnValue(withSaveMany({
     isConnected: () => true,
     find: vi.fn(async (col: string, q: Record<string, unknown>) =>
-      col === 'documents' ? rows.filter((d) => Object.entries(q).every(([k, v]) => d[k] === v)) : [],
+      col === 'documents'
+        ? rows.filter((d) =>
+            Object.entries(q).every(([k, v]) =>
+              v !== null && typeof v === 'object' && '$in' in (v as object)
+                ? ((v as { $in: unknown[] }).$in).includes(d[k] ?? null)
+                : d[k] === v,
+            ),
+          )
+        : [],
     ),
     save: vi.fn(async (_c: string, doc: Record<string, unknown>) => {
       const i = rows.findIndex((r) => r._id === doc._id);
@@ -113,4 +123,64 @@ describe("an edit goes live through the kind's service (defect 1)", () => {
       expect(forget).toHaveBeenCalledWith([`/home/ann/${kind}s/x`]);
     });
   }
+});
+
+describe('filed records, ledgers and secret kinds (A2)', () => {
+  it('a plain save over a filed kind refuses, naming its transport', async () => {
+    const r = await refusalOf(runAs(() => DocumentApi.save('/trade/ranching/herds/h1', 'herd', { name: 'Bess' })));
+    expect(r.reason).toBe('document-filed');
+    expect(r.facts).toMatchObject({ kind: 'herd', transport: 'register' });
+  });
+
+  it("a bore log only grows: an append lands, a rewrite refuses", async () => {
+    const register = makeStuffAtPath(() => new (RegistrarMixin(Idea))(), '/trade/drilling/idea/BoreRegistry') as unknown as Stuff & Registrar;
+    (register as unknown as { setRegisterPrefix(v: string): void }).setRegisterPrefix('/trade/drilling/bores');
+    (register as unknown as { setRegisterOwner(v: string): void }).setRegisterOwner('/trade/drilling');
+    (register as unknown as { setRegisterKind(v: string): void }).setRegisterKind('bore');
+    const path = '/trade/drilling/bores/b1';
+    const call = (lines: unknown[]): Promise<void> =>
+      ExecutionContextApi.runRoot(register as unknown as Stuff, 'test', () =>
+        DocumentApi.saveToRegister(register, path, { wellhead: 'w', claim: 'c', since: 0, lines }),
+      ) as Promise<void>;
+    await call([{ depthM: 1 }]);
+    await call([{ depthM: 1 }, { depthM: 2 }]);
+    expect((rows[0]!.data as { lines: unknown[] }).lines).toHaveLength(2);
+    const err = await call([{ depthM: 9 }]).then(() => null, (e: unknown) => e);
+    expect((err as Refusal).reason).toBe('ledger-altered');
+  });
+
+  it('a secret kind is never listed', async () => {
+    const doc = (path: string, kind: string): StoredDocument => {
+      const d = new StoredDocument();
+      d.path = path;
+      d.kind = kind;
+      return d;
+    };
+    rows.push({ _id: 't', path: '/platform/stream-tokens/abc', kind: 'stream-token', owner: '/platform/stream-tokens', data: {} });
+    // The subtree scan is a range query the fake store does not serve.
+    vi.spyOn(StoredDocument, 'find').mockResolvedValueOnce([
+      doc('/platform/stream-tokens/abc', 'stream-token'),
+      doc('/platform/stream-tokens/note', 'help-concept'),
+    ]);
+    const listed = await DocumentApi.list('/platform/stream-tokens');
+    expect(listed.map((d) => d.getPath())).toEqual(['/platform/stream-tokens/note']);
+    expect((await DocumentApi.read('/platform/stream-tokens/abc'))?.getKind()).toBe('stream-token');
+  });
+
+  it('turning `unique` on over two documents sharing a word refuses, naming both', async () => {
+    rows.push({ _id: 'f1', path: '/a/forms/brick', kind: 'form', owner: '/a', data: {} });
+    rows.push({ _id: 'f2', path: '/b/forms/brick', kind: 'form', owner: '/b', data: {} });
+    const r = await refusalOf(
+      runAs(() => DocumentApi.save('/platform/kinds/form', 'kind', { title: 'Form', traits: { keyworded: { unique: true } } })),
+    );
+    expect(r.reason).toBe('kind-in-use');
+    expect(String(r.facts.why)).toMatch(/\/a\/forms\/brick.*\/b\/forms\/brick/);
+  });
+
+  it("a declaration with filed documents of its kind cannot be removed", async () => {
+    rows.push({ _id: 'k', path: '/trade/ranching/kinds/herd', kind: 'kind', owner: '/trade/ranching', data: { traits: {} } });
+    rows.push({ _id: 'h', path: '/trade/ranching/herds/h1', kind: 'herd', owner: '/trade/ranching', data: {} });
+    const r = await refusalOf(runAs(() => DocumentApi.delete('/trade/ranching/kinds/herd')));
+    expect(r.reason).toBe('kind-in-use');
+  });
 });
