@@ -333,7 +333,7 @@ collection, registry, verb, view or controller.
 | N2 | `Faced.isSealed(face)`; `Bulkable.leakLPerHour()` · `isLiquidTight()`; `Assembled.jointLeakShare()`; `Bilge.hullLeakLps()` with hooks `hullLengthM()` · `hullDraftM()` | their own files | *does it hold, at what rate → generalize*. The sum lives on the two things that hold. |
 | N3 | `Containable.dripSlots()`; `BulkableApi.drip(matter)` → `BulkableLogic.drip` | `S/lib/spatial/Containable.ts`, `S/api/bulk.ts` | *what catches my drip → merge* |
 | N4 | `Faced.exchangeWith(contents, dtS)` · `noteFill(face)` · `washAbsorbed(share)` · `refireFace(face)`; field `wallSpent`; `CoatLayer.spent` | `Faced.ts` | *what the wall gives → merge, moved onto FacedMixin* |
-| N5 | `imparts` beside `leaches` on the one material capability (*what a wall of this gives its contents*) | `S/lib/material/Toxicity.ts` today (D11) | *what the wall gives* |
+| N5 | `ExtractionMixin` — a new material capability, *what a wall of this gives what it holds*: `leaches` (moved from `ToxicityMixin`, with `LeachSpec`) and `imparts` (moved from the vessel rows) ⭐ owner 2026-11-20 | `S/lib/material/Extraction.ts` (D11) | *what the wall gives* — genuinely new as a capability; its two fields are moved, not new |
 | N6 | `BulkPayload.grade`, `BulkPayload.craftedAt` | `S/lib/craft/Crafted.ts` | *whose grade and maker → move* |
 | N7 | `Solution.metastableRatio`, `Solution.purity` (the row's starting share), `minCrystalPurity`; `CrystallizesTo.productAs` · `drainDays`; `BulkPayload.nucleated` · `purity` · `liquorDrainStampS` · `liquorDrainDueS` | `Solution.ts`, `Thermal.ts` | *graining → retire the strike swap*; *nucleation → genuinely new* (searched `Thermal`, `Solution`, `Copper`, `StirController`, all of `lib/` for `nucleat`/`supersatur`: none) |
 | N8 | `StirTargetMixin` — the protocol behind `stir`, composed by `CompoundingMixin`, `ManualBuildMixin` and `BulkableMixin`; `Thermal.noteAgitated()` · `supersaturation()` | `S/lib/craft/StirTarget.ts` | *nucleation → genuinely new*; the protocol is `PourTargetMixin`'s shape, and it replaces three controller arms with one call. Searched: the retired `AgitatedMixin` (one host then; four now). |
@@ -393,9 +393,10 @@ invisibly.
   method. P12 it replaces the two exchanges. P13 Faced: *"a face's
   outermost layer decides what meets the contents."* P14 the memory is
   smelled and tasted; `look` words what the wall has left to give.
-- **N5 `imparts`.** P9 n/a. P10 a field on a material row. P11/P12 n/a.
-  P13 ⚠ open (D11): the field pair is one concept, but the mixin that
-  holds `leaches` is named `Toxicity`. P14 n/a.
+- **N5 `ExtractionMixin`.** P9 n/a. P10 fields on a material row. P11/P12
+  n/a. P13 *"what a wall of this gives what it holds"* — lead's leach and
+  oak's vanilla are both extraction from a wall by its contents;
+  `Toxicity` keeps *"it POISONS"* and loses `leaches`. P14 n/a.
 - **N6 payload grade.** P9 `help pour` gains *"the vessel keeps its own
   making."* P10 the payload is the batch's record (the `maker`
   precedent). P11 `transfer` decides. P12 replaces the two carry
@@ -532,7 +533,8 @@ so `Good` and `Vessel` change no line. `Ship` becomes
 - `Ship.holed` and `setHoled` are deleted; `isHoled()` derives.
 - `Ship.onStop('holed')` integrates her bilge to now, then
   `addFlaw('holed', true, atS)`.
-- ⚠ A ledger deviation (New substrate N1). Rejected alternative: keep the
+- ⚠ A ledger deviation (New substrate N1), ✅ kept by the owner
+  2026-11-20 over composing `IntegrityMixin` whole. Rejected alternative: keep the
   boolean and derive a flaw from it — two records of one hole.
 
 **D6 — A ship's seams are the joints term, read off her fabric.** Her
@@ -679,13 +681,15 @@ dtS)`, which returns the new payload. Inside:
   path; no settings-held path and no kernel default). A pitched ale cask
   is a cask with a pitch coat, which seals. The cask rows are rewritten
   (W4); oak's row gains `imparts` and the `absorbent` tag.
-- **`imparts` sits beside `leaches`** as one material capability — *what
-  a wall of this gives its contents* — never on `Odor`. `leaches` is on
-  `ToxicityMixin` today, whose sentence is *"it POISONS"*. W4 puts the
-  pair in one place: on that mixin if `lint:mixin-clusters` and the
-  capability lints hold with its sentence widened, else the pair moves
-  together. That choice is the owner's if the lint forces a new capability
-  name (Opens).
+- ⭐ **`ExtractionMixin` holds `imparts` and `leaches`** (owner, 2026-11-20)
+  — a material capability named for the physics, *what a wall of this
+  gives what it holds*, never on `Odor` and no longer on `ToxicityMixin`
+  (*"it POISONS"* — oak's vanilla is not a poison). `LeachSpec` and
+  `getLeaches`/`setLeaches` move with it; the lead, tin, pewter and lead-
+  glaze rows keep their `leaches:` key unchanged (a row field, not a
+  mixin name). It is a kernel mixin: a `Mixins.Extraction` constant and a
+  `MixinApi.hasExtraction` narrow (`lint:mixin-names`), registered with
+  the material capabilities (`lint:material-kinds`). W4's first commit.
 - **Washing.** `Soilable.washSite` calls `host.washAbsorbed(share)` when
   the host is Faced: the learned source falls by the wash's own strength,
   capped at `faces.washClears` (0.5) a wash. It never touches `wallSpent`.
@@ -1325,12 +1329,9 @@ line.
 
 **For the owner:**
 
-1. **`FlawedMixin` is a ledger deviation** (N1, D5). The alternative is
-   `Ship` composing `IntegrityMixin` whole.
-2. **Where `imparts` and `leaches` live together** (D11). On
-   `ToxicityMixin` with its sentence widened, or the pair moved to a
-   capability named for it. W4 asks the lints first; a new capability
-   name is the owner's.
+1. ✅ **`FlawedMixin`** (N1, D5) — owner 2026-11-20: keep the split.
+2. ✅ **`imparts` and `leaches`** (D11) — owner 2026-11-20: a new
+   extraction capability, `ExtractionMixin`.
 3. **The lye's material path for a watered floor heap** (D10b): read from
    the hopper's leach product, or authored on the Ash row.
 
