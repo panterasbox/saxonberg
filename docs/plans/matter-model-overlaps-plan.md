@@ -1183,7 +1183,7 @@ is 0. Decisions the plan did not make:
   before its liquor changes. Unit-test rooms that drain now carry a floor
   (Mould, Mould.drainings, Thermal.crystallize, dairying hoop).
 
-### W3 — one leak (D4–D9)
+### W3 — one leak (D4–D9) ✅ done (de05fc725)
 
 - `Flawed.ts` split with `flawLeakLPerHour` and `patchMaterial`;
   `Mixins.Flawed`; `MixinApi.isFlawed`; `Integrity` extends it. ⭐ Run
