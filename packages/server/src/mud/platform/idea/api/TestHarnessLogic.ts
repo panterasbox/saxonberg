@@ -836,6 +836,9 @@ export class TestHarnessLogic extends ApiLogic {
     for (const row of rows) {
       if (!row.path || !row.path.startsWith(SCAFFOLD_ROOT)) continue;
       await this.retireAccountsOf(row.path, report);
+      // Only a PLACE has an authored furnishing list; every other row (an NPC
+      // a drive clones, a thing) may have many instances and is no host here.
+      if (!row.data?.props && !row.data?.cast) continue;
       const place = StuffApi.findByTemplatePath(row.path);
       if (!place || !MixinApi.isContainer(place)) continue;
       const authored = new Set(
@@ -843,7 +846,6 @@ export class TestHarnessLogic extends ApiLogic {
           typeof e === 'string' ? e : String((e as { template?: unknown }).template ?? ''),
         ),
       );
-      if (authored.size === 0 && !row.data?.props && !row.data?.cast) continue;
       for (const thing of [...place.getContents()]) {
         if (thing.isDestroyed()) continue;
         if (authored.has(thing.getTemplatePath() ?? '')) continue;

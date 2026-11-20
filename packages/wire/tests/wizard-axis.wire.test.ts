@@ -32,13 +32,16 @@
  *    can say `wrong-seat`; the `wrong-seat` arm is the founder's (who holds
  *    both seats by default) and the unit suite's.
  *
- * ⚠⚠ `.dirty.`: it moves three offices off the founder and back, sets two
- * Tier C dials and sets them back, and moves a newcomer into Duncan Hall.
+ * ⭐ Stands in the scaffold (test-world-lifecycle D8). Steps 1–3 — the dorm
+ * provisioner and the letting agency, which are placeholder content — moved,
+ * unchanged, to `wizard-axis-content.dirty.wire.test.ts`. Runs twice on one
+ * world: every office it moves goes back to the founder in a `finally`, and
+ * both dials it sets are set back.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawnSync } from 'child_process';
-import { writeFileSync, rmSync, readFileSync } from 'fs';
+import { writeFileSync, rmSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -48,26 +51,25 @@ import {
   plain,
   expectOk,
   expectNote,
+  TESTBED,
+  PLAZA,
+  HOST,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
-import { WIRE_LOG } from '../src/runner/boot';
-
-export const DIRTY_REASON =
-  'moves the Minister of Finance, the Governor and the Prime Minister off the ' +
-  'founder and back, sets two Tier C dials and restores them, and moves a ' +
-  'newcomer into Duncan Hall — the dorm slot is not given back';
 
 declareFile({
-  file: 'wizard-axis.dirty.wire.test.ts',
-  packs: ['platform', 'terminus', 'eternal-university', 'world-seed', 'arcana'],
-  dirtyReason: DIRTY_REASON,
+  file: 'wizard-axis.wire.test.ts',
+  packs: ['platform', 'test-fixtures', 'arcana'],
 });
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SERVER = join(HERE, '..', '..', 'server');
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
-const SEZNICK_LOBBY = '/world/terminus/mayfield-row/seznick-house/lobby';
-const HALL = '/world/terminus/eternal/duncan-hall';
+/**
+ * Where every session stands. ⚠ The founder too: a login with no
+ * `startLocation` lands wherever the world's default is (D7), so even the
+ * founder's seat is exercised standing in the testbed.
+ */
+const HERE_AT = PLAZA;
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 const open: Session[] = [];
@@ -83,80 +85,18 @@ async function words(r: CommandResult): Promise<string> {
   return squash(JSON.stringify(r.notes ?? []) + ' ' + (await r.said()));
 }
 
-/**
- * Answer a dialogue wheel with the choice whose line matches `want`. ⚠ The
- * previous wheel's `prompt-dismissed` frame arrives first — skip any frame
- * that carries no choices.
- */
-async function choose(s: Session, want: RegExp): Promise<void> {
-  type Choice = { response?: string };
-  type Body = { promptId?: string; outcome?: { notes?: Array<{ kind?: string; choices?: Choice[] }> } };
-  for (let i = 0; i < 5; i++) {
-    const p = (await s.awaitPrompt(10_000)) as unknown as Body & { payload?: Body };
-    const body = p.payload?.promptId ? p.payload : p;
-    const choices = body.outcome?.notes?.find((n) => n.kind === 'prompt-choice')?.choices ?? [];
-    if (choices.length === 0) continue;
-    const pick = choices.find((c) => want.test(JSON.stringify(c)));
-    expect(pick, `no choice matching ${want} in ${JSON.stringify(choices).slice(0, 400)}`).toBeDefined();
-    s.answerPrompt(body.promptId!, pick!.response ?? '');
-    return;
-  }
-  throw new Error(`no choice wheel arrived for ${want}`);
-}
-
 const WIZ = uniqueHandle('wzax');
 const PLAYER = uniqueHandle('plax');
 let wiz: Session;
 let player: Session;
 
 beforeAll(async () => {
-  wiz = await session(WIZ, { startLocation: HALL_LOBBY, wizard: true });
-  player = await session(PLAYER, { startLocation: HALL_LOBBY });
+  wiz = await session(WIZ, { startLocation: HERE_AT, wizard: true });
+  player = await session(PLAYER, { startLocation: HERE_AT });
 }, 300_000);
 
 afterAll(() => {
   for (const s of open) s.close();
-});
-
-suite('the seats are exercised, not bypassed (1–3)', () => {
-  it('1. [instant] a newcomer talks to Katie and is moved in — her dispatch passes the seat', async () => {
-    const logMark = readFileSync(WIRE_LOG, 'utf8').length;
-    const newcomer = await session(uniqueHandle('nwax'), { startLocation: HALL_LOBBY });
-    // ⚠ The lobby is unlit at night, and you cannot talk to whom you
-    // cannot see: bring the clock round to daylight first (2h steps, a
-    // day at most — instant).
-    for (let i = 0; i < 12 && /pitch dark/i.test(plain(await newcomer.prose('look'))); i++) {
-      expectOk(await newcomer.cmd('testharness clock-advance 2h'));
-    }
-    let t = await newcomer.cmd('talk katie');
-    if (t.status !== 'ok') t = await newcomer.cmd('talk super');
-    expectOk(t);
-    await choose(newcomer, /need a room/i);
-    await choose(newcomer, /Mining/i);
-    // The provision ran AS Katie — through her own affordance and the
-    // seat at execute(). Its outcome is told to HER, and the server logs an
-    // NPC's dispatch only when it is NOT ok, so a quiet log is the pass:
-    // this check caught `unknown-verb(provision)` and would catch the old
-    // wizard validator's refusal (both were live before this build).
-    await new Promise((r) => setTimeout(r, 4000));
-    const failed = readFileSync(WIRE_LOG, 'utf8').slice(logMark)
-      .split('\n').filter((l) => /\[dispatch\] Katie "provision /.test(l));
-    expect(failed, failed.join('\n')).toEqual([]);
-  });
-
-  it('2. [instant] a seatless wizard at Katie\'s desk is refused, and told whose act it is', async () => {
-    const r = await wiz.cmd(`provision ${WIZ}`);
-    expectNote(r, 'controller-rejected', { reason: 'not-authorized' });
-    expect(await words(r)).toMatch(/college's staff|hall's committee/);
-  });
-
-  it('3. [instant] the same at Seznick House — the agency is named', async () => {
-    const w = await session(WIZ, { startLocation: SEZNICK_LOBBY, wizard: true });
-    wiz = w;
-    const r = await w.cmd(`lease ${WIZ}`);
-    expectNote(r, 'controller-rejected', { reason: 'not-authorized' });
-    expect(await words(r)).toMatch(/letting agency's staff|building's committee/);
-  });
 });
 
 suite('the axis is authoring TypeScript (4, 4b, 5)', () => {
@@ -191,7 +131,7 @@ suite('the axis is authoring TypeScript (4, 4b, 5)', () => {
       expectOk(await s.cmd('errors --source compile'));
       expectNote(await s.cmd('errors raw'), 'controller-rejected', { reason: 'pm-only' });
     }
-    const founder = await session('founder');
+    const founder = await session('founder', { startLocation: HERE_AT });
     expectOk(await founder.cmd('errors raw --limit 3'));
   });
 
@@ -199,8 +139,8 @@ suite('the axis is authoring TypeScript (4, 4b, 5)', () => {
     const r = await wiz.cmd('reload /platform/thing/Thing');
     expectNote(r, 'controller-rejected', { reason: 'access-denied' });
     expect(await words(r)).toMatch(/reload needs title over \/platform\/thing\/Thing/);
-    const holder = await session(uniqueHandle('hoax'), { startLocation: HALL_LOBBY, committees: [HALL] });
-    const t = await holder.cmd(`typecheck ${HALL}/agent/katie`);
+    const holder = await session(uniqueHandle('hoax'), { startLocation: HERE_AT, committees: [TESTBED] });
+    const t = await holder.cmd(`typecheck ${HOST}`);
     // A held path passes the gate (a row with no source file is then declined by the checker).
     expect(await words(t)).not.toMatch(/needs title over/);
   });
@@ -208,7 +148,7 @@ suite('the axis is authoring TypeScript (4, 4b, 5)', () => {
 
 suite('the dials belong to seats (6–8)', () => {
   it('6. [instant] the Prime Minister (the founder, by default) reads and sets a Tier B dial, and sets it back', async () => {
-    const founder = await session('founder');
+    const founder = await session('founder', { startLocation: HERE_AT });
     const before = squash(await founder.prose('config combat.poise.openingTicks')).match(/= (\S+)/)?.[1] ?? '';
     expectOk(await founder.cmd('config combat.poise.openingTicks 3'));
     expect(squash(await founder.prose('config combat.poise.openingTicks'))).toMatch(/= 3/);
@@ -222,18 +162,18 @@ suite('the dials belong to seats (6–8)', () => {
   });
 
   it('7. [instant] a Tier C dial from config is refused, naming the Minister and her verb', async () => {
-    const founder = await session('founder');
+    const founder = await session('founder', { startLocation: HERE_AT });
     const r = await founder.cmd('config banking.salesTaxRate 0.1');
     expectNote(r, 'controller-rejected', { reason: 'tier-c' });
     expect(await words(r)).toMatch(/Minister of Finance.*treasury set/);
   });
 
   it('8. [staged] each seat sets its own dial, on the record; neither reaches the other\'s', async () => {
-    const founder = await session('founder');
+    const founder = await session('founder', { startLocation: HERE_AT });
     const taxBefore = squash(await founder.prose('config banking.salesTaxRate')).match(/= (\S+)/)?.[1] ?? '0';
     const capBefore = squash(await founder.prose('config banking.withdrawalDailyCap')).match(/= (\S+)/)?.[1] ?? '0';
-    const minister = await session(uniqueHandle('mfax'), { offices: ['minister-of-finance'] });
-    const governor = await session(uniqueHandle('cgax'), { offices: ['central-bank-governor'] });
+    const minister = await session(uniqueHandle('mfax'), { startLocation: HERE_AT, offices: ['minister-of-finance'] });
+    const governor = await session(uniqueHandle('cgax'), { startLocation: HERE_AT, offices: ['central-bank-governor'] });
     try {
       expectOk(await minister.cmd('treasury set banking.salesTaxRate 0.1'));
       expectOk(await governor.cmd('reserve set banking.withdrawalDailyCap 600'));
@@ -252,7 +192,7 @@ suite('the dials belong to seats (6–8)', () => {
       expect((await founder.cmd('treasury set banking.salesTaxRate 0.2')).status).not.toBe('ok');
     } finally {
       // Hand both seats back (the seat MOVES) and restore the dials.
-      const back = await session('founder', { offices: ['minister-of-finance', 'central-bank-governor'] });
+      const back = await session('founder', { startLocation: HERE_AT, offices: ['minister-of-finance', 'central-bank-governor'] });
       await back.cmd(`treasury set banking.salesTaxRate ${taxBefore}`);
       await back.cmd(`reserve set banking.withdrawalDailyCap ${capBefore}`);
     }

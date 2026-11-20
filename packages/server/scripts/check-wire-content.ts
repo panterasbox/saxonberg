@@ -48,7 +48,7 @@ const REPO_ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..", ".
  * The number of wire files that still name placeholder content. It may fall,
  * never rise. Lower it in the commit that migrates a drive.
  */
-export const WIRE_CONTENT_CEILING = 120;
+export const WIRE_CONTENT_CEILING = 110;
 
 const PLACEHOLDER = [/\/world\/(?!testbed(?:\/|\b))[a-z]/, /\/corpo\/[a-z]/];
 

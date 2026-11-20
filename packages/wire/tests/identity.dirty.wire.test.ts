@@ -7,7 +7,9 @@
  * they are why the build existed:
  *
  *   - that a player can ASK about somebody else at all. The gate was
- *     open and there was no door — the `feel`/`taste` failure shape;
+ *     open and there was no door — the `feel`/`taste` failure shape
+ *     (the other-PLAYER refusal step stands in the scaffold now:
+ *     `identity-kernel.wire.test.ts`);
  *   - that the answers are a RANGE rather than one band twelve times. A
  *     suite asserts one character; only a sweep sees the curve;
  *   - that an institution's record is readable by a person playing.
@@ -167,34 +169,6 @@ suite('the lounge', () => {
       bands.size,
       `bands seen across the lounge cast: ${[...bands].join(', ')}`
     ).toBeGreaterThanOrEqual(2);
-  }, 120_000);
-
-  it('⭐ asking about another player is REFUSED, not merely absent', async () => {
-    /*
-     * ⚠ The refusal has to be asked with the other player IN THE ROOM. A
-     * first pass asked about a player standing in another locality and
-     * accepted "Nobody here goes by …" — which is the not-present
-     * branch, not the refusal, and would have gone on passing if the
-     * gate were deleted.
-     *
-     * ⭐ And they have to INTRODUCE themselves first, which is the belief
-     * layer working: an un-introduced player reads as *a human*, so
-     * there is no name to ask about until they give one. It is also why
-     * the question cannot be asked by login handle — the world has never
-     * heard it.
-     */
-    const handle = uniqueHandle('ident-d');
-    const bystander = await Session.open(handle, { startLocation: BAR });
-    try {
-      const said = await bystander.prose('introduce');
-      expect(said, 'until they introduce there is no name to ask about').toMatch(
-        /introduce yourself as/i
-      );
-      const refusal = await b.prose(`competence ${handle}`);
-      expect(refusal).toMatch(/theirs to show you/i);
-    } finally {
-      bystander.close();
-    }
   }, 120_000);
 });
 
