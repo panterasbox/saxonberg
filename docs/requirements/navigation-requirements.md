@@ -445,7 +445,8 @@ Every step is walked in a browser; steps 16–17 also as a wire drive.
 20. `short` · staged — Restart the world. On reconnect the card redraws the
     same map; nothing lost or duplicated. Log in from a second browser: the
     same map.
-21. `instant` · player — The status bar shows the weather and time; the
+21. `instant` · player — The status bar shows the weather, the season and
+    day or night (no clock hour is on the wire — owner, 2026-11-20); the
     zone section shows who keeps the ground.
 22. `instant` · player — Board the Hesper at her berth: the last crumb is
     the ship, the zone section shows your place on her decks and where she

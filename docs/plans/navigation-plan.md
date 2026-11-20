@@ -16,7 +16,7 @@ requirements' premise (*"the server half shipped; the one content change is
 a name"*) does not hold in the code. Each is named there under
 **⚠ REQUIREMENTS**, with the smallest touch that makes the drive possible.
 None is absorbed silently; W0 carries the ones this plan recommends, and
-one (W8) waits on the owner's call.
+one (W8) was the owner's call — **approved 2026-11-20**, with the `nav.card` schema entry and season-plus-daylight as *time* (§ Owner's rulings).
 
 ## Grounding
 
@@ -276,7 +276,7 @@ collection.** The whole list, each against the
 | 11 | **the status bar's outdoors region** | `components/frame/StatusBar.tsx` | *the status bar* — **extend** |
 | 12 | **`tokens.width.panel = 22`** and the panel rule | `components/ui/tokens.ts`, `useWidthTier.ts`, `ModeStage.tsx` | *the panel width* — **change** |
 | 13 | **the Delve's `address:`** — one zone field value | `newbie-wilds/…/delve.yaml` | not in the ledger — ⚠ REQUIREMENTS 1 |
-| 14 | *(owner's call, W8)* a Locality one-shot for the crumb's civic facts | server | not in the ledger — ⚠ REQUIREMENTS 3 |
+| 14 | *(W8, approved by the owner 2026-11-20)* a Locality one-shot for the crumb's civic facts | server | not in the ledger — ⚠ REQUIREMENTS 3 |
 
 **Generalized, so the specific one goes (P1 ⭐):** `NavigatorBody.tsx`,
 `whereaboutsOf` and the `Whereabouts` / `WhereaboutsExit` types in
@@ -301,6 +301,19 @@ outdoors / jurisdiction / leaving list) is the **move** W3–W4 perform.
 | 11 outdoors | n/a | n/a | n/a | — | the bar: *the interface shows which* + what every mode sees | reads the place section; absent when the section is |
 | 12 width | n/a | n/a | n/a | — | `tokens.width` | ⚠ the panel no longer closes itself for a column (the owner's decision) |
 | 13 address | n/a | a field value on an authored row | n/a | — | the zone's own `address` field | ⚠ joins the Delve to the Last Counted Mile for everything address-derived (see Host placement) |
+
+## Owner's rulings at plan review (2026-11-20)
+
+All three of the plan's leans were taken:
+
+1. **W8 is built** — the inbound one-shot for a Locality's seats and
+   holders, resident or visitor, and forecast, answering only for a
+   Locality the asker holds a claim for. The build amends W8 in place with
+   its files, gate and P-lines before writing it, and step 24 asserts all
+   of it.
+2. **`nav.card` is a client-state schema entry** (D9), not `localStorage`.
+3. **"Time" on the status bar is season plus day or night** — no clock
+   hour is on the wire, and none is added in this build.
 
 ## Plan-level decisions
 
@@ -548,7 +561,7 @@ lenses: ['frontier', 'route'] }`, an object-shape validator), because the
 server refuses an undeclared key. This is the mechanism every remembered
 layout choice already uses, it survives a reload **and** a second device,
 and it is no new collection and no new field (`_clientState` exists).
-⚠ It is a server-file touch in a client build — see ⚠ REQUIREMENTS 4.
+✔ A server-file touch in a client build — **approved by the owner 2026-11-20** over `localStorage` (⚠ REQUIREMENTS 4).
 
 ⚠ The seeding-clobber lesson (`cardViewActions.ts` header): the card writes
 **nothing** on mount. An absent key means *untouched*; only a player's
@@ -845,17 +858,14 @@ files, the client lint, and — W0 only — the server lint family.
   thumbnail block.
 - **Commit:** `build(navigation W7): every mark says what it is and how you know`
 
-### W8 — ⚠ OWNER'S CALL: the crumb's civic facts
-*Not built unless the owner says so at plan review (⚠ REQUIREMENTS 3).*
-If approved: one inbound one-shot in the shape of `wiki-excerpt`
+### W8 — The crumb's civic facts *(approved by the owner, 2026-11-20)*
+*Built (⚠ REQUIREMENTS 3 resolved: build it).* One inbound one-shot in the shape of `wiki-excerpt`
 (`backend/inbound/`, answered through `GovernmentApi` and `WeatherApi`
 reads that exist) returning seats and holders, resident or visitor, and the
 forecast for a Locality **the asker holds a claim for** — refused
 otherwise, so it cannot be used to learn a place you have not been. The
-plan is amended in place with its files, gate and P-lines before it is
-built. If declined: step 24 asserts name, first visit, government and kind,
-and the rest is recorded in navigation-server-slate § Left after the first
-pass.
+build amends this wave in place with its files, gate and P-lines before it
+writes it.
 
 ### W9 — The drive files, complete
 - `packages/wire/tests/navigation.dirty.wire.test.ts` finished (steps 16,
@@ -865,7 +875,7 @@ pass.
   against the new card (the kept test ids should hold).
 - **Commit:** `drive(navigation): the wire drive and the browser walk`
 
-Code-complete is W7 (or W8). The MR opens READY then; the full suite, the
+Code-complete is W8. The MR opens READY then; the full suite, the
 blocking drive and the walk run once, alongside review.
 
 ## Reachability wiring
@@ -902,7 +912,7 @@ blocking drive and the walk run once, alongside review.
 | two players, two maps | W0 (wire), W9 (walk) |
 
 Unmapped: none. **Partly met as written:** the crumb tooltip's seats,
-residency and forecast (W8, the owner's call).
+residency and forecast (W8, approved).
 
 ## Test & gate strategy
 
@@ -945,7 +955,7 @@ that reason (D1). The walk never logs in as a guest (a guest holds no map).
 | 21 status bar; who keeps the ground | instant | — | ✔ | |
 | 22 the Hesper | instant | (navigation-server 10) | ✔ | |
 | 23 the Hush | instant | — | ✔ | |
-| 24 the Terminus City crumb | instant | ✔ the claim's name | ✔ | per W8's outcome |
+| 24 the Terminus City crumb | instant | ✔ the claim's name | ✔ | ✔ seats, holders, residency, forecast (W8) |
 | 25 22 rem at 2048 px; forum mode | instant | — | ✔ | a 2048 px viewport is 2560 at 125% |
 
 **Blocking drive:** all 25 (none is a span). **Soak drive:** none. **Staged
@@ -995,7 +1005,7 @@ client's vitest + the lints.
    declaration in an existing file; no state machinery. The no-server-touch
    alternative is `localStorage` — per device, so step 20's second browser
    would not share it, and it would be the first layout state kept outside
-   the client-state mechanism. Recommended: the schema entry.
+   the client-state mechanism. **The owner chose the schema entry (2026-11-20).**
 5. **The live Locality name still travels** in the `localities` section for
    a Locality you hold no claim for; the crumb does not show it (D10). If
    the wire itself must be silent, `Perceiver.localitiesSection` has to
