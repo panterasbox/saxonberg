@@ -48,6 +48,8 @@ import { useStore } from "../store/index";
 import { tokens } from "./ui";
 import { PressRoom } from "./PressRoom";
 import { Seal } from "./frame/Seal";
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 const Screen = styled.div`
   min-height: 100vh;
@@ -625,7 +627,7 @@ export const StartScreen: React.FC = () => {
         <BandInner>
           <Masthead>
             <SealWrap>
-              <Seal size={56} id="sx-seal-door" title="Saxonberg" />
+              <Seal size={56} id="sx-seal-door" label="Saxonberg" />
             </SealWrap>
             <div>
               <WordMark>SAXONBERG</WordMark>
@@ -690,16 +692,12 @@ export const StartScreen: React.FC = () => {
                 {p.label}
               </Action>
             ) : (
-              <Action
-                key={p.key}
+              <Tip key={p.key} tip={hoverDoc(p.enabled ? "Not configured on this server" : "Coming soon")}><Action
                 disabled
-                title={
-                  p.enabled ? "Not configured on this server" : "Coming soon"
-                }
               >
                 <ProviderMark provider={p.key} />
                 {p.label}
-              </Action>
+              </Action></Tip>
             ),
           )}
 

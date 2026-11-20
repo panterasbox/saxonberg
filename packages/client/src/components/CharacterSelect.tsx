@@ -43,6 +43,8 @@ import { tokens } from "./ui/tokens";
 import { Figure, UnbuiltGround } from "./ui";
 import { Seal } from "./frame/Seal";
 import type { FigureState } from "./ui";
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 const Screen = styled.div`
   display: flex;
@@ -764,14 +766,12 @@ function CharacterDetail({
 
       <div>
         {UNBUILT_ACTIONS.map((a) => (
-          <DisabledAction
-            key={a.label}
+          <Tip key={a.label} tip={hoverDoc(a.reason)}><DisabledAction
             disabled
-            title={a.reason}
             data-testid={`roster-unbuilt-${a.label.toLowerCase()}`}
           >
             {a.label} — {a.reason}
-          </DisabledAction>
+          </DisabledAction></Tip>
         ))}
       </div>
     </Panel>
@@ -868,7 +868,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
       <HeaderBand>
         <HeaderInner>
           <HeaderIdentity>
-            <Seal size={40} id="sx-seal-roster" title="Saxonberg" />
+            <Seal size={40} id="sx-seal-roster" label="Saxonberg" />
             <div>
               <Heading>Who are you tonight?</Heading>
               <Subhead>

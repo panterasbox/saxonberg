@@ -344,6 +344,18 @@ player-typed `find` rides the command bus, while the
 `mql-query` channel is reserved for future programmatic widget
 reads.
 
+⭐ **Its first client consumer is the tooltip** (tooltips W2,
+[tooltips.md](./tooltips.md)), and the channel is **gated by the server**
+for that use:
+- **Reach:** a resolved subject outside the viewer's `reachable` set (`look`'s
+  own scope) is dropped, whatever the query text. A bare `#id` names a thing
+  anywhere, but describing it is an act, and an act observes.
+- **Light:** in the dark, every field whose descriptor declares
+  `sense: 'vision'` is dropped, and the envelope says `dark: true` once.
+- **Name:** `displayName` is `describeFor(viewer)`.
+
+Live subscriptions are untouched by all three.
+
 ## Two projection layers
 
 The substrate ships both:

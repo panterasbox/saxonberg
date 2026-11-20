@@ -42,6 +42,8 @@ import React from "react";
 import styled from "styled-components";
 import { useStore, type PromptEntry } from "../store/index";
 import { tokens } from "./ui";
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 /** The badge each prompt kind wears. */
 const KIND_BADGE: Readonly<Record<PromptEntry["kind"], string>> = {
@@ -284,15 +286,14 @@ export function PromptStrip({
           ⚠⚠ The VERB, over the command bus — all of them. Distinct from
           the × on a card, which is `prompt-cancel` and means this one.
         */}
-        <CancelAll
-          title="Click to send: prompt cancel"
+        <Tip tip={hoverDoc("Click to send: prompt cancel")}><CancelAll
           aria-label="prompt cancel"
           onClick={() => onSendCommand("prompt cancel")}
           onMouseEnter={() => preview("prompt cancel")}
           onMouseLeave={() => preview(null)}
         >
           prompt cancel
-        </CancelAll>
+        </CancelAll></Tip>
       </Head>
 
       {waiting.map((entry) => (
@@ -331,13 +332,12 @@ export function PromptStrip({
               </Error>
             )}
           </Body>
-          <Dismiss
+          <Tip tip={hoverDoc(cancelSentence(entry))}><Dismiss
             aria-label={cancelSentence(entry)}
-            title={cancelSentence(entry)}
             onClick={() => onCancelPrompt(entry.promptId)}
           >
             × {entry.askedBy ?? "cancel"}
-          </Dismiss>
+          </Dismiss></Tip>
         </Card>
       ))}
       {/*

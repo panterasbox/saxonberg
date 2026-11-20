@@ -36,11 +36,8 @@ export default class HelpTopicController extends HelpControllerBase {
       const inCategory = HelpApi.commandCategory(target);
       if (inCategory) return HelpTopicController.showCategory(target, inCategory, context);
     }
-    const topic =
-      verb ??
-      HelpApi.conceptTopic(target) ??
-      HelpApi.collectionTopic(target) ??
-      HelpApi.apiTopic(target);
+    // ⭐ One resolution order, shared with a tooltip's glossary term.
+    const topic = verb ?? HelpApi.resolveTopic(target);
     if (!topic) {
       HelpControllerBase.tellText(context, `\nno help topic for '${target}'.\n`);
       context.note({

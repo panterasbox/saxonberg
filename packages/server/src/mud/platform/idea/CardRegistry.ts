@@ -55,8 +55,6 @@ import type {
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
 import { CARDS, CARDS_BY_NAME, type CardDefinition } from '../../lib/connection/Cards';
 import { Idea } from '../../lib/stuff/Idea';
-import { Agent } from '../../lib/stuff/Agent';
-import Place from '../../lib/stuff/Place';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -260,26 +258,6 @@ export interface CardOpenOptions {
    * error, not a rendering variation.
    */
   payload?: CardPayload;
-}
-
-/**
- * ⭐⭐ **Which of the four top-level branches a subject belongs to.**
- *
- * An inspection card is laid out by what the thing IS — a place, a
- * person, an object, an idea — and this is where that question is
- * answered, once, on the server that knows. `instanceof` against the
- * branch classes rather than a mixin sniff: the branches are the
- * taxonomy, and a mixin test would be guessing at it from the outside.
- *
- * ⚠ Deliberately not narrower. A weapon and a lamp are both `thing`; an
- * NPC and a player are both `agent`. Splitting further waits until
- * something needs it.
- */
-function subjectKindOf(stuff: Stuff): StuffKind {
-  if (stuff instanceof Place) return 'location';
-  if (stuff instanceof Agent) return 'agent';
-  if (stuff instanceof Idea) return 'idea';
-  return 'thing';
 }
 
 /**
@@ -1263,7 +1241,7 @@ export default class CardRegistry extends CardRegistryBase {
     const subject = StuffApi.findById(
       (initial[0] as { stuffId?: string } | undefined)?.stuffId ?? '',
     );
-    if (subject) state.subjectKind = subjectKindOf(subject);
+    if (subject) state.subjectKind = subject.stuffKind();
     return true;
   }
 
@@ -1542,7 +1520,7 @@ export default class CardRegistry extends CardRegistryBase {
       state.title = state.records[0]?.displayName as string | undefined;
     }
     const subject = stuffList[0];
-    if (subject) state.subjectKind = subjectKindOf(subject);
+    if (subject) state.subjectKind = subject.stuffKind();
   }
 
   /**

@@ -30,6 +30,8 @@ import { websocketClient } from "../../services/websocket";
 import { signOut } from "../../services/auth";
 import { tokens } from "../ui";
 import { Portrait } from "./Portrait";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const Root = styled.div`
   position: relative;
@@ -207,9 +209,9 @@ export const AccountMenu: React.FC<AccountMenuProps> = ({ extras }) => {
              *
              * Signing in starts a REAL character, fresh. Say that.
              */
-            <Item role="menuitem" onClick={signIn} title="This guest session is not carried over">
+            <Tip tip={hoverDoc("This guest session is not carried over")}><Item role="menuitem" onClick={signIn}>
               Sign in to start a character
-            </Item>
+            </Item></Tip>
           ) : (
             <Item role="menuitem" onClick={switchCharacter}>
               Switch character

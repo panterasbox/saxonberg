@@ -204,6 +204,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: 'shortDescription',
+        sense: 'vision',
         read: (stuff) =>
           (stuff as unknown as Visible).getShortDescription(),
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
@@ -226,6 +227,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // unknown-tongue masking) plug in via the same slot. Plain
         // Visible hosts contribute nothing and the wrap is a no-op.
         name: 'longDescription',
+        sense: 'vision',
         read: (stuff, viewer) =>
           (stuff as unknown as Visible).getMarkupLong(viewer),
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
@@ -237,6 +239,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // omits it. The member fallback (own ?? species) lives in Organism's
         // getIllustration override, reached here via polymorphic dispatch.
         name: 'illustration',
+        sense: 'vision',
         read: (stuff) =>
           (stuff as unknown as Visible).getIllustration() ?? undefined,
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
@@ -245,6 +248,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         // The declared shape rides beside the picture so the card can
         // reserve the right box before it loads — never a crop.
         name: 'illustrationShape',
+        sense: 'vision',
         read: (stuff) => (stuff as unknown as Visible).getIllustrationShape(),
       },
     ];

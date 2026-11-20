@@ -31,6 +31,8 @@ import {
 } from "../store/forumActions";
 import { MmlRenderer } from "./MmlRenderer";
 import { tokens } from "./ui";
+import { Tip } from "./tooltip/Tip";
+import { hoverDoc } from "./doc/docs";
 
 type Sort = "new" | "top" | "hot" | "controversial";
 
@@ -598,7 +600,7 @@ function ArgumentNode({
         {meta && <Marker $rel={entry.relation}>{meta.glyph}</Marker>}
         {entry.openObjection && <OpenBadge>⚠ open</OpenBadge>}
         {entry.inCircle && (
-          <CircleDot title="someone in your circle is here">●</CircleDot>
+          <Tip tip={hoverDoc("someone in your circle is here")}><CircleDot>●</CircleDot></Tip>
         )}
         {entry.editedAt != null && <EditedTag>edited</EditedTag>}
       </ClaimHead>

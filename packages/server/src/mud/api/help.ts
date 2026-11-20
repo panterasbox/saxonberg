@@ -216,6 +216,29 @@ export class HelpApi {
   }
 
   /**
+   * ⭐ What `help <word>` means, in one place (tooltips D7): a verb, then a
+   * concept, a collection, and the engine surface — the order a player
+   * means by a bare word. The `help` verb and a tooltip's glossary term
+   * both resolve through here, so a term's tooltip and the page `help`
+   * shows can never be two different topics. A verb CATEGORY is not a
+   * topic and stays the verb's own fallthrough. An exact topic id
+   * (`mixin.Tangible`) also resolves, so a link that names one works.
+   *
+   * @nothing no topic answers that word — the tooltip says so; nothing refused.
+   */
+  static resolveTopic(word: string, viewer: HelpViewer = FLOOR): HelpTopic | null {
+    const w = word.trim();
+    if (!w) return null;
+    return (
+      HelpApi.commandTopic(w, viewer) ??
+      HelpApi.conceptTopic(w, viewer) ??
+      HelpApi.collectionTopic(w, viewer) ??
+      HelpApi.apiTopic(w, viewer) ??
+      HelpApi.fullTopic(w, viewer)
+    );
+  }
+
+  /**
    * The single capability chokepoint. Every list/single read routes
    * through here. At the anonymous floor it is an **identity pass**
    * (nothing withheld); a real ceiling drops spoiler-flagged items.

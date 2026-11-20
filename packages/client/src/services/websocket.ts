@@ -48,6 +48,9 @@ import type {
   WikiPageFrame,
   AffordanceResultEnvelope,
   AffordanceErrorEnvelope,
+  MqlQueryResultEnvelope,
+  TooltipDoc,
+  WikiExcerptResultEnvelope,
 } from "@saxonberg/types";
 import {
   INTENTIONAL_LEAVE_CLOSE_CODE,
@@ -669,6 +672,10 @@ class WebSocketClient {
         // consumers, and the chips cannot drift from the menu.
         this.applyAffordanceSideEffects(envelope);
 
+        // Side-effect: answer a one-shot request (a tooltip's describe or
+        // wiki excerpt) by its correlation id.
+        this.applyOneShotSideEffects(envelope);
+
         // Side-effect: the two subscriptions the server opens for every
         // session — your client state and the press ticker.
         this.applySessionSubscriptions(envelope);
@@ -945,6 +952,65 @@ class WebSocketClient {
    * be a probe, and a retry loop over a hidden id is exactly the shape
    * the single reason code exists to refuse.
    */
+  /** One-shot requests awaiting their answer, by correlation id. */
+  private oneShots = new Map<string, (envelope: Envelope | null) => void>();
+
+  /** Wait at most this long for a one-shot answer; then it is a miss. */
+  private static readonly ONE_SHOT_TIMEOUT_MS = 3000;
+
+  private oneShot(id: string, message: OutboundClientMessage): Promise<Envelope | null> {
+    if (!this.isConnected()) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        this.oneShots.delete(id);
+        resolve(null);
+      }, WebSocketClient.ONE_SHOT_TIMEOUT_MS);
+      this.oneShots.set(id, (env) => {
+        clearTimeout(timer);
+        this.oneShots.delete(id);
+        resolve(env);
+      });
+      this.send(message);
+    });
+  }
+
+  /**
+   * ⭐ A one-shot, perception-gated describe (tooltips D3) — the client's
+   * first `mql-query`. The server keeps only what `look` could reach and,
+   * in the dark, drops what sight would tell. `null` on an error or no
+   * answer in time: the caller shows a miss, never a spinner that stays.
+   */
+  public query(query: string, fields: string[]): Promise<MqlQueryResultEnvelope | null> {
+    const queryId = nanoid();
+    return this.oneShot(queryId, {
+      type: "mql-query",
+      payload: { queryId, query, cardinality: "one", fields },
+    }).then((env) => (env && env.type === "mql-query-result" ? (env as MqlQueryResultEnvelope) : null));
+  }
+
+  /**
+   * ⭐ A wiki page's opening section, through the wiki's own gate for this
+   * character (tooltips D4). `null`: no page, nothing you may read, or no
+   * answer in time — one answer.
+   */
+  public wikiExcerpt(ref: string): Promise<TooltipDoc | null> {
+    const requestId = nanoid();
+    return this.oneShot(requestId, { type: "wiki-excerpt", payload: { requestId, ref } }).then((env) =>
+      env && env.type === "wiki-excerpt-result" ? (env as WikiExcerptResultEnvelope).doc : null,
+    );
+  }
+
+  private applyOneShotSideEffects(envelope: Envelope): void {
+    const id =
+      envelope.type === "mql-query-result" || envelope.type === "mql-query-error"
+        ? (envelope as { queryId: string }).queryId
+        : envelope.type === "wiki-excerpt-result"
+          ? (envelope as WikiExcerptResultEnvelope).requestId
+          : null;
+    if (id === null) return;
+    this.oneShots.get(id)?.(envelope);
+  }
+
   private applyAffordanceSideEffects(envelope: Envelope): void {
     if (envelope.type === "affordance-result") {
       const env = envelope as AffordanceResultEnvelope;

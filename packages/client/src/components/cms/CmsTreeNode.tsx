@@ -14,6 +14,8 @@ import type { CmsTreeEntry } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { cmsNodeKey } from "../../store/cmsSlice";
 import { tokens } from "../ui";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const Row = styled.button<{ $active: boolean; $depth: number }>`
   display: flex;
@@ -80,11 +82,10 @@ export const CmsTreeNode: React.FC<CmsTreeNodeProps> = ({ entry, depth }) => {
 
   return (
     <>
-      <Row
+      <Tip tip={hoverDoc(entry.path)}><Row
         $active={isActiveLeaf}
         $depth={depth}
         onClick={onClick}
-        title={entry.path}
       >
         {isFolder ? (
           <Chevron $open={expanded} aria-hidden="true">
@@ -94,7 +95,7 @@ export const CmsTreeNode: React.FC<CmsTreeNodeProps> = ({ entry, depth }) => {
           <Glyph aria-hidden="true">·</Glyph>
         )}
         <span>{entry.name}</span>
-      </Row>
+      </Row></Tip>
       {isFolder &&
         expanded &&
         (children ?? []).map((child) => (

@@ -169,6 +169,20 @@ circumstance shape), **quest/progress** state (the earned condition).
 
 ---
 
+## Perception on the projection seam *(from the tooltips build, 2026-11-19)*
+
+The tooltips build made the ONE-SHOT describe honest: the server keeps only
+what `look` could reach, and in the dark it drops every field a descriptor
+marks `sense: 'vision'` ([tooltips.md](../../subsystems/tooltips.md)). **Live
+subscriptions do neither yet:**
+- a live card keeps its description in the dark;
+- it keeps describing its subject after you leave its reach, and cards
+  rely on that.
+
+The attach point is the descriptor's `sense` key. Light changes would also
+need to wake the MQL source. A tooltip is currently more honest than a
+card; making cards match is a card-surface decision, not a tooltip one.
+
 ## Open questions / forks
 
 1. **Best-effort, accepted as defeatable?** *Confirmed* — protect normal
@@ -178,7 +192,7 @@ circumstance shape), **quest/progress** state (the earned condition).
    reveal-condition that plugs into the percept revelation-condition
    family.*
 3. *Resolved by the wiki build: neither global nor per-category but a
-   **graduated 0–3 appetite scalar** — `wiki.spoilerAppetite`, a setting on
+   **graduated 0–3 appetite scalar** — `spoiler.appetite`, a setting on
    the Avatar, overridable per reading with `wiki … --spoiler` →
    [wiki.md](../../subsystems/wiki.md) § The reveal model — two axes, one
    gate, § Why an ordinary player sits at 1. Per-category guards remain

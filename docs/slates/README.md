@@ -54,7 +54,7 @@ README lists every slate in it by status, with size and what is left.
 | [trades/](./trades/README.md) | industries and their supply chains: what is made, from what, by whom | 28 | 57 | 4 | 0 |
 | [society/](./society/README.md) | governance, law, money, institutions, education, faith, standing | 40 | 32 | 0 | 0 |
 | [world/](./world/README.md) | places, peoples, creatures, lore and story content | 23 | 17 | 1 | 2 |
-| [client/](./client/README.md) | the UI: cards, the shell, the map, rendering | 11 | 9 | 0 | 3 |
+| [client/](./client/README.md) | the UI: cards, the shell, the map, rendering | 11 | 10 | 0 | 2 |
 | [platform/](./platform/README.md) | authoring tools, packs, hosting, integrations, the show and the business | 27 | 23 | 0 | 0 |
 
 <!-- END GENERATED -->

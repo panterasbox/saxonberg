@@ -195,7 +195,7 @@ export interface RenderOptions {
   spoilerDefault?: SpoilerLevel;
   /**
    * Per-invocation appetite override (`wiki <page> --spoiler 2`).
-   * Absent, the reader's `wiki.spoilerAppetite` setting is used.
+   * Absent, the reader's `spoiler.appetite` setting is used.
    */
   appetite?: SpoilerLevel;
   /**

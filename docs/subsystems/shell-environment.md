@@ -347,6 +347,17 @@ inside the template handle the directional/bland split, so a single
 `arriveSelf` / `arrivePeers` key covers both cases. See
 [prose.md](./prose.md) for the templating language and helpers.
 
+## The client mirror — `client: true`
+
+A schema entry may declare **`client: true`** (tooltips W4). Its resolved
+value rides the session's client-state snapshot
+(`Environment.clientMirroredSettings()`), and every `settings set` / `unset`
+of it, a per-factor suffix included, pushes the new value on the
+client-state subscription. The setting therefore takes effect without a
+reconnect. A `perFactor` entry mirrors both answers (`{ desktop, mobile }`)
+and the client picks. Mirrored today: `shell.result` and `spoiler.appetite`.
+This replaced `pushResultDisplay` and the `resultDisplay` payload field.
+
 ## Not settings: client state
 
 `EnvironmentMixin` is for **player-tunable knobs** the player

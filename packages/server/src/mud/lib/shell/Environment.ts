@@ -105,6 +105,16 @@ export interface SettingsSchemaEntry<T = unknown> {
    * real `CardId` refuses as *no such setting*.
    */
   perKind?: true;
+  /**
+   * ⭐ **The client mirrors this setting** (tooltips D5). Its resolved value
+   * rides the session's client-state snapshot, and every `settings set` /
+   * `unset` of it (a per-factor suffix included) pushes the new value on the
+   * client-state subscription — so it takes effect without a reconnect. A
+   * declaration like `perFactor`, not a capability: nothing is mirrored
+   * undeclared, and no controller pushes by key. A `perFactor` entry
+   * mirrors BOTH answers (`{ desktop, mobile }`); the client picks.
+   */
+  client?: true;
 }
 
 /**
@@ -147,6 +157,11 @@ export interface Environment {
   unsetSetting(key: string, actor: Stuff): void;
   listSettings(): SettingsSnapshotEntry[];
   describeSetting(key: string): SettingsSchemaEntry | undefined;
+  /**
+   * Every setting declared `client: true`, resolved — what the client's
+   * snapshot carries (tooltips D5).
+   */
+  clientMirroredSettings(): Record<string, unknown>;
 
   setVar(name: string, value: string): void;
   unsetVar(name: string): void;
@@ -331,6 +346,8 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         type: SettingTypes.String,
         default: 'card',
         perFactor: true,
+        // The client applies the filter, so it mirrors the answer.
+        client: true,
         description:
           'Where a structured command result appears: `card` (the ' +
           'default — the feed only), `terminal` (the prose only), or ' +
@@ -508,6 +525,7 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       // ⭐ Fires: a screen showing a setting (your pace) re-reads it.
       SubscriptionApi.fireFieldChange(this, 'settings', was, value);
+      this.pushMirror(entry);
     }
 
     @Unshadowable
@@ -531,6 +549,31 @@ export function EnvironmentMixin<TBase extends MixinConstructor>(Base: TBase) {
         delete this.sessionStore[key];
       }
       SubscriptionApi.fireFieldChange(this, 'settings', was, undefined);
+      this.pushMirror(entry);
+    }
+
+    clientMirroredSettings(): Record<string, unknown> {
+      const out: Record<string, unknown> = {};
+      for (const { entry } of collectSchema(this)) {
+        if (entry.client) out[entry.key] = this.mirrorValue(entry);
+      }
+      return out;
+    }
+
+    /** A mirrored entry's resolved value — both answers for a per-factor one. */
+    private mirrorValue(entry: SettingsSchemaEntry): unknown {
+      if (!entry.perFactor) return this.getSetting(entry.key);
+      const at = (f: 'desktop' | 'mobile'): unknown =>
+        this.getOwnSetting(`${entry.key}.${f}`) ?? this.getSetting(entry.key);
+      return { desktop: at('desktop'), mobile: at('mobile') };
+    }
+
+    /** Tell every session's client the new value of a `client: true` entry. */
+    private pushMirror(entry: SettingsSchemaEntry): void {
+      if (!entry.client) return;
+      const host = this as unknown as Stuff;
+      if (!MixinApi.isClientState(host)) return;
+      host.pushClientStateUpdate(entry.key, this.mirrorValue(entry));
     }
 
     listSettings(): SettingsSnapshotEntry[] {

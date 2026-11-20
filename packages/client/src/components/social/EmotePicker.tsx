@@ -31,6 +31,8 @@ import {
   type SlotValues,
 } from "./reactCommand";
 import { useStore } from "../../store";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const Panel = styled.div`
   border: 1px solid ${tokens.color.borderEmphasis};
@@ -301,17 +303,14 @@ export function EmotePicker({
             drift.
           */}
           <Composed data-testid="composed-command">{command}</Composed>
-          <SendBtn
+          <Tip tip={hoverDoc(missing !== null ? `fill <${missing}> first` : "send this react")}><SendBtn
             disabled={missing !== null}
-            title={
-              missing !== null ? `fill <${missing}> first` : "send this react"
-            }
             onClick={() => onCommandClick(command)}
             onMouseEnter={() => onCommandPreview(command)}
             onMouseLeave={() => onCommandPreview(null)}
           >
             send ⏎
-          </SendBtn>
+          </SendBtn></Tip>
         </CommandLine>
       )}
     </Panel>
