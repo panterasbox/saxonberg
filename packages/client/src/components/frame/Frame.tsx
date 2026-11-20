@@ -114,7 +114,7 @@ export const Frame: React.FC<FrameProps> = ({
   onToggleSettings,
 }) => (
   <Bar data-testid="top-bar">
-    <Seal size={22} title="Saxonberg" />
+    <Seal size={22} label="Saxonberg" />
     <ConnectionChip />
     <Divider aria-hidden="true" />
     <AccountMenu />

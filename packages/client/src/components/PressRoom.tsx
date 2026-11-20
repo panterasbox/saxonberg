@@ -34,6 +34,8 @@ import { SERVER_URL } from "../config";
 import { tokens } from "./ui";
 import { MmlRenderer } from "./MmlRenderer";
 import type { PublicReleaseRow } from "@saxonberg/types";
+import { Tip } from "./tooltip/Tip";
+import { controlDoc } from "./doc/docs";
 
 const Panel = styled.section`
   display: flex;
@@ -304,6 +306,7 @@ export const PressRoom: React.FC = () => {
                 {row.pinned && <Pinned>Pinned</Pinned>}
                 {row.source && <span>via {row.source}</span>}
               </Byline>
+              <Tip tip={collapsible ? controlDoc(open ? "Collapse" : "Read more") : null}>
               <Headline
                 as={collapsible ? "button" : "div"}
                 $interactive={collapsible}
@@ -311,7 +314,6 @@ export const PressRoom: React.FC = () => {
                   ? {
                       onClick: () => toggle(row.releaseId),
                       "aria-expanded": open,
-                      title: open ? "Collapse" : "Read more",
                     }
                   : {})}
               >
@@ -321,6 +323,7 @@ export const PressRoom: React.FC = () => {
                   onCommandPreview={noop}
                 />
               </Headline>
+              </Tip>
               {hasBody && (
                 <>
                   <Body

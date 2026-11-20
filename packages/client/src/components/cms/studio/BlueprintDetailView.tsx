@@ -14,6 +14,8 @@ import React from "react";
 import styled from "styled-components";
 import { useStore } from "../../../store/index";
 import { tokens } from "../../ui";
+import { Tip } from "../../tooltip/Tip";
+import { hoverDoc } from "../../doc/docs";
 
 const Wrap = styled.div`
   display: flex;
@@ -154,17 +156,16 @@ export const BlueprintDetailView: React.FC = () => {
   return (
     <Wrap>
       <BackBar>
-        <GhostButton
+        <Tip tip={hoverDoc("Back to the kinds catalogue")}><GhostButton
           type="button"
-          title="Back to the kinds catalogue"
           onClick={() => goCatalogue()}
         >
           ← Back to catalogue
-        </GhostButton>
+        </GhostButton></Tip>
       </BackBar>
 
       <TitleRow>
-        {bp.blessed && <Star title="Blessed (curated)">★</Star>}
+        {bp.blessed && <Tip tip={hoverDoc("Blessed (curated)")}><Star>★</Star></Tip>}
         <Title>{bp.name}</Title>
         <Badge $concrete={bp.kind === "concrete"}>{bp.kind}</Badge>
       </TitleRow>
@@ -189,25 +190,21 @@ export const BlueprintDetailView: React.FC = () => {
       )}
 
       <Actions>
-        <Button
+        <Tip tip={hoverDoc(instantiable
+              ? `Create a new template instantiating ${bp.classPath}`
+              : "This composition has no backing class yet — author a kind first")}><Button
           type="button"
           disabled={!instantiable}
-          title={
-            instantiable
-              ? `Create a new template instantiating ${bp.classPath}`
-              : "This composition has no backing class yet — author a kind first"
-          }
           onClick={() => beginTemplate(bp)}
         >
           New template from this →
-        </Button>
-        <GhostButton
+        </Button></Tip>
+        <Tip tip={hoverDoc(`Compose a new backing class starting from ${bp.name}`)}><GhostButton
           type="button"
-          title={`Compose a new backing class starting from ${bp.name}`}
           onClick={() => beginComposer(bp)}
         >
           Author a new kind from this →
-        </GhostButton>
+        </GhostButton></Tip>
       </Actions>
     </Wrap>
   );

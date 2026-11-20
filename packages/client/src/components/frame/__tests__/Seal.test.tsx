@@ -19,7 +19,7 @@ function svg(): SVGElement {
 
 describe('Seal', () => {
   it('is named for a screen reader when given a title', () => {
-    render(<Seal title="Saxonberg" />);
+    render(<Seal label="Saxonberg" />);
     expect(screen.getByLabelText('Saxonberg')).toBeTruthy();
   });
 

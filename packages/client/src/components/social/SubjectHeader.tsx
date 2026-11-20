@@ -29,6 +29,8 @@ import {
   SURFACE_HUE,
   lightSurfaceCommand,
 } from "./surfaces";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 const Head = styled.header`
   padding: ${tokens.space.md} ${tokens.space.lg} 0;
@@ -181,13 +183,11 @@ export const SubjectHeader: React.FC<SubjectHeaderProps> = ({
           const cmd = lightSurfaceCommand(subject.handle, surface);
           if (cmd === null) {
             return (
-              <Parked
-                key={surface}
+              <Tip key={surface} tip={hoverDoc("Parked server-side — the procedure is not built yet.")}><Parked
                 data-surface-parked={surface}
-                title="Parked server-side — the procedure is not built yet."
               >
                 {label} ╌╌
-              </Parked>
+              </Parked></Tip>
             );
           }
           return (

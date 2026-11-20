@@ -145,6 +145,7 @@ const RESIDUAL: Record<string, string> = {
   exits: 'Exitable; no fire site (census: no mutation site)',
   placed: 'the host’s own field — covered by the desk case below',
   present: 'a PLACE’s field (who is here) — covered by "a live place card says who is here" below',
+  path: 'static — a thing\u2019s template path never changes for its life (tooltips D6)',
 };
 
 /** The fields a REF row of the thing depends on — what a place card shows of it. */

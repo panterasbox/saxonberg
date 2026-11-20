@@ -17,6 +17,8 @@ import styled from "styled-components";
 import { tokens } from "../ui";
 import { useStore } from "../../store";
 import type { StreamShowCore, StreamReason } from "@saxonberg/types";
+import { Tip } from "../tooltip/Tip";
+import { hoverDoc } from "../doc/docs";
 
 /** A reason row as the picker reads it (the extras carry its default). */
 interface PickerReason extends StreamReason {
@@ -135,11 +137,9 @@ export function StreamControls({
 
   /** A control: previews on hover and focus, sends on click. */
   const control = (label: string, command: string, testId?: string): React.ReactElement => (
-    <Chip
-      key={command}
+    <Tip key={command} tip={hoverDoc(command)}><Chip
       data-testid={testId}
       data-command={command}
-      title={command}
       onMouseEnter={() => onCommandPreview?.(command)}
       onFocus={() => onCommandPreview?.(command)}
       onMouseLeave={() => onCommandPreview?.(null)}
@@ -147,7 +147,7 @@ export function StreamControls({
       onClick={() => onSendCommand(command)}
     >
       {label}
-    </Chip>
+    </Chip></Tip>
   );
 
   if (!state) {

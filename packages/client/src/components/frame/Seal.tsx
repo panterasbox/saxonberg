@@ -96,13 +96,13 @@ interface SealProps {
    */
   id?: string;
   /** Accessible name; omit for a decorative instance. */
-  title?: string;
+  label?: string;
 }
 
 export const Seal: React.FC<SealProps> = ({
   size = 22,
   id = 'sx-seal',
-  title,
+  label,
 }) => {
   const clip = `${id}-over`;
   return (
@@ -110,8 +110,8 @@ export const Seal: React.FC<SealProps> = ({
       viewBox="0 0 100 100"
       width={size}
       height={size}
-      role={title ? 'img' : 'presentation'}
-      {...(title ? { 'aria-label': title } : { 'aria-hidden': 'true' })}
+      role={label ? 'img' : 'presentation'}
+      {...(label ? { 'aria-label': label } : { 'aria-hidden': 'true' })}
       focusable="false"
     >
       {/* The rim. Everything else is scaled to sit inside it. */}
