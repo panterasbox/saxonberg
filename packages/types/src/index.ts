@@ -276,10 +276,12 @@ export interface ReleaseRow {
   author?: string;
   /** Where a `repost`'s substance came from; absent on an original. */
   source?: string;
-  /** Publish time, epoch-ms. */
+  /** Publish time, game seconds (the world clock — a release is in-world). */
   publishedAt: number;
+  /** The publish date in words, on the world's calendar (rendered by the server). */
+  publishedOn: string;
   pinned: boolean;
-  /** Expiry, epoch-ms; absent / `0` = never expires. */
+  /** Expiry, game seconds; absent / `0` = never expires. */
   expiresAt?: number;
 }
 
@@ -308,7 +310,10 @@ export interface PublicReleaseRow {
   source?: string;
   headline: string;
   body: string;
+  /** Publish time, game seconds (ordering). */
   publishedAt: number;
+  /** The publish date in words, on the world's calendar. */
+  publishedOn: string;
   pinned: boolean;
 }
 

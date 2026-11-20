@@ -184,3 +184,51 @@ describe('filed records, ledgers and secret kinds (A2)', () => {
     expect(r.reason).toBe('kind-in-use');
   });
 });
+
+describe('every document prints (A3)', () => {
+  it('an instrument reads as pages over its real fields, history included', async () => {
+    rows.push({
+      _id: 'i', path: '/home/ann/papers/c1', kind: 'instrument', owner: '/home/ann',
+      data: { face: 'A NOTE of 10 crowns.', history: ['Day 1: issued.', 'Day 2: paid 2.'] },
+    });
+    const pages = await DocumentApi.pagesOf('/home/ann/papers/c1');
+    expect(pages?.pages[0]).toContain('A NOTE of 10 crowns.');
+    expect(pages?.pages[0]).toContain('Day 2: paid 2.');
+  });
+
+  it('a register entry prints one line: its title and its date in game time', async () => {
+    rows.push({
+      _id: 's', path: '/platform/ships/hesper', kind: 'ship', owner: '/platform',
+      data: { name: 'Hesper', registeredAtS: 86_400 * 31 + 3600 },
+    });
+    const pages = await DocumentApi.pagesOf('/platform/ships/hesper');
+    expect(pages?.title).toBe('Hesper');
+    expect(pages?.pages).toEqual(['Hesper — Fourday, 2 Teliminus 1 01:00']);
+  });
+
+  it('a release reads with its masthead; a secret kind never prints', async () => {
+    rows.push({
+      _id: 'r', path: '/compact/press/releases/r1', kind: 'release', owner: '/compact/the-gazette',
+      data: { headline: 'Bridge opens', body: 'At dawn.', publishedAtS: 0 },
+    });
+    const pages = await DocumentApi.pagesOf('/compact/press/releases/r1');
+    expect(pages?.pages[0]).toBe('THE GAZETTE\n\nBridge opens\n\nAt dawn.');
+    rows.push({ _id: 't', path: '/platform/stream-tokens/x', kind: 'stream-token', owner: '/platform', data: {} });
+    expect(await DocumentApi.pagesOf('/platform/stream-tokens/x')).toBeNull();
+  });
+
+  it('a unique word is refused for a second document', async () => {
+    const other = new StoredDocument();
+    other.path = '/a/emotes/wave';
+    other.kind = 'emote';
+    // The card read is a `keys.word` query the fake store does not serve.
+    const real = StoredDocument.find.bind(StoredDocument);
+    vi.spyOn(StoredDocument, 'find').mockImplementation((async (q: Record<string, unknown>) =>
+      'keys.word' in q ? [other] : real(q)) as typeof StoredDocument.find);
+    const r = await refusalOf(
+      runAs(() => DocumentApi.save('/home/ann/emotes/wave', 'emote', { grammar: { template: '$n waves.' } })),
+    );
+    expect(r.reason).toBe('invalid-document');
+    expect(String(r.facts.why)).toMatch(/already names \/a\/emotes\/wave/);
+  });
+});

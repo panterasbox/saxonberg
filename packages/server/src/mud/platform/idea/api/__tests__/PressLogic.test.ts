@@ -75,8 +75,8 @@ function seed(
     headline: '',
     body: '',
     author: '',
-    publishedAt: 0,
-    expiresAt: 0,
+    publishedAtS: 0,
+    expiresAtS: 0,
     pinned: false,
     retracted: false,
     visibility: null,
@@ -221,13 +221,13 @@ describe('PressApi.publish (actor from context)', () => {
 
 describe('PressApi.archive (filter + page)', () => {
   beforeEach(() => {
-    seed({ releaseId: 'a', kind: 'notice', publishedAt: 10 }, 'ooc');
-    seed({ releaseId: 'b', kind: 'event', publishedAt: 20 }, 'world');
-    seed({ releaseId: 'c', kind: 'changelog', publishedAt: 30 }, 'ooc');
-    seed({ releaseId: 'd', kind: 'event', publishedAt: 40 }, 'world');
+    seed({ releaseId: 'a', kind: 'notice', publishedAtS: 10 }, 'ooc');
+    seed({ releaseId: 'b', kind: 'event', publishedAtS: 20 }, 'world');
+    seed({ releaseId: 'c', kind: 'changelog', publishedAtS: 30 }, 'ooc');
+    seed({ releaseId: 'd', kind: 'event', publishedAtS: 40 }, 'world');
     // A retracted row must never surface.
     seed(
-      { releaseId: 'gone', kind: 'event', publishedAt: 50, retracted: true },
+      { releaseId: 'gone', kind: 'event', publishedAtS: 50, retracted: true },
       'world',
     );
   });
@@ -236,7 +236,7 @@ describe('PressApi.archive (filter + page)', () => {
     const spy = vi.spyOn(DocumentApi, 'findByKey');
     const listed = vi.spyOn(DocumentApi, 'listOfKind');
     await PressApi.archive({ before: 25, limit: 2 });
-    expect(spy).toHaveBeenCalledWith('release', 'publishedAt', {
+    expect(spy).toHaveBeenCalledWith('release', 'date', {
       max: 24,
       order: 'desc',
       limit: 8,

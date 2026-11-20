@@ -30,8 +30,9 @@
  *   - `author` — the acting author's durable `templatePath` (a stored
  *     identity string, NOT an `AuthoringEvent`: orthogonal to the
  *     provenance ledger, which the write transport appends separately).
- *   - `publishedAt` / `expiresAt` — **epoch-ms numbers, not `Date`**.
- *     `expiresAt === 0` = no expiry.
+ *   - `publishedAtS` / `expiresAtS` — **game seconds** (the world clock;
+ *     a release is in-world — naming overhaul D-A10). `expiresAtS === 0`
+ *     = no expiry.
  *   - `pinned` — sticks to the top of the window (pin cap applied on read).
  *   - `retracted` — **soft delete**: the document stays (archive
  *     truthfulness) but drops out of the live window.
@@ -42,6 +43,8 @@
 
 import type { StoredDocument } from '../document/StoredDocument';
 import { StuffApi } from '../../api/stuff';
+import { DefaultCalendar } from '../time/DefaultCalendar';
+import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
 import type { Publisher, ReleaseVisibility } from './Publisher';
 import { RELEASE_VISIBILITIES } from './Publisher';
@@ -96,8 +99,8 @@ export interface ReleaseData {
   headline: string;
   body: string;
   author: string;
-  publishedAt: number;
-  expiresAt: number;
+  publishedAtS: number;
+  expiresAtS: number;
   pinned: boolean;
   retracted: boolean;
   /**
@@ -147,8 +150,8 @@ export class Release {
       headline: String(raw.headline ?? ''),
       body: String(raw.body ?? ''),
       author: String(raw.author ?? ''),
-      publishedAt: Number(raw.publishedAt ?? 0),
-      expiresAt: Number(raw.expiresAt ?? 0),
+      publishedAtS: Number(raw.publishedAtS ?? 0),
+      expiresAtS: Number(raw.expiresAtS ?? 0),
       pinned: raw.pinned === true,
       retracted: raw.retracted === true,
       visibility: coerceVisibility(raw.visibility),
@@ -230,11 +233,17 @@ export class Release {
   getAuthor(): string {
     return this.data.author;
   }
+  /** When it was published, in game seconds. */
   getPublishedAt(): number {
-    return this.data.publishedAt;
+    return this.data.publishedAtS;
   }
+  /** When it was published, in words on the world's calendar. */
+  getPublishedOn(): string {
+    return DefaultCalendar.singleton().formatDate(Quantity.of(this.data.publishedAtS, 's'));
+  }
+  /** When it expires, in game seconds (`0` = never). */
   getExpiresAt(): number {
-    return this.data.expiresAt;
+    return this.data.expiresAtS;
   }
   isPinned(): boolean {
     return this.data.pinned;
@@ -243,9 +252,9 @@ export class Release {
     return this.data.retracted;
   }
 
-  /** Whether this release has expired as of `now` (epoch-ms). */
+  /** Whether this release has expired as of `now` (game seconds). */
   isExpiredAt(now: number): boolean {
-    return this.data.expiresAt > 0 && this.data.expiresAt < now;
+    return this.data.expiresAtS > 0 && this.data.expiresAtS < now;
   }
 
   /**

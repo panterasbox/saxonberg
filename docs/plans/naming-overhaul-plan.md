@@ -850,6 +850,28 @@ date renders in game time; `FormationCatalogue.pathOfWord` still resolves
 through the card; two packs may ship a recipe with the same word.
 *Commit:* `build(naming-overhaul WA3): every document has a title, a date and a page`.
 
+✅ **Done.** `pagesOf` reads the declaration: secret → null; `paper.template`
+(Liquid via `ProseApi.compile`/`renderCompiled`, entities decoded to plain
+text, `<page/>` breaks a page; vars = data + `title`, `date`, `path`,
+`owner`, `owner_leaf`); else the summary line `title — date`. Templates:
+release (masthead), warehouse-receipt, recipe, instrument (defect 2 — its
+`face` + `history`), edition. ⚠ **Every document now prints** — a script or a
+command view reads as its title line (the edition test said "a script does
+not read as a page"; the plan's rule wins). Dates render on the world's
+calendar (`DefaultCalendar.formatDate`). Release: `publishedAtS` /
+`expiresAtS` (game seconds), `dated: indexed` → card key **`date`** (the
+press reads `findByKey('release', 'date')`); edition `frozenAtS`. The wire
+rows keep `publishedAt` (now game seconds, for order) and gain
+**`publishedOn`** (server-rendered words) — the front door renders that, no
+client clock. **Re-planned N13:** the tree rule is `DocumentKind.parentOf`
+(aroma's catalogue extends `Idea`, not `DocumentCatalogue`, so a base-class
+method could not serve it); topic's dotted-key walk and reason's fuzzy
+`nearest` are not trees and stay. `unique` is enforced at save. **C1's core
+moved here:** the `type: duration` slot already returns **game seconds**
+(press `--expires` needed it to avoid controller arithmetic — the
+`lint:controller-decisions` ceiling); C1 keeps the word forms, the
+granularity/bounds keys, rent and fire.
+
 ### Stage B — MQL anchors
 
 **B0 — `source::verb`.**

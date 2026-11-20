@@ -1,5 +1,6 @@
 title: Ship register entry
 traits:
+  dated: { field: registeredAtS }
   filed: register
   shipped: { dir: ships, vanish: keep }
   titled: { field: name }

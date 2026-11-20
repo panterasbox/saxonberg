@@ -1,5 +1,6 @@
 title: Topic
 traits:
+  tree: { parent: folder }
   shipped: { dir: topics }
   catalogued: { by: /platform/idea/TopicCatalogue, load: whole }
   keyworded: { unique: true }

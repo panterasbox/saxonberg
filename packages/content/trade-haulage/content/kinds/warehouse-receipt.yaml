@@ -1,4 +1,12 @@
 title: Warehouse receipt
 traits:
+  paper:
+    template: |-
+      RECEIVED into {{ store | split: "/" | last }}: {{ what }}, {{ originalAmountKg | default: amountKg }} kg.
+      {% if terms.bearer %}To be delivered to the BEARER of this receipt, on presentation.{% else %}To be delivered to the depositor named in the book.{% endif %}
+      Allowance for shrinkage {{ terms.allowancePct | default: 0 }}%; storage {{ terms.feeMinorPerKg | default: 0 }} per kg.
+      Receipt {{ receiptId }}.{% if settledAtS %}
+      SETTLED.{% endif %}
+  dated: { field: filedAtS, indexed: true }
   filed: business
   titled: { field: what }

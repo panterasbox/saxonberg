@@ -35,8 +35,8 @@ function makeRelease(
     headline: string;
     body: string;
     author: string;
-    publishedAt: number;
-    expiresAt: number;
+    publishedAtS: number;
+    expiresAtS: number;
     pinned: boolean;
   }>
 ): Release {
@@ -47,8 +47,8 @@ function makeRelease(
     headline: fields.headline ?? "headline",
     body: fields.body ?? "",
     author: fields.author ?? "",
-    publishedAt: fields.publishedAt ?? 0,
-    expiresAt: fields.expiresAt ?? 0,
+    publishedAtS: fields.publishedAtS ?? 0,
+    expiresAtS: fields.expiresAtS ?? 0,
     pinned: fields.pinned ?? false,
     retracted: false,
     visibility: null,
@@ -125,9 +125,9 @@ describe("PressRoutes", () => {
 
   it("projects archive rows to ReleaseRow[] in recency-desc order", async () => {
     const rows = [
-      makeRelease({ releaseId: "b-new", publishedAt: 300, pinned: true }),
-      makeRelease({ releaseId: "b-mid", publishedAt: 200 }),
-      makeRelease({ releaseId: "b-old", publishedAt: 100 }),
+      makeRelease({ releaseId: "b-new", publishedAtS: 300, pinned: true }),
+      makeRelease({ releaseId: "b-mid", publishedAtS: 200 }),
+      makeRelease({ releaseId: "b-old", publishedAtS: 100 }),
     ];
     vi.spyOn(PressApi, "archive").mockResolvedValue(rows);
     const agent = request.agent(makeApp());
@@ -144,7 +144,7 @@ describe("PressRoutes", () => {
     let captured: ArchiveQuery | undefined;
     vi.spyOn(PressApi, "archive").mockImplementation(async (q) => {
       captured = q;
-      return [makeRelease({ releaseId: "b-1", publishedAt: 50 })];
+      return [makeRelease({ releaseId: "b-1", publishedAtS: 50 })];
     });
     const agent = request.agent(makeApp());
     await agent.post("/test-login").expect(200);
@@ -177,7 +177,7 @@ describe("PressRoutes", () => {
 
   it("is registered before the SPA catch-all", async () => {
     vi.spyOn(PressApi, "archive").mockResolvedValue([
-      makeRelease({ releaseId: "b-real", publishedAt: 1 }),
+      makeRelease({ releaseId: "b-real", publishedAtS: 1 }),
     ]);
     const agent = request.agent(makeApp(true));
     await agent.post("/test-login").expect(200);

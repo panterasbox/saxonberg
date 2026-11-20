@@ -2885,14 +2885,14 @@ function coerceOptionValue(
       return { ok: true, value: n };
     }
     case 'duration': {
-      const ms = CommandDefinition.parseDuration(raw);
-      if (ms === null) {
+      const seconds = CommandDefinition.parseDuration(raw);
+      if (seconds === null) {
         return {
           ok: false,
           error: `'${raw}' is not a duration (write it like 90s, 15m, 2h, 1h30m or 2 hours)`,
         };
       }
-      return { ok: true, value: ms };
+      return { ok: true, value: seconds };
     }
     case 'boolean':
       // Boolean options never take a value via this path (long-with-

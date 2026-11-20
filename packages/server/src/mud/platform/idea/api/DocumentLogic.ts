@@ -2,6 +2,10 @@
 // (Doc comment on the class below so @internal lands on the reflection.)
 
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
+import { WorldClockApi } from "../../../api/worldclock";
+import { ProseApi } from "../../../api/prose";
+import { DefaultCalendar } from "../../../lib/time/DefaultCalendar";
+import { Quantity } from "../../../lib/quantity";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { AccessApi } from "../../../api/access";
@@ -353,6 +357,19 @@ async function writeDocument(req: {
   const altered = kind.ledgerFailures(existing?.getKind() === kind.getName() ? existing.getData() : null, data);
   if (altered.length > 0) throw new Refusal('ledger-altered', { path, why: altered.join('; ') });
   if (kind.getName() === DocumentKind.BOOTSTRAP_NAME) await vetDeclarationEdit(path, data);
+  // ⭐ A `unique` kind's word means one document (an emote, a formation):
+  // a second claimant is refused here as at install.
+  if (kind.isUnique()) {
+    for (const word of kind.keywordsOf(path, data)) {
+      const other = (await findByKeyImpl(kind.getName(), 'word', { eq: word, limit: 2 })).find(
+        (d) => d.getPath() !== path,
+      );
+      if (other) {
+        const why = `the ${kind.getName()} word '${word}' already names ${other.getPath()}`;
+        throw new Refusal('invalid-document', { path, why }, { message: why });
+      }
+    }
+  }
   const doc = existing ?? new StoredDocument();
   doc.path = path;
   doc.owner = req.owner;
@@ -838,127 +855,78 @@ async function deleteImpl(path: string): Promise<boolean> {
 
 /* ─────────────────────────── paper ─────────────────────────── */
 
-/** One line of a record a register lists — the summary its book prints. */
-function summaryLine(doc: StoredDocument): string {
-  const data = doc.getData();
-  const name = [data.name, data.title, data.what, data.headline, data.key]
-    .find((v): v is string => typeof v === 'string' && v.trim() !== '');
-  const leaf = doc.getPath().split('/').filter(Boolean).pop() ?? doc.getPath();
-  return name ? `${name} (${leaf})` : leaf;
+/**
+ * A document's date in words — the world's calendar for a game-time kind,
+ * the real calendar for an out-of-character one — or '' when undated.
+ */
+function dateWords(kind: DocumentKind, data: Record<string, unknown>): string {
+  const at = kind.dateOf(data);
+  if (at === null) return '';
+  if (kind.dated()?.unit === 'real-ms') return new Date(at).toISOString().slice(0, 10);
+  return DefaultCalendar.singleton().formatDate(Quantity.of(at, 's'));
 }
 
-/** A warehouse receipt's terms, in words. */
-function receiptText(data: Record<string, unknown>): string {
-  const what = typeof data.what === 'string' ? data.what : 'goods';
-  const kg = Number(data.originalAmountKg ?? data.amountKg ?? 0);
-  const terms = (data.terms ?? {}) as Record<string, unknown>;
-  const bearer = terms.bearer === true;
-  const allowance = Number(terms.allowancePct ?? 0);
-  const fee = Number(terms.feeMinorPerKg ?? 0);
-  const store = typeof data.store === 'string' ? data.store.split('/').filter(Boolean).pop() : 'the store';
-  const lines = [
-    `RECEIVED into ${store}: ${what}, ${kg.toFixed(1)} kg.`,
-    bearer
-      ? 'To be delivered to the BEARER of this receipt, on presentation.'
-      : 'To be delivered to the depositor named in the book.',
-    `Allowance for shrinkage ${allowance}%; storage ${fee} per kg.`,
-    `Receipt ${String(data.receiptId ?? '')}.`,
-  ];
-  if (typeof data.settledAtS === 'number') lines.push('SETTLED.');
-  return lines.join('\n');
+/** One line of a record a register lists — its title, and its date when dated. */
+function summaryLine(doc: StoredDocument): string {
+  const kind = kindNamed(doc.getKind());
+  const title = kind ? kind.titleOf(doc.getPath(), doc.getData()) : doc.getPath().split('/').pop() ?? '';
+  const when = kind ? dateWords(kind, doc.getData()) : '';
+  return when ? `${title} — ${when}` : title;
 }
+
+/** The five entities a prose render escapes, decoded: a page is plain text. */
+function plainText(markup: string): string {
+  return markup
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+/** A page break inside a paper template's output. */
+const PAGE_BREAK = /<page\/>/;
 
 /**
- * ⭐ Render a stored document as pages — **exhaustive over the closed
- * kind table**, so a new kind is a compile error here rather than a list a
- * pack must remember. `null` = *that is not something that reads as a page*
- * (a script, a command view, a map): the verb says so in words.
+ * ⭐ Render a stored document as pages, from its kind's declaration: a
+ * `secret` kind is never paper (`null`); a kind with a `paper.template`
+ * renders it (Liquid, over the document's data plus `title`, `date`,
+ * `path`, `owner` and `owner_leaf`; `<page/>` breaks a page); anything else
+ * prints its summary line — title and date. A document carrying `teaches`
+ * (an edition) or a `recipeId` (a recipe) teaches it when read.
  */
 async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
   const doc = await StoredDocument.findByPath(path);
   if (doc === null) return null;
+  const kind = kindNamed(doc.getKind());
+  if (kind === null || kind.isSecret()) return null;
   const data = doc.getData();
-  const kind = doc.getKind();
-  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
-  const pagesFrom = (v: unknown): string[] =>
-    Array.isArray(v) ? v.map((p) => (typeof p === 'string' ? p : '')) : [];
-  switch (kind) {
-    case 'release': {
-      const r = Release.fromDocument(doc).serialize();
-      const house = doc.getOwner().split('/').filter(Boolean).pop() ?? '';
-      const masthead = house.length > 0 ? house.replace(/-/g, ' ').toUpperCase() : 'NOTICE';
-      return { title: r.headline, pages: [`${masthead}\n\n${r.headline}\n\n${r.body}`.trim()] };
-    }
-    case 'warehouse-receipt':
-      return { title: `receipt ${str(data.receiptId)}`, pages: [receiptText(data)] };
-    case 'recipe': {
-      const id = str(data.recipeId);
-      const name = str(data.name) || id;
-      const slots = Array.isArray(data.inputSlots) ? (data.inputSlots as Array<Record<string, unknown>>) : [];
-      const inputs = slots.map((s) => `${str(s.slot) || str(s.category)}${Number(s.count ?? 1) > 1 ? ` ×${Number(s.count)}` : ''}`);
-      const tools = Array.isArray(data.toolCapabilities) ? (data.toolCapabilities as string[]) : [];
-      const body = [
-        name.toUpperCase(),
-        inputs.length > 0 ? `Take: ${inputs.join(', ')}.` : '',
-        tools.length > 0 ? `With: ${tools.join(', ')}.` : '',
-        str(data.discipline) ? `The ${str(data.discipline)} trade's work.` : '',
-      ].filter((l) => l !== '');
-      const teaches: EditionTeaching[] = id ? [{ recipeId: id, name }] : [];
-      return { title: name, pages: [body.join('\n')], teaches };
-    }
-    case 'edition': {
-      const pages = pagesFrom(data.pages);
-      if (pages.length === 0) return null;
-      const teaches = Array.isArray(data.teaches) ? (data.teaches as EditionTeaching[]) : undefined;
-      return { title: str(data.title) || 'a book', pages, ...(teaches ? { teaches } : {}) };
-    }
-    case 'instrument':
-      return str(data.text) ? { title: str(data.title) || 'a paper', pages: [str(data.text)] } : null;
-    case 'rate-card':
-    case 'bill-of-lading':
-    case 'water-right':
-    case 'herd':
-    case 'fishery':
-    case 'body':
-    case 'bore':
-    case 'ship':
-      return { title: summaryLine(doc), pages: [summaryLine(doc)] };
-    case 'msh':
-    case 'emote':
-    case 'name-bank':
-    case 'blueprint':
-    case 'command-view':
-    case 'archetype':
-    case 'map':
-    case 'berth-roll':
-    case 'berth-book':
-    case 'aroma':
-    case 'pump-mechanism':
-    case 'form':
-    case 'joint':
-    case 'dirt':
-    case 'cleanser':
-    case 'fabric':
-    case 'dyestuff':
-    case 'maturation-profile':
-    case 'fraction-schedule':
-    case 'operation':
-    case 'help-concept':
-    case 'formation':
-    case 'placement':
-    case 'shape':
-    case 'reason':
-    case 'topic':
-    case 'standby-reason':
-    case 'lower-third-panel':
-    case 'kind':
-    case 'stream-token': // ⛔ a credential is never paper
-      return null;
-    default:
-      // A kind somebody declared and nothing here prints (A3 makes every
-      // kind print from its declaration).
-      return null;
+  const title = kind.titleOf(path, data);
+  const template = kind.paperTemplate();
+  let pages: string[];
+  if (template !== null) {
+    const owner = doc.getOwner();
+    const rendered = plainText(
+      ProseApi.renderCompiled(ProseApi.compile(template), {
+        ...data,
+        title,
+        date: dateWords(kind, data),
+        path,
+        owner,
+        owner_leaf: owner.split('/').filter(Boolean).pop() ?? '',
+      }),
+    );
+    pages = rendered.split(PAGE_BREAK).map((p) => p.trim()).filter((p) => p !== '');
+  } else {
+    pages = [summaryLine(doc)];
   }
+  if (pages.length === 0) return null;
+  const teaches = Array.isArray(data.teaches)
+    ? (data.teaches as EditionTeaching[])
+    : typeof data.recipeId === 'string' && data.recipeId !== ''
+      ? [{ recipeId: data.recipeId, name: title }]
+      : undefined;
+  return { title, pages, ...(teaches ? { teaches } : {}) };
 }
 
 /**
@@ -993,7 +961,7 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
     hash,
     title: req.title ?? source.split('/').filter(Boolean).pop() ?? 'a paper',
     pages: [...req.pages],
-    frozenAtMs: Date.now(),
+    frozenAtS: WorldClockApi.getNow().rawValue(),
     ...(req.teaches && req.teaches.length > 0 ? { teaches: req.teaches } : {}),
     ...(req.validUntilS !== undefined ? { validUntilS: req.validUntilS } : {}),
   };

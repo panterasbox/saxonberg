@@ -15,6 +15,7 @@ function release(overrides: Partial<ReleaseRow> = {}): ReleaseRow {
     headline: "Headline",
     body: "Body",
     publishedAt: 1000,
+    publishedOn: "Oneday, 1 Arienle 1 00:16",
     pinned: false,
     ...overrides,
   };

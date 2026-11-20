@@ -21,6 +21,7 @@ import { Mml } from '../../../../../api/mml';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { WorldClockApi } from '../../../../../api/worldclock';
 
 const PUBLISHER = '/compact/press';
 
@@ -159,13 +160,14 @@ describe('the press controllers', () => {
   });
 
   it('threads --pin and a parsed --expires into the request', async () => {
-    const before = Date.now();
+    // ⭐ Game time (D-A10): the expiry is the world clock's now + the duration.
+    const before = WorldClockApi.getNow().rawValue();
     await run({
       as: PUBLISHER,
       headline: 'Event tonight',
       kind: 'event',
       pin: true,
-      expires: 2 * 3_600_000,
+      expires: 2 * 3_600,
     });
     expect(publish).toHaveBeenCalledTimes(1);
     const arg = publish.mock.calls[0]![0] as unknown as {
@@ -173,7 +175,7 @@ describe('the press controllers', () => {
       expiresAt: number;
     };
     expect(arg.pinned).toBe(true);
-    expect(arg.expiresAt).toBeGreaterThanOrEqual(before + 2 * 3_600_000);
+    expect(arg.expiresAt).toBeGreaterThanOrEqual(before + 2 * 3_600);
   });
 
   it('rejects an over-long headline (void return + ctx.note), no publish', async () => {

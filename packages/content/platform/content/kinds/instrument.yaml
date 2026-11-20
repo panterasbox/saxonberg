@@ -1,4 +1,10 @@
 title: Instrument
 traits:
+  paper:
+    template: |-
+      {{ face }}{% if history.size > 0 %}
+
+      {% for h in history %}{{ h }}{% unless forloop.last %}
+      {% endunless %}{% endfor %}{% endif %}
   ledger: { grows: [history] }
   filed: instrument

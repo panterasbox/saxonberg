@@ -1,5 +1,6 @@
 title: Herd
 traits:
+  dated: { field: founded }
   filed: register
   keyworded: { leaf: false }
   titled: { field: name }

@@ -639,7 +639,8 @@ export class CommandDefinition {
   }
 
   /**
-   * ⭐ Read a written duration into MILLISECONDS (controller-liquidity D1):
+   * ⭐ Read a written duration into GAME SECONDS (controller-liquidity D1;
+   * naming overhaul D-C6 — a duration is game time, never the wall clock):
    * `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours` ·
    * `1 hour 30 minutes`. A unit is required — a bare number is not a
    * duration (`90` could be seconds or minutes, and the view refuses to
@@ -695,25 +696,29 @@ export class CommandDefinition {
 }
 
 /** Milliseconds per written duration unit. */
+/** Game seconds per duration unit (naming overhaul D-C6: a duration is game time). */
 const DURATION_UNITS: Readonly<Record<string, number>> = {
-  s: 1_000,
-  sec: 1_000,
-  secs: 1_000,
-  second: 1_000,
-  seconds: 1_000,
-  m: 60_000,
-  min: 60_000,
-  mins: 60_000,
-  minute: 60_000,
-  minutes: 60_000,
-  h: 3_600_000,
-  hr: 3_600_000,
-  hrs: 3_600_000,
-  hour: 3_600_000,
-  hours: 3_600_000,
-  d: 86_400_000,
-  day: 86_400_000,
-  days: 86_400_000,
+  s: 1,
+  sec: 1,
+  secs: 1,
+  second: 1,
+  seconds: 1,
+  m: 60,
+  min: 60,
+  mins: 60,
+  minute: 60,
+  minutes: 60,
+  h: 3_600,
+  hr: 3_600,
+  hrs: 3_600,
+  hour: 3_600,
+  hours: 3_600,
+  d: 86_400,
+  day: 86_400,
+  days: 86_400,
+  w: 604_800,
+  week: 604_800,
+  weeks: 604_800,
 };
 
 /** The help line a view with a `type: duration` slot carries. */

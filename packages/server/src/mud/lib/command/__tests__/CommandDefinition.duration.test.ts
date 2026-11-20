@@ -37,16 +37,16 @@ args:
 
 describe('parseDuration — the written forms', () => {
   it.each([
-    ['90s', 90_000],
-    ['15m', 900_000],
-    ['2h', 7_200_000],
-    ['1h30m', 5_400_000],
-    ['3d', 259_200_000],
-    ['90 seconds', 90_000],
-    ['2 hours', 7_200_000],
-    ['1 hour 30 minutes', 5_400_000],
-    ['90m', 5_400_000],
-  ])('%s → %d ms', (text, ms) => {
+    ['90s', 90],
+    ['15m', 900],
+    ['2h', 7_200],
+    ['1h30m', 5_400],
+    ['3d', 259_200],
+    ['90 seconds', 90],
+    ['2 hours', 7_200],
+    ['1 hour 30 minutes', 5_400],
+    ['90m', 5_400],
+  ])('%s → %d game seconds', (text, ms) => {
     expect(CommandDefinition.parseDuration(text)).toBe(ms);
   });
 
@@ -55,18 +55,18 @@ describe('parseDuration — the written forms', () => {
   });
 });
 
-describe('type: duration — bound as milliseconds', () => {
+describe('type: duration — bound as game seconds', () => {
   it('an option, one token or two', () => {
-    expect(assemble('awayish --for 90m', defOf(AWAY))).toMatchObject({ model: { for: 5_400_000 } });
-    expect(assemble('awayish --for 2 hours', defOf(AWAY))).toMatchObject({ model: { for: 7_200_000 } });
-    expect(assemble('awayish --for=1h30m', defOf(AWAY))).toMatchObject({ model: { for: 5_400_000 } });
+    expect(assemble('awayish --for 90m', defOf(AWAY))).toMatchObject({ model: { for: 5_400 } });
+    expect(assemble('awayish --for 2 hours', defOf(AWAY))).toMatchObject({ model: { for: 7_200 } });
+    expect(assemble('awayish --for=1h30m', defOf(AWAY))).toMatchObject({ model: { for: 5_400 } });
   });
 
   it('a positional, one token or two, leaving the rest for the next slot', () => {
     expect(assemble('awayish 2 hours lunch', defOf(AWAY))).toMatchObject({
-      model: { span: 7_200_000, note: 'lunch' },
+      model: { span: 7_200, note: 'lunch' },
     });
-    expect(assemble('awayish 15m', defOf(AWAY))).toMatchObject({ model: { span: 900_000 } });
+    expect(assemble('awayish 15m', defOf(AWAY))).toMatchObject({ model: { span: 900 } });
   });
 
   it('⭐ refuses a bad option value, naming the forms', () => {

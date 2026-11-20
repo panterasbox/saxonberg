@@ -268,6 +268,25 @@ export class DocumentKind {
     return this.traits.tree?.parent ?? null;
   }
 
+  /**
+   * ⭐ The tree's parent of one document, or null at a root: its `tree`
+   * field when that names a parent, else the folder rule — the path one
+   * segment up, unless that is the kind's shipped dir itself. Null for a
+   * kind that is not a tree.
+   */
+  parentOf(path: string, data: Record<string, unknown>): string | null {
+    const rule = this.traits.tree?.parent;
+    if (rule === undefined) return null;
+    if (rule !== 'folder') {
+      const named = data[rule];
+      if (typeof named === 'string' && named !== '') return named;
+    }
+    const up = path.slice(0, path.lastIndexOf('/'));
+    const dir = this.traits.shipped?.dir;
+    if (up === '' || (dir !== undefined && up.endsWith(`/${dir}`))) return null;
+    return up;
+  }
+
   /** The schema, field by field. */
   getFields(): ReadonlyMap<string, FieldSpec> {
     return this.fields;
