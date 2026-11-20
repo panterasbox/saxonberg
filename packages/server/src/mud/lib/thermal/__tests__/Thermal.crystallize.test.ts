@@ -14,6 +14,7 @@
  */
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
+import { standSolvent } from '../../material/__tests__/materials';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
 import Place from '../../stuff/Place';
@@ -201,6 +202,7 @@ describe('⭐⭐ the crystallize arm', () => {
   beforeEach(() => {
     StuffApi.clearAll();
     installV1QuantityMarshallers();
+    standSolvent();
     WorldClockApi._resetForTesting();
     WorldClockApi._setNowProviderForTesting(() => now);
     WorldClockApi.setScale(1000);

@@ -42,6 +42,7 @@ import { chargeHot } from '../../fire/__tests__/burner-fuel';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { standRootBiome } from './root-biome';
+import { standSolvent, SOLVENT_WATER_VAPOR } from '../../material/__tests__/materials';
 
 beforeEach(() => void standRootBiome());
 
@@ -257,5 +258,44 @@ describe('⭐ a boil makes the room humid, and its air changes take it down (D17
     realMs += 48 * 3600 * 1000;
     expect(fractionOf(kitchen, vaporPath)).toBeLessThan(steam * 0.01);
     expect(BiomeApi.localHumidityFor(kitchen as unknown as Stuff)!).toBeCloseTo(before, 0);
+  });
+
+  it('⭐ a copper of sugar liquor steams like a kettle: a SOLUTION boils off its solvent\'s vapor', async () => {
+    standSolvent();
+    seq += 1;
+    // Raw liquor names no vapor of its own — what leaves the plateau is
+    // WATER (the solids stay), so the steam is water's.
+    const liquor = makeStuffAtPath(() => {
+      const m = new Water();
+      m.setName('raw liquor');
+      m.setDensity(Quantity.of(1300, 'kg/m³'));
+      m.setSpecificHeat(Quantity.of(3500, 'J/(kg·K)'));
+      m.setBoilingPoint(Quantity.of(373, 'K'));
+      m.setLatentHeatOfVaporization(Quantity.of(2260000, 'J/kg'));
+      m.setSolidsKgPerL(0.6);
+      return m;
+    }, `/stuff/idea/material/_vent/raw-liquor-${seq}`) as unknown as Water;
+    expect(liquor.getVapourMaterial()).toBe('');
+
+    const zone = makeStuff(() => new CartesianZone());
+    const floor = room(zone, 0);
+    floor.setHumidity(Quantity.of(50, '%'));
+    const before = BiomeApi.localHumidityFor(floor as unknown as Stuff)!;
+
+    const copper = makeStuff(() => new Flask());
+    copper.interiorBulk = true;
+    copper.setInteriorCapacity(Quantity.of(80, 'L'));
+    copper.setBulkMaterial('interior', liquor);
+    copper.setBulkAmount('interior', Quantity.of(40, 'L'));
+    await ContainmentApi.move(copper, floor);
+    copper.setStampedTemperatureK(420);
+    copper.setLastAmbientK(420);
+    copper.reconcileThermal();
+    realMs += 600_000;
+    copper.reconcileThermal();
+    expect(copper.getBulkAmount('interior').rawValue()).toBeLessThan(40);
+
+    expect(fractionOf(floor, SOLVENT_WATER_VAPOR)).toBeGreaterThan(0);
+    expect(BiomeApi.localHumidityFor(floor as unknown as Stuff)!).toBeGreaterThan(before);
   });
 });

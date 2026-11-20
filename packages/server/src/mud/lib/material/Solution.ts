@@ -77,7 +77,9 @@ export interface Solution {
   getPurifiedByBoiling(): string;
   setPurifiedByBoiling(value: string): void;
   getSolidsKgPerL(): number;
-  setSolidsKgPerL(value: number): void;
+  setSolidsKgPerL(value: number): Promise<void> | undefined;
+  /** The liquid this is a solution OF — what its boil gives off. */
+  getSolvent(): string;
   solidsMassFraction(solidsKgPerL: number): number;
   getBoilingPointElevation(): ReadonlyArray<readonly [number, number]>;
   setBoilingPointElevation(value: Array<[number, number]> | null): void;
@@ -187,8 +189,30 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     public getSolidsKgPerL(): number {
       return this.solidsKgPerL;
     }
-    public setSolidsKgPerL(value: number): void {
+    /**
+     * Set the fresh-litre solids — and, when there are any, load the
+     * SOLVENT with the row (the restoring-setter door, `setMadeFrom`'s
+     * shape): the boil reads its vapor synchronously. `undefined` when it
+     * is live. The Api is reached late — `MaterialApi` reaches this module
+     * back.
+     */
+    public setSolidsKgPerL(value: number): Promise<void> | undefined {
       this.solidsKgPerL = Number.isFinite(value) && value > 0 ? value : 0;
+      if (!(this.solidsKgPerL > 0)) return undefined;
+      return import('../../api/material').then(({ MaterialApi }) =>
+        MaterialApi.materials().ensureCited([SOLVENT_PATH]),
+      );
+    }
+
+    /**
+     * ⭐ What this is a solution OF: water. The boil plateau keeps every
+     * gram of the solids and gives off a litre of water a kilogram (its
+     * `kgPerL = 1`), so the steam off a copper of sugar liquor, a brine
+     * pan or a lye kettle is the solvent's vapor — water's
+     * `vapourMaterial` — whatever is dissolved in it.
+     */
+    public getSolvent(): string {
+      return SOLVENT_PATH;
     }
 
     /**
@@ -470,3 +494,6 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
  * sucrose's, and near enough for any sugar or salt a pan boils down.
  */
 const SOLUTE_DENSITY_KG_PER_L = 1.6;
+
+/** The solvent every boiled-down solution is of (`getSolvent`). */
+const SOLVENT_PATH = '/stuff/idea/material/bulk/water';

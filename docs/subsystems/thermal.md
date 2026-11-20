@@ -1098,9 +1098,12 @@ passes under it.
   boil in a shut kitchen fogs it and the drying rack by the copper dries
   nothing; the room's air changes take it back down. ⚠ A pot ON a fire
   stands in the room (its container is the room), so its steam is the
-  room's. A liquid that names no vapor gives the air nothing it keeps —
-  solutions (a sugar liquor, brine) author none yet, so a sugar pan's steam
-  is still not the boiling floor's humidity (a row each, no code).
+  room's. ⭐ A SOLUTION that names no vapor of its own boils off its
+  SOLVENT's (`Solution.getSolvent()` — water, loaded with any row that
+  authors `solidsKgPerL`): the plateau keeps the solids and discards water,
+  so a copper of sugar liquor, a brine pan or a lye kettle steams the
+  boiling floor like a kettle, with no row to author. A plain liquid that
+  names no vapor gives the air nothing it keeps.
 - ⭐⭐ **A boil concentrates** (ceramics, 2026-10-22). The steam is water,
   so what is dissolved stays behind: each boiled-off step scales the
   bulk's `dissolvedSolidsKgPerL` (or the material's own `solidsKgPerL`)

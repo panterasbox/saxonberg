@@ -1467,6 +1467,12 @@ default keeps 0.9 when lit); `ventChamberAir` on `_goOut`/`_setLit(false)`
 - No pinned smell value moved in the touched suites (no shipped smell test had
   air contents). For W8: `put salt in kiln` binds the kiln as a Container (not
   exercised live); an Oven defaults `lit: true`, so a cold-chamber test douses it.
+- **Follow-up (W6b):** a boiling SOLUTION that names no vapor vents its solvent's —
+  `Solution.getSolvent()` (water; `setSolidsKgPerL` loads it with the row, the
+  `setMadeFrom` door) — so the boiling floor's coppers steam with no row authored
+  (drive step 13). ⚠ Linseed oil (solids, bp 560) now steams water, as the plateau
+  already assumed water left; test fixtures that boil a hand-built solution call
+  `standSolvent()`.
 
 ### W7 — one water for porous bodies (D19)
 

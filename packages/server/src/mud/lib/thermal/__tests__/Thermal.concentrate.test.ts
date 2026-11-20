@@ -11,6 +11,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { standSolvent } from '../../material/__tests__/materials';
 import type { Burner } from '../../fire/Burner';
 import type { Stuff } from '../../stuff/Stuff';
 import { chargeHot } from '../../fire/__tests__/burner-fuel';
@@ -149,6 +150,7 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
     WorldClockApi._setNowProviderForTesting(() => real);
     seq += 1;
     P = `/stuff/idea/material/_test/concentrate-${seq}`;
+    standSolvent();
     stagedMaterials();
   });
   afterEach(() => WorldClockApi._resetForTesting());

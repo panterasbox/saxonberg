@@ -2322,15 +2322,24 @@ function vaporLitres(mat: Material, kg: number): number | null {
 
 /**
  * ⭐ The STEAM of a boil goes somewhere (D16): `boiledL` litres of liquid
- * left the pot, at `kgPerL`, as its material's vapor row — into the chamber
- * the pot is in, else the room's air, by the one route. A liquid that names
- * no vapor gives the air nothing it keeps (authored, not silent).
+ * left the pot, at `kgPerL`, as a vapor row — into the chamber the pot is
+ * in, else the room's air, by the one route. ⭐ A SOLUTION boiling (`solids
+ * > 0`) gives off its SOLVENT — the plateau keeps the solids and discards
+ * water — so one that names no vapor of its own vents its solvent's
+ * (`Solution.getSolvent()`, loaded with the row): a copper of sugar liquor
+ * steams like a kettle. A plain liquid that names no vapor gives the air
+ * nothing it keeps (authored, not silent).
  */
-function ventBoiled(v: Stuff, mat: Material, boiledL: number, kgPerL: number): void {
+function ventBoiled(v: Stuff, mat: Material, boiledL: number, kgPerL: number, solids: number): void {
   if (!(boiledL > 0) || !(kgPerL > 0)) return;
-  const litres = vaporLitres(mat, boiledL * kgPerL);
-  if (litres === null || !(litres > 0) || !MixinApi.hasVolatility(mat)) return;
-  BiomeApi.vent({ from: v, material: mat.getVapourMaterial(), litres });
+  const ownVapor = MixinApi.hasVolatility(mat) && mat.getVapourMaterial() !== '';
+  const steamOf =
+    !ownVapor && solids > 0 && MixinApi.hasSolution(mat)
+      ? MaterialApi.materials().need(mat.getSolvent())
+      : mat;
+  const litres = vaporLitres(steamOf, boiledL * kgPerL);
+  if (litres === null || !(litres > 0) || !MixinApi.hasVolatility(steamOf)) return;
+  BiomeApi.vent({ from: v, material: steamOf.getVapourMaterial(), litres });
 }
 
 /**
@@ -2829,7 +2838,7 @@ function reconcileBulkPhase(
         // left to give: it never boils away (its `burnt` arrow, if it
         // authors one, is what ends it).
         const keptL = Math.max(left, floorL);
-        ventBoiled(v, mat, amount - keptL, kgPerL);
+        ventBoiled(v, mat, amount - keptL, kgPerL, solids);
         v.setBulkAmount(aff, Quantity.of(keptL, 'L'));
         if (solids > 0) {
           v.setBulkPayload(aff, {
@@ -2845,7 +2854,7 @@ function reconcileBulkPhase(
       }
     }
     // Boiled dry (or no plateau to hold) — the liquid is gone to steam.
-    ventBoiled(v, mat, amount, kgPerL);
+    ventBoiled(v, mat, amount, kgPerL, solids);
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
     return;
