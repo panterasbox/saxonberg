@@ -3,7 +3,7 @@
 > **Status: UNBUILT** — opened 2026-11-20 (owner, in the listing-resolution
 > conversation: *"a turning point in the broader MQL design"*).
 > **Left:** the alias table's form (proposed, not yet agreed) · what
-> `reachable` looks like · `:members` vs `@` · a bare `@name` · the 23 views
+> `reachable` looks like · the 23 views
 > that scope to `online` · how far a player id is an address.
 > **Size:** a build.
 
@@ -79,14 +79,15 @@ something like `online` the answer should be very legible."*
    chain element after ':'*), so no real query contains one; a quoted
    name protects a literal. This frees `@` for relations.
 
-## Proposed, not decided
+10. **`:members` retires** — `@name` is the only relation mechanism
+    (`warren:@rooms`). One fewer reserved word.
+11. **A bare `@friends` means `me:@friends`** — every query is the
+    asker's.
+12. **`holder:@` lists the relation names that holder answers to the
+    asker** (`query me:@`, `look book:@`) — the legible answer to *what
+    can I ask this for*, in the grammar itself.
 
-- **`:members`** — retire it into `@` names (`warren:@rooms`) or keep it as
-  the one unnamed default set.
-- **A bare `@friends`** means `me:@friends` (every query is the asker's)?
-- **Which relations a holder answers must be legible** — listable
-  (`help`, or a query that names a holder's relation names), not read out
-  of code.
+## Proposed, not decided
 
 - **One legible definition per reserved word** — a single table, in code
   and in `help mql <word>`, saying what each word means (*`here` — the
