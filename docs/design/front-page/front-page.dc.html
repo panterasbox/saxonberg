@@ -81,7 +81,6 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 <div style="flex: 1 1 280px; min-width: 0">
 <p style="margin: 0 0 6px; color: var(--fg-dim)"><strong style="color: var(--fg); font-weight: 600">Pay for it.</strong> Real money keeps it running and earns a say in its own chamber, and buys nothing else. <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .06em; color: var(--fg-mute); border: 1px dashed var(--fg-mute); border-radius: 3px; padding: 0 4px; white-space: nowrap">LAWYER'S READ</span></p>
 <sc-if value="{{fundPinned}}" hint-placeholder-val="{{ true }}"><a href="#fp-feed" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 9px; padding: 9px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; text-decoration: none; color: var(--fg)"><span style="font-family: Spectral, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent)">Funding now</span><span style="font-weight: 600">A bigger server</span><span style="font-size: 12.5px; color: var(--fg-dim)">— more people in the world at once, and faster answers when you type.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--fg-mute); border: 1px dashed var(--fg-mute); border-radius: 3px; padding: 0 4px">SAMPLE</span><span style="font-size: 12.5px; color: var(--fg-dim)"><span style="font-family: 'IBM Plex Mono', monospace; color: var(--fg)">+$40</span> a month</span></a></sc-if>
-<a href="#fp-books" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 9px; margin-top: 6px; padding: 9px 12px; border: 1px solid var(--line-soft); border-radius: 3px; text-decoration: none; color: var(--fg)"><span style="font-family: Spectral, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-mute)">The books</span><span style="font-size: 13px">Running Saxonberg costs <span style="font-family: 'IBM Plex Mono', monospace">$240</span> a month. Support last month: <span style="font-family: 'IBM Plex Mono', monospace">$0</span> — the founder paid all of it.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--fg-mute); border: 1px dashed var(--fg-mute); border-radius: 3px; padding: 0 4px">SAMPLE</span></a>
 </div>
 </li>
 
@@ -89,7 +88,7 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 <div style="flex: none; width: 84px"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--fg-mute)">03</div><div style="font-family: Spectral, serif; font-size: 19px; letter-spacing: .06em">Play</div></div>
 <div style="flex: 1 1 280px; min-width: 0">
 <p style="margin: 0 0 6px; color: var(--fg-dim)"><strong style="color: var(--fg); font-weight: 600">Live here.</strong> Show up and take part. Your say grows from what you actually do, never from what you pay.</p>
-<sc-if value="{{playPinned}}" hint-placeholder-val="{{ false }}"><a href="#fp-feed" style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 9px; padding: 9px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 3px; text-decoration: none; color: var(--fg)"><span style="font-family: Spectral, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent)">Now</span><span style="font-weight: 600">Court day, Saturday</span><span style="font-size: 12.5px; color: var(--fg-dim)">— the first conduct case goes before a panel, in public.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--fg-mute); border: 1px dashed var(--fg-mute); border-radius: 3px; padding: 0 4px">SAMPLE</span></a></sc-if>
+<sc-if value="{{hasDemand}}" hint-placeholder-val="{{ true }}"><div style="padding: 9px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 3px"><div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 9px; margin-bottom: 4px"><span style="font-family: Spectral, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent)">The world needs</span><span style="font-size: 12.5px; color: var(--fg-dim)">— work and goods nobody is supplying yet.</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--fg-mute); border: 1px dashed var(--fg-mute); border-radius: 3px; padding: 0 4px">SAMPLE</span></div><ul style="margin: 0; padding: 0; list-style: none; font-size: 13px"><sc-for list="{{demand}}" as="d" hint-placeholder-count="3"><li style="display: flex; gap: 9px; align-items: baseline; padding: 3px 0"><span style="flex: none; width: 64px; font-family: Spectral, serif; font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-mute)">{{d.kind}}</span><span>{{d.what}} <span style="color: var(--fg-dim)">· {{d.where}}</span></span></li></sc-for></ul></div></sc-if>
 </div>
 </li>
 </ol>
@@ -210,36 +209,6 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 </div>
 </div>
 
-<!-- 4b · THE BOOKS -->
-<div id="fp-books" style="width: 100%; box-sizing: border-box; background: var(--ground); padding: clamp(22px, 4vw, 36px) clamp(16px, 4vw, 32px); border-bottom: 1px solid var(--line-soft)">
-<div style="max-width: 1180px; margin: 0 auto">
-<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; margin-bottom: 12px">
-<h2 style="margin: 0; font-family: Spectral, serif; font-weight: 500; font-size: 13px; letter-spacing: .19em; text-transform: uppercase; color: var(--accent)">The books · last month</h2>
-<span style="font-size: 12px; color: var(--fg-mute)">Every dollar in and out, kept in public. <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; border: 1px dashed var(--fg-mute); border-radius: 3px; padding: 0 4px; margin-left: 4px">SAMPLE</span></span>
-</div>
-<div style="display: flex; flex-wrap: wrap; gap: 22px">
-<table style="flex: 1 1 340px; border-collapse: collapse; font-size: 13px">
-<caption style="text-align: left; font-family: Spectral, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-mute); padding-bottom: 6px">Spent</caption>
-<tbody>
-<tr style="border-top: 1px solid var(--line-soft)"><td style="padding: 6px 0">Claude — making the world</td><td style="padding: 6px 0; text-align: right; font-family: 'IBM Plex Mono', monospace">$200.00</td></tr>
-<tr style="border-top: 1px solid var(--line-soft)"><td style="padding: 6px 0">Descript — the show's video</td><td style="padding: 6px 0; text-align: right; font-family: 'IBM Plex Mono', monospace">$24.00</td></tr>
-<tr style="border-top: 1px solid var(--line-soft)"><td style="padding: 6px 0">Hosting, DNS and secrets (AWS)</td><td style="padding: 6px 0; text-align: right; font-family: 'IBM Plex Mono', monospace">$9.81</td></tr>
-<tr style="border-top: 1px solid var(--line-soft)"><td style="padding: 6px 0">Email (Google Workspace)</td><td style="padding: 6px 0; text-align: right; font-family: 'IBM Plex Mono', monospace">$6.00</td></tr>
-<tr style="border-top: 1px solid var(--line); font-weight: 600"><td style="padding: 6px 0">Running costs</td><td style="padding: 6px 0; text-align: right; font-family: 'IBM Plex Mono', monospace">$239.81</td></tr>
-</tbody>
-</table>
-<table style="flex: 1 1 340px; border-collapse: collapse; font-size: 13px">
-<caption style="text-align: left; font-family: Spectral, serif; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-mute); padding-bottom: 6px">Paid by</caption>
-<tbody>
-<tr style="border-top: 1px solid var(--line-soft)"><td style="padding: 6px 0">Support — Twitch, YouTube, Kick</td><td style="padding: 6px 0; text-align: right; font-family: 'IBM Plex Mono', monospace">$0.00</td></tr>
-<tr style="border-top: 1px solid var(--line-soft)"><td style="padding: 6px 0">The founder</td><td style="padding: 6px 0; text-align: right; font-family: 'IBM Plex Mono', monospace">$239.81</td></tr>
-</tbody>
-</table>
-</div>
-<p style="margin: 12px 0 0; font-size: 12.5px; color: var(--fg-mute)">Kept as a plain-text ledger in the public source, reviewed like code. <a href="#">Read the full books →</a></p>
-</div>
-</div>
-
 <!-- 5 · FOOTER -->
 <footer style="width: 100%; box-sizing: border-box; padding: 18px clamp(16px, 4vw, 32px) 28px">
 <div style="max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0 22px; align-items: center; font-size: 12.5px">
@@ -256,7 +225,7 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["ink","marble"],"default":"ink"},"presence":{"editor":"enum","options":["count","zero","unknown"],"default":"count"},"live":{"editor":"boolean","default":true},"feedEmpty":{"editor":"boolean","default":false},"fundPinned":{"editor":"boolean","default":true},"playPinned":{"editor":"boolean","default":false},"$preview":{"width":1440,"height":3000}}'>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["ink","marble"],"default":"ink"},"presence":{"editor":"enum","options":["count","zero","unknown"],"default":"count"},"live":{"editor":"boolean","default":true},"feedEmpty":{"editor":"boolean","default":false},"fundPinned":{"editor":"boolean","default":true},"hasDemand":{"editor":"boolean","default":true},"$preview":{"width":1440,"height":3000}}'>
 class Component extends DCLogic {
   renderVals() {
     const theme = this.props.theme ?? 'ink';
@@ -276,7 +245,12 @@ class Component extends DCLogic {
       feedEmpty: feedEmpty,
       feedHasItems: !feedEmpty,
       fundPinned: this.props.fundPinned ?? true,
-      playPinned: this.props.playPinned ?? false,
+      hasDemand: this.props.hasDemand ?? true,
+      demand: [
+        { kind: 'Hiring', what: 'Two hands for the ropewalk', where: 'Wharfside' },
+        { kind: 'Buying', what: 'Flour, by the sack', where: 'the bakery on University Avenue' },
+        { kind: 'Gig', what: 'Carry a crate of glass to Hearts Delight', where: 'the job board' }
+      ],
       latest: [
         { from: 'The Saxonberg Post', title: 'Wanted: moderators — the first seats on the paper' },
         { from: 'Office of the Prime Minister', title: 'Proposed: a bigger server' },

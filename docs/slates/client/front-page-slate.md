@@ -56,6 +56,8 @@ trying to get people to log in — why bother if they can just watch the stream 
 - **The three chambers are real asks, each with what it is after now** — and moderation is the
   pitch, the editor's chair the aspiration: *"who wants to be a mod for some game they've never
   played?"* — but the first seat on the game's own newspaper is a different offer.
+- ⭐⭐ **Play shows demand** (the owner): *"play is different for everyone, and we don't know who you are … we do know what other players in the game are up to, which is probably not much of anything for a long while. We also know what they could be doing based on what's built and what all the different economic demands are. The game doesn't launch without demand and that's what shapes the consumer experience."* So Play's line is **what the world needs right now** — the economy's unmet demand, derived, never written — the blacksmith-shaped hole (lens 3b) shown to a stranger.
+- **The books stay inside** (the owner: *"we don't need to show the books on the front page, that's all available once you're signed in"*): Fund shows only an open proposal, with its cost.
 - **Fund leads with what money buys** (*"who cares about raising $1000"*): *a bigger server — more
   people at once, faster answers* — and **shows the dollars** beside it (*"the livestream shows
   dollars, I don't know why the front page wouldn't"*), all read from the books, never typed onto
@@ -69,12 +71,11 @@ trying to get people to log in — why bother if they can just watch the stream 
 | **host bar** | the Pantera's Box hex seal · *A Pantera's Box community ↗* → panterasbox.com | static |
 | **identity** | the Saxonberg seal (44 px) and wordmark · *"The platform the Pantera's Box community is building together, run under a written Compact. It isn't finished — you'd be joining before 1.0."* ⚠ **Saxonberg is the platform, never "the world"** — the community is Pantera's Box; the product is Saxonberg (the owner, correcting the first draft) | static |
 | **left · What you're signing up for** | **01 Make** — *Build it with us — places, things, trades, code, and the institutions that run them. Real work, opt-in, and it earns you a say.* + **WANTED: Moderators for the Saxonberg Post** — *the first seats on the paper's staff, and the road to its editor's chair* — with a two-line chart: *Moderators · open · start here* / *Editor-in-Chief · open* | derived openings |
-| | **02 Fund** — *Pay for it. Real money keeps it running and earns a say in its own chamber, and buys nothing else.* ⚠ lawyer's read on this sentence + ⭐ **THE BOOKS — always present**: *Running Saxonberg costs $N a month. Support last month: $M — the founder paid the rest* (or *all of it* while support is $0), linking to the books band. + **FUNDING NOW** (only while a proposal is open) — the first open proposal in the Compact's books (*A bigger server — more people in the world at once, and faster answers when you type*), **with dollars**: its monthly cost, running costs, last month's support, and *covered* / *not yet covered*, computed — linking to the public books | **the books** (§ 6) |
-| | **03 Play** — *Live here. Show up and take part. Your say grows from what you actually do, never from what you pay.* + **NOW** — the pinned play item (an event: court day, a founding week) | pinned `chamber: play` release |
+| | **02 Fund** — *Pay for it. Real money keeps it running and earns a say in its own chamber, and buys nothing else.* ⚠ lawyer's read on this sentence + **FUNDING NOW** (only while a proposal is open) — the first open proposal in the Compact's books (*A bigger server — more people in the world at once, and faster answers when you type*), **with dollars**: its monthly cost, running costs, last month's support, and *covered* / *not yet covered*, computed — linking to the public books | **the books** (§ 6) |
+| | **03 Play** — *Live here. Show up and take part. Your say grows from what you actually do, never from what you pay.* + ⭐ **THE WORLD NEEDS** — *work and goods nobody is supplying yet*: three lines, each a kind (**Hiring** · **Buying** · **Gig**), what, and where (*Two hands for the ropewalk · Wharfside*; *Flour, by the sack · the bakery*; *Carry a crate of glass to Hearts Delight · the job board*) | the demand digest (§ 6) |
 | | **Latest** — three one-line items, each labelled with its publisher | `pressRoom` |
 | **right · Sign in** | the three providers (co-equal, seal red with white rims) · *Look around as a guest* · *A guest keeps nothing, and nobody can find them.* · the live count | shipped; count per § 6 |
 | **right · the show** | a 16:9 grid thumbnail: live = the stream's still, **LIVE** and viewers; offline = the glowing `@` on black and the next show · the founder's avatar (red ring when live), the show title, *Bobalu Smallberries*, *Acting Prime Minister* · *Sign in to watch it inside Saxonberg.* | the show block |
-| **below · The books** | last month from the books: **spent** by account (Claude, Descript, AWS, email) and **running costs**; **paid by** — support (Twitch, YouTube, Kick) and **the founder**; a link to the full ledger in the public source | the books export |
 | **below · Notices and news** | the full feed, each item under its own masthead (an office's seal; the Post's nameplate on paper) | `pressRoom` |
 | **footer** | panterasbox.com · the show on Twitch · YouTube · Kick · Source (AGPL) · Discord · the public record · Privacy | static |
 
@@ -88,7 +89,6 @@ source*, the press room never awaited by sign-in.
 |---|---|
 | identity, sign-in | always present |
 | a chamber's **WANTED / FUNDING NOW / NOW** line | the line does not render; the chamber shows its sentence only |
-| Fund's **books line** | always present once the books exist — running costs and who paid are true every month, even when support is $0 |
 | Latest, Notices and news | the band does not render |
 | the show | offline tile with `show.schedule`; no schedule set → *Offline* alone; the viewer count **omitted** when unavailable, never estimated |
 | the live count | a number, a real zero, or nothing (shipped) |
@@ -133,9 +133,15 @@ A publisher organization (trades and publishes), public, realm `ooc`, path to se
    its time zone).
 2. **The office read gains `acting` and the holder's name**: `acting` = the holder is the founder by
    default, no hand-off recorded; the name from `compact.founderName` in that case.
-3. **Releases gain an optional `chamber`** (`make · play`): a chamber's line is the **newest pinned
-   release tagged for it** from a stocked publisher (Play's events; Make's colour beside the derived
-   openings). **Fund does not use releases** — it reads the books (3a).
+3. ⭐ **The demand digest** — Play's line. Three sources, all derived: **open gigs** on the job board
+   (contract.md's board — open contracts), **open seats at in-world businesses** (employment's
+   `headcount − holders`), and **goods counters want** (retail's purchasing — what a counter buys and
+   has no stock of). ⚠ *Load on use, never search*: the front page cannot walk every business, so the
+   economy's own recurring ticks (the roster tick that already runs each house's openings once per
+   game hour; the stocking pass) **write a small derived digest document** — rebuildable, never
+   authoritative — and `/front` reads that one document. Entries carry kind (Hiring · Buying · Gig),
+   what, and where; the page shows the top three. *The game doesn't launch without demand*, so at
+   launch it is non-empty by construction; empty → the line does not render.
 3a. ⭐⭐ **Fund reads the Compact's books** **[DECIDED — the owner: *"I actually wanna start using the
    budget shit sooner than later"*]** — the [budget-slate](../platform/budget-slate.md) architecture,
    started now: a **plain-text double-entry journal** (beancount) committed in the repo, kept locally
@@ -143,19 +149,14 @@ A publisher organization (trades and publishes), public, realm `ooc`, path to se
    the JSON. The chart of accounts is **by office**. **A proposal is one journal line in the spending
    office's account**, e.g.
    `2026-11-20 custom "proposal" "A bigger server" Expenses:Infrastructure:Compute 40.00 USD "More people in the world at once, and faster answers when you type."`
-   The page's **FUNDING NOW** is the first open proposal; beside it, computed from the books: its
-   monthly cost, **running costs** (the trailing month's actual expenses), **support last month**
-   (receipts), and **covered / not yet covered** (support ≥ running costs + the proposal). When the
+   The page's **FUNDING NOW** is the first open proposal, with its monthly cost. ⚠ **The books
+   themselves stay inside the game** (the owner) — running costs, support and who paid are shown to
+   signed-in players, not on the front page. When the
    spend starts, the actual expense appears and the proposal closes. **Control:** add, reorder or
    drop a proposal line and merge it — the books get code review. **Later** the budget committee's
    budget bill writes the proposals; the pen moves, the page does not change. Outside the fiction;
    dollars never touch the game's ledger.
-   ⭐ **What the first books do to the page** ([budget-slate § The first books](../platform/budget-slate.md)):
-   Fund always has a true line — **running costs (~$240 a month: Claude $200 dominates; AWS ~$10)
-   and who paid** — so Fund never needs a proposal to say something honest. **Support reads $0 until
-   the stream starts after New Year**, and the line then says *the founder paid all of it* — the
-   books' `Equity:Founder`, kept apart from support. A proposal (the bigger server) appears beside it
-   only when one is open.
+   (The first books: [budget-slate § The first books](../platform/budget-slate.md).)
 4. **`/compact/executive` becomes `public`** — a release may narrow its publisher's reach, never
    widen it, so the Office of the Prime Minister's releases cannot reach an anonymous visitor today.
 5. **A new appointing-authority kind: `stakeholders`, with a founder default** (staff holders, then
@@ -167,7 +168,7 @@ A publisher organization (trades and publishes), public, realm `ooc`, path to se
    instead of deciding by the closed criteria (a judgment of a person — the criterion is the
    authority's published standard, the appeal its stakeholders).
 8. **The public `/front` read** — one anonymous fetch beside `/auth/status`: the office line,
-   the stocked organizations' openings, the play pin, the books' fund line, the show block (`live`, `title`,
+   the stocked organizations' openings, the demand digest's top entries, the open fund proposal, the show block (`live`, `title`,
    `thumbnailUrl` from Twitch's public preview image for `show.channel`, `viewers` when the
    transport's credentials allow, `nextShow`), and the press-room rows. **Sign-in never waits on
    it**; each band renders from its own slice or not at all.
@@ -211,4 +212,4 @@ home in time; this instance stays at mud.panterasbox.com.
 2. Twitch's terms for preview images off-platform.
 3. The Fund sentence's public wording after the lawyer's read.
 5. The journal's first accounts and the export's shape (budget-slate's open questions).
-4. What Play pins first (any event the stocked offices publish; nothing is required).
+4. The demand digest's ranking — which three of many entries the page shows (newest, largest, or a rotation).
