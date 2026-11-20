@@ -3,7 +3,7 @@
 > **Status: UNBUILT** — opened 2026-11-20 (owner, in the listing-resolution
 > conversation: *"a turning point in the broader MQL design"*).
 > **Left:** the alias table's form (proposed, not yet agreed) · what
-> `reachable` looks like · the `:members` protocol's shape · the 23 views
+> `reachable` looks like · `:members` vs `@` · a bare `@name` · the 23 views
 > that scope to `online` · how far a player id is an address.
 > **Size:** a build.
 
@@ -56,7 +56,37 @@ something like `online` the answer should be very legible."*
    word is matched against that audience by the shared naming rule.
 6. **`reachable` stays** — what it looks like is open.
 
+7. **Relations get their own sigil — `@name` — never a reserved word**
+   (owner, 2026-11-20). After a `:`, `@friends` asks the Stuff to its
+   left for the set it keeps under that name; the holder decides which
+   names it answers (a contact list by its name, a book `@ships`, a card
+   `@nodes`, a warren `@rooms`). A list called "friends" can never collide
+   with a thing keyworded `friends`. The result is Stuff — the holder reads
+   its own records (contact lists, groups, a book's entries) and hands back
+   the people, ships, nodes; MQL never touches a collection record.
+   ⚠ Rejected first: one `:members` word with per-list step words
+   (`me:friends`) — every list name anyone made would become a reserved
+   word colliding with real keywords.
+8. **Several things on the left** (`here:i:@friends`) — the per-element
+   rule every chain step has: ask each, union, dedupe. A holder with no
+   such set adds nothing; each holder answers **per asker** (contacts are
+   owner-only; a published list answers anyone). Two holders may mean
+   very different things by one `@foo` — the system working as designed.
+9. **The affordance selector moves to `source::verb`** —
+   `glass::drink cocktail`, `me:i:watch::wind`, `"pocket watch"::wind`
+   (today `drink@glass cocktail`). The verb token splits at its first
+   `::`: MQL gives `::` no meaning (it is a parse error today — *expected a
+   chain element after ':'*), so no real query contains one; a quoted
+   name protects a literal. This frees `@` for relations.
+
 ## Proposed, not decided
+
+- **`:members`** — retire it into `@` names (`warren:@rooms`) or keep it as
+  the one unnamed default set.
+- **A bare `@friends`** means `me:@friends` (every query is the asker's)?
+- **Which relations a holder answers must be legible** — listable
+  (`help`, or a query that names a holder's relation names), not read out
+  of code.
 
 - **One legible definition per reserved word** — a single table, in code
   and in `help mql <word>`, saying what each word means (*`here` — the
