@@ -98,24 +98,27 @@ every matcher into one of those.
 - **One root.** Every query is the asker's. A thing at a distance is
   reached through a relation the asker has to it — near it, carrying it,
   a list they keep, a holder they can name — or by an **address**: a
-  `/path`, a `#id`, or a **player id** (its own short prefix; shareable).
-- **Relations have a sigil, never a reserved word.** `@name` after a thing
-  asks it for the set it keeps under that name (`me:@friends:iffy`,
-  `book:@ships`, `card:@nodes`); a bare `@friends` is `me:@friends`;
-  `thing:@` lists what relations that thing answers, to you. A thing
+  `/path`, a `#id`, or a **player address** — `@` and the player's id or
+  name (`@abc123`, `@bobalu` — the same player). `@` means a player
+  everywhere: the server's resolution and the client's mentions and
+  typeahead share the meaning, however each spells it.
+- **Relations have a sigil, never a reserved word.** `~name` after a thing
+  asks it for the set it keeps under that name (`me:~friends:iffy`,
+  `book:~ships`, `card:~nodes`); a bare `~friends` is `me:~friends`;
+  `thing:~` lists what relations that thing answers, to you. A thing
   answers per asker (your contact lists are yours alone; a published list
   answers anyone). A built-in relation can never be masked by a list
   named after it; naming a list that way is allowed, with a warning.
-- **Seed words become relations of `me`** — `@here`, `@peers`, `@person`,
-  `@inventory`, `@reachable`, `@horizon`, `@it`/`@them`/`@last` — each with
-  a one-line meaning `me:@` shows. `here` and its like survive only as
+- **Seed words become relations of `me`** — `~here`, `~peers`, `~person`,
+  `~inventory`, `~reachable`, `~horizon`, `~it`/`~them`/`~last` — each with
+  a one-line meaning `me:~` shows. `here` and its like survive only as
   removable default player aliases.
 - **`online` goes**, and with it every view scoped to it; a stranger is
   reached by their player id or by getting a relation first.
 - **`:members` retires** into `@` relations.
 - **The affordance selector is `source::verb`** — `glass::drink cocktail`,
-  `me:i:watch::wind` — freeing `@`.
-- **Notify policies apply to MQL relations** (`@friends`, `@party`);
+  `me:i:watch::wind` — freeing `@` for player addresses.
+- **Notify policies apply to MQL relations** (`~friends`, `~party`);
   their private reference syntax goes.
 
 ### Stage C — every word named by one rule
@@ -175,7 +178,7 @@ keywords. **A second kind needs no kernel change** — only a declaration.
 ## Collisions
 
 - **Every typed seed and every view scope changes** — `here` becomes
-  `@here` (with `here` kept as a default alias); `online` is gone from 23
+  `~here` (with `here` kept as a default alias); `online` is gone from 23
   views (`dm`, `whisper`, `shout`, `say`, `react`, `introduce`, `profile`,
   `contacts`, `group`, `party`, `scry`, `pay`, `bank`, `house`, `office`,
   `title`, `goto`, `wizard`, `pack`, the four dorm-room verbs).
@@ -207,7 +210,7 @@ one-resolution-rule-slate § 7.
 ## Lens pass
 
 - **1 Pedagogy.** The point: one learnable naming rule, and a grammar a
-  player can interrogate (`me:@`, `thing:@`) instead of memorize.
+  player can interrogate (`me:~`, `thing:~`) instead of memorize.
 - **2 Creative expression.** An author adds a document kind with no
   kernel change, and a register, a menu or a list with no matcher.
 - **3a Immersion / 3b participation.** You reach what you have a relation
@@ -259,22 +262,22 @@ no light step.
 
 **Stage B — reaching from the asker**
 
-10. `query me:@` lists your relations with what each means (`@here`,
-    `@inventory`, `@reachable`, your contact lists…). `look @here` shows
+10. `query me:~` lists your relations with what each means (`~here`,
+    `~inventory`, `~reachable`, your contact lists…). `look ~here` shows
     the room; `look here` does too (the default alias).
 11. *(staged: a contact list "friends" holding a player elsewhere)*
-    `dm @friends:<them> hello` reaches them in another room. `dm <them>`
+    `dm ~friends:<them> hello` reaches them in another room. `dm <them>`
     with no relation and no player id is refused, saying how to reach
-    them; `dm <their player id> hello` works.
+    them; `dm @<their id> hello` and `dm @<their name> hello` work.
 12. *(staged)* Make a contact list named `inventory` — allowed, with a
-    warning; `query @inventory` from another player still shows your
+    warning; another player's `query @<you>:~inventory` still shows your
     carried things, not the list.
-13. At the Terminus harbor: `look harbor-book:@` lists `@ships`;
-    `charter hesper` (the view scoping to that book's `@ships`) charters
+13. At the Terminus harbor: `look harbor-book:~` lists `~ships`;
+    `charter hesper` (the view scoping to that book's `~ships`) charters
     her.
 14. `glass::drink` style: `watch::wind` winds a carried watch;
     `wind@watch` is no longer a selector.
-15. *(staged)* A notify policy on `@friends` notifies when a friend
+15. *(staged)* A notify policy on `~friends` notifies when a friend
     arrives.
 16. **Restart.** Contact lists, notify policies, kind declarations and
     filed records come back; steps 1, 10 and 11 still behave.
@@ -295,7 +298,7 @@ no light step.
 20. *(staged: a working with a north face)* `sample north` samples it;
     `sample northern rock` refuses and lists the faces.
 21. `party adopt wedge`, `party adopt the wedge`; a `smile` still smiles.
-22. *(staged)* `contacts remove @friends:<them>` takes them off the list.
+22. *(staged)* `contacts remove ~friends:<them>` takes them off the list.
 23. At the Rejection put-in, `rent canoe for a week`, `for 7 days`,
     `for 2 weeks`; *(staged: a lit limekiln)* `fire limekiln for 90
     minutes`; `rent canoe for soon` and `fire limekiln for a while` refuse
@@ -314,7 +317,7 @@ None. No step depends on the clock.
 - A word that names nothing gets a refusal that says what could have been
   named.
 - No player argument requires an internal path or key.
-- `me:@` and `thing:@` say what can be asked and what it means; nothing a
+- `me:~` and `thing:~` say what can be asked and what it means; nothing a
   player can type reaches at a distance except through a relation or an
   address.
 - An edit to any catalogued document is live on the next read.

@@ -284,8 +284,8 @@ so far:
 - **Real objects out of reach** → an existing MQL form where one exists
   (`bob:inventory`, `here:exits:to:i`, …); a set a **holder keeps** (a
   harbor or charter book's ships, a travel card's nodes, a device's
-  offered apps, a contact list's people) → `:members`, generalized into a
-  holder protocol ([mql-anchors-slate](../engine/mql-anchors-slate.md));
+  offered apps, a contact list's people) → a `~name` relation on the
+  holder (`:members` retires into it) ([mql-anchors-slate](../engine/mql-anchors-slate.md));
   **`call` and `hail`** are acts, not targets — whatever perceives them
   decides ([signalling-slate](../engine/signalling-slate.md)); their
   matchers retire with that redesign, not this cleanup.
@@ -329,7 +329,7 @@ so far:
   keywords; unique names win on an exact hit, partial words prompt;
   candidates by relation (yours) plus a published directory to join.
 - **Labels a player gave** — people through your lists by MQL
-  (`contacts remove @friends:iffy`); notify policies over MQL relations;
+  (`contacts remove ~friends:iffy`); notify policies over MQL relations;
   outfits, console tabs and wallet accounts resolved by their holder by
   the shared rule ([mql-anchors-slate](../engine/mql-anchors-slate.md) §§ 15–17).
 - **Durations** — one shared duration argument (not MQL), game time only;
