@@ -286,7 +286,9 @@ so far:
   harbor or charter book's ships, a travel card's nodes, a device's
   offered apps, a contact list's people) → `:members`, generalized into a
   holder protocol ([mql-anchors-slate](../engine/mql-anchors-slate.md));
-  **hearing range** (hail, call) → the act's own audience, not MQL.
+  **`call` and `hail`** are acts, not targets — whatever perceives them
+  decides ([signalling-slate](../engine/signalling-slate.md)); their
+  matchers retire with that redesign, not this cleanup.
 - **The naming rule** — MQL's scorer lifted to a shared home (likely
   `GrammarApi`) that MQL and every non-Stuff matcher call.
 - **Documents a player names** → the document-traits `keyworded` trait

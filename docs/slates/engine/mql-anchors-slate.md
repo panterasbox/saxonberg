@@ -51,9 +51,11 @@ something like `online` the answer should be very legible."*
    people, a warren's rooms. Each holder decides its members. No new
    reserved word; an existing one stops being class-specific. ⭐ The
    who-list feature hangs on this: a list is a holder like any other.
-5. **Hearing range is not MQL.** *Within hail* and *who heard the call*
-   are computed by the act (the hail, the call) — its audience — and the
-   word is matched against that audience by the shared naming rule.
+5. **`call` and `hail` are acts, not targets.** `call` is a sound and
+   whatever hears it decides (its controller's own history); `hail` was
+   still a target picked from a list, and is rebuilt the same way — an
+   emission whose receivers decide
+   ([signalling-slate](./signalling-slate.md)). Neither is MQL.
 6. **`reachable` stays** — what it looks like is open.
 
 7. **Relations get their own sigil — `@name` — never a reserved word**
@@ -118,6 +120,18 @@ something like `online` the answer should be very legible."*
 17. **Outfits, console tabs, wallet accounts** are resolved by their
     holder with the shared naming rule (an account answers to its bank's
     or corpo's keywords).
+
+## ⭐ The standing question for an unresolved expression (owner, 2026-11-20)
+
+> **When an MQL expression cannot be resolved — a set nobody can name, a
+> target no seed or relation reaches — first ask whether the MQL is
+> hiding content that is not modelled anywhere.**
+
+`hail` was the case that taught it: the query it seemed to need (*things
+within signal range that answer a hail*) dissolved once the hail itself
+was modelled as an emission. `call` had already been through the same
+door. A query that is hard to write is often an act, a place or a thing
+that does not exist yet.
 
 ## Consequences to plan for
 
