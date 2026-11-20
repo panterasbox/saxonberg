@@ -1,411 +1,371 @@
-# Navigation — requirements
+# Navigation card — requirements
 
-**Status:** DRAFT — reopened 2026-11-10.
+**Status:** AGREED 2026-11-20 (reopened 2026-11-10; rewritten after the
+navigation-server, zone-instancing and tooltips builds merged).
 
-**Kind:** client (with a server part)
-**Leads from:** kernel. **First consumer:** zones already in the game — the
-Sunken Delve (a small dungeon on two levels with a diagonal), the lounge and
-Dave's Bar (a hidden door; rooms that exist only while occupied), and the
+**Kind:** client
+**Leads from:** content — the server half shipped in the navigation-server
+build (MR !595). **First consumer:** zones already in the game — the Sunken
+Delve (two levels, a diagonal, a hidden cache, dark rooms), the lounge and
+Dave's Bar (a hidden door, rooms that exist only while occupied), the
 sparse country of Rejection and Hearts Delight (tracks over open ground,
-depth, levels from −1 to 8).
+many levels), the Hush (a spherical cavern) and the Hesper (a ship).
 
-In Explore mode the left pane becomes **the picture of what you know of the
-zone you are in**: a map you can read and click, the ways from where you
-stand (every direction and every named way, each marked when it leaves the
-zone),
-the place you have selected, the zone in one line that opens, a breadcrumb
-drawn from your own map, and a few lenses that ask the map a question —
-every mark on it explained by a tooltip. Today the pane is a text navigator — a
-breadcrumb read from the live world, a text compass, a list of ways out —
-and nothing on the client knows anything about a place you are not standing
-in. This build gives the client a **copy of your own knowledge**, kept
-current by the server, and draws the pane from it. Seeding slates:
-[map-slate](../slates/client/map-slate.md) (§ The navigation pane, revised,
-and everything after it), [client-knowledge-model-slate](../slates/client/client-knowledge-model-slate.md),
-[locality-knowledge-slate](../slates/engine/locality-knowledge-slate.md).
-The design canvas the owner iterated on (private): the pane, its looks, a
-behavior board, the **stacked** pane this doc follows, and the tooltips.
+In Explore mode the docked card on the left becomes **the zone navigation
+card: where you are and where you can go, drawn only from what you know.**
+Today it is a text navigator — a breadcrumb read from the live world, a
+3×3 grid of direction buttons, a list of ways, the weather and the
+jurisdiction. The server already sends the client a live copy of your own
+map and where you are in seven sections; nothing draws them. This build
+draws them: a map you can read and click, the ways from here, and the
+sections of the card widest to narrowest, every mark explained by a
+tooltip. Seeding slates: [map-slate](../slates/client/map-slate.md)
+(§ It is a ZONE NAVIGATION card, and everything after it — above all § The
+whole card), [client-knowledge-model-slate](../slates/client/client-knowledge-model-slate.md),
+[locality-knowledge-slate](../slates/engine/locality-knowledge-slate.md),
+[navigation-server-slate](../slates/engine/navigation-server-slate.md).
 
 ## What the thing is
 
-- **One zone, never more.** The pane shows the zone you are in. How zones
-  relate to one another is a different thing, later.
-- **Only what you know.** Everything on it is your own map: places you
-  walked, places you know of without having walked them, openings you have
-  not taken. Nothing is read from the world as it really is.
-- **Position, never place.** Where you are relative to things; what a room
-  is like stays on its inspection card.
-- **An input surface.** You move by clicking the map.
-- **Interface, not fiction** — the same pane in every epoch. Whether a realm
-  hands out maps cheaply is content and economy, not this build.
-- **One pane per player, one zone in it at a time, one copy of your
-  knowledge per player.** A new zone needs only its own rows.
+- **Where you are and where you can go.** Position, never place: what a
+  room is like stays on its inspection card.
+- **One zone, never more.** How zones join is the atlas's, later.
+- **Only what you know.** Everything on it is your own map — places you
+  walked, places you know of without walking, openings you have not taken.
+  Nothing is read from the world as it really is.
+- **An input surface.** You move by clicking it.
+- **Interface, not fiction** — the same card in every epoch. Whether a
+  realm hands out maps cheaply is content and economy.
+- **One card per player, one zone in it at a time.** A new zone, realm or
+  pack needs only its own rows.
 
 ## What already exists
 
-- **Your map.** A document per player per Locality, append-only claims
-  through six channels — `walked`, `seen`, `searched`, `published`,
-  `charted`, `told` — each with its dates; looking, searching, walking,
-  reading a timetable and reading a chart write it. ⚠ A claim records a
-  place, its ways and where they lead, but **not where the place is** — no
-  zone, no coordinates, no level.
-- **`map`** — opens the docked navigator and prints your map as text;
-  `map <locality>` lists what you know of a Locality, with disagreements and
-  staleness.
-- **`route`** — plans over your own map only and says the plan's least
-  certain steps. It prints and stops; nothing keeps the plan.
-- **The navigator** (client-surface, shipped): a breadcrumb from the live
-  world, a text compass, a list of ways out, outdoor conditions and
-  jurisdiction — docked in Explore, refreshed on every move.
-- **The way's state** (boundary, shipped): every exit reads `open`, `shut`,
-  `locked` or `window`, and says whether it leaves the zone. Inside a zone
-  every way joins adjacent cells — except a **track**, the long walk over
-  open ground in sparse country.
-- **Authored geometry** — rooms carry coordinates; zones a cell size.
-- **The location-graph index** — the world's real shape. ⛔ It never
-  reaches a client, and this build keeps it that way.
-- **Discipline:** `navigation` (reckoning a position). No cartography
-  discipline exists.
-- **In flight:** controller-liquidity (!561) touches the same client and
-  movement files; documents-path-identity (!560) changes how documents are
-  named and read. The build starts after !561 merges.
+- **Your map, on the client.** The server keeps a document per player per
+  Locality — append-only claims through six channels (`walked`, `seen`,
+  `searched`, `published`, `charted`, `told`), each dated — and pushes a
+  live copy to the client, repaired after a gap. ⭐ **Every claim records
+  where the place is** (zone, coordinates, level). Nothing on the client
+  reads the copy yet.
+- **First visits.** Walking into a Locality writes it into your map (name,
+  government, kind). The breadcrumb still reads the live world.
+- **Where you are, in seven sections**, each pushed only when it changes:
+  the zone (kind, cell size, a label), the Localities, the horizon, the
+  building, the ways (state, leaves-the-zone, one-way, muffled, what a way
+  needs of you, its opening, a track's length), the place (light, sky,
+  water, crowding, elevation) and you (pace, posture, hands, load, light,
+  mount).
+- **`route`** plans over your own map only, names its least certain step,
+  and already sends its plan as data. Nothing on the client draws it.
+- **`map`** opens the docked card and prints your map as text; `map
+  <locality>` lists what you know of a Locality.
+- **The navigator** — the text card above; docked in Explore.
+- **Tooltips** (MR !633) — one tooltip everywhere; a small document with
+  facts that carry their source and date; terms that nest; no buttons.
+- **The way's state** — every exit reads open, shut, locked or window,
+  and says whether it leaves the zone; inside a zone every way joins
+  neighboring cells, except a **track** over open ground.
+- **`locate`** is retired; `course` gives the reckoning at the helm.
+- **Discipline:** `navigation` (reckoning a position). No cartography.
+- **In flight:** none of the four sibling builds touches the card, the map
+  or the sources.
 
-**Therefore what is genuinely new here is:** your knowledge reaching the
-client as a live copy; **where things are** becoming part of what you know;
-the drawn map with its levels, zoom and diagonal and track ways; the
-stacked pane — the ways from here, the selected place, the zone line; a
-breadcrumb from your own map, with a first visit writing the Locality into
-it; four lenses; a tooltip on every mark; and the direction glyphs the
-client does not have. The reuse ledger for the
-plan is in [map-slate § Reuse ledger for the plan](../slates/client/map-slate.md).
+**Therefore what is genuinely new here is:** drawing — the map from your
+copy (tiers, levels, diagonals, tracks, zoom, your position, the route);
+the card's sections widest to narrowest with the glance rule; a breadcrumb
+from your own map; the ways as a rose and a list with every state told
+apart; four lenses; a tooltip on every mark; the direction glyphs; the
+outdoor conditions on the status bar; and one panel width for every mode.
+The reuse ledger for the plan is
+[map-slate § Reuse ledger for the plan](../slates/client/map-slate.md).
 
 ## Goals
 
-- **The client holds your knowledge.** A copy of your own map, kept current
-  as you learn, consistent after a reconnect, a restart or a second device;
-  never anything you have not learned.
-- **Where a place is, is part of what you learn about it.** Standing in a
-  room or seeing it records where it is; a source that told you a place
-  tells you what it knew of where.
-- **A map of the zone you are in**, drawn from that knowledge: walked rooms
-  solid, known ones outlined, openings into blank space; doors and windows
-  in their states; diagonals corner to corner; tracks along their bearing
-  over open ground; your position; the levels you know; three zoom steps;
-  house style.
-- **The map is how you move.** Clicking a neighbor moves you there by the
-  ordinary command; clicking a distant room shows the route to it.
-- **Where you are, spelled out:** the place's name and `x: · y: · z:`,
-  with z stressed.
-- **The ways from here:** the cardinal exits as a rose — the eight
-  horizontal directions, up and down — and the named exits as a list, by
-  their own names, each in its state; **any exit that leaves the zone is
-  marked** — cardinal or named, it is a flag on the exit, not a kind of
-  exit.
-- **The selected place** — you, until you click another: what you know of
-  it, from whom and when, and how to get there.
-- **The zone in one line** that opens into its facts: its kind, cell size,
-  your extent and levels known, walked against known, your sources, and
-  what holds across it (sky, climate, jurisdiction).
-- **A breadcrumb from your own map.** Your first visit to a Locality writes
-  it into your map; the breadcrumb reads your map; clicking a crumb shows
-  that Locality as you know it.
-- **Lenses** — frontier, route, refusals, boundaries — in one compact row.
-- **A tooltip on every mark** — every room, way, level, lens mark and
-  control on the pane says everything you know about it on hover, so you
-  never click through to find out. The legend is just "hover any mark".
+- **A map of the zone you are in**, drawn from your own knowledge: walked
+  rooms solid, known ones outlined, openings into blank space; doors and
+  windows in their states; diagonals corner to corner; tracks along their
+  bearing over open ground; your position; the levels you know; three zoom
+  steps; the client's house style.
+- **The map is how you move.** Clicking a neighbor moves you by the
+  ordinary command, echoed; clicking a distant room draws the route to it
+  and moves nobody.
+- **The card, widest to narrowest**, each section seen as *navigating the
+  game's content as you explore*: you are here · in the world · the zone
+  and its map · the horizon · the structure · the ways · the place · you.
+- **The ways are always honest about you**: every direction and every
+  named exit, each in its state — open, a shut door, locked, a window, a
+  mode it needs, **there but not for you right now**, or no way you know
+  of — and any exit that leaves the zone marked.
+- **A breadcrumb that is yours**: a Locality you have never visited is not
+  named; each crumb's tooltip tells you about the place above you.
+- **Lenses** — frontier, route, refusals, boundaries — in one row.
+- **A tooltip on every mark** — every room, way, level, crumb, lens mark,
+  section and control says what it is and everything you know of it, with
+  source and date, and what a click would do. No legend.
+- **The card fits the window.** It fills the height it has, opening
+  sections in order, and folds them back when space runs out.
+- **The weather and time are on the status bar**, where every mode sees
+  them.
+- **One panel width in every mode.**
 
 ## Non-goals
 
-- **Walking to a distant room, the step beat, pace-dependent noticing** →
-  [step-beat-slate](../slates/engine/step-beat-slate.md), the movement build
-  after controller-liquidity. Here a distant click shows the route only.
-- **New knowledge records** — your trail, notes and pins, prices seen, NPC
-  hours learned, freshness bands — → the *your map grows* build
+- **The movement block, walking to a distant room, the step beat** →
+  [step-beat-slate](../slates/engine/step-beat-slate.md), the movement
+  build. Here a distant click draws the route only.
+- **New knowledge records** — your trail, notes and pins, prices seen,
+  freshness bands, a recent list → the *your map grows* build
   ([map-slate § Lenses](../slates/client/map-slate.md)).
-- **Staged versus persistent on the Zone card**, and freshness as
-  *restaged since you saw it* → [staging-slate](../slates/platform/staging-slate.md).
-- **Illustrated maps** (owned paper maps, *you are here*) → map-slate § The
-  illustrated map; its own build.
-- **The room view** → map-slate § The room view; later.
-- **Lenses as instruments; the situational lens; the long candidate list**
+- **Staged versus persistent** on the structure and place, and freshness
+  as *restaged since you saw it* → [staging-slate](../slates/platform/staging-slate.md);
+  the server does not send it yet ([navigation-server-slate § Left after
+  the first pass](../slates/engine/navigation-server-slate.md)), so it is
+  absent.
+- **Actions inside tooltips** (open, unlock, look through, route there,
+  lay a course) → nowhere, deliberately: a tooltip runs nothing (the
+  tooltips build's rule). Those acts are the way's own menu — below.
+- **The card's small and large sizes** (other modes' awareness strip; the
+  full-size chart and course plotting) → map-slate § The card's sizes.
+- **Browsing your map without moving** → [atlas-slate](../slates/client/atlas-slate.md);
+  here only one hop of lookahead.
+- **Illustrated maps, the room view, map styles as options** → map-slate,
+  their own builds.
+- **Charts of spherical zones and expanses** → map-slate § The card's sizes
+  (the large card); here *no map for this kind of space yet*.
+- **Lenses as instruments, the situational lens, the long candidate list**
   → map-slate § Lenses.
-- **Spherical zones and expanse charts** → map-slate; the pane shows *no
-  map for this kind of space yet* and the Ways-out list.
-- **The pane in modes other than Explore** → a later card-surface pass;
-  untouched here (but its width is shared, below).
-- **The tooltip system itself** → [tooltip-slate](../slates/client/tooltip-slate.md),
-  its own build, **before** this one; this build only supplies the map's
-  tooltip content.
 - **A view of zones joined together** → map-slate § Zone level.
-- **Browsing your map records without moving** → [atlas-slate](../slates/client/atlas-slate.md),
-  its own card; here only a one-hop lookahead (a way out's tooltip shows
-  that zone as you know it, with *open in the atlas*).
-- **The card's small and large sizes** (the large one with full-size maps
-  and the Expanse chart) → map-slate § The card's sizes; this build is the
-  docked size.
-- **The Place section's content** → the next design topic in this
-  conversation; this build reserves its place below the Zone block.
-- **Map styles as options** → later, as content.
+- **The Explore card in other modes** → the card-surface pass; only the
+  panel's width is shared here.
 - **A cartography discipline** → nowhere, deliberately, until a map can be
   wrong in a way skill corrects.
+- **The server items left after its first pass** (a building's entrance
+  direction, a remote way's door name, a river's named reach, a searched
+  flag) → navigation-server-slate; until they land the fields are absent.
 
 ## Placement
 
-Kernel and client — the platform, not a pack. The map is how every realm
-is shown, and a second zone, realm or pack needs **no code**: its rooms'
-coordinates and its zone's cell size are already authored. The Locality's
-learnable facts are the Locality's own rows.
+The client, on the platform — no pack. A second zone, realm or pack needs
+**no code**: its rooms' coordinates and its zone's cell size are already
+authored, and what a Locality teaches on a first visit is its own rows.
+The one content change is a name (below).
 
 ## Collisions
 
-- **The navigator** (client-surface) — replaced by the pane; its outdoor
-  conditions move to the **status bar**, its jurisdiction to the Zone card.
-- **`map`** — keeps its text; its card becomes the drawn pane.
-- **`route`** — unchanged; its latest plan is drawn by the route lens.
+- **The navigator** — replaced by the card; its outdoor conditions move to
+  the status bar, its jurisdiction to the zone section, its "leaving this
+  area" list into the ways (a marker on the exit).
+- **`map`** — keeps its text; its card is the drawn one.
+- **`route`** — unchanged; its latest plan is what the route lens draws.
 - **The lounge's occupancy rooms** — they write no claims, so the map draws
   *a space through this door, shape unknown*.
-- **Hidden ways** (the office's north door) — absent from the map until
-  found; then drawn.
-- **Tracks in Rejection, Hearts Delight and Waponi** — drawn as long ways
-  over open ground, in zones whose cells are metres apart.
-- **Existing maps** — claims written before this build have no coordinates.
-  No migration: a place without one is listed on the Zone card as *known,
-  not yet placed* until you see it again. (Dev data only.)
-- **card-sizes-slate** proposed the Zone as its own card; in the pane it is
-  the zone line that opens (recorded in that slate).
-- **The panel's width** — today 15 rem, shared by every mode; this build
-  sets it (below), so every mode's panel inherits it.
-- **The icon set** — the direction and elevation glyphs the
-  iconography slate reserved for this.
-- **`locate`** — retired; three wire drives that used `locate me` read the
-  reckoning through `course` instead.
-- **Ships** — they have no Locality today; aboard, the crumbs were empty
-  and the navigator named no government.
-- **Two Localities named "Terminus"** — the city's row is renamed
-  *Terminus City* (content), so the crumbs stop reading *Terminus ›
+- **Hidden ways** (the office's north door, the Delve's cache) — absent
+  until found; then drawn.
+- **Tracks in Rejection, Hearts Delight and Waponi** — long ways over open
+  ground in zones whose cells are metres apart.
+- **Maps written before claims knew where** — dev data only; a place with
+  no position is listed in the zone section as *known, not yet placed*
+  until you see it again. No migration.
+- **The panel's width** — today 15 rem in every mode; this build sets it
+  for all of them.
+- **The icon set** — the direction and elevation glyphs the iconography
+  slate reserved.
+- **The affordance menu** (right-click, a mouse hold, a phone's *actions*)
+  — a way in the rose or the list gets it, so a shut door can be opened
+  and a locked one unlocked from the card.
+- **Two Localities named "Terminus"** (the realm and the city) — the city's
+  row is renamed *Terminus City*, so the crumbs stop reading *Terminus ›
   Terminus*.
+- **card-sizes-slate** proposed the Zone as its own card; it is a section
+  of this one (recorded in that slate).
 
 ## Surface decisions
 
-### Claims carry where the place is **[DECIDED — the firewall]**
-Coordinates, zone and level become part of what a claim records, written
-when you stand in a place or see it; a source passes on what it knew. The
-alternative — the server joining your claims to the world's index when it
-sends them — would put the index's facts on the wire. The location-graph
-firewall decides it: the client receives only your own knowledge, so the
-coordinates must *be* your knowledge.
+### The card, widest to narrowest **[DECIDED — the owner, 2026-11-14]**
+One column, no tabs, in a fixed order (muscle memory), as
+[map-slate § The whole card](../slates/client/map-slate.md) sets it:
 
-### The zone's extent and levels are yours **[DECIDED]**
-The zone's "extent known" and the level control show the extent and levels
-**you have found**, never the zone's real size — that would tell you what
-you have not explored. ⭐ **The level control appears only when what you
-know spans more than one level.** On a first visit everything is z: 0 until
-you find otherwise, and in most zones most players never see the control.
+1. **You are here** — the room's name, small. The place appears once.
+2. **In the world** — the Locality crumbs, stopping one short of the place.
+3. **The zone** — its label, `x: · y: · z:` with z stressed, who keeps it
+   and the rules in force, the extent and levels you know — then **the
+   map**, full width, with only the level control and zoom on it.
+4. **The horizon** — what you can see beyond this room, landmarks first,
+   each with its compass point and range; bearing ticks at the map's edge.
+   Click: `look` at it.
+5. **The structure** — inside (its name, the storey you are on of how
+   many, the way out), outside at a landing (what stands beside you, which
+   face, the way in), or aboard ship (her decks, the gangway, where she is
+   made fast). Storeys, never z. Click: `look` at it.
+6. **The ways** — the rose and the named exits (below).
+7. **The place** — only what bears on moving through it: light, open sky
+   or roofed, water, crowding, hazards found, what your map knows of it
+   (first walked, last seen, sources, disagreements). Click: bring its
+   inspection card forward.
+8. **You** — as a navigator: pace, posture, load, the light you carry, a
+   mount.
 
-### Three tiers on the map **[DECIDED]**
+The **lenses** sit in one row under the map.
+
+### The glance rule, filling, and absence **[DECIDED — the owner]**
+The place name, the map and the ways are always open; every other section
+is **one summary line** that opens on click, its detail in its tooltip. The
+card **fills the window's height**: with room to spare the next sections
+open by themselves in order, widest first; when space runs out they fold
+back, last first, and only then does text truncate (full text in its
+tooltip). A section the player opened or closed stays as set, and the card
+remembers. A section with nothing to say is **absent** — a bare cave has no
+horizon and no structure — except the map's *no map for this kind of space
+yet*.
+
+### Claims carry where; the extent and levels are yours **[DECIDED — shipped]**
+The map is drawn from positions in your own claims — the firewall: the
+client receives only your knowledge. The zone section's extent and the
+level control show what **you have found**, never the zone's real size.
+⭐ **The level control appears only when you know more than one level.**
+
+### Three tiers **[DECIDED]**
 Walked (solid) · known without walking — seen, searched, told, charted,
 published (outlined) · an opening into blank space (a door to a *?*). A
-concealed way you have not found is absent, not hidden.
+concealed way you have not found is absent. Where two claims about one
+way disagree, both show with their dates.
 
 ### A click **[DECIDED]**
-A neighbor: the ordinary `go <direction>`, echoed. A distant room: its route
-drawn, with the least certain step marked; no movement.
+On a neighbor: the ordinary `go <direction>`, echoed. On a distant room:
+its route drawn, its least certain step marked, nobody moves. `route to
+<room>` draws the same. On a way in the rose or the list: an open way
+moves you; anything else does what the ordinary command would, and says so.
 
-### Lenses in this build **[DECIDED]**
+### The ways **[DECIDED — the owner, 2026-11-14/15]**
+The **rose** holds the cardinal exits — eight directions, up and down
+(ordinary directions between levels). The **list** holds the named exits by
+their **own names** (the command words), nothing written over them.
+**Leaving the zone is a marker on any exit**, never a section. Each state at
+a glance: open · a shut door · locked or blocked · a window (see through,
+never go through) · a mode it needs (climbing, swimming) · **amber — there,
+but not for you right now** (sitting, cannot swim, your load will not fit)
+· dim (no way you know of) — so *no way* never looks like *a door*. Hovering
+an exit shows a **preview strip** under the section — where it leads as
+your map knows it, what stands in it, its state — holding nothing
+clickable: **one click moves you**, never select-then-confirm.
+
+### A way's tooltip, and its menu **[DECIDED — the owner, 2026-11-20]**
+The tooltip says the command, where it leads as your map knows it, what
+stands in it, the opening (and *your load won't fit*), one-way, muffled,
+*found by searching*, a track's length, and what stops *you* now. ⭐ A
+boundary's part is **assembled from what it is made of** — a block for each
+navigation-relevant thing it is (opens and shuts; locks, and your key;
+the opening and what passes it; grime on the glass; never shuts) — never a
+fixed *door / window* shape, so a pack's portcullis or airlock shows with
+no client change. ⛔ **No buttons in a tooltip** (the tooltips build's
+rule): opening, unlocking and looking through are on **the way's own
+menu** — right-click, a mouse hold, a phone's *actions* — as on every other
+thing in the client.
+
+### One hop of lookahead **[DECIDED]**
+Hovering a way out of the zone, or a crumb, shows that zone or Locality
+*as you know it* in its tooltip — a small thumbnail where you have one.
+Browsing further is the atlas's.
+
+### Breadcrumb **[DECIDED]**
+The crumbs read **your map**: a Locality you have never been to is not
+named. ⭐ **Every crumb has a tooltip** — you almost always stand on a
+leaf, so the crumbs are how you learn about the places above you: its name,
+when you first came and how you know it, how much of your map lies there,
+its government and who holds its seats, whether you live here, the weather
+and forecast. Clicking a crumb shows that Locality as you know it.
+
+### Lenses **[DECIDED]**
 Frontier (openings not taken), route (the latest plan, for the session),
-refusals (a way you saw locked or shut), boundaries (where the jurisdiction
-changes, from what you know). The compass is not a lens: it is the rose in
-the ways section. The rule is one lens per channel — turning one on turns
-off whatever holds its channel, and says so — but this build's four use four
-different channels, so all can be on together; the rule bites when the next
-build adds trail.
-
-### The pane, top to bottom **[DECIDED]**
-No tabs — one column, sections that fold: **the place's name**, small, at
-the top · **the Locality breadcrumb**, stopping one short of the place ·
-**the Zone block** (the zone's label, `x: · y: · z:`, the
-extent and levels you know) · the map, full width, with only the levels and
-zoom on it · the lenses in one row · the ways from here (the rose with up
-and down, the named exits, a marker on any that leaves the zone) · the
-selected place ·
-the zone line. ⭐ **Locality and Zone are two trees** and each keeps its
-information together: the breadcrumb is where you are in the world; the
-Zone block — directly above the map, which *is* the zone — is your position
-in the zone.
-
-### The whole card, and how it is fed **[DECIDED — the owner]**
-Widest to narrowest: you are here · in the world · the zone and its map ·
-the horizon · the structure · the ways · the place · you
-([map-slate § The whole card](../slates/client/map-slate.md)). The place
-name, the map and the ways are always open; every other section is one
-summary line, opened on click, its detail in its tooltip. A section with
-nothing to say is absent. While you move through more than one room, a
-movement block shows the movement — fed generically by whatever movement
-you are in. The server pushes the card's content in sections and sends only
-what changed ([navigation-server-slate § S18](../slates/engine/navigation-server-slate.md)).
-⚠ This build ships the horizon, structure and you sections as far as their
-server items (S16, S17) land in the first pass; the movement block lands
-with the movement build.
-
-### The rose **[DECIDED]**
-Up and down are ordinary directions between levels inside a zone, so they
-sit with the eight horizontal ones. A direction you know of no way in reads
-dim; a door reads as a door; a refused way reads refused — so *no way* never
-looks like *a door*.
+refusals (a way you saw locked or shut), boundaries (where the
+jurisdiction changes, as you know it). One lens per channel; these four
+hold four channels, so all can be on at once. The compass is not a lens —
+it is the rose.
 
 ### Zoom, levels, coordinates **[DECIDED]**
 Three steps — whole zone · nearby · close — each changing what is drawn;
 *me* recenters. The level control lists the levels you know, yours marked.
-Coordinates read `x: 2  y: 3  z: 0`, z stressed.
+Coordinates read `x: 2  y: 3  z: 0`, z stressed. **z is position on the
+zone's grid, nothing more**; elevation is the place's, shown apart.
 
-### Tooltips on the map **[DECIDED]**
-Every room, way, level, lens mark and control carries a tooltip in the
-app-wide model ([tooltip-slate](../slates/client/tooltip-slate.md)): what
-it is, everything you know of it with source and date, how to get there,
-and what a click would do — terms opening nested tooltips. Composed from
-your own knowledge, so they are instant and honest. No separate legend.
+### Kinds of space **[DECIDED in shape]**
+A grid zone draws. A frame inside one draws as its own zone. **Aboard a
+ship** the ship is the last crumb and the zone section shows two
+positions: you on her decks, and her in the world (made fast alongside, a
+reach, or *at sea* — the reckoning only at the helm, by `course`). A
+sphere, an expanse or moving water shows *no map for this kind of space
+yet*, and the rest of the card still works. The per-kind contents are
+[map-slate § The Locality section and the Zone section](../slates/client/map-slate.md).
 
-### The panel's width **[DECIDED]**
-**22 rem, the same in every mode.** On the owner's screen (125% zoom, about
-118 rem wide) that is the widest the panel can be and still leave two card
-columns; at 100% it leaves three; on a 1920 px screen two. The panel no
-longer collapses to make room for another card column — only at the narrow
-tier, where the terminal and one card column would not otherwise fit.
+### Paths are a spoiler **[DECIDED — the owner]**
+The zone shows a label; its path is a spoiler on the appetite axis, as
+every path is ([spoiler-slate § Paths are a spoiler](../slates/platform/spoiler-slate.md)).
+
+### Where the data comes from **[DECIDED]**
+Every field on the card and its tooltips comes from the copy of your map,
+the where-you-are sections, or a tooltip's own round trip. A field the
+server does not send yet is **absent, never guessed**.
+
+### The panel's width **[DECIDED — the owner]**
+**22 rem, the same in every mode.** At the owner's 125% zoom on 2560 px
+that leaves two card columns beside the terminal; at 100% three. The panel
+no longer collapses to make room for another column — only at the narrow
+tier.
 
 ### House style **[DECIDED]**
 The map draws in the client's house style; parchment is for illustrated
 maps, so the two never look alike.
 
-### Breadcrumb and first visits **[DECIDED]**
-Your first visit to a Locality writes it into your map with what it
-declares as learnable (its name, its description when it has one, its
-government). The breadcrumb reads your map. ⭐ **Every crumb has a
-tooltip** — you almost always stand on a leaf, so the crumbs are how you
-learn about the places above you without inspecting them by hand: its
-name, its address, when you first came and how you know it, how much of
-your map lies there, and (once the server sends them) its government and
-kind. A crumb opens the Locality as you know it.
+## ⚠ The commitments to scrutinize
 
-### The two sections' contents **[DECIDED in shape]**
-The Locality section's crumb tooltips and the Zone block, by zone kind —
-Cartesian, a frame inside one, aboard a ship, Spherical, an Expanse, moving
-water, the underwater column — are set in
-[map-slate § The Locality section and the Zone section](../slates/client/map-slate.md).
-Highlights a player sees: a crumb says who governs the place and who holds
-its seats, whether you live here, your standing here, the weather and a
-true forecast, and the lights tonight; the Zone block says how the space is
-laid out and where you are in it. Where a kind has no map yet (a sphere, an
-expanse, moving water) the map shows *no map for this kind of space yet*
-and the rest of the Zone block still works.
+The owner reviews mostly by seeing, so the expensive-to-reverse decisions
+are named, biggest first. (The three largest in the first draft — the
+client's copy of your knowledge, claims that carry where, and how the copy
+travels — shipped in the navigation-server build.)
 
-### Aboard a ship **[DECIDED — the owner]**
-The ship is your Locality — the last crumb — and the Zone section shows two
-positions: you on her decks, and her in the world (at sea the reckoning,
-in port where she is made fast, on a river the reach). The reckoning itself
-is read at the helm (`course`); a passenger knows what they can see and what
-the crew says.
-
-### `locate` is retired **[DECIDED — the owner]**
-It answered *where is anything, anywhere* for every player — which the map's
-honesty and `scry`'s cost forbid. Its jobs are already elsewhere: `query`
-for what you can reach, the pane for where you are, `course` for the
-reckoning.
-
-### z and elevation **[DECIDED — the owner]**
-`z:` is position on the zone's grid, nothing more. Elevation is a fact of
-your setting — biome, place — shown apart from it.
-
-### Paths are a spoiler **[DECIDED — the owner]**
-Anything that names an object's row — a template or identity path — is a
-spoiler on the appetite axis: hidden by default, shown by one deliberate
-click (*"What is this, really?"*) or by raising your appetite, never
-prevented ([spoiler-slate § Paths are a spoiler](../slates/platform/spoiler-slate.md)).
-The zone shows a derived label by default; its path is that kind of
-spoiler.
-
-### Where the data comes from **[DECIDED]**
-Every field on the pane and its tooltips is sourced from what the client
-already holds, the copy of your map this build adds, or a cached round
-trip — and what the server does not yet have is listed, item by item, in
-[navigation-server-slate](../slates/engine/navigation-server-slate.md)
-(S1–S9), each marked first pass or follow-up. A field the server cannot
-supply yet is absent, never guessed.
-
-### The copy is the server's **[DECIDED]**
-The server owns your knowledge; the client's copy is kept current by the
-server and repaired after a gap. Nothing on the client is invented. Whether
-the copy also lives on the device between sessions is the plan's
-performance call.
-
-## ⚠⚠ The commitments to scrutinize
-
-The owner reviews this build mostly by seeing it, so the decisions that are
-expensive to reverse are named here, biggest first.
-
-1. **The client knowledge model** ([client-knowledge-model-slate](../slates/client/client-knowledge-model-slate.md))
-   — the revived *shadow model*. This build makes the client hold a copy of
-   your knowledge, kept current by the server, read only through derived
-   views. ⭐ **It is the largest commitment here and outlives the map:**
-   every later client feature that shows anything beyond the room you stand
-   in — the lenses still to come, the illustrated map's *you are here*, a
-   quest journal, the room view — will read through it. Getting its
-   boundary right (a copy of the server's documents about *you*, never a
-   mirror of the world) is what keeps it honest and small. It is the
-   build's foundation, built first.
-2. **Claims carry where the place is.** A change to what your map records —
-   every writer of knowledge (walking, looking, searching, timetables,
-   charts) records the place's zone, coordinates and level from now on.
-   `route` and `map` read the same claims. Reversing it later means
-   unwriting knowledge players have.
-3. **How the copy travels.** A new kind of push from server to client, or
-   the subscriptions that already push live results. A third push path is a
-   standing cost every later feature pays; reusing one is preferred and the
-   plan must say why if it does not.
-4. **The drawn map.** The client's first real renderer (SVG). The lenses,
-   the illustrated map and the room view will all draw on it, so its shape
-   (one renderer, lenses as overlays on it) is set here.
-5. **A zone-facts read.** The first time the server tells a client about a
-   zone rather than a room — kept to the zone's kind, name and cell size,
-   because anything more (its true extent, its levels) would tell you what
-   you have not explored.
-6. **The panel's width, for every mode.** 22 rem, shared by forum, chat,
-   govern and make before any of them is designed — the owner's preference,
-   with his own caveat that it may constrain those designs.
-7. **Tooltips everywhere** — not built here, but this build is its first
-   big consumer, so it comes after the tooltip build.
+1. **The drawn map** — the client's first real renderer. The lenses, the
+   illustrated map and the room view will all draw on it, so its shape —
+   one renderer, lenses as overlays — is set here.
+2. **Reading your knowledge on the client** — the first feature that reads
+   the copy of your map. Every later one that shows anything beyond the
+   room you stand in (the atlas, a journal, *you are here*) reads it the
+   same way, so the reads are views over the copy, never a second model of
+   the world.
+3. **The card's section frame** — the glance rule and filling the height
+   are the shape the small and large sizes, and later the movement block,
+   plug into.
+4. **The panel's width, for every mode**, before forum, chat, govern and
+   make are designed — the owner's preference, with his own caveat.
 
 ## The order **[DECIDED]**
 
-- **Across builds:** the tooltip build; then this build; the movement build
-  (step beat, walking to a place) after controller-liquidity merges; then
-  *your map grows* (trail, notes, freshness).
-- **Within this build:** the knowledge model and claims-with-coordinates
-  first — nothing draws without them — then the map, then the ways and the
-  selected place, then the zone line, then the breadcrumb, then the lenses
-  and the map's tooltips.
-- ⭐ **Seen early.** The owner gives most of his feedback by looking, so a
-  plain map drawn from **real knowledge on a running world** comes before
-  any polish — the first thing after the foundation — and each later piece
-  lands visible on a running world for review, not only at the end.
-- **Starts after controller-liquidity (!561) merges** — it rewrites the
-  same client and movement files.
+- **Across builds:** tooltips (merged) → this build → the movement build
+  (step beat, walking to a place) → *your map grows*.
+- **Within this build:** a **plain map drawn from real knowledge on a
+  running world first** — the owner gives most feedback by looking — then
+  clicking it; then the ways; then the card's sections and the glance
+  rule; then the breadcrumb from your map; then the lenses; then the
+  tooltips on every mark; the status bar and the width alongside. Each
+  piece lands visible on a running world for review, not only at the end.
 
 ## Lens pass
 
-1. **Pedagogy** — the map teaches what you know versus what is: three tiers,
-   sources and dates make knowledge visible as knowledge. Coordinates make a
-   zone's geometry learnable. No Discipline gates any of it (navigation's
-   reckoning is unchanged); the gap is cartography, deliberately deferred.
+1. **Pedagogy** — the card teaches what you know versus what is: three
+   tiers, sources and dates make knowledge visible as knowledge;
+   coordinates make a zone's geometry learnable. No Discipline gates any of
+   it; the gap is cartography, deliberately deferred.
 2. **Creative expression** — the ordinary case needs no code: any authored
-   zone draws. Bespoke: a Locality authors what a first visit teaches.
-3. **Immersion / participation** — immersion: the map never shows what you
-   do not know, so it cannot betray the fiction; hidden ways stay hidden.
-   Participation: knowledge spreads by telling, charting and publishing, so
-   a player who maps a delve and tells others shapes what they see.
+   zone draws, any boundary's tooltip assembles from what it is. Bespoke: a
+   Locality authors what a first visit teaches.
+3. **Immersion / participation** — the map never shows what you do not
+   know, so it cannot betray the fiction; hidden ways stay hidden; amber is
+   honest because it is about *you*. Knowledge spreads by telling,
+   charting and publishing, so a player who maps a delve and tells others
+   shapes what they see.
 4. **Values** — a map is only as good as your sources; a wrong told claim
-   draws wrong until you walk it. That is the honest answer, chosen.
-5. **Continuity** — the same pane in every epoch; claims made before this
-   build still list, unplaced, until seen again.
+   draws wrong until you walk it. Chosen.
+5. **Continuity** — the same card in every epoch; a ship, a cavern, a
+   river all show something, and claims from before still list, unplaced.
 6. **Economy** — none directly; it makes charts and published maps worth
    having, which the illustrated-maps build prices.
 7. **Governance** — none: no person is judged.
@@ -413,68 +373,86 @@ expensive to reverse are named here, biggest first.
 ## The drive
 
 Paces: `instant` · `short` · `staged`. Assertions: `player` or `staged`.
+Every step is walked in a browser; steps 16–17 also as a wire drive.
 
 ### Blocking drive
 
 1. `instant` · player — A new character with an empty map walks into the
-   Sunken Delve. The pane shows the vestibule solid, `x: · y: · z: 0` with
-   z stressed, no level control (one level known), the rose with the ways it
+   Sunken Delve. The card: the vestibule's name small at the top, the
+   crumbs, the zone line with `x: · y: · z: 0` and z stressed, the map
+   with the vestibule solid, no level control, the rose with the ways it
    can see, and the way back out marked as leaving the zone.
 2. `instant` · player — `look`. The rooms it can see appear outlined; the
    frontier lens marks the openings not taken.
 3. `instant` · player — Click a neighboring room on the map. `go
    <direction>` echoes, the character moves, the room turns solid, the map
    follows.
-4. `instant` · player — Walk the diagonal from the third corridor to the
-   vault: drawn corner to corner.
+4. `instant` · player — Walk the diagonal to the vault: drawn corner to
+   corner.
 5. `instant` · player — The rose's *down* lights; go down to the pit. The
-   level control appears now — two levels known, yours marked; choose the
+   level control appears — two levels known, yours marked; choose the
    other level and see what you know of it.
-6. `instant` · player — The cache: absent from the map until `search` finds
-   it; then drawn.
-7. `instant` · player — Click a distant known room. The route is drawn with
+6. `instant` · player — The pit is dark: `look` sees nothing, no neighbor
+   appears, the place section says dark, the map shows only what you walked.
+   (Light.)
+7. `instant` · player — The cache: absent until `search` finds it; then
+   drawn, and its way's tooltip says *found by searching*.
+8. `instant` · player — Click a distant known room. The route is drawn with
    its least certain step marked; nobody moves. `route to <room>` draws the
    same.
-8. `instant` · player — Open the zone line: kind, cell size, extent and
-   levels known, walked against known, sources; click a distant room and
-   read the selected place: what you know, from whom, how to get there.
-9. `instant` · player — In the lounge, the office's north door is absent;
-   `search` finds it and it appears. A locked or shut door is drawn so, and
-   the refusals lens marks it.
-10. `instant` · player — The lounge's occupancy rooms draw as *a space
+9. `instant` · player — Open the zone section: kind, cell size, extent and
+   levels known, walked against known, sources. Read the place section:
+   what your map knows of this room, from whom, when.
+10. `instant` · player — Hover each exit in the rose and the list: the
+    preview strip shows where it leads and its state; clicking moves you in
+    one click.
+11. `instant` · player — In the lounge, the office's north door is absent;
+    `search` finds it and it appears. A shut door is gold; right-click it
+    and its menu offers *open*; a locked one is red and the refusals lens
+    marks it. Its tooltip has no buttons.
+12. `instant` · player — Put yourself where a way refuses *you* — carry
+    more than its opening passes, or whatever `go` refuses in the Delve's
+    narrow crack: that way turns amber and its tooltip says what stops you,
+    in `go`'s own words; put it right and it clears.
+13. `instant` · player — The lounge's occupancy rooms draw as *a space
     through this door, shape unknown*.
-11. `instant` · player — In Rejection, walk a track: it is drawn as a long
-    way over open ground; *whole zone* fits what you know of the zone.
-12. `instant` · player — In Hearts Delight, climb through several levels;
-    the level control lists only the levels you have found.
-13. `instant` · player — First visit to a Locality: the breadcrumb gains it
-    by name; click the crumb and see the Locality as you know it. A second
+14. `instant` · player — In Rejection, walk a track: drawn as a long way
+    over open ground, its length in its tooltip; *whole zone* fits what you
+    know. The horizon section names a landmark with its bearing and range,
+    and the map's edge carries its tick; clicking it `look`s at it.
+15. `instant` · player — In Hearts Delight, climb through several levels;
+    the level control lists only the levels found. Enter a building: the
+    structure section says *floor N of M* and the way out.
+16. `instant` · player — First visit to a Locality: the breadcrumb gains it
+    by name; its tooltip says when you first came and how much of your map
+    lies there; clicking it shows the Locality as you know it. A second
     character who has never been there sees it unnamed.
-14. `instant` · player — Turn on all four lenses at once (none share a
-    channel). Hover a room, a door, a corridor, a level button and every
-    lens mark: each tooltip says what it is and what you know of it, with
-    source and date; hover a term inside one and a nested tooltip opens.
-15. `instant` · player — A second player B stands in the same delve with a
-    different map. B's pane shows only B's knowledge.
-16. `short` · staged — Restart the world. On reconnect the pane redraws the
-    same map from the server; nothing is lost or duplicated.
-17. `instant` · player — Log in from a second browser: the same map.
-18. `instant` · player — In a pitch-dark delve room, `look` sees nothing:
-    no neighbor appears; the map shows only what you walked. (Light.)
-19. `instant` · player — The status bar shows the weather and time the
-    navigator used to; the zone line shows the jurisdiction.
-20. `instant` · player — Board a ship at a wharf: the last crumb is the
-    ship, the Zone block shows your place on her decks and where she is made
-    fast. Put to sea: the crumbs still end at the ship, the outer position
-    says *at sea*, and only at the helm does `course` give the reckoning.
-    The jurisdiction names the port, then the flag.
-21. `instant` · player — In the Hush (a spherical zone) the map reads *no
-    map for this kind of space yet* and the Zone block still describes the
-    cavern. `locate` is not a command.
-22. `instant` · player — Hover a crumb in Terminus City: its government,
-    the seats and their holders, resident or visitor, the forecast.
-23. `instant` · player — At 125% zoom on a 2560 px screen the panel is
-    22 rem and two card columns sit beside the terminal; open the forum
+17. `instant` · player — A second player B stands in the same delve with a
+    different map; B's card shows only B's knowledge.
+18. `instant` · player — Turn on all four lenses at once. Hover a room, a
+    door, a corridor, a level button, a crumb, each section's summary line
+    and every lens mark: each tooltip says what it is and what you know of
+    it, with source and date; a term inside one opens a nested tooltip.
+19. `instant` · player — Shrink the window: sections fold back last first
+    and become summary lines; grow it and they open in order. Close one by
+    hand; it stays closed after a reload.
+20. `short` · staged — Restart the world. On reconnect the card redraws the
+    same map; nothing lost or duplicated. Log in from a second browser: the
+    same map.
+21. `instant` · player — The status bar shows the weather and time; the
+    zone section shows who keeps the ground.
+22. `instant` · player — Board the Hesper at her berth: the last crumb is
+    the ship, the zone section shows your place on her decks and where she
+    is made fast, the structure section her decks. Put to sea: the crumbs
+    still end at the ship, the outer position says *at sea*, and only at
+    the helm does `course` give the reckoning.
+23. `instant` · player — In the Hush the map reads *no map for this kind of
+    space yet* and the rest of the card still describes the cavern.
+24. `instant` · player — Hover the *Terminus City* crumb: its government,
+    the seats and their holders, resident or visitor, the forecast; the
+    crumbs never read *Terminus › Terminus*.
+25. `instant` · player — At 125% zoom on a 2560 px screen the panel is
+    22 rem with two card columns beside the terminal; switch to the forum
     mode and its panel is the same width.
 
 ### Soak drive
@@ -486,18 +464,25 @@ None — nothing here depends on game time.
 - A player sees a map of the zone they are in, drawn only from their own
   knowledge, with walked, known and unexplored places told apart.
 - Clicking a neighboring room moves the player; clicking a distant one
-  shows the route.
-- The map shows diagonals and tracks and three zoom steps; the level
-  control appears only once the player knows more than one level.
-- The ways from here show every direction, up and down included, and every
-  named exit, each in its state; any exit that leaves the zone is marked.
-- The zone line describes the zone as the player knows it, never more.
+  draws the route and moves nobody.
+- The map shows diagonals, tracks and three zoom steps; the level control
+  appears only once the player knows more than one level.
+- The ways show every direction, up and down included, and every named
+  exit by its own name, each in its state; *there but not for you* is told
+  apart from *no way*; any exit that leaves the zone is marked.
+- A shut or locked door can be opened or unlocked from its menu on the
+  card; no tooltip carries a button.
+- The card's sections run widest to narrowest; a section with nothing to
+  say is absent; the card fills the window's height and folds as it
+  shrinks; a section the player set stays set.
+- The zone section describes the zone as the player knows it, never more.
 - A hidden way is absent until found.
-- The breadcrumb is the player's own: a Locality they have never visited is
-  unnamed.
-- The four lenses work, one per channel.
-- Every mark on the pane has a tooltip saying what it is and what the
+- The breadcrumb is the player's own: a Locality they have never visited
+  is unnamed.
+- The four lenses work together.
+- Every mark on the card has a tooltip saying what it is and what the
   player knows of it, with sources.
+- The weather and time are on the status bar.
 - The panel is the same width in every mode.
 - After a restart, a reconnect or a second device, the map is the same.
 - Two players in one place see two different maps.
@@ -507,13 +492,16 @@ None — nothing here depends on game time.
 - [map-slate](../slates/client/map-slate.md) ·
   [client-knowledge-model-slate](../slates/client/client-knowledge-model-slate.md) ·
   [locality-knowledge-slate](../slates/engine/locality-knowledge-slate.md) ·
+  [navigation-server-slate](../slates/engine/navigation-server-slate.md) ·
   [step-beat-slate](../slates/engine/step-beat-slate.md) ·
+  [atlas-slate](../slates/client/atlas-slate.md) ·
   [iconography-slate](../slates/client/iconography-slate.md) ·
   [card-sizes-slate](../slates/client/card-sizes-slate.md) ·
   [tooltip-slate](../slates/client/tooltip-slate.md) ·
-  [navigation-server-slate](../slates/engine/navigation-server-slate.md) ·
   [spoiler-slate](../slates/platform/spoiler-slate.md)
-- [location-graph.md](../subsystems/location-graph.md) ·
+- [tooltips.md](../subsystems/tooltips.md) ·
+  [subscription.md](../subsystems/subscription.md) ·
+  [location-graph.md](../subsystems/location-graph.md) ·
   [boundary.md](../subsystems/boundary.md) ·
   [card-surface.md](../subsystems/card-surface.md) ·
   [client-shell.md](../subsystems/client-shell.md) ·
