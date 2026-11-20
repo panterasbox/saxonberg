@@ -170,7 +170,9 @@ describe('the rows say what', () => {
   });
 
   it('lye eats protein and tissue — never `organic` or `textile` (rubber stays out of it)', () => {
-    const lye = row('idea/material/lye.yaml').data;
+    const lye = YAML.parse(
+      readFileSync(join(ROOT, '../../../../trade-fuel/content/trade/fuel/idea/material/lye.yaml'), 'utf8'),
+    ).data as Record<string, unknown>;
     expect(lye.corrosiveTo).toEqual(['protein', 'tissue']);
   });
 });

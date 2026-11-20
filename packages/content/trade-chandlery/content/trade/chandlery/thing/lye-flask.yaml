@@ -7,7 +7,7 @@ data:
   longDescription: A stoppered stone flask, its label a skull scratched into the glaze.
   interiorBulk: true
   interiorCapacity: 1
-  interiorMaterial: /trade/chandlery/idea/material/lye
+  interiorMaterial: /trade/fuel/idea/material/lye
   interiorAmount: 0.5
   closure: liquidTight
   _materialPath: /stuff/idea/material/ceramic/earthenware

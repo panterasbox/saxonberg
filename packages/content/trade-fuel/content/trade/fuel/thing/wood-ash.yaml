@@ -25,6 +25,6 @@ data:
   # ⭐ Water poured on a heap comes out of the bottom as lye (matter-model-
   # overlaps D10b) — a puddle of it on a bare floor, the pot's when the heap
   # stands over one. The hopper's leach is unchanged: it makes its own
-  # liquor lye in place. ⚠ The chandlery ships the lye, and the fuel trade
-  # does not depend on it, so the row names it.
-  leachesTo: /trade/chandlery/idea/material/lye
+  # liquor lye in place. The lye row is this pack's: water through ash makes
+  # it, so it lives with the ash (the chandlery, which depends on fuel, uses it).
+  leachesTo: /trade/fuel/idea/material/lye

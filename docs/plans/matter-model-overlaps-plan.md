@@ -1174,9 +1174,11 @@ is 0. Decisions the plan did not make:
   titles the lye at the pour, the hopper's communal-oven rule). Non-liquid
   source → `nothing`; another liquid on a working heap → `mismatch`. `pour`
   gained the `onto` preposition. Opens 3 decided: the lye path is authored on
-  the Ash row (`leachesTo`, constituent ref) — on `wood-ash.yaml`, naming
-  chandlery's lye from trade-fuel content (fuel cannot depend on chandlery;
-  a cross-pack row reference with no package dependency, recorded).
+  the Ash row (`leachesTo`, constituent ref) on `wood-ash.yaml`. ⚠ Review
+  fix: it first named chandlery's lye with no package dependency (an
+  undeclared cross-pack reference); the lye ROW moved into trade-fuel
+  (`/trade/fuel/idea/material/lye` — water through ash makes it; chandlery
+  already depends on fuel) and its three references follow.
 - Every drip with nowhere throws `DetachedError` — a spent mould pan checks
   before its liquor changes. Unit-test rooms that drain now carry a floor
   (Mould, Mould.drainings, Thermal.crystallize, dairying hoop).
