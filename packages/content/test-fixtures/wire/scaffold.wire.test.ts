@@ -80,6 +80,9 @@ const PLACES: Array<{ path: string; key: keyof typeof EXITS; lit: boolean }> = [
 const SHUT = new Set(['yard>shop', 'shop>yard', 'plaza>hut', 'hut>plaza']);
 /** Ways under a low door: a body stoops through (`go` refuses, in the way's own words). */
 const LOW = new Set(['approach>works', 'works>approach']);
+/** The shaft's ladder: a vertical way is climbed. */
+const CLIMB = new Set(['shaftHead>shaftFoot', 'shaftFoot>shaftHead']);
+const verbFor = (way: string): string => (LOW.has(way) ? 'stoop' : CLIMB.has(way) ? 'climb' : 'go');
 
 suite.skipIf(!isOwnedTestWorld())('the scaffold is there (step 1)', () => {
   it('⭐ by day: every place answers a login, and looks as lit as it is', async () => {
@@ -106,7 +109,7 @@ suite.skipIf(!isOwnedTestWorld())('the scaffold is there (step 1)', () => {
         for (const [to, word] of Object.entries(EXITS[p.key])) {
           if (SHUT.has(`${p.key}>${to}`)) continue;
           const s = await at(p.path, 'walker');
-          const r = await s.cmd(`${LOW.has(`${p.key}>${to}`) ? 'stoop' : 'go'} ${word}`);
+          const r = await s.cmd(`${verbFor(`${p.key}>${to}`)} ${word}`);
           expectOk(r);
           s.close();
         }

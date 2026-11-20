@@ -144,12 +144,16 @@ suite('2 — a new player still arrives with their loadout', () => {
     // body's own sequence for the record. Installing it twice collides
     // on the cranial slot; installing it never leaves a player who can
     // receive a channel message and cannot send one.
+    // ⭐ Since aether-devices (!615) the floor is a TUNER, and which one is
+    // the person's: a guest is seated the implant, everyone else is tuned
+    // by the phone the starting kit hands them. The assertion read "implant"
+    // and went red on master the day that merged (the scaffold run found it).
     const inv = squash(plain(await (await ada.cmd('inventory')).said()));
+    const tuners = inv.match(/\bimplant\b|\bphone\b/gi) ?? [];
     expect(
-      inv,
-      'the born-with loadout must still install exactly once — the ' +
-        'implant is the floor every body gets',
-    ).toMatch(/implant/i);
+      tuners.length,
+      `the born-with tuner must install exactly once — a phone, or a guest's implant: ${inv}`,
+    ).toBe(1);
   }, 180_000);
 });
 

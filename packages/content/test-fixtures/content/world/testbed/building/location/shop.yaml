@@ -22,6 +22,9 @@ data:
     down:
       destination: /world/testbed/location/cellar
       door: /world/testbed/thing/cellar-door
+      # Cellar steps: a body walks them (a vertical way with no medium is a
+      # climb, and the first live drive found `go down` refused).
+      media: [ground]
   props:
     - /world/testbed/thing/counter
     - /world/testbed/thing/shelf

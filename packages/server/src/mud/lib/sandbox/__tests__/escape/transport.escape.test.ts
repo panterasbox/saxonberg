@@ -58,6 +58,13 @@ class FakeHost extends Idea {
     this.attachedCount++;
   }
 
+  public leaveIntent = false;
+
+  /** The socket's close code, recorded for `onLinkdead` (the connection layer's write). */
+  public setLeaveIntent(intentional: boolean): void {
+    this.leaveIntent = intentional;
+  }
+
   /** A read on the same seam — symmetric, and must STAY symmetric. */
   public isConnected(): boolean {
     return true;
@@ -111,6 +118,13 @@ describe('sandbox-escape: transport direction', () => {
     ).toBe(0);
   });
 
+  it('DENIES the close-code write outbound too', async () => {
+    const fieldHost = await mintIn(null, () => new FakeHost());
+    expect(() =>
+      ExecutionContextApi.runRoot(null, 'in-circle', () => fieldHost.setLeaveIntent(true), { circleScope: SCOPE }),
+    ).toThrow(SecurityError);
+  });
+
   it('DENIES the socket-attach hook outbound too', async () => {
     const fieldHost = await mintIn(null, () => new FakeHost());
 
@@ -128,7 +142,10 @@ describe('sandbox-escape: transport direction', () => {
     const vessel = await mintIn(SCOPE, () => new FakeHost());
 
     // Field context — a socket closing while its holder is a vessel.
+    // ⭐ setLeaveIntent first, as Application.handleUserDisconnect does: it
+    // threw uncaught here once and took the world down (test-world-lifecycle).
     ExecutionContextApi.runRoot(null, 'connection-layer', () => {
+      vessel.setLeaveIntent(true);
       vessel.onLinkdead();
       vessel.onConnectionAttached();
     });
