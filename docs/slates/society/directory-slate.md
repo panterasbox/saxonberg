@@ -119,6 +119,16 @@ capturing data (the web's shape: people publish pages, search engines compete to
 open to **every** publisher, or the Post owns the floor and nobody can compete [LEAN]) ·
 **submitted** (people who asked to be listed there) · **curated** (entries added by hand, annotated).
 
+⭐⭐ **And its readers** **[LEAN — the owner: *"I'd rather keep things consistent"*]** — visibility
+is one field on every directory, so no list of people needs a mechanism of its own:
+
+| readers | example |
+|---|---|
+| **its keeper only** | your private foes list — a private list *is* a directory only you read |
+| **a group's members** | a guild's internal roster |
+| **holders of a grant** | ⭐ **the moderators' directory** (§ 3a) |
+| **anyone** | the Post's register, any published list |
+
 - `who` alone renders the default directory (a removable player alias, like `l`, pointing at the
   Post's by address); `who` with any other directory renders that one with its own columns. A search
   is an MQL filter over published fields. **No directory needs its own verb.** Re-pointing your
@@ -152,10 +162,20 @@ Nobody is put on or taken off a list when they connect. **A directory reads a fe
   Two views of one fact:
   - **the public floor** is the fiction — the exchange's register, gated by the aether's reach;
   - **the moderators' view** is the meta — **the connection record itself, complete, never gated by
-    the aether or by status.** It is a **read grant on the seat** (*power is the pen*), held by
-    seated moderators (moderation-slate § 24's teams); what a moderator may do about a person
-    still follows jurisdiction (moderation § 23). **[LEAN]** A moderator's lookup of one person goes
-    on the moderation log, which already names seats — the watchers are watched too.
+    the aether or by status.** ⭐ **It is a directory like any other** (the owner: *"a separate
+    institution or list … just for mods that no one can use but mods … I'd rather keep things
+    consistent"*): the same six layers, its readers declared as **holders of a moderation grant**
+    (§ 3). Each seated moderator reads it **through a grant on their own seat** (*power is the
+    pen*) — the Post's moderators, the Compact's, a locality's alike (moderation-slate § 24's
+    teams); what a moderator may do about a person still follows jurisdiction (moderation § 23).
+    **[LEAN]** A moderator's lookup of one person goes on the moderation log, which already names
+    seats — the watchers are watched too.
+  - ⭐ **The Compact publishes it, never the Post** **[LEAN]**: (1) **its source is not public** —
+    the complete connection record is a meta fact only the Compact holds, where the public floor
+    draws on the aether-gated register; (2) **the Post's independence** — a paper keeping a
+    surveillance view for enforcement is the press as an arm of the state, the inverse of the
+    *state media with extra steps* its charter avoids; (3) **moderators sit in many institutions**,
+    and one directory in the Compact's tree serves them all through their seats.
   - Leaving the floor never leaves the **record**: acts are still written, the court still reaches
     you, and provenance still cites what you did.
 - **Commands:** presence needs none. A player's controls are their status and their profile.
@@ -519,6 +539,8 @@ can trust, and above it a market of lists people care about getting onto.
 8. **An *open to talk* status on the floor**, or the lounge named as the ice-breaker (§ 10a).
 9. ~~Presence = connected~~ — **decided**: public presence follows the aether's reach; the
    moderators' view is complete (§ 3a). Open: whether a moderator's lookup of one person is logged.
+14. **Readers as a field on every directory** (keeper · group · grant · anyone), and **the Compact
+    publishing the moderators' directory** — both leaned, to confirm at requirements.
 10. **Players in a city directory only by publishing their residence** (§ 3b).
 11. **Every locality with content gets a paper and a city directory by default**, or only those that
     author one.
