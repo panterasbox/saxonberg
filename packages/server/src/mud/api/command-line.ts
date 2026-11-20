@@ -65,14 +65,14 @@ export interface ParsedCommand {
    */
   emotePrefixed?: boolean;
   /**
-   * ⭐ **`verb@source`** — the source the player named after the verb's
-   * first `@` (`wind@me:watch` → verb `wind`, scope `me:watch`). Absent
-   * when the verb token carries no `@` past its first character. The
-   * raw verb token is left untouched, so `format()` round-trips; a
-   * synthesized command (an alias expansion) whose token 0 has no `@`
-   * but carries a scope re-emits `verb@scope`. Only the VERB token is
-   * ever split — `say hi @bob` is untouched. A multi-word scope is
-   * quoted: `wind@"pocket watch"`. The dispatcher resolves it as MQL
+   * ⭐ **`source::verb`** — the source the player named before the verb
+   * token's first `::` outside quotes (`me:watch::wind` → verb `wind`,
+   * scope `me:watch`). Absent when the verb token has no such split (an
+   * empty side is none). The raw verb token is left untouched, so
+   * `format()` round-trips; a synthesized command (an alias expansion)
+   * that carries a scope its token 0 lacks re-emits `source::verb`. Only
+   * the VERB token is ever split. A multi-word scope is quoted:
+   * `"pocket watch"::wind`. The dispatcher resolves it as MQL
    * and keeps only the affordances that source offers.
    */
   scope?: string;

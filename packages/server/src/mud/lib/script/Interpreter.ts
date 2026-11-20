@@ -78,7 +78,7 @@ export type Effect =
       command: CommandDefinition;
       model: CommandModel;
       prep: Record<string, string>;
-      /** The `verb@source` source the line named, when it named one. */
+      /** The `source::verb` source the line named, when it named one. */
       source?: Stuff;
       /** The line as the script wrote it — what a stop names. */
       line: string;
@@ -375,7 +375,7 @@ export class Interpreter {
     // ⭐ A line the binder refuses is a refusal like any other (D5): the
     // script stops there unless a `try` handles it. Its notes go with it.
     if (bindings === null) throw this.refusalFromNotes(this.notes.splice(mark), line);
-    // ⭐ One binding, or one per source of a plural `verb@source` batch.
+    // ⭐ One binding, or one per source of a plural `source::verb` batch.
     // The pump throws a refused line's Refusal (or a defect's
     // ScriptHalted) back in at this yield.
     for (const bound of bindings) {
@@ -803,7 +803,7 @@ export class Interpreter {
     const location = MixinApi.isContainable(this.actor)
       ? this.actor.getContainer()
       : null;
-    // ⭐ The dispatcher's own matcher (verb filter + `verb@source`).
+    // ⭐ The dispatcher's own matcher (verb filter + `source::verb`).
     const matched = this.actor.matchAffordances(parsed);
     if (!matched.ok) {
       this.note(matched.note);

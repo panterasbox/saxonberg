@@ -1475,7 +1475,7 @@ export interface AssembleSuccess {
 /**
  * Per-call options for {@link CommandApi.assemble}.
  *
- * `scopeSource` — ⭐ the source a `verb@source` named. It fills the
+ * `scopeSource` — ⭐ the source a `source::verb` named. It fills the
  * FIRST positional object slot whose `requires:` it satisfies: nothing
  * typed there → the source is bound; a typed word that matches the
  * source → the source wins the slot; a typed word that does not → the

@@ -887,6 +887,15 @@ cases); `wind@watch` is refused with the new spelling; `format()`
 round-trips.
 *Commit:* `build(naming-overhaul WB0): the affordance selector is source::verb`.
 
+✅ **Done.** The split reads the RAW verb token, so a quoted source keeps
+its own colons (`"a::b"::wind`); a leading `\` (alias bypass) stays on the
+verb (`\me::look` → verb `\look`, scope `me`). `format()` re-emits the raw
+token when its scope is unchanged, else `<quoted source>::<verb>`. The old
+`wind@watch` is one unknown verb word and the refusal says `watch::wind`
+once (`CommandGiver`'s `unknown-verb` line). Respelled: the wiki guide, the
+controllers-are-io wire file and walk, the tokenizer/alias/script tests,
+`command-parsing.md`, `command-routing.md`, `shell-alias.md`.
+
 **B1 — Relations in the grammar, beside the old words.**
 *Decisions:* D-B1, D-B2, D-B3, D-B4, D-B5, D-B6.
 *Files:* `S/api/mql/lexer.ts`, `parser.ts`, `types.ts`, `resolver.ts`, new

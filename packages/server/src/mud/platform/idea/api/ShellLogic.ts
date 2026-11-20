@@ -96,7 +96,7 @@ export class ShellLogic extends ApiLogic {
 
     const inflight = new Set<string>();
     const chain: string[] = [];
-    // ⭐ `verb@source` survives the alias: the invocation's scope is
+    // ⭐ `source::verb` survives the alias: the invocation's scope is
     // copied onto the result, and it WINS over one written in the body.
     const result = carryScope(
       expandRecursive(parsed, giver, inflight, 0, chain),
@@ -156,7 +156,7 @@ export class ShellLogic extends ApiLogic {
 const ALIAS_DEPTH_CEILING = 16;
 
 /**
- * Copy the invocation's `verb@source` scope onto an expansion result.
+ * Copy the invocation's `source::verb` scope onto an expansion result.
  * The invocation's scope wins over one an alias body carried; with none
  * typed, the body's own (if any) stands. Returns `result` itself when
  * there is nothing to carry.

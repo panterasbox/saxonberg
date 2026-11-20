@@ -769,7 +769,7 @@ single-quote-as-literal convention, and `format()` round-trip, see
 
 ## Stage 3 — Matching
 
-### ⭐⭐ `verb@source` — the scope filter, first (controllers-are-io D2)
+### ⭐⭐ `source::verb` — the scope filter, first (controllers-are-io D2)
 
 `_runChain` runs in three parts, in order: ① the scope filter, ② the
 chain (below), ③ the other offer. ① and the verb filter live in
@@ -783,7 +783,7 @@ are read one way.
   (`scope: 'reachable'` — `me`, `here`, `#id` anchor; a bare name
   searches what the giver can reach). An affordance is FROM a source
   `s` when `a.source === s`, or `s` is the giver and `a.bucket ===
-  'self'` (`cast@me`). Nothing resolved → `command-rejected:
+  'self'` (`me::cast`). Nothing resolved → `command-rejected:
   source-not-found`; resolved, none affording the verb →
   `source-affords-nothing`; both prosed by the dispatcher.
 - **Several affording sources**: a set or a count named on purpose
@@ -799,7 +799,7 @@ are read one way.
   satisfies — nothing typed there → the source is bound (`#<id>`); a
   typed word that matches the source → the source wins the slot; a
   typed word that does not → the typed words win. A view with no such
-  slot (`say@me hello`) binds as unscoped.
+  slot (`me::say hello`) binds as unscoped.
 
 ### ⭐ ③ The other offer (D3)
 
@@ -812,7 +812,7 @@ focus, no pronoun memory) on a ctx with **no Interactive** (nothing
 prompts), preloads, validators. **The controller is never run.** The
 first that passes becomes an `other-offer {verb, source, scopedForm}`
 note, prosed: *"The ripe wheat also answers `harvest` —
-`harvest@here:i:wheat:[2]`."* The scoped form is derived by one rule —
+`here:i:wheat:[2]::harvest`."* The scoped form is derived by one rule —
 `me` · `me:i:<handle>` · `here` · `here:i:<handle>` · `<handle>`, with
 MQL's `:[n]` index when ambiguous — and **proved by resolving it once**
 (`#<id>` when nothing worded proves out). ⚠ MQL's contents operator is
@@ -1970,11 +1970,11 @@ witnesses. Detail: [fishing.md](./fishing.md).
 The dispatcher became what a controller is fed by, not a place a
 controller reaches back into. Load-bearing shifts:
 
-- **`verb@source`** split in the tokenizer (`ParsedCommand.scope`), the
+- **`source::verb`** split in the tokenizer (`ParsedCommand.scope`), the
   source filter + slot fill in `CommandGiver.matchAffordances`, and the
   other-offer probe (W1, `5ea55fd79^..0c65a4403`). The plan promised a
   plain-English scoped form; what ships is MQL's own grammar
-  (`wind@me:i:watch`, `harvest@here:i:wheat:[2]`).
+  (`me:i:watch::wind`, `here:i:wheat:[2]::harvest`).
 - **Where a verb looks first** (`scope: [here, peers, person]` on world
   acts) and **names are keywords** — the 100/60/50/40 name tiers and
   `bareName` collapsed into keyword tiers on `NamedMixin.getKeywords()`

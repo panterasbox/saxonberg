@@ -1328,7 +1328,7 @@ export class CommandLogic extends ApiLogic {
     }
 
     // Phase 4: bind positionals against the node's args.
-    // ⭐ `verb@source`: the named source fills the slot it fits (D2).
+    // ⭐ `source::verb`: the named source fills the slot it fits (D2).
     const bindPositionals = (
       ps: WordToken[],
       args: PositionalDefinition[],
@@ -3008,7 +3008,7 @@ const _compiledStructSchemas = new Map<string, ValidateFunction>();
 type WordToken = Extract<RawToken, { kind: 'word' }>;
 
 /**
- * ⭐ **The source fills the slot it fits** (`verb@source`, D2). The
+ * ⭐ **The source fills the slot it fits** (`source::verb`, D2). The
  * first positional object slot whose `requires:` the source satisfies:
  *
  *  - nothing typed there → the source is bound (a per-invocation

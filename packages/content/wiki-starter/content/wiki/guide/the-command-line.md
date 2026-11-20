@@ -57,14 +57,14 @@ list.
 `here` is the place you are in, even when you are sitting in a boat or
 lying in a bed: `look here` on the river describes the river.
 
-## Saying which one: `verb@source` {#verb-at-source}
+## Saying which one: `source::verb` {#verb-at-source}
 
 When two things nearby both offer the same verb, put the one you mean
-after an `@` on the verb: `wind@me:i:watch` winds the watch you are
-carrying, `harvest@here:i:wheat` the wheat where you stand. What comes
-after the `@` is a query, the same language `query` uses: `me` is you,
+first, joined to the verb by `::` — `me:i:watch::wind` winds the watch you
+are carrying, `here:i:wheat::harvest` the wheat where you stand. What comes
+before the `::` is a query, the same language `query` uses: `me` is you,
 `here` is where you stand, and `:i` is what is in it. Quote a name of more
-than one word: `wind@"pocket watch"`.
+than one word: `"pocket watch"::wind`.
 
 If the thing you reached for refuses, but something else nearby would
 have done it, the reply says so and gives you the exact form to type.
