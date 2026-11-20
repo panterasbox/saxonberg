@@ -155,6 +155,14 @@ something like `online` the answer should be very legible."*
     binds nothing (offline contacts stay removable, as today); `dm` to an
     offline player stays unsupported, as today.
 
+22. **`here` splits** — `~here` is the place you stand in; what is in it
+    is said explicitly (`~peers`, `~here:i`). The ~140 views scoped to
+    today's scope-`here` are rewritten to say which they mean; no relation
+    has two faces.
+23. **Default player aliases: `here`, `it`, `them`, `him`, `her` only.**
+    `inventory`, `peers`, `reachable`, `person`, `horizon` typed bare are
+    ordinary keywords; `$$` becomes `~last`.
+
 ## ⭐ The standing question for an unresolved expression (owner, 2026-11-20)
 
 > **When an MQL expression cannot be resolved — a set nobody can name, a
