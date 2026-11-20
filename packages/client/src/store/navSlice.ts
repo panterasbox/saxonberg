@@ -15,6 +15,7 @@
  */
 
 import type {
+  RoutePlanNote,
   MapCopySnapshot,
   NavSectionName,
   NavSections,
@@ -38,6 +39,14 @@ export interface NavSlice {
   applyNavChanges: (changes: readonly SubscriptionChange[]) => void;
   applyMapSnapshot: (snapshot: MapCopySnapshot) => void;
   applyMapChanges: (changes: readonly SubscriptionChange[]) => void;
+  /**
+   * ⭐ The latest plan `route` answered with (navigation card D5) — the
+   * note itself. Session-only: a plan is a hypothesis about NOW, and must
+   * not come back after a restart as if it were current. A new plan
+   * replaces it.
+   */
+  routePlan: RoutePlanNote | null;
+  setRoutePlan: (note: RoutePlanNote | null) => void;
 }
 
 export const createNavSlice = (
@@ -47,6 +56,8 @@ export const createNavSlice = (
 ): NavSlice => ({
   navSections: {},
   mapCopy: {},
+  routePlan: null,
+  setRoutePlan: (note) => set(() => ({ routePlan: note })),
   applyNavSnapshot: (sections) => set(() => ({ navSections: { ...sections } })),
   applyNavChanges: (changes) =>
     set((s) => {
@@ -66,7 +77,9 @@ export const createNavSlice = (
           mapCopy[`${doc.locality}|${claim.key}`] = { locality: doc.locality, claim };
         }
       }
-      return { mapCopy };
+      // A fresh copy (a new connection, another character) drops the
+      // plan: it was a hypothesis about a moment that has passed.
+      return { mapCopy, routePlan: null };
     }),
   applyMapChanges: (changes) =>
     set((s) => {

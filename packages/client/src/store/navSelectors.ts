@@ -538,3 +538,75 @@ export function crumbsView(
   }
   return crumbs;
 }
+
+// ---------------------------------------------------------------------------
+// What a click on the map runs (D3, D5)
+// ---------------------------------------------------------------------------
+
+/** Where you stand, as the map needs it. */
+export interface Standing {
+  zone: string;
+  at: { x: number; y: number; z: number };
+  /** The ways from here, as the ways section sends them. */
+  ways: readonly { direction: string }[];
+}
+
+/**
+ * ⭐ The way from where you stand that leads to `place`, if one does: its
+ * direction's step lands on the place's cell, or (a track, a named way)
+ * your map's edge from here names it as the far side.
+ */
+export function neighborDirection(
+  copy: Record<string, CopyClaim>,
+  standing: Standing,
+  place: ViewPlace,
+): string | undefined {
+  const { at } = standing;
+  if (place.zone === standing.zone) {
+    for (const way of standing.ways) {
+      const vec = DIRECTION_VECTORS[longDirection(way.direction)];
+      if (!vec) continue;
+      if (place.x === at.x + vec[0] && place.y === at.y + vec[1] && place.level === at.z + vec[2]) {
+        return way.direction;
+      }
+    }
+  }
+  const here = placeAt(copy, standing.zone, at);
+  if (!here) return undefined;
+  const view = zoneView(copy, standing.zone);
+  for (const way of standing.ways) {
+    const dir = longDirection(way.direction);
+    if (view.edges.some((e) => (e.from === here.key && e.dir === dir && e.to === place.key) ||
+      // A link drawn once for both ends (reciprocal merge).
+      (e.to === here.key && e.from === place.key && e.claims.some((c) => c.dir !== undefined && longDirection(c.dir) === dir && pathOf(c.place) === here.key)))) {
+      return way.direction;
+    }
+  }
+  return undefined;
+}
+
+const quoteWord = (w: string): string => (/\s/.test(w) ? `"${w}"` : w);
+
+/**
+ * ⭐ `route to <keyword>` for a place you know (D5): the first of its
+ * keywords no other known place in the same Locality document shares
+ * (else its first — the verb then asks *which?*, its own behavior), led
+ * by its group's last segment when it has one. `null` when the place has
+ * no keyword: it cannot be routed to by a click, and its tooltip says so.
+ * ⛔ Never a path — a path is a spoiler, and the status bar previews it.
+ */
+export function routeCommandFor(
+  copy: Record<string, CopyClaim>,
+  place: ViewPlace,
+): string | null {
+  if (place.keywords.length === 0) return null;
+  const others = new Set<string>();
+  for (const p of indexOf(copy).places.values()) {
+    if (p.key !== place.key && p.locality === place.locality) {
+      for (const k of p.keywords) others.add(k.toLowerCase());
+    }
+  }
+  const word = place.keywords.find((k) => !others.has(k.toLowerCase())) ?? place.keywords[0]!;
+  const group = place.group?.split("/").filter(Boolean).pop();
+  return `route to ${group ? `${quoteWord(group)} ` : ""}${quoteWord(word)}`;
+}

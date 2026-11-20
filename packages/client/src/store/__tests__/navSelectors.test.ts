@@ -7,6 +7,8 @@ import {
   placeAt,
   localityKnowledge,
   longDirection,
+  neighborDirection,
+  routeCommandFor,
 } from "../navSelectors";
 
 const Z = "/world/newbie-wilds/delve";
@@ -265,5 +267,36 @@ describe("crumbsView — the breadcrumb from your map", () => {
       name: "the Hesper",
       ship: true,
     });
+  });
+});
+
+
+describe("what a click on the map runs", () => {
+  const copy = copyOf(
+    place(V, 0, 0),
+    place(C1, 0, 1),
+    place(C3, 0, 3, { keywords: ["corridor", "end"] }),
+    place(VAULT, 1, 2, { keywords: ["vault"] }),
+    place("/r/seep", 6, 0, { keywords: ["corridor"] }),
+    edge(V, "east", { to: tag("/r/seep") }),
+  );
+  const standing = { zone: Z, at: { x: 0, y: 0, z: 0 }, ways: [{ direction: "north" }, { direction: "east" }] };
+  const byName = (n: string) => zoneView(copy, Z).places.find((p) => p.name === n)!;
+
+  it("a neighbor is the way whose step lands on it — or whose edge names it", () => {
+    expect(neighborDirection(copy, standing, byName("corridor-1"))).toBe("north");
+    expect(neighborDirection(copy, standing, byName("seep"))).toBe("east");
+    expect(neighborDirection(copy, standing, byName("vault"))).toBeUndefined();
+  });
+
+  it("a distant place routes by its first keyword nobody else in its document shares", () => {
+    expect(routeCommandFor(copy, byName("corridor-3"))).toBe("route to end");
+    expect(routeCommandFor(copy, byName("vault"))).toBe("route to vault");
+  });
+
+  it("led by its group; nothing when it has no keyword", () => {
+    const grouped = { ...byName("vault"), group: "terminus/city/lot-123" };
+    expect(routeCommandFor(copy, grouped)).toBe("route to lot-123 vault");
+    expect(routeCommandFor(copy, { ...byName("vault"), keywords: [] })).toBeNull();
   });
 });

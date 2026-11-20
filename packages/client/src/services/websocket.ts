@@ -1039,6 +1039,15 @@ class WebSocketClient {
         if (note.kind === "prompt-refresh") {
           useStore.getState().setBasePrompt(note.rendered);
         }
+        // ⭐ The plan `route` returned is drawn on the map (navigation
+        // card D5) — a typed `route to …` and a click draw the same.
+        if (note.kind === "route-plan") {
+          if (note.plans.length === 0) {
+            console.warn("WebSocketClient: a route-plan note with no plans");
+          } else {
+            useStore.getState().setRoutePlan(note);
+          }
+        }
       }
     }
   }
