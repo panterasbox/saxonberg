@@ -102,6 +102,9 @@ every matcher into one of those.
   name (`@abc123`, `@bobalu` — the same player). `@` means a player
   everywhere: the server's resolution and the client's mentions and
   typeahead share the meaning, however each spells it.
+  `~/workroom` is a path under your own home (a bare `~` is your home) —
+  the shell's meaning — at the start of a query only; `~word` is a
+  relation.
 - **Relations have a sigil, never a reserved word.** `~name` after a thing
   asks it for the set it keeps under that name (`me:~friends:iffy`,
   `book:~ships`, `card:~nodes`); a bare `~friends` is `me:~friends`;
@@ -265,6 +268,7 @@ no light step.
 10. `query me:~` lists your relations with what each means (`~here`,
     `~inventory`, `~reachable`, your contact lists…). `look ~here` shows
     the room; `look here` does too (the default alias).
+10b. *(staged: a wizard with a workroom)* `goto ~/workroom` lands in it.
 11. *(staged: a contact list "friends" holding a player elsewhere)*
     `dm ~friends:<them> hello` reaches them in another room. `dm <them>`
     with no relation and no player id is refused, saying how to reach

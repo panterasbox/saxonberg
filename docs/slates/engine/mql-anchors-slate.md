@@ -128,6 +128,14 @@ something like `online` the answer should be very legible."*
     holder with the shared naming rule (an account answers to its bank's
     or corpo's keywords).
 
+18. **`~/…` is a home-relative path address** (owner, 2026-11-20 —
+    `goto ~/workroom` must work). At the **start of a query only**: `~/x`
+    is `/home/<you>/x` (the shell's `cd ~/x`), a bare `~` is your home.
+    A word straight after `~` is a relation (`~friends` = `me:~friends`);
+    after a `:` it is the left side's relation (`bob:~ships`), and
+    `bob:~` lists them. A home path is never valid mid-query. Listing your
+    own relations is `me:~`.
+
 ## ⭐ The standing question for an unresolved expression (owner, 2026-11-20)
 
 > **When an MQL expression cannot be resolved — a set nobody can name, a
