@@ -867,6 +867,39 @@ otherwise, so it cannot be used to learn a place you have not been. The
 build amends this wave in place with its files, gate and P-lines before it
 writes it.
 
+**Amended at build time (before writing it):**
+
+- **Files.** `packages/types/src/index.ts` — `LocalityFactsMessage`
+  (`locality-facts { requestId, address }`), `LocalityFactsResultEnvelope`
+  (`locality-facts-result { requestId, address, facts }`) and
+  `LocalityFacts { government?, seats[{ seat, holder }], resident,
+  forecast? }`, both added to the envelope unions beside the wiki's.
+  `packages/server/src/backend/inbound/locality.ts` — `handleLocalityFacts`,
+  registered in `inbound/index.ts` (the README's rule: a new substrate is a
+  new file). Client: `websocketClient.localityFacts(address)` beside
+  `wikiExcerpt`; the crumb's tooltip is a `TipSpec` with `resolve`, so the
+  request goes only when the tooltip opens.
+- **The gate.** The asker's own map is read (`NavigationApi.readMap` with
+  the holder's identity key, prefix = the address) and the answer is
+  `facts: null` unless it holds a `kind: 'locality'` claim whose place IS
+  that address — one answer for *no such place* and *a place you have not
+  been*. A guest holds no map, so a guest is always answered `null`.
+- **What it says.** The government is `GovernmentApi.governmentAt(address)`
+  (the most-local one there); its seats are `seatsOf`, each holder named by
+  live presentation when loaded, else *someone* — ⛔ never a path tail (the
+  `government` verb's fallback would put an identity on the wire);
+  `resident` is `residentOf(viewer)` holding that government's key. The
+  **forecast is where you stand**: every crumb is a Locality covering
+  where you stand, and weather is a field over places, so
+  `WeatherApi.forecastFor(the viewer's place)`'s next segment, in the
+  section's own weather words. No new Api, no new class.
+- **P-lines.** P9 — a read, no command; the tooltip says what it shows.
+  P10 — nothing stored. P11 — the client renders the facts generically
+  (`crumbDoc` rows). P12 — one reader of the seats (the Api's). P13 —
+  `inbound/locality.ts`: *a Locality's civic facts, for a crumb you hold*.
+  P14 — nothing is learned or written by asking; a refusal is silent
+  (`null`), never a reason.
+
 ### W9 — The drive files, complete
 - `packages/wire/tests/navigation.dirty.wire.test.ts` finished (steps 16,
   17, 20 and the knowledge behind 1–8).
@@ -1166,6 +1199,25 @@ Read first, in this order:
   actions, the crumbs, the status bar's outdoors; `NavigatorBody` and
   `whereaboutsOf` deleted; the navigation-server walk reads the new card
   (it opens the two sections it reads, since the card may fold them).
+
+- **W5 ✅** `04114dc6d` — the crumbs component landed with W4; W5 is the
+  wire step: a first visit to the bank writes *Terminus* and *Terminus
+  City*, the chain is the crumbs' order, a stranger holds neither.
+- **W6 ✅** `e737db4c0` — `LensRow`, `boundariesView` (from YOUR locality
+  claims' governments), four channels drawn together; `lensDoc` says when
+  a lens has nothing to draw.
+- **W7 ✅** `19f539fa5` — `TooltipSource` gains the map channels;
+  `TooltipDoc.zoneThumb`; `placeDoc`, `edgeDoc`, `crumbDoc`, `levelDoc`,
+  `sectionDoc`, `sightingDoc`, `zoneDoc`, `wayDoc` grown; a tooltip on every
+  mark, the horizon's ticks on the map's edge.
+- **W8 ✅** — `locality-facts` (see the amended W8 above). **D23 — the
+  crumb's "forecast" is the sky's tell where you stand** (`skyReadFor`:
+  the cloud form, and *a front may be moving in* when it presages one),
+  never the procedural forecast: a glance must not do the weather
+  reading's job (lens 1). A seat holder not loaded is *someone* — never a
+  path tail.
+- **W9** — `e2e/tests/navigation-walk.spec.ts` written; the wire drive
+  carries steps 1, 2, 5, 7, 11, 16/24, 17, 19, 20.
 
 ## Drive record
 

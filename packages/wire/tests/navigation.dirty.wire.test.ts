@@ -243,6 +243,18 @@ suite('navigation card — the wire drive', () => {
     const stranger = await session(uniqueHandle('navc-stranger'), TREELINE);
     await beat();
     expect(localities(stranger.nav).some((c) => String(c.place).startsWith('terminus'))).toBe(false);
+
+    // 24 · the crumb's civic facts (W8): seats and holders, resident or
+    // visitor, the sky — for a Locality your map holds, and for no other.
+    const facts = (await visitor.s.localityFacts('terminus/city')).facts;
+    record.push(`24: Terminus City's facts ${JSON.stringify(facts)}`);
+    expect(facts).not.toBeNull();
+    expect(facts!.government?.name).toBeTruthy();
+    expect(facts!.seats.length).toBeGreaterThan(0);
+    expect(facts!.resident).toBe(false);
+    expect(facts!.seats.every((s) => s.holder === null || !s.holder.startsWith('/'))).toBe(true);
+    expect((await stranger.s.localityFacts('terminus/city')).facts).toBeNull();
+    expect((await visitor.s.localityFacts('narnia')).facts).toBeNull();
   }, 120_000);
 
   it('17 · two players, two maps: a second character holds none of the Delve', async () => {

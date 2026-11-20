@@ -46,6 +46,7 @@ import type {
   SubscriptionErrorEnvelope,
   AffordanceResultEnvelope,
   WikiExcerptResultEnvelope,
+  LocalityFactsResultEnvelope,
   ActivityUpdateEnvelope,
   PromptEnvelope,
   Note,
@@ -317,6 +318,7 @@ export class Session {
     Pending<AffordanceResultEnvelope>
   >();
   private readonly pendingExcerpts = new Map<string, Pending<WikiExcerptResultEnvelope>>();
+  private readonly pendingLocalityFacts = new Map<string, Pending<LocalityFactsResultEnvelope>>();
   private readonly activity: ActivityUpdateEnvelope[] = [];
   private readonly activityWaiters: (() => void)[] = [];
   private readonly prompts: PromptEnvelope[] = [];
@@ -658,6 +660,15 @@ export class Session {
         this.pendingExcerpts.delete(id);
         clearTimeout(p.timer);
         p.resolve(frame as unknown as WikiExcerptResultEnvelope);
+        continue;
+      }
+      if (type === 'locality-facts-result') {
+        const id = String((frame as { requestId?: unknown }).requestId ?? '');
+        const p = this.pendingLocalityFacts.get(id);
+        if (!p) continue;
+        this.pendingLocalityFacts.delete(id);
+        clearTimeout(p.timer);
+        p.resolve(frame as unknown as LocalityFactsResultEnvelope);
         continue;
       }
       if (type === 'affordance-result' || type === 'affordance-error') {
@@ -1010,6 +1021,23 @@ export class Session {
       }, FRAME_TIMEOUT_MS);
       this.pendingExcerpts.set(requestId, { resolve, reject, timer });
       this.ws.send(JSON.stringify({ type: 'wiki-excerpt', payload: { type: 'wiki-excerpt', requestId, ref } }));
+    });
+  }
+
+  /**
+   * A Locality's civic facts, as a crumb's tooltip asks for them
+   * (`locality-facts`, navigation card W8). `facts: null` is one answer for
+   * no such place and a place this character's map does not hold.
+   */
+  async localityFacts(address: string): Promise<LocalityFactsResultEnvelope> {
+    const requestId = `wire-${++this.queryCounter}-${Date.now().toString(36)}`;
+    return new Promise<LocalityFactsResultEnvelope>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingLocalityFacts.delete(requestId);
+        reject(new Error(`wire: no locality-facts-result for '${address}' within ${FRAME_TIMEOUT_MS}ms`));
+      }, FRAME_TIMEOUT_MS);
+      this.pendingLocalityFacts.set(requestId, { resolve, reject, timer });
+      this.ws.send(JSON.stringify({ type: 'locality-facts', payload: { type: 'locality-facts', requestId, address } }));
     });
   }
 
