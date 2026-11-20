@@ -66,7 +66,7 @@ function appetite(): number {
 
 /**
  * A live thing's tooltip. `command` is what a click on the anchor runs
- * (`look …`); it is also the pin.
+ * (`look …`).
  */
 export function thingTip(stuffId: string, command?: string): TipSpec {
   return {
@@ -88,14 +88,8 @@ export function thingTip(stuffId: string, command?: string): TipSpec {
           });
         things.set(stuffId, { at: now, value });
       }
-      // The click is the anchor's own command (what a player would type);
-      // the PIN opens THIS thing's card, by id — a keyword can name two
-      // things and turn a pin into "which target?" (found by the walk).
-      return value.then((doc) =>
-        doc.miss === CANT_SEE
-          ? doc
-          : { ...doc, ...(command ? { command } : {}), pin: `look #${stuffId}` },
-      );
+      // The command is the anchor's own (what a click runs) — added per open.
+      return value.then((doc) => (doc.miss === CANT_SEE || !command ? doc : { ...doc, command }));
     },
   };
 }

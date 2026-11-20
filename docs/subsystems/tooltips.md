@@ -28,11 +28,11 @@ never how they live**.
   block as its tooltip, from the same builder (`thingDoc`) and the same
   blocks (`components/doc/blocks.tsx`). Neither container imports the
   other.
-- **Pin runs a command.** Pinning runs the command that opens the card
-  the tooltip previews: `look` for a thing, `help` for a help term, `wiki`
-  for a wiki term. **Where no such command exists, there is no pin.** That
-  absence is a finding: the player has no legible way to ask for that
-  thing, and the fix is a command, never a floating tooltip.
+- **A tooltip opens no card.** Clicking the thing a tooltip is attached to
+  opens its card, as it always did. A tooltip only shows what it says, and
+  locks so you can read it and nest into terms. *(An earlier pin button,
+  which ran the card's command, was cut in review as confusing and
+  redundant with the click.)*
 
 ## The document
 
@@ -45,7 +45,7 @@ blocks:
 - **prose** — MML, which carries links;
 - **image** — an illustration thumbnail, at most 96 px and never cropped;
 - **spoilers** — the one spoiler block;
-- **hint**, plus `command` (what a click on the anchor runs) and `pin`;
+- **hint**, plus `command` (what a click on the anchor runs, boxed in the footer);
 - **miss** — a line said instead of content, such as *You can't see that
   now.*, *Too dark to make out.* or *No help for that.* A miss is always
   said, never shown as an empty panel.

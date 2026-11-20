@@ -6,9 +6,9 @@
  * the top of the stack draws as a bottom sheet with a back control.
  *
  * ⭐⭐ It renders a document and the stack's own navigation (breadcrumb,
- * pin, back) and NOTHING a card has: no dock, no minimize, no
- * pin-in-place, no refresh. Pin runs the command that opens the card the
- * tooltip previews — a card is born from a command, never from here.
+ * back) and NOTHING a card has: no pin, no dock, no minimize, no refresh,
+ * and nothing that opens a card. Clicking the thing a tooltip is attached
+ * to opens its card, as it always did (owner, review: the "pin" was cut).
  *
  * Keys, while a stack is open: Esc closes one level; Shift locks.
  * A press outside every tooltip closes them all.
@@ -21,7 +21,7 @@ import type { TooltipDoc } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import type { TipEntry } from "../../store/tooltipSlice";
 import { DocView, type DocLinkHandlers } from "../doc/blocks";
-import { Icon, tokens } from "../ui";
+import { tokens } from "../ui";
 import { useFloat } from "./useFloat";
 import {
   TIP_LOCK_MS,
@@ -124,28 +124,25 @@ function crumbName(doc: TooltipDoc | null): string {
   return doc?.header?.name ?? "…";
 }
 
-/** The stack's own navigation: crumbs, back (sheet), pin. */
+/** The stack's own navigation: crumbs, back (sheet), the radial (sheet). */
 function StackBar({
   stack,
   entry,
   sheet,
-  onPin,
 }: {
   stack: TipEntry[];
   entry: TipEntry;
   sheet: boolean;
-  onPin: (command: string) => void;
 }): React.ReactElement | null {
   const closeFrom = useStore((s) => s.closeTipsFrom);
   const showCrumbs = entry.depth > 0 && (entry.locked || sheet);
-  const pin = entry.doc?.pin;
   // ⭐ On a phone the long press that opens a thing's tooltip is the press
   // that used to open its radial, so the sheet keeps the radial one tap
   // away (tooltips W6). A desktop has right-click for it.
   const radialFor = sheet && entry.key.startsWith("thing:") && entry.doc && !entry.doc.miss
     ? entry.key.slice("thing:".length)
     : null;
-  if (!showCrumbs && !pin && !sheet) return null;
+  if (!showCrumbs && !sheet) return null;
   return (
     <Bar data-testid="tip-bar">
       {sheet && entry.depth > 0 ? (
@@ -182,12 +179,6 @@ function StackBar({
           actions
         </BarButton>
       ) : null}
-      {pin ? (
-        <BarButton type="button" data-testid="tip-pin" onClick={() => onPin(pin)}>
-          <Icon name="card.pin" label="pin" decorative size={12} />
-          pin
-        </BarButton>
-      ) : null}
     </Bar>
   );
 }
@@ -214,12 +205,10 @@ function FloatingTip({
   entry,
   stack,
   links,
-  onPin,
 }: {
   entry: TipEntry;
   stack: TipEntry[];
   links: DocLinkHandlers;
-  onPin: (command: string) => void;
 }): React.ReactElement {
   const lockTips = useStore((s) => s.lockTips);
   // Placed when it opens AND once more when its document arrives.
@@ -246,7 +235,7 @@ function FloatingTip({
         scheduleTipGrace();
       }}
     >
-      <StackBar stack={stack} entry={entry} sheet={false} onPin={onPin} />
+      <StackBar stack={stack} entry={entry} sheet={false} />
       <Content entry={entry} links={links} />
     </Panel>,
     entry.anchor.ownerDocument.body,
@@ -257,12 +246,10 @@ function SheetTip({
   entry,
   stack,
   links,
-  onPin,
 }: {
   entry: TipEntry;
   stack: TipEntry[];
   links: DocLinkHandlers;
-  onPin: (command: string) => void;
 }): React.ReactElement {
   const closeAll = useStore((s) => s.closeAllTips);
   // ⭐ In the sheet a tap on a TERM pushes its tooltip onto the stack (a
@@ -285,7 +272,7 @@ function SheetTip({
         data-testid="tip-sheet"
         data-depth={entry.depth}
       >
-        <StackBar stack={stack} entry={entry} sheet onPin={onPin} />
+        <StackBar stack={stack} entry={entry} sheet />
         <Content entry={entry} links={sheetLinks} />
       </Sheet>
     </>,
@@ -349,22 +336,18 @@ export function TooltipLayer({ onCommandClick, onCommandPreview }: TooltipLayerP
 
   if (!open) return null;
 
-  const onPin = (command: string) => {
-    useStore.getState().closeAllTips();
-    onCommandClick(command);
-  };
   const links: DocLinkHandlers = { onCommandClick, onCommandPreview };
   const sheet = stack[0]!.touch;
 
   if (sheet) {
     // The sheet shows the top of the stack; back walks down it.
     const top = stack[stack.length - 1]!;
-    return <SheetTip key={top.id} entry={top} stack={stack} links={links} onPin={onPin} />;
+    return <SheetTip key={top.id} entry={top} stack={stack} links={links} />;
   }
   return (
     <>
       {stack.map((entry) => (
-        <FloatingTip key={entry.id} entry={entry} stack={stack} links={links} onPin={onPin} />
+        <FloatingTip key={entry.id} entry={entry} stack={stack} links={links} />
       ))}
     </>
   );

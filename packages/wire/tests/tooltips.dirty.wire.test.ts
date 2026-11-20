@@ -17,7 +17,7 @@
  *      reconnect.
  *
  * Paces: every step `instant`. No soak drive — nothing here waits on the
- * clock. The browser half (hover, lock, nest, pin, touch) is the walk:
+ * clock. The browser half (hover, lock, nest, touch) is the walk:
  * `e2e/tests/tooltips-walk.spec.ts`.
  */
 
@@ -122,7 +122,7 @@ suite('tooltips — the wire drive', () => {
     expect(at0.doc?.prose).toContain('<spoiler level="1">');
     expect(at0.doc?.prose).not.toContain('TIPLEVELTHREE');
     expect(at0.doc?.prose).not.toContain('TIPBELOWTHELEAD');
-    expect(at0.doc?.pin).toBe(`wiki main:${page}`);
+    expect(at0.doc?.command).toBe(`wiki main:${page}`);
 
     await reader.cmd('settings set spoiler.appetite 1');
     const at1 = await reader.wikiExcerpt(page);

@@ -153,7 +153,6 @@ describe('WikiApi.excerpt — the wiki through its own gate', () => {
     expect(doc?.header?.name).toBe('Oak');
     expect(doc?.prose).toContain('<spoiler level="1">');
     expect(doc?.prose).not.toContain('Barrels');
-    expect(doc?.pin).toBe('wiki main:oak');
     expect(doc?.command).toBe('wiki main:oak');
   });
 

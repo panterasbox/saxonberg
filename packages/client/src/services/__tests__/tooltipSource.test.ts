@@ -32,8 +32,6 @@ describe("thingTip", () => {
     expect(q.mock.calls[0]![0]).toBe("#t1");
     expect(a.header?.name).toBe("a lamp");
     expect(b.command).toBe("look lamp");
-    // The pin names THIS thing — a keyword can be ambiguous.
-    expect(b.pin).toBe("look #t1");
   });
 
   it("moving clears it — the next hover asks again", async () => {
@@ -46,11 +44,11 @@ describe("thingTip", () => {
     expect(q).toHaveBeenCalledTimes(2);
   });
 
-  it("nothing perceivable (or no answer) is said as a miss, with no pin", async () => {
+  it("nothing perceivable (or no answer) is said as a miss, with no command", async () => {
     vi.spyOn(websocketClient, "query").mockResolvedValue(null);
     const doc = await thingTip("t9", "look rock").resolve!();
     expect(doc.miss).toBe(CANT_SEE);
-    expect(doc.pin).toBeUndefined();
+    expect(doc.command).toBeUndefined();
   });
 
   it("the dark answer becomes the dark line", async () => {

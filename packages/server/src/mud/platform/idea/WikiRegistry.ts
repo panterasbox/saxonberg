@@ -357,7 +357,6 @@ export default class WikiRegistry extends WikiRegistryBase {
       prose,
       facts: [{ label: 'updated', value: new Date(updated).toLocaleDateString('en-US'), source: 'wiki', at: updated }],
       command: `wiki ${handle}`,
-      pin: `wiki ${handle}`,
     };
   }
 

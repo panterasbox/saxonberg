@@ -26,7 +26,7 @@ function setAppetite(n: number | undefined): void {
 beforeEach(() => setAppetite(undefined));
 
 describe("thingDoc", () => {
-  it("lit: header, prose, image, the count as a seen fact, the path as a level-2 spoiler, the look as command and pin", () => {
+  it("lit: header, prose, image, the count as a seen fact, the path as a level-2 spoiler, the look as the command", () => {
     const doc = thingDoc(lamp, { command: "look lamp", at: 1000 });
     expect(doc.header).toEqual({ name: "a brass lamp", kind: "thing", kindWord: "thing" });
     expect(doc.prose).toBe("A battered brass lamp.");
@@ -34,7 +34,6 @@ describe("thingDoc", () => {
     expect(doc.facts).toEqual([{ label: "how many", value: "3", source: "seen", at: 1000 }]);
     expect(doc.spoilers).toEqual([{ level: 2, label: PATH_LABEL, text: "/stuff/thing/lamp" }]);
     expect(doc.command).toBe("look lamp");
-    expect(doc.pin).toBe("look lamp");
   });
 
   it("dark: what the server sent and the dark line — nothing sight would tell", () => {
@@ -49,7 +48,7 @@ describe("thingDoc", () => {
     const doc = thingDoc({ displayName: "a pebble" });
     expect(doc.facts).toBeUndefined();
     expect(doc.spoilers).toBeUndefined();
-    expect(doc.pin).toBeUndefined();
+    expect(doc.command).toBeUndefined();
   });
 
   it("the miss line is a document too", () => {

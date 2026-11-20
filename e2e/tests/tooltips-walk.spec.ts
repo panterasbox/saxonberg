@@ -8,7 +8,7 @@ import { openWorldAs, runCommand, tipText } from './helpers';
  * `packages/wire/tests/tooltips.dirty.wire.test.ts`).
  *
  * Every step is `instant`. A real Chromium against the real client:
- * hover, dwell, lock, nest, pin, the keyboard, and a phone's long press.
+ * hover, dwell, lock, nest, the keyboard, and a phone's long press.
  */
 
 const BANK = '/world/terminus/wharfside/bank';
@@ -37,7 +37,7 @@ async function lookUntilLinks(page: Page): Promise<void> {
 }
 
 test.describe('tooltips — one tooltip for the whole client', () => {
-  test('1–2, 6, 8 · controls, a thing in the scrollback, its path, pin', async ({ browser }) => {
+  test('1–2, 6, 8 · controls, a thing in the scrollback, its path; a tooltip opens no card', async ({ browser }) => {
     test.setTimeout(240_000);
     const { page, close } = await openWorldAs(browser, 'tipwalk', { startLocation: BANK });
     try {
@@ -78,20 +78,13 @@ test.describe('tooltips — one tooltip for the whole client', () => {
       await expect(tip.getByTestId('doc-spoiler')).toHaveAttribute('data-open', 'true');
       await expect(tip.getByTestId('doc-spoiler')).toContainText('/');
 
-      // 8 · Pin runs the card's command — `look #<id>`, THIS thing, never an
-      // ambiguous word — and its card opens, with no "which target?".
-      const name = (await tip.getByTestId('doc-name').innerText()).trim();
-      await tip.getByTestId('tip-pin').click();
-      await expect(page.getByTestId('tooltip')).toHaveCount(0);
-      await expect(page.locator('body')).not.toContainText('which target?', { timeout: 5_000 });
-      await expect(page.getByText(name, { exact: false }).first()).toBeVisible({ timeout: 20_000 });
-      await expect(page.getByTestId('terminal')).toContainText(/look #/, { timeout: 10_000 });
+      // 8 · A tooltip opens no card — no pin, no open button (owner,
+      // review). Clicking the thing does that, exactly as before.
+      await expect(tip.locator('button')).toHaveCount(0);
+      await page.keyboard.press('Escape');
+      await link.click();
+      await expect(page.getByTestId('inspection-body').first()).toBeVisible({ timeout: 20_000 });
 
-      // A control's tooltip has no pin.
-      await pin.hover();
-      await expect(topTip(page)).toBeVisible({ timeout: 5_000 });
-      await expect(topTip(page).getByTestId('tip-pin')).toHaveCount(0);
-      await page.mouse.move(0, 0);
 
       // 6 · At appetite 2 a path arrives open.
       await runCommand(page, 'settings set spoiler.appetite 2');

@@ -1844,7 +1844,9 @@ export interface TooltipSpoiler {
 /**
  * ⭐⭐ A tooltip is a small document, not a string (tooltips D2). The same
  * blocks render a card's head, facts and spoiler — two containers, one
- * content. A tooltip is a SNAPSHOT: nothing updates an open one.
+ * content. A tooltip is a SNAPSHOT: nothing updates an open one. It opens
+ * no card: clicking the thing it is attached to does that, as it always did
+ * (the owner, review — the "pin" button was cut).
  */
 export interface TooltipDoc {
   header?: TooltipHeader;
@@ -1857,11 +1859,6 @@ export interface TooltipDoc {
   hint?: string;
   /** What a click on the anchor runs. */
   command?: string;
-  /**
-   * The command that opens the card this tooltip previews. Absent = no pin
-   * (a tooltip never mints a card any other way, and is never docked).
-   */
-  pin?: string;
   /** A line said instead of content — *You can't see that now.* */
   miss?: string;
 }

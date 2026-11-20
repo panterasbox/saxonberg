@@ -39,7 +39,6 @@ const thing: TooltipDoc = {
   header: { name: "brass lamp", kind: "thing", kindWord: "thing" },
   prose: 'A lamp. See <link href="mudcmd:help light">light</link>.',
   command: "look lamp",
-  pin: "look lamp",
 };
 
 const advance = (ms: number) => act(() => void vi.advanceTimersByTime(ms));
@@ -146,17 +145,13 @@ describe("TooltipLayer", () => {
     expect(screen.getByTestId("tooltip").getAttribute("data-locked")).toBe("true");
   });
 
-  it("pin runs the card's command and closes; a control's tooltip has no pin", () => {
-    const { unmount } = render(<Harness doc={thing} />);
+  it("⭐ opens no card: there is no pin or open button — a click on the thing does that", () => {
+    render(<Harness doc={thing} />);
     fireEvent.focus(screen.getByTestId("anchor"));
-    fireEvent.click(screen.getByTestId("tip-pin"));
-    expect(sent).toEqual(["look lamp"]);
-    expect(screen.queryByTestId("tooltip")).toBeNull();
-    unmount();
-    render(<Harness doc={controlDoc("Close", "client-card close 3")} />);
-    fireEvent.focus(screen.getByTestId("anchor"));
-    expect(screen.getByTestId("tooltip").textContent).toContain("client-card close 3");
-    expect(screen.queryByTestId("tip-pin")).toBeNull();
+    const tip = screen.getByTestId("tooltip");
+    expect(tip.textContent).toContain("look lamp");
+    expect(tip.querySelector('[data-testid="tip-pin"]')).toBeNull();
+    expect(tip.querySelectorAll("button")).toHaveLength(0);
   });
 
   it("has no card controls — nothing docks, minimizes or keeps it live", () => {
@@ -166,8 +161,7 @@ describe("TooltipLayer", () => {
     for (const id of ["card-grow", "card-shrink", "card-close", "card-popout", "card-refresh"]) {
       expect(tip.querySelector(`[data-testid="${id}"]`)).toBeNull();
     }
-    const buttons = Array.from(tip.querySelectorAll("button")).map((b) => b.getAttribute("data-testid"));
-    expect(buttons.every((b) => b === "tip-pin" || b === null)).toBe(true);
+    expect(tip.querySelectorAll("button")).toHaveLength(0);
   });
 
   it("an open tooltip is a snapshot: a second resolve does not change it", () => {

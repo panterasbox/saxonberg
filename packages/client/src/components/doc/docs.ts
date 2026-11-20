@@ -18,7 +18,7 @@ import type {
 
 /**
  * A control's tooltip: what it does, and the command it runs. A control
- * previews no card, so it has no pin.
+ * previews no card.
  */
 export function controlDoc(label: string, command?: string, detail?: string): TooltipDoc {
   return {
@@ -83,12 +83,11 @@ export interface ThingRecord {
  * spoiler (tooltips D2, D2a). It says nothing `look` gates: no mass, no
  * material, no contents — only what the record already carries.
  *
- * `command` is what a click on the anchor runs, and is also the pin: the
- * card a thing's tooltip previews is the one its own `look` opens.
+ * `command` is what a click on the anchor runs — the footer says so.
  */
 export function thingDoc(
   rec: ThingRecord,
-  opts: { command?: string; at?: number; dark?: boolean; pin?: boolean } = {},
+  opts: { command?: string; at?: number; dark?: boolean } = {},
 ): TooltipDoc {
   const doc: TooltipDoc = {
     header: {
@@ -114,10 +113,7 @@ export function thingDoc(
   if (rec.path) {
     doc.spoilers = [{ level: rec.path.spoiler, label: PATH_LABEL, text: rec.path.path }];
   }
-  if (opts.command) {
-    doc.command = opts.command;
-    if (opts.pin !== false) doc.pin = opts.command;
-  }
+  if (opts.command) doc.command = opts.command;
   return doc;
 }
 
@@ -134,7 +130,6 @@ export function helpDoc(topic: HelpTopic, word: string): TooltipDoc {
     header: { name: topic.title, kindWord: "help" },
     prose,
     command: `help ${word}`,
-    pin: `help ${word}`,
   };
 }
 

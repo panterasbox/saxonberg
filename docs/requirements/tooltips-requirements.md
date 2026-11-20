@@ -69,7 +69,7 @@ plan's starting point); the first design is on the owner's private canvas.
   (aether-devices adds one status-bar row — see Collisions).
 
 **Therefore what is genuinely new here is:** the tooltip as a structured
-document rendered by one component; nesting with lock, breadcrumb and pin;
+document rendered by one component; nesting with lock and breadcrumb;
 hover-to-inform living beside hover-to-preview and tap-to-confirm; the
 client asking the server to describe a live thing; a gated wiki excerpt at
 tooltip size; and the appetite reaching the client as one standard
@@ -86,8 +86,8 @@ tooltip size; and the appetite reaching the client as one standard
   fact rows (each with where it came from and when), prose that carries
   links, an image, links, and a hint footer saying what a click does.
 - **Nesting:** a term in a tooltip opens a child; a locked stack shows a
-  breadcrumb; Esc closes one level; pin opens the card the tooltip
-  previews.
+  breadcrumb; Esc closes one level. A tooltip opens no card — the click
+  on the thing does.
 - **Glossary terms come from what authors already write** — a help topic's
   summary, or a wiki page's opening section rendered through the wiki's own
   gate at the reader's appetite. Writing the help or the wiki *is* writing
@@ -192,16 +192,14 @@ live.**
   header, the same fact rows and the same spoiler block, built from the
   same blocks: the tooltip is the card's first lines.
 
-### Pin
+### No pin — a tooltip opens no card
 
-Pinning a tooltip **runs the command that opens the card it previews** —
-`look` for a thing, `help` for a help term, `wiki` for a wiki term — so
-keeping a tooltip makes a card the legible way, with a line in the
-scrollback. A tooltip never mints a card any other way. **Where no command
-opens a card for it, there is no pin** — and that absence is a finding, not
-a gap to paper over: the player has no legible way to ask for that thing,
-and the fix is a command (the navigation build meets this first: a place
-on your map you are not standing in has no `look`).
+*(Changed in review, 2026-11-19 — the owner: "that is so confusing … take it
+out.")* An earlier draft gave a tooltip a **pin** that ran the command
+opening the card it previews. It was cut: it borrowed the card's word for
+something different, and it duplicated the click. **Clicking the thing a
+tooltip is attached to opens its card, exactly as it always did**; a tooltip
+only shows what it says, and locks so you can read it and nest into terms.
 
 ### Live things
 
@@ -303,10 +301,9 @@ light step is 7.
 7. *(instant · player)* Walk into a pitch-dark room holding a scrollback
    link to a thing there from earlier: its tooltip tells nothing sight
    would. Hover a thing that has left: *"You can't see that now."*
-8. *(instant · player)* Pin a tooltip: the card it previews opens (a
-   thing's inspection card; a help term's help card) and the command shows
-   in the scrollback; the card's header and facts match the tooltip's. A
-   control's tooltip has no pin.
+8. *(instant · player)* A tooltip offers no way to open a card (no pin,
+   no open button); clicking the thing it is attached to opens the card,
+   as before, and the card's header and facts match the tooltip's.
 9. *(instant · player)* Tab to a link with the keyboard: its tooltip opens;
    Esc closes it.
 10. *(instant · player)* Phone width, touch: tap a link — the command sheet,
@@ -327,9 +324,9 @@ None — nothing in this build waits on the clock.
   a tooltip, never native browser hover text.
 - Every identity link and chip in the terminal, cards and navigator has a
   tooltip whose click does what the click did before.
-- A tooltip nests, locks, shows a breadcrumb, closes one level on Esc, and
-  pins by running the command for the card it previews; a tooltip with no
-  such command has no pin, and none can be docked or minimized.
+- A tooltip nests, locks, shows a breadcrumb and closes one level on Esc.
+  It opens no card and cannot be pinned, docked or minimized; clicking the
+  thing it is attached to opens the card.
 - A tooltip never changes while open.
 - A thing's tooltip and its card show the same header, facts and spoiler
   block.
