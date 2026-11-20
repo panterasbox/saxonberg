@@ -271,6 +271,17 @@ existed. Whether `recipe` is really content is settled later with
 `maturation-profile`, `fraction-schedule` and `archetype` (rule 3's
 finding), not by the naming cleanup.
 
+### Herd, water-right, warehouse-receipt stay documents (owner, 2026-11-20)
+
+Flagged above as possibly Ideas under the old line. All three are filed
+records whose behavior lives in the service that reads them: **herd**
+(`filed: register`, keyworded, titled, dated), **water-right**
+(`filed: register` — closing its ungated plain-`save` write — titled,
+dated), **warehouse-receipt** (`filed: business`, titled, dated indexed,
+paper). ⭐ `document-store.md`'s limb *"written after it loads ⇒ an Idea"*
+is **restated in trait terms**: being written at runtime is what `filed`
+means, not a sign of an Idea.
+
 ## The vocabulary, complete
 
 `shipped` · `catalogued` · `keyworded` · `titled` · `dated` · `filed` ·

@@ -322,6 +322,23 @@ so far:
   (their number), a business's positions (title + keywords) — the holder
   resolves them by the shared rule. No new machinery.
 
-Still open: collection records (channels, forum
-subjects, groups, parties), player-owned labels, herd/water-right/receipt
-as possible Ideas, durations and `defaulted`.
+- **Collection records** (channels, forum boards, groups, parties) are
+  named by their player-chosen proper name through the shared rule, no
+  keywords; unique names win on an exact hit, partial words prompt;
+  candidates by relation (yours) plus a published directory to join.
+- **Labels a player gave** — people through your lists by MQL
+  (`contacts remove @friends:iffy`); notify policies over MQL relations;
+  outfits, console tabs and wallet accounts resolved by their holder by
+  the shared rule ([mql-anchors-slate](../engine/mql-anchors-slate.md) §§ 15–17).
+- **Durations** — one shared duration argument (not MQL), game time only;
+  a verb states its granularity and bounds in its view (`rent` whole days,
+  `fire` to the minute); one refusal line. `rent`'s `daysOf`, `fire`'s
+  `parseHoldS` and `StreamApi.parseDuration` retire.
+- **No `defaulted` fact.** The inventory is real objects, so `buy loaf`
+  targets the loaf on any seller's counter here (the seller is where it
+  lies) and `at <seller>` narrows. The other `.raw` re-reads (`carve`, `fit`,
+  `shape`, `fell`, `teleport`, `get`, `dig`, `sample`, `cut`) fall under the
+  rules above — a real object, or a word the holder resolves among its own
+  entries.
+
+Every family in § 7 is settled (owner, 2026-11-20).
