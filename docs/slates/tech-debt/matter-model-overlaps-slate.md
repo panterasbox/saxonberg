@@ -156,3 +156,50 @@ Line numbers are as of 2026-10-28.
 
 The survey's "do not re-litigate" list is recorded in the ceramics plan's
 § *Re-plan R2*.
+
+## Reuse ledger for the plan (surveyed 2026-11-20 against master `064168510`)
+
+The requirements doc is
+[matter-model-overlaps-requirements.md](../../requirements/matter-model-overlaps-requirements.md).
+Every row is one the plan must account for. ⭐ The build adds **no new
+mixin** unless a row below says *genuinely new*; each overlap is a merge
+onto the model that already holds the most of the truth.
+
+### A. A vessel and its liquid
+
+| concept | what does it today | this build |
+|---|---|---|
+| does it hold, at what rate (#2) | `Faced.holdsWater`/`weeps`/`porosity` (rate in `Bulkable` face exchange); `Assembled.leaks()` (boolean, joints); `Vat.getClosure`; `Container.closureLevel` (boolean on wAC); `PipeRun.isComplete`; `Boat.hullLeakLps` (holed flaws × 0.3 + seep); `Ship` seam band × length + `holed` field; `Bulkable.sufferImpact` | **generalize** to one loss-rate read summing pores · flaws · joints; the booleans derive from it. `Ship.holed` field → an Integrity `holed` flaw (the `FlawKind` exists); the snag stop and the boat's stove-in write the flaw; `repair` patches it |
+| the flaw record | `IntegrityMixin` (`lib/material/Integrity.ts`), `CraftingLogic.mendCracks` | **reuse** — a flaw gains a leak contribution, nothing else |
+| held contents draining over time | nothing (only a pour into an under-closed cask spills) | genuinely new behavior on the existing bulk reconcile; searched `reconcileDrying`, `reconcileSeepers`, Bilge `leakedBetween` (the bilge's integrator is the precedent) |
+| what catches my drip (#3) | `Bulkable.seepReceiver` (on → in → own surface); `Percolating.percolatesInto` (mould → on → null); `Mould.drainsInto` (on only → runs away); Ash override (in first); `SugarLoaf.onPercolated` writes the amount directly | **merge** to one read on Placement: in → on → the floor's surface bulk (the puddle the under-closed pour and `PipeRun.leakOntoFloor` already use) |
+| what the wall gives (#4) | `Faced` absorbed aromas + `Bulkable.reconcileFaceExchange` (learned, never fades, porous-tag gated); `Maturing.imparts`/`impartsSpent`/`refire` (authored, depletes per fill) | **merge** to one exchange with two sources, moved onto `FacedMixin` (Bulkable keeps the payload). Oak's absorbency is a content tag. Washing (`WashController`) reduces the learned source. The lead leach rides the same exchange |
+| whose grade and maker (#7) | `BulkableLogic.carryBatchIdentity`/`carryTopUpGrade` (writes onto the vessel); `Maturing.stampBatchMark`/`applyBatchGrade`; `Copper.regrade`; `Mould.carryPayload`; `IronPot.setCake`; `SugarLoaf.getBands`; `payload.maker` + `ContentsTitle` already on the payload | **move** batch grade (and recipe, craftedAt) onto the payload beside `payload.maker`; the vessel's `Crafted` stays its making. Shaping vessels (mould, hoop, loaf cone) apply min(batch, vessel) |
+
+### B. What leaves a solution
+
+| concept | what does it today | this build |
+|---|---|---|
+| crystallizing (#1) | `Solution.solubility` + `crystallizesTo {product, residue}`; `Thermal.crystallizeIfOver` (sets crystals beside or in a mould, drains liquor) | **reuse as the one model** |
+| graining | `Solution.concentratesTo` arrows (whole-pool swaps), `DrainSetting` (drains molasses from a nutrient share), `Mould.drainLoss/creditDrainings`, `SugarLoaf` percolation | **retire the strike swap and `DrainSetting.drains`**: sugar rows gain a solubility curve; the strike crystallizes; molasses is `residue`. `concentratesTo` keeps only what is not a crystallization (syrup → caramel → burnt — a chemistry, not a solubility) — the plan confirms per arrow |
+| nucleation (seeding, stirring, deep cooling) | nothing | genuinely new term on the crystallize arm; searched `Thermal`, `Solution`, `Copper`, `stir` controller. No new verb: `stir` and `put` exist |
+| boiling-point rise | `Solution.boilingPointElevation`/`boilingPointAt`; the `boil` reading | **reuse** |
+| vaporizing (#5) | liquid: boil plateau (steam discarded), `vapourMaterial`/`vapourLPerLPerHour` (open pour only), kinetic `volatiles` → `Thermal.routeVolatile` → `Burner.receiveVolatiles` (Retort → Condenser) → `Atmospheric.addAtmosphereContent`; solid: `Volatility.vaporizesAboveK` → `Burner.chamberVapors` (never reaches air) | **merge** to one vaporization (a rate, a vapor row) and one receiver chain: head → chamber → room air → flue. `chamberVapors` becomes the chamber's air; the kinetic `vapor` lay-coat reads it |
+| smell from air | `SmellModality` reads sources, not atmosphere contents | **generalize**: a room's air contents are a smell source (one smell, source → air → nose) |
+
+### C. Water in a body
+
+| concept | what does it today | this build |
+|---|---|---|
+| surface water (#6) | `WetMixin` — raised per room by `WeatherLogic.wetOccupants` with no exposure; immersion; seep; washing | **reuse**; rain scales by exposure (the shelter/support/ground reading `Moisture.exposureOf` already computes) and a shedding face (holds water) takes less |
+| held water | `MoistureMixin` (`cure.rewetPerMm × exposure`) | **reuse**; it is fed by the surface film soaking in at the body's rate, replacing the separate per-mm rule for anything that composes both |
+| the two together | `Tangible.getWetIgnitionPenaltyK` | **reuse unchanged** |
+
+### Defects found by the survey (fixed by this build)
+
+- Nothing in production stoves a hole in a boat; only `harbors.dirty.wire.test.ts` stages one.
+- `Ship.holed` is never cleared outside tests, yet her refusal says *until she is patched*.
+- `maple-strike.yaml` has no drain setting, so maple sugar never sets (its own comment says it does).
+- `Maturing.stampBatchMark` credits a cooper's cask's whiskey to the cooper.
+- `maturation.md` says imparts do not deplete; they have since the coopering build.
+- `Burner.chamberVapors` "go up the flue" per its comment and reach nothing.
