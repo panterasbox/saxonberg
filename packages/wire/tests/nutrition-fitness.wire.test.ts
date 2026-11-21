@@ -322,14 +322,15 @@ suite('7 · heat', () => {
     // ceiling where sweat cannot shed heat, and the model's cue is honest
     // about it — nothing. H takes the bar out to the lane.
     expectOk(await H.cmd(`get #${bar}`));
-    H.close();
-    H = await Session.open(hName, { startLocation: LANE });
-    // By NAME here: a re-login materializes a fresh body, and what it
-    // carries comes back with new ids — `#bar` names nothing now. `drop`
-    // binds what is carried, so the floor's strays cannot take the word.
+    // ⚠ WALKED out, not re-logged: a bar lifted from the floor and then
+    // picked up does not come home with its carrier through a logout (a
+    // kernel finding, recorded in the slate — a never-lifted bar does), and
+    // a re-login re-mints what is carried, so `#bar` would name nothing.
+    // The works' way out is the low door.
+    expectOk(await H.cmd(`stoop ${EXITS.works.approach}`));
     // ⚠ And the bar goes down BEFORE the coat is handed: with both hands on
     // the bar the coat is set down at the feet, and `wear` finds nothing.
-    expectOk(await H.cmd('drop barbell'));
+    expectOk(await H.cmd(`drop #${bar}`));
     await hand(H, COAT);
     // Donning is an engagement (three kilos of wool take a moment);
     // the hands are busy until it lands.

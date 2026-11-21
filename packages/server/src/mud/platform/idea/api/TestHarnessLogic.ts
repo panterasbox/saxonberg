@@ -745,57 +745,81 @@ export class TestHarnessLogic extends ApiLogic {
     const roster = await CompactApi.officeRoster();
     const groups = await GroupApi.registry();
 
+    // ⭐ In PHASES, never per character: one wire run leaves ~300 of them,
+    // and a per-character quiet wait, group query and title walk took the
+    // end-of-run purge past the harness's 300 s request (the indifference
+    // drive's first pass). Select · seats · titles · bodies · one quiet
+    // wait · keyed deletes.
+    const doomed: Array<{ profile: GoogleProfile; users: User[]; ids: Array<{ user: User; pid: string; key: string }> }> = [];
+    const allUsers = await User.find<User>({ googleProfileId: { $in: profiles.map((p) => String(p._id)) } });
     for (const profile of profiles) {
-      const users = await User.find<User>({ googleProfileId: String(profile._id) });
-      const identities = users.flatMap((u) => u.playerIds.map((pid) => ({ user: u, pid, key: `/platform/agent/Avatar/${pid}` })));
-      if (identities.some((i) => connected.has(i.key))) {
+      const users = allUsers.filter((u) => u.googleProfileId === String(profile._id));
+      const ids = users.flatMap((u) => u.playerIds.map((pid) => ({ user: u, pid, key: `/platform/agent/Avatar/${pid}` })));
+      if (ids.some((i) => connected.has(i.key))) {
         report.skipped.push(`${profile.displayName} (connected)`);
         continue;
       }
-      for (const { user, pid, key } of identities) {
-        // Offices: back to the founder default.
-        for (const row of roster) {
-          if (row.holderPlayerId === pid && (await CompactApi.vacateOfficeForTest(row.key))) report.offices++;
-        }
-        // Group member rows (committee seats).
-        for (const group of await Group.find<Group>({ memberIds: key })) {
+      doomed.push({ profile, users, ids });
+    }
+    const all = doomed.flatMap((d) => d.ids);
+    const keys = new Set(all.map((i) => i.key));
+    const pids = new Set(all.map((i) => i.pid));
+
+    // Offices: back to the founder default.
+    for (const row of roster) {
+      if (row.holderPlayerId && pids.has(row.holderPlayerId) && (await CompactApi.vacateOfficeForTest(row.key))) {
+        report.offices++;
+      }
+    }
+    // Group member rows (committee seats), one query for every identity.
+    if (keys.size > 0) {
+      for (const group of await Group.find<Group>({ memberIds: { $in: [...keys] } })) {
+        let changed = false;
+        for (const key of keys) {
           if (group.removeMember(key)) {
-            await group.save();
-            if (group._id) groups.managed().fireChange(String(group._id));
             report.seats++;
+            changed = true;
           }
         }
-        // Titles under the scaffold, back to the pack's claim.
-        const held = await ParcelApi.extentsHeldBy(async (o) => o.kind === 'player' && o.templatePath === key);
-        for (const extent of held) {
-          const claim = SCAFFOLD_CLAIMS.find((c) => extent === c.extent || extent.startsWith(`${c.extent}/`));
-          if (!claim) {
-            report.skipped.push(`${profile.displayName} holds ${extent}, outside the scaffold`);
-            continue;
-          }
-          await ParcelApi.transfer(extent, { kind: 'group', name: claim.group });
-          report.titles++;
+        if (changed) {
+          await group.save();
+          if (group._id) groups.managed().fireChange(String(group._id));
         }
-        // The body: loaded so each owner can act on it, then destructed.
-        const body = PlayerApi.findAvatarByPlayerId(pid) ?? (await PlayerApi.loadAvatarsForUser(user)).find((a) => a.getIdentityPath() === key);
-        if (body) {
-          report.appointments += (await EmploymentApi.vacate(body as unknown as Stuff)).length;
-          if (MixinApi.isContainer(body)) {
-            for (const thing of [...body.getContents()]) {
-              if (thing.isDestroyed()) continue;
-              await StuffApi.destruct(thing);
-              report.things++;
-            }
-          }
-          await StuffApi.destruct(body as unknown as Stuff);
-        }
-        await this.retireAccountsOf(key, report);
       }
-      // The body's onDestruct saves once more; let it land before the rows go.
-      await PersistApi.whenQuiet();
-      for (const { key } of identities) {
-        for (const r of PER_PLAYER_ROWS) report.documents += await PersistApi.deleteMany(r.collection, { [r.key]: key });
+    }
+    // Titles under the scaffold, back to the pack's claim — one walk.
+    const held = keys.size > 0 ? await ParcelApi.extentsHeldBy(async (o) => o.kind === 'player' && keys.has(o.templatePath)) : [];
+    for (const extent of held) {
+      const claim = SCAFFOLD_CLAIMS.find((c) => extent === c.extent || extent.startsWith(`${c.extent}/`));
+      if (!claim) {
+        report.skipped.push(`a test character holds ${extent}, outside the scaffold`);
+        continue;
       }
+      await ParcelApi.transfer(extent, { kind: 'group', name: claim.group });
+      report.titles++;
+    }
+    // The bodies: loaded so each owner can act on them, then destructed.
+    for (const { user, pid, key } of all) {
+      const body = PlayerApi.findAvatarByPlayerId(pid) ?? (await PlayerApi.loadAvatarsForUser(user)).find((a) => a.getIdentityPath() === key);
+      if (body) {
+        report.appointments += (await EmploymentApi.vacate(body as unknown as Stuff)).length;
+        if (MixinApi.isContainer(body)) {
+          for (const thing of [...body.getContents()]) {
+            if (thing.isDestroyed()) continue;
+            await StuffApi.destruct(thing);
+            report.things++;
+          }
+        }
+        await StuffApi.destruct(body as unknown as Stuff);
+      }
+      await this.retireAccountsOf(key, report);
+    }
+    // A body's onDestruct saves once more; let them land before the rows go.
+    if (all.length > 0) await PersistApi.whenQuiet();
+    if (keys.size > 0) {
+      for (const r of PER_PLAYER_ROWS) report.documents += await PersistApi.deleteMany(r.collection, { [r.key]: { $in: [...keys] } });
+    }
+    for (const { profile, users } of doomed) {
       for (const u of users) if (u._id) await PersistApi.delete(Collections.Users, String(u._id));
       if (profile._id) await PersistApi.delete(Collections.GoogleProfiles, String(profile._id));
       report.characters++;

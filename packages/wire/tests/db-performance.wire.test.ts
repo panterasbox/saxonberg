@@ -511,16 +511,19 @@ suite('7 — nothing a check decided changed', () => {
     const at = await Session.open(owner.handle, { startLocation: SHOP });
     const other = await standIn(SHOP, 'dbp-other');
     try {
-      // ⚠ Named by id, not by word: the shop's counter sells rope, and
-      // another drive's consignment may share the shelf.
+      // Consigned by id (the counter also sells rope, and `consign` binds
+      // what you carry); reclaimed by word, below.
       const good = await hand(at, GOOD);
       const on = await at.cmd(`shelf consign #${good} --ask 5`);
       if (on.status !== 'ok') say(`7 consign refused: ${JSON.stringify(on.notes)} ${await on.said()}`);
       decided('consign', on.status);
-      const theirs = await other.cmd(`shelf reclaim #${good}`);
+      // By WORD: a shelf finds what it holds by keyword (`resolveHeld`), never
+      // by `#id`, and only among goods it holds — the counter's stock is not
+      // on the shelf.
+      const theirs = await other.cmd('shelf reclaim rope');
       const why = theirs.notes.find((n) => n.kind === 'controller-rejected') as { reason?: string } | undefined;
       decided('reclaim by another', `${theirs.status} ${why?.reason ?? '-'}`);
-      const back = await at.cmd(`shelf reclaim #${good}`);
+      const back = await at.cmd('shelf reclaim rope');
       decided('reclaim by the consignor', back.status);
     } finally {
       at.close();

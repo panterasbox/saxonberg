@@ -122,6 +122,9 @@ runtime; content-specific drives live with their pack; two builds.
   - **An overcast sky does not dim moonlight** — an open lane under a
     waxing moon reads "enough to work by" with the weather pinned overcast.
     Light / weather.
+  - **A bar lifted from the floor (`lift`), then picked up, does not come
+    home with its carrier through a logout** — a never-lifted bar does. The
+    load device / custody.
   - **`wallet beneficiary <name>` only resolves a member who is present** —
     naming an absent heir answers `no-such-member`. Estate.
 - **Stale paths in other builds' retained plans** (`envelope-plan`,

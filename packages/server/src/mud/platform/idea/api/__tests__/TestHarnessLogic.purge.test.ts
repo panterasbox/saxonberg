@@ -42,8 +42,8 @@ beforeEach(() => {
     profile('g3', 'wire-lookalike', 'someone@gmail.com'),
     profile('g4', 'alice', 'alice@e2e.local'),
   ] as never);
-  vi.spyOn(User, 'find').mockImplementation((async (q: { googleProfileId?: string }) =>
-    q.googleProfileId === 'g1' ? [user('u1', 'g1', ['p1'])] : []) as never);
+  vi.spyOn(User, 'find').mockImplementation((async (q: { googleProfileId?: { $in?: string[] } }) =>
+    q.googleProfileId?.$in?.includes('g1') ? [user('u1', 'g1', ['p1'])] : []) as never);
   vi.spyOn(PlayerApi, 'connectedAvatars').mockReturnValue([]);
   vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockReturnValue(undefined);
   vi.spyOn(PlayerApi, 'loadAvatarsForUser').mockResolvedValue([]);
@@ -56,8 +56,8 @@ beforeEach(() => {
   vi.spyOn(GroupApi, 'registry').mockResolvedValue({ managed: () => ({ fireChange: fire }) } as never);
   const committee = Object.assign(new Group(), { _id: 'grp', memberIds: ['/platform/agent/Avatar/p1'], memberRoles: ['member'] });
   vi.spyOn(committee, 'save').mockResolvedValue(undefined as never);
-  vi.spyOn(Group, 'find').mockImplementation((async (q: { memberIds?: string }) =>
-    q.memberIds === '/platform/agent/Avatar/p1' ? [committee] : []) as never);
+  vi.spyOn(Group, 'find').mockImplementation((async (q: { memberIds?: { $in?: string[] } }) =>
+    q.memberIds?.$in?.includes('/platform/agent/Avatar/p1') ? [committee] : []) as never);
   vi.spyOn(ParcelApi, 'extentsHeldBy').mockImplementation(async (admits) =>
     (await admits({ kind: 'player', templatePath: '/platform/agent/Avatar/p1' })) ? ['/world/testbed/annex'] : []);
   vi.spyOn(ParcelApi, 'transfer').mockResolvedValue(null);
@@ -94,7 +94,7 @@ describe('testharness purge', () => {
     expect(deleted.map((d) => d.collection)).toEqual(
       expect.arrayContaining([Collections.HolderSnapshots, Collections.PlayerFrames, Collections.Beliefs]),
     );
-    expect(deleted.every((d) => Object.values(d.filter)[0] === '/platform/agent/Avatar/p1')).toBe(true);
+    expect(deleted.every((d) => JSON.stringify(Object.values(d.filter)[0]) === JSON.stringify({ $in: ['/platform/agent/Avatar/p1'] }))).toBe(true);
     expect(removed).toEqual([
       { collection: Collections.Users, id: 'u1' },
       { collection: Collections.GoogleProfiles, id: 'g1' },
