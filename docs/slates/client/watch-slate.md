@@ -138,7 +138,7 @@ watching the livestream already showed them how it works."*
   wide markets."* Any registered streamer can drive an agenda; Rodney is one driver.
 - ⚠ Watch never shows a viewer what the stream redacted.
 
-## 7. Augmenting the carriers' players **[OPEN — research running]**
+## 7. Augmenting the carriers' players **[OPEN]**
 
 *"The same way BG3 augmented twitch streams with its game state we should be doing the same thing
 to my own stream with saxonberg. rodney does most of that but its overlays aren't clickable."* But
@@ -146,7 +146,31 @@ to my own stream with saxonberg. rodney does most of that but its overlays aren'
 interesting a marketing and learning space to ignore the feature, it may even make twitch the
 premiere way to watch my stream over the other two carriers."* Twitch Extensions (overlay or panel,
 clickable, backed by the developer's server) are the known mechanism; what YouTube and Kick allow
-is being researched. Rodney's and broadcast's, read from the same agenda state machine.
+is below. Rodney's and broadcast's, read from the same agenda state machine.
+
+**What each carrier allows (researched 2026-11-21; re-check before building):**
+
+- **Twitch — the only one with code inside the player.** Twitch Extensions (listed Active, no
+  deprecation found): a **panel** under the video, a **video overlay** (a clickable transparent
+  layer over the whole picture), a **component** (part of the video, hideable). The developer's
+  server pushes live state to every viewer over Extension PubSub (a separate system from the legacy
+  PubSub retired in 2025). Viewer identity is an opaque id unless the viewer agrees to share their
+  Twitch id. Mobile is opt-in per extension and a separate, smaller surface (overlays likely
+  web-only — inferred). Bits can be spent in an extension (voting and broadcaster experiences are
+  allowed; paid entry to a pay-to-play game, wagering and loot boxes are banned). Review requires
+  the channel to be **live**. ⚠ **Rules that bite us:** a link off Twitch must say it leaves Twitch,
+  and **sending viewers off-platform may not be the extension's principal use** — so "come play in
+  Saxonberg" can be a feature of an extension, never its purpose; no ads or sponsorship content.
+  Source: dev.twitch.tv/docs/extensions (guidelines-and-policies, reference).
+- **YouTube — no third-party in-player platform.** The Live Streaming API reads and posts chat,
+  moderates, and **creates native polls** — so the agenda machine could open a YouTube poll and read
+  the votes; the overlay stays in OBS.
+- **Kick — no extension platform.** A public REST API (2025) and webhooks: chat, moderation,
+  subscriptions, gifts, stream metadata. The overlay stays in OBS.
+
+So the BG3 pattern — the agenda state machine feeding a clickable overlay with viewer votes — is a
+Twitch Extension; on YouTube it degrades to native polls, on Kick to chat. This is the concrete
+version of the owner's *"it may even make twitch the premiere way to watch my stream."*
 
 ## 8. Open
 
