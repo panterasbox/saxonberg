@@ -237,6 +237,24 @@ from what ships:
   video's box does — then the list hands out the rest: terminal → navigation card → cards. At
   full the navigation card falls off and the terminal holds its floor; at medium it stays.
 
+**The Where card — explore's support card at three depths** **[DECIDED in shape — the owner; to
+see in the prototype, claude.ai artifact AZNSH7t6edfN4kpiLgpPnz]**. The owner: *"maybe it's not
+'navigation' after all maybe it's something else."* What explore does after navigation stops —
+looking closely, searching, reading, and the handoff — needs a home, and the
+[map-slate](./map-slate.md) already leaned a **room view** (*a diagram on the compass plane*, ways on
+their walls, contents as relations) and left open how to reach it. Room, zone and wider are three
+different models with three renderers, so: **one card, "where you are", with a depth switch at the
+top — Room · Zone · Region** — not sub-modes (you are still exploring at every depth) and not cards
+swapped through the slot (the support slot is always the same thing). A shared spine (*you are
+here*, the breadcrumbs); **Room** — the room view, who's here, what this place offers (the
+handoff: a click that switches mode, amber when not for you now), what to read, what you have
+searched; **Zone** — the navigation card as built (MR !640), its three zoom steps inside;
+**Region** — the places above you, the zones you know and how they join, illustrated maps,
+expanses. The **atlas** stays its own card (anywhere, not where you are). The depth is the card's
+own control, remembered, never changed by moving. ⚠ It bends the navigation card's *"one column,
+no tabs"* — argued consistent (that rule is about sections within one model; each depth is still
+one column in a fixed order). **Open:** the card's name (LEAN *Where*) and *Region*.
+
 ## 6b. Chat and post **[DECIDED — the owner, 2026-11-21]**
 
 **Chat, in the design language:** the terminal is the subject (steps unit · medium · full · max);
