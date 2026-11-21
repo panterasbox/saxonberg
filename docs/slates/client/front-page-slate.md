@@ -76,7 +76,7 @@ trying to get people to log in — why bother if they can just watch the stream 
 | | **Latest** — three one-line items, each labelled with its publisher | `pressRoom` |
 | **right · Sign in** | the three providers (co-equal, seal red with white rims) · *Look around as a guest* · *A guest keeps nothing, and nobody can find them.* · the live count | shipped; count per § 6 |
 | **right · the show** | a 16:9 grid thumbnail: live = the stream's still, **LIVE** and viewers; offline = the glowing `@` on black and the next show · the founder's avatar (red ring when live), the show title, *Bobalu Smallberries*, *Acting Prime Minister* · *Sign in to watch it inside Saxonberg.* | the show block |
-| **below · Notices and news** | the full feed, each item under its own masthead (an office's seal; the Post's nameplate on paper) | `pressRoom` |
+| **below · Latest + Coming up** | one band: the feed's headlines (left; *All notices and news* links to the archive) and the calendar (right) — the full feed was dropped as a duplicate (§ 4d) | `pressRoom`; the calendar's sources (§ 4c) |
 | **footer** | panterasbox.com · the show on Twitch · YouTube · Kick · Source (AGPL) · Discord · the public record · Privacy | static |
 
 **Phone:** the right column (sign-in, then the show) comes first; then the chambers and Latest.
@@ -159,6 +159,22 @@ what the fuck it is. Maybe the next livestream."* Under the show tile, in the ri
 - **At least one item always has a real date** — the next show, or the next dated event — so a visitor
   can tell what a calendar is for. An election moves from *TBD* to its dates the moment its trigger is
   met.
+
+## 4d. One news block, and the layout rebalanced **[DECIDED — 2026-11-20]**
+
+The owner: *"it's a little out of balance between the content on the left and right … I'm also a
+little confused about the two different news areas. Do we need both? And what determines what goes in
+where?"*
+
+- **One news block.** *Latest* (headlines) and *Notices and news* (the full items) read **the same
+  feed** — `pressRoom()` over `press.frontPage`, newest first with pins on top (`press.maxPins`) — so
+  the page showed it twice. **The full feed is gone; *Latest* keeps the headlines, each labelled with
+  its publisher, and links to *All notices and news*** (the press room's archive). What goes in is
+  decided by the publishers and their pins, never by the page.
+- **The layout:** the above-the-fold band is **the chambers (left) beside sign-in and the show tile
+  (right)** — about equal heights. Beneath it, one full-width band holds **Latest (left) and Coming up
+  (right)**: the two *what's happening* blocks side by side. On a phone the order is sign-in, the show,
+  the chambers, then Latest and Coming up.
 
 ## 4a. Where you came from **[DECIDED — the owner]**
 
