@@ -331,7 +331,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ S2 — a curing house’s season', () 
       await say(s, 'pour pot into copper');
       await say(s, 'stoke coal into arch');
       await say(s, 'light arch');
-      await say(s, 'heat copper');
+      // `heat <pot>` is retired: the copper goes ON the arch (`put … on`).
+      await say(s, 'get copper');
+      await say(s, 'put copper on arch');
       let looks = '';
       for (let h = 0; h < 12 && !/clouding with grain|thick as tar|burnt/i.test(looks); h++) {
         await advanceLiving('1 hour', [s]);
