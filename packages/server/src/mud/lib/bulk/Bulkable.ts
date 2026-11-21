@@ -821,6 +821,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/bulk/spill.yaml',
         'platform/cmd/bulk/drink.yaml',
         'platform/cmd/bulk/sip.yaml',
+        'platform/cmd/crafting/stir.yaml',
       ],
       environment: [
         'platform/cmd/bulk/fill.yaml',
@@ -828,6 +829,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/bulk/spill.yaml',
         'platform/cmd/bulk/drink.yaml',
         'platform/cmd/bulk/sip.yaml',
+        'platform/cmd/crafting/stir.yaml',
       ],
     };
 

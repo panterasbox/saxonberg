@@ -69,6 +69,14 @@ describe('`stir` asks the target (D15); `churn` the hand-worked vessel (W18)', (
     expect(!plan.ok && plan.reason).toBe('nothing-to-stir');
   });
 
+  it('⭐ every liquid holder AFFORDS `stir`, in hand and within reach — the protocol is answered, so the verb is offered (found by the drive: "I don\'t understand \'stir\'" at a cone)', () => {
+    const pot = makeStuff(() => new TestBuildPot());
+    expect(MixinApi.isStirTarget(pot)).toBe(true);
+    const offered = BulkableMixin(Good).commandContributions;
+    expect(offered.peers).toContain('platform/cmd/crafting/stir.yaml');
+    expect(offered.environment).toContain('platform/cmd/crafting/stir.yaml');
+  });
+
   it('a knead vessel answers `wrong-work` — too stiff, knead it', async () => {
     const t = makeStuff(() => new TestTrough());
     const plan = await t.stirPlanFor({ actor: actor() });
