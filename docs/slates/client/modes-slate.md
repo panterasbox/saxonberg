@@ -280,6 +280,28 @@ staged or authored."* So:
 - The navigation design's *"position, never place"* holds at zone depth; the room depth is the
   authored place at your position.
 
+**The room view — an isometric cube at true scale** **[LEAN — the owner: "this actually looks pretty
+sexy"; prototype artifact AZNSH7t6edfN4kpiLgpPnz]**. Zooming from the minimap's cell into the room:
+the room as its true cube (its extent, ceiling = extent), a 1 m grid and a ruler (the card is
+always one place, so scale must be explicit), quarter-turn rotation and a top-down toggle; ways on
+their walls by compass direction at their openings' sizes (a hidden way absent until found);
+staged fixtures as boxes to scale, arranged by a deterministic packing and **labeled as packed, not
+placed** (nothing records a position — the map-slate's rule); a count of what sits on each host.
+Every mark gets a tooltip (the tooltips rule). **Open:** named exits with no direction (`out`,
+`unit-4`) — on the wall facing their destination when the map knows it, else a strip; wall-slot
+adornments (a slot id, no position) — listed, not drawn.
+
+- **Survey finding (2026-11-21, four rooms):** almost nothing has an authored size (only mugs and a
+  phone charger carry `dimensions:`); no room authors `extent:`, `enclosure:`, `roof:` or a floor.
+  A true-scale view needs **sizes derived on the server** from mass and material (the size code's
+  fallback for things with no box). The cast is staged by business roles with shifts — the
+  authored layer can say *when* someone works here.
+- **One renderer for any container's interior** **[LEAN]**: a place is the largest container (the
+  size code gives it a cubic interior). For a vessel, packing is the function, not decoration — fit
+  by the sides it closes, its mouth, how full it is, a liquid's fill line. Consumers: the
+  inspection card for a container, craft (the pot on the fire — likely first), carrying and
+  inventory, a ship's hold.
+
 ## 6b. Chat and post **[DECIDED — the owner, 2026-11-21]**
 
 **Chat, in the design language:** the terminal is the subject (steps unit · medium · full · max);
