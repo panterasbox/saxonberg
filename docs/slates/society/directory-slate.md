@@ -9,7 +9,7 @@
 > published lists and who enforces it · sealed anonymous lists · resolution order, collisions,
 > impersonation, name changes · retiring the IP country · the aether exchange as presence's source ·
 > city directories (Terminus's paper: residences and businesses) · every paper a publisher on the same
-> parts · the Schell findings (§ 10a).
+> parts · the Schell findings (§ 10a) · the welcome notice and its one question (§ 4a).
 > **Size:** a build (kernel-led: two document kinds, one holder, the `who` and `profile` verbs), with
 > the Post's directory as its first consumer.
 
@@ -351,6 +351,53 @@ fields exist decides which questions can be asked); controlled vocabulary vs fre
 **querying, in MQL, the game's own language — the medium is the lesson**; and data ethics (consent,
 purpose, published vs compiled). The epoch ladder: city directory → telephone book → card index →
 **Hollerith's punched cards** (the 1890 US census; his company became IBM) → the database → search.
+
+## 4a. How the Post gets you to fill out your profile — the welcome notice **[DECIDED — the owner; lens pass 2026-11-20]**
+
+The owner: *"I don't want to overwhelm people signing in for the first time with too many things at
+once. We're already going to drastically change our character generation process with the lineage
+slate … that said, this is important to know about right away, even before you get enrolled at the
+university … we can also give everyone an inbox. And the Saxonberg Post can send you a friendly
+message when you sign on for the first time … getting to send a message to every new player
+automatically is privileged information space some people would pay for; we should not abuse it."*
+
+- ⭐⭐ **The welcome is a notice, not a marketing slot.** The Post lists everyone automatically —
+  nobody opted in — and that is both why it may message you and what limits what it says. The
+  data-protection pattern: whoever holds information about you that they did not get from you owes
+  you a notice (GDPR Article 14). **Its fixed scope:** what the Post publishes about you (name,
+  line, status, "here since"), how to control it, and an invitation to add more. **No sponsors, no
+  ads, no corpo greeting riding along.** The template is part of the Post's charter, readable by
+  anyone. ⚠ The cautionary tale is real: the **Welcome Wagon** (founded 1928) greeted newcomers with
+  gifts and coupons from local businesses — advertising dressed as hospitality, which the charter
+  names and forbids.
+- **Only the Post has this channel, and only because it lists everyone.** Everything else about you
+  is pull-only (the mirror). **The newcomer's inbox is not for sale**: the university, guilds and
+  corpos reach newcomers like everyone else; the university's real reach is enrollment, where
+  onboarding belongs. The channel is a privilege the polity grants the Post, enforced through its
+  charter — padding the notice with ads is a breach the court hears.
+- **The notice duty follows automatic listing, not a paper**: the Terminus Times needs none,
+  because players are in its city directory only by publishing their residence (§ 3c).
+- ⭐ **One question.** *"Welcome to Saxonberg. You're in the Post's public register by name — that's
+  how people find each other here. Want to add a line people will see beside your name?"* Answering
+  is a short guided prompt (the prompt substrate's text prompt); it sets your line, and the receipt
+  teaches the document (*"Saved to your profile at `~/profile`."*). It closes with *"You can share
+  more anytime with `profile`."* Ignoring it costs nothing — you are already listed by name.
+- **Timing:** after character creation (the lineage gallery) and once the phone is in hand — the
+  first thing in a new inbox, one notification, never a modal; it competes with neither char-gen nor
+  the university.
+- ⚠⚠ **Verified institutional senders** (lens 3b): names are not unique, so a throwaway publisher
+  named "The Saxonberg Post" could phish every newcomer with a fake welcome. A message from an
+  institution must show its identity — the organization's path and charter — distinctly from a
+  chosen name, and the inbox must make the real Post impossible to confuse with an impostor
+  ([delivery-slate § the inbox](../trades/delivery-slate.md)).
+
+**The lens pass:** 1 — information ethics taught by example (what is held, why, how you control it);
+the receipt teaches the document. 2 — the welcome is a template document in the Post's tree; no code
+per publisher. 3a — a paper writing to a new resident; the Welcome Wagon as the warning. 3b — phishing
+the welcome (verified senders). 4 — a duty, not a slot; the inbox not for sale. 5 — welcome letter →
+telegram → aether message. 6 — consumes the scarcest thing a newcomer has, their attention, which is
+why the channel is restricted; the Post bears the notice's cost as the price of listing everyone.
+7 — the channel is a charter privilege the court enforces.
 
 ## 5. Lists of people — permissive, with provenance **[DECIDED — the owner]**
 
