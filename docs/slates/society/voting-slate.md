@@ -30,7 +30,7 @@ probably going to be pretty useful in a game of this nature with so much politic
 don't want the player experience to be nothing but answering polls … so we need a way to balance all
 this."*
 
-## 1. One kind of thing: a question put to an electorate **[LEAN — lens 2]**
+## 1. One kind of thing: a question put to an electorate **[DECIDED — lens 2]**
 
 Grounding: **investiture of a Prime Minister is a bill** (Art. V §2); a house's **own officers** are
 its internal organization (Art. IV §6) — so the Speaker is the house's choice, not the floor's. **An
@@ -42,12 +42,13 @@ shared counting, record and interface:
 
 | | **bill** | **election** | **poll** |
 |---|---|---|---|
-| electorate | the whole floor, counted per house | one house (its officers), or the floor (investiture, constructive no-confidence — bills naming a person) | whoever the poller chooses: an audience, a group, a sample |
+| electorate | the whole floor, counted per house | one house (its officers), or the floor (investiture, constructive no-confidence — bills naming a person) | ⭐ **a list or directory** ([directory-slate](./directory-slate.md) § 3 — sources and `readers`): an audience, a group, a guild, a register, a sample |
 | options | support · oppose | candidates | anything |
 | weight | each house's standing, with conviction | the electorate's standing, by the house's bylaws | heads by default; standing in forecast mode (§ 4) |
 | window | none — continuous, the survival floor and lifespan (§ 7a) | **fixed dates**: nominations, declarations, the vote | the poller's; minutes on a stream |
 | secrecy | public positions, except the secret-ballot list (§ 7b) | **secret ballot** (the § 7b lean already lists votes that judge a person; the UK Commons elects its Speaker by secret ballot) | the poller's |
 | result | **binding**, certified per house | **binding**, certified | **advisory**, never certified — Art. I §4: *"Tallies may be counted; they never rule."* |
+| realm | `ooc` (the Compact) | `ooc` (the Compact) | ⭐ **derived from the poller**, as a release's is from its publisher — an in-fiction poll can never pass for a Compact vote |
 
 ## 2. Elections
 
@@ -65,19 +66,31 @@ simplest scheme that holds both:
 - **anyone can recount**, and **every voter can check their own ballot is there and counted as cast**.
 
 Not coercion-proof (a voter can show their code — § 7b: secrecy protects against being watched, not
-against showing your own screen). Full end-to-end verifiable voting is a later step.
+against showing your own screen). ⚠ **And receipts enable vote buying**: a buyer can demand the code
+and check the final ballot after the window closes; capital-weighted ballots make a big patron's
+worth buying. Ballots changing until the close is only a partial answer. So ⭐ **full end-to-end
+verifiable (coercion-resistant) voting comes before any election where a single ballot could decide
+the result** **[DECIDED — lens 3b]**.
 
-### The counting method — the house's bylaw **[OPEN — the founder sets the first, as caretaker]**
+### The counting method — the house's bylaw **[DECIDED for the first election — lens 1: weighted ranked choice]**
 
 - **Weighted plurality** — simple; with three candidates, a winner may lack most of the house's weight.
-- ⭐ **Weighted ranked choice** — a majority winner; and it teaches voting systems (Arrow's
-  impossibility theorem) — **lean**.
+- ⭐ **Weighted ranked choice** — a majority winner; and it teaches voting systems (the spoiler effect,
+  Condorcet, Arrow's impossibility theorem) — **the first election's method**, the founder setting it
+  as caretaker; each house may change its own by bylaw afterwards.
 - **Approval** — the simplest ballot that avoids vote-splitting.
 
 ### Certification without a conflict **[LEAN]**
 
 The founder certifies the first election (caretaker, § 7q). After that, **a Speaker never certifies an
 election they are a candidate in** — the Clerk of the House, or another house's Speaker, certifies.
+
+### Contested elections **[DECIDED — lens 7]**
+
+Anyone can recount, so arithmetic is never in dispute. Disputes of **eligibility or procedure** (a
+candidate who was not a member; a window closed early) are a **case** under Art. VI — the court's
+existing asynchronous process. **Certification waits** if a case is filed within a short window after
+the count (organic law).
 
 ## 3. Polls
 
@@ -92,7 +105,11 @@ relay and from inside the game**; the result goes on the overlay through the bro
 per person (a chat handle per carrier; an account in the game), and ⭐ **results show where answers
 came from** (*Twitch 41 · in-game 12 · YouTube 6*) so three audiences are never mistaken for one. The
 carriers' own poll features stay available; ours merges every carrier with the game and is on the
-record.
+record. ⭐ **Side by side, not summed** **[DECIDED — lens 1]**: a combined total of three
+self-selected audiences is the *Literary Digest* mistake (§ 3, sampled polls); any combined figure is
+labelled *self-selected, not a sample*. ⚠ **Brigading** (another stream's chat raiding a poll) shows
+in the attribution; **chat handles cannot be verified as one person per carrier** — stream polls are
+entertainment, never evidence.
 
 ### ⭐ Sampled polls — where polling teaches
 
@@ -100,8 +117,18 @@ A poll answered by whoever showed up is biased by who showed up. A **sampled pol
 at random with the **verifiable random draw** the courts use for juries (Art. VII §2), invites only
 that sample, and reports its **margin of error**. **Opinion polling as a trade** — sampling bias,
 margins of error, a self-selected poll against a sample. The uncertainty doc says a deterministic
-world cannot teach statistics; ⭐ **human opinion is real variance, so polling can.**
-(Whether sampled polling is the Post's trade or anyone's: open.)
+world cannot teach statistics; ⭐ **human opinion is real variance, so polling can.** The classic case:
+the **1936 *Literary Digest* poll** — 2.4 million self-selected responses predicted Landon over
+Roosevelt, and Gallup's small random sample got it right. ⭐ **Sampled polling is anyone's trade**
+**[DECIDED — lens 2]**: the verifiable draw is a platform tool; the Post will simply be first. With a
+tiny population the margin of error says so honestly — no timing rule needed.
+
+### ⚠ Push polls
+
+A "poll" written to spread a smear (*"would you still support X if you knew…"*) is propaganda in a
+poll's clothes. **A poll's question text is public and attributed**; a smear in it is speech, judged as
+any annotation is — defamation of a character, or conduct ([directory-slate](./directory-slate.md)
+§ 7). Never refused in advance.
 
 ## 4. Weighted polls — the forecast mode **[DECIDED — the owner]**
 
@@ -156,20 +183,40 @@ quorum) · Consumer: would not carry.*
 6. **The whip count** — a sealed, standing-weighted poll of one house.
 7. **Attention controls** — the poll setting, push only from subscriptions, the live-stream exception.
 
-## 7. Lens notes (a full pass is owed at requirements)
+## 7. Lens pass (2026-11-20, before merge)
 
-- **1 Pedagogy** — voting systems (plurality, ranked choice, approval; Arrow); secret ballots and
-  verifiability; sampling, bias and margins of error — statistics through real variance; whip counts
-  and legislative strategy.
-- **2 Expression** — one substrate, configurations not code; anyone can run a poll.
-- **4 Values** — polls never rule; answering earns nothing; pull by default.
-- **7 Governance** — elections judge persons, hence secret ballots and conflict-free certification;
-  the counting method is a house bylaw.
+1. **Pedagogy** — voting systems (plurality, ranked choice, approval; the spoiler effect, Condorcet,
+   Arrow); ⭐ **weighted voting power is not proportional to weight** — the **Banzhaf power index**:
+   a member with 30% of a house's weight can hold almost no power or nearly all of it, depending on
+   how the rest is split; every house election and forecast poll can show it (the shareholder lesson,
+   real here); the secret ballot's history (the "Australian ballot", 1856); sampling (the *Literary
+   Digest*, 1936); whip counts. Derivable: every count and margin recomputable. **Chose** weighted
+   ranked choice and side-by-side stream totals.
+2. **Expression** — the ordinary case needs no code; ⭐ **electorates are lists or directories**; anyone
+   can run a poll. **Chose** one substrate and sampled polling as anyone's trade.
+3. **3a** — questions carry a **realm** derived from the poller. **3b** — the pollster, the election
+   clerk, the campaign manager, the whip; the unwanted: **push polls** (speech, judged), **brigading**
+   (attribution shows it), **alt chat handles** (stream polls are never evidence), ⚠ **vote buying
+   through receipts** (end-to-end voting moved before any election one ballot could decide).
+4. **Values** — polls never rule; answering earns nothing; pull by default; forecast aggregates only;
+   the founder's conditional abstention, public; push polls judged as speech, never refused.
+5. **Continuity** — elections and the Compact sit outside the fiction and the epochs; **polls inside
+   the fiction follow them** — a show of hands at a town meeting → paper ballots → the telegraph → the
+   aether; in an aether-dark town a poll is paper, counted by hand. Anonymized ballots and receipt codes
+   stay verifiable as long as the record lasts.
+6. **Economy** — produces information (forecasts) and legitimacy (elections); consumes attention, the
+   scarcest thing players have — hence pull by default and no reward for answering; pollsters are paid
+   by whoever commissions them. Demand first: stream polls and the first election, yes; sampled polls
+   honest at any size through their margin.
+7. **Governance** — elections judge persons (secret ballot, conflict-free certification); **contested
+   elections are a case** (Art. VI), certification waiting on a filed case; **a poll is never a legal
+   basis** (Art. I §4, unamendable); the counting method a house bylaw; the secret-ballot classes the
+   procedure law (§ 7b).
 
 ## 8. Open
 
-1. The first election's counting method (lean: weighted ranked choice).
-2. Sampled polling as the Post's trade or anyone's.
-3. The receipt-code scheme now, end-to-end verifiable voting when.
-4. Whether a stream poll's in-game answers and chat answers are shown as one total at all, or only side
-   by side.
+1. The dispute window after a count, and the certification hold.
+2. Which end-to-end verifiable voting scheme, and how the first single-ballot-decisive election is
+   recognized in advance.
+3. The Banzhaf display — where a house's power distribution is shown, and to whom (aggregates only,
+   D6).
