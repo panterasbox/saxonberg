@@ -247,7 +247,14 @@ export class Propel implements SustainedEngagement {
       ContainmentApi.move(boat as never, into);
       return this.end(`You bring her in to ${landing.getPresentation()}, and she grounds gently.`);
     }
-    const refusal = await this.water.refusalOf(room, way, this.actor);
+    // ⚠ The water's upstream refusal is a SWIMMER's (a current at or over
+    // the mover's swim speed): a boat paddled up a river is not swimming,
+    // and this stroke has already reckoned the current against her way
+    // (`gain <= 0` above). Asked for upstream, it turned back every boat
+    // paddled up a current her paddler could not swim — the matter-model-
+    // overlaps drive's rowboat, at 1.55 m/s hard against the Kestrel's
+    // lower river (found by the drive, run 8).
+    const refusal = way === 'upstream' ? null : await this.water.refusalOf(room, way, this.actor);
     if (refusal !== null) return this.end(refusal);
     const dest = await this.water.destinationOf(room, way);
     // ⭐⭐ The stretch the stroke takes her INTO is the BOAT's to meet

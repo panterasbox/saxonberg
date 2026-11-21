@@ -118,6 +118,17 @@ describe('Propel (river D21)', () => {
     expect(r.told.filter((t) => /current is stronger than you/.test(t))).toHaveLength(1);
   });
 
+  it('⭐ upstream against a current she can paddle and her paddler cannot swim, she makes way (found by the drive)', async () => {
+    const r = rig({ heading: 'upstream', currentMps: 0.9 });
+    // The water's swimmer rule, as the reach warren answers it for a body.
+    r.water.refusalOf.mockImplementation(async (_room: unknown, way: unknown) =>
+      way === 'upstream' ? 'The current is faster than you can swim; you make no way against it.' : null,
+    );
+    await beats(r, 40);
+    expect(r.water.destinationOf).toHaveBeenCalledWith(expect.anything(), 'upstream');
+    expect(r.told.filter((t) => /faster than you can swim/.test(t))).toHaveLength(0);
+  });
+
   it('upstream in slack water a paddler makes way', async () => {
     const r = rig({ heading: 'upstream', currentMps: 0.1 });
     await beats(r, 10);
