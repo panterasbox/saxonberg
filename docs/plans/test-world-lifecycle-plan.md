@@ -894,7 +894,8 @@ shipped list), `docs/lint-family.md`. Index files (`CLAUDE.md`,
 
 ## Drive record
 
-*(in progress — 2026-11-20)*
+*(complete — 2026-11-21. Runs 1–6 found and fixed; `tools/wire-indifference`
+then took every reading on the merged tree.)*
 
 **Steps 1, 5a, 6, 7, 8 and the migrated set, run on a world booted from this
 branch (port 2014).** Run by run:
@@ -924,10 +925,32 @@ an absent heir cannot be named).
 `d16bd76e2`, the run-6 fixes; server 16 426 passed, client 1 115). The first
 attempt's client failure was a stale install after the master merge.
 
-**Not yet run (was):** `tools/wire-indifference` (steps 2–5: the ordinary-world
-refusal, fresh · reuse · after the whole suite · Terminus absent, clean, a
-killed run) and the full suite. The first full-suite attempt queued behind
-build-2's, then the client package failed on a stale install (the tooltips
-merge added `@floating-ui/react-dom`; installed) and the run was stopped for
-low memory during the server package (another worktree's `tsc` held 3.4 GB).
-Both wait for a quiet box.
+**`tools/wire-indifference`, on the tree merged with master (!644).**
+
+| step | reading | result |
+|---|---|---|
+| 2 only in a test world | `--refusal`: dropped DB, an ORDINARY boot | ✅ `PackApi: 'test-fixtures' REFUSED — a test-only pack installs only in a test world (SAXONBERG_TEST_WORLD=1)`; 0 install lines; **0 fixture rows** |
+| 3 indifferent — fresh | the 31 migrated files, dropped DB | 265/267 |
+| 3 indifferent — the same world again | no drop | 265/267 |
+| 3 indifferent — a dirtied world | the reuse world, dirtied by the other 30 | (the reuse reading — owner ruling, the whole-suite leg is opt-in) |
+| 4 no placeholder content | a fresh boot with `terminus` and every pack that depends on it left out | 265/267 |
+| — | the one failing step in all three: nutrition-fitness's heat step used the TRAINED body, which made too little heat to cue in the testbed's air | fixed (a fresh body); the file **22/22 on a reused world** |
+| 5 clean after itself | supply and test characters read off the DB before/after a passing run | ✅ supply 1 899 999 → 1 899 999; characters 0 → 0 (31/31) |
+| 5 a killed run | the runner killed partway; the next two starts | ✅ the next start purged 22 characters, the one after 0 |
+| 1, 5a, 6, 7, 8 | the scaffold drive and test-world-lifecycle, inside every pass | green in every reading |
+
+The purges, live: each pass's end purge took ~210 characters, ~650 things,
+38 seats and 2 appointments, retired ~1 800 to the reserve and returned the
+annex title; the start after a clean end finds nothing. The batched purge
+finishes well inside the request (the per-character one took 338 s and
+timed out).
+
+Notes for review: the full suite is green (56 packages, at `d16bd76e2`);
+`test:near` (5 376) and `lint:family` (119) are green on the merged tree. A
+world whose database predates !644 cannot boot (a snapshot cites the old
+lye path — told to build-4); the drive dropped it. A bar lifted from the
+floor then picked up does not survive its carrier's logout (slate). H's
+`look` went unanswered twice in nutrition-fitness while a fresh body's
+answered in 220 ms — the step asserts H's place by query now; recorded, not
+diagnosed. The crowd file's 30-person `look` timed out once on a busy world
+and passed in every other reading.
