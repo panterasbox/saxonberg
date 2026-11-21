@@ -1,0 +1,42 @@
+#!/bin/sh
+# PreToolUse(mcp__gitlab__merge_merge_request): no merge on an unverified
+# claim. Before the GitLab merge runs, compare the source fingerprint of
+# the branch checked out here with the one tools/suite records after an
+# unfiltered green run. If they differ, or the branch is not pushed, the
+# merge is put to the OWNER as a permission prompt with the reason — it
+# is never silently allowed and never hard-refused (the owner may merge
+# anyway, knowingly).
+#
+# Why (2026-11-21, MR !644): the agent said the MR would be ready to merge
+# "once the suite passes", the suite was still queued behind a sibling,
+# the owner said "merge it", and the agent merged. The owner: "if I see
+# the words 'merge' and 'ready' in a conversation where the whole point
+# is finishing the build and merging, it's not a stretch what I'm going
+# to conclude."
+root=${CLAUDE_PROJECT_DIR:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}
+cd "$root" || exit 0
+iid=$(jq -r '.tool_input.merge_request_iid // "?"')
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+problem=''
+if [ "$branch" = "HEAD" ] || [ "$branch" = "master" ]; then
+  problem="this worktree is not on a feature branch ($branch), so there is no suite record for what !$iid merges"
+elif git fetch -q origin "$branch" 2>/dev/null; [ "$(git rev-parse HEAD)" != "$(git rev-parse -q --verify "refs/remotes/origin/$branch" 2>/dev/null)" ]; then
+  # ⚠ Not '@{u}': a branch made from origin/master tracks origin/master,
+  # so an unpushed branch would pass. Compare with its OWN ref on origin.
+  problem="$branch is not pushed as checked out here (local and origin differ), so the code !$iid merges is not the code this worktree tested"
+elif ! tools/source-fingerprint --dirty; then
+  problem="$branch has modified source files that are not committed"
+else
+  now=$(tools/source-fingerprint)
+  rec=$(cut -d' ' -f1 .suite/green 2>/dev/null)
+  if [ -z "$rec" ]; then
+    problem="no full suite has passed in this worktree (no .suite/green)"
+  elif [ "$rec" != "$now" ]; then
+    problem="the last green full suite ($(cut -d' ' -f2- .suite/green)) was for different source than $branch now has"
+  fi
+fi
+if [ -n "$problem" ]; then
+  reason="Merge guard: $problem. The full suite has NOT passed on the code being merged. Merge !$iid anyway?"
+  jq -n --arg r "$reason" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"ask",permissionDecisionReason:$r}}'
+fi
+exit 0

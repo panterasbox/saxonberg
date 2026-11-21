@@ -128,6 +128,11 @@ echo
 i=0
 failed=''
 started=$(date +%s)
+start_print=''
+if [ -z "$ONLY$FROM$SHARD" ] && ( cd "$WORKTREE" && tools/source-fingerprint --dirty ); then
+  start_print=$(cd "$WORKTREE" && tools/source-fingerprint)
+fi
+rm -f "$LOGS/green"
 
 for d in $packages; do
   i=$((i + 1))
@@ -163,6 +168,17 @@ echo
 mins=$(( ($(date +%s) - started) / 60 ))
 if [ -z "$failed" ]; then
   echo "suite: all $total package(s) pass. ${mins}m."
+  # ⭐ The merge guard's evidence (tools/hooks/guard-merge): recorded only
+  # for an UNFILTERED run over a clean source tree whose commit did not
+  # move while it ran. A narrowed or dirty run proves less than "the
+  # suite passed", so it records nothing.
+  if [ -n "$start_print" ] && ( cd "$WORKTREE" && tools/source-fingerprint --dirty ) \
+     && [ "$(cd "$WORKTREE" && tools/source-fingerprint)" = "$start_print" ]; then
+    printf '%s %s %s\n' "$start_print" "$(cd "$WORKTREE" && git rev-parse --short HEAD)" "$(date -Iseconds)" > "$LOGS/green"
+    echo "suite: recorded as green for source $start_print (.suite/green)."
+  else
+    echo "suite: not recorded for the merge guard (filtered run, modified source, or the commit moved)."
+  fi
   exit 0
 fi
 echo "suite: $(echo $failed | wc -w) of $total package(s) FAILED after ${mins}m:"
