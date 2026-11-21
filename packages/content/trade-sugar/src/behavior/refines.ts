@@ -334,7 +334,10 @@ export const brain = class {
       return Array.from({ length: Math.max(1, f.stokes ?? 1) }, () => `stoke ${f.fuel} into ${w.fire}`).join('\n');
     }
     if (!f.fireLit) return `light ${w.fire}`;
-    if (!f.onFire) return `heat ${w.kettle}`;
+    // ⭐ Set on the fire by hand — `heat <pot>` was retired for exactly this
+    // `put` (controller-liquidity), and the line still said `heat`, so the
+    // refiner never boiled (found by the matter-model-overlaps drive).
+    if (!f.onFire) return `get ${w.kettle}\nput ${w.kettle} on ${w.fire}`;
     return null;
   }
 

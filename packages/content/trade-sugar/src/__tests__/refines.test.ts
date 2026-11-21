@@ -38,20 +38,19 @@ describe('refines — one act per beat', () => {
   it('walks the batch in order', () => {
     const steps: string[] = [];
     let f: Parameters<typeof brain.next>[0] = { ...base };
-    const apply: Record<string, (x: typeof f) => typeof f> = {
+    const apply: Record<string, (x: typeof f, line: string) => typeof f> = {
       pour: (x) => ({ ...x, liquor: 'water' }),
-      get: (x) => ({ ...x, liquor: 'liquor' }),
+      get: (x, line) => (/ on arch$/.test(line) ? { ...x, onFire: true } : { ...x, liquor: 'liquor' }),
       temper: (x) => ({ ...x, limed: 1 }),
       skim: (x) => ({ ...x, skimmed: true }),
       stoke: (x) => ({ ...x, fireFuelled: true }),
       light: (x) => ({ ...x, fireLit: true }),
-      heat: (x) => ({ ...x, onFire: true }),
     };
     for (let i = 0; i < 10; i++) {
       const verb = brain.next(f);
       if (verb === null) break;
       steps.push(verb);
-      f = apply[verb.split(' ')[0]!]!(f);
+      f = apply[verb.split(' ')[0]!]!(f, verb);
     }
     expect(steps).toEqual([
       'pour butt into copper --amount 30L',
@@ -62,7 +61,8 @@ describe('refines — one act per beat', () => {
       'skim copper into pail',
       'stoke coal into arch',
       'light arch',
-      'heat copper',
+      // ⭐ Set on the fire by hand: `heat <pot>` is retired for this `put`.
+      'get copper\nput copper on arch',
     ]);
     expect(steps.some((s) => s.startsWith('boil'))).toBe(false);
   });
