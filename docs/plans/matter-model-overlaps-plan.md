@@ -1815,3 +1815,65 @@ past 100 % (the bracket on a saturated room); a lit kiln holds the potter's
 shop at 2–13 % CO2 (a flued kiln venting into the room).
 
 **Soak drive for the lane:** `packages/wire/tests/matter-model-overlaps.soak.dirty.wire.test.ts`.
+
+### Drive record — 2026-11-21 (the fix loop's second pass: runs 8–13)
+
+The owner's "go" on four fixes: the pour that cracks every curing pot
+(step 2), the rowboat that capsizes before the Hesper ever runs (step 11),
+the damp nobody smells (step 13), and step 16 behind step 11. Same world
+procedure (port 2019, the worktree DB dropped before each fresh boot);
+probes were written as throwaway wire files and never committed.
+
+**Runs:** 8 (steps 11 + 13 on a reused world) · 9 (fresh) 12/16 · 10
+(fresh, abandoned — probes run on its world moved its clock, so steps 3–9
+are void; ⚠ never probe a world a drive is running on) · step 1 alone on
+a fresh world ✅ · 11 (fresh) 14/16 · 12 (fresh) 15/16 · 13 (fresh) 15/16
+(step 16's last line only, below) · **14 (fresh, the final run) — 16 of 16 green.**
+
+| # | result (run 14) | what this pass found |
+|---|---|---|
+| 1 | ✅ | Run 10 read "the boil never climbed past water: 380 > 380" once (a thermometer's bracketed figure, read every 15 min); green on a fresh step-1-only run and on runs 11–13. Recorded as pacing variance, not changed. |
+| 2 | ✅ | ✅ since run 11: the pot catches 5.25 L of molasses and does not crack. Two code defects, one principle — the vessel's body counts. (a) A pour into an EMPTY vessel set it to the liquid's temperature (99f821bbe → `ThermalMixin.mixPour`, energy-weighted over contents + body). (b) Run 9 still cracked: a live probe read the pot at 276.6 K a breath after the first drip, with a crack and two dunts in ten seconds. A vessel's heat capacity was its CONTENTS alone whenever it held any — a 5 kg pot holding 34 µL had the drip's τ, and `reconcileShock` read its first reconcile as thousands of K/s (d840b1e8f → `thermalCapacity()` = contents + body). Consumers re-checked: server thermal/bulk/mould/material/fire/maturation/api/world/cmd (530 files, 4884 ✅) and trade-smelting, -glass, -chandlery, -ice, -sugar, -potash, -dairying, -smithing, -ceramics, -rubber, -cooking, -fuel, hearthworks, transport, water — **no test pinned the shortcut.** Casting: the mould's misrun judgement already reads the pour's own superheat and the mould's effusivity, so a cold mould now chills the pool on landing (physics) without changing cast quality. |
+| 11 | ✅ | ✅ since run 12. The Kestrel above km 51 is ALL rapid (asked of the line over the `/system/water` seat), so the Rejection put-in's bend swamped every rowboat. Moved: she launches at the Town Quay and paddles UP into kestrel:634–636 (km 2.0–2.26, obstruction 0.55), entering its POOL first — still water to bail and patch in. Code defect on the way: a boat paddled upstream was refused by the reach's SWIMMER rule ("the current is faster than you can swim") — 8d2725f5a (+ 8efd50211, the test rig's type; it carries the same message by a commit-file slip). The Hesper half had never run: (1) the catalogue eval was refused from the city's extent — asked over the water seat, the pick made inside the eval (run 9's list overran the reply); (2) on a deck at night the master is "a human" and `house appoint "a human"` appointed the founder — now by ref; (3) staged above the bend (633) or below it (639) she grounded in the bend's crossing — staged IN the choked pool, run `course downstream` by night she is holed, refused "until she is patched", patched by `repair` (billets + billhook), and (run 12) taken out `slow`, since a patched Hesper sent off at speed is holed again. `course downstream` not the Town Quay (the quay wants a berth: "hail office"). |
+| 13 | ✅ | ✅ since run 8 (damp) / run 11 (retort). The damp was never a strength problem: a nose two hours in a smell has stopped hearing it (`Olfactory` adaptation, two bands in twenty minutes). Stepping out to the curing house for twenty minutes and back, the saturated floor reads "barely/faintly of damp" — strength 120 stands, no row change. The retort checkpoint had been passing on the ARCH's smoke left from the boil; with the walk-out it cleared and the untrained `analyze atmosphere` said only "something in the air". A probe fired a retort in the store: it vents smoke and wood tar within the half hour and chars its cordwood. The reader is now trained (`practice awareness`) with an analyzer. **Hygrometer > 100 %:** not fixed — the humidity arithmetic caps at 100 (`Evaporation.withVapor`); the figure past it is the reader's seeded error around a saturated truth (`Reading.observed`), the instrumentation ladder's general behavior, not this build's. |
+| 16 | ✅ | Needs step 11's Hesper: run 11 never reached her; run 12 read her back holed (the second strike, above); run 13 read her back patched ✅, and failed only on the terracotta's last line — 0.018 before the restart, 0.417 after, the air at 50 % (probed on run 13's world). Porous matter holds water at the air's humidity (`Evaporation.rewets`); the bound "never above the pre-restart figure" assumed it could only dry. Now: not reset to dry, and no wetter than its air can make it (5ee50ac07). Run 14: 0.018 → 0.416 with the air at 50 % ✅. |
+| 3–10, 12, 14, 15 | ✅ | unchanged (green in runs 11, 12 and 13). |
+
+**B2 (each new or changed checkpoint red once):** step 2 — runs 7 and 9
+(the pot cracked: "nothing drained into the pot: 4e-5 L"); step 11 rowboat
+— runs 2–7 (capsized at the put-in) and run 8 (the swimmer's refusal:
+"never met the snag"); step 11 Hesper — run 11 (the founder appointed:
+"Only her master takes the helm") and the probe staged above the bend
+(grounded, never holed); step 13 damp — run 7 (no walk-out: no damp);
+step 13 retort — run 9 (untrained: "something in the air"); step 16 — run
+12 ("the Hesper came back holed"). Units: the Propel upstream test fails
+on the old call; the Flask capacity/mix tests fail on the old arithmetic
+(21 J/K for a pot holding 5 mL; 330 K for a 5 g drip).
+
+**The browser walk** (`e2e/tests/matter-model-overlaps-walk.spec.ts`, its
+first runs): a test world on 2019 (`AUTH_MODE=test`,
+`SAXONBERG_TEST_WORLD=1`, `CLIENT_URL=http://localhost:5179`) and vite on
+5179 (`VITE_SERVER_URL`/`VITE_WS_URL`), Playwright logging in through
+`/auth/test-login`. **7 of 7 green on a fresh world** (9efc5b9ee,
+4d9fef6b8). Every finding was the walk script's, none the code's:
+`sayAwaiting` matched its own echoed command and the room's re-rendering
+card (both filtered now); readings waited on by their own phrases; handed
+goods a full pair sets down (casks, a jug, the cordwood); world stock that
+a walked world runs out of (the floor's sugar piece, the shop's salt and
+charcoal, the boiling floor's coal — handed now); Crowsfoot's standpipe
+(water in a pail, wash water in a waterskin); the open pans' crusts at the
+mouth (the crock's own hold line instead); `heat copper` retired; the
+copper's two hands; the nose's adaptation (out and back, `analyze aroma`
+for every note) — each the wire drive's own lesson, carried over. ⚠
+Iterating on one world made it dirty fast: the final pass is on a freshly
+dropped database.
+
+**Checks:** server tsc ✅; transport tsc ✅; wire and e2e tsc ✅;
+`test:near` (831 files, 7885 ✅, before d840b1e8f); the touched server
+suites (530 files, 4884 ✅ after it) and the packs above; transport (157 ✅)
+and water (306 ✅); `lint:family` — all 118 gates pass.
+
+**Still open (recorded, not this pass's):** the soak drive
+`matter-model-overlaps.soak.dirty.wire.test.ts` still says `heat copper`
+(retired) in its S2 pass loop; a player's titled rowboat cannot be read by
+a founder's `eval` (the step-11 flaws note is a recorded error, by design).
