@@ -8,5 +8,8 @@
 class: /platform/idea/location/MintedZone
 data:
   name: a valley farmstead
+  # Covered by a Locality, so a walk here files claims on your map
+  # (navigation card review — a zone with no address wrote nothing).
+  address: terminus/hearts-delight
   cellSize: 6.0
   mintedBy: /world/terminus/hearts-delight/idea/farmstead
