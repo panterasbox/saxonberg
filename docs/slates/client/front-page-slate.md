@@ -166,6 +166,23 @@ The owner: *"it's a little out of balance between the content on the left and ri
 little confused about the two different news areas. Do we need both? And what determines what goes in
 where?"*
 
+- ⭐ **One voice: the Office of the Prime Minister** **[DECIDED — the owner]**. *"I don't want like a
+  million people posting to the front page and no one's gonna know the difference between one source
+  and the other if they've never stepped foot in the game. Really it's all coming from the Office of
+  the Prime Minister but they can be reposting other stuff if they want."* So **`press.frontPage`
+  stocks one publisher, `/compact/executive`** (made public — build list item 4), the block is headed
+  *From the Office of the Prime Minister*, and items carry **only a date and a headline** — no
+  per-item publisher labels.
+  - **Reposts already ship** — `repost` is a `ReleaseKind`, and a release's `source` is *"a repost's
+    provenance line"* (press.md). A reposted item shows one line: *— from the Speaker of the Capital
+    House*. No new design.
+  - **Who writes next** (the owner asked): for a long while, every item is the founder's. The next
+    author is **the Speaker of the Capital House** — the first office anyone else will hold, and the
+    first with a reason to address the public (the election result, the house's position on a bill, a
+    call for members) — reposted by the Office of the Prime Minister. Then the **Editor in Chief**, once
+    the Post publishes. Neither exists yet.
+  - This supersedes § 2's *two lanes* and the stocked Saxonberg Post on the front page: the Post is
+    reached inside the game, or through a repost.
 - **One news block.** *Latest* (headlines) and *Notices and news* (the full items) read **the same
   feed** — `pressRoom()` over `press.frontPage`, newest first with pins on top (`press.maxPins`) — so
   the page showed it twice. **The full feed is gone; *Latest* keeps the headlines, each labelled with

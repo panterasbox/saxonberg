@@ -171,17 +171,17 @@ a{color:var(--accent)}a:hover{color:var(--fg)}
 <div style="max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 22px 40px; align-items: flex-start">
 <div style="flex: 3 1 420px; min-width: 0">
 <section aria-labelledby="fp-latest">
-<div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px">
-<h2 id="fp-latest" style="margin: 0; font-family: Spectral, serif; font-weight: 500; font-size: 13px; letter-spacing: .19em; text-transform: uppercase; color: var(--accent)">Latest</h2>
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 9px; margin-bottom: 4px">
+<h2 id="fp-latest" style="margin: 0; font-family: Spectral, serif; font-weight: 500; font-size: 13px; letter-spacing: .19em; text-transform: uppercase; color: var(--accent)">From the Office of the Prime Minister</h2>
 <span style="font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .08em; color: var(--fg-mute); border: 1px dashed var(--fg-mute); border-radius: 3px; padding: 0 4px">SAMPLE</span>
 </div>
 <sc-if value="{{feedHasItems}}" hint-placeholder-val="{{ true }}">
 <ul style="margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-soft)">
 <sc-for list="{{latest}}" as="n" hint-placeholder-count="3">
-<li style="border-bottom: 1px solid var(--line-soft)"><a href="#fp-news" style="display: flex; flex-wrap: wrap; gap: 0 12px; align-items: baseline; padding: 7px 0; text-decoration: none; color: var(--fg)"><span style="flex: none; width: 190px; font-size: 10.5px; font-family: Spectral, serif; letter-spacing: .14em; text-transform: uppercase; color: var(--fg-mute)">{{n.from}}</span><span style="flex: 1 1 240px; font-size: 13.5px">{{n.title}}</span></a></li>
+<li style="display: flex; flex-wrap: wrap; gap: 0 12px; align-items: baseline; padding: 7px 0; border-bottom: 1px solid var(--line-soft)"><span style="flex: none; width: 52px; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--fg-mute)">{{n.date}}</span><span style="flex: 1 1 260px; font-size: 13.5px">{{n.title}}<sc-if value="{{n.hasSource}}" hint-placeholder-val="{{ false }}"> <span style="font-size: 12px; color: var(--fg-mute)">— from {{n.source}}</span></sc-if></span></li>
 </sc-for>
 </ul>
-<a href="#" style="display: inline-flex; align-items: center; min-height: 36px; font-size: 13px">All notices and news →</a>
+<a href="#" style="display: inline-flex; align-items: center; min-height: 36px; font-size: 13px">Every notice, in the archive →</a>
 </sc-if>
 <sc-if value="{{feedEmpty}}" hint-placeholder-val="{{ false }}">
 <p style="margin: 0; font-size: 13px; color: var(--fg-dim)">No notices yet.</p>
@@ -264,9 +264,9 @@ class Component extends DCLogic {
         { kind: 'Gig', what: 'Carry a crate of glass to Hearts Delight', where: 'the job board' }
       ],
       latest: [
-        { from: 'The Compact', title: 'Now hiring: Sergeant at Arms, High Constable, Editor in Chief — and the moderators they lead' },
-        { from: 'Office of the Prime Minister', title: 'Proposed: a bigger server' },
-        { from: 'The Saxonberg Post', title: 'The register opens: every citizen listed by name' }
+        { date: 'Nov 20', title: 'Now hiring: a Sergeant at Arms, a High Constable, an Editor in Chief, and the moderators they lead', hasSource: false, source: '' },
+        { date: 'Nov 20', title: 'The Compact\u2019s books open on December 1', hasSource: false, source: '' },
+        { date: 'Nov 19', title: 'Every player now arrives with a phone', hasSource: false, source: '' }
       ]
     };
   }
