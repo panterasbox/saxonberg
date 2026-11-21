@@ -961,11 +961,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Heat capacity `C = mass × specificHeat` (J/K). For a vessel whose
-     * Thermal IS its contents (`Bulkable` interior with fluid), `C`
-     * derives from the held fluid — more contents → larger `C` → slower
-     * cooling, free (a full thermos holds heat longer than a near-empty
-     * one). Falls back to the host's own mass × material when empty / not
-     * a vessel.
+     * Thermal IS its contents (`Bulkable` interior with fluid), `C` is the
+     * held fluid's PLUS the vessel's own body — more contents → larger `C`
+     * → slower cooling, free (a full thermos holds heat longer than a
+     * near-empty one), and a near-empty pot is still a pot. The host's own
+     * mass × material alone when empty / not a vessel.
      */
     public thermalCapacityJPerK(): number {
       return this.thermalCapacity();
@@ -973,13 +973,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     protected thermalCapacity(): number {
       // `isBulkable` narrows the host in place for the contents path.
+      // ⭐⭐ A vessel's heat capacity is its contents AND its own body (the
+      // matter-model-overlaps drive, step 2): with the body uncounted, a
+      // curing pot holding the first drip of molasses had the heat capacity
+      // of the drip — a τ of a fraction of a second, so its first
+      // reconcile stepped it toward the room at thousands of kelvin a second
+      // and `reconcileShock` cracked a glazed pot that had not moved a
+      // degree. The same reason `mixPour` counts the body.
       const self = this.thermalHost;
-      if (MixinApi.isBulkable(self) && self.hasInteriorBulk()) {
-        const c = this.contentsCapacity(self);
-        if (c > 0) return c;
-        // empty vessel → fall through to the wall's own heat capacity
-      }
-      return this.bodyCapacity();
+      const held = MixinApi.isBulkable(self) && self.hasInteriorBulk() ? this.contentsCapacity(self) : 0;
+      return held + this.bodyCapacity();
     }
 
     /** Heat capacity (J/K) of a vessel's interior fluid, or 0 if empty. */
@@ -1054,8 +1057,10 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** The vessel's own body — `mass × specificHeat` (J/K), its contents aside. */
     protected bodyCapacity(): number {
       const self = this.thermalHost;
+      // A host with no matter of its own (no `Tangible`) has no body to count.
+      if (!MixinApi.isTangible(self)) return 0;
       const massKg = self.getMass().rawValue();
-      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      const mat = self.getMaterial();
       let c = mat ? mat.getSpecificHeat().rawValue() : 0;
       if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
       return massKg * c;

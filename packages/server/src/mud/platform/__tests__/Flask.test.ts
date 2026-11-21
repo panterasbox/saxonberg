@@ -216,4 +216,15 @@ describe("Flask — thermos acceptance battery", () => {
     const expected = (2093 * 360 + (2093 + 1760) * 300) / (2093 + 2093 + 1760);
     expect(tempOf(p)).toBeCloseTo(expected, 0);
   });
+
+  it("⭐⭐ a pot holding a drip is still a pot: its heat capacity counts its own clay (found by the drive)", () => {
+    // A curing pot holding the first drip of molasses had the heat capacity
+    // of the drip — a τ of a fraction of a second — and its first reconcile
+    // read as thousands of kelvin a second: a crack in a pot that had not
+    // moved a degree.
+    const p = pot(4, 295, 0.005); // 5 mL of coffee (~21 J/K) in 4 kg of clay (3520 J/K)
+    expect(p.thermalCapacityJPerK()).toBeCloseTo(0.005 * 4186 + 4 * 880, 0);
+    const empty = pot(4, 295);
+    expect(empty.thermalCapacityJPerK()).toBeCloseTo(4 * 880, 0);
+  });
 });

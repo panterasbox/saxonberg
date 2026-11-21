@@ -369,8 +369,12 @@ that is one mixin lookup answering no.
 
 - `C = mass × specificHeat` — `Tangible.getMass()` × the host's
   `Material.getSpecificHeat()` (falling back to a dial). A `Bulkable`
-  vessel derives `C` from its **contents** (more fluid → larger C →
-  slower cooling).
+  vessel's `C` is its **contents plus its own body** (more fluid → larger
+  C → slower cooling). ⚠ Until the matter-model-overlaps drive it was the
+  contents ALONE whenever there were any: a curing pot holding the first
+  drip of molasses had the drip's heat capacity, a τ of a fraction of a
+  second, and `reconcileShock` read its first step toward the room as
+  thousands of kelvin a second and cracked it.
 - `R` = series resistance: the surrounding medium's conductivity
   (`BiomeApi.conductivityOf`, dominant) + the wall material's (minute)
   + ⭐ **any insulation lent by a shut `Coolbox` holding it**, for the
