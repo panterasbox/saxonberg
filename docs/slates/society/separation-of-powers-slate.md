@@ -5,6 +5,9 @@
 > curriculum describe it (§§ 6a–6d there). The owner: *"I kinda wanna use this as a jumping-off point
 > to actually start drilling into the governance design for real — what are the various inputs and
 > outputs for the different bodies within the different branches."*
+> ⭐ **2026-11-20 (§ 7t): the ownership model** — one pen per path, legibility as a hard constraint,
+> placeholders titled to disclosed fictional owners, conveyance to players with covenants running with the
+> land, three buckets, collisions judged by engagement, the Title Act's clauses.
 > ⭐ **2026-11-20 (§ 7s): grants delegate, titles convey** — the fix to § 7l's revocation gap; the city
 > provides the lot, the holder fills it in (class 4); the first statute book (the Procedure Act, the Title
 > Act, the Terminus Charter) cited from the code.
@@ -1674,6 +1677,124 @@ citation. Law, code and the link between them, on the record from the first stat
    editor already sits at zero).
 7. **Governance** — grants against titles closes § 7l's revocation gap (the Title Act); self-dealing on
    the founder's premises answered by published terms.
+
+## 7t. ⭐⭐⭐ The ownership model — one pen per path, placeholders held by fictions, conveyance to players **[DECIDED — the owner, 2026-11-20; lens pass]**
+
+Settles § 7s's open edges, after a long conversation (the studio at Hallett's as the test case). ⚠ It
+**supersedes** two ideas raised along the way: *delegation by grant to helpers* (the owner: *"if people are
+changing code I want it to be clear who's accountable for that code, and this delegation idea muddies
+that"*) and *an occupant's writing applied to a room by reference from the occupant's own folder* (it
+breaks legibility, below).
+
+### ⭐⭐⭐ Legibility is a hard constraint
+
+The owner: *"we have a very legible, very navigable content framework right now. There's a path on a
+thing, it's easily queried, I can look up the path and see what makes that thing tick and it's all right
+there. Having to go through a bunch of who owns what and when and the whole life story of a database
+record or TypeScript module is what I want to avoid."* **Whatever ownership does, the path is where the
+thing is** — no indirection to trace to understand a room. Ownership is a **record about a path**
+(`parcels`, `parcel_events`, `chattel`), never where a row or a file sits; a handoff changes that record and
+moves nothing.
+
+### The model
+
+1. ⭐ **One pen per path, one accountable holder** — no delegation. If someone else writes a thing, they
+   hold its title and the path says so. Every act is logged as the seat that took it.
+2. ⭐ **Placeholder content is titled to fictional owners** — the owner: *"we're gonna have a bunch of
+   dummy shops and stuff at launch that we're trying to get real players to take over if they can manage
+   the risk. The dummy shops need to just content that it's from the city or some other institution …
+   the story the filesystem shows doesn't have to tell that."* The city, or an invented institution that
+   explains why the place is the way it is (the pattern ships: Seznick House is held by **Mayfield
+   Holdings**). Behind each, the founder's pen by default — **disclosed**: fictional owners are proxies for
+   whoever writes them (*power is the pen*).
+3. ⭐ **Players take places over by conveyance** — buy or lease from the fictional owner (through Mayfield
+   & Co. or whoever sells); **the title moves, and with it the pen and the accountability.**
+4. ⭐ **The shared story is covenants that run with the land** — deed restrictions that bind every future
+   holder (the city's charter, the place's epoch, a building's preservation terms). The owner: *"all agreed
+   on who has the pen to what and all on the same page about the story being told, but different people
+   at the wheel."* The new holder agrees to them at conveyance.
+
+**The goal** (the owner): *"get as much of this in players' hands as possible."* The city is mostly streets
+and public works; most buildings, businesses and homes will be someone else's.
+
+### Three buckets — what a holder writes
+
+| bucket | who writes it | examples |
+|---|---|---|
+| **outside** | the landowner | facade, sign, the street, what the city sees |
+| **inside** | whoever holds the space | the rooms as a scene — prose, NPCs, things, the story there |
+| **physics and money** | neither — the world's rules and governance | what a material is, ore in the ground, anything minting goods or money, prices nobody chooses |
+
+**One voice per scene.** A place's **class and mixins are structural** (outside) — the landowner's; an
+occupant adds capability by **bringing things in** (commands come from a room's contents), and asks the
+landowner (consent not unreasonably withheld, deemed after a deadline, the court) when it needs the room
+itself to be another kind. The **authorable-field census** —
+[ownership-census.tsv](./ownership-census.tsv), all 921 authorable fields, a first pass (one row per field:
+category and reason; 79 marked ambiguous, in eight patterns) — is a **builder's checklist**, not something
+decided by hand; a lint keeps new fields from going unsorted.
+
+The eight patterns, for builders: a participant's price vs the world's (derived from **who holds the
+seat**: a person → their policy; autopilot → a lever) · authored starting quantities are **minting** (a
+faucet → governance) · a place's born-with things are **the place's fixtures**; an occupant's set dressing
+is their own things · physics that sets income is the place's, **flagged by the authors'-conflict rule**
+when the writer has a stake · rules that switch off capability are **covenants** · names on another's
+structure belong to its holder (public names to the locality) · ownership records (who holds, who made)
+come from **the registries, never authored** · licenses (a bank charter) are **grants held by the grantor**.
+
+### Collisions — the more engaged story wins
+
+The owner: *"I'm almost always going to lean towards whoever is more actively engaged with the content.
+If the landowner is telling some very long-running story that's at odds with a more condensed narrative
+happening on one of its lots … surely one of those stories is more engaging to the player and it's
+probably because the author is also more engaged with the content and its active maintenance. Even
+long-running quests need a little spontaneity."* **Talk first; then the court**, judged by **which story is
+more actively engaged — by players and by its author** (a judgment for people, never an engine metric).
+Long stories do not win by length.
+
+### Handoffs, concretely
+
+| event | what changes | what does not |
+|---|---|---|
+| **sale** (`title transfer`) | the parcel's owner; a chain-of-title entry | every row and document stays at its path; `authoring_events` keeps who wrote what |
+| **lease starts** | a use-grant on the parcel record | nothing else |
+| **lease ends / a holder leaves** | the grant is removed | — the departing holder's **things** and **staff** are theirs (chattel; the firm's own folder); ⚠ open: placed goods go back to the holder or to collectable storage (the estate system) |
+| **a firm moves** | one lease ends, another starts | its records, staff and equipment never lived in a building |
+
+⚠ **Open seam:** a pack-installed place later conveyed to a player — a pack reinstall could overwrite the
+holder's edits; who maintains a pack-installed place once it is sold needs its own look. ⚠ **Open:** an
+author's work on a place they leave stays with the place (credit kept in provenance); whether and how an
+author may reuse it elsewhere is unresolved — within the legibility constraint.
+
+### Lens pass
+
+1. **Pedagogy** — title, conveyance, chain of title; covenants running with the land, and their dark
+   chapter (*Shelley v. Kraemer*, 1948: racially restrictive covenants unenforceable); privatization;
+   property vs expression (5Pointz). Derivable: the path and its parcel record answer *who is accountable*.
+2. **Expression** — no code to convey a title; covenants are text; fictional owners are rows; legibility
+   holds.
+3. **3a** — fictional owners explain the world; a takeover is a story (*the old bakery changed hands*).
+   **3b** — players running businesses; dead-hand covenants, hoarding, and a placeholder sale enriching the
+   founder each answered below.
+4. **Values** — one accountable holder; proxies disclosed; as much in players' hands as they can carry;
+   the more engaged author wins.
+5. **Continuity** — titles, covenants and the chain of title survive handover, epochs and sales; the
+   founder's proxies convert to players one conveyance at a time.
+6. **Economy** — a market in land and businesses; the buyer pays in zorkmids; ⚠ **when a fictional owner
+   sells, the proceeds go to the public treasury, never the founder** (otherwise every placeholder sale is
+   founder self-dealing); risk is the player's, with the credit ladder.
+7. **Governance** — accountability is the pen; covenant disputes go to the court. ⚠ **Covenants may never
+   encode real-life traits** (*Shelley*; the real-life-trait ban); **unreasonable covenants are void**;
+   **covenants lapse on changed conditions** (real doctrine — the answer to the dead hand). **Hoarding** is a
+   soft limit: a covenant may require a place to operate, enforced by the court, never an engine switch.
+
+### The law it needs — the Title Act's clauses
+
+The statute book (§ 7s) gains its content: **one pen per path** · **title, conveyance and the chain of
+title** · **use-grants are never authorship** · **the private protections** · **fictional owners as disclosed
+proxies, their sale proceeds to the public treasury** · **covenants running with the land** — agreed at
+conveyance, never on real-life traits, void if unreasonable, lapsing on changed conditions · **the three
+buckets** · **the consent process** (not unreasonably withheld, deemed after a deadline, the court) ·
+**collisions judged by engagement**. Drafted as received law under Art. XI; the legislature's to amend.
 
 ## 8. Lens pass
 

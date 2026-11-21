@@ -114,6 +114,13 @@ Not the dorm; in town while the founder is the only one here (an *outside Termin
 launch). Open: **above Hallett's** (a proprietor living over the shop) or **a leased unit in Seznick House**
 on Mayfield Row (the apartment rung that ships — one street over; the founder its first real tenant).
 
+## 4a. Under the ownership model (separation-of-powers § 7t)
+
+The Halletts are a **disclosed fictional owner** (the founder's pen behind them, their sale proceeds to the
+public treasury). Hallett's **outside** (facade, sign) is theirs; the **inside** is the show's while it holds
+the space — one voice; **preservation covenants run with the land** (the lettering, June's piano); the
+show's staff, equipment and records are its own and leave with it.
+
 ## 5. Open
 
 1. **The rest of the building, and the staff — real people or NPCs** (the next conversation): the crew's
