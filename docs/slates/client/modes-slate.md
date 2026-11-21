@@ -159,6 +159,14 @@ are.
    watch argues for **the watch card** at its small step (discovery, the schedule).
 6. **The subject sizes first** (law 4): a fixed-ratio subject such as a video takes its box at the
    size chosen, and the rest is laid out in what it leaves.
+7. **A mode owns its breakpoints; a card renders at any size** **[DECIDED — the owner]**. Cards stay
+   mode-blind. Inside a mode, every card grows and shrinks through the **same** steps — the mode's
+   slots (explore: unit · medium · full; watch: unit · medium · large · max, shaped around the video
+   because it is watch's subject, but any card may take them). One card per slot; the previous
+   holder returns to its size (the shipped `sizeBefore` rule). *Zoom* is one gesture everywhere
+   (`client-card grow`/`shrink`); only the steps differ by mode. A per-card ladder was proposed and
+   **rejected** — the owner: *"it means like the order you expand and collapse cards in determines
+   what breakpoints you're seeing represented on screen at any given time."*
 
 **Explore in this language:** the terminal is the subject (the grammar's *single* split); the
 navigation card is the one permanent support explore argues for; cards come and go. Its behavior
