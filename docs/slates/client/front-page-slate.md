@@ -120,28 +120,24 @@ demand becomes labor demand. Two lines change:
   of the Capital House: name*). An open spending proposal from the books (§ 6, 3a) sits beside it.
   Before capital standing exists (the legal gate), the election line does not render.
 
-## 4c. The books come back, and a calendar **[DECIDED — the owner, 2026-11-20]**
+## 4c. Fund's goals, and a calendar **[DECIDED — the owner, 2026-11-20]**
 
-### Fund shows the books — with the real numbers
+### Fund shows plain goals and progress **[DECIDED — the owner]**
 
-The owner: *"the fund section now looks really light without the current budget totals on it, so let's
-add that content back in and make it look nice. We actually have real numbers for this stuff, so use
-it. I'm also keen to let the game start paying for itself ASAP."* This **reverses** § 6's *"the books
-stay inside."*
+The owner first asked for the budget totals back (*"we actually have real numbers … I'm also keen to
+let the game start paying for itself ASAP"*), then, seeing a books panel with figures, line items and a
+Twitch button: *"way too much … it looks like Times Square now. Just some plainly worded goals and our
+progress to meeting those goals. They can't even donate until they're inside and authenticated, so
+you're not selling anyone on the front page. Just get them to sign in and let the game do the rest."*
 
-- **The books · last month**, from the journal's export (budget-slate § The first books): three figures —
-  **cost to run**, **support from players** (`Income:Support:*` only), **paid by the founder**
-  (`Equity:Founder`) — a bar of **support against cost to run, with its goal at 100%**, and the line
-  items. October, the first full month on record: **Claude $200.00 · AWS $15.31 (Cost Explorer) ·
-  Descript ~$24 · email ~$5** (the last two to be replaced by their invoices) — about **$244**, support
-  **$0**, the founder **$244**. The bar measures one plain thing — whether the game pays for itself —
-  which is what makes it honest rather than a donation thermometer.
-- ⭐ **One action: *Subscribe on Twitch to help it pay for itself.*** A Twitch subscription works
-  whether or not the channel is live, and the owner is already an affiliate, so this is the one support
-  rail open **today**. The button claims nothing about standing (the Fund sentence carries that, behind
-  the lawyer's read). YouTube and Kick join as each rail opens; a **door fee** (§ 7q of
-  separation-of-powers) would be a second line under support when it exists.
-- **FUNDING NOW** (an open proposal) still sits beneath it when one is open.
+- ⭐ **Goals, in plain words, each with its progress** — read from the books (budget-slate § The first
+  books):
+  - **Pay for itself** — *$0 of $244 a month* (support from players against last month's cost to run),
+    a thin bar beneath;
+  - **Then: a bigger server** — *+$40 a month* (the first open proposal).
+- **No line items, no headline figures, no support button.** Support happens inside, after sign-in;
+  the front page's only job is getting people in. October's real basis: Claude $200.00, AWS $15.31,
+  Descript and email estimated until their invoices.
 
 ### A calendar — *Coming up*
 
