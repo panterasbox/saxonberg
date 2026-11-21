@@ -308,10 +308,15 @@ wall-slot adornments are listed (below).
   (*on the well: 10*).
 - **One renderer for any container's interior** **[LEAN]**: a place is the largest container (the
   size code gives it a cubic interior). For a vessel, packing is the function, not decoration — fit
-  by the sides it closes, its mouth, how full it is, a liquid's fill line. **Nothing is stacked
-  inside a vessel** (*"I dunno about putting a loaf of bread at the bottom of a sack of melons. the
-  game doesn't express any of that"*): the shell with a fill level (packed volume over interior),
-  the contents listed or as a flat row of sized blocks beside it; only a liquid's level sits inside. Consumers: the
+  by the sides it closes, its mouth, how full it is, a liquid's fill line. **One rule for places and
+  vessels alike** **[DECIDED — the owner]**: *"their physics isn't any different or shouldn't be.
+  just how they're applied."* (A place floods as a vessel fills — `WaterPlaceMixin`.) Contents sit
+  **on the container's floor, side by side, arbitrarily placed**, as plain boxes; **once they no
+  longer fit on the floor nothing is stacked** (*"I dunno about putting a loaf of bread at the bottom
+  of a sack of melons. the game doesn't express any of that"*) — the drawing shows a fill level
+  (packed volume over interior) and how many things are not drawn; a liquid shows as a level in
+  either; relations the engine holds are drawn as held. What differs comes from the data, never
+  from the kind of container. Consumers: the
   inspection card for a container, craft (the pot on the fire — likely first), carrying and
   inventory, a ship's hold.
 
