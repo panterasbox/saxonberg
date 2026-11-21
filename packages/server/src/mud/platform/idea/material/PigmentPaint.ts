@@ -4,7 +4,7 @@
  *
  * A KIND of material (material decomposition): what the substance is.
  * Composes `Coating`, `Odor`, `Kinetic`, `Fusion`, `Solution`, `Solidity`,
- * `Toxicity`, `Acidity`. Consumers never narrow on a kind — they ask for a
+ * `Toxicity`, `Acidity`, `Extraction` (a glaze is a wall: lead leaches from it). Consumers never narrow on a kind — they ask for a
  * capability (`MixinApi.has<Capability>`).
  */
 import Material from "../../../lib/material/Material";
@@ -16,8 +16,9 @@ import { SolutionMixin } from "../../../lib/material/Solution";
 import { SolidityMixin } from "../../../lib/material/Solidity";
 import { ToxicityMixin } from "../../../lib/material/Toxicity";
 import { AcidityMixin } from "../../../lib/material/Acidity";
+import { ExtractionMixin } from "../../../lib/material/Extraction";
 
-export default class PigmentPaint extends CoatingMixin(
+export default class PigmentPaint extends ExtractionMixin(CoatingMixin(
   OdorMixin(
     KineticMixin(
       FusionMixin(
@@ -25,4 +26,4 @@ export default class PigmentPaint extends CoatingMixin(
       ),
     ),
   ),
-) {}
+)) {}

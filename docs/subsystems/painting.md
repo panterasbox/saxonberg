@@ -75,8 +75,11 @@ is decomposition's exposure clock for a coat. Indoors, in a pack or on a
 rack the weather reaches nothing, so nothing changes — Law 2 holds by
 construction — and a cart's coat in the yard, a sign board hung outside and
 a building weather by the one walk. What the weather does to the BODY once
-the coat is gone is the host's `bareWearPerDay`: a building answers its
-dial; a good answers nothing yet (decomposition's per-material rate).
+the coat is gone is `bareWearPerDay`: a FABRIC — what a kit keeps up
+(`MaintainableMixin`: a building, a ship) or a hull that lets water in
+(`BilgeMixin`: a boat) — wears at the house's dial
+(`structure.weather.daysToWorn`, one default on `Faced`); a good answers
+nothing yet (decomposition's per-material rate).
 
 ### Setting — the binder's chemistry, read off the air
 

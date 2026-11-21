@@ -9,6 +9,11 @@
  * thermometer gives the number. The stage is read off the liquor's own
  * concentration and material (the arrows the kernel's boil walks), so the
  * words and the pan cannot disagree.
+ *
+ * ⭐ And a liquor HELD past saturation says so (matter-model-overlaps D15):
+ * a struck cone gone cold with nothing to start it reads *it is holding
+ * more than it can keep and nothing has started it* — `Thermal.
+ * supersaturation()`, the hold the phase engine keeps.
  */
 
 import Reading from '@saxonberg/server/mud/lib/instrument/Reading';
@@ -60,7 +65,7 @@ export default class BoilReading extends Reading {
       : feelOf(drop.tags, drop.w);
     this.report(
       context,
-      Mml.compose`You pull a drop of ${Mml.thing(drop.pan)} between finger and thumb: ${words}.`,
+      Mml.compose`You pull a drop of ${Mml.thing(drop.pan)} between finger and thumb: ${words}.${BoilReading.held(drop.pan)}`,
     );
     await this.credit(context);
   }
@@ -82,7 +87,7 @@ export default class BoilReading extends Reading {
     const figure = this.bracketed(temp, band, seed, 'thermal');
     this.report(
       context,
-      Mml.compose`The thermometer in ${Mml.thing(pan)} reads ${figure}: ${stageOf(drop.tags, drop.w)}.`,
+      Mml.compose`The thermometer in ${Mml.thing(pan)} reads ${figure}: ${stageOf(drop.tags, drop.w)}.${BoilReading.held(pan)}`,
     );
     await this.credit(context);
   }
@@ -108,6 +113,17 @@ export default class BoilReading extends Reading {
     }
     if (!MixinApi.hasSolution(mat)) return null;
     return { pan: target, w: mat.solidsMassFraction(solids), tags: (t) => mat.hasTag(t) };
+  }
+
+  /**
+   * ⭐ The held-liquor clause (D15): over saturation, and nothing has
+   * started it — or `''`.
+   */
+  private static held(pan: Stuff): string {
+    if (!MixinApi.isThermal(pan)) return '';
+    const over = pan.supersaturation();
+    if (over === null || !(over.ratio > 1 + 1e-6) || over.started) return '';
+    return ' It is holding more than it can keep, and nothing has started it.';
   }
 
   private async credit(context: CommandContext): Promise<void> {

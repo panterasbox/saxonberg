@@ -31,7 +31,9 @@ data:
   expanse: /stuff/idea/WaterExpanse/greywater
   expansePosition: { latDeg: 42.001, lonDeg: -8.468 }
   speedKn: 6
-  hull: { draftM: 1.8, beamM: 5, lengthM: 20 }
+  # ⭐ `material`: what she is planked with — a patch over a hole in her is
+  # of it (matter-model-overlaps D8); with none, `repair` refuses the patch.
+  hull: { draftM: 1.8, beamM: 5, lengthM: 20, material: /stuff/idea/material/wood/oak }
   # The gangway: no keyway, never bolted — the line's ships are open.
   gangwayKeyway: ""
   gangwayLocked: false

@@ -225,7 +225,7 @@ describe('⭐⭐ the ceramic water filter', () => {
     expect(c.getBulkAmount('interior').rawValue()).toBe(0);
   });
 
-  it('a crock already holding something else takes none of it', () => {
+  it('a crock already holding something else takes none of it — the filter only weeps, onto its own outside', () => {
     const room = makeStuff(() => new Room());
     const c = crock();
     ContainmentApi.move(c, room);
@@ -235,7 +235,15 @@ describe('⭐⭐ the ceramic water filter', () => {
     ContainmentApi.move(f, c);
     f.getBulkAmount('interior');
     advance(3 * 3600);
-    expect(f.getBulkAmount('interior').rawValue()).toBe(2);
+    // ⭐ The crock is skipped (the one drip, matter-model-overlaps D10): with
+    // no vessel under it that will take what comes through, the filter weeps
+    // at the slow evaporative rate into its own wall, not through at the
+    // filter's flow.
+    const wept = 2 - f.getBulkAmount('interior').rawValue();
+    expect(wept).toBeGreaterThan(0);
+    expect(wept).toBeLessThan(0.05);
+    expect(f.getWetness()).toBeGreaterThan(0);
     expect(c.getBulkAmount('interior').rawValue()).toBe(1);
+    expect(c.getBulkMaterial('interior')).toBe(tainted);
   });
 });

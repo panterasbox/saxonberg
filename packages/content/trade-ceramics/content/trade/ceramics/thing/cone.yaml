@@ -1,6 +1,8 @@
 # clay cone (ceramics W4).
 class: /trade/ceramics/thing/Cone
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: clay cone
   keywords: [cone, mould]
   register: indefinite

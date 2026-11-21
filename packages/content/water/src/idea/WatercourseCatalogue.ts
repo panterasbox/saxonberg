@@ -1467,8 +1467,10 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
         return stopAt(entryKm, t, 'stemmed', 'She cannot stem the current here: the paddles turn and the bank stands still. She holds where she is.');
       }
       // A snag she cannot see in time (D29): broken water over a fouled bed
-      // at more speed than the eye can read the water ahead.
-      if (s.obstruction > SNAG_CHOKED && sog > sight) {
+      // at more speed than the eye can read the water ahead — the ONE snag
+      // rule, which a paddled boat asks too (`snagVerdict`).
+      const snag = this.snagVerdict({ obstruction: s.obstruction, sogMps: sog, nowS });
+      if (snag !== 'clear') {
         // ⭐ The master's choice, not the engine's: coming up to a choked
         // reach she stops at its edge, where her people can see the snags
         // — and goes on at a crawl or chances it. Already in it (the course
@@ -1476,7 +1478,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
         // By day the snags are there to be seen: she will not be run into
         // them at speed — stopped at their edge, or (lying among them) not
         // started. By night nobody sees them, and she runs on to the crack.
-        if (day) {
+        if (snag === 'seen') {
           if (route[0] === s) {
             return { refused: 'She lies among snags — dead trees in the channel all round her. Not at speed: take her out slow.' };
           }
@@ -1491,6 +1493,23 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
       if (exitKm === targetKm) return stopAt(exitKm, t, endReason, endWords);
     }
     return stopAt(targetKm, t, endReason, endWords);
+  }
+
+  /**
+   * ⭐⭐ The ONE snag rule (river D29; lifted out of `planPassage` by
+   * matter-model-overlaps D7): a stretch choked past `SNAG_CHOKED`, met
+   * faster over the ground than the eye can read the water ahead
+   * (`water.river.clarityM`, a quarter of it by night), is a snag. By day it
+   * is `seen` — the craft lies off it; by night it is `struck` — she is
+   * holed. Anything else is `clear`. A ship's passage and a paddled boat's
+   * stroke ask the same question.
+   */
+  public snagVerdict(at: { obstruction: number; sogMps: number; nowS: number }): 'clear' | 'seen' | 'struck' {
+    if (!(at.obstruction > SNAG_CHOKED)) return 'clear';
+    const day = isDay(at.nowS);
+    const sight = dial('water.river.clarityM', 6) * 0.4 * (day ? 1 : 0.25);
+    if (!(at.sogMps > sight)) return 'clear';
+    return day ? 'seen' : 'struck';
   }
 
   /** The landing on a river within `withinM` of a position (river D18). */

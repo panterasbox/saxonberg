@@ -1,8 +1,10 @@
 /**
  * DrainSetting — ⭐ **how a matter sets by losing water**, as data on its
  * material row (dairy D9b): curd gives up its whey in a hoop and becomes
- * cheese, faster and drier under a load; a sugar strike purges its
- * molasses in a cone; a slip gives its water to a plaster mould.
+ * cheese, faster and drier under a load; a slip gives its water to a
+ * plaster mould; a soap curd and a latex set the same way. (A sugar strike
+ * does NOT: it crystallizes, and its molasses is the mother liquor — the
+ * phase engine's crystallize arm, matter-model-overlaps D12.)
  *
  * The drain set's twin is the cure (`Kinetics.poolSet()`), and the two have
  * one shape (B104): the MATERIAL says how it sets — the rate, the moisture
@@ -24,28 +26,14 @@
 export interface DrainSettingSpec {
   days: number;
   becomes?: string;
-  /**
-   * ⭐ What the set thing is when it sets AS a given shape — keyed by the
-   * cast's template path, falling back to `becomes` (sugar: the strike
-   * set as a cone's loaf is loaf sugar; set as a hogshead's block, purged
-   * coarse and never clayed, it is raw sugar). The mould decides the
-   * shape; this lets the material say what that shape of it is.
-   */
-  becomesAs?: Record<string, string>;
   moisture: { unloaded: number; loaded: number };
   loadRef: number;
   /**
-   * ⭐ What the drained-off matter IS (sugar D16) — molasses off a sugar
-   * loaf. When set, a mould standing ON a vessel credits that vessel with
-   * the drainings as they drain; absent, they go nowhere (the cheese
-   * hoop's whey runs off its board).
+   * ⭐ What the drained-off matter IS — whey off a curd. It runs by the one
+   * drip to what is under the mould (matter-model-overlaps D10); absent,
+   * nothing drains off as a liquid.
    */
   drains?: string;
-  /**
-   * Extra share of the pool that drains away per grade band below `fine`
-   * — a poor strike gives up more molasses and keeps less sugar.
-   */
-  drainPerBand?: number;
   /**
    * ⭐ The MOULD drinks the water, not a drain (ceramics D24 — slip
    * casting): it sets only in an absorbent mould, the water goes into the
@@ -65,8 +53,7 @@ export class DrainSetting {
     if (!DrainSetting.isValid(spec)) {
       throw new RangeError(
         'DrainSetting: need days > 0, 0 < moisture.loaded <= moisture.unloaded <= 1, ' +
-          'loadRef > 0, becomes and drains each a path or absent, becomesAs a shape → path map or absent, ' +
-          'and 0 <= drainPerBand < 1',
+          'loadRef > 0, and becomes and drains each a path or absent',
       );
     }
     this.spec = {
@@ -75,9 +62,7 @@ export class DrainSetting {
       loadRef: spec.loadRef,
       ...(spec.becomes ? { becomes: spec.becomes } : {}),
       ...(spec.absorbedByMould === true ? { absorbedByMould: true } : {}),
-      ...(spec.becomesAs ? { becomesAs: { ...spec.becomesAs } } : {}),
       ...(spec.drains ? { drains: spec.drains } : {}),
-      ...(spec.drainPerBand ? { drainPerBand: spec.drainPerBand } : {}),
     };
   }
 
@@ -95,26 +80,14 @@ export class DrainSetting {
       v.loadRef > 0 &&
       (v.becomes === undefined || (typeof v.becomes === 'string' && v.becomes !== '')) &&
       (v.absorbedByMould === undefined || typeof v.absorbedByMould === 'boolean') &&
-      (v.drains === undefined || (typeof v.drains === 'string' && v.drains !== '')) &&
-      (v.becomesAs === undefined ||
-        (v.becomesAs !== null &&
-          typeof v.becomesAs === 'object' &&
-          Object.entries(v.becomesAs).every(
-            ([shape, path]) => shape !== '' && typeof path === 'string' && path !== '',
-          ))) &&
-      (v.drainPerBand === undefined ||
-        (Number.isFinite(v.drainPerBand) && v.drainPerBand >= 0 && v.drainPerBand < 1))
+      (v.drains === undefined || (typeof v.drains === 'string' && v.drains !== ''))
     );
   }
 
   /** The authored spec as stored (the row's own shape). */
   public toSpec(): DrainSettingSpec {
     const s = this.spec;
-    return {
-      ...s,
-      moisture: { ...s.moisture },
-      ...(s.becomesAs ? { becomesAs: { ...s.becomesAs } } : {}),
-    };
+    return { ...s, moisture: { ...s.moisture } };
   }
 
   /** Does the MOULD drink the water (it sets only in an absorbent one)? */
@@ -127,12 +100,9 @@ export class DrainSetting {
     return this.spec.drains ?? '';
   }
 
-  /**
-   * The material the set thing IS when it sets as `shapePath` — the
-   * shape's own answer, else `becomes`, else `''` (the pool's own).
-   */
-  public becomesFor(shapePath: string): string {
-    return this.spec.becomesAs?.[shapePath] ?? this.spec.becomes ?? '';
+  /** The material the set thing IS — `becomes`, or `''` (the pool's own). */
+  public getBecomes(): string {
+    return this.spec.becomes ?? '';
   }
 
   /**
@@ -171,18 +141,10 @@ export class DrainSetting {
   /**
    * Kilograms the whole set drives out of a pool of `poolKg` holding
    * `waterFraction` of water, pressed at `pressed` — its water down to the
-   * moisture kept, plus ⭐ the extra a poorer pool gives up
-   * (`drainPerBand` × the bands below fine). Never more than the pool.
+   * moisture kept. Never more than the pool.
    */
-  public drainedKg(
-    poolKg: number,
-    waterFraction: number,
-    pressed: number,
-    bandsBelowFine: number,
-    overpressExponent: number,
-  ): number {
+  public drainedKg(poolKg: number, waterFraction: number, pressed: number, overpressExponent: number): number {
     const kept = this.moistureAt(pressed, overpressExponent);
-    const extra = (this.spec.drainPerBand ?? 0) * bandsBelowFine;
-    return Math.min(poolKg, poolKg * ((1 - kept) * waterFraction + extra));
+    return Math.min(poolKg, poolKg * (1 - kept) * waterFraction);
   }
 }

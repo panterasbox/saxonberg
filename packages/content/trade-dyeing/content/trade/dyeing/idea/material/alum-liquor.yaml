@@ -25,3 +25,5 @@ data:
   crystallizesTo:
     product: /trade/dyeing/idea/material/alum
     residue: /trade/dyeing/idea/material/alum-liquor
+    # How far past saturation a cooling liquor holds unstarted (D14).
+    metastableRatio: 1.3

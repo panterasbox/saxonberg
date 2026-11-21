@@ -13,6 +13,7 @@
  * Synthetic fixtures throughout (no shipped content is named).
  */
 
+import type { GradeBand } from '../../../../lib/craft/Grade';
 import '../../../../../test-bootstrap';
 import WorldClockRegistry from '../../WorldClockRegistry';
 import { TemplatePaths } from '../../../../lib/paths';
@@ -108,7 +109,8 @@ function makeBottle(materialPath: string, amountL: number, band = 'fair') {
   (b as unknown as { interiorMaterial: string }).interiorMaterial = materialPath;
   b.setInteriorCapacity(Quantity.of(5, 'L'));
   b.setInteriorAmount(Quantity.of(amountL, 'L'));
-  b.setGradeBand(band);
+  // The batch's grade is its payload's (matter-model-overlaps D2).
+  BulkableApi.slotFor(b, undefined)!.setPayload({ grade: band as GradeBand });
   return b;
 }
 
@@ -369,7 +371,9 @@ describe('the glass pool (1c)', () => {
     expect((first.output as CraftVessel).isSoiled()).toBe(true);
     // And it's a stamped, filled drink.
     expect(slot(first.output).getAmount().rawValue()).toBeGreaterThan(0.06);
-    expect((first.output as CraftVessel).getRecipe()).toBe('martini');
+    // The mark is the drink's (its payload's, matter-model-overlaps D2).
+    expect(slot(first.output).getPayload()?.grade).toBeDefined();
+    expect(slot(first.output).getPayload()?.maker).toBeTruthy();
 
     const second = await craftAs(dave, { recipeRef: 'martini', makerMode: 'self' });
     expect(second.ok).toBe(true);

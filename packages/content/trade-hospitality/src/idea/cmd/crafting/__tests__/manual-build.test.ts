@@ -25,6 +25,7 @@ import { WorldClockApi } from "@saxonberg/server/mud/api/worldclock";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { BulkableApi } from "@saxonberg/server/mud/api/bulk";
+import type { GradeBand } from "@saxonberg/server/mud/lib/craft/Grade";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { mockPersistenceStore } from "@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
@@ -89,7 +90,8 @@ function makeBottle(materialPath: string, band: string, amountL: number) {
   (b as unknown as { interiorMaterial: string }).interiorMaterial = materialPath;
   b.setInteriorCapacity(Quantity.of(1, "L"));
   b.setInteriorAmount(Quantity.of(amountL, "L"));
-  b.setGradeBand(band);
+  // The gin's grade is the GIN's — its payload's (matter-model-overlaps D2).
+  BulkableApi.slotFor(b, undefined)!.setPayload({ grade: band as GradeBand });
   return b;
 }
 
@@ -314,8 +316,10 @@ describe("strain as the terminal mint", () => {
     const slot = BulkableApi.slotFor(glass, undefined)!;
     expect(slot.getMaterialPath()).toBe(MARTINI_MAT);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.07, 6); // mass conserved
-    expect((glass as unknown as { getGradeBand(): string }).getGradeBand()).toBe("fair");
-    expect((glass as unknown as { getRecipe(): string }).getRecipe()).toBe("martini");
+    // The mark is the DRINK's — its payload's (matter-model-overlaps D2).
+    expect(slot.getPayload()?.grade).toBe("fair");
+    expect(slot.getPayload()?.craftedAt).toBeTypeOf("number");
+    expect((glass as unknown as { getMaker(): string }).getMaker()).toBe("");
     expect(shaker.isBuildEmpty()).toBe(true);
   });
 });

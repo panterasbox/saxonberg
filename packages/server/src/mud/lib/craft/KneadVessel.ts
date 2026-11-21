@@ -25,6 +25,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
 import type { ActPlan, ActRefusal } from './ActPlan';
+import { StirTargetMixin, type StirAnswer, type StirRequest } from './StirTarget';
 
 const KNEADING = ['platform/cmd/crafting/knead.yaml'];
 
@@ -90,7 +91,12 @@ export interface KneadVessel {
 }
 
 export function KneadVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class KneadVesselMixin extends Base implements KneadVessel {
+  // ⭐ A knead vessel is also stirred (`StirTargetMixin`, matter-model-
+  // overlaps D15): what it holds is stiff, so its answer is `wrong-work`
+  // pointing at `knead` — its own answer on the protocol, where the stir
+  // controller used to test for the host. `CompoundingMixin` answers by its
+  // matter instead.
+  return class KneadVesselMixin extends StirTargetMixin(Base) implements KneadVessel {
     static _mixinName = 'KneadVesselMixin';
     static _mixinKind = 'protocol' as const;
 
@@ -98,6 +104,14 @@ export function KneadVesselMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       environment: KNEADING,
       peers: KNEADING,
     };
+
+    /**
+     * @hook `stir`: a knead vessel holds a stiff mass — too stiff to stir;
+     * knead it.
+     */
+    public stirPlanFor(_req: StirRequest): Promise<StirAnswer> | StirAnswer {
+      return { ok: false, reason: 'wrong-work', facts: { work: 'knead' } };
+    }
 
     /** @hook The knead this vessel plans — `null` when it has nothing to say. */
     public async kneadPlanFor(_req: KneadRequest): Promise<KneadPlan | KneadRefusal | null> {

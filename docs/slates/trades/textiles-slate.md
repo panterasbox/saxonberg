@@ -10,7 +10,8 @@
 > customization product) · magic garments (a garment as an item host;
 > mage-woven as a mark) · hair dye (cosmetics-slate) · individual body
 > variance (lineage phase 2) · the tannery's nuisance siting ·
-> `DressingMixin.dressingQuality` onto `Soilable` (room-condition)
+> `DressingMixin.dressingQuality` onto `Soilable` (room-condition) · a leak onto
+> the back under a carried pack
 > **Size:** a build
 
 > ## ⏳ THE UNBUILT TAIL — what this slate still owns
@@ -458,6 +459,14 @@ genuinely bad, collapses the whole question back to a solved one.
     new mechanism — is it this build's, or magic-items' next wave?
 
 ---
+
+## A leak onto the back under a carried pack (deferred by matter-model-overlaps, 2026-11-20)
+
+A leaking jug in a pack wets the pack up to its own water capacity, then drips
+to the floor at the carrier's feet; the body under the pack is never wetted.
+What a wet pack does to the garment and back beneath it is this slate's layer
+rule — attach point: `BulkableLogic.drip`'s non-bulk-container rule
+([spatial.md](../../subsystems/spatial.md) § What is under it — the drip).
 
 ## Cross-references
 

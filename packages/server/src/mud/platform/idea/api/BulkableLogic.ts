@@ -11,12 +11,12 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type {
-  BulkSlot,
   BulkAffordance,
   BulkPayload,
   ClosureLevel,
 } from '../../../lib/bulk/Bulkable';
-import { CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
+import { BulkSlot, CLOSURE_ORDER, BULK_VOLUME_UNIT } from '../../../lib/bulk/Bulkable';
+import { GivenUpSlot } from '../../../lib/bulk/GivenUpSlot';
 import type Material from '../../../lib/material/Material';
 import type { CompositionEntry } from '../../../lib/material/Material';
 import '../../../lib/material/Composition';
@@ -29,6 +29,7 @@ import { DissolvedAromatics } from '../../../lib/metabolism/DissolvedAromatics';
 import { Concentration } from '../../../lib/bulk/Concentration';
 import type { MqlQuantity, MqlMatchVia } from '../../../api/mql';
 import { Quantity } from '../../../lib/quantity';
+import { Grade, type GradeBand } from '../../../lib/craft/Grade';
 import { MessageApi } from '../../../api/message';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
@@ -38,6 +39,8 @@ import type { Container } from '../../../lib/spatial/Container';
 import { QuantityApi } from '../../../api/quantity';
 import type {
   BulkNote,
+  DripMatter,
+  DripResult,
   TransferAmount,
   TransferResult,
   TransferStatus,
@@ -482,10 +485,6 @@ export class BulkableLogic extends ApiLogic {
     // The SLOT's temperature, not the holder's: every vessel slot answers
     // its Thermal holder's, and a shore's source slot its water's.
     const blendFromK = toHolder !== null ? from.getTemperatureK() : null;
-    const blendToK =
-      toHolder !== null && MixinApi.isThermal(toHolder)
-        ? toHolder.getTemperature().rawValue()
-        : null;
 
     // 5. Apply. Capture the source's blend payload BEFORE the debit — a
     // full drain clears it with the material. ⭐ Same for the spoilage
@@ -535,11 +534,15 @@ export class BulkableLogic extends ApiLogic {
     // whose interior is homogeneous; a fractionating host answers with the
     // span it is actually about to give up.
     const drawnPayload = from.payloadForDraw(applied);
-    const fromPayload = pores
+    const passed = pores
       ? throughPores(drawnPayload)
       : set
         ? throughSet(drawnPayload)
         : drawnPayload;
+    // ⭐ A grade the move names is what arrives carries (a set's drainings,
+    // a band under their pool — D10).
+    const fromPayload: BulkPayload | null =
+      via?.grade !== undefined ? { ...(passed ?? {}), grade: via.grade } : passed;
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
     if (to !== null) {
@@ -548,16 +551,22 @@ export class BulkableLogic extends ApiLogic {
         // A blend poured into an empty vessel stays that blend (a copy).
         // Same-material pours into a non-empty vessel keep the
         // destination's payload — blend merging is out of scope.
-        if (fromPayload) to.setPayload(fromPayload);
-        // The grade seam (fermentation D6/W0): a fresh fill from a
-        // graded batch carries the batch's identity — band, and the
-        // maker's mark when both sides can hold one. Same rule as the
-        // payload: identity rides into an EMPTY destination only; a
-        // top-up keeps the destination's own identity (blend identity
-        // is out of scope, like blend merging above). ⚠ Not out of a set:
-        // the batch is the solid, and the drainings are not it (the mould
-        // grades them itself).
-        if (!set) carryBatchIdentity(fromHolder, toHolder);
+        // ⭐⭐ The batch's identity — its grade, maker, recipe and when it
+        // was made — rides here, on the PAYLOAD (matter-model-overlaps
+        // D2): it is a fact about the contents, so the vessel it lands in
+        // keeps its own making (a fine wine in a poor bottle stays fine; a
+        // ferment in a cooper's cask leaves the cask the cooper's). ⚠ Out
+        // of a set the drainings take no grade (`throughSet`): the mould
+        // grades them itself.
+        const landed = withoutWallClock(fromPayload);
+        if (landed) to.setPayload(landed);
+        // ⭐ …and a fill into an EMPTY interior is DECLARED here, by the act
+        // (D2): the wall it lands against counts the fill — its first is
+        // free, each after spends what it has to give (D11). Never inferred
+        // from a missing stamp.
+        if (to.affordance === 'interior' && toHolder !== null && MixinApi.isFaced(toHolder)) {
+          toHolder.noteFill('inside');
+        }
       }
       // ⭐⭐ Bring the destination CURRENT before the matter lands. Setting
       // a vessel's temperature first reconciles it up to now at the heat it
@@ -572,12 +581,10 @@ export class BulkableLogic extends ApiLogic {
       // mould's own cold temperature (run 28: a pour "set" mid-transfer —
       // `setContentsTemperature` reconciles first, and it was reconciling a
       // pool already landed and still cold).
+      // ⭐⭐ By heat capacity, the vessel's own body counted: a drip barely
+      // moves a heavy pot, a cold mould chills the metal (`mixPour`).
       if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
-        toHolder.setContentsTemperature(
-          toAmountBefore <= 0 || blendToK === null
-            ? blendFromK
-            : (applied * blendFromK + toAmountBefore * blendToK) / (applied + toAmountBefore),
-        );
+        toHolder.mixPour(applied, material, blendFromK);
       }
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
       if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {
@@ -668,12 +675,18 @@ export class BulkableLogic extends ApiLogic {
 
       // ⭐⭐ **A top-up is weakest-link on the grade.** Identity rides into
       // an empty destination only (above) — but quality is not identity,
-      // and a vessel that has had a poor pour added to it holds poorer
-      // matter than it did. Without this, topping a bad bottle up from a
-      // good cask would LAUNDER it: the grade is the destination's and the
-      // matter is the mixture. The maker's mark is untouched either way —
-      // a top-up never re-signs somebody else's work.
-      if (!toWasEmpty && !set) carryTopUpGrade(fromHolder, toHolder);
+      // and matter that has had a poor pour added to it is poorer than it
+      // was. Without this, topping a bad bottle up from a good cask would
+      // LAUNDER it. One side ungraded: the other's stands. The maker, the
+      // recipe and the time made are untouched — a top-up never re-signs
+      // somebody else's work.
+      if (!toWasEmpty) {
+        const held = to.getPayload();
+        const grade = lowerGrade(held?.grade, fromPayload?.grade);
+        if (grade !== undefined && grade !== held?.grade) {
+          to.setPayload({ ...(held ?? {}), grade });
+        }
+      }
 
       // ⭐ Blood units blend by IDENTITY, not by mass (blood build D4):
       // two units of the same labelled type stay that type; anything else
@@ -764,7 +777,7 @@ export class BulkableLogic extends ApiLogic {
     }
 
     // ⭐ (cleanliness D22) A VOLATILE liquid poured into the open gives off
-    // its vapour into the room as it goes in — naphtha in a dish, spirit
+    // its vapor into the air as it goes in — naphtha in a dish, spirit
     // in a bowl. The quarter-hour of evaporation the pour exposes.
     if (
       applied > 0 &&
@@ -775,13 +788,12 @@ export class BulkableLogic extends ApiLogic {
       material.getVapourMaterial() !== '' &&
       to.getClosure() === 'open'
     ) {
-      const room = MixinApi.isContainable(toHolder) ? toHolder.getContainer() : null;
-      if (room && MixinApi.isAtmospheric(room)) {
-        room.addAtmosphereContent(
-          material.getVapourMaterial(),
-          applied * material.getVapourLPerLPerHour() * 0.25,
-        );
-      }
+      // The one vapor route (D16): the vessel's chamber, else the room.
+      BiomeApi.vent({
+        from: toHolder,
+        material: material.getVapourMaterial(),
+        litres: applied * material.getVapourLPerLPerHour() * 0.25,
+      });
     }
 
     // 6. Thermal coupling (gated). Same material both sides (enforced at
@@ -830,22 +842,93 @@ export class BulkableLogic extends ApiLogic {
   /** See {@link BulkableApi.floorSurfaceNear}. */
   @CallSecurity(BulkableApiCallers)
   public floorSurfaceNear(near: Stuff): BulkSlot | null {
-    // Walk up the containment chain — a held vessel's immediate
-    // container is the actor, not the room — until an Adornable host
-    // (the location) carries a bulkable surface fixture (the floor).
-    let cur: Stuff | null = MixinApi.isContainable(near)
-      ? near.getContainer()
-      : null;
-    while (cur !== null) {
-      if (MixinApi.isAdornable(cur)) {
-        const floor = cur.getFloor();
-        if (floor && floor.hasSurfaceBulk()) {
-          return floor.getBulk('surface');
+    // The floor is the last of what is under a thing (`dripSlots` — the one
+    // walk up to the place, past a carrier to its feet); its one surface slot.
+    if (!MixinApi.isContainable(near)) return null;
+    return near.dripSlots().find((s) => s.affordance === 'surface') ?? null;
+  }
+
+  /** See {@link BulkableApi.drip}. */
+  @CallSecurity(BulkableApiCallers)
+  public drip(matter: DripMatter): DripResult {
+    const notes: BulkNote[] = [];
+    const out: DripResult = { drained: 0, caught: 0, wetted: null, soaked: 0, lost: 0, notes };
+    if (!(matter.litres > 0)) return out;
+    // A slot leaving a vessel, or liquid a solid gives up (no slot behind it).
+    const source: BulkSlot =
+      matter.from !== undefined
+        ? matter.from
+        : new GivenUpSlot(matter.off, matter.material, matter.litres, matter.payload);
+    const via = matter.from !== undefined ? matter.via : undefined;
+    const holder = source.getHolder();
+    const slots = MixinApi.isContainable(holder) ? holder.dripSlots() : [];
+    const arriving = via?.arrivesAs ?? source.getMaterial();
+    if (arriving === null) return out;
+    const arrivingPath = arriving.getTemplatePath() ?? source.getMaterialPath();
+    let left = Math.min(matter.litres, source.available());
+    if (slots.length === 0) {
+      // ⭐ Nothing under it — no vessel, no floor up the chain: a band of
+      // water, the void, a thing standing nowhere. The drip is a READ's
+      // consequence as often as a write's, and a read never throws
+      // `DetachedError`: what runs out runs away into the water or the
+      // void, and the result says so (`lost`). A write that must refuse
+      // checks its subject before it changes anything.
+      if (left > 0) {
+        source.debit(left);
+        out.drained += left;
+        out.lost += left;
+      }
+      return out;
+    }
+
+    // ⭐ Inside something that is not a vessel — a jug in a pack, a crock in a
+    // chest — the drip wets that first, up to what it can hold (lens 1: water
+    // runs down and wets what it passes). A place is not wetted, and neither
+    // is a body this build (textiles' layer rule; a deferred seam).
+    const around = MixinApi.isContainable(holder) ? (holder.getContainer() as unknown as Stuff | null) : null;
+    if (
+      left > 0 &&
+      around !== null &&
+      !MixinApi.isAdornable(around) &&
+      !around.isAgent() &&
+      !(MixinApi.isBulkable(around) && around.hasInteriorBulk()) &&
+      MixinApi.isWet(around)
+    ) {
+      const capKg = around.waterCapacityKg();
+      const density = arriving.getDensity().rawValue();
+      const freeKg = (1 - around.getWetness()) * capKg;
+      if (capKg > 0 && density > 0 && freeKg > 0) {
+        const tookL = Math.min(left, (freeKg / density) * 1000);
+        if (tookL > 0) {
+          source.debit(tookL);
+          around.wet(((tookL / 1000) * density) / capKg);
+          left -= tookL;
+          out.drained += tookL;
+          out.wetted = around;
         }
       }
-      cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
     }
-    return null;
+
+    for (const slot of slots) {
+      if (!(left > 1e-12)) break;
+      const floor = slot.affordance === 'surface';
+      const held = slot.isEmpty() ? null : slot.getMaterialPath();
+      if (!floor && held !== null && held !== arrivingPath) continue;
+      const moved = this.transfer(source, slot, { kind: 'measure', litres: left, mode: 'lenient' }, via);
+      notes.push(...moved.notes);
+      left -= moved.applied;
+      out.drained += moved.applied;
+      out.caught += moved.applied;
+      if (floor && left > 1e-12) {
+        // ⭐ The floor holds something else, or is brim-full: the rest soaks
+        // into the ground (spatial.md § What is under it — the drip) — a leak never waits on the floor.
+        source.debit(left);
+        out.drained += left;
+        out.soaked += left;
+        left = 0;
+      }
+    }
+    return out;
   }
 }
 
@@ -982,30 +1065,38 @@ function strainTagOf(material: Material): string {
   return '';
 }
 
-function carryBatchIdentity(
-  fromHolder: Stuff,
-  toHolder: Stuff | null,
-): void {
-  if (toHolder === null) return;
-  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
-  toHolder.setGrade(fromHolder.getGrade());
-  if (MixinApi.isCrafted(fromHolder) && MixinApi.isCrafted(toHolder)) {
-    toHolder.setMaker(fromHolder.getMaker());
-    toHolder.setRecipe(fromHolder.getRecipe());
-    toHolder.setCraftedAt(fromHolder.getCraftedAt());
+/**
+ * A payload as it lands in a vessel: everything it carries but the old
+ * vessel's clocks. `faceCheckedS` is when the SOURCE's wall last exchanged
+ * with it, and `liquorDrainStampS`/`liquorDrainDueS` how far a mould's
+ * spent liquor has run out of THAT mould (matter-model-overlaps D13) —
+ * facts about the vessel, so they never ride a pour.
+ */
+function withoutWallClock(payload: BulkPayload | null): BulkPayload | null {
+  if (
+    payload === null ||
+    (payload.faceCheckedS === undefined &&
+      payload.liquorDrainStampS === undefined &&
+      payload.liquorDrainDueS === undefined)
+  ) {
+    return payload;
   }
+  const { faceCheckedS: _c, liquorDrainStampS: _s, liquorDrainDueS: _d, ...rest } = payload;
+  return Object.keys(rest).length > 0 ? rest : null;
 }
 
 /**
- * The top-up rule: the destination's grade falls to the lower of the two.
- * Never raises it — `Grade.min` both ways, which is the same weakest-link
- * doctrine `Grade.deriveAtFixedControl` applies to a craft's inputs.
+ * The top-up rule: the lower of two batch grades, and with one side
+ * ungraded the other's — `Grade.min`, the weakest-link doctrine
+ * `Grade.deriveAtFixedControl` applies to a craft's inputs.
  */
-function carryTopUpGrade(fromHolder: Stuff, toHolder: Stuff | null): void {
-  if (toHolder === null) return;
-  if (!MixinApi.isGraded(fromHolder) || !MixinApi.isGraded(toHolder)) return;
-  const blended = toHolder.getGrade().min(fromHolder.getGrade());
-  toHolder.setGrade(blended);
+function lowerGrade(
+  held: GradeBand | undefined,
+  poured: GradeBand | undefined,
+): GradeBand | undefined {
+  if (held === undefined) return poured;
+  if (poured === undefined) return held;
+  return Grade.of(held).min(Grade.of(poured)).getBand();
 }
 
 function computeApplied(

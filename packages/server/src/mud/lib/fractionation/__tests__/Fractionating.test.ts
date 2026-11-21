@@ -144,23 +144,21 @@ function schedule(
 }
 
 /**
- * ⚠⚠ `band` is NOT optional decoration. The host's Graded face caps every
- * draw at the charge's own grade (D10/D11 — weakest-link: the hearts of a
- * mediocre wash are mediocre spirit), and `CraftedMixin`'s default band is
- * `fair`. So a column nobody graded caps everything at `fair`, and a test
- * expecting to see a fraction's own `fine` has to say what it charged the
- * pot with. In production `carryBatchIdentity` does this at the pour: the
- * still is empty before the charge, so the vat's band rides in with it.
+ * ⚠⚠ `band` is NOT optional decoration. The charge's grade caps every
+ * draw (D10/D11 — weakest-link: the hearts of a mediocre wash are mediocre
+ * spirit), so a test expecting to see a fraction's own `fine` has to say
+ * what it charged the pot with. It is the CHARGE's grade — its payload's
+ * (matter-model-overlaps D2) — which in production rides in on the pour.
  */
 function column(chargeL: number, tempK = 290, band = 'masterful'): TestColumn {
   const c = makeStuff(() => new TestColumn());
   (c as unknown as { interiorBulk: boolean }).interiorBulk = true;
   c.setInteriorCapacity(Quantity.of(100, 'L'));
-  graded(c).setGrade(Grade.of(band));
   c.testHeatK = tempK;
   if (chargeL > 0) {
     (c as unknown as { interiorMaterial: string }).interiorMaterial = CHARGE;
     c.setInteriorAmount(Quantity.of(chargeL, 'L'));
+    slotOf(c).setPayload({ grade: Grade.of(band).getBand() });
   }
   return c;
 }
@@ -170,19 +168,6 @@ function pail(): Pail {
   (p as unknown as { interiorBulk: boolean }).interiorBulk = true;
   p.setInteriorCapacity(Quantity.of(100, 'L'));
   return p;
-}
-
-/**
- * TS view of a Crafted host's grade surface — the inner `GradedMixin`'s
- * members are present at runtime but not surfaced on the anonymous mixin
- * base (the documented `Crafted.ts` cast pattern, as `GradeCarry.test.ts`
- * does it).
- */
-function graded(v: unknown): {
-  setGrade(g: Grade): void;
-  getGradeBand(): string;
-} {
-  return v as { setGrade(g: Grade): void; getGradeBand(): string };
 }
 
 function slotOf(v: unknown) {
@@ -300,7 +285,7 @@ describe('what a draw carries — the span blend', () => {
     // The first 2 L is all foreshots (upTo 0.1 × 20 L = 2 L).
     draw(c, p, 2);
     expect(doseIn(p)).toBeCloseTo(1000, 6);
-    expect(graded(p).getGradeBand()).toBe(
+    expect(slotOf(p).getPayload()?.grade).toBe(
       'poor',
     );
   });
@@ -315,7 +300,7 @@ describe('what a draw carries — the span blend', () => {
     draw(c, p, 4);
     expect(doseIn(p)).toBeCloseTo(600, 6);
     // And the grade is the WORST band in the span, not an average.
-    expect(graded(p).getGradeBand()).toBe(
+    expect(slotOf(p).getPayload()?.grade).toBe(
       'poor',
     );
   });
@@ -339,9 +324,7 @@ describe('what a draw carries — the span blend', () => {
     // Then take the hearts: 10 L of them, clean and fine.
     draw(c, bottle, 10);
     expect(doseIn(bottle)).toBe(0);
-    expect(
-      graded(bottle).getGradeBand(),
-    ).toBe('fine');
+    expect(slotOf(bottle).getPayload()?.grade).toBe('fine');
   });
 
   it('⚠ and keeping pouring past the hearts drags the grade down', () => {
@@ -351,23 +334,21 @@ describe('what a draw carries — the span blend', () => {
     draw(c, null, 6);
     const bottle = pail();
     draw(c, bottle, 10); // the hearts — fine
-    expect(
-      graded(bottle).getGradeBand(),
-    ).toBe('fine');
+    expect(slotOf(bottle).getPayload()?.grade).toBe('fine');
     draw(c, bottle, 2); // two litres of tails on top
     // Weakest-link on the top-up: the bottle is poor now, and no amount
     // of good spirit poured in afterwards would lift it.
-    expect(
-      graded(bottle).getGradeBand(),
-    ).toBe('poor');
+    expect(slotOf(bottle).getPayload()?.grade).toBe('poor');
   });
 
   it('the draw is stamped with the hand that charged the pot', () => {
     schedule();
     const c = column(0);
-    c.setMaker('/platform/agent/Avatar/the-distiller');
+    // The still is somebody else's; the WASH is the distiller's (D2).
+    c.setMaker('/platform/agent/Avatar/the-coppersmith');
     (c as unknown as { interiorMaterial: string }).interiorMaterial = CHARGE;
     c.setInteriorAmount(Quantity.of(20, 'L'));
+    slotOf(c).setPayload({ maker: '/platform/agent/Avatar/the-distiller' });
     heat(c);
     const p = pail();
     draw(c, p, 2);
@@ -507,11 +488,13 @@ describe('⭐ the charge\'s grade moves the boundaries', () => {
     const good = column(0, 290, 'masterful');
     (good as unknown as { interiorMaterial: string }).interiorMaterial = CHARGE;
     good.setInteriorAmount(Quantity.of(20, 'L'));
+    slotOf(good).setPayload({ grade: 'masterful' });
     heat(good);
 
     const bad = column(0, 290, 'poor');
     (bad as unknown as { interiorMaterial: string }).interiorMaterial = CHARGE;
     bad.setInteriorAmount(Quantity.of(20, 'L'));
+    slotOf(bad).setPayload({ grade: 'poor' });
     heat(bad);
 
     const viewer = makeStuff(() => new Good());
@@ -744,7 +727,7 @@ describe('aromaticCarry — the charge character comes over unevenly', () => {
     expect(
       coming.dissolvedAromatics!.find((t) => t.type === 'smoke')!.amount,
     ).toBeGreaterThan(200);
-    expect(graded(c).getGradeBand()).toBe('poor');
+    expect(coming.grade).toBe('poor');
   });
 
   it('defaults to 1 — a schedule authoring none passes the charge through', () => {

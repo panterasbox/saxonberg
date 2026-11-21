@@ -128,7 +128,7 @@ rack = `pour`, seal = `close`, bottle = `fill`, pitch/feed = `pour`.
 
 `MaturingMixin` composes on a Bulkable host (composition-validated)
 — bulk matter has no identity, vessels do (the pot-as-bed precedent).
-`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Good)))))`;
+`Vat` = `Fermenting(Crafted(Sealable(Thermal(Bulkable(Good)))))` (Crafted is the cask's OWN making — the batch's mark is its payload's);
 a carboy, a conditioning bottle and the cask are ROWS over it (sizes
 are data). The vat's `category` defaults `'vat'` (rows depart).
 
@@ -139,52 +139,34 @@ to idle, and the mixin's own product/turn/lees swaps re-key so they
 never read as fills. A same-material top-up continues the batch (the
 payload rule).
 
-## ⭐⭐⭐ `imparts` — what the VESSEL gives, written by the clock
+## ⭐⭐⭐ `imparts` — what the VESSEL gives (it is the WALL's now)
 
-A maturing vessel may author `imparts: [{type, amount}]` — aroma
-compounds (`metabolism.md`'s closed vocabulary), mg/L **at full
-conversion** — and the reconcile writes the newly-earned share into the
-interior payload's `dissolvedAromatics` each pass. `impartedFraction`
-marks how much has landed.
+⚠ **Moved (matter-model-overlaps D11).** What a cask gives its contents is
+no longer maturation's: it is the wall's one exchange,
+[`FacedMixin.exchangeWith`](./faces.md#-the-walls-exchange--one-model-two-sources),
+and the figures are the wall MATERIAL's `imparts` (`ExtractionMixin`). Oak's
+row gives oak 25 and vanilla 3 mg/L at full give; a charred cask is the same
+oak cask with a set coat of `charred-oak` on its inside face, whose own
+`imparts` are vanilla 40, char 120, oak 15. Two casks of one wood still make
+two whiskies — one has a coat — and a third is a row.
 
-```yaml
-# the plain whiskey cask                # the charred one, same wood
-imparts:                                imparts:
-  - { type: oak, amount: 25 }             - { type: vanilla, amount: 40 }
-  - { type: vanilla, amount: 3 }          - { type: char, amount: 120 }
-                                          - { type: oak, amount: 15 }
-```
+What changed for maturation:
 
-⭐ **This is what makes a cask a decision.** Two barrels of the same wood
-holding the same spirit for the same time yield two different whiskies,
-and a third is a ROW.
-
-**Why the vessel and not the profile.** A profile keys on the LIQUID
-(`inputCategory`), so an oak cask and a charred cask would be two
-profiles claiming the tag `new-make` — and `forMaterial` resolves a
-double match by taking the lowest key, *silently*. A `vesselCategory`
-requirement on the profile instead enumerates (liquids × vessels) rows.
-
-**Why not the wood Material.** A charred first-fill cask and a plain
-third-fill cask are **both oak**. The difference is this barrel's own
-state and history, which is a fact about the vessel.
-
-⚠ What composing it claims: *a maturing vessel may give its contents a
-character over the course of a batch.* True of every vat — an oak
-fermenter does exactly this — and vacuous when a row authors none, so **no
-guard anywhere re-narrows the host set.**
-
-⚠ Two known coarsenesses, recorded rather than modelled: the figure is
-per litre regardless of **fill level** (a small fill in a big cask ought
-to extract harder), and `imparts` does not **deplete** (a cask's second
-fill reads the same as its first, where a real refill gives less). The
-depleting reservoir is the RGO law's shape and belongs to a coopering
-build.
-
-⚠ **Idempotence is the trap, not the arithmetic.** The write is
-reconcile-on-read, so without the `impartedFraction` marker the oak would
-climb every time anybody so much as *looked* at the cask — a `look` would
-make the whisky woodier, and nothing would say so.
+- The give runs on the WALL's clock, not the batch's: it reaches full over
+  `faces.wallGiveDays` (90 — the whiskey-aging profile's length, so a first
+  fill at maturity reads as it did) of contact, whatever the liquid and
+  whether or not a batch is converting. Water in an oak cask tastes of oak.
+- `imparts`, `charredImparts`, `impartsSpent`, `fillCount`,
+  `fillsSinceRefire`, `charLevel`, `impartedFraction`, `applyImparts`,
+  `effectiveImparts`, `refire` and `isSpent` are gone from `MaturingMixin`,
+  and the setting `maturing.impartsSpentPerFill` with them. Spending is the
+  wall's (`faces.wallSpentPerFill`, counted by the transfer into an empty
+  vessel), re-firing is `repair`'s rung calling `Faced.refireFace` with the
+  coat the cask's bill names, and `look`'s *"less left to give"* line is
+  `coatAugmenter`'s. See [assembly.md](./assembly.md) § Coopering and the
+  cask.
+- Oak is `absorbent`: the cask remembers what it held and gives it to the
+  next fill — a batch that follows whiskey carries some of it.
 
 ## ⭐⭐ `productAtFraction` — *when to bottle* as a decision
 
@@ -193,12 +175,12 @@ conversion at which the interior becomes the product. At 1 the product
 exists only at full conversion, which is what every profile did before
 and what every shipped profile but the two whisky casks still does.
 
-Below 1 it opens a window, and `applyBatchGrade` gains a **third weakest
+Below 1 it opens a window, and `gradeBatch` gains a **third weakest
 link** — a maturity term climbing from `poor` at `productAtFraction` to
 `masterful` at 1:
 
 ```
-band = min(damageBand, batchInputBand, maturityBand)
+band = min(damageBand, inputGradeCap, maturityBand)
 ```
 
 ⭐ So bottling early costs quality and bottling late costs time, and the
@@ -262,17 +244,18 @@ the distiller's deferred cuts rung*). **A new drink is rows alone** —
 proven by the cider test
 (`world/__tests__/fermentation-cider.test.ts`).
 
-⭐⭐ **And the fill now CAPS the batch** (`batchInputBand`). `applyBatchGrade`
-wrote `bandFor(_worstStretch)` and ignored what was poured in, so a
-`poor` must made `fine` wine provided the cellar was kept well — a
-laundry, and a contradiction of `Grade.deriveAtFixedControl`'s
-weakest-link rule one folder over. The band is recorded by a `setGrade`
-**witness while the batch is idle**, which is the part worth copying:
-reading the host's Graded face at `startBatch` would have capped every
-ungraded ferment at `GradedMixin`'s `'fair'` default, for ever, silently.
-Proved both ways in `__tests__/InputBandCap.test.ts` — ⚠ written because
-the fix broke **no** shipped test, which meant either it worked and
-nothing shipped ferments a bad fill, or it never fired.
+⭐⭐ **And the fill CAPS the batch** (`inputGradeCap`). The band was
+`bandFor(_worstStretch)` and ignored what was poured in, so a `poor` must
+made `fine` wine provided the cellar was kept well — a laundry, and a
+contradiction of `Grade.deriveAtFixedControl`'s weakest-link rule one
+folder over. ⭐ The cap is the CONTENTS' grade, read off the payload when the
+batch starts (matter-model-overlaps D2), and `gradeBatch` writes the derived
+band back onto the payload — **never the vessel's own `Graded` face**, which
+is its making (a ferment in a cooper's cask leaves the cask the cooper's).
+Ungraded contents carry no cap, so nothing caps an ungraded ferment at
+`GradedMixin`'s `'fair'` default — the trap the retired `setGrade` witness
+existed to dodge, gone with it. Proved both ways in
+`__tests__/InputBandCap.test.ts`.
 
 ⭐ A fifth `MaturationMechanism`, **`enzymatic`** — *the thing does it to
 itself*. A steeped barleycorn turns its own starch over with its own
@@ -317,11 +300,18 @@ every reconcile. No `Math.random` in the tree (source-scanned).
 
 ## The transfer seam carries the batch's identity (D6/P3, W0)
 
-`BulkableApi.transfer` into an EMPTY destination carries the source
-holder's grade band (Graded→Graded) and the maker's mark
-(Crafted→Crafted: maker/recipe/craftedAt) — the payload rule applied
-to identity. `GradedReceptacle` (⇒ every stock bottle) is Crafted now,
-and a MARKED bottle appends its `renderVerdict()` to look (W7). The
+⭐⭐ **The batch is the contents'** (matter-model-overlaps D2). Its grade,
+maker (an identity path) and time made ride the PAYLOAD, so
+`BulkableApi.transfer` into an EMPTY destination carries them with the
+payload, and a top-up folds the grade to the lower of the two without
+re-signing the maker ([bulk.md](./bulk.md) § `transfer`). The batch is
+signed when it starts (`signBatch`: the maker carried in, else the acting
+author's `getIdentityPath()` — the lineage-key defect `Fractionating`
+recorded is fixed). No pour, ferment or temper writes the vessel's
+`Graded`/`Crafted` again: any holder of a graded batch appends the
+contents' verdict to look (`BulkableMixin`'s batch verdict, off the
+payload — crafted holder or not), and a bottle somebody made says its own
+making on its own line. The
 mismatch branch offers a cross-material pour to a Fermenting interior
 as an INOCULATION before declining: a strain-bearing pour into a
 sterile batch is a PITCH (the jar's `batchStrain`, or a material's
@@ -335,8 +325,8 @@ S. pastorianus in base-library). **The lees split at the rack** (P12):
 a finished batch holds `leesFraction` back as a rack floor
 (`getBulkAvailable` shadow); racked down to it, the residual swaps to
 `leesMaterial` and re-keys AT ONCE as a culture batch — strain from
-the lees' culture profile, the Crafted mark untouched (the trace back
-to the harvested batch). A culture's "conversion" is viability:
+the lees' culture profile, the batch's mark untouched on its payload (the
+trace back to the harvested batch). A culture's "conversion" is viability:
 starves over `starveDays` (×0.25 below the band — the cellar; ×3 past
 damage — the shelf), killed above `killK`, fed by a pour of
 sugar-bearing must; dead is terminal and pitches nothing.
@@ -460,7 +450,7 @@ the analysis instead of rediscovering it:
   through a sprung stave or a slack hoop and dries out standing empty
   (`emptySince`, on every vat now); a carboy or a crock is a vat of one
   piece — see [assembly.md](./assembly.md)
-- `platform/idea/api/BulkableLogic.ts` — `carryBatchIdentity` +
+- `platform/idea/api/BulkableLogic.ts` — the payload's grade top-up +
   `tryInoculate` on the transfer
 - `lib/behavior/cellars.ts` (+ `__tests__/`) — the producer beats
 - `platform/thing/instrument/Hydrometer.ts` +
@@ -564,7 +554,7 @@ firm curd — whatever the order of rennet and starter.
 **The scald mark** — `batchPeakK` (persistent, the peak over every
 reconcile's samples since the fill) against the profile's `scaldAboveK`:
 past it the band is capped `poor`, a **fourth weakest link** in
-`applyBatchGrade`. Vacuous for every profile that authors none.
+`gradeBatch`. Vacuous for every profile that authors none.
 
 **`leesShare`** — a `CompositionShare` (`lib/material/`) evaluated against
 the material the batch was MADE from, overriding the literal
@@ -618,3 +608,11 @@ plateau, not to an `evaporative` profile. The lye hopper still runs
   door and load the kind in `onCreate` (§ Profiles are the whole authoring
   surface). ⭐ W10 (same review): the kind became `BulkableApi`'s `needs`,
   stood at boot; the `onCreate` loads went and the path setters are plain.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** The vessel's eleven
+  imparts members (`imparts` … `refire`, `isSpent`) and
+  `maturing.impartsSpentPerFill` were deleted: a cask's give is its wall
+  material's, read by `Faced.exchangeWith`, and a charred cask's is its char
+  coat. The batch is signed and graded onto the payload
+  (`signBatch`/`gradeBatch`); a ferment never writes its vessel's
+  `Graded`/`Crafted`.

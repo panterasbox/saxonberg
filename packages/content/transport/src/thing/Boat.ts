@@ -62,6 +62,9 @@ import Propulsion from './Propulsion';
 import { Propel, type PropelHeading } from '../lib/Propel';
 import Killick from './Killick';
 import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import type WatercourseCatalogue from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
+import { CallSecurity } from '@saxonberg/server/mud/lib/security/decorators';
+import { SecurityPolicies } from '@saxonberg/server/mud/lib/security/SecurityPolicies';
 import ReachExit from '@saxonberg/content-water/src/idea/exits/ReachExit';
 import WaterExpanse from '@saxonberg/content-water/src/idea/WaterExpanse';
 import { HirableMixin, type Hirable } from '@saxonberg/server/mud/lib/retail/Hirable';
@@ -69,29 +72,30 @@ import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { FacedMixin, type Faced } from '@saxonberg/server/mud/lib/material/Faced';
 import { BilgeMixin, type Bilge } from '@saxonberg/server/mud/lib/expanse/Bilge';
+import { DurableMixin, type Durable, type MendRecord } from '@saxonberg/server/mud/lib/material/Durable';
+import type { Flawed } from '@saxonberg/server/mud/lib/material/Flawed';
 import {
   LiftSourceMixin,
   type LiftSource,
   type BucketLanding,
 } from '@saxonberg/server/mud/lib/pump/LiftSource';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
-type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Anchoring & Hirable & Faced & Bilge &
+type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Anchoring & Hirable & Faced & Durable & Flawed & Bilge &
   { entryMediaIn(env: Stuff & Container): string[]; onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BoatCtor = new (...args: any[]) => BoatShape;
 
 const BoatBase = BilgeMixin(
-  FacedMixin(
+  DurableMixin(FacedMixin(
     HirableMixin(
       PullableMixin(
         HaulableMixin(AnchoringMixin(SmallCraftMixin(StagedMixin(EngagedMixin(MobileMixin(ExitableVessel))))) as unknown as MixinConstructor<BoatShape>),
       ) as unknown as MixinConstructor<BoatShape>,
     ) as unknown as MixinConstructor<BoatShape>,
-  ) as unknown as MixinConstructor<BoatShape>,
+  ) as unknown as MixinConstructor<BoatShape>) as unknown as MixinConstructor<BoatShape>,
 ) as unknown as BoatCtor;
 
 /** What a boat affords to whoever sits in it. */
@@ -126,6 +130,11 @@ const SAIL_MIN_WIND_MPS = 1.5;
 
 /** Where the river's warren lives — what a boat asks about the water it is in. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
+/** Where the river's own rules live — the one snag rule a ship asks too. */
+const WATERCOURSE_CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
+/** What a snag does to a boat run onto it in the dark. */
+const SNAG_STRUCK =
+  'Something under the water takes her with a crack you feel through the thwart. She stops dead, stove in on a snag, and the water is coming in.';
 
 /** The direction words `paddle` takes. */
 const PADDLE_WORDS: Readonly<Record<string, PropelHeading>> = {
@@ -166,16 +175,6 @@ export type RecoverRefusal = ActRefusal<'not-afloat'> | ActRefusal<'nowhere'>;
  * the sea state's.
  */
 const WAVE_SHARE = 0.6;
-
-/**
- * ⭐ What a hole in her lets in, L/s (grain; `boat.leak.holed`):
- * less than one person bailing moves — so bailing keeps a holed boat up,
- * and stopping lets her fill.
- */
-const HOLED_LPS = 0.3;
-
-/** What a hull that does not hold water lets in — a crack, a coat that has opened, L/s (`boat.leak.seep`). */
-const SEEP_LPS = 0.02;
 
 /** About one spell of bailing her, game-seconds — what "as fast as you throw it out" compares. */
 const BAIL_SPELL_S = 20;
@@ -360,22 +359,73 @@ export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSourc
   }
 
   /**
-   * ⭐ What comes in through her hull now, L/s — from her STATE, never
-   * the calendar: every hole stove in her (an integrity flaw, from a
-   * grounding's blow), and a hull that no longer holds water (a crack; a
-   * coat that has opened). Nothing comes in ashore.
+   * ⭐ What comes in through her hull now, L/s — from her STATE, never the
+   * calendar (matter-model-overlaps D4, D7): her SEAMS, tight under her tar
+   * and opening once it has gone, and every hole stove in her — the one
+   * read a ship's hull answers too (`Bilge.hullLeakLps`), at a boat's length
+   * and draft. Nothing comes in ashore.
    */
   public leakLps(): number {
     return this.isAfloat() ? this.hullLeakLps() : 0;
   }
 
-  /** What her hull lets in when she is in the water, L/s — her holes and her seal. */
-  public hullLeakLps(): number {
-    const self = this as unknown as Stuff;
-    const holes = MixinApi.isIntegrity(self) ? self.getFlaws().filter((f) => f.kind === 'holed').length : 0;
-    const holed = holes * boatSetting('boat.leak.holed', HOLED_LPS);
-    const seep = this.holdsWater('outside') ? 0 : boatSetting('boat.leak.seep', SEEP_LPS);
-    return holed + seep;
+  /** Her length, m — the seams that weep and the scale a hole opens at (`Bilge`). */
+  public override hullLengthM(): number {
+    return this.hull.lengthM;
+  }
+
+  /** Her draft, m — the head of water over a hole in her (`Bilge`). */
+  public override hullDraftM(): number {
+    return this.hull.draftM;
+  }
+
+  /** The weather's walk on her: her bilge first, at the seams she had (as a ship's is). */
+  public override reconcileWeather(): number | null {
+    this.integrateBilge(boatNowS());
+    return super.reconcileWeather();
+  }
+
+  /** ⭐ Mended (`repair`): the water came in at the old rate until now, then she is what the mend made her. */
+  public override recordMend(record: MendRecord): void {
+    this.reconcileBilge();
+    super.recordMend(record);
+  }
+
+  /**
+   * ⭐⭐ Carried by a stroke into `dest`, she meets what lies in it (D7): the
+   * reach's `obstruction`, read off the river (`water.riverAt`), asked the
+   * one snag rule a ship's passage asks (`WatercourseCatalogue.snagVerdict`)
+   * at her speed over the ground. `'seen'` — by day she is held off it and
+   * not moved; `'struck'` — in the dark she is carried in and stove in
+   * there; `'clear'` — nothing in the way, and the caller moves her. The
+   * hole is her own act on what the world holds — nothing public holes a
+   * boat by fiat.
+   */
+  public async enterReach(dest: Stuff, water: ReachWarren, inside: boolean, sogMps: number): Promise<'clear' | 'seen' | 'struck'> {
+    const ahead = await water.riverAt(dest, inside);
+    if (ahead === null) return 'clear';
+    const rules = await StuffApi.singleton<WatercourseCatalogue>(WATERCOURSE_CATALOGUE_PATH);
+    const snag = rules.snagVerdict({ obstruction: ahead.obstruction, sogMps, nowS: WorldClockApi.getNow().rawValue() });
+    if (snag === 'struck') {
+      ContainmentApi.move(this as unknown as Stuff & Containable, dest as unknown as Stuff & Container);
+      this.stoveOnSnag();
+    }
+    return snag;
+  }
+
+  /**
+   * ⭐ Stove in on a snag (D7, N12): the water that came in before came in
+   * at her seams' rate; from now a hole lets it in too. Everyone aboard is
+   * told as it happens. Her own act (`enterReach`) — `SelfOnly`.
+   */
+  @CallSecurity(SecurityPolicies.SelfOnly)
+  private stoveOnSnag(): void {
+    const nowS = boatNowS();
+    this.integrateBilge(nowS);
+    this.addFlaw('holed', true, nowS);
+    for (const who of this.crew()) {
+      MessageApi.scene(who).topic('act.deed').toSelf(Mml.compose`${SNAG_STRUCK}`).send();
+    }
   }
 
   /** ⭐ Her hull's leak between two moments (`BilgeMixin`): what comes in now — only afloat. */
@@ -765,15 +815,4 @@ function boatNowS(): number {
   } catch {
     return 0;
   }
-}
-
-/** A numeric setting, else the shipped grain. */
-function boatSetting(key: string, fallback: number): number {
-  try {
-    const n = Number.parseFloat(AppApi.setting(key) ?? '');
-    if (Number.isFinite(n) && n >= 0) return n;
-  } catch {
-    // a cold cache or an unregistered key
-  }
-  return fallback;
 }

@@ -15,12 +15,19 @@ import { StuffApi } from '../../../../api/stuff';
 import { ContainmentApi } from '../../../../api/containment';
 import {
   makeStuff,
+  makeStuffAtPath,
   seedKernelContentStore,
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
 import { PerceptionApi } from '../../../../api/perception';
 import Soil from '../../material/Soil';
+import Gas from '../../material/Gas';
+import { BiomeApi } from '../../../../api/biome';
+import { WorldClockApi } from '../../../../api/worldclock';
+import WorldClockRegistry from '../../WorldClockRegistry';
+import { TemplatePaths } from '../../../../lib/paths';
+import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 /** The smell modality singleton — `signalAt` is an instance method on it. */
 const smellModality = (): SmellModality =>
@@ -187,3 +194,61 @@ describe('SmellModality.signalAt — propagation core', () => {
     });
   });
 });
+
+describe('⭐ SmellModality — the air carries a smell (D18)', () => {
+  beforeEach(() => {
+    seedKernelContentStore();
+    installV1QuantityTagTables();
+    buildAllModalities();
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+      makeStuffAtPath(() => new WorldClockRegistry(), TemplatePaths.worldClockRegistry);
+    }
+  });
+  afterEach(() => {
+    WorldClockApi._resetForTesting();
+    StuffApi.clearAll();
+  });
+
+  it('smell finds a gas in the air — nothing in the room gives it off — and the fold writes nothing', () => {
+    const gasPath = '/stuff/idea/material/gas/_smell-naphtha';
+    const gas = makeStuffAtPath(() => {
+      const g = new Gas();
+      g.setName('naphtha vapour');
+      g.setDensity(Quantity.of(3.5, 'kg/m³'));
+      return g;
+    }, gasPath) as unknown as Gas;
+    gas.smells = [{ aroma: aromaPath('naphtha'), strength: 3000 }];
+    const zone = makeStuff(() => new CartesianZone());
+    const loc = makeStuff(() => new Location());
+    zone.addLocation(loc, 0, 0, 0); // 27 m³
+    loc.addAtmosphereContent(gasPath, 270); // one part in a hundred
+
+    // kg = 0.01 × 27 m³ × 3.5 kg/m³; strength × √kg.
+    const smell = smellModality().signalAt(loc)!;
+    expect(smell.dominantAroma).toBe(aromaPath('naphtha'));
+    expect(smell.strength.rawValue()).toBeCloseTo(3000 * Math.sqrt(0.01 * 27 * 3.5), 0);
+    expect(smell.sources[0]!.stuffId).toBe(loc.stuffId);
+
+    // An hour on, the air has partly cleared — but a walk holding the world
+    // still reads it AS BANKED and writes nothing (a write in a hold throws
+    // in a test world), so the fold sees the same air twice.
+    WorldClockApi._advanceForTesting(3600 * 1000);
+    expect(smellModality().signalAt(loc)!.strength.rawValue()).toBeCloseTo(smell.strength.rawValue(), 6);
+    // The next deliberate read decays it.
+    const after = BiomeApi.resolveAtmosphereContentsFor(loc as unknown as Stuff)[0]!.amount;
+    expect(after).toBeLessThan(0.01);
+  });
+
+  it('the restore door keeps what the air carries and asks no load for a live row', () => {
+    const gasPath = '/stuff/idea/material/gas/_smell-restore';
+    makeStuffAtPath(() => new Gas(), gasPath);
+    const zone = makeStuff(() => new CartesianZone());
+    const loc = makeStuff(() => new Location());
+    zone.addLocation(loc, 0, 0, 0);
+    expect(loc.set_atmosphereContents([{ type: gasPath, amount: 0.02 }])).toBeUndefined();
+    expect(BiomeApi.resolveAtmosphereContentsFor(loc as unknown as Stuff)).toEqual([{ type: gasPath, amount: 0.02 }]);
+  });
+});
+

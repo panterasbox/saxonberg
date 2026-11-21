@@ -744,19 +744,22 @@ async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
       return;
     }
   }
-  // Any bulk holder is a source: a graded bottle at its band, an ungraded
-  // holder (the water tap, the ice bin, a mug) at `fair` — the same
+  // Any bulk holder is a source: a graded batch at its band, an ungraded
+  // one (the water tap, the ice bin, a mug) at `fair` — the same
   // fallback an ungraded item input gets.
   if (MixinApi.isBulkable(c)) {
     const slot = BulkableApi.slotFor(c, undefined);
     if (slot) {
       const mpath = slot.getMaterialPath();
       const material = mpath ? await StuffApi.singleton<Material>(mpath) : null;
+      // ⭐ The batch's grade is its payload's (matter-model-overlaps D2),
+      // never the bottle's own making.
+      const band = slot.getPayload()?.grade;
       into.bottles.push({
         stuff: c,
         slot,
         material,
-        grade: MixinApi.isGraded(c) ? c.getGrade() : Grade.of('fair'),
+        grade: band ? Grade.of(band) : Grade.of('fair'),
       });
       return;
     }
@@ -3232,12 +3235,12 @@ async function mintWorkpiece(
 }
 
 /**
- * The vessel terminal mint: fill the destination glass/dish + stamp. For a
- * charge the destination is the compounding vessel itself — its belly
- * becomes the product (the named material, else the recipe's, else the
- * generic pot-luck) once the charge is consumed; the glass finish and the
- * vessel's own stamp are a glass's, so a tub takes neither unless it is
- * Crafted.
+ * The vessel terminal mint: fill the destination glass/dish and mark the
+ * batch. For a charge the destination is the compounding vessel itself —
+ * its belly becomes the product (the named material, else the recipe's,
+ * else the generic pot-luck) once the charge is consumed; the glass finish
+ * is a glass's, so a tub does not take it. The mark — grade, maker, time
+ * made — rides the contents' payload, never the vessel (D2).
  */
 async function mintVessel(
   vessel: Stuff | null,
@@ -3252,9 +3255,6 @@ async function mintVessel(
   }
   if (!MixinApi.isBulkable(vessel)) {
     return { ok: false, reason: 'no-output', detail: 'vessel-not-bulkable' };
-  }
-  if (charge === null && !MixinApi.isCrafted(vessel)) {
-    return { ok: false, reason: 'no-output', detail: 'vessel-not-crafted' };
   }
   const outSlot = BulkableApi.slotFor(vessel, undefined);
   if (!outSlot) {
@@ -3374,14 +3374,15 @@ async function mintVessel(
     );
   }
 
-  if (MixinApi.isCrafted(vessel)) {
-    vessel.stamp({
-      maker: makerPath,
-      grade,
-      recipe: recipeId,
-      craftedAt: WorldClockApi.getNow().rawValue(),
-    });
-  }
+  // ⭐⭐ The build's mark is the BATCH's (matter-model-overlaps D2): its
+  // grade, maker and time made ride the contents' payload, and the shaker
+  // or pot it was built in keeps its own making.
+  outSlot.setPayload({
+    ...(outSlot.getPayload() ?? {}),
+    grade: grade.getBand(),
+    ...(makerPath ? { maker: makerPath } : {}),
+    craftedAt: WorldClockApi.getNow().rawValue(),
+  });
 
   const learned = recipe ? await recordCraftEvidence(makerStuff, recipe) : false;
   return { ok: true, output: vessel, grade, recipeId, learned };
@@ -3682,22 +3683,38 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     await becomeProduct(output, recipe.getOutputTemplate());
   }
 
-  if (!MixinApi.isCrafted(output)) {
-    throw new Error(
-      `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
-        `compose CraftedMixin`,
-    );
+  // ⚠ The IDENTITY path, never the lineage: every player Avatar shares one
+  // templatePath, so a lineage stamp named every player maker the same
+  // person (antipatterns § Keying a PERSON on getTemplatePath()). The
+  // manual-build mint has always stamped identity; this agrees with it.
+  const madeBy = maker.getIdentityPath() ?? '';
+  const craftedAt = WorldClockApi.getNow().rawValue();
+  if (application === 'bulk' || application === 'edible') {
+    // ⭐⭐ A bulk or plated output is a BATCH in a claimed glass, bowl or
+    // pot (matter-model-overlaps D2): its mark rides the contents, and the
+    // vessel keeps its own making — a potter's bowl stays the potter's
+    // whatever the cook puts in it.
+    const outSlot = BulkableApi.slotFor(output, undefined);
+    if (!outSlot) {
+      throw new Error(
+        `CraftingLogic: output '${recipe.getOutputTemplate()}' holds no batch`,
+      );
+    }
+    outSlot.setPayload({
+      ...(outSlot.getPayload() ?? {}),
+      grade: grade.getBand(),
+      ...(madeBy ? { maker: madeBy } : {}),
+      craftedAt,
+    });
+  } else {
+    if (!MixinApi.isCrafted(output)) {
+      throw new Error(
+        `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
+          `compose CraftedMixin`,
+      );
+    }
+    output.stamp({ maker: madeBy, grade, recipe: recipe.getRecipeId(), craftedAt });
   }
-  output.stamp({
-    // ⚠ The IDENTITY path, never the lineage: every player Avatar shares one
-    // templatePath, so a lineage stamp named every player maker the same
-    // person (antipatterns § Keying a PERSON on getTemplatePath()). The
-    // manual-build mint has always stamped identity; this agrees with it.
-    maker: maker.getIdentityPath() ?? '',
-    grade,
-    recipe: recipe.getRecipeId(),
-    craftedAt: WorldClockApi.getNow().rawValue(),
-  });
 
   // ⭐ **And the hand that made it** (cleanliness D6): the recipe row says
   // what making this dirties — grease on the renderer's hands and apron,
@@ -3952,8 +3969,12 @@ async function runMendLadder(
   // here at the top of the ladder.
   const assembled = MixinApi.isAssembled(item) && !item.isOnePiece();
   if (MixinApi.isAssembled(item) && assembled) await mendAssembly(item, m);
-  else await mendOnePiece(item, m);
+  // ⭐ A fabric kept by upkeep (a ship's caulking, a building's plaster —
+  // `MaintainableMixin`) is `maintain`'s, never `repair`'s wear rung
+  // (matter-model-overlaps D8).
+  else if (!MixinApi.isMaintainable(item)) await mendOnePiece(item, m);
   await mendCracks(item, m);
+  await mendHoles(item, m);
   return { ok: true, m, item, assembled, conditionBefore };
 }
 
@@ -4266,16 +4287,24 @@ async function mendAssembly(
     });
   }
 
-  // (3) ⭐⭐ A SPENT character (assembly D6, D9, AC 23): a cask that has
-  // given everything is shaved back to clean wood and charred — a fire hot
-  // enough to char, a shaving tool, and the hand of the trade that made
-  // it, read off the vessel's own joints.
-  if (MixinApi.isMaturing(item) && item.isSpent() && stillFailed.size === 0) {
+  // (3) ⭐⭐ A SPENT wall (assembly D6, D9; matter-model-overlaps D11): a
+  // cask whose inside has given everything is shaved back to clean wood and
+  // charred — a fire hot enough to char, a shaving tool, and the hand of the
+  // trade that made it, read off the vessel's own joints. The coat the fire
+  // lays is the one the kind's BILL names (`refire:`); a kind naming none is
+  // not re-fired.
+  const refireCoat = item.getBill()?.refire;
+  if (
+    refireCoat !== undefined &&
+    MixinApi.isFaced(item) &&
+    item.wallGiveLeft('inside') === 0 &&
+    stillFailed.size === 0
+  ) {
     const refused = await refireGate(item, m);
     if (refused) {
       m.faults.push(unmendable('', 'spent', 'refired', 'the char', '', UNKNOWN_TRADE_BAND, refused.reason, refused.detail));
     } else {
-      if (m.commit) item.refire();
+      if (m.commit) item.refireFace('inside', refireCoat);
       m.faults.push({
         part: '', kind: 'spent', named: 'the char', action: 'refired', discipline: '',
         band: UNKNOWN_TRADE_BAND, mendable: true, result: 'sound', stockKg: 0,
@@ -4355,6 +4384,53 @@ async function mendCracks(item: Stuff, m: MendContext): Promise<void> {
   m.faults.push({
     part: '', kind: 'cracked', named: 'it', action: 'riveted', discipline, band,
     mendable: true, result: 'sound', stockKg: 0,
+  });
+}
+
+/**
+ * ⭐ A hole is PATCHED (matter-model-overlaps D8) — a stove-in boat, a ship
+ * holed on a snag. A `holed` flaw is a fault of its own, whatever the
+ * thing's condition: the hand fits a patch of the hull's OWN material
+ * (`Flawed.patchMaterial` — a boat's planking, a ship's authored
+ * `hull.material`), drawn as stock (`crafting.repair.patchKg` a hole) with
+ * that material's instrument. ⛔ No default material: a hull that authors
+ * none is refused by reason (`no-hull-material`). The patch is recorded
+ * ONCE, as a mend; the flaws it closed read it (`Flawed.getFlaws`).
+ */
+async function mendHoles(item: Stuff, m: MendContext): Promise<void> {
+  if (!MixinApi.isFlawed(item) || !MixinApi.isDurable(item)) return;
+  const open = item.getFlaws().filter((f) => f.kind === 'holed' && !f.mended);
+  if (open.length === 0) return;
+  const crafted = MixinApi.isCrafted(item);
+  const discipline = disciplineOf(
+    {
+      recipe: crafted ? item.getRecipe() : '',
+      template: item.getTemplatePath() ?? '',
+      castDiscipline: crafted ? (item.getCastFrom()?.discipline ?? '') : '',
+    },
+    m.catalogue,
+  );
+  const { band, terms } = await termsFor(m.hand, discipline);
+  const material = item.patchMaterial();
+  if (material === null) {
+    m.faults.push(unmendable('', 'holed', 'patched', 'it', discipline, band, 'no-hull-material', ''));
+    return;
+  }
+  const how = instrumentFor(material, m, dial(AppSettingKeys.craftingRepairMetalHeatK, 900));
+  if (!how.ok) {
+    m.faults.push(unmendable('', 'holed', 'patched', 'it', discipline, band, how.reason, how.detail));
+    return;
+  }
+  const needKg = dial(AppSettingKeys.craftingRepairPatchKg, 2) * open.length * terms.stock;
+  if (!m.stock.draw(material, needKg)) {
+    const stock = material.hasTag('metal') ? 'metal' : material.getName() || 'stock';
+    m.faults.push(unmendable('', 'holed', 'patched', 'it', discipline, band, 'insufficient-input', stock));
+    return;
+  }
+  if (m.commit) item.recordMend(mendRecord(m, band, discipline, 'patched', 'sound'));
+  m.faults.push({
+    part: '', kind: 'holed', named: 'it', action: 'patched', discipline, band,
+    mendable: true, result: 'sound', stockKg: needKg,
   });
 }
 

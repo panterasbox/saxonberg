@@ -89,7 +89,12 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   ⭐ The formula is the BODY's (`TangibleMixin.getWetIgnitionPenaltyK`, and
   `getIgnitionPointK` = autoignition + it): `stoke`, `light` and a hot
   pour (`canReceiveAtK`) read the one number, so a soaked board survives a
-  pour that would light a dry one (ceramics review R2-B1). ⚠ A firing
+  pour that would light a dry one (ceramics review R2-B1). ⭐ It adds the
+  TWO waters — the film's saturation plus the held moisture above the
+  `dried` band — and matter-model-overlaps D19 left it untouched: rain now
+  lands on the film by reach and soaks the held water off the rain record
+  ([spoilage.md](./spoilage.md)), but they stay two records and this stays
+  their sum. ⚠ A firing
   chamber catching its contents (`Burner.catchContents`) reads the DRY
   point on purpose: a piece that has sat at that heat in a drawing chamber
   has driven its water off, and the thermal model has no boiling plateau
@@ -460,19 +465,37 @@ minted. Charcoal, coke, ash, the tars, pitch and coal gas live in
 - **The retort** is SHUT: its row draught 0.3 (≈ 0.35) keeps the charge
   starved while the firebox still holds ≈ 1260 K on charcoal, so `fire in
   retort for 3 hours` chars wood and cokes coal, and the transition's
-  volatiles go to `Retort.receiveVolatiles` (the kernel's `Burner` hook,
-  B105) → the condenser on its head → the gasometer on the condenser; what
-  none of them took, the thermal transition puts into the air. `draught wide` on a retort is a
-  retort fired open: the charge catches.
+  volatiles go by the one vapor route (`BiomeApi.vent`, matter-model-overlaps
+  D16) to `Retort.receiveVolatiles` (the kernel's `Burner` hook, B105) → the
+  condenser on its head → the gasometer on the condenser, each link asking
+  `VolatileReceiverMixin` of what stands on it (the pack's predicate, never a
+  `typeof` probe); what none of them took goes on to the air of the room — a
+  retort keeps no air of its own, it is all pipe. `draught wide` on a retort
+  is a retort fired open: the charge catches.
+- **The clamp keeps its smoke while it burns** (D16): a lit chamber keeps
+  what leaves its charge as its own air (less `fire.chamber.leakShare`), and
+  a clamp has no flue — so when it goes out its air goes into the place it
+  stands in. Outdoors that is the sky; a clamp lit in a shed fills the shed.
 
 ### The burner's hooks (ceramics D3, D19)
 
 - `heldTemperatureKFor(body)` — the heat this fire holds for one body
   (default `getHeldTemperatureK()`); `Thermal.heatSourceK()` asks it, so a
   clamp can be hotter in its fire channels than at its skin.
-- `chamberVapors` — what vaporized in the chamber (`Material.vaporizesAboveK`:
-  salt at ~1350 K), cleared when the fire goes out; a transition's `vapor:`
-  map reads it at a rung.
+- `receiveVolatiles(vapor, litres)` — ⭐ the first rungs of the ONE vapor
+  route (`BiomeApi.vent`, matter-model-overlaps D16), asked of the chamber
+  holding whatever vaporizes: the litres it TAKES. Default: a LIT chamber
+  keeps them as its own air, all but `fire.chamber.leakShare` (0.1) that
+  escapes into the room at once; an unlit one takes none. A retort
+  overrides it to hand them to its head.
+- `chamberVapors` — the chamber's air: litres by VAPOR row (salt thrown in
+  at ~1350 K is `salt-vapor`, a firing's tar is its tar). A transition's
+  `vapor:` map, keyed by the same vapor rows, reads it at a rung (the
+  clay's stoneware firing: salt vapor → a salt glaze). ⭐ When the fire
+  goes out (`_goOut`, `_setLit(false)`) the chamber vents it onward: up
+  the flue to the sky when it is `Flued` (a kiln is an `Oven`), into the
+  room by the same route when it is not (a clamp). The room's air changes
+  take it from there.
 - `settleFiring(by)` — the hold's end.
 
 ⚠⚠ **A firing still cannot go through `CraftingApi.craft`:** a craft picks
@@ -669,3 +692,11 @@ hooks, and a COMBUSTIBLE heap whose core passes its (wetness-adjusted)
 autoignition point ignites, the fire driver spreading it. Hay is not
 combustible here and smokes as before; a heap of oily rags catches. See
 [painting.md](./painting.md) § The hazards.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+`chamberVapors` became the chamber's AIR — litres keyed by vapor row;
+`addChamberVapor` went and the Burner's default `receiveVolatiles` keeps
+nine tenths when lit and enclosing. Going out, a flued chamber vents to the
+sky and an unflued one into the room (`BiomeApi.vent`). Salt glazing is a
+row on the stoneware body's firing.

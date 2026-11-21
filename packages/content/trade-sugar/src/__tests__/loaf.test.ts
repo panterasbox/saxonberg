@@ -16,6 +16,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import SugarLoaf from '../thing/SugarLoaf';
+import SolidFood from '@saxonberg/server/mud/platform/idea/material/SolidFood';
 
 const settle = async (): Promise<void> => {
   for (let i = 0; i < 6; i++) await new Promise((r) => setTimeout(r, 0));
@@ -42,6 +43,20 @@ describe('a sugar loaf', () => {
     expect(l.colourLine()).toBe('white at the head, pale through the middle and brown at the foot');
     l.percolationReach = 0.4;
     expect(l.getBands()).toEqual(['exceptional', 'poor', 'poor']);
+  });
+
+  it('⭐ a loaf of something else (maple strike set in a sugar cone) reads its own material, never a cane colour (found by the drive)', () => {
+    const l = loaf('fine');
+    const maple = makeStuff(() => new SolidFood());
+    maple.setName('maple sugar');
+    maple.setAppearance('hard, fine-grained and tan');
+    maple.setTags(['solid', 'food', 'maple-sugar']);
+    vi.spyOn(l, 'getMaterial').mockReturnValue(maple as never);
+    expect(l.materialLine()).toBe('It is maple sugar: hard, fine-grained and tan.');
+    const cane = makeStuff(() => new SolidFood());
+    cane.setTags(['solid', 'food', 'loaf-sugar']);
+    vi.spyOn(l, 'getMaterial').mockReturnValue(cane as never);
+    expect(l.materialLine()).toBe('It is muscovado from head to foot.');
   });
 
   it('will not cut without nips', async () => {

@@ -13,6 +13,12 @@ data:
   mass: 30
   _materialPath: /stuff/idea/material/wood/birch
   hull: { form: round, draftM: 0.15, beamM: 0.9, lengthM: 5, freeboardM: 0.3, capacityKg: 350 }
+  # ⭐ Tarred (matter-model-overlaps D7): under the pitch her seams are her
+  # fabric, tight while it holds; a bare boat's seams open at the house's
+  # rate, and she leaks by the ship's seam bands at her length.
+  coats:
+    outside:
+      - { material: /stuff/idea/material/bulk/pitch, thicknessM: 0.001, state: set }
   props:
     - { template: /system/transport/thing/propulsion/paddle, count: 2 }
     - /system/transport/thing/killick

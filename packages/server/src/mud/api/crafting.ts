@@ -258,7 +258,7 @@ export interface RepairRequest {
  */
 export interface MendOutcome {
   part?: string;
-  kind: 'mended' | 'reforged' | 'tightened' | 'refired' | 'riveted';
+  kind: 'mended' | 'reforged' | 'tightened' | 'refired' | 'riveted' | 'patched';
   /** The trade it was mended under (`''` when none could be known). */
   discipline: string;
   /** The hand's band in that trade. */
@@ -300,7 +300,7 @@ export const NOBODY_TO_WORK = "There's nobody here to do the work.";
 export interface Fault {
   /** The part (`''` for a thing of one piece), or the joint for `slack`. */
   part: string;
-  kind: 'worn' | 'failed' | 'slack' | 'spent' | 'cracked';
+  kind: 'worn' | 'failed' | 'slack' | 'spent' | 'cracked' | 'holed';
   /** What the hand can call it — below a joint's band, *something about the staves*. */
   named: string;
   /** What mending it would be. */
@@ -376,7 +376,13 @@ export type RepairDeclineReason =
   | 'part-failed'
   /** The joint is made at a band the repairer has not reached. `detail`
    * names the joint and the band. */
-  | 'not-skilled';
+  | 'not-skilled'
+  /**
+   * ⭐ A hole in a hull that authors no material of its own (matter-model-
+   * overlaps D8): a patch is of the hull's OWN material, and with none
+   * authored it is refused — never patched with whatever is at hand.
+   */
+  | 'no-hull-material';
 
 export interface RepairSuccess {
   ok: true;
@@ -390,7 +396,7 @@ export interface RepairSuccess {
    * slack joint (consumes nothing), `refired` a spent cask, or `restored`
    * wear with material. Absent on a thing that is not made of parts.
    */
-  rung?: 'tightened' | 'refired' | 'restored' | 'reforged' | 'riveted';
+  rung?: 'tightened' | 'refired' | 'restored' | 'reforged' | 'riveted' | 'patched';
   /** What the rung acted on — the joints tightened, in words. */
   named?: string;
   /**
