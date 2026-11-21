@@ -54,7 +54,6 @@ import { StuffApi } from '../../api/stuff';
 import { BulkableApi } from '../../api/bulk';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
-import { Grade } from '../../lib/craft/Grade';
 import { TemplatePaths } from '../../lib/paths';
 import {
   makeStuff,
@@ -188,13 +187,6 @@ function fillWith(v: unknown, path: string, litres: number): void {
     StuffApi.findByTemplatePath<Material>(path)!,
   );
   holder.setBulkAmount('interior', Quantity.of(litres, 'L'));
-}
-
-function graded(v: unknown): {
-  getGradeBand(): string;
-  setGrade(g: Grade): void;
-} {
-  return v as { getGradeBand(): string; setGrade(g: Grade): void };
 }
 
 /** Advance the world clock, driving a host's reconcile as it goes. */
@@ -369,7 +361,12 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
     // ── LINK B: the wash ferment (clock, microbial) ──
     const back = vat(290, 60);
     fillWith(back, P.wort, 60);
-    graded(back).setGrade(Grade.of('masterful')); // a well-made wort
+    // A well-made wort, and whose it is — the CONTENTS' mark (D2).
+    slotOf(back).setPayload({
+      ...(slotOf(back).getPayload() ?? {}),
+      grade: 'masterful',
+      maker: '/platform/agent/Avatar/the-distiller',
+    });
     expect(back.getMaturationPhase()).toBe('active');
     age(back, 12);
     expect(back.getMaturationPhase()).toBe('finished');
@@ -383,7 +380,6 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
     still.testHeatK = 290;
     (still as unknown as { reachableHeatK(): number }).reachableHeatK = () =>
       still.testHeatK;
-    still.setMaker('/platform/agent/Avatar/the-distiller');
 
     // ⭐ The charge comes OUT OF THE FERMENT — the handoff this whole file
     // exists to make, through the real transfer primitive.
@@ -405,7 +401,7 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
     BulkableApi.transfer(slotOf(still), slotOf(bottle), {
       kind: 'measure', litres: 0.75, mode: 'strict',
     });
-    expect(graded(bottle).getGradeBand()).toBe('fine');
+    expect(slotOf(bottle).getPayload()?.grade).toBe('fine');
 
     // ── LINK D: the cask (clock, chemical) ──
     const cask = vat(290, 25);
@@ -422,7 +418,7 @@ describe('⭐⭐⭐ barley to whiskey, one continuous chain on the shipped rows'
     // ⭐⭐⭐ The end of the chain: barley's descendant is whiskey, it is as
     // good as the cut was and no better, and it carries the cut's dose.
     expect(slotOf(cask).getMaterialPath()).toBe(P.whiskey);
-    expect(graded(cask).getGradeBand()).toBe('fine');
+    expect(slotOf(cask).getPayload()?.grade).toBe('fine');
     const dose =
       slotOf(cask).getPayload()?.dissolvedToxins?.find(
         (t) => t.type === 'methanol',

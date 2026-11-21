@@ -54,6 +54,8 @@ import { Contamination } from './Contaminable';
 import type { ActDone, ActPlan } from '../craft/ActPlan';
 import { KneadVesselMixin } from '../craft/KneadVessel';
 import type { KneadBegin, KneadFacts, KneadPlan, KneadRefusal, KneadRequest, KneadVessel, KneadWork } from '../craft/KneadVessel';
+import type { StirRequest } from '../craft/StirTarget';
+import { BiomeApi } from '../../api/biome';
 
 /** Milling a compound by hand — a quarter of a game-hour, both hands in it. */
 const KNEAD_MS = 15 * 60 * 1000;
@@ -122,10 +124,11 @@ export interface Compounding extends KneadVessel {
    */
   kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal>;
   /**
-   * ⭐ `stir`'s plan of this vessel's compound (W19) — refused `wrong-work`
+   * ⭐ `stir`'s plan of this vessel's compound (crafting.md § stir; the `StirTargetMixin`
+   * protocol, matter-model-overlaps D15) — refused `wrong-work`
    * (`work: 'knead'`) when what is in it is stiff.
    */
-  stirPlanFor(req: KneadRequest): Promise<CompoundPlan | CompoundRefusal>;
+  stirPlanFor(req: StirRequest): Promise<CompoundPlan | CompoundRefusal>;
   /**
    * ⭐ Compound what is in the vessel into ONE product through the one
    * mint (`CraftingApi.mintFromBuild({ charge })`) — the end of a
@@ -212,8 +215,9 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
           out.push({
             tags: [...held.getTags()],
             measureL: litres,
-            // A pour's grade is its holder's; so is the belly's.
-            gradeBand: MixinApi.isGraded(self) ? self.getGradeBand() : 'fair',
+            // A pour's grade is its batch's (its payload's, D2); so is the
+            // belly's — never the vessel's own making.
+            gradeBand: slot.getPayload()?.grade ?? 'fair',
             materialPath: held.getTemplatePath() ?? undefined,
             makeup: slot.getPayload()?.makeup,
             freshnessLoad: new Freshness(slot).load(),
@@ -229,8 +233,8 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
       return this.workPlan(req, 'knead');
     }
 
-    /** ⭐ A runny compound, stirred (W19). */
-    public async stirPlanFor(req: KneadRequest): Promise<CompoundPlan | CompoundRefusal> {
+    /** ⭐ A runny compound, stirred (the stir protocol, matter-model-overlaps D15). */
+    public override async stirPlanFor(req: StirRequest): Promise<CompoundPlan | CompoundRefusal> {
       return this.workPlan(req, 'stir');
     }
 
@@ -315,10 +319,9 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
       if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return;
       const held = self.getBulkMaterial('interior');
       if (held === null || !MixinApi.hasVolatility(held) || !(held.getVapourLPerLPerHour() > 0) || held.getVapourMaterial() === '') return;
-      const room = MixinApi.isContainable(self) ? self.getContainer() : null;
-      if (room === null || !MixinApi.isAtmospheric(room)) return;
       const litres = self.getBulkAmount('interior').rawValue();
-      room.addAtmosphereContent(held.getVapourMaterial(), litres * held.getVapourLPerLPerHour() * 0.25);
+      // The one vapor route (D16): a chamber holding it, else the room.
+      BiomeApi.vent({ from: self, material: held.getVapourMaterial(), litres: litres * held.getVapourLPerLPerHour() * 0.25 });
     }
 
     public payloadFor(_charge: readonly BuildContribution[]): BulkPayload | null {

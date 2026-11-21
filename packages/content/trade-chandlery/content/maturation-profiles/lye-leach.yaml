@@ -13,6 +13,6 @@ stallBelowK: 273
 happyK: 275
 damageAboveK: 400
 ratePerDay: 2
-productMaterial: /trade/chandlery/idea/material/lye
+productMaterial: /trade/fuel/idea/material/lye
 wildStrain: ''
 spontaneousLagDays: 0

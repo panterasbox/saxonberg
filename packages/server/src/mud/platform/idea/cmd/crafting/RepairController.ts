@@ -16,7 +16,8 @@
 
 import { ManualBuildController } from './ManualBuildController';
 import { CraftController } from './CraftController';
-import type { CommandContext, CommandModel } from '../../../../api/command';
+import { CommandApi, type CommandContext, type CommandModel } from '../../../../api/command';
+import { Refusal } from '../../../../lib/errors';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { MixinApi } from '../../../../api/mixin';
@@ -62,6 +63,11 @@ export default class RepairController extends ManualBuildController<RepairModel>
         const outcome = first
           ? { ok: false as const, reason: first.reason ?? ('insufficient-input' as const), ...(first.detail !== undefined ? { detail: first.detail } : {}) }
           : { ok: false as const, reason: 'insufficient-input' as const, detail: 'nothing-to-repair' };
+        // ⭐ A refusal with a row of its own is worded by the row (one copy).
+        if (outcome.reason === 'no-hull-material') {
+          this.refuse(context, { ok: false, reason: outcome.reason, facts: {} });
+          return;
+        }
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
@@ -70,6 +76,10 @@ export default class RepairController extends ManualBuildController<RepairModel>
         return;
       }
     } else {
+      if (look.reason === 'no-hull-material') {
+        this.refuse(context, { ok: false, reason: look.reason, facts: {} });
+        return;
+      }
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${CraftingDecline.messageFor(look)}`)
@@ -114,6 +124,11 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
   void (async (): Promise<void> => {
     const outcome = await CraftingApi.repair({ item, makerPath });
     if (!outcome.ok) {
+      if (outcome.reason === 'no-hull-material') {
+        // Late (the step's envelope went when it began): the row says it.
+        await CommandApi.reportFailure(new Refusal(outcome.reason, {}));
+        return;
+      }
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
@@ -138,6 +153,16 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
           Mml.compose`You drill either side of the crack in ${Mml.thing(item)} and draw it shut with a row of iron staples.`,
         )
         .toPeers(Mml.compose`${Mml.actor(giver)} rivets ${Mml.thing(item)}.`)
+        .send();
+      return;
+    }
+    if (outcome.mended.some((x) => x.kind === 'patched') && outcome.mended.every((x) => x.kind === 'patched')) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.compose`You trim the hole in ${Mml.thing(item)} clean and fit a patch over it of her own stuff, fastened tight. The water stops coming in there.`,
+        )
+        .toPeers(Mml.compose`${Mml.actor(giver)} patches ${Mml.thing(item)}.`)
         .send();
       return;
     }
@@ -218,6 +243,8 @@ function skippedPhrase(skip: SkippedPart): string {
         : `${part} has failed, and wants a new one fitted`;
     case 'not-skilled':
       return `${part} wants a surer hand — ${skip.detail ?? 'more skill than yours'}`;
+    case 'no-hull-material':
+      return `the hole in ${part} cannot be patched: nothing says what ${part === 'it' ? 'it is' : 'she is'} planked with`;
     default:
       return `${part} could not be mended`;
   }

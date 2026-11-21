@@ -4,6 +4,10 @@
  * The toxins it carries. Its own capability: a third of the toxic rows are
  * not food.
  *
+ * ⚠ What a WALL of it gives what it holds (`leaches`) moved to
+ * `ExtractionMixin` (matter-model-overlaps D11): a glaze's lead is drawn out
+ * by the contents, which is a different claim from being a poison.
+ *
  * A capability of a material, named for the substance's physics, never for
  * a process that reads it (material-decomposition D1). A consumer narrows
  * with `MixinApi.hasToxicity(m)` and never on a material's kind.
@@ -13,21 +17,7 @@ import type { ToxinTag } from '../metabolism/Metabolic';
 import type { FieldMeta, MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 
-/** What a face gives its contents (ceramics M7). */
-export interface LeachSpec {
-  /** The toxin type, as metabolism names it (`lead` — the Condition row's `toxinType`, not its name). */
-  toxin: string;
-  /**
-   * mg per litre per game-day against VINEGAR (pH 2.4, the acid a lead-
-   * release test uses); other contents scale by their acid attack
-   * (`Material.acidAttack`, from their pH).
-   */
-  mgPerLPerDay: number;
-}
-
 export interface Toxicity {
-  getLeaches(): readonly LeachSpec[];
-  setLeaches(value: LeachSpec[] | null): void;
   getToxicity(): readonly ToxinTag[];
   setToxicity(value: ToxinTag[]): void;
 }
@@ -38,10 +28,6 @@ export function ToxicityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
 
     static fieldMeta: FieldMeta = {
       toxicity: { persistent: true, spoiler: 1, spoilerName: 0 },
-      // ⭐⭐ What a face of this gives the contents it holds, per litre per
-      // day against vinegar, scaled by their acid attack. `spoiler: 1` — the
-      // lead in a glaze is the thing nobody tells you.
-      leaches: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     };
 
     /**
@@ -98,21 +84,6 @@ export function ToxicityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
         amount: e.amount,
         ...(e.labileAtK !== undefined ? { labileAtK: e.labileAtK } : {}),
       }));
-    }
-
-    /**
-     * ⭐⭐ What a face of this material gives the contents it holds: a toxin,
-     * at `mgPerLPerDay` × the contents' `acidAttack()` × days (ceramics M7).
-     * Lead glaze leaches lead; ash glaze nothing.
-     */
-    protected leaches: LeachSpec[] = [];
-    public getLeaches(): readonly LeachSpec[] {
-      return this.leaches;
-    }
-    public setLeaches(value: LeachSpec[] | null): void {
-      this.leaches = (Array.isArray(value) ? value : []).filter(
-        (l) => l && typeof l.toxin === 'string' && l.toxin !== '' && l.mgPerLPerDay > 0,
-      );
     }
   };
 }

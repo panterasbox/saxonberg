@@ -456,8 +456,11 @@ describe('the grind itself', () => {
     const sacks = sacksIn(room);
     expect(sacks.length).toBe(2);
     for (const s of sacks) {
-      expect(s.getMaker()).toBe('/platform/agent/Avatar/test-miller');
+      // The miller signs the MEAL — its payload (matter-model-overlaps D2);
+      // the sack is just a sack.
       const slot = BulkableApi.slotFor(s, undefined)!;
+      expect(slot.getPayload()?.maker).toBe('/platform/agent/Avatar/test-miller');
+      expect(s.getMaker()).toBe('');
       expect(slot.getAmount().rawValue()).toBeGreaterThan(0);
     }
     // The input is gone — conservation, not duplication.
@@ -478,7 +481,7 @@ describe('the grind itself', () => {
         BulkableApi.slotFor(s, undefined)!.getMaterial()?.getTemplatePath() ===
         FLOUR,
     );
-    expect(flour!.getGradeBand()).toBe('poor');
+    expect(BulkableApi.slotFor(flour!, undefined)!.getPayload()?.grade).toBe('poor');
   });
 
   it('⭐⭐ a MALT sack grinds, and what comes off is GRIST', async () => {

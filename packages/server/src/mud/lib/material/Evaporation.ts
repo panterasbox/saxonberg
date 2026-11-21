@@ -68,6 +68,9 @@ const AIR_TEMP_DOUBLING_K = 10;
  */
 const AIR_BOIL_CAP_K = 373;
 
+/** Standard pressure (Pa) — what the saturation share is taken over. */
+const STANDARD_PRESSURE_PA = 101325;
+
 export class Evaporation {
   /**
    * @param humidityPct relative humidity of the air, `%`.
@@ -119,6 +122,34 @@ export class Evaporation {
       0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) -
       4.686035;
     return tw + 273.15;
+  }
+
+  /**
+   * ⭐ The share of air that is water vapor when the air is SATURATED at this
+   * temperature (matter-model-overlaps D17) — the saturation vapor pressure
+   * over standard pressure, by the Magnus form. About 0.023 at 20 °C, 0.12
+   * at 50 °C, and the whole of it at the boil: why a kitchen steams up fast
+   * and a cold cellar holds almost nothing.
+   */
+  public saturationFraction(): number {
+    const tC = (Number.isFinite(this.tempK) ? this.tempK : AIR_TEMP_REF_K) - 273.15;
+    if (tC <= -243) return 0;
+    const pSatPa = 610.94 * Math.exp((17.625 * tC) / (tC + 243.04));
+    return Math.max(0, Math.min(1, pSatPa / STANDARD_PRESSURE_PA));
+  }
+
+  /**
+   * ⭐ This air with `vaporFraction` more water vapor in it (D17): the vapor
+   * over what saturates the air at its temperature, as relative humidity on
+   * top of what the air already held, capped at 100 %. A boil in a shut room
+   * fogs it; its air changes take the vapor, and the humidity, back down.
+   */
+  public withVapor(vaporFraction: number): Evaporation {
+    if (!(vaporFraction > 0)) return this;
+    const sat = this.saturationFraction();
+    const base = Number.isFinite(this.humidityPct) ? this.humidityPct : 0;
+    const added = sat > 0 ? (100 * vaporFraction) / sat : 100;
+    return new Evaporation(Math.min(100, base + added), this.windMs, this.tempK);
   }
 
   /**

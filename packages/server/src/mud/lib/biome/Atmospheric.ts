@@ -32,6 +32,7 @@
  */
 
 import { SecurityApi } from '../../api/security';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { DocumentNotResidentError } from '../errors';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
@@ -531,6 +532,18 @@ export function AtmosphericMixin<
      * gas by adding a material row.
      */
     public _atmosphereContents: Concentrate[] = [];
+    /**
+     * ⭐ The restore door for what the air carries (D18, the `setCoats`
+     * precedent): every material it cites loads with the room, so a read of
+     * the air (smell, humidity) can peek its rows and never loads one.
+     * `undefined` when all are live — the runtime case, where the act that
+     * put it there loaded the row.
+     */
+    public set_atmosphereContents(value: Concentrate[] | null): Promise<void> | undefined {
+      this._atmosphereContents = Array.isArray(value) ? value : [];
+      return MaterialApi.materials().ensureCited(this._atmosphereContents.map((c) => c.type));
+    }
+
     /** Derived standing amounts (a seam's write-through); never decay. */
     public _atmosphereStanding: Concentrate[] = [];
     /**
@@ -1128,6 +1141,9 @@ export function AtmosphericMixin<
     }
 
     public reconcileAtmosphereContents(): void {
+      // ⭐ A walk holding the world still reads the air AS BANKED (D18): the
+      // smell fold reads every room it passes and must write none of them.
+      if (ExecutionContextApi.worldHeldStill) return;
       const now = atmosphereNowSeconds();
       if (now === null) return;
       if (this._atmosphereContentsStamp === UNSTAMPED) {

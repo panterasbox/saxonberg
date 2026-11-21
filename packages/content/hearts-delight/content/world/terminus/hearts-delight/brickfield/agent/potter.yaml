@@ -1,7 +1,8 @@
 # The potter — ⭐ keeps the Delight pottery (ceramics S20): throws at the
-# wheel, fires the updraft kiln, lead-glazes the jars and crocks, shelves
-# the ware and carries it to the Terminus stall to consign. She relines her
-# own kiln with the brickfield's firebrick when it wears thin (D20).
+# wheel, fires the updraft kiln, lead-glazes the jars and crocks, salt-glazes
+# the jugs and mugs, shelves the ware and carries it to the Terminus stall
+# to consign. She relines her own kiln with the brickfield's firebrick when
+# it wears thin (D20).
 class: /platform/agent/Cast
 extends: /stuff/agent/costume/student
 data:
@@ -36,6 +37,10 @@ data:
         pit: /world/terminus/hearts-delight/brickfield/location/clay-pit
         forms: [mug, jug, jar, crock, bowl, "plant pot"]
         glaze: { tub: "lead tub", forms: [jar, crock] }
+        # ⭐ Salt glaze (matter-model-overlaps D16): she throws salt into the
+        # kiln while a load of jugs and mugs fires; at the peak it is vapor in
+        # the kiln's air, and the stoneware comes out with an orange-peel skin.
+        salt: { word: salt, forms: [jug, mug] }
         fire: 10 hours
         batch: 4
         boards: 6

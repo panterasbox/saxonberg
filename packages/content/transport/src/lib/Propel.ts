@@ -56,6 +56,9 @@ const SAIL_MAX_MPS = 3;
 const SAIL_BEAT_SHARE = 0.6;
 /** A stroke's worth of way along the river, in hails. */
 const STROKE_HAILS = 1.1;
+/** What a paddler sees of a choked reach by day, and holds off. */
+const SNAGS_SEEN =
+  'Snags ahead: dead trees lying in the channel, a branch combing the current, dark shapes just under the surface. You back water and hold her off them.';
 
 /** Which way the paddler is driving. */
 export type PropelHeading = 'upstream' | 'downstream' | 'left' | 'right' | 'place';
@@ -244,9 +247,24 @@ export class Propel implements SustainedEngagement {
       ContainmentApi.move(boat as never, into);
       return this.end(`You bring her in to ${landing.getPresentation()}, and she grounds gently.`);
     }
-    const refusal = await this.water.refusalOf(room, way, this.actor);
+    // ⚠ The water's upstream refusal is a SWIMMER's (a current at or over
+    // the mover's swim speed): a boat paddled up a river is not swimming,
+    // and this stroke has already reckoned the current against her way
+    // (`gain <= 0` above). Asked for upstream, it turned back every boat
+    // paddled up a current her paddler could not swim — the matter-model-
+    // overlaps drive's rowboat, at 1.55 m/s hard against the Kestrel's
+    // lower river (found by the drive, run 8).
+    const refusal = way === 'upstream' ? null : await this.water.refusalOf(room, way, this.actor);
     if (refusal !== null) return this.end(refusal);
     const dest = await this.water.destinationOf(room, way);
+    // ⭐⭐ The stretch the stroke takes her INTO is the BOAT's to meet
+    // (matter-model-overlaps D7): she asks the one snag rule a ship's
+    // passage asks — seen by day, she is held off it; struck in the dark,
+    // she is carried in and stove in there. Lying in a choked reach
+    // already, she may paddle out — only what she enters is asked.
+    const snag = await this.boat.enterReach(dest, this.water, this.inside, gain / BEAT_S);
+    if (snag === 'seen') return this.end(SNAGS_SEEN);
+    if (snag === 'struck') return this.end();
     ContainmentApi.move(boat as never, dest);
     if (this.heading === 'left' || this.heading === 'right') {
       return this.end('You bring her in to the bank, and she grounds.');

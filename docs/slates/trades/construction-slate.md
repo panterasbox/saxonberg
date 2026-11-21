@@ -140,6 +140,12 @@ the completed product"*, the site can be good content of its own:
 - **The erection bill** (from the paint build, 2026-11): a `Structure` IS
   made of materials — a bill to erect and later to maintain (the owner) —
   but no bill is authored or consumed yet; `maintain` takes only a kit.
+- **A wall's layers holding water** (deferred by matter-model-overlaps,
+  2026-11-20): rain is one flow now — a thing's film takes it by
+  `Wet.takeRain` (by its `weatherReach()`, shed by a sealed face) and a porous
+  body soaks it in by `Moisture.reconcileWater`'s bounded soak arm. A wall's
+  layers are the third water record and attach to those two
+  ([spoilage.md](../../subsystems/spoilage.md) § Drying is a RATE).
 - **Clearance as a building code** (size-and-carrying finalize, 2026-11-16; salvaged from size-slate § 7.4 /
   § 7.7). Ways now have a clearance and a turn, and a body an envelope by
   stature, so **a built environment can exclude bodies** — a door too

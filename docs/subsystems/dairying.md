@@ -24,7 +24,7 @@ no controller, no Api**.
 | `pour rennet into vat` | the batch **rekeys** to renneted milk — a firm curd — whatever the order of rennet and starter | profile `soft-curd`'s `transforms` (`maturation.md`) |
 | (wait) | the batch sets: the vat holds whey over a curd whose share derives from the milk's fat and protein | profiles `soft-curd` / `firm-curd`, `leesShare` |
 | `pour vat into pail` | the whey comes off down to the curd; poured into the crock it is next time's starter | the lees split |
-| `pour vat into hoop`, `get stone`, `put stone on hoop`, wait, `get wheel` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
+| `pour vat into hoop`, `get stone`, `put stone on hoop`, wait, `get wheel` | the curd **drains and sets** in the hoop's shape; pressed, it is drier and keeps longer. ⭐ The whey runs to what is under the hoop — a pail it stands on, else a puddle of whey on the floor under a hoop on a bare board — a band under the curd's grade (the one drip, matter-model-overlaps D10) | `Hoop` = a kernel `Mould` (`mould.md`); the curds' `drainSetting` |
 | `cure wheel` | salt binds water — the hard wheel's second hurdle; the same wheel comes back, still what it was made from | trade-cooking's `cure`, which finds dairying's `salt-wheel` recipe by its item slot |
 | `put wheel on rack` (the cheese room) | the wheel **ripens** by its own temperature: young · coming on · ripe · (soft) over · (too warm) dead | `Wheel` = `RipeningMixin(Provision)` (`maturation.md` § the discrete twin) |
 | `split wheel`, `shelf consign wedge` | wedges carrying the wheel's state, sold on the co-op shelf | `Splittable`; `retail.md` |
@@ -81,6 +81,13 @@ the draft. A **vell** comes only off a young head (`ButcheryYield.maxAgeDays`)
 
 ⭐ **A second creamery is rows.** Nothing here names a venue.
 
+⭐ **The crock remembers** (matter-model-overlaps D11). The starter crock is
+terracotta — porous past holding water bare — so it learns a tenth of what
+it held (the cream's own smell among it) and gives that back to the next
+milk, losing what it gives; `wash crock` spends up to half of it a wash. A
+glazed crock seals and remembers nothing. It is the wall's one exchange
+([faces.md](./faces.md)), the same one an oak cask runs.
+
 ## Discipline
 
 `dairying` (ISCED 0721), a specialization of `fermenting`. Credited by the
@@ -112,3 +119,8 @@ recipes. Competence grades; it never gates.
   room otherwise takes the zone's 20 m cell and a 400 m² room reads
   `very-dim` under any lantern. The cheese room keeps the cell: sized, its
   racked wheel spoiled (suspected atmosphere, not traced).
+
+- **2026-11-20 — matter-model overlaps (MR !644).** Whey runs to what is
+  under the hoop by the one drip (a puddle on a bare board); the terracotta
+  starter crock and the oak churn remember what they held and `wash` spends
+  it; a glazed crock remembers nothing.

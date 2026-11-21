@@ -192,7 +192,7 @@ edge and name and mends are the host's own fields, `fit x to it` refuses
 | `platform/thing/Vat` | `Assembled(Durable(VesselKind(Maturing(Crafted(Sealable(Thermal(Bulkable(Good))))))))` | cask, dry-cask and its `extends:` · carboy, culture jar, crock |
 | `platform/thing/Lamp` | `Assembled(Crafted(Durable(Burner(LightSource(Bulkable(Thermal(Good)))))))` | lantern · torch |
 | `platform/thing/Chair` | `Assembled(Crafted(Durable(Postured(Slotted(Good)))))` | armchair, bed · stool, tub |
-| `platform/thing/Receptacle` | `Assembled(Durable(Thermal(Bulkable(Good))))` — ⚠ NOT Crafted: on a bulk holder Crafted is the BATCH's identity (`wash`/`rinse`/`cool` skip a crafted holder; a pour carries maker and recipe holder to holder) | every receptacle one piece today |
+| `platform/thing/Receptacle` | `Assembled(Durable(Thermal(Bulkable(Good))))` — not Crafted (no recipe mints one). ⭐ On a bulk holder `Crafted` is the VESSEL's own making, never the batch's: a batch's grade, maker and recipe ride its payload (matter-model-overlaps D2), and a draw for washing refuses a crafted product by that payload | every receptacle one piece today |
 | `platform/thing/Assembly` | `AssembledMixin(CraftedMixin(DurableMixin(Good)))` | the made-of-parts thing with no other capability: cask head, frame, cushion, mattress, bellows. A noun — the twin of `Good` on this axis |
 | `platform/thing/Barrel` | `AssembledMixin(DurableMixin(CraftedMixin(SealableMixin(ContainerMixin(Good)))))` | `slack-barrel` — a container of staves, not a vessel |
 | pack: `CookPot` (cooking) — a recipe output that wears | `Assembled(ManualBuild(ToolMixin(Durable(ServingVessel))))` | one piece |
@@ -297,12 +297,14 @@ act (an animal's naming is also its promotion).
 The derived reads: `getCondition()` = the host's own gauge min every
 line's condition, and 0 for any failed structural line; `isBroken()` = a
 failed structural line, a joint at or below the broken dial, or the
-condition test; `leaks()` = any structural line failed or any joint
-slack. ⭐ Everything downstream reads those and nothing else:
+condition test; `jointLeakShare()` = slack joints and failed structural
+members, each at its own share of what the whole holds an hour (the joints'
+term of the one leak, matter-model-overlaps D4; `leaks()` retired). ⭐
+Everything downstream reads those and nothing else:
 
 | host | what a part's state moves |
 |---|---|
-| `Vat` | `getClosure()` is `'open'` while `leaks()` — the authored closure is the ceiling, the joints the floor (a vat with no joints never leaks this way) |
+| any vessel (`Bulkable`) | `getClosure()` is `'open'` while it is not liquid-tight — its joints' share is one of the leak's three terms; what it holds runs out by the drip ([faces.md](./faces.md) § Holding water). `Vat` keeps only its drying reconcile |
 | `Lamp` | `getEmittedFlux()` × `lamp.crackedGlassFlux` (0.35) per failed `facing` pane — the room is darker; the ONE funnel for what a pane does to the light |
 | `Chair` | `getRestQuality()` scales by structural condition; a failed cushion leaves you on the bare frame (`chair.bareFrameRest`, 0.5) |
 | an instrument | `Reading.ceilingOf` already reads `getCondition()` — a damaged compass reads coarser for free |
@@ -521,8 +523,8 @@ competence IS is how tight the hoops are driven:
 `fit cask` by a hand short of proficient is refused naming the band.
 `dryTight` is a new `ClosureLevel` between `open` and `liquidTight`. The
 commons `cask` row is what brewing's `cask` and distilling's `cask` and
-`charred-cask` now `extends:` (brewing states `imparts: []` so its ale is
-unchanged; the charred cask is the plain cask with `charLevel: 1`). ⚠ The
+`charred-cask` now `extends:` (brewing's is pitched inside, so its ale is
+unchanged; the charred cask is the plain cask with a char coat inside). ⚠ The
 fuel pack's oil casks are `Bottle`s and the water-butt is a source; both
 are untouched.
 
@@ -531,13 +533,36 @@ are untouched.
   clock; after `cask.dryOutDays` (7) empty every joint slackens once by
   0.6 with every stave sound — the joint failing with no part damaged,
   and `repair` drives the hoops back down consuming nothing.
-- **Character is spent and re-fired** (on `MaturingMixin`, true of every
-  vat): `fillCount`, `fillsSinceRefire`, `impartsSpent` (each fill after
-  the first adds `maturing.impartsSpentPerFill`, ~a third), `charLevel`,
-  and a second authorable profile `charredImparts`. Effective imparts =
-  `(charLevel ? charredImparts : imparts) × (1 − impartsSpent)`.
-  `repair`'s rung 3 re-fires: spent reset, charred — re-firing a plain
-  cask MAKES a charred one.
+- ⭐⭐ **A sprung stave drains what the cask holds** (matter-model-overlaps
+  D4, D9). The joints are the cask's term of the one leak:
+  `Assembled.jointLeakShare()` = slack joints × `crafting.joint.slackSharePerHour`
+  (0.1) + failed structural members × `crafting.joint.failedSharePerHour`
+  (0.4) — a SHARE of what it holds an hour, so a sprung stave is over the
+  liquid-tight line on a cask of any size (a pour runs through; `leaks()`
+  was the boolean and is gone) and a full 25 L cask with one sprung stave
+  is about a third down after a game hour (1 − e^−0.4). The loss runs out
+  by the one drip into what the cask stands in or on, else the floor, and
+  the cask arms ONE wake for when it runs dry. A dried-out cask's slack
+  hoops spill a refill the same way. The mend is `fit stave to cask` (a
+  sprung stave is fitted, one at a time; `fit`'s help says so); `repair`
+  tightens a slack hoop. `PipeRun.isComplete` reads `jointLeakShare() === 0`.
+- **Character is spent and re-fired** — on the WALL now
+  (matter-model-overlaps D11; it was `MaturingMixin`'s). What a cask gives
+  is its giving layer's material's `imparts`: the oak body's (oak 25,
+  vanilla 3), or a char coat's on its inside face (`charred-oak`: vanilla
+  40, char 120, oak 15). Each layer keeps its own `spent` (`wallSpent` for
+  the body, `CoatLayer.spent` for a coat); the transfer into an empty cask
+  calls `noteFill`, the first fill is free and each after spends
+  `faces.wallSpentPerFill` (0.34), so a fourth gives nothing and `look`
+  says *"it has given its contents everything it had"*. `repair`'s rung 3
+  re-fires a cask whose inside has nothing left (`wallGiveLeft('inside') ===
+  0`): a fire at `crafting.refireHeatK`, a shaving tool and the joint's band,
+  then `Faced.refireFace('inside', bill.refire)` — the commons cask's bill
+  names `refire: /stuff/idea/material/wood/charred-oak`, so re-firing a
+  plain cask MAKES a charred one. Oak is `absorbent`: a cask remembers what
+  it held, and `wash <cask>` (a `Vat` is `Soilable`) spends that memory.
+  The brewing cask is pitched inside — the pitch coat seals, and its ale
+  takes nothing.
 - **The gauger** — `measure capacity <cask>` (`CapacityReading`, a
   coopering `Reading` row + class). ⭐⭐⭐ It answers **anyone**
   (competence resolves detail, never access); a holder of the polity's
@@ -705,6 +730,13 @@ families and a monolith is one piece; the nine twins (`AssembledTool`,
 `AssembledSurveyInstrument`, textiles' `AssembledSpinningTool`) retired
 and their 23 rows re-point to the family. What made the reversal safe is
 that every method had become total on an empty record.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** `Assembled.leaks()`
+  became `jointLeakShare()`, a term of the one leak: a sprung stave drains a
+  full cask (a 25 L cask about a third down in a game hour) and `fit stave
+  to cask` stops it. A cask's re-fire lays the bill's `refire` coat
+  (`Faced.refireFace`); `Vat` composes Soilable so a cask washes; a vessel's
+  `Crafted` is its making, never its batch.
 
 ## ⭐ The slip joint — green clay joined at leather-hard (ceramics W4, 2026-10)
 

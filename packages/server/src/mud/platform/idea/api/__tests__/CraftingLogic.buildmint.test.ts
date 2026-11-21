@@ -152,12 +152,13 @@ describe("CraftingApi.mintFromBuild", () => {
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
     expect(slot.getMaterialPath()).toBe(MARTINI_MAT);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.07, 6); // Σ measures
-    expect((outcome.output as unknown as { getRecipe(): string }).getRecipe()).toBe(
-      "martini",
-    );
-    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe(
-      DAVE,
-    );
+    // ⭐ The mark is the DRINK's — its payload's (matter-model-overlaps D2);
+    // the glass keeps its own making.
+    // (An authored-substance drink is named by its material, so its payload
+    // carries no recipeId — that would re-key its identity to the recipe.)
+    expect(slot.getPayload()?.maker).toBe(DAVE);
+    expect(slot.getPayload()?.grade).toBe("fair");
+    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe("");
   });
 
   it("derives the weakest-link grade across the buffer", async () => {
@@ -215,9 +216,7 @@ describe("CraftingApi.mintFromBuild", () => {
     );
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
-    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe(
-      DAVE,
-    );
+    expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(DAVE);
   });
 
   it("declines an empty build", async () => {

@@ -26,3 +26,6 @@ data:
   crystallizesTo:
     product: /stuff/idea/material/mineral/saltpeter
     residue: /stuff/idea/material/bulk/saltpeter-liquor
+    # How far past saturation a cooling liquor holds unstarted (D14): a hot
+    # liquor cooled to the cellar is far past it and sets its needles anyway.
+    metastableRatio: 1.4

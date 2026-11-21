@@ -687,6 +687,13 @@ export function WaterPlaceMixin<TBase extends MixinConstructor<WaterHost>>(Base:
         waterRef: this.water?.of ?? null,
       };
       if (floor !== null && floor.supports(occupant)) return air;
+      // ⭐ A craft afloat is ON the water, not under it (found by the
+      // matter-model-overlaps drive: launching a rowboat floated her oars
+      // away and soaked whoever sat in her). While she has freeboard her hull
+      // keeps the water out of what she carries; swamped, she has none.
+      if (MixinApi.isSmallCraft(occupant) && occupant.freeboardNowM() > 0) {
+        return { ...air, atSurface: true };
+      }
       return {
         tag: 'water',
         substance: 'water',

@@ -40,6 +40,21 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Matter-model overlaps W4 (2026-11-20).**
+ *   - `ToxicityMixin.leaches` → `ExtractionMixin.leaches`, its level kept
+ *     (1, name 0): the same field moved to the capability that says *what a
+ *     wall gives what it holds*. The lead in a glaze is still the thing
+ *     nobody tells you.
+ *   - `ExtractionMixin.imparts` — **1 (name 0)**, the level the retired
+ *     `MaturingMixin.imparts` carried: *that oak gives a spirit something* is
+ *     open; the figures are the cooper's and the distiller's.
+ *   - `FacedMixin.wallSpent` — level 0: how much of its own give a wall
+ *     has spent, per instance; `look` words it (*"less left to give"*).
+ *   - `MaturingMixin.imparts` · `charredImparts` · `impartsSpent` ·
+ *     `fillCount` · `fillsSinceRefire` · `charLevel` · `impartedFraction`
+ *     LEAVE the surface — the cask's character is its wall's now. A
+ *     removal, so no spoiler question to answer.
+
  * **Size and carrying W10 (2026-11-14).**
  *   - `PlacingMixin.shutRegions` — level 0: which buttoned chambers are
  *     shut now, per instance; `look coat` says *(shut)* to anyone looking.

@@ -46,6 +46,23 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin, type JointState } from '../../lib/craft/Assembled';
+import { SoilableMixin } from '../../lib/cleanliness/Soilable';
+import type { MarkupAugmenter } from '../../api/mml';
+import { MixinApi } from '../../api/mixin';
+
+/**
+ * ⭐ The cask's OWN maker's mark (matter-model-overlaps requirement 6: `look`
+ * on the cask names its maker as the cooper) — the bottle's precedent
+ * (`GradedReceptacle`): a vat somebody made says so, band word and maker,
+ * beside the batch verdict of what is IN it (the holder's
+ * `batchVerdictAugmenter`). An unmarked vat says nothing. Found by the drive:
+ * no line anywhere named a cask's cooper.
+ */
+function makersMarkAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!MixinApi.isCrafted(host) || host.getMaker() === '') return text;
+  const verdict = host.renderVerdict(viewer);
+  return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
+}
 
 /** How far an empty cask's hoops ride loose when it dries out. */
 const DRY_OUT_SLACK = 0.6;
@@ -66,12 +83,17 @@ function caskDial(key: string, fallback: number): number {
 // ferment — see maturation.md). Both apply.
 // Durable beneath Assembled (assembly D8): an assembly's wear has to have
 // somewhere to go, and `repair <cask>` gates on `DurableMixin`.
-const VatBase = AssembledMixin(
-  DurableMixin(
-    VesselKindMixin(
-      MaturingMixin(
-        CraftedMixin(
-          SealableMixin(ThermalMixin(BulkableMixin(Good))),
+// ⭐ Soilable outermost (matter-model-overlaps D11): a working vessel gets
+// dirty and is washed — and `wash <cask>` binds, which is how a cask's wall
+// gives up what it has soaked up.
+const VatBase = SoilableMixin(
+  AssembledMixin(
+    DurableMixin(
+      VesselKindMixin(
+        MaturingMixin(
+          CraftedMixin(
+            SealableMixin(ThermalMixin(BulkableMixin(Good))),
+          ),
         ),
       ),
     ),
@@ -79,6 +101,8 @@ const VatBase = AssembledMixin(
 );
 
 export default class Vat extends VatBase {
+  static markupAugmenters: MarkupAugmenter[] = [makersMarkAugmenter];
+
   /** Game-seconds it was first read empty; 0 = wet (or never read empty). */
   public emptySince = 0;
 
@@ -146,15 +170,15 @@ export default class Vat extends VatBase {
   }
 
   /**
-   * ⭐ The authored closure is the CEILING; the joints are the floor
-   * (assembly D10). A cask holds what its build allows only while every
-   * structural member is sound and every joint is tight — a sprung stave
-   * or a slack hoop and it weeps, whatever the row says. A vat of one
-   * piece never leaks this way.
+   * ⭐ A cask left empty dries out before anything asks whether it holds
+   * (assembly AC 6): the drying is reconciled first, then the one leak read
+   * (`Bulkable.getClosure` → `isLiquidTight`, matter-model-overlaps D4)
+   * decides — a sprung stave or a slack hoop and it weeps, whatever the row
+   * says.
    */
   public override getClosure(): ClosureLevel {
     this.reconcileDrying();
-    return this.leaks() ? 'open' : super.getClosure();
+    return super.getClosure();
   }
 
   /** Re-entry guard: `reconcileDrying` reads the joints it may slacken. */

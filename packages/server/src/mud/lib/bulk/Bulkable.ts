@@ -47,6 +47,8 @@ import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Perceptible } from '../description/Perceptible';
 import { BlendIdentity } from '../craft/BlendIdentity';
+import { Verdict } from '../craft/Verdict';
+import { Grade } from '../craft/Grade';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -55,13 +57,13 @@ import { MixinApi } from '../../api/mixin';
 import { ExecutionContextApi } from '../../api/execution-context';
 import type { Difficulty } from '../advancement/ActSignature';
 import { PourTargetMixin, type PourAnswer, type PourDone, type PourNote, type PourRequest } from './PourTarget';
-import { WaterChemistry } from '../supply/WaterChemistry';
+import { StirTargetMixin, type StirAnswer, type StirRequest } from '../craft/StirTarget';
 import { BulkableApi, type TransferAmount } from '../../api/bulk';
 import { MaterialApi } from '../../api/material';
 import { AppSettingKeys } from '../config/AppSettings';
 import { AppApi } from '../../api/app';
 import { TemplatePaths } from '../paths';
-import { WorldClockApi } from '../../api/worldclock';
+import { WorldClockApi, type ClockHandle } from '../../api/worldclock';
 import { SubscriptionApi } from '../../api/subscription';
 import type { SubscribableFieldDescriptor } from '../../api/subscription';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -469,6 +471,14 @@ export interface Bulkable {
    * does not exist.
    */
   hasInteriorBulk(): boolean;
+  /**
+   * @hook ⭐ Does what drips off something standing IN this vessel run on
+   * through it, to what the vessel itself drips to — rather than into its
+   * interior (matter-model-overlaps D10)? `false` by default: a drip off a
+   * filter in a crock lands in the crock. A mould answers `true` — its foot
+   * is open, so molasses off a loaf in its cone runs into the pot beneath.
+   */
+  passesDripsThrough(): boolean;
   /** The interior's capacity in litres; `null` = unbounded / not authored. */
   getInteriorCapacity(): Quantity<'L'> | null;
   hasSurfaceBulk(): boolean;
@@ -568,8 +578,27 @@ export interface Bulkable {
   holdsFood(): boolean;
   debitBulk(affordance: BulkAffordance, litres: number): void;
 
+  /**
+   * ⭐⭐ The closure it keeps: the authored one, or `open` when it is not
+   * liquid-tight ({@link isLiquidTight}) — so EVERY vessel, not only a
+   * cask, spills a pour it cannot hold (matter-model-overlaps D4).
+   */
   getClosure(): ClosureLevel;
   setClosure(level: ClosureLevel): void;
+  /**
+   * ⭐⭐ The ONE leak read (matter-model-overlaps D4): litres an hour the
+   * interior loses at what it holds now — its PORES (a porous body with
+   * neither face sealed: `porosity × thermal.evaporation.seepLPerHourPerL ×
+   * held`), its FLAWS (`Flawed.flawLeakLPerHour` at the liquid's depth,
+   * `∛(held/1000)` m) and its JOINTS (`Assembled.jointLeakShare × held`).
+   * `0` for a holder with no liquid in it.
+   */
+  leakLPerHour(): number;
+  /**
+   * Does it hold a liquid? The same three terms at capacity, as a share of
+   * capacity an hour, at or under `faces.holdsLiquidBelowSharePerHour`.
+   */
+  isLiquidTight(): boolean;
   /**
    * The pressure in a GAS slot, as amount over capacity — `null` when
    * the slot holds no gas. ⭐ Derived, never stored.
@@ -580,6 +609,11 @@ export interface Bulkable {
 }
 
 const VOLUME_MARSHALLER = QuantityMarshaller.pathFor(BULK_VOLUME_UNIT);
+
+/** A liquid stirred, game-ms — the build's stir (`ManualBuild`'s pace). */
+const STIR_LIQUID_MS = 4000;
+/** A liquid stirred, metabolic watts — light work. */
+const STIR_LIQUID_EFFORT_W = 150;
 
 function assertVolume(q: Quantity<'L'>, field: string): void {
   if (!(q instanceof Quantity) || q.unit !== BULK_VOLUME_UNIT) {
@@ -596,8 +630,33 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
   // Whether the composition beneath answers to words (decided once per
   // class, lazily — the factory runs at import).
   let inherits: boolean | undefined;
-  return class BulkableMixin extends PourTargetMixin(Base) {
+  return class BulkableMixin extends StirTargetMixin(PourTargetMixin(Base)) {
     static _mixinName = 'BulkableMixin';
+
+    /**
+     * ⭐ `stir` a holder (matter-model-overlaps D15): a LIQUID in the
+     * interior is stirred in the stir's time and effort, and a Thermal
+     * holder is asked whether that started anything (`noteAgitated` — a
+     * supersaturated liquor nucleates). A surface slot (a floor's puddle),
+     * an empty holder or one holding no liquid: `nothing-to-stir`.
+     */
+    public stirPlanFor(_req: StirRequest): StirAnswer {
+      const self = this as unknown as Stuff;
+      if (!this.interiorBulk || !(this._interiorAmount.rawValue() > 0) || !this.holdsLiquid()) {
+        return { ok: false, reason: 'nothing-to-stir', facts: { vessel: self } };
+      }
+      return {
+        ok: true,
+        durationMs: STIR_LIQUID_MS,
+        effortW: STIR_LIQUID_EFFORT_W,
+        facts: { kind: 'liquid' },
+        // ⭐ What the stir started is the phase engine's to say (D14).
+        onComplete: () => ({
+          ok: true,
+          facts: { kind: 'liquid', started: MixinApi.isThermal(self) ? self.noteAgitated() : false },
+        }),
+      };
+    }
 
     /**
      * ⭐ `pour` into a holder: a thin direction over `BulkableApi.transfer`,
@@ -762,6 +821,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/bulk/spill.yaml',
         'platform/cmd/bulk/drink.yaml',
         'platform/cmd/bulk/sip.yaml',
+        'platform/cmd/crafting/stir.yaml',
       ],
       environment: [
         'platform/cmd/bulk/fill.yaml',
@@ -769,6 +829,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         'platform/cmd/bulk/spill.yaml',
         'platform/cmd/bulk/drink.yaml',
         'platform/cmd/bulk/sip.yaml',
+        'platform/cmd/crafting/stir.yaml',
       ],
     };
 
@@ -780,7 +841,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * host's description is rendered. The surface affordance renders as
      * a puddle (`look floor`).
      */
-    static markupAugmenters: MarkupAugmenter[] = [bulkContentsAugmenter];
+    static markupAugmenters: MarkupAugmenter[] = [bulkContentsAugmenter, batchVerdictAugmenter];
 
     // ---- affordance presence flags (authored per host) ----
     /**
@@ -835,6 +896,9 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       surfaceAmount: { persistent: true, marshaller: VOLUME_MARSHALLER, runtimeState: true },
       surfaceCapacity: { persistent: true, marshaller: VOLUME_MARSHALLER, authorable: true },
       closure: { persistent: true, authorable: true },
+      // ⭐ The one wake a leak arms (matter-model-overlaps D9), re-armed by
+      // its setter on restore.
+      leakWakeAtS: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -925,12 +989,177 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     public hasInteriorBulk(): boolean {
       return this.interiorBulk;
     }
+    public passesDripsThrough(): boolean {
+      return false;
+    }
     public hasSurfaceBulk(): boolean {
       return this.surfaceBulk;
     }
 
     public getClosure(): ClosureLevel {
-      return this.closure;
+      return this.isLiquidTight() ? this.closure : 'open';
+    }
+
+    public leakLPerHour(): number {
+      if (!this.interiorBulk) return 0;
+      const held = this._interiorAmount.rawValue();
+      if (!(held > 0) || !this.holdsLiquid()) return 0;
+      return this.leakRates(held, this.poreSharePerHour(false)).total;
+    }
+
+    public isLiquidTight(): boolean {
+      if (!this.interiorBulk) return true;
+      const cap = this._interiorCapacity?.rawValue() ?? 0;
+      if (!(cap > 0)) return true;
+      const perHour = this.leakRates(cap, this.poreSharePerHour(false)).total;
+      return perHour / cap <= bulkDial(AppSettingKeys.facesHoldsLiquidBelowSharePerHour, 0.05);
+    }
+
+    /** Does the interior hold a LIQUID now (the only matter a wall leaks)? */
+    private holdsLiquid(): boolean {
+      const material = this.interiorMaterial ? (MaterialApi.materials().peek(this.interiorMaterial) ?? null) : null;
+      return material !== null && material.hasTag('liquid');
+    }
+
+    /**
+     * The pores' share of what it holds an hour: a FACED body whose wall
+     * lets water through (`isPermeable` — porous, neither face sealed), by
+     * its porosity — at the weep's rate onto its own outside, or the
+     * filter's (`faces.filterLPerHourPerL`) when something under it takes
+     * what comes through.
+     */
+    private poreSharePerHour(through: boolean): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isFaced(self) || !self.isPermeable()) return 0;
+      const rate = through
+        ? bulkDial(AppSettingKeys.facesFilterLPerHourPerL, 5)
+        : bulkDial(AppSettingKeys.thermalEvaporationSeepLPerHourPerL, 0.02);
+      return self.porosity() * rate;
+    }
+
+    /**
+     * ⭐ The leak's three terms at `held` litres, L/h (D4): the pores and the
+     * joints as shares of what it holds, the flaws by the one hole rule at
+     * the liquid's depth. `pores` is what goes through the wall; the rest is
+     * plain loss.
+     */
+    private leakRates(held: number, poreShare: number): { pores: number; plain: number; total: number } {
+      const self = this as unknown as Stuff;
+      const L = Math.max(0, held);
+      const pores = poreShare * L;
+      const flaws = MixinApi.isFlawed(self) && L > 0 ? self.flawLeakLPerHour(Math.cbrt(L / 1000), 1) : 0;
+      const joints = MixinApi.isAssembled(self) ? self.jointLeakShare() * L : 0;
+      const plain = flaws + joints;
+      return { pores, plain, total: pores + plain };
+    }
+
+    /**
+     * ⭐ The leak integrated from `held` over `hours` (D9) — midpoint steps,
+     * each losing at most a fiftieth of what is left, so a read every minute
+     * and one read after a day agree. At `flaws.leak.dregsL` the rest goes:
+     * the vessel has run out. `untilLostL` stops the walk once that much has
+     * gone (a receiver brims) and returns the hours it took.
+     */
+    private integrateLeak(
+      held: number,
+      hours: number,
+      poreShare: number,
+      untilLostL = Infinity,
+    ): { pores: number; plain: number; hours: number; dregs: boolean } {
+      const dregs = Math.max(0, bulkDial(AppSettingKeys.flawsLeakDregsL, 0.05));
+      let L = Math.max(0, held);
+      let t = 0;
+      let pores = 0;
+      let plain = 0;
+      let ranOut = false;
+      for (let i = 0; i < 20_000 && t < hours && L > 0 && pores + plain < untilLostL; i++) {
+        const r = this.leakRates(L, poreShare);
+        if (!(r.total > 0)) break;
+        if (L <= dregs) {
+          const share = r.pores / r.total;
+          pores += L * share;
+          plain += L * (1 - share);
+          L = 0;
+          ranOut = true;
+          break;
+        }
+        const h = Math.min(hours - t, Math.max(1e-6, (0.02 * L) / r.total));
+        const mid = this.leakRates(Math.max(0, L - (r.total * h) / 2), poreShare);
+        if (!(mid.total > 0)) break;
+        let dL = Math.min(L, mid.total * h);
+        let dt = h;
+        // Crossing the dregs inside this step: it runs out there.
+        if (L - dL <= dregs) {
+          dt = Math.min(h, Math.max(0, (L - dregs) / mid.total));
+          dL = L;
+          ranOut = true;
+        }
+        const share = mid.pores / mid.total;
+        pores += dL * share;
+        plain += dL * (1 - share);
+        L -= dL;
+        t += dt;
+        if (ranOut) break;
+      }
+      return { pores, plain, hours: t, dregs: ranOut };
+    }
+
+    /**
+     * ⭐ Game-seconds the leak's state next changes (D9) — it runs out, or
+     * what it drips into brims — or `0` when nothing is leaking. Persisted
+     * and re-armed by {@link setLeakWakeAtS}, so a restart mid-leak empties
+     * on time with nobody reading it.
+     */
+    public leakWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _leakWake: ClockHandle | null = null;
+
+    /** Set (or clear, `0`) when the leak next changes state, and arm it. */
+    public setLeakWakeAtS(value: number): void {
+      this._leakWake?.cancel();
+      this._leakWake = null;
+      this.leakWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.leakWakeAtS === 0) return;
+      this._leakWake = WorldClockApi.at(
+        Quantity.of(this.leakWakeAtS, 's'),
+        () => {
+          this._leakWake = null;
+          // ⚠ Not host-bound (that subscribes to the event registry, and
+          // every porous pot of water arms one): a wake on a vessel destroyed
+          // since it was armed finds it gone and does nothing.
+          if ((this as unknown as Stuff).isDestroyed()) return;
+          this.leakWakeAtS = 0;
+          this.reconcileFaceExchange();
+        },
+        { tag: 'leak' },
+      );
+    }
+
+    /**
+     * Re-derive the leak's one wake from what it holds now (D9): the moment
+     * it is down to its dregs or the vessel it drips into brims, whichever
+     * comes first — computed, never polled.
+     */
+    private armLeak(nowS: number, poreShare: number): void {
+      const held = this._interiorAmount.rawValue();
+      const leaking = held > 0 && this.holdsLiquid() && this.leakRates(held, poreShare).total > 0;
+      if (!leaking) {
+        if (this.leakWakeAtS !== 0) this.setLeakWakeAtS(0);
+        return;
+      }
+      // What the first vessel under it can still take before it brims.
+      const self = this as unknown as Stuff;
+      let brimL = Infinity;
+      if (MixinApi.isContainable(self)) {
+        const slot = self
+          .dripSlots()
+          .find((s) => s.affordance === 'interior' && (s.isEmpty() || s.getMaterialPath() === this.interiorMaterial));
+        if (slot !== undefined) brimL = slot.remaining();
+      }
+      const horizonH = 365 * 24;
+      const run = this.integrateLeak(held, horizonH, poreShare, brimL);
+      const untilS = Math.max(1, Math.ceil(run.hours * 3600));
+      this.setLeakWakeAtS(nowS + untilS);
     }
 
     /**
@@ -1190,25 +1419,6 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
       return 'holds';
     }
 
-    /**
-     * ⭐ (ceramics W8) The vessel a porous body's seep runs INTO, or `null`
-     * (it weeps onto its own outside). The vessel it stands ON — the same
-     * rule as `Mould.drainsInto()`, the sugar cone on its pot — else the
-     * vessel it is set IN (a filter in the mouth of a crock). Either must
-     * hold liquid in an interior.
-     */
-    private seepReceiver(): (Stuff & Bulkable) | null {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isContainable(self)) return null;
-      const on = (self.getPlacement()?.host ?? null) as unknown as Stuff | null;
-      const candidates = [on, self.getContainer() as unknown as Stuff | null];
-      for (const c of candidates) {
-        if (c === null || c === self || !MixinApi.isBulkable(c) || !c.hasInteriorBulk()) continue;
-        return c;
-      }
-      return null;
-    }
-
     /** Reentry guard for the face exchange (it reads and writes the slot). */
     private _faceExchanging = false;
 
@@ -1222,16 +1432,20 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     private _seepersReconciling = false;
 
     /**
-     * ⭐ Bring current whatever seeps INTO this vessel — a filter set in its
-     * mouth, a body standing on it — before saying what it holds. A seep is
-     * integrated on the SEEPER's read, so a crock looked into while its
-     * filter went unread showed nothing dripped in three hours (the
-     * ceramics drive C, run 37). Load on use: the read that needs the
-     * answer brings the chain current.
+     * ⭐ Bring current whatever drips INTO this vessel — a filter set in its
+     * mouth, a body standing on it, ash lying in it, a loaf in a cone on it —
+     * before saying what it holds. A drip is integrated on the DRIPPER's read,
+     * so a crock looked into while its filter went unread showed nothing
+     * dripped in three hours (the ceramics drive C, run 37). ⭐ The same chain
+     * the drip reads, from the receiver's side (matter-model-overlaps D10):
+     * what stands in or on this vessel — and in an open-footed one on it —
+     * whose `dripSlots()` name this interior. Load on use: the read that
+     * needs the answer brings the chain current.
      */
     private reconcileSeepers(): void {
       if (this._seepersReconciling || this._peeking > 0 || ExecutionContextApi.worldHeldStill) return;
       const self = this as unknown as Stuff;
+      if (!this.interiorBulk) return;
       this._seepersReconciling = true;
       try {
         const near: Stuff[] = [];
@@ -1248,12 +1462,24 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
               throw err;
             }
         }
+        // An open foot hands its contents' drips on (`passesDripsThrough`).
+        for (const c of [...near]) {
+          if (c !== self && MixinApi.isBulkable(c) && c.passesDripsThrough() && MixinApi.isContainer(c)) {
+            near.push(...(c.getContents() as Stuff[]));
+          }
+        }
         for (const c of near) {
-          if (c === self) continue;
+          if (c === self || !MixinApi.isContainable(c)) continue;
+          if (!c.dripSlots().some((s) => s.getHolder() === self && s.affordance === 'interior')) continue;
           // ⭐ A porous solid a liquid works down through into this vessel —
-          // ash in a hopper, a loaf on its pot — is brought current too
+          // ash in a hopper, a loaf over its pot — is brought current too
           // (cordage W7: the hopper's lye is what its heaps have given up).
           if (MixinApi.isPercolating(c)) c.reconcilePercolation();
+          // ⭐ A mould's spent liquor runs out into this vessel by the one drip
+          // (D13) — on the MOULD's thermal read, so it is brought current here
+          // too (found by the drive: a pot looked into four days after its
+          // cone set held a spoonful, because nobody had read the cone).
+          if (MixinApi.isMould(c) && MixinApi.isThermal(c)) c.reconcileThermal();
           // Only a FACED vessel seeps (its faces are what let a liquid through).
           if (!MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
           try {
@@ -1277,35 +1503,42 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
-     * ⭐⭐ **What a vessel's faces do to what it holds** (ceramics M6–M8),
-     * integrated on read since the payload's `faceCheckedS`:
+     * ⭐⭐ **What a vessel's wall does to what it holds** (ceramics M6–M8;
+     * matter-model-overlaps D4, D9), integrated on read since the payload's
+     * `faceCheckedS`:
      *
-     *  - **the leach** — the inside face's outermost material `leaches`
-     *    a toxin at `mg/L/day × the contents' acidity`, into the
-     *    payload's `dissolvedToxins` (metabolism's own field: drinking it
-     *    doses the drinker with no new code). Nothing looks, smells or
-     *    tastes of it.
-     *  - **the weep** — a porous body whose faces do not hold water loses
-     *    `porosity × thermal.evaporation.seepLPerHourPerL` litres an hour
-     *    per litre into the vessel's OWN wetness, so its outside stays wet
-     *    and evaporation cools it (`ThermalMixin.evaporativeDepressionK`).
-     *  - **the memory** — a porous inside face keeps a share of a fill's
-     *    aromas and gives them to the next (the crock that remembers the
-     *    pickles); a glaze or a stoneware body keeps nothing.
+     *  - ⭐⭐ **the wall's exchange** — ONE call, `Faced.exchangeWith`
+     *    (matter-model-overlaps D11): the leach of the inside's outermost
+     *    material, the wall's own `imparts` (oak gives oak), and what an
+     *    absorbent wall has learned from what it held. The slot keeps the
+     *    clock and the payload; the wall decides what passes.
+     *  - ⭐⭐ **the leak** — the ONE loss ({@link leakLPerHour}): through the
+     *    pores (onto its own outside first — the weeping jar's film, whose
+     *    evaporation cools it — or, when something under it takes what comes
+     *    through, at the filter's rate, as the wall's `filteredTo`), and
+     *    plainly through its flaws and its joints. Moved by the one drip
+     *    (`BulkableApi.drip`), so nothing that leaks disappears. A vessel that
+     *    is losing liquid arms ONE game-clock wake for the moment it runs
+     *    out or what it drips into brims ({@link armLeak}).
      *
-     * Inert for a vessel that is not `Faced` or holds nothing; at most once
-     * a game-minute.
+     * The exchange is a FACED vessel's; the leak is any
+     * vessel's. Inert for a vessel that holds nothing; at most once a
+     * game-minute.
      */
     private reconcileFaceExchange(): void {
       if (this._faceExchanging || this._peeking > 0 || ExecutionContextApi.worldHeldStill) return;
       this.reconcileSeepers();
       const self = this as unknown as Stuff;
-      if (!MixinApi.isFaced(self) || !this.interiorBulk) return;
+      if (!this.interiorBulk) return;
+      const faced = MixinApi.isFaced(self);
       const litres = this._interiorAmount.rawValue();
       const material = this.interiorMaterial
         ? MaterialApi.materials().peek(this.interiorMaterial) ?? null
         : null;
-      if (!(litres > 0) || material === null) return;
+      if (!(litres > 0) || material === null) {
+        if (this.leakWakeAtS !== 0) this.setLeakWakeAtS(0);
+        return;
+      }
       // ⭐ At most once a game-minute, asked BEFORE the face reads below: this
       // runs on every read of the slot (an amount, a payload, a keyword in a
       // scope walk), and those reads cost far more than the clock. Same answer
@@ -1316,114 +1549,82 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         if (nowS === null || nowS - checkedS < 60) return;
       }
       // ⚠ Sparse: an exchange with nothing to do writes nothing — a glazed
-      // pot of water carries no payload because of this.
-      const insideFace = self.outermost('inside');
-      // ⭐ The contents' own pH when they carry one — a water's, off its
-      // source (water-supply D8) — else the material row's.
-      const payloadPh = this.interiorPayload?.pH;
-      const leaches =
-        MixinApi.hasAcidity(material) &&
-        material.acidAttack(payloadPh) > 0 &&
-        insideFace !== null &&
-        MixinApi.hasToxicity(insideFace) &&
-        insideFace.getLeaches().length > 0;
-      const porousInside = !self.holdsWater('inside');
-      // A liquid against a wall that lets water through (the face's own read,
-      // B100 — this was a second copy of it, inline).
-      const weeps = material.hasTag('liquid') && self.isPermeable();
-      const remembers =
-        porousInside &&
-        ((this.interiorPayload?.dissolvedAromatics?.length ?? 0) > 0 ||
-          self.absorbedAromas('inside').length > 0);
-      if (!leaches && !weeps && !remembers) return;
+      // pot of water carries no payload because of this. The wall says
+      // whether it has anything to give or take.
+      const walled =
+        faced && self.wallExchanges({ material, litres, payload: this.interiorPayload ?? null });
+      // ⭐ What comes through the wall is what the pores let through
+      // (`Material.filteredTo`), whichever way it goes.
+      const liquid = material.hasTag('liquid');
+      const through = MixinApi.hasSolution(material) ? material.getFilteredTo() : '';
+      const arrivesAs = through !== '' ? (MaterialApi.materials().peek(through) ?? null) : null;
+      // ⭐⭐ (ceramics S9, W8) **Through, when there is somewhere to go.** A
+      // porous body set IN or ON a vessel that will take what comes through
+      // does not weep onto its own outside — the water runs through the wall
+      // and drips into the vessel below, which is the whole of a ceramic
+      // water filter: a free flow at `faces.filterLPerHourPerL`. The vessel
+      // is the first of what is under it (`dripSlots`, D10) that holds
+      // nothing else.
+      const arriving = arrivesAs?.getTemplatePath() ?? this.interiorMaterial;
+      const below =
+        liquid &&
+        faced &&
+        self.isPermeable() &&
+        MixinApi.isContainable(self) &&
+        self
+          .dripSlots()
+          .some((s) => s.affordance === 'interior' && (s.isEmpty() || s.getMaterialPath() === arriving));
+      const poreShare = liquid ? this.poreSharePerHour(below) : 0;
+      const leaking = liquid && this.leakRates(litres, poreShare).total > 0;
+      if (!walled && !leaking) {
+        if (this.leakWakeAtS !== 0) this.setLeakWakeAtS(0);
+        return;
+      }
       const nowS = bulkNowSeconds();
       if (nowS === null) return;
-      const payload: BulkPayload = { ...(this.interiorPayload ?? {}) };
+      let payload: BulkPayload = { ...(this.interiorPayload ?? {}) };
       const last = payload.faceCheckedS ?? this._interiorFilledAtS ?? undefined;
       if (last === undefined) {
         payload.faceCheckedS = nowS;
         this.interiorPayload = payload;
         this._interiorFilledAtS = null;
+        if (leaking) this.armLeak(nowS, poreShare);
         return;
       }
       const dt = nowS - last;
-      if (!(dt >= 60)) return;
+      if (!(dt >= 60)) {
+        // Just filled: nothing to integrate yet, but a leak still has its wake.
+        if (leaking && this.leakWakeAtS === 0) this.armLeak(nowS, poreShare);
+        return;
+      }
       this._faceExchanging = true;
       try {
-        const days = dt / 86_400;
-        // The leach.
-        const inside = self.outermost('inside');
-        // ⭐ By the contents' pH (B109): vinegar draws the authored rate,
-        // vitriol far more, milk next to nothing, seawater none.
-        // ⭐⭐ …and a water's SOFTNESS (water-supply D8): hard water scales a
-        // lead pipe shut and soft water does not, so a soft acid supply
-        // through lead is the poisoning and a hard one is not. A payload
-        // that carries no hardness is not a supply's water (vinegar in a
-        // glazed jar) and the factor is 1 — the shipped glaze law unchanged.
-        const dgh = payload.hardnessDgh;
-        const softness =
-          typeof dgh === 'number' && Number.isFinite(dgh)
-            ? new WaterChemistry(7, dgh, 0).softness()
-            : 1;
-        const attack = (MixinApi.hasAcidity(material) ? material.acidAttack(payload.pH) : 0) * softness;
-        if (inside !== null && MixinApi.hasToxicity(inside) && attack > 0) {
-          const toxins = [...(payload.dissolvedToxins ?? [])];
-          for (const leach of inside.getLeaches()) {
-            const mg = leach.mgPerLPerDay * attack * days;
-            if (!(mg > 0)) continue;
-            const at = toxins.findIndex((t) => t.type === leach.toxin);
-            if (at >= 0) toxins[at] = { ...toxins[at]!, amount: toxins[at]!.amount + mg };
-            else toxins.push({ type: leach.toxin, amount: mg } as never);
-          }
-          if (toxins.length > 0) payload.dissolvedToxins = toxins;
-        }
-        // The memory.
-        if (!self.holdsWater('inside')) {
-          const kept = self.absorbedAromas('inside');
-          const fill = [...(payload.dissolvedAromatics ?? [])];
-          const retained = bulkDial(AppSettingKeys.facesAromaRetained, 0.1);
-          const next: Record<string, number> = {};
-          for (const k of kept) next[k.type] = k.amount;
-          for (const a of fill) {
-            next[a.type] = Math.max(next[a.type] ?? 0, a.amount * retained);
-          }
-          const share = Math.min(1, days);
-          for (const k of kept) {
-            const at = fill.findIndex((a) => a.type === k.type);
-            const have = at >= 0 ? fill[at]!.amount : 0;
-            if (have >= k.amount) continue;
-            const amount = have + (k.amount - have) * share;
-            if (at >= 0) fill[at] = { ...fill[at]!, amount };
-            else fill.push({ ...k, amount });
-          }
-          if (fill.length > 0) payload.dissolvedAromatics = fill;
-          self.setAbsorbedAromas('inside', Object.entries(next).map(([type, amount]) => ({ type, amount })) as never);
-        }
-        // The weep.
+        // ⭐⭐ The wall's one exchange (D11): it returns the new payload.
+        if (walled) payload = self.exchangeWith({ material, litres, payload }, dt);
+        // ⭐⭐ The leak (D9): `min(held, the leak integrated over dt)`.
         let left = litres;
         let seepL = 0;
-        if (weeps) {
-          // ⭐⭐ (ceramics S9, W8) **Through, when there is somewhere to go.**
-          // A porous body set ON or IN a vessel that holds liquid does not
-          // weep onto its own outside — the water runs through the wall and
-          // drips into the vessel below, which is the whole of a ceramic
-          // water filter. A free flow, not an evaporation, so it runs at the
-          // faster `faces.filterLPerHourPerL`; and what comes through is
-          // what the pores let through (`Material.filteredTo`).
-          const below = this.seepReceiver();
-          const rate = below
-            ? bulkDial(AppSettingKeys.facesFilterLPerHourPerL, 5)
-            : bulkDial(AppSettingKeys.thermalEvaporationSeepLPerHourPerL, 0.02);
-          const lost = Math.min(left, self.porosity() * rate * left * (dt / 3600));
-          if (lost > 0 && below) {
-            seepL = lost;
-          } else if (lost > 0) {
-            left -= lost;
+        let plainL = 0;
+        if (leaking) {
+          const lost = this.integrateLeak(litres, dt / 3600, poreShare);
+          plainL = Math.min(left, lost.plain);
+          const poresL = Math.min(left - plainL, lost.pores);
+          if (poresL > 0 && below) {
+            seepL = poresL;
+          } else if (poresL > 0) {
+            // ⭐ With nothing under it the weep wets the vessel's own outside
+            // first — the film and its evaporation ARE the weeping jar
+            // (faces.md) — and what the film cannot hold drips (D10).
+            let filmL = poresL;
             if (MixinApi.isWet(self)) {
               const cap = self.waterCapacityKg();
-              const kg = (lost / 1000) * material.getDensity().rawValue();
-              if (cap > 0) self.wet(kg / cap);
+              const density = material.getDensity().rawValue();
+              const freeKg = (1 - self.getWetness()) * cap;
+              filmL = cap > 0 && density > 0 ? Math.min(poresL, (Math.max(0, freeKg) / density) * 1000) : 0;
+              if (filmL > 0) self.wet(((filmL / 1000) * density) / cap);
             }
+            left -= filmL;
+            seepL = poresL - filmL;
           }
         }
         payload.faceCheckedS = nowS;
@@ -1431,24 +1632,26 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // The fill stamp is spent: from here the payload's own clock runs.
         this._interiorFilledAtS = null;
         if (left !== litres) this.interiorAmount = Quantity.of(left, BULK_VOLUME_UNIT);
-        // ⭐ Through, into the vessel below — a TRANSFER through pores, the
-        // one primitive (it debits this slot itself): what is dissolved
-        // comes through, what is suspended stays, and the liquid arrives as
-        // the wall's `filteredTo`. Last, once this slot's own reads are
-        // committed, so the move sees the vessel as it now is.
-        const below = seepL > 0 ? this.seepReceiver() : null;
-        if (below !== null) {
-          const through = MixinApi.hasSolution(material) ? material.getFilteredTo() : '';
-          BulkableApi.transfer(
-            this.getBulk('interior'),
-            below.getBulk('interior'),
-            { kind: 'measure', litres: seepL, mode: 'lenient' },
-            {
-              through: 'pores',
-              arrivesAs: through !== '' ? (MaterialApi.materials().peek(through) ?? null) : null,
-            },
-          );
+        // ⭐ Through, to what is under it — the one drip (D10), a TRANSFER
+        // per slot (it debits this slot itself). Through the pores what is
+        // dissolved comes through, what is suspended stays, and the liquid
+        // arrives as the wall's `filteredTo`; through a crack, a hole or a
+        // sprung stave it runs out as it is. Last, once this slot's own reads
+        // are committed, so the move sees the vessel as it now is.
+        if (seepL > 1e-12) {
+          BulkableApi.drip({
+            from: this.getBulk('interior'),
+            litres: seepL,
+            via: { through: 'pores', arrivesAs },
+          });
         }
+        if (plainL > 1e-12) {
+          BulkableApi.drip({ from: this.getBulk('interior'), litres: Math.min(plainL, this._interiorAmount.rawValue()) });
+        }
+        // A run-out leaves a float's crumb in the slot, never a drop to arm for.
+        const crumb = this._interiorAmount.rawValue();
+        if (crumb > 0 && crumb < 1e-9) this.debitBulk('interior', crumb);
+        if (leaking) this.armLeak(nowS, poreShare);
       } finally {
         this._faceExchanging = false;
       }
@@ -1598,6 +1801,26 @@ function liquidLevelWord(fraction: number): string {
   if (fraction >= 0.35) return 'about half';
   if (fraction >= 0.1) return 'a finger';
   return 'dregs';
+}
+
+/**
+ * ⭐⭐ The BATCH's verdict — band word, why, and its maker as `viewer`
+ * knows them — read off the interior payload (matter-model-overlaps D2),
+ * on any holder: a fine gin in a plain bottle is still the distiller's
+ * fine gin, whether or not the bottle was made by anybody. Says nothing of
+ * the holder (a crafted vessel's own making is its own line,
+ * `Crafted.renderVerdict`). Quiet when nothing graded is in it — water
+ * nobody made has nothing to be judged on.
+ */
+function batchVerdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return text;
+  const slot = host.getBulk('interior');
+  if (slot.isEmpty()) return text;
+  const payload = slot.getPayload();
+  const band = payload?.grade;
+  if (band === undefined || !Grade.isBand(band)) return text;
+  const verdict = new Verdict(Grade.of(band), payload?.maker ?? '').render(viewer, 'What is in it');
+  return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 }
 
 function bulkContentsAugmenter(

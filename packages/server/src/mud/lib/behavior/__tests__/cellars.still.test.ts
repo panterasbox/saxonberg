@@ -40,7 +40,6 @@ import { DissolvedToxins } from '../../metabolism/DissolvedToxins';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { Quantity } from '../../quantity';
-import { Grade } from '../../craft/Grade';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -145,13 +144,6 @@ function slotOf(v: unknown) {
   return BulkableApi.slotFor(v as never, undefined)!;
 }
 
-function graded(v: unknown): {
-  getGradeBand(): string;
-  setGrade(g: Grade): void;
-} {
-  return v as { getGradeBand(): string; setGrade(g: Grade): void };
-}
-
 function doseIn(v: unknown): number {
   return (
     new DissolvedToxins(slotOf(v))
@@ -226,9 +218,10 @@ function cut(
 
 function chargedStill(seq: number): TestStill {
   const s = vessel(makeStuff(() => new TestStill()), 100);
-  graded(s).setGrade(Grade.of('masterful'));
   (s as unknown as { interiorMaterial: string }).interiorMaterial = CHARGE;
   s.setInteriorAmount(Quantity.of(20, 'L'));
+  // The wash's grade is the CHARGE's — its payload (matter-model-overlaps D2).
+  s.setBulkPayload('interior', { grade: 'masterful' });
   s.testHeatK = 360; // lit
   void seq;
   return s;
@@ -261,7 +254,7 @@ describe('⭐⭐⭐ the hand cuts with the read it has', () => {
     expect(slotOf(bottle).getAmount().rawValue()).toBeGreaterThan(1);
     // ⭐ And what it collected is the hearts: the trace dose, not the heads.
     expect(doseIn(bottle)).toBeLessThan(200);
-    expect(graded(bottle).getGradeBand()).toBe('fine');
+    expect(bottle.getBulkPayload('interior')?.grade).toBe('fine');
   });
 
   it('⛔⛔ an UNTRAINED hand runs the SAME beat and bottles the heads', () => {
@@ -291,8 +284,8 @@ describe('⭐⭐⭐ the hand cuts with the read it has', () => {
     // ⭐ The untrained bottle is several times more poisonous, and it is
     // not `fine`, while the proficient one is. Same still, same beat.
     expect(doseIn(badBottle)).toBeGreaterThan(doseIn(goodBottle) * 4);
-    expect(graded(badBottle).getGradeBand()).not.toBe('fine');
-    expect(graded(goodBottle).getGradeBand()).toBe('fine');
+    expect(badBottle.getBulkPayload('interior')?.grade).not.toBe('fine');
+    expect(goodBottle.getBulkPayload('interior')?.grade).toBe('fine');
   });
 
   it('⭐ and with a PERFECT nose the cut is exact — the band is the only variable', () => {
@@ -307,7 +300,7 @@ describe('⭐⭐⭐ the hand cuts with the read it has', () => {
     // Boundaries at 1 L / 4 L / 14 L on a 20 L charge. A perfect read
     // collects only the hearts span, so the dose is the hearts'.
     expect(doseIn(bottle)).toBeCloseTo(40, 0);
-    expect(graded(bottle).getGradeBand()).toBe('fine');
+    expect(bottle.getBulkPayload('interior')?.grade).toBe('fine');
   });
 
   it('⚠ the hand STOPS at the end of the hearts — it does not chase yield into the tails', () => {
@@ -324,7 +317,7 @@ describe('⭐⭐⭐ the hand cuts with the read it has', () => {
     // hold more than the hearts are worth — and would have dragged its
     // own bottle to `poor` doing it.
     expect(slotOf(bottle).getAmount().rawValue()).toBeLessThan(10.5);
-    expect(graded(bottle).getGradeBand()).toBe('fine');
+    expect(bottle.getBulkPayload('interior')?.grade).toBe('fine');
   });
 });
 

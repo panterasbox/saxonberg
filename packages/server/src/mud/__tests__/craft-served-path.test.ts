@@ -253,8 +253,9 @@ describe("Dave's Bar — order, drink, feel it", () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
 
-    // Maker is the bartender, not the ordering patron.
-    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe(DAVE);
+    // Maker is the bartender, not the ordering patron — the DRINK's mark,
+    // on its payload (matter-model-overlaps D2); the glass is the house's.
+    expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(DAVE);
 
     // Hand it over and drink it (the bulk drink path).
     const drink = outcome.output;
@@ -304,9 +305,7 @@ describe('resolveMaker — the asker is the last fulfiller, not an excluded one'
     });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
-    expect(
-      (outcome.output as unknown as { getMaker(): string }).getMaker(),
-    ).toBe(DAVE);
+    expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(DAVE);
   });
 
   it('and the only able person in the room, asked, is the answer', async () => {
@@ -336,8 +335,6 @@ describe('resolveMaker — the asker is the last fulfiller, not an excluded one'
     });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
-    expect(
-      (outcome.output as unknown as { getMaker(): string }).getMaker(),
-    ).toBe(SELF);
+    expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(SELF);
   });
 });

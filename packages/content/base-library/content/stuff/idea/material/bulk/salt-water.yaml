@@ -36,3 +36,8 @@ data:
   crystallizesTo:
     product: /stuff/idea/material/food/salt
     residue: /stuff/idea/material/bulk/bittern
+    # ⭐ A narrow metastable zone (matter-model-overlaps D14): a brine a tenth
+    # past saturation starts on its own. A pan in the sun and a boiling pan
+    # are on the drying edge and start at once; a crock of brine taken off the
+    # fire and cooled barely passes saturation and waits for a stir.
+    metastableRatio: 1.1

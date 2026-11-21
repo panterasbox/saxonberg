@@ -39,6 +39,7 @@ import type { Bulkable, BulkPayload } from '../../../lib/bulk/Bulkable';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { PerceptionApi } from '../../../api/perception';
 import { MaterialApi } from '../../../api/material';
+import { BiomeApi } from '../../../api/biome';
 
 /** One band fainter per hop: a doorless exit, and on top of a boundary's own. */
 const HOP_TAU = 1 / 30;
@@ -222,9 +223,12 @@ export class SmellModality extends Modality {
     return walk.walk(loc, { carry: undefined, depth: 0 }).result;
   }
 
-  /** Everything `loc` holds: its contents and its fixtures, ground included. */
+  /**
+   * Everything `loc` holds: its contents and its fixtures, ground included —
+   * and ⭐ what its AIR carries (D18).
+   */
   private ownSmell(loc: Stuff & Container): Smell {
-    let acc = Smell.ZERO;
+    let acc = this.airSmell(loc);
     for (const item of loc.getContents()) {
       acc = acc.add(this.emissionOf(item as unknown as Stuff));
     }
@@ -234,6 +238,36 @@ export class SmellModality extends Modality {
       }
     }
     return acc;
+  }
+
+  /**
+   * ⭐ What the air of `loc` carries, as sources at `loc` (D18): each gas's
+   * row `smells` by the compressive amount rule, off `kg` = its fraction ×
+   * the scope's volume × the row's density — naphtha off a dish, smoke from
+   * a fire, a salting kiln's fume, after the thing that made it is gone.
+   * Only a scope with its own volume carries air (one with none passes it
+   * outward, and counting it here would count the next room twice). Reads
+   * never load: a row nothing has loaded is not smelled (the vent and the
+   * restore door load what the air cites); the walk's hold keeps the air's
+   * decay from writing.
+   */
+  private airSmell(loc: Stuff & Container): Smell {
+    if (!MixinApi.isAtmospheric(loc)) return Smell.ZERO;
+    const volume = loc.getVolume();
+    if (volume === null || !(volume.rawValue() > 0)) return Smell.ZERO;
+    const m3 = volume.rawValue();
+    const notes: Notes = new Map();
+    for (const c of BiomeApi.resolveAtmosphereContentsFor(loc)) {
+      const gas = MaterialApi.materials().peek(c.type);
+      if (gas === null) continue;
+      const kg = c.amount * m3 * gas.getDensity().rawValue();
+      this.addMaterial(gas, kg, 1, notes);
+    }
+    const sources: SmellSourceRef[] = [];
+    for (const [aroma, n] of notes) {
+      sources.push({ stuffId: loc.stuffId, aroma, ou: n.ou, hops: 0 });
+    }
+    return sources.length === 0 ? Smell.ZERO : Smell.of(sources);
   }
 
   /**

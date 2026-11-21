@@ -497,7 +497,7 @@ value-class shape); `toxicityOf` is untouched.
 M7). A lead-glazed crock leaches lead into what it holds, at the glaze's
 `mgPerLPerDay` (against vinegar) × the contents' acid attack (from their
 pH, `Material.acidAttack`) × the days, into this same
-per-litre field (`BulkableMixin.reconcileLeach`; see [faces.md](./faces.md)).
+per-litre field (the wall's exchange, `Faced.exchangeWith`; see [faces.md](./faces.md) § The wall's exchange).
 Vinegar takes it up and water does not, and the ingest doses it with no new
 code. ⚠ Silently: no `look`, `smell` or `taste` reports it.
 

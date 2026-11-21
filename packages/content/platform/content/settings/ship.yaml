@@ -33,9 +33,8 @@ settings:
     value: "0.02"
   - key: ship.leak.dilapidated
     value: "0.08"
-  # A hole (a snag, a grounding) on top of her seams, L/s per meter.
-  - key: ship.leak.holed
-    value: "0.25"
+  # ⚠ A hole is not a band: it is a flaw, let through by the one hole rule
+  # (`flaws.leak.holedLPerHour`, faces.yaml) at her draft and her length.
   # ⭐ The settling window: once the water is at her deck,
   # every person aboard has this many commands of their own before she goes
   # down — sized in ACTS, never seconds (*no window shall be shorter than
@@ -46,11 +45,6 @@ settings:
   # empty ship meets. Nobody aboard: she goes at once.
   - key: ship.settlingRealS
     value: "600"
-  # ⭐ A boat's leak — from her STATE, never the calendar: a
-  # hole stove in her (L/s each), and a hull that no longer holds water (a
-  # crack, an opened coat). Under one person bailing (10 L a 20 s spell,
-  # 0.5 L/s), so bailing keeps a holed boat up and stopping lets her fill.
-  - key: boat.leak.holed
-    value: "0.3"
-  - key: boat.leak.seep
-    value: "0.02"
+  # ⭐ A boat's leak is a ship's at a boat's length (matter-model-overlaps
+  # D7): her seams in the bands above once her coat is gone, and a hole by
+  # the one hole rule. There is no boat dial of her own.

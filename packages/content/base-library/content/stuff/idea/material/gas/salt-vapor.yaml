@@ -1,0 +1,29 @@
+# Salt vapor — ⭐ what salt thrown into a kiln at its peak becomes (ceramics
+# ruling B; matter-model-overlaps D16).
+#
+# Salt's `vapourMaterial`. A lump of salt in a lit chamber past its
+# `vaporizesAboveK` (1350 K) is vented as this, and a lit chamber keeps it as
+# its own air: a stoneware body reaching its rung under it takes a salt-glaze
+# coat (the clay's stoneware firing names this row in its `vapor:` map). When
+# the fire goes out it goes up the flue; a flueless kiln lets it into the
+# room, and the room reeks of spirit of salt.
+#
+# ⚠ The fume as a HARM (hydrochloric acid on the lungs) is the pottery
+# slate's, not this row's: there is no `toxicity` here yet.
+#
+# `density`: sodium chloride's 58.4 g a mole over 22.4 L.
+class: /platform/idea/material/Gas
+data:
+  smells: [{ aroma: /base-library/aromas/salt-fume, strength: 400 }]
+  name: salt vapor
+  keywords: [salt vapor, fume, vapor]
+  appearance: a white, biting fume
+  density: 2.6
+  # Out of the kiln it settles as a fine salt fume, like soot from smoke —
+  # honest within the comparison put to it: a gas wherever anyone stands.
+  boilingPoint: 100
+  # Sodium chloride's heat of vaporization, about 171 kJ a mole.
+  latentHeatOfVaporization: 2930000
+  thermalConductivity: 0.02
+  electricalConductivity: 1.0e-14
+  tags: [gas, vapor]

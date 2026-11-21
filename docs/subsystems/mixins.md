@@ -209,6 +209,22 @@ stiff and `stir` if runny by its own `workVerb` — W19 — the
 churn → the dairying pack's `churn`); `SweepableMixin` keeps two hosts with
 ONE result shape (a floor, a chimney), and the grate is `rake`'s
 (`Burner.rakePlan`). With one host, the act is a method on that host.
+⭐ **`stir` is a protocol again — `StirTargetMixin` (matter-model-overlaps
+D15, 2026-11-20)**, and it passes the W18 test: every answer is ONE act,
+working something runny with a spoon. A build (the method the vessel
+names), a runny compound (folded into one blend) and a liquid in a holder
+(a supersaturated liquor nucleates when stirred) are composed by
+`ManualBuildMixin`, `CompoundingMixin` (through `KneadVesselMixin`, whose
+own answer is *too stiff — knead it*) and `BulkableMixin`; an empty build
+hands the question down to the liquid beneath it. The churn stays
+`churn`'s. `StirController` asks `stirPlanFor` once and never narrows by
+host; `stir.yaml`'s `vessel` arg `requires: StirTargetMixin`.
+⭐ **`maintain` asks `MaintainableMixin`** (matter-model-overlaps pre-merge
+audit): `Ship` and `Building` compose it, so the residence pack's
+`MaintainController` narrows on `MixinApi.isMaintainable` instead of
+`instanceof Building || instanceof Ship`, and `repair`'s mend ladder asks
+the same claim to skip its wear rung — a `keptByUpkeep()` hook on `Durable`
+had duplicated it for one build.
 
 **How it is presented** (D8b): the affordance resolver's `composition` is
 `{ name, kind, verbs? }[]` — a protocol carries the verbs whose views
@@ -1294,3 +1310,10 @@ contribute or whether one wins.
   *answers: <verb>* on the card, in Studio and in `help <verb>` (D8b).
   Every view that used to say `requires: any` for want of a shared mixin
   now names its protocol, except `cut`, `dig`, `tap` and `teleport`.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** New: `FlawedMixin` (the
+  flaw record, split out of `IntegrityMixin`, which composes it — `Ship`
+  carries a hole without being an article), the `StirTargetMixin` and
+  `MaintainableMixin` protocols (`keptByUpkeep()` went), the
+  `ExtractionMixin` material capability, and trade-fuel's
+  `VolatileReceiverMixin`.
