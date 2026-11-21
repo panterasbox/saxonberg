@@ -1435,6 +1435,8 @@ members and X standing — now n and x*), open, closed (front-page-slate).
 12. **The disclosure** of the machine-layer limit now; **encryption with split key custody** by the
     deadline.
 
+Elections, polls and the whip count as one kind of question: [voting-slate](./voting-slate.md).
+
 ### Open
 
 1. **Rule B — allegiance** (the owner's).
