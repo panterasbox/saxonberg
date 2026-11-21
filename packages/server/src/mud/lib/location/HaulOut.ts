@@ -124,16 +124,22 @@ export function HaulOutMixin<
     }
 
     public loadNamed(puller: Stuff, word: string): Stuff | null {
-      const w = word.trim().toLowerCase();
-      if (w === '' || this.pullerStation(puller) === undefined) return null;
-      for (const c of (this as unknown as Stuff & Container).getContents()) {
-        if (c === puller) continue;
-        // ⭐ By what the PULLER knows them as (the lifeline's lesson): a
-        // stranger answers to "a human", never to a name nobody told.
-        const words = c.perceivedKeywordsFor(puller).map((k) => k.toLowerCase());
-        if (words.includes(w) || c.describeFor(puller).toLowerCase().includes(w)) return c;
-      }
-      return null;
+      if (word.trim() === '' || this.pullerStation(puller) === undefined) return null;
+      // ⭐ By what the PULLER knows them as (the lifeline's lesson): a
+      // stranger answers to "a human", never to a name nobody told — through
+      // the one rule (naming overhaul D-C4).
+      const answer = GrammarApi.name(
+        word,
+        (this as unknown as Stuff & Container)
+          .getContents()
+          .filter((c) => c !== puller)
+          .map((c) => ({
+            value: c,
+            keywords: [...c.perceivedKeywordsFor(puller), c.describeFor(puller)].map((k) => k.toLowerCase()),
+            title: c.describeFor(puller),
+          })),
+      );
+      return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
     }
 
     public deliverOut(load: Stuff & Containable, to: Stuff & Container): void {

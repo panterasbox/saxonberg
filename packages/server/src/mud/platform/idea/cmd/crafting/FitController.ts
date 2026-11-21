@@ -25,6 +25,7 @@
  * forms are one act through one Api (`CraftingApi.fit`).
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { CraftController } from './CraftController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
@@ -155,11 +156,9 @@ export default class FitController extends CraftController<FitModel> {
   /** Does `word` name one of `whole`'s lines (`lining`, `staves`)? */
 
   private namesLine(whole: Stuff & Assembled, word: string): boolean {
-    const w = word.trim().toLowerCase();
     whole.ensureParts();
-    return whole
-      .getParts()
-      .some((l) => l.part.toLowerCase() === w || `${l.part.toLowerCase()}s` === w);
+    // By the one rule (naming overhaul D-C4) — the plural comes with it.
+    return GrammarApi.name(word, whole.getParts().map((l) => ({ value: l, keywords: [l.part.toLowerCase()], title: l.part }))).kind !== 'none';
   }
 
   /** Say the replace arm's outcome to the room. */

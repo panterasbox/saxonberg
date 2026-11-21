@@ -53,6 +53,7 @@
  * open-air working in this game is rows.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { StrataMixin, type Strata, type MixinCtor } from '@saxonberg/content-ground/src/lib/Strata';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import type { StratumBand } from '@saxonberg/content-ground/src/idea/Deposit';
@@ -385,16 +386,16 @@ export function OpenWorkingMixin<
       if (word === null || word.trim() === '') {
         return faces.find((f) => f.floor) ?? faces[faces.length - 1] ?? null;
       }
-      const want = word.trim().toLowerCase();
-      for (const face of faces) {
-        if (matchesBand(face, want)) return face;
-      }
+      // ⭐ By the one rule (naming overhaul D-C4).
+      const named = GrammarApi.name(word, faces.map((f) => ({ value: f, keywords: bandKeywords(f), title: nameOfBand(f) })));
+      if (named.kind === 'one') return named.one;
+      if (named.kind === 'tie') return named.tie[0]!;
       // ⭐ A word that names the WORKING itself (`dig pit`, `dig the
       // working`) means its floor — what `dig floor` means. A band always
       // wins first: in the Delight's clay pit `clay` is the wall, never
       // the pit.
       const self = this as unknown as { hasKeyword?(k: string): boolean };
-      if (self.hasKeyword?.(want)) {
+      if (self.hasKeyword?.(word.trim().toLowerCase())) {
         return faces.find((f) => f.floor) ?? faces[faces.length - 1] ?? null;
       }
       return null;
@@ -697,20 +698,14 @@ export function OpenWorkingMixin<
       if (word === '') return null;
       const bands = await this.column();
       const floorZ = -this.getFloorDepthM();
+      const buried: ExposedFace[] = [];
       for (const b of bands) {
         if (b.topZ >= floorZ) continue;
         const host = await resolveMaterial(b.hostPath);
-        const face: ExposedFace = {
-          ...b,
-          host,
-          earth: host?.hasTag(EARTH_TAG) ?? false,
-          floor: false,
-          won: 0,
-          capacity: 0,
-        };
-        if (matchesBand(face, word)) return b;
+        buried.push({ ...b, host, earth: host?.hasTag(EARTH_TAG) ?? false, floor: false, won: 0, capacity: 0 });
       }
-      return null;
+      const named = GrammarApi.name(word, buried.map((f) => ({ value: f, keywords: bandKeywords(f), title: nameOfBand(f) })));
+      return named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : null;
     }
 
     // ───────────────────────── the read ─────────────────────────
@@ -809,18 +804,17 @@ function capacityOf(thicknessM: number, faceRunM: number): number {
   return Math.ceil(thicknessM / LIFT_M) * Math.ceil(faceRunM / LIFT_M);
 }
 
-/** Does a player's word name this band? */
-function matchesBand(face: ExposedFace, want: string): boolean {
-  if (leafOf(face.hostPath) === want) return true;
-  const name = face.host?.getName()?.toLowerCase() ?? '';
-  if (name === want) return true;
-  if (name.includes(want) && want.length >= 4) return true;
-  // ⭐ `dig floor` / `dig down` works on whatever is under you, which is
-  // what a player types when they mean *deepen the pit*.
-  if (face.floor && (want === 'floor' || want === 'down' || want === 'ground')) {
-    return true;
-  }
-  return false;
+/**
+ * The words a band answers to (naming overhaul D-C4): its row key, its
+ * host's name; and the band the floor sits in answers to `floor` / `down` /
+ * `ground` — what a player types when they mean *deepen the pit*.
+ */
+function bandKeywords(face: ExposedFace): string[] {
+  const leaf = leafOf(face.hostPath);
+  const name = face.host?.getName() ?? '';
+  return [leaf, leaf.replace(/-/g, ' '), name, ...(face.floor ? ['floor', 'down', 'ground'] : [])]
+    .filter((k) => k !== '')
+    .map((k) => k.toLowerCase());
 }
 
 /** The last segment of a template path. */

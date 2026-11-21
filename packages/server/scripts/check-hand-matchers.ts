@@ -51,7 +51,7 @@ import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
 /** Measured at C0 (2026-11-21): 36. C2: 35 (the form word). C3: 30 (lanes, nodes, organizations). */
-export const ARTICLE_STRIP_CEILING = 28; // C4: 28 (the hull book's two; a recorded name uses GrammarApi.withoutArticle).
+export const ARTICLE_STRIP_CEILING = 0; // C5: 0 — every recorded name and slug uses GrammarApi.withoutArticle; the binder's fold is exempt as the command grammar.
 /**
  * Measured at C0 (2026-11-21): 92. C1: 89 — −2 the census corrected (a
  * length or number test names nothing), −1 the world clock's own parser.
@@ -63,7 +63,9 @@ export const ARTICLE_STRIP_CEILING = 28; // C4: 28 (the hull book's two; a recor
 // localities, organizations, brands, offices, accounts.
 // C4: 71 — the stock line, priced key, held goods, receipts, hulls and
 // services; and a compare operand counts only when it IS a lowered word.
-export const HAND_COMPARE_CEILING = 71;
+// C5: 46 — the holders name their own entries (harbor, herds, fields,
+// bands, claims, ice, landings, loads, lines, moulds, cuts, metals, parts).
+export const HAND_COMPARE_CEILING = 46;
 /**
  * Measured at C0 (2026-11-21): 6. C1: 0 — rent, fire, the script `wait`, the
  * world clock and the test-harness clock read the one grammar
@@ -96,6 +98,11 @@ export const EXEMPT: ReadonlyArray<{ file: string; symbol: string; why: string }
   { file: "platform/idea/SoulCatalogue.ts", symbol: "SoulCatalogue.search", why: "`soul search` is a search, not a name" },
   { file: "platform/idea/SoulCatalogue.ts", symbol: "buildSearchIndex", why: "`soul search`'s index — a search, not a name" },
   { file: "platform/idea/api/StreamLogic.ts", symbol: "*", why: "the stream verbs read the wall clock (owner, 2026-11-20)" },
+  { file: "trade-chandlery/src/thing/Candle.ts", symbol: "Candle.getShortDescription", why: "RENDERING a name (no doubled stem), not naming" },
+  { file: "platform/idea/api/ContainmentLogic.ts", symbol: "isRegionZeroWord", why: "a preposition — the command grammar's closed vocabulary (D-C5 rule 8)" },
+  { file: "lib/spatial/Placing.ts", symbol: "PlacingMixin.resolvePlacement", why: "a preposition — the command grammar's closed vocabulary (D-C5 rule 8)" },
+  { file: "platform/idea/species/Species.ts", symbol: "pickGiven", why: "name GENERATION (a first-letter riff), not naming" },
+  { file: "platform/idea/api/CommandLogic.ts", symbol: "<module>", why: "the binder's article fold — the command grammar, the rule's home with MQL" },
 ];
 
 /**
@@ -105,11 +112,8 @@ export const EXEMPT: ReadonlyArray<{ file: string; symbol: string; why: string }
  * A site leaves this list in the commit that removes it.
  */
 export const MUST_FIND: ReadonlyArray<{ file: string; symbol: string; kind: MatcherKind }> = [
-  { file: "platform/thing/CharterBook.ts", symbol: "CharterBook.shipFor", kind: "article-strip" },
   { file: "lib/archetype/Archetype.ts", symbol: "answersTo", kind: "hand-compare" },
   { file: "platform/idea/cmd/social/CallController.ts", symbol: "answersTo", kind: "hand-compare" },
-  { file: "transport/src/idea/Harbor.ts", symbol: "Harbor.quayNamed", kind: "hand-compare" },
-  { file: "trade-ranching/src/idea/HerdRegistry.ts", symbol: "HerdRegistry.named", kind: "hand-compare" },
   { file: "platform/idea/cmd/social/ContactsRemoveController.ts", symbol: "ContactsRemoveController.execute", kind: "hand-compare" },
 ];
 

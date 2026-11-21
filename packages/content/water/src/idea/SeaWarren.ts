@@ -25,6 +25,7 @@
  * slate's (recorded in the plan).
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
@@ -321,7 +322,7 @@ export default class SeaWarren extends ZoneMintingMixin(LaunchableMixin(Singleto
     // row, which every ship of a kind shares; the row is only its face.
     const handle = ship.getDurableHandle() ?? ship.getTemplatePath() ?? '';
     if (!deck || !handle || !MixinApi.isExitable(patch)) return;
-    const name = ship.getName().replace(/^the\s+/i, '').trim().toLowerCase() || 'ship';
+    const name = GrammarApi.withoutArticle(ship.getName()).trim().toLowerCase() || 'ship';
     const ex = patch as unknown as Stuff & Container & Exitable;
     if (ex.getExit(name)) return;
     await ex.installExit<SeaPatchExit>(

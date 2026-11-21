@@ -57,6 +57,7 @@
  * See [docs/subsystems/ship.md].
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import { RegistrarMixin, type Registrar } from '../../lib/document/Registrar';
 import { DocumentApi } from '../../api/document';
@@ -129,10 +130,8 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
 
   /** ⭐ The slug a name is filed under — what makes it unique here. `''` for a name with no letters. */
   public slugOf(name: string): string {
-    return String(name ?? '')
-      .trim()
+    return GrammarApi.withoutArticle(String(name ?? ''))
       .toLowerCase()
-      .replace(/^the\s+/, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
   }

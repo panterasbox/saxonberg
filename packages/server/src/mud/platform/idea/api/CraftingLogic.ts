@@ -4812,11 +4812,10 @@ async function partInReachFor(
   maker: Stuff,
 ): Promise<Stuff | string> {
   whole.ensureParts();
-  const w = word.trim().toLowerCase();
-  const line = whole
-    .getParts()
-    .find((l) => l.part.toLowerCase() === w || `${l.part.toLowerCase()}s` === w);
-  if (!line) return w;
+  // By the one rule (naming overhaul D-C4) — the plural comes with it.
+  const named = GrammarApi.name(word, whole.getParts().map((l) => ({ value: l, keywords: [l.part.toLowerCase()], title: l.part })));
+  const line = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : null;
+  if (!line) return word.trim();
   const pool: Stuff[] = [...carriedToHand(maker).near];
   if (MixinApi.isContainer(location)) pool.push(...(location.getContents() as Stuff[]));
   for (const s of pool) {

@@ -265,18 +265,24 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
     if (MixinApi.isExitable(here)) {
       for (const { dest } of here.getObviousNeighbours()) places.push(dest);
     }
+    // ⭐ By what the HOLDER knows them as (found by the underwater browser
+    // walk): a stranger is "a human", and the line went only to a real name
+    // nobody had been told — then said it back. Named by the one rule
+    // (naming overhaul D-C4); nearer places first.
+    const people: Stuff[] = [];
     for (const place of places) {
       if (!MixinApi.isContainer(place)) continue;
-      for (const who of place.getContents()) {
-        if (who === holder || !who.isAgent?.()) continue;
-        // ⭐ By what the HOLDER knows them as (found by the underwater
-        // browser walk): a stranger is "a human", and the line went only to
-        // a real name nobody had been told — then said it back.
-        const words = who.perceivedKeywordsFor(holder).map((k) => k.toLowerCase());
-        if (words.includes(word) || who.describeFor(holder).toLowerCase().includes(word)) return who;
-      }
+      for (const who of place.getContents()) if (who !== holder && who.isAgent?.()) people.push(who);
     }
-    return null;
+    const answer = GrammarApi.name(
+      word,
+      people.map((who) => ({
+        value: who,
+        keywords: [...who.perceivedKeywordsFor(holder), who.describeFor(holder)].map((k) => k.toLowerCase()),
+        title: who.describeFor(holder),
+      })),
+    );
+    return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
   }
 
   /** Here, or one obvious way from here (the water below the quay). */

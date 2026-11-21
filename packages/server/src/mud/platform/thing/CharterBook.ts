@@ -112,29 +112,23 @@ export default class CharterBook extends RelatingMixin(Good) {
   }
 
   /**
-   * ⭐ The ship `word` names at this book — or the refusal in words.
-   * Aboard, the ship it is in (a word, if given, must name her); at a desk,
-   * the listed ship the word names, or the only one listed.
+   * The ship a bare `charter` means — the one whose hold the book lies in,
+   * else the one ship it lets — or the refusal in words. A NAMED ship is
+   * bound by the view through the book's `~ships` (naming overhaul B2), so
+   * nothing here reads a word.
    */
-  public async shipFor(word: string | null): Promise<Ship | string> {
-    const w = (word ?? '').trim().toLowerCase().replace(/^the\s+/, '');
+  public async shipFor(): Promise<Ship | string> {
     if (this.ships.length === 0) {
       const ship = await this.shipAboard();
-      if (ship === null) return 'This book lets no ship.';
-      if (w !== '' && !answersTo(ship, w)) return `This book lets ${ship.getPresentation()}, and no other.`;
-      return ship;
+      return ship ?? 'This book lets no ship.';
     }
     const listed: Ship[] = [];
     for (const p of this.ships) {
       const s = await StuffApi.singleton<Stuff>(p).catch(() => null);
       if (s instanceof Ship) listed.push(s);
     }
-    if (w === '') {
-      if (listed.length === 1) return listed[0]!;
-      return `Charter which? ${listed.map((s) => s.getPresentation()).join(', ')}.`;
-    }
-    const hit = listed.find((s) => answersTo(s, w));
-    return hit ?? `This book does not let a ship called '${word}'. It lets ${listed.map((s) => s.getPresentation()).join(', ')}.`;
+    if (listed.length === 1) return listed[0]!;
+    return `Charter which? ${listed.map((s) => s.getPresentation()).join(', ')}.`;
   }
 
   /** The ship whose room the book lies in, or `null`. */
@@ -147,9 +141,3 @@ export default class CharterBook extends RelatingMixin(Good) {
   }
 }
 
-/** Does `word` name the ship — her way-word, her name or a keyword? */
-function answersTo(ship: Ship, word: string): boolean {
-  if (ship.berthWord() === word) return true;
-  if (ship.getName().toLowerCase().replace(/^the\s+/, '') === word) return true;
-  return ship.getKeywords().some((k) => k.toLowerCase() === word);
-}

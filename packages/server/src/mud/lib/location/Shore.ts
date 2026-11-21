@@ -217,11 +217,11 @@ export function ShoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      * id names no cited feature.
      */
     private citedKeyFor(id: string): string | null {
+      // Authored feature ids (lowercase keys), never a player's words.
       const features = this.featureMap();
-      const lower = id.toLowerCase();
-      const entry = features.get(id) ?? features.get(lower);
+      const entry = features.get(id);
       for (const key of Object.keys(this.waters)) {
-        if (key === id || key.toLowerCase() === lower) return key;
+        if (key === id) return key;
         if (entry !== undefined && features.get(key) === entry) return key;
       }
       return null;

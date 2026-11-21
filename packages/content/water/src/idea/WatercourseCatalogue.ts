@@ -45,6 +45,7 @@
  * See [docs/subsystems/watershed.md].
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { WaterHardness } from '@saxonberg/server/mud/lib/cleanliness/WaterHardness';
 import {
@@ -1526,17 +1527,19 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
 
   /** A landing on a river by the word its way is called, or its path's leaf. */
   public landingNamed(course: string, word: string): { path: string; km: number; name: string } | null {
-    const w = word.trim().toLowerCase();
-    // `town quay` and `town-quay` are one word to a pilot.
-    const hyphened = w.replace(/\s+/g, '-');
-    for (const p of this.placesOfSync(course)) {
-      if (p.kind !== 'bank') continue;
-      const leaf = p.path.split('/').filter(Boolean);
-      if (p.name.toLowerCase() === w || p.name.toLowerCase() === hyphened || leaf.includes(w) || leaf.includes(hyphened) || leaf.join(' ').includes(w)) {
-        return { path: p.path, km: (p.upKm + p.downKm) / 2, name: p.name };
-      }
-    }
-    return null;
+    // ⭐ By the one rule (naming overhaul D-C4): the way's name, its leaf
+    // (`town quay` and `town-quay` are one word to a pilot).
+    const answer = GrammarApi.name(
+      word,
+      this.placesOfSync(course)
+        .filter((p) => p.kind === 'bank')
+        .map((p) => {
+          const leaf = p.path.split('/').filter(Boolean).pop() ?? '';
+          return { value: p, keywords: [p.name, leaf, leaf.replace(/-/g, ' ')].map((k) => k.toLowerCase()), title: p.name };
+        }),
+    );
+    const p = answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
+    return p === null ? null : { path: p.path, km: (p.upKm + p.downKm) / 2, name: p.name };
   }
 
   /**

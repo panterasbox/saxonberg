@@ -34,6 +34,7 @@
  *   getFixtureLightSources() (from AdornableMixin)
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { Stuff } from './Stuff';
 import { ContainerMixin, type Container } from '../spatial/Container';
 import { AdornableMixin } from '../boundary/Adornable';
@@ -702,8 +703,8 @@ export default class Place extends PlaceBase {
    */
   public groundRefusal(named?: string): string | null {
     if (this.getFloor() !== null) return null;
-    const word = (named ?? '').trim().toLowerCase();
-    if (word !== '' && !GROUND_WORDS.includes(word)) return null;
+    // The ground's closed few words, through the one rule (D-C4).
+    if ((named ?? '').trim() !== '' && GrammarApi.name(named ?? '', [{ value: 'ground', keywords: [...GROUND_WORDS], title: 'the ground' }]).kind === 'none') return null;
     return this.noGroundLine();
   }
 

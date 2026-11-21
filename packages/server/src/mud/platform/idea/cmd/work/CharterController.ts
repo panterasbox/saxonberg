@@ -33,7 +33,7 @@ export default class CharterController extends CommandController<CharterModel> {
     if (book === null) return this.refuse(context, TOPIC, 'There is no charter book here.', 'no-book');
     const named = model.ship?.stuff ?? null;
     let ship: Ship | string;
-    if (named === null) ship = await book.shipFor(null);
+    if (named === null) ship = await book.shipFor();
     else if (named instanceof Ship && book.lets().includes(named)) ship = named;
     else ship = `This book does not let ${named.getPresentation()}.`;
     if (typeof ship === 'string') return this.refuse(context, TOPIC, ship, 'no-such-ship');

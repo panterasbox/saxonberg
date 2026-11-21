@@ -40,6 +40,7 @@
  * entered under; nothing walks every register looking for her name.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { TitleControllerBase, type TitleModel } from "./TitleControllerBase";
 import type { CommandContext } from "../../../../api/command";
 import { MqlApi, type MqlOneResult } from "../../../../api/mql";
@@ -297,7 +298,7 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
     const giver = context.commandGiver as Stuff;
     const found = await this.entryHere(context, shipName);
     if (found === null) {
-      return this.fail(context, `No register kept here has a ship named ${shipName.replace(/^the\s+/i, "")}.`, "no-such-ship");
+      return this.fail(context, `No register kept here has a ship named ${GrammarApi.withoutArticle(shipName)}.`, "no-such-ship");
     }
     const { entry, ship, table } = found;
     if (table === null) {

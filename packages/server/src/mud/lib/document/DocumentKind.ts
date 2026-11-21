@@ -35,6 +35,8 @@
  * wired.
  */
 
+import { GrammarApi } from '../../api/grammar';
+
 /** What the installer does when a shipped kind's file vanishes from its pack. */
 export type DocumentVanishPolicy = 'delete' | 'archive' | 'keep';
 
@@ -138,7 +140,6 @@ export interface DocumentTraits {
 }
 
 /** The leading article a bare title drops (`The Hesper` → `hesper`). */
-const LEADING_ARTICLE = /^(?:the|a|an)\s+/i;
 
 export class DocumentKind {
   /**
@@ -322,7 +323,7 @@ export class DocumentKind {
     if (titleField && typeof data[titleField] === 'string') {
       const t = data[titleField];
       add(t);
-      add(t.trim().replace(LEADING_ARTICLE, ''));
+      add(GrammarApi.withoutArticle(t));
     }
     return out;
   }

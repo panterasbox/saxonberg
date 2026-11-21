@@ -1372,6 +1372,26 @@ and `charter second <word>` pick; `sample north` samples, `sample northern
 rock` refuses listing the faces; each touched pack's vitest green.
 *Commit:* `build(naming-overhaul WC5): holders name their own entries`.
 
+✅ **Done.** Each holder names its own entries through `GrammarApi.name`:
+the harbor's quays, ships and roads; the herd registry and the fields a herd
+may move to; a working's bands (`bandKeywords` — the floor answers to `floor`
+/ `down`); the claims register's surface workings; the ice sheet's patch
+kinds (its own small vocabulary); a river's landings; a haul-out's loads and
+a line's people (by what the holder perceives); the mould's riser words; the
+cut a carcass is dressed for; a pattern's metal; an assembly's lines.
+`CharterBook.shipFor` no longer reads a word — a named ship is the view's
+`~ships` (B2) — and `answersTo` is deleted. Every recorded name and slug
+(ship register, ship company, berth word, field key, wreck, deck, knot,
+coin plural, a person's bare form in a line) uses `GrammarApi.withoutArticle`:
+**article strips are 0**. ⭐ **Decided:** holder methods keep their return
+types (a tie takes the first — an object answer cannot prompt); the
+controller-facing `NameAnswer` is used where a verb asks (`charter` binds by
+relation already). **Exempt, with reasons in the table:** name GENERATION
+(`Species.pickGiven`), RENDERING (`Candle.getShortDescription`), prepositions
+(`isRegionZeroWord`, `resolvePlacement` — the command grammar's closed
+vocabulary) and the binder's article fold. Census: article 0, hand compares
+46, maps 8.
+
 **C6 — Collection records, labels, and the social leftovers.**
 *Decisions:* D-C5 rules 6 and 7, D-C8.
 *Files:* `S/platform/idea/ChannelCatalogue.ts:219`,

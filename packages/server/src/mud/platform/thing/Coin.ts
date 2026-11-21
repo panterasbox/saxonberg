@@ -35,6 +35,7 @@
  * (memory: *obj vs lib Stuff placement*) — not in `lib/banking/`.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import Good from "../../lib/stuff/Good";
 import { StackableMixin } from "../../lib/stuff/Stackable";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
@@ -214,7 +215,7 @@ export default class Coin extends CoinBase {
       singular = "";
     }
     if (!singular) return "coins";
-    return `${singular.replace(/^(a|an|the) /i, "")}s`;
+    return `${GrammarApi.withoutArticle(singular)}s`;
   }
 
   /**

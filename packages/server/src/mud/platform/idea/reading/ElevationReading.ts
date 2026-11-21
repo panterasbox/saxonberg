@@ -15,6 +15,7 @@
  * different instruments was the thing making it unfindable.
  */
 
+import { GrammarApi } from '../../../api/grammar';
 import Reading from '../../../lib/instrument/Reading';
 import { CelestialApi } from '../../../api/celestial';
 import { MixinApi } from '../../../api/mixin';
@@ -96,9 +97,10 @@ export default class ElevationReading extends Reading {
 
   /** `''` means the sun — the thing you sight when you say nothing. */
   private bodyOf(param: string): Body | null {
-    const word = param.trim().toLowerCase();
-    if (word === '') return 'sun';
-    return (BODIES as readonly string[]).includes(word) ? (word as Body) : null;
+    if (param.trim() === '') return 'sun';
+    // The closed few bodies, through the one rule (naming overhaul D-C4).
+    const answer = GrammarApi.name<Body>(param, BODIES.map((b) => ({ value: b, keywords: [b], title: b })));
+    return answer.kind === 'one' ? answer.one : null;
   }
 
   private async altitudeOf(body: Body, loc: Stuff) {
