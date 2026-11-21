@@ -44,6 +44,10 @@ import {
   engagementIdOf,
   hand,
   EXITS,
+  advanceLiving,
+  worldClockNow,
+  pinWeather,
+  unpinWeather,
   APPROACH,
   WORKS,
   SHAFT_HEAD,
@@ -321,6 +325,14 @@ suite('7 · heat', () => {
     // ⚠ Out on the lane: a room with a lit forge has a wet-bulb over the
     // ceiling where sweat cannot shed heat, and the model's cue is honest
     // about it — nothing. H takes the bar out to the lane.
+    // ⭐ Staged: midday under a clear sky. Sweat is the body shedding the
+    // work's heat into the air, and a reused world's lane may be at a cold
+    // midnight in rain (the indifference drive's reuse pass: H never
+    // sweated). Fed through the jump — a long one starves (advanceLiving).
+    const sec = (await worldClockNow()) % 86_400;
+    const toNoon = sec <= 43_200 ? 43_200 - sec : 86_400 + 43_200 - sec;
+    if (toNoon > 3_600) await advanceLiving(`${Math.round(toNoon / 60)} minutes`, [H, L]);
+    await pinWeather('clear', LANE);
     expectOk(await H.cmd(`get #${bar}`));
     // ⚠ WALKED out, not re-logged: a bar lifted from the floor and then
     // picked up does not come home with its carrier through a logout (a
@@ -359,6 +371,7 @@ suite('7 · heat', () => {
     // At the forge (step 6) the ambient already had H sweating and the
     // sets rode on top of it, so the cue may well have fired THERE —
     // hence the flag is collected from step 6 on.
+    await unpinWeather(LANE).catch(() => undefined);
     expect(sweatSeen, 'the work made H sweat').toBe(true);
     // ⓘ `wear gambeson` answers ok and runs its dressing step, and
     // `remove gambeson` then answers `not-worn` — a finding for the
