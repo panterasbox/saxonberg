@@ -18,7 +18,7 @@ import {
   StructureBody,
 } from "../sections";
 import { IconAction } from "../IconAction";
-import { Crumbs, destutter } from "../Crumbs";
+import { Crumbs } from "../Crumbs";
 import { StatusBar } from "../../frame/StatusBar";
 
 const ORDER = ["world", "zone", "horizon", "place", "you"];
@@ -91,20 +91,20 @@ describe("the sections — absent, never empty", () => {
 });
 
 describe("Crumbs — your own", () => {
-  it("names a crumb from your claim; an unlearned one is unnamed; a place named for its Locality shows once", () => {
+  it("names a crumb from your claim; an unlearned one is unnamed; a room named for its area still shows both", () => {
     const crumbs = [
       { address: "terminus", name: "Terminus" },
       { address: "terminus/city" },
       { address: "lounge", name: "The Lounge" },
     ];
-    expect(destutter(crumbs, "the lounge").map((c) => c.address)).toEqual(["terminus", "terminus/city"]);
-    render(<Crumbs crumbs={crumbs} placeName="the bar" onSendCommand={() => {}} />);
+    render(<Crumbs crumbs={crumbs} placeName="the lounge" onSendCommand={() => {}} />);
     const shown = screen.getAllByTestId("nav-crumb").map((c) => [c.textContent, c.getAttribute("data-named")]);
     expect(shown).toEqual([
       ["Terminus", "true"],
       ["…", "false"],
       ["The Lounge", "true"],
     ]);
+    expect(screen.getByTestId("nav-here-name").textContent).toBe("the lounge");
   });
 });
 
