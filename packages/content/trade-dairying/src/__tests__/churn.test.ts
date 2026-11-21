@@ -7,6 +7,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Churn from '../thing/Churn';
 import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { Graded } from '@saxonberg/server/mud/lib/craft/Graded';
@@ -29,6 +30,13 @@ describe('the churn', () => {
     const plan = c.handWorkPlan();
     expect(plan.durationMs).toBe(8000);
     expect(await plan.onComplete()).toEqual({ ok: true, facts: { result: 'came' } });
+  });
+
+  it('⭐ a churn is washed like any working vessel — `wash churn` binds (found by the matter-model-overlaps drive)', () => {
+    at(0);
+    const c = churn(287);
+    expect(MixinApi.isSoilable(c)).toBe(true);
+    expect(() => c.washSite({ waterK: 320, hardnessDgh: 0, cleansers: [], effort: 3 })).not.toThrow();
   });
 
   it('cream at a cool-room warmth breaks; buttermilk draws off; butter stays', () => {

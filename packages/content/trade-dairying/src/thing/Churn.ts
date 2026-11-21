@@ -24,6 +24,7 @@ import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { ContaminableMixin } from '@saxonberg/server/mud/lib/material/Contaminable';
 import { FractionatingMixin } from '@saxonberg/server/mud/lib/fractionation/Fractionating';
 import { HandWorkedMixin, type HandWorkFacts } from '@saxonberg/server/mud/lib/craft/HandWorked';
+import { SoilableMixin } from '@saxonberg/server/mud/lib/cleanliness/Soilable';
 import type { ActOutcome } from '@saxonberg/server/mud/lib/craft/ActPlan';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -42,8 +43,14 @@ const GREASY_ABOVE_K = 291;
 /** ⭐ The churn's verb — this pack's own view (controller-liquidity W18). */
 const CHURNING = ['trade/dairying/cmd/crafting/churn.yaml'];
 
-const ChurnBase = HandWorkedMixin(
-  FractionatingMixin(ContaminableMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good))))),
+// ⭐ Soilable outermost (`Vat`'s place for it): a churn is a working vessel
+// that gets dirty and is WASHED — and the wash is what spends the cream its
+// oak wall has learned (matter-model-overlaps D11). Found by the drive:
+// `wash churn` was refused, "not something you can wash".
+const ChurnBase = SoilableMixin(
+  HandWorkedMixin(
+    FractionatingMixin(ContaminableMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good))))),
+  ),
 );
 
 export default class Churn extends ChurnBase {
