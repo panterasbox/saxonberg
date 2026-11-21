@@ -186,16 +186,20 @@ At 1440×900 (prototype: claude.ai artifact XY8FivnMEARSNiNxkJ5qcK, private):
 
 | step | video | left for everything else |
 |---|---|---|
-| **max** | 1416×797 | the chrome only — no terminal, by the viewer's choice |
-| **large** | 1044×587 | one unfiltered terminal (a 360px column) · a card row under the video |
+| **max** | 1360×765 | the chrome only — no terminal, by the viewer's choice |
+| **large** | 988×556 | one unfiltered terminal (a 360px column) · a card row under the video |
 | **medium** | 704×396 | stream chat under the video · *everything else* as a second terminal · two card columns |
-| **small** | a card (344×194) | explore's shape: one unfiltered terminal leads, cards beside |
+| **small** | a card (404×227) | **the watch card** · one unfiltered terminal · a card column |
 
-- **Discovery and the schedule are not placed** **[LEAN]** — the owner: *"unless we're trying to
-  directly build a twitch competitor I don't know if that content is worth the same placement to us
-  as it gets on other sites … we never talked about it."* They are something you open (a card, a
-  command) until decided otherwise. Other performer-app features to decide: follow and go-live
-  notices, polls, raids, clips, rewards.
+- **The mode rail stays** **[DECIDED — the owner]**: *"I miss the left rail with all the modes, the
+  dropdown doesn't pack the same punch."* It is chrome; the whole list, unbuilt modes dimmed.
+- **The watch card** **[DECIDED — the owner]**: at the small step watch gets a permanent support,
+  *"the same way the nav card is for explore. this is where the discovery and schedule shit can
+  go."* What you are watching, who is live in Saxonberg, streams you follow elsewhere, what is
+  coming up. Only at small — at the bigger steps the video has taken that space. Earlier the owner
+  questioned giving discovery prime placement *"unless we're trying to directly build a twitch
+  competitor"*; this is its place. Other performer-app features still to decide: go-live notices,
+  polls, raids, clips, rewards.
 - **Open:** who picks the step (the viewer only, or does the layout step down when a card needs
   room); the step sizes at other screen sizes; the single bar vs a bar per terminal.
 

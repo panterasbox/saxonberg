@@ -154,8 +154,9 @@ are.
    With room for two, they **split** the stream — the union is everything, nothing is shown twice.
    A mode never filters; a player may.
 5. **Nothing is permanent unless the mode argues for it.** No slot is filled because it exists —
-   the owner: *"you just saw a slot that needed filling and filled it."* The mode switcher is chrome
-   (it may live in the top bar as a menu that still lists every mode).
+   the owner: *"you just saw a slot that needed filling and filled it."* The **mode rail** is chrome
+   and stays (*"the dropdown doesn't pack the same punch"*). Explore argues for the navigation card;
+   watch argues for **the watch card** at its small step (discovery, the schedule).
 6. **The subject sizes first** (law 4): a fixed-ratio subject such as a video takes its box at the
    size chosen, and the rest is laid out in what it leaves.
 
