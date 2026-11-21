@@ -382,9 +382,11 @@ Each step is tagged **pace** (`instant` · `short` · `staged` · `span`) and
    arrow wound in its flank. The player `butcher`s it `for pelt`. A pelt
    comes off, recording the hole in the flank and any nick from the
    player's own hand. `look` at the pelt says so.
-2. *instant · player.* The same player butchers the cow for its cuts. The
-   same cuts come off as before this build (shank, shoulder, loin …), now
-   derived from the body, and the carcass shrinks as they do.
+2. *instant · player.* The same player butchers the cow for its cuts. No
+   cut it yielded before this build is lost (shank, shoulder, loin …); they
+   are now derived from the body, and the carcass shrinks as they do. A wolf
+   or a hog now yields named cuts, not generic stew-meat (owner,
+   2026-11-21).
 3. *instant · player.* The player salts and tans the pelt (`salt-hide`,
    `tan`). The leather keeps the flank's flaw.
 4. *instant · staged.* A hen carcass. `butcher … for feathers` yields
@@ -426,14 +428,16 @@ Each step is tagged **pace** (`instant` · `short` · `staged` · `span`) and
     unstifled is staged to emergence: a moth comes out and the cocoon's
     thread is broken.
 15. *instant · player.* A player takes a staged eye wound. Their own sight
-    is reduced, and `look` at themselves says so.
+    is reduced, and `look` at themselves says so. A player of a dark-sighted
+    species sees in a dark place where a plain human sees nothing: the
+    species' authored vision now reaches live perception (owner,
+    2026-11-21).
 16. *short · staged.* **Restart.** Restart the world, then read back:
     - the flawed pelt and leather;
     - the ox;
-    - the frog, still a frog;
+    - the silkworm tray's worms at the stage they had reached;
     - the severed foreleg, still lying where it was;
     - the lactating cow, still lactating;
-    - the silkworm tray's stage;
     - the wounded player's eye.
 
 ### Soak drive
@@ -450,6 +454,8 @@ Each step is tagged **pace** (`instant` · `short` · `staged` · `span`) and
 ## Acceptance criteria
 
 - **Animals:**
+  - No cut an animal yielded before this build is lost; cuts derive from its
+    body, so a wolf yields named cuts, not stew-meat.
   - Every animal in the world can be looked at and butchered, and every one
     with fur, feathers, scales or a shell yields that coat first.
   - A newly authored species with no code is butcherable, skinnable and
@@ -465,6 +471,7 @@ Each step is tagged **pace** (`instant` · `short` · `staged` · `span`) and
   - Wounding a gland stops what it makes.
 - **Senses and wounds:**
   - Wounding an eye costs sight, on an animal and on a player.
+  - A dark-sighted person species sees in the dark as its row says.
   - A wide-eyed grazer detects a sneaking player that a forward-eyed hunter
     misses.
   - A severed part lies in the world as a thing that can be carried,
@@ -474,7 +481,9 @@ Each step is tagged **pace** (`instant` · `short` · `staged` · `span`) and
 - **Bodies over time:**
   - A shorn, plucked or wet animal is colder than one in its coat.
   - The tadpole becomes the frog as the same creature and breathes what its
-    organs breathe.
+    organs breathe. (Wild animals are re-created at boot by design, so the
+    restart proves stage persistence on the silkworm tray, not the wild
+    frog: owner, 2026-11-21.)
   - The silkworm moves larva → pupa → moth. Sericulture's deadline, stifle
     and reel read the same to a keeper.
 - **Persistence and the whole roster:**
