@@ -54,7 +54,10 @@ const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
 const T = {
   glowcap: '/world/terminus/rejection/thing/glowcap-jar',
   cone: '/trade/sugar/thing/cone',
+  saltCrystals: '/stuff/thing/salt-crystals',
+  sugarPiece: '/trade/sugar/thing/sugar-piece',
   pail: '/stuff/thing/vessel/pail',
+  waterskin: '/world/terminus/general-store/thing/waterskin',
   distillingCask: '/trade/distilling/thing/cask',
   brewingCask: '/trade/brewing/thing/cask',
   crock: '/trade/ceramics/thing/crock',
@@ -71,6 +74,7 @@ const T = {
 const M = {
   strike: '/trade/sugar/idea/material/strike',
   whiskey: '/trade/distilling/idea/material/whiskey',
+  water: '/stuff/idea/material/bulk/water',
   saltWater: '/stuff/idea/material/bulk/salt-water',
   cream: '/trade/dairying/idea/material/cream',
   milk: '/stuff/idea/material/food/milk',
@@ -116,8 +120,18 @@ async function sayAwaiting(page: Page, cmd: string, reply: RegExp, timeout = 60_
   await expect
     .poll(
       async () => {
-        const added = (await transcript(page)).slice(before.length);
-        const fresh = (await cards(page)).filter((c) => !oldCards.has(c));
+        // ⚠ Without the echoed command line: `> stir #crock` matched /stir/ and
+        // `> look crystals` matched /crystals/ before the reply came (the
+        // first run of the walk).
+        const added = (await transcript(page))
+          .slice(before.length)
+          .split('\n')
+          .filter((l) => l.trim() !== `> ${cmd}`)
+          .join('\n');
+        // ⚠ …and without the ROOM's card, which re-renders whenever anyone
+        // comes or goes: "a working one now" answered /work/ and "no" in its
+        // prose answered /no / before the reading arrived (the walk's runs).
+        const fresh = (await cards(page)).filter((c) => !oldCards.has(c) && !/\nHere\n/.test(c));
         seen = [added, ...fresh].join('\n');
         return seen;
       },
@@ -250,17 +264,20 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       await advance(handle, 2 * HOUR);
 
       // ⭐ The hold line, on the page.
-      const held = await sayAwaiting(page, `analyze boil #${cone}`, /holding more than it can keep|It is |cannot|nothing to/i);
+      const held = await sayAwaiting(page, `analyze boil #${cone}`, /holding more than it can keep|drop of|reads \d|cannot|nothing to/i);
       expect(held, 'analyze boil').not.toMatch(NOT_UNDERSTOOD);
       expect(held).toMatch(/holding more than it can keep, and nothing has started it/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/01-held.png', fullPage: true });
 
-      // The pinch of sugar: the floor's piece, put in.
-      expect(await sayAwaiting(page, 'get piece', /You (get|pick|take)|don't see/i)).toMatch(/You (get|pick|take)/i);
-      expect(await sayAwaiting(page, `put piece in #${cone}`, /You put|cannot|can't/i)).toMatch(/You put/i);
+      // The pinch of sugar, handed (the floor's own piece is gone once a walk
+      // has used it — the first runs found it so on a reused world).
+      const piece = await hand(handle, T.sugarPiece);
+      expect(await sayAwaiting(page, `put #${piece} in #${cone}`, /You put|cannot|can't/i)).toMatch(/You put/i);
       await advance(handle, 30 * 60);
 
-      const started = await sayAwaiting(page, `analyze boil #${cone}`, /It is |holding|grain|set|cannot/i);
+      // Seeded and setting, what is left to draw is the liquor between the grain
+      // (the first run read "thin and watery": the wait now takes any reading).
+      const started = await sayAwaiting(page, `analyze boil #${cone}`, /holding|grain|drop of|reads \d|cannot/i);
       expect(started, 'seeded, it still says nothing has started it').not.toMatch(/nothing has started it/i);
       // ⭐ The crop appears: the cone's card names the loaf it is setting into.
       expect(await lookFor(page, `#${cone}`, /loaf|setting|\bset\b/i)).toMatch(/loaf|setting|\bset\b/i);
@@ -288,12 +305,17 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
         },
         interiorMaterial: M.saltWater,
         interiorAmount: 3,
-        interiorPayload: { dissolvedSolidsKgPerL: 0.37 },
+        // 0.34, the wire drive's figure: the row saturates at 0.317 and holds
+        // to 1.1× — 0.37 starts on its own, as D14 says.
+        interiorPayload: { dissolvedSolidsKgPerL: 0.34 },
       });
-      await sayAwaiting(page, `drop #${crock}`, /You drop|You set|You put/i);
+      await sayAwaiting(page, `drop #${crock}`, /You drop|You set|You put|don.t have/i);
       await advance(handle, HOUR);
-      // Nothing has set on its own.
-      expect(await sayAwaiting(page, 'look crystals', /don't see|no crystals|nothing|crystals/i)).toMatch(/don't see|no crystals|nothing/i);
+      // Nothing has set on its own: the crock's own reading says so. (⚠ Not
+      // `look crystals`: the open pans at the mouth leave crusts of their own
+      // — the first run of the walk found one there before the crock.)
+      const held = await sayAwaiting(page, `analyze boil #${crock}`, /holding more than it can keep|drop of|reads \d|cannot|nothing to/i);
+      expect(held, 'the cooled brine, unstirred').toMatch(/nothing has started it/i);
 
       const stirred = await sayAwaiting(page, `stir #${crock}`, /stir|cannot|can't/i, 120_000);
       expect(stirred).not.toMatch(NOT_UNDERSTOOD);
@@ -337,29 +359,46 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
         keywords: ['cask', 'barrel', 'mmowalkcaskc'],
         absorbed: { inside: [{ type: BEER_AROMA, amount: 60 }] },
       });
-      for (const id of [a, b, c]) await sayAwaiting(page, `drop #${id}`, /You drop|You set|You put/i);
+      // A handed cask too big for the hands is set down where she stands
+      // ("you don't have" it — it is on the floor already).
+      for (const id of [a, b, c]) await sayAwaiting(page, `drop #${id}`, /You drop|You set|You put|don.t have/i);
 
       // Emptied (into the slop bucket), B washed, all three filled with water.
       for (const id of [a, b]) {
-        const poured = await sayAwaiting(page, `pour #${id} into "slop bucket"`, /You pour|cannot|can't|don't see/i);
+        const poured = await sayAwaiting(page, `pour #${id} into "slop bucket"`, /You pour|cannot|can.t|don.t see|full/i);
         if (!/You pour/i.test(poured)) await sayAwaiting(page, `spill #${id}`, /spill|pour|empty/i);
       }
-      expect(await sayAwaiting(page, `fill #${a} from standpipe`, /You fill|cannot|can't/i)).toMatch(/You fill/i);
-      expect(await sayAwaiting(page, `wash #${b}`, /wash|scrub|rinse|cannot|can't/i, 180_000)).not.toMatch(NOT_UNDERSTOOD);
-      expect(await sayAwaiting(page, `fill #${b} from standpipe`, /You fill|cannot|can't/i)).toMatch(/You fill/i);
-      expect(await sayAwaiting(page, `fill #${c} from standpipe`, /You fill|cannot|can't/i)).toMatch(/You fill/i);
+      // ⚠ Crowsfoot's standpipe draws nothing (no premises supply — the wire
+      // drive's run 5, and this walk's first run: "an iron standpipe doesn't
+      // hold liquid"), so the water comes in a pail, and the wash water in a
+      // waterskin, as the wire drive hands them.
+      const pailOfWater = async (): Promise<string> => {
+        await runCommand(page, 'drop pail');
+        return hand(handle, T.pail, { keywords: ['pail', 'bucket'], interiorMaterial: M.water, interiorAmount: 8 });
+      };
+      expect(await sayAwaiting(page, `pour #${await pailOfWater()} into #${a}`, /You pour|cannot|can't/i)).toMatch(/You pour/i);
+      await runCommand(page, 'drop pail');
+      await hand(handle, T.waterskin, { interiorMaterial: M.water, interiorAmount: 2 });
+      await runCommand(page, 'open waterskin');
+      expect(await sayAwaiting(page, `wash #${b}`, /wash|scrub|rinse|cannot|can't/i, 180_000)).not.toMatch(/no water here|not something you can wash/i);
+      await runCommand(page, 'drop waterskin');
+      expect(await sayAwaiting(page, `pour #${await pailOfWater()} into #${b}`, /You pour|cannot|can't/i)).toMatch(/You pour/i);
+      expect(await sayAwaiting(page, `pour #${await pailOfWater()} into #${c}`, /You pour|cannot|can't/i)).toMatch(/You pour/i);
+      await runCommand(page, 'drop pail');
       await advance(handle, 3 * HOUR);
 
       // ⭐ The smell line names the spirit in water from a whiskey cask.
       const smelt = await sayAwaiting(page, `smell #${a}`, /smell|scent|nothing/i);
-      const nosed = await sayAwaiting(page, `analyze aroma #${a}`, /aroma|spirit|alcohol|whisk|nothing|cannot/i);
+      const nosed = await sayAwaiting(page, `analyze aroma #${a}`, /You pick out|anything you could name|cannot/i);
       expect(`${smelt}\n${nosed}`, 'the water in the whiskey cask').toMatch(/spirit|alcohol|whisk/i);
       // Less once washed; the pitched cask gives nothing.
-      const figA = figure(await sayAwaiting(page, `measure aroma #${a}`, /OU|nothing|no /i), /spirit|alcohol|whisk/i);
-      const figB = figure(await sayAwaiting(page, `measure aroma #${b}`, /OU|nothing|no /i), /spirit|alcohol|whisk/i);
-      expect(figA, 'the unwashed cask gave no measurable spirit').toBeGreaterThan(0);
-      expect(Number.isFinite(figB) ? figB : 0, 'washed, the cask gave as much').toBeLessThan(figA);
-      expect(await sayAwaiting(page, `analyze aroma #${c}`, /aroma|smell|nothing|cannot|\./i)).not.toMatch(/beer|ale\b|spirit|alcohol/i);
+      const readA = await sayAwaiting(page, `measure aroma #${a}`, /\d OU|finds nothing|anything you could name|cannot/i);
+      const readB = await sayAwaiting(page, `measure aroma #${b}`, /\d OU|finds nothing|anything you could name|cannot/i);
+      const figA = figure(readA, /spirit|alcohol|whisk/i);
+      const figB = figure(readB, /spirit|alcohol|whisk/i);
+      expect(figA, `the unwashed cask gave no measurable spirit: ${readA}`).toBeGreaterThan(0);
+      expect(Number.isFinite(figB) ? figB : 0, `washed, the cask gave as much: ${readA} | ${readB}`).toBeLessThan(figA);
+      expect(await sayAwaiting(page, `analyze aroma #${c}`, /You pick out|anything you could name|cannot/i)).not.toMatch(/beer|ale\b|spirit|alcohol/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/05-cask.png', fullPage: true });
 
       // ── 6. FINE cooper's work holding a distiller's POOR batch ──
@@ -374,8 +413,8 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
         interiorAmount: 5,
         interiorPayload: { grade: 'poor', maker: DISTILLER },
       });
-      await sayAwaiting(page, `drop #${d}`, /You drop|You set|You put/i);
-      const condition = await sayAwaiting(page, `analyze condition #${d}`, /It is |work|cannot/i);
+      await sayAwaiting(page, `drop #${d}`, /You drop|You set|You put|don.t have/i);
+      const condition = await sayAwaiting(page, `analyze condition #${d}`, /work|made|cannot/i);
       expect(condition).toMatch(/it is fine work/i);
       expect(condition).not.toMatch(/poor work/i);
       const tasted = await sayAwaiting(page, `taste #${d}`, /tastes|making of it|cannot|can't/i);
@@ -402,7 +441,7 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       await sayAwaiting(page, `pour #${milkC} into "butter crock"`, /You pour/i);
       await advance(handle, 2 * HOUR);
       // ⭐ Glazed ware remembers nothing.
-      const crockRead = await sayAwaiting(page, 'measure aroma "butter crock"', /OU|nothing|no |cannot/i);
+      const crockRead = await sayAwaiting(page, 'measure aroma "butter crock"', /\d OU|finds nothing|anything you could name|cannot/i);
       const glazed = figure(crockRead, /cream/i);
       expect(Number.isFinite(glazed) ? glazed : 0, `the glazed crock gave back cream: ${crockRead}`).toBe(0);
 
@@ -414,7 +453,7 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       const milkA = await hand(handle, T.dairyJug, { interiorMaterial: M.milk, interiorAmount: 1.5 });
       await sayAwaiting(page, `pour #${milkA} into churn`, /You pour/i);
       await advance(handle, 2 * HOUR);
-      const churnRead = await sayAwaiting(page, 'measure aroma churn', /OU|nothing|no |cannot/i);
+      const churnRead = await sayAwaiting(page, 'measure aroma churn', /\d OU|finds nothing|anything you could name|cannot/i);
       const first = figure(churnRead, /cream/i);
       expect(first, `no cream in the fresh milk in the churn: ${churnRead}`).toBeGreaterThan(0);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/10-churn.png', fullPage: true });
@@ -425,7 +464,7 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       const milkB = await hand(handle, T.dairyJug, { interiorMaterial: M.milk, interiorAmount: 1.5 });
       await sayAwaiting(page, `pour #${milkB} into churn`, /You pour/i);
       await advance(handle, 2 * HOUR);
-      const second = figure(await sayAwaiting(page, 'measure aroma churn', /OU|nothing|no |cannot/i), /cream/i);
+      const second = figure(await sayAwaiting(page, 'measure aroma churn', /\d OU|finds nothing|anything you could name|cannot/i), /cream/i);
       expect(Number.isFinite(second) ? second : 0, 'washed, the churn gave as much cream').toBeLessThan(first);
     } finally {
       await w.close();
@@ -439,30 +478,45 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
     try {
       // After the potter's hours: she douses a lit kiln of a player's ware.
       await afterHours(handle);
-      await hand(handle, T.gasAnalyzer);
+      // A nose that can NAME a salt fume (the aroma row bands by `pottery`).
+      for (let i = 0; i < 16; i++) await sayAwaiting(page, 'practice pottery hard success', /practi|record|deed/i);
       // (staged, as in the wire drive) A bone-dry green jug of stoneware clay.
-      const jug = await hand(handle, T.ceramicJug, { keywords: ['jug', 'pot', 'mmowalkjug'], _materialPath: M.clay, _moisture: 0 });
+      const jug = await hand(handle, T.ceramicJug, { keywords: ['jug', 'pot', 'mmowalkjug'], _materialPath: M.clay, dryness: 1 });
+      // The glowcap set down to light the shop, and the jug into the hand (a
+      // full pair sets a handed thing down — the walk's first run: "you don't
+      // have a jug").
+      await runCommand(page, 'drop jar');
+      await sayAwaiting(page, `get #${jug}`, /You (get|pick|take)|already|Nothing picked up|don.t see/i);
       expect(await sayAwaiting(page, `put #${jug} in kiln`, /You put|cannot|can't/i)).toMatch(/You put/i);
-      expect(await sayAwaiting(page, 'get 1 salt', /You (get|pick|take)|don't see/i)).toMatch(/You (get|pick|take)/i);
-      expect(await sayAwaiting(page, 'put salt in kiln', /You put|cannot|can't/i)).toMatch(/You put/i);
+      // The salt HANDED too (the shop keeps three, and a walked world runs out).
+      const salt = await hand(handle, T.saltCrystals);
+      expect(await sayAwaiting(page, `put #${salt} in kiln`, /You put|cannot|can't/i)).toMatch(/You put/i);
+      // The fuel HANDED: the shop's own charcoal is the potter's, and a world
+      // walked more than once runs out of it (the walk's runs).
       for (let i = 0; i < 6; i++) {
-        await sayAwaiting(page, 'get 1 charcoal', /You (get|pick|take)|don't see/i);
-        await sayAwaiting(page, 'stoke charcoal into kiln', /stoke|feed|put|cannot|can't/i);
+        await hand(handle, T.charcoal);
+        await sayAwaiting(page, 'stoke charcoal into kiln', /You lay|stoke|feed|put|cannot|can.t/i);
       }
       await sayAwaiting(page, 'light kiln', /light|catch|kindle|cannot|can't/i);
-      expect(await sayAwaiting(page, 'fire kiln for 10 hours', /fire|firing|cannot|can't/i)).not.toMatch(NOT_UNDERSTOOD);
-      await advance(handle, 6 * HOUR);
+      // At a WIDE draught for eight hours, inside the potter's night (the
+      // wire drive's run 4 fired to earthenware at the default draught).
+      expect(await sayAwaiting(page, 'fire kiln --draught wide for 8 hours', /fire|firing|seal|settle|hold it|cannot|can.t/i)).not.toMatch(NOT_UNDERSTOOD);
+      // Smelled within the hour: the salt goes to vapor minutes into the
+      // firing and is aired out of the shop over the hours (the drive's run 2).
+      await advance(handle, HOUR);
+      await hand(handle, T.gasAnalyzer);
 
       // ⭐ The salt, smelled in the shop (and named by the analyzer).
-      const nosed = await sayAwaiting(page, 'smell', /smell|scent|air|nothing/i);
-      const air = await sayAwaiting(page, 'analyze atmosphere', /air|atmosphere|gas|nothing|cannot/i);
-      expect(`${nosed}\n${air}`, 'the salted shop').toMatch(/salt|fume/i);
+      const nosed = await sayAwaiting(page, 'smell here', /smell|scent|air|nothing/i);
+      const measured = await sayAwaiting(page, 'measure aroma', /\d OU|finds nothing|anything you could name|cannot/i);
+      expect(`${nosed}\n${measured}`, 'the salted shop').toMatch(/salt|fume/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/12-salt-smelled.png', fullPage: true });
 
-      await advance(handle, 3.5 * HOUR);
+      await advance(handle, 6.5 * HOUR);
       await sayAwaiting(page, 'douse kiln', /douse|out|cannot|can't/i);
-      await advance(handle, 4 * HOUR);
-      await sayAwaiting(page, `get #${jug} from kiln`, /You (get|take)|cannot|can't|too hot/i);
+      await advance(handle, 2 * HOUR);
+      await runCommand(page, 'drop analyzer');
+      await sayAwaiting(page, `get #${jug} from kiln`, /You (get|pick|take)|cannot|can't|too hot/i);
       // The jug out of the salted kiln: salt-glazed stoneware, in words.
       expect(await lookFor(page, `#${jug}`, /salt/i, 60_000)).toMatch(/stoneware|glaz/i);
     } finally {
@@ -478,29 +532,52 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       await afterHours(handle);
       await hand(handle, T.hygrometer);
       const dry = figure(await sayAwaiting(page, 'measure humidity', /%|humid|cannot/i), /humid|%/i);
-      // Plain water in the copper, an arch fire under it.
+      // Plain water in the copper (what the refiner left in it spilled
+      // first), and the copper SET ON the arch — `heat <pot>` is retired (the
+      // wire drive's run 1).
+      await sayAwaiting(page, 'get copper', /You (get|pick|take)|cannot|can't/i);
+      await sayAwaiting(page, 'spill copper', /spill|empty|nothing|cannot|can't/i);
+      expect(await sayAwaiting(page, 'put copper on arch', /You put|You set|cannot|can't/i)).not.toMatch(NOT_UNDERSTOOD);
       await sayAwaiting(page, 'pour butt into copper --amount 20L', /You pour|cannot|can't/i);
-      for (let i = 0; i < 3; i++) await sayAwaiting(page, 'stoke coal into arch', /stoke|feed|put|cannot|can't/i);
+      for (let i = 0; i < 3; i++) await sayAwaiting(page, 'stoke coal into arch', /You lay|stoke|feed|put|cannot|can.t/i);
       await sayAwaiting(page, 'light arch', /light|catch|kindle|cannot|can't/i);
-      expect(await sayAwaiting(page, 'heat copper', /heat|fire|cannot|can't/i)).not.toMatch(NOT_UNDERSTOOD);
-      await advance(handle, 2 * HOUR);
+      // Kept in, as the wire drive keeps it: three lumps burn out inside the hour.
+      for (let i = 0; i < 4; i++) {
+        await advance(handle, 30 * 60);
+        for (let j = 0; j < 2; j++) await sayAwaiting(page, 'stoke coal into arch', /You lay|stoke|feed|put|cannot|can.t/i);
+        await sayAwaiting(page, 'light arch', /light|catch|kindle|already|cannot|can't/i);
+      }
       const steamy = figure(await sayAwaiting(page, 'measure humidity', /%|humid|cannot/i), /humid|%/i);
       expect(steamy, `the boiling floor's humidity: ${dry} → ${steamy}`).toBeGreaterThan(dry);
-      // ⭐ The steam, in `smell`.
-      expect(await sayAwaiting(page, 'smell', /damp|steam|wet|smell|nothing/i)).toMatch(/damp|steam|wet/i);
+      // ⭐ A nose two hours in a smell has stopped hearing it (`Olfactory`'s
+      // adaptation); the body walking IN to a steamy room notices. Out to the
+      // curing house for twenty minutes, and back.
+      await sayAwaiting(page, 'go north', /curing|You go|cannot|can't/i);
+      await advance(handle, 20 * 60);
+      await sayAwaiting(page, 'go south', /boiling|arch|copper|You go|cannot|can't/i);
+      // ⭐ The steam, in `smell here` (a bare `smell` takes the last thing named).
+      expect(await sayAwaiting(page, 'smell here', /damp|steam|wet|smell|nothing/i)).toMatch(/damp|steam|wet/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/13-steam.png', fullPage: true });
 
       // (staged) A retort with nothing on its pipe, handed where she stands.
       await hand(handle, T.retort);
       await hand(handle, T.charcoal);
       await hand(handle, T.cordwood);
-      await sayAwaiting(page, 'stoke charcoal into retort', /stoke|feed|put|cannot|can't/i);
+      await sayAwaiting(page, 'stoke charcoal into retort', /You lay|stoke|feed|put|cannot|can.t/i);
       await sayAwaiting(page, 'light retort', /light|catch|kindle|cannot|can't/i);
       await sayAwaiting(page, 'put cordwood in retort', /You put|cannot|can't/i);
-      expect(await sayAwaiting(page, 'fire in retort for 3 hours', /fire|firing|cannot|can't/i)).not.toMatch(NOT_UNDERSTOOD);
-      await advance(handle, 3 * HOUR);
-      // ⭐ The fumes, in `smell` (or named by the analyzer's atmosphere read).
-      const fouled = await sayAwaiting(page, 'smell', /smell|scent|air|nothing/i);
+      expect(await sayAwaiting(page, 'fire in retort for 3 hours', /fire|firing|seal|settle|hold it|cannot|can.t/i)).not.toMatch(NOT_UNDERSTOOD);
+      // Out for the last twenty minutes of the firing and back — a nose three
+      // hours in the fumes has stopped hearing them — with an analyzer and a
+      // reader trained to name what is in the air (the wire drive's run 9).
+      await advance(handle, 160 * 60);
+      await sayAwaiting(page, 'go north', /curing|You go|cannot|can't/i);
+      await advance(handle, 20 * 60);
+      await sayAwaiting(page, 'go south', /boiling|arch|copper|You go|cannot|can't/i);
+      await hand(handle, T.gasAnalyzer);
+      for (let i = 0; i < 16; i++) await sayAwaiting(page, 'practice awareness hard success', /practi|record|deed/i);
+      // ⭐ The fumes, in `smell here` (or named by the analyzer's atmosphere read).
+      const fouled = await sayAwaiting(page, 'smell here', /smell|scent|air|nothing/i);
       const air = await sayAwaiting(page, 'analyze atmosphere', /air|atmosphere|gas|nothing|cannot/i);
       expect(`${fouled}\n${air}`, 'the retort’s fumes').toMatch(/smoke|tar|acrid|creosote|pitch|gas/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/13-fumes.png', fullPage: true });
@@ -519,7 +596,7 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       // account with `reserve override` and buys at the counter; the walk's
       // question is the puddle on the room's line, not the shopping.
       const heap = await hand(handle, T.woodAsh);
-      await sayAwaiting(page, `drop #${heap}`, /You drop|You set|You put/i);
+      await sayAwaiting(page, `drop #${heap}`, /You drop|You set|You put|don.t have/i);
       const pail = await hand(handle, T.pail, { keywords: ['pail', 'bucket', 'mmowalkpail'] });
       expect(await sayAwaiting(page, `fill #${pail} from butt`, /You fill|cannot|can't/i)).toMatch(/You fill/i);
       const watered = await sayAwaiting(page, `pour #${pail} onto #${heap}`, /You pour|soak|cannot|can't|nothing to/i);
