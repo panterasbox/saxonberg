@@ -97,14 +97,10 @@ interface EntityNameProps {
  * "which surfaces support it" is exactly the kind of inconsistency the
  * no-exceptions command-sheet policy was written against.
  *
- * ⚠ Reads the store directly instead of taking a prop. The alternative
- * is threading one more optional callback through every consumer, where
- * the failure mode is a surface that silently forgets it — an absent
- * prop is invisible, a missing gesture is a bug report.
- *
- * ⚠ Long-press is the phone's form of the same gesture and is bound at
- * `pointerdown`, not `click`: a tap must still SEND the command, so the
- * two cannot share an event.
+ * ⚠ The gesture is `useRadialGestures` (shared with the nav card's
+ * ways), which reads the store itself rather than taking a prop: an
+ * absent prop is invisible, a missing gesture is a bug report. It binds
+ * at `pointerdown`, not `click`, so a click still SENDS the command.
  */
 
 export function EntityName({

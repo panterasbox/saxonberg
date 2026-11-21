@@ -97,6 +97,12 @@ async function factsFor(viewer: Stuff, address: string): Promise<LocalityFacts |
  * or its tail: a holder's path is an identity, and this rides the wire.
  */
 function nameOf(holderPath: string): string {
-  const live = StuffApi.findByTemplatePath(holderPath);
-  return live ? String(live.getPresentation()) : 'someone';
+  // ⚠ A lookup that fails (more than one live match) costs this one name,
+  // never the whole tooltip.
+  try {
+    const live = StuffApi.findByTemplatePath(holderPath);
+    return live ? String(live.getPresentation()) : 'someone';
+  } catch {
+    return 'someone';
+  }
 }

@@ -32,7 +32,6 @@ import {
 } from "../../store/navSelectors";
 
 export type Zoom = "whole" | "nearby" | "close";
-export const ZOOMS: readonly Zoom[] = ["whole", "nearby", "close"];
 export type LensName = "frontier" | "route" | "refusals" | "boundaries";
 export const LENSES: readonly LensName[] = ["frontier", "route", "refusals", "boundaries"];
 

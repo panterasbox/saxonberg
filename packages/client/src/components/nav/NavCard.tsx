@@ -1,13 +1,13 @@
 /**
  * NavCard — the zone navigation card (navigation card D7): the `map`
  * card's body, docked in the Explore panel. Where you are, at zone level,
- * drawn from your own map, widest to narrowest:
+ * drawn from your own map: the trail (areas, then the room), the map and
+ * its lenses, the government line, the ways, then the sections — horizon ·
+ * structure · here (the place) · you.
  *
- *   1 you are here · 2 in the world · 3 the zone and its map ·
- *   4 the horizon · 5 the structure · 6 the ways · 7 the place · 8 you
- *
- * ⭐ The glance rule: every section is a summary line that opens; a
- * section with nothing to say is absent, never an empty box. The card
+ * ⭐ Every row in every place, always (owner, review): a newcomer has no
+ * baseline, so the place and you sections never hide an "ordinary"
+ * value. A section the server has nothing for is absent. The card
  * fills the height it is given (D8) and remembers only the sections the
  * player set by hand (D9).
  *
@@ -46,7 +46,7 @@ import { readNavCard, setLens, setSection } from "../../store/navCardActions";
 import { escapeTarget, lookCommand, useLinkMode } from "../cards/clickTarget";
 import { ChangeMark } from "../cards/ChangeMark";
 import { tokens } from "../ui";
-import { crumbDoc, edgeDoc, placeDoc, sightingDoc, wayDoc, zoneDoc } from "../doc/docs";
+import { crumbDoc, edgeDoc, placeDoc, sightingDoc, wayDoc } from "../doc/docs";
 import { MapArea } from "./MapArea";
 import { Ways } from "./Ways";
 import { Crumbs } from "./Crumbs";
@@ -98,16 +98,10 @@ const LinkButton = styled.button`
   text-underline-offset: 2px;
 `;
 
-const Here = styled.div`
-  font-family: ${tokens.font.serif};
-  font-size: ${tokens.font.title};
-  color: ${tokens.color.fg};
-`;
-
-/** The optional sections, widest first — the order the card opens them in. */
 /** `look <the building>` — its name as a typed target. */
 const structureLook = (name: string): string => `look ${escapeTarget(name.replace(/^the\s+/i, ""))}`;
 
+/** The sections, widest first — the order the card opens them in. */
 export const SECTION_ORDER = ["horizon", "structure", "place", "you"] as const;
 
 export interface NavCardProps {
@@ -179,11 +173,11 @@ export function NavCard(props: NavCardProps): React.ReactElement {
         return dir ? `go ${dir}` : routeCommandFor(mapCopy, mark.place);
       }
       if (mark.edge && mark.edge.from === PRESENT_KEY) {
-        const way = (sections.ways?.ways ?? []).find((w) => w.direction.toLowerCase() === mark.edge!.dir);
+        const way = (sections.ways?.ways ?? []).find((w) => longDirection(w.direction) === mark.edge!.dir);
         if (way) return `go ${way.direction}`;
       }
       if (mark.edge && standing && herePlace?.key === mark.edge.from) {
-        const way = standing.ways.find((w) => w.direction.toLowerCase() === mark.edge!.dir);
+        const way = standing.ways.find((w) => longDirection(w.direction) === mark.edge!.dir);
         if (way) return `go ${way.direction}`;
       }
       return null;
@@ -193,7 +187,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
 
   /** The ways from here the ways section says leave this zone — never a `?`. */
   const leavingDirs = React.useMemo(
-    () => new Set((sections.ways?.ways ?? []).filter((w) => w.crossesZone).map((w) => w.direction.toLowerCase())),
+    () => new Set((sections.ways?.ways ?? []).filter((w) => w.crossesZone).map((w) => longDirection(w.direction))),
     [sections.ways],
   );
 
@@ -213,7 +207,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
   /** How much a lens has to draw on the level you stand on — its tooltip says when it is nothing. */
   const lensCount = (l: LensName): number => {
     if (!zv) return 0;
-    const level = sections.place?.at?.z ?? 0;
+    const level = standAt?.z ?? 0;
     const onLevel = (key: string): boolean => zv.places.some((p) => p.key === key && p.level === level);
     if (l === "frontier") return zv.edges.filter((e) => onLevel(e.from) && (e.shape === "opening" || (e.shape === "vertical" && !e.farKnown))).length;
     if (l === "route") return routePlan?.plans[0]?.legs.length ?? 0;
@@ -291,7 +285,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
   /** A way from here: what it is, where it leads, what stops you (D12). */
   const wayTip = (w: NavWay): TooltipDoc => {
     const to = standing ? wayLeadsTo(mapCopy, standing, w) : undefined;
-    const dir = w.direction.toLowerCase();
+    const dir = longDirection(w.direction);
     const mapEdge = herePlace && zv ? zv.edges.find((e) => e.from === herePlace.key && e.dir === dir) : undefined;
     const far = mapEdge?.to ? placeByKey(mapCopy, mapEdge.to) : undefined;
     const thumb =

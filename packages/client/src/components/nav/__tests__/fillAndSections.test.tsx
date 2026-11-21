@@ -14,7 +14,7 @@ import {
   horizonSummary,
   structureSummary,
   youSummary,
-  zoneSummary,
+  GroundLine,
   StructureBody,
 } from "../sections";
 import { IconAction } from "../IconAction";
@@ -50,13 +50,17 @@ describe("fitSections — fill the height", () => {
 
 describe("the sections — absent, never empty", () => {
   it("the ground line is whose ground it is — no zone name, no coordinates", () => {
-    expect(zoneSummary({})).toBeNull();
+    expect(render(<GroundLine sections={{}} />).container.textContent).toBe("");
     const s: NavSections = {
       zone: { v: 1, label: "The Sunken Delve" },
       localities: { v: 1, chain: [], jurisdiction: [{ key: "c", name: "the City of Terminus" }] },
     };
-    expect(zoneSummary(s)).toBe("the City of Terminus");
-    expect(zoneSummary({ zone: { v: 1 } })).toBe("Unclaimed ground");
+    const keeper = render(<GroundLine sections={s} />);
+    expect(keeper.getByTestId("nav-jurisdiction").textContent).toContain("the City of Terminus");
+    expect(keeper.getByTestId("nav-jurisdiction").textContent).not.toContain("Delve");
+    keeper.unmount();
+    const none = render(<GroundLine sections={{ zone: { v: 1 } }} />);
+    expect(none.getByTestId("nav-jurisdiction").textContent).toContain("unclaimed ground");
   });
 
   it("the horizon is absent with no things and no traffic", () => {

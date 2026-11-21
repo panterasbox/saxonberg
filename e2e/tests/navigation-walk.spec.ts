@@ -45,10 +45,16 @@ async function openSection(page: Page, name: string): Promise<Locator> {
   return sec;
 }
 
-/** Where you stand, by the zone section's coordinates line. */
+/** Where you stand, by the map's coordinates — shown while the grid is on. */
 async function coords(page: Page): Promise<string> {
-  await openSection(page, 'zone');
+  const grid = page.getByTestId('nav-map-grid');
+  if ((await grid.getAttribute('aria-pressed')) !== 'true') await grid.click();
   return (await page.getByTestId('nav-coords').innerText()).replace(/\s+/g, ' ').trim();
+}
+
+/** Wait until the map's coordinates match. */
+async function expectCoords(page: Page, re: RegExp): Promise<void> {
+  await expect.poll(() => coords(page).catch(() => ''), { timeout: 30_000 }).toMatch(re);
 }
 
 test.describe('navigation card — the zone map, the ways, the sections', () => {
@@ -89,8 +95,8 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       // 5 · on into corridor-2: the pit (its trap, or a search and a climb
       // on a world where it has sprung) — and the level control appears.
       await runCommand(page, 'north');
-      await expect(page.getByTestId('nav-coords')).toContainText(/y: 2/, { timeout: 30_000 });
-      if (!(await page.getByTestId('nav-coords').innerText()).includes('z: -1')) {
+      await expectCoords(page, /y 2 /);
+      if (!(await coords(page)).includes('level -1')) {
         // The pit has sprung (a kept world). Search finds the way down; with
         // nothing to climb by it is not for you as you stand, and its
         // tooltip says why — then the walker is staged into the pit.
@@ -100,7 +106,7 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
         expect(await tipText(page, down)).toMatch(/climb/);
         await runCommand(page, 'goto /world/newbie-wilds/delve/pit-below');
       }
-      await expect(page.getByTestId('nav-coords')).toContainText(/z: -1/, { timeout: 30_000 });
+      await expectCoords(page, /level -1/);
       await expect(page.getByTestId('nav-levels')).toBeVisible();
       await expect(page.getByTestId('nav-level-0')).toBeVisible();
       await expect(page.getByTestId('nav-level--1')).toHaveAttribute('data-yours', 'true');
@@ -118,23 +124,23 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       // 7 · up, back to corridor-1, and search: the hidden way is found by searching.
       await runCommand(page, 'up');
       await runCommand(page, 'south');
-      await expect(page.getByTestId('nav-coords')).toContainText(/y: 1/, { timeout: 30_000 });
+      await expectCoords(page, /y 1 /);
       await runCommand(page, 'search');
       await expect(page.locator('[data-testid="nav-edge"][data-dir="northeast"][data-found="searched"]')).toHaveCount(1, { timeout: 60_000 });
 
-      // 10 · every way says where it leads: the preview strip and the tooltip.
+      // 10 · every way says where it leads: its tooltip (the preview strip
+      // was cut in review — the tooltip and the status bar already say it).
       const south = page.getByTestId('nav-exit-south');
       // (Read by focus — the tooltip first: a second focus fires nothing.)
       expect(await tipText(page, south)).toMatch(/south/);
-      await expect(page.getByTestId('nav-preview')).toContainText(/south/);
       // A mark has a tooltip with how you know it.
       expect(await tipText(page, places(page).first())).toMatch(/walked/);
 
-      // 9 · the zone section: who keeps it; the place section: what your map holds.
-      await openSection(page, 'zone');
+      // 9 · the ground line: who keeps it; the place section: whether your
+      // map holds it (how you know it is the map mark's tooltip, above).
       await expect(page.getByTestId('nav-jurisdiction')).toBeVisible();
       await openSection(page, 'place');
-      await expect(page.getByTestId('nav-place-known')).toContainText(/walked/);
+      await expect(page.getByTestId('nav-place-known')).toContainText(/on your map/);
 
       // 21 · the status bar's outdoors.
       await expect(page.getByTestId('status-bar')).toBeVisible();

@@ -221,10 +221,6 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         if (!this.keepsMaps()) return;
         const viewerKey = this.mapOwnerKey();
         if (!viewerKey) return;
-        // ⭐ The HANDLE, not the template path. A place with no durable
-        // handle writes NO CLAIM — a lounge satellite is a fresh clone
-        // per landing, so an honest map of it is nothing rather than a
-        // stale entry for a room that no longer exists.
         // ⭐ The place says what a claim about it names and where it is
         // (navigation-server D2) — a copy's room by its minted key, moving
         // water by its river or sea; `null` writes nothing.

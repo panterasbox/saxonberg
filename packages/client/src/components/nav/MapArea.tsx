@@ -29,14 +29,6 @@ const Root = styled.div`
   gap: ${tokens.space.xs};
 `;
 
-const Controls = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${tokens.space.xs};
-  align-items: center;
-  font-size: ${tokens.font.micro};
-`;
-
 const Btn = styled.button<{ $on?: boolean }>`
   font: inherit;
   padding: 1px 6px;

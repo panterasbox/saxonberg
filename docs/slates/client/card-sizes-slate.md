@@ -1081,3 +1081,12 @@ already knows; the client does not guess.
    arrangement (simplest for OBS), or declared per arrangement.
 6. **Overlay → OBS** — the browser source's own scene control (no extra
    process) or obs-websocket (sturdier, one more thing running).
+
+## Left by the navigation card (2026-11-21)
+
+- **The Explore card in other modes, and on the phone.** The card is
+  built docked in the explore panel only, at one size — see
+  [navigation-card.md](../../subsystems/navigation-card.md). ⚠ The owner's
+  next design gives it three modalities for three zoom levels and keeps it
+  useful after you stop moving; that design supersedes any size work here
+  for the nav card.

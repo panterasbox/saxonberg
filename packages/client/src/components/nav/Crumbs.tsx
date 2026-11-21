@@ -11,7 +11,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { NavSections, TooltipDoc } from "@saxonberg/types";
+import type { TooltipDoc } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
 import { Icon } from "../ui/icons/Icon";
@@ -54,7 +54,7 @@ const Unnamed = styled.span`
 
 export interface CrumbsProps {
   crumbs: readonly Crumb[];
-  /** The place you stand in — the trail's last item, and the de-stutter compares against it. */
+  /** The room you stand in — the trail's second line. */
   placeName: string;
   /** The room's own tooltip (the trail's last item). */
   placeTip?: TooltipDoc | null;

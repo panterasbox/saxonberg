@@ -247,50 +247,57 @@ const mapBatches = new Map<string, { claims: MapClaim[]; done: Promise<void> }>(
  * review: a guest is exactly the newcomer the navigation card is for). An
  * owner key that starts {@link SESSION_MAP_PREFIX} files here, in memory,
  * `<owner>` → `<locality>` → claims; every reader and writer of the map
- * goes through {@link readMapRows} / the save in `growAndSave`, so the copy,
+ * goes through `readMapRows` / `saveMapRow`, so the copy,
  * the crumbs and `route` see one map whichever store holds it. Bounded:
- * the oldest visit's map is dropped past {@link SESSION_MAP_CAP} owners.
+ * a guest's map is dropped when the guest is (`forgetSessionMap`, from
+ * `Avatar.onDestruct`), and the oldest past {@link SESSION_MAP_CAP} owners.
  */
 const SESSION_MAP_PREFIX = 'session:';
 const SESSION_MAP_CAP = 500;
 const sessionMaps = new Map<string, Map<string, MapClaim[]>>();
 
-/** The map rows for an owner and a locality prefix — from memory for a session map. */
-async function readMapRows(
-  viewerKey: string,
-  localityPrefix: string,
-): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
-  if (!viewerKey.startsWith(SESSION_MAP_PREFIX)) return DocumentApi.readMaps(viewerKey, localityPrefix);
-  const docs = sessionMaps.get(viewerKey);
-  if (!docs) return [];
-  const rows: Array<{ path: string; data: Record<string, unknown> }> = [];
-  for (const [locality, claims] of docs) {
-    if (localityPrefix && locality !== localityPrefix && !locality.startsWith(`${localityPrefix}/`)) continue;
-    rows.push({ path: `/session/map/${locality}`, data: { locality, claims } as unknown as Record<string, unknown> });
-  }
-  return rows;
-}
-
-/** Save one map document — in memory for a session map. */
-async function saveMapRow(viewerKey: string, locality: string, claims: MapClaim[]): Promise<void> {
-  if (!viewerKey.startsWith(SESSION_MAP_PREFIX)) {
-    await DocumentApi.saveMap(viewerKey, locality, { locality, claims } as unknown as Record<string, unknown>);
-    return;
-  }
-  let docs = sessionMaps.get(viewerKey);
-  if (!docs) {
-    if (sessionMaps.size >= SESSION_MAP_CAP) {
-      const oldest = sessionMaps.keys().next().value;
-      if (oldest !== undefined) sessionMaps.delete(oldest);
-    }
-    docs = new Map();
-    sessionMaps.set(viewerKey, docs);
-  }
-  docs.set(locality, claims);
-}
-
 @Unshadowable
 export class NavigationLogic extends ApiLogic {
+  /** The map rows for an owner and a locality prefix — from memory for a session map. */
+  private static async readMapRows(
+    viewerKey: string,
+    localityPrefix: string,
+  ): Promise<Array<{ path: string; data: Record<string, unknown> }>> {
+    if (!viewerKey.startsWith(SESSION_MAP_PREFIX)) return DocumentApi.readMaps(viewerKey, localityPrefix);
+    const docs = sessionMaps.get(viewerKey);
+    if (!docs) return [];
+    const rows: Array<{ path: string; data: Record<string, unknown> }> = [];
+    for (const [locality, claims] of docs) {
+      if (localityPrefix && locality !== localityPrefix && !locality.startsWith(`${localityPrefix}/`)) continue;
+      rows.push({ path: `/session/map/${locality}`, data: { locality, claims } as unknown as Record<string, unknown> });
+    }
+    return rows;
+  }
+
+  /** Save one map document — in memory for a session map. */
+  private static async saveMapRow(viewerKey: string, locality: string, claims: MapClaim[]): Promise<void> {
+    if (!viewerKey.startsWith(SESSION_MAP_PREFIX)) {
+      await DocumentApi.saveMap(viewerKey, locality, { locality, claims } as unknown as Record<string, unknown>);
+      return;
+    }
+    let docs = sessionMaps.get(viewerKey);
+    if (!docs) {
+      if (sessionMaps.size >= SESSION_MAP_CAP) {
+        const oldest = sessionMaps.keys().next().value;
+        if (oldest !== undefined) sessionMaps.delete(oldest);
+      }
+      docs = new Map();
+      sessionMaps.set(viewerKey, docs);
+    }
+    docs.set(locality, claims);
+  }
+
+  /** See {@link NavigationApi.forgetSessionMap}. */
+  @CallSecurity(NavigationApiCallers)
+  public forgetSessionMap(ownerKey: string): void {
+    if (ownerKey.startsWith(SESSION_MAP_PREFIX)) sessionMaps.delete(ownerKey);
+  }
+
   /** See {@link NavigationApi.normalizeDirection}. */
   @CallSecurity(NavigationApiCallers)
   public normalizeDirection(input: string): CardinalDirection | undefined {
@@ -561,7 +568,7 @@ export class NavigationLogic extends ApiLogic {
     // `FromModule('/api/navigation#NavigationApi')` gate DENIES it —
     // this file's own header warns about exactly that, which is why
     // the direction lookups use a module-private free function.
-    const rows = await readMapRows(viewerKey, localityPrefix);
+    const rows = await NavigationLogic.readMapRows(viewerKey, localityPrefix);
     const maps: MapDocument[] = rows.map((r) => {
       const data = r.data as unknown as MapDocument;
       return {
@@ -1110,7 +1117,7 @@ export class NavigationLogic extends ApiLogic {
     const existing = await this.loadMap(viewerKey, locality);
     const grown = NavigationLogic.growMap(existing, claims);
     if (!grown) return; // nothing new and nothing to bump
-    await saveMapRow(viewerKey, locality, grown.claims);
+    await NavigationLogic.saveMapRow(viewerKey, locality, grown.claims);
     // ⭐ The copy follows the map (navigation-server D1): every session
     // holding a copy of THIS owner's map is sent the claims that changed.
     // By owner key, not by body — a shade files under the person it is
@@ -1199,7 +1206,7 @@ export class NavigationLogic extends ApiLogic {
    * its own gate; the navigation-server drive found it).
    */
   private static async readMapDocs(viewerKey: string, localityPrefix: string): Promise<MapDocument[]> {
-    const rows = await readMapRows(viewerKey, localityPrefix);
+    const rows = await NavigationLogic.readMapRows(viewerKey, localityPrefix);
     return rows.map((r) => {
       const data = r.data as unknown as MapDocument;
       return {
@@ -1226,7 +1233,7 @@ export class NavigationLogic extends ApiLogic {
     viewerKey: string,
     locality: string,
   ): Promise<MapClaim[]> {
-    const rows = await readMapRows(viewerKey, locality);
+    const rows = await NavigationLogic.readMapRows(viewerKey, locality);
     const exact = rows.find((r) => r.path.endsWith(`/map/${locality}`));
     const data = exact?.data as unknown as MapDocument | undefined;
     return Array.isArray(data?.claims) ? [...data.claims] : [];

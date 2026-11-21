@@ -125,14 +125,6 @@ const Dest = styled.span`
   font-family: ${tokens.font.family};
 `;
 
-const Preview = styled.div`
-  min-height: 2.4em;
-  font-size: ${tokens.font.small};
-  color: ${tokens.color.fgDim};
-  border-top: 1px solid ${tokens.color.borderMuted};
-  padding-top: ${tokens.space.xs};
-`;
-
 export interface WaysProps {
   ways: readonly NavWay[];
   /** Where a way leads, as your map knows it (D10). */

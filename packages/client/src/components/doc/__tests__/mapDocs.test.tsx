@@ -9,7 +9,7 @@ import { render, screen } from "@testing-library/react";
 import type { NavWay, TooltipDoc } from "@saxonberg/types";
 import { useStore } from "../../../store/index";
 import { DocView } from "../blocks";
-import { crumbDoc, edgeDoc, placeDoc, wayDoc, zoneDoc, PATH_LABEL } from "../docs";
+import { crumbDoc, edgeDoc, placeDoc, wayDoc, PATH_LABEL } from "../docs";
 
 const links = { onCommandClick: () => {}, onCommandPreview: () => {} };
 
@@ -96,12 +96,6 @@ describe("map documents", () => {
     const rows = Object.fromEntries((civic.facts ?? []).map((f) => [f.label, f.value]));
     expect(rows).toMatchObject({ "you are": "a visitor", Mayor: "Odo", Clerk: "vacant", forecast: "cirrus — a front may be moving in" });
     noButton(named);
-  });
-
-  it("zoneDoc: the zone's path rides the spoiler", () => {
-    const doc = zoneDoc({ zone: { v: 1, id: { path: "/test/delve", spoiler: 2 }, label: "The Sunken Delve", cellSizeM: 3 } }, { walked: 4, known: 1, openings: 2 });
-    expect(doc.spoilers?.[0]?.text).toBe("/test/delve");
-    expect(doc.header?.name).toBe("The Sunken Delve");
   });
 
   it("the zone thumbnail block draws from your copy, and is absent when your map has nothing there", () => {

@@ -12,7 +12,7 @@ import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
 import { Icon } from "../ui/icons/Icon";
 import { sightingDoc } from "../doc/docs";
-import type { ViewPlace, ZoneView } from "../../store/navSelectors";
+import type { ViewPlace } from "../../store/navSelectors";
 
 export const Rows = styled.dl`
   display: grid;
@@ -66,12 +66,6 @@ export function Fact({ icon, label, children, testid }: { icon: string; label: s
 
 // ── 3 · the zone ──────────────────────────────────────────────────────
 
-export function zoneSummary(s: NavSections): string | null {
-  if (!s.zone) return null;
-  const keepers = s.localities?.jurisdiction ?? [];
-  return keepers.length > 0 ? keepers[0]!.name : "Unclaimed ground";
-}
-
 /** Whose ground this is — one line; the chain above it in its tooltip. */
 export function GroundLine({ sections }: { sections: NavSections }): React.ReactElement | null {
   const keepers = sections.localities?.jurisdiction ?? [];
@@ -90,11 +84,6 @@ export function GroundLine({ sections }: { sections: NavSections }): React.React
       </div>
     </Tip>
   );
-}
-
-/** Kept for the counts' readers; the card no longer shows a zone section. */
-export function ZoneBody({ view }: { sections: NavSections; view: ZoneView | null }): React.ReactElement {
-  return <div data-testid="nav-zone">{view ? `${view.counts.walked} walked` : null}</div>;
 }
 
 // ── 4 · the horizon ───────────────────────────────────────────────────

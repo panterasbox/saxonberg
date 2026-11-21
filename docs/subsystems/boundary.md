@@ -1177,7 +1177,11 @@ cascade `go` runs (`LocomotionApi.canTraverseExit`), asked with
 `{ probe: true }`. A probe materializes nothing (no ship stood up, no patch
 minted, no house provisioned) and leaves a fight engaged; it answers *no* in
 trying's own words (with `works`: the lower mode and command, the pack, the
-dismount), *yes*, or *yes as far as you know* (`unseen`). ⭐ Only what
+dismount), *yes*, or *yes as far as you know* (`unseen`). ⚠ After an
+`exitMode` refusal, `works` names the way's own mode only when probing it
+would actually get you through (`Exit.worksByMode`, navigation card D18):
+the first cut offered *climb down* at a pit with no rope at its lip, and
+the game answered that it did not understand `climb`. ⭐ Only what
 varies from way to way is on a way: a fight is a fact about YOU
 (`you.fighting`, `Combatant.leavingTheFight()`), and only a fight you cannot
 break away from makes every way refuse, in `disengage`'s own words —

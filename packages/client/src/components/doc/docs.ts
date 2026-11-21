@@ -432,14 +432,6 @@ export function levelDoc(name: string, places: number, yours: boolean): TooltipD
   };
 }
 
-/** A section's summary line. */
-export function sectionDoc(summary: string, open: boolean): TooltipDoc {
-  return {
-    header: { name: summary, kindWord: "section" },
-    hint: "click — open or fold",
-  };
-}
-
 /** A thing on the horizon. */
 export function sightingDoc(
   thing: { name: string; landmark: boolean; glance?: { point?: string; closeBy?: boolean; roughMiles?: number } },
@@ -454,18 +446,3 @@ export function sightingDoc(
   };
 }
 
-/** The zone you stand in, as the zone section frames it — its path as the spoiler. */
-export function zoneDoc(sections: NavSections, known: { walked: number; known: number; openings: number }): TooltipDoc {
-  const z = sections.zone;
-  const facts: TooltipFact[] = [
-    { label: "places you have walked", value: String(known.walked), source: "walked" },
-    { label: "seen, not walked", value: String(known.known), source: "client" },
-    { label: "ways you have not taken", value: String(known.openings), source: "client" },
-  ];
-  if (z?.cellSizeM) facts.push({ label: "a cell", value: `${z.cellSizeM} m`, source: "seen" });
-  return {
-    header: { name: z?.label ?? "This zone", kindWord: "zone" },
-    facts,
-    ...(z?.id ? { spoilers: [{ level: z.id.spoiler, label: PATH_LABEL, text: z.id.path }] } : {}),
-  };
-}
