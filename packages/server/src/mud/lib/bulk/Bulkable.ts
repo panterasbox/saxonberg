@@ -1479,7 +1479,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
           // (D13) — on the MOULD's thermal read, so it is brought current here
           // too (found by the drive: a pot looked into four days after its
           // cone set held a spoonful, because nobody had read the cone).
-          if (MixinApi.isMould(c) && MixinApi.isThermal(c)) c.getTemperature();
+          if (MixinApi.isMould(c) && MixinApi.isThermal(c)) c.reconcileThermal();
           // Only a FACED vessel seeps (its faces are what let a liquid through).
           if (!MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
           try {
