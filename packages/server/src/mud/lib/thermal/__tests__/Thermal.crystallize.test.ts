@@ -541,6 +541,17 @@ describe('⭐⭐ supersaturation waits — and the purity mass balance', () => {
     expect(payloadOf(t).grade).toBe('fair');
   });
 
+  it('⭐ the pot\'s own read brings the cone\'s drain current — nobody need read the cone (found by the drive)', async () => {
+    const { p, t } = struckPan();
+    withPayload(p, { ...payloadOf(p), nucleated: true });
+    p.reconcilePhase();
+    await settle();
+    expect(p.getLiquorWakeAtS()).toBeGreaterThan(0);
+    through(2 * DAY);
+    // Only the TUB is read.
+    expect(t.getBulkAmount('interior').rawValue()).toBeCloseTo(1, 3);
+  });
+
   it('a restart mid-drain re-arms from the persisted due time', async () => {
     const { p, t } = struckPan();
     withPayload(p, { ...payloadOf(p), nucleated: true });

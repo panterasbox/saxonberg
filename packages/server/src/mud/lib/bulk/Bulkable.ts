@@ -1475,6 +1475,11 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
           // ash in a hopper, a loaf over its pot — is brought current too
           // (cordage W7: the hopper's lye is what its heaps have given up).
           if (MixinApi.isPercolating(c)) c.reconcilePercolation();
+          // ⭐ A mould's spent liquor runs out into this vessel by the one drip
+          // (D13) — on the MOULD's thermal read, so it is brought current here
+          // too (found by the drive: a pot looked into four days after its
+          // cone set held a spoonful, because nobody had read the cone).
+          if (MixinApi.isMould(c) && MixinApi.isThermal(c)) c.getTemperature();
           // Only a FACED vessel seeps (its faces are what let a liquid through).
           if (!MixinApi.isFaced(c) || !MixinApi.isBulkable(c)) continue;
           try {
