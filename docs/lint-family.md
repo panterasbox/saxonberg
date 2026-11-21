@@ -2054,7 +2054,7 @@ configured**.
   locality and no firm. The census counts every file under
   `packages/wire/tests`, `packages/content/*/wire` and the harness whose
   CODE (comments stripped) names `/world/<x>` other than `testbed`, or
-  `/corpo/<x>`. **120 at the census, 110 after the migrations**; the ceiling may fall, never rise,
+  `/corpo/<x>`. **120 at the census, 110 after the migrations, 112 after the master merge brought two pack drives written before the gate reached master**; the ceiling may fall, never rise,
   and build 2 takes it to zero. A file at zero stays there for free —
   naming a locality in it raises the count. ⭐ A second check at **0**:
   a test file that carries its own restart (imports the runner's

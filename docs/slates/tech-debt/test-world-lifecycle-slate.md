@@ -75,6 +75,11 @@ runtime; content-specific drives live with their pack; two builds.
   infrastructure packs owns a place today, so every one borrows Terminus's.
   Open: does each pack ship test-only fixtures of its own, or build its site
   at runtime into the fixture pack's ground?
+- **Two drives that arrived after the census**, from the master merge of
+  2026-11-21: `matter-model-overlaps.dirty` and its soak twin (the Hesper,
+  the sugar house, the creamery, the brickfield) — pack-mechanism drives,
+  written while the gate was not on master; `lint:wire-content`'s ceiling
+  took them (110 → 112).
 - **The 22 sweeps** (every controller, every row loads, …) enumerate what is
   installed and never name it.
 - **The 7 locality flows** (farming, farmstead, crafting, cooking, textiles,
