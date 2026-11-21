@@ -220,6 +220,11 @@ export interface VentResult {
   room: number;
   /** Litres gone to the sky: open to it, no air to take them, or no headroom. */
   sky: number;
+  /**
+   * Litres of water vapor that condensed: what a place's air could not hold
+   * past saturation at its temperature (absent when nothing condensed).
+   */
+  condensed?: number;
 }
 
 export class BiomeApi {

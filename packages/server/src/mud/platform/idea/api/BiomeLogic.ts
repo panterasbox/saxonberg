@@ -601,9 +601,24 @@ export class BiomeLogic extends ApiLogic {
     for (const at of scopes) {
       if (MixinApi.isAtmospheric(at) && MixinApi.isContainer(at)) {
         const air = at as Stuff & Atmospheric;
-        if (air.getVolume() !== null) {
-          out.room = air.addAtmosphereContent(material, left);
-          out.sky = Math.max(0, left - out.room);
+        const volume = air.getVolume();
+        if (volume !== null) {
+          // ⭐ Steam condenses (found by the drive: a boiling copper filled
+          // its floor to a quarter steam and the boiler could not breathe).
+          // The air holds water vapor only up to what saturates it at its
+          // temperature, less what its own humidity already holds; the rest
+          // condenses on the walls and the louvre and is gone from the air.
+          const row = MaterialApi.materials().peek(material);
+          let toAir = left;
+          if (row !== null && row.hasTag(WATER_VAPOR_TAG)) {
+            const base = localAir(at);
+            const rh = Math.max(0, Math.min(100, base.humidityPct)) / 100;
+            const roomFrac = Math.max(0, base.saturationFraction() * (1 - rh) - waterVaporFractionOf(at));
+            toAir = Math.min(left, roomFrac * volume.rawValue() * 1000);
+            out.condensed = left - toAir;
+          }
+          out.room = toAir > 0 ? air.addAtmosphereContent(material, toAir) : 0;
+          out.sky = Math.max(0, toAir - out.room);
           return out;
         }
       }

@@ -260,6 +260,35 @@ describe('⭐ a boil makes the room humid, and its air changes take it down (D17
     expect(BiomeApi.localHumidityFor(kitchen as unknown as Stuff)!).toBeCloseTo(before, 0);
   });
 
+  it('⭐ steam CONDENSES past saturation: a long boil fogs a shut room to 100 % and never makes its air unbreathable (found by the drive)', async () => {
+    seq += 1;
+    const vaporPath = `/stuff/idea/material/gas/_vent-condense-${seq}`;
+    makeStuffAtPath(() => {
+      const g = new Gas();
+      g.setName('water vapor');
+      g.setDensity(Quantity.of(0.75, 'kg/m³'));
+      g.setTags(['gas', 'water-vapor']);
+      return g;
+    }, vaporPath);
+    const zone = makeStuff(() => new CartesianZone());
+    const kitchen = room(zone, 0);
+    kitchen.setHumidity(Quantity.of(50, '%'));
+    const pot = lump();
+    await ContainmentApi.move(pot, kitchen);
+    // A copper's two hours of boil: some ten thousand litres of steam into a
+    // 27 m³ room — more than a third of its air, were none of it to condense.
+    const out = BiomeApi.vent({ from: pot, material: vaporPath, litres: 10_000 });
+    // 20 °C air saturates at about 2.3 % vapor; at 50 % it has room for half.
+    expect(out.room).toBeGreaterThan(200);
+    expect(out.room).toBeLessThan(400);
+    expect(out.condensed).toBeCloseTo(10_000 - out.room);
+    expect(BiomeApi.localHumidityFor(kitchen as unknown as Stuff)!).toBeCloseTo(100, 0);
+    // A second boil adds nothing: the air is saturated.
+    expect(BiomeApi.vent({ from: pot, material: vaporPath, litres: 1000 }).room).toBeCloseTo(0);
+    const contents = BiomeApi.resolveAtmosphereContentsFor(kitchen as unknown as Stuff);
+    expect(BiomeApi.hasBreathableShare(contents)).toBe(true);
+  });
+
   it('⭐ a copper of sugar liquor steams like a kettle: a SOLUTION boils off its solvent\'s vapor', async () => {
     standSolvent();
     seq += 1;
