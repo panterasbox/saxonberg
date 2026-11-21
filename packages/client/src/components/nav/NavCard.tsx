@@ -73,6 +73,22 @@ const Root = styled.div`
   color: ${tokens.color.fg};
 `;
 
+const StandingHere = styled.div`
+  font-size: ${tokens.font.small};
+  color: ${tokens.color.fgDim};
+`;
+
+const LinkButton = styled.button`
+  font: inherit;
+  padding: 0;
+  border: none;
+  background: none;
+  color: ${tokens.color.accent};
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+`;
+
 const Here = styled.div`
   font-family: ${tokens.font.serif};
   font-size: ${tokens.font.title};
@@ -113,11 +129,15 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     return zoneView(mapCopy, path, sections.localities?.chain.map((c) => c.address) ?? []);
   }, [mapCopy, sections.zone, sections.localities]);
 
+  const standingOnly =
+    !sections.building?.name && !sections.localities?.ship && (sections.building?.landed?.length ?? 0) > 0;
   // The summaries; a null one is a section that is absent.
   const summaries: Record<(typeof SECTION_ORDER)[number], string | null> = {
     zone: zoneSummary(sections),
     horizon: horizonSummary(sections),
-    structure: structureSummary(sections),
+    // Outdoors with only buildings standing by: a plain line, not a section
+    // that opens to say its own summary again.
+    structure: standingOnly ? null : structureSummary(sections),
     place: sections.place ? placeSummary(sections) : null,
     you: youSummary(sections),
   };
@@ -344,6 +364,25 @@ export function NavCard(props: NavCardProps): React.ReactElement {
         "nav:horizon",
       )}
 
+      {/* 5 · the structure — outdoors, only what stands here, each a look */}
+      {standingOnly ? (
+        <StandingHere data-testid="nav-standing-here">
+          Standing here:{" "}
+          {sections.building!.landed!.map((l, i) => (
+            <React.Fragment key={l.name}>
+              {i > 0 ? ", " : null}
+              <LinkButton
+                type="button"
+                onClick={() => run(structureLook(l.name))}
+                onMouseEnter={() => props.onCommandPreview?.(structureLook(l.name))}
+                onMouseLeave={() => props.onCommandPreview?.(null)}
+              >
+                {l.name}
+              </LinkButton>
+            </React.Fragment>
+          ))}
+        </StandingHere>
+      ) : null}
       {/* 5 · the structure */}
       {section(
         "structure",
