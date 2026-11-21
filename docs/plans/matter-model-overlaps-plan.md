@@ -1768,3 +1768,50 @@ Read these first, in this order.
 
 *(appended at build time — the blocking drive's output and what it found;
 the soak drive's name for the lane.)*
+
+### Drive record — 2026-11-20 (the blocking drive, `matter-model-overlaps.dirty.wire.test.ts`)
+
+**World:** fresh boot each time code or content changed (port 2019,
+`WIRE_BOOT=1 WIRE_KEEP_WORLD=1`, worktree DB dropped first); drive-only
+changes re-run on the standing world (`WIRE_REUSE=1`). Seven full runs:
+1 failed 15 · 2 failed 11 · 3 failed 7 · 4–5 (reused, dirty world) failed 8 ·
+6 failed 4 · **7 (fresh) failed 4 — 12 of 16 green.** The world is left
+standing after run 7.
+
+| # | result | what it found |
+|---|---|---|
+| 1 | ✅ | drive: a block takes both hands (a full pair SETS a handed/bought thing down), lime will not go in a shirt pocket (handed at the copper), `heat <pot>` is retired (`put copper on arch`); a cone of strike near the arch holds its heat (cooled 3 h); the crop is named by daylight (a glowcap is too dim). Code: the refiner's brain still said `heat copper` (000c9a4c4). |
+| 2 | ❌ | the cone sets and drains (the pot's own read now brings the cone's drain current — fa45f0e17, its read made a `reconcileThermal` for `lint:reconcile-chains`), but **every curing pot cracks when the first molasses lands in it**: a pour into an EMPTY vessel sets the vessel to the incoming temperature (`BulkableLogic.transfer` — the vessel's own heat capacity is not counted), so a drip a few kelvin off is a full step to `setContentsTemperature`'s shock (`Integrity.sufferThermalShock`), and a glazed pot cracks on each drip. Pre-dates this build (the sugar drain); the curing house's own pots are cracked by the refiner's batches. The honest fix is the calorimetric blend counting the vessel — which also chills a pour into a cold mould, so it was NOT made here (casting depends on the current shortcut). |
+| 3 | ✅ | code: a maple loaf in a sugar cone read "muscovado" — the loaf now names a non-cane material (f311270c4); `stir` was not afforded (b782589ca). |
+| 4 | ✅ | drive: brine staged at 0.34 kg/L (the row saturates at 0.317 and holds to 1.1×; the first draft's 0.37 started on its own, as D14 says); crystals already at the mouth counted first. |
+| 5 | ✅ | drive: Crowsfoot's standpipe draws nothing (no premises supply — a water-supply finding) and a pail is a craft vessel, not `WaterDrawable` (the wash help says "a pail"); water handed in a pail, wash water in a waterskin. |
+| 6 | ✅ | code: tasting a recipe-less batch (a still's cut) could never read its making (e1e139112); no line named a cask's cooper — the vat's own maker's mark (f311270c4). |
+| 7 | ✅ | drive: a loaf's look reads colour, not a band — the cast's grade read staged. |
+| 8 | ✅ | drive: a card's projection holds the world still, so `liters` looks first. 25 → 16.7 L in the hour; fitted, it holds. |
+| 9 | ✅ | drive: the crack's rate is by √head (4 L/h at a meter → 0.78 L in the half hour at 3.5 L), not 0.8 L flat. |
+| 10 | ✅ | code: the oak churn could not be washed (no Soilable — b0dcd3ab1); the first run passed on the memory's own fading. Now 0.77 → 0.49 OU. |
+| 11 | ❌ | the snag holes her by play; `bail` races it; `repair` patches her. Code: launching a boat floated her oars away and soaked her crew — `WaterPlace.mediumFor` read a craft afloat as immersed (ac2d671a3). **Red:** after the patch, bailed down, she lies in the choked reach's broken water and a sea puts her over (`Boat.reconcileFloat`, wave > freeboard) — an environment the step's choice of stretch makes (runs 4–5 capsized even before the snag); the Hesper half never runs. Needs a calmer snag or a re-planned stretch. |
+| 12 | ✅ | code: salt vaporized only when READ (7715a8ad4 — one wake at the computable moment); a kiln doused before anybody looked in vented the salt before the jug read it (the chamber now settles first). Drive: the nose names a salt fume by `pottery` (trained), smelt within the hour, fired 8 h (the potter unloads at 06:00). |
+| 13 | ❌ (half) | humidity 48 → 106 ✅ (code: steam now condenses past saturation — a boiling copper had made the floor unbreathable, 0cf788d8b). **Red:** no damp note in `smell here`/`analyze aroma` at saturation even after 99137b17c raised the row's strength — the boiling floor is 27 m³ at 3.1 air changes an hour, so its saturated air is ~0.15 kg of vapor; the damp aroma's strength vs the room's other notes wants tuning against a live read. |
+| 14 | ✅ | drive: `dryness` (not the unauthorable `_moisture`); code: a pot glazed inside and out took the wet hour's humid air as fast as bare terracotta (f311270c4). Under the hack cover no rain lands (film 0). |
+| 15 | ✅ | drive: ash bought and put in a heap at a time. |
+| 16 | ❌ (one line) | Crowsfoot and the creamery are plain Halls by their authored choice — the casks and the churn are carried to persistent rooms (staging) and read back there: cask memory, the marks, the mended cask's level, the churn's cream, the salt glaze and the terracotta's water all ✅. **Red:** "the Hesper lost her patch" only because step 11 never reached her. Crowsfoot's puddle does not survive (recorded). |
+
+**Code fixes (each with a unit test):** b782589ca · 0cf788d8b · ac2d671a3 ·
+e1e139112 · b0dcd3ab1 · 7715a8ad4 · 000c9a4c4 · fa45f0e17 · f311270c4 ·
+99137b17c (row tuning), and the snapshot 782f0d5fc. Drive: 0234a21d8,
+46e598d87.
+
+**B2 (each checkpoint broken once, on the standing world):** step 4 without
+the stir → "stirred, the brine set nothing"; step 8 without the hour → "25
+→ 25"; step 9 with the crack removed → "the cracked glazed crock held its
+water"; step 13 without the fire → "45.9 → 45.9". All four red at their own
+assertion.
+
+**World findings recorded, not this build's:** the curing pots crack on the
+first drip (row 2); `put jar in breast pocket` — the engine's own carrying
+hint — is refused "too many words" (it needs quotes); a hygrometer reads
+past 100 % (the bracket on a saturated room); a lit kiln holds the potter's
+shop at 2–13 % CO2 (a flued kiln venting into the room).
+
+**Soak drive for the lane:** `packages/wire/tests/matter-model-overlaps.soak.dirty.wire.test.ts`.
