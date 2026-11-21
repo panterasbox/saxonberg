@@ -1373,7 +1373,7 @@ function isAnotherPersonImpl(viewer: Stuff, target: Stuff): boolean {
  * query `sense` reads. ⚠ It NAMES (the same for everyone); the viewer's
  * listing is this through `perceives` (honest fog — D23).
  */
-const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
+const ROOM_LISTING = '~here:i:visible:[not mixin.AdornmentMixin] - me';
 
 /** An observation that took nothing in. */
 function emptyObservation(): Observation {

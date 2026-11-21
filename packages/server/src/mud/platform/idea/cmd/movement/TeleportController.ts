@@ -422,7 +422,7 @@ export default class TeleportController extends TeleportControllerBase {
     }
 
     // 3 — what is in front of you.
-    for (const scope of ["here", "peers", "reachable"]) {
+    for (const scope of ["here", "~peers", "~reachable"]) {
       const many = MqlApi.resolveMany(raw, { commandGiver, scope });
       if (many.stuff.length > 1) {
         return { stuff: null, ambiguous: true, anchor: "scope" };

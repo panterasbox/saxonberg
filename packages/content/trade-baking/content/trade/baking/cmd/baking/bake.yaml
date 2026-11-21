@@ -60,6 +60,6 @@ args:
     type: object
     required: false
     prepositions: [at, in, on]
-    default: "reachable:[mixin.BurnerMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BurnerMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [BurnerMixin]

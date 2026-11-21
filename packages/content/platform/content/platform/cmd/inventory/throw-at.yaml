@@ -29,7 +29,7 @@ args:
     # the parser claiming there is no rock. Narrowing this to
     # `inventory` silently deletes the teaching refusal; pinned by
     # `api/__tests__/command-binder-throw.test.ts`.
-    scope: "reachable"
+    scope: "~reachable"
     # Mass is what makes a thing throwable — and it is the ½mv² input.
     requires: TangibleMixin
     validators:
@@ -44,7 +44,7 @@ args:
     # fell through to "no known command shape". Found by live-driving;
     # no controller test can catch it, because controller tests skip the
     # binder entirely.
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     prepositions: [at]
     # ⭐ D17: see `throw-to.yaml`.
     prepositionRequired: true

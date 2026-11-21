@@ -23,7 +23,7 @@ args:
   - name: garment
     type: object
     required: true
-    scope: [inventory, reachable]
+    scope: ["~inventory", "~reachable"]
     requires: WearableMixin
   # ⭐ WHICH KIT — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
@@ -32,13 +32,13 @@ args:
     type: objects
     required: false
     prepositions: [with, at, on]
-    default: "reachable:[capability.mending]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.mending]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
 options:
   for:
     type: object
-    scope: [reachable]
+    scope: ["~reachable"]
     description: "Whose body to fit it to (defaults to you)"
     # `--for` is a BODY: the cut is stamped from its stature and
     # girth. Anything else has no measurements to take.

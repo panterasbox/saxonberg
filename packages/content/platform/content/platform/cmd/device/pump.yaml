@@ -29,7 +29,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: PumpableMixin|PumpSourceMixin
     # A name with a space in it is quoted — `pump "village well"`; the
     # binder's refusal says so (controller-liquidity D3).

@@ -36,16 +36,13 @@ import {
   type MqlQuantity,
   type RegistryScan,
 } from './types';
-import { getOnlineHolders } from './online-provider';
 import { parse, type MqlParseError } from './parser';
 import { isPredicateName, MQL_PREDICATES } from './predicates';
 import {
   candidatesForFlat,
   candidatesForHere,
-  candidatesForInventory,
   candidatesHeldBy,
   candidatesForPeers,
-  candidatesForPerson,
   candidatesForReachable,
   candidateFor,
   noteTouched,
@@ -202,9 +199,10 @@ function resolveInner(
 }
 
 /** Single words a keyword head promotes to a seed (see {@link resolveKeywordSeed}). */
-const SEED_WORDS: ReadonlySet<string> = new Set([
-  'inventory', 'online', 'world', 'peers', 'reachable', 'person', 'horizon',
-]);
+const SEED_WORDS: ReadonlySet<string> = new Set(['world']);
+
+/** The built-in relations with one referent — not a set (a bare `look` is the room). */
+const SINGLE_RELATIONS: ReadonlySet<string> = new Set(['here', 'it', 'him', 'her']);
 
 /**
  * ⭐ Did this query name a SET rather than search by NAME? True when no
@@ -219,9 +217,12 @@ function namesASet(ast: QueryNode): boolean {
     if (el.kind === 'literal') return false;
     // One referent is not a set: `here`, `me`, `it` and an id each name
     // ONE thing (a bare `look` is the room, not a list of it). `them` is.
-    if (el.kind === 'pronoun') return el.name === 'them';
+    if (el.kind === 'pronoun') return false;
     if (el.kind === 'stuffId' || el.kind === 'player' || el.kind === 'homePath') return false;
-    if (el.kind === 'relation' || el.kind === 'relations') return true;
+    // A relation names a set — except the ones with one referent
+    // (`~here` is the room, `~it` one thing).
+    if (el.kind === 'relation') return !SINGLE_RELATIONS.has(el.name);
+    if (el.kind === 'relations') return true;
     if (el.kind !== 'keywords') return true;
     if (el.words.length !== 1) return false;
     const w = el.words[0]!.toLowerCase();
@@ -231,7 +232,7 @@ function namesASet(ast: QueryNode): boolean {
   };
   // One referent stepped through a set (`me:i` — your contents) is a set.
   const oneReferent = (el: ChainElement): boolean =>
-    (el.kind === 'pronoun' && el.name !== 'them') ||
+    el.kind === 'pronoun' ||
     el.kind === 'stuffId' ||
     el.kind === 'player' ||
     el.kind === 'homePath';
@@ -391,8 +392,8 @@ let relationTie: RelationTie | null = null;
  * and the alternatives are the whole reason this is affordable.
  */
 const WORLD_REFUSED =
-  "'world' is not available here — anchor the query (reachable, here, " +
-  'person, inventory, online) or use a /path glob.';
+  "'world' is not available here — anchor the query on a relation " +
+  '(~reachable, ~here, ~person, ~inventory, ~all) or use a /path glob.';
 
 /**
  * The whole registry, for a caller entitled to it — and a record of what
@@ -494,31 +495,15 @@ function requireGiver(
   if (ctx.commandGiver === null) {
     throw new MqlResolveError(
       `${what} requires a viewer; a system (giver-less) query may only ` +
-        `use the viewer-free seeds (world, /path globs, #id, online)`,
+        `use the viewer-free seeds (world, /path globs, #id, @<player id>)`,
     );
   }
   return ctx.commandGiver;
 }
 
-function resolvePronoun(node: PronounNode, ctx: MqlContext): MqlMatch[] {
-  switch (node.name) {
-    case 'me':
-      return matchesFromStuff([requireGiver(ctx, "'me'")]);
-    case 'here': {
-      // ⭐ The PLACE, walking up past a boat, a cart or a bed
-      // (controller-liquidity D7); `me:e` is what immediately holds you.
-      const giver = requireGiver(ctx, "'here'");
-      const env = MixinApi.isContainable(giver)
-        ? giver.getEnclosingPlace()
-        : null;
-      return env ? matchesFromStuff([env]) : [];
-    }
-    case 'it':
-    case 'them':
-    case 'him':
-    case 'her':
-      return matchesFromStash(ctx, node.name);
-  }
+function resolvePronoun(_node: PronounNode, ctx: MqlContext): MqlMatch[] {
+  // `me` — the root every query is the asker's (D-B1).
+  return matchesFromStuff([requireGiver(ctx, "'me'")]);
 }
 
 function matchesFromStash(
@@ -546,59 +531,14 @@ function stashEntryToMatches(stored: MqlMany): MqlMatch[] {
 }
 
 function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
-  // Single-word seed promotions: `inventory`, `online`, `world`,
-  // `peers`, `reachable`.
-  if (node.words.length === 1) {
-    const w = node.words[0]!;
-    if (w === 'inventory') {
-      return matchesFromStuff([requireGiver(ctx, "'inventory'")]);
-    }
-    if (w === 'online') {
-      // `online` is ungated — listing who's playing is normal MUD
-      // social fabric (`who`-style commands), not a privacy concern.
-      // Future hide-from-listings infra (per-player opt-out) can
-      // layer on top without changing the seed itself.
-      return matchesFromStuff(allOnlineCommandGivers());
-    }
-    if (w === 'world') {
-      return matchesFromStuff(wholeRegistry('world'));
-    }
-    if (w === 'peers') {
-      return candidatesToMatches(
-        candidatesForPeers(requireGiver(ctx, "'peers'")),
-      );
-    }
-    if (w === 'reachable') {
-      return candidatesToMatches(
-        candidatesForReachable(requireGiver(ctx, "'reachable'")),
-      );
-    }
-    if (w === 'person') {
-      return candidatesToMatches(
-        candidatesForPerson(requireGiver(ctx, "'person'")),
-      );
-    }
-    if (w === 'horizon') {
-      return candidatesToMatches(candidatesForHorizon(ctx));
-    }
+  // `world` stays a word (system mode — D-B10); every other seed is a
+  // relation now (`~reachable`, `~peers`, …) and a bare word is a keyword.
+  if (node.words.length === 1 && node.words[0] === 'world') {
+    return matchesFromStuff(wholeRegistry('world'));
   }
-  // Otherwise: keyword search against the field's scope.
   return scopeKeywordSearch(node.words, ctx);
 }
 
-/**
- * Turn a candidate pool into seed matches. Dedup by `(stuff, via)` is
- * deferred to {@link finalize}, which keeps the highest-scored entry
- * per `stuffId`. Each candidate scores 100 — seed promotion is a
- * direct anchor, not a keyword match.
- */
-function candidatesToMatches(pool: ScopeCandidate[]): MqlMatch[] {
-  return pool.map((c) => {
-    const m: MqlMatch = { stuff: c.stuff, score: 100 };
-    if (c.via) m.via = c.via;
-    return m;
-  });
-}
 
 function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
   // A literal is one phrase that preserves whitespace: it binds what has
@@ -621,7 +561,7 @@ function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
  * Build the candidate pool for a scope MQL fragment. Two paths:
  *
  *   1. **Fast path** — the fragment is a recognized seed name (`here`,
- *      `peers`, `reachable`, `inventory`, `online`, `world`, `me`),
+ *      `~peers`, `~reachable`, `~inventory`, `world`, `me`),
  *      a path glob, a stuff id, or a comma-union of such tokens.
  *      Each token expands directly to its candidate pool.
  *
@@ -693,7 +633,7 @@ function candidatesFromQuery(
   try {
     matches = resolve(fragment, {
       commandGiver: ctx.commandGiver,
-      scope: 'reachable',
+      scope: '~reachable',
     });
   } catch {
     return [];
@@ -790,10 +730,22 @@ function candidatesForScopePart(
   // whose MATCHES are the candidates (D-B3) — `~here` contributes the
   // place, `~reachable:[class.CharterBook]:~ships` the ships, and nothing
   // else; no neighborhood walk.
-  if (part.startsWith('~') || part.startsWith('@')) {
+  // A bare built-in (`~reachable`, `~peers`) is that built-in's own pool,
+  // asked of the giver — detail subcandidates included (`sea`, a sign's
+  // `inscription`), which a resolved-and-deduped query would fold away.
+  const bare = /^~([a-z][a-z0-9_-]*)$/i.exec(part);
+  const builtin = bare ? BUILTIN_RELATIONS.get(bare[1]!.toLowerCase()) : undefined;
+  if (builtin !== undefined) {
+    const giver = requireGiver(ctx, `the '${part}' scope`);
+    return builtin.members(giver, ctx);
+  }
+  // ⭐ Only a scope that ENDS in a relation (`~reachable:[class.X]:~ships`)
+  // takes its matches as the candidates; a drilled focus
+  // (`~here:bookcase`) walks its anchor's neighborhood like any fragment.
+  if (/(^|:)~[a-z][a-z0-9_-]*\s*$/i.test(part) || /^@[\w-]+$/.test(part)) {
     let matches: MqlMatch[];
     try {
-      matches = resolve(part, { commandGiver: ctx.commandGiver, scope: 'reachable' });
+      matches = resolve(part, { commandGiver: ctx.commandGiver, scope: '~reachable' });
     } catch {
       // @quiet a scope that does not resolve contributes nothing; the binder says "you don't see that".
       return [];
@@ -802,30 +754,6 @@ function candidatesForScopePart(
   }
   const lower = part.toLowerCase();
   if (lower === 'here' || lower === '') return candidatesForHereScope(ctx);
-  if (lower === 'inventory') {
-    return candidatesForInventory(
-      requireGiver(ctx, "the 'inventory' scope"),
-    );
-  }
-  if (lower === 'peers') {
-    return candidatesForPeers(requireGiver(ctx, "the 'peers' scope"));
-  }
-  if (lower === 'reachable') {
-    return candidatesForReachable(
-      requireGiver(ctx, "the 'reachable' scope"),
-    );
-  }
-  if (lower === 'person') {
-    return candidatesForPerson(
-      requireGiver(ctx, "the 'person' scope"),
-    );
-  }
-  if (lower === 'horizon') return candidatesForHorizon(ctx);
-  if (lower === 'online') {
-    // Ungated for the same reason as the seed promotion above —
-    // who's online is normal social fabric, not privacy-tier info.
-    return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver);
-  }
   if (lower === 'world') {
     // ⚠ The scope keyword is never index-answerable: a scope is a
     // candidate POOL that later keyword matching runs over, so there is
@@ -853,16 +781,6 @@ function candidatesForScopePart(
   return null;
 }
 
-/**
- * ⭐ The `horizon` scope (maritime R4): what the giver can see from where
- * they stand that is NOT in their room — a fixed pool, like `here`,
- * computed synchronously over warm state (`PerceptionApi.horizonFor`).
- */
-function candidatesForHorizon(ctx: MqlContext): ScopeCandidate[] {
-  const giver = requireGiver(ctx, "the 'horizon' scope");
-  const view = PerceptionApi.horizonFor(giver);
-  return candidatesForFlat(view.things.map((t) => t.stuff), giver);
-}
 
 function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
   // The place, past any vessel (controller-liquidity D7) — and the
@@ -901,15 +819,7 @@ function applyChainOp(
  * meaning beyond what `:i` / `:e` already cover, and the dynamic
  * pronouns dispatch through the seed-shaped intersect path below.
  */
-const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
-  'online',
-  'inventory',
-  'world',
-  'peers',
-  'reachable',
-  'person',
-  'horizon',
-]);
+const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set(['world']);
 
 /**
  * Element-derivable seeds. Mid-chain, these flat-map over the prior
@@ -918,7 +828,7 @@ const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
  * results, and exclude the prior set's stuffIds from the union (so
  * "peers of these people" doesn't include those people).
  *
- * The fixed-pool seeds (`me`, `here`, `online`, `world`, paths,
+ * The fixed-pool seeds (`me`, `world`, paths,
  * stuff ids, `$$`, groups) take the intersection path — see
  * {@link intersectWithSeed}. The transforms `:i` / `:e` are
  * conceptually the same family as flat-map (already per-element);
@@ -927,12 +837,7 @@ const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set([
  * See `docs/subsystems/mql.md` and `docs/mql-grammar.md` for the
  * grammar-level rationale.
  */
-const ELEMENT_DERIVABLE_SEEDS: ReadonlySet<string> = new Set([
-  'peers',
-  'reachable',
-  'person',
-  'inventory',
-]);
+const ELEMENT_DERIVABLE_SEEDS: ReadonlySet<string> = new Set<string>([]);
 
 function applyColon(
   input: MqlMatch[],
@@ -1003,7 +908,7 @@ function applyColon(
 /**
  * Intersect the prior match list with the candidate set produced by
  * re-resolving `el` as a seed. Permission gates fire from the seed
- * resolution path (`flower:online` resolves for anyone).
+ * resolution path.
  */
 function intersectWithSeed(
   input: MqlMatch[],
@@ -1841,9 +1746,6 @@ function keywordsOf(stuff: Stuff): string[] {
   return [];
 }
 
-function allOnlineCommandGivers(): Stuff[] {
-  return getOnlineHolders();
-}
 
 function describeKind(kind: ChainElement['kind']): string {
   return kind;

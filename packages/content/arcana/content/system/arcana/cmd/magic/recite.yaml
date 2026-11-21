@@ -27,5 +27,5 @@ args:
   - name: scroll
     type: object
     required: true
-    scope: ["inventory", "peers"]
+    scope: ["~inventory", "~peers"]
     requires: [ArcaneMixin, MarkedMixin]

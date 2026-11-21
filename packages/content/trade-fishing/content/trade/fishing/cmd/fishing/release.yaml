@@ -12,12 +12,12 @@ args:
   - name: fish
     type: object
     required: true
-    scope: ["inventory"]
+    scope: ["~inventory"]
     requires: any
   - name: shore
     type: object
     required: false
     prepositions: [at, in, into]
-    default: "reachable:[mixin.ShoreMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ShoreMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: any

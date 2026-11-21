@@ -85,7 +85,7 @@ export abstract class RecordControllerBase<
 
     const person = MqlApi.resolveMany(asked, {
       commandGiver: context.commandGiver,
-      scope: 'reachable',
+      scope: '~reachable',
     }).stuff.find((s) => MixinApi.isPersona(s));
     const body = this.findBody(needle);
 

@@ -19,5 +19,5 @@ args:
   - name: field
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: SoilMixin

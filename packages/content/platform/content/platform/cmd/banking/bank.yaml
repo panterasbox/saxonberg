@@ -52,7 +52,7 @@ subcommands:
       - name: coins
         type: object
         required: true
-        scope: "inventory"
+        scope: "~inventory"
         requires: StackableMixin
   withdraw:
     controller: /platform/idea/cmd/banking/BankWithdrawController
@@ -91,5 +91,5 @@ subcommands:
         type: object
         required: true
         prepositions: [to]
-        scope: ["reachable", "online"]
+        scope: ["~reachable", "~all"]
         requires: any

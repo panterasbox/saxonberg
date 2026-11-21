@@ -34,8 +34,8 @@ args:
     # plough is a beam and a share heavier than a body carries, and it is
     # left at the headland of the field it works — it is the one tool that
     # is used where it lies.
-    default: "person:[capability.ploughing],reachable:[capability.ploughing]"
-    scope: ["reachable"]
+    default: "~person:[capability.ploughing],~reachable:[capability.ploughing]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach
@@ -48,6 +48,6 @@ args:
   - name: part
     type: object
     required: false
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     prepositions: [at]
     requires: SoilMixin

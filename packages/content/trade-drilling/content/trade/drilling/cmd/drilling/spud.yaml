@@ -31,8 +31,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "person:[capability.bailing],reachable:[capability.bailing]"
-    scope: ["inventory", "here", "peers", "person"]
+    default: "~person:[capability.bailing],~reachable:[capability.bailing]"
+    scope: ["~inventory", "here", "~peers", "~person"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

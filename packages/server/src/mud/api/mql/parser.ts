@@ -81,14 +81,12 @@ export class MqlParseError extends Error {
   }
 }
 
-const PRONOUN_NAMES: ReadonlySet<PronounName> = new Set<PronounName>([
-  'me',
-  'here',
-  'it',
-  'them',
-  'him',
-  'her',
-]);
+/**
+ * ⭐ The one pronoun the grammar keeps: `me`, the root (naming overhaul
+ * D-B1). `here`, `it`, `them`, `him`, `her` are relations now (`~here`,
+ * `~it`, …) and survive as removable default player aliases.
+ */
+const PRONOUN_NAMES: ReadonlySet<PronounName> = new Set<PronounName>(['me']);
 
 /**
  * Parse `input` (raw text, post-desugar) into an AST. Convenience
@@ -239,8 +237,7 @@ class Parser {
           t.start
         );
       case 'dollardollar':
-        this.advance();
-        return { kind: 'lastResult' };
+        throw new MqlParseError("'$$' is gone — your last result is '~last'", t.start);
       case 'playerId':
         this.advance();
         return { kind: 'player', id: t.value };
@@ -350,8 +347,7 @@ class Parser {
         return { kind: 'ordinal', index: n };
       }
       case 'dollardollar':
-        this.advance();
-        return { kind: 'lastResult' };
+        throw new MqlParseError("'$$' is gone — your last result is '~last'", t.start);
       case 'lparen':
         return this.parseGroup();
       case 'lbracket':

@@ -20,6 +20,6 @@ args:
     type: objects
     required: false
     prepositions: [with, using]
-    default: "reachable:[capability.marking]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.marking]"
+    scope: ["~reachable"]
     requires: [ToolMixin]

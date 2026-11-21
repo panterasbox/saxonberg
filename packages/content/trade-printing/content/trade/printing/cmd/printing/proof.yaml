@@ -16,5 +16,5 @@ args:
   - name: forme
     type: object
     required: true
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: any

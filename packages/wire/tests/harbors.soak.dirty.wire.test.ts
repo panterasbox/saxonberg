@@ -96,7 +96,7 @@ async function sailFor(s: Session, node: string, raised: RegExp, landmark: RegEx
     await advanceWorldClock('4 hours');
     heard += ' ' + squash(await s.listen(7_000).catch(() => ''));
     if (raised.test(heard)) break;
-    const horizon = await s.cmd('look horizon').then((r) => r.said());
+    const horizon = await s.cmd('look ~horizon').then((r) => r.said());
     heard += ' ' + squash(horizon) + ' ' + squash(await s.listen(2_000).catch(() => ''));
     if (raised.test(heard)) break;
     if (landmark.test(horizon)) {

@@ -1,6 +1,6 @@
 /**
  * `wary` brain — the detection *response* logic. Detection itself is folded
- * into the MQL `peers:living` query resolved at the sentry's `alertness`
+ * into the MQL `~peers:living` query resolved at the sentry's `alertness`
  * (the perceive half proven in `api/mql/__tests__/scope-walk.attention.test.ts`); here that
  * query is stubbed so the brain's OWN logic is under test: it challenges a
  * newly-detected intruder once (the seen-set delta), stays quiet while the
@@ -70,7 +70,7 @@ describe('wary brain — contract', () => {
     const c = ctx({ ...LINES, alertness: 7 });
     wary.act(c);
     expect(MqlApi.resolveMany).toHaveBeenCalledWith(
-      'peers:living',
+      '~peers:living',
       expect.objectContaining({ commandGiver: c.host }),
     );
     expect(PerceptionApi.perceives).toHaveBeenCalledWith(c.host, intruder, 7);

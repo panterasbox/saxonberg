@@ -51,7 +51,7 @@ subcommands:
       - name: worker
         type: object
         required: true
-        scope: ["reachable", "online"]
+        scope: ["~reachable", "~all"]
         requires: any
       - name: amount
         type: string
@@ -106,8 +106,8 @@ subcommands:
       type: object
       required: true
       scope:
-      - reachable
-      - online
+      - "~reachable"
+      - "~all"
       requires: class:Agent
       onExcess: prompt
     - name: position
@@ -158,8 +158,8 @@ subcommands:
       type: object
       required: true
       scope:
-      - reachable
-      - online
+      - "~reachable"
+      - "~all"
       requires: class:Agent
       onExcess: prompt
     - name: organization
@@ -273,7 +273,7 @@ subcommands:
       - name: thing
         type: object
         required: true
-        scope: ["reachable"]
+        scope: ["~reachable"]
         requires: any
       - name: ask
         type: string

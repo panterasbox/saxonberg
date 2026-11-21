@@ -13,12 +13,12 @@ args:
   - name: sheet
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: TintedMixin
   - name: pliers
     type: objects
     required: false
     prepositions: [with, using]
-    default: "reachable:[capability.grozing]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.grozing]"
+    scope: ["~reachable"]
     requires: [ToolMixin]

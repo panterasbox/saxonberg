@@ -32,6 +32,6 @@ args:
     type: objects
     required: false
     prepositions: [with, on, at]
-    default: "reachable:[capability.load]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[capability.load]"
+    scope: ["here", "~peers", "~person"]
     requires: [ToolMixin]

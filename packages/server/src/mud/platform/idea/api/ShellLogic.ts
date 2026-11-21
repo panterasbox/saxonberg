@@ -83,6 +83,17 @@ export class ShellLogic extends ApiLogic {
     return lookupSyntheticVarOf(giver, name);
   }
 
+  /** See {@link ShellApi.expandQueryAliases}. */
+  @CallSecurity(ShellApiCallers)
+  public expandQueryAliases(text: string, giver: Stuff): string {
+    if (!MixinApi.isAlias(giver)) return text;
+    const m = /^(\s*)([A-Za-z_][A-Za-z0-9_-]*)(\s*)(:.*)?$/s.exec(text);
+    if (m === null) return text;
+    const alias = giver.getAlias(m[2]!, 'query');
+    if (alias === undefined) return text;
+    return `${m[1]}${alias.body}${m[3]}${m[4] ?? ''}`;
+  }
+
   /** See {@link ShellApi.expandAliases}. */
   @CallSecurity(ShellApiCallers)
   public expandAliases(

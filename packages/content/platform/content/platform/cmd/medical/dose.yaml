@@ -19,7 +19,7 @@ args:
   - name: patient
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     requires: VitalsMixin
   # Bare default: every reachable vessel; the controller keeps the first
   # whose matter names an `antidote:<toxin>` tag — the CONTENTS, which no
@@ -28,8 +28,8 @@ args:
     type: object
     required: false
     prepositions: [with, using, from]
-    default: "reachable:[mixin.BulkableMixin]"
-    scope: ["inventory", "reachable"]
+    default: "~reachable:[mixin.BulkableMixin]"
+    scope: ["~inventory", "~reachable"]
     requires: [BulkableMixin]
   # ⭐ D9 — the prescription slip(s) the giver holds. The BINDER resolves
   # every reachable slip; the controller keeps the one that `isFor` this
@@ -39,6 +39,6 @@ args:
   - name: prescription
     type: objects
     required: false
-    default: "reachable:[mixin.PrescriptionMixin]"
-    scope: ["inventory", "reachable"]
+    default: "~reachable:[mixin.PrescriptionMixin]"
+    scope: ["~inventory", "~reachable"]
     requires: [PrescriptionMixin]

@@ -16,12 +16,12 @@ args:
   - name: bag
     type: object
     required: false
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: [BulkableMixin]
   - name: window
     type: object
     required: false
     prepositions: [at, to]
-    default: "reachable:[mixin.DonationBankMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.DonationBankMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [DonationBankMixin]

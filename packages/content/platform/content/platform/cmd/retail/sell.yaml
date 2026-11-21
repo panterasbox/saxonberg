@@ -26,13 +26,13 @@ args:
   - name: thing
     type: object
     required: true
-    scope: [inventory]
+    scope: ["~inventory"]
     requires: [ContainableMixin]
   - name: counter
     prepositionRequired: true
     type: object
     required: false
     prepositions: [to, at]
-    default: "reachable:[mixin.ConsignmentShelfMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ConsignmentShelfMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [ConsignmentShelfMixin]

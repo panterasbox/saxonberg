@@ -18,7 +18,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["~reachable"]
     updates_focus: extend
     prepositions: [at]
     onExcess: prompt

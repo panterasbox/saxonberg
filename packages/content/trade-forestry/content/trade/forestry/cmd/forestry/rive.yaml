@@ -41,7 +41,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: RivableMixin
   # What to rive a billet INTO — a recipe word. Optional: with one answer
   # installed there is nothing to choose.
@@ -58,6 +58,6 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "reachable:[capability.riving]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.riving]"
+    scope: ["~reachable"]
     requires: [ToolMixin]

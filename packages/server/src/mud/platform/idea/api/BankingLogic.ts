@@ -1266,11 +1266,11 @@ async function transferFeeFor(
  */
 function reachableCredential(actor: Stuff): PaymentCredential | null {
   const holder =
-    MqlApi.resolveMany("person", {
+    MqlApi.resolveMany("~person", {
       // The settling actor is a Character (a CommandGiver); the static
       // type at this seam is only `Stuff`.
       commandGiver: actor as Stuff & CommandGiver,
-      scope: "person",
+      scope: "~person",
     }).stuff.find((s): s is Stuff & CredentialWallet => {
       if (!MixinApi.isCredentialWallet(s)) return false;
       const pay = s.getCredential("payment");

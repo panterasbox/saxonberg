@@ -31,7 +31,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: SplittableMixin
     validators:
       - /lib/command/validators/canReach
@@ -41,8 +41,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "person:[mixin.ToolMixin]"
-    scope: ["reachable"]
+    default: "~person:[mixin.ToolMixin]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

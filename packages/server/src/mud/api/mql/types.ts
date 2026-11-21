@@ -347,7 +347,8 @@ export interface MqlManyResult extends MqlMany {
  * Pronoun keyword — recognized at the head of a chain. (Mid-chain
  * occurrences fall through to {@link KeywordsNode}.)
  */
-export type PronounName = 'me' | 'here' | 'it' | 'them' | 'him' | 'her';
+/** The one pronoun the grammar keeps (D-B1): the asker. */
+export type PronounName = 'me';
 
 /** One relation a holder answers, as `thing:~` lists it. */
 export interface RelationInfo {

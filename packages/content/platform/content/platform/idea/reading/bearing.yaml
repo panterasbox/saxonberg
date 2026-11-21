@@ -7,7 +7,7 @@
 # sail tells you where she lies and mends nothing.
 #
 # The subject must be in sight from your own eye — name it from the
-# horizon (`measure bearing light`, or `measure bearing horizon:light`).
+# horizon (`measure bearing light`, or `measure bearing ~horizon:light`).
 # The eye can judge a bearing roughly; the compass narrows it.
 class: /platform/idea/reading/BearingReading
 data:

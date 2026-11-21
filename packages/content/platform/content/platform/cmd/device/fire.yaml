@@ -46,8 +46,8 @@ args:
     type: object
     required: false
     prepositions: [in, at]
-    default: "reachable:[mixin.BurnerMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BurnerMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [BurnerMixin]
     validators:
       - /lib/command/validators/canReach

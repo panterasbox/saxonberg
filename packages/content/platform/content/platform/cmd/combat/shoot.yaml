@@ -34,7 +34,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: VisibleMixin
   - name: launcher
     type: object
@@ -43,6 +43,6 @@ args:
     # precedent: a bow on the ground must RESOLVE so the refusal can say
     # "you are not holding it" instead of the parser claiming there is no
     # bow.
-    scope: "reachable"
+    scope: "~reachable"
     prepositions: [with]
     requires: LauncherMixin

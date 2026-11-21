@@ -18,11 +18,11 @@ args:
   - name: loaf
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: [PercolatingMixin]
   - name: clay
     type: object
     required: true
     prepositions: [with, using]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: [TangibleMixin]

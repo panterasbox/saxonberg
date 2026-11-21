@@ -54,7 +54,7 @@ args:
     # ⭐ What is in hand first. With names just keywords (controllers-are-io W2) a
     # stranger's worn shirt ties your own, and `dry shirt` answered *no water in
     # a human* (the cleanliness drive).
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     # ⭐ `any`, deliberately, and now for a sharper reason than before: what
     # can dry is decided by whether the thing HAS a water state
     # (`MoistureMixin`), which the controller narrows and refuses in its own
@@ -77,10 +77,10 @@ args:
     # `in`/`into`: a compartment with its own air (the drying loft) is a
     # Container — a board put in it is its contents (size and carrying W9).
     prepositions: [on, onto, from, in, into]
-    scope: "reachable"
+    scope: "~reachable"
     # The support is optional: hanging a thing in the open air works, it is
     # simply slower. When one IS named it carries the exposure fraction.
-    default: "reachable:[class.DryingRack]"
+    default: "~reachable:[class.DryingRack]"
     requires: [ContainerMixin|PlacingMixin]
     validators:
       - /lib/command/validators/canReach

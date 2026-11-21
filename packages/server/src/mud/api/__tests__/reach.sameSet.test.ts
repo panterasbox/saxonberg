@@ -73,8 +73,8 @@ const put = (what: Stuff, where: Stuff): void =>
 
 /** MQL's `reachable` pool, whole, for `me`. */
 function mqlReachable(me: Person): Set<string> {
-  const ctx: MqlContext = { commandGiver: me as never, scope: 'reachable' };
-  return new Set(MqlApi.resolveMany('reachable', ctx).stuff.map((s) => s.stuffId));
+  const ctx: MqlContext = { commandGiver: me as never, scope: '~reachable' };
+  return new Set(MqlApi.resolveMany('~reachable', ctx).stuff.map((s) => s.stuffId));
 }
 
 /** Does the object refuse a hand (the lid, the pack on the back)? */
@@ -253,7 +253,7 @@ describe('reach is one list — MQL `reachable` ≡ canReach (W20)', () => {
       expect(among.length).toBe(300);
       expect(walk.mock.calls.length).toBe(1);
       walk.mockClear();
-      const ctx: MqlContext = { commandGiver: me as never, scope: 'peers' };
+      const ctx: MqlContext = { commandGiver: me as never, scope: '~peers' };
       expect(MqlApi.resolveMany('produce', ctx).stuff.length).toBe(300);
       expect(walk.mock.calls.length).toBe(1);
     } finally {

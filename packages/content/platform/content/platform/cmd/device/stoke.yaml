@@ -32,7 +32,7 @@ args:
   - name: fuel
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     updates_focus: extend
     requires: TangibleMixin
     validators:
@@ -42,8 +42,8 @@ args:
     type: object
     required: false
     prepositions: [into, in, on, with]
-    scope: ["here", "peers", "person"]
-    default: "reachable:[mixin.BurnerMixin]"
+    scope: ["here", "~peers", "~person"]
+    default: "~reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin
     validators:
       - /lib/command/validators/canReach

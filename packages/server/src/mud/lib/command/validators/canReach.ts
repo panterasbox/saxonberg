@@ -9,7 +9,7 @@
  * **Why the validator exists.** MQL's `scope:` declaration is a
  * search hint, not a security gate, and MQL names the same things for
  * everybody (D23): a query like `drop online:bob:i:sword` resolves to bob's
- * sword regardless of the YAML's `scope: "inventory"`. Validators on
+ * sword regardless of the YAML's `scope: "~inventory"`. Validators on
  * `type: object` / `type: objects` fields enforce world-state constraints
  * the resolver can't — "this thing must actually be in arm's reach" is the
  * canonical example.

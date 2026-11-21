@@ -71,7 +71,7 @@ args:
   - name: grain
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     # ⭐ Both shapes grain arrives in are Tangible: a discrete `Crop`
     # sack off a field, and a `Sack` of bulk off a counter. The mill
     # decides which by reading the MATERIAL's tags, never by class — so
@@ -109,6 +109,6 @@ args:
     type: object
     required: false
     prepositions: [at, with, on]
-    default: "reachable:[mixin.ComminutingMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ComminutingMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [ComminutingMixin]

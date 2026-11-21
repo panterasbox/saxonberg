@@ -47,7 +47,7 @@ args:
     # finds the one hanging from your belt — the source keeps only what it
     # holds. What you already hold in a hand is never picked up again (the
     # controller); what is on you comes to hand.
-    scope: ["peers", "reachable"]
+    scope: ["~peers", "~reachable"]
     requires: [VisibleMixin, ContainableMixin]
     validators:
       - /lib/command/validators/canReach
@@ -66,7 +66,7 @@ args:
     # `get holster from belt` takes it in hand) — on `peers`, `get lantern
     # from belt` searched a belt pouch lying on the floor (the drive). Held
     # to what you can reach, not merely to the room.
-    scope: "reachable"
+    scope: "~reachable"
     requires: [VisibleMixin, ContainerMixin|PlacingMixin]
     validators:
       - /lib/command/validators/canReach

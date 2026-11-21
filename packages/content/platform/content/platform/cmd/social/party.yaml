@@ -46,7 +46,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: "online"
+        scope: ["~peers", "~all"]
         requires: class:Agent
         onExcess: prompt
   enlist:
@@ -62,7 +62,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: ["reachable"]
+        scope: ["~reachable"]
         requires: class:Agent
         onExcess: prompt
   accept:
@@ -86,7 +86,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: "online"
+        scope: ["~peers", "~all"]
         requires: class:Agent
         onExcess: prompt
   disband:
@@ -105,7 +105,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: "online"
+        scope: ["~peers", "~all"]
         requires: class:Agent
         onExcess: prompt
   side:
@@ -155,7 +155,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: ["reachable", "online"]
+        scope: ["~reachable", "~all"]
         requires: class:Agent
         onExcess: prompt
   muster:

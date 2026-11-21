@@ -26,5 +26,5 @@ args:
   - name: player
     type: object
     required: true
-    scope: "online"
+    scope: ["~peers", "~all"]
     requires: class:Agent

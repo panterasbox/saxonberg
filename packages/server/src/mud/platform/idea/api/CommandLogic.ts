@@ -584,7 +584,11 @@ function viasAligned(r: MqlMany, kept: readonly Stuff[]): (MqlMatchVia | undefin
 function scopeTries(yamlScopes: readonly string[], giver: Stuff): string[] {
   const tries = yamlScopes.map((s) => ShellApi.expandVariables(s, giver));
   return tries.filter(
-    (t, i) => !(t.trim().toLowerCase() === 'here' && tries.slice(i + 1).some((u) => u.trim().toLowerCase() === 'reachable')),
+    (t, i) =>
+      !(
+        ['here', '~here'].includes(t.trim().toLowerCase()) &&
+        tries.slice(i + 1).some((u) => u.trim().toLowerCase() === '~reachable')
+      ),
   );
 }
 
@@ -1519,7 +1523,7 @@ export class CommandLogic extends ApiLogic {
     // own, so it widens to what is in reach.
     const seeds = (def?.scope ?? []).filter((x) => !x.startsWith('$'));
     const out = new Map<string, Stuff>();
-    for (const seed of seeds.length > 0 ? seeds : ['reachable']) {
+    for (const seed of seeds.length > 0 ? seeds : ['~reachable']) {
       try {
         for (const s of MqlApi.resolveMany(seed, { commandGiver: giver, scope: '' }).stuff) {
           out.set(s.stuffId, s);
@@ -1757,9 +1761,13 @@ export class CommandLogic extends ApiLogic {
     // below — they share the resolution shape but live in a
     // separate spec map.
     for (const [fname, def] of Object.entries(fieldDefs)) {
-      const raw = resolved[fname];
+      const typedRaw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
-      if (typeof raw !== 'string' || raw.length === 0) continue;
+      if (typeof typedRaw !== 'string' || typedRaw.length === 0) continue;
+      // ⭐ The player's query aliases respell the head word (`here` →
+      // `~here`, `it` → `~it` — naming overhaul D-B7); an authored
+      // default never carries one.
+      const raw = ShellApi.expandQueryAliases(typedRaw, giver);
 
       // ⭐ `thing:~` lists relations and binds nothing (D-B4): the slot
       // that lists (`lists: relations` — `query`'s) is handed the listing;
@@ -1771,7 +1779,7 @@ export class CommandLogic extends ApiLogic {
         }
         let listing: MqlMany;
         try {
-          listing = MqlApi.resolveMany(raw, { commandGiver: giver, scope: 'reachable' });
+          listing = MqlApi.resolveMany(raw, { commandGiver: giver, scope: '~reachable' });
         } catch (err) {
           // @quiet not silent: reported as the slot's `mql-error` note, as every resolve failure is.
           context.note({
@@ -2050,9 +2058,10 @@ export class CommandLogic extends ApiLogic {
     // INTO the target via that arg); an option saying `--mql foo`
     // is a side-channel reference, not an inspection drill.
     for (const [fname, def] of Object.entries(optionDefs)) {
-      const raw = resolved[fname];
+      const typedRaw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
-      if (typeof raw !== 'string' || raw.length === 0) continue;
+      if (typeof typedRaw !== 'string' || typedRaw.length === 0) continue;
+      const raw = ShellApi.expandQueryAliases(typedRaw, giver);
       // `thing:~` binds nothing (D-B4) — an option never lists.
       if (/:~\s*$/.test(raw)) {
         context.refuse({ reason: 'names-relations', facts: { query: raw } });
@@ -3097,7 +3106,7 @@ function bindWithSource(
   if (typeof typed === 'string' && typed !== ref) {
     let names: Stuff[] = [];
     try {
-      const named = MqlApi.resolveMany(typed, { commandGiver: giver, scope: 'reachable' });
+      const named = MqlApi.resolveMany(typed, { commandGiver: giver, scope: '~reachable' });
       names = PerceptionApi.perceived(giver, named.stuff, named.ordinal);
     } catch {
       names = [];

@@ -136,9 +136,9 @@ export abstract class CommandController<
     // ⭐ A screen you do not perceive is not one you drive (D23).
     const reachable = PerceptionApi.perceived(
       actor,
-      MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+      MqlApi.resolveMany('~reachable:[mixin.DisplayMixin]', {
         commandGiver: actor,
-        scope: 'reachable',
+        scope: '~reachable',
       }).stuff,
     ).filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
 
@@ -360,7 +360,7 @@ export abstract class CommandController<
     try {
       scored = MqlApi.resolveMany(text, {
         commandGiver: giver,
-        scope: 'reachable',
+        scope: '~reachable',
         admits: (s) => choices.includes(s as C),
       });
     } catch {

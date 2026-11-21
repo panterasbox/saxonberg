@@ -22,7 +22,7 @@ args:
   - name: patient
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     requires: VitalsMixin
   # ⭐ `for` is the marker, not content — declare it so `operate alice for
   # extraction` consumes "for" and binds the OPERATION to "extraction".
@@ -37,8 +37,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "person:[capability.surgery]"
-    scope: ["reachable"]
+    default: "~person:[capability.surgery]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

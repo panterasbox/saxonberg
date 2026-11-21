@@ -251,8 +251,8 @@ args:
     type: object
     required: false
     prepositions: [at]
-    scope: "reachable"
-    default: "reachable:[mixin.BurnerMixin]"
+    scope: "~reachable"
+    default: "~reachable:[mixin.BurnerMixin]"
 subcommands:
   wide:
     description: wide

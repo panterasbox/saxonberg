@@ -993,7 +993,7 @@ export interface FieldDefinition {
    * `scope: ['$focus', 'reachable']` so a drilled player searches
    * the focus first with the room as fallback. Verbs that should
    * ignore drill declare a non-`$focus` fragment (e.g.
-   * `scope: 'inventory'` for `drop`, `scope: 'peers'` for `get`).
+   * `scope: '~inventory'` for `drop`, `scope: '~peers'` for `get`).
    *
    * Default when omitted: `['$focus']` — the drill chain IS the
    * scope. The resolver's empty-scope fallback to `reachable`

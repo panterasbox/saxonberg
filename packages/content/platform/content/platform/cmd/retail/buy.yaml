@@ -51,6 +51,6 @@ args:
     type: object
     required: false
     prepositions: [from]
-    default: "reachable:[mixin.ForSaleMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ForSaleMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [ForSaleMixin]

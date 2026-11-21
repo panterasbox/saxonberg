@@ -76,7 +76,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     # ⭐ `any`, deliberately: a chandler dips out of a pot with a CAKE of
     # wax named (a plain Thing, not a good), and a potter dips a crock
     # (a Faced good). The BATH decides what it will take.
@@ -97,8 +97,8 @@ args:
     type: objects
     required: false
     prepositions: [in, into, from]
-    default: "reachable:[mixin.DipBathMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.DipBathMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [DipBathMixin]
   # …and the face said after the bath (`dip crock in bucket inside`).
   - name: side

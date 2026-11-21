@@ -43,8 +43,8 @@ subcommands:
         type: object
         required: true
         prepositions: [in]
-        default: "reachable:[class.HarborBook]"
-        scope: ["here", "peers", "person"]
+        default: "~reachable:[class.HarborBook]"
+        scope: ["here", "~peers", "~person"]
         requires: [PayableMixin]
 args:
   - name: ship
@@ -65,6 +65,6 @@ args:
     type: object
     required: true
     prepositions: [in]
-    default: "reachable:[class.HarborBook]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.HarborBook]"
+    scope: ["here", "~peers", "~person"]
     requires: [PayableMixin]

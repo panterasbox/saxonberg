@@ -15,7 +15,7 @@ args:
   - name: patron
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: [VisibleMixin, class:Agent]
   - name: cocktail
     type: string

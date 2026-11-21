@@ -77,7 +77,7 @@ const SCENE_TOPIC = 'sense.survey';
  * the room's structure, never the viewer. Shared with `look` (one rule;
  * the mql-predicate-parity slate's three copies, one query).
  */
-const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
+const ROOM_LISTING = '~here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {

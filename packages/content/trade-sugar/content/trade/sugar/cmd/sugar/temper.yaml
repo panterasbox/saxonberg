@@ -15,11 +15,11 @@ args:
   - name: copper
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: [BulkableMixin]
   - name: lime
     type: object
     required: true
     prepositions: [with, using]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: [TangibleMixin]

@@ -236,7 +236,7 @@ export class AddressLogic extends ApiLogic {
     const hit = MixinApi.isCommandGiver(giver)
       ? MqlApi.resolveMany(trimmed, {
           commandGiver: giver,
-          scope: 'reachable',
+          scope: '~reachable',
         }).stuff[0]
       : undefined;
     const reachable = hit?.getTemplatePath() ?? '';

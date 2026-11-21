@@ -98,7 +98,7 @@ describe('the binder compares keyword tiers across scope tries', () => {
   it('⭐ a whole-keyword hit in a LATER try beats a partial in an earlier one', async () => {
     const flask = thing(['flask', 'lamp oil'], world.giver);
     const lamp = thing(['lamp', 'oil lamp'], world.location);
-    const def = await view('trimish', '["inventory", "peers"]');
+    const def = await view('trimish', '["~inventory", "~peers"]');
     // `lamp` is only a whole word of the flask's "lamp oil" (tier 2) and IS
     // the lamp's keyword (tier 3): the room's lamp, though inventory is first.
     expect(await run(def, 'trimish lamp')).toBe(lamp);
@@ -108,21 +108,21 @@ describe('the binder compares keyword tiers across scope tries', () => {
   it('a TIE goes to the earlier try — that is what drill-first means', async () => {
     const mine = thing(['lamp'], world.giver);
     thing(['lamp'], world.location);
-    const def = await view('trimish', '["inventory", "peers"]');
+    const def = await view('trimish', '["~inventory", "~peers"]');
     expect(await run(def, 'trimish lamp')).toBe(mine);
   });
 
   it('⭐ drive 23: `cut ice` standing over a block cuts the block underfoot, not the one carried', async () => {
     thing(['ice', 'block', 'small block'], world.giver);
     const block = thing(['ice', 'block', 'ice block'], world.location);
-    const cut = await view('cutish', '["$focus", "here", "peers", "person"]');
+    const cut = await view('cutish', '["$focus", "here", "~peers", "~person"]');
     expect(await run(cut, 'cutish ice')).toBe(block);
   });
 
-  it('…while an in-hand act (`reachable`, person first) reaches the carried one first', async () => {
+  it('…while an in-hand act (`~reachable`, person first) reaches the carried one first', async () => {
     const carried = thing(['ice', 'block', 'small block'], world.giver);
     thing(['flake'], world.location);
-    const eat = await view('eatish', '[reachable]');
+    const eat = await view('eatish', '["~reachable"]');
     expect(await run(eat, 'eatish ice')).toBe(carried);
   });
 });

@@ -41,11 +41,11 @@ args:
   - name: target
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     # ⭐ Bare `heat` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
-    default: "reachable:[mixin.ManualBuildMixin]"
+    default: "~reachable:[mixin.ManualBuildMixin]"
     # ⭐ The thing says what the heat does to it (`HeatedMixin`,
     # controller-liquidity W7c): a build latches it, an instrument held in
     # the flame is sterilized. A vat that is not Heated is refused with the

@@ -149,8 +149,8 @@ describe('teleport — the anchored resolver (D10, AC16/AC17)', () => {
     expect(scopes).toEqual([
       '/studio/lounge/**',
       'here',
-      'peers',
-      'reachable',
+      '~peers',
+      '~reachable',
     ]);
   });
 

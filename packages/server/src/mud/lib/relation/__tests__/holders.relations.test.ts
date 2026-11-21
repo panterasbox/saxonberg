@@ -45,7 +45,7 @@ describe('holders answer relations (B2)', () => {
     const there = makeStuff(() => new Room());
     ContainmentApi.move(me as never, here as never);
     ContainmentApi.move(iffy as never, there as never);
-    me.addContact({ kind: 'avatar', playerId: 'iffy1', label: 'friends' });
+    me.addContact({ kind: 'avatar', playerId: 'iffy1', label: 'friends', source: 'self', addedAt: 0 });
     // The change subscription is the registry's (a database); stand it in.
     vi.spyOn(GroupApi, 'onMembershipChange').mockResolvedValue({ cancel: () => undefined });
   });
@@ -64,7 +64,7 @@ describe('holders answer relations (B2)', () => {
   it('a list named for a built-in never masks it: ~inventory is still what is carried', () => {
     const apple = makeStuff(() => new Thing());
     ContainmentApi.move(apple as never, me as never);
-    me.addContact({ kind: 'avatar', playerId: 'iffy1', label: 'inventory' });
+    me.addContact({ kind: 'avatar', playerId: 'iffy1', label: 'inventory', source: 'self', addedAt: 0 });
     expect(ids(resolve('@me1:~inventory', { commandGiver: me, scope: '' }))).toEqual([apple.stuffId]);
   });
 
@@ -89,7 +89,7 @@ describe('holders answer relations (B2)', () => {
   });
 
   it('a list and a group of one name are a tie, each match saying its set', async () => {
-    me.addContact({ kind: 'avatar', playerId: 'iffy1', label: 'bookclub' });
+    me.addContact({ kind: 'avatar', playerId: 'iffy1', label: 'bookclub', source: 'self', addedAt: 0 });
     vi.spyOn(Group, 'find').mockResolvedValue([
       Object.assign(new Group(), { _id: 'g1', name: 'bookclub', memberIds: ['me1', 'iffy1'] }),
     ] as never);

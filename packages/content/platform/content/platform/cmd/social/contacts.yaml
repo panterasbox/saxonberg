@@ -34,7 +34,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: "online"
+        scope: ["~peers", "~all"]
         requires: class:Agent
         onExcess: prompt
       - name: label

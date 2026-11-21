@@ -25,5 +25,5 @@ args:
     # the very first `focus <thing>` from a Fresh `here`-default
     # focus would resolve 0 candidates (the location's own surface
     # doesn't expose its contents — that's `reachable`'s job).
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     requires: any

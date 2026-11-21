@@ -47,7 +47,7 @@ args:
   - name: source
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     # What is poured need not hold bulk: an ingredient goes into a build
     # whole. The TARGET says what it will take, in its own words.
     requires: VisibleMixin
@@ -56,10 +56,10 @@ args:
   - name: target
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     prepositions: [into, in, to]
     # ⭐ Bare `pour` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
-    default: "reachable:[mixin.ManualBuildMixin]"
+    default: "~reachable:[mixin.ManualBuildMixin]"
     requires: PourTargetMixin

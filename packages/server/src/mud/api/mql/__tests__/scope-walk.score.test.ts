@@ -181,9 +181,9 @@ describe('reachable:net — the whole-word tier in situ (fishing B8)', () => {
     ContainmentApi.move(angler, room);
     ContainmentApi.move(keepnet, angler);
     ContainmentApi.move(net, room);
-    const ctx = { commandGiver: angler as never, scope: 'reachable' as const };
-    const many = MqlApi.resolveMany('reachable:net', ctx);
+    const ctx = { commandGiver: angler as never, scope: '~reachable' as const };
+    const many = MqlApi.resolveMany('~reachable:net', ctx);
     expect(many.stuff.map((s) => s.stuffId)).toContain(net.stuffId);
-    expect(MqlApi.resolveOne('reachable:net', ctx).stuff?.stuffId).toBe(net.stuffId);
+    expect(MqlApi.resolveOne('~reachable:net', ctx).stuff?.stuffId).toBe(net.stuffId);
   });
 });

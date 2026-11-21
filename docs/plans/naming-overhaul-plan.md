@@ -1018,6 +1018,32 @@ refuses saying how to reach them and `dm @<id> hi` arrives; `goto
 binder suites green on the new spellings.
 *Commit:* `build(naming-overhaul WB3a): seeds are relations; online is gone`.
 
+✅ **Done.** 282 views respelled by script (every scope/default chain head
+gains `~`; `here:` chains → `~here:`; the scope WORD `here` left for B3b;
+`$$` → `~last`); `online` per D-B10 by one generic rule (speech verbs →
+`~peers`; `dm` → `~here, ~all`; a list already holding `~reachable`/`~peers`
+→ `~all`; else `~peers, ~all`). 69 source files respelled at their
+`resolveMany`/`scope:` call sites, plus the constants a call-site scan
+cannot see (`ROOM_LISTING`, teleport's try-list, pour's default test, the
+binder's `~reachable` fallback). The grammar keeps `me`, `world`, paths, ids
+and the operators; `here`/`it`/`them`/`him`/`her`, the seed words, `$$`, the
+mid-chain seed flat-maps (`x:peers`) and the **`:online` predicate** are
+gone; `online-provider`/`online-wire` deleted. `broadcast` and the Compact's
+listing read `PlayerApi.connectedAvatars()`; an `mql:` group resolves in
+system mode over `/platform/agent/Avatar`. Decided: **a bare built-in scope
+(`~reachable`) serves the built-in's own pool** (keeps detail
+subcandidates); **only a scope ENDING in a relation takes its matches as
+candidates** — a drilled focus (`~here:bookcase`) still walks its anchor's
+neighborhood. **The focus defaults to `~here`**; `CommandGiver`'s offered
+source form names the immediate holder `me:e` (not `here`). `~here`,
+`~it`, `~him`, `~her` are one referent (not a set — a bare `look` is the
+room). Query aliases: `?name` keys in the alias table, `alias set|unset
+--query`, defaults `here` (Mobile) and `it`/`them`/`him`/`her` (Focused),
+expanded by `ShellApi.expandQueryAliases` for every typed object slot and a
+`source::verb` source. ⚠ The docs (`mql-grammar.md`, `mql.md`,
+`shell-alias.md`) are respelled in C7's doc pass, with everything else
+that pass touches.
+
 **B3b — `here` splits: 142 slots say what they meant.**
 *Decisions:* D-B3.
 *Size, honestly:* 142 slots in 120 view files across the platform pack and

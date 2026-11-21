@@ -237,7 +237,7 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
   ): Promise<void> {
     const giver = context.commandGiver as Stuff;
     if (!MixinApi.isCommandGiver(giver)) return;
-    const good = MqlApi.resolveOne(phrase, { commandGiver: giver, scope: "inventory" }).stuff;
+    const good = MqlApi.resolveOne(phrase, { commandGiver: giver, scope: "~inventory" }).stuff;
     if (!good || !MixinApi.isChattel(good)) {
       return this.fail(context, `You carry no '${phrase}' with a title to hand on.`, "no-good");
     }

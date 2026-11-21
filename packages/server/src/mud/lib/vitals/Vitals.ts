@@ -576,9 +576,9 @@ function remedyOf(item: Stuff): Treatment | null {
  */
 function treatmentFrom(req: TreatmentRequest): Treatment {
   if (req.offered) return remedyOf(req.offered) ?? { by: 'medicine' };
-  const reachable = MqlApi.resolveMany('reachable', {
+  const reachable = MqlApi.resolveMany('~reachable', {
     commandGiver: req.by as never,
-    scope: 'reachable',
+    scope: '~reachable',
   }).stuff;
   // ⭐ Used WHERE IT SITS (size and carrying D-W10-1; finalize run 16): a
   // bandage in an open medic's pouch on your belt is to hand, one behind

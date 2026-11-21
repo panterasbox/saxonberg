@@ -57,7 +57,7 @@ args:
     required: false
     greedy: true
     prepositions: [with, using]
-    default: "reachable:[mixin.ToolMixin]"
+    default: "~reachable:[mixin.ToolMixin]"
 `;
 
 function bind(text: string): Record<string, unknown> {

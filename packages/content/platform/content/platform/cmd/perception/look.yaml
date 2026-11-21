@@ -31,14 +31,14 @@ examples:
     note: Read the sign without changing focus
 args:
   # ⭐ ONE thing (maritime revision 2′): *what is this like?* A name that
-  # matches several asks which (`onExcess: prompt`); a SET (`look horizon`,
+  # matches several asks which (`onExcess: prompt`); a SET (`look ~horizon`,
   # `look all brass`) is refused in words that point at `query` — listing
   # a set is `query`'s. Revision 2 made this plural, and
   # the engine had to guess which job you meant.
   - name: target
     type: object
     required: false
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     updates_focus: extend
     prepositions: [at, in, inside]
     # `look at the ground`: the binder folds the article into the next

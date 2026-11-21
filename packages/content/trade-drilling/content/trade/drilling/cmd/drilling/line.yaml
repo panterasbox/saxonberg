@@ -26,8 +26,8 @@ args:
   - name: hole
     type: object
     required: false
-    default: "reachable:[mixin.GroundPointMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.GroundPointMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [GroundPointMixin]
   - name: rig
     prepositionRequired: true
@@ -36,8 +36,8 @@ args:
     # ⚠ `at` only: `with`/`using` name the liner (they collided, so
     # `line with liner` bound the rig's slot — controller-liquidity W12).
     prepositions: [at]
-    default: "reachable:[capability.derrick]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[capability.derrick]"
+    scope: ["here", "~peers", "~person"]
     requires: [ToolMixin]
   - name: liner
     prepositionRequired: true
@@ -46,8 +46,8 @@ args:
     prepositions: [with, using]
     # ⚠ The liner by name, never "the first thing in your pack" — the hole
     # destroyed whatever bound (C8). `canLine` refuses anything else.
-    default: "person:liner"
-    scope: ["inventory", "reachable"]
+    default: "~person:liner"
+    scope: ["~inventory", "~reachable"]
     requires: TangibleMixin
     validators:
       - /lib/command/validators/canReach

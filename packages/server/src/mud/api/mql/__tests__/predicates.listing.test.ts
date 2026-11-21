@@ -63,15 +63,15 @@ describe('`:worn` and `:carried` partition a holder', () => {
   });
 
   it('a room\'s contents occupy no slot of a non-Slotted room: all carried, none worn', () => {
-    expect(q('here:i:worn')).toEqual([]);
-    expect(q('here:i:carried')).toEqual(ids([bob, desk, ledger]));
+    expect(q('~here:i:worn')).toEqual([]);
+    expect(q('~here:i:carried')).toEqual(ids([bob, desk, ledger]));
   });
 });
 
 describe('`:loose` delegates to the holder\'s getLooseContents()', () => {
   it('⭐ the ledger placed ON the desk is not loose; the desk is', () => {
     vi.spyOn(room, 'getLooseContents').mockImplementation(() => [bob, desk]);
-    expect(q('here:i:loose')).toEqual(ids([bob, desk]));
+    expect(q('~here:i:loose')).toEqual(ids([bob, desk]));
   });
 });
 
@@ -82,6 +82,6 @@ describe('`:visible` — a CLASS word: composes Visible (D23)', () => {
 
   it('⚠ it does not ask whether the giver perceives it — the surface does (meaning changed at W3)', () => {
     vi.spyOn(PerceptionApi, 'perceives').mockImplementation((_v, t) => t !== desk);
-    expect(q('here:i:visible - me')).toContain(desk.stuffId);
+    expect(q('~here:i:visible - me')).toContain(desk.stuffId);
   });
 });

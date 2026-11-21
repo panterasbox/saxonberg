@@ -63,6 +63,6 @@ subcommands:
       - name: on
         type: object
         required: false
-        scope: "peers"
+        scope: "~peers"
         prepositions: [on]
         requires: DisplayMixin

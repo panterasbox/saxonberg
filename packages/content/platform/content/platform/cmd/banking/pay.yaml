@@ -20,7 +20,7 @@ args:
   - name: recipient
     type: object
     required: true
-    scope: ["reachable", "online"]
+    scope: ["~reachable", "~all"]
     requires: any
   # ⚠ OPTIONAL: absent is meaningful only at a recipient
   # that keeps your bills (`Payable`); anywhere else the controller asks

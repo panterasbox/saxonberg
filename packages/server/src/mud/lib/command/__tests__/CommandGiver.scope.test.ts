@@ -243,7 +243,7 @@ describe('source::verb at the dispatcher', () => {
       // The scoped form is PROVED: it resolves to exactly that source.
       const proved = MqlApi.resolveMany(offered!.scopedForm, {
         commandGiver: world.giver,
-        scope: 'reachable',
+        scope: '~reachable',
       }).stuff;
       expect(proved).toEqual([far]);
     });

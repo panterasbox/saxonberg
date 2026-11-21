@@ -756,7 +756,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       }
       let resolved;
       try {
-        resolved = MqlApi.resolveMany(parsed.scope, { commandGiver: giver, scope: 'reachable' });
+        resolved = MqlApi.resolveMany(ShellApi.expandQueryAliases(parsed.scope, giver), { commandGiver: giver, scope: '~reachable' });
       } catch (err) {
         return {
           ok: false,
@@ -1952,7 +1952,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
     /**
      * The source form (`<source>::verb`) that names `source` for this giver, by one rule —
-     * `me` · `me:i:<handle>` · `here` · `here:i:<handle>` · `<handle>`,
+     * `me` · `me:i:<handle>` · `me:e` · `me:e:i:<handle>` · `<handle>`,
      * with MQL's index (`here:i:wheat:[2]`) when the handle alone is
      * ambiguous — PROVED by resolving it once. `#<id>` when no worded
      * form proves out.
@@ -1966,7 +1966,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       const giver = this as unknown as Stuff & CommandGiver;
       if (source === giver) return 'me';
       const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-      if (source === here) return 'here';
+      // ⭐ What immediately holds you is `me:e` (naming overhaul D-B3: `~here`
+      // is the enclosing PLACE, which may lie past a boat or a bed).
+      if (source === here) return 'me:e';
       const byId = `#${source.stuffId}`;
       const handle = MixinApi.isPerceptible(source) ? source.getPrimaryKeyword() : null;
       if (!handle) return byId;
@@ -1974,10 +1976,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // ⚠ The `:[n]` below indexes MQL's UNIVERSAL list (D23), so the proof
       // resolves unfiltered — the index means the same for everyone.
       if (!PerceptionApi.perceives(giver, source)) return byId;
-      const base = isWithin(source, giver) ? 'me:i:' : here && isWithin(source, here) ? 'here:i:' : '';
+      const base = isWithin(source, giver) ? 'me:i:' : here && isWithin(source, here) ? 'me:e:i:' : '';
       const resolve = (form: string): Stuff[] => {
         try {
-          return MqlApi.resolveMany(form, { commandGiver: giver, scope: 'reachable' }).stuff;
+          return MqlApi.resolveMany(form, { commandGiver: giver, scope: '~reachable' }).stuff;
         } catch {
           return [];
         }

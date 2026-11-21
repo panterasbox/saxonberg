@@ -41,7 +41,7 @@ args:
     # ⭐ Greedy, as `get`/`drop`'s are: a count and a noun (`put 1 clay in
     # tub`) bind together, split at the preposition — without it that line
     # matched no shape of `put` at all (the ceramics drive).
-    scope: "inventory"
+    scope: "~inventory"
     requires: ContainableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
@@ -58,7 +58,7 @@ args:
     # stands there), so `put boot-mould in oven` matched the works floor's
     # own `oven` detail and set the mould on the floor (finalize run 16, the
     # rubber drive). `reachable` last still names the place, a door, a way.
-    scope: ["person", "peers", "reachable"]
+    scope: ["~person", "~peers", "~reachable"]
     # ⭐ One word per placement member this verb accepts, plus region
     # zero's. `pnpm -C packages/server lint:placement-words --list` is
     # what tells an author which verbs need a new member's word — a verb

@@ -27,7 +27,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustBeEdible
@@ -41,6 +41,6 @@ args:
     type: objects
     required: false
     prepositions: [with, using]
-    default: "reachable:[mixin.CutleryMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.CutleryMixin]"
+    scope: ["~reachable"]
     requires: [CutleryMixin]

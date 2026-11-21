@@ -29,7 +29,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: [inventory, reachable]
+    scope: ["~inventory", "~reachable"]
     requires: DyedMixin
   # ⭐ WHICH BATH — DECLARED, not hunted (C9, controller-liquidity W11).
   # It was a bare word (`with alum`) that bound nothing and cost nothing;
@@ -41,6 +41,6 @@ args:
     type: objects
     required: false
     prepositions: [in, with, at]
-    default: "reachable:[mixin.BulkableMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BulkableMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [BulkableMixin]

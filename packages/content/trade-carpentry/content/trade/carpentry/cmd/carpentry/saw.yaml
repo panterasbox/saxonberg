@@ -46,7 +46,7 @@ args:
   - name: log
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: TangibleMixin
   # ⭐⭐ WHICH SAW, declared rather than hunted (`lint:controller-resolution`).
   # ⚠ The query is the CAPABILITY, not `[class.Sawmill]`: a pit saw and a
@@ -58,8 +58,8 @@ args:
     type: object
     required: false
     prepositions: [at, with, on]
-    default: "reachable:[capability.sawing]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.sawing]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
 # ⚠ The cut is an OPTION, not a positional word: a bare string positional
 # before a defaulted object is the binder's phrase-shape defect (it would

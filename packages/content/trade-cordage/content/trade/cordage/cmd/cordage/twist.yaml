@@ -24,7 +24,7 @@ args:
   - name: stock
     type: objects
     required: false
-    scope: ["inventory"]
+    scope: ["~inventory"]
     requires: any
   # ⭐ The jack — DECLARED, never hunted (`lint:controller-resolution`).
   - name: jack
@@ -32,8 +32,8 @@ args:
     type: object
     required: false
     prepositions: [on, at, with]
-    default: "reachable:[capability.ropelaying]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[capability.ropelaying]"
+    scope: ["here", "~peers", "~person"]
     requires: [ToolMixin]
 options:
   yarns:

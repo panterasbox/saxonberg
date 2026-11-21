@@ -68,7 +68,7 @@ describe('LookController — detail rendering', () => {
   });
 
   it('look bookcase renders the bookcase detail (top-level)', () => {
-    const target = buildResult(world, 'bookcase', 'here');
+    const target = buildResult(world, 'bookcase', '~here');
     expect(target.via?.detailPath).toEqual(['bookcase']);
 
     const controller = makeStuff(() => new LookController());
@@ -76,9 +76,9 @@ describe('LookController — detail rendering', () => {
   });
 
   it('look bookcase:book renders the nested book detail', () => {
-    // Drill via the chain: `here:bookcase:book` lands the
+    // Drill via the chain: `~here:bookcase:book` lands the
     // location with via=['bookcase', 'book'].
-    const target = buildResult(world, 'here:bookcase:book', 'here');
+    const target = buildResult(world, '~here:bookcase:book', '~here');
     expect(target.via?.detailPath).toEqual(['bookcase', 'book']);
 
     const controller = makeStuff(() => new LookController());
@@ -93,7 +93,7 @@ describe('LookController — detail rendering', () => {
       setDetail: (ids: string[], desc: string) => void;
     }).setDetail(['engraving'], 'A small heart, scratched into the skin.');
 
-    const target = buildResult(world, 'me:i:apple:engraving', 'here');
+    const target = buildResult(world, 'me:i:apple:engraving', '~here');
     expect(target.stuff?.stuffId).toBe(world.apple.stuffId);
     expect(target.via?.detailPath).toEqual(['engraving']);
 
@@ -163,7 +163,7 @@ describe('LookController — look observes once (controller-liquidity W8)', () =
 
   it('a detail and the ledger observe nothing (they write nothing)', async () => {
     const observe = vi.spyOn(PerceptionApi, 'observe');
-    await run(buildResult(world, 'bookcase', 'here'), 'look bookcase');
+    await run(buildResult(world, 'bookcase', '~here'), 'look bookcase');
     await run({ stuff: world.apple, raw: 'apple', prep: 'in' }, 'look in apple');
     expect(observe).not.toHaveBeenCalled();
   });

@@ -31,7 +31,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: any
   # ⭐ WHAT WITH — DECLARED (`lint:controller-resolution`): a broom for a floor,
   # a flue brush for a chimney; bare hands work, slowly.
@@ -40,8 +40,8 @@ args:
     type: objects
     required: false
     prepositions: [with, using]
-    default: "person:[capability.sweeping or capability.flue-brushing],reachable:[capability.sweeping or capability.flue-brushing]"
-    scope: ["reachable"]
+    default: "~person:[capability.sweeping or capability.flue-brushing],~reachable:[capability.sweeping or capability.flue-brushing]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

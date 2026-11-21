@@ -58,9 +58,9 @@ export abstract class ForumControllerBase extends CommandController<ForumModel> 
     const forums =
       PerceptionApi.perceived(
         context.commandGiver,
-        MqlApi.resolveMany('person', {
+        MqlApi.resolveMany('~person', {
           commandGiver: context.commandGiver,
-          scope: 'person',
+          scope: '~person',
         }).stuff,
       ).find((s): s is Stuff & Forums => MixinApi.isForums(s)) ?? null;
     if (forums) return false;

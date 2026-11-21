@@ -18,13 +18,13 @@ args:
   - name: heap
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: any
   - name: midden
     prepositionRequired: true
     type: object
     required: false
     prepositions: [in, on, onto, into]
-    default: "reachable:[mixin.BulkableMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BulkableMixin]"
+    scope: ["here", "~peers", "~person"]
     requires: [BulkableMixin]

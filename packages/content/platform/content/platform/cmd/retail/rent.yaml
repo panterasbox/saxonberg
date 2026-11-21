@@ -37,7 +37,7 @@ args:
   - name: boat
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["here", "~peers", "~person"]
     requires: [SmallCraftMixin]
   # ⭐ HOW LONG — `for 2 days`, `for a day`. Optional: a day.
   # ⚠ `greedy: true` — "2 days" is two tokens and one span.
@@ -57,6 +57,6 @@ args:
     type: object
     required: false
     prepositions: [at]
-    default: "reachable:[class.HireBook]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.HireBook]"
+    scope: ["here", "~peers", "~person"]
     requires: [VisibleMixin]

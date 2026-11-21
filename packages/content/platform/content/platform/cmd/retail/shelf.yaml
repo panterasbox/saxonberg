@@ -37,7 +37,7 @@ subcommands:
       type: object
       required: true
       scope:
-      - inventory
+      - "~inventory"
       requires:
       - ChattelMixin
     - name: shelf
@@ -45,11 +45,11 @@ subcommands:
       required: false
       prepositions:
       - 'on'
-      default: reachable:[mixin.ConsignmentShelfMixin]
+      default: "~reachable:[mixin.ConsignmentShelfMixin]"
       scope:
       - here
-      - peers
-      - person
+      - "~peers"
+      - "~person"
       requires:
       - ConsignmentShelfMixin
     options:
@@ -79,10 +79,10 @@ subcommands:
       required: false
       prepositions:
       - from
-      default: reachable:[mixin.ConsignmentShelfMixin]
+      default: "~reachable:[mixin.ConsignmentShelfMixin]"
       scope:
       - here
-      - peers
-      - person
+      - "~peers"
+      - "~person"
       requires:
       - ConsignmentShelfMixin
