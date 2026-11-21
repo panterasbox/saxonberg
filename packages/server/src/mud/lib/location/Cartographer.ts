@@ -350,7 +350,11 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         const viewerKey = this.mapOwnerKey();
         if (!viewerKey) return;
         const source = via.getSource() as unknown as Stuff;
-        const from = source?.getDurableHandle();
+        // The room's MAP handle — a lounge bud has no durable identity but
+        // is still a place on your map (Place.mapSubject).
+        const from = source?.isPlace()
+          ? ((source as unknown as Place).mapSubject()?.place ?? null)
+          : source?.getDurableHandle();
         const locality = from ? await this.localityAddressOf(source) : null;
         const now = NavigationApi.mapNow();
         // ⭐ The room you walked INTO is written whatever the room you left

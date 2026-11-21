@@ -135,6 +135,25 @@ suite('navigation card — the wire drive', () => {
   let walker: { s: Session; nav: NavClient };
   const walkerHandle = uniqueHandle('navc-walker');
 
+  it('0 · a fresh player in the lounge: the lounge is on their map, and so is the way out of it', async () => {
+    // Every lounge is a bud of ONE row with no identity of its own; it is
+    // still a place, filed under its row (owner, review).
+    const LOUNGE = '/world/lounge/location/lounge';
+    const fresh = await session(uniqueHandle('navc-fresh'), LOUNGE);
+    expectOk(await run(fresh, 'look', '0'));
+    await beat();
+    await expect.poll(() => placeClaims(fresh.nav, LOUNGE).length, { timeout: 15_000 }).toBeGreaterThan(0);
+    expectOk(await run(fresh, 'north', '0'));
+    await beat();
+    await expect
+      .poll(
+        () => fresh.nav.claims((c) => c.kind === 'edge' && typeof c.place !== 'string' && c.place.path === LOUNGE && c.dir === 'north').length,
+        { timeout: 15_000 },
+      )
+      .toBeGreaterThan(0);
+    record.push(`0: lounge claims ${JSON.stringify(placeClaims(fresh.nav, LOUNGE).map((c) => [c.channel, c.at]))}`);
+  }, 120_000);
+
   it('1 · into the Delve with a lamp: each place is filed under the Last Counted Mile, with its zone, cell and level', async () => {
     walker = await session(walkerHandle, TREELINE, { lamp: true });
     expectOk(await walker.s.cmd('north'));
