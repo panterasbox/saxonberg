@@ -12,7 +12,7 @@
  * the distiller's and the cask the cooper's; a poor mold casts poor and a
  * poor bottle leaves its wine fine; a sprung stave drains a cask onto the
  * floor until a new one is fitted; a cracked glazed crock leaks at the
- * crack's rate; the butter crock remembers its cream and a wash spends it; a
+ * crack's rate; the glazed butter crock remembers nothing and the oak churn remembers its cream until a wash spends it; a
  * snag holes a rowboat and a ship, `bail` races the one and `repair` patches
  * both; a salted kiln salt-glazes stoneware and the shop smells it; steam
  * and retort fumes reach the nose and the hygrometer; rain soaks terracotta
@@ -841,40 +841,48 @@ suite('⭐⭐ one leak — pores, flaws, joints (AC 1, 2)', () => {
 });
 
 suite('⭐ the crock remembers (AC 3)', () => {
-  it('10. [short · player] the butter crock, emptied, gives its old cream to fresh milk; washed, it gives less', async () => {
+  it('10. [short · player] the glazed butter crock remembers nothing; the oak churn, emptied, gives its old cream to fresh milk, and washed it gives less', async () => {
     await daylight();
     dairy = await at(dairy.handle, CREAMERY);
     await hand(dairy, T.gasAnalyzer);
-    // ⚠ The shipped crock is EMPTY, so it has held nothing to remember:
-    // the player puts cream in it first (the cream handed — setup, the
-    // creamery's own cream is a morning's work the dairy drive drives).
-    // ⚠ FINDING at write time: the butter crock is LEAD-GLAZED inside and
-    // out, and W4's memory gate is *unsealed AND (absorbent OR porous)* —
-    // dairying.md names the STARTER crock as the one that remembers. This
-    // step drives what the requirements say; if it fails here, that is the
-    // finding to settle (the crock, or the requirement).
-    const cream = await hand(dairy, T.dairyJug, { interiorMaterial: M.cream, interiorAmount: 1.5 });
-    await say(dairy, `pour #${cream} into "butter crock"`);
+    // ⭐ Re-planned at build (lens 1 — the world is derivable): the shipped
+    // butter crock is LEAD-GLAZED inside and out, and a glaze seals — so it
+    // holds no memory, which is why a dairy keeps butter in glazed ware. The
+    // creamery's OAK churn is the vessel that remembers (oak is absorbent).
+    // The cream is handed (setup); the creamery's own cream is a morning's
+    // work the dairy drive drives.
+    const creamC = await hand(dairy, T.dairyJug, { interiorMaterial: M.cream, interiorAmount: 1.5 });
+    await say(dairy, `pour #${creamC} into "butter crock"`);
     await advanceLiving('8 hours', [dairy]);
-    await say(dairy, `pour "butter crock" into #${cream}`);
+    await say(dairy, `pour "butter crock" into #${creamC}`);
+    const milkC = await hand(dairy, T.dairyJug, { interiorMaterial: M.milk, interiorAmount: 1.5 });
+    await say(dairy, `pour #${milkC} into "butter crock"`);
+    await advanceLiving('2 hours', [dairy]);
+    const glazed = figure(await say(dairy, 'measure aroma "butter crock"'), /cream/i);
+    note(`  [10] fresh milk in the emptied glazed crock: cream ${glazed} OU`);
+    expect(Number.isFinite(glazed) ? glazed : 0, 'the glazed crock gave back cream').toBe(0);
+    // The oak churn: cream, emptied, fresh milk.
+    const cream = await hand(dairy, T.dairyJug, { interiorMaterial: M.cream, interiorAmount: 1.5 });
+    await say(dairy, `pour #${cream} into churn`);
+    await advanceLiving('8 hours', [dairy]);
+    await say(dairy, `pour churn into #${cream}`);
     const milkA = await hand(dairy, T.dairyJug, { interiorMaterial: M.milk, interiorAmount: 1.5 });
-    await say(dairy, `pour #${milkA} into "butter crock"`);
+    await say(dairy, `pour #${milkA} into churn`);
     await advanceLiving('2 hours', [dairy]);
-    const nosed = await say(dairy, 'analyze aroma "butter crock"');
-    const first = figure(await say(dairy, 'measure aroma "butter crock"'), /cream/i);
-    note(`  [10] fresh milk in the emptied crock: ${nosed} · cream ${first} OU`);
-    expect(`${nosed} ${first}`, 'the fresh milk took no cream from the crock').toMatch(/cream|\d/i);
-    expect(first, 'no cream measured in the fresh milk').toBeGreaterThan(0);
+    const nosed = await say(dairy, 'analyze aroma churn');
+    const first = figure(await say(dairy, 'measure aroma churn'), /cream/i);
+    note(`  [10] fresh milk in the emptied oak churn: ${nosed} · cream ${first} OU`);
+    expect(first, 'no cream measured in the fresh milk in the churn').toBeGreaterThan(0);
     // Emptied again, washed, refilled.
-    await say(dairy, `pour "butter crock" into #${milkA}`);
-    await act(dairy, 'wash "butter crock"');
+    await say(dairy, `pour churn into #${milkA}`);
+    await act(dairy, 'wash churn');
     const milkB = await hand(dairy, T.dairyJug, { interiorMaterial: M.milk, interiorAmount: 1.5 });
-    await say(dairy, `pour #${milkB} into "butter crock"`);
+    await say(dairy, `pour #${milkB} into churn`);
     await advanceLiving('2 hours', [dairy]);
-    const second = figure(await say(dairy, 'measure aroma "butter crock"'), /cream/i);
+    const second = figure(await say(dairy, 'measure aroma churn'), /cream/i);
     note(`  [10] after the wash: cream ${second} OU (was ${first})`);
-    expect(Number.isFinite(second) ? second : 0, 'washed, the crock gave as much cream').toBeLessThan(first);
-    before.crockMemory = await evalOn(dairy, HD, '"butter crock"', `JSON.stringify(this.absorbedAromas('inside'))`);
+    expect(Number.isFinite(second) ? second : 0, 'washed, the churn gave as much cream').toBeLessThan(first);
+    before.crockMemory = await evalOn(dairy, HD, 'churn', `JSON.stringify(this.absorbedAromas('inside'))`);
   }, 1_800_000);
 });
 
@@ -1044,8 +1052,9 @@ suite('⭐⭐ one vaporization — the kiln, the copper, the retort (AC 7, 8)', 
     boiler = await at(boiler.handle, BOILING);
     await hand(boiler, T.hygrometer);
     const dry = figure(await say(boiler, 'measure humidity'), /humid|%/i);
-    // Water in the copper (W6: water names its vapor; a sugar liquor does
-    // not, so a liquor's boil is not yet humidity — a row each).
+    // Water in the copper (a boiling sugar liquor steams too, since the W6
+    // follow-up — a boil drives off water — but plain water keeps the
+    // step independent of step 1's liquor).
     await say(boiler, 'pour butt into copper --amount 20L');
     await fire(boiler, 'arch', 'coal', 3);
     await say(boiler, 'heat copper');
@@ -1180,7 +1189,7 @@ suite('⭐⭐ restart — every state reads back (AC 11)', () => {
 
     // the crock's memory after its wash
     dairy = await at(dairy.handle, CREAMERY);
-    const crock = await evalOn(dairy, HD, '"butter crock"', `JSON.stringify(this.absorbedAromas('inside'))`);
+    const crock = await evalOn(dairy, HD, 'churn', `JSON.stringify(this.absorbedAromas('inside'))`);
     note(`  [16] crock memory ${JSON.stringify(before.crockMemory)} → ${JSON.stringify(crock)}`);
     expect(crock, 'the crock forgot what its wash left').toEqual(before.crockMemory);
 
