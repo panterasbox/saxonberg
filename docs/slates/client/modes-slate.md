@@ -28,7 +28,8 @@ finishes *"I'm here to ___"*.
 | **craft** | working at a bench: recipe, materials, tools, the work in progress | |
 | **govern** | the Compact's floor: bills, votes, elections | shipped as a value, unlaid |
 | **steward** | the place your title or grant covers | was "home" — see § 4 |
-| **chat** | channels and DMs | shipped |
+| **chat** | real-time conversation: channels, DMs, `#here` | shipped; § 6b |
+| **post** | asynchronous: forum threads, the inbox and mail, the press | § 6b |
 | **build** | writing the world | shipped (CMS, studio) |
 | **broadcast** | a streamer's own controls while live | only the founder today; outside the queue |
 | *work* | acting for a business under contract | **open** — § 4 |
@@ -233,6 +234,36 @@ from what ships:
 - **A card the player grows is laid out first** — the player's choice outranks the list, as a
   video's box does — then the list hands out the rest: terminal → navigation card → cards. At
   full the navigation card falls off and the terminal holds its floor; at medium it stays.
+
+## 6b. Chat and post **[DECIDED — the owner, 2026-11-21]**
+
+**Chat, in the design language:** the terminal is the subject (steps unit · medium · full · max);
+**two terminals** — the channel you picked splits out and *everything else* keeps the rest; the
+**channel list is the support slot**; room for cards. Picking a channel retargets the split terminal
+and sets its bar's prefix (`chat gossip>`); the everything bar stays `>`. **The room is a channel,
+`#here`** — talk at Dave's lives in *everything else* until you pick it, which retires the shipped
+Chat view's exclusion of room speech (a mode may not hide messages). The owner: *"the two terminal
+split and channel list on the left is exactly what I was going for."*
+
+**Chat is synchronous only; post is its own mode.** The owner, on putting a channel's forum twin
+inside chat: *"sounds like shit that's been tried and rejected"* — Facebook Messenger's one buffer
+for real-time and asynchronous (*"some people just get confused … it's why they need a whole
+separate app"*) and Google Wave (*"a total failure"*). *"We need to cater to all different kinds of
+playing habits."* **Post** holds forum threads (ordered or open subjects), the inbox and mail, and
+the press. A channel with a forum twin offers *open the board in post* — the handoff pattern, a
+click that switches modes, never the board inside chat.
+
+**The monitor** **[LEAN]** — the owner: *"another design that actually wants many different chats
+open at once in smaller cards to see everything at a glance … more to passively watch a buncha
+channels at once and grouping them into different windows so maybe you'd have a small window just
+for mudlog messages."* LEAN: **an arrangement of chat** the player composes and saves (no code),
+built from **feeds — terminals with no command bar** (read-only scoped buffers in small cards), so
+any number of feeds still leaves at most two places to type. Feeds are the player's own filters and
+may overlap. It becomes its own mode (an operator's console) only if it grows non-message content —
+gauges, the moderation queue, server health.
+
+**Open:** the one-terminal case (the phone): unfiltered, picking a channel only sets where you talk?
+Unread and mention badges (no server source); where post sits in the queue.
 
 ## 7. The lens pass
 
