@@ -86,7 +86,7 @@ describe("map documents", () => {
     expect(named.facts?.map((f) => f.label)).toEqual(["first came", "your map", "kind", "government"]);
     expect(named.facts?.find((f) => f.label === "your map")?.value).toBe("4 places you know here");
     expect(named.command).toBe("map terminus/city");
-    expect(crumbDoc({ address: "terminus/city" }, { claims: 0 }).header?.name).toBe("Somewhere you have not learned");
+    expect(crumbDoc({ address: "terminus/city" }, { claims: 0 }).header?.name).toBe("Unnamed");
     // W8: the civic facts, when the server answered for a Locality you hold.
     const civic = crumbDoc(
       { address: "terminus/city", name: "Terminus City" },

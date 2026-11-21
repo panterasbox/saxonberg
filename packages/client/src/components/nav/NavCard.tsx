@@ -24,6 +24,7 @@ import { useStore } from "../../store/index";
 import {
   boundariesView,
   crumbsView,
+  longDirection,
   inferStanding,
   PRESENT_KEY,
   localityKnowledge,
@@ -51,6 +52,8 @@ import { Ways } from "./Ways";
 import { Crumbs } from "./Crumbs";
 import { NavSection } from "./NavSection";
 import { useFillHeight } from "./useFillHeight";
+import { IconAction } from "./IconAction";
+import { Icon } from "../ui/icons/Icon";
 import { LensRow } from "./LensRow";
 import { lensDoc } from "../doc/docs";
 import type { LensName } from "./ZoneMap";
@@ -59,12 +62,11 @@ import {
   PlaceBody,
   StructureBody,
   YouBody,
-  ZoneBody,
+  GroundLine,
   horizonSummary,
   placeSummary,
   structureSummary,
   youSummary,
-  zoneSummary,
 } from "./sections";
 
 const Root = styled.div`
@@ -77,6 +79,10 @@ const Root = styled.div`
 `;
 
 const StandingHere = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
   font-size: ${tokens.font.small};
   color: ${tokens.color.fgDim};
 `;
@@ -102,7 +108,7 @@ const Here = styled.div`
 /** `look <the building>` — its name as a typed target. */
 const structureLook = (name: string): string => `look ${escapeTarget(name.replace(/^the\s+/i, ""))}`;
 
-export const SECTION_ORDER = ["zone", "horizon", "structure", "place", "you"] as const;
+export const SECTION_ORDER = ["horizon", "structure", "place", "you"] as const;
 
 export interface NavCardProps {
   onSendCommand: (command: string) => void;
@@ -144,7 +150,6 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     !sections.building?.name && !sections.localities?.ship && (sections.building?.landed?.length ?? 0) > 0;
   // The summaries; a null one is a section that is absent.
   const summaries: Record<(typeof SECTION_ORDER)[number], string | null> = {
-    zone: zoneSummary(sections),
     horizon: horizonSummary(sections),
     // Outdoors with only buildings standing by: a plain line, not a section
     // that opens to say its own summary again.
@@ -192,6 +197,19 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     [sections.ways],
   );
 
+  /** What is through each way from where you stand — its ghost room's name. */
+  const ghostNames = React.useMemo(() => {
+    const m = new Map<string, string>();
+    for (const w of sections.ways?.ways ?? []) {
+      const name = standing ? wayLeadsTo(mapCopy, standing, w)?.name : w.destination;
+      if (!name) continue;
+      const dir = longDirection(w.direction);
+      if (herePlace) m.set(`${herePlace.key}|${dir}`, name);
+      m.set(`${PRESENT_KEY}|${dir}`, name);
+    }
+    return m;
+  }, [sections.ways, standing, mapCopy, herePlace]);
+
   /** How much a lens has to draw on the level you stand on — its tooltip says when it is nothing. */
   const lensCount = (l: LensName): number => {
     if (!zv) return 0;
@@ -211,9 +229,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     if (mark.place?.key === PRESENT_KEY) {
       return {
         header: { name: mark.place.name, kindWord: "where you are" },
-        prose: "Not on your map yet — you are standing in it, and you can see its ways out.",
         command: "look",
-        hint: "click — look around",
       };
     }
     if (mark.place) {
@@ -289,6 +305,18 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     });
   };
 
+  /** The room you stand in, on the trail: what it is and where it sits. */
+  const hereTip = (): TooltipDoc => {
+    const at = standAt;
+    return {
+      header: { name: sections.place?.name ?? "somewhere", kindWord: "where you are" },
+      ...(at
+        ? { facts: [{ label: "grid", value: `x ${at.x} · y ${at.y} · level ${at.z}`, source: "seen" as const }] }
+        : {}),
+      command: "look",
+    };
+  };
+
   const run = (command: string | null): void => {
     if (command) props.onSendCommand(command);
   };
@@ -299,13 +327,15 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     name: (typeof SECTION_ORDER)[number],
     body: React.ReactNode,
     surface?: string,
-    tip?: TooltipDoc,
+    icon?: string,
+    action?: React.ReactNode,
   ): React.ReactNode =>
     summaries[name] === null ? null : (
       <NavSection
         key={name}
         name={name}
         summary={summaries[name]!}
+        {...(name === "you" ? { title: "You" } : {})}
         open={isOpen(name)}
         set={memory.sections[name] !== undefined}
         onToggle={(open) => setSection(name, open ? "open" : "closed")}
@@ -314,7 +344,8 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           else bodies.current.delete(name);
         }}
         {...(surface ? { surface } : {})}
-        {...(tip ? { tip } : {})}
+        {...(icon ? { icon } : {})}
+        {...(action ? { action } : {})}
       >
         {body}
       </NavSection>
@@ -322,14 +353,12 @@ export function NavCard(props: NavCardProps): React.ReactElement {
 
   return (
     <Root ref={rootRef} data-testid="nav-card">
-      {/* 1 · you are here */}
-      <Here data-testid="nav-here-name">{sections.place?.name ?? "Somewhere"}</Here>
-
-      {/* 2 · in the world — always shown: it is the line that says where you are */}
+      {/* 1–2 · where you are: one trail, the room last (owner, review) */}
       <ChangeMark surface="nav:localities">
         <Crumbs
           crumbs={crumbs}
           placeName={sections.place?.name ?? ""}
+          placeTip={hereTip()}
           tipFor={(c) => crumbTip(c)}
           onSendCommand={props.onSendCommand}
           {...(props.onCommandPreview ? { onCommandPreview: props.onCommandPreview } : {})}
@@ -345,6 +374,8 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           {...(routePlan ? { route: routePlan.plans } : {})}
           commandFor={commandFor}
           {...(herePlace ? { leavesFrom: { place: herePlace.key, dirs: leavingDirs } } : {})}
+          ghostNames={ghostNames}
+          hereTip={hereTip()}
           onPlaceClick={(p) => run(commandFor({ place: p }))}
           onEdgeClick={(e) => run(commandFor({ edge: e }))}
           boundaries={(view, level) => boundariesView(mapCopy, view, level)}
@@ -367,12 +398,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           />
         </MapArea>
       </ChangeMark>
-      {section(
-        "zone",
-        sections.zone ? <ZoneBody sections={sections} view={zv} /> : null,
-        undefined,
-        zv ? zoneDoc(sections, zv.counts) : undefined,
-      )}
+      <GroundLine sections={sections} />
 
       {/* 4 · the horizon */}
       {section(
@@ -386,11 +412,13 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           />
         ) : null,
         "nav:horizon",
+        "section.horizon",
       )}
 
       {/* 5 · the structure — outdoors, only what stands here, each a look */}
       {standingOnly ? (
         <StandingHere data-testid="nav-standing-here">
+          <Icon name="section.structure" label="standing here" size={13} decorative color={tokens.color.fgDim} />
           Standing here:{" "}
           {sections.building!.landed!.map((l, i) => (
             <React.Fragment key={l.name}>
@@ -417,6 +445,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
           {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
         />,
         "nav:building",
+        sections.localities?.ship ? "section.ship" : "section.structure",
       )}
 
       {/* 6 · the ways (always open) */}
@@ -434,18 +463,22 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       {section(
         "place",
         sections.place ? (
-          <PlaceBody
-            sections={sections}
-            {...(herePlace ? { known: herePlace } : {})}
-            onLook={() => run("look")}
-            {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
-          />
+          <PlaceBody sections={sections} {...(herePlace ? { known: herePlace } : {})} />
         ) : null,
         "nav:place",
+        sections.place?.dark ? "place.dark" : "place.lit",
+        <IconAction
+          icon="act.look"
+          label="look"
+          command="look"
+          testid="nav-place-look"
+          onRun={run}
+          {...(props.onCommandPreview ? { onPreview: props.onCommandPreview } : {})}
+        />,
       )}
 
       {/* 8 · you */}
-      {section("you", sections.you ? <YouBody sections={sections} /> : null, "nav:you")}
+      {section("you", sections.you ? <YouBody sections={sections} /> : null, "nav:you", "section.you")}
     </Root>
   );
 }

@@ -76,8 +76,8 @@ const Root = styled.div`
 
 const Rose = styled.div`
   display: grid;
-  grid-template-columns: repeat(3, 2.8rem) 0.5rem 2.8rem;
-  grid-template-rows: repeat(3, 2.2rem);
+  grid-template-columns: repeat(3, 2rem) 0.4rem 2rem;
+  grid-template-rows: repeat(3, 1.7rem);
   gap: 3px;
 `;
 
@@ -110,8 +110,19 @@ const You = styled.span`
 
 const Named = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: ${tokens.space.xs};
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const Dest = styled.span`
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: ${tokens.color.fg};
+  font-family: ${tokens.font.family};
 `;
 
 const Preview = styled.div`
@@ -170,7 +181,7 @@ export function Ways(props: WaysProps): React.ReactElement {
     );
   };
 
-  const shown = focus;
+  void focus;
   return (
     <Root data-testid="nav-ways">
       <Rose data-testid="nav-rose">
@@ -189,27 +200,13 @@ export function Ways(props: WaysProps): React.ReactElement {
       {named.length > 0 ? (
         <Named data-testid="nav-named">
           {named.map((w) => (
-            <WayEntry key={w.direction} way={w} label={w.direction} {...props} onFocusWay={setFocus} />
+            <WayEntry key={w.direction} way={w} label={w.direction} {...props} onFocusWay={setFocus} row />
           ))}
         </Named>
       ) : null}
       {props.ways.length === 0 ? (
         <span style={{ color: tokens.color.fgMuted, fontStyle: "italic" }}>No way out that you can see.</span>
       ) : null}
-      <Preview data-testid="nav-preview" aria-live="polite">
-        {shown ? (
-          <>
-            <strong>{shown.direction}</strong>
-            {" — "}
-            {props.leadsTo?.(shown) ?? "where it leads, you do not know"}
-            {shown.boundary ? `; through ${shown.boundary.name}` : ""}
-            {`; ${STATE_WORDS[wayLook(shown)]}`}
-            {shown.crossesZone ? "; it leaves this zone" : ""}
-          </>
-        ) : (
-          <span style={{ color: tokens.color.fgMuted }}>Point at a way to see where it leads.</span>
-        )}
-      </Preview>
     </Root>
   );
 }
@@ -222,11 +219,14 @@ function WayEntry({
   onSendCommand,
   onCommandPreview,
   onFocusWay,
+  row,
+  leadsTo,
 }: WaysProps & {
   way: NavWay;
   label: string;
   gridArea?: string | undefined;
   onFocusWay: (w: NavWay | null) => void;
+  row?: boolean;
 }): React.ReactElement {
   const look = wayLook(way);
   const mode = look === "mode" ? wayMode(way) : undefined;
@@ -255,7 +255,7 @@ function WayEntry({
         {...(way.crossesZone ? { "data-leaves": "true" } : {})}
         {...(way.boundary ? { "data-boundary": "true" } : {})}
         aria-label={command}
-        style={gridArea ? { gridArea } : undefined}
+        style={gridArea ? { gridArea } : row ? { justifyContent: "flex-start", width: "100%", padding: "3px 6px", gap: 6 } : undefined}
         {...gestures}
         onClick={() => onSendCommand(command)}
         onMouseEnter={() => {
@@ -269,8 +269,9 @@ function WayEntry({
         onFocus={() => onFocusWay(way)}
         onBlur={() => onFocusWay(null)}
       >
-        {gridArea ? null : <Icon name={bearing} label={way.direction} size={12} decorative />}
-        <span>{label}</span>
+        <Icon name={bearing} label={way.direction} size={13} decorative />
+        {gridArea ? null : <span style={row ? { minWidth: "5.5em", textAlign: "left" } : undefined}>{label}</span>}
+        {row ? <Dest>{leadsTo?.(way) ?? ""}</Dest> : null}
         {glyph ? <Icon name={glyph} label={STATE_WORDS[look]} size={11} decorative /> : null}
         {way.crossesZone ? <Icon name="way.leaves" label="it leaves this zone" size={11} decorative data={{ testid: "nav-leaves-marker" }} /> : null}
       </ArmButton>

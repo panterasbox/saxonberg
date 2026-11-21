@@ -48,6 +48,29 @@ import {
   Square,
   User,
   X,
+  Binoculars,
+  Building2,
+  ChevronDown,
+  ChevronRight,
+  Cloud,
+  Droplets,
+  Fence,
+  Flag,
+  Grid3x3,
+  House,
+  Info,
+  Landmark,
+  LocateFixed,
+  Map,
+  Minus,
+  Moon,
+  Package,
+  Plus,
+  Route,
+  Ship,
+  Sun,
+  Users,
+  Swords,
   type LucideIcon,
 } from "lucide-react";
 
@@ -94,6 +117,46 @@ export const ICONS = {
   "mode.climb": Mountain,
   "mode.swim": Waves,
   "mode.fly": Bird,
+  // ── the navigation card's vocabulary (owner, review: an icon on
+  //    everything, one name per idea, reused wherever the idea appears) ──
+  /** A larger place you are in — a Locality on the trail. */
+  "nav.area": Map,
+  /** The room you stand in. */
+  "nav.room": MapPin,
+  /** You, on the map. */
+  "nav.you": User,
+  /** Look — at a room, a thing, anything. */
+  "act.look": Eye,
+  "map.zoomIn": Plus,
+  "map.zoomOut": Minus,
+  "map.findMe": LocateFixed,
+  "map.fit": Maximize2,
+  "map.grid": Grid3x3,
+  "map.legend": Info,
+  /** A room you have not been in. */
+  "map.unvisited": Square,
+  "lens.frontier": Flag,
+  "lens.route": Route,
+  "lens.refusals": Lock,
+  "lens.boundaries": Fence,
+  /** Whose ground — the government that keeps it. */
+  "place.ground": Landmark,
+  "place.lit": Sun,
+  "place.dark": Moon,
+  "place.sky": Cloud,
+  "place.roof": House,
+  "place.water": Droplets,
+  "place.crowd": Users,
+  "place.elevation": Mountain,
+  "section.horizon": Binoculars,
+  "section.structure": Building2,
+  "section.ship": Ship,
+  "section.place": MapPin,
+  "section.you": User,
+  "you.load": Package,
+  "you.fighting": Swords,
+  "ui.open": ChevronDown,
+  "ui.closed": ChevronRight,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

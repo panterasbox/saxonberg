@@ -10,6 +10,7 @@ import styled from "styled-components";
 import type { NavSections } from "@saxonberg/types";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
+import { Icon } from "../ui/icons/Icon";
 import { sightingDoc } from "../doc/docs";
 import type { ViewPlace, ZoneView } from "../../store/navSelectors";
 
@@ -39,68 +40,55 @@ const Link = styled.button`
   text-underline-offset: 2px;
 `;
 
-/** The channel a fact came from, in words. */
-export const CHANNEL_WORDS: Record<string, string> = {
-  walked: "walked",
-  seen: "seen",
-  searched: "found by searching",
-  published: "from a published map",
-  charted: "from a chart",
-  told: "told",
-};
+/** One fact on one row, led by its icon — the card's one way to show a fact. */
+const FactRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: ${tokens.space.sm};
+  min-height: 20px;
+  color: ${tokens.color.fg};
+`;
+
+export function Fact({ icon, label, children, testid }: { icon: string; label: string; children: React.ReactNode; testid?: string }): React.ReactElement {
+  return (
+    <FactRow {...(testid ? { "data-testid": testid } : {})}>
+      <Icon name={icon} label={label} size={13} decorative color={tokens.color.fgDim} />
+      <span>{children}</span>
+    </FactRow>
+  );
+}
 
 // ── 3 · the zone ──────────────────────────────────────────────────────
 
 export function zoneSummary(s: NavSections): string | null {
   if (!s.zone) return null;
-  const at = s.place?.at;
-  const coords = at ? ` · x: ${at.x} y: ${at.y} z: ${at.z}` : "";
-  return `${s.zone.label ?? "This zone"}${coords}`;
+  const keepers = s.localities?.jurisdiction ?? [];
+  return keepers.length > 0 ? keepers[0]!.name : "Unclaimed ground";
 }
 
-export function ZoneBody({ sections, view }: { sections: NavSections; view: ZoneView | null }): React.ReactElement {
-  const zone = sections.zone!;
-  const at = sections.place?.at;
+/** Whose ground this is — one line; the chain above it in its tooltip. */
+export function GroundLine({ sections }: { sections: NavSections }): React.ReactElement | null {
   const keepers = sections.localities?.jurisdiction ?? [];
-  const levels = view?.levels ?? [];
+  if (!sections.zone) return null;
   return (
-    <Rows data-testid="nav-zone">
-      {zone.label ? (
-        <>
-          <dt>zone</dt>
-          <dd>{zone.label}</dd>
-        </>
-      ) : null}
-      {at ? (
-        <>
-          <dt>you</dt>
-          <dd data-testid="nav-coords">
-            x: {at.x} y: {at.y} <strong>z: {at.z}</strong>
-          </dd>
-        </>
-      ) : null}
-      <dt>who keeps it</dt>
-      <dd data-testid="nav-jurisdiction">
-        {keepers.length > 0 ? keepers.map((k) => k.name).join(", then ") : "No government claims this ground."}
-      </dd>
-      {zone.cellSizeM ? (
-        <>
-          <dt>a cell</dt>
-          <dd>{zone.cellSizeM} m</dd>
-        </>
-      ) : null}
-      {view && view.places.length > 0 ? (
-        <>
-          <dt>you know</dt>
-          <dd data-testid="nav-zone-counts">
-            {view.counts.walked} walked, {view.counts.known} known, {view.counts.openings} way{view.counts.openings === 1 ? "" : "s"} not taken
-          </dd>
-          <dt>levels known</dt>
-          <dd>{levels.length}</dd>
-        </>
-      ) : null}
-    </Rows>
+    <Tip
+      tip={{
+        header: { name: keepers[0]?.name ?? "Unclaimed ground", kindWord: "whose ground" },
+        ...(keepers.length > 1 ? { facts: keepers.slice(1).map((k) => ({ label: "and above it", value: k.name, source: "seen" as const })) } : {}),
+      }}
+    >
+      <div data-testid="nav-jurisdiction" tabIndex={0}>
+        <Fact icon="place.ground" label="whose ground">
+          {keepers[0]?.name ?? "Unclaimed ground"}
+        </Fact>
+      </div>
+    </Tip>
   );
+}
+
+/** Kept for the counts' readers; the card no longer shows a zone section. */
+export function ZoneBody({ view }: { sections: NavSections; view: ZoneView | null }): React.ReactElement {
+  return <div data-testid="nav-zone">{view ? `${view.counts.walked} walked` : null}</div>;
 }
 
 // ── 4 · the horizon ───────────────────────────────────────────────────
@@ -250,79 +238,42 @@ export function StructureBody({
 
 export function placeSummary(s: NavSections): string {
   const p = s.place;
-  // Only what is true of the place right now — whether it is on your map
-  // is the map's to show, and "not walked" of the room you stand in read
-  // as a contradiction.
-  return `Place · ${p?.dark ? "dark" : (p?.light ?? "—")}`;
+  if (p?.dark) return "Dark";
+  const light = p?.light ?? "lit";
+  return light.charAt(0).toUpperCase() + light.slice(1);
 }
 
 export function PlaceBody({
   sections,
   known,
-  onLook,
-  onPreview,
 }: {
   sections: NavSections;
   known?: ViewPlace;
-  onLook: () => void;
-  onPreview?: (command: string | null) => void;
 }): React.ReactElement {
   const p = sections.place!;
   return (
-    <Rows data-testid="nav-place-section">
-      <dt>light</dt>
-      <dd>{p.dark ? "dark" : (p.light ?? "—")}</dd>
+    <div data-testid="nav-place-section">
       {p.openSky !== undefined ? (
-        <>
-          <dt>above</dt>
-          <dd>{p.openSky ? "open sky" : "a roof"}</dd>
-        </>
+        <Fact icon={p.openSky ? "place.sky" : "place.roof"} label="above">
+          {p.openSky ? "open sky" : "under a roof"}
+          {p.lowCeiling ? " (low)" : ""}
+        </Fact>
       ) : null}
-      {p.water ? (
-        <>
-          <dt>water</dt>
-          <dd>{p.water}</dd>
-        </>
+      {p.water ? <Fact icon="place.water" label="water">{p.water}</Fact> : null}
+      {p.crowd !== undefined && p.crowd > 0 ? (
+        <Fact icon="place.crowd" label="others here">
+          {p.crowd} other{p.crowd === 1 ? "" : "s"} here
+        </Fact>
       ) : null}
-      {p.crowd !== undefined ? (
-        <>
-          <dt>others here</dt>
-          <dd>{p.crowd}</dd>
-        </>
+      {p.elevationM !== undefined && Math.round(p.elevationM) !== 0 ? (
+        <Fact icon="place.elevation" label="elevation">
+          {Math.round(p.elevationM)} m above the sea
+        </Fact>
       ) : null}
-      {p.lowCeiling ? (
-        <>
-          <dt>ceiling</dt>
-          <dd>low</dd>
-        </>
-      ) : null}
-      {p.elevationM !== undefined ? (
-        <>
-          <dt>elevation</dt>
-          <dd>{Math.round(p.elevationM)} m above the sea</dd>
-        </>
-      ) : null}
-      <dt>on your map</dt>
-      <dd data-testid="nav-place-known">
-        {known
-          ? [...new Set(known.sources.map((src) => CHANNEL_WORDS[src.channel] ?? src.channel))].join(", ")
-          : p.dark
-            ? "not yet — too dark to note it"
-            : "not yet"}
-      </dd>
-      <dt />
-      <dd>
-        <Link
-          type="button"
-          data-testid="nav-place-look"
-          onClick={onLook}
-          onMouseEnter={() => onPreview?.("look")}
-          onMouseLeave={() => onPreview?.(null)}
-        >
-          look around
-        </Link>
-      </dd>
-    </Rows>
+      <Fact icon="nav.room" label="on your map" testid="nav-place-known">
+        {known ? "on your map" : "not on your map"}
+      </Fact>
+    </div>
   );
 }
 
@@ -342,52 +293,19 @@ export function youSummary(s: NavSections): string | null {
 export function YouBody({ sections }: { sections: NavSections }): React.ReactElement {
   const y = sections.you!;
   return (
-    <Rows data-testid="nav-you">
-      {y.pace ? (
-        <>
-          <dt>pace</dt>
-          <dd>{y.pace}</dd>
-        </>
-      ) : null}
-      {y.posture ? (
-        <>
-          <dt>posture</dt>
-          <dd>{y.posture}</dd>
-        </>
-      ) : null}
-      {y.load ? (
-        <>
-          <dt>load</dt>
-          <dd>{y.load}</dd>
-        </>
-      ) : null}
-      {y.light ? (
-        <>
-          <dt>light</dt>
-          <dd>{y.light}</dd>
-        </>
-      ) : null}
-      {y.mount ? (
-        <>
-          <dt>riding</dt>
-          <dd>{y.mount}</dd>
-        </>
-      ) : null}
-      {y.bars && y.bars.length > 0 ? (
-        <>
-          <dt>held back</dt>
-          <dd>{y.bars.join(" ")}</dd>
-        </>
-      ) : null}
+    <div data-testid="nav-you">
+      {y.pace ? <Fact icon="mode.walk" label="pace">{y.pace}</Fact> : null}
+      {y.posture ? <Fact icon="nav.you" label="posture">{y.posture}</Fact> : null}
+      {y.load ? <Fact icon="you.load" label="load">{y.load}</Fact> : null}
+      {y.light ? <Fact icon="place.lit" label="light">{y.light}</Fact> : null}
+      {y.mount ? <Fact icon="mode.walk" label="riding">riding {y.mount}</Fact> : null}
+      {y.bars && y.bars.length > 0 ? <Fact icon="way.refuses" label="held back">{y.bars.join(" ")}</Fact> : null}
       {y.fighting ? (
-        <>
-          <dt>fighting</dt>
-          <dd>
-            {y.fighting.foes} foe{y.fighting.foes === 1 ? "" : "s"}
-            {y.fighting.breakaway ? ` — ${y.fighting.breakaway}` : ""}
-          </dd>
-        </>
+        <Fact icon="you.fighting" label="fighting">
+          {y.fighting.foes} foe{y.fighting.foes === 1 ? "" : "s"}
+          {y.fighting.breakaway ? ` — ${y.fighting.breakaway}` : ""}
+        </Fact>
       ) : null}
-    </Rows>
+    </div>
   );
 }

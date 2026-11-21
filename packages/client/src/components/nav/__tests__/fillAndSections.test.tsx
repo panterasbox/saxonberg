@@ -16,8 +16,8 @@ import {
   youSummary,
   zoneSummary,
   StructureBody,
-  PlaceBody,
 } from "../sections";
+import { IconAction } from "../IconAction";
 import { Crumbs, destutter } from "../Crumbs";
 import { StatusBar } from "../../frame/StatusBar";
 
@@ -49,11 +49,14 @@ describe("fitSections — fill the height", () => {
 });
 
 describe("the sections — absent, never empty", () => {
-  it("the zone needs a zone section; it stresses nothing but reports x: y: z:", () => {
+  it("the ground line is whose ground it is — no zone name, no coordinates", () => {
     expect(zoneSummary({})).toBeNull();
-    expect(zoneSummary({ zone: { v: 1, label: "The Sunken Delve" }, place: { v: 1, stuffId: "p", name: "pit", at: { x: 0, y: 2, z: -1 } } })).toBe(
-      "The Sunken Delve · x: 0 y: 2 z: -1",
-    );
+    const s: NavSections = {
+      zone: { v: 1, label: "The Sunken Delve" },
+      localities: { v: 1, chain: [], jurisdiction: [{ key: "c", name: "the City of Terminus" }] },
+    };
+    expect(zoneSummary(s)).toBe("the City of Terminus");
+    expect(zoneSummary({ zone: { v: 1 } })).toBe("Unclaimed ground");
   });
 
   it("the horizon is absent with no things and no traffic", () => {
@@ -116,26 +119,16 @@ describe("the status bar's outdoors", () => {
   });
 });
 
-describe("a section link previews its command (owner, review)", () => {
-  it("look around previews `look` in the status bar", () => {
+describe("an act is an icon that previews its command (owner, review)", () => {
+  it("look is the eye; hover previews `look`, a click runs it", () => {
     const onPreview = vi.fn();
-    render(<PlaceBody sections={{ place: { v: 1, stuffId: "p", name: "the yard" } }} onLook={() => {}} onPreview={onPreview} />);
-    fireEvent.mouseEnter(screen.getByTestId("nav-place-look"));
+    const onRun = vi.fn();
+    render(<IconAction icon="act.look" label="look" command="look" testid="nav-place-look" onRun={onRun} onPreview={onPreview} />);
+    const btn = screen.getByTestId("nav-place-look");
+    expect(btn.querySelector("[data-icon=\"act.look\"]")).toBeTruthy();
+    fireEvent.mouseEnter(btn);
     expect(onPreview).toHaveBeenLastCalledWith("look");
-    fireEvent.mouseLeave(screen.getByTestId("nav-place-look"));
-    expect(onPreview).toHaveBeenLastCalledWith(null);
-  });
-});
-
-describe("unlearned crumbs collapse; the structure names what stands here", () => {
-  it("a run of unlearned Localities reads as one …", () => {
-    render(<Crumbs crumbs={[{ address: "a" }, { address: "a/b" }, { address: "a/b/c", name: "Wharfside" }]} placeName="the bank" onSendCommand={() => {}} />);
-    expect(screen.getAllByTestId("nav-crumb").map((c) => c.textContent)).toEqual(["…", "Wharfside"]);
-  });
-  it("outside, the structure summary names what stands here — never a placeholder", () => {
-    expect(structureSummary({ building: { v: 1, landed: [{ name: "the terminal clock tower", landmark: true }] } })).toBe(
-      "Standing here: the terminal clock tower",
-    );
-    expect(structureSummary({ building: { v: 1 } })).toBeNull();
+    fireEvent.click(btn);
+    expect(onRun).toHaveBeenCalledWith("look");
   });
 });

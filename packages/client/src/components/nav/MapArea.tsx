@@ -19,6 +19,7 @@ import { useStore } from "../../store/index";
 import { PRESENT_KEY, withPresent, zoneView, type ViewEdge, type ViewPlace, type ZoneView } from "../../store/navSelectors";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
+import { Icon } from "../ui/icons/Icon";
 import { controlDoc, levelDoc } from "../doc/docs";
 import { ZoneMap, viewBoxFor, type BoundarySide, type LensName } from "./ZoneMap";
 
@@ -100,6 +101,57 @@ const MapBtn = styled.button<{ $on?: boolean }>`
   }
 `;
 
+const Coords = styled.div`
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: ${tokens.color.surfaceAlt};
+  color: ${tokens.color.fgDim};
+  font-family: ${tokens.font.mono};
+  font-size: ${tokens.font.micro};
+  pointer-events: none;
+`;
+
+const LegendBox = styled.div`
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid ${tokens.color.border};
+  background: ${tokens.color.surface};
+  font-size: ${tokens.font.micro};
+  color: ${tokens.color.fg};
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 3px 6px;
+  align-items: center;
+`;
+
+/** What each mark on the map means — drawn with the map's own marks. */
+function Legend(): React.ReactElement {
+  const sw = (children: React.ReactNode): React.ReactElement => (
+    <svg viewBox="-1 -1 2 2" width={18} height={18} aria-hidden="true">{children}</svg>
+  );
+  const row = (mark: React.ReactElement, words: string): React.ReactElement[] => [
+    <React.Fragment key={`m${words}`}>{mark}</React.Fragment>,
+    <span key={`w${words}`}>{words}</span>,
+  ];
+  const ns = { vectorEffect: "non-scaling-stroke" as const };
+  return (
+    <LegendBox data-testid="nav-legend">
+      {row(sw(<circle r={0.45} fill={tokens.color.accent} />), "you")}
+      {row(sw(<rect x={-0.7} y={-0.7} width={1.4} height={1.4} rx={0.2} fill={tokens.color.borderEmphasis} stroke={tokens.color.fgDim} strokeWidth={1} {...ns} />), "a room you know")}
+      {row(sw(<rect x={-0.7} y={-0.7} width={1.4} height={1.4} rx={0.2} fill="none" stroke={tokens.color.fgMuted} strokeWidth={1.2} strokeDasharray="3 3" {...ns} />), "a room you have not been in")}
+      {row(sw(<line x1={-0.9} y1={0} x2={0.9} y2={0} stroke={tokens.color.fg} strokeWidth={2} {...ns} />), "a way between rooms")}
+      {row(sw(<line x1={-0.9} y1={0} x2={0.9} y2={0} stroke={tokens.color.fgEmphasis} strokeWidth={2} {...ns} />), "a shut door")}
+      {row(sw(<line x1={-0.9} y1={0} x2={0.9} y2={0} stroke={tokens.color.danger} strokeWidth={2} {...ns} />), "a locked door")}
+      {row(sw(<polyline points="-0.9,0 0.6,0 0.25,-0.35 0.6,0 0.25,0.35" fill="none" stroke={tokens.color.fg} strokeWidth={2} {...ns} />), "a way out of this area")}
+      {row(sw(<polygon points="-0.5,0.4 0.5,0.4 0,-0.5" fill={tokens.color.fg} />), "a way up (or down, pointing down)")}
+      {row(sw(<line x1={-0.9} y1={0} x2={0.9} y2={0} stroke={tokens.color.accent} strokeWidth={4} strokeOpacity={0.75} {...ns} />), "your planned route")}
+    </LegendBox>
+  );
+}
+
 const LevelOverlay = styled.div`
   position: absolute;
   bottom: 6px;
@@ -141,6 +193,8 @@ export interface MapAreaProps {
   onCommandPreview?: (command: string | null) => void;
   ticks?: React.ComponentProps<typeof ZoneMap>["ticks"];
   leavesFrom?: React.ComponentProps<typeof ZoneMap>["leavesFrom"];
+  ghostNames?: React.ComponentProps<typeof ZoneMap>["ghostNames"];
+  hereTip?: React.ComponentProps<typeof ZoneMap>["hereTip"];
   /** Rendered under the map (the lens row). */
   children?: React.ReactNode;
 }
@@ -174,6 +228,8 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
   const here = at ? { x: at.x, y: at.y, level: at.z } : undefined;
 
   const [shownLevel, setShownLevel] = React.useState<number | null>(null);
+  const [grid, setGrid] = React.useState(false);
+  const [legend, setLegend] = React.useState(false);
   // null = following you; set = the player has panned or zoomed.
   const [camera, setCamera] = React.useState<Camera | null>(null);
   // How many cells across the followed view shows (zooming while following keeps following).
@@ -299,7 +355,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
     return <Muted data-testid="nav-map-unknown">Where you are is not known yet.</Muted>;
   }
   if (zone.kind && zone.kind !== "grid") {
-    return <Muted data-testid="nav-no-map">No map for this kind of space yet.</Muted>;
+    return <Muted data-testid="nav-no-map">No map for this kind of place.</Muted>;
   }
   if (!view) return <Muted data-testid="nav-map-unknown">Where you are is not known yet.</Muted>;
 
@@ -313,7 +369,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
   return (
     <Root data-testid="nav-map-area">
       {view.places.length === 0 ? (
-        <Muted data-testid="nav-map-empty">Nothing of this area on your map yet — walk somewhere and look around, and it draws itself.</Muted>
+        <Muted data-testid="nav-map-empty">Nothing here on your map yet.</Muted>
       ) : (
         <Frame
           ref={frameRef}
@@ -339,6 +395,9 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
             level={level}
             {...(cam ? { box: boxOf(cam) } : {})}
             pxWidth={pxWidth}
+            showGrid={grid}
+            {...(props.ghostNames ? { ghostNames: props.ghostNames } : {})}
+            {...(props.hereTip ? { hereTip: props.hereTip } : {})}
             lenses={props.lenses}
             {...(props.route ? { route: props.route } : {})}
             {...(props.boundaries ? { boundaries: props.boundaries(view, level) } : {})}
@@ -351,19 +410,42 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
             {...(props.tipFor ? { tipFor: (m) => props.tipFor!(m, view) } : {})}
           />
           <Overlay onPointerDown={(e) => e.stopPropagation()}>
-            <Tip tip={controlDoc("Zoom in", undefined, "Or turn the wheel, or pinch.")}>
-              <MapBtn type="button" data-testid="nav-zoom-in" aria-label="zoom in" onClick={() => zoomBy(1 / 1.5)}>+</MapBtn>
+            <Tip tip={controlDoc("Zoom in", undefined, "Wheel or pinch also zoom.")}>
+              <MapBtn type="button" data-tip-placement="left-start" data-testid="nav-zoom-in" aria-label="zoom in" onClick={() => zoomBy(1 / 1.5)}>
+                <Icon name="map.zoomIn" label="zoom in" size={14} decorative />
+              </MapBtn>
             </Tip>
-            <Tip tip={controlDoc("Zoom out", undefined, "Or turn the wheel, or pinch.")}>
-              <MapBtn type="button" data-testid="nav-zoom-out" aria-label="zoom out" onClick={() => zoomBy(1.5)}>−</MapBtn>
+            <Tip tip={controlDoc("Zoom out", undefined, "Wheel or pinch also zoom.")}>
+              <MapBtn type="button" data-tip-placement="left-start" data-testid="nav-zoom-out" aria-label="zoom out" onClick={() => zoomBy(1.5)}>
+                <Icon name="map.zoomOut" label="zoom out" size={14} decorative />
+              </MapBtn>
             </Tip>
-            <Tip tip={controlDoc("Find me", undefined, camera ? "Center on you, and follow you as you move." : "The map is following you. Drag it to look around.")}>
-              <MapBtn type="button" data-testid="nav-me" aria-label="find me" $on={!camera} onClick={findMe}>⌖</MapBtn>
+            <Tip tip={controlDoc(camera ? "Find me" : "Following you", undefined, camera ? "Center on you and follow." : "Drag to look around.")}>
+              <MapBtn type="button" data-tip-placement="left-start" data-testid="nav-me" aria-label="find me" $on={!camera} onClick={findMe}>
+                <Icon name="map.findMe" label="find me" size={14} decorative />
+              </MapBtn>
             </Tip>
-            <Tip tip={controlDoc("Show everything", undefined, "Fit everything you know of this area on the level shown.")}>
-              <MapBtn type="button" data-testid="nav-map-fit" aria-label="show everything" onClick={fit}>⤢</MapBtn>
+            <Tip tip={controlDoc("Show everything", undefined, "Fit everything you know of this area.")}>
+              <MapBtn type="button" data-tip-placement="left-start" data-testid="nav-map-fit" aria-label="show everything" onClick={fit}>
+                <Icon name="map.fit" label="show everything" size={14} decorative />
+              </MapBtn>
+            </Tip>
+            <Tip tip={controlDoc(grid ? "Hide the grid" : "Show the grid", undefined, "Gridlines, each cell's x and y.")}>
+              <MapBtn type="button" data-tip-placement="left-start" data-testid="nav-map-grid" aria-label="grid" aria-pressed={grid} $on={grid} onClick={() => setGrid((g) => !g)}>
+                <Icon name="map.grid" label="grid" size={14} decorative />
+              </MapBtn>
+            </Tip>
+            <Tip tip={controlDoc(legend ? "Hide the legend" : "Legend", undefined, "What each mark on the map means.")}>
+              <MapBtn type="button" data-tip-placement="left-start" data-testid="nav-map-legend" aria-label="legend" aria-pressed={legend} $on={legend} onClick={() => setLegend((l) => !l)}>
+                <Icon name="map.legend" label="legend" size={14} decorative />
+              </MapBtn>
             </Tip>
           </Overlay>
+          {grid && here ? (
+            <Coords data-testid="nav-coords">
+              x {here.x} · y {here.y} · level {here.level}
+            </Coords>
+          ) : null}
           {levels.length > 1 ? (
             <LevelOverlay data-testid="nav-levels" role="group" aria-label="Levels you know" onPointerDown={(e) => e.stopPropagation()}>
               {[...levels].reverse().map((l) => (
@@ -386,6 +468,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
           ) : null}
         </Frame>
       )}
+      {legend && view.places.length > 0 ? <Legend /> : null}
       {view.places.length === 0 ? null : (<>
       {props.children}
       </>)}

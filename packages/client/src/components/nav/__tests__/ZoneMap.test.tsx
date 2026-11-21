@@ -66,11 +66,11 @@ describe("ZoneMap", () => {
     expect(container.querySelector("[title]")).toBeNull();
   });
 
-  it("a frontier lens off draws no `?`; the lens layers are separate groups", () => {
+  it("a frontier lens off draws no ghost rooms; the lens layers are separate groups", () => {
     const { container } = render(<ZoneMap view={fixture()} level={0} lenses={new Set()} />);
     expect(screen.queryAllByTestId("nav-frontier")).toHaveLength(0);
     const layers = [...container.querySelectorAll("[data-layer]")].map((g) => g.getAttribute("data-layer"));
-    expect(layers).toEqual(["edges", "stubs", "places", "glyphs", "lens-boundaries", "lens-refusals", "lens-frontier", "lens-route", "ticks", "here"]);
+    expect(layers).toEqual(["grid", "edges", "stubs", "places", "glyphs", "lens-boundaries", "lens-refusals", "lens-frontier", "lens-route", "ticks", "here"]);
   });
 
   it("a place click goes to the handler; the thumbnail has none", () => {

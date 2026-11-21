@@ -216,7 +216,7 @@ export function wayDoc(
     doc.prose = way.take.reason;
     if (way.take.works?.command) doc.hint = `${way.take.works.command} would get you through — click tries ${command}.`;
   } else if (way?.take?.ok && way.take.unseen) {
-    doc.prose = "Open, as far as you know: you cannot see the far side from here.";
+    doc.prose = "You cannot see the far side from here.";
   }
   if (known.zoneThumb) doc.zoneThumb = known.zoneThumb;
   return doc;
@@ -268,16 +268,23 @@ export function hoverDoc(text: string | null | undefined): TooltipDoc | null {
  * ⭐ A map lens (navigation card D11): what it draws, the channel it owns,
  * and — when it has nothing to draw — that it has nothing to draw.
  */
+const LENS_WORD: Record<string, string> = {
+  frontier: "Unexplored",
+  route: "Route",
+  refusals: "Shut ways",
+  boundaries: "Borders",
+};
+
 export function lensDoc(lens: string, on: boolean, count: number): TooltipDoc {
   const what: Record<string, string> = {
-    frontier: "Marks every way you know of but have not taken — the edge of your map.",
-    route: "Draws the plan your last route answered with; the least certain leg is marked.",
-    refusals: "Rings every way you saw shut or locked across the zone.",
-    boundaries: "Draws a border where your map says one government's ground meets another's.",
+    frontier: "Rooms you have seen a way to but not been in.",
+    route: "Your last route; its least certain leg is marked.",
+    refusals: "Every way you saw shut or locked.",
+    boundaries: "Where one government's ground meets another's.",
   };
   return {
-    header: { name: `${lens} lens`, kindWord: on ? "on" : "off" },
-    prose: `${what[lens] ?? ""}${count === 0 ? " Nothing to draw here yet." : ""}`,
+    header: { name: LENS_WORD[lens] ?? lens, kindWord: on ? "on" : "off" },
+    prose: `${what[lens] ?? ""}${count === 0 ? " None here." : ""}`,
     facts: [{ label: "draws", value: String(count), source: "client" }],
     hint: on ? "click — turn it off" : "click — turn it on",
   };
@@ -382,8 +389,8 @@ export function crumbDoc(
   }
   if (!crumb.name || !known.claim) {
     return {
-      header: { name: "Somewhere you have not learned", kindWord: "locality" },
-      prose: "You are inside a larger place whose name you have not learned yet — look around somewhere lit and it will be noted.",
+      header: { name: "Unnamed", kindWord: "area" },
+      prose: "Not on your map.",
     };
   }
   const facts: TooltipFact[] = [
@@ -429,7 +436,7 @@ export function levelDoc(name: string, places: number, yours: boolean): TooltipD
 export function sectionDoc(summary: string, open: boolean): TooltipDoc {
   return {
     header: { name: summary, kindWord: "section" },
-    hint: "click — open or fold it; the card keeps it the way you leave it",
+    hint: "click — open or fold",
   };
 }
 

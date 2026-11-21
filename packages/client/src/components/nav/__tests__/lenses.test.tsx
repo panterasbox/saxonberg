@@ -77,6 +77,6 @@ describe("the lenses together", () => {
     expect(screen.getByTestId("nav-lens-frontier").getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(screen.getByTestId("nav-lens-boundaries"));
     expect(onToggle).toHaveBeenCalledWith("boundaries", true);
-    expect(lensDoc("boundaries", false, 0).prose).toMatch(/Nothing to draw here yet/);
+    expect(lensDoc("boundaries", false, 0).prose).toMatch(/None here/);
   });
 });

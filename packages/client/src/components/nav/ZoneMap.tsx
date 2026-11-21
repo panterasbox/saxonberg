@@ -73,6 +73,12 @@ export interface ZoneMapProps {
    * way crosses into another zone, but standing at it you can see it does.
    */
   leavesFrom?: { place: string; dirs: ReadonlySet<string> };
+  /** What is through each way from where you stand (`<from>|<dir>` → its name), for their ghost rooms. */
+  ghostNames?: ReadonlyMap<string, string>;
+  /** Gridlines with each cell's numbers along the edges. */
+  showGrid?: boolean;
+  /** The you-mark's own tooltip. */
+  hereTip?: TooltipDoc | null;
   /** Horizon sightings: a tick at the map's edge in their rough direction. */
   ticks?: readonly { id: string; point: string; name: string; doc?: TooltipDoc; onClick?: () => void }[];
 }
@@ -155,6 +161,12 @@ export function viewBoxFor(
  * north–south or east–west line has a zero-width box: a person can barely
  * click it and a browser test reads it as not visible at all.
  */
+/** A room's name cut to about two cells of 11px text, so neighbors stay readable. */
+function fitName(name: string, cellPx: number): string {
+  const room = Math.max(6, Math.floor((cellPx * 2) / 6));
+  return name.length <= room ? name : `${name.slice(0, room - 1)}…`;
+}
+
 function hitBand(x1: number, y1: number, x2: number, y2: number, w = 0.14): React.ReactElement {
   const len = Math.hypot(x2 - x1, y2 - y1) || 1;
   const nx = (-(y2 - y1) / len) * w;
@@ -390,12 +402,52 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
           e.id,
         ),
       );
-      if (e.shape === "opening" && lenses.has("frontier")) {
-        frontierEls.push(
-          <text key={`f${e.id}`} data-testid="nav-frontier" x={x2 + ux * 0.08} y={y2 - uy * 0.08 + 0.1} fontSize={0.3} textAnchor="middle" fill={tokens.color.fgMuted}>
-            ?
-          </text>,
-        );
+      // ⭐ A way to a room you have not been in ends in that room's ghost —
+      // the cell it occupies, dashed, named when what is through it is
+      // known from here (owner, review: a bare "?" read as not-a-room).
+      if (e.shape === "opening" && lenses.has("frontier") && Math.abs(vec[0]) <= 1 && Math.abs(vec[1]) <= 1) {
+        const gx = from.x + vec[0];
+        const gy = from.y + vec[1];
+        const occupied = places.some((q) => q.x === gx && q.y === gy);
+        if (!occupied) {
+          const name = props.ghostNames?.get(`${e.from}|${e.dir}`);
+          frontierEls.push(
+            wrap(
+              { header: { name: name ?? "a room you have not been in", kindWord: "not visited" }, ...(command ? { command } : {}) },
+              <g key={`f${e.id}`} data-testid="nav-frontier" data-ghost-name={name ?? undefined} {...markProps(name ?? "a room you have not been in", command, click)}>
+                <rect
+                  x={sx(gx) - half}
+                  y={sy(gy) - half}
+                  width={half * 2}
+                  height={half * 2}
+                  rx={half * 0.25}
+                  fill="transparent"
+                  stroke={tokens.color.fgMuted}
+                  strokeWidth={1.2}
+                  strokeDasharray="3 3"
+                  vectorEffect="non-scaling-stroke"
+                />
+                {name && (cellPx >= 44 || zoom === "close") && !thumbnail ? (
+                  <text
+                    x={sx(gx)}
+                    y={sy(gy) + half + 0.28}
+                    fontSize={0.22}
+                    textAnchor="middle"
+                    fill={tokens.color.fgMuted}
+                    stroke={tokens.color.surfaceSunken}
+                    strokeWidth={4}
+                    paintOrder="stroke"
+                    vectorEffect="non-scaling-stroke"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    {name}
+                  </text>
+                ) : null}
+              </g>,
+              `f${e.id}`,
+            ),
+          );
+        }
       }
       if (lenses.has("refusals") && (e.state === "locked" || e.state === "shut")) {
         refusalEls.push(
@@ -406,10 +458,25 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
   }
 
   // ── places ────────────────────────────────────────────────────────────
+  // A name goes where nothing else is drawn: beside the room when its east
+  // side is clear, else under it when its south side is, else nowhere (its
+  // tooltip still names it) — never across a neighbor.
+  const cellTaken = new Set(places.map((p) => `${p.x},${p.y}`));
+  const waysOut = new Map<string, Set<string>>();
+  for (const e of view.edges) {
+    if (!waysOut.has(e.from)) waysOut.set(e.from, new Set());
+    waysOut.get(e.from)!.add(e.dir);
+  }
+  const nameSide = (p: ViewPlace): "east" | "south" | null => {
+    const out = waysOut.get(p.key) ?? new Set<string>();
+    if (!cellTaken.has(`${p.x + 1},${p.y}`) && !["east", "northeast", "southeast"].some((d) => out.has(d))) return "east";
+    if (!cellTaken.has(`${p.x},${p.y - 1}`) && !["south", "southeast", "southwest"].some((d) => out.has(d))) return "south";
+    return null;
+  };
   const placeEls = places.map((p) => {
+    const side = nameSide(p);
     const command = props.commandFor?.({ place: p }) ?? null;
     const click = props.onPlaceClick ? () => props.onPlaceClick!(p) : undefined;
-    const walked = p.tier === "walked";
     return wrap(
       props.tipFor?.({ place: p }),
       <g
@@ -424,18 +491,21 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
           width={half * 2}
           height={half * 2}
           rx={half * 0.25}
-          fill={walked ? tokens.color.borderEmphasis : "none"}
-          stroke={walked ? tokens.color.fgDim : tokens.color.fgMuted}
-          strokeWidth={walked ? 1 : 1.5}
-          strokeDasharray={walked ? undefined : "3 2"}
+          // Every room you know looks the same (owner, review): how you
+          // know it is the tooltip's to say.
+          fill={tokens.color.borderEmphasis}
+          stroke={tokens.color.fgDim}
+          strokeWidth={1}
           vectorEffect="non-scaling-stroke"
         />
-        {(cellPx >= 44 || zoom === "close") && !thumbnail ? (
+        {(cellPx >= 24 || zoom === "close") && !thumbnail && side ? (
           <text
-            x={sx(p.x)}
-            y={sy(p.y) + half + 0.28}
-            fontSize={0.22}
-            textAnchor="middle"
+            x={side === "east" ? sx(p.x) + half + 4 / cellPx : sx(p.x)}
+            y={side === "east" ? sy(p.y) + 4 / cellPx : sy(p.y) + half + 13 / cellPx}
+            // A steady 11px on screen, whatever the zoom: a name is read,
+            // not scaled.
+            fontSize={11 / cellPx}
+            textAnchor={side === "east" ? "start" : "middle"}
             fill={tokens.color.fg}
             stroke={tokens.color.surfaceSunken}
             strokeWidth={4}
@@ -443,7 +513,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
             vectorEffect="non-scaling-stroke"
             style={{ pointerEvents: "none" }}
           >
-            {p.name}
+            {fitName(p.name, cellPx)}
           </text>
         ) : null}
       </g>,
@@ -548,10 +618,37 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
   // ── you ───────────────────────────────────────────────────────────────
   const hereEl =
     here && here.level === level ? (
-      <g data-testid="nav-here" aria-hidden="true">
-        <circle cx={sx(here.x)} cy={sy(here.y)} r={half * 0.45} fill={tokens.color.accent} stroke={tokens.color.surface} strokeWidth={2} vectorEffect="non-scaling-stroke" />
-      </g>
+      wrap(
+        props.hereTip,
+        <g data-testid="nav-here" {...(interactive ? { role: "img", "aria-label": "you", tabIndex: -1 } : { "aria-hidden": true })}>
+          <circle cx={sx(here.x)} cy={sy(here.y)} r={half * 0.45} fill={tokens.color.accent} stroke={tokens.color.surface} strokeWidth={2} vectorEffect="non-scaling-stroke" />
+        </g>,
+        "here",
+      )
     ) : null;
+
+  // ── the grid: a line between every cell, its numbers along two edges ──
+  const gridEls: React.ReactElement[] = [];
+  if (props.showGrid && !thumbnail) {
+    const x0 = Math.floor(vbX) - 1;
+    const x1 = Math.ceil(vbX + vbW) + 1;
+    const y0 = Math.floor(-(vbY + vbH)) - 1;
+    const y1 = Math.ceil(-vbY) + 1;
+    const span = x1 - x0;
+    const every = span > 60 ? 10 : span > 24 ? 5 : 1;
+    for (let x = x0; x <= x1; x++) {
+      gridEls.push(<line key={`gx${x}`} x1={x + 0.5} y1={vbY} x2={x + 0.5} y2={vbY + vbH} stroke={tokens.color.borderMuted} strokeWidth={1} vectorEffect="non-scaling-stroke" />);
+      if (x % every === 0) {
+        gridEls.push(<text key={`tx${x}`} x={x} y={vbY + 0.32} fontSize={0.24} textAnchor="middle" fill={tokens.color.fgMuted}>{x}</text>);
+      }
+    }
+    for (let y = y0; y <= y1; y++) {
+      gridEls.push(<line key={`gy${y}`} x1={vbX} y1={-y + 0.5} x2={vbX + vbW} y2={-y + 0.5} stroke={tokens.color.borderMuted} strokeWidth={1} vectorEffect="non-scaling-stroke" />);
+      if (y % every === 0) {
+        gridEls.push(<text key={`ty${y}`} x={vbX + 0.1} y={-y + 0.09} fontSize={0.24} fill={tokens.color.fgMuted}>{y}</text>);
+      }
+    }
+  }
 
   // ⭐ One tab stop for the whole map; the arrow keys move among marks.
   const onKeyDown = (e: React.KeyboardEvent<SVGSVGElement>): void => {
@@ -591,6 +688,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
         borderRadius: 4,
       }}
     >
+      <g data-layer="grid" data-testid="nav-grid">{gridEls}</g>
       <g data-layer="edges">{edgeEls}</g>
       {/* Places above every way: a way's hit band never takes a place's click. */}
       <g data-layer="stubs">{stubEls}</g>

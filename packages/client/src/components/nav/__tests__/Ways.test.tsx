@@ -66,20 +66,16 @@ describe("Ways", () => {
     expect((screen.getByTestId("nav-exit-west") as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("the preview strip says where a way leads and holds nothing clickable", () => {
+  it("a named way is a row that says where it goes; there is no instruction strip", () => {
     render(
       <Ways
-        ways={[way("north", { boundary: { stuffId: "d1", name: "the oak door" }, state: "shut" })]}
-        leadsTo={() => "the hall"}
+        ways={[way("pumphouse", { boundary: { stuffId: "d1", name: "the pump-house door" }, state: "locked" })]}
+        leadsTo={() => "the pump house"}
         onSendCommand={() => {}}
       />,
     );
-    fireEvent.mouseEnter(screen.getByTestId("nav-exit-north"));
-    const strip = screen.getByTestId("nav-preview");
-    expect(strip.textContent).toMatch(/the hall/);
-    expect(strip.textContent).toMatch(/the oak door/);
-    expect(strip.textContent).toMatch(/shut/);
-    expect(strip.querySelector("button, a")).toBeNull();
+    expect(screen.getByTestId("nav-exit-pumphouse").textContent).toMatch(/pumphouse.*the pump house/);
+    expect(screen.queryByTestId("nav-preview")).toBeNull();
   });
 
   it("a way with a door opens the door's menu on right-click; one without has none", () => {
