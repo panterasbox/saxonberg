@@ -392,11 +392,18 @@ temperature IS its contents. Sealing is the barrier switch (vacuum vs
 air); seal toggles re-stamp. The bulk couplings ride a gated thermal tier
 on `BulkableApi.transfer`:
 
-- **Refill** → the destination adopts the incoming temperature.
+- **Fill and mix** → ⭐ one calorimetric blend, `ThermalMixin.mixPour`:
+  the incoming `m·c` at its temperature against what the vessel already
+  holds **plus its own body** (`mass × specificHeat`), settling at the
+  energy-weighted temperature. A drip barely moves a heavy pot; a kettle
+  into a cold mug still shocks it (the step the wall feels is the step
+  to the mixed temperature); a cold mould chills the metal poured into
+  it, as an unheated mould does. (Until the matter-model-overlaps drive
+  a fill into an EMPTY vessel adopted the incoming temperature outright
+  — the pot's clay uncounted — and a glazed curing pot cracked on every
+  drip of molasses.)
 - **Partial pour** → the source's C shrinks → the remainder cools faster
   (re-anchored at the reduced capacity).
-- **Mix** → same-material calorimetric blend (specific heats cancel →
-  volume-weighted average), via `ThermalMixin.setContentsTemperature`.
 
 A plain `Receptacle` (`ThermalMixin(BulkableMixin(Good))`) is the
 non-sealable case (a mug): no barrier → it cools in minutes.

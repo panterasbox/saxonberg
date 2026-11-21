@@ -485,10 +485,6 @@ export class BulkableLogic extends ApiLogic {
     // The SLOT's temperature, not the holder's: every vessel slot answers
     // its Thermal holder's, and a shore's source slot its water's.
     const blendFromK = toHolder !== null ? from.getTemperatureK() : null;
-    const blendToK =
-      toHolder !== null && MixinApi.isThermal(toHolder)
-        ? toHolder.getTemperature().rawValue()
-        : null;
 
     // 5. Apply. Capture the source's blend payload BEFORE the debit — a
     // full drain clears it with the material. ⭐ Same for the spoilage
@@ -585,12 +581,10 @@ export class BulkableLogic extends ApiLogic {
       // mould's own cold temperature (run 28: a pour "set" mid-transfer —
       // `setContentsTemperature` reconciles first, and it was reconciling a
       // pool already landed and still cold).
+      // ⭐⭐ By heat capacity, the vessel's own body counted: a drip barely
+      // moves a heavy pot, a cold mould chills the metal (`mixPour`).
       if (toHolder !== null && MixinApi.isThermal(toHolder) && blendFromK !== null) {
-        toHolder.setContentsTemperature(
-          toAmountBefore <= 0 || blendToK === null
-            ? blendFromK
-            : (applied * blendFromK + toAmountBefore * blendToK) / (applied + toAmountBefore),
-        );
+        toHolder.mixPour(applied, material, blendFromK);
       }
       to.setAmount(to.getAmount().add(Quantity.of(applied, 'L')));
       if (applied > 0 && toHolder !== null && MixinApi.isMould(toHolder) && blendFromK !== null) {

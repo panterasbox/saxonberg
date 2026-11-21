@@ -455,6 +455,13 @@ export interface Thermal {
   getContentsTemperature(): Quantity<"K">;
   /** Set the fluid temperature directly + re-anchor (bulk coupling). */
   setContentsTemperature(k: number): void;
+  /**
+   * ⭐ A pour lands: mix its heat with the vessel's — the incoming matter's
+   * `m·c` at its temperature against what the vessel already holds AND its
+   * own body (`mass × specific heat`), settling to the energy-weighted
+   * temperature. Call BEFORE the litres land.
+   */
+  mixPour(litres: number, material: Material, temperatureK: number): void;
   /** Deposit `joules` of heat, raising temperature by ΔT = Q / C + re-anchor. */
   depositHeat(joules: number): void;
   /** Time constant τ = R·C. */
@@ -972,11 +979,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (c > 0) return c;
         // empty vessel → fall through to the wall's own heat capacity
       }
-      const massKg = self.getMass().rawValue();
-      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      let c = mat ? mat.getSpecificHeat().rawValue() : 0;
-      if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
-      return massKg * c;
+      return this.bodyCapacity();
     }
 
     /** Heat capacity (J/K) of a vessel's interior fluid, or 0 if empty. */
@@ -1008,6 +1011,54 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.stampedTemperatureK = k;
       const nowS = this.thermalNowSeconds();
       if (nowS !== null) this.thermalClockStamp = nowS;
+    }
+
+    /**
+     * ⭐⭐ The calorimetric pour (matter-model-overlaps drive, step 2). A
+     * drip of molasses into an empty curing pot used to set the pot to the
+     * molasses' temperature outright — the pot's own clay was not counted,
+     * so a few grams a few kelvin off were a full temperature step, and a
+     * glazed pot cracked on every drip. Now the vessel's BODY counts: the
+     * incoming `m·c` mixes with what is already held plus the wall's own
+     * `mass × specificHeat`, and everything settles at
+     *
+     * ```
+     * T = (C_in·T_in + (C_held + C_wall)·T_vessel) / (C_in + C_held + C_wall)
+     * ```
+     *
+     * — so a drip barely moves a heavy pot, a kettle of boiling water still
+     * shocks a cold mug (ceramics D9), and a cold mould CHILLS the metal
+     * poured into it, as a founder's unheated mould does. The step the
+     * wall feels is the step to that mixed temperature. Must run BEFORE the
+     * litres land (`C_held` is the pre-pour contents).
+     */
+    public mixPour(litres: number, material: Material, temperatureK: number): void {
+      assertFiniteNonNeg(temperatureK, "ThermalMixin.mixPour");
+      if (!(litres > 0)) return;
+      if (!this._thermalReconciling) this.reconcileThermal();
+      let c = material.getSpecificHeat().rawValue();
+      if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
+      const incoming = (litres / 1000) * material.getDensity().rawValue() * c;
+      const self = this.thermalHost;
+      const held =
+        MixinApi.isBulkable(self) && self.hasInteriorBulk() ? this.contentsCapacity(self) : 0;
+      const resident = held + this.bodyCapacity();
+      const total = incoming + resident;
+      this.setContentsTemperature(
+        total > 0
+          ? (incoming * temperatureK + resident * this.stampedTemperatureK) / total
+          : temperatureK,
+      );
+    }
+
+    /** The vessel's own body — `mass × specificHeat` (J/K), its contents aside. */
+    protected bodyCapacity(): number {
+      const self = this.thermalHost;
+      const massKg = self.getMass().rawValue();
+      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      let c = mat ? mat.getSpecificHeat().rawValue() : 0;
+      if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
+      return massKg * c;
     }
 
     /**

@@ -4,8 +4,9 @@
  * (more coffee → slower cooling), sealing switches the barrier to
  * vacuum (τ in hours), opening collapses it (τ in minutes). The bulk
  * couplings ride the `BulkableApi.transfer` primitive's thermal tier:
- * refill adopts the incoming temperature, a partial pour cools the
- * remainder faster, and same-material mixing blends mass-weighted.
+ * refill adopts the incoming temperature (a vessel with no body to speak
+ * of), a partial pour cools the remainder faster, and mixing blends by
+ * heat capacity — the vessel's own body counted (`mixPour`).
  */
 
 import "../../../test-bootstrap";
@@ -155,5 +156,64 @@ describe("Flask — thermos acceptance battery", () => {
     });
     // 0.1 L @ 360 + 0.3 L @ 300 → (0.1*360 + 0.3*300)/0.4 = 315 K.
     expect(tempOf(hot)).toBeCloseTo(315, 0);
+  });
+
+  // ⭐⭐ The calorimetric pour counts the vessel's own body (matter-model-
+  // overlaps drive, step 2): a drip used to set an empty pot to the drip's
+  // temperature outright, and a glazed pot cracked on every drip.
+  function clay(): Material {
+    coffeeCounter += 1;
+    return makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName("fired clay");
+      m.setDensity(Quantity.of(2000, "kg/m³"));
+      m.setSpecificHeat(Quantity.of(880, "J/(kg·K)"));
+      return m;
+    }, `/stuff/idea/material/_flask/clay-${coffeeCounter}`) as unknown as Material;
+  }
+
+  function pot(kg: number, tempK: number, litres = 0): Receptacle {
+    const body = clay();
+    const p = mug(litres, tempK);
+    p.setMaterial(body);
+    p.setMass(Quantity.of(kg, "kg"));
+    return p;
+  }
+
+  it("⭐ a drip into an empty heavy pot barely moves it: the pot's own clay counts", () => {
+    const hot = flask(0.4, 330, false);
+    const p = pot(4, 295); // 4 kg of clay: 3520 J/K
+    BulkableApi.transfer(hot.getBulk("interior"), p.getBulk("interior"), {
+      kind: "measure",
+      litres: 0.005, // 5 g of coffee: ~21 J/K
+      mode: "lenient",
+    });
+    // (21·330 + 3520·295) / 3541 ≈ 295.2 K — a drip, not a 35 K step.
+    expect(tempOf(p)).toBeGreaterThan(295);
+    expect(tempOf(p)).toBeLessThan(296);
+  });
+
+  it("⭐ a full pour into a cold pot settles at the energy-weighted temperature", () => {
+    const hot = flask(1, 360, false);
+    const p = pot(4, 295);
+    BulkableApi.transfer(hot.getBulk("interior"), p.getBulk("interior"), {
+      kind: "measure",
+      litres: 1, // 4186 J/K
+      mode: "lenient",
+    });
+    // (4186·360 + 3520·295) / 7706 ≈ 330.3 K: the cold pot chilled the pour.
+    expect(tempOf(p)).toBeCloseTo((4186 * 360 + 3520 * 295) / (4186 + 3520), 0);
+  });
+
+  it("⭐ a pour into a pot already holding some mixes with the contents AND the clay", () => {
+    const hot = flask(0.5, 360, false);
+    const p = pot(2, 300, 0.5); // 0.5 L @ 300 (2093 J/K) + 2 kg clay (1760 J/K)
+    BulkableApi.transfer(hot.getBulk("interior"), p.getBulk("interior"), {
+      kind: "measure",
+      litres: 0.5, // 2093 J/K @ 360
+      mode: "lenient",
+    });
+    const expected = (2093 * 360 + (2093 + 1760) * 300) / (2093 + 2093 + 1760);
+    expect(tempOf(p)).toBeCloseTo(expected, 0);
   });
 });
