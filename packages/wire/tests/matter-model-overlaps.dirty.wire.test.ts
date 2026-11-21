@@ -1097,7 +1097,7 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
     const gov = await Session.open('founder', { startLocation: BANK_HALL, committees: [...SEATS, WATER] });
     // ⚠ The pick is made IN the eval and only it comes back (run 9: the
     // whole choked list overran the reply and parsed as no JSON).
-    let pick: { count?: number; quayKm?: number; target?: { id: string; downKm: number; upKm: number }; beside?: number } = {};
+    let pick: { count?: number; quayKm?: number; target?: { id: string; ordinal: number; downKm: number; upKm: number } } = {};
     try {
       pick = (await evalIn(
         gov,
@@ -1107,39 +1107,48 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
           `const seen = {}; const choked = []; ` +
           `for (let km = 0.05; km < 62; km += 0.02) { const s = line.stretchAt(km); if (s && s.obstruction > 0.5 && !seen[s.id]) { seen[s.id] = 1; choked.push(s); } } ` +
           `const above = choked.filter((c) => c.downKm > quayKm).sort((x, y) => x.downKm - y.downKm); if (above.length === 0) return { count: choked.length, quayKm }; ` +
-          `const ids = new Set(choked.map((c) => c.ordinal)); let beside = above[0].ordinal; while (ids.has(beside)) beside -= 1; ` +
-          `return { count: choked.length, quayKm, target: { id: above[0].id, downKm: above[0].downKm, upKm: above[0].upKm }, beside }; })())`,
+          `const t = above[0]; return { count: choked.length, quayKm, target: { id: t.id, ordinal: t.ordinal, downKm: t.downKm, upKm: t.upKm } }; })())`,
       )) as typeof pick;
     } finally {
       gov.close();
     }
     note(`  [11] ⚠ DISCOVERED: ${pick.count} choked stretches on the Kestrel; the Town Quay at km ${pick.quayKm}`);
-    // The choked bend nearest above the quay (the rowboat's); she is staged
-    // just above it — the first stretch upstream that is NOT choked (a bend's
-    // crossing, run and pool share one obstruction; stretch ids are
-    // source-first, so upstream is the smaller ordinal) — and her course to
-    // the quay runs down through it.
     expect(pick.target, `no choked stretch above the Town Quay: ${JSON.stringify(pick)}`).toBeDefined();
-    const beside = pick.beside!;
-    note(`  [11] the Hesper staged at kestrel:${beside}, above ${pick.target!.id} (km ${pick.target!.downKm.toFixed(2)}–${pick.target!.upKm.toFixed(2)})`);
+    // ⭐ She is staged IN the choked bend's pool — the rowboat's — and run
+    // down out of it at speed by night. ⚠ DISCOVERED (run 11, probed on its
+    // world): staged in the clean stretch above the bend (kestrel:633), or in
+    // the pool below it, she took the ground in the bend's crossing before
+    // ever reaching the snags (this season's channel holds less water than
+    // she draws); the pool is deep, and lying in a choked stretch she is
+    // asked the snag rule for it as she gets under way.
+    const target = pick.target!;
+    note(`  [11] the Hesper staged in ${target.id} (km ${target.downKm.toFixed(2)}–${target.upKm.toFixed(2)})`);
     await stageShip(HESPER, {});
     const master = await at(boatman.handle, HESPER_DECK);
     boatman = master;
-    // Her planking for the Hesper's patch, handed on her deck (a full pair
-    // sets it down there, in reach).
+    // Her planking and an edge for the Hesper's patch, handed on her deck (a
+    // full pair sets them down there, in reach).
     await hand(boatman, T.billet);
     await hand(boatman, T.billet);
+    await hand(boatman, T.billhook);
+    // ⚠ Appointed by her REF, not her name: on a deck at night she is "a
+    // human" to anyone looking, and run 11 appointed the founder — the only
+    // human online the words named — to her command.
     const me = await master.query('me', { fields: ['displayName'] });
-    const name = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+    const myRef = String((me[0] as { stuffId?: unknown } | undefined)?.stuffId ?? '');
     const appoint = await founder(BANK_HALL);
     try {
-      expectOk(await appoint.cmd(`house appoint "${name}" to master at ${HESPER_CO}`));
+      const appointed = squash(await (await appoint.cmd(`house appoint #${myRef} to master at ${HESPER_CO}`)).said());
+      note(`  [11] appointed: ${appointed}`);
+      expect(appointed, `the appointment: ${appointed}`).toMatch(new RegExp(`${master.handle} is now in command`));
     } finally {
       appoint.close();
     }
-    await stageShip(HESPER, { at: { frame: KESTREL, cite: String(beside) } });
+    await stageShip(HESPER, { at: { frame: KESTREL, cite: String(target.ordinal) } });
     await toHour(23);
-    const laid = await say(master, 'course town-quay');
+    // `course downstream`, not a landing: the Town Quay wants a berth from
+    // the harbor office first (run 11's probe: "Hail the office first").
+    const laid = await say(master, 'course downstream');
     note(`  [11] the Hesper's course: ${laid}`);
     let hesperHeard = laid;
     for (let i = 0; i < 12 && !/holed on a snag/.test(hesperHeard); i++) {
@@ -1149,12 +1158,12 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
       if (/made fast|not under way/.test(hesperHeard)) break;
     }
     expect(hesperHeard, 'the Hesper never struck the snag').toMatch(/holed on a snag/);
-    const refused = await say(master, 'course town-quay');
+    const refused = await say(master, 'course downstream');
     expect(refused, `the holed Hesper's course: ${refused}`).toMatch(/until she is patched/);
     const mended = await act(master, 'repair hesper');
     expect(mended.said, `repair the Hesper: ${mended.said}`).toMatch(/patch/i);
-    const sails = await say(master, 'course town-quay');
-    expect(sails, `the patched Hesper's course: ${sails}`).toMatch(/lay a course|under way|for the Town Quay/i);
+    const sails = await say(master, 'course downstream');
+    expect(sails, `the patched Hesper's course: ${sails}`).toMatch(/lay a course|under way/i);
     expect(sails).not.toMatch(/until she is patched/);
   }, 3_600_000);
 });
