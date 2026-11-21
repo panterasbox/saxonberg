@@ -5,6 +5,9 @@
 > curriculum describe it (§§ 6a–6d there). The owner: *"I kinda wanna use this as a jumping-off point
 > to actually start drilling into the governance design for real — what are the various inputs and
 > outputs for the different bodies within the different branches."*
+> ⭐ **2026-11-20 (§ 7r): who directs enforcement** — the Sergeant at Arms (the floor), the High
+> Constable (the executive's Constabulary), the Clerk of the Court (elected by every citizen, the second
+> election); the four top seats incompatible; one report desk.
 > ⭐ **2026-11-20 (§ 7q): stand the Compact up first** — capital standing only, the vote as the
 > early-adopter incentive, the Speakers as leaders who certify their houses' counts and hold a sealed
 > namespace, the first election (Speaker of the Capital House), the monthly jobs report, rules A–D on
@@ -1444,6 +1447,138 @@ Elections, polls and the whip count as one kind of question: [voting-slate](./vo
 3. **Zorkmid stipends** for office holders.
 4. **The seal-expiry default period.**
 5. **The certification deadline.**
+
+## 7r. ⭐⭐⭐ Who directs enforcement — the Sergeant at Arms, the High Constable, the Clerk of the Court **[DECIDED — the owner, 2026-11-20]**
+
+The owner: *"the Compact itself has chat and forum subjects that need moderation and that's like
+bills on the floor … as soon as we set up the ability to introduce a bill, it's gonna need moderators
+for the conversation that report to the Compact, not to the press. And then we need moderators too for
+general reports — DMs, says or emotes or any kind of harassment the first-line moderators can't handle
+… so that's a separate staff with a separate reporting structure."* This splits moderation-slate § 24's
+single *Compact* launch team. **American names throughout.**
+
+### The bodies, and who they report to
+
+| institution | reports to | handles | its head |
+|---|---|---|---|
+| **the Saxonberg Post** | its stakeholders (founder default) | its sections and public channels | **Editor in Chief** |
+| **the show** | the show's committee (the founder manages it) | stream chat, in game and on each carrier | — |
+| **the floor** | **the legislature — the three Speakers jointly** | bill threads; the floor's forums and chat | ⭐ **Sergeant at Arms** |
+| **the Constabulary** | **the executive** | reports with no local home (a DM belongs to no channel — § 23's lowest common holder is the root), escalations from first-line teams, the reserved list | ⭐ **High Constable** |
+| **the court** | **the judiciary** | appeals and cases | ⭐ **Clerk of the Court** |
+
+### The Sergeant at Arms — order on the floor
+
+Order in a chamber is the legislature's own business, never the executive's: the presiding officer keeps
+it (the Commons Speaker names a member; the US Speaker calls to order) and the **Sergeant at Arms**
+enforces it — an officer of the legislature, not the government (the Commons has had one since 1415).
+**One floor and three Speakers**, so **the Speakers jointly appoint and oversee** the Sergeant at Arms,
+who leads the **floor deputies**; the founder appoints as caretaker until then, and **a Speaker seated
+first decides** in the meantime.
+
+- **Content-neutral** — time, place and manner, never viewpoint (§ 24).
+- **Bounded by its reach** — removal from the floor's Subjects at most (§ 23).
+- ⭐ **Floor privilege** — debate answers **only to the floor's own officers**; the Constabulary cannot
+  sanction a member for what they said on the floor, the **reserved list** excepted (it always goes to
+  the root). The precedent: the English Bill of Rights 1689, art. 9; the US Speech or Debate Clause.
+- **The floor's seats open the moment a bill can be introduced.**
+
+### The High Constable — keeping the peace, never content
+
+The owner, rejecting *Commissioner of Conduct* as too Orwellian: *"it's content moderation … approving
+consumer content is basically censorship, which is why finding a good name for it is hard and Orwell
+ruined all the good words."* **The office polices how people treat each other — harassment, threats,
+disruption — never what anyone says or makes.** Approving content is the court's, and only for labor's
+content. ⭐ **A constable keeps the peace and serves process** — exactly a hold: stop the harm, hand the
+matter on; never judge, never vet speech. American history: **New York City's High Constable**
+(1802–1844, Jacob Hays throughout), the chief of the city's peacekeepers before a police department
+existed. The office is **the Constabulary**; its officers **constables**. (*The Department of Decorum*
+was the satirical alternative.)
+
+- An **enforcement institution** of the executive (Art. V §5), chartered by the legislature; its acts
+  are **holds** (moderation § 14a); anything over the line becomes a case.
+- ⭐ **Tenure** — *"never the personal instrument of the Prime Minister"* (Art. V §5): **appointed by the
+  PM, confirmed by the floor** (confirmations are on the secret-ballot list, § 7b); **removable by the
+  PM only with written public reasons and a notice period during which the floor can object** — the US
+  inspectors-general removal rule (30 days' notice), borrowed. The PM can fix a bad High Constable;
+  firing a good one costs something in public. **It binds the founder as acting PM.**
+- (*Inspector General* is a different, later seat — a **watchdog over every body's moderators**:
+  reversal rates, complaints about seats. Worth having once there are enough enforcers to watch.)
+
+### The Clerk of the Court — a sacred trust, elected by every citizen
+
+The Clerk decides nothing but **drives the court's commands** — draws juries by verifiable lot, files
+rulings, keeps the docket — a public trust like a Speaker's certification. The owner, rejecting
+selection by lot: *"I described the office as a sacred trust like I described the speaker's role
+despite being ceremonial. Would you select a speaker by lot? I don't think so."* And *"the court is
+everyone, just like the legislature is"* — there is no standing body of judges to appoint anyone.
+
+- ⭐ **Elected by every citizen, one member one vote** — standing counts for nothing. The constitution's
+  own principle: when the jury pool is the citizenry it is egalitarian, *"influence and reputation
+  counting for nothing"* (Art. VI §4). The American precedent: clerks of court are elected officials in
+  much of the US (every Florida county elects its Clerk of the Circuit Court). The pattern:
+
+  | office | chosen by | weight |
+  |---|---|---|
+  | a house's Speaker | that house | its standing |
+  | the Prime Minister | the floor | a majority of houses |
+  | **the Clerk of the Court** | **every citizen** | **one person, one vote** |
+
+- **A fixed term** — a sacred trust wants stability; **removal never by the court the Clerk runs** — by
+  the floor, for cause (the impeachment model). The election machinery is the voting slate's, counted by
+  heads ([voting-slate](./voting-slate.md)).
+- **Bootstrap:** the founder is the court's pool of one, hearing appeals on stream as content and doing
+  the Clerk's work, labelled honestly (Art. VI at a pool of one, operator-overridable). Independence
+  meanwhile rests on disclosure and every case heard in public.
+- ⭐ **The second election** (the owner): the Clerk of the Court is elected **after the Speaker of the
+  Capital House**, unless the other two Speakers' elections come first; its timing is the founder's,
+  and it is due no later than **the court widening beyond the founder** — the first sortition panel, or
+  a ratified due-process right (Art. VI §5).
+
+### The four top seats are incompatible **[DECIDED]**
+
+**Sergeant at Arms, Editor in Chief, High Constable, Clerk of the Court — nobody holds two at once.**
+The real rule: the US Constitution's Incompatibility Clause (Art. I §6) bars anyone holding a federal
+office from sitting in Congress; most parliaments bar officials and judges from the legislature —
+because one person in two such offices joins powers the system keeps apart. The press seat matters most:
+an Editor in Chief holding a state seat would be the state reporting on itself. These seats **direct
+enforcement; they never make rules** — the Compact does.
+
+**Rank-and-file moderators may serve several bodies** (the owner: *"most mods will work in more than one
+office for a little while"*), each act taken from one seat and logged under it (§ 24) — **and must know
+each body's rules**. The same holds for private moderators in guilds and businesses. The show's
+moderators and the game's will overlap; they are still different bodies with different authority.
+
+### One report desk, two back offices **[DECIDED — lens 2]**
+
+A player should not need to know which institution they need: **one `report` command and desk** takes
+everything; intake routes **reports to the Constabulary** and **appeals to the court** (a moderator
+never hears an appeal of their own action, moderation § 14). The routing goes on the record, so nobody
+loses a complaint by misfiling it.
+
+### What to advertise now
+
+Three seats, **each posted by the body that appoints it**, so the different authorities show from the
+start:
+
+| seat | posted by | selection |
+|---|---|---|
+| **Sergeant at Arms** | the Compact's press office, for the legislature | the founder as caretaker; a seated Speaker if one exists first; the three Speakers once all houses run |
+| **Editor in Chief of the Saxonberg Post** | the Saxonberg Post | its stakeholders (the founder, by default) |
+| **High Constable** | the Office of the Prime Minister | appointed by the PM; confirmed by the floor once it can confirm |
+
+**Every posting says:** which body the seat belongs to and its rules; that **the seat directs
+enforcement and never makes rules**; that **the four top seats are incompatible**; that moderators under
+any of them **may serve several teams**, one seat per act, under that body's rules; and that
+**everyone is restaffed** by the proper appointing authority once all three houses run. The Clerk of
+the Court is **not** advertised — it is elected. On the front page, the three are the Make line's open
+seats, ranked by load in the monthly jobs report (§ 7q).
+
+### Open
+
+1. The Clerk's term length and the tenure threshold for voting.
+2. The High Constable's notice period.
+3. When the Inspector General seat is created.
 
 ## 8. Lens pass
 

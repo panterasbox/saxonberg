@@ -897,6 +897,12 @@ run that on behalf of the population. It's its own estate … set up the stage a
   under it. Moderating the floor, a paper editor acts as the Compact's moderator, content-neutral; the
   public log naming seats makes it checkable. As the population grows, the teams separate.
 - **Guilds and parcel committees staff their own.**
+- ⚠ **Superseded in part 2026-11-20** ([separation-of-powers-slate § 7r](./separation-of-powers-slate.md)):
+  the single *Compact* team splits — **the floor** (bill threads, the floor's forums and chat) under a
+  **Sergeant at Arms** reporting to the legislature, and **the Constabulary** (reports with no local
+  home, escalations, the reserved list) under a **High Constable** reporting to the executive; appeals go
+  to the court, whose **Clerk of the Court** is elected by every citizen. The four top seats (with the
+  Post's **Editor in Chief**) are incompatible.
 
 ## Cross-references
 
