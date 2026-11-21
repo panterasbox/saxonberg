@@ -65,7 +65,8 @@ import type Material from '../material/Material';
 import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type MaturationProfile from './MaturationProfile';
 import { MATURATION_LINES } from './MaturationProfile';
-import type { Crafted } from '../craft/Crafted';
+// The batch's grade and maker are declared onto the payload by `lib/craft`.
+import type {} from '../craft/Crafted';
 import { Grade, type GradeBand } from '../craft/Grade';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -79,8 +80,6 @@ import {
 } from '../material/Evaporation';
 import { Quantity } from '../quantity';
 import { TemplatePaths } from '../paths';
-import { AppApi } from '../../api/app';
-import { AppSettingKeys } from '../config/AppSettings';
 import {
   MaturationClock,
   MATURING_SUB_STEPS,
@@ -155,16 +154,6 @@ const damageSat = MaturationClock.damageSat;
 const bandFor = MaturationClock.bandFor;
 
 export interface Maturing {
-  /** Batches this vessel has held (assembly D9). */
-  getFillCount(): number;
-  /** 0..1 — how much of its character it has given away. */
-  getImpartsSpent(): number;
-  /** 0 plain, 1 charred. */
-  getCharLevel(): number;
-  /** Has it given everything it had to give? */
-  isSpent(): boolean;
-  /** The cooper's re-fire: restore the character, char the inside. */
-  refire(): void;
   /** Integrate the batch over elapsed game-time (lazy; reads drive it). */
   reconcileFerment(): void;
   /** The batch phase (reconciles first). */
@@ -379,31 +368,11 @@ function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string 
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
-/**
- * ⭐ The cask's CHARACTER, in words (assembly D9, AC 23): a charred inside
- * says so, and a vessel that has given everything it had says that too —
- * which is what tells a buyer it wants re-firing. A vat that imparts
- * nothing says nothing.
- */
-function characterAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
-  if (!MixinApi.isMaturing(host)) return text;
-  const lines: string[] = [];
-  if (host.getCharLevel() >= 1) lines.push('Through the bung the inside of the staves is charred black.');
-  if (host.isSpent()) {
-    lines.push('The wood inside is dull and grey with use — it has given its contents everything it had.');
-  } else if (host.getImpartsSpent() >= 0.5) {
-    lines.push('The wood inside has been filled more than once; it has less left to give.');
-  }
-  if (lines.length === 0) return text;
-  const line = lines.join(' ');
-  return text && text.length > 0 ? `${text}\n\n${line}` : line;
-}
-
 export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class MaturingMixin extends Base implements Maturing {
     static _mixinName = 'MaturingMixin';
 
-    static markupAugmenters: MarkupAugmenter[] = [maturationAugmenter, characterAugmenter];
+    static markupAugmenters: MarkupAugmenter[] = [maturationAugmenter];
 
     static fieldMeta: FieldMeta = {
       maturationClockStamp: { persistent: true, runtimeState: true },
@@ -418,33 +387,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       wildLagDays: { persistent: true, runtimeState: true },
       viability: { persistent: true, runtimeState: true },
       leesVolumeL: { persistent: true, runtimeState: true },
-      batchInputBand: { persistent: true, runtimeState: true },
-      // ⭐⭐ **`spoiler: 1`, and this is the one field in the build that
-      // needed it.** The whole cask wave makes a barrel's character
-      // something you learn by NOSING — competence-banded, in words,
-      // with no digit anywhere. A wiki composition panel printing
-      // `{vanilla 40, char 120, oak 15}` hands that over for free, with
-      // numbers, which is exactly what the no-gauge reading rules keep
-      // out of the player-facing read.
-      //
-      // `spoilerName: 0`, like its sibling `Recipe.imparts`: *that a
-      // cask gives its contents something* is open knowledge — a cooper
-      // would say so — and only the FIGURES are trade knowledge.
-      //
-      // ⚠ The reveal model fails OPEN (an untagged field is level 0), so
-      // an untagged spoiler leaks until somebody notices. The enumerating
-      // snapshot in `wiki-spoiler-fields.snapshot.test.ts` is what made
-      // somebody notice; that is the control working.
-      imparts: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
-      impartedFraction: { persistent: true, runtimeState: true },
-      // ⭐⭐ The cask's CHARACTER over its life (assembly D9, AC 23): what
-      // it has been filled with spends what it gives. Instance state; the
-      // two profiles are the row's.
-      fillCount: { persistent: true, runtimeState: true },
-      impartsSpent: { persistent: true, runtimeState: true },
-      fillsSinceRefire: { persistent: true, runtimeState: true },
-      charLevel: { persistent: true, runtimeState: true, authorable: true },
-      charredImparts: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+      inputGradeCap: { persistent: true, runtimeState: true },
       batchDays: { persistent: true, runtimeState: true },
       batchPeakK: { persistent: true, runtimeState: true },
     };
@@ -467,59 +410,6 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * before the set makes a curd that sets badly. `0` = never sampled.
      */
     public batchPeakK = 0;
-
-    /**
-     * ⭐⭐⭐ **What this VESSEL gives its contents over a batch**, mg/L at
-     * full conversion. The cask's character, and the reason a cask is a
-     * decision rather than a timer.
-     *
-     * ⚠ Why it is here and not on the profile. `MaturationProfile` keys
-     * on the LIQUID (`inputCategory`), so expressing "an oak cask and a
-     * charred cask do different things to new-make" as two profiles
-     * means two rows claiming the tag `new-make` — and `forMaterial`
-     * resolves a double match by taking the lowest key, silently. The
-     * alternative, a `vesselCategory` requirement on the profile,
-     * enumerates (liquids × vessels) rows.
-     *
-     * ⚠ And not on the WOOD material either: a charred first-fill cask
-     * and a plain third-fill cask are both oak. The difference is the
-     * vessel's own state and history, which is a fact about this cask.
-     *
-     * ⭐ What composing it CLAIMS: *a maturing vessel may give its
-     * contents a character over the course of a batch.* True of every
-     * vat — an oak fermenter does exactly this — and vacuous when a row
-     * authors none, so no guard anywhere re-narrows the host set.
-     *
-     * ⚠ Known coarseness, recorded rather than modelled: the figure is
-     * per litre regardless of fill level, so a small fill in a big cask
-     * ought to extract harder and does not.
-     */
-    public imparts: { type: string; amount: number }[] = [];
-
-    /**
-     * How much of {@link imparts} has already been written into the
-     * contents, as a fraction of the batch. The write is the DIFFERENCE
-     * each reconcile, so repeated reads are idempotent — the thing a
-     * reconcile-on-read gauge has to get right or the aroma climbs every
-     * time anybody looks at the cask.
-     */
-    public impartedFraction = 0;
-
-    /** How many batches this vessel has held. */
-    public fillCount = 0;
-    /**
-     * 0..1 — how much of its character the vessel has given away. Each
-     * fill after the first spends `maturing.impartsSpentPerFill` (a third):
-     * a third fill gives little and a fourth nothing. A cooper's re-fire
-     * restores it.
-     */
-    public impartsSpent = 0;
-    /** Fills since it was made or last re-fired — the first one is free. */
-    public fillsSinceRefire = 0;
-    /** 0 plain, 1 charred — a re-fire chars the inside (and makes a plain cask a charred one). */
-    public charLevel = 0;
-    /** What a CHARRED inside gives — the second authored profile. */
-    public charredImparts: { type: string; amount: number }[] = [];
 
     /**
      * ⭐ Game-days this batch has been in the vessel — the **age
@@ -559,10 +449,11 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public leesVolumeL = 0;
     /**
      * ⭐⭐ **The grade the FILL carried in** — the ceiling on what this
-     * batch can become. `null` ⇒ nothing graded was poured in, so there
-     * is no cap.
+     * batch can become, read off the contents' payload when the batch
+     * starts (matter-model-overlaps D2). `null` ⇒ the fill was ungraded,
+     * so there is no cap — an ungraded must is not a `fair` one.
      *
-     * ⚠⚠ Without it `applyBatchGrade` wrote `bandFor(_worstStretch)` and
+     * ⚠⚠ Without it the batch's band was `bandFor(_worstStretch)` and
      * ignored the fill entirely, so **a `poor` must made `fine` wine**
      * provided the cellar was kept at the right temperature. That is not
      * a feature of fermentation; it is a laundry, and it contradicted
@@ -570,14 +461,8 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * over. The whiskey build needed the same rule for a different
      * reason — no amount of time in oak may turn a bad cut into good
      * whiskey — and fixing it once fixes both.
-     *
-     * ⚠ Recorded by a WITNESS on `setGrade` while the batch is idle, and
-     * the idle guard is what makes it work: `applyBatchGrade` writes
-     * through the same setter every reconcile, and `GradedMixin`'s
-     * default band is `'fair'`, so reading the host's face at
-     * `startBatch` would cap every ungraded ferment at `fair` for ever.
      */
-    public batchInputBand: string | null = null;
+    public inputGradeCap: GradeBand | null = null;
 
     /** Reentry guard (TS-private; proxy-safe — never `#`). */
     private _reconcilingFerment = false;
@@ -618,7 +503,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         // the floor converts the residual at the very next read —
         // elapsed or not. The swap re-keys at once, so the same read
         // that ends the wine batch starts the culture batch (strain
-        // from the lees material's culture profile; the Crafted mark
+        // from the lees material's culture profile; the batch's mark
         // untouched — the trace back to the harvested batch).
         if (
           (this.maturationPhase === 'finished' ||
@@ -758,20 +643,13 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
               // the mechanism's own answer by default (microbial: CO₂).
               reconcileCellarAir(self, days, rateAt(profile, tempK) > 0, profile.getOffGas());
             }
-            // ⭐⭐ **The cask writes its character**, additively and in
-            // step with the conversion. The write is the DIFFERENCE since
-            // the last reconcile, which is what makes a
-            // reconcile-on-read gauge idempotent: without the marker the
-            // oak would climb every time anybody so much as looked at
-            // the cask.
-            this.applyImparts();
             this.batchDays += days;
-            this.applyBatchGrade();
+            this.gradeBatch();
             // ⭐⭐ **The product may exist BEFORE full conversion** — the
             // whole of "when to bottle". A profile authoring
             // `productAtFraction: 0.25` makes whiskey from a quarter of
             // the way along, young and poor and sellable to nobody
-            // fussy; `applyBatchGrade`'s maturity term is what prices
+            // fussy; `gradeBatch`'s maturity term is what prices
             // the impatience. Every shipped profile leaves it at 1, where
             // this is the old behaviour exactly.
             if (
@@ -877,24 +755,6 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
      * retries rather than latching a sugarless idle forever.
      */
     private startBatch(materialPath: string, nowS: number): void {
-      // ⭐ A fresh fill spends the vessel's character — the one before it
-      // took a third of what it had to give (assembly D9).
-      if (this.imparts.length > 0 || this.charredImparts.length > 0) {
-        if (this.fillsSinceRefire > 0) {
-          const per = Number.parseFloat(
-            (() => {
-              try {
-                return AppApi.setting(AppSettingKeys.maturingImpartsSpentPerFill);
-              } catch {
-                return '';
-              }
-            })(),
-          );
-          this.impartsSpent = Math.min(1, this.impartsSpent + (Number.isFinite(per) ? per : 0.34));
-        }
-        this.fillCount += 1;
-        this.fillsSinceRefire += 1;
-      }
       this.fractionConverted = 0;
       this._worstStretch = 1;
       this.turnedDays = 0;
@@ -902,10 +762,16 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.wildLagDays = 0;
       this.viability = 1;
       this.leesVolumeL = 0;
-      this.impartedFraction = 0;
       this.batchDays = 0;
       this.batchPeakK = 0;
       this.maturationClockStamp = nowS;
+      // ⭐ The cap is what the fill carried in, read off the contents at the
+      // batch's start (D2) — nothing graded poured in, no cap.
+      const self = this as unknown as Stuff;
+      const carried = MixinApi.isBulkable(self)
+        ? self.getBulkPayload('interior')?.grade
+        : undefined;
+      this.inputGradeCap = carried !== undefined && Grade.isBand(carried) ? carried : null;
       const material = MaterialApi.materials().peek(materialPath);
       if (!material) {
         this.batchMaterialPath = null;
@@ -962,15 +828,12 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (profile.getSpontaneousLagDays() === 0) {
           this.batchStrain = profile.getWildStrain();
         }
-        this.stampBatchMark(profile, nowS);
+        this.signBatch(nowS);
       }
     }
 
     private resetBatch(): void {
-      // ⚠ The input band is NOT cleared here. `resetBatch` runs when the
-      // vessel empties, and the very next thing that happens is a fresh
-      // fill whose `setGrade` witness overwrites it. Clearing would be
-      // harmless; not clearing keeps the one write path.
+      this.inputGradeCap = null;
       this.maturationPhase = 'idle';
       this.maturationProfilePath = '';
       this.batchMaterialPath = null;
@@ -985,56 +848,43 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * Stamp the batch's mark on a Crafted host: the maker is whatever
-     * the W0 transfer seam carried IN with the must (the crusher's
-     * mark), else the acting author when the fill's execution context
-     * is live — never the wire. The recipe field records the ferment
-     * itself; the band is the reconcile's (worst stretch).
+     * Sign the batch (matter-model-overlaps D2): its maker is whoever the
+     * transfer carried IN with the must (the crusher's mark), else the
+     * acting author when the fill's execution context is live — never the
+     * wire — as an IDENTITY path (`getIdentityPath()`; a lineage key named
+     * every player maker the same person). The time it was made is the
+     * batch's start. Both ride the contents' payload: the cask it ferments
+     * in stays the cooper's.
      */
-    private stampBatchMark(profile: MaturationProfile, nowS: number): void {
+    private signBatch(nowS: number): void {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isCrafted(self)) return;
-      const crafted = self as Stuff & Crafted;
-      if (crafted.getMaker() === '') {
-        const author = ExecutionContextApi.getActingAuthor() as {
-          getTemplatePath?: () => string | null;
-        } | null;
-        const path =
-          author && typeof author.getTemplatePath === 'function'
-            ? author.getTemplatePath()
-            : null;
-        if (path) crafted.setMaker(path);
+      if (!MixinApi.isBulkable(self)) return;
+      const payload = self.getBulkPayload('interior') ?? {};
+      let maker = payload.maker ?? '';
+      if (maker === '') {
+        const author = ExecutionContextApi.getActingAuthor() as Stuff | null;
+        maker = author?.getIdentityPath() ?? '';
       }
-      crafted.setRecipe(`ferment:${profile.getKey()}`);
-      crafted.setCraftedAt(nowS);
+      self.setBulkPayload('interior', {
+        ...payload,
+        ...(maker !== '' ? { maker } : {}),
+        craftedAt: nowS,
+      });
     }
 
     /**
-     * ⭐ The witness that records what the fill carried in. A `setGrade`
-     * while the batch is IDLE is somebody pouring graded matter into an
-     * empty vessel (`carryBatchIdentity`, at the transfer seam, which
-     * runs before the next reconcile starts the batch); a `setGrade`
-     * while it is working is this mixin writing its own derived band.
-     */
-    public setGrade(value: Grade): void {
-      if (this.maturationPhase === 'idle') {
-        this.batchInputBand = value.getBand();
-      }
-      super.setGrade(value);
-    }
-
-    /**
-     * Write the derived band onto the host's Graded face — capped at the
-     * band the fill carried in. **Weakest-link**, the same rule a craft's
+     * Write the derived band onto the batch's payload — capped at the band
+     * the fill carried in. **Weakest-link**, the same rule a craft's
      * inputs get from `Grade.deriveAtFixedControl`: a transform cannot be
-     * better than what went into it, however well it was run.
+     * better than what went into it, however well it was run. The vessel's
+     * own grade is its making, and is never touched.
      */
-    private applyBatchGrade(): void {
+    private gradeBatch(): void {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isGraded(self)) return;
+      if (!MixinApi.isBulkable(self) || self.isBulkEmpty('interior')) return;
       let band = Grade.of(bandFor(clamp01(this._worstStretch)));
-      if (this.batchInputBand !== null && Grade.isBand(this.batchInputBand)) {
-        band = band.min(Grade.of(this.batchInputBand));
+      if (this.inputGradeCap !== null && Grade.isBand(this.inputGradeCap)) {
+        band = band.min(Grade.of(this.inputGradeCap));
       }
       // ⭐⭐ **The maturity term — a third weakest link.** A product drawn
       // before the batch has finished is graded by how far along it is,
@@ -1063,7 +913,10 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
           (clamp01(this.fractionConverted) - p) / Math.max(1e-9, 1 - p);
         band = band.min(Grade.of(bandFor(clamp01(along))));
       }
-      self.setGrade(band);
+      const payload = self.getBulkPayload('interior') ?? {};
+      if (payload.grade !== band.getBand()) {
+        self.setBulkPayload('interior', { ...payload, grade: band.getBand() });
+      }
     }
 
     /**
@@ -1102,77 +955,6 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.getMaturationProfile()
           ?.getProductAtFraction() ?? 1
       );
-    }
-
-    /**
-     * Write the share of {@link imparts} the batch has newly earned into
-     * the interior payload's aromatics. Idempotent by the marker; a no-op
-     * for a vessel authoring none, which is every shipped row but the
-     * casks.
-     */
-    /**
-     * What this vessel gives NOW: the charred profile when it is charred
-     * (and has one), else the plain, scaled by what it has left to give.
-     */
-    private effectiveImparts(): { type: string; amount: number }[] {
-      const base =
-        this.charLevel >= 1 && this.charredImparts.length > 0
-          ? this.charredImparts
-          : this.imparts;
-      const left = 1 - clamp01(this.impartsSpent);
-      return base.map((i) => ({ type: i.type, amount: i.amount * left }));
-    }
-
-    public getFillCount(): number {
-      return this.fillCount;
-    }
-    public getImpartsSpent(): number {
-      return clamp01(this.impartsSpent);
-    }
-    public getCharLevel(): number {
-      return this.charLevel;
-    }
-    /** Has it given everything it had (and so wants re-firing)? */
-    public isSpent(): boolean {
-      return (this.imparts.length > 0 || this.charredImparts.length > 0) &&
-        this.impartsSpent >= 1 - 1e-9;
-    }
-    /**
-     * ⭐ The cooper's re-fire: shaved back to clean wood and charred — it
-     * gives again, and it gives what a CHARRED cask gives (AC 23).
-     */
-    public refire(): void {
-      this.impartsSpent = 0;
-      this.fillsSinceRefire = 0;
-      this.charLevel = 1;
-    }
-
-    private applyImparts(): void {
-      if (this.imparts.length === 0 && this.charredImparts.length === 0) return;
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isBulkable(self)) return;
-      const earned = clamp01(this.fractionConverted) - this.impartedFraction;
-      if (!(earned > 1e-9)) return;
-      if (self.getBulkMaterial('interior') === null) return;
-      const add = this.effectiveImparts()
-        .filter((i) => i.amount > 0)
-        .map((i) => ({ type: i.type, amount: i.amount * earned }));
-      if (add.length === 0) return;
-      const payload = self.getBulkPayload('interior') ?? {};
-      const byType = new Map<string, { type: string; amount: number }>();
-      for (const tag of payload.dissolvedAromatics ?? []) {
-        byType.set(tag.type, { ...tag });
-      }
-      for (const tag of add) {
-        const existing = byType.get(tag.type);
-        if (existing) existing.amount += tag.amount;
-        else byType.set(tag.type, { ...tag });
-      }
-      self.setBulkPayload('interior', {
-        ...payload,
-        dissolvedAromatics: [...byType.values()],
-      });
-      this.impartedFraction = clamp01(this.fractionConverted);
     }
 
     /**
@@ -1382,7 +1164,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!(shrink > 0)) {
         // A conserving "evaporative" profile is degenerate — nothing leaves,
         // so nothing can be measured. Hold rather than divide by zero.
-        this.applyBatchGrade();
+        this.gradeBatch();
         return;
       }
 
@@ -1436,7 +1218,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
 
-      this.applyBatchGrade();
+      this.gradeBatch();
       this.fractionConverted = f;
       // ⭐ (ceramics W8) The solids stay as the water leaves (or rain comes
       // in): the dissolved figure rescales by volume, so a pan of sea water
@@ -1535,7 +1317,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
       const profile = this.matchProfile(material);
       this.maturationProfilePath = profile?.getPath() ?? '';
       this.maturationPhase = profile !== null ? 'active' : 'idle';
-      if (profile !== null) this.stampBatchMark(profile, this.maturationClockStamp);
+      if (profile !== null) this.signBatch(this.maturationClockStamp);
     }
 
     public getBatchPeakK(): number {

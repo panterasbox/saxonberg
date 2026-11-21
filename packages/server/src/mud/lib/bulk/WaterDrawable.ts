@@ -80,7 +80,7 @@ export interface WaterDrawable {
  * ⭐ **`WaterDrawableMixin` — the water-source protocol, as a mixin.**
  *
  * The default answers for a VESSEL: its bulk slot, settled, holding
- * something tagged `water`, and the vessel not a crafted drink.
+ * something tagged `water`, and the contents not a crafted drink.
  * `ShoreMixin` overrides with the shore's water (the frozen gate).
  */
 export function WaterDrawableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -91,12 +91,13 @@ export function WaterDrawableMixin<TBase extends MixinConstructor<Stuff>>(Base: 
     /** @hook Water from this thing for `actor`, or why none. */
     public async drawWaterFor(_actor: Stuff): Promise<WaterDrawAnswer> {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isBulkable(self) || MixinApi.isCrafted(self)) {
-        return { ok: false, reason: 'no-water' };
-      }
+      if (!MixinApi.isBulkable(self)) return { ok: false, reason: 'no-water' };
       const slot = BulkableApi.slotFor(self, undefined);
       await slot?.settle();
       if (!slot || slot.isEmpty()) return { ok: false, reason: 'no-water' };
+      // ⭐ A crafted drink is not wash water: the CONTENTS say so — a recipe
+      // made them (matter-model-overlaps D2) — whatever vessel holds them.
+      if (slot.getPayload()?.recipeId) return { ok: false, reason: 'no-water' };
       const material = slot.getMaterial();
       if (!material || !WATER_TAGS.some((t) => material.hasTag(t))) return { ok: false, reason: 'no-water' };
       const materialPath = material.getTemplatePath();

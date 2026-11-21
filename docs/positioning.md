@@ -31,6 +31,26 @@ That gap is the whole subject of this doc.
 
 ---
 
+## Part 0a — The three names (added 2026-11-20)
+
+The owner, settling what the instance at mud.panterasbox.com is. Three names, three jobs:
+
+| name | what it is | in public |
+|---|---|---|
+| **Pantera's Box** | the **community** the owner founded and is President and Founder of — a game-experiencing community that finances production *and* consumption, the first organization to run the Compact (the owner runs it until they say otherwise). It happens to be in the business of games; it could run the same platform in another business entirely. | **who we are** — the host of this instance |
+| **Saxonberg** | the **platform**, the product, and the community's one focus: finishing it to a 1.0. Also the name of the capital inside the world, named for the platform it seats. | **what we're building, and where you play** — as important as Pantera's Box, maybe more so now |
+| **Bobalu Smallberries** | the owner's personal brand and pen name for the games they write, and the host of the show (Twitch and YouTube; *Bobalu* on Kick) | **the founder's voice, and the show** |
+
+⭐ **mud.panterasbox.com is Pantera's Box's instance of Saxonberg**, and the platform's public face
+until there are other instances (federation). The address is the community's, not the product's, on
+purpose. *"If Saxonberg fails it's not the end for Pantera's Box … for me it's about the community
+and the tools that I leverage to cultivate it. Saxonberg and all its many knobs and levers is that
+tool."* If the community ever splits its focus, it may fork. The instance is **not** www.panterasbox.com,
+which stays a brochure about the project and the organization. The front page that follows from this:
+[front-page-slate](./slates/client/front-page-slate.md).
+
+---
+
 ## Part 1 — The claim, and how true it is
 
 > **Saxonberg is a governance substrate that ships a text world as its

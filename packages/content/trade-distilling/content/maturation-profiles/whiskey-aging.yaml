@@ -33,7 +33,7 @@ productMaterial: /trade/distilling/idea/material/whiskey
 # ⭐⭐ `productAtFraction: 0.25` — **when to bottle becomes a
 # decision.** From a quarter of the way along there is drawable
 # whiskey in the cask: young, pale, and graded by how far along it is
-# (the maturity term in `applyBatchGrade`). So an impatient distiller
+# (the maturity term in `gradeBatch`). So an impatient distiller
 # CAN sell early and will be refused by the Lounge's sour, which takes
 # `minGrade: fair`; a patient one gets the cut's own band and full
 # wood. The fork has a consumer that already shipped.

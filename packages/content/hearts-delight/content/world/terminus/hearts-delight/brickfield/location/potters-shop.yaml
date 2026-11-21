@@ -50,6 +50,9 @@ data:
     # What a glaze is made of, a starting heap of each — bounded.
     - { template: /trade/fuel/thing/wood-ash, count: 3 }
     - /stuff/thing/lead-pig
+    # ⭐ Salt for the salt glaze (D16): thrown into the kiln at its peak, it
+    # is vapor in the kiln's air. Bounded, like the rest.
+    - { template: /stuff/thing/salt-crystals, count: 3 }
     # The kiln's fuel, bounded.
     - { template: /trade/fuel/thing/charcoal, count: 6 }
     # ⭐ The drying stove and its cordwood (the browser walk: green ware froze

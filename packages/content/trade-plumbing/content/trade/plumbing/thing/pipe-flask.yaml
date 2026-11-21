@@ -4,6 +4,8 @@
 # city's iron pipe comes from Rejection's foundry, where the flask stands.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: pipe flask
   keywords: [flask, "pipe flask", mould, mold]
   register: indefinite

@@ -1,10 +1,16 @@
 /**
- * The grade seam (fermentation D6/W0): `BulkableApi.transfer` carries a
- * graded batch's identity — grade band, and the maker's mark — from the
- * source holder onto a freshly filled destination. Ungraded sources and
- * unmarkable targets leave the transfer exactly as before, and a top-up
- * into a non-empty vessel keeps the destination's own identity (the
- * payload rule, applied to identity).
+ * ⭐⭐ The batch is the contents' (matter-model-overlaps D2). A batch's
+ * grade, maker, recipe and time made ride its `BulkPayload`, and
+ * `BulkableApi.transfer` decides what happens to them:
+ *
+ * - a fill from empty carries the payload;
+ * - a top-up folds the grade to the lower of the two (one side ungraded:
+ *   the other's stands) and never re-signs the maker or the recipe;
+ * - `faceCheckedS` — the old wall's clock — never rides a pour;
+ * - out of a set the drainings take no grade (the mould grades them).
+ *
+ * And the vessel's own `Graded`/`Crafted` face is never touched: it is the
+ * vessel's making, whatever is poured into it.
  */
 
 import "../../../../test-bootstrap";
@@ -12,9 +18,9 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import Good from '../../stuff/Good';
-import { BulkableMixin } from '../Bulkable';
+import { BulkableMixin, type BulkPayload } from '../Bulkable';
 import { CraftedMixin, type Crafted } from '../../craft/Crafted';
-import { GradedMixin } from '../../craft/Graded';
+import { NamedMixin } from '../../description/Named';
 import { Grade } from '../../craft/Grade';
 import Material from '../../material/Material';
 import { Quantity } from '../../quantity';
@@ -23,7 +29,7 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 
-/** A vat-like source / bottle-like target: graded AND markable. */
+/** A vat-like source / bottle-like target with a making of its own. */
 class MarkedVessel extends CraftedMixin(BulkableMixin(Good)) {
   static _mixinName = 'GradeCarryMarkedVessel';
 }
@@ -37,44 +43,51 @@ function marked(v: MarkedVessel): Crafted {
   return v as unknown as Crafted;
 }
 
-/** Graded but not Crafted — band carries, no mark to hold. */
-class GradedVessel extends GradedMixin(BulkableMixin(Good)) {
-  static _mixinName = 'GradeCarryGradedVessel';
+/** A potter's jug: made, and nameable by its maker while it has no name. */
+class Jug extends CraftedMixin(NamedMixin(BulkableMixin(Good))) {
+  static _mixinName = 'GradeCarryJug';
 }
 
-/** Neither — the pre-seam vessel; transfers must be unchanged. */
+/** Neither graded nor marked — a mug; a batch's grade still rides into it. */
 class PlainVessel extends BulkableMixin(Good) {
   static _mixinName = 'GradeCarryPlainVessel';
 }
 
 const WINE = '/stuff/idea/material/_test/grade-carry-wine';
-const MAKER = '/stuff/agent/_test/grade-carry-vintner';
+const MAKER = '/platform/agent/Avatar/grade-carry-vintner';
+const OTHER = '/platform/agent/Avatar/grade-carry-other';
+const COOPER = '/platform/agent/Avatar/grade-carry-cooper';
+const POTTER = '/platform/agent/Avatar/grade-carry-potter';
 
 function prime<T extends InstanceType<ReturnType<typeof BulkableMixin>>>(
   v: T,
   amountL: number,
+  payload: BulkPayload | null = null,
 ): T {
   (v as unknown as { interiorBulk: boolean }).interiorBulk = true;
   v.setInteriorCapacity(Quantity.of(1, 'L'));
   if (amountL > 0) {
     (v as unknown as { interiorMaterial: string }).interiorMaterial = WINE;
     v.setInteriorAmount(Quantity.of(amountL, 'L'));
+    if (payload) slotOf(v).setPayload(payload);
   }
   return v;
 }
 
-function makeMaterial(): void {
-  makeStuffAtPath(() => {
+function makeMaterial(): Material {
+  return makeStuffAtPath(() => {
     const m = new Material();
     m.setName('test wine');
     return m;
   }, WINE);
 }
 
+function slotOf(v: unknown) {
+  return BulkableApi.slotFor(v as never, undefined)!;
+}
+
 function pour(from: unknown, to: unknown, litres: number) {
-  const fromSlot = BulkableApi.slotFor(from as never, undefined)!;
-  const toSlot = to === null ? null : BulkableApi.slotFor(to as never, undefined)!;
-  return BulkableApi.transfer(fromSlot, toSlot, {
+  return BulkableApi.transfer(slotOf(from), to === null ? null : slotOf(to), {
     kind: 'measure',
     litres,
     mode: 'strict',
@@ -83,123 +96,166 @@ function pour(from: unknown, to: unknown, litres: number) {
 
 afterEach(() => StuffApi.clearAll());
 
-describe('the grade seam on BulkableApi.transfer', () => {
-  it('vat→bottle stamps both the band and the maker\'s mark', () => {
+describe('the batch rides the payload on BulkableApi.transfer', () => {
+  it('a fill from empty carries grade, maker and time made — onto the CONTENTS', () => {
     makeMaterial();
-    const vat = prime(makeStuff(() => new MarkedVessel()), 0.8);
-    vat.stamp({
+    const vat = prime(makeStuff(() => new MarkedVessel()), 0.8, {
+      grade: 'fine',
       maker: MAKER,
-      grade: Grade.of('fine'),
-      recipe: 'test-red-wine',
       craftedAt: 12345,
     });
     const bottle = prime(makeStuff(() => new MarkedVessel()), 0);
 
     const res = pour(vat, bottle, 0.5);
     expect(res.applied).toBeCloseTo(0.5, 9);
-    expect(marked(bottle).getGradeBand()).toBe('fine');
-    expect(bottle.getMaker()).toBe(MAKER);
-    expect(bottle.getRecipe()).toBe('test-red-wine');
-    expect(bottle.getCraftedAt()).toBe(12345);
+    const landed = slotOf(bottle).getPayload();
+    expect(landed?.grade).toBe('fine');
+    expect(landed?.maker).toBe(MAKER);
+    expect(landed?.craftedAt).toBe(12345);
+    // ⭐ The bottle keeps its own making: nobody made it by filling it.
+    expect(bottle.getMaker()).toBe('');
+    expect(marked(bottle).getGradeBand()).toBe('fair');
   });
 
-  it('an ungraded source leaves the target unchanged', () => {
+  it('⭐ a fine wine in a poor bottle stays fine, and the bottle stays poor', () => {
+    makeMaterial();
+    const cask = prime(makeStuff(() => new MarkedVessel()), 0.8, { grade: 'fine', maker: MAKER });
+    const bottle = prime(makeStuff(() => new MarkedVessel()), 0);
+    marked(bottle).setGrade(Grade.of('poor'));
+
+    pour(cask, bottle, 0.5);
+    expect(slotOf(bottle).getPayload()?.grade).toBe('fine');
+    expect(marked(bottle).getGradeBand()).toBe('poor');
+  });
+
+  it('an ungraded source leaves the contents ungraded and the bottle as it was', () => {
     makeMaterial();
     const jug = prime(makeStuff(() => new PlainVessel()), 0.8);
     const bottle = prime(makeStuff(() => new MarkedVessel()), 0);
-    marked(bottle).setGrade(Grade.of('exceptional')); // pre-set; must survive
+    marked(bottle).setGrade(Grade.of('exceptional'));
 
     const res = pour(jug, bottle, 0.5);
     expect(res.applied).toBeCloseTo(0.5, 9);
+    expect(slotOf(bottle).getPayload()?.grade).toBeUndefined();
     expect(marked(bottle).getGradeBand()).toBe('exceptional');
     expect(bottle.getMaker()).toBe('');
   });
 
-  it('a graded source into an unmarkable target carries nothing and still transfers', () => {
+  it('a graded batch keeps its grade in a vessel that has none of its own', () => {
     makeMaterial();
-    const vat = prime(makeStuff(() => new MarkedVessel()), 0.8);
-    marked(vat).setGrade(Grade.of('fine'));
+    const vat = prime(makeStuff(() => new MarkedVessel()), 0.8, { grade: 'masterful' });
     const mug = prime(makeStuff(() => new PlainVessel()), 0);
 
-    const res = pour(vat, mug, 0.5);
-    expect(res.applied).toBeCloseTo(0.5, 9);
-    const slot = BulkableApi.slotFor(mug, undefined)!;
-    expect(slot.getAmount().rawValue()).toBeCloseTo(0.5, 9);
+    pour(vat, mug, 0.2);
+    expect(slotOf(mug).getAmount().rawValue()).toBeCloseTo(0.2, 9);
+    expect(slotOf(mug).getPayload()?.grade).toBe('masterful');
   });
 
-  it('a merely-Graded pair carries the band and no mark', () => {
+  it('a top-up keeps the destination batch\'s maker and time made', () => {
     makeMaterial();
-    const cask = prime(makeStuff(() => new GradedVessel()), 0.8);
-    cask.setGrade(Grade.of('masterful'));
-    const cup = prime(makeStuff(() => new GradedVessel()), 0);
-
-    pour(cask, cup, 0.2);
-    expect(cup.getGradeBand()).toBe('masterful');
-  });
-
-  it('a top-up into a non-empty vessel keeps the destination\'s identity', () => {
-    makeMaterial();
-    const vat = prime(makeStuff(() => new MarkedVessel()), 0.8);
-    vat.stamp({
+    const vat = prime(makeStuff(() => new MarkedVessel()), 0.8, {
+      grade: 'fine',
       maker: MAKER,
-      grade: Grade.of('fine'),
-      recipe: 'test-red-wine',
       craftedAt: 12345,
     });
-    const bottle = prime(makeStuff(() => new MarkedVessel()), 0.3);
-    bottle.stamp({
-      maker: '/stuff/agent/_test/other-maker',
-      grade: Grade.of('poor'),
-      recipe: 'plonk',
+    const bottle = prime(makeStuff(() => new MarkedVessel()), 0.3, {
+      grade: 'poor',
+      maker: OTHER,
       craftedAt: 99,
     });
 
     const res = pour(vat, bottle, 0.2);
     expect(res.applied).toBeCloseTo(0.2, 9);
-    expect(marked(bottle).getGradeBand()).toBe('poor');
-    expect(bottle.getMaker()).toBe('/stuff/agent/_test/other-maker');
+    const held = slotOf(bottle).getPayload();
+    expect(held?.grade).toBe('poor');
+    expect(held?.maker).toBe(OTHER);
+    expect(held?.craftedAt).toBe(99);
   });
 
-  // ⭐⭐ The whiskey build's half of the rule, and the one that changed
-  // shipped behaviour: identity rides into an empty vessel only, but
-  // QUALITY is a property of the matter, so a top-up is weakest-link both
-  // ways. Before this, pouring a good cask into a bad bottle left the
-  // bottle reading `poor` (above) while pouring a bad cask into a good
-  // bottle left it reading `fine` — the same mixture with two answers,
-  // and the second one was a laundry.
-  it('a POOR top-up drags a fine destination down, and never re-signs it', () => {
+  // ⭐⭐ Quality is a property of the matter, so a top-up is weakest-link
+  // both ways; otherwise pouring a bad cask into a good bottle would leave
+  // it reading `fine` — a laundry.
+  it('a POOR top-up drags a fine batch down, and never re-signs it', () => {
     makeMaterial();
-    const slops = prime(makeStuff(() => new MarkedVessel()), 0.8);
-    slops.stamp({
-      maker: '/stuff/agent/_test/other-maker',
-      grade: Grade.of('poor'),
-      recipe: 'plonk',
-      craftedAt: 99,
-    });
-    const bottle = prime(makeStuff(() => new MarkedVessel()), 0.3);
-    bottle.stamp({
-      maker: MAKER,
-      grade: Grade.of('fine'),
-      recipe: 'test-red-wine',
-      craftedAt: 12345,
-    });
+    const slops = prime(makeStuff(() => new MarkedVessel()), 0.8, { grade: 'poor', maker: OTHER });
+    const bottle = prime(makeStuff(() => new MarkedVessel()), 0.3, { grade: 'fine', maker: MAKER });
 
     pour(slops, bottle, 0.2);
-    expect(marked(bottle).getGradeBand()).toBe('poor');
-    // The mark is the destination's still: you cannot make somebody else
-    // answer for what you poured into their bottle.
-    expect(bottle.getMaker()).toBe(MAKER);
-    expect(bottle.getRecipe()).toBe('test-red-wine');
+    expect(slotOf(bottle).getPayload()?.grade).toBe('poor');
+    // You cannot make somebody else answer for what you poured into their batch.
+    expect(slotOf(bottle).getPayload()?.maker).toBe(MAKER);
   });
 
-  it('a top-up never RAISES the destination grade', () => {
+  it('a top-up never RAISES the batch\'s grade', () => {
     makeMaterial();
-    const cask = prime(makeStuff(() => new GradedVessel()), 0.8);
-    cask.setGrade(Grade.of('masterful'));
-    const cup = prime(makeStuff(() => new GradedVessel()), 0.3);
-    cup.setGrade(Grade.of('fair'));
+    const cask = prime(makeStuff(() => new PlainVessel()), 0.8, { grade: 'masterful' });
+    const cup = prime(makeStuff(() => new PlainVessel()), 0.3, { grade: 'fair' });
 
     pour(cask, cup, 0.2);
-    expect(cup.getGradeBand()).toBe('fair');
+    expect(slotOf(cup).getPayload()?.grade).toBe('fair');
+  });
+
+  it('with one side ungraded, the other\'s grade stands', () => {
+    makeMaterial();
+    const cask = prime(makeStuff(() => new PlainVessel()), 0.8, { grade: 'fine' });
+    const cup = prime(makeStuff(() => new PlainVessel()), 0.3);
+
+    pour(cask, cup, 0.2);
+    expect(slotOf(cup).getPayload()?.grade).toBe('fine');
+
+    const water = prime(makeStuff(() => new PlainVessel()), 0.5);
+    pour(water, cup, 0.1);
+    expect(slotOf(cup).getPayload()?.grade).toBe('fine');
+  });
+
+  it('the old wall\'s clock never rides a pour', () => {
+    makeMaterial();
+    const vat = prime(makeStuff(() => new PlainVessel()), 0.8, { grade: 'fine', faceCheckedS: 777 });
+    const bottle = prime(makeStuff(() => new PlainVessel()), 0);
+
+    pour(vat, bottle, 0.4);
+    expect(slotOf(bottle).getPayload()?.grade).toBe('fine');
+    expect(slotOf(bottle).getPayload()?.faceCheckedS).toBeUndefined();
+  });
+
+  it('⭐ a ferment in a cooper\'s cask leaves the cask the cooper\'s', () => {
+    makeMaterial();
+    const must = prime(makeStuff(() => new PlainVessel()), 0.8, { grade: 'fine', maker: MAKER });
+    const cask = prime(makeStuff(() => new MarkedVessel()), 0);
+    cask.stamp({ maker: COOPER, grade: Grade.of('exceptional'), recipe: '', craftedAt: 1 });
+
+    pour(must, cask, 0.6);
+    expect(cask.getMaker()).toBe(COOPER);
+    expect(marked(cask).getGradeBand()).toBe('exceptional');
+    expect(slotOf(cask).getPayload()?.maker).toBe(MAKER);
+  });
+
+  it('⭐ filling a potter\'s jug leaves it hers to name', () => {
+    makeMaterial();
+    const cask = prime(makeStuff(() => new PlainVessel()), 0.8, { grade: 'fine', maker: MAKER });
+    const jug = prime(makeStuff(() => new Jug()), 0);
+    jug.stamp({ maker: POTTER, grade: Grade.of('fine'), recipe: '', craftedAt: 1 });
+    expect(jug.canBeNamedBy(POTTER)).toBe(true);
+
+    pour(cask, jug, 0.5);
+    expect(jug.canBeNamedBy(POTTER)).toBe(true);
+    expect(jug.canBeNamedBy(MAKER)).toBe(false);
+  });
+
+  it('out of a set the drainings take no grade — the mould grades them', () => {
+    const wine = makeMaterial();
+    const pool = prime(makeStuff(() => new PlainVessel()), 0.8, { grade: 'fine', maker: MAKER });
+    const pail = prime(makeStuff(() => new PlainVessel()), 0);
+
+    BulkableApi.transfer(
+      slotOf(pool),
+      slotOf(pail),
+      { kind: 'measure', litres: 0.2, mode: 'lenient' },
+      { through: 'set', arrivesAs: wine },
+    );
+    expect(slotOf(pail).getAmount().rawValue()).toBeCloseTo(0.2, 9);
+    expect(slotOf(pail).getPayload()?.grade).toBeUndefined();
+    // …but whose they are rides with them.
+    expect(slotOf(pail).getPayload()?.maker).toBe(MAKER);
   });
 });

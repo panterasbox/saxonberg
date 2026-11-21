@@ -133,7 +133,7 @@ designs rather than epochs.
 **It generalizes, and half-ships informally** — Pumping (seal, valve, chamber,
 driver) · Milling (runner, bed, feed) · Timekeeping (mainspring, escapement,
 balance — [horology](./horology-slate.md)) · Sawing (blade, feed). Today the lamp
-reads its `facing` panes, the vat reads `leaks()`, the plough wears its share — each
+reads its `facing` panes, the vat reads `jointLeakShare()`, the plough wears its share — each
 host reaching into its parts by convention; roles make it a declared contract.
 
 ## 5. The drive and the movers **[DECIDED]**

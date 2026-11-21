@@ -1,0 +1,4 @@
+# Warm wet air: steam off a copper, a laundry on wash day, a bathhouse.
+# Water itself has no smell; air carrying a lot of it is close and heavy,
+# and the nose knows the difference. No liking either way (valence 0).
+liking: { peak: 1, width: 2, valence: 0 }

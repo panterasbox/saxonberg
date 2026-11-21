@@ -2205,6 +2205,25 @@ const t = await this.getTemperature(detailKey);   // delegates to BiomeApi
 
 See [biome.md](./subsystems/biome.md) for the full chain.
 
+## Choosing Where a Drip or a Vapor Goes — the Source Decides
+
+A liquid leaving a vessel (a weep, a leak, a mould's drainings, a heap's
+run-off) and a vapor leaving a liquid or a solid each have ONE route, and
+the caller never picks the receiver (matter-model-overlaps D10, D16). Five
+drip sites and six vapor sites each used to walk their own chain, and they
+disagreed: one fell back to the floor, one to nothing, one to the vessel's
+own outside.
+
+| Don't | Do |
+|---|---|
+| walk `getPlacement()` / `getContainer()` for "what is under me" and `transfer` into what you find, or fall back to `null` | `BulkableApi.drip({ from, litres, via? })` (or `{ off, material, litres, payload }` from a solid) — it asks the source's `dripSlots()` (in → on → the floor), skips a vessel holding another liquid, and reports what soaked away or was `lost` |
+| hand a vapor to a Burner, or `addAtmosphereContent` on the room, by hand | `BiomeApi.vent({ from, material, litres })` — head → chamber → room; a scope open to the sky takes none |
+
+A holder that passes a drip on (a mould's open foot) answers the hook
+`Bulkable.passesDripsThrough()`; nothing narrows on what it is. See
+[spatial.md](./subsystems/spatial.md) § What is under it — the drip and
+[biome.md](./subsystems/biome.md) § The one vapor route.
+
 ## Events — `EventApi.fire(event)`, don't construct events without firing
 
 The class-per-event vocabulary (`FieldChangedEvent`,

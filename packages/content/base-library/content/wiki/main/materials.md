@@ -21,6 +21,7 @@ lists its members.
 - [[Taking up water]]
 - [[Being food]]
 - [[Poison]]
+- [[Giving to what it holds]]
 - [[Spoiling]]
 - [[pH]]
 - [[Dissolving]]

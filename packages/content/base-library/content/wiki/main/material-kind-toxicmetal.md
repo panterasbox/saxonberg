@@ -8,7 +8,7 @@ tags:
 
 An elemental metal that poisons (lead).
 
-A kind of [[ElementalMetal]]. It adds [[Poison]] to what its parent has.
+A kind of [[ElementalMetal]]. It adds [[Poison]], [[Giving to what it holds]] to what its parent has.
 Its kinds: [[RadioactiveMetal]].
 
 ## Its materials {#materials}

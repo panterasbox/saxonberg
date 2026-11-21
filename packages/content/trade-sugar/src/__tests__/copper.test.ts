@@ -1,8 +1,10 @@
 /**
  * The sugar copper's three acts (sugar D1/D19): a raw-sugar block
  * dissolves into its water; lime tempers the liquor; the scum is skimmed
- * into a pail — and the copper's grade, which the strike arrow reads,
- * follows what was done.
+ * into a pail — and the LIQUOR's purity (its payload's, matter-model-overlaps
+ * D12), which the strike arrow reads, follows what was done; its grade is
+ * read off that purity by the row's thresholds. The copper is never graded
+ * by what it boiled.
  */
 
 import '@saxonberg/server/test-bootstrap';
@@ -18,8 +20,8 @@ import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import Vat from '@saxonberg/server/mud/platform/thing/Vat';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Copper from '../thing/Copper';
@@ -60,7 +62,8 @@ function lump(mat: Material, kg: number): Provision {
   });
 }
 
-const bandOf = (c: Copper): string => (MixinApi.isGraded(c) ? c.getGrade().getBand() : '');
+const bandOf = (c: Copper): string => c.getBulkPayload('interior')?.grade ?? '';
+const purityOf = (c: Copper): number => c.getBulkPayload('interior')?.purity ?? NaN;
 const flush = (): Promise<void> => new Promise((r) => setTimeout(r, 0));
 
 describe('the sugar copper', () => {
@@ -69,7 +72,16 @@ describe('the sugar copper', () => {
     installV1QuantityMarshallers();
     water = material(() => new Water(), '/stuff/idea/material/bulk/water', () => undefined);
     rawSugar = material(() => new SolidFood(), '/trade/sugar/idea/material/raw-sugar', (m) => m.setTags(['solid', 'raw-sugar']));
-    material(() => new Syrup(), '/trade/sugar/idea/material/raw-liquor', (m) => m.setSolidsKgPerL(0.6));
+    material(() => new Syrup(), '/trade/sugar/idea/material/raw-liquor', (m) => {
+      m.setSolidsKgPerL(0.6);
+      // The shipped row's (raw-liquor.yaml).
+      m.setCrystallizesTo({
+        product: '/trade/sugar/idea/material/loaf-sugar',
+        residue: '/trade/sugar/idea/material/molasses',
+        purity: 0.8,
+        gradeByPurity: [[0, 'poor'], [0.88, 'fair'], [0.92, 'fine']],
+      });
+    });
     material(() => new Syrup(), '/trade/sugar/idea/material/skimmings', () => undefined);
     quicklime = material(() => new Lye(), '/stuff/idea/material/caustic/quicklime', () => undefined);
   });
@@ -83,7 +95,8 @@ describe('the sugar copper', () => {
     expect(c.getBulkAmount('interior').rawValue()).toBeCloseTo(37.5, 6);
     expect(c.getBulkPayload('interior')?.dissolvedSolidsKgPerL).toBeCloseTo(20 / 37.5, 6);
     expect(block.isDestroyed()).toBe(true);
-    // Untempered: it will not grain.
+    // Untempered: the row's own purity, under the strike's — it will not grain.
+    expect(purityOf(c)).toBeCloseTo(0.8, 9);
     expect(bandOf(c)).toBe('poor');
   });
 
@@ -95,21 +108,38 @@ describe('the sugar copper', () => {
     expect(c.canAddContainable(makeStuff(() => new Good()) as never).ok).toBe(false);
   });
 
-  it('⭐ tempered once and skimmed grains clean; twice-limed grains dark', async () => {
+  it('⭐ temper and skim raise the liquor\'s purity and never touch the copper', async () => {
     const c = copperOfWater(25);
+    const ownGrade = (): string | null => (MixinApi.isGraded(c) ? c.getGrade().getBand() : null);
+    const own = ownGrade();
     ContainmentApi.move(lump(rawSugar, 20), c);
     await flush();
     expect(c.temper(lump(quicklime, 4.5)).ok).toBe(true);
+    expect(purityOf(c)).toBeCloseTo(0.88, 9);
     expect(bandOf(c)).toBe('fair'); // not yet skimmed
     const pail = makeStuff(() => new Vat());
     const before = c.getBulkAmount('interior').rawValue();
     expect(c.skim(pail).ok).toBe(true);
+    expect(purityOf(c)).toBeCloseTo(0.93, 9);
     expect(bandOf(c)).toBe('fine');
+    expect(ownGrade()).toBe(own);
     expect(pail.getBulkMaterialPath('interior')).toBe('/trade/sugar/idea/material/skimmings');
     expect(pail.getBulkAmount('interior').rawValue()).toBeCloseTo(before * 0.05, 6);
     expect(c.skim(pail).ok).toBe(false); // clean already
     expect(c.temper(lump(quicklime, 4.5)).ok).toBe(true);
+    expect(purityOf(c)).toBeCloseTo(0.9, 9);
     expect(bandOf(c)).toBe('fair'); // over-limed
+    expect(ownGrade()).toBe(own);
+  });
+
+  it('a second block folds its sugar in at the row\'s purity, by mass', async () => {
+    const c = copperOfWater(25);
+    ContainmentApi.move(lump(rawSugar, 10), c);
+    await flush();
+    c.temper(lump(quicklime, 4.5)); // 0.88 on 10 kg
+    ContainmentApi.move(lump(rawSugar, 10), c);
+    await flush();
+    expect(purityOf(c)).toBeCloseTo((10 * 0.88 + 10 * 0.8) / 20, 9);
   });
 
   it('nothing to temper in plain water', () => {

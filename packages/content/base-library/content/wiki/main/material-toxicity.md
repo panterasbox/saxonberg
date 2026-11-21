@@ -10,9 +10,9 @@ tags:
 # Poison {#poison}
 
 A **toxic** substance carries toxins — alcohol, lead, a spoiled meat's
-ptomaine — that a body takes in when it eats, drinks or breathes it. A
-glaze or a pipe can give its toxin to what it holds (lead leaches into
-soft water faster than hard).
+ptomaine — that a body takes in when it eats, drinks or breathes it. How a
+glaze or a pipe gives its toxin to what it holds is
+[[Giving to what it holds]].
 
 This is a property of a substance, named for its physics; a kind of
 material has it when every member does.

@@ -976,7 +976,6 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   'burning',
   'imparts',
   'combustionImparts',
-  'charredImparts',
   // A ledger's PREFIX — a document-tree prefix read by
   // `DocumentApi.list`, not a row: a business's feed, a register's branch.
   'registerPrefix',

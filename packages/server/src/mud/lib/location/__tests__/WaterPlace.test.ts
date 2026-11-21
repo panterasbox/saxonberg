@@ -31,6 +31,8 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { WaterRead } from '../WaterSource';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import Good from '../../../platform/thing/Good';
+import { SmallCraftMixin } from '../../expanse/SmallCraft';
+import { ContainerMixin } from '../../spatial/Container';
 import Metal from '../../../platform/idea/material/Metal';
 import { PartyApi } from '../../../api/party';
 import Exit from '../../boundary/Exit';
@@ -122,6 +124,25 @@ describe('BiomeApi.mediumFor — one read, per occupant (D3)', () => {
       tag: 'water', immersed: true, atSurface: true,
     });
     expect(BiomeApi.mediumFor(stander as unknown as Stuff)).toMatchObject({ tag: 'air', immersed: false });
+  });
+
+  it('⭐ a craft afloat is ON the water: she and what she carries read air; swamped, water (found by the drive)', async () => {
+    class Skiff extends ContainerMixin(SmallCraftMixin(Good)) {
+      public freeboardM = 0.3;
+      public override freeboardNowM(): number {
+        return this.freeboardM;
+      }
+    }
+    const { pool: p } = await pool();
+    const skiff = makeStuff(() => new Skiff());
+    const oar = makeStuff(() => new Good());
+    ContainmentApi.move(skiff as never, p as never);
+    ContainmentApi.move(oar as never, skiff as never);
+    expect(BiomeApi.mediumFor(skiff as unknown as Stuff)).toMatchObject({ tag: 'air', immersed: false, atSurface: true });
+    expect(BiomeApi.mediumFor(oar as unknown as Stuff)).toMatchObject({ immersed: false });
+    // Swamped — her gunwale under — the water is in her.
+    skiff.freeboardM = 0;
+    expect(BiomeApi.mediumFor(oar as unknown as Stuff)).toMatchObject({ tag: 'water', immersed: true });
   });
 
   it('the async atmosphere read agrees: a swimmer at the surface is under the air', async () => {

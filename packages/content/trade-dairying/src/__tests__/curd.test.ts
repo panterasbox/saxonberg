@@ -115,7 +115,8 @@ describe('the cheese vat', () => {
     held.getMaturationPhase();
     expect(boiled.getBatchPeakK()).toBeGreaterThan(355);
     expect(held.getBatchPeakK()).toBeLessThan(355);
-    const band = (v: Vat): string => (v as unknown as { getGradeBand(): string }).getGradeBand();
+    // The scald grades the BATCH — the curd's payload (D2).
+    const band = (v: Vat): string | undefined => v.getBulkPayload('interior')?.grade;
     expect(band(boiled)).toBe('poor');
     expect(band(held)).not.toBe('poor');
   });

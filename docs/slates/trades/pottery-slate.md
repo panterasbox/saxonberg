@@ -9,7 +9,8 @@
 > [ceramics.md](../../subsystems/ceramics.md) and
 > [faces.md](../../subsystems/faces.md). (Compacted 2026-11-05.)
 > **Left:** the climbing kiln rung (§ 4) · the fuel's ash glazing the ware by
-> itself (§ 4) · saggars (§ 4) · kintsugi (§ 6) · porcelain and kaolin (§ 9)
+> itself (§ 4) · saggars (§ 4) · kintsugi (§ 6) · porcelain and kaolin (§ 9) ·
+> salt-glaze fumes as a harm (§ 5)
 > **Size:** a tail — rows on shipped bodies, except kintsugi (a repair-method
 > row waiting on a lacquer tap) and kaolin (a deposit somewhere)
 
@@ -74,7 +75,10 @@ Shipped: [faces.md](../../subsystems/faces.md) — a glaze is a coat laid by
 salt — the kiln-vapor path, tin); the lead leach as the contents' pH, silent;
 the faults `crazed` · `run` · `crawled`. (Salt-glaze fumes as harm and the
 lead-glaze ban are in [ceramics.md § Deferred](../../subsystems/ceramics.md)
-and § 8 below.)
+and § 8 below.) Since matter-model-overlaps (2026-11-20) the salt glaze ships
+and its fume is real air — the `salt-fume` a salting kiln vents into the shop
+(`BiomeApi.vent`, [ceramics.md](../../subsystems/ceramics.md) § The works and their people — *salt glaze is a row*);
+the fume as a HARM to who breathes it attaches there.
 
 ## 6. Breakage, mending, and pottery in use **[DECIDED]**
 

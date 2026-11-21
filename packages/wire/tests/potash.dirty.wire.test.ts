@@ -505,6 +505,13 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
     // eslint-disable-next-line no-console -- the drive's own record
     console.log(`  [drive] ⭐ first pass: ${said}`);
     expect(rank, `the first pass: ${said}`).toBeGreaterThanOrEqual(1);
+    // ⭐ The hopper is oak, and an oak wall gives a liquid it holds oak's
+    // own `imparts` (matter-model-overlaps D11, named in potash.md): a lye
+    // a fortnight in it carries a clear oak note.
+    const nosed = await say(s, 'smell hopper');
+    // eslint-disable-next-line no-console -- the drive's own record
+    console.log(`  [drive] ⭐ the lye's nose: ${nosed}`);
+    expect.soft(nosed, `smell hopper: ${nosed}`).toMatch(/oak/i);
     s.close();
   }, 1_800_000);
 

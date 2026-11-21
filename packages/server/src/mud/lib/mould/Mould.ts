@@ -25,6 +25,10 @@
  *     a weight put ON the mould, or a screw press it stands in). A slip
  *     whose drain is `absorbedByMould` sets only in an ABSORBENT mould,
  *     whose own wetness takes the water and slows the next cast;
+ *   - **crystallizing** — a liquor past its solubility, once started, sets
+ *     its crop in the cavity and its spent liquor runs out over the row's
+ *     `drainDays` (a sugar cone; the phase engine's crystallize arm,
+ *     matter-model-overlaps D13);
  *   - **curing** — the material's own `kinetics:` set (`Kinetics.poolSet`,
  *     a point curve with a ladder): plaster slurry takes up its water and
  *     is hard in a quarter-hour, no act;
@@ -70,7 +74,7 @@ import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type Material from '../material/Material';
-import type { Bulkable, BulkPayload } from '../bulk/Bulkable';
+import type { BulkPayload } from '../bulk/Bulkable';
 import type { DrainSetting } from '../material/DrainSetting';
 import type { ChattelOwner } from '../chattel/ChattelRecord';
 // The payload's `contentsOwner` is declared by ContentsTitle's merge.
@@ -148,8 +152,6 @@ export interface Mould extends Carvable, Impressible {
   castInto(pool: SetPool): Promise<Stuff>;
   /** True while a set thing sits in the mould. */
   holdsCast(): boolean;
-  /** The vessel the mould stands on that takes its drainings, or `null`. */
-  drainsInto(): (Stuff & Bulkable) | null;
   /**
    * ⭐ The load on the mould, N — a weight put ON it (× g) plus the screw
    * press it stands in (ceramics D25). `0` with neither.
@@ -371,7 +373,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public blown = false;
     /**
      * Kilograms of drainings the set has driven out of the pool so far —
-     * into the vessel below, or away (sugar D16; R1-D8).
+     * into the vessel below, or away (R1-D8).
      */
     public setDrainedKg = 0;
     /**
@@ -592,7 +594,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // while the mould is whole: worn out (broken), or an unmended crack
       // through the cavity (the one damage record, review R2-D1).
       const cracked =
-        MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended);
+        MixinApi.isFlawed(self) && self.hasOpenFlaw(['crack']);
       if ((MixinApi.isDurable(self) && self.isBroken()) || cracked) {
         return this.castOf(material);
       }
@@ -625,16 +627,12 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     }
 
     /**
-     * ⭐ Where the drainings go (sugar D16): the vessel this mould stands
-     * ON, when it can hold them — a sugar cone on its curing pot. `null`
-     * (they run away) for a mould on a board, a shelf or the floor.
+     * ⭐ A mould's foot is open (matter-model-overlaps D10): what drips off
+     * what sets in it — molasses off a clayed loaf in its cone — runs on to
+     * what the mould drips to, as its own drainings do, never into it.
      */
-    public drainsInto(): (Stuff & Bulkable) | null {
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isContainable(self)) return null;
-      const host = (self.getPlacement()?.host ?? null) as unknown as Stuff | null;
-      if (host === null || !MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return null;
-      return host;
+    public passesDripsThrough(): boolean {
+      return true;
     }
 
     public loadN(): number {
@@ -870,7 +868,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         0;
       const overpress = mouldDial(AppSettingKeys.mouldOverpressExponent, 0.15);
       return (pressed: number): number =>
-        drain.drainedKg(poolKg, waterFraction, pressed, this.bandsBelowFine(), overpress);
+        drain.drainedKg(poolKg, waterFraction, pressed, overpress);
     }
 
     /**
@@ -915,9 +913,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         const cap = self.waterCapacityKg();
         if (cap > 0) self.wet(Math.min(1 - wetness, (poolKg - massKg) / cap));
       }
-      // The shape this mould casts it as may name what it becomes (a
-      // hogshead's block is raw sugar, a cone's loaf is loaf sugar).
-      const becomesPath = drain.becomesFor(this.castTemplateFor(material));
+      const becomesPath = drain.getBecomes();
       const becomes = becomesPath ? MaterialApi.materials().peek(becomesPath) ?? material : material;
       this.assertCanRelease();
       const payload = self.getBulkPayload('interior');
@@ -1167,21 +1163,25 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return null;
     }
 
-    /** Grade bands this mould's pool sits below `fine` (0 when ungraded). */
-    private bandsBelowFine(): number {
+    /**
+     * ⭐ The grade what sets here will have (D3): the lower of the batch's
+     * (its payload) and this mould's own — a shaping vessel is the one
+     * vessel that passes its own grade on. Either side ungraded, the
+     * other's; `null` when neither is.
+     */
+    private castGrade(): Grade | null {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isGraded(self)) return 0;
-      return Math.max(0, Grade.of('fine').getOrdinal() - self.getGrade().getOrdinal());
+      return castGradeOf(self, MixinApi.isBulkable(self) ? self.getBulkPayload('interior')?.grade : undefined);
     }
 
     /**
-     * ⭐ Drain the pool down to `totalKg` of drainings given up — a
-     * TRANSFER through the set (R1-D8), the one move: the population and
-     * the dissolved go with the liquid, the solid's identity does not, the
-     * maker does. They run into the vessel the mould stands on when it can
-     * take them (`drainsInto()`; a vessel holding a different liquor takes
-     * none), a grade one band below the pool's — never above what that
-     * vessel already held — and what it has no room for runs away.
+     * ⭐ Drain the pool down to `totalKg` of drainings given up — the one
+     * drip (matter-model-overlaps D10) through the set (R1-D8): the
+     * population and the dissolved go with the liquid, the solid's identity
+     * does not, the maker does. They run to what is under the mould
+     * (`dripSlots` — the vessel it stands in or on, else the floor: whey
+     * pools under a hoop on a bare board), a grade one band below the
+     * pool's on their payload — never above what that vessel already held.
      */
     private creditDrainings(drain: DrainSetting, totalKg: number): void {
       const deltaKg = totalKg - this.setDrainedKg;
@@ -1192,33 +1192,19 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!(density > 0)) return;
       const self = this as unknown as Stuff;
       if (!MixinApi.isBulkable(self)) return;
-      const pool = self.getBulk('interior');
-      let into = this.drainsInto();
-      const held = into?.getBulkMaterial('interior') ?? null;
-      if (held !== null && held.getTemplatePath() !== what.getTemplatePath()) into = null;
+      // Read before the drainings leave: the pool's grade is what sets.
+      const poolGrade = this.castGrade();
       const litres = (deltaKg / density) * 1000;
-      const via = { through: 'set', arrivesAs: what } as const;
-      const caught =
-        into === null
-          ? 0
-          : BulkableApi.transfer(pool, into.getBulk('interior'), {
-              kind: 'measure',
-              litres,
-              mode: 'lenient',
-            }, via).applied;
-      const ranAway =
-        litres - caught > 1e-12
-          ? BulkableApi.transfer(pool, null, {
-              kind: 'measure',
-              litres: litres - caught,
-              mode: 'lenient',
-            }, via).applied
-          : 0;
-      if (into !== null && caught > 0 && MixinApi.isGraded(self) && MixinApi.isGraded(into)) {
-        const band = Grade.fromOrdinal(self.getGrade().getOrdinal() - 1);
-        into.setGrade(held === null ? band : into.getGrade().min(band));
-      }
-      this.setDrainedKg += ((caught + ranAway) / 1000) * density;
+      const out = BulkableApi.drip({
+        from: self.getBulk('interior'),
+        litres,
+        via: {
+          through: 'set',
+          arrivesAs: what,
+          ...(poolGrade !== null ? { grade: Grade.fromOrdinal(poolGrade.getOrdinal() - 1).getBand() } : {}),
+        },
+      });
+      this.setDrainedKg += (out.drained / 1000) * density;
     }
 
     /** Litres the drainings have taken out of the pool so far (R1-D8). */
@@ -1435,6 +1421,19 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 }
 
 /**
+ * ⭐ The grade what sets in `mould` has (D3): the lower of the batch's
+ * (`band`, its payload's) and the mould's own — either side ungraded, the
+ * other's; `null` when neither is. The one rule `castGrade` (the live pool)
+ * and `carryPayload` (the pool as it set) both read.
+ */
+function castGradeOf(mould: Stuff, band: string | undefined): Grade | null {
+  const own = MixinApi.isGraded(mould) ? mould.getGrade() : null;
+  const batch = band !== undefined && Grade.isBand(band) ? Grade.of(band) : null;
+  if (own === null) return batch;
+  return batch === null ? own : own.min(batch);
+}
+
+/**
  * Carry what the pool KNEW onto the set thing, when the set thing can hold
  * it: who made it, what it was made from, how far it had spoiled, what it
  * was carrying, how wet it is now. ⚠ Food only by construction — an ingot
@@ -1442,11 +1441,17 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
  */
 function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
   const p = pool.payload;
+  // ⭐⭐ The cast is the BATCH set solid (D3): its maker is the batch's (a
+  // mould's own maker made the mould, not what set in it), and its grade
+  // the lower of the batch's and the mould's — a fine pour into a poor
+  // mould casts poor; being a Mould is the claim that passes it.
   if (MixinApi.isCrafted(cast)) {
-    const mouldMaker = MixinApi.isCrafted(mould) ? mould.getMaker() : '';
-    const maker = p?.maker || mouldMaker;
-    if (maker) cast.setMaker(maker);
-    if (MixinApi.isGraded(mould)) cast.setGrade(mould.getGrade());
+    if (p?.maker) cast.setMaker(p.maker);
+    if (p?.craftedAt !== undefined) cast.setCraftedAt(p.craftedAt);
+  }
+  if (MixinApi.isGraded(cast)) {
+    const grade = castGradeOf(mould, p?.grade);
+    if (grade !== null) cast.setGrade(grade);
   }
   // ⭐ …and WHICH TRADE (repair D1): the mould row's fact, not the pourer's
   // — so a cast part is mended under the trade that cast it. On the one

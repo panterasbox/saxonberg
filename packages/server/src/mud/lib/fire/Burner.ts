@@ -312,18 +312,22 @@ export interface Burner extends Pumpable {
    * its fire channels here. Default: nothing.
    */
   onFireStart(by: Stuff | null): Promise<void>;
-  /** What has vaporized into this chamber's air, kg by material path. */
-  getChamberVapors(): Readonly<Record<string, number>>;
-  /** A lump of `materialPath` became vapor in this chamber. */
-  addChamberVapor(materialPath: string, kg: number): void;
   /**
-   * @hook ⭐ What leaves a converting body in this chamber — a firing's tar,
-   * its gas, its wood spirit: the litres this chamber TAKES, `0` by default.
-   * What it does not take goes into the air of the place it stands in (the
-   * thermal transition routes it). A retort hands it to the receivers on its
-   * head (B105 — it was a duck-probe the kernel made of the trade's class).
+   * The chamber's own air: litres of each VAPOR row (salt vapor, a firing's
+   * tar and gas) held in it while it burns (matter-model-overlaps D16).
    */
-  receiveVolatiles(materialPath: string, litres: number): number;
+  getChamberVapors(): Readonly<Record<string, number>>;
+  /**
+   * @hook ⭐ The first rungs of the one vapor route (`BiomeApi.vent`): what
+   * leaves a body IN this chamber — salt thrown in at the peak, a firing's
+   * tar, its gas — offered as `litres` of the vapor row; answer the litres
+   * this chamber TAKES. Default: a lit chamber keeps it as its own air, all
+   * but `fire.chamber.leakShare` that escapes at once; an unlit one takes
+   * none. What it does not take goes on to the air of the place it stands
+   * in. A retort overrides it and hands it to the receivers on its head
+   * (B105).
+   */
+  receiveVolatiles(vaporPath: string, litres: number): number;
   /**
    * ⭐ Settle a firing: bring every body in the chamber current (each
    * reconciles its own heat-work, transitions and volatiles), let what can
@@ -575,10 +579,11 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
     };
 
     /**
-     * ⭐ What vaporized in this chamber (ceramics ruling B): salt thrown in
-     * at peak heat is salt vapor in the kiln's air, and a stoneware body
-     * reaching its rung under it takes a salt-glaze coat. Cleared when the
-     * fire goes out — the vapor goes up the flue.
+     * ⭐ The chamber's air, litres by VAPOR row (ceramics ruling B, D16):
+     * salt thrown in at peak heat is salt vapor in the kiln's air, and a
+     * stoneware body reaching its rung under it takes a salt-glaze coat.
+     * When the fire goes out it is vented onward — up the flue to the sky,
+     * or into the room when there is no flue ({@link ventChamberAir}).
      */
     public chamberVapors: Record<string, number> = {};
 
@@ -586,16 +591,56 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
       return this.chamberVapors;
     }
 
-    public receiveVolatiles(_materialPath: string, _litres: number): number {
-      return 0;
-    }
-
-    public addChamberVapor(materialPath: string, kg: number): void {
-      if (typeof materialPath !== 'string' || materialPath === '' || !(kg > 0)) return;
+    public receiveVolatiles(vaporPath: string, litres: number): number {
+      if (typeof vaporPath !== 'string' || vaporPath === '' || !(litres > 0)) return 0;
+      // ⭐ Only a lit chamber holds air of its own: a cold oven is a box the
+      // room's air fills.
+      if (!this.isLit()) return 0;
+      const leak = Math.max(0, Math.min(1, burnerDial(AppSettingKeys.fireChamberLeakShare, 0.1)));
+      const kept = litres * (1 - leak);
+      if (!(kept > 0)) return 0;
       this.chamberVapors = {
         ...this.chamberVapors,
-        [materialPath]: (this.chamberVapors[materialPath] ?? 0) + kg,
+        [vaporPath]: (this.chamberVapors[vaporPath] ?? 0) + kept,
       };
+      return kept;
+    }
+
+    /**
+     * ⭐ Bring what is IN the chamber current before its air goes (the
+     * {@link settleRoomAir} rule, one level in): each body reads its own heat
+     * history while the chamber's air still holds what it held, so a
+     * stoneware jug that reached its rung under salt vapor takes its glaze
+     * even when nobody read it before the fire went out (found by the drive:
+     * a firing doused before anybody looked in vented the salt first and
+     * glazed nothing). Sparse: a chamber holding no air of its own reads
+     * nothing.
+     */
+    private settleChamber(): void {
+      if (Object.keys(this.chamberVapors).length === 0) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return;
+      for (const c of [...self.getContents()]) {
+        const body = c as unknown as Stuff;
+        if (!body.isDestroyed() && MixinApi.isThermal(body)) body.getTemperature();
+      }
+    }
+
+    /**
+     * ⭐ The fourth rung of the vapor route (D16): the fire is out, and the
+     * chamber's air goes on — up the flue to the sky when there is one (the
+     * documented sink), else into the air of the place it stands in, which a
+     * flueless clamp lit indoors makes you smell.
+     */
+    private ventChamberAir(): void {
+      const held = this.chamberVapors;
+      if (Object.keys(held).length === 0) return;
+      this.chamberVapors = {};
+      const self = this as unknown as Stuff;
+      if (MixinApi.isFlued(self)) return;
+      for (const [vapor, litres] of Object.entries(held)) {
+        if (litres > 0) BiomeApi.vent({ from: self, material: vapor, litres });
+      }
     }
 
     /**
@@ -1674,9 +1719,10 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
      * therefore skipped a restamp path its sibling ran.
      */
     private _goOut(): void {
+      this.settleChamber();
       this.settleRoomAir();
       this.lit = false;
-      this.chamberVapors = {};
+      this.ventChamberAir();
       this.restampHeated();
     }
 
@@ -1684,9 +1730,10 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
     @Final
     @Unshadowable
     public _setLit(value: boolean): void {
+      if (this.lit && value !== true) this.settleChamber();
       this.settleRoomAir();
       this.lit = value === true;
-      if (!this.lit) this.chamberVapors = {};
+      if (!this.lit) this.ventChamberAir();
       // ⭐ The eighth re-stamp trigger class (the `Atmospheric
       // .setTemperature` fan-out shape): lighting or dousing changes
       // the ambient of everything the furnace heats, and the cached

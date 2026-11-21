@@ -4,6 +4,8 @@
 # is a bar to cut and cure.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: soap frame
   keywords: [frame, "soap frame", mould, mold]
   register: indefinite

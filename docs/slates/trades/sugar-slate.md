@@ -90,58 +90,23 @@ built.
   by derivation, not a fail state. The mill and the boil run together because
   the chemistry makes them.
 
-## 3. The boil, the strike and the grades **[DECIDED]**
+## 3. The boil, the strike and the grades — built
 
-1. **Temper and skim** — lime into the warm juice; impurities rise as scum,
-   skimmed. Tempering is a skill (too little and it will not grain, too much
-   and it comes out dark); lime ships from the quarry (its third buyer, after
-   potash's causticizing and building). ⭐ **The skimmings go to the
-   distiller** — fermented skimmings were part of rum's wash.
-2. **Concentrate** — **cane juice is a fourth `evaporative` profile** (about
-   15 % sugar; brine, sap and lye are the others — *before designing a
-   mechanism, look for the shipped one with a different feedstock*),
-   fire-heated like sap. ⭐ **The Jamaica train** — a row of kettles over one
-   flue, ladled from the largest and coolest to the smallest and hottest — is
-   a **built** efficiency (an assembly), the lever of § 2.
-3. ⭐⭐ **The strike — the cut is the skill.** **Boiling point rises as water
-   leaves** (boiling-point elevation), which is **why a thermometer reads
-   concentration** — the confectioner's soft-ball, hard-ball and crack stages
-   are just temperatures. Before thermometers the boiler used the **thread
-   test** (a drop drawn between finger and thumb) — a **`Reading` row**, the
-   potash egg test's sibling, the thermometer its later rung. Stop early:
-   **cane syrup** (treacle); at the strike it **crystallizes** as it cools;
-   push on and the rising temperature crosses into **caramel, then burnt** —
-   the calibration the sap profile already had to get right (what ruins it is
-   boiling too far, not the arch being too hot).
-4. **Grade by sequence** — the first strike cures in the moulds and its
-   drainings are molasses; **re-boiled, the molasses gives second and third
-   sugar**, darker and cheaper, until what is left will not crystallize at all:
-   **blackstrap**. *"The cheap sugar and the expensive sugar come out of the
-   same pan at different times."* Inversion shortens the sequence.
-
-**Grade end to end:** crop · freshness (inversion) · temper · skimming ·
-strike · sequence.
+Built (MR !439) and remodelled by matter-model-overlaps (MR !644): temper
+and skim raise the liquor's purity, the strike crystallizes by solubility
+once seeded or stirred, and each re-strike's purity falls by the mass
+balance until it will not grain (blackstrap) →
+[thermal.md](../../subsystems/thermal.md) § Crystallizing — the third arm,
+§ The bath, and the boil; the pack's pieces (copper, train, the thread-test
+reading) → [content-packs.md](../../subsystems/content-packs.md) § trade-sugar.
 
 ## 4. The loaf — stage 1, the sugar house **[DECIDED]**
 
-- ⭐ **The cone is a draining mould.** The strike is ladled into conical
-  moulds point-down, the tip plugged; it crystallizes in the cone's shape;
-  unplugged, **molasses drains** into a pot below over days to weeks in the
-  **curing house** — the mould subsystem's draining shape (the cheese hoop),
-  so the loaf sets and separates its molasses with no new mechanism.
-  ⚠ **An assumption, not a settled base**: *"moulds shipped without a real
-  design conversation"* — the [moulding slate](./moulding-slate.md) is that
-  conversation, and this design should be checked against what it decides.
-- ⭐ **Claying is a leach.** Wet clay on the loaf's wide end lets water seep
-  down through the crystals, washing the remaining molasses out of the tip —
-  the top whitens, the base stays darker. **The same act as leaching lye from
-  ash** (potash) and, later, bucking (cleanliness's laundry): water
-  percolating through a porous solid carrying out what dissolves — **three
-  consumers of one percolation mechanism**, shared substrate owned by
-  whichever builds first.
-- ⭐ **One loaf holds several grades** — the white head, the middle, the brown
-  foot. A grocer cut the loaf by grade; pricing within one loaf is honest and
-  derived from how far the washing reached.
+- *Built:* the cone, claying and the loaf's three grades → the strike sets in
+  the cone by crystallization and its molasses drips out
+  ([thermal.md](../../subsystems/thermal.md) § Crystallizing,
+  [mould.md](../../subsystems/mould.md) § Percolation); one loaf, three
+  grades ([content-packs.md](../../subsystems/content-packs.md) § trade-sugar).
 - **Unclayed is muscovado** — raw sugar drained in a barrel, brown, moist,
   cheap; the same chain with claying skipped.
 - **The loaf dries** (a stove house) and is sold whole; people cut it with
@@ -255,8 +220,9 @@ grade by sequence. See the potash slate.
 
 ## 10. Open
 
-1. Who owns the percolation mechanism — potash's leach or sugar's claying,
-   whichever builds first — and whether the shipped lye hopper already is it.
+1. *Resolved* — the kernel's `PercolatingMixin` owns percolation (claying, a
+   watered heap of ash); the hopper adopting it is the deferred-seams row
+   ([mould.md](../../subsystems/mould.md) § Percolation).
 2. Whether the sugar house's raw-sugar stocked line uses Veshko's producer-
    stock shape exactly, so both conjured lines retire the same way.
 3. The island's name, its climate site, and its node on the Greywater.
@@ -283,6 +249,8 @@ grade by sequence. See the potash slate.
 | an eruption; geothermal boiling | the volcano zone | the mountain slate § 6 |
 | juice inverting in the tub (kinetics on a liquid) | a bulk-payload extent, reconciled by the vessel | spoilage.md § Kinetics |
 | the estate's own fuel loop (dried bagasse to the stoke-hole) | the mill yard's drying heap → the train floor | the cover slate § 7 |
+| cane inversion beyond its grade loss (invert sugar as an impurity) | `payload.purity` (matter-model-overlaps D12) | here |
+| a plug in the cone — a mould that holds its liquor until it is unplugged | the strike's `crystallizesTo.drainDays` paces the drain today | here |
 
 ### Opened in review — the owner's follow-ons
 

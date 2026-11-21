@@ -13,6 +13,11 @@ import { TASTE_THRESHOLDS } from '../../material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
+import { CraftingApi } from '../../../api/crafting';
+import Flask from '../../../platform/thing/Flask';
+import Water from '../../../platform/idea/material/Water';
+import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import type { Stuff } from '../../stuff/Stuff';
 
 let now = 5000;
 beforeEach(() => {
@@ -139,5 +144,37 @@ describe('liking', () => {
     }
     expect(Object.keys(body.getExposures())).toHaveLength(64);
     expect(Object.keys(body.getAversions())).toHaveLength(32);
+  });
+});
+
+describe('what a palate reads of the making (matter-model-overlaps D2)', () => {
+  /** A flask holding `payload` — a batch in any vessel. */
+  function batch(payload: Record<string, unknown>): Flask {
+    const water = makeStuffAtPath(() => {
+      const m = new Water();
+      m.setName('whiskey');
+      m.setDensity(Quantity.of(950, 'kg/m³'));
+      return m;
+    }, '/stuff/idea/material/_palate/whiskey');
+    const flask = makeStuff(() => new Flask());
+    flask.interiorBulk = true;
+    flask.setInteriorCapacity(Quantity.of(2, 'L'));
+    flask.setBulkMaterial('interior', water as unknown as Water);
+    flask.setBulkAmount('interior', Quantity.of(1, 'L'));
+    flask.setBulkPayload('interior', payload as never);
+    return flask;
+  }
+  const detailsOf = (body: ReturnType<typeof mouth>, food: Stuff) =>
+    (body as unknown as { detailsOf(f: Stuff): { gradeBand: string | null } }).detailsOf(food);
+
+  it('⭐ a batch made by no recipe (a still’s cut) reads its grade to any mouth, as it does to the eye (found by the drive)', () => {
+    const body = mouth();
+    expect(detailsOf(body, batch({ grade: 'poor', maker: '/x/distiller' })).gradeBand).toBe('poor');
+  });
+
+  it('a recipe’s batch reads its grade only to a palate proficient in the recipe’s discipline', () => {
+    const body = mouth();
+    vi.spyOn(CraftingApi, 'blendDiscipline').mockReturnValue('distilling');
+    expect(detailsOf(body, batch({ grade: 'poor', recipeId: 'vat-whisky' })).gradeBand).toBeNull();
   });
 });

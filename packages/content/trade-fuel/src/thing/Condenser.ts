@@ -33,13 +33,9 @@ import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import { VOLATILE_RECEIVER_MIXIN, VolatileReceiverMixin, type VolatileReceiver } from '../lib/VolatileReceiver';
 
-const CondenserBase = PlacingMixin(BulkableMixin(ThermalMixin(Good)));
-
-/** What a receiver standing on this one answers to. */
-interface VolatileReceiver {
-  receive(materialPath: string, litres: number): number;
-}
+const CondenserBase = VolatileReceiverMixin(PlacingMixin(BulkableMixin(ThermalMixin(Good))));
 
 export default class Condenser extends CondenserBase {
   /**
@@ -50,7 +46,7 @@ export default class Condenser extends CondenserBase {
    * would make a gasworks impossible, and one that silently dropped an
    * overflow would make a lost run invisible.
    */
-  public receive(materialPath: string, litres: number): number {
+  public override receive(materialPath: string, litres: number): number {
     if (!(litres > 0)) return 0;
     const material =
       MaterialApi.materials().peek(materialPath) ?? null;
@@ -61,9 +57,8 @@ export default class Condenser extends CondenserBase {
     if (BulkableApi.requiredClosureFor(material) === 'sealed') {
       let left = litres;
       for (const placed of this.getPlaced()) {
-        const receiver = placed as unknown as Partial<VolatileReceiver>;
-        if (typeof receiver.receive !== 'function') continue;
-        const taken = receiver.receive(materialPath, left);
+        if (!MixinApi.hasMixin(placed, VOLATILE_RECEIVER_MIXIN as never)) continue;
+        const taken = (placed as unknown as VolatileReceiver).receive(materialPath, left);
         left -= taken > 0 ? taken : 0;
         if (!(left > 0)) return litres;
       }

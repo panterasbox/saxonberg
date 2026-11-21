@@ -26,6 +26,24 @@ settings:
   - key: faces.aromaRetained
     value: "0.1"
 
+  # ⭐ A wall gives its own material's `imparts` (oak's oak and vanilla, a
+  # char coat's vanilla and char) toward full over this many game-days of
+  # contact — the shipped whiskey cask's ninety, so a first fill at maturity
+  # reads as it did when the cask carried the figures (matter-model-overlaps
+  # D11).
+  - key: faces.wallGiveDays
+    value: "90"
+
+  # Each fill after the first spends a third of what the wall has to give:
+  # a third fill gives little and a fourth nothing, until a re-fire.
+  - key: faces.wallSpentPerFill
+    value: "0.34"
+
+  # A wash clears at most half of what a wall has soaked up — the memory
+  # fades by washes, it does not vanish at one.
+  - key: faces.washClears
+    value: "0.5"
+
   # ⭐ A porous body set on or in a vessel runs its water THROUGH into it —
   # the ceramic filter — at this many liters an hour per liter held, per
   # unit of porosity: a filter candle of porous stoneware (≈ 0.12) passes
@@ -33,3 +51,28 @@ settings:
   # than the weep onto a jar's own outside.
   - key: faces.filterLPerHourPerL
     value: "5"
+
+  # ⭐⭐ One leak (matter-model-overlaps D4): a vessel that, full, would lose
+  # more than this share of what it holds in an hour — by its pores, its
+  # flaws and its joints together — is not liquid-tight, and a pour into it
+  # runs through to the floor. A terracotta jar's weep (≈ 0.003) is under
+  # it; a sprung stave (0.4) and a cracked crock (≈ 0.19) are over.
+  - key: faces.holdsLiquidBelowSharePerHour
+    value: "0.05"
+
+  # ⭐⭐ The ONE hole rule (D4): what an unmended crack or hole lets through
+  # is `<kind>LPerHour × √head × scale` L/h — a vessel's head is its
+  # liquid's depth and its scale one; a hull's head is her draft and her
+  # scale her length. A full ten-litre crock that has cracked loses nearly
+  # two litres in its first hour.
+  - key: flaws.leak.crackLPerHour
+    value: "4"
+  # Tuned so the shipped rowboat (4.5 m, 0.25 m draft) takes 0.4 L/s through
+  # a hole — under one bucket's 0.5 L/s, so bailing keeps her up — and the
+  # Hesper (30 m, 1.2 m) about 5.8 L/s, near the 7.5 she shipped with.
+  - key: flaws.leak.holedLPerHour
+    value: "640"
+  # A leaking vessel down to this many litres has run out: the rest goes,
+  # and that moment is the one wake its leak arms (D9).
+  - key: flaws.leak.dregsL
+    value: "0.05"

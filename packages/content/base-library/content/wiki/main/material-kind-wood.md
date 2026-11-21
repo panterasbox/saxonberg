@@ -8,7 +8,7 @@ tags:
 
 Wood — it burns, seasons and shrinks, and changes in the fire.
 
-A kind of [[Plant]]. It adds [[Hardness and toughness]], [[Taking up water]], [[Burning]], [[Seasoning]], [[Changing with time and heat]] to what its parent has.
+A kind of [[Plant]]. It adds [[Hardness and toughness]], [[Taking up water]], [[Burning]], [[Seasoning]], [[Changing with time and heat]], [[Giving to what it holds]] to what its parent has.
 
 ## Its materials {#materials}
 

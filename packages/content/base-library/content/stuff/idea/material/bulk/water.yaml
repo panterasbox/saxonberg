@@ -24,6 +24,9 @@ data:
   latentHeatOfFusion: 334000
   boilingPoint: 373
   latentHeatOfVaporization: 2260000
+  # ⭐ What its boil gives the air (matter-model-overlaps D16): steam, vented
+  # into the chamber the pot is in, else the room — where it is humidity.
+  vapourMaterial: /stuff/idea/material/gas/water-vapor
   # ⭐ What a frozen pool of water becomes in a vessel that is NOT a mould —
   # a lump of ice (dairy D20). The ice pan is a mould and gives the squared
   # block the iceboxes eat. See docs/subsystems/mould.md and thermal.md §

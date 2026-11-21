@@ -1,8 +1,8 @@
 /**
  * Tub — ⭐ a vessel something stands ON (ceramics W8): a `Vat` that offers
- * a placement, so a salt pan set on it drains its bittern into it
- * (`Mould.drainsInto()` reads the vessel a mould stands on). `put pan on
- * tub` is the whole arrangement.
+ * a placement, so a salt pan set on it drains its bittern into it (the
+ * one drip, `Containable.dripSlots` — the vessel a mould stands on is
+ * under it). `put pan on tub` is the whole arrangement.
  *
  * ⚠ The trade-sugar pack ships the same shape (`CuringPot`, a sugar cone's
  * pot) — two packs with no common ancestor wanting one substrate is the

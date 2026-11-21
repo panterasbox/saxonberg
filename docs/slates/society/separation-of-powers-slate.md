@@ -5,6 +5,10 @@
 > curriculum describe it (§§ 6a–6d there). The owner: *"I kinda wanna use this as a jumping-off point
 > to actually start drilling into the governance design for real — what are the various inputs and
 > outputs for the different bodies within the different branches."*
+> ⭐ **2026-11-20 (§ 7q): stand the Compact up first** — capital standing only, the vote as the
+> early-adopter incentive, the Speakers as leaders who certify their houses' counts and hold a sealed
+> namespace, the first election (Speaker of the Capital House), the monthly jobs report, rules A–D on
+> the seal.
 > **Left:** the procedure law — its classes, its classifier, its emergency window (§ 6) · every merge
 > carrying its class and authority (§ 7) · the law states (§ 3) and their record · the veto, the
 > override and no confidence (§ 4) · the court as code review — judges' credential, deference,
@@ -230,6 +234,9 @@ law (§ 6), received at founding and amendable.
    (yea in labor, nay in capital) is allowed by the engine as an advanced option.
 6. **Pass** — when 2 of 3 tallies cross the threshold, the bill is **passed** and goes to the PM. No
    vote is called; it crosses.
+   ⚠ **Refined 2026-11-20 (§ 7q):** the crossing is computed, but **each house's Speaker certifies its
+   count** (with a deadline, then the Clerk, then certified-by-default) — a binding result needs a
+   driver.
 7. **The PM** — `bill sign` or `bill veto <bill> <reason>`, within *N* game days. ⭐ **Silence
    enacts**: if the PM does nothing the bill becomes law when the window closes. A pocket veto would
    hand the PM a slow-walk here too.
@@ -1217,6 +1224,226 @@ is an act under the procedure law (§ 6):
 6. **Economy** — every value clone a recorded goods faucet; allowances lapse.
 7. **Governance** — a value clone cites its authority or refuses; unauthorized clones are traceable and
    seizable with notice and appeal; clone never creates money, and the coin gap closes before launch.
+
+## 7q. ⭐⭐⭐ Standing the Compact up first — capital standing, the Speakers, and the seal **[DECIDED — the owner, 2026-11-20; lens pass]**
+
+The owner: *"the first thing I want to get running before any shops or even the banks and corpos is
+the Compact. Labor and consumer demand aren't there yet but capital demand is, which means we have a
+legislature that can make rulings … that doesn't stop us from being able to stand that up and start
+it working before there's a line of actual game content. In fact that's probably what we should be
+doing."*
+
+### Only capital standing is minted, for now
+
+- *"We're not minting anything but capital standing for a while. I don't want to mint any consumer or
+  labor standing until everything's in place and we can balance it and have a meta conversation …
+  and then actually have some kind of schedule of where standing comes from, so it's not just 'from
+  everything and everywhere'."* Capital standing's source is known: **dollars**. Its rate shape
+  (linear or not), decay, offering amounts and windows are still being balanced, but enough is
+  settled to start issuing it.
+- **A door fee may come** — revenue that mints no standing. *"The capital chamber isn't the only
+  source of revenue but the only one that generates standing."*
+- ⭐ **The early-adopter incentive is the vote, not the standing**: *"what can they vote on is
+  anything."* People come to vote; voters step into offices — *"only if that office is supporting the
+  machinery they've already signed up for, which is why the vote is actually still important even
+  with me as dictator."*
+- ⚠ **The legal gate** (founding offering; business-model: incorporate before round 1): patrons may be
+  members with zero capital weight until the lawyer's read; the floor does not wait, capital standing
+  does.
+
+### Binding law under a founder **[DECIDED]**
+
+*"I can reject anything I want legislatively but if a law actually passes I should probably respect
+it, especially if it's one I voted on myself."* The veto stays as § 4 and § 7a designed it (*`bill
+veto <bill> <reason>` within N days; silence enacts; override 3 of 3*), with one rule added:
+⭐ **the founder cannot veto a bill they took a position on.** Abstaining keeps the veto; voting spends
+it. Discretion gets a shape people can plan around, and abstentions become visible choices to let the
+floor decide.
+
+### Capital demand becomes labor demand — the monthly jobs report **[DECIDED]**
+
+Voting on anything makes the institutions need hands: bills → a clerk and counsel; the budget → the
+budget committee's capital seats; moderation → moderators (every hold makes a case); cases → the
+courts' panels and clerk; the public channels → the Post's moderators, then its editor. **These seats
+mint no labor standing** (the rule above); a seat is filled for the pen it carries. (Zorkmid stipends
+from the treasury: open.)
+
+⭐ **The monthly jobs report** — published by the Compact's press office (`/compact/press`, public,
+`ooc`), **generated from the record**: per institution, openings (`headcount − holders`), filled this
+month and by whom, candidacies waiting, and ⭐ **the load beside each seat** (open cases per
+moderator, bills per clerk, cases awaiting a panel). Headcount is each appointing authority's;
+**staffing ratios** (*one moderator per N open cases*) are exactly the kind of law the floor can pass
+early, binding on whoever appoints. The front page's Make line is the report's headline
+([front-page-slate](../client/front-page-slate.md)).
+
+### The Speaker of the Capital House — leadership, and a sacred trust
+
+⚠ **One floor, not three** (Art. IV §3: *one central floor of bills … no originating house*). A Speaker
+has no floor to run. The owner: *"each chamber gets counted separately so someone needs to execute
+that count and follow through on its result. This is a command line interface. Commands need drivers
+and this isn't a job for an NPC; it's the actual government that makes binding decisions for the
+entire platform. So it's maybe ceremonial but it's a sacred trust."* And: *"what I think this person
+provides is just one word that summarizes everything: leadership."*
+
+**The duties** — the count is code and re-derivable by any member (Art. VII §2); **declaring** it is the
+Speaker's:
+
+1. **Certify the house's tally on every bill** — *carried · not carried · lapsed* — on the record,
+   recomputable by anyone. This **refines § 7a step 6** (*"no vote is called; it crosses"*): the
+   crossing is computed; the house's certification is what makes it count.
+2. **Certify the house's quorum** (a house below quorum abstains, Art. IV §3) as part of each count.
+3. **Keep the roll** — who counts as an active member — derived from standing, certified with each count.
+4. **Present the house's assent** — enough houses certified, the bill is law and presented; **the
+   veto window starts there.**
+5. **Certify the house's part in the big counts** — investiture, constructive no-confidence (Art. V
+   §2), amendments (Art. X).
+6. **Lead the house's internal organization** (Art. IV §6) — bylaws, officers, rules committee,
+   deliberation norms, the house's own elections.
+7. ⭐ **Charter house committees** — *"just because there's a single body doesn't mean it always acts
+   together … the capital speaker can charter a committee only filled with seats voted on by capital
+   standing, thus only represented by capital interests … it can act collectively and that alone is
+   a kind of power."* A committee is a group with grants over paths (§ 7l); its seats are filled by
+   the house's own tally (the budget committee's mechanism, § 7d); its grants are carved from the
+   Speaker's namespace; caucus positions bind no one.
+8. ⭐⭐ **The pen: `/compact/legislature/capital/`** — *"no one else but the Speaker gets to decide
+   until the Speaker themselves says otherwise, not even the founder. It's just a namespace right
+   now."* The **seat holds the title**, so the namespace, its seals and its committees pass to the
+   next Speaker untouched.
+9. ⭐⭐ **The seal** — *"the speaker can carve up that namespace however they want and more
+   importantly, seal it and make it private. This lets the chambers hold information from each other
+   even though they act as a single body. But all of this requires trust boundaries and the speaker
+   position(s) are at the top of that. That's not just ceremony and why I want to actually have a real
+   election."*
+10. **The ceremonial face** — the oath; results read where the public sees them (the show; the
+    Assembly hall in Saxonberg).
+
+**Failure and its answers:** a **false certification** is visible (recount), void (Art. VII §3), and
+grounds for removal. ⭐ **Sitting on a count** is the real abuse of a ceremonial office, so each
+certification has a **deadline**: missed → the **Clerk of the House** (the Speaker's appointee)
+certifies → missed again → **the count certifies itself at the deadline, on the record, marked
+certified-by-default** (the one place code drives, because otherwise a ceremonial office holds a veto
+nobody gave it) **[DECIDED — the owner accepted the recommendation]**. No Speaker yet → **caretaker
+governance** (Art. XI): the founder certifies, publicly, until the first Speaker is seated.
+**Neutrality** — whether a Speaker allocates on bills they certify (the Commons tradition) — is the
+house's first bylaw.
+
+### The first election — Speaker of the Capital House **[DECIDED — the owner]**
+
+*"It's not an assignment, it's our first election."*
+
+1. **The trigger, written and public**: at least **N members** of the Capital House **and** at least
+   **X** total capital standing (both — members alone could be many with little at stake; standing
+   alone, three big patrons). N and X: open.
+2. **Nominations** — any Capital House member stands, with a statement.
+3. ⭐ **The founder's declaration** — *"of course I'll abstain … my promise to abstain is contingent on
+   seeing the nominees."* Between the close of nominations and the vote, the founder declares **on the
+   record** whether they abstain — discretion made a public act, never a hidden override.
+4. **The vote** — a fixed window, capital-weighted, under interim bylaws the founder sets as caretaker
+   (the first Speaker's house may rewrite them).
+5. **The count** — certified by the founder, the last one the founder certifies for that house; the
+   Speaker is seated and takes the namespace.
+
+Afterwards the seat is **held continuously**, challengeable by a house successor (the rest of the
+Compact's pattern). On the front page: *be part of the first Speaker vote* — waiting (*opens at N
+members and X standing — now n and x*), open, closed (front-page-slate).
+
+### The seal's game theory **[DECIDED — the owner accepted the recommendations; B open]**
+
+- **A seal hides intentions, never the vote** — counts and allocations are re-derivable (Art. VII §2).
+  ⭐ **Conviction voting makes secrets short-lived**: weight builds only the longer it rests, so to win
+  you commit early and visibly — sealed strategy buys only the time *before* commitment, which is
+  where negotiation happens. Deals need privacy (the 1787 convention met in secret; open legislative
+  committees grandstand more and compromise less).
+- **What goes wrong at scale**: **brokers** (one person with standing and sealed access in several
+  houses sees several hands); **leaks** (a seal holds against the platform, never people — inner rooms
+  stay small; a leak is a story and the Post gets a beat); **cross-house cartels** (two Speakers
+  sharing a sealed room against the third — the tobacco problem Art. IV records, made easier to form
+  quietly); **the operator** (if people believe the founder reads sealed data at the machine layer,
+  everything collapses into the founder seeing every hand).
+- ⭐⭐ **Rule A — who is in the room is public; what is said is not.** Every sealed path's grant list is
+  on the record (*seal, don't hide*, applied to people). Cartels can still form, never unseen.
+  **Invariant, tier A** (Art. VII's record integrity) — lenses 1, 7.
+- **Rule B — allegiance** — **[OPEN, the owner's: lens 4]**: sealed access in **one house's inner
+  rooms at a time** (three class parties; keeps the Compact's three-way tension; brokers cannot exist;
+  cross-house coalitions negotiated between Speakers) — **lean** — or **any number, publicly** (fluid
+  coalitions; visible brokers).
+- ⭐ **Rule C — seals expire by default**, the house able to extend; the default period is organic
+  law (the Schedule of Parameters). Bargaining now, accountability later — the Fed releases full
+  transcripts five years on; Madison's notes were published after his death — and the sealed history
+  of the first laws becomes curriculum. Lenses 1, 5.
+- ⭐ **Rule D — the operator.** At the permission layer the seal holds against everyone, the founder's
+  in-platform accounts included; at the machine layer the operator holds the database. So: **disclose
+  now** (in the oath and on the Speaker's page — the seal protects against everyone in the platform;
+  the operator promises not to read sealed data at the machine layer), and **encrypt** with keys the
+  operator does not hold **before the legislature controls real money or before 1.0, whichever comes
+  first**. ⚠⚠ **Rules C and D collide**: an expiring seal needs a working key at expiry, possibly years
+  and several Speakers later, so **key custody must outlive the people** — the key split among the
+  house's officers so any few can recover it (Shamir's secret sharing). A requirement on D, not an
+  option. Lenses 5, 6.
+- **Likely at scale**: three house parties with small inner circles (under B's lean); Speakers as
+  the real brokers, their grant lists showing it; a press beat on who is in which room; leaks as
+  weapons, revoked access the only penalty (access is the currency); **the first scandal a cartel** —
+  discovered, not suspected, under rule A.
+
+### Lens pass
+
+1. **Pedagogy** — presiding officers and neutrality; ⭐ **certification as the vulnerable ceremonial
+   moment** (January 6, 2021 attacked a count's certification, not the count — the deadline fallback
+   is the lesson); secret deliberation vs sunshine laws (1787); bargaining under hidden information;
+   coalitions and cartels; cryptography and key custody; archives and declassification. Derivable:
+   every count recomputable, every grant list readable. Chose rules A and C.
+2. **Expression** — no code per committee (a group with grants), the namespace is documents, bylaws are
+   text; each house organizes differently (Art. IV §6). Neutral on B.
+3. **3a** — the Assembly hall, the oath, closed sessions as ordinary fiction made real. **3b** — the
+   Speaker, the Clerk, committee members, the grant-list beat, the leaker, the whistleblower; the
+   unwanted outcomes (cabals, cartels, a Speaker sitting on counts or sealing forever, leaks) each
+   have an answer above.
+4. **Values** — rule B (open); the founder's conditional abstention, public; neutrality as the house's
+   first bylaw.
+5. **Continuity** — the office outlives its holder; key custody must too (C × D). Chose C and D.
+6. **Economy** — produces binding decisions and the bargaining behind them; consumes the Speaker's
+   unpaid time (the seat's pay is its pen); the scarce good is access to sealed rooms; demand first by
+   construction (the trigger); encryption a real build cost, hence a deadline.
+7. **Governance** — removing a Speaker judges a person: criterion = a false certification (by recount)
+   or missed deadlines; appeal = the judiciary (Art. VI); by the house naming a successor. **Tier A**:
+   rule A, and the certification duty with its deadline fallback. **Organic law**: C's default period,
+   the deadlines. **House bylaws**: officers, neutrality, committees. Encryption: executive
+   implementation, judicial conformance.
+
+### What has to be built
+
+1. **The floor** (§ 7a) — bills as Subjects, the second, positions per stock, the survival floor and
+   lifespan. The big piece.
+2. **The tally per house with quorum** — the built conviction substrate over allocations on bills; the
+   roll derived from standing.
+3. **A `chamber` verb** (`house` is banking's): `chamber` (your house — members, quorum, the Speaker,
+   counts awaiting certification) · `chamber count <bill>` (anyone) · `chamber certify <bill>` (the
+   Speaker or Clerk) · `chamber roll`.
+4. **Certification records** in the governance record, with deadlines and the fallback, and `verify`
+   (record-integrity slate) recomputing any count at its certified moment.
+5. **Presentment** — certifications that make a law start the veto window; the no-veto-after-voting
+   rule.
+6. **The Speaker seat with real grants** — certify, appoint the Clerk, publish for the house — and
+   **an office as a title holder** over `/compact/legislature/<house>/`.
+7. **Sealing in the document tree** — contents hidden, existence and grant lists recorded, the
+   founder's in-platform accounts excluded unless granted; expiry by default.
+8. **House committees** chartered by the Speaker, seats filled by the house's tally.
+9. **The election as a record** — trigger, nominations, the founder's declaration, the vote, the
+   certification, seating.
+10. **Capital standing** — the founding offering's windows and rate lock, behind the legal gate.
+11. **The monthly jobs report**, generated from the record.
+12. **The disclosure** of the machine-layer limit now; **encryption with split key custody** by the
+    deadline.
+
+Elections, polls and the whip count as one kind of question: [voting-slate](./voting-slate.md).
+
+### Open
+
+1. **Rule B — allegiance** (the owner's).
+2. **N and X** — the first election's trigger.
+3. **Zorkmid stipends** for office holders.
+4. **The seal-expiry default period.**
+5. **The certification deadline.**
 
 ## 8. Lens pass
 

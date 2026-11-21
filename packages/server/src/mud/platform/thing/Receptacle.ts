@@ -51,12 +51,11 @@ import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';
 // and is one piece unless its row has a bill. Nothing wears a sack yet,
 // so a sack reads sound.
 //
-// ⚠⚠ NOT Crafted. On a bulk holder `Crafted` means "the BATCH's
-// identity" — `wash`/`rinse`/`cool` skip a crafted holder (its contents
-// are a product), and a pour carries maker and recipe holder to holder.
-// Composed here, every jug of water stopped washing anything (the full
-// suite caught it). No recipe mints a plain receptacle; a mend reads its
-// trade off the row (`recipeFor`).
+// Not Crafted: no recipe mints a plain receptacle, and a mend reads its
+// trade off the row (`recipeFor`). ⭐ On a bulk holder `Crafted` is the
+// VESSEL's own making, never the batch's — a batch's grade, maker and
+// recipe ride its payload (matter-model-overlaps D2), and a draw for
+// washing refuses a crafted PRODUCT by that payload, not by the holder.
 const ReceptacleBase = WaterDrawableMixin(AssembledMixin(
   DurableMixin(ThermalMixin(BulkableMixin(Good))),
 ));

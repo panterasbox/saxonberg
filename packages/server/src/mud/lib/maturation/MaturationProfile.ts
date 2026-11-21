@@ -252,7 +252,7 @@ export default class MaturationProfile {
    * ⭐ Below 1 it makes *when to bottle* a decision. A whisky cask at
    * `0.25` holds drawable whiskey from a quarter of the way along —
    * young, pale, and graded by how far along it is
-   * (`applyBatchGrade`'s maturity term), so the Lounge's sour
+   * (`gradeBatch`'s maturity term), so the Lounge's sour
    * (`minGrade: fair`) refuses it and a patient distiller gets the
    * cut's own band. That is a cash-flow fork with a consumer that
    * already shipped, rather than a number nobody reads.
