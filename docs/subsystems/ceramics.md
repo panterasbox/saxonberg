@@ -552,8 +552,9 @@ From the review's combining re-plan (R1):
 - `Clay`'s stash fold → `absorbMakeup`.
 
 ⭐ **Judged legitimately different — do not re-litigate** (the review's
-overlap survey, R2; the overlaps it did NOT judge different are
-[matter-model-overlaps-slate](../slates/tech-debt/matter-model-overlaps-slate.md)):
+overlap survey, R2; the seven it did NOT judge different were each given
+one model by matter-model-overlaps, MR !644 — see the History notes in
+bulk.md, faces.md and thermal.md):
 Thermal shock vs materials-response heat (wounds through coverings vs flaws
 in an object); furnace lining wear (already `Assembled.wearLine`); relines
 vs residence maintains (only the walking code shared — D8); the screw

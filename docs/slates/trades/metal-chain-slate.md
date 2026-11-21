@@ -770,3 +770,11 @@ Left as a line here rather than in a retired plan.
 
 - **Fuel is both the bed and the reducing charge** (the fire build's R4). A smelt needs carbon *in the reaction*, not only heat under it, so a furnace's `fuelBed` and its reducing charge are the same coke twice over — and nothing yet says which kilogram did which job.
 - ⭐ **Stocking, not mechanism:** a burner's fuel is a carried thing now, so every room with a fire a player is expected to light needs fuel in reach. Nine rooms did not and were given some; the general question of who *supplies* a furnace is still this slate's.
+
+## ⬅ From matter-model-overlaps (2026-11-20) — a crucible as a made thing
+
+A pour no longer overwrites its vessel's making (the batch's grade and maker
+ride the contents, `payload.grade`/`maker` — bulk.md), so a crucible
+(`Receptacle`) could compose `Crafted` and be a made thing with its own
+maker and grade. Attach point: `Receptacle` + `CraftedMixin`; smithing's
+next build decides.
