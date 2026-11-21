@@ -58,7 +58,9 @@ async function buy(bound: Stuff | null, thing: string, raw = ''): Promise<Comman
   await withRootContext(null, 'buy-protocol.test', () => {
     ExecutionContextApi.tagActingAuthor(av);
     return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new BuyController()).execute(
-      { counter: bound ? { stuff: bound as never, raw } : undefined, thing } as never,
+      // An unnamed seller is the view's DEFAULT (a fact the binding carries,
+      // naming overhaul D-C7); a named one carries the player's words.
+      { counter: bound ? { stuff: bound as never, raw, ...(raw === '' ? { defaulted: true } : {}) } : undefined, thing } as never,
       ctx,
     ));
   });

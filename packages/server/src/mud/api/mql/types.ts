@@ -313,6 +313,8 @@ export interface RegistryScan {
 export interface MqlOneResult extends MqlOne {
   raw: string;
   prep?: string;
+  /** Present when the slot was bound from its view's `default:` (see {@link MqlManyResult.defaulted}). */
+  defaulted?: true;
 }
 
 /**

@@ -32,6 +32,7 @@
  * `lint:counters`.
  */
 
+import { GrammarApi } from "../../api/grammar";
 import Holder from "../stuff/Holder";
 import { ContainerMixin } from "../spatial/Container";
 import { PricedOfferMixin } from "../commerce/PricedOffer";
@@ -405,41 +406,36 @@ export default class Stock extends StockBase {
    * never disagree about a word.
    */
   resolveBuy(keyword: string): (Stuff & Containable) | null {
-    for (const item of this.offeredItems()) {
-      if (MixinApi.isPerceptible(item) && item.hasKeyword(keyword)) {
-        return item;
-      }
-    }
-    const line = this.lineForWord(keyword);
-    if (line === null) return null;
-    return (
-      this.offeredItems().find((item) => item.getTemplatePath() === line.itemTemplatePath) ??
-      null
+    // ⭐ By the one rule (naming overhaul D-C7): a good answers to its
+    // keywords and to the line leaf the shelf list prints; alike goods are
+    // one choice (the first), so eleven loaves never prompt.
+    const answer = GrammarApi.name(
+      keyword,
+      this.offeredItems().map((item) => {
+        const leaf = (item.getTemplatePath() ?? "").split("/").pop() ?? "";
+        const words = MixinApi.isPerceptible(item) ? [...item.getKeywords()] : [];
+        return { value: item, keywords: [...words, leaf, leaf.replace(/[-_]/g, " ")].map((k) => k.toLowerCase()), title: leaf };
+      }),
     );
+    return answer.kind === "one" ? answer.one : answer.kind === "tie" ? answer.tie[0]! : null;
   }
 
   /**
-   * ⭐ The line a typed word names — the ONE matcher (`buy`, its sold-out
-   * refusal, and the bring-up all ask it; three copies once disagreed and
-   * `buy block` was refused at a counter selling ice-blocks). Matched
-   * against the template leaf, which is what `getLong()` prints ("On the
-   * shelves: float-rod (11)"), or one word of it (`block` for
-   * `ice-block`).
-   *
-   * ⚠ The leaf is the whole vocabulary: a word the shelf list does not
-   * print (`cane` for `…/thing/rod`) names no line, and the honest
-   * `not-on-shelf` refusal follows. A row's keywords would want the
-   * template, an async read the refusal path does not have.
+   * ⭐ The line a typed word names — the ONE reading (`buy`, its sold-out
+   * refusal, and the bring-up all ask it). A line answers to the template
+   * leaf the shelf list prints ("On the shelves: float-rod (11)") and its
+   * words, by the one rule (naming overhaul D-C7): article, plural, word
+   * start — `buy loaves`, `buy a loaf`, `buy block` at an ice-block counter.
    */
   public lineForWord(word: string): StockLine | null {
-    const want = word.trim().toLowerCase().replace(/[-_]/g, " ");
-    if (want === "") return null;
-    return (
-      this.stockLines.find((l) => {
-        const leaf = (l.itemTemplatePath.split("/").pop() ?? "").toLowerCase().replace(/[-_]/g, " ");
-        return leaf === want || leaf.split(" ").includes(want);
-      }) ?? null
+    const answer = GrammarApi.name(
+      word,
+      this.stockLines.map((l) => {
+        const leaf = l.itemTemplatePath.split("/").pop() ?? "";
+        return { value: l, keywords: [leaf, leaf.replace(/[-_]/g, " ")].map((k) => k.toLowerCase()), title: leaf };
+      }),
     );
+    return answer.kind === "one" ? answer.one : answer.kind === "tie" ? answer.tie[0]! : null;
   }
 
   /** Does a stock line carry this word — the shop SELLS it, even with a bare shelf? */
@@ -527,15 +523,16 @@ export default class Stock extends StockBase {
    * over the price list.
    */
   private pricedKeyFor(word: string): string | null {
-    const want = word.trim().toLowerCase().replace(/[-_]/g, " ");
-    if (want === "") return null;
-    return (
-      this.pricedKeys().find((key) => {
-        if (this.lineFor(key) !== null) return false;
-        const leaf = (key.split("/").pop() ?? "").toLowerCase().replace(/[-_]/g, " ");
-        return leaf === want || leaf.split(" ").includes(want);
-      }) ?? null
+    const answer = GrammarApi.name(
+      word,
+      this.pricedKeys()
+        .filter((key) => this.lineFor(key) === null)
+        .map((key) => {
+          const leaf = key.split("/").pop() ?? "";
+          return { value: key, keywords: [leaf, leaf.replace(/[-_]/g, " ")].map((k) => k.toLowerCase()), title: leaf };
+        }),
     );
+    return answer.kind === "one" ? answer.one : answer.kind === "tie" ? answer.tie[0]! : null;
   }
 
   /**
@@ -554,7 +551,7 @@ export default class Stock extends StockBase {
       if (thing === self || !MixinApi.isContainable(thing) || !MixinApi.isChattel(thing)) continue;
       const path = thing.getTemplatePath() ?? "";
       if (this.lineFor(path) !== null || this.priceFor(path) == null) continue;
-      const named = path === key || (MixinApi.isPerceptible(thing) && thing.hasKeyword(word));
+      const named = path === key || (MixinApi.isPerceptible(thing) && GrammarApi.name(word, [{ value: thing, keywords: [...thing.getKeywords()].map((k) => k.toLowerCase()), title: "" }]).kind === "one");
       if (!named) continue;
       if (MixinApi.isHirable(thing) && thing.isHired()) continue;
       const owner = thing.stampedOwner();

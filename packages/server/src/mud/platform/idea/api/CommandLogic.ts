@@ -2003,6 +2003,12 @@ export class CommandLogic extends ApiLogic {
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
+        // ⭐ The slot took its author's `default:` — a fact about the
+        // binding, so a controller never sniffs `raw` for it (naming
+        // overhaul D-C7: `buy`'s seller).
+        // (A slot that narrows its default to what is to hand binds as
+        // though named — `canReach` words why — so it is not stamped.)
+        if (isDefault && !narrowsDefault) bound.defaulted = true;
         if (isSet) bound.isSet = true;
         if (via) bound.via = via;
         if (quantity) bound.quantity = quantity;

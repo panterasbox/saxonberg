@@ -10,7 +10,8 @@ help: |
   A name with a space in it is quoted — `buy "dog loaf"`, `buy "orange
   seed"`, `buy "mana cell"`; one word binds bare (`buy loaf`). Where more
   than one counter is in reach, say which: `buy torch from the second
-  counter`.
+  counter` (or `at`). A word takes the good by the one naming rule — `buy
+  loaves`, `buy a loaf` — and alike goods are one choice.
 
   You pay, then what you buy goes where your body puts it (`help give`
   — the same rule); with nowhere for it, you set it down at your feet.
@@ -50,7 +51,7 @@ args:
     prepositionRequired: true
     type: object
     required: false
-    prepositions: [from]
+    prepositions: [from, at]
     default: "~reachable:[mixin.ForSaleMixin]"
     scope: ["~peers", "~person"]
     requires: [ForSaleMixin]

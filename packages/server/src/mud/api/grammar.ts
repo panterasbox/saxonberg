@@ -400,6 +400,18 @@ export class GrammarApi {
   }
 
   /**
+   * ⭐ A name without its leading article — `The Swift` → `Swift` — for a
+   * name being RECORDED (a ship's register, a slug), never for matching
+   * (that is {@link name}, which drops the article itself). The one place
+   * the engine knows what an article is (naming overhaul D-C1).
+   */
+  static withoutArticle(text: string): string {
+    const t = text.trim();
+    const words = t.split(/\s+/);
+    return words.length > 1 && ARTICLES.has(words[0]!.toLowerCase()) ? words.slice(1).join(' ') : t;
+  }
+
+  /**
    * Split text into lowercase word atoms — on runs of non-alphanumerics,
    * dropping articles (`a` / `an` / `the`) and single characters.
    * `"a tall stranger"` → `['tall', 'stranger']`; `"Bob"` → `['bob']`.
