@@ -170,18 +170,45 @@ describe('Ship — the hull clock, the leak and the bilge (harbors B4)', () => {
   });
   afterEach(reset);
 
-  it('⭐ the leak is her band × her length, and a hole on top', async () => {
+  it('⭐ the leak is her seams in their band × her length, and a hole by the one hole rule (D4)', async () => {
     const ship = await mint('l1');
-    expect(ship.leakLpsFor('sound')).toBe(0);
-    expect(ship.leakLpsFor('weathered')).toBeCloseTo(WEATHERED_LPS, 9);
-    expect(ship.leakLpsFor('worn')).toBeCloseTo(WORN_LPS, 9);
-    expect(ship.leakLpsFor('shabby')).toBeCloseTo(9 * 0.02, 9);
-    expect(ship.leakLpsFor('dilapidated')).toBeCloseTo(9 * 0.08, 9);
+    expect(ship.hullLeakLps(1)).toBe(0);
+    expect(ship.hullLeakLps(0.8)).toBeCloseTo(WEATHERED_LPS, 9);
+    expect(ship.hullLeakLps(0.6)).toBeCloseTo(WORN_LPS, 9);
+    expect(ship.hullLeakLps(0.3)).toBeCloseTo(9 * 0.02, 9);
+    expect(ship.hullLeakLps(0.1)).toBeCloseTo(9 * 0.08, 9);
     expect(await ship.hullBand()).toBe('sound');
     expect(await ship.leakLps()).toBe(0);
-    ship.setHoled(true);
-    expect(ship.leakLpsFor('sound')).toBeCloseTo(9 * 0.25, 9);
+    ship.addFlaw('holed', true, now);
+    expect(ship.isHoled()).toBe(true);
+    // `flaws.leak.holedLPerHour` × √her draft × her length, on top of her seams.
+    expect(ship.hullLeakLps(1)).toBeCloseTo((640 * Math.sqrt(1.2) * 9) / 3600, 9);
+    expect(ship.hullLeakLps(0.6)).toBeCloseTo(WORN_LPS + (640 * Math.sqrt(1.2) * 9) / 3600, 9);
+    // The hole is a flaw, never her seams' band: she reads sound.
+    expect(await ship.hullBand()).toBe('sound');
     expect(ship.bilgeCapacityL()).toBeCloseTo(CAPACITY_L, 6);
+  });
+
+  it('⭐⭐ holed on a snag she refuses a course; patched, the hole lets nothing in and she will answer the helm (D5, D8)', async () => {
+    const ship = await mint('h1');
+    await ship.reconcileBilge();
+    await ship.onStop({ reason: 'holed', words: 'holed', at: { frame: 'chart', at: { latDeg: 0, lonDeg: 0 } } } as never);
+    expect(ship.isHoled()).toBe(true);
+    const refused = await ship.steer({ speedKn: 4 } as never);
+    expect('refused' in refused && refused.refused).toMatch(/holed and taking water/);
+    // An hour holed: what came in, came in through the hole.
+    now = T0 + 3600;
+    const hourL = (640 * Math.sqrt(1.2) * 9);
+    expect(await ship.reconcileBilge()).toBeCloseTo(hourL, 3);
+    // Patched (`repair`'s one mend): the bilge is brought to now, then the hole is shut.
+    ship.recordMend({ at: now, by: '/test/hand', byName: 'a shipwright', band: 'competent', discipline: '', kind: 'patched', result: 'sound' });
+    expect(ship.isHoled()).toBe(false);
+    expect(ship.getFlaws()[0]?.mended).toBe('patched');
+    expect(ship.hullLeakLps(1)).toBe(0);
+    now = T0 + 7200;
+    expect(await ship.reconcileBilge()).toBeCloseTo(hourL, 3);
+    const again = await ship.steer({ speedKn: 4 } as never).catch((e: unknown) => ({ refused: String(e) }));
+    expect('refused' in again ? again.refused : '').not.toMatch(/holed/);
   });
 
   it('⭐ the bilge fills over her shell line band by band — the same read once or twice', async () => {

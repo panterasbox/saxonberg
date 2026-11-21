@@ -25,7 +25,14 @@ import Scrap from '../../../thing/Scrap';
 import Forge from '../../../thing/Forge';
 import Weapon from '../../../thing/equipment/Weapon';
 import Garment from '../../../thing/equipment/Garment';
+import { MaintainableMixin } from '../../../../lib/structure/Maintainable';
 import Tool from '../../../thing/Tool';
+import Wood from '../../material/Wood';
+import { AssembledMixin } from '../../../../lib/craft/Assembled';
+import { DurableMixin } from '../../../../lib/material/Durable';
+import { BulkableMixin } from '../../../../lib/bulk/Bulkable';
+import { ScheduleApi } from '../../../../api/schedule';
+import { PerceptionApi } from '../../../../api/perception';
 import RecipeCatalogue from '../../RecipeCatalogue';
 import { Reserve } from '../../../../lib/reserve/Reserved';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -44,6 +51,10 @@ class TestRoom extends ContainerMixin(Idea) {
 }
 class TestSmith extends ThermalMixin(ContainerMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestSmithRepair';
+}
+/** A cask: made of parts, durable, holds liquid (a Good, so Faced). */
+class RefireCask extends AssembledMixin(DurableMixin(BulkableMixin(Good))) {
+  static _mixinName = 'RepairTestRefireCask';
 }
 
 const IRON = '/stuff/idea/material/_test/rp-iron';
@@ -207,6 +218,125 @@ describe('CraftingLogic.repair', () => {
     expect(bowl.getMarkupLong(bowl as never, {})).toMatch(/riveted across a crack/);
     // Riveted once is riveted: there is nothing more to mend.
     expect(await repairAs(bowl)).toMatchObject({ ok: false });
+  });
+
+  it('⭐⭐ a hole is PATCHED with stock of the hull\'s own material and its tool (matter-model-overlaps D8)', async () => {
+    const OAK = '/stuff/idea/material/_test/rp-oak';
+    registerMaterial(OAK, 'oak', ['wood', 'organic']);
+    const hull = makeStuff(() => new Tool());
+    hull.setMaterial(mat(OAK));
+    hull.setMass(Quantity.of(120, 'kg'));
+    hull.setLongDescription('A boat.');
+    hull.addFlaw('holed', true);
+    ContainmentApi.move(hull, room);
+    const plank = makeStuff(() => new Good());
+    plank.setMaterial(mat(OAK));
+    plank.setMass(Quantity.of(3, 'kg'));
+    ContainmentApi.move(plank, room);
+    // No edge: the hole is named, and the cure with it.
+    expect(await repairAs(hull)).toMatchObject({ ok: false, reason: 'missing-tool', detail: 'cutting' });
+    const adze = makeStuff(() => new Tool());
+    adze.setCapabilities(['cutting']);
+    ContainmentApi.move(adze, room);
+    const outcome = await repairAs(hull);
+    expect(outcome.ok).toBe(true);
+    if (!outcome.ok) return;
+    expect(outcome.mended.map((x) => x.kind)).toEqual(['patched']);
+    // `crafting.repair.patchKg` 2 kg of oak: the 3 kg plank is within 2×, consumed whole.
+    expect(plank.isDestroyed()).toBe(true);
+    expect(hull.getFlaws()[0]).toMatchObject({ kind: 'holed', mended: 'patched' });
+    expect(hull.flawLeakLPerHour(0.25, 4.5)).toBe(0);
+    expect(hull.getMarkupLong(hull as never, {})).toMatch(/hole in it has been patched/);
+  });
+
+  it('⛔ a hull that authors no material REFUSES the patch — never whatever is at hand (D8)', async () => {
+    const hull = makeStuff(() => new Tool());
+    hull.setMass(Quantity.of(120, 'kg'));
+    hull.addFlaw('holed', true);
+    ContainmentApi.move(hull, room);
+    const kit = makeStuff(() => new Tool());
+    kit.setCapabilities(['mending', 'cutting']);
+    ContainmentApi.move(kit, room);
+    expect(hull.patchMaterial()).toBeNull();
+    expect(await repairAs(hull)).toMatchObject({ ok: false, reason: 'no-hull-material' });
+  });
+
+  it('⭐ a fabric kept by upkeep is never wear-mended by `repair` — that is `maintain`\'s (D8)', async () => {
+    const LEATHER2 = mat(LEATHER);
+    class Kept extends MaintainableMixin(Garment) {
+      static _mixinName = 'RepairTestKept';
+    }
+    const roof = makeStuff(() => new Kept());
+    roof.setMaterial(LEATHER2);
+    roof.setMass(Quantity.of(4, 'kg'));
+    roof.setCondition(0.5);
+    ContainmentApi.move(roof, room);
+    const kit = makeStuff(() => new Tool());
+    kit.setCapabilities(['mending']);
+    ContainmentApi.move(kit, room);
+    const hide = makeStuff(() => new Good());
+    hide.setMaterial(LEATHER2);
+    hide.setMass(Quantity.of(2, 'kg'));
+    ContainmentApi.move(hide, room);
+    expect(await repairAs(roof)).toMatchObject({ ok: false, detail: 'nothing-to-repair' });
+    expect(roof.getCondition()).toBe(0.5);
+  });
+
+  it('⭐⭐ a SPENT cask is re-fired at the repair\'s real completion — a scheduler root, the gate admits CraftingLogic (D11)', async () => {
+    // The rung's `refireFace` is gated `FromModule(CraftingLogic)`; the repair
+    // runs at the engagement's completion, a fresh scheduled root with no
+    // command frame. This drives it through that root, not a test shim.
+    ContainmentApi.move(makeHotForge(), room);
+    for (const a of ['/base-library/aromas/oak', '/base-library/aromas/char']) {
+      PerceptionApi.aromas().remember(a, { threshold: 1 }, null);
+    }
+    const oak = makeStuffAtPath(() => {
+      const w = new Wood();
+      w.setName('rp-oak');
+      w.setTags(['wood']);
+      w.setDensity(Quantity.of(750, 'kg/m³'));
+      w.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
+      void w.setImparts([{ type: '/base-library/aromas/oak', amount: 15 }]);
+      return w;
+    }, '/stuff/idea/material/_test/rp-oak');
+    const charred = makeStuffAtPath(() => {
+      const w = new Wood();
+      w.setName('rp-charred-oak');
+      w.setTags(['wood', 'char']);
+      w.setDensity(Quantity.of(750, 'kg/m³'));
+      w.setWaterAbsorptionCapacity(Quantity.of(28, '%'));
+      void w.setImparts([{ type: '/base-library/aromas/char', amount: 120 }]);
+      return w;
+    }, '/stuff/idea/material/_test/rp-charred-oak');
+    const cask = makeStuff(() => new RefireCask());
+    cask.setMaterial(oak);
+    cask.setMass(Quantity.of(20, 'kg'));
+    await cask.setBill({
+      parts: [{ part: 'stave', template: '/x/thing/stave', count: 30, role: 'structural' }],
+      refire: charred.getTemplatePath()!,
+    });
+    cask.recordAssembly(
+      [{ part: 'stave', template: '/x/thing/stave', count: 30, plural: 'staves', role: 'structural',
+        material: oak.getTemplatePath()!, grade: 'fair', condition: 1, failed: 0, makers: [] }],
+      [],
+    );
+    await cask.setCoats({ inside: [{ material: charred.getTemplatePath()!, thicknessM: 0.002, state: 'set', spent: 1 }] });
+    expect(cask.wallGiveLeft('inside')).toBe(0);
+    ContainmentApi.move(cask, room);
+    const shave = makeStuff(() => new Tool());
+    shave.setCapabilities(['shaving']);
+    ContainmentApi.move(shave, smith);
+
+    const out = await new Promise<RepairOutcome>((resolve, reject) => {
+      ScheduleApi.schedule(0, () => {
+        ExecutionContextApi.tagActingAuthor(smith);
+        CraftingApi.repair({ item: cask }).then(resolve, reject);
+      });
+    });
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    // Shaved back to clean wood and charred afresh: the give is whole again.
+    expect(cask.wallGiveLeft('inside')).toBe(1);
+    expect(cask.getCoats('inside')[0]?.material).toBe(charred.getTemplatePath());
   });
 
   it('a control-bearing mender floors the repaired grade; never lowers it', async () => {

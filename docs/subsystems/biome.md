@@ -856,6 +856,12 @@ constituent, `getBiome()` throws on a cold non-empty path, and the root
 biome's `_enclosureMaterial` replaced the `enclosure.defaultMaterial` dial
 (§ `getBiome()` reads a constituent).
 
+- **2026-11-20 — matter-model overlaps (MR !644).** `BiomeApi.vent` is the
+  ONE vapor route (head → chamber → room → the sky or the flue) and replaced
+  six receiver sites; humidity counts `water-vapor` in a room's air
+  (`airFor` too, not `airSegmentsFor`); `reconcileAtmosphereContents` writes
+  nothing held still. See § The one vapor route.
+
 ---
 
 ## ⭐ The air as a value object — `airFor` / `airSegmentsFor` (extraction W1)
@@ -882,6 +888,47 @@ silently credit nothing.
 
 ⚠ Sync is the constraint that shaped it: the callers are reconcile-on-read
 getters (a ham's water state, a pan's concentration) and a getter cannot await.
+
+## ⭐⭐ The one vapor route, and the steam that is humidity (matter-model-overlaps D16–D18)
+
+`BiomeApi` owns the room's air, so it owns where a VAPOR goes. One value, one
+static, `vent({ from, material, litres })` → `BiomeLogic.vent`, returning
+`{ chamber, room, sky }` litres. Walking `from`'s holders outward:
+
+1. **the head** — the `Burner` holding `from` is asked `receiveVolatiles`; a
+   retort hands the litres to the condenser on its head;
+2. **the chamber** — any other LIT chamber keeps them as its own air
+   (`chamberVapors`, litres by vapor row), all but `fire.chamber.leakShare`
+   (0.1) that escapes at once; an unlit chamber takes none;
+3. **the room** — the first `Atmospheric` scope with a volume
+   (`addAtmosphereContent`); a scope open to the sky takes none — the sky is
+   the documented sink, and so is a scope with no headroom left;
+4. **the flue** — the chamber's own: when its fire goes out it vents its air
+   up the flue when it is `Flued`, else into the room by this same route.
+
+Every vaporization calls it and nothing else picks a receiver (census (2) at
+zero): the kinetic volatiles, a solid past `vaporizesAboveK` in a lit chamber
+(salt → salt vapor), the boil plateau's steam (water → water vapor), a
+volatile poured into an open vessel, a volatile stirred in the open
+(`Compounding`), a solvent spent in a wash (`CleanserUse`). The vapor's row
+loads with the act (`ensureCited`), and a material's `vapourMaterial` is a
+constituent, so it loads with the material. ⚠ `Condenser.emitIntoScope`
+(trade-fuel) is still its own exhaust walk: routing it through `vent` would
+hand the gas back to the retort it came from.
+
+⭐ **Water vapor is humidity** (D17). `resolveHumidityFor`, `localHumidityFor`
+and `airFor` add, over the scope's air contents tagged `water-vapor`, their
+fraction over the saturation share at the scope's temperature
+(`Evaporation.saturationFraction` — Magnus over standard pressure — and
+`withVapor`), capped at 100 %. `airSegmentsFor` deliberately does NOT: it
+integrates a window into the past, and the vapor in the room now says nothing
+about the air of last week. The air changes take the vapor, and with it the
+humidity, back down.
+
+⭐ **Smell reads the air** (D18) — see [senses.md](./senses.md#one-smell-source-air-nose).
+`reconcileAtmosphereContents` returns at once while a walk holds the world
+still, and `set_atmosphereContents` is the restore door that loads every row
+the air cites.
 
 ### `weatherLocality()` on `AtmosphericMixin`
 

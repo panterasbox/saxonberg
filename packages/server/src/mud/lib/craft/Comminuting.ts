@@ -94,8 +94,9 @@ interface MillCharge {
 /**
  * ⭐ A powered grind under way — the charge the hopper took and when the
  * meal comes out. Persisted on the stones, so a restart mid-grind still
- * lands the sacks (requirements step 14): the grain was taken at the
- * start, and a closure timer alone lost it with the process.
+ * lands the sacks (crafting.md, *A powered grind survives a restart*):
+ * the grain was taken at the start, and a closure timer alone lost it
+ * with the process.
  */
 export interface PendingGrind {
   /** Game-seconds when the stones run empty. */
@@ -631,7 +632,8 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
         return {
           kg: litres * (density / 1000),
           materialPath: material.getTemplatePath() ?? '',
-          gradeBand: MixinApi.isGraded(source) ? source.getGradeBand() : '',
+          // The malt's grade is its payload's (matter-model-overlaps D2).
+          gradeBand: slot.getPayload()?.grade ?? '',
           drainL: litres,
         };
       }
@@ -845,7 +847,7 @@ function leadDustDose(): number {
   }
 }
 
-/** Clone a sack, fill it, stamp the grade, the mark and the carried payload. */
+/** Clone a sack, fill it, and mark the meal: its grade, its miller and what it carried. */
 async function fillSack(
   vesselPath: string,
   materialPath: string,
@@ -875,11 +877,15 @@ async function fillSack(
     if (plan !== null) {
       slot.setPayload({ ...(slot.getPayload() ?? {}), makeup: plan.makeup, water: plan.water });
     }
+    // ⭐ The meal's grade and miller are the MEAL's — its payload's
+    // (matter-model-overlaps D2); the sack is just a sack.
+    const marked: BulkPayload = { ...(slot.getPayload() ?? {}) };
+    if (plan !== null) marked.grade = plan.grade.getBand();
+    if (makerPath) marked.maker = makerPath;
+    if (plan !== null || makerPath) slot.setPayload(marked);
   }
   if (MixinApi.isTangible(sack)) {
     sack.setMass(Quantity.of(sack.getMass().rawValue() + Math.max(0, kg), 'kg'));
   }
-  if (plan !== null && MixinApi.isGraded(sack)) sack.setGradeBand(plan.grade.getBand());
-  if (makerPath && MixinApi.isCrafted(sack)) sack.setMaker(makerPath);
   if (landing) await ContainmentApi.move(sack as Stuff & Containable, landing);
 }

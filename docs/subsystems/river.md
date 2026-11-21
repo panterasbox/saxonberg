@@ -193,6 +193,17 @@ test refuses a venue's). It carries what drives it:
   and you get back in from the water with `swim <boat>` — afloat, her way in
   admits the water as well as a bank (`ExitableVessel.entryMediaIn`, a hook
   whose default is walk-only: a cart is not boarded by swimming).
+- ⭐⭐ **Snags hole a paddled boat too** (matter-model-overlaps D7): before a
+  stroke takes her into the next water, `Propel` asks the ONE snag rule a
+  ship's passage asks — `WatercourseCatalogue.snagVerdict({ obstruction,
+  sogMps, nowS })`, lifted out of `planPassage` — of the stretch she enters
+  (`ReachWarren.riverAt` now answers its `obstruction`, seeded per bend).
+  Choked and met faster than the eye reads the water: `seen` by day (she is
+  held off it, the paddling ends with the snag words) or `struck` by night
+  (she goes in and `Boat.enterReach` — the boat meeting the reach herself — writes the `holed` flaw, tells everyone
+  aboard, and the paddling ends). Lying in a choked reach she may paddle
+  out — only what she enters is asked. She is bailed and `repair`ed
+  ([ship.md](./ship.md) § Boats).
 - **Under sail**: `course` from a tiller (a `Helm`) in a boat with a sail
   part — the wind drives `Propel`, a third of its speed, nobody tires;
   refused becalmed or on water narrower than three hull lengths.
@@ -234,7 +245,9 @@ throws the wake and comes to the stop). On a river, `course` takes a direction, 
 plan rides the persisted course: `[km, atS]` per stretch and the stop it
 will come to — landing · aground (her laden draft against this month's
 channel depth) · holed (a choked snag stretch at more speed than the eye can
-read) · stemmed · falls (the head of navigation) · mouth. Refused before she
+read — `snagVerdict`, the one snag rule; a holed ship carries a `holed`
+FLAW and refuses a course until `repair` patches it, [ship.md](./ship.md))
+· stemmed · falls (the head of navigation) · mouth. Refused before she
 moves: a landing past a falls, a bend too tight for her length, a reach too
 narrow for her beam. The watch (ten game minutes) tells what changed in the
 water, burns her cordwood (an empty bunker and the river has her), throws a
@@ -346,3 +359,9 @@ after a season jump can outlast 30 s.
   who lies there into a `berth-roll` document each ship writes for herself
   (the `BerthRoll` Idea was deleted). The boat's *painter* row became
   `/platform/thing/bow-line` when paint merged (`5cfd1a5db`).
+
+- **2026-11-20 — matter-model overlaps (MR !644).** The snag rule was lifted
+  out of `plotPassage` into `WatercourseCatalogue.snagVerdict`; `riverAt`
+  reports the stretch's `obstruction`, and `Propel` asks the rule for the
+  stretch a stroke enters, so a paddled boat is held off by day and holed by
+  night.

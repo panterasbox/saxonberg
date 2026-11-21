@@ -83,7 +83,7 @@ export interface MendRecord {
   discipline: string;
   /** The part mended, when the thing is made of parts. */
   part?: string;
-  kind: 'mended' | 'reforged' | 'tightened' | 'riveted';
+  kind: 'mended' | 'reforged' | 'tightened' | 'riveted' | 'patched';
   /** Whether it came back sound or short of it. */
   result: 'sound' | 'short';
   /**

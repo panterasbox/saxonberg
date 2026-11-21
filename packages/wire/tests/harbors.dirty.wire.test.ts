@@ -998,6 +998,9 @@ suite('B3 — she goes down', () => {
     // a player's titled boat is not in the founder's jurisdiction, as it
     // should not be. The hole is staged in a boat of the boatman's own,
     // handed holed — the same act on the water, with what is in her.
+    // ⭐ The hole is a FLAW (matter-model-overlaps D5): the one record a snag
+    // writes in play (`Boat.enterReach`), let through by the one hole rule —
+    // 0.4 L/s in a rowboat, under a bucket's 0.5, so bailing keeps her up.
     const now = await worldClockNow();
     const holedBoat = await hand(boatman, '/system/transport/thing/rowboat', {
       flaws: [{ kind: 'holed', visible: true, atS: now }],

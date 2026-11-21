@@ -49,7 +49,7 @@ import type { BoundaryRole } from '../security/BoundaryRole';
 export type { ChillArrow } from './Fusion';
 export type { TasteTag } from './Edibility';
 export { BASIC_TASTES, TASTE_THRESHOLDS, TASTE_HEDONICS } from './Edibility';
-export type { LeachSpec } from './Toxicity';
+export type { LeachSpec } from './Extraction';
 export type { ConcentrationArrow, CrystallizesTo } from './Solution';
 export type { PigmentSpec, AdhesiveSpec } from './Coating';
 export type { BiologicalSource } from './Tissue';

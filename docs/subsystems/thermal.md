@@ -219,10 +219,17 @@ For each dose-law change:
   material past `scorchAboveK`), its mass follows `raw · Π(1 − degree ·
   (1 − massRetained))`, and its prose is restamped (the old material's name
   swapped, or the rung's `describes` word put in front — never stacked);
-- **volatiles** leave as the degree rises: the holding `Burner` takes what
-  it can (`receiveVolatiles`, a `@hook` returning the litres taken, `0` by
-  default — a retort hands them to its receivers; B105, it was a duck
-  probe), and the rest goes into the air of the place;
+- **volatiles** leave as the degree rises, by the ONE vapor route
+  (`BiomeApi.vent`, matter-model-overlaps D16; `routeVolatile` is gone):
+  the holding `Burner` takes what it can (`receiveVolatiles`, a `@hook`
+  returning the litres taken — a retort hands them to its receivers, B105;
+  any other LIT chamber keeps them as its own air less
+  `fire.chamber.leakShare`), and the rest goes into the air of the place.
+  ⭐ A solid past its material's `vaporizesAboveK` in a lit chamber
+  (`vaporizeIfHot`) becomes its `vapourMaterial` row by the same route —
+  litres = kg ÷ the vapor row's density — and a material that vaporizes but
+  names no vapor throws (a row defect). The kinetic `vapor:` map is keyed
+  by the VAPOR row the chamber's air carries (salt-vapor → salt glaze);
 - standing in a `Mould` that is not its own cast, the piece instead hands
   the mould a pool at the rung (`castInto`) and is destructed once the cast
   exists (B105 — a cast that cannot be made leaves the charge, and is
@@ -362,8 +369,12 @@ that is one mixin lookup answering no.
 
 - `C = mass × specificHeat` — `Tangible.getMass()` × the host's
   `Material.getSpecificHeat()` (falling back to a dial). A `Bulkable`
-  vessel derives `C` from its **contents** (more fluid → larger C →
-  slower cooling).
+  vessel's `C` is its **contents plus its own body** (more fluid → larger
+  C → slower cooling). ⚠ Until the matter-model-overlaps drive it was the
+  contents ALONE whenever there were any: a curing pot holding the first
+  drip of molasses had the drip's heat capacity, a τ of a fraction of a
+  second, and `reconcileShock` read its first step toward the room as
+  thousands of kelvin a second and cracked it.
 - `R` = series resistance: the surrounding medium's conductivity
   (`BiomeApi.conductivityOf`, dominant) + the wall material's (minute)
   + ⭐ **any insulation lent by a shut `Coolbox` holding it**, for the
@@ -385,11 +396,18 @@ temperature IS its contents. Sealing is the barrier switch (vacuum vs
 air); seal toggles re-stamp. The bulk couplings ride a gated thermal tier
 on `BulkableApi.transfer`:
 
-- **Refill** → the destination adopts the incoming temperature.
+- **Fill and mix** → ⭐ one calorimetric blend, `ThermalMixin.mixPour`:
+  the incoming `m·c` at its temperature against what the vessel already
+  holds **plus its own body** (`mass × specificHeat`), settling at the
+  energy-weighted temperature. A drip barely moves a heavy pot; a kettle
+  into a cold mug still shocks it (the step the wall feels is the step
+  to the mixed temperature); a cold mould chills the metal poured into
+  it, as an unheated mould does. (Until the matter-model-overlaps drive
+  a fill into an EMPTY vessel adopted the incoming temperature outright
+  — the pot's clay uncounted — and a glazed curing pot cracked on every
+  drip of molasses.)
 - **Partial pour** → the source's C shrinks → the remainder cools faster
   (re-anchored at the reduced capacity).
-- **Mix** → same-material calorimetric blend (specific heats cancel →
-  volume-weighted average), via `ThermalMixin.setContentsTemperature`.
 
 A plain `Receptacle` (`ThermalMixin(BulkableMixin(Good))`) is the
 non-sealable case (a mug): no barrier → it cools in minutes.
@@ -956,9 +974,9 @@ for a `metal`-tagged material, else `/stuff/thing/Casting`; water authors
 [glass.md](./glass.md) for composition vs temper), mass stamped always,
 material/prose only when the clone authored none.
 
-⚠ **Boil is still a flip** — no boiling feature rides this build, so steam
-is a disappearance (the pool clears; no steam cloud / burn / pressure). The
-asymmetry is deliberate and noted; `thermal-slate` carries boil-as-a-plateau.
+⚠ The boil became a plateau in the silk build, and its STEAM goes into the
+air since matter-model-overlaps D16 (see § The bath, and the boil). Still
+no steam burn and no pressure.
 
 ⭐ **Freezing RUINS some materials.** `Material.ruinedByFreezing` (blood):
 at the solidify edge no cast is minted — the pool stays liquid at `mp`, its
@@ -1080,6 +1098,23 @@ passes under it.
   heat above the boil now turns liquid to steam at that latent heat and
   the liquid HOLDS at the boil while it lasts (the boil twin of
   `reconcileMelt`); a material with no latent heat still flashes.
+- ⭐⭐ **The steam goes somewhere** (matter-model-overlaps D16–D17). What
+  boils off leaves as the material's `vapourMaterial` row (water →
+  `/stuff/idea/material/gas/water-vapor`), litres = boiled kg ÷ the vapor's
+  density, by the one vapor route (`BiomeApi.vent`): into the chamber the
+  pot stands IN when it is a lit one, else the room's air — where, tagged
+  `water-vapor`, it is HUMIDITY (`BiomeApi.resolveHumidityFor` /
+  `localHumidityFor` / `airFor` add its fraction over the air's saturation
+  share at its temperature, `Evaporation.withVapor`, capped at 100 %). A
+  boil in a shut kitchen fogs it and the drying rack by the copper dries
+  nothing; the room's air changes take it back down. ⚠ A pot ON a fire
+  stands in the room (its container is the room), so its steam is the
+  room's. ⭐ A SOLUTION that names no vapor of its own boils off its
+  SOLVENT's (`Solution.getSolvent()` — water, loaded with any row that
+  authors `solidsKgPerL`): the plateau keeps the solids and discards water,
+  so a copper of sugar liquor, a brine pan or a lye kettle steams the
+  boiling floor like a kettle, with no row to author. A plain liquid that
+  names no vapor gives the air nothing it keeps.
 - ⭐⭐ **A boil concentrates** (ceramics, 2026-10-22). The steam is water,
   so what is dissolved stays behind: each boiled-off step scales the
   bulk's `dissolvedSolidsKgPerL` (or the material's own `solidsKgPerL`)
@@ -1132,12 +1167,54 @@ passes under it.
   - Rough scale: 4 kW delivered boils off ~5 L an hour. Silk's 12 L copper
     on a range now boils dry in about three hours unattended.
 
-## ⭐⭐ Crystallizing — the third arm (ceramics S17, W8)
+## ⭐⭐ Crystallizing — the third arm (ceramics S17, W8; matter-model-overlaps D12–D14)
 
 `reconcileBulkPhase` has three arms, and the third fires at ANY temperature,
-so it runs first: **a solution sets crystals when it holds more than its
-material dissolves at its heat**, whether the water left (a salt pan in the
-sun) or the heat did (alum liquor cooling).
+so it runs before the boil and the freeze: **a solution sets crystals when
+it holds more than its material dissolves at its heat — once something has
+STARTED it** — whether the water left (a salt pan in the sun) or the heat
+did (alum liquor cooling, a sugar strike in its cone). This is the one
+model of graining: sugar, maple, salt, alum and saltpeter all set here, and
+the strike's old drain-set swap (`becomesAs`, `drainPerBand`, the band
+rule) is gone.
+
+- ⭐⭐ **Supersaturation waits (D14).** Past saturation a liquor HOLDS until
+  one of four terms fires, and there is one piece of state:
+  - **a seed** — derived: the vessel holds a solid of the crop (its
+    `product` or a `productAs` material) — `put piece in cone`, or the crop
+    already set there. ⭐ The seed joins the first crop (its mass, and the
+    piece is gone);
+  - **a stir** — `payload.nucleated`, stamped by `Thermal.noteAgitated()`
+    (the `stir` protocol's liquid arm, `StirTargetMixin` on `Bulkable`), and
+    by every set, so a crop once started keeps growing as the liquor cools;
+  - **deep cooling** — derived: held/solubility ≥ the row's
+    `crystallizesTo.metastableRatio` (sucrose 1.7 — a strike cooled to 20 °C is at 1.53 and
+    holds; salt 1.1; alum 1.3; saltpeter 1.4; absent = 1, any excess starts
+    at once). ⭐ A crop started THIS way alone is a coarse mass, a grade
+    lower;
+  - **the drying edge** — derived: the liquor is losing water in the open,
+    on the boil plateau or in a maturing vessel with an active batch (the
+    shipped `concentrating` test) — so a salt pan and a boiling brine hearth
+    behave as they always did.
+
+  A read that finds the liquor back UNDER saturation clears `nucleated`;
+  the flag rides the payload through a pour. `Thermal.supersaturation()` →
+  `{ ratio, started } | null` is the read (`null` for a liquor too impure
+  ever to grain); the sugar pack's `analyze boil` words a held liquor from
+  it.
+- ⭐⭐ **What is left is less pure (D12).** A sugar liquor carries
+  `payload.purity` — the crystallizing solute's share of its dissolved
+  solids — starting at the row's `crystallizesTo.purity` (raw liquor 0.8)
+  and raised by
+  the sugar pack's tempering and skimming. The crystals are solute ONLY, so
+  for `x` kg set out of `S` the liquor left is `(S·p − x)/(S − x)` pure:
+  molasses is poorer than its strike by arithmetic, and each re-strike
+  poorer again. The liquor's `payload.grade` is read off its purity by the
+  row's `gradeByPurity` thresholds, and a liquor under `minCrystalPurity`
+  (all four facts live ON `crystallizesTo` — they are how it crystallizes,
+  and a loose capability field would be a gap on every solution row)
+  will not grain at all — blackstrap, which the strike arrow names by
+  `ConcentrationArrow.minPurity` (it had `minBand`).
 
 - **The facts are the solution's.** `Material.solubility: [[K, kgPerL]…]`
   (K ascending, piecewise linear, flat past the ends — `solubilityAt(T)`),
@@ -1149,20 +1226,38 @@ sun) or the heat did (alum liquor cooling).
   it as the volume falls (`Maturing.rescaleDissolvedSolids`) — the salt is
   conserved, so a pan of sea water at 35 g/L saturates near a ninth of its
   volume.
-- **The excess sets.** `(held − solubilityAt(T)) × L` kg of `product`: in a
-  mold, kept in its shape (`castInto`), and a crop already there of that
-  material GROWS rather than a second one minting; in any other vessel, the
-  product's own `castTemplate` beside it, grown the same way. The liquor
-  keeps its volume (a solute's share is small, and the volume is the
-  water's — the evaporative window moves it).
+- **The excess sets.** `(held − solubilityAt(T)) × L` kg (never more
+  solute than there is): in a mold, kept in its shape (`castInto`), its
+  material the shape's — `crystallizesTo.productAs[cast template]`, else
+  `product` (a cone's loaf is loaf sugar, a hogshead's block raw sugar) —
+  and a crop already there of that material GROWS rather than a second one
+  minting; in any other vessel, the product's own `castTemplate` beside it,
+  grown the same way. Its grade is `min(batch, mould)` (`carryPayload`), a
+  band lower when it started on its own. The liquor keeps its volume (a
+  solute's share is small, and the volume is the water's — the evaporative
+  window moves it).
 - **The liquor left is saturated, and its fate is the one choice.** ⭐ While
   the vessel is still CONCENTRATING it (a maturing host whose batch is
   `active` — the pan the sun is working) it stays, its own material, so the
   total crop is the same however often anybody reads the pan. Otherwise it
   is SPENT: its material swaps to `crystallizesTo.residue` (brine →
   bittern; alum and saltpeter liquors name themselves, the mother liquor
-  that goes back to the boil) and, in a mold standing on a vessel
-  (`Mould.drainsInto()`), it drains into that vessel ([mould.md](./mould.md)).
+  that goes back to the boil; a strike → molasses) and, in a mold, it runs
+  off by the one drip (`BulkableApi.drip`, matter-model-overlaps D10) — into
+  the vessel the mold stands in or on, else to the ground
+  ([mould.md](./mould.md)). ⭐ With `crystallizesTo.drainDays` it runs out
+  over those game-days (D13): two payload stamps (`liquorDrainStampS`,
+  `liquorDrainDueS` — facts about the MOULD, stripped on landing like
+  `faceCheckedS`), each read drips the share of what is left that the time
+  since is of the time still to go, and ONE persisted wake
+  (`Thermal.liquorWakeAtS`, re-armed by its setter) runs the rest out at
+  the due time with nobody reading. Without `drainDays` it leaves at once,
+  as salt's bittern does. ⭐ A spent
+  pan's bittern with nothing under the pan runs to the ground; a pan still
+  concentrating keeps its brine. A mold standing over nothing at all (no
+  vessel, no floor) lets its liquor run away — the drip reports it `lost`
+  (pre-merge audit: a read never throws); the CROP still needs a place,
+  checked before the liquor changes.
 - **The rows.** Sea water (`bulk/salt-water`: 0.035 kg/L; 0.316 → 0.329
   kg/L freezing to boiling — salt barely cares about heat, which is why it is
   made by taking the water away); `bulk/bittern`; the saltpeter liquor (0.9
@@ -1171,11 +1266,27 @@ sun) or the heat did (alum liquor cooling).
   product is the brine itself taken to 3 % of its volume, and the salt is
   what that water could not keep; `food/salt`'s `castTemplate` is
   `/stuff/thing/salt-crystals`.
+- **Sugar and maple (D12).** `trade-sugar`'s `raw-liquor` authors sucrose's
+  solubility in kg per litre of solution (by `s = w / (1 − 0.375 w)`, the
+  kernel's `solidsMassFraction`): 0.89 at 293 K, 0.98 at 323, 1.10 at 353,
+  1.20 at 373, 1.38 at the strike's boil (395 K) and on up past every
+  boiling point the elevation curve reaches — so the pan never grains on
+  the fire (a row test walks the curve). `crystallizesTo { loaf-sugar,
+  molasses, productAs: { raw-sugar-block: raw-sugar }, drainDays: 4,
+  metastableRatio: 1.7, purity: 0.8, minCrystalPurity: 0.86, gradeByPurity:
+  poor · fair 0.88 · fine 0.92 }`; every sugar liquor inherits them by `extends:` (caramel and
+  burnt sugar null `crystallizesTo` — broken down, they will not grain).
+  The four arrows stay as what the boil REACHES (syrup, strike, caramel,
+  burnt): names, and no solute leaves at one. A clean strike (0.93) leaves
+  first molasses at ≈ 0.89 (fair), whose re-strike leaves ≈ 0.84 (poor, under
+  0.86): the season ends in blackstrap by arithmetic. Maple sap authors the
+  same fields (purity 0.97, the crop `trade-forestry`'s `maple-sugar`, its
+  mother liquor maple syrup, `drainDays` 1).
 - ⚠ A cooling crystallization in a plain vessel (no maturing batch) sets and
-  spends at the first read past saturation; a liquor that names itself as
-  the residue keeps setting as it cools further, so the crop is still whole.
-  Sugar's staged boil (`concentrateIfReached`) is the boil arm's sibling and
-  lands after this arm at the merge.
+  spends at the first read past saturation once started; a liquor that names
+  itself as the residue keeps setting as it cools further (it is stamped
+  `nucleated`), so the crop is still whole. Sugar's staged boil
+  (`concentrateIfReached`) is the boil arm's sibling.
 
 ## Note — the potash build (2026-10-19)
 
@@ -1201,3 +1312,11 @@ and `sufferThermalShock(stepK, rateKPerS)` (past the tolerance a dunt,
 twice past a crack). It was two private Thermal methods until the
 ceramics review.
 
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+Sugar crystallizes by solubility: a supersaturated liquor HOLDS until
+nucleated (a seed, `stir` → `noteAgitated`, cooling past `metastableRatio`,
+the drying edge), each pass's purity falls by the mass balance and grades
+it, and a liquor under `minCrystalPurity` is blackstrap. Spent liquor drips
+out over `drainDays` on one wake. `routeVolatile` became `BiomeApi.vent`; a
+boiling solution steams its solvent's vapor.

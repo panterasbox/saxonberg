@@ -348,6 +348,8 @@ function faultSentence(f: Fault): string {
       return f.mendable ? 'It has given all it had; it wants re-firing.' : `It has given all it had, and re-firing wants ${cureFor(f)}.`;
     case 'cracked':
       return f.mendable ? `${the} is cracked; it wants riveting.` : `${the} is cracked, and riveting it wants ${cureFor(f)}.`;
+    case 'holed':
+      return f.mendable ? `${the} is holed; it wants a patch.` : `${the} is holed, and a patch wants ${cureFor(f)}.`;
   }
 }
 
@@ -362,6 +364,8 @@ function cureFor(f: Fault): string {
       return `${f.detail ?? 'stock'} to mend it with`;
     case 'not-skilled':
       return 'a surer hand';
+    case 'no-hull-material':
+      return 'a hull that says what she is planked with';
     default:
       return 'more than can be done here';
   }

@@ -12,7 +12,6 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
 import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Food from '../../../platform/idea/material/Food';
-import type { Crafted } from '../../craft/Crafted';
 import { WorldClockApi } from '../../../api/worldclock';
 import { BulkableApi } from '../../../api/bulk';
 import { StuffApi } from '../../../api/stuff';
@@ -278,7 +277,7 @@ describe('the lees split at the rack (P12)', () => {
   it('the rack floor holds the lees back; the residual becomes the culture; the jar traces to the batch', () => {
     const vat = makeVat(291);
     fill(vat, WORT, 50);
-    (vat as unknown as Crafted).setMaker('/stuff/agent/_test/brewer');
+    vat.setBulkPayload('interior', { maker: '/stuff/agent/_test/brewer' });
     vat.open();
     vat.getMaturationPhase();
     setNow(1 * DAY); // wait — sterile wort: pitch it instead
@@ -294,8 +293,8 @@ describe('the lees split at the rack (P12)', () => {
     const res = pour(vat, keg, 100);
     expect(res.applied).toBeCloseTo(50 - lees, 9);
     expect(vat.getBulkAmount('interior').rawValue()).toBeCloseTo(lees, 9);
-    // The racked keg carries the batch's mark (the W0 seam).
-    expect((keg as unknown as Crafted).getMaker()).toBe(
+    // The racked keg's contents carry the batch's mark (D2).
+    expect(keg.getBulkPayload('interior')?.maker).toBe(
       '/stuff/agent/_test/brewer',
     );
 
@@ -312,7 +311,7 @@ describe('the lees split at the rack (P12)', () => {
     expect(harvest.applied).toBeCloseTo(1, 9);
     expect(jar.getMaturationPhase()).toBe('active');
     expect(jar.getBatchStrain()).toBe('test-ale-strain');
-    expect((jar as unknown as Crafted).getMaker()).toBe(
+    expect(jar.getBulkPayload('interior')?.maker).toBe(
       '/stuff/agent/_test/brewer',
     );
   });

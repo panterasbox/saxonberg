@@ -15,6 +15,11 @@ help: |
   haft is not mended — fit a new one. A dull edge just needs `sharpen`.
   Who mended a thing, and how well, is on it: `look`, and the appraiser's
   `analyze condition`.
+
+  A hole stove in a boat or a ship is patched — `repair rowboat`, or a
+  ship from the quay alongside — with stock of the hull's own planking (a
+  plank's worth a hole) and the tool that works it. A ship's caulking is
+  not `repair`'s: that is `maintain`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

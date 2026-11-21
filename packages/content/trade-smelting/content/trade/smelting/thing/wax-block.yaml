@@ -9,6 +9,8 @@
 # and spill it on the floor (S13, the receiver's own rule).
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: wax block
   keywords: [wax, block, "wax block", jacket]
   register: indefinite

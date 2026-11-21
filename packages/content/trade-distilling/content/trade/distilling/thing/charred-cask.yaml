@@ -9,11 +9,11 @@
 # that a second one is a ROW rather than a line of code.
 #
 # ⚠ It is the SAME WOOD. `_materialPath` is oak, exactly as the plain
-# cask's is, which is the whole argument for `imparts` living on the
-# VESSEL: a charred first-fill cask and a plain third-fill cask are both
-# oak, and the difference between them is this barrel's own history. Put
-# the character on the wood material and the two become unexpressible
-# without inventing a `charred-oak` species that no tree ever grew.
+# cask's is. The difference is a COAT (matter-model-overlaps D11): the char
+# on its inside face, a layer of `charred-oak` — oak burnt, not a species no
+# tree ever grew — which is what the contents meet and what gives. A plain
+# third-fill cask and a charred first-fill one differ by that coat and by
+# what each layer has spent.
 #
 # ⚠ And it is NOT a second maturation profile. The profile keys on the
 # LIQUID (`new-make`), so two profiles for two casks would be two rows
@@ -41,12 +41,11 @@ data:
   interiorCapacity: 25
   closure: liquidTight
   open: true
-  # Calibrated against the thresholds: vanilla 0.1 mg/L and char
-  # 0.3 mg/L, so 40 and 120 both read *clearly*; oak at 15 against 0.07
-  # reads *faintly*. The firing has taken the plain wood note DOWN and
-  # put vanilla and char in front of it, which is what charring does.
-  # ⭐ The charred cask IS the plain cask with its inside charred
-  # (assembly D9): `charLevel: 1` reads the commons cask's
-  # `charredImparts` — the same vanilla 40 / char 120 / oak 15 this row
-  # authored before — and a cooper's re-fire of a plain cask MAKES one.
-  charLevel: 1
+  # ⭐ The charred cask IS the plain cask with its inside charred: a set
+  # coat of charred oak on the inside face, whose own `imparts` are the
+  # vanilla 40 / char 120 / oak 15 this row once authored. A cooper's
+  # re-fire of a plain cask lays the same coat (the bill's `refire:`) and
+  # MAKES one.
+  coats:
+    inside:
+      - { material: /stuff/idea/material/wood/charred-oak, thicknessM: 0.002, state: set }

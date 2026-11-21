@@ -4,12 +4,14 @@
  * A solution's boiling point climbs as it thickens; the latent-heat
  * boil-off drives the thickening; and what the liquor BECOMES at each
  * stage is an arrow on its material — the `purifiedByBoiling` shape, keyed
- * on concentration rather than time. An arrow with a `minBand` reads the
- * vessel's grade: what will not grain is blackstrap.
+ * on concentration rather than time. An arrow with a `minPurity` reads the
+ * liquor's purity (matter-model-overlaps D12): what will not grain is
+ * blackstrap.
  */
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { standSolvent } from '../../material/__tests__/materials';
 import type { Burner } from '../../fire/Burner';
 import type { Stuff } from '../../stuff/Stuff';
 import { chargeHot } from '../../fire/__tests__/burner-fuel';
@@ -19,7 +21,6 @@ import Water from '../../../platform/idea/material/Water';
 import type { ConcentrationArrow } from '../../material/Material';
 import { ThermalMixin } from '../Thermal';
 import { BulkableMixin } from '../../bulk/Bulkable';
-import { GradedMixin } from '../../craft/Graded';
 import { Grade } from '../../craft/Grade';
 import { ReservedMixin } from '../../reserve/Reserved';
 import { LightSourceMixin } from '../../perception/LightSource';
@@ -40,7 +41,7 @@ class TestArch extends BurnerMixin(
 ) {
   static _mixinName = 'TestArchConcentrate';
 }
-class Copper extends GradedMixin(ThermalMixin(BulkableMixin(Good))) {
+class Copper extends ThermalMixin(BulkableMixin(Good)) {
   static _mixinName = 'TestCopperConcentrate';
 }
 class TestRoom extends Place {}
@@ -84,7 +85,7 @@ function liquor(leaf: string, opts: {
 function stagedMaterials(): void {
   const arrows: ConcentrationArrow[] = [
     { fromW: 0.68, becomes: path('syrup') },
-    { fromW: 0.9, becomes: path('strike'), minBand: 'fair', elseBecomes: path('blackstrap') },
+    { fromW: 0.9, becomes: path('strike'), minPurity: 0.86, elseBecomes: path('blackstrap') },
     { fromW: 0.985, becomes: path('caramel') },
   ];
   liquor('raw-liquor', { solids: 0.6, arrows });
@@ -111,13 +112,15 @@ async function arch(): Promise<TestArch> {
   return f;
 }
 
-async function copperOf(f: TestArch, mat: string, litres: number, band = 'fine'): Promise<Copper> {
+async function copperOf(f: TestArch, mat: string, litres: number, purity = 0.93): Promise<Copper> {
   const c = makeStuff(() => new Copper());
   c.interiorBulk = true;
   c.setInteriorCapacity(Quantity.of(120, 'L'));
   c.setBulkMaterial('interior', StuffApi.findByTemplatePath<Water>(mat)!);
   c.setBulkAmount('interior', Quantity.of(litres, 'L'));
-  c.setGrade(Grade.of(band));
+  // The LIQUOR's purity (its payload's, matter-model-overlaps D12) is what
+  // the strike arrow reads — never the copper's own making.
+  c.setBulkPayload('interior', { purity });
   c.setStampedTemperatureK(373);
   c.setLastAmbientK(373);
   await ContainmentApi.move(c, f, Placements.ON);
@@ -147,6 +150,7 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
     WorldClockApi._setNowProviderForTesting(() => real);
     seq += 1;
     P = `/stuff/idea/material/_test/concentrate-${seq}`;
+    standSolvent();
     stagedMaterials();
   });
   afterEach(() => WorldClockApi._resetForTesting());
@@ -175,8 +179,8 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
     expect(c.getBulkAmount('interior').rawValue()).toBeGreaterThan(20);
   });
 
-  it('⭐ a pan below the band will not grain — the strike arrow fires blackstrap', async () => {
-    const c = await copperOf(await arch(), path('raw-liquor'), 60, 'poor');
+  it('⭐ a liquor under the purity will not grain — the strike arrow fires blackstrap', async () => {
+    const c = await copperOf(await arch(), path('raw-liquor'), 60, 0.8);
     boilUntil(c, () => matOf(c) === path('blackstrap') || matOf(c) === path('strike'));
     expect(matOf(c)).toBe(path('blackstrap'));
     // Blackstrap has no arrows: it boils on and never becomes anything.
@@ -213,10 +217,10 @@ describe('⭐⭐ the staged boil (sugar D1)', () => {
     const m = StuffApi.findByTemplatePath<Water>(path('raw-liquor'))!;
     expect(() => m.setBoilingPointElevation([[0.5, 1], [0.4, 2]])).toThrow(RangeError);
     expect(() =>
-      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minBand: 'fair' } as ConcentrationArrow]),
+      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minPurity: 0.86 } as ConcentrationArrow]),
     ).toThrow(RangeError);
     expect(() =>
-      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minBand: 'grand' as never, elseBecomes: 'y' }]),
+      m.setConcentratesTo([{ fromW: 0.9, becomes: 'x', minPurity: 1.5, elseBecomes: 'y' }]),
     ).toThrow(RangeError);
   });
 

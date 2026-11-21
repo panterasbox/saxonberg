@@ -109,6 +109,11 @@ function crafted(vat: Vat): Crafted {
   return vat as unknown as Crafted;
 }
 
+/** The batch's mark — the contents' payload (matter-model-overlaps D2). */
+function batch(vat: Vat) {
+  return vat.getBulkPayload('interior');
+}
+
 beforeEach(() => {
   WorldClockApi._resetForTesting();
   setNow(0);
@@ -199,7 +204,7 @@ describe('worst-stretch banding (D6)', () => {
     kept.getMaturationPhase();
     setNow(2 * DAY);
     expect(kept.getWorstStretch()).toBe(1);
-    expect(crafted(kept).getGradeBand()).toBe('masterful');
+    expect(batch(kept)?.grade).toBe('masterful');
 
     const cooked = makeVat(291);
     fillWithMust(cooked);
@@ -210,20 +215,20 @@ describe('worst-stretch banding (D6)', () => {
     setNow(4 * DAY);
     cooked.getMaturationPhase();
     expect(cooked.getWorstStretch()).toBeCloseTo(1 - 5 / 15, 6);
-    expect(crafted(cooked).getGradeBand()).toBe('fine');
+    expect(batch(cooked)?.grade).toBe('fine');
 
     pinTemp(cooked, 311); // 8 K past: sat = 1 - 8/15 ≈ 0.467 → fair
     cooked.getMaturationPhase();
     setNow(5 * DAY);
     cooked.getMaturationPhase();
-    expect(crafted(cooked).getGradeBand()).toBe('fair');
+    expect(batch(cooked)?.grade).toBe('fair');
 
     // The record is monotone: cooling back never restores the band.
     pinTemp(cooked, 291);
     cooked.getMaturationPhase();
     setNow(6 * DAY);
     cooked.getMaturationPhase();
-    expect(crafted(cooked).getGradeBand()).toBe('fair');
+    expect(batch(cooked)?.grade).toBe('fair');
   });
 });
 
@@ -296,18 +301,21 @@ describe("the maker's mark on the batch (P3/D9)", () => {
       fillWithMust(vat);
       vat.getMaturationPhase();
     });
-    expect(crafted(vat).getMaker()).toBe(
-      '/stuff/idea/maturation-test/agent/founder',
-    );
-    expect(crafted(vat).getRecipe()).toBe('ferment:test-red');
+    // The founder signs the BATCH, by identity; the time made is its start.
+    expect(batch(vat)?.maker).toBe('/stuff/idea/maturation-test/agent/founder');
+    expect(batch(vat)?.craftedAt).toBeTypeOf('number');
+    // ⭐ …and the cask stays whoever made it — here, nobody.
+    expect(crafted(vat).getMaker()).toBe('');
   });
 
-  it('a maker carried in by the transfer seam is never overwritten', () => {
+  it('a maker carried in on the contents is never overwritten', () => {
     const vat = makeVat(291);
-    crafted(vat).setMaker('/stuff/agent/_test/crusher');
+    crafted(vat).setMaker('/stuff/agent/_test/cooper');
     fillWithMust(vat);
+    vat.setBulkPayload('interior', { maker: '/stuff/agent/_test/crusher' });
     vat.getMaturationPhase();
-    expect(crafted(vat).getMaker()).toBe('/stuff/agent/_test/crusher');
+    expect(batch(vat)?.maker).toBe('/stuff/agent/_test/crusher');
+    expect(crafted(vat).getMaker()).toBe('/stuff/agent/_test/cooper');
   });
 });
 

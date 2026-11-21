@@ -10,6 +10,8 @@ data:
   appearance: a shimmer of vapour over the floor
   density: 3.5
   boilingPoint: 300
+  # Light naphtha's heat of vaporization, J/kg.
+  latentHeatOfVaporization: 350000
   thermalConductivity: 0.01
   electricalConductivity: 1.0e-12
   heatOfCombustion: 44

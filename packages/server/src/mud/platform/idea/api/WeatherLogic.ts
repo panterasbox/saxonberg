@@ -1349,8 +1349,9 @@ function dialStr(key: string, fallback: string): string {
 }
 
 /**
- * Wet every wetness-bearing occupant of a rain scope by one segment's worth
- * of exposure (the precipitation-exposure accrual push). Source-indifferent:
+ * Rain on every wetness-bearing occupant of a rain scope, one segment's worth
+ * (the precipitation-exposure accrual push) — each takes it by its own reach
+ * and face (`Wet.takeRain`). Source-indifferent:
  * the caller has already resolved that it is raining *here*. The gauge clamps
  * at soaked; the reconcile drains it once the body leaves the rain.
  */
@@ -1366,9 +1367,10 @@ function wetOccupants(room: Stuff & Container): void {
       s.exposeToRain(delta);
       continue;
     }
-    if (MixinApi.isWet(s)) {
-      (occ as unknown as { wet(n: number): void }).wet(delta);
-    }
+    // ⭐ Everything else takes the rain by where it stands and by its face
+    // (D19): a pot on a rack all of it, a brick on the ground a third, a
+    // glazed pot a fifth of that.
+    if (MixinApi.isWet(s)) s.takeRain(delta);
   }
 }
 

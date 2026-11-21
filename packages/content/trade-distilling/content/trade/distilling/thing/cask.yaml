@@ -16,17 +16,15 @@
 # ⚠ `liquidTight`, not `sealed`, for the brewing cask's reason: oak
 # breathes.
 #
-# ⭐⭐ **`imparts:` — what the wood GIVES, added by the styles build.**
-# The oak lactones and a little vanillin off the lignin, written into the
-# contents in step with the conversion, so a dram out of this cask reads
-# *clearly of oak, faintly of vanilla* and one out of the charred cask
-# next to it reads of vanilla and char instead. Two casks, one spirit,
-# two whiskies — and a second wood is a row, not code.
+# ⭐⭐ **What the wood GIVES** is the oak's own `imparts` (matter-model-
+# overlaps D11 moved them off this row onto the oak material): the lactones
+# and a little vanillin, given over the wall's contact time, so a dram out
+# of this cask reads *clearly of oak, faintly of vanilla* and one out of the
+# charred cask next to it — a char coat inside — reads of vanilla and char
+# instead. Two casks, one spirit, two whiskies — and a second wood is a
+# row, not code.
 #
-# ⚠ The prose said *"A charred oak cask"* while this is the PLAIN one and
-# the char lived nowhere at all. Fixed here: this row is a plain cask and
-# `charred-cask.yaml` is the toasted one, which is the difference the
-# `imparts` figures now actually express.
+# ⚠ This row is the PLAIN cask and `charred-cask.yaml` the toasted one.
 # ⭐ The KIND is the commons cask (assembly D10): the bill, the charred
 # profile a re-fire reveals, and the cooper's recipe that makes one.
 class: /platform/thing/Vat
@@ -60,9 +58,3 @@ data:
   interiorCapacity: 25
   closure: liquidTight
   open: true
-  # Calibrated against the aroma thresholds, not picked: oak's is
-  # 0.07 mg/L, so 25 reads *clearly*; vanilla's is 0.1, so 3 reads
-  # *faintly*. The plain cask is a wood note with a hint behind it.
-  imparts:
-    - { type: /base-library/aromas/oak, amount: 25 }
-    - { type: /base-library/aromas/vanilla, amount: 3 }

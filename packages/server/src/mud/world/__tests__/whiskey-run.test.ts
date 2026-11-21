@@ -45,7 +45,8 @@ import { StuffApi } from '../../api/stuff';
 import { AccountabilityApi } from '../../api/accountability';
 import { WorldClockApi } from '../../api/worldclock';
 import { Quantity } from '../../lib/quantity';
-import { Grade } from '../../lib/craft/Grade';
+import type { GradeBand } from '../../lib/craft/Grade';
+import type { BulkPayload } from '../../lib/bulk/Bulkable';
 import { TemplatePaths, TemplatePathPrefixes } from '../../lib/paths';
 import {
   makeStuff,
@@ -172,11 +173,13 @@ function pour(from: unknown, to: unknown, litres: number) {
   });
 }
 
-function graded(v: unknown): {
-  getGradeBand(): string;
-  setGrade(g: Grade): void;
-} {
-  return v as { getGradeBand(): string; setGrade(g: Grade): void };
+/**
+ * Mark the CHARGE in a vessel — its payload (matter-model-overlaps D2): the
+ * wash's grade and the hand that made it ride the contents, never the still.
+ */
+function markCharge(v: unknown, mark: BulkPayload): void {
+  const slot = slotOf(v);
+  slot.setPayload({ ...(slot.getPayload() ?? {}), ...mark });
 }
 
 /**
@@ -308,8 +311,8 @@ describe('⭐⭐ the run, on the shipped rows', () => {
   /** Charge, mark and light the house still. */
   function chargedStill(band = 'masterful'): Still & { testHeatK: number } {
     const still = houseStill(60);
-    still.setMaker(DISTILLER);
-    graded(still).setGrade(Grade.of(band));
+    markCharge(still, { maker: DISTILLER });
+    markCharge(still, { grade: band as GradeBand });
     still.testHeatK = 358;
     return still;
   }
@@ -335,7 +338,7 @@ describe('⭐⭐ the run, on the shipped rows', () => {
     const bottle = bucket(1);
     drawWhile(still, expert, bottle, ['hearts']);
 
-    expect(graded(bottle).getGradeBand()).toBe('fine');
+    expect(slotOf(bottle).getPayload()?.grade).toBe('fine');
     expect(slotOf(bottle).getPayload()?.maker).toBe(DISTILLER);
     // Trace only — the next case is what makes "trace" mean something.
     expect(doseIn(bottle)).toBeCloseTo(40, 3);
@@ -394,7 +397,7 @@ describe('⭐⭐ the run, on the shipped rows', () => {
     expect(doseIn(bottle), 'the heads went in the bottle').toBeGreaterThan(
       1000,
     );
-    expect(graded(bottle).getGradeBand()).not.toBe('fine');
+    expect(slotOf(bottle).getPayload()?.grade).not.toBe('fine');
 
     const drinker = makeStuffAtPath(() => new Creature(), DRINKER);
     const newMake = StuffApi.findByTemplatePath<Material>(
@@ -439,12 +442,12 @@ describe('⭐⭐ the run, on the shipped rows', () => {
     pour(still, bottle, 0.75);
     expect(doseIn(bottle)).toBeCloseTo(6600, 3);
     // And the grade is the WORST of the span, not an average.
-    expect(graded(bottle).getGradeBand()).toBe('poor');
+    expect(slotOf(bottle).getPayload()?.grade).toBe('poor');
   });
 
   it('the run ends in stillage, and the dregs carry none of the spirit\'s dose', () => {
     const still = houseStill(60);
-    graded(still).setGrade(Grade.of('fine'));
+    markCharge(still, { grade: 'fine' as GradeBand });
     still.testHeatK = 358;
     // 0.23 of 60 L is 13.8 L of product; the rest is residue.
     expect(slotOf(still).available()).toBeCloseTo(13.8, 6);
@@ -516,8 +519,8 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
   it('⭐ a BAD cut casked and aged comes out as POOR whiskey carrying the same dose', () => {
     agingProfile();
     const still = houseStill(60);
-    still.setMaker(DISTILLER);
-    graded(still).setGrade(Grade.of('masterful'));
+    markCharge(still, { maker: DISTILLER });
+    markCharge(still, { grade: 'masterful' as GradeBand });
     still.testHeatK = 358;
 
     // Everything from the first drop — foreshots and heads in the barrel.
@@ -528,7 +531,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
         (t) => t.type === 'methanol',
       )?.amount ?? 0;
     expect(doseAtFill, 'the premise: a poisoned fill').toBeGreaterThan(500);
-    expect(graded(barrel).getGradeBand()).toBe('poor');
+    expect(slotOf(barrel).getPayload()?.grade).toBe('poor');
 
     // Bung it and wait. `sealedOnly` means an open cask is not working.
     barrel.setOpen(false);
@@ -546,7 +549,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
     );
     // ⭐⭐ And it is POOR whiskey, however perfect the warehouse: the cut's
     // grade is the ceiling. No amount of oak launders a bad cut.
-    expect(graded(barrel).getGradeBand()).toBe('poor');
+    expect(slotOf(barrel).getPayload()?.grade).toBe('poor');
     // ⭐⭐ And the dose is UNCHANGED. Methanol does not age out; the
     // payload survives the product swap (`setBulkMaterial` keeps it when
     // the new path is non-null), which is the whole reason the harm
@@ -561,8 +564,8 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
   it('⭐ a good cut casked and aged comes out as whiskey a bar would buy', () => {
     agingProfile();
     const still = houseStill(60);
-    still.setMaker(DISTILLER);
-    graded(still).setGrade(Grade.of('masterful'));
+    markCharge(still, { maker: DISTILLER });
+    markCharge(still, { grade: 'masterful' as GradeBand });
     still.testHeatK = 358;
     const expert = noseAt('expert', '/platform/agent/Avatar/the-expert');
     drawWhile(still, expert, bucket(10), ['foreshots', 'heads']);
@@ -581,7 +584,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
     // even at `expert`. The expert's edge is knowing to leave some
     // behind. Eight of the nine litres of hearts is that margin.
     pour(still, barrel, 8);
-    expect(graded(barrel).getGradeBand()).toBe('fine');
+    expect(slotOf(barrel).getPayload()?.grade).toBe('fine');
 
     barrel.setOpen(false);
     age(barrel, 100);
@@ -589,7 +592,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
     expect(slotOf(barrel).getMaterialPath()).toBe(
       '/trade/distilling/idea/material/whiskey',
     );
-    expect(graded(barrel).getGradeBand()).toBe('fine');
+    expect(slotOf(barrel).getPayload()?.grade).toBe('fine');
     // ⭐ And the interior answers to the tag the Lounge's par line wants,
     // which is what closes the sale with no new code: the bar asks for
     // `category: whiskey` and a material tag is what that means.
@@ -602,7 +605,7 @@ describe('⭐⭐ the cask — time improves whiskey; it does not absolve a disti
   it('⚠ an OPEN cask does nothing — `sealedOnly` means bunged', () => {
     agingProfile();
     const still = houseStill(60);
-    graded(still).setGrade(Grade.of('masterful'));
+    markCharge(still, { grade: 'masterful' as GradeBand });
     still.testHeatK = 358;
     const barrel = cask();
     pour(still, barrel, 5);

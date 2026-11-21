@@ -1,20 +1,16 @@
 /**
  * ⭐⭐ **A transform cannot be better than what went into it.**
  *
- * `applyBatchGrade` wrote `bandFor(_worstStretch)` and ignored the fill
+ * The batch's band was `bandFor(_worstStretch)` and ignored the fill
  * entirely, so a **`poor` must made `fine` wine** provided the cellar was
  * kept at the right temperature. That is not a property of fermentation;
  * it is a laundry, and it contradicted `Grade.deriveAtFixedControl`'s
  * weakest-link rule one folder over.
  *
- * ⚠⚠ **This file exists because the fix broke nothing.** The whiskey
- * build's plan predicted *"expect shipped test numbers to move in
- * brewing/winemaking — that is the fix landing, not a regression"*, and
- * 163 tests across maturation, bulk and the world passed unchanged. Which
- * means either the cap works and no shipped test ever fermented a bad
- * fill, or the cap never fires. An unexercised seam that reads as a fix
- * is the failure this repo keeps shipping, so the claim is proved here
- * directly — both limbs, including the one that must NOT cap.
+ * The cap is read off the CONTENTS' payload when the batch starts
+ * (matter-model-overlaps D2), and the derived band is written back onto
+ * the payload — the vat's own grade is its making and is never touched.
+ * Both limbs are proved, including the one that must NOT cap.
  */
 
 import '../../../../test-bootstrap';
@@ -27,7 +23,7 @@ import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
-import { Grade } from '../../craft/Grade';
+import { Grade, type GradeBand } from '../../craft/Grade';
 import { CraftedMixin } from '../../craft/Crafted';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import Good from '../../stuff/Good';
@@ -46,7 +42,7 @@ const WINE = '/stuff/idea/material/_test/cap-wine';
 const SCALE = 12;
 let real = 0;
 
-/** A graded, markable source — the crusher's bucket. */
+/** A markable source — the crusher's bucket. */
 class Pail extends CraftedMixin(BulkableMixin(Good)) {
   static _mixinName = 'InputBandCapPail';
 }
@@ -94,12 +90,17 @@ function pail(band: string, litres: number): Pail {
   p.setInteriorCapacity(Quantity.of(50, 'L'));
   (p as unknown as { interiorMaterial: string }).interiorMaterial = MUST;
   p.setInteriorAmount(Quantity.of(litres, 'L'));
-  graded(p).setGrade(Grade.of(band));
+  slotOf(p).setPayload({ grade: band as GradeBand });
   return p;
 }
 
 function graded(v: unknown): { setGrade(g: Grade): void; getGradeBand(): string } {
   return v as { setGrade(g: Grade): void; getGradeBand(): string };
+}
+
+/** The batch's grade — its payload's — or `undefined` when ungraded. */
+function batchBand(v: unknown): string | undefined {
+  return slotOf(v).getPayload()?.grade;
 }
 
 function slotOf(v: unknown) {
@@ -153,42 +154,42 @@ describe('the fill caps the batch', () => {
     const v = vat();
     fill(pail('poor', 20), v, 20);
     // The premise, proved before the claim: the fill really did arrive,
-    // and it really did carry its band onto the vat.
+    // and it really did carry its band in on the contents.
     expect(slotOf(v).getAmount().rawValue()).toBeCloseTo(20, 9);
-    expect(graded(v).getGradeBand()).toBe('poor');
+    expect(batchBand(v)).toBe('poor');
 
     ferment(v);
     expect(v.getMaturationPhase(), 'the batch has to FINISH or the cap is untested')
       .toBe('finished');
     // It became wine — and it is poor wine.
     expect(slotOf(v).getMaterialPath()).toBe(WINE);
-    expect(graded(v).getGradeBand()).toBe('poor');
+    expect(batchBand(v)).toBe('poor');
+    // ⭐ …and the vat is still what its cooper made it.
+    expect(graded(v).getGradeBand()).toBe('fair');
   });
 
   it('⭐ a MASTERFUL must is capped only by the cellar, not by the fill', () => {
     const v = vat();
     fill(pail('masterful', 20), v, 20);
-    expect(graded(v).getGradeBand()).toBe('masterful');
+    expect(batchBand(v)).toBe('masterful');
     ferment(v);
     expect(v.getMaturationPhase()).toBe('finished');
     // A perfectly-kept cellar derives `masterful` from `_worstStretch`,
     // and the cap is at or above it, so nothing is taken away.
-    expect(graded(v).getGradeBand()).toBe('masterful');
+    expect(batchBand(v)).toBe('masterful');
   });
 
   it('⚠⚠ an UNGRADED fill is not capped at `fair` — the default band is not a claim', () => {
-    // The trap the witness exists to avoid. `GradedMixin.gradeBand`
-    // defaults to `'fair'`, so reading the host's own face at
-    // `startBatch` would have capped EVERY ferment nobody graded at
-    // `fair` for ever — including every shipped one, silently.
+    // `GradedMixin.gradeBand` defaults to `'fair'`, so reading the vat's
+    // own face would cap EVERY ferment nobody graded at `fair` for ever.
+    // The cap is the contents' grade, and ungraded contents have none.
     const v = vat();
-    // Hand-filled: no graded source anywhere, so no witness fires.
     (v as unknown as { interiorMaterial: string }).interiorMaterial = MUST;
     v.setInteriorAmount(Quantity.of(20, 'L'));
+    expect(batchBand(v)).toBeUndefined();
     ferment(v);
     expect(v.getMaturationPhase()).toBe('finished');
-    expect(graded(v).getGradeBand()).not.toBe('fair');
-    expect(graded(v).getGradeBand()).toBe('masterful');
+    expect(batchBand(v)).toBe('masterful');
   });
 
   it('a bad cellar still degrades a good fill — the cap is a ceiling, not a floor', () => {
@@ -198,6 +199,19 @@ describe('the fill caps the batch', () => {
     v.lastAmbientK = 330;
     v.stampedTemperatureK = 330;
     ferment(v);
-    expect(graded(v).getGradeBand()).not.toBe('masterful');
+    expect(batchBand(v)).toBeDefined();
+    expect(batchBand(v)).not.toBe('masterful');
+  });
+
+  it('⭐ the vat that held a poor batch holds a masterful one next: the cap is per batch', () => {
+    const v = vat();
+    fill(pail('poor', 20), v, 20);
+    ferment(v);
+    expect(batchBand(v)).toBe('poor');
+    BulkableApi.transfer(slotOf(v), null, { kind: 'all', mode: 'lenient' } as never);
+    v.getMaturationPhase();
+    fill(pail('masterful', 20), v, 20);
+    ferment(v);
+    expect(batchBand(v)).toBe('masterful');
   });
 });

@@ -7,6 +7,7 @@ tags:
 - taste
 related:
 - guide:cooking
+- guide:vessels
 ---
 # Smell and taste {#smell-and-taste}
 
@@ -34,6 +35,19 @@ faded, which is why you can't tell how much you need a bath, and somebody else c
 
 `analyze aroma` lists everything you can separate. `measure aroma with` a gas
 analyzer gives each smell as a figure.
+
+## What is in the air {#air}
+
+A room's air carries more than smells coming off the things in it. Steam
+off a boiling pot hangs in the room as warm damp, a kiln being salted fills
+the shop with a sharp fume, and a retort with nothing on its head lets its
+fumes out into the room. `smell` picks all of these up. Air leaves a room
+slowly through its doors and windows, and a place open to the sky keeps
+none of it.
+
+Steam is water in the air, so a room with a pot boiling in it grows more
+humid: `measure humidity` reads how humid it is. `analyze atmosphere` says
+whether the air can be breathed and, if not, what is in it.
 
 ## Tasting {#tasting}
 

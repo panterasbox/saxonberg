@@ -22,33 +22,11 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
+import type { Grade, GradeBand } from './Grade';
 import { NameTakingMixin } from '../description/NameTaking';
-import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../stuff/Stuff';
-
-/** Grade-keyed verdict prose (v1 uniform — no per-instance scatter yet). */
-const VERDICT_PROSE: Record<string, string> = {
-  poor: 'cloudy and carelessly put together',
-  fair: 'honestly made, if unremarkable',
-  fine: 'clean, balanced, and well made',
-  exceptional: 'expertly balanced — a pleasure to behold',
-  masterful: 'flawless, the work of a true hand',
-};
-
-/**
- * Resolve a maker templatePath to a display name, or null if unresolvable.
- * Module-private (not a `#` method): mixin methods dispatch through the
- * call-security proxy, where `this.#x` would throw.
- */
-function resolveMakerName(maker: string, viewer?: Stuff): string | null {
-  if (!maker) return null;
-  const stuff = StuffApi.findByTemplatePath<Stuff>(maker);
-  if (!stuff) return null;
-  // ⛔ A maker's name is a NAME, and a name is per viewer: a stranger's
-  // gin says "made by a woman", never her true name (client-surface W0).
-  // With no viewer (a system read) the presentation stands.
-  return viewer ? stuff.describeFor(viewer) : stuff.getPresentation();
-}
+import { Verdict } from './Verdict';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * ⭐⭐ **Bulk matter remembers who made it** — the same claim
@@ -69,14 +47,30 @@ function resolveMakerName(maker: string, viewer?: Stuff): string | null {
  */
 declare module '../bulk/Bulkable' {
   interface BulkPayload {
-    /** The maker's durable `templatePath`; absent on matter nobody made. */
+    /**
+     * Who made the batch — an IDENTITY path (`getIdentityPath()`, never a
+     * lineage key: every player Avatar shares one template path); absent
+     * on matter nobody made.
+     */
     maker?: string;
+    /**
+     * ⭐⭐ **The batch's grade** (matter-model-overlaps D2). A grade is a
+     * fact about the CONTENTS, so it rides the payload beside the maker:
+     * a fine wine poured into a poor bottle stays fine, and the bottle
+     * stays poor. `BulkableLogic.transfer` carries it into an empty
+     * destination and folds a top-up to the lower of the two; a set's
+     * drainings never take it (the mould grades them). Absent means
+     * ungraded — not `fair`.
+     */
+    grade?: GradeBand;
+    /** Game-clock seconds the batch was made; absent on matter nobody made. */
+    craftedAt?: number;
   }
 }
 
 export interface CraftedStamp {
   maker: string;
-  grade: import('./Grade').Grade;
+  grade: Grade;
   recipe: string;
   craftedAt: number;
 }
@@ -119,6 +113,10 @@ export interface Crafted extends Graded {
    * *why* + maker attribution. Plain prose, **never a number**. v1 renders
    * uniform prose at a fixed control level. The maker is named as
    * `viewer` knows them.
+   *
+   * This thing's OWN making — a batch's verdict is its payload's
+   * (a `Verdict` off the payload, the holder's contents augmenter; matter-model-
+   * overlaps D2).
    */
   renderVerdict(viewer?: Stuff): string;
 }
@@ -266,12 +264,7 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     renderVerdict(viewer?: Stuff): string {
-      const band = (this as unknown as Graded).getGrade().renderBandWord();
-      const why = VERDICT_PROSE[band] ?? VERDICT_PROSE.fair!;
-      let line = `It looks ${band}: ${why}.`;
-      const makerName = resolveMakerName(this.maker, viewer);
-      if (makerName) line += ` Made by ${makerName}.`;
-      return line;
+      return new Verdict((this as unknown as Graded).getGrade(), this.maker).render(viewer);
     }
   };
 }

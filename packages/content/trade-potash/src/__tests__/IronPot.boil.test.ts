@@ -22,6 +22,7 @@ import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Burner } from '@saxonberg/server/mud/lib/fire/Burner';
 import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
+import { standSolvent } from '@saxonberg/server/mud/lib/material/__tests__/materials';
 
 class TestRoom extends Place {}
 
@@ -54,6 +55,9 @@ describe('an iron pot of lye on a lit hearth', () => {
     // stand it, as the shipped pack's row would be. The cast itself is
     // IronPot.test's subject: stubbed here, where only the boil is.
     makeStuffAtPath(() => new Material(), '/trade/potash/idea/material/black-salts');
+    // A boiling solution steams its solvent (thermal.md § The bath, and the
+    // boil): stand water and its vapor, as a lye row's solids would load them.
+    standSolvent();
     vi.spyOn(IronPot.prototype, 'castInto').mockResolvedValue(null as never);
     WorldClockApi._resetForTesting();
     realMs = 1_000_000;

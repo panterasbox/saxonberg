@@ -551,8 +551,10 @@ freezing while wet (ceramics.md § green ware) — never broken into sherds.
     `max(0.1, 1 − Σ penalty)`, a riveted one costing half. A durable good's
     condition is its wear gauge × integrity, so a cracked jug reads *worn*,
     enough cracks break it, and `isBroken` / repair / the condition word
-    read the one number. A crack through the wall leaks
-    (`Faced.holdsWater` false) and spoils a mould's cavity (it casts a lump).
+    read the one number. An unmended crack through the wall leaks by the
+    one hole rule (`Flawed.flawLeakLPerHour`, summed in
+    `Bulkable.leakLPerHour` — a glaze stops the pores, never the crack) and
+    spoils a mould's cavity (it casts a lump).
   - **a fault in the making** — `misrun`, `shrinkage`: a CEILING on the
     grade (`gradeAfterFaults`: at most poor, at most fair), derived on read
     from the stored made band — a ceiling, never a drop, so a grade read
@@ -580,3 +582,9 @@ hot) past `ΔT_tol = impact.shockStrain ÷ α × (1 + 10·porosity) ÷ (1 −
 2·grog) × (0.7 if glazed)`. Past it a `dunt` (hidden unless a glaze shows its
 craze line); past twice it a visible `crack`. Porosity and grog are why a
 cooking pot stands a fire a stoneware crock does not.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+`leaches` moved off `Toxicity` onto the new `Extraction` capability beside
+`imparts` (what a wall gives what it holds); an unmended crack leaks by the
+one hole rule (`Flawed.flawLeakLPerHour`).

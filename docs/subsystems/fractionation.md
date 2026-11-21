@@ -130,8 +130,11 @@ of them plus a new one:
   base impl returns the slot's own payload so nothing changes for any
   other composer. Answers with the **span** `[drawnL, drawnL + litres]`
   blended by volume: the dose volume-weighted, the grade the **worst band
-  in the span** (a pour with tails in it is a pour with tails in it), the
-  maker the hand that charged the pot.
+  in the span** (a pour with tails in it is a pour with tails in it) capped
+  by the charge's and the contents' own, the maker the hand that made the
+  charge. ⭐ All on the DRAW's payload (matter-model-overlaps D2): the
+  still's own `Graded`/`Crafted` face is its making and a run never writes
+  it.
   ⚠ It takes the litres because a draw that straddles a boundary is two
   things at once. Without the argument a single pour started at the first
   drop is stamped wholly as its first fraction — three quarters of a litre
@@ -299,9 +302,10 @@ itself.
 
 ⚠ **`Still` is the first `Burner + Bulkable` composition in the tree.** It
 needed `BulkableMixin` because a pot still is a pot with a fire under it
-and the class held no pot, and `CraftedMixin` for the `Vat`'s reason: the
-charge's grade and the charging hand arrive through the transfer seam and
-leave again on the draw, so the bottle names a person and a band.
+and the class held no pot, and `CraftedMixin` for its own making. The
+charge's grade and maker arrive on the charge's PAYLOAD through the transfer
+seam (read at the charge, D2) and leave again on the draw's, so the bottle
+names a person and a band.
 
 ## ⛔ And it had never run
 
@@ -384,6 +388,10 @@ went; the still stores `runSchedulePath` behind a restore door and loads
 the kind in `onCreate` (W10, same review: the kind became `BulkableApi`'s
 `needs`, stood at boot, and that load went); `lint:fraction-schedules`
 reads the new dirs (§ The pieces).
+
+- **2026-11-20 — matter-model overlaps (MR !644).** A run's grade and maker
+  ride the DRAW's payload (read from the charge's); the still's own
+  `Graded`/`Crafted` is its making and a run never writes it.
 
 ## ⭐⭐⭐ `separation` — grades of one thing, or different things (the drilling build, 2026-10)
 

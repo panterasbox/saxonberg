@@ -2,6 +2,8 @@
 # molten lead along it and it sets as a sheet.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: sand bed
   keywords: ["sand bed", bed, sand, casting-table]
   register: definite

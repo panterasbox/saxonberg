@@ -21,9 +21,10 @@
  * read over elapsed game-time, presence-frozen (the metabolism / harm /
  * electricity-sustain idiom — no tick). Accrual can't run in the sync
  * getter because "is it raining here" is an async resolve
- * (`WeatherApi.resolveWeatherFor`), so exposure/immersion *push*
- * `wet(delta)` from their async contexts (the presence-gated weather
- * boundary fan-out; the electricity co-immersion path). "Shelter dries
+ * (`WeatherApi.resolveWeatherFor`), so exposure/immersion *push* from
+ * their async contexts (the presence-gated weather boundary fan-out calls
+ * `takeRain(delta)`, which lands by reach and face; the electricity
+ * co-immersion path calls `wet(delta)`). "Shelter dries
  * faster" emerges: a sheltered object receives no accrual push, so the
  * reconcile's drain wins. Warmth accelerates the drain via the object's
  * own sync Thermal reading.
@@ -115,6 +116,23 @@ export interface Wet {
   afterWetted(): void;
   /** Reconcile the elapsed drain (sync, presence-frozen). */
   reconcileWetness(): void;
+  /**
+   * ⭐ How much of this the weather reaches, `[0, 1]` (matter-model-overlaps
+   * D19) — one exposure for rain landing on it and for the air drying it.
+   * `0` enclosed (in a sack, a chest, a pack, a body's inventory); on a
+   * support, the support's `getAirExposure()`; on bare ground,
+   * `cure.groundExposure` (0.35); in a compartment with its own air (a
+   * drying loft), `1`.
+   */
+  weatherReach(): number;
+  /**
+   * ⭐ Rain lands on this (D19): `delta × weatherReach()`, and a fifth of that
+   * (`1 − wetness.shedShare`) when its outside face is sealed — a glaze
+   * sheds what lands on it. The film only: what a porous body soaks in is
+   * the water state's, off the rain record (`Moist.reconcileWater`). Called
+   * by the weather's rain push.
+   */
+  takeRain(delta: number): void;
 
   // Public so the applier can reflect into them; in-class code reads them
   // directly. Not the inter-Stuff contract (that's the method surface).
@@ -237,6 +255,53 @@ export function WetMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     /** @hook See {@link Wet.afterWetted}. */
     public afterWetted(): void {}
+
+    public takeRain(delta: number): void {
+      if (!Number.isFinite(delta) || !(delta > 0)) return;
+      const self = this as unknown as Stuff;
+      let lands = delta * this.weatherReach();
+      if (!(lands > 0)) return;
+      if (MixinApi.isFaced(self) && self.isSealed('outside')) {
+        lands *= 1 - clamp01(dial(AppSettingKeys.wetnessShedShare, 0.8));
+      }
+      this.wet(lands);
+    }
+
+    /**
+     * ⭐ Three rungs, and they are the whole exposure model (moved here from
+     * the water state's `exposureOf`, D19 — rain and drying ask one reach):
+     *
+     *   - **enclosed** (`0`) — the immediate container is not a place: a
+     *     body's inventory, a sack, a chest, a pot. A ham in a closed sack
+     *     does not dry and is not rained on, which is honest and is what
+     *     keeps the store sparse for every carried and stored good.
+     *   - **on a support** — the support's own `Placing.getAirExposure`
+     *     (default `1`). A rack, a hook, a slatted shelf.
+     *   - **on bare ground** — `cure.groundExposure` (`0.35`): one face to
+     *     the air and nothing underneath, which is exactly why turf is
+     *     built into an openwork lattice rather than heaped.
+     *
+     * ⚠ `ContainmentApi.move` onto a placing host moves an item into the
+     * host's container and stamps the placement, so the container is the
+     * room either way and `getPlacement()` is the only thing that tells a
+     * racked thing from a dropped one. ⚠ `isPlace()` and not a mixin
+     * predicate: a `Vessel` is Atmospheric too, and the question is "is this
+     * the open world or the inside of something" — except a COMPARTMENT with
+     * its own air that is not a thing you go inside (a drying loft: a stack
+     * put `in` it is its contents, and its air reaches all of it).
+     */
+    public weatherReach(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return 0;
+      const where = self.getContainer();
+      if (where === null) return 0;
+      if (!where.isPlace()) {
+        return MixinApi.isAtmospheric(where) && !MixinApi.isExitable(where) ? 1 : 0;
+      }
+      const support = self.getPlacement()?.host ?? null;
+      if (support !== null) return clamp01(support.getAirExposure());
+      return clamp01(dial(AppSettingKeys.cureGroundExposure, 0.35));
+    }
 
     // ---------- reconcile-on-read (the lazy drain) ----------
 

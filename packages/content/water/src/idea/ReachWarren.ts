@@ -1117,7 +1117,7 @@ export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(Single
   public async riverAt(
     room: Stuff,
     inside = false,
-  ): Promise<{ currentMps: number; depthM: number; roughness: number; course: string; km: number; barSide: RiverSide | null; widthM: number } | null> {
+  ): Promise<{ currentMps: number; depthM: number; roughness: number; course: string; km: number; barSide: RiverSide | null; widthM: number; obstruction: number } | null> {
     const cat = this.catalogue();
     if (!cat) return null;
     let pos = this.ownPosition(room);
@@ -1144,6 +1144,10 @@ export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(Single
       km: pos.km,
       barSide: banks.left.kind === 'bar' ? 'left' : banks.right.kind === 'bar' ? 'right' : null,
       widthM: state.widthM,
+      // ⭐ How choked the stretch is with snags (seeded per bend, never
+      // authored) — what a paddled boat asks the snag rule about
+      // (matter-model-overlaps D7).
+      obstruction: state.stretch.obstruction,
     };
   }
 

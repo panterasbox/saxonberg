@@ -24,6 +24,10 @@ And what the company is: *"the game isn't really the company, the livestream is 
 company, it's just running the platform that provides the compact for governance."*
 **Pantera's Box is a media company that runs Saxonberg as its governance platform.**
 
+> ⚠ **Superseded 2026-11-20 by the owner:** Pantera's Box is **a game-experiencing community** —
+> financing production and consumption — that runs Saxonberg, its platform, under the Compact. See
+> [positioning.md § Part 0a — the three names](./positioning.md).
+
 ## 1. The shadow cap table
 
 Kept privately, as if the units were shares.

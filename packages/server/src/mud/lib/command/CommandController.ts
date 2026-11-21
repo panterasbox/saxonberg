@@ -221,7 +221,13 @@ export abstract class CommandController<
   protected async engagePlan<B, F, X extends AnyActRefusal>(
     context: CommandContext,
     plan: ActPlan<B, F, X>,
-    words: Omit<ActWords<B, F, X>, 'onRefused'> & Partial<Pick<ActWords<B, F, X>, 'onRefused'>>,
+    words: Omit<ActWords<B, F, X>, 'onRefused'> & {
+      /**
+       * Absent, or `null` for a reason: that reason's row words it (one
+       * copy of one sentence, response-envelope.md § `refused`).
+       */
+      onRefused?: (refusal: X) => Composed | null;
+    },
   ): Promise<void> {
     const giver = context.commandGiver;
     const turnDown = (prose: Composed, reason: string, detail = reason): void => {
@@ -233,7 +239,8 @@ export abstract class CommandController<
       if (!out.ok) {
         // ⭐ No words of its own: the refusal's row words it, late — the
         // command's envelope went when the step began.
-        if (!words.onRefused) {
+        const prose = words.onRefused === undefined ? null : words.onRefused(out);
+        if (prose === null) {
           const refusal = new Refusal(out.reason, (out.facts ?? {}) as RefusalFacts);
           // On the context, for a script awaiting the step to meet it —
           // and then the script's stop line says it, ONCE. Only a typed
@@ -242,7 +249,7 @@ export abstract class CommandController<
           if (context.scriptLine === undefined) await CommandApi.reportFailure(refusal);
           return;
         }
-        MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(words.onRefused(out)).send();
+        MessageApi.scene(giver).topic(PLAN_TOPIC).toSelf(prose).send();
         return;
       }
       const done = words.onDone?.(out.facts) ?? null;
@@ -258,7 +265,8 @@ export abstract class CommandController<
       begin();
       const out = await plan.onComplete();
       if (!out.ok) {
-        if (words.onRefused) turnDown(words.onRefused(out), out.reason);
+        const prose = words.onRefused === undefined ? null : words.onRefused(out);
+        if (prose !== null) turnDown(prose, out.reason);
         else context.refuse(out);
         return;
       }

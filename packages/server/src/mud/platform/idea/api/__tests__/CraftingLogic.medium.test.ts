@@ -116,7 +116,8 @@ function makeBottle(materialPath: string, amountL: number): GradedReceptacle {
   (b as unknown as { interiorMaterial: string }).interiorMaterial = materialPath;
   b.setInteriorCapacity(Quantity.of(2, 'L'));
   b.setInteriorAmount(Quantity.of(amountL, 'L'));
-  b.setGradeBand('fair');
+  // The batch's grade is its payload's (matter-model-overlaps D2).
+  BulkableApi.slotFor(b, undefined)!.setPayload({ grade: 'fair' });
   return b;
 }
 

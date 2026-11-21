@@ -680,7 +680,7 @@ export function ThermalDoseMixin<TBase extends MixinConstructor<Stuff>>(
      * black because the fire was too fierce, writes the host's Grade down
      * to the bottom band.
      *
-     * Monotone minimum, the `Maturing.applyBatchGrade` shape: it only ever
+     * Monotone minimum, the `Maturing.gradeBatch` shape: it only ever
      * lowers, so nothing can be nursed back by cooling it down. That
      * one-way property is load-bearing — a grade that could be recovered
      * is a grade worth grinding, which is the failure our whole band model
@@ -735,8 +735,9 @@ export function ThermalDoseMixin<TBase extends MixinConstructor<Stuff>>(
  */
 function doseRecipeFor(recipeRef: string): Recipe | null {
   if (!recipeRef || recipeRef.length === 0) return null;
-  // ⚠ A craft mark may be a ferment mark (`ferment:<key>`) rather than a
-  // recipe word — those name no working and have no hold to be judged by.
+  // ⚠ A scheme-prefixed mark (the retired `ferment:<key>`; a batch's mark
+  // rides its payload since matter-model-overlaps D1) names no working and
+  // has no hold to be judged by.
   if (recipeRef.includes(':')) return null;
   // ⭐ Resident by construction (`Crafted.setRecipe` loads the dictionary at
   // restore; a craft held its recipe). A miss throws — never a quiet null.

@@ -154,7 +154,7 @@ describe('⭐⭐ the salt pan on its tub', () => {
     const { pan, tub } = saltern();
     expect(MixinApi.isMould(pan as unknown as Stuff)).toBe(true);
     expect(MixinApi.isMaturing(pan as unknown as Stuff)).toBe(true);
-    expect(pan.drainsInto()).toBe(tub);
+    expect(pan.dripSlots()[0]?.getHolder()).toBe(tub);
   });
 
   it('⭐ sea water in dry air: salt crystals set IN the pan, and the bittern runs into the tub beneath', async () => {
