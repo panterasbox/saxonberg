@@ -2018,9 +2018,21 @@ export default abstract class Avatar extends AvatarBase {
    * could never use.
    */
   public override keepsMaps(): boolean {
-    return (
-      super.keepsMaps() && this.shouldPersist() && !this.getIsGuest()
-    );
+    // ⭐ A guest keeps a map for the length of the visit (owner, review: a
+    // guest is the newcomer the navigation card is for) — never written
+    // down: its owner key is a session key (see {@link mapOwnerKey}). A wire
+    // body still keeps none (a circle's geography is not real geography).
+    return super.keepsMaps() && (this.getIsGuest() || this.shouldPersist());
+  }
+
+  /**
+   * A guest's map files under a SESSION key — held in memory for the visit
+   * and never saved (`NavigationLogic`'s session maps); everyone else's
+   * under their identity.
+   */
+  public override mapOwnerKey(): string {
+    const key = super.mapOwnerKey();
+    return this.getIsGuest() && key ? `session:${key}` : key;
   }
 
   public toString(): string {
