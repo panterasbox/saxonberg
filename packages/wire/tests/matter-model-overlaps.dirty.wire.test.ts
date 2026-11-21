@@ -1529,11 +1529,23 @@ suite('⭐⭐ restart — every state reads back (AC 11)', () => {
 
     // the terracotta's held moisture
     potter = await at(potter.handle, WEATHERING);
-    const terra = (await evalOn(potter, HD, TAG.terra14, `JSON.stringify({ moisture: this.getMoisture() })`)) as { moisture?: number };
-    note(`  [16] terracotta moisture ${String(before.terraMoisture)} → ${terra.moisture}`);
-    // It goes on drying in the air after the rain; it is not reset to dry.
+    const terra = (await evalOn(
+      potter,
+      HD,
+      TAG.terra14,
+      `JSON.stringify({ moisture: this.getMoisture(), rh: BiomeApi.localHumidityFor(this.getContainer()) })`,
+    )) as { moisture?: number; rh?: number };
+    note(`  [16] terracotta moisture ${String(before.terraMoisture)} → ${terra.moisture} (the air at ${terra.rh} %)`);
+    // It is not reset to dry by the restart, and it goes on toward the AIR:
+    // porous matter holds water at the air's humidity (`Evaporation.rewets`
+    // — air of h % holds matter at h/100). ⚠ Run 13 read 0.018 → 0.417 with
+    // the air at 50 %: the old bound (never above the pre-restart figure)
+    // assumed it could only dry, and a restart's elapsed hours let a
+    // nearly-dry pot take water back from the air.
     expect(terra.moisture, 'the terracotta’s held water was lost in the restart').toBeGreaterThan(0);
-    expect(terra.moisture as number).toBeLessThanOrEqual((before.terraMoisture as number) + 1e-3);
+    expect(terra.moisture as number, 'the terracotta came back wetter than its air could make it').toBeLessThanOrEqual(
+      Math.max(before.terraMoisture as number, (terra.rh ?? 0) / 100) + 0.02,
+    );
   }, 1_800_000);
 });
 
