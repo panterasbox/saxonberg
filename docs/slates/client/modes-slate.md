@@ -192,7 +192,29 @@ are.
     watch's lone terminal at the large step carries the chat prefix, with `/` always reaching
     commands.
 
-**Open, its own pass before chat: the prompt design.** What a prompt shows, how a prefix reads at a
+**The prompt** **[DECIDED — the owner, 2026-11-21: "not perfect but I can live with all this for
+now"]** — four things were called *prompt* at the bar (the prefix, the base prompt, asks, the
+preview); the base prompt was one string per player against N bars.
+
+- **One prompt per bar, from one `prompt.format`**, rendered by the server after every command with
+  that bar's facts in the context. The default `{{ prefix }}>` reads `chat gossip>` or `>`. The
+  owner: *"I don't really want to have two different concepts."* The rendered prompt is the bar's
+  leading element; the separate prefix span and the format bar go.
+- **Tokens are reads, and must be cheap to read every command for every bar** — state already in
+  memory (`prefix`, `focus`, `here`, `posture`, `time`, `weather`, the bar's `channel`, `unread`,
+  `watching`, …); nothing that queries.
+- **The prefix is a write — a rewrite like an alias.** The owner: *"the prefix thing operates as
+  write and most other prompt tokens — maybe all others — are reads. the closest analog to the
+  prefix thing is aliases."* `{{ prefix }}` reads the bar's rewrite rule. **The bar never previews
+  a rewrite; the echo reveals it**, one way for all: `chat bobalu> hi` · `chat bobalu> /look → look`
+  · `> k rat → kill rat`. This retires the shipped client behavior that hid the prefix on `/`, and
+  rules out a second render.
+- **One command, one echo**, from the bar that issued it; the echo is the record of which bar sent
+  it and what was rewritten.
+- **A click has no bar**, so its echo gets its own unbarred prompt, marked as a click
+  (`↳ > look the torch`), in the everything terminal — where an unbarred command's asks already go.
+
+**Was open — the prompt design pass:** What a prompt shows, how a prefix reads at a
 glance so two bars compare instantly, `prompt.format` customization (`PromptMixin`, named in
 [shell-environment.md](../../subsystems/shell-environment.md) and unbuilt), and the phone's target
 chip. The owner: *"one thing all this stuff does is make us have to revisit the whole prompt
