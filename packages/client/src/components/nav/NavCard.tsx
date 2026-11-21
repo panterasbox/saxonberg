@@ -25,6 +25,7 @@ import {
   boundariesView,
   crumbsView,
   inferStanding,
+  PRESENT_KEY,
   localityKnowledge,
   placeByKey,
   neighborDirection,
@@ -168,9 +169,13 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     (mark: { place?: ViewPlace; edge?: ViewEdge }): string | null => {
       if (mark.place) {
         // Where you stand: a click looks around (it once routed you to yourself).
-        if (herePlace && mark.place.key === herePlace.key) return "look";
+        if ((herePlace && mark.place.key === herePlace.key) || mark.place.key === PRESENT_KEY) return "look";
         const dir = standing ? neighborDirection(mapCopy, standing, mark.place) : undefined;
         return dir ? `go ${dir}` : routeCommandFor(mapCopy, mark.place);
+      }
+      if (mark.edge && mark.edge.from === PRESENT_KEY) {
+        const way = (sections.ways?.ways ?? []).find((w) => w.direction.toLowerCase() === mark.edge!.dir);
+        if (way) return `go ${way.direction}`;
       }
       if (mark.edge && standing && herePlace?.key === mark.edge.from) {
         const way = standing.ways.find((w) => w.direction.toLowerCase() === mark.edge!.dir);
@@ -178,7 +183,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       }
       return null;
     },
-    [mapCopy, standing, herePlace],
+    [mapCopy, standing, herePlace, sections.ways],
   );
 
   /** The ways from here the ways section says leave this zone — never a `?`. */
@@ -203,6 +208,14 @@ export function NavCard(props: NavCardProps): React.ReactElement {
     mark: { place?: ViewPlace; edge?: ViewEdge; lens?: LensName; leg?: number },
     view: ZoneView,
   ): TooltipDoc | null => {
+    if (mark.place?.key === PRESENT_KEY) {
+      return {
+        header: { name: mark.place.name, kindWord: "where you are" },
+        prose: "Not on your map yet — you are standing in it, and you can see its ways out.",
+        command: "look",
+        hint: "click — look around",
+      };
+    }
     if (mark.place) {
       const command = commandFor({ place: mark.place });
       const neighbor = (command?.startsWith("go ") ?? false) || command === "look";
