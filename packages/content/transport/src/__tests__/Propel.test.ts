@@ -15,7 +15,7 @@ afterEach(() => vi.restoreAllMocks());
 
 interface Rig {
   propel: Propel;
-  water: { destinationOf: ReturnType<typeof vi.fn> };
+  water: { destinationOf: ReturnType<typeof vi.fn>; refusalOf: ReturnType<typeof vi.fn> };
   boat: { capsize: ReturnType<typeof vi.fn> };
   told: string[];
   cancelled: () => boolean;
