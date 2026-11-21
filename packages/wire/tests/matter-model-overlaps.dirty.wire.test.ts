@@ -1095,35 +1095,33 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
     // /system/water seat (run 8: from the city's own extent the sandbox
     // refused `lineOf`, a /system/water object, so this half had never run).
     const gov = await Session.open('founder', { startLocation: BANK_HALL, committees: [...SEATS, WATER] });
-    let choked: { id: string; ordinal: number; downKm: number; upKm: number; obstruction: number }[] = [];
-    let quayKm = NaN;
+    // ⚠ The pick is made IN the eval and only it comes back (run 9: the
+    // whole choked list overran the reply and parsed as no JSON).
+    let pick: { count?: number; quayKm?: number; target?: { id: string; downKm: number; upKm: number }; beside?: number } = {};
     try {
-      const found = (await evalIn(
+      pick = (await evalIn(
         gov,
         WATER,
         `return JSON.stringify(await (async () => { const cat = await StuffApi.singleton('/system/water/idea/WatercourseCatalogue'); ` +
-          `const line = await cat.lineOf('kestrel'); const seen = {}; const out = []; ` +
-          `for (let km = 0.05; km < 62; km += 0.02) { const s = line.stretchAt(km); if (s && s.obstruction > 0.5 && !seen[s.id]) { seen[s.id] = 1; out.push({ id: s.id, ordinal: s.ordinal, downKm: s.downKm, upKm: s.upKm, obstruction: s.obstruction }); } } ` +
-          `const quay = cat.landingNamed('kestrel', 'town quay'); return { choked: out, quayKm: quay ? quay.km : null }; })())`,
-      )) as { choked?: typeof choked; quayKm?: number | null };
-      choked = found.choked ?? [];
-      quayKm = typeof found.quayKm === 'number' ? found.quayKm : NaN;
+          `const line = await cat.lineOf('kestrel'); const quay = cat.landingNamed('kestrel', 'town quay'); const quayKm = quay ? quay.km : 0; ` +
+          `const seen = {}; const choked = []; ` +
+          `for (let km = 0.05; km < 62; km += 0.02) { const s = line.stretchAt(km); if (s && s.obstruction > 0.5 && !seen[s.id]) { seen[s.id] = 1; choked.push(s); } } ` +
+          `const above = choked.filter((c) => c.downKm > quayKm).sort((x, y) => x.downKm - y.downKm); if (above.length === 0) return { count: choked.length, quayKm }; ` +
+          `const ids = new Set(choked.map((c) => c.ordinal)); let beside = above[0].ordinal; while (ids.has(beside)) beside -= 1; ` +
+          `return { count: choked.length, quayKm, target: { id: above[0].id, downKm: above[0].downKm, upKm: above[0].upKm }, beside }; })())`,
+      )) as typeof pick;
     } finally {
       gov.close();
     }
-    note(`  [11] ⚠ DISCOVERED: ${choked.length} choked stretches on the Kestrel; the Town Quay at km ${quayKm}`);
-    expect(choked.length, 'no choked stretch on the Kestrel to run the Hesper into').toBeGreaterThan(0);
+    note(`  [11] ⚠ DISCOVERED: ${pick.count} choked stretches on the Kestrel; the Town Quay at km ${pick.quayKm}`);
     // The choked bend nearest above the quay (the rowboat's); she is staged
     // just above it — the first stretch upstream that is NOT choked (a bend's
     // crossing, run and pool share one obstruction; stretch ids are
     // source-first, so upstream is the smaller ordinal) — and her course to
     // the quay runs down through it.
-    const above = choked.filter((c) => c.downKm > quayKm).sort((x, y) => x.downKm - y.downKm);
-    expect(above.length, 'no choked stretch above the Town Quay').toBeGreaterThan(0);
-    const chokedIds = new Set(choked.map((c) => c.ordinal));
-    let beside = above[0]!.ordinal;
-    while (chokedIds.has(beside)) beside -= 1;
-    note(`  [11] the Hesper staged at kestrel:${beside}, above ${above[0]!.id} (km ${above[0]!.downKm.toFixed(2)}–${above[0]!.upKm.toFixed(2)})`);
+    expect(pick.target, `no choked stretch above the Town Quay: ${JSON.stringify(pick)}`).toBeDefined();
+    const beside = pick.beside!;
+    note(`  [11] the Hesper staged at kestrel:${beside}, above ${pick.target!.id} (km ${pick.target!.downKm.toFixed(2)}–${pick.target!.upKm.toFixed(2)})`);
     await stageShip(HESPER, {});
     const master = await at(boatman.handle, HESPER_DECK);
     boatman = master;
@@ -1302,9 +1300,15 @@ suite('⭐⭐ one vaporization — the kiln, the copper, the retort (AC 7, 8)', 
     boiler = await at(boiler.handle, CURING);
     await advanceLiving('20 minutes', [boiler]);
     boiler = await at(boiler.handle, BOILING);
-    // The analyzer to NAME what is in the air (run 8 read it bare: "thick
-    // with something").
+    // The analyzer, and a reader trained to NAME what is in the air: below
+    // `competent` the atmosphere reading says only "there is something in
+    // the air" (run 9). ⚠ Until run 9 this checkpoint passed on the ARCH's
+    // smoke, still in the air from the boil; run 9's walk-out let it clear,
+    // and the retort's own fumes had never been the thing asserted. (A live
+    // probe on run 9's world: a retort fired in the store vents smoke and
+    // wood tar into the room within the half hour and chars its cordwood.)
     await hand(boiler, T.gasAnalyzer);
+    for (let i = 0; i < 16; i++) await boiler.cmd('practice awareness hard success');
     const fouled = await say(boiler, 'smell here');
     const air = await say(boiler, 'analyze atmosphere');
     expect(`${fouled} ${air}`, `the retort's fumes: ${fouled} | ${air}`).toMatch(/smoke|tar|acrid|creosote|pitch|gas/i);
