@@ -70,6 +70,8 @@ discussed what it is yet"*):
    everything else reuses (§ 6). The cockpit slate's study / classroom / tutor modes fold into it.
 4. **Govern** — Compact first: the legislature is the game before there is a game, and the vote is
    the reason to come back.
+4a. **Post** — right after govern **[DECIDED — the owner]**: the floor wants threads, and the inbox
+   rides the aether apps.
 5. **Craft**.
 6. **Steward**.
 7. **Work** and **the hunt / fight family**, once defined.
@@ -263,7 +265,7 @@ may overlap. It becomes its own mode (an operator's console) only if it grows no
 gauges, the moderation queue, server health.
 
 **Open:** the one-terminal case (the phone): unfiltered, picking a channel only sets where you talk?
-Unread and mention badges (no server source); where post sits in the queue.
+Unread and mention badges (no server source).
 
 ## 7. The lens pass
 
