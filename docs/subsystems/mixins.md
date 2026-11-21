@@ -219,6 +219,12 @@ own answer is *too stiff — knead it*) and `BulkableMixin`; an empty build
 hands the question down to the liquid beneath it. The churn stays
 `churn`'s. `StirController` asks `stirPlanFor` once and never narrows by
 host; `stir.yaml`'s `vessel` arg `requires: StirTargetMixin`.
+⭐ **`maintain` asks `MaintainableMixin`** (matter-model-overlaps pre-merge
+audit): `Ship` and `Building` compose it, so the residence pack's
+`MaintainController` narrows on `MixinApi.isMaintainable` instead of
+`instanceof Building || instanceof Ship`, and `repair`'s mend ladder asks
+the same claim to skip its wear rung — a `keptByUpkeep()` hook on `Durable`
+had duplicated it for one build.
 
 **How it is presented** (D8b): the affordance resolver's `composition` is
 `{ name, kind, verbs? }[]` — a protocol carries the verbs whose views

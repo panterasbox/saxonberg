@@ -46,8 +46,8 @@ compared by `===`, and a coat list is not one.
 | `layCoat(face, material, thicknessM, dirtyAtLay?)` | a WET coat, outermost (`dip` calls it) |
 | `heatCoats(integrate, peakK)` | advances every wet coat by HEAT-WORK over a window and fuses the ones that get there (B100) |
 | `fuseCoats(peakK)` | fuses every wet coat at once — only for a coat the heat itself lays (a vapor glaze) |
-| `holdsWater(face)` | a sound coat of a tight material, or a tight body — and no OPEN crack (a riveted one holds) |
-| `isPermeable()` | the wall's half of a weep: either face lets water through (the bulk exchange asks this from inside its own reconcile) |
+| `holdsWater(face)` | a sound coat of a tight material, or a tight body — the FACE only; a crack is not its question (an open crack or hole leaks by the one hole rule, `Flawed.flawLeakLPerHour`, summed in `Bulkable.leakLPerHour`) |
+| `isPermeable()` | the wall's half of a weep: NEITHER face holds water — a sealing coat on either face stops the pores (matter-model-overlaps D4); the bulk exchange asks this from inside its own reconcile |
 | `porosity()` | the body's open porosity, `0..1` |
 | `cleansAs()` | how hard it is to get clean, `≥ 1` |
 

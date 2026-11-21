@@ -594,7 +594,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       // while the mould is whole: worn out (broken), or an unmended crack
       // through the cavity (the one damage record, review R2-D1).
       const cracked =
-        MixinApi.isIntegrity(self) && self.getFlaws().some((f) => f.kind === 'crack' && !f.mended);
+        MixinApi.isFlawed(self) && self.hasOpenFlaw(['crack']);
       if ((MixinApi.isDurable(self) && self.isBroken()) || cracked) {
         return this.castOf(material);
       }
@@ -1171,11 +1171,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     private castGrade(): Grade | null {
       const self = this as unknown as Stuff;
-      const own = MixinApi.isGraded(self) ? self.getGrade() : null;
-      const band = MixinApi.isBulkable(self) ? self.getBulkPayload('interior')?.grade : undefined;
-      const batch = band !== undefined && Grade.isBand(band) ? Grade.of(band) : null;
-      if (own === null) return batch;
-      return batch === null ? own : own.min(batch);
+      return castGradeOf(self, MixinApi.isBulkable(self) ? self.getBulkPayload('interior')?.grade : undefined);
     }
 
     /**
@@ -1425,6 +1421,19 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 }
 
 /**
+ * ⭐ The grade what sets in `mould` has (D3): the lower of the batch's
+ * (`band`, its payload's) and the mould's own — either side ungraded, the
+ * other's; `null` when neither is. The one rule `castGrade` (the live pool)
+ * and `carryPayload` (the pool as it set) both read.
+ */
+function castGradeOf(mould: Stuff, band: string | undefined): Grade | null {
+  const own = MixinApi.isGraded(mould) ? mould.getGrade() : null;
+  const batch = band !== undefined && Grade.isBand(band) ? Grade.of(band) : null;
+  if (own === null) return batch;
+  return batch === null ? own : own.min(batch);
+}
+
+/**
  * Carry what the pool KNEW onto the set thing, when the set thing can hold
  * it: who made it, what it was made from, how far it had spoiled, what it
  * was carrying, how wet it is now. ⚠ Food only by construction — an ingot
@@ -1441,9 +1450,7 @@ function carryPayload(cast: Stuff, pool: SetPool, mould: Stuff): void {
     if (p?.craftedAt !== undefined) cast.setCraftedAt(p.craftedAt);
   }
   if (MixinApi.isGraded(cast)) {
-    const own = MixinApi.isGraded(mould) ? mould.getGrade() : null;
-    const batch = p?.grade !== undefined && Grade.isBand(p.grade) ? Grade.of(p.grade) : null;
-    const grade = own === null ? batch : batch === null ? own : own.min(batch);
+    const grade = castGradeOf(mould, p?.grade);
     if (grade !== null) cast.setGrade(grade);
   }
   // ⭐ …and WHICH TRADE (repair D1): the mould row's fact, not the pourer's

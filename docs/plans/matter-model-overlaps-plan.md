@@ -340,8 +340,14 @@ collection, registry, verb, view or controller.
 | N9 | `BiomeApi.vent(matter)` → `BiomeLogic.vent`, **replacing** `Thermal.routeVolatile` and the open-pour arm | `S/api/biome.ts` | *vaporizing → merge to one receiver chain* |
 | N10 | `Wet.takeRain(delta)`, `Wet.weatherReach()` (the body of `Moisture.exposureOf`, moved) | `S/lib/wetness/Wet.ts` | *surface water → reuse* |
 | N11 | `MendRecord.kind: 'patched'`; `Flaw.mended: 'patched'`; `Flawed.patchMaterial()` hook | `Durable.ts`, `Flawed.ts` | *the flaw record → reuse* |
-| N12 | `Boat.stove(words)`; `WatercourseCatalogue.snagVerdict(...)` (lifted out of `plotPassage`) | `C/transport`, `C/water` | *the snag stop and the boat's stove-in write the flaw* |
+| N12 | `Boat.enterReach(dest, water, inside, sogMps)` (the boat meets the reach it is carried into: reads its `obstruction`, asks the snag rule, and holes ITSELF through the private `SelfOnly` `stoveOnSnag` — the pre-merge audit replaced the public ungated `Boat.stove(words)`, a *hole this boat* door); `WatercourseCatalogue.snagVerdict(...)` (lifted out of `plotPassage`) | `C/transport`, `C/water` | *the snag stop and the boat's stove-in write the flaw* |
 | N13 | `PercolatingMixin` composes `PourTargetMixin` and keeps what was poured on it (`percolant`: material, payload, litres) | `Percolating.ts` | *what catches my drip* — the first producer that needs it (the requirements' step 15) |
+| N15 | `Bulkable.passesDripsThrough()` (`@hook`, default false; `Mould` true) | `S/lib/bulk/Bulkable.ts` | *what catches my drip* — a HOOK with one implementer because the question is the HOLDER's (an open foot), asked by `dripSlots` of whatever a thing sits in; a method on `Mould` alone would make `Containable` narrow on `isMould`, the host-dispatch the plan forbids (W2). |
+| N16 | `Percolating.percolateOut(matter, from, to)` · `percolantPoured(by)` (`@hook`s; defaults pass-through / nothing; trade-fuel's `Ash` answers lye and the communal-oven rule) | `S/lib/material/Percolating.ts` | *what catches my drip* — hooks because the kernel mixin owns the pour and the drip (D10b) and only the PACK knows what the water becomes and whose it is; the pack cannot add a method the kernel calls. One implementer today; a filter bed or a leach tub is the next. |
+| N17 | `MaintainableMixin` (protocol: `fabricKind` · `upkeepDiscipline` · `maintainWith`, defaults) composed by `Ship` + `Building`; `MixinApi.isMaintainable` — **replaces** W3's `DurableMixin.keptByUpkeep()` (pre-merge audit: it duplicated the `Maintainable` interface the same two hosts implemented) | `S/lib/structure/Maintainable.ts` | *the flaw record → reuse* — the mend ladder's wear-rung skip and `maintain`'s target are the SAME claim; one protocol, two hosts. |
+| N18 | trade-fuel `VolatileReceiverMixin` (*a receiver of a retort's charge*: the condenser, the gasometer) | `C/trade-fuel/src/lib/VolatileReceiver.ts` | *vaporizing → one receiver chain* — the pack's own exhaust walk, replacing a `typeof receiver.receive` probe (D16); a pack `lib/` mixin because its composers share the pack. |
+| N19 | `GivenUpSlot` (a `BulkSlot` whose holder is a SOLID: `drip`'s `{off}` form), moved out of `BulkableLogic` by the pre-merge audit; the `SourceSlot` shape, its every host-reading member overridden and pinned by `GivenUpSlot.test.ts` | `S/lib/bulk/GivenUpSlot.ts` | *what catches my drip* — a value object, not a hook: it lets the ONE transfer draw from a solid without a second drip path. |
+| N20 | Aroma rows `damp` (warm wet air — the steam that is humidity) and `salt-fume` (a salting kiln's spirit of salt) | `C/base-library/content/aromas/` | *vapor and smell → the nose* (D17–D18) — rows only. |
 | N14 | Rows: a water-vapor gas, a salt-vapor gas, a char coat material, a maple-sugar material; tags `absorbent` and `water-vapor`; one `vapor:` entry on the stoneware body's firing; `hull.material` on the shipped ship rows; settings keys | content | row-only, per the requirements' Placement |
 
 **Deleted, so the general thing is the only thing (P1 ⭐):**
@@ -882,7 +888,7 @@ Pinned smell values that now include air re-baseline in the same commit.
   by the same rain through the same exposure and the same face, and no
   water moves between them, so nothing is counted out of one into the
   other. The unbounded per-mm add is gone; `cure.rewetPerMm` survives only
-  as the millimetre-to-moisture conversion.
+  as the millimeter-to-moisture conversion.
 - `Tangible.getWetIgnitionPenaltyK` is untouched.
 
 ### Order and proof
@@ -1516,6 +1522,35 @@ soaking inside a segment a look cuts; the old linear add had the same property).
 - `pnpm test` — the build's one full run, alongside the MR.
 - **Commit:** `test(matter-overlaps): the blocking drive, the soak twin,
   the walk`; then the MR.
+
+### Pre-merge audit — sixteen findings applied
+
+**Build note (audit).** A drip with nothing under it (a band of water, the
+void, a thing standing nowhere) no longer throws `DetachedError` from a READ:
+`drip` hands the litres to the null sink and says so (`DripResult.lost`);
+Thermal's two no-slot throws went with it. `keptByUpkeep()` is gone —
+`MaintainableMixin` (protocol, Ship + Building) is the one claim `maintain`
+and the mend ladder ask; `bareWearPerDay` is ONE default on `Faced` (a
+Maintainable or a Bilge host wears at the house rate). The batch verdict is
+ONE augmenter on `BulkableMixin` (any holder; `Verdict` value object in
+`lib/craft/`), and a crafted vessel's own verdict is back on its own line.
+`Flawed.hasOpenFlaw(kinds?)` replaced three copies; `Mould.castGradeOf` one
+rule; `GivenUpSlot` moved to `lib/bulk/` with an override-coverage test
+(SourceSlot too); `Boat.stove` replaced by `Boat.enterReach` (+ private
+`SelfOnly` `stoveOnSnag`). Decisions the audit did not make:
+- `engagePlan`'s `onRefused` may return `null` for a reason that has a row
+  (the row words it, late) — so `stir` keeps its own words for the rest and
+  `nothing-to-stir` is one copy. `repair` routes `no-hull-material` to its
+  row before and after the step; the repair family's two CLAUSE phrases
+  (a skipped part, an order's fault list) stay — they are clauses inside
+  another sentence, not the row's sentence.
+- `Moisture`'s not-Wet throw moved to `__validateComposition__` (the
+  codebase's composition-fault door — no typed error class exists).
+- `refireFace`'s `FromModule(CraftingLogic)` gate VERIFIED: a repair run
+  from a `ScheduleApi.schedule` root re-fires the cask (new repair test).
+- Ship re-arms her flood watch after a hole and after a patch.
+- The census comments in `lint` ceilings and the wire drives keep their
+  wave numbers (their history is the record); source comments re-pointed.
 
 ## Reachability wiring
 

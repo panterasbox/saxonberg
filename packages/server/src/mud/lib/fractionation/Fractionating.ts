@@ -396,7 +396,7 @@ export function FractionatingMixin<TBase extends MixinConstructor<Stuff>>(
         // guard would never fire.
         //
         // (`MaturingMixin` took `getTemplatePath()` here, the same defect
-        // one subsystem over; matter-model-overlaps W1 fixed it.)
+        // one subsystem over; fixed by matter-model-overlaps D2.)
         const author = ExecutionContextApi.getActingAuthor() as {
           getIdentityPath?: () => string | null;
         } | null;

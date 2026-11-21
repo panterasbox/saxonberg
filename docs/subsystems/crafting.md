@@ -155,15 +155,19 @@ the Hydrator; per-field invariants ride accessor pairs.
   per-instance **maker's mark**. Own persistent fields `{maker (templatePath),
   recipe (the recipe's word — its path's leaf), craftedAt (game-seconds)}`, set once via `stamp(spec)`
   at craft-resolve. `renderVerdict()` renders the **DF-style** verdict —
-  band-word headline + grade-keyed prose + maker name (resolved via a
-  module-private `resolveMakerName` → `getPresentation()`) — **never a
-  number**. The crafted instance's `templatePath` still points at the
+  band-word headline + grade-keyed prose + maker name as the viewer knows
+  them — through the `Verdict` value object (`lib/craft/Verdict.ts`) —
+  **never a number**. The crafted instance's `templatePath` still points at the
   shared output template; the mark is the per-instance overlay. The future
   corpos(marks) build extends this. ⭐⭐ **On a bulk holder it is the
   VESSEL's own making, never the batch's** (matter-model-overlaps D2): a
   batch's grade, maker (identity path) and `craftedAt` ride its
-  `BulkPayload`, and `renderVerdict(viewer, stamp)` renders a vessel's
-  CONTENTS' verdict from that stamp and says nothing of the vessel.
+  `BulkPayload`, and the BATCH's verdict is its own line on any holder —
+  `BulkableMixin`'s `batchVerdictAugmenter` (*"What is in it looks fine: …
+  Made by …"*, a `Verdict` off the payload), crafted holder or not — while a
+  crafted vessel in use still says its OWN making
+  (`Crafted.renderVerdict`, the vessel's line; `help pour`: *the vessel
+  keeps its own making*).
 - ⚠ **`MakerMixin` (`Maker.ts`) is GONE** — retired by the
   trades-and-labor build. *Who fulfils an order here* is the SEAT's
   (`Position.fulfills`, read off the shift), never a mixin. It was never
@@ -1956,13 +1960,12 @@ the feed was dropped. It folds the source payload through
   `dry-rub.yaml`, `with` required, rubs it dry).
 - ⭐⭐ **Two false unifications undone (controller-liquidity W18, owner
   2026-11-10).** W7c's `AgitatedMixin` stitched three acts behind `stir`
-  with a union result; now each has its word and one host, no protocol:
-  `stir` is the drink build's (`ManualBuildMixin.stirPlan` — the method
-  the vessel names; a shaker's `shaken` is the same act, not a verb of its
-  own), a compounding vessel is worked by the verb its MATTER wants, and
-  a churn is `churn`ed (the dairying pack's verb over
-  `HandWorkedMixin.handWorkPlan`). The same ruling split `rake` (a grate,
-  `Burner.rakePlan`) out of `sweep` — see cleanliness.md.
+  with a union result; the ruling gave each act its word: a compounding
+  vessel is worked by the verb its MATTER wants, and a churn is `churn`ed
+  (the dairying pack's verb over `HandWorkedMixin.handWorkPlan`). The same
+  ruling split `rake` (a grate, `Burner.rakePlan`) out of `sweep` — see
+  cleanliness.md. (`stir` itself is a protocol again — the next bullet —
+  because its hosts now answer ONE act, *being stirred*, not three.)
 - ⭐⭐ **`stir` is the protocol `StirTargetMixin` (matter-model-overlaps
   D15).** One method, `stirPlanFor(req) → StirPlan | StirRefusal`,
   answered by what is stirred: a build (`ManualBuildMixin` — its method;
@@ -1984,11 +1987,11 @@ the feed was dropped. It folds the source payload through
   controller ("there is nothing to knead. Stir it." / "too stiff to stir —
   knead it"). So a paint pot, a glaze or slip tub, a plaster tub, a varnish
   pot and the glass batch pot are `stir`red; the rubber tub, the rubber
-  cement pot and the temper pit are `knead`ed. `stir` has two hosts asked
-  by METHOD, no protocol (a build answers `{method}`, a compound a
-  product): the controller asks a compounding vessel, then refuses a knead
-  vessel that compounds nothing (a dough trough — a dough is stiff), then
-  asks a build vessel.
+  cement pot and the temper pit are `knead`ed. The controller asks the
+  ONE protocol method (`StirTargetMixin.stirPlanFor`, above) and words the
+  answer; which host answers — a compound, a knead vessel that compounds
+  nothing (a dough trough — a dough is stiff), a build, a liquid — is the
+  target's, never a controller arm.
 - ⭐ **A mould is not a recipe** — the cheese hoop, the ingot mould and the
   ice pan decide the shape of what sets in them with no verb, no recipe
   and no deed; a pour into a mould credits its discipline. See

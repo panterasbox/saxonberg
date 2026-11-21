@@ -19,7 +19,6 @@ import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
 import Place from '../../stuff/Place';
 import Floor from '../../../platform/thing/Floor';
-import { DetachedError } from '../../errors';
 import Material from '../../material/Material';
 import Water from '../../../platform/idea/material/Water';
 import Salt from '../../../platform/idea/material/Salt';
@@ -275,11 +274,13 @@ describe('⭐⭐ the crystallize arm', () => {
     expect(floor.getBulkAmount('surface').rawValue()).toBeCloseTo(2, 6);
   });
 
-  it('a spent pan standing over nothing at all has nowhere for its bittern — it says so', () => {
+  it('a spent pan standing over nothing at all: its bittern runs away — a read never throws', async () => {
+    const r = makeStuff(() => new TestRoom()); // no floor
     const p = fill(pan(), brine(), 2, 293, 1.0);
-    expect(() => p.reconcilePhase()).toThrow(DetachedError);
-    // Checked before the liquor changed.
-    expect(p.getBulkMaterial('interior')?.getTemplatePath()).toBe(BRINE);
+    ContainmentApi.move(p, r);
+    expect(() => p.reconcilePhase()).not.toThrow();
+    await settle();
+    expect(p.getBulkAmount('interior').rawValue()).toBe(0);
   });
 
   it('⭐⭐ BOILED, brine concentrates — the steam is water, the salt stays — and sets a crop', async () => {

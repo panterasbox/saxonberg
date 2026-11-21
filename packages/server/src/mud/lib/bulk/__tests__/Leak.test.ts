@@ -164,6 +164,24 @@ describe('⭐⭐ one leak — pores, flaws and joints', () => {
     expect(puddle(floor)).toBeCloseTo(lost, 6);
   });
 
+  it('⭐ a cracked crock in a FLOORLESS place reads without throwing — what runs out runs away', () => {
+    // A band of water, the void: `noDefaultFloor`, nothing under it at all.
+    const room = makeStuff(() => new Room());
+    const crock = makeStuff(() => holding(new Crock(), terracotta, 10, 10));
+    crock.addFlaw('crack', true);
+    ContainmentApi.move(crock, room);
+    expect(crock.dripSlots()).toEqual([]);
+    expect(() => held(crock)).not.toThrow();
+    through(3600);
+    let after = 10;
+    expect(() => {
+      after = held(crock);
+    }).not.toThrow();
+    // The crack's rate plus the pores': lost, not kept anywhere.
+    expect(10 - after).toBeGreaterThan(1.5);
+    expect(10 - after).toBeLessThan(2.5);
+  });
+
   it('⭐⭐ a sprung stave drains a full 25 L cask about a third in an hour — and `fit` stops it', () => {
     const { room, floor } = roomWithFloor();
     const cask = makeStuff(() => holding(new Cask(), oak, 25, 25));

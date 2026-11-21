@@ -736,7 +736,7 @@ export function ThermalDoseMixin<TBase extends MixinConstructor<Stuff>>(
 function doseRecipeFor(recipeRef: string): Recipe | null {
   if (!recipeRef || recipeRef.length === 0) return null;
   // ⚠ A scheme-prefixed mark (the retired `ferment:<key>`; a batch's mark
-  // rides its payload since matter-model-overlaps W1) names no working and
+  // rides its payload since matter-model-overlaps D1) names no working and
   // has no hold to be judged by.
   if (recipeRef.includes(':')) return null;
   // ⭐ Resident by construction (`Crafted.setRecipe` loads the dictionary at

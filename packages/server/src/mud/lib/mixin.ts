@@ -867,6 +867,8 @@ export const Mixins = {
   PourTarget: 'PourTargetMixin',
   // "Being stirred means something here" — a compound, a build, a liquid.
   StirTarget: 'StirTargetMixin',
+  // "My fabric is kept by `maintain`" — a building's plaster, a ship's seams.
+  Maintainable: 'MaintainableMixin',
   // "A pattern pressed into me leaves something" — green ware, a sand flask.
   Impressible: 'ImpressibleMixin',
   // "I am worked by turning" — a screw press.
@@ -1204,6 +1206,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SampleableMixin: "{} is not matter you could take a piece of",
   PourTargetMixin: "you can't pour anything into {}",
   StirTargetMixin: "there is nothing in {} you could stir",
+  MaintainableMixin: "{} has no fabric a kit could keep up",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",
   TurnableMixin: "{} has nothing to turn",

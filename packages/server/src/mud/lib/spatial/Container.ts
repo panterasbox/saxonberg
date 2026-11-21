@@ -569,7 +569,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (MixinApi.isSealable(self) && !self.isOpen()) {
         // ⭐ A crack or a hole lets the wet through a shut lid as it does a
         // vessel's wall (matter-model-overlaps D4): the one flaw record.
-        if (MixinApi.isFlawed(self) && self.getFlaws().some((f) => (f.kind === 'crack' || f.kind === 'holed') && !f.mended)) {
+        if (MixinApi.isFlawed(self) && self.hasOpenFlaw(['crack', 'holed'])) {
           return 'open';
         }
         // An absorbent material wicks the wet through (a canvas sack).

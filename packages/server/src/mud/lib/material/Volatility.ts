@@ -90,8 +90,8 @@ export function VolatilityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBa
     protected vapourLPerLPerHour = 0;
 
     /**
-     * ⭐ The VAPOUR this material gives off — the gas row its evaporation,
-     * its boil or its vaporizing becomes (naphtha → naphtha vapour, water →
+     * ⭐ The VAPOR this material gives off — the gas row its evaporation,
+     * its boil or its vaporizing becomes (naphtha → naphtha vapor, water →
      * water vapor, salt → salt vapor). `''` = none.
      */
     protected vapourMaterial = '';

@@ -298,8 +298,7 @@ export const brain = class {
     }
     if (f.liquor === 'water') {
       // `put` takes from the hands (scope: inventory): the block is picked
-      // up first — a shipped defect, the line had no `get` (matter-model-
-      // overlaps W0).
+      // up first — a shipped defect, the line had no `get`.
       if (f.block) return `get block\nput block in ${w.kettle}`;
       // The backstop: no island sugar on the floor — buy the import.
       return f.counterBlock ? errand('wallet use house', 'buy block') : null;

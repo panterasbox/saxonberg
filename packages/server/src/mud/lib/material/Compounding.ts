@@ -124,7 +124,7 @@ export interface Compounding extends KneadVessel {
    */
   kneadPlanFor(req: KneadRequest): Promise<KneadPlan | KneadRefusal>;
   /**
-   * ⭐ `stir`'s plan of this vessel's compound (W19; the `StirTargetMixin`
+   * ⭐ `stir`'s plan of this vessel's compound (crafting.md § stir; the `StirTargetMixin`
    * protocol, matter-model-overlaps D15) — refused `wrong-work`
    * (`work: 'knead'`) when what is in it is stiff.
    */
@@ -233,7 +233,7 @@ export function CompoundingMixin<TBase extends NestingConstructor<Stuff>>(Base: 
       return this.workPlan(req, 'knead');
     }
 
-    /** ⭐ A runny compound, stirred (W19; the stir protocol, D15). */
+    /** ⭐ A runny compound, stirred (the stir protocol, matter-model-overlaps D15). */
     public override async stirPlanFor(req: StirRequest): Promise<CompoundPlan | CompoundRefusal> {
       return this.workPlan(req, 'stir');
     }

@@ -576,7 +576,7 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getContainer();
     }
 
-    /** See the interface docstring (controller-liquidity D7). */
+    /** See the interface docstring (spatial.md § What is under it — the drip). */
     dripSlots(): BulkSlot[] {
       const self = this as unknown as Stuff;
       const out: BulkSlot[] = [];
@@ -590,17 +590,15 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const on = (this.getPlacement()?.host ?? null) as unknown as Stuff | null;
       if (catches(on)) out.push(on.getBulk('interior'));
-      // The floor of the place I am in — at a carrier's feet when I am carried.
-      let cur: Stuff | null = inside;
-      for (let hops = 0; cur !== null && hops < 16; hops++) {
-        if (MixinApi.isAdornable(cur)) {
-          const floor = cur.getFloor();
-          if (floor && floor.hasSurfaceBulk()) {
-            out.push(floor.getBulk('surface'));
-            break;
-          }
+      // The floor of the place I am in — at a carrier's feet when I am carried
+      // (the one walk up containment, A4).
+      for (const cur of this.getContainerChain()) {
+        if (!MixinApi.isAdornable(cur)) continue;
+        const floor = cur.getFloor();
+        if (floor && floor.hasSurfaceBulk()) {
+          out.push(floor.getBulk('surface'));
+          break;
         }
-        cur = MixinApi.isContainable(cur) ? (cur.getContainer() as unknown as Stuff | null) : null;
       }
       return out;
     }

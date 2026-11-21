@@ -167,6 +167,7 @@ import type { Forming } from '../lib/craft/Forming';
 import type { Carvable } from '../lib/craft/Carvable';
 import type { PourTarget } from '../lib/bulk/PourTarget';
 import type { StirTarget } from '../lib/craft/StirTarget';
+import type { Maintainable } from '../lib/structure/Maintainable';
 import type { Impressible } from '../lib/craft/Impressible';
 import type { Turnable } from '../lib/craft/Turnable';
 import type { HandWorked } from '../lib/craft/HandWorked';
@@ -1934,6 +1935,10 @@ export class MixinApi {
 
   public static isStirTarget(obj: Stuff): obj is Stuff & StirTarget {
     return this.hasMixin(obj, Mixins.StirTarget);
+  }
+
+  public static isMaintainable(obj: Stuff): obj is Stuff & Maintainable {
+    return this.hasMixin(obj, Mixins.Maintainable);
   }
 
   public static isImpressible(obj: Stuff): obj is Stuff & Impressible {

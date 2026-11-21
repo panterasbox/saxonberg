@@ -27,30 +27,30 @@ import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { BrandedMixin } from '../../lib/corpo/Branded';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
-import { Grade } from '../../lib/craft/Grade';
+import type { Grade } from '../../lib/craft/Grade';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
 import { MixinApi } from '../../api/mixin';
 
 /**
- * The maker's mark on the rail (fermentation W7/D9): a bottle holding a
- * MARKED batch appends the batch's quality verdict — band word + maker
- * attribution — to its look. The mark is the CONTENTS' (its payload's,
- * matter-model-overlaps D2), never the bottle's: a store bottle refilled
- * with somebody's fine gin is that somebody's gin. Unmarked contents
- * contribute nothing; provenance carries worth.
+ * The bottle's OWN maker's mark (fermentation D9): a bottle somebody made
+ * says so once it is in use — band word + maker attribution. ⭐ What is IN
+ * it carries its own verdict, off the batch's payload (the holder's
+ * `batchVerdictAugmenter`, matter-model-overlaps D2): a store bottle
+ * refilled with somebody's fine gin reads as that somebody's gin, and the
+ * bottle as the glassblower's. An unmarked bottle contributes nothing;
+ * provenance carries worth.
  */
 function verdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
-  if (!MixinApi.isCrafted(host) || !MixinApi.isBulkable(host) || !host.hasInteriorBulk()) {
-    return text;
-  }
-  const slot = host.getBulk('interior');
-  if (slot.isEmpty()) return text;
-  const payload = slot.getPayload();
-  const maker = payload?.maker ?? '';
-  const band = payload?.grade;
-  if (maker === '' || band === undefined || !Grade.isBand(band)) return text;
-  const verdict = host.renderVerdict(viewer, { grade: Grade.of(band), maker });
+  if (!MixinApi.isCrafted(host)) return text;
+  if (host.getMaker() === '') return text;
+  // ⭐ Quiet on an unused vessel (client-surface D10): an empty, unsoiled
+  // bottle has nothing to be judged on yet.
+  const used =
+    (MixinApi.isBulkable(host) && host.hasInteriorBulk() && !host.getBulk('interior').isEmpty()) ||
+    (MixinApi.isServiceable(host) && host.isSoiled());
+  if (!used) return text;
+  const verdict = host.renderVerdict(viewer);
   return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 }
 

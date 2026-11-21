@@ -20,7 +20,6 @@ import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
 import { ContainmentApi } from '../../../api/containment';
-import { DetachedError } from '../../errors';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -172,8 +171,17 @@ describe('⭐⭐ the one drip — in, then on, then the floor', () => {
     expect(floor.getBulkPayload('surface')?.hardnessDgh).toBe(3);
   });
 
-  it('with nothing under it at all, it throws', () => {
+  it('⭐ with nothing under it at all, it runs away — lost, and said — never a throw', () => {
+    const room = makeStuff(() => new Room()); // no floor: a band of water, the void
     const jug = vessel(makeStuff(() => new Jug()), liquid(WATER), 2);
-    expect(() => BulkableApi.drip({ from: jug.getBulk('interior'), litres: 1 })).toThrow(DetachedError);
+    ContainmentApi.move(jug, room);
+    const out = BulkableApi.drip({ from: jug.getBulk('interior'), litres: 1 });
+    expect(out.lost).toBeCloseTo(1, 9);
+    expect(out.drained).toBeCloseTo(1, 9);
+    expect(out.caught).toBe(0);
+    expect(amount(jug)).toBeCloseTo(1, 9);
+    // Standing nowhere: the same.
+    const loose = vessel(makeStuff(() => new Jug()), liquid(WATER), 2);
+    expect(BulkableApi.drip({ from: loose.getBulk('interior'), litres: 2 }).lost).toBeCloseTo(2, 9);
   });
 });

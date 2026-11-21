@@ -391,9 +391,9 @@ you can drop, ring or break:
   open deck, patches it with stock of her authored **`hull.material`**
   (`Flawed.patchMaterial()`; every shipped ship row is oak) — ⛔ a ship
   that authors none is refused (`no-hull-material`), never patched with
-  whatever is at hand. `repair` never does `maintain`'s work: her
-  `keptByUpkeep()` is true, so the mend ladder skips its wear rung on her
-  (and on a `Building`).
+  whatever is at hand. `repair` never does `maintain`'s work: she
+  composes `MaintainableMixin`, so the mend ladder skips its wear rung on
+  her (and on a `Building`).
 - **`maintain`** aboard (or named from the quay) with a **caulker's kit**
   (Hobb's, 12) caulks her sound, charges the water already in at the old
   rate, and credits **seamanship**. The residence pack's
@@ -524,8 +524,10 @@ scaled down. It lives in this doc because the bilge is one substrate:
   down with what is in her (`room.sink(boat)`), or swamps where she lies at
   a columnless stop.
 - **Stove in by play**: paddled into a snag-choked stretch in the dark
-  faster than the water can be read, `Propel` asks the one snag rule and
-  `Boat.stove(words)` writes the `holed` flaw and tells everyone aboard
+  faster than the water can be read, the boat meets the reach herself
+  (`Boat.enterReach` — reads its `obstruction`, asks the one snag rule) and,
+  struck, holes herself (a private `SelfOnly` act — nothing public holes a
+  boat) and tells everyone aboard
   ([river.md](./river.md)). `repair` patches it with her own planking (her
   wear rung is `repair` too — she is not kept by upkeep); a patched boat
   leaks only by her seams.
@@ -577,7 +579,7 @@ stamp back and integrates over the hull's line extrapolated backward.
 | key | value | meaning |
 |---|---|---|
 | `ship.leak.sound/weathered/worn/shabby/dilapidated` | 0 / 0.0005 / 0.004 / 0.02 / 0.08 | L/s per meter of length by seam band |
-| `flaws.leak.holedLPerHour` (`faces.yaml`) | 640 | the one hole rule: L/h at a metre of head and a meter of hull (a hull's head her draft, her scale her length) |
+| `flaws.leak.holedLPerHour` (`faces.yaml`) | 640 | the one hole rule: L/h at a meter of head and a meter of hull (a hull's head her draft, her scale her length) |
 | `ship.settlingActs` | 6 | commands each person aboard has once she settles |
 | `ship.settlingRealS` | 600 | the backstop, real seconds |
 | `crafting.repair.patchKg` (`crafting.yaml`) | 2 | kg of the hull's own material a patch draws, per hole |

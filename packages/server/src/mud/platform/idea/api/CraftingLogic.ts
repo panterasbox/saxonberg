@@ -3969,9 +3969,10 @@ async function runMendLadder(
   // here at the top of the ladder.
   const assembled = MixinApi.isAssembled(item) && !item.isOnePiece();
   if (MixinApi.isAssembled(item) && assembled) await mendAssembly(item, m);
-  // ⭐ A fabric kept by upkeep (a ship's caulking, a building's plaster) is
-  // `maintain`'s, never `repair`'s wear rung (matter-model-overlaps D8).
-  else if (!item.keptByUpkeep()) await mendOnePiece(item, m);
+  // ⭐ A fabric kept by upkeep (a ship's caulking, a building's plaster —
+  // `MaintainableMixin`) is `maintain`'s, never `repair`'s wear rung
+  // (matter-model-overlaps D8).
+  else if (!MixinApi.isMaintainable(item)) await mendOnePiece(item, m);
   await mendCracks(item, m);
   await mendHoles(item, m);
   return { ok: true, m, item, assembled, conditionBefore };

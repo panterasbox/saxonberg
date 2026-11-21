@@ -1,6 +1,6 @@
 /**
  * VolatileReceiverMixin — ⭐ **a receiver that takes what leaves a retort's
- * charge** (matter-model-overlaps W6): a condenser on the retort's head, a
+ * charge** (biome.md § The one vapor route; matter-model-overlaps D16): a condenser on the retort's head, a
  * gasometer on the condenser's outlet. The chain is *retort → condenser →
  * gasometer*, and each link asks only whether the thing standing on it IS a
  * receiver — by this name, never by probing for a method (it was a

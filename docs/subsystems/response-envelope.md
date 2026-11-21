@@ -386,6 +386,14 @@ which is what `lint:reason-rows` counts down. A code no row ships is a
 defect at the refusing site: the player reads `went-wrong` and a
 diagnostic is recorded. `refused` escalates to `declined`.
 
+⭐ **A verb's own words never repeat a row** (matter-model-overlaps
+pre-merge audit): a controller that words most of an act's refusals itself
+but meets one that HAS a row hands that one to the row — at once
+(`this.refuse(context, answer)`), and at an engaged step's completion by
+returning `null` from `onRefused` for it (`engagePlan` then words it from
+the row, late). `stir`'s `nothing-to-stir` and `repair`'s
+`no-hull-material` are the first two.
+
 Three `command-rejected` reasons are worded from rows too — `needs-input`,
 `parse-failed`, `bind-failed` — with a `suggestion` appended as the line to
 tap. The other six stay on the dispatcher's own arms.

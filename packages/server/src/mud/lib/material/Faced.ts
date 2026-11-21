@@ -383,7 +383,7 @@ function materialAt(path: string): Material | null {
   return MaterialApi.materials().peek(path) ?? null;
 }
 
-/** A re-fired cask's char, m — a couple of millimetres of the stave burnt black. */
+/** A re-fired cask's char, m — a couple of millimeters of the stave burnt black. */
 const REFIRE_COAT_M = 0.002;
 
 /** The aromas `m` gives a wall it lines (its `imparts`), `[]` for a material with none. */
@@ -410,7 +410,7 @@ function smellsAsMgPerL(m: Material): Map<string, number> {
 /** The look line for what a wall has left to give, or `null` while it has plenty. */
 function wallGiveLine(left: number, layer: Material | null): string | null {
   const name = layer?.getName() || 'wood';
-  if (left <= 1e-9) return `The ${name} inside is dull and grey with use — it has given its contents everything it had.`;
+  if (left <= 1e-9) return `The ${name} inside is dull and gray with use — it has given its contents everything it had.`;
   if (left <= 0.5 + 1e-9) return `The ${name} inside has been filled more than once; it has less left to give.`;
   return null;
 }
@@ -1158,12 +1158,20 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
 
     /**
      * @hook What a day of weather costs a durable body once its coat is
-     * gone. ⚠ None by default: what bare exposure does to a good's own
-     * material is decomposition's per-material rate, not built. A building
-     * answers its dial (`structure.weather.daysToWorn`).
+     * gone. ⭐ A FABRIC — what a kit keeps up (`MaintainableMixin`: a
+     * building's plaster, a ship's seams) or a hull that lets water in
+     * (`BilgeMixin`: a boat's seams) — wears at the house's rate: half the
+     * condition scale in `structure.weather.daysToWorn` game days (paint
+     * D13; harbors: *the same clock, the same rate as a house*). ⚠ Anything
+     * else none: what bare exposure does to a good's own material is
+     * decomposition's per-material rate, not built.
      */
     public bareWearPerDay(): number {
-      return 0;
+      const self = this as unknown as Stuff;
+      const fabric = MixinApi.isMaintainable(self) || MixinApi.hasMixin(self, Mixins.Bilge);
+      if (!fabric) return 0;
+      const days = dial(AppSettingKeys.structureWeatherDaysToWorn, 45);
+      return 0.5 / (days > 0 ? days : 45);
     }
 
     public reconcileWeather(): number | null {

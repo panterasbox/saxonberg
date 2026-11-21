@@ -308,9 +308,10 @@ re-signing the maker ([bulk.md](./bulk.md) § `transfer`). The batch is
 signed when it starts (`signBatch`: the maker carried in, else the acting
 author's `getIdentityPath()` — the lineage-key defect `Fractionating`
 recorded is fixed). No pour, ferment or temper writes the vessel's
-`Graded`/`Crafted` again: a bottle holding a MARKED batch appends the
-contents' verdict to look (`renderVerdict(viewer, stamp)`, W7) and says
-nothing of itself. The
+`Graded`/`Crafted` again: any holder of a graded batch appends the
+contents' verdict to look (`BulkableMixin`'s batch verdict, off the
+payload — crafted holder or not), and a bottle somebody made says its own
+making on its own line. The
 mismatch branch offers a cross-material pour to a Fermenting interior
 as an INOCULATION before declining: a strain-bearing pour into a
 sterile batch is a PITCH (the jar's `batchStrain`, or a material's

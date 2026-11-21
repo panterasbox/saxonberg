@@ -94,8 +94,9 @@ interface MillCharge {
 /**
  * ⭐ A powered grind under way — the charge the hopper took and when the
  * meal comes out. Persisted on the stones, so a restart mid-grind still
- * lands the sacks (requirements step 14): the grain was taken at the
- * start, and a closure timer alone lost it with the process.
+ * lands the sacks (crafting.md, *A powered grind survives a restart*):
+ * the grain was taken at the start, and a closure timer alone lost it
+ * with the process.
  */
 export interface PendingGrind {
   /** Game-seconds when the stones run empty. */

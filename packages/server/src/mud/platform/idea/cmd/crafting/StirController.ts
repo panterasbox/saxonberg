@@ -51,18 +51,21 @@ export default class StirController extends ManualBuildController<StirModel> {
     }
     const plan = await vessel.stirPlanFor({ actor: giver });
     if (!plan.ok) {
-      if (plan.reason === 'nothing-to-stir') {
-        this.refuse(context, plan);
-        return;
-      }
-      this.declineStep(context, StirController.refusalWords(plan, vessel), plan.reason);
+      const words = StirController.refusalWords(plan, vessel);
+      if (words === null) this.refuse(context, plan);
+      else this.declineStep(context, words, plan.reason);
       return;
     }
     await this.engagePlan(context, plan, StirController.stirWords(vessel, giver));
   }
 
   /** ⭐ The words for a stir of `vessel`, by which answer began (D15). */
-  protected static stirWords(vessel: Stuff, giver: Stuff): ActWords<StirBegin, StirFacts, StirRefusal> {
+  protected static stirWords(
+    vessel: Stuff,
+    giver: Stuff,
+  ): Omit<ActWords<StirBegin, StirFacts, StirRefusal>, 'onRefused'> & {
+    onRefused: (r: StirRefusal) => Composed | null;
+  } {
     return {
       beginSelf: (b) => {
         switch (b.kind) {
@@ -114,8 +117,11 @@ export default class StirController extends ManualBuildController<StirModel> {
     };
   }
 
-  /** ⭐ Every worded reason a stir is refused, exhaustively. */
-  protected static refusalWords(r: StirRefusal, vessel: Stuff): Composed {
+  /**
+   * ⭐ Every reason a stir is refused, exhaustively: the words, or `null`
+   * where the reason's row words it (`nothing-to-stir`).
+   */
+  protected static refusalWords(r: StirRefusal, vessel: Stuff): Composed | null {
     switch (r.reason) {
       case 'empty':
         return Mml.compose`${Mml.thing(vessel)} is empty. Put what you mean to mix into it first.`;
@@ -129,7 +135,7 @@ export default class StirController extends ManualBuildController<StirModel> {
       case 'mint-failed':
         return Mml.compose`It will not come together — and that is a fault in the books, not in your hands.`;
       case 'nothing-to-stir':
-        return Mml.compose`There is nothing in ${Mml.thing(vessel)} to stir.`;
+        return null; // reasons/nothing-to-stir.yaml
       default: {
         const never: never = r;
         return never;

@@ -39,7 +39,6 @@ import { BulkableMixin, type BulkAffordance } from '../../lib/bulk/Bulkable';
 import { ContainerMixin } from '../../lib/spatial/Container';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { CraftedMixin } from '../../lib/craft/Crafted';
-import { Grade } from '../../lib/craft/Grade';
 import type { FieldMeta } from '../../lib/mixin';
 import { Quantity } from '../../lib/quantity';
 import { BulkableApi } from '../../api/bulk';
@@ -144,27 +143,23 @@ function contentsFreshnessAugmenter(
 }
 
 /**
- * The verdict — band word, why, and the maker as `viewer` knows them — is
- * a STATE line, not part of the authored prose (client-surface D10), so it
- * reads per viewer and the card can say which interface said it.
- * ⭐⭐ It is the CONTENTS' verdict, read off the batch's payload
- * (matter-model-overlaps D2), and says nothing of the vessel: a stew in
- * the potter's bowl is the cook's stew, and the bowl is still the
- * potter's. Quiet when nothing graded is in it — an empty glass, or water
- * nobody made, has nothing to be judged on.
+ * The VESSEL's own verdict — band word, why, and its maker as `viewer`
+ * knows them — is a STATE line, not part of the authored prose
+ * (client-surface D10), so it reads per viewer and the card can say which
+ * interface said it. ⭐ It is the vessel's making and nothing else: what is
+ * IN it has its own verdict, off the batch's payload (the holder's
+ * `batchVerdictAugmenter`, matter-model-overlaps D2) — a stew in the
+ * potter's bowl is the cook's stew, and the bowl is still the potter's.
+ * Quiet on an unused vessel: an empty, unsoiled one has nothing to be
+ * judged on yet.
  */
 function vesselVerdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
-  if (!MixinApi.isCrafted(host) || !MixinApi.isBulkable(host) || !host.hasInteriorBulk()) {
-    return text;
-  }
-  const slot = host.getBulk('interior');
-  if (slot.isEmpty()) return text;
-  const band = slot.getPayload()?.grade;
-  if (band === undefined || !Grade.isBand(band)) return text;
-  const verdict = host.renderVerdict(viewer, {
-    grade: Grade.of(band),
-    maker: slot.getPayload()?.maker ?? '',
-  });
+  if (!MixinApi.isCrafted(host)) return text;
+  const used =
+    (MixinApi.isBulkable(host) && host.hasInteriorBulk() && !host.getBulk('interior').isEmpty()) ||
+    (MixinApi.isServiceable(host) && host.isSoiled());
+  if (!used) return text;
+  const verdict = host.renderVerdict(viewer);
   return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 }
 

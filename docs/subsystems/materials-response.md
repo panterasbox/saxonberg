@@ -551,8 +551,10 @@ freezing while wet (ceramics.md § green ware) — never broken into sherds.
     `max(0.1, 1 − Σ penalty)`, a riveted one costing half. A durable good's
     condition is its wear gauge × integrity, so a cracked jug reads *worn*,
     enough cracks break it, and `isBroken` / repair / the condition word
-    read the one number. A crack through the wall leaks
-    (`Faced.holdsWater` false) and spoils a mould's cavity (it casts a lump).
+    read the one number. An unmended crack through the wall leaks by the
+    one hole rule (`Flawed.flawLeakLPerHour`, summed in
+    `Bulkable.leakLPerHour` — a glaze stops the pores, never the crack) and
+    spoils a mould's cavity (it casts a lump).
   - **a fault in the making** — `misrun`, `shrinkage`: a CEILING on the
     grade (`gradeAfterFaults`: at most poor, at most fair), derived on read
     from the stored made band — a ceiling, never a drop, so a grade read

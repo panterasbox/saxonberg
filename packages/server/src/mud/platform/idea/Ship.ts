@@ -33,7 +33,6 @@ import { FacedMixin } from '../../lib/material/Faced';
 import { DurableMixin, type MendRecord } from '../../lib/material/Durable';
 import { FlawedMixin } from '../../lib/material/Flawed';
 import type Material from '../../lib/material/Material';
-import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { VoyagingMixin } from '../../lib/expanse/Voyaging';
 import { MovingMixin } from '../../lib/expanse/Moving';
 import { StuffApi } from '../../api/stuff';
@@ -86,12 +85,7 @@ import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import { Quantity } from '../../lib/quantity';
 import type { FramePos } from '../../lib/expanse/Frame';
 import type { CoatReachRefusal } from '../../lib/material/Faced';
-import {
-  UPKEEP_KIT_WEAR,
-  type FabricKind,
-  type Maintainable,
-  type MaintainAnswer,
-} from '../../lib/structure/Maintainable';
+import { MaintainableMixin, type FabricKind } from '../../lib/structure/Maintainable';
 import { SubscriptionApi } from '../../api/subscription';
 
 /** A ship's hull (river D28): how deep she floats, how wide, how long. */
@@ -220,9 +214,9 @@ export interface BilgeState {
 
 export const SHIP_CLASS_PATH = '/platform/idea/Ship';
 
-export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
+export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(PersistableMixin(
   VoyagingMixin(MovingMixin(EngagedMixin(PositionedMixin(DurableMixin(FlawedMixin(FacedMixin(Structure))))))),
-))) implements Maintainable {
+)))) {
   static fieldMeta: FieldMeta = {
     deckHeightM: { persistent: true, authorable: true },
     mastheadHeightM: { persistent: true, authorable: true },
@@ -245,23 +239,19 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     registeredName: { persistent: true, authorable: true },
   };
 
-  /** ⭐ A ship's fabric is her hull: seams, oakum, hot pitch (`maintain`). */
-  public fabricKind(): FabricKind {
+  /**
+   * ⭐ A ship's fabric is her hull: seams, oakum, hot pitch (`maintain`; the
+   * mixin's default makes it sound with a caulker's kit and spares the kit
+   * on a sound hull). `repair` patches a hole in her and never does a
+   * caulker's work, so the mend ladder skips its wear rung on her (D8).
+   */
+  public override fabricKind(): FabricKind {
     return 'hull';
   }
 
   /** Caulking a hull is seamanship. */
-  public upkeepDiscipline(): string | null {
+  public override upkeepDiscipline(): string | null {
     return 'seamanship';
-  }
-
-  /** Make the hull sound with a caulker's kit; a sound hull spares the kit. */
-  public maintainWith(kit: Stuff): MaintainAnswer {
-    const before = this.getConditionWord();
-    if (before === 'sound') return { ok: false, reason: 'already-sound' };
-    this.setCondition(1);
-    if (MixinApi.isDurable(kit)) kit.wear(UPKEEP_KIT_WEAR);
-    return { ok: true, before };
   }
 
   // ── her hull's outside ───────────────
@@ -275,31 +265,6 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
   // ship authored with no coat on her is bare from her launch, so her
   // seams start to go at once. A hole is something else again: a `holed`
   // FLAW (matter-model-overlaps D5), let through by the one hole rule.
-
-  /**
-   * ⭐ `maintain` is what keeps her fabric (D8): `repair` patches a hole in
-   * her and never does a caulker's work, so the mend ladder skips its wear
-   * rung on her.
-   */
-  public override keptByUpkeep(): boolean {
-    return true;
-  }
-
-  /**
-   * ⭐ Once the coat is gone her seams go (harbors: *the same clock, the
-   * same rate as a house*): half the condition scale in
-   * `structure.weather.daysToWorn` game days.
-   */
-  public override bareWearPerDay(): number {
-    let days = 45;
-    try {
-      const n = Number.parseFloat(AppApi.setting(AppSettingKeys.structureWeatherDaysToWorn) ?? '');
-      if (Number.isFinite(n) && n > 0) days = n;
-    } catch {
-      /* cold cache — the shipped default */
-    }
-    return 0.5 / days;
-  }
 
   /**
    * ⭐ Reconcile on read: her bilge is brought up to now over
@@ -470,7 +435,7 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
    * in her, never a flag of its own. `repair` patches it from the quay.
    */
   public isHoled(): boolean {
-    return this.getFlaws().some((f) => f.kind === 'holed' && !f.mended);
+    return this.hasOpenFlaw(['holed']);
   }
   public setAground(v: boolean): void { this.aground = v === true; }
 
@@ -482,6 +447,8 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
     this.integrateBilge(WorldClockApi.getNow().rawValue());
     super.recordMend(record);
     this.persistMooring();
+    // A patch changes the rate: the watch is re-armed at what is left.
+    this.armFloodWatch();
   }
 
   /** ⭐ A patch over a hole in her is of her authored `hull.material` (D8); none authored, none. */
@@ -2427,6 +2394,8 @@ export default class Ship extends AnchoringMixin(BilgeMixin(PersistableMixin(
       const nowS = WorldClockApi.getNow().rawValue();
       this.integrateBilge(nowS);
       this.addFlaw('holed', true, nowS);
+      // The leak changed: her flood watch is re-armed at the new rate.
+      this.armFloodWatch();
     }
     // ⭐ At a landing she makes fast: her lines go ashore round its bollards.
     if (stop.reason === 'landing' && stop.landing) {

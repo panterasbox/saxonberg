@@ -75,6 +75,8 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
+import { Mixins } from '../mixin';
+import type { AnyConstructor } from '../../api/mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { BulkPayload, BulkSlot } from '../bulk/Bulkable';
 import { MixinApi } from '../../api/mixin';
@@ -600,6 +602,22 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
   return class MoistureMixin extends Base implements Moist {
     static _mixinName = 'MoistureMixin';
 
+    /**
+     * ⭐ A host that holds water must be `Wet` — the weather reaches it
+     * through `Wet.weatherReach()` (D19: rain and drying ask one exposure).
+     * Checked once per concrete class at composition, the codebase's
+     * composition-fault door (`MixinApi.assertComposable`), not at a read.
+     */
+    static __validateComposition__(ctor: AnyConstructor): void {
+      const name = (ctor as { name?: string }).name ?? 'class';
+      if (!MixinApi.hasMixin(ctor, Mixins.Wet)) {
+        throw new Error(
+          `${name} composes MoistureMixin without WetMixin; the water it holds ` +
+            `has no exposure to the weather (Wet.weatherReach).`,
+        );
+      }
+    }
+
     static fieldMeta: FieldMeta = {
       _moisture: { persistent: true },
       _solute: { persistent: true },
@@ -737,10 +755,8 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
      */
     private reach(): number {
       const self = this as unknown as Stuff;
-      if (!MixinApi.isWet(self)) {
-        throw new Error(`MoistureMixin: ${self.getTemplatePath() ?? 'a host'} holds water but is not Wet (no weatherReach)`);
-      }
-      return self.weatherReach();
+      // Composition guarantees it (`__validateComposition__`); the narrow is for the type.
+      return MixinApi.isWet(self) ? self.weatherReach() : 0;
     }
 
     // ---------- writes ----------

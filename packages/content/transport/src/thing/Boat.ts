@@ -62,6 +62,9 @@ import Propulsion from './Propulsion';
 import { Propel, type PropelHeading } from '../lib/Propel';
 import Killick from './Killick';
 import type ReachWarren from '@saxonberg/content-water/src/idea/ReachWarren';
+import type WatercourseCatalogue from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
+import { CallSecurity } from '@saxonberg/server/mud/lib/security/decorators';
+import { SecurityPolicies } from '@saxonberg/server/mud/lib/security/SecurityPolicies';
 import ReachExit from '@saxonberg/content-water/src/idea/exits/ReachExit';
 import WaterExpanse from '@saxonberg/content-water/src/idea/WaterExpanse';
 import { HirableMixin, type Hirable } from '@saxonberg/server/mud/lib/retail/Hirable';
@@ -71,14 +74,12 @@ import { FacedMixin, type Faced } from '@saxonberg/server/mud/lib/material/Faced
 import { BilgeMixin, type Bilge } from '@saxonberg/server/mud/lib/expanse/Bilge';
 import { DurableMixin, type Durable, type MendRecord } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Flawed } from '@saxonberg/server/mud/lib/material/Flawed';
-import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import {
   LiftSourceMixin,
   type LiftSource,
   type BucketLanding,
 } from '@saxonberg/server/mud/lib/pump/LiftSource';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { AppApi } from '@saxonberg/server/mud/api/app';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 
 type BoatShape = Stuff & Slotted & Mobile & Container & Containable & Exitable & Engaged & Tangible & SmallCraft & Anchoring & Hirable & Faced & Durable & Flawed & Bilge &
@@ -129,6 +130,11 @@ const SAIL_MIN_WIND_MPS = 1.5;
 
 /** Where the river's warren lives — what a boat asks about the water it is in. */
 const WARREN_PATH = '/system/water/idea/ReachWarren';
+/** Where the river's own rules live — the one snag rule a ship asks too. */
+const WATERCOURSE_CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
+/** What a snag does to a boat run onto it in the dark. */
+const SNAG_STRUCK =
+  'Something under the water takes her with a crack you feel through the thwart. She stops dead, stove in on a snag, and the water is coming in.';
 
 /** The direction words `paddle` takes. */
 const PADDLE_WORDS: Readonly<Record<string, PropelHeading>> = {
@@ -373,23 +379,6 @@ export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSourc
     return this.hull.draftM;
   }
 
-  /**
-   * ⭐ Under her coat her FABRIC is her seams (D7, the ship's model at a
-   * boat's length): once the tar is gone the weather opens them at the
-   * house's rate (`structure.weather.daysToWorn`), and `repair` or
-   * re-tarring is how she is kept.
-   */
-  public override bareWearPerDay(): number {
-    let days = 45;
-    try {
-      const n = Number.parseFloat(AppApi.setting(AppSettingKeys.structureWeatherDaysToWorn) ?? '');
-      if (Number.isFinite(n) && n > 0) days = n;
-    } catch {
-      // @quiet a cold settings cache: the shipped default.
-    }
-    return 0.5 / days;
-  }
-
   /** The weather's walk on her: her bilge first, at the seams she had (as a ship's is). */
   public override reconcileWeather(): number | null {
     this.integrateBilge(boatNowS());
@@ -403,17 +392,39 @@ export default class Boat extends LiftSourceMixin(BoatBase) implements LiftSourc
   }
 
   /**
+   * ⭐⭐ Carried by a stroke into `dest`, she meets what lies in it (D7): the
+   * reach's `obstruction`, read off the river (`water.riverAt`), asked the
+   * one snag rule a ship's passage asks (`WatercourseCatalogue.snagVerdict`)
+   * at her speed over the ground. `'seen'` — by day she is held off it and
+   * not moved; `'struck'` — in the dark she is carried in and stove in
+   * there; `'clear'` — nothing in the way, and the caller moves her. The
+   * hole is her own act on what the world holds — nothing public holes a
+   * boat by fiat.
+   */
+  public async enterReach(dest: Stuff, water: ReachWarren, inside: boolean, sogMps: number): Promise<'clear' | 'seen' | 'struck'> {
+    const ahead = await water.riverAt(dest, inside);
+    if (ahead === null) return 'clear';
+    const rules = await StuffApi.singleton<WatercourseCatalogue>(WATERCOURSE_CATALOGUE_PATH);
+    const snag = rules.snagVerdict({ obstruction: ahead.obstruction, sogMps, nowS: WorldClockApi.getNow().rawValue() });
+    if (snag === 'struck') {
+      ContainmentApi.move(this as unknown as Stuff & Containable, dest as unknown as Stuff & Container);
+      this.stoveOnSnag();
+    }
+    return snag;
+  }
+
+  /**
    * ⭐ Stove in on a snag (D7, N12): the water that came in before came in
    * at her seams' rate; from now a hole lets it in too. Everyone aboard is
-   * told as it happens. The paddling is ended by its own engagement, which
-   * is the only caller.
+   * told as it happens. Her own act (`enterReach`) — `SelfOnly`.
    */
-  public stove(words: string): void {
+  @CallSecurity(SecurityPolicies.SelfOnly)
+  private stoveOnSnag(): void {
     const nowS = boatNowS();
     this.integrateBilge(nowS);
     this.addFlaw('holed', true, nowS);
     for (const who of this.crew()) {
-      MessageApi.scene(who).topic('act.deed').toSelf(Mml.compose`${words}`).send();
+      MessageApi.scene(who).topic('act.deed').toSelf(Mml.compose`${SNAG_STRUCK}`).send();
     }
   }
 

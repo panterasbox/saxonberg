@@ -47,6 +47,8 @@ import { Mixins } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Perceptible } from '../description/Perceptible';
 import { BlendIdentity } from '../craft/BlendIdentity';
+import { Verdict } from '../craft/Verdict';
+import { Grade } from '../craft/Grade';
 import type { CommandContributions } from '../../api/command';
 import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -837,7 +839,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
      * host's description is rendered. The surface affordance renders as
      * a puddle (`look floor`).
      */
-    static markupAugmenters: MarkupAugmenter[] = [bulkContentsAugmenter];
+    static markupAugmenters: MarkupAugmenter[] = [bulkContentsAugmenter, batchVerdictAugmenter];
 
     // ---- affordance presence flags (authored per host) ----
     /**
@@ -1792,6 +1794,26 @@ function liquidLevelWord(fraction: number): string {
   if (fraction >= 0.35) return 'about half';
   if (fraction >= 0.1) return 'a finger';
   return 'dregs';
+}
+
+/**
+ * ⭐⭐ The BATCH's verdict — band word, why, and its maker as `viewer`
+ * knows them — read off the interior payload (matter-model-overlaps D2),
+ * on any holder: a fine gin in a plain bottle is still the distiller's
+ * fine gin, whether or not the bottle was made by anybody. Says nothing of
+ * the holder (a crafted vessel's own making is its own line,
+ * `Crafted.renderVerdict`). Quiet when nothing graded is in it — water
+ * nobody made has nothing to be judged on.
+ */
+function batchVerdictAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!MixinApi.isBulkable(host) || !host.hasInteriorBulk()) return text;
+  const slot = host.getBulk('interior');
+  if (slot.isEmpty()) return text;
+  const payload = slot.getPayload();
+  const band = payload?.grade;
+  if (band === undefined || !Grade.isBand(band)) return text;
+  const verdict = new Verdict(Grade.of(band), payload?.maker ?? '').render(viewer, 'What is in it');
+  return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 }
 
 function bulkContentsAugmenter(

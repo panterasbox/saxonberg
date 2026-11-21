@@ -24,17 +24,9 @@ import type { FieldMeta } from '../mixin';
 import { GeoPosition, type GeoPositionRecord } from '../expanse/GeoPosition';
 import type { CoatReachRefusal } from '../material/Faced';
 import { MixinApi } from '../../api/mixin';
-import {
-  UPKEEP_KIT_WEAR,
-  type FabricKind,
-  type Maintainable,
-  type MaintainAnswer,
-} from './Maintainable';
+import { MaintainableMixin, UPKEEP_KIT_WEAR, type MaintainAnswer } from './Maintainable';
 
-export default abstract class Building
-  extends DurableMixin(FacedMixin(StructureBase))
-  implements Maintainable
-{
+export default abstract class Building extends MaintainableMixin(DurableMixin(FacedMixin(StructureBase))) {
   static fieldMeta: FieldMeta = {
     position: { persistent: true, authorable: true },
   };
@@ -80,29 +72,6 @@ export default abstract class Building
     return 1;
   }
 
-  /**
-   * ⭐ Once the coat is gone the fabric goes (paint D13): half the
-   * condition scale in `structure.weather.daysToWorn` game days.
-   */
-  public override bareWearPerDay(): number {
-    let days = 45;
-    try {
-      const n = Number.parseFloat(AppApi.setting(AppSettingKeys.structureWeatherDaysToWorn) ?? '');
-      if (Number.isFinite(n) && n > 0) days = n;
-    } catch {
-      /* cold cache — the shipped default */
-    }
-    return 0.5 / days;
-  }
-
-  /**
-   * ⭐ Its fabric is kept by `maintain` (matter-model-overlaps D8): `repair`
-   * never does the plasterer's work, so the mend ladder skips its wear rung.
-   */
-  public override keptByUpkeep(): boolean {
-    return true;
-  }
-
   /** Reconcile on read: the weather since the last look, first. */
   public override getCondition(): number {
     this.reconcileWeather();
@@ -119,22 +88,12 @@ export default abstract class Building
     return this.landingRefusal(actor);
   }
 
-  /** ⭐ A building's fabric is a house's: sills, putty, a nail where one was wanted. */
-  public fabricKind(): FabricKind {
-    return 'house';
-  }
-
-  /** Keeping a house is nobody's Discipline yet. */
-  public upkeepDiscipline(): string | null {
-    return null;
-  }
-
   /**
    * ⭐ Make the fabric sound (`maintain`). A sound fabric under a coat that
    * is gone or going is told so — that is a brush's work, not the kit's —
    * and the kit is spared.
    */
-  public maintainWith(kit: Stuff): MaintainAnswer {
+  public override maintainWith(kit: Stuff): MaintainAnswer {
     const before = this.getConditionWord();
     if (before === 'sound') {
       const coatWanting = this.coatGone() || this.coatThin(this.coatThinM());

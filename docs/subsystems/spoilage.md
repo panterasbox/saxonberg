@@ -671,7 +671,7 @@ the shared walk does for every exposed host, segment by segment:
   not move). ⭐ **Through a sealed outside the soak is ZERO** — a glazed pot
   takes no rain into its body, while its film takes a fifth
   ([weather.md § Wetness](./weather.md)). The unbounded per-mm add is gone;
-  `cure.rewetPerMm` survives only as the millimetre-to-moisture
+  `cure.rewetPerMm` survives only as the millimeter-to-moisture
   conversion;
 - **drying too fast CHECKS it** — dryness gained per hour (per segment, so a
   hot afternoon is not averaged away by the night) × the host's

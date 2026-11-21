@@ -21,7 +21,7 @@ data:
   # ⭐ A conditioning cask gives its ale nothing: it is PITCHED inside, and
   # a pitch coat seals the wall (matter-model-overlaps D11) — neither the
   # oak's own give nor anything it might remember reaches the ale (AC 27 —
-  # the brewing behaviour is unchanged).
+  # the brewing behavior is unchanged).
   coats:
     inside:
       - { material: /stuff/idea/material/bulk/pitch, thicknessM: 0.0005, state: set }

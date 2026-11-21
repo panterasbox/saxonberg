@@ -132,6 +132,11 @@ export interface DripResult {
   wetted: Stuff | null;
   /** Litres that soaked into the ground: the floor held another liquid. */
   soaked: number;
+  /**
+   * Litres that ran away with nothing under the source at all — no vessel
+   * and no floor up its chain (a band of water, the void): lost into it.
+   */
+  lost: number;
   /** What each transfer filed. */
   notes: BulkNote[];
 }

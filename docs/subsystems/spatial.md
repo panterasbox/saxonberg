@@ -672,8 +672,13 @@ a jug in a pack, a crock in a chest — the drip wets that thing first, up to
 its own water capacity, and only what it cannot hold runs on, to the floor
 of the place it is in: at the carrier's feet when it is carried. A place is
 not wetted, nor a body (what a carried pack does to the back under it is
-textiles' layer rule, deferred). With nowhere at all it throws
-`DetachedError`. Its callers: the weep and the filter's flow, a mould's
+textiles' layer rule, deferred). ⭐ With nothing under it at all — a band
+of water, the void (`noDefaultFloor`), a thing standing nowhere — what runs
+out runs away, lost into the water or the void, and the result says so
+(`lost`). It never throws `DetachedError`: a drip is a read's consequence
+as often as a write's (a leaking crock drains on `getBulkPayload`), and
+reads never throw it; a write that must refuse checks its subject before
+it changes anything. Its callers: the weep and the filter's flow, a mould's
 drainings, a spent pan's liquor, a percolating heap's run-off, a burst
 pipe's water — each used to pick its own receiver.
 

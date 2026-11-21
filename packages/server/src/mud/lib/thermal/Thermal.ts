@@ -728,8 +728,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     /**
      * See {@link Thermal.noteAgitated}. ⚠ Ungated: a stir's completion runs
      * on the scheduler (a root frame), where a `FromMixin` gate never finds
-     * its caller (W3's `Boat.stove`); and all it can do is start a liquor
-     * that is already past saturation.
+     * its caller; and all it can do is start a liquor that is already past
+     * saturation.
      */
     public noteAgitated(): boolean {
       const self = this as unknown as Stuff;
@@ -3123,11 +3123,9 @@ function crystallizeIfOver(
     if (at === null || !MixinApi.isContainer(at)) {
       throw new DetachedError(`${v.getPresentation()} set crystals standing nowhere: they have no place`);
     }
-  } else if (!concentrating && (!MixinApi.isContainable(v) || v.dripSlots().length === 0)) {
-    // …and a mold's spent liquor runs off to what is under it — one
-    // standing over nothing at all has nowhere for it.
-    throw new DetachedError(`${v.getPresentation()} has spent liquor and nothing under it: it has no place`);
   }
+  // (A mold's spent liquor runs off to what is under it by the one drip —
+  // over nothing at all, it runs away: `drip` reports it `lost`.)
   // The crop's shape, and what the crop IS in that shape (D13).
   const shape = mould ? mould.castTemplateFor(product) : MixinApi.hasFusion(product)
     ? product.getCastTemplate()
@@ -3218,9 +3216,7 @@ function drainSpentLiquor(v: Stuff & Bulkable & Thermal, aff: BulkAffordance, no
   const through = nowS >= due;
   const share = through ? 1 : (nowS - stamp) / (due - stamp);
   if (litres > 0) {
-    if (!MixinApi.isContainable(v) || v.dripSlots().length === 0) {
-      throw new DetachedError(`${v.getPresentation()} is draining its liquor over nothing: it has no place`);
-    }
+    // Over nothing at all it runs away (the drip reports it `lost`).
     BulkableApi.drip({ from: v.getBulk(aff), litres: litres * share });
   }
   const after = v.getBulkPayload(aff);

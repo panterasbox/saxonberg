@@ -24,32 +24,9 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import { GradedMixin, type Graded } from './Graded';
 import type { Grade, GradeBand } from './Grade';
 import { NameTakingMixin } from '../description/NameTaking';
-import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../stuff/Stuff';
-
-/** Grade-keyed verdict prose (v1 uniform — no per-instance scatter yet). */
-const VERDICT_PROSE: Record<string, string> = {
-  poor: 'cloudy and carelessly put together',
-  fair: 'honestly made, if unremarkable',
-  fine: 'clean, balanced, and well made',
-  exceptional: 'expertly balanced — a pleasure to behold',
-  masterful: 'flawless, the work of a true hand',
-};
-
-/**
- * Resolve a maker templatePath to a display name, or null if unresolvable.
- * Module-private (not a `#` method): mixin methods dispatch through the
- * call-security proxy, where `this.#x` would throw.
- */
-function resolveMakerName(maker: string, viewer?: Stuff): string | null {
-  if (!maker) return null;
-  const stuff = StuffApi.findByTemplatePath<Stuff>(maker);
-  if (!stuff) return null;
-  // ⛔ A maker's name is a NAME, and a name is per viewer: a stranger's
-  // gin says "made by a woman", never her true name (client-surface W0).
-  // With no viewer (a system read) the presentation stands.
-  return viewer ? stuff.describeFor(viewer) : stuff.getPresentation();
-}
+import { Verdict } from './Verdict';
+import { StuffApi } from '../../api/stuff';
 
 /**
  * ⭐⭐ **Bulk matter remembers who made it** — the same claim
@@ -137,20 +114,11 @@ export interface Crafted extends Graded {
    * uniform prose at a fixed control level. The maker is named as
    * `viewer` knows them.
    *
-   * ⭐ With `stamp`, the verdict is of THAT mark rather than this thing's
-   * own — a vessel renders its CONTENTS' verdict from the batch's payload
-   * (matter-model-overlaps D2) and says nothing of itself.
+   * This thing's OWN making — a batch's verdict is its payload's
+   * (a `Verdict` off the payload, the holder's contents augmenter; matter-model-
+   * overlaps D2).
    */
-  renderVerdict(viewer?: Stuff, stamp?: VerdictStamp): string;
-}
-
-/**
- * The mark a verdict is rendered from when it is not the thing's own: a
- * batch's grade and maker, read off its payload.
- */
-export interface VerdictStamp {
-  grade: Grade;
-  maker: string;
+  renderVerdict(viewer?: Stuff): string;
 }
 
 /**
@@ -295,14 +263,8 @@ export function CraftedMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.craftedAt = spec.craftedAt;
     }
 
-    renderVerdict(viewer?: Stuff, stamp?: VerdictStamp): string {
-      const grade = stamp ? stamp.grade : (this as unknown as Graded).getGrade();
-      const band = grade.renderBandWord();
-      const why = VERDICT_PROSE[band] ?? VERDICT_PROSE.fair!;
-      let line = `It looks ${band}: ${why}.`;
-      const makerName = resolveMakerName(stamp ? stamp.maker : this.maker, viewer);
-      if (makerName) line += ` Made by ${makerName}.`;
-      return line;
+    renderVerdict(viewer?: Stuff): string {
+      return new Verdict((this as unknown as Graded).getGrade(), this.maker).render(viewer);
     }
   };
 }

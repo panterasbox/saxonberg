@@ -149,12 +149,25 @@ describe('Boat — the leak and bailing (harbors P21)', () => {
     expect(tarred.hullLeakLps()).toBe(0);
   });
 
-  it('⭐⭐ stove in on a snag she is holed; patched, she leaks only by her seams (D7, D8)', () => {
+  it('⭐⭐ stove in on a snag she is holed; patched, she leaks only by her seams (D7, D8)', async () => {
     const boat = rowboat();
     boat.setCondition(0.6); // worn seams: 4.5 × 0.004 L/s
     boat.reconcileBilge();
     expect(boat.hullLeakLps()).toBeCloseTo(4.5 * 0.004, 9);
-    boat.stove('Something under the water takes her.');
+    // ⛔ Nothing public holes a boat by fiat: her stove-in is her own act.
+    expect(() => (boat as unknown as { stoveOnSnag(): void }).stoveOnSnag()).toThrow();
+    expect(boat.getFlaws()).toEqual([]);
+    // A stroke carries her into a choked reach in the dark: the river says
+    // what lies there, the one snag rule says struck, and she is stove in.
+    const dest = seaWater();
+    const river = { riverAt: async () => ({ obstruction: 1 }) };
+    const rules = vi.spyOn(StuffApi, 'singleton').mockResolvedValue({ snagVerdict: () => 'struck' } as never);
+    try {
+      expect(await boat.enterReach(dest, river as never, false, 1)).toBe('struck');
+    } finally {
+      rules.mockRestore();
+    }
+    expect(boat.getContainer()).toBe(dest);
     expect(boat.getFlaws().map((f) => f.kind)).toEqual(['holed']);
     expect(boat.hullLeakLps()).toBeCloseTo(4.5 * 0.004 + 0.4, 9);
     now += 10;

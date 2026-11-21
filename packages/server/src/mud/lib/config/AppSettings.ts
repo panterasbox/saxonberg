@@ -1974,10 +1974,10 @@ export const AppSettingKeys = {
    * an hour, full (its pores, flaws and joints together), is not
    * liquid-tight: a pour into it runs through (matter-model-overlaps D4). */
   facesHoldsLiquidBelowSharePerHour: "faces.holdsLiquidBelowSharePerHour",
-  /** Flaws — ⭐ L/h an open crack lets through at a metre of head and a
+  /** Flaws — ⭐ L/h an open crack lets through at a meter of head and a
    * scale of one (the one hole rule, matter-model-overlaps D4). */
   flawsLeakCrackLPerHour: "flaws.leak.crackLPerHour",
-  /** Flaws — ⭐ L/h a hole lets through at a metre of head and a meter of
+  /** Flaws — ⭐ L/h a hole lets through at a meter of head and a meter of
    * hull: a vessel's scale is one, a hull's her length (D4). */
   flawsLeakHoledLPerHour: "flaws.leak.holedLPerHour",
   /** Flaws — the litres a leaking vessel is down to when it is EMPTY: the

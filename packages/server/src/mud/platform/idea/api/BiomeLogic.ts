@@ -596,9 +596,9 @@ export class BiomeLogic extends ApiLogic {
     if (!(left > 0)) return out;
     // (3) The air of the place: the first scope with a volume. Open to the
     // sky it takes none — the sink.
-    let at: Stuff | null = holder ?? from;
-    let depth = CONTAINMENT_DEPTH_CAP;
-    while (at !== null && depth-- > 0) {
+    // The one walk up containment (A4); a source standing nowhere is its own scope.
+    const scopes = holder !== null && MixinApi.isContainable(from) ? from.getContainerChain() : [from];
+    for (const at of scopes) {
       if (MixinApi.isAtmospheric(at) && MixinApi.isContainer(at)) {
         const air = at as Stuff & Atmospheric;
         if (air.getVolume() !== null) {
@@ -607,7 +607,6 @@ export class BiomeLogic extends ApiLogic {
           return out;
         }
       }
-      at = MixinApi.isContainable(at) ? (at.getContainer() as unknown as Stuff | null) : null;
     }
     out.sky = left;
     return out;

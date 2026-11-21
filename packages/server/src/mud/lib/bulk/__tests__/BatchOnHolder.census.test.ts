@@ -31,7 +31,11 @@
  * (W1 removed `ConditionReading`'s `thing.getGrade().renderBandWord()`
  * from the list: once no batch writes a vessel's grade, that line reads
  * the thing's OWN making — *"as it stands, it is fine work"* — which is
- * what it was always for.)
+ * what it was always for. The pre-merge audit removed the two verdict
+ * augmenters' `host.renderVerdict(viewer)` the same way: the BATCH's
+ * verdict is `BulkableMixin`'s own augmenter, off the payload, on any
+ * holder — so a vessel's `renderVerdict(viewer)` is its OWN making again,
+ * as `help pour` promises.)
  *
  * ⭐ Census-then-ratchet (docs/lint-family.md): the ceiling is today's
  * count; it may fall and never rise. W1 lowers it to ZERO. A site that W1
@@ -75,8 +79,6 @@ const SIGNATURES: readonly Signature[] = [
   { file: join(MUD, 'lib/fractionation/Fractionating.ts'), pattern: /\bself\.(getGradeBand|getMaker)\(\)/g },
   { file: join(MUD, 'lib/thermal/Thermal.ts'), pattern: /\bisGraded\(v\)\s*\?\s*v\.getGrade\(\)/g },
   { file: join(PACKS, 'trade-potash/src/thing/IronPot.ts'), pattern: /\bisGraded\(self\)\s*\?\s*self\.getGrade\(\)/g },
-  { file: join(MUD, 'platform/thing/CraftVessel.ts'), pattern: /\bhost\.renderVerdict\(viewer\)/g },
-  { file: join(MUD, 'platform/thing/GradedReceptacle.ts'), pattern: /\bhost\.renderVerdict\(viewer\)/g },
 ];
 
 /** Source text with comments removed — a site named in prose is not a site. */

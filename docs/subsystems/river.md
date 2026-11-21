@@ -200,7 +200,7 @@ test refuses a venue's). It carries what drives it:
   (`ReachWarren.riverAt` now answers its `obstruction`, seeded per bend).
   Choked and met faster than the eye reads the water: `seen` by day (she is
   held off it, the paddling ends with the snag words) or `struck` by night
-  (she goes in and `Boat.stove` writes the `holed` flaw, tells everyone
+  (she goes in and `Boat.enterReach` — the boat meeting the reach herself — writes the `holed` flaw, tells everyone
   aboard, and the paddling ends). Lying in a choked reach she may paddle
   out — only what she enters is asked. She is bailed and `repair`ed
   ([ship.md](./ship.md) § Boats).

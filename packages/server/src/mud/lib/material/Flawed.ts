@@ -150,6 +150,12 @@ export interface Flawed {
    */
   flawLeakLPerHour(headM: number, scaleM: number): number;
   /**
+   * ⭐ Is there an UNMENDED flaw of one of `kinds` in this body (any kind
+   * when omitted)? A cracked mould casts the material's own shape, a holed
+   * ship goes nowhere, a cracked or holed vessel lets a pour run out.
+   */
+  hasOpenFlaw(kinds?: readonly FlawKind[]): boolean;
+  /**
    * @hook ⭐ The material a patch over a hole in this body is made of
    * (D8): an article's own material by default; a ship answers her
    * authored `hull.material`. `null` when nothing is authored — and then a
@@ -245,6 +251,10 @@ export function FlawedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       return perHour * head * scale;
     }
 
+    public hasOpenFlaw(kinds?: readonly FlawKind[]): boolean {
+      return this.getFlaws().some((f) => !f.mended && (kinds === undefined || kinds.includes(f.kind)));
+    }
+
     public patchMaterial(): Material | null {
       const self = this as unknown as Stuff;
       return MixinApi.isTangible(self) ? self.getMaterial() : null;
@@ -253,14 +263,14 @@ export function FlawedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
 }
 
 /**
- * ⭐ What an open crack lets through, L/h at a metre of head and a scale of
+ * ⭐ What an open crack lets through, L/h at a meter of head and a scale of
  * one (`flaws.leak.crackLPerHour`, grain): a full ten-litre crock that has
  * cracked loses nearly two litres in its first hour.
  */
 const CRACK_L_PER_HOUR = 4;
 
 /**
- * ⭐ What a hole lets through, L/h at a metre of head and a meter of hull
+ * ⭐ What a hole lets through, L/h at a meter of head and a meter of hull
  * (`flaws.leak.holedLPerHour`, grain): the rowboat (4.5 m, 0.25 m draft)
  * takes 0.4 L/s — under one bucket's 0.5 L/s, so bailing keeps her up — and
  * the Hesper (30 m, 1.2 m) about 5.8 L/s, near her shipped 7.5.
