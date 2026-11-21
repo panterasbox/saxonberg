@@ -13,14 +13,17 @@
 # small room's air, which is more than that air can hold at 20 °C.
 class: /platform/idea/material/Gas
 data:
-  smells: [{ aroma: /base-library/aromas/damp, strength: 20 }]
+  # ⭐ Strength for the air a room can HOLD: past saturation the steam
+  # condenses (`BiomeApi.vent`, found by the drive), so a steamy room's air is
+  # a percent of vapor, not a quarter — and saturated air should smell damp.
+  smells: [{ aroma: /base-library/aromas/damp, strength: 120 }]
   name: water vapor
   keywords: [steam, vapor, damp]
   appearance: a damp haze
   density: 0.75
   # It condenses as dew where the air cannot hold it — the dew point, not
-  # this number, and the air-change model does not run it. Honest within the
-  # only comparison it is put to: is it a gas where you stand. It is.
+  # this number (the vent caps a place's vapor at saturation). Honest within
+  # the only comparison it is put to: is it a gas where you stand. It is.
   boilingPoint: 250
   # What condensing gives back, J/kg — the same as boiling it cost (water).
   latentHeatOfVaporization: 2260000
