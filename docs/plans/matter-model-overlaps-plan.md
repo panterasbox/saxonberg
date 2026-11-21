@@ -1523,7 +1523,7 @@ soaking inside a segment a look cuts; the old linear add had the same property).
 - **Commit:** `test(matter-overlaps): the blocking drive, the soak twin,
   the walk`; then the MR.
 
-### Pre-merge audit — sixteen findings applied
+### Pre-merge audit — sixteen findings applied ✅ done (21dcc0e63)
 
 **Build note (audit).** A drip with nothing under it (a band of water, the
 void, a thing standing nowhere) no longer throws `DetachedError` from a READ:
