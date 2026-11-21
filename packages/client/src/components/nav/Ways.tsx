@@ -235,7 +235,8 @@ function WayEntry({
         <span style={row ? { minWidth: "5.5em", textAlign: "left" } : undefined}>{label}</span>
         {row ? <Dest>{leadsTo?.(way) ?? "somewhere you have not been"}</Dest> : null}
         {glyph ? <Icon name={glyph} label={STATE_WORDS[look]} size={11} decorative /> : null}
-        {way.crossesZone ? <Icon name="way.leaves" label="it leaves this zone" size={11} decorative data={{ testid: "nav-leaves-marker" }} /> : null}
+        {/* PROTOTYPE: in the list, "leaves the zone" is engine noise — the destination says where. */}
+        {way.crossesZone && !row ? <Icon name="way.leaves" label="it leaves this zone" size={11} decorative data={{ testid: "nav-leaves-marker" }} /> : null}
       </ArmButton>
     </Tip>
   );
