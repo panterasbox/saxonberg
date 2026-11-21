@@ -705,3 +705,26 @@ export function boundariesView(
   }
   return out;
 }
+
+/**
+ * ⭐ Where you stand when the server sends no position (a copy's room —
+ * the lounge — carries none): a way from here whose destination is a
+ * place your map has PLACED in this zone puts you one step back from it
+ * (north leads to Dave's Bar → you are south of Dave's Bar). The first
+ * such way decides; none → undefined, and the map draws no "you".
+ */
+export function inferStanding(
+  copy: Record<string, CopyClaim>,
+  zonePath: string,
+  ways: readonly { direction: string; destination?: string }[],
+): { x: number; y: number; z: number } | undefined {
+  const view = zoneView(copy, zonePath);
+  const bare = (n: string): string => n.toLowerCase().replace(/^(the|a|an)\s+/, "").trim();
+  for (const w of ways) {
+    const vec = DIRECTION_VECTORS[longDirection(w.direction)];
+    if (!vec || !w.destination) continue;
+    const far = view.places.find((p) => bare(p.name) === bare(w.destination!));
+    if (far) return { x: far.x - vec[0], y: far.y - vec[1], z: far.level - vec[2] };
+  }
+  return undefined;
+}

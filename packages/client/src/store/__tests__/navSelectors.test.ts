@@ -9,6 +9,7 @@ import {
   longDirection,
   neighborDirection,
   routeCommandFor,
+  inferStanding,
 } from "../navSelectors";
 
 const Z = "/test/delve";
@@ -298,5 +299,14 @@ describe("what a click on the map runs", () => {
     const grouped = { ...byName("vault"), group: "terminus/city/lot-123" };
     expect(routeCommandFor(copy, grouped)).toBe("route to lot-123 vault");
     expect(routeCommandFor(copy, { ...byName("vault"), keywords: [] })).toBeNull();
+  });
+});
+
+
+describe("inferStanding — where you are when the server sends no position", () => {
+  it("one step back from a placed place a way leads to", () => {
+    const copy = copyOf(place(V, 0, 0, { name: "Dave's Bar" }));
+    expect(inferStanding(copy, Z, [{ direction: "north", destination: "Dave's Bar" }])).toEqual({ x: 0, y: -1, z: 0 });
+    expect(inferStanding(copy, Z, [{ direction: "north", destination: "somewhere else" }])).toBeUndefined();
   });
 });

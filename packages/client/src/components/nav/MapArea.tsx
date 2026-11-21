@@ -126,6 +126,8 @@ const clampSpan = (n: number): number => Math.min(MAX_SPAN, Math.max(MIN_SPAN, n
 
 export interface MapAreaProps {
   sections: NavSections;
+  /** Where you stand when it is inferred rather than sent (a copy's room). */
+  standAt?: { x: number; y: number; z: number };
   lenses: ReadonlySet<LensName>;
   route?: readonly WireRoutePlan[];
   boundaries?: (view: ZoneView, level: number) => BoundarySide[];
@@ -156,7 +158,7 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
     () => (zonePath ? zoneView(mapCopy, zonePath, addresses) : null),
     [mapCopy, zonePath, addresses],
   );
-  const at = sections.place?.at;
+  const at = sections.place?.at ?? props.standAt;
   const here = at ? { x: at.x, y: at.y, level: at.z } : undefined;
 
   const [shownLevel, setShownLevel] = React.useState<number | null>(null);

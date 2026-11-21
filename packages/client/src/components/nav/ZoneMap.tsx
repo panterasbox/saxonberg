@@ -431,7 +431,18 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
           vectorEffect="non-scaling-stroke"
         />
         {(cellPx >= 44 || zoom === "close") && !thumbnail ? (
-          <text x={sx(p.x)} y={sy(p.y) + half + 0.28} fontSize={0.22} textAnchor="middle" fill={tokens.color.fg}>
+          <text
+            x={sx(p.x)}
+            y={sy(p.y) + half + 0.28}
+            fontSize={0.22}
+            textAnchor="middle"
+            fill={tokens.color.fg}
+            stroke={tokens.color.surfaceSunken}
+            strokeWidth={4}
+            paintOrder="stroke"
+            vectorEffect="non-scaling-stroke"
+            style={{ pointerEvents: "none" }}
+          >
             {p.name}
           </text>
         ) : null}
