@@ -2,10 +2,12 @@
  * IntegrityMixin — ⭐⭐ how WHOLE an article is: the one damage record
  * (ceramics review R2-D1, homed 2026-10-29).
  *
- * A body's flaws — a crack, a dunt from a shock of heat, the checks of
- * too-fast drying, a casting's misrun or shrinkage — visible or hidden; how
- * whole that leaves it (`getIntegrity`, which a durable good's condition
- * multiplies its wear by); how hard a blow must be to crack or break it
+ * ⭐ The flaw RECORD itself — the flaws, how whole they leave the body
+ * (`getIntegrity`, which a durable good's condition multiplies its wear
+ * by), and what a crack or a hole lets through — is `FlawedMixin`'s, which
+ * this mixin composes (matter-model-overlaps D5): a ship's hull carries a
+ * hole without being an article. What is left here is the ARTICLE's: how
+ * hard a blow must be to crack or break it
  * (`impactStrengthJ`, `impactVerdict`, `sufferImpact`); how it sounds when
  * tapped (`ringSound`, which hears a hidden crack); and what a fault in the
  * making does to its grade (`gradeAfterFaults`, a ceiling).
@@ -31,10 +33,9 @@
  *   pour is the receiving vessel's (`BulkableMixin.canReceiveAtK`).
  */
 
-import type { MixinConstructor, FieldMeta } from '../mixin';
+import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandContributions } from '../../api/command';
-import type { MarkupAugmenter } from '../../api/mml';
 import type { AudibleEmitOptions } from '../perception/Audible';
 import type { Tangible } from './Tangible';
 import type Material from './Material';
@@ -44,41 +45,16 @@ import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { DetachedError } from '../errors';
 import { AppApi } from '../../api/app';
-import { WorldClockApi } from '../../api/worldclock';
 import { AppSettingKeys } from '../config/AppSettings';
 import { Grade } from '../craft/Grade';
 import { ScheduleApi } from '../../api/schedule';
 import { MaterialApi } from '../../api/material';
+import { FlawedMixin, type Flawed, type FlawKind } from './Flawed';
 
 /** Soaked past this (the `soaked` band), a weak-wet material gives way. */
 const SODDEN_AT = 0.8;
 /** A material that keeps less than this share of its strength wet is weak wet. */
 const WEAK_WET = 0.5;
-
-/**
- * A body's flaw kinds. ⭐ A casting's two faults are kinds of their own
- * (review R2-D7) so the flaw IS the fact and its words derive from it: a
- * `misrun` froze before the cavity filled; `shrinkage` is the porous place
- * that froze last with nothing to feed it; `blowhole` is a damp mould's
- * steam through the metal (B104 — it was a baked grade and baked prose).
- */
-export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check' | 'holed';
-
-/** A flaw in a body — a dunt from a heat shock, a crack, a casting fault. */
-export interface Flaw {
-  kind: FlawKind;
-  /** Can an eye find it? A hidden one only `ring` finds. */
-  visible: boolean;
-  /** Game-second it happened. */
-  atS: number;
-  /**
-   * How it was mended, if it was — a tinker's rivets across a crack.
-   * ⭐ DERIVED on read (review R2-D1), never stored: a crack or dunt is
-   * riveted when the body's mend record (`Durable.getMends`) holds a
-   * `riveted` mend made at or after it. The rivet is recorded once.
-   */
-  mended?: 'riveted';
-}
 
 /** A blow a body takes. */
 export interface ImpactSpec {
@@ -108,21 +84,6 @@ export interface ImpactOutcome {
 }
 
 /**
- * ⭐⭐ Two kinds of flaw (review R2-D1). DAMAGE — something that happened to
- * the body — costs it integrity: its condition (`Durable.getCondition` =
- * wear × integrity) and its strength under a blow read the one number. A
- * fault in the MAKING is the work's quality: it lowers the grade
- * (`gradeAfterFaults`), and the body is as sound as its making allows.
- */
-const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
-  dunt: 0.3,
-  crack: 0.5,
-  check: 0.15,
-  // ⭐ A hole stove in a hull: a boat leaks through it.
-  holed: 0.5,
-};
-
-/**
  * What a fault in the making does to the grade: a CEILING — it is at most
  * this good. ⚠ A ceiling, never a drop: a grade read and written back
  * (`setGrade(x.getGrade().min(…))`, a repair, a split) must not fall again
@@ -138,15 +99,6 @@ const MAKING_FAULT: Readonly<Partial<Record<FlawKind, string>>> = {
   check: 'fair',
 };
 
-/** Game-seconds now, or 0 with no clock (a unit world). */
-function integrityNowS(): number {
-  try {
-    return WorldClockApi.getNow().rawValue();
-  } catch {
-    return 0;
-  }
-}
-
 /** One numeric dial read, falling back to the literal when unseeded. */
 function integrityDial(key: string, fallback: number): number {
   try {
@@ -159,27 +111,7 @@ function integrityDial(key: string, fallback: number): number {
   }
 }
 
-export interface Integrity {
-  /** The flaws in this body, visible and hidden (ceramics M5). */
-  getFlaws(): readonly Flaw[];
-  /** Record a flaw (`atS`: when, if the caller knows — the clock is the caller's). */
-  addFlaw(kind: FlawKind, visible: boolean, atS?: number): void;
-  /**
-   * ⭐ A pile's flaws when it splits or merges (R2-B6): `visible` copies
-   * the flaws an eye can find (a split-off of a cracked pile is cracked —
-   * they are why it is its own pile), `!visible` the hidden ones (a merge
-   * carries them, so stacking never launders a crack). Hidden flaws never
-   * split a stack: a pile refusing to merge would tell what only `ring`
-   * may (Blessable's rule).
-   */
-  takeFlawsFrom(other: Stuff, visible: boolean): void;
-  /**
-   * ⭐ How whole this body is, `0.1..1`, by its DAMAGE (cracks, dunts,
-   * checks; a riveted one costs half — the staples hold it). The one
-   * number its condition and its strength under a blow read (review
-   * R2-D1). Faults in the making are not damage: see `gradeAfterFaults`.
-   */
-  getIntegrity(): number;
+export interface Integrity extends Flawed {
   /** The grade `made` after this body's faults in the making (a misrun, shrinkage). */
   gradeAfterFaults(made: Grade): Grade;
   /**
@@ -257,47 +189,9 @@ export interface RingSound extends AudibleEmitOptions {
   rings: boolean;
 }
 
-/** What a look says of a flaw an eye can find — and of a mend. */
-const FLAW_WORDS: Readonly<Record<FlawKind, string>> = {
-  crack: 'It is cracked.',
-  dunt: 'A fine crack runs through it where a shock of heat caught it.',
-  misrun: 'It froze before the mould was full: the thin parts are ragged and short, and an edge runs out into nothing.',
-  shrinkage:
-    'Where it froze last it is porous, pitted with little shrinkage holes — the metal drew in and nothing fed it.',
-  blowhole: 'It is honeycombed with steam holes, where a damp mould blew under the pour.',
-  check: 'Fine checks run across its surface where it dried too fast.',
-  holed: 'There is a hole stove in it.',
-};
-
-/**
- * ⭐ The flaws a look can see, and the mends. Before this a `visible` flaw
- * was seen by nothing: a cracked bowl read as a sound one (the ceramics
- * drive C, run 37). A hidden one stays hidden — only `ring` finds it.
- */
-const flawAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
-  if (opts?.filter) return text;
-  if (!MixinApi.isIntegrity(host)) return text;
-  const lines: string[] = [];
-  const seen = new Set<string>();
-  for (const f of host.getFlaws()) {
-    const line = f.mended === 'riveted'
-      ? 'It has been riveted across a crack: a row of iron staples holds it together.'
-      : f.visible ? FLAW_WORDS[f.kind] : '';
-    if (line && !seen.has(line)) {
-      seen.add(line);
-      lines.push(line);
-    }
-  }
-  if (lines.length === 0) return text;
-  const all = lines.join(' ');
-  return text && text.length > 0 ? `${text}\n\n${all}` : all;
-};
-
-export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
-  return class IntegrityMixin extends Base implements Integrity {
+export function IntegrityMixin<TBase extends NestingConstructor<Stuff>>(Base: TBase) {
+  return class IntegrityMixin extends FlawedMixin(Base) implements Integrity {
     static _mixinName = 'IntegrityMixin';
-
-    static markupAugmenters: MarkupAugmenter[] = [flawAugmenter];
 
     /**
      * ⭐ An article can be tapped and listened to (ceramics M5): a held
@@ -312,13 +206,7 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
     static fieldMeta: FieldMeta = {
       // ⭐ Soaked through and given way (paper build): latched, then gone.
       sodden: { persistent: true },
-      // ⭐ The flaws a body carries — a dunt, a crack, a casting fault
-      // (ceramics M5). Authorable so a row can ship a cracked bell.
-      flaws: { persistent: true, authorable: true, runtimeState: true },
     };
-
-    /** See {@link Integrity.getFlaws}. */
-    public flaws: Flaw[] = [];
 
     /** Soaked through and given way; destructs on the next tick. */
     public sodden = false;
@@ -369,45 +257,6 @@ export function IntegrityMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
     /** This body's mass, kg. */
     private massKg(): number {
       return this.body().getMass().rawValue();
-    }
-
-    public getFlaws(): readonly Flaw[] {
-      // ⭐ Whether a crack is riveted is read off the ONE mend record
-      // (review R2-D1): a `riveted` mend made at or after it. The staples
-      // show, so a riveted flaw is visible.
-      const self = this as unknown as Stuff;
-      const rivets = MixinApi.isDurable(self)
-        ? self.getMends().filter((m) => m.kind === 'riveted').map((m) => m.at)
-        : [];
-      if (rivets.length === 0) return this.flaws;
-      return this.flaws.map((f) =>
-        (f.kind === 'crack' || f.kind === 'dunt') && rivets.some((at) => at >= f.atS)
-          ? { ...f, visible: true, mended: 'riveted' as const }
-          : f,
-      );
-    }
-
-    public addFlaw(kind: FlawKind, visible: boolean, atS?: number): void {
-      // ⭐ A flaw is stamped with when it happened (the clock, when the
-      // caller has no better time): a rivet mends what came BEFORE it.
-      const when = atS ?? integrityNowS();
-      this.flaws = [...this.flaws, { kind, visible, atS: when }];
-    }
-
-    public takeFlawsFrom(other: Stuff, visible: boolean): void {
-      if (!MixinApi.isIntegrity(other)) return;
-      const taken = other.getFlaws().filter((f) => f.visible === visible);
-      if (taken.length > 0) {
-        this.flaws = [...this.flaws, ...taken.map((f) => ({ kind: f.kind, visible: f.visible, atS: f.atS }))];
-      }
-    }
-
-    public getIntegrity(): number {
-      let penalty = 0;
-      for (const f of this.getFlaws()) {
-        penalty += (DAMAGE_PENALTY[f.kind] ?? 0) * (f.mended ? 0.5 : 1);
-      }
-      return Math.max(0.1, 1 - penalty);
     }
 
     public gradeAfterFaults(made: Grade): Grade {

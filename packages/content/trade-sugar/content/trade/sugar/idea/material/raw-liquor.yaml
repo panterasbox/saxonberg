@@ -7,8 +7,22 @@
 #   about 122 °C at the strike and past 140 °C as it caramelises, which
 #   is what `measure temperature copper` reads rising.
 # - `concentratesTo` is the syllabus — syrup at two-thirds sugar, the
-#   strike at nine-tenths (and only from a pan good enough to grain: an
-#   untempered one goes to blackstrap), caramel, burnt.
+#   strike at nine-tenths (and only from a liquor pure enough to grain: an
+#   untempered one goes to blackstrap), caramel, burnt. Names only: no
+#   sugar leaves the liquor at an arrow.
+# - ⭐ `solubility` + `crystallizesTo` are what makes sugar SET
+#   (matter-model-overlaps D12): sucrose's solubility in kg per litre of
+#   solution, held above the boil's own concentration all the way up the
+#   elevation curve (the pan never grains on the fire), so a strike sets
+#   only as it cools — and only once something STARTS it (D14): a piece of
+#   sugar put in, a stir, or cooled past `metastableRatio` on its own (a
+#   coarse mass). The crop is loaf sugar (raw sugar in a hogshead); the
+#   mother liquor is molasses, and it runs out of the mould over four days.
+# - ⭐ `purity` is sucrose's share of the dissolved solids — a fresh
+#   liquor's 0.8; tempering and skimming raise the liquor's own (its
+#   payload's), and every crop lowers what is left by the mass balance, so
+#   each re-strike is poorer. `gradeByPurity` reads the grade off it, and a
+#   liquor under `minCrystalPurity` will not grain at all: blackstrap.
 #
 # The stage rows `extends:` this one and keep the curve and the arrows;
 # an arrow that names the material already in the pan does nothing.
@@ -44,6 +58,34 @@ data:
     - [1, 70]
   concentratesTo:
     - { fromW: 0.68, becomes: /trade/sugar/idea/material/cane-syrup }
-    - { fromW: 0.9, becomes: /trade/sugar/idea/material/strike, minBand: fair, elseBecomes: /trade/sugar/idea/material/blackstrap }
+    - { fromW: 0.9, becomes: /trade/sugar/idea/material/strike, minPurity: 0.86, elseBecomes: /trade/sugar/idea/material/blackstrap }
     - { fromW: 0.985, becomes: /trade/sugar/idea/material/caramel }
     - { fromW: 0.995, becomes: /trade/sugar/idea/material/burnt-sugar }
+  # Sucrose, kg per litre of solution by `s = w / (1 − 0.375 w)`: 0.89 at
+  # 20 °C, 1.20 at the water's boil, and past each boiling point the
+  # elevation curve reaches (a strike boils at 395 K holding 1.36).
+  solubility:
+    - [273, 0.86]
+    - [293, 0.89]
+    - [323, 0.98]
+    - [353, 1.10]
+    - [373, 1.20]
+    - [395, 1.38]
+    - [405, 1.49]
+    - [423, 1.57]
+    - [443, 1.62]
+  crystallizesTo:
+    product: /trade/sugar/idea/material/loaf-sugar
+    residue: /trade/sugar/idea/material/molasses
+    # A hogshead's block is purged coarse and never clayed: muscovado.
+    productAs:
+      /trade/sugar/thing/raw-sugar-block: /trade/sugar/idea/material/raw-sugar
+    drainDays: 4
+    metastableRatio: 1.7
+    # A fresh liquor's; the liquor's own rides its payload.
+    purity: 0.8
+    minCrystalPurity: 0.86
+    gradeByPurity:
+      - [0, poor]
+      - [0.88, fair]
+      - [0.92, fine]

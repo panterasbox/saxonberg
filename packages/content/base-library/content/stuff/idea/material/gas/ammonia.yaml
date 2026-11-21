@@ -9,6 +9,8 @@ data:
   appearance: a pungent, eye-watering reek
   density: 0.73
   boilingPoint: 240
+  # Ammonia's heat of vaporization at its boil, J/kg.
+  latentHeatOfVaporization: 1370000
   thermalConductivity: 0.02
   electricalConductivity: 1.0e-12
   toxicity:

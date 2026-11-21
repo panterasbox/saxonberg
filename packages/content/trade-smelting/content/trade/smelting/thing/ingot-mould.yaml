@@ -5,6 +5,8 @@
 # credits smelting. It holds about five kilos of copper.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: ingot mould
   keywords: [mould, mold, "ingot mould", "ingot mold"]
   register: indefinite

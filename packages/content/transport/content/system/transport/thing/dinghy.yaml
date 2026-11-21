@@ -13,6 +13,12 @@ data:
   mass: 120
   _materialPath: /stuff/idea/material/wood/oak
   hull: { form: round, draftM: 0.25, beamM: 1.3, lengthM: 3.7, freeboardM: 0.4, capacityKg: 400 }
+  # ⭐ Tarred (matter-model-overlaps D7): under the pitch her seams are her
+  # fabric, tight while it holds; a bare boat's seams open at the house's
+  # rate, and she leaks by the ship's seam bands at her length.
+  coats:
+    outside:
+      - { material: /stuff/idea/material/bulk/pitch, thicknessM: 0.001, state: set }
   props:
     - { template: /system/transport/thing/propulsion/oar, count: 2 }
     # ⭐ Every boat comes with her bow line (a sailor's "painter").

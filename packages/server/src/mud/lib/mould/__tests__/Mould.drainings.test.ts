@@ -14,6 +14,8 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
+import Place from '../../stuff/Place';
+import Floor from '../../../platform/thing/Floor';
 import Syrup from '../../../platform/idea/material/Syrup';
 import { MouldMixin } from '../Mould';
 import { DurableMixin } from '../../material/Durable';
@@ -48,8 +50,15 @@ class TestHoop extends MouldMixin(
 class TestPail extends PlacingMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good)))) {
   static _mixinName = 'TestDrainPail';
 }
-class TestRoom extends ContainerMixin(Good) {
-  static _mixinName = 'TestDrainRoom';
+class TestRoom extends Place {}
+/** A room with a floor that takes a puddle. */
+function floored(): { room: TestRoom; floor: Floor } {
+  const room = makeStuff(() => new TestRoom());
+  const floor = makeStuff(() => new Floor());
+  floor.surfaceBulk = true;
+  floor.setSurfaceCapacity(Quantity.of(100, 'L'));
+  room.addFixture(floor);
+  return { room, floor };
 }
 
 const DAY = 86_400;
@@ -134,7 +143,7 @@ async function settle(): Promise<void> {
 
 /** A spoiled, inoculated, made curd in a hoop standing on an empty pail. */
 function hoopOnPail(): { hoop: TestHoop; pail: TestPail } {
-  const r = makeStuff(() => new TestRoom());
+  const { room: r } = floored();
   const pail = fill(makeStuff(() => new TestPail()), null, 0);
   ContainmentApi.move(pail, r);
   const hoop = fill(makeStuff(() => new TestHoop()), curd(), 2);
@@ -180,7 +189,8 @@ describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
 
   it('a spoiled curd’s whey carries its population and its maker — and is whey, not the curd', async () => {
     const { hoop, pail } = hoopOnPail();
-    expect(hoop.drainsInto()).toBe(pail);
+    // ⭐ The pail is the first of what is under the hoop (the one drip, D10).
+    expect(hoop.dripSlots()[0]?.getHolder()).toBe(pail);
     hoop.reconcileSetting(); // stamps the start
     advanceTo(0.5 * DAY + 60);
     hoop.reconcileSetting();
@@ -202,8 +212,9 @@ describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
     expect(payload?.maturedDays).toBeUndefined();
     // Its strength is whey's own, not the curd's.
     expect(payload?.dissolvedSolidsKgPerL ?? 0.05).toBeCloseTo(0.05, 9);
-    // A band below the curd's.
-    expect(MixinApi.isGraded(pail) ? pail.getGrade().getBand() : '').toBe('fair');
+    // ⭐ A band below the curd's — on the drainings' PAYLOAD (D10); the pail
+    // keeps its own making.
+    expect(payload?.grade).toBe('fair');
     // poolKg 2 × (1 − 0.8) × 0.8 = 0.32 kg of whey went down.
     expect((slot.getAmount().rawValue() / 1000) * 1030).toBeCloseTo(0.32, 6);
   });
@@ -229,12 +240,13 @@ describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
     expect(cast!.getPathogenLoad('e-coli')).toBeCloseTo(0.2, 5);
   });
 
-  it('with nothing beneath, the drainings run away and the solid is the same', async () => {
-    const r = makeStuff(() => new TestRoom());
+  it('⭐ a hoop on a bare board drains its whey to the floor, a band down — and the solid is the same', async () => {
+    const { room: r, floor } = floored();
     const hoop = fill(makeStuff(() => new TestHoop()), curd(), 2);
     hoop.setCastTemplate(WHEEL);
+    if (MixinApi.isGraded(hoop)) hoop.setGrade(Grade.of('fine'));
     ContainmentApi.move(hoop, r);
-    expect(hoop.drainsInto()).toBeNull();
+    expect(hoop.dripSlots().map((s) => s.getHolder())).toEqual([floor]);
     hoop.reconcileSetting();
     advanceTo(0.25 * DAY);
     hoop.reconcileSetting();
@@ -244,10 +256,27 @@ describe('⭐ the drainings are a transfer through the set (R1-D8)', () => {
     await settle();
     const [cast] = [...hoop.getContents()] as unknown as Provision[];
     expect(cast!.getMass().rawValue()).toBeCloseTo(1.68, 6);
+    // The whey pools on the floor — 0.32 kg of it — a band under the curd.
+    expect(floor.getBulkMaterialPath('surface')).toBe(WHEY);
+    expect((floor.getBulkAmount('surface').rawValue() / 1000) * 1030).toBeCloseTo(0.32, 6);
+    expect(floor.getBulkPayload('surface')?.grade).toBe('fair');
+  });
+
+  it('⭐ drainings never land ABOVE what the vessel under the mould already held', async () => {
+    const { hoop, pail } = hoopOnPail();
+    pail.setBulkMaterial('interior', whey());
+    pail.setBulkAmount('interior', Quantity.of(0.1, 'L'));
+    pail.setBulkPayload('interior', { grade: 'poor' });
+    hoop.reconcileSetting();
+    advanceTo(0.5 * DAY + 60);
+    hoop.reconcileSetting();
+    await settle();
+    expect(pail.getBulkAmount('interior').rawValue()).toBeGreaterThan(0.1);
+    expect(pail.getBulkPayload('interior')?.grade).toBe('poor');
   });
 
   it('`through: set` on the bare move: the population and the maker pass, the water state and identity do not', () => {
-    const r = makeStuff(() => new TestRoom());
+    const { room: r } = floored();
     const hoop = fill(makeStuff(() => new TestHoop()), curd(), 2);
     ContainmentApi.move(hoop, r);
     hoop.setBulkPayload('interior', {

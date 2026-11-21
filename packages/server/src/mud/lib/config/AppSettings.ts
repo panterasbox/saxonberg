@@ -1350,6 +1350,10 @@ export const AppSettingKeys = {
   wetnessSkinFilmKgPerM2: "wetness.skinFilmKgPerM2",
   /** Wetness — saturation gained per game-hour of standing in rain. */
   wetnessRainAccrualPerHour: "wetness.rainAccrualPerHour",
+  /** Wetness — the share of the rain landing on a SEALED outside face (a
+   * glaze) that runs off rather than wetting it (`Wet.takeRain`, D19). The
+   * film only; a sealed face soaks nothing into its body at all. */
+  wetnessShedShare: "wetness.shedShare",
   /** Wetness — saturation an immersion event drives toward (full soak). */
   wetnessImmersionSaturation: "wetness.immersionSaturation",
   /** Wetness — ⭐ the ONE wet law's cutoff (`Material.permeability()`): a
@@ -1491,6 +1495,12 @@ export const AppSettingKeys = {
    * a fraction of its moisture, before its exposure scales it.
    */
   cureRewetPerMm: "cure.rewetPerMm",
+  /**
+   * Curing — how much faster a porous body takes up rain that lands on it
+   * than it dries: the soak runs at the body's drying rate × this toward
+   * full, capped by what landed (`Moist.reconcileWater`, D19).
+   */
+  cureSoakFactor: "cure.soakFactor",
   /** Curing — the relative humidity (%) assumed where nothing authors one. */
   cureAmbientHumidity: "cure.ambientHumidity",
   /** Curing — moisture at/below which a thing reads thoroughly dried. */
@@ -1947,10 +1957,32 @@ export const AppSettingKeys = {
   facesHoldsWaterBelow: "faces.holdsWaterBelow",
   /** Faces — the share of a fill's aromas a porous inside face keeps. */
   facesAromaRetained: "faces.aromaRetained",
+  /** Faces — game-days of contact over which a wall gives its full
+   * `imparts` (matter-model-overlaps D11): the shipped whiskey cask's
+   * length, so a first fill at maturity reads as it always did. */
+  facesWallGiveDays: "faces.wallGiveDays",
+  /** Faces — the share of a wall's own give each fill after the first
+   * spends (a third: a fourth fill gives nothing). */
+  facesWallSpentPerFill: "faces.wallSpentPerFill",
+  /** Faces — the most of what a wall has absorbed one wash clears. */
+  facesWashClears: "faces.washClears",
   /** Faces — liters per hour per liter held, per unit of porosity, that
    * run THROUGH a porous body into a vessel it stands on or in — the
    * ceramic water filter (ceramics S9, W8). A free flow, not a weep. */
   facesFilterLPerHourPerL: "faces.filterLPerHourPerL",
+  /** Faces — ⭐ a vessel that loses more than this share of what it holds
+   * an hour, full (its pores, flaws and joints together), is not
+   * liquid-tight: a pour into it runs through (matter-model-overlaps D4). */
+  facesHoldsLiquidBelowSharePerHour: "faces.holdsLiquidBelowSharePerHour",
+  /** Flaws — ⭐ L/h an open crack lets through at a meter of head and a
+   * scale of one (the one hole rule, matter-model-overlaps D4). */
+  flawsLeakCrackLPerHour: "flaws.leak.crackLPerHour",
+  /** Flaws — ⭐ L/h a hole lets through at a meter of head and a meter of
+   * hull: a vessel's scale is one, a hull's her length (D4). */
+  flawsLeakHoledLPerHour: "flaws.leak.holedLPerHour",
+  /** Flaws — the litres a leaking vessel is down to when it is EMPTY: the
+   * dregs it runs out at, and the moment its one wake is armed for (D9). */
+  flawsLeakDregsL: "flaws.leak.dregsL",
   /** Impact — ⭐ the share of a brittle body's toughness × volume that a
    * blow must exceed to break it, with volume weighted by itself again
    * (a thicker wall is disproportionately stronger) (ceramics M5). */
@@ -2022,6 +2054,9 @@ export const AppSettingKeys = {
   fireAirAchLeak: "fire.air.achLeak",
   /** Fire — litres of carbon dioxide a fire puts into its scope per kg of
    * fuel burnt (every fire, complete or not — this is the conservation leg). */
+  /** Fire — the share of a vapor offered to a lit chamber that escapes into
+   * the room at once rather than staying as the chamber's air (D16). */
+  fireChamberLeakShare: "fire.chamber.leakShare",
   fireExhaustLitresPerKg: "fire.exhaust.litresPerKg",
   /** Fire — litres of SMOKE per kg burnt, additionally, while combustion is
    * incomplete. ⭐ Soot is what an air-starved fire makes instead of heat. */
@@ -2216,15 +2251,18 @@ export const AppSettingKeys = {
    * the head rocks on its haft, and `repair` tightens it before anything
    * else (assembly D6). */
   craftingJointSlackThreshold: "crafting.joint.slackThreshold",
+  /** Assembly — ⭐ the share of what a vessel holds an hour that runs out
+   * through each SLACK joint (matter-model-overlaps D4). */
+  craftingJointSlackSharePerHour: "crafting.joint.slackSharePerHour",
+  /** Assembly — ⭐ the share of what a vessel holds an hour that runs out
+   * past each FAILED structural member — a sprung stave (D4). */
+  craftingJointFailedSharePerHour: "crafting.joint.failedSharePerHour",
   /** Assembly — how much faster a part worked GREEN wears than a seasoned
    * one (assembly D2: green wood warps and gives). */
   craftingGreenWearFactor: "crafting.greenWearFactor",
   /** Seasoning — the seasoned fraction (0..1) at or above which wood may
    * be worked without warping (assembly D2). */
   woodSeasonedThreshold: "wood.seasonedThreshold",
-  /** Maturation — how much of a vessel's character each fill after the
-   * first spends (assembly D9): a third, so a fourth fill gives nothing. */
-  maturingImpartsSpentPerFill: "maturing.impartsSpentPerFill",
   /** Assembly — the heat (K) a cooper's re-fire wants reachable: enough to
    * char the inside of a shaved cask. */
   craftingRefireHeatK: "crafting.refireHeatK",
@@ -2244,6 +2282,9 @@ export const AppSettingKeys = {
   craftingRepairBrokenFactor: "crafting.repair.brokenFactor",
   /** Crafting — reachable heat (K) metal repair requires (forge-grade). */
   craftingRepairMetalHeatK: "crafting.repair.metalHeatK",
+  /** Crafting — ⭐ kilograms of the hull's own material a patch over one
+   * hole draws (matter-model-overlaps D8). */
+  craftingRepairPatchKg: "crafting.repair.patchKg",
   /** Crafting — kilograms of ice an iced drink takes from the reachable
    * ice bin at the fill (the bar's scoop). */
   craftingIceKg: "crafting.iceKg",
@@ -2930,6 +2971,7 @@ export const AppSettingTiers: Readonly<
   wetnessBlotTakes: "B",
   wetnessSkinFilmKgPerM2: "B",
   wetnessRainAccrualPerHour: "B",
+  wetnessShedShare: "B",
   wetnessImmersionSaturation: "B",
   wetnessImpermeableBelowPct: "B",
   wetnessBandDampAt: "B",
@@ -2964,6 +3006,7 @@ export const AppSettingTiers: Readonly<
   cureGroundExposure: "B",
   cureCrackRate: "B",
   cureRewetPerMm: "B",
+  cureSoakFactor: "B",
   cureAmbientHumidity: "B",
   cureBandDriedAt: "B",
   cureBandDryingAt: "B",
@@ -3086,7 +3129,14 @@ export const AppSettingTiers: Readonly<
   facesCrawlDirt: "B",
   facesHoldsWaterBelow: "B",
   facesAromaRetained: "B",
+  facesWallGiveDays: "B",
+  facesWallSpentPerFill: "B",
+  facesWashClears: "B",
   facesFilterLPerHourPerL: "B",
+  facesHoldsLiquidBelowSharePerHour: "B",
+  flawsLeakCrackLPerHour: "B",
+  flawsLeakHoledLPerHour: "B",
+  flawsLeakDregsL: "B",
   impactFractureShare: "B",
   impactReferenceVolumeM3: "B",
   impactDropHeightM: "B",
@@ -3110,6 +3160,7 @@ export const AppSettingTiers: Readonly<
   fireAirAchPerOpening: "B",
   fireAirAchInterior: "B",
   fireAirAchLeak: "B",
+  fireChamberLeakShare: "B",
   fireExhaustLitresPerKg: "B",
   fireExhaustSmokeLitresPerKg: "B",
   fireExhaustSmokeMaterial: "B",
@@ -3164,9 +3215,10 @@ export const AppSettingTiers: Readonly<
   craftingKeennessSharpenDurationMs: "B",
   craftingSalvageRate: "B",
   craftingJointSlackThreshold: "B",
+  craftingJointSlackSharePerHour: "B",
+  craftingJointFailedSharePerHour: "B",
   craftingGreenWearFactor: "B",
   woodSeasonedThreshold: "B",
-  maturingImpartsSpentPerFill: "B",
   craftingRefireHeatK: "B",
   lampCrackedGlassFlux: "B",
   caskDryOutDays: "B",
@@ -3174,6 +3226,7 @@ export const AppSettingTiers: Readonly<
   craftingRepairCostFactor: "B",
   craftingRepairBrokenFactor: "B",
   craftingRepairMetalHeatK: "B",
+  craftingRepairPatchKg: "B",
   craftingIceKg: "B",
   craftingProportionTolerance: "B",
   craftingProportionMinScale: "B",

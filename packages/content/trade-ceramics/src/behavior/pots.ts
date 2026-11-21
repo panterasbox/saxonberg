@@ -21,10 +21,17 @@
  * alluvial clay that dries too fast checks, and some of her ware does.
  * That is the clay's honest behaviour, not a defect here.
  *
- * Config: `{ shop, kiln, pit, knows, forms, glaze?: { tub, forms }, fire?,
- * batch?, boards? }` — `shop` home, `kiln` the kiln's ROW, `pit` the clay
- * pit room, `forms` the words she throws in turn, `glaze.tub` the tub word
- * a glazed form is dipped in and `glaze.forms` which forms get it, `fire`
+ * ⭐ Salt glazing (matter-model-overlaps D16): while a load with a salted
+ * form in it fires, she throws salt in — `get salt`, `put salt in kiln`. The
+ * salt vaporizes at the kiln's peak into its air, and a stoneware body that
+ * reaches its rung under it comes out salt-glazed. Nothing here lays a coat.
+ *
+ * Config: `{ shop, kiln, pit, knows, forms, glaze?: { tub, forms }, salt?:
+ * { word, forms }, fire?, batch?, boards? }` — `shop` home, `kiln` the kiln's
+ * ROW, `pit` the clay pit room, `forms` the words she throws in turn,
+ * `glaze.tub` the tub word a glazed form is dipped in and `glaze.forms` which
+ * forms get it, `salt.word` what she throws into the kiln for a salt glaze
+ * and `salt.forms` which forms are salted, `fire`
  * the hold (`10 hours`), `batch` pieces to a kiln-load (4), `boards` how
  * many pieces she lets stand drying before she stops throwing (6), `knows`
  * the extent she walks in (`ctx.goTo`, B107 — it was an authored `ways:`
@@ -49,6 +56,8 @@ type Potter = Stuff & Mobile & Containable & Container & CommandGiver;
 type Kiln = Stuff & Burner & Container;
 
 const CLAY = '/trade/quarrying/thing/clay';
+/** Salt's vapor row: in the kiln's air, the load is salted. */
+const SALT_VAPOR = '/stuff/idea/material/gas/salt-vapor';
 const DEFAULT_FIRE = '10 hours';
 const DEFAULT_BATCH = 4;
 const DEFAULT_BOARDS = 6;
@@ -61,7 +70,7 @@ export const brain = class {
   static summary = 'Throws pots at the wheel, dries and fires them in the kiln, glazes some, and shelves them for sale.';
   static discipline = 'pottery';
   static produces: readonly string[] = ['pots'];
-  static consumes: readonly string[] = ['clay', 'charcoal'];
+  static consumes: readonly string[] = ['clay', 'charcoal', 'salt'];
   static claims: readonly EngagementSlot[] = ['hands', 'body'];
   static presenceGated = false;
   static ambient = false;
@@ -105,6 +114,7 @@ export const brain = class {
     if (!kiln) return;
     const forms = stringList(ctx.config.forms);
     const glaze = glazeOf(ctx.config.glaze);
+    const salt = saltOf(ctx.config.salt);
     const hold = typeof ctx.config.fire === 'string' && ctx.config.fire !== '' ? ctx.config.fire : DEFAULT_FIRE;
     const batch = positiveInt(ctx.config.batch, DEFAULT_BATCH);
     const boards = positiveInt(ctx.config.boards, DEFAULT_BOARDS);
@@ -116,6 +126,14 @@ export const brain = class {
     if (kiln.isLit()) {
       if (inKiln.length > 0 && inKiln.every((w) => isPlayers(w) || isDone(w))) {
         await p.forceCommand('douse kiln');
+        return;
+      }
+      // ⭐ A load with a salted form in its first firing gets salt thrown in
+      // (D16): a piece a beat — get it, then put it in.
+      if (salt && wantsSalt(kiln, inKiln, salt)) {
+        const word = CommandLineApi.word(salt.word);
+        const inHand = held.some((c) => MixinApi.isPerceptible(c) && c.hasKeyword(salt.word));
+        await p.forceCommand(inHand ? `put ${word} in kiln` : `get ${word}`);
       }
       return;
     }
@@ -225,6 +243,24 @@ function wantsGlaze(w: Stuff, forms: readonly string[]): boolean {
   return w.getCoats('inside').length === 0;
 }
 
+/**
+ * Does this firing want salt: a piece of hers in it still green, of a salted
+ * form, with no salt in the kiln's air and none lying in the kiln yet?
+ */
+function wantsSalt(kiln: Kiln, inKiln: readonly Stuff[], salt: { word: string; forms: string[] }): boolean {
+  if ((kiln.getChamberVapors()[SALT_VAPOR] ?? 0) > 0) return false;
+  if (inKiln.some((c) => !isWare(c) && MixinApi.isPerceptible(c) && c.hasKeyword(salt.word))) return false;
+  return inKiln.some(
+    (w) =>
+      isWare(w) &&
+      !isPlayers(w) &&
+      MixinApi.isGreenware(w) &&
+      w.isGreen() &&
+      MixinApi.isPerceptible(w) &&
+      salt.forms.some((f) => w.hasKeyword(f)),
+  );
+}
+
 function coolEnough(w: Stuff): boolean {
   return !MixinApi.isThermal(w) || w.getTemperature().rawValue() < HANDLE_BELOW_K;
 }
@@ -245,6 +281,13 @@ function glazeOf(v: unknown): { tub: string; forms: string[] } | null {
   const g = v as { tub?: unknown; forms?: unknown };
   if (typeof g.tub !== 'string' || g.tub === '') return null;
   return { tub: g.tub, forms: stringList(g.forms) };
+}
+
+function saltOf(v: unknown): { word: string; forms: string[] } | null {
+  if (typeof v !== 'object' || v === null) return null;
+  const g = v as { word?: unknown; forms?: unknown };
+  if (typeof g.word !== 'string' || g.word === '') return null;
+  return { word: g.word, forms: stringList(g.forms) };
 }
 
 function stringList(v: unknown): string[] {

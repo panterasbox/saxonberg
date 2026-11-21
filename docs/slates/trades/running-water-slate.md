@@ -53,6 +53,9 @@ happens *inside* a building in the extent.
 - **Winter is the plumber's season** — `frozen` ships, and ⭐ **pipes burst when the
   water in them freezes** (ice expands); the leak shows on the thaw. Derivable from the
   frozen state and the pipe's material.
+  ⭐ **A burst as a flaw** (deferred by matter-model-overlaps, 2026-11-20): the burst
+  is still an event; written as a `holed`/`crack` flaw on the run it would leak by
+  the one leak read and be patched by `repair` — attach point `PipeRun.reconcileFrost`.
 - **The water rate** — domestic metering stays out, as watershed decided; historically
   a household paid a **rate by the value of the property**, so the bill is a flat
   charge by property and the meter is a later rung.

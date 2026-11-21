@@ -759,6 +759,17 @@ export function SoilableMixin<TBase extends NestingConstructor<Stuff>>(
       if (site === WHOLE_SITE && MixinApi.isContaminable(self)) {
         self.clearContamination();
       }
+      // ⭐ Washing a vessel also spends what its wall has SOAKED UP — the
+      // crock's old cream, the cask's whiskey (matter-model-overlaps D11) —
+      // by the wash's own strength (heat, effort, a cleanser), never more
+      // than `faces.washClears` a wash. The wall's own give is untouched.
+      if (
+        site === WHOLE_SITE &&
+        MixinApi.isFaced(self) &&
+        self.faces().some((f) => self.absorbedAromas(f).length > 0)
+      ) {
+        self.washAbsorbed(clamp01(0.35 * fT * fEffort * (spec.cleansers.length > 0 ? 1.3 : 1)));
+      }
       const first = spec.cleansers[0]?.row ?? null;
       this.recordWash(site, {
         atS: nowS(),

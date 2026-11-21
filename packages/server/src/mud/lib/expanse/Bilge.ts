@@ -4,14 +4,16 @@
  * A ship and a boat both take water through their hulls, and before this
  * each kept its own `bilgeL`/`bilgeStamp` and its own integrator. What they
  * share is exactly this: litres in her as of a stamp, a leak integrated from
- * the stamp to now (never sampled), what her hull can hold, and water taken
- * out of her (pumped, bailed). What they do NOT share is WHERE the water
- * comes in — each host answers {@link Bilge.leakedBetween}:
+ * the stamp to now (never sampled), what her hull can hold, water taken
+ * out of her (pumped, bailed) — and ⭐⭐ WHAT comes in, which is one read for
+ * both (matter-model-overlaps D4, {@link Bilge.hullLeakLps}): her SEAMS (her
+ * `Durable` condition in the five seam bands, × her length) and her FLAWS
+ * (the one hole rule at her draft and her length). Each host answers WHEN
+ * it comes in ({@link Bilge.leakedBetween}):
  *
- *  - a **ship** (`platform/idea/Ship`): her hull's band on the house's
- *    clock, integrated band by band over her shell's line, and a hole;
- *  - a **boat** (`transport`'s `Boat`): the holes stove in her and a coat
- *    that no longer holds water — and only while she is afloat.
+ *  - a **ship** (`platform/idea/Ship`): band by band over her shell's line;
+ *  - a **boat** (`transport`'s `Boat`): at her rate now, only while she is
+ *    afloat.
  *
  * Named for what it IS (the bilge — the water in the bottom of a hull), not
  * for what a hull can do. It carries state, so it is a mixin, not a shape.
@@ -22,6 +24,47 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
+import { AppApi } from '../../api/app';
+
+/**
+ * ⭐ How far a hull's seams have opened, by her `Durable` condition — the
+ * floors, highest first (the five bands the leak is tuned in, grain). The
+ * WORD anyone reads is her condition's, a house's word.
+ */
+export const SEAM_BANDS: ReadonlyArray<readonly [number, string]> = [
+  [0.9, 'sound'],
+  [0.7, 'weathered'],
+  [0.5, 'worn'],
+  [0.25, 'shabby'],
+  [0, 'dilapidated'],
+];
+
+/**
+ * ⭐ What a hull lets in by how far her seams have opened (grain): litres a
+ * second per meter of her length, each a setting (`ship.leak.<band>`). A
+ * sound hull is tight; a worn one weeps at every seam. Retuned against
+ * *nothing fails over a weekend away* (the arithmetic is in
+ * `platform/content/settings/ship.yaml`).
+ */
+const SEAM_LPS_PER_M: Readonly<Record<string, number>> = {
+  sound: 0,
+  weathered: 0.0005,
+  worn: 0.004,
+  shabby: 0.02,
+  dilapidated: 0.08,
+};
+
+/** A numeric setting, else the shipped grain. */
+function seamDial(key: string, fallback: number): number {
+  try {
+    const n = Number.parseFloat(AppApi.setting(key) ?? '');
+    if (Number.isFinite(n) && n >= 0) return n;
+  } catch {
+    // @quiet a cold cache or an unregistered key: the shipped grain.
+  }
+  return fallback;
+}
 
 export interface Bilge {
   /** Litres in her as last integrated (the stamp's). */
@@ -40,6 +83,20 @@ export interface Bilge {
   bilgeCapacityL(): number;
   /** Litres that came in between two game-seconds, or `null` when she cannot know. */
   leakedBetween(fromS: number, toS: number): number | null;
+  /**
+   * ⭐⭐ What comes in through her hull, L/s (matter-model-overlaps D4) —
+   * her SEAMS (the seam band of `condition`, her `Durable` wear by default,
+   * at `ship.leak.<band>` × her length) plus her FLAWS
+   * (`Flawed.flawLeakLPerHour(hullDraftM(), hullLengthM())`). Whether she
+   * is afloat is the host's to ask.
+   */
+  hullLeakLps(condition?: number): number;
+  /** The seam band a hull condition reads as — `sound · weathered · worn · shabby · dilapidated`. */
+  seamBandFor(condition: number): string;
+  /** @hook Her length, m — the seams that weep and the scale a hole opens at. */
+  hullLengthM(): number;
+  /** @hook Her draft, m — the head of water over a hole in her. */
+  hullDraftM(): number;
 }
 
 export function BilgeMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
@@ -106,14 +163,39 @@ export function BilgeMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       return Infinity;
     }
 
+    public hullLeakLps(condition?: number): number {
+      const self = this as unknown as Stuff;
+      const wear = condition ?? (MixinApi.isDurable(self) ? self.getWearCondition() : 1);
+      const length = Math.max(0, this.hullLengthM());
+      const band = this.seamBandFor(wear);
+      const seams = length * seamDial(`ship.leak.${band}`, SEAM_LPS_PER_M[band] ?? 0);
+      const flaws = MixinApi.isFlawed(self) ? self.flawLeakLPerHour(this.hullDraftM(), length) / 3600 : 0;
+      return seams + flaws;
+    }
+
+    public seamBandFor(condition: number): string {
+      for (const [floor, band] of SEAM_BANDS) if (condition >= floor) return band;
+      return 'dilapidated';
+    }
+
+    /** @hook Her length, m. Default: none — a hull with no length lets nothing in. */
+    public hullLengthM(): number {
+      return 0;
+    }
+
+    /** @hook Her draft, m. Default: none. */
+    public hullDraftM(): number {
+      return 0;
+    }
+
     /**
      * @hook Litres that came in through her hull between `fromS` and `toS`.
-     * Default: none — a hull that does not leak.
+     * Default: at what her hull lets in now ({@link hullLeakLps}) — a hull
+     * with no length lets nothing in. A ship integrates band by band over
+     * her shell's line; a boat only while she is afloat.
      */
     public leakedBetween(fromS: number, toS: number): number | null {
-      void fromS;
-      void toS;
-      return 0;
+      return this.hullLeakLps() * Math.max(0, toS - fromS);
     }
   }
   return BilgeMixin;

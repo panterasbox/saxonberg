@@ -25,6 +25,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
+import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 
 const PIECE = '/trade/sugar/thing/sugar-piece';
 const NIP_MS = 20_000;
@@ -47,7 +48,7 @@ function loafAugmenter(
   opts?: { filter?: readonly string[] },
 ): string {
   if (opts?.filter || !(host instanceof SugarLoaf)) return text;
-  const line = `It is ${host.colourLine()}.`;
+  const line = host.materialLine();
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
@@ -111,6 +112,20 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
     ];
   }
 
+  /**
+   * ⭐ What the loaf is, in a sentence: a cane loaf's colour head to foot
+   * (claying is a cane-sugar act), or — a cone of something else set in the
+   * same mould, maple strike seeded in a sugar cone — its own material and
+   * how it looks. Found by the drive: a maple loaf read "muscovado from head
+   * to foot", which it can never be.
+   */
+  public materialLine(): string {
+    const mat = MixinApi.isTangible(this) ? this.getMaterial() : null;
+    if (mat === null || mat.hasTag('loaf-sugar')) return `It is ${this.colourLine()}.`;
+    const look = mat.getAppearance();
+    return look ? `It is ${mat.getName()}: ${look}.` : `It is ${mat.getName()}.`;
+  }
+
   /** The loaf in words: its colour, head to foot. */
   public colourLine(): string {
     const [head, middle, foot] = this.getBands().map(colourOf);
@@ -140,20 +155,20 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
     return { ok: true };
   }
 
-  /** ⭐ The water carries molasses out as it goes, into the pot below. */
+  /**
+   * ⭐ The water carries molasses out as it goes, and it runs off by the one
+   * drip (matter-model-overlaps D10): through the cone's open foot into the
+   * pot below, else onto the floor.
+   */
   public override onPercolated(from: number, to: number): void {
     const self = this as unknown as Stuff;
     if (!MixinApi.isTangible(self) || !(to > from)) return;
     const kg = self.getMass().rawValue() * CLAY_WASHES * (to - from);
     self.setMass(Quantity.of(Math.max(0, self.getMass().rawValue() - kg), 'kg'));
-    const into = this.percolatesInto();
     const molasses = MaterialApi.materials().need(this.drainsTo);
-    if (!into || !molasses) return;
-    const held = into.getBulkMaterial('interior');
-    if (held !== null && held.getTemplatePath() !== this.drainsTo) return;
-    if (held === null) into.setBulkMaterial('interior', molasses);
     const litres = (kg / molasses.getDensity().rawValue()) * 1000;
-    into.setBulkAmount('interior', Quantity.of(into.getBulkAmount('interior').rawValue() + litres, 'L'));
+    if (!(litres > 0)) return;
+    BulkableApi.drip({ off: self, material: molasses, litres, payload: null });
   }
 
   public override async cutPlan(req: CutRequest): Promise<CutAnswer> {

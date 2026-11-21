@@ -4,7 +4,7 @@
  *
  * Two kernel substrates, and the pan is exactly both: a `Mould` (the crop
  * sets in the pan's own shape and is KEPT there — `castTemplate` — and the
- * spent liquor runs off into the vessel it stands on, `drainsInto()`) and
+ * spent liquor runs off to what is under it by the one drip) and
  * a maturing vessel (the `brine` evaporative profile takes the water away
  * at the air's rate, and rain puts it back). The kernel's `Mould` composes
  * no maturation and the `Vat` keeps no cast, so the pan is the one place

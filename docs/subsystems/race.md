@@ -122,7 +122,8 @@ property as a **noun**, with a `MixinApi.has<X>` predicate:
 | `Solidity` | hardness · toughness · elasticity · cleavability · thermalExpansion · brokenTemplate |
 | `Porosity` | waterAbsorptionCapacity · wetStrength · soddenTemplate (+ the wet law) |
 | `Edibility` | tastes · nutrients · nutrientAmounts · servingKg — composing it IS "edible" |
-| `Toxicity` | toxicity · leaches (what a face gives its contents) |
+| `Toxicity` | toxicity |
+| `Extraction` | leaches · imparts — what a wall of it gives what it holds (a toxin by the contents' acid; aromas, mg/L at full give). Composed by the wall kinds: `Wood`, `ToxicMetal`, `ToxicAlloy`, `PigmentPaint` (matter-model-overlaps D11) |
 | `Perishability` | spoilActivationEnergy · waterActivity |
 | `Acidity` | ph · corrosiveTo (+ acidAttack, corrodeOnContact) |
 | `Solution` | solubility · crystallizesTo · filteredTo · solidsKgPerL · boilingPointElevation · concentratesTo · purifiedByBoiling |
@@ -1154,7 +1155,8 @@ than a loin in a fight. See [butchery.md](./butchery.md).
   role many substances play, not one physics. Lens 1: a capability is a property a student can look
   up; "is a cleanser" is not one.
 - **D13 (W0) `leaches` → Toxicity** (a toxin release through a face), **`drainSetting` → Kinetic**
-  (a timed set). Neither is Acidity's / Fusion's physics.
+  (a timed set). ⚠ Superseded for `leaches` by matter-model-overlaps D11: it moved to
+  `Extraction` beside `imparts` — a wall's give is not a poison's claim. Neither is Acidity's / Fusion's physics.
 - **D14 (W1 folded into W2b)** No separate narrowing wave: while the base composed everything, a
   predicate was always true, so W1 would have been the same edit twice. The cut's compile errors
   were the census (286 production sites in 83 files), each narrowed behavior-identically — the

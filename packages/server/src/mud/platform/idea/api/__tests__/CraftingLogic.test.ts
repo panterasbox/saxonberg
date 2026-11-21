@@ -11,6 +11,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import type { GradeBand } from '../../../../lib/craft/Grade';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CraftingApi } from '../../../../api/crafting';
 import type { CraftRequest } from '../../../../api/crafting';
@@ -95,7 +96,8 @@ function makeBottle(materialPath: string, band: string, amountL: number) {
   (b as unknown as { interiorMaterial: string }).interiorMaterial = materialPath;
   b.setInteriorCapacity(Quantity.of(1, 'L'));
   b.setInteriorAmount(Quantity.of(amountL, 'L'));
-  b.setGradeBand(band);
+  // The batch's grade is its payload's (matter-model-overlaps D2).
+  BulkableApi.slotFor(b, undefined)!.setPayload({ grade: band as GradeBand });
   return b;
 }
 
@@ -244,12 +246,14 @@ describe('CraftingLogic.craft', () => {
     expect(outSlot.getMaterialPath()).toBe(MARTINI_MAT);
     expect(outSlot.getAmount().rawValue()).toBeCloseTo(0.08, 6);
 
-    // Provenance + recipe + clock stamped.
-    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe(DAVE);
-    expect((outcome.output as unknown as { getRecipe(): string }).getRecipe()).toBe('martini');
-    const craftedAt = (outcome.output as unknown as { getCraftedAt(): number }).getCraftedAt();
-    expect(typeof craftedAt).toBe('number');
-    expect(craftedAt).toBeGreaterThanOrEqual(0);
+    // Provenance + recipe + clock stamped — on the DRINK (its payload,
+    // matter-model-overlaps D2); the glass keeps its own making.
+    const mark = outSlot.getPayload();
+    expect(mark?.maker).toBe(DAVE);
+    expect(mark?.grade).toBe('fair');
+    expect(typeof mark?.craftedAt).toBe('number');
+    expect(mark!.craftedAt!).toBeGreaterThanOrEqual(0);
+    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe('');
 
     // Conservation: gin debited exactly 0.06 (0.70 -> 0.64).
     expect(BulkableApi.slotFor(gin, undefined)!.getAmount().rawValue()).toBeCloseTo(0.64, 6);
@@ -296,7 +300,7 @@ describe('CraftingLogic.craft', () => {
     } as CraftRequest);
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
-    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe(DAVE);
+    expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(DAVE);
   });
 
   it('with no acting author, declines no-maker', async () => {
@@ -317,6 +321,6 @@ describe('CraftingLogic.craft', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     // Stamped to Dave (the world-resolved maker), not the ordering patron.
-    expect((outcome.output as unknown as { getMaker(): string }).getMaker()).toBe(DAVE);
+    expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(DAVE);
   });
 });

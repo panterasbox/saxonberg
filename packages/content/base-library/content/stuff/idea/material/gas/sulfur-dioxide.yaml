@@ -10,6 +10,8 @@ data:
   appearance: a sharp, choking fume
   density: 2.6
   boilingPoint: 263
+  # Sulfur dioxide's heat of vaporization at its boil, J/kg.
+  latentHeatOfVaporization: 389000
   thermalConductivity: 0.01
   electricalConductivity: 1.0e-12
   toxicity:

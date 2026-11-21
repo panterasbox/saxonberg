@@ -7,3 +7,5 @@ data:
   keywords: [caramel, burnt-sugar]
   appearance: dark amber and smoking, smelling of burnt toffee
   tags: ["liquid", "food", "caramel"]
+  # ⭐ Gone to caramel the sugar is broken down: it will not grain now.
+  crystallizesTo: null

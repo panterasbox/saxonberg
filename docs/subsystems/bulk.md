@@ -24,9 +24,11 @@ mark** (`CraftedMixin`), **a kind** (so an empty one says *"an empty
 flour sack"* rather than reciting its description — the defect the
 shipped malt sack still has), and **a temperature**.
 
-⭐ **The grade rides the HOLDER, never the payload.** Bulk matter has no
-identity to be graded; a quantity of it in a marked sack does. Same
-convention a bottle of graded gin follows.
+⭐⭐ **The grade rides the PAYLOAD, never the holder** (matter-model-overlaps
+D2, reversing the grain chain's rule). A batch's grade and miller are facts
+about the meal, so the grind writes them onto the sack's contents; the sack
+is just a sack, with a making of its own. Same convention a bottle of
+graded gin follows.
 
 ⭐ `GradedReceptacle` gained `ThermalMixin` (outer of Bulkable, the
 `Receptacle` rule) in the same build — which reaches **every `Bottle`**.
@@ -282,6 +284,19 @@ open < liquidTight < sealed        (default: liquidTight)
 A holder retains matter when `closure ≥ requiredClosureFor(material)`.
 v1 bulk is all liquid (`requiredClosureFor → 'liquidTight'`), so an
 `open` vessel doesn't retain it — it **drains through** (below).
+
+⭐⭐ **The closure a vessel KEEPS is not only the authored one**
+(matter-model-overlaps D4): `getClosure()` returns `open` whenever the
+vessel is not liquid-tight — `isLiquidTight()`, the one leak read (pores,
+flaws, joints) at capacity, as a share of capacity an hour, under
+`faces.holdsLiquidBelowSharePerHour` (0.05). So a cracked crock, a holed
+pail, a cask with a sprung stave or slack hoops all drain a pour through,
+with no host of their own deciding it (`Vat.getClosure` keeps only its
+drying reconcile). What such a vessel already holds runs out on read by the
+one drip ([faces.md](./faces.md) § Holding water, and porosity), with ONE
+wake at the moment it runs out. A shut non-bulk container
+(`Container.closureLevel`) is `open` on an unmended crack or hole, and
+keeps its clause that an absorbent material wicks the wet through.
 ⭐⭐ **`sealed` is exercised now (the fire build, 2026-10)**, and the
 phase→required-level mapping is no longer a mapping: `requiredClosureFor`
 **derives** from the material's `boilingPoint` against
@@ -414,8 +429,8 @@ transfer(from: BulkSlot, to: BulkSlot | null, amount, via?): TransferResult
 vessel into another — a pour, a filter's seep, a mould's spent liquor
 running off into its tub — goes through it, so every fact the matter carries
 (spoilage, water state, pathogens, a vessel's own surface load, the
-dissolved doses, solids, hardness, ownership, the grade top-up rule, the
-receiver's survival) moves by one set of rules. ⚠ The ceramics build
+dissolved doses, solids, hardness, ownership, the batch's grade and maker,
+the receiver's survival) moves by one set of rules. ⚠ The ceramics build
 hand-rolled two copies (the filter's seep and the bittern drain) and they
 silently skipped most of that; the review routed both back here.
 
@@ -428,18 +443,37 @@ mismatch check and the closure read the ARRIVING material.
 
 `{ through: 'set', arrivesAs }` is its inverse — what a filter holds back, a
 set lets through — and is how a mould's drainings leave a setting solid
-(whey off a curd, molasses out of a sugar cone; [mould.md](./mould.md)).
+(whey off a curd; [mould.md](./mould.md)). A sugar cone's molasses is the
+crystallize arm's mother liquor, which leaves by the plain drip
+([thermal.md](./thermal.md) § Crystallizing).
 The **suspended** passes (the microbial load and the pathogens at the pool's
 concentration: a crock of whey is a living starter because it carries the
 culture, and a spoiled curd's whey cannot come out clean); the **dissolved**
 passes (toxins, formed toxins, aromas, hardness); whose it is and who made
 it pass (harm from the whey names the cheesemaker). The pool's **identity**
 does not — recipe, makeup, appearance, keywords, age, treatment, thermal
-bookkeeping, and the batch grade and mark of the holder — and neither do its
+bookkeeping, and the batch's GRADE (the mould grades its drainings, one band
+below what sets) — and neither do its
 water state or its dissolved-solids strength, which the set is what changed
 (a sugar loaf IS the sugar): the drainings arrive as `arrivesAs`, whole, at
-that material's own. The payload is a whitelist (`throughSet`), so a field a
+that material's own. ⭐ And whatever lands never carries the source
+vessel's clocks: `faceCheckedS` and a mould's liquor-drain stamps
+(`liquorDrainStampS`/`DueS`, matter-model-overlaps D13) are stripped on
+landing. The payload is a whitelist (`throughSet`), so a field a
 later subsystem declares stays with the solid until it says otherwise.
+
+`grade` on a `TransferVia` is the batch grade what arrives carries as its
+own (`payload.grade`) — how the mould grades its drainings, a band under the
+pool; a top-up still takes the lower of it and what the receiver held.
+
+⭐⭐ **Where a drip goes is not the caller's** (matter-model-overlaps D10):
+the weep and the filter, a mould's drainings, a spent pan's liquor, a
+percolating heap's run-off and a burst pipe's water all leave by
+`BulkableApi.drip(matter)`, which asks the source what is under it
+(`Containable.dripSlots()` — the vessel it is in, then on, then the floor)
+and transfers into each in turn. `{ off: solid, material, litres, payload }`
+is liquid a solid gives up, with no slot behind it. The whole rule is
+[spatial.md](./spatial.md) § What is under it — the drip.
 
 `amount` is a `TransferAmount`: `{ kind: 'all' }` (the whole source,
 clamped to the destination's room — `drink` / `spill` / default `pour`)
@@ -461,13 +495,16 @@ capacity, `sip`, `pour 2 cups`). Pipeline:
 5. **Apply** — debit the source (skipped for an unbounded source; a
    bounded slot that hits zero clears its material), credit the
    destination (adopting the material when it was empty); a `null` sink
-   just discards. A fresh fill (empty destination) also carries the
-   **batch's identity** — a Graded source holder stamps the
-   destination's grade band, and a Crafted source stamps the maker's
-   mark (maker/recipe/craftedAt) too. The rule mirrors the payload
-   rule exactly: identity rides into an *empty* destination only; a
-   top-up keeps the destination's own identity (the fermentation grade
-   seam, D6).
+   just discards. ⭐⭐ **The batch is the contents'** (matter-model-overlaps
+   D2): a fresh fill (empty destination) carries the payload, and with it
+   the batch's grade, maker, recipe and time made; a top-up folds the
+   destination's grade to the lower of the two (one side ungraded: the
+   other's stands) and never re-signs its maker or recipe. `faceCheckedS`
+   — the old wall's clock — never rides a pour. **The vessel's own
+   `Graded`/`Crafted` face is never written by a pour**: it is the vessel's
+   making, so a fine wine in a poor bottle stays fine and the bottle stays
+   poor, a ferment in a cooper's cask leaves the cask the cooper's, and a
+   potter's jug filled with somebody's milk is still hers to name.
 
 Verb-facing helpers on the same Api:
 
@@ -581,7 +618,10 @@ reduced it to facts nothing else can recover:
 | `appearance` | ⚠ a boundary: rendered by `bulkContentsAugmenter` in `lib/bulk`, which may not import `lib/craft` to ask the recipe. | `lib/bulk` |
 | `keywords` | ⚠ how the blend is FOUND. A missed lookup is not a degraded reading — it is an object that stopped existing. | `lib/bulk` |
 | `formedToxins` | toxins that AROSE (a spoiled batch's ptomaine). Nothing in the composition implies them. | `lib/metabolism` |
+| `maker` · `grade` · `craftedAt` | ⭐ the batch's making — who made it (an identity path), how well, and when. A fact about the contents, not the vessel: the batch is the payload's (matter-model-overlaps D2). Absent = nobody made it / ungraded (not `fair`). | `lib/craft/Crafted` |
 | `freshness` | live state: microbial load + its clock stamp. | `lib/material/Freshness` |
+| `purity` · `nucleated` | ⭐ a crystallizing liquor's state (matter-model-overlaps D12, D14): the solute's share of what is dissolved — raised by tempering, lowered by every crop by the mass balance — and whether something has started it. Neither is in the row: the same strike is pure or poor by what was done to it. | `lib/thermal/Thermal` |
+| `liquorDrainStampS` · `liquorDrainDueS` | a mould's spent liquor running out over its days (D13) — a fact about THAT mould, stripped on landing. | `lib/thermal/Thermal` |
 
 Everything else is **read**: the tastes and the tags (`BlendLabel` unions
 the ingredients'), the whole nutrition label (`BlendLabel`, each part's
@@ -793,13 +833,15 @@ blends by volume on every pour and scales with litres drunk at the ingest.
    *matter*, and without this, pouring good into bad left `poor` while
    pouring bad into good left `fine`: the same mixture with two answers,
    and the second was a laundry. The maker's mark is untouched either
-   way; a top-up never re-signs somebody else's work.
+   way; a top-up never re-signs somebody else's work. (Both now read and
+   write the payload's `grade`, not the holders' — D2.)
 2. **The drawn payload comes from `payloadForDraw(applied)`**, read after
    the clamp, not from `getPayload()`.
 
 **⚠ The insertion count is now EIGHT.** `transfer` carries freshness,
 water activity, pathogens, blood identity, thermal, the payload copy, the
-batch-identity carry and the dissolved blend. `maturation.md` named
+batch-identity carry (since matter-model-overlaps W1, the payload's own
+grade top-up) and the dissolved blend. `maturation.md` named
 poisons as the moment to generalise to a host-side participant hook, and
 this build made the eighth in the shipped shape and **filed the refactor
 with its count** rather than doing it — per *census then ratchet*, because
@@ -891,3 +933,13 @@ their keys were **deleted**, so no shipped prose regressed.
   and every milking into a pail kept nothing. Unit tests stubbed the
   source with an interior, which is how it hid; the row authors
   `interiorBulk: true` now.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+The batch's grade, maker and craft time ride the PAYLOAD
+(`carryBatchIdentity`/`carryTopUpGrade` deleted; a top-up takes the lower
+grade), so a vessel keeps its own making. One leak read
+(`leakLPerHour`/`isLiquidTight`: pores · flaws · joints) decides every
+vessel's `getClosure`; one drip (`BulkableApi.drip`: in → on → the floor,
+else `lost`) replaced five receiver finders; the wall's exchange moved to
+`Faced.exchangeWith`; `BulkableMixin` answers `stir` (`StirTargetMixin`).

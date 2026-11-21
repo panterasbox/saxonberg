@@ -95,6 +95,32 @@ describe('the sap chain — the rows agree', () => {
     expect(burn).toBeGreaterThan(373 + 22);
   });
 
+  it('⭐⭐ maple SETS: its strike crystallizes to maple sugar, its mother liquor maple syrup (matter-model-overlaps D12)', () => {
+    const sap = data(SAP('maple')) as unknown as {
+      crystallizesTo: {
+        product: string;
+        residue: string;
+        drainDays?: number;
+        metastableRatio: number;
+        purity: number;
+        minCrystalPurity: number;
+      };
+      solubility: Array<[number, number]>;
+    };
+    expect(sap.crystallizesTo.product).toBe('/trade/forestry/idea/material/maple-sugar');
+    expect(sap.crystallizesTo.residue).toBe('/trade/forestry/idea/material/maple-syrup');
+    const sugar = data(`${F}/trade/forestry/idea/material/maple-sugar.yaml`);
+    expect(sugar.name).toBe('maple sugar');
+    expect(sugar.tags as unknown as string[]).not.toContain('sugar');
+    // A strike (w 0.9) cooled to 20 °C holds unstarted; the sap is pure
+    // enough to grain.
+    const at293 = sap.solubility.find(([k]) => k === 293)![1];
+    expect(0.9 / (1 - 0.375 * 0.9) / at293).toBeLessThan(sap.crystallizesTo.metastableRatio);
+    expect(sap.crystallizesTo.purity).toBeGreaterThan(sap.crystallizesTo.minCrystalPurity);
+    // The strike row inherits it (strike → syrup → sap).
+    expect(row(`${F}/trade/forestry/idea/material/maple-strike.yaml`).extends).toBe('/trade/forestry/idea/material/maple-syrup');
+  });
+
   it('⭐ maple sap carries twice the sugar of birch — and only maple strikes', () => {
     const solids = (t: string): number => Number(data(SAP(t)).solidsKgPerL);
     expect(solids('maple') / solids('birch')).toBeCloseTo(2, 0);

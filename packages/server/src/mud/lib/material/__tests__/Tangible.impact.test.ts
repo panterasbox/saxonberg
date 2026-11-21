@@ -220,6 +220,9 @@ describe('thermal shock — heat too fast', () => {
     expect(p.getFlaws()[0]?.visible).toBe(false);
     expect(p.holdsWater('inside')).toBe(true);
     p.addFlaw('crack', true);
-    expect(p.holdsWater('inside')).toBe(false);
+    // ⭐ A crack is a flaw: the faces still hold, the crack lets it through
+    // at its own rate (matter-model-overlaps D4).
+    expect(p.holdsWater('inside')).toBe(true);
+    expect(p.flawLeakLPerHour(0.1, 1)).toBeGreaterThan(0);
   });
 });

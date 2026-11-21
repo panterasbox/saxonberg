@@ -13,6 +13,8 @@
 # short.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: moulding flask
   keywords: [flask, "moulding flask", "molding flask", "sand mould", mould, mold]
   register: indefinite
