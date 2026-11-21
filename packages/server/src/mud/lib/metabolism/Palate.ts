@@ -304,7 +304,8 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
         return { parts: [], gradeBand: null, maturedDays: 0 };
       }
       const payload = food.getBulkPayload('interior');
-      const band = this.bandIn(CraftingApi.blendDiscipline(payload));
+      const discipline = CraftingApi.blendDiscipline(payload);
+      const band = this.bandIn(discipline);
       const parts = CompetenceBand.atOrAbove(band, 'competent')
         ? [
             ...new Set(
@@ -318,7 +319,12 @@ export function PalateMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       return {
         parts,
         // The batch's grade (its payload's, D2) — not the bowl's making.
-        gradeBand: proficient ? (payload?.grade ?? null) : null,
+        // ⭐ A batch made by no recipe (a still's cut, a cask's maturing)
+        // names no discipline to be proficient in, so the palate reads the
+        // grade the eye already reads off it (the batch verdict on `look`):
+        // a mouth never knows less than a glance (found by the drive — a
+        // distiller's whiskey could never be tasted for its making).
+        gradeBand: proficient || discipline === '' ? (payload?.grade ?? null) : null,
         maturedDays: proficient ? (payload?.maturedDays ?? 0) : 0,
       };
     }
