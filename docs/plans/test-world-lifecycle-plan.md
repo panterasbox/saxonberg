@@ -917,7 +917,11 @@ under a governed eval leaves no corpse; empty-list prompts; unknown options
 ignored; overcast does not dim moonlight; fresh-good title race for players;
 an absent heir cannot be named).
 
-**Not yet run:** `tools/wire-indifference` (steps 2–5: the ordinary-world
+**The full suite: green — all 56 packages, 74 min** (`tools/suite`, at
+`d16bd76e2`, the run-6 fixes; server 16 426 passed, client 1 115). The first
+attempt's client failure was a stale install after the master merge.
+
+**Not yet run (was):** `tools/wire-indifference` (steps 2–5: the ordinary-world
 refusal, fresh · reuse · after the whole suite · Terminus absent, clean, a
 killed run) and the full suite. The first full-suite attempt queued behind
 build-2's, then the client package failed on a stale install (the tooltips
