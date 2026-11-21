@@ -24,6 +24,7 @@ import { useStore } from "../../store/index";
 import {
   boundariesView,
   crumbsView,
+  inferStanding,
   localityKnowledge,
   placeByKey,
   neighborDirection,
@@ -118,9 +119,17 @@ export function NavCard(props: NavCardProps): React.ReactElement {
   const rootRef = React.useRef<HTMLDivElement>(null);
   const bodies = React.useRef(new Map<string, HTMLDivElement>());
 
+  // Where you stand: the server's position, else inferred from a way that
+  // leads to a place your map has placed (the lounge sends none).
+  const standAt = React.useMemo(
+    () =>
+      sections.place?.at ??
+      (sections.zone?.id ? inferStanding(mapCopy, sections.zone.id.path, sections.ways?.ways ?? []) : undefined),
+    [sections.place?.at, sections.zone?.id, sections.ways, mapCopy],
+  );
   const standing: Standing | null =
-    sections.zone?.id && sections.place?.at
-      ? { zone: sections.zone.id.path, at: sections.place.at, ways: sections.ways?.ways ?? [] }
+    sections.zone?.id && standAt
+      ? { zone: sections.zone.id.path, at: standAt, ways: sections.ways?.ways ?? [] }
       : null;
   const herePlace = standing ? placeAt(mapCopy, standing.zone, standing.at) : undefined;
   const crumbs = React.useMemo(() => crumbsView(mapCopy, sections.localities), [mapCopy, sections.localities]);
@@ -318,6 +327,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
       <ChangeMark surface="nav:zone">
         <MapArea
           sections={sections}
+          {...(standAt ? { standAt } : {})}
           lenses={lenses}
           {...(routePlan ? { route: routePlan.plans } : {})}
           commandFor={commandFor}
