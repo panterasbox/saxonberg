@@ -83,6 +83,24 @@ trying to get people to log in — why bother if they can just watch the stream 
 **Kept from today:** full-bleed bands, the honest live count, co-equal providers, *every claim has a
 source*, the press room never awaited by sign-in.
 
+## 4b. The Compact first — what it does to Make and Fund **[DECIDED — the owner, 2026-11-20]**
+
+The Compact stands up before content ([separation-of-powers-slate § 7q](../society/separation-of-powers-slate.md)):
+only capital standing is minted, the vote on anything is the early-adopter incentive, and capital
+demand becomes labor demand. Two lines change:
+
+- **Make → the monthly jobs report's headline.** The Compact's press office publishes it monthly,
+  generated from the record: openings per institution with the load beside each (open cases per
+  moderator, bills per clerk, cases awaiting a panel). The Make line shows the open seats ranked by
+  load — **moderators first while moderation carries the most** — linking to the report. The Post's
+  moderator and editor seats (§ 6) are rows in it.
+- **Fund → the first election**, once capital standing exists — *"be part of the first Speaker vote"*
+  (the owner). Three states from the election's record: **waiting** (*Join the Capital House and vote
+  in its first election — Speaker of the Capital House. Opens at N members and X standing — now n
+  members, x standing.*), **open** (*Voting now — N candidates — closes on a date*), **closed** (*Speaker
+  of the Capital House: name*). An open spending proposal from the books (§ 6, 3a) sits beside it.
+  Before capital standing exists (the legal gate), the election line does not render.
+
 ## 4a. Where you came from **[DECIDED — the owner]**
 
 The owner: *"we can detect if they already have a twitch/youtube/kick session right? might be good to
