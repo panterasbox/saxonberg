@@ -120,6 +120,50 @@ demand becomes labor demand. Two lines change:
   of the Capital House: name*). An open spending proposal from the books (§ 6, 3a) sits beside it.
   Before capital standing exists (the legal gate), the election line does not render.
 
+## 4c. The books come back, and a calendar **[DECIDED — the owner, 2026-11-20]**
+
+### Fund shows the books — with the real numbers
+
+The owner: *"the fund section now looks really light without the current budget totals on it, so let's
+add that content back in and make it look nice. We actually have real numbers for this stuff, so use
+it. I'm also keen to let the game start paying for itself ASAP."* This **reverses** § 6's *"the books
+stay inside."*
+
+- **The books · last month**, from the journal's export (budget-slate § The first books): three figures —
+  **cost to run**, **support from players** (`Income:Support:*` only), **paid by the founder**
+  (`Equity:Founder`) — a bar of **support against cost to run, with its goal at 100%**, and the line
+  items. October, the first full month on record: **Claude $200.00 · AWS $15.31 (Cost Explorer) ·
+  Descript ~$24 · email ~$5** (the last two to be replaced by their invoices) — about **$244**, support
+  **$0**, the founder **$244**. The bar measures one plain thing — whether the game pays for itself —
+  which is what makes it honest rather than a donation thermometer.
+- ⭐ **One action: *Subscribe on Twitch to help it pay for itself.*** A Twitch subscription works
+  whether or not the channel is live, and the owner is already an affiliate, so this is the one support
+  rail open **today**. The button claims nothing about standing (the Fund sentence carries that, behind
+  the lawyer's read). YouTube and Kick join as each rail opens; a **door fee** (§ 7q of
+  separation-of-powers) would be a second line under support when it exists.
+- **FUNDING NOW** (an open proposal) still sits beneath it when one is open.
+
+### A calendar — *Coming up*
+
+The owner: *"the front page also needs a calendar widget where our upcoming elections are featured,
+currently both as TBD … we should probably have something on it with an actual date so people know
+what the fuck it is. Maybe the next livestream."* Under the show tile, in the right column:
+
+| date | item | source |
+|---|---|---|
+| **Tue, Dec 1** | *The Compact's books open* — every dollar in and out, in public | the journal's first entry (real) |
+| **Sat, Jan 2** *(sample)* | *The show returns* — 10 a.m. [time zone] — Twitch, YouTube, Kick | `show.schedule` |
+| **TBD** | *Election · Speaker of the Capital House* — opens at N members and X standing; now n and x | the election record (§ 7q) |
+| **TBD** | *Election · Clerk of the Court* — every citizen votes, one person one vote; called by the founder | the election record (§ 7r) |
+
+- **The calendar's source is three existing things:** dated **`event` releases** from the stocked
+  publishers (the release kind already ships), the **election records** (each a trigger or dates), and
+  `show.schedule`. No calendar collection — the page merges them by date; undated items (*TBD*) sort
+  last with their trigger shown.
+- **At least one item always has a real date** — the next show, or the next dated event — so a visitor
+  can tell what a calendar is for. An election moves from *TBD* to its dates the moment its trigger is
+  met.
+
 ## 4a. Where you came from **[DECIDED — the owner]**
 
 The owner: *"we can detect if they already have a twitch/youtube/kick session right? might be good to
