@@ -28,7 +28,6 @@ import ChattelRegistry from '../../../platform/idea/ChattelRegistry';
 import BusinessEntity from '../../../platform/idea/Business';
 import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Food from '../../../platform/idea/material/Food';
-import type { Crafted } from '../../craft/Crafted';
 import { EmploymentApi } from '../../../api/employment';
 import { BankingApi } from '../../../api/banking';
 import { ContainmentApi } from '../../../api/containment';
@@ -245,7 +244,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     const must = StuffApi.findByTemplatePath<Food>(MUST)!;
     vat.setBulkMaterial('interior', must);
     vat.setBulkAmount('interior', Quantity.of(4, 'L'));
-    (vat as unknown as Crafted).setMaker(VINTNER); // the founder's mark
+    vat.setBulkPayload('interior', { maker: VINTNER }); // the founder's mark, on the must (D2)
     vat.getMaturationPhase(); // key the batch
     now = BASE + 8 * DAY; // 0.2/day → finished, swapped to red
     expect(vat.getMaturationPhase()).toBe('finished');
@@ -389,8 +388,8 @@ describe('the cellars beat — rack, cork, consign, home', () => {
     for (const bottle of listed) {
       // The wine, at the batch's band, under the founder's mark (W0).
       expect(bottle.getBulkMaterialPath('interior')).toBe(RED);
-      expect((bottle as unknown as Crafted).getGradeBand()).toBe('masterful');
-      expect((bottle as unknown as Crafted).getMaker()).toBe(VINTNER);
+      expect(bottle.getBulkPayload('interior')?.grade).toBe('masterful');
+      expect(bottle.getBulkPayload('interior')?.maker).toBe(VINTNER);
       expect(MixinApi.isSealable(bottle) && bottle.isOpen()).toBe(false);
     }
 

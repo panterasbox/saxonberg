@@ -254,8 +254,9 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       if (!only || from.some((s) => s.stuffId !== only.stuffId)) return null;
       if (only.stuffId === self.stuffId) return null;
       const thing = StuffApi.findById(only.stuffId);
-      // The ground is everywhere you stand: it is not a thing a smell is pinned on.
-      if (!thing || MixinApi.isFloor(thing)) return null;
+      // The ground is everywhere you stand, and so is the air (D18): neither
+      // is a thing a smell is pinned on.
+      if (!thing || MixinApi.isFloor(thing) || MixinApi.isAtmospheric(thing)) return null;
       if (!MixinApi.isSensor(self) || !MixinApi.isPerception(self)) return null;
       const vision = PerceptionApi.modalityByName('vision') as VisionModality | null;
       if (!vision?.canSee(self as Stuff & Sensor & Perception, thing)) return null;

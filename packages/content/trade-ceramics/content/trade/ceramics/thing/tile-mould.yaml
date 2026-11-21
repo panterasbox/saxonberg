@@ -5,6 +5,8 @@
 # release). Wetter clay gives sooner; stiff clay wants more turns.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: tile mould
   keywords: [mould, mold, "tile mould", "tile mold"]
   register: indefinite

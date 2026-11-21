@@ -3,6 +3,8 @@
 # out through the holes in its floor into the pot below.
 class: /platform/thing/Mould
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: curing hogshead
   keywords: [hogshead, cask, "curing hogshead", barrel]
   register: indefinite

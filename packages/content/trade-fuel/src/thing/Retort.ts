@@ -37,14 +37,11 @@ import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PlacingMixin } from '@saxonberg/server/mud/lib/spatial/Placing';
 import { AssembledMixin } from '@saxonberg/server/mud/lib/craft/Assembled';
 import { DurableMixin } from '@saxonberg/server/mud/lib/material/Durable';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { VOLATILE_RECEIVER_MIXIN, type VolatileReceiver } from '../lib/VolatileReceiver';
 
 // ⭐ Made of parts (ceramics D19): its lining wears with every charge.
 const RetortBase = AssembledMixin(DurableMixin(ContainerMixin(PlacingMixin(Firebox))));
-
-/** What a receiver placed on the head answers to. */
-interface VolatileReceiver {
-  receive(materialPath: string, litres: number): number;
-}
 
 export default class Retort extends RetortBase {
   /**
@@ -62,13 +59,13 @@ export default class Retort extends RetortBase {
     if (!(litres > 0)) return 0;
     let left = litres;
     for (const placed of this.getPlaced()) {
-      const receiver = placed as unknown as Partial<VolatileReceiver>;
-      if (typeof receiver.receive !== 'function') continue;
-      const taken = receiver.receive(materialPath, left);
+      if (!MixinApi.hasMixin(placed, VOLATILE_RECEIVER_MIXIN as never)) continue;
+      const taken = (placed as unknown as VolatileReceiver).receive(materialPath, left);
       left -= taken > 0 ? taken : 0;
       if (!(left > 0)) break;
     }
-    // What nothing on the head took is the room's — the kernel routes it.
+    // What nothing on the head took goes on by the kernel's vent: the
+    // room's air (a retort keeps no air of its own — it is all pipe).
     return litres - Math.max(0, left);
   }
 }

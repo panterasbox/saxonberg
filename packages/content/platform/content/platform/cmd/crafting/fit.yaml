@@ -26,7 +26,9 @@ help: |
 
   `fit haft to pick` puts a new haft on your pick and keeps the head.
   `fit stave to cask` replaces a sprung stave. `fit cask` raises a
-  whole cask from the staves, heads and hoops in reach.
+  whole cask from the staves, heads and hoops in reach. A cask with a
+  sprung stave runs out until it is fitted — a sprung stave is fitted,
+  one at a time.
 
   Each joint has a way of being made: some by hand, some with a tool
   (a cooper's driver), some only at a forge — and some want a hand

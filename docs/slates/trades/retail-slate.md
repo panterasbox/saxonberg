@@ -244,6 +244,13 @@ one way. What it wants: a per-instance scale on the bid (length, wear, rot,
 a cut cheese, a half sack), read where the house PAYS, never on the per-row
 board.
 
+⚠ **Grade does not price (finding, matter-model-overlaps 2026-11-20).** A
+batch's grade now rides its contents (`payload.grade`; a vessel keeps its
+own making), and nothing a house pays reads it: a fine whiskey and a poor
+one bid the same. The owner ruled pricing by grade out of that build; when
+per-instance worth lands, `payload.grade` (and a solid's `getGrade()`) is
+the read.
+
 ## Open questions (for when each build opens)
 
 - **S1 — the storefront abstraction.** Extract a shared offer/price-list

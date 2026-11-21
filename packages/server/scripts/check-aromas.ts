@@ -57,7 +57,6 @@ const AROMA_FIELDS: Readonly<Record<string, string>> = {
   burning: 'aroma',
   combustionImparts: 'type',
   imparts: 'type',
-  charredImparts: 'type',
   dissolvedAromatics: 'type',
 };
 

@@ -38,29 +38,31 @@ describe('refines — one act per beat', () => {
   it('walks the batch in order', () => {
     const steps: string[] = [];
     let f: Parameters<typeof brain.next>[0] = { ...base };
-    const apply: Record<string, (x: typeof f) => typeof f> = {
+    const apply: Record<string, (x: typeof f, line: string) => typeof f> = {
       pour: (x) => ({ ...x, liquor: 'water' }),
-      put: (x) => ({ ...x, liquor: 'liquor' }),
+      get: (x, line) => (/ on arch$/.test(line) ? { ...x, onFire: true } : { ...x, liquor: 'liquor' }),
       temper: (x) => ({ ...x, limed: 1 }),
       skim: (x) => ({ ...x, skimmed: true }),
       stoke: (x) => ({ ...x, fireFuelled: true }),
       light: (x) => ({ ...x, fireLit: true }),
-      heat: (x) => ({ ...x, onFire: true }),
     };
     for (let i = 0; i < 10; i++) {
       const verb = brain.next(f);
       if (verb === null) break;
       steps.push(verb);
-      f = apply[verb.split(' ')[0]!]!(f);
+      f = apply[verb.split(' ')[0]!]!(f, verb);
     }
     expect(steps).toEqual([
       'pour butt into copper --amount 30L',
-      'put block in copper',
+      // ⭐ `put` takes from the hands: the block is picked up first (a
+      // shipped defect W0 found — the line had no `get`).
+      'get block\nput block in copper',
       'temper copper with lime',
       'skim copper into pail',
       'stoke coal into arch',
       'light arch',
-      'heat copper',
+      // ⭐ Set on the fire by hand: `heat <pot>` is retired for this `put`.
+      'get copper\nput copper on arch',
     ]);
     expect(steps.some((s) => s.startsWith('boil'))).toBe(false);
   });
@@ -81,6 +83,14 @@ describe('refines — one act per beat', () => {
     expect(brain.next({ ...base, liquor: 'spoilt', onFire: true }, train)).toBe('spill kettle');
   });
 
+  it('⭐ seeds a strike in its mould — a piece of sugar taken up and put in, else a stir (D15)', () => {
+    const poured = { ...base, liquor: 'empty' as const, coneAndPot: false, unseeded: true };
+    expect(brain.next({ ...poured, seed: true, refs: { unseeded: '#c1', seed: '#p1' } })).toBe('get #p1\nput #p1 in #c1');
+    expect(brain.next({ ...poured, seed: false, refs: { unseeded: '#c1' } })).toBe('stir #c1');
+    // …after the pour, never before it.
+    expect(brain.next({ ...base, liquor: 'struck', coneReady: true, unseeded: true })).toBe('pour copper into cone');
+  });
+
   it('waits for what it has not got', () => {
     expect(brain.next({ ...base, liquor: 'water', block: false })).toBeNull();
     expect(brain.next({ ...base, liquor: 'liquor', lime: false })).toBeNull();
@@ -99,7 +109,7 @@ describe('refines — one act per beat', () => {
   });
 
   it('⭐⭐ island sugar first; with none on the floor it buys the import at its own counter', () => {
-    expect(brain.next({ ...base, liquor: 'water', block: true })).toBe('put block in copper');
+    expect(brain.next({ ...base, liquor: 'water', block: true })).toBe('get block\nput block in copper');
     expect(brain.next({ ...base, liquor: 'water', block: false, counterBlock: true })).toBe(
       'go south\nwallet use house\nbuy block\ngo north',
     );

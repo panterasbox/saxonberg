@@ -46,13 +46,12 @@ import type {
 } from "@saxonberg/server/mud/api/command";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { FabricKind } from "@saxonberg/server/mud/lib/structure/Maintainable";
+import type { FabricKind, Maintainable } from "@saxonberg/server/mud/lib/structure/Maintainable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
 import { NavigationApi } from "@saxonberg/server/mud/api/navigation";
 import HoldingWarren from "../../HoldingWarren";
-import BuildingBase from "@saxonberg/server/mud/lib/structure/Building";
 import Ship from "@saxonberg/server/mud/platform/idea/Ship";
 import type Place from "@saxonberg/server/mud/lib/stuff/Place";
 
@@ -66,7 +65,7 @@ interface MaintainModel extends CommandModel {
 const UPKEEP = "upkeep";
 
 /** What there is to keep up: a BUILDING, or a SHIP's hull (a chair is `repair`'s). */
-type Fabric = BuildingBase | Ship;
+type Fabric = Stuff & Maintainable;
 
 /** The words a fabric is kept in — a house's sills and putty, a hull's seams and pitch. */
 interface UpkeepWords {
@@ -149,9 +148,9 @@ export default class MaintainController extends CommandController {
     }
   }
 
-  /** A building or a ship — the two fabrics a kit keeps up. */
+  /** A fabric a kit keeps up — a building or a ship (`MaintainableMixin`). */
   protected static kept(s: Stuff): s is Fabric {
-    return s instanceof BuildingBase || s instanceof Ship;
+    return MixinApi.isMaintainable(s);
   }
 
   protected static refuse(context: CommandContext, reason: string, detail: string, said: Mml): void {

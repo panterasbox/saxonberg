@@ -50,6 +50,10 @@ data:
     - /trade/haulage/thing/receiving-bench
     - /stuff/thing/fixture/table
     - /trade/sugar/thing/sugar-nips
+    # ⭐ A piece of loaf sugar to seed the strike with (matter-model-overlaps
+    # D15): a struck cone cools and HOLDS until something starts it. The
+    # boiler puts a piece in, and keeps one back from every loaf after.
+    - /trade/sugar/thing/sugar-piece
     - { template: /trade/quarrying/thing/coal, count: 8 }
   cast:
     - /world/terminus/goods-yards/sugar-house/agent/refiner

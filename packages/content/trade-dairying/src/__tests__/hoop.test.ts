@@ -9,8 +9,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hoop from '../thing/Hoop';
 import Wheel from '../thing/Wheel';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
-import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import Place from '@saxonberg/server/mud/lib/stuff/Place';
+import Floor from '@saxonberg/server/mud/platform/thing/Floor';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -24,8 +24,16 @@ import { EventApi } from '@saxonberg/server/mud/api/event';
 import EventRegistry from '@saxonberg/server/mud/platform/idea/EventRegistry';
 import { Placements } from '@saxonberg/server/mud/lib/spatial/Placement';
 
-class TestRoom extends ContainerMixin(Idea) {
-  static _mixinName = 'DairyHoopTestRoom';
+class TestRoom extends Place {}
+
+/** A room with a floor: a hoop on a bare board drains its whey onto it (D10). */
+function floored(): TestRoom {
+  const room = makeStuff(() => new TestRoom());
+  const floor = makeStuff(() => new Floor());
+  floor.surfaceBulk = true;
+  floor.setSurfaceCapacity(Quantity.of(100, 'L'));
+  room.addFixture(floor);
+  return room;
 }
 
 const WHEEL_ROW = '/trade/dairying/thing/wheel';
@@ -50,7 +58,7 @@ function at(s: number): void {
 /** The hoop as its row authors it, standing in a room, filled with curd. */
 function hoop(curdPath: string, litres: number): { hoop: Hoop; room: TestRoom } {
   const d = readRow('/trade/dairying/thing/hoop').data as Record<string, unknown>;
-  const room = makeStuff(() => new TestRoom());
+  const room = floored();
   const h = vessel(() => new Hoop(), Number(d.interiorCapacity), 288, {
     material: mat(curdPath),
     litres,
@@ -143,6 +151,11 @@ describe('the cheese hoop', () => {
     expect(w.getMass().rawValue()).toBeCloseTo(2.06 * (1 - (1 - m) * 0.7), 2);
     expect(h.setState()).toBe('set');
     expect(h.getCondition()).toBeCloseTo(0.99, 6);
+    // ⭐ A hoop on a bare board drains its whey to the floor (the one drip,
+    // matter-model-overlaps D10) — it no longer runs away to nowhere.
+    const floor = room.getFloor() as unknown as Floor;
+    expect(floor.getBulkMaterialPath('surface')).toBe(MAT.whey);
+    expect(floor.getBulkAmount('surface').rawValue()).toBeGreaterThan(0);
   });
 
   it('soft curd left unweighted takes the whole half-day and stays wet', async () => {

@@ -73,6 +73,10 @@ data:
       scorchAboveK: 1560
       scorched: /stuff/idea/material/ceramic/clinker
       discipline: pottery
+      # ⭐ Salt glazing is a ROW (matter-model-overlaps D16): salt vapor in
+      # the kiln's air as the body reaches its rung lays a salt glaze on the
+      # outside. Throw salt in at the peak — `put salt in kiln`.
+      vapor: { /stuff/idea/material/gas/salt-vapor: /stuff/idea/material/glaze/salt }
       ladder:
         - atDegree: 1
           becomes: /stuff/idea/material/ceramic/stoneware

@@ -1,0 +1,21 @@
+# Maple sugar — ⭐ what a maple strike sets as once it is started
+# (matter-model-overlaps D12): the crop of the sap row's `crystallizesTo`,
+# its mother liquor maple syrup. Maple sap is nearly all sucrose, so the
+# crop is most of what was in the pan and the syrup left is little.
+class: /platform/idea/material/SolidFood
+data:
+  smells: [{ aroma: /base-library/aromas/sugar/caramel, strength: 40 }]
+  name: maple sugar
+  keywords: [maple-sugar, sugar, maple]
+  appearance: hard, fine-grained and tan, smelling faintly of caramel
+  density: 1580
+  specificHeat: 1250
+  thermalConductivity: 0.2
+  electricalConductivity: 0
+  hardness: 2
+  tastes: [{ type: sweet, amount: 980 }]
+  spoilActivationEnergy: 90000
+  waterActivity: 0.4
+  nutrients: ["sugar"]
+  nutrientAmounts: { sugar: 980000 }
+  tags: ["solid", "food", "maple-sugar", "sweetener"]

@@ -400,3 +400,24 @@ describe('the catalogue is lazy, never warmed', () => {
     expect(await c.allReaches()).toHaveLength(6);
   });
 });
+
+describe('⭐⭐ the ONE snag rule (river D29; matter-model-overlaps D7)', () => {
+  // Noon and midnight of the first game day.
+  const NOON = 12 * 3600;
+  const MIDNIGHT = 0;
+
+  it('a clear reach, or one met slower than the eye reads the water, is clear', () => {
+    const cat = makeStuff(() => new WatercourseCatalogue());
+    expect(cat.snagVerdict({ obstruction: 0.3, sogMps: 5, nowS: MIDNIGHT })).toBe('clear');
+    // Sight by night is clarity × 0.4 × ¼ = 0.6 m/s; a drift is under it.
+    expect(cat.snagVerdict({ obstruction: 0.55, sogMps: 0.5, nowS: MIDNIGHT })).toBe('clear');
+  });
+
+  it('a choked reach met at speed is SEEN by day and STRUCK by night', () => {
+    const cat = makeStuff(() => new WatercourseCatalogue());
+    // A paddled rowboat downstream: ~1.1 m/s through the water and a current.
+    expect(cat.snagVerdict({ obstruction: 0.55, sogMps: 2.6, nowS: NOON })).toBe('seen');
+    expect(cat.snagVerdict({ obstruction: 0.55, sogMps: 2.0, nowS: NOON })).toBe('clear');
+    expect(cat.snagVerdict({ obstruction: 0.55, sogMps: 2.0, nowS: MIDNIGHT })).toBe('struck');
+  });
+});

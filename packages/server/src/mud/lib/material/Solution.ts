@@ -20,15 +20,16 @@ import type { GradeBand } from '../craft/Grade';
 /**
  * ⭐ One stage of a boiled-down solution (sugar D1): once the liquor's
  * dissolved-solids mass fraction reaches `fromW` on the boil plateau, it
- * becomes the material `becomes` — unless `minBand` is set and the
- * vessel's grade is below it, when it becomes `elseBecomes` instead
- * (*what will not grain is blackstrap*). The `purifiedByBoiling` shape,
- * keyed on concentration rather than time.
+ * becomes the material `becomes` — unless `minPurity` is set and the
+ * liquor's purity (its payload's, else the row's) is below it, when it
+ * becomes `elseBecomes` instead (*what will not grain is blackstrap* —
+ * matter-model-overlaps D12). The `purifiedByBoiling` shape, keyed on
+ * concentration rather than time.
  */
 export interface ConcentrationArrow {
   fromW: number;
   becomes: string;
-  minBand?: GradeBand;
+  minPurity?: number;
   elseBecomes?: string;
 }
 
@@ -37,17 +38,48 @@ export interface ConcentrationArrow {
  * dissolve (ceramics S17): the crystals (`product`, a material path) and
  * the mother liquor left behind (`residue` — brine's is bittern). Both
  * paths; the residue may name the material itself.
+ *
+ * - `productAs` — ⭐ what the crop IS when it sets as a given shape, keyed
+ *   by the mould's cast template (sugar: set in a cone it is loaf sugar;
+ *   in a curing hogshead, purged coarse and never clayed, it is raw sugar —
+ *   matter-model-overlaps D13). Absent for a shape: `product`.
+ * - `drainDays` — game-days the spent liquor takes to run out of a MOULD
+ *   (a cone's molasses, four days). Absent: it runs off at once (a salt
+ *   pan's bittern).
+ * - `metastableRatio` — ⭐ how far past saturation it holds with nothing to
+ *   start it (D14): held/solubility at or above this, it starts on its own,
+ *   a coarse mass. Sucrose ≈ 1.7, salt 1.1. Absent: 1 (any excess starts).
+ * - `purity` — ⭐ the crystallizing solute's share of the dissolved solids
+ *   for a fill with no figure of its own (D12; a raw liquor 0.8) — the
+ *   liquor's own rides its payload. Absent: 1.
+ * - `minCrystalPurity` — below it the liquor will not grain at all
+ *   (blackstrap). Absent: 0.
+ * - `gradeByPurity` — `[[purity, band], …]`, purity ascending, each band
+ *   holding from its purity up: the liquor's grade read off what is left.
+ *
+ * ⭐ All on this one record, not loose on the material: they are facts about
+ * how it CRYSTALLIZES, and a solution that does not crystallize has none of
+ * them (`lint:material-kinds` counts a loose capability field as a gap on
+ * every solution row).
  */
 export interface CrystallizesTo {
   product: string;
   residue: string;
+  productAs?: Record<string, string>;
+  drainDays?: number;
+  metastableRatio?: number;
+  purity?: number;
+  minCrystalPurity?: number;
+  gradeByPurity?: Array<[number, GradeBand]>;
 }
 
 export interface Solution {
   getPurifiedByBoiling(): string;
   setPurifiedByBoiling(value: string): void;
   getSolidsKgPerL(): number;
-  setSolidsKgPerL(value: number): void;
+  setSolidsKgPerL(value: number): Promise<void> | undefined;
+  /** The liquid this is a solution OF — what its boil gives off. */
+  getSolvent(): string;
   solidsMassFraction(solidsKgPerL: number): number;
   getBoilingPointElevation(): ReadonlyArray<readonly [number, number]>;
   setBoilingPointElevation(value: Array<[number, number]> | null): void;
@@ -59,6 +91,16 @@ export interface Solution {
   solubilityAt(tempK: number): number | null;
   getCrystallizesTo(): CrystallizesTo | null;
   setCrystallizesTo(value: CrystallizesTo | null): void;
+  /** The crop's material when it sets as `shapePath` (`productAs`, else `product`), or `''`. */
+  productFor(shapePath: string): string;
+  /** `crystallizesTo.metastableRatio`, else 1. */
+  getMetastableRatio(): number;
+  /** `crystallizesTo.purity`, else 1. */
+  getPurity(): number;
+  /** `crystallizesTo.minCrystalPurity`, else 0. */
+  getMinCrystalPurity(): number;
+  /** The grade a liquor of `purity` reads as, by the row's thresholds — `null` when it authors none. */
+  gradeAtPurity(purity: number): GradeBand | null;
   getFilteredTo(): string;
   setFilteredTo(value: string | null): void;
 }
@@ -147,8 +189,30 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     public getSolidsKgPerL(): number {
       return this.solidsKgPerL;
     }
-    public setSolidsKgPerL(value: number): void {
+    /**
+     * Set the fresh-litre solids — and, when there are any, load the
+     * SOLVENT with the row (the restoring-setter door, `setMadeFrom`'s
+     * shape): the boil reads its vapor synchronously. `undefined` when it
+     * is live. The Api is reached late — `MaterialApi` reaches this module
+     * back.
+     */
+    public setSolidsKgPerL(value: number): Promise<void> | undefined {
       this.solidsKgPerL = Number.isFinite(value) && value > 0 ? value : 0;
+      if (!(this.solidsKgPerL > 0)) return undefined;
+      return import('../../api/material').then(({ MaterialApi }) =>
+        MaterialApi.materials().ensureCited([SOLVENT_PATH]),
+      );
+    }
+
+    /**
+     * ⭐ What this is a solution OF: water. The boil plateau keeps every
+     * gram of the solids and gives off a litre of water a kilogram (its
+     * `kgPerL = 1`), so the steam off a copper of sugar liquor, a brine
+     * pan or a lye kettle is the solvent's vapor — water's
+     * `vapourMaterial` — whatever is dissolved in it.
+     */
+    public getSolvent(): string {
+      return SOLVENT_PATH;
     }
 
     /**
@@ -238,13 +302,13 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
           !(a.fromW > prev && a.fromW <= 1) ||
           typeof a.becomes !== 'string' ||
           a.becomes.trim() === '' ||
-          (a.minBand !== undefined && !Grade.isBand(a.minBand)) ||
-          (a.minBand === undefined) !== (a.elseBecomes === undefined) ||
+          (a.minPurity !== undefined && !(Number.isFinite(a.minPurity) && a.minPurity > 0 && a.minPurity <= 1)) ||
+          (a.minPurity === undefined) !== (a.elseBecomes === undefined) ||
           (a.elseBecomes !== undefined &&
             (typeof a.elseBecomes !== 'string' || a.elseBecomes.trim() === ''))
         ) {
           throw new RangeError(
-            'Material.setConcentratesTo: need fromW ascending in (0, 1], becomes a path, minBand a grade band, and elseBecomes present iff minBand',
+            'Material.setConcentratesTo: need fromW ascending in (0, 1], becomes a path, minPurity in (0, 1], and elseBecomes present iff minPurity',
           );
         }
         prev = a.fromW;
@@ -252,7 +316,7 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       this.concentratesTo = value.map((a) => ({
         fromW: a.fromW,
         becomes: a.becomes.trim(),
-        ...(a.minBand ? { minBand: a.minBand, elseBecomes: a.elseBecomes!.trim() } : {}),
+        ...(a.minPurity !== undefined ? { minPurity: a.minPurity, elseBecomes: a.elseBecomes!.trim() } : {}),
       }));
     }
 
@@ -327,7 +391,83 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       if (product === '' || residue === '') {
         throw new TypeError('Material.crystallizesTo needs both a product and a residue path');
       }
-      this.crystallizesTo = { product, residue };
+      const as = value.productAs;
+      if (
+        as !== undefined &&
+        as !== null &&
+        (typeof as !== 'object' ||
+          !Object.entries(as).every(([shape, path]) => shape !== '' && typeof path === 'string' && path.trim() !== ''))
+      ) {
+        throw new TypeError('Material.crystallizesTo.productAs must map a shape path to a material path');
+      }
+      const days = value.drainDays;
+      if (days !== undefined && days !== null && !(Number.isFinite(days) && days > 0)) {
+        throw new TypeError('Material.crystallizesTo.drainDays must be a number of game-days > 0');
+      }
+      const ratio = value.metastableRatio;
+      if (ratio !== undefined && ratio !== null && !(Number.isFinite(ratio) && ratio >= 1)) {
+        throw new RangeError('Material.crystallizesTo.metastableRatio must be a number >= 1');
+      }
+      const purity = value.purity;
+      if (purity !== undefined && purity !== null && !(Number.isFinite(purity) && purity > 0 && purity <= 1)) {
+        throw new RangeError('Material.crystallizesTo.purity must be a share in (0, 1]');
+      }
+      const min = value.minCrystalPurity;
+      if (min !== undefined && min !== null && !(Number.isFinite(min) && min >= 0 && min < 1)) {
+        throw new RangeError('Material.crystallizesTo.minCrystalPurity must be a share in [0, 1)');
+      }
+      const grades = value.gradeByPurity ?? [];
+      let prev = -1;
+      for (const pt of grades) {
+        if (
+          !Array.isArray(pt) ||
+          pt.length !== 2 ||
+          !(Number.isFinite(pt[0]) && pt[0] >= 0 && pt[0] <= 1 && pt[0] > prev) ||
+          typeof pt[1] !== 'string' ||
+          !Grade.isBand(pt[1])
+        ) {
+          throw new RangeError(
+            'Material.crystallizesTo.gradeByPurity: need [[purity, band], …] with purity ascending in [0, 1] and a grade band',
+          );
+        }
+        prev = pt[0];
+      }
+      this.crystallizesTo = {
+        product,
+        residue,
+        ...(as ? { productAs: Object.fromEntries(Object.entries(as).map(([k, v]) => [k, v.trim()])) } : {}),
+        ...(days ? { drainDays: days } : {}),
+        ...(ratio ? { metastableRatio: ratio } : {}),
+        ...(purity ? { purity } : {}),
+        ...(min ? { minCrystalPurity: min } : {}),
+        ...(grades.length > 0 ? { gradeByPurity: grades.map(([p, b]) => [p, b] as [number, GradeBand]) } : {}),
+      };
+    }
+
+    public productFor(shapePath: string): string {
+      const into = this.crystallizesTo;
+      if (into === null) return '';
+      return into.productAs?.[shapePath] ?? into.product;
+    }
+
+    public getMetastableRatio(): number {
+      return this.crystallizesTo?.metastableRatio ?? 1;
+    }
+
+    public getPurity(): number {
+      return this.crystallizesTo?.purity ?? 1;
+    }
+
+    public getMinCrystalPurity(): number {
+      return this.crystallizesTo?.minCrystalPurity ?? 0;
+    }
+
+    public gradeAtPurity(purity: number): GradeBand | null {
+      const table = this.crystallizesTo?.gradeByPurity ?? [];
+      if (table.length === 0) return null;
+      let band: GradeBand = table[0]![1];
+      for (const [from, b] of table) if (purity >= from - 1e-9) band = b;
+      return band;
     }
 
     /**
@@ -354,3 +494,6 @@ export function SolutionMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
  * sucrose's, and near enough for any sugar or salt a pan boils down.
  */
 const SOLUTE_DENSITY_KG_PER_L = 1.6;
+
+/** The solvent every boiled-down solution is of (`getSolvent`). */
+const SOLVENT_PATH = '/stuff/idea/material/bulk/water';

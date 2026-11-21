@@ -27,7 +27,9 @@ data:
   # ⭐ Her hull: the numbers she always floated by (the
   # fallback `hullNow` read), and `depthM` — keel to deck, what she can take
   # aboard before the water is at her deck and she settles.
-  hull: { lengthM: 30, beamM: 6, draftM: 1.2, depthM: 3 }
+  # ⭐ `material`: what she is planked with — a patch over a hole in her is
+  # of it (matter-model-overlaps D8); with none, `repair` refuses the patch.
+  hull: { lengthM: 30, beamM: 6, draftM: 1.2, depthM: 3, material: /stuff/idea/material/wood/oak }
   mastheadHeightM: 20
   house: /world/terminus/hesper/idea/outfit
   # ⭐ The register she is entered in, and the name she is entered under

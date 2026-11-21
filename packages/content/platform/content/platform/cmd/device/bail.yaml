@@ -19,7 +19,9 @@ help: |
   **A boat.** Sitting in a boat that is taking water, `bail` throws it out
   over her side — with your hands, or quicker with a bailer or a bucket.
   A boat that leaks faster than you bail goes down with what is in her;
-  stop bailing a holed boat and she fills.
+  stop bailing a holed boat and she fills. She takes water through a hole
+  stove in her and, once her tar has gone, at her seams — one bucket keeps
+  a holed rowboat up; `repair` patches the hole.
 
   **A well, a bore.** The bucket goes down on a rope and comes back with
   what is standing there — the deeper, the longer the trip. At a wellhead

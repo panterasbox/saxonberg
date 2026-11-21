@@ -166,6 +166,8 @@ import type { Shapeable } from '../lib/craft/Shapeable';
 import type { Forming } from '../lib/craft/Forming';
 import type { Carvable } from '../lib/craft/Carvable';
 import type { PourTarget } from '../lib/bulk/PourTarget';
+import type { StirTarget } from '../lib/craft/StirTarget';
+import type { Maintainable } from '../lib/structure/Maintainable';
 import type { Impressible } from '../lib/craft/Impressible';
 import type { Turnable } from '../lib/craft/Turnable';
 import type { HandWorked } from '../lib/craft/HandWorked';
@@ -186,6 +188,7 @@ import type { Solidity } from '../lib/material/Solidity';
 import type { Porosity } from '../lib/material/Porosity';
 import type { Edibility } from '../lib/material/Edibility';
 import type { Toxicity } from '../lib/material/Toxicity';
+import type { Extraction } from '../lib/material/Extraction';
 import type { Perishability } from '../lib/material/Perishability';
 import type { Acidity } from '../lib/material/Acidity';
 import type { Solution } from '../lib/material/Solution';
@@ -275,6 +278,7 @@ import type { Steepable } from '../lib/craft/Steepable';
 import type { Tooled } from '../lib/craft/Tool';
 import type { Durable } from '../lib/material/Durable';
 import type { Integrity } from '../lib/material/Integrity';
+import type { Flawed } from '../lib/material/Flawed';
 import type { Assembled } from '../lib/craft/Assembled';
 import type { Seasoning } from '../lib/material/Seasoning';
 import type { Keen } from '../lib/material/Keen';
@@ -1931,6 +1935,14 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.PourTarget);
   }
 
+  public static isStirTarget(obj: Stuff): obj is Stuff & StirTarget {
+    return this.hasMixin(obj, Mixins.StirTarget);
+  }
+
+  public static isMaintainable(obj: Stuff): obj is Stuff & Maintainable {
+    return this.hasMixin(obj, Mixins.Maintainable);
+  }
+
   public static isImpressible(obj: Stuff): obj is Stuff & Impressible {
     return this.hasMixin(obj, Mixins.Impressible);
   }
@@ -2032,6 +2044,11 @@ export class MixinApi {
 
   public static hasToxicity(obj: Stuff): obj is Stuff & Toxicity {
     return this.hasMixin(obj, Mixins.Toxicity);
+  }
+
+  /** What a wall of this material gives what it holds (a leach, an aroma). */
+  public static hasExtraction(obj: Stuff): obj is Stuff & Extraction {
+    return this.hasMixin(obj, Mixins.Extraction);
   }
 
   public static hasPerishability(obj: Stuff): obj is Stuff & Perishability {
@@ -2388,6 +2405,11 @@ export class MixinApi {
   /** An article that carries the one damage record — flaws, integrity, impact, ring. */
   public static isIntegrity(obj: Stuff): obj is Stuff & Integrity & Tangible {
     return this.hasMixin(obj, Mixins.Integrity);
+  }
+
+  /** Carries the flaw record — an article (through `Integrity`) or a ship's hull (D5). */
+  public static isFlawed(obj: Stuff): obj is Stuff & Flawed {
+    return this.hasMixin(obj, Mixins.Flawed);
   }
 
   public static isDurable(obj: Stuff): obj is Stuff & Durable {

@@ -10,6 +10,9 @@
  */
 
 import Material from '../Material';
+import Gas from '../../../platform/idea/material/Gas';
+import Water from '../../../platform/idea/material/Water';
+import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
@@ -29,3 +32,38 @@ export const TEST_TISSUES: Record<string, string[]> = {
   '/stuff/idea/material/tissue/bone': ['tissue', 'bone'],
   '/stuff/idea/material/tissue/muscle': ['tissue'],
 };
+
+/** The solvent every boiled-down solution gives off (`Solution.getSolvent`). */
+export const SOLVENT_WATER = '/stuff/idea/material/bulk/water';
+/** Its vapor row — what a boil vents into the air. */
+export const SOLVENT_WATER_VAPOR = '/stuff/idea/material/gas/water-vapor';
+
+/**
+ * ⭐ Stand the SOLVENT (water, and its vapor row) unless it is live. A
+ * running world loads it with any row that authors dissolved solids (the
+ * `setSolidsKgPerL` door); a suite that builds a solution by hand and
+ * boils it stands it here, because the boil vents water's vapor.
+ */
+export function standSolvent(): Water {
+  if (!StuffApi.findByTemplatePath(SOLVENT_WATER_VAPOR)) {
+    makeStuffAtPath(() => {
+      const g = new Gas();
+      g.setName('water vapor');
+      g.setDensity(Quantity.of(0.6, 'kg/m³'));
+      g.setTags(['gas', 'water-vapor']);
+      return g;
+    }, SOLVENT_WATER_VAPOR);
+  }
+  const live = StuffApi.findByTemplatePath<Water>(SOLVENT_WATER);
+  if (live) return live;
+  return makeStuffAtPath(() => {
+    const m = new Water();
+    m.setName('water');
+    m.setDensity(Quantity.of(1000, 'kg/m³'));
+    m.setSpecificHeat(Quantity.of(4186, 'J/(kg·K)'));
+    m.setBoilingPoint(Quantity.of(373, 'K'));
+    m.setLatentHeatOfVaporization(Quantity.of(2_260_000, 'J/kg'));
+    m.setVapourMaterial(SOLVENT_WATER_VAPOR);
+    return m;
+  }, SOLVENT_WATER) as unknown as Water;
+}

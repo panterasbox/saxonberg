@@ -40,6 +40,7 @@ import type { Burner } from '../fire/Burner';
 import type Material from '../material/Material';
 import type { BulkAffordance, BulkPayload } from '../bulk/Bulkable';
 import type { ConcentrationArrow } from '../material/Material';
+import type { CrystallizesTo } from '../material/Solution';
 import type { Meltable } from './Meltable';
 import { ContainmentApi } from '../../api/containment';
 import type { MixinConstructor, FieldMeta } from "../mixin";
@@ -56,7 +57,7 @@ import { PerceptionApi } from "../../api/perception";
 import { StuffApi } from "../../api/stuff";
 import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from "../../api/biome";
-import { WorldClockApi } from "../../api/worldclock";
+import { WorldClockApi, type ClockHandle } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
 import { Decay } from "../Decay";
 import { AppApi } from "../../api/app";
@@ -69,7 +70,6 @@ import type {
 import { KineticRecord } from "../material/KineticRecord";
 import type { Fusion } from "../material/Fusion";
 import type { MarkupAugmenter } from "../../api/mml";
-import type { Atmospheric as AtmosphericScope } from "../biome/Atmospheric";
 import type { Composition } from "../material/Composition";
 import { Grade } from "../craft/Grade";
 import { Evaporation } from "../material/Evaporation";
@@ -105,6 +105,28 @@ declare module "../bulk/Bulkable" {
      * boils water off; a pour folds it by volume.
      */
     dissolvedSolidsKgPerL?: number;
+    /**
+     * ⭐ Something has started this liquor crystallizing (matter-model-
+     * overlaps D14) — a stir stamped it (`noteAgitated`), or a set did. A
+     * supersaturated liquor with this unset and no seed, no drying edge and
+     * not past its `metastableRatio` HOLDS. A read that finds it back under
+     * saturation clears it; it rides the payload through a pour.
+     */
+    nucleated?: boolean;
+    /**
+     * ⭐ The crystallizing solute's share of these dissolved solids (D12) —
+     * absent: the material's own `purity`. Tempering and skimming raise it;
+     * every crop takes out solute only, so what is left is less pure by the
+     * mass balance `(S·p − x)/(S − x)`.
+     */
+    purity?: number;
+    /**
+     * ⭐ The spent liquor running out of a mould (D13): the game-second the
+     * drain was last integrated to, and the one it is through. Both cleared
+     * when it is.
+     */
+    liquorDrainStampS?: number;
+    liquorDrainDueS?: number;
   }
 }
 
@@ -330,6 +352,30 @@ type ThermalHost = Stuff & Tangible & Containable;
 
 export interface Thermal {
   reconcilePhase(): void;
+  /**
+   * ⭐ The held liquor was stirred (matter-model-overlaps D14): a liquor
+   * holding more than it can keep is started (`payload.nucleated`) and the
+   * phase pass runs, so the crop sets now. Returns whether anything started.
+   */
+  noteAgitated(): boolean;
+  /**
+   * ⭐ How far the held liquor is past saturation — held/solubility at its
+   * temperature — and whether anything has started it (stirred, seeded, on
+   * a drying edge, or past its metastable ratio); `null` when it is not a
+   * crystallizing solution, or too impure ever to grain.
+   */
+  supersaturation(): { ratio: number; started: boolean } | null;
+  /** When a mould's spent liquor is through running out (D13), or `0`. */
+  getLiquorWakeAtS(): number;
+  /** Set (or clear, `0`) that moment, and arm its wake. */
+  setLiquorWakeAtS(value: number): void;
+  /**
+   * When this body, lying in a lit chamber hotter than its material's
+   * `vaporizesAboveK`, reaches that heat and goes to vapor (D16), or `0`.
+   */
+  getVaporWakeAtS(): number;
+  /** Set (or clear, `0`) that moment, and arm its wake. */
+  setVaporWakeAtS(value: number): void;
   reachableHeatK(): number;
   /** The hottest lit burner in reach, or `null` — the fire, not its heat. */
   reachableHeatSource(): (Stuff & Burner) | null;
@@ -409,6 +455,13 @@ export interface Thermal {
   getContentsTemperature(): Quantity<"K">;
   /** Set the fluid temperature directly + re-anchor (bulk coupling). */
   setContentsTemperature(k: number): void;
+  /**
+   * ⭐ A pour lands: mix its heat with the vessel's — the incoming matter's
+   * `m·c` at its temperature against what the vessel already holds AND its
+   * own body (`mass × specific heat`), settling to the energy-weighted
+   * temperature. Call BEFORE the litres land.
+   */
+  mixPour(litres: number, material: Material, temperatureK: number): void;
   /** Deposit `joules` of heat, raising temperature by ΔT = Q / C + re-anchor. */
   depositHeat(joules: number): void;
   /** Time constant τ = R·C. */
@@ -649,7 +702,111 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       kineticRecord: { persistent: true, runtimeState: true },
       coatsCheckedS: { persistent: true, runtimeState: true },
       shockCheckedS: { persistent: true, runtimeState: true },
+      // ⭐ The spent liquor's drain is through (D13) — re-armed on restore.
+      liquorWakeAtS: { persistent: true, runtimeState: true },
+      // ⭐ A volatile body in a lit chamber goes to vapor on time (D16) —
+      // re-armed on restore.
+      vaporWakeAtS: { persistent: true, runtimeState: true },
     };
+
+    /**
+     * ⭐ Game-seconds the spent liquor in this mould has run out (D13), or
+     * `0`. Persisted and re-armed by {@link setLiquorWakeAtS}, so a restart
+     * mid-drain empties the cone on time with nobody reading it.
+     */
+    public liquorWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _liquorWake: ClockHandle | null = null;
+
+    public getLiquorWakeAtS(): number {
+      return this.liquorWakeAtS;
+    }
+
+    /** Set (or clear, `0`) when the spent liquor is through, and arm it. */
+    public setLiquorWakeAtS(value: number): void {
+      this._liquorWake?.cancel();
+      this._liquorWake = null;
+      this.liquorWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.liquorWakeAtS === 0) return;
+      this._liquorWake = WorldClockApi.at(
+        Quantity.of(this.liquorWakeAtS, 's'),
+        () => {
+          this._liquorWake = null;
+          // A wake on a body destroyed since it was armed does nothing (the
+          // leak wake's rule — not host-bound).
+          if ((this as unknown as Stuff).isDestroyed()) return;
+          this.liquorWakeAtS = 0;
+          this.reconcilePhase();
+        },
+        { tag: 'liquor-drain' },
+      );
+    }
+
+    /**
+     * ⭐ Game-seconds this body reaches its material's `vaporizesAboveK` in
+     * the lit chamber it lies in (D16), or `0`. Persisted and re-armed by
+     * {@link setVaporWakeAtS}: salt thrown into a kiln goes to vapor when it
+     * gets hot, not when somebody next reads it (found by the drive — the
+     * salt lay in a kiln at 1560 K for six hours, unread, and never fumed).
+     */
+    public vaporWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _vaporWake: ClockHandle | null = null;
+
+    public getVaporWakeAtS(): number {
+      return this.vaporWakeAtS;
+    }
+
+    public setVaporWakeAtS(value: number): void {
+      this._vaporWake?.cancel();
+      this._vaporWake = null;
+      this.vaporWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.vaporWakeAtS === 0) return;
+      this._vaporWake = WorldClockApi.at(
+        Quantity.of(this.vaporWakeAtS, 's'),
+        () => {
+          this._vaporWake = null;
+          // Not host-bound (the leak wake's rule): a body gone since does nothing.
+          if ((this as unknown as Stuff).isDestroyed()) return;
+          this.vaporWakeAtS = 0;
+          // The read IS the act: it reconciles the body to now, and a body
+          // past its point in a lit chamber vaporizes there.
+          this.getTemperature();
+        },
+        { tag: 'vaporize' },
+      );
+    }
+
+    /**
+     * See {@link Thermal.noteAgitated}. ⚠ Ungated: a stir's completion runs
+     * on the scheduler (a root frame), where a `FromMixin` gate never finds
+     * its caller; and all it can do is start a liquor that is already past
+     * saturation.
+     */
+    public noteAgitated(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return false;
+      const over = this.supersaturation();
+      if (over === null || !(over.ratio > 1 + 1e-9)) return false;
+      self.setBulkPayload('interior', { ...(self.getBulkPayload('interior') ?? {}), nucleated: true });
+      this.reconcilePhase();
+      return true;
+    }
+
+    public supersaturation(): { ratio: number; started: boolean } | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isBulkable(self) || !self.hasInteriorBulk()) return null;
+      const mat = self.getBulkMaterial('interior');
+      if (!mat || !MixinApi.hasSolution(mat) || !(self.getBulkAmount('interior').rawValue() > 0)) return null;
+      const temp = this.getTemperature().rawValue();
+      const hold = holdOf(self as Stuff & Bulkable & Thermal, 'interior', mat, temp);
+      if (hold === null) return null;
+      // Too impure to grain at all: it is not holding anything back.
+      const purity = self.getBulkPayload('interior')?.purity ?? mat.getPurity();
+      if (purity < mat.getMinCrystalPurity() - 1e-9) return null;
+      const terms = nucleationOf(self as Stuff & Bulkable & Thermal, 'interior', mat, hold, false);
+      return { ratio: hold.held / hold.solubility, started: terms.started };
+    }
 
     /** See {@link Thermal.getKineticRecord}. */
     public kineticRecord: KineticRecordData | null = null;
@@ -804,11 +961,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /**
      * Heat capacity `C = mass × specificHeat` (J/K). For a vessel whose
-     * Thermal IS its contents (`Bulkable` interior with fluid), `C`
-     * derives from the held fluid — more contents → larger `C` → slower
-     * cooling, free (a full thermos holds heat longer than a near-empty
-     * one). Falls back to the host's own mass × material when empty / not
-     * a vessel.
+     * Thermal IS its contents (`Bulkable` interior with fluid), `C` is the
+     * held fluid's PLUS the vessel's own body — more contents → larger `C`
+     * → slower cooling, free (a full thermos holds heat longer than a
+     * near-empty one), and a near-empty pot is still a pot. The host's own
+     * mass × material alone when empty / not a vessel.
      */
     public thermalCapacityJPerK(): number {
       return this.thermalCapacity();
@@ -816,17 +973,16 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     protected thermalCapacity(): number {
       // `isBulkable` narrows the host in place for the contents path.
+      // ⭐⭐ A vessel's heat capacity is its contents AND its own body (the
+      // matter-model-overlaps drive, step 2): with the body uncounted, a
+      // curing pot holding the first drip of molasses had the heat capacity
+      // of the drip — a τ of a fraction of a second, so its first
+      // reconcile stepped it toward the room at thousands of kelvin a second
+      // and `reconcileShock` cracked a glazed pot that had not moved a
+      // degree. The same reason `mixPour` counts the body.
       const self = this.thermalHost;
-      if (MixinApi.isBulkable(self) && self.hasInteriorBulk()) {
-        const c = this.contentsCapacity(self);
-        if (c > 0) return c;
-        // empty vessel → fall through to the wall's own heat capacity
-      }
-      const massKg = self.getMass().rawValue();
-      const mat = MixinApi.isTangible(self) ? self.getMaterial() : null;
-      let c = mat ? mat.getSpecificHeat().rawValue() : 0;
-      if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
-      return massKg * c;
+      const held = MixinApi.isBulkable(self) && self.hasInteriorBulk() ? this.contentsCapacity(self) : 0;
+      return held + this.bodyCapacity();
     }
 
     /** Heat capacity (J/K) of a vessel's interior fluid, or 0 if empty. */
@@ -858,6 +1014,56 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.stampedTemperatureK = k;
       const nowS = this.thermalNowSeconds();
       if (nowS !== null) this.thermalClockStamp = nowS;
+    }
+
+    /**
+     * ⭐⭐ The calorimetric pour (matter-model-overlaps drive, step 2). A
+     * drip of molasses into an empty curing pot used to set the pot to the
+     * molasses' temperature outright — the pot's own clay was not counted,
+     * so a few grams a few kelvin off were a full temperature step, and a
+     * glazed pot cracked on every drip. Now the vessel's BODY counts: the
+     * incoming `m·c` mixes with what is already held plus the wall's own
+     * `mass × specificHeat`, and everything settles at
+     *
+     * ```
+     * T = (C_in·T_in + (C_held + C_wall)·T_vessel) / (C_in + C_held + C_wall)
+     * ```
+     *
+     * — so a drip barely moves a heavy pot, a kettle of boiling water still
+     * shocks a cold mug (ceramics D9), and a cold mould CHILLS the metal
+     * poured into it, as a founder's unheated mould does. The step the
+     * wall feels is the step to that mixed temperature. Must run BEFORE the
+     * litres land (`C_held` is the pre-pour contents).
+     */
+    public mixPour(litres: number, material: Material, temperatureK: number): void {
+      assertFiniteNonNeg(temperatureK, "ThermalMixin.mixPour");
+      if (!(litres > 0)) return;
+      if (!this._thermalReconciling) this.reconcileThermal();
+      let c = material.getSpecificHeat().rawValue();
+      if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
+      const incoming = (litres / 1000) * material.getDensity().rawValue() * c;
+      const self = this.thermalHost;
+      const held =
+        MixinApi.isBulkable(self) && self.hasInteriorBulk() ? this.contentsCapacity(self) : 0;
+      const resident = held + this.bodyCapacity();
+      const total = incoming + resident;
+      this.setContentsTemperature(
+        total > 0
+          ? (incoming * temperatureK + resident * this.stampedTemperatureK) / total
+          : temperatureK,
+      );
+    }
+
+    /** The vessel's own body — `mass × specificHeat` (J/K), its contents aside. */
+    protected bodyCapacity(): number {
+      const self = this.thermalHost;
+      // A host with no matter of its own (no `Tangible`) has no body to count.
+      if (!MixinApi.isTangible(self)) return 0;
+      const massKg = self.getMass().rawValue();
+      const mat = self.getMaterial();
+      let c = mat ? mat.getSpecificHeat().rawValue() : 0;
+      if (c <= 0) c = THERMAL_DEFAULTS.DEFAULT_SPECIFIC_HEAT;
+      return massKg * c;
     }
 
     /**
@@ -1585,14 +1791,50 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.integrateKinetics(source, kinetics.changes(), nowS);
     }
 
-    /** Vaporize into the chamber holding this body, if hot enough there. */
+    /**
+     * Vaporize into the chamber holding this body, if hot enough there: the
+     * body becomes its material's VAPOR row (`vapourMaterial` — salt → salt
+     * vapor), vented by the one route (D16), which keeps it as the lit
+     * chamber's air. ⚠ A material that vaporizes and names no vapor (or a
+     * vapor with no density) is a row defect and throws.
+     */
     private vaporizeIfHot(mat: Material): boolean {
-      const above = MixinApi.hasVolatility(mat) ? mat.getVaporizesAboveK() : 0;
-      if (!(above > 0) || !(this.stampedTemperatureK >= above)) return false;
+      if (!MixinApi.hasVolatility(mat)) return false;
+      const above = mat.getVaporizesAboveK();
+      if (!(above > 0)) return false;
       const self = this.thermalHost;
       const holder = self.getContainer() as unknown as Stuff | null;
-      if (holder === null || !MixinApi.isBurner(holder) || !holder.isLit()) return false;
-      holder.addChamberVapor(mat.getTemplatePath() ?? "", self.getMass().rawValue());
+      const litChamber = holder !== null && MixinApi.isBurner(holder) && holder.isLit();
+      if (!(this.stampedTemperatureK >= above)) {
+        // ⭐ Not there yet, but heading there: arm ONE wake at the computable
+        // moment it arrives (Newton's approach to the chamber's heat, D9's
+        // shape), so it vaporizes on time with nobody reading it.
+        // The chamber's own held heat, when it is still climbing to it: a
+        // wake that finds the body short re-arms from where it then is.
+        const ambient = litChamber && MixinApi.isBurner(holder)
+          ? Math.max(this.lastAmbientK, holder.getHeldTemperatureK())
+          : this.lastAmbientK;
+        const nowS = this.thermalNowSeconds();
+        if (litChamber && ambient > above && nowS !== null) {
+          const tau = this.getTau().rawValue();
+          const dt = tau > 0 ? tau * Math.log((ambient - this.stampedTemperatureK) / (ambient - above)) : 0;
+          // A second past the moment, so the read finds it over the line.
+          const due = nowS + Math.max(1, Math.ceil(dt) + 1);
+          if (Math.abs(due - this.vaporWakeAtS) > 1) this.setVaporWakeAtS(due);
+        } else if (this.vaporWakeAtS !== 0) {
+          this.setVaporWakeAtS(0);
+        }
+        return false;
+      }
+      if (!litChamber) return false;
+      const litres = vaporLitres(mat, self.getMass().rawValue());
+      if (litres === null) {
+        throw new TypeError(
+          `Thermal: ${mat.getTemplatePath() ?? mat.getName()} vaporizes above ${above} K but names no vapor with a density (vapourMaterial)`,
+        );
+      }
+      BiomeApi.vent({ from: self as unknown as Stuff, material: mat.getVapourMaterial(), litres });
+      if (this.vaporWakeAtS !== 0) this.setVaporWakeAtS(0);
       void StuffApi.destruct(self as unknown as Stuff);
       return true;
     }
@@ -1683,8 +1925,11 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         const dDegree = conv.extent - prev.extent;
         if (dDegree > 0) {
           for (const v of c.getVolatiles()) {
-            routeVolatile(self as unknown as Stuff, v.material,
-              v.litresPerKg * (rec.data.originMassKg ?? 0) * dDegree);
+            BiomeApi.vent({
+              from: self as unknown as Stuff,
+              material: v.material,
+              litres: v.litresPerKg * (rec.data.originMassKg ?? 0) * dDegree,
+            });
           }
         }
         rec.data.changes[key] = conv;
@@ -2096,6 +2341,8 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
 const PENDING_CASTS = new Set<Promise<unknown>>();
 /** The crop each vessel is minting, by stuff id (see `setCrystals`). */
 const CROPS_MINTING = new Map<string, { kg: number }>();
+/** Game-seconds in a game-day — a spent liquor's `drainDays`. */
+const SECONDS_PER_GAME_DAY = 86_400;
 
 /** `look` reads each change in words, through the senses its row names. */
 function kineticAugmenter(
@@ -2183,36 +2430,40 @@ function thermalDial(key: string, fallback: number): number {
 }
 
 /**
- * ⭐⭐ **The volatiles — the third product of a firing.** What leaves a
- * converting piece goes to whatever HOLDS it: a chamber takes what it can
- * (`Burner.receiveVolatiles` — a retort hands its tar to the condenser on
- * its head), and the rest goes into the air of the place it stands in,
- * which is why a retort with no condenser makes the room smell of tar.
- * Moved here from `FireController` (ceramics W0): the transition, not the
- * verb, makes the tar.
+ * ⭐ Litres of `mat`'s VAPOR row that `kg` of it becomes (D16) — `kg` over the
+ * vapor's density — or `null` when it names no vapor (or one with no
+ * density). The vapor row loads with the material (`vapourMaterial` is a
+ * constituent), so this is a sync read.
  */
-function routeVolatile(from: Stuff, materialPath: string, litres: number): void {
-  if (!(litres > 0)) return;
-  const holder = MixinApi.isContainable(from)
-    ? (from.getContainer() as unknown as Stuff | null)
-    : null;
-  let left = litres;
-  if (holder !== null && MixinApi.isBurner(holder)) {
-    left -= Math.max(0, Math.min(left, holder.receiveVolatiles(materialPath, left)));
-  }
-  if (!(left > 0)) return;
-  let at: Stuff | null = holder ?? from;
-  let depth = AIR_SCOPE_DEPTH_CAP;
-  while (at !== null && depth-- > 0) {
-    if (MixinApi.isAtmospheric(at) && MixinApi.isContainer(at)) {
-      const air = at as unknown as AtmosphericScope;
-      if (air.getVolume() !== null) {
-        air.addAtmosphereContent(materialPath, left);
-        return;
-      }
-    }
-    at = MixinApi.isContainable(at) ? (at.getContainer() as unknown as Stuff | null) : null;
-  }
+function vaporLitres(mat: Material, kg: number): number | null {
+  if (!MixinApi.hasVolatility(mat)) return null;
+  const path = mat.getVapourMaterial();
+  if (path === "") return null;
+  const density = MaterialApi.materials().need(path).getDensity().rawValue();
+  if (!(density > 0)) return null;
+  return (Math.max(0, kg) / density) * 1000;
+}
+
+/**
+ * ⭐ The STEAM of a boil goes somewhere (D16): `boiledL` litres of liquid
+ * left the pot, at `kgPerL`, as a vapor row — into the chamber the pot is
+ * in, else the room's air, by the one route. ⭐ A SOLUTION boiling (`solids
+ * > 0`) gives off its SOLVENT — the plateau keeps the solids and discards
+ * water — so one that names no vapor of its own vents its solvent's
+ * (`Solution.getSolvent()`, loaded with the row): a copper of sugar liquor
+ * steams like a kettle. A plain liquid that names no vapor gives the air
+ * nothing it keeps (authored, not silent).
+ */
+function ventBoiled(v: Stuff, mat: Material, boiledL: number, kgPerL: number, solids: number): void {
+  if (!(boiledL > 0) || !(kgPerL > 0)) return;
+  const ownVapor = MixinApi.hasVolatility(mat) && mat.getVapourMaterial() !== '';
+  const steamOf =
+    !ownVapor && solids > 0 && MixinApi.hasSolution(mat)
+      ? MaterialApi.materials().need(mat.getSolvent())
+      : mat;
+  const litres = vaporLitres(steamOf, boiledL * kgPerL);
+  if (litres === null || !(litres > 0) || !MixinApi.hasVolatility(steamOf)) return;
+  BiomeApi.vent({ from: v, material: steamOf.getVapourMaterial(), litres });
 }
 
 /**
@@ -2532,11 +2783,12 @@ const SOLIDS_CEILING_KG_PER_L = 1.58;
  * ⭐ The boil-down's stages (sugar D1): once the liquor's mass fraction
  * has reached an arrow's `fromW`, the highest such arrow fires — the
  * material swaps and the payload carries (minus the boil clock), the
- * `purifyIfHeld` shape. An arrow with `minBand` reads the VESSEL's grade
- * (the tempering and skimming write it) and below the band fires
- * `elseBecomes` instead: what will not grain is blackstrap. An arrow that
- * names the material already in the pan, or a row nothing resolves, leaves
- * it alone.
+ * `purifyIfHeld` shape. An arrow with `minPurity` reads the LIQUOR's
+ * purity — its payload's (tempering and skimming write it, each crop
+ * lowers it), else the row's — and below it fires `elseBecomes` instead:
+ * what will not grain is blackstrap (matter-model-overlaps D12). An arrow
+ * that names the material already in the pan, or a row nothing resolves,
+ * leaves it alone.
  */
 function concentrateIfReached(
   v: Stuff & Bulkable & Thermal,
@@ -2554,11 +2806,9 @@ function concentrateIfReached(
   for (const a of arrows) if (a.fromW <= w) arrow = a;
   if (arrow === null) return;
   let into = arrow.becomes;
-  if (arrow.minBand && arrow.elseBecomes) {
-    const band = MixinApi.isGraded(v) ? v.getGrade() : null;
-    if (band === null || band.compareTo(Grade.of(arrow.minBand)) < 0) {
-      into = arrow.elseBecomes;
-    }
+  if (arrow.minPurity !== undefined && arrow.elseBecomes) {
+    const purity = payload.purity ?? mat.getPurity();
+    if (purity < arrow.minPurity - 1e-9) into = arrow.elseBecomes;
   }
   if (into === mat.getTemplatePath()) return;
   const next = MaterialApi.materials().peek(into);
@@ -2647,11 +2897,11 @@ function reconcileBulkPhase(
   if (!mat) return;
   const temp = v.getTemperature().rawValue();
 
-  // ⭐⭐ **Crystallizing** (ceramics S17), the third arm — and the one that
-  // fires at ANY temperature: a solution sets crystals when it holds more
-  // than its material dissolves at its heat, whether the water left
-  // (a salt pan in the sun) or the heat did (alum liquor cooling).
-  if (crystallizeIfOver(v, aff, mat, temp)) return;
+  // ⭐ A mould's spent liquor runs out over its days (matter-model-overlaps
+  // D13) — integrated first, so what is left is what the rest reads.
+  if (drainSpentLiquor(v, aff, clock.nowS)) {
+    if (!(v.getBulkAmount(aff).rawValue() > 0)) return;
+  }
 
   // ⭐ The boil climbs as the solution thickens (sugar D1): the boiling
   // point is the material's at the liquor's own concentration. Water and
@@ -2664,6 +2914,14 @@ function reconcileBulkPhase(
     : MixinApi.hasVolatility(mat)
       ? mat.getBoilingPoint().rawValue()
       : 0;
+
+  // ⭐⭐ **Crystallizing** (ceramics S17), the third arm — and the one that
+  // fires at ANY temperature: a solution sets crystals when it holds more
+  // than its material dissolves at its heat, whether the water left
+  // (a salt pan in the sun) or the heat did (alum liquor cooling) — once
+  // something STARTS it (D14; the boil plateau is one of the four).
+  if (crystallizeIfOver(v, aff, mat, temp, bp > 0 && temp >= bp, clock.nowS)) return;
+
   if (bp > 0 && temp >= bp) {
     // ⭐⭐ **A gas does not boil away** — it is ALREADY above its boiling
     // point everywhere anybody stands, which is what makes it a gas, and
@@ -2704,6 +2962,7 @@ function reconcileBulkPhase(
         // left to give: it never boils away (its `burnt` arrow, if it
         // authors one, is what ends it).
         const keptL = Math.max(left, floorL);
+        ventBoiled(v, mat, amount - keptL, kgPerL, solids);
         v.setBulkAmount(aff, Quantity.of(keptL, 'L'));
         if (solids > 0) {
           v.setBulkPayload(aff, {
@@ -2719,6 +2978,7 @@ function reconcileBulkPhase(
       }
     }
     // Boiled dry (or no plateau to hold) — the liquid is gone to steam.
+    ventBoiled(v, mat, amount, kgPerL, solids);
     v.setBulkAmount(aff, Quantity.of(0, 'L'));
     v.setBulkMaterial(aff, null);
     return;
@@ -2847,26 +3107,101 @@ async function setLump(
 }
 
 /**
- * ⭐⭐ **The crystallize arm** (ceramics S17, D32). A bulk whose material
- * authors `solubility` and `crystallizesTo`, holding more dissolved solids
- * (`payload.dissolvedSolidsKgPerL`, else the material's own
- * `solidsKgPerL`) than `solubilityAt(T)`, sets the EXCESS:
+ * The hold a crystallizing liquor is in (D14): its dissolved solids (the
+ * payload's, else the row's) against what it dissolves at `tempK`, and what
+ * it sets — `null` when the material authors no solubility or no crop.
+ */
+function holdOf(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+  tempK: number,
+): { held: number; solubility: number; into: CrystallizesTo } | null {
+  if (!MixinApi.hasSolution(mat)) return null;
+  const solubility = mat.solubilityAt(tempK);
+  const into = mat.getCrystallizesTo();
+  if (solubility === null || !(solubility > 0) || into === null) return null;
+  const held = v.getBulkPayload(aff)?.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
+  return { held, solubility, into };
+}
+
+/**
+ * ⭐⭐ **What starts a crop** (D14) — four terms, one piece of state:
  *
- *  - in a mold, kept in the mold's shape (`castInto`) — and a crop
- *    already setting there GROWS rather than a second one minting;
+ *  - a SEED — derived: the vessel holds a solid of the crop (a piece of
+ *    sugar put in the cone, or the crop already set there);
+ *  - a STIR — `payload.nucleated`, stamped by `noteAgitated` (and by every
+ *    set, so a crop once started keeps growing as the liquor cools);
+ *  - DEEP COOLING — derived: held/solubility at or past the material's
+ *    `metastableRatio` (absent, 1: any excess starts at once, as shipped);
+ *  - the DRYING EDGE — derived: the liquor is losing water in the open, on
+ *    the boil plateau or in a maturing vessel with an active batch (a salt
+ *    pan, a boiling brine).
+ *
+ * `coarse` — deep cooling was the only term: it started on its own, and a
+ * crop that does is a coarse mass, a band lower.
+ */
+function nucleationOf(
+  v: Stuff & Bulkable & Thermal,
+  aff: BulkAffordance,
+  mat: Material,
+  hold: { held: number; solubility: number; into: CrystallizesTo },
+  boiling: boolean,
+): { started: boolean; coarse: boolean } {
+  const host = v as unknown as Stuff;
+  const stirred = v.getBulkPayload(aff)?.nucleated === true;
+  const seeded = seedsOf(host, hold.into).length > 0;
+  const drying = boiling || (MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active');
+  const ratio = MixinApi.hasSolution(mat) ? mat.getMetastableRatio() : 1;
+  const deep = hold.held / hold.solubility >= ratio - 1e-9;
+  const started = stirred || seeded || drying || deep;
+  return { started, coarse: started && !stirred && !seeded && !drying };
+}
+
+/**
+ * The solids of the crop a vessel HOLDS — its product, or what the product
+ * sets as in a shape (`productAs`) — the seed term (D14).
+ */
+function seedsOf(host: Stuff, into: CrystallizesTo): Stuff[] {
+  if (!MixinApi.isContainer(host)) return [];
+  const crops = new Set([into.product, ...Object.values(into.productAs ?? {})]);
+  return (host.getContents() as unknown as Stuff[]).filter(
+    (c) => !c.isDestroyed() && MixinApi.isTangible(c) && crops.has(c.getMaterial()?.getTemplatePath() ?? ''),
+  );
+}
+
+/**
+ * ⭐⭐ **The crystallize arm** (ceramics S17, D32; matter-model-overlaps
+ * D12–D14). A bulk whose material authors `solubility` and
+ * `crystallizesTo`, holding more dissolved solids (`payload.
+ * dissolvedSolidsKgPerL`, else the material's own `solidsKgPerL`) than
+ * `solubilityAt(T)`, sets the EXCESS — **once something has started it**
+ * ({@link nucleationOf}); until then it HOLDS, supersaturated. A liquor
+ * whose purity is under the row's `minCrystalPurity` will not grain at all
+ * (blackstrap). Where the crop goes:
+ *
+ *  - in a mold, kept in the mold's shape (`castInto`) — its material the
+ *    shape's (`productAs`, else `product`) — and a crop already setting
+ *    there GROWS rather than a second one minting;
  *  - in any other vessel, a lump of crystals beside it (the product's own
  *    `castTemplate`), grown the same way.
  *
- * The liquor left is SATURATED, and what becomes of it is the one choice:
+ * Its grade is the batch's, `min`'d with the mould's (`carryPayload`), one
+ * band lower when the liquor started on its own. The crystals take out
+ * solute ONLY, so the liquor left is less pure — `(S·p − x)/(S − x)` for `x`
+ * set out of `S` solids — and its grade is read off that purity by the
+ * row's thresholds. What becomes of the saturated liquor is the one choice:
  *
  *  - ⭐ while the vessel is still concentrating it (a maturing host with an
  *    active batch — the pan the sun is working) it STAYS, its own
  *    material, so the crop keeps growing as the water keeps leaving and
  *    the total set is the same however often anybody looks;
  *  - otherwise the liquor is SPENT: its material swaps to
- *    `crystallizesTo.residue` (brine's bittern) and, in a mold standing
- *    on a vessel that takes drainings (`Mould.drainsInto()`), it runs
- *    down into that vessel.
+ *    `crystallizesTo.residue` (brine's bittern, a strike's molasses) and,
+ *    in a mold, it runs off by the one drip (`BulkableApi.drip` — into the
+ *    vessel the mold stands in or on, else to the ground) — at once, or
+ *    over the row's `drainDays` ({@link drainSpentLiquor}). In any other
+ *    vessel the residue stays, the mother liquor.
  *
  * Returns true when it changed the slot (the caller stops for this read).
  */
@@ -2875,47 +3210,88 @@ function crystallizeIfOver(
   aff: BulkAffordance,
   mat: Material,
   tempK: number,
+  boiling: boolean,
+  nowS: number | null,
 ): boolean {
   if (!MixinApi.hasSolution(mat)) return false;
-  const solubility = mat.solubilityAt(tempK);
-  const into = mat.getCrystallizesTo();
-  if (solubility === null || into === null) return false;
+  const hold = holdOf(v, aff, mat, tempK);
+  if (hold === null) return false;
+  const { held, solubility, into } = hold;
   const litres = v.getBulkAmount(aff).rawValue();
   if (!(litres > 0)) return false;
   const payload: BulkPayload = v.getBulkPayload(aff) ?? {};
-  const held = payload.dissolvedSolidsKgPerL ?? mat.getSolidsKgPerL();
-  if (!(held > solubility + 1e-9)) return false;
+  if (!(held > solubility + 1e-9)) {
+    // Back under saturation: whatever started it has nothing left to start.
+    if (payload.nucleated === true && held < solubility - 1e-9) {
+      const { nucleated: _n, ...rest } = payload;
+      v.setBulkPayload(aff, Object.keys(rest).length > 0 ? rest : null);
+    }
+    return false;
+  }
+  // ⭐ Too impure to grain at all — blackstrap holds whatever it holds.
+  const purity = payload.purity ?? mat.getPurity();
+  if (purity < mat.getMinCrystalPurity() - 1e-9) return false;
+  const terms = nucleationOf(v, aff, mat, hold, boiling);
+  if (!terms.started) return false; // ⭐ supersaturated, and HOLDING
   const product = MaterialApi.materials().peek(into.product);
   if (!product) return false;
 
   // ⭐ Where the crystals go, checked before the liquor changes (B105): a
   // mould keeps them; any other vessel sets them beside it, and one standing
   // nowhere has no beside — the solids used to leave the liquor and vanish.
-  if (!MixinApi.isMould(v)) {
+  const host = v as unknown as Stuff;
+  const concentrating = MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active';
+  const mould = MixinApi.isMould(host) ? host : null;
+  if (mould === null) {
     const at = MixinApi.isContainable(v) ? (v.getContainer() as unknown as Stuff | null) : null;
     if (at === null || !MixinApi.isContainer(at)) {
       throw new DetachedError(`${v.getPresentation()} set crystals standing nowhere: they have no place`);
     }
   }
-  const excessKg = (held - solubility) * litres;
+  // (A mold's spent liquor runs off to what is under it by the one drip —
+  // over nothing at all, it runs away: `drip` reports it `lost`.)
+  // The crop's shape, and what the crop IS in that shape (D13).
+  const shape = mould ? mould.castTemplateFor(product) : MixinApi.hasFusion(product)
+    ? product.getCastTemplate()
+    : '';
+  const crop = MaterialApi.materials().peek(mat.productFor(shape)) ?? product;
+
+  // ⭐ The mass balance (D12): the crystals are solute only.
+  const solidsKg = held * litres;
+  const excessKg = Math.min((held - solubility) * litres, solidsKg * purity);
+  const leftKg = solidsKg - excessKg;
+  const leftPurity = purity < 1 && leftKg > 0 ? Math.max(0, (solidsKg * purity - excessKg) / leftKg) : purity;
   // ⚠ The liquor keeps its volume: a solute's share of a solution's volume
   // is small, and the volume is what the water does (the evaporative window
   // moves it) — subtracting the crystals' volume made a pan whose window
   // had run ahead of its reads lose its whole liquor to the crop.
   const liquorL = litres;
-  const host = v as unknown as Stuff;
-  const concentrating = MixinApi.isMaturing(host) && host.getMaturationPhase() === 'active';
-
-  const liquorPayload: BulkPayload = { ...payload, dissolvedSolidsKgPerL: solubility };
+  const spentAs = concentrating ? mat : (MaterialApi.materials().peek(into.residue) ?? mat);
+  const gradeLeft = purity < 1 && MixinApi.hasSolution(spentAs) ? spentAs.gradeAtPurity(leftPurity) : null;
+  const liquorPayload: BulkPayload = {
+    ...payload,
+    dissolvedSolidsKgPerL: leftKg / liquorL,
+    nucleated: true,
+    ...(purity < 1 ? { purity: leftPurity } : {}),
+    ...(gradeLeft !== null ? { grade: gradeLeft } : {}),
+  };
   v.setBulkAmount(aff, Quantity.of(liquorL, 'L'));
   v.setBulkPayload(aff, liquorPayload);
   if (!concentrating) {
-    const residue = MaterialApi.materials().peek(into.residue);
-    if (residue && liquorL > 0) v.setBulkMaterial(aff, residue);
-    if (MixinApi.isMould(v) && liquorL > 0) {
-      const below = v.drainsInto();
-      if (below !== null && below !== (v as unknown as Stuff)) {
-        drainLiquorInto(v, aff, below, liquorL);
+    if (spentAs !== mat && liquorL > 0) v.setBulkMaterial(aff, spentAs);
+    if (mould !== null && liquorL > 0) {
+      const days = into.drainDays ?? 0;
+      if (days > 0 && nowS !== null && nowS > 0) {
+        // ⭐ It runs out over its days (D13): two stamps and one wake.
+        if (liquorPayload.liquorDrainDueS === undefined) {
+          const due = nowS + days * SECONDS_PER_GAME_DAY;
+          v.setBulkPayload(aff, { ...liquorPayload, liquorDrainStampS: nowS, liquorDrainDueS: due });
+          v.setLiquorWakeAtS(due);
+        }
+      } else {
+        // ⭐ A spent pan's bittern runs to what is under it, and with
+        // nothing under the pan, to the ground (the one drip) — at once.
+        BulkableApi.drip({ from: v.getBulk(aff), litres: liquorL });
       }
     }
     if (liquorL <= 0) {
@@ -2924,30 +3300,64 @@ function crystallizeIfOver(
     }
   }
   // A set runs inside a read: nothing waits on the crop, so a failure is said.
-  void setCrystals(v, product, excessKg).catch((err: unknown) => {
+  // ⭐ The crystals are the batch set solid: they take the liquor's payload
+  // — its grade, maker and time made — as any pool sets into its cast (D3);
+  // started on its own, they are a coarse mass a band lower (D13).
+  const cropPayload = terms.coarse ? coarsened(payload, mould) : payload;
+  void setCrystals(v, crop, shape, excessKg, cropPayload, into).catch((err: unknown) => {
     console.error('Thermal: the crystals could not be set', err);
   });
   return true;
 }
 
 /**
- * The spent liquor runs down into the vessel the mold stands on — a
- * TRANSFER, the one primitive, so it carries what the liquor carries and
- * the receiver is asked whether it survives it. What the vessel below has
- * no room for stays in the mould; a different liquor already below is not
- * mixed into (the transfer declines the mismatch).
+ * A crop that started on its own is a coarse mass (D13): its grade —
+ * `min(batch, mould)` — one band lower. Neither graded: nothing to lower.
  */
-function drainLiquorInto(
-  v: Stuff & Bulkable,
-  aff: BulkAffordance,
-  below: Stuff & Bulkable,
-  litres: number,
-): void {
-  BulkableApi.transfer(v.getBulk(aff), below.getBulk('interior'), {
-    kind: 'measure',
-    litres,
-    mode: 'lenient',
-  });
+function coarsened(payload: BulkPayload, mould: Stuff | null): BulkPayload {
+  const batch = payload.grade !== undefined && Grade.isBand(payload.grade) ? Grade.of(payload.grade) : null;
+  const own = mould !== null && MixinApi.isGraded(mould) ? mould.getGrade() : null;
+  const grade = own === null ? batch : batch === null ? own : own.min(batch);
+  if (grade === null) return payload;
+  return { ...payload, grade: Grade.fromOrdinal(grade.getOrdinal() - 1).getBand() };
+}
+
+/**
+ * ⭐ A mould's spent liquor running out over the row's `drainDays` (D13):
+ * the share of what is left that the time since the last integration is of
+ * the time still to go, dripped by the one drip — all of it at the due
+ * time, when the stamps and the wake clear. Returns true when it moved
+ * anything.
+ */
+function drainSpentLiquor(v: Stuff & Bulkable & Thermal, aff: BulkAffordance, nowS: number | null): boolean {
+  if (!MixinApi.isMould(v as unknown as Stuff)) return false;
+  const payload = v.getBulkPayload(aff);
+  const due = payload?.liquorDrainDueS;
+  if (payload === null || due === undefined || nowS === null || !(nowS > 0)) return false;
+  const stamp = payload.liquorDrainStampS ?? nowS;
+  if (!(nowS > stamp)) return false;
+  const litres = v.getBulkAmount(aff).rawValue();
+  const through = nowS >= due;
+  const share = through ? 1 : (nowS - stamp) / (due - stamp);
+  if (litres > 0) {
+    // Over nothing at all it runs away (the drip reports it `lost`).
+    BulkableApi.drip({ from: v.getBulk(aff), litres: litres * share });
+  }
+  const after = v.getBulkPayload(aff);
+  if (through || !(v.getBulkAmount(aff).rawValue() > 1e-9)) {
+    if (v.getBulkAmount(aff).rawValue() <= 1e-9) {
+      v.setBulkAmount(aff, Quantity.of(0, 'L'));
+      v.setBulkMaterial(aff, null);
+      v.setBulkPayload(aff, null);
+    } else if (after !== null) {
+      const { liquorDrainStampS: _s, liquorDrainDueS: _d, ...rest } = after;
+      v.setBulkPayload(aff, Object.keys(rest).length > 0 ? rest : null);
+    }
+    if (v.getLiquorWakeAtS() !== 0) v.setLiquorWakeAtS(0);
+    return true;
+  }
+  if (after !== null) v.setBulkPayload(aff, { ...after, liquorDrainStampS: nowS });
+  return true;
 }
 
 /**
@@ -2959,7 +3369,10 @@ function drainLiquorInto(
 async function setCrystals(
   v: Stuff & Bulkable & Thermal,
   product: Material,
+  shape: string,
   kg: number,
+  liquor: BulkPayload | null,
+  into: CrystallizesTo,
 ): Promise<void> {
   if (!(kg > 0)) return;
   const self = v as unknown as Stuff;
@@ -2979,9 +3392,6 @@ async function setCrystals(
   if (scope === null || !MixinApi.isContainer(scope as Stuff)) {
     throw new DetachedError(`${self.getPresentation()} has no place for its crystals`);
   }
-  const shape = mould ? mould.castTemplateFor(product) : MixinApi.hasFusion(product)
-      ? product.getCastTemplate()
-      : '';
   for (const c of scope.getContents()) {
     const s = c as unknown as Stuff;
     if (s === self || s.isDestroyed() || !MixinApi.isTangible(s)) continue;
@@ -2990,12 +3400,16 @@ async function setCrystals(
     s.setMass(Quantity.of(s.getMass().rawValue() + kg, 'kg'));
     return;
   }
+  // ⭐ The seed joins the first crop (D14): its mass is in the cast, and the
+  // piece is gone into it.
+  const seeds = seedsOf(self, into);
+  for (const seed of seeds) if (MixinApi.isTangible(seed)) kg += seed.getMass().rawValue();
   const crop = { kg };
   CROPS_MINTING.set(self.stuffId, crop);
   try {
     let cast: Stuff;
     if (mould) {
-      cast = await mould.castInto({ material: product, massKg: kg, payload: null, stampMaterial: true });
+      cast = await mould.castInto({ material: product, massKg: kg, payload: liquor, stampMaterial: true });
     } else {
       // ⚠ A row that will not mint, or cannot stand beside the vessel,
       // throws (B105 — it was swallowed, and the crop lost).
@@ -3013,6 +3427,7 @@ async function setCrystals(
     }
     // Whatever joined the crop while it was minting is in it now.
     if (MixinApi.isTangible(cast)) cast.setMass(Quantity.of(crop.kg, 'kg'));
+    for (const seed of seeds) if (!seed.isDestroyed()) await StuffApi.destruct(seed);
   } finally {
     CROPS_MINTING.delete(self.stuffId);
   }

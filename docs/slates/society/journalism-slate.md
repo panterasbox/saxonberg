@@ -596,3 +596,5 @@ the press is the polity's law; the clandestine press is the anonymous press room
 2. **The Post's revenue at launch** — an operator endowment (as the university's), subscriptions, or
    advertising once corpos sponsor it.
 3. **The paper edition** as the way into covenant towns, printed under contract.
+4. **The Post's directory** — the public `who`, the profile, and every player's lists: designed
+   2026-11-20 in [directory-slate](./directory-slate.md).

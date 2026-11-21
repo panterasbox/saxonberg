@@ -170,9 +170,9 @@ describe('the by-hand cooking path', () => {
     expect(payload.makeup?.[1]?.fraction).toBeCloseTo(0.25, 9);
     expect(BlendLabel.isEdible(payload, null)).toBe(true);
     expect(slot.getAmount().rawValue()).toBeCloseTo(0.4, 9); // the portion
-    expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe(
-      'hearty-stew',
-    );
+    // The stew's mark is its payload's (matter-model-overlaps D2).
+    expect(payload.recipeId).toBe('hearty-stew');
+    expect(payload.grade).toBeDefined();
     expect(pot.isBuildEmpty()).toBe(true); // cleared by the mint
   });
 
@@ -205,6 +205,6 @@ describe('the by-hand cooking path', () => {
       BlendLabel.amountsOf(slot.getPayload()!, slot.getMaterial(), 0.25),
     ).toEqual({ carb: 17000 });
     expect(slot.getAmount().rawValue()).toBeGreaterThan(0);
-    expect((dish as unknown as { getRecipe(): string }).getRecipe()).toBe('');
+    expect(slot.getPayload()?.recipeId).toBeUndefined();
   });
 });

@@ -444,6 +444,8 @@ export const Mixins = {
   Porosity: 'PorosityMixin',
   Edibility: 'EdibilityMixin',
   Toxicity: 'ToxicityMixin',
+  // What a wall of it gives what it holds — a leach, an aroma (matter-model-overlaps D11).
+  Extraction: 'ExtractionMixin',
   Perishability: 'PerishabilityMixin',
   Acidity: 'AcidityMixin',
   Solution: 'SolutionMixin',
@@ -724,6 +726,8 @@ export const Mixins = {
   // Composed by tools, weapons, and armor alike — durability is not "tool".
   Durable: 'DurableMixin',
   Integrity: 'IntegrityMixin',
+  /** ⭐ Carries flaws — a crack, a hole — and what they let through (matter-model-overlaps D5). */
+  Flawed: 'FlawedMixin',
   /** ⭐ Made of parts that keep their identity (assembly D3). */
   Assembled: 'AssembledMixin',
   /** ⭐ Converted wood that dries at its species' rate (assembly D2). */
@@ -863,6 +867,10 @@ export const Mixins = {
   // "I plan being carved" — green ware, a mould's riser, pattern stock.
   Carvable: 'CarvableMixin',
   PourTarget: 'PourTargetMixin',
+  // "Being stirred means something here" — a compound, a build, a liquid.
+  StirTarget: 'StirTargetMixin',
+  // "My fabric is kept by `maintain`" — a building's plaster, a ship's seams.
+  Maintainable: 'MaintainableMixin',
   // "A pattern pressed into me leaves something" — green ware, a sand flask.
   Impressible: 'ImpressibleMixin',
   // "I am worked by turning" — a screw press.
@@ -1160,6 +1168,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
   IntegrityMixin: "{} isn't something that can crack or break",
+  FlawedMixin: "{} has no flaws to speak of",
   AssembledMixin: "{} isn't made of parts",
   SeasoningMixin: "{} doesn't season",
   // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what
@@ -1198,6 +1207,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SweepableMixin: "{} isn't something you could sweep",
   SampleableMixin: "{} is not matter you could take a piece of",
   PourTargetMixin: "you can't pour anything into {}",
+  StirTargetMixin: "there is nothing in {} you could stir",
+  MaintainableMixin: "{} has no fabric a kit could keep up",
   ArcaneMixin: "there is nothing bound into {}",
   ImpressibleMixin: "{} is not soft enough to take an impression",
   TurnableMixin: "{} has nothing to turn",

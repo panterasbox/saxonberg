@@ -1,6 +1,7 @@
 # The maple strike — syrup boiled on to nine-tenths sugar, which grains as
-# it cools. Poured into a mould it sets into maple sugar (the mould's
-# drain-setting, sugar W2). The end of the maple arrows: held on the fire
+# it cools once something starts it. Poured into a mould it sets maple
+# sugar and its syrup runs out (the sap row's `crystallizesTo`,
+# matter-model-overlaps D12). The end of the maple arrows: held on the fire
 # it only thickens.
 extends: /trade/forestry/idea/material/maple-syrup
 data:

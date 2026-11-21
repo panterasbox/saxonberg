@@ -98,7 +98,15 @@ no common ancestor, which is the kernel test). Each composer composes
   **bone-dry** is fireable (`isFireable`).
 - **The weather**, read off the piece's own record on every read:
   - its wetness rising past `green.slumpWetting` (rain on an open yard)
-    SLUMPS it — the hack cover is what stops it;
+    SLUMPS it — the hack cover is what stops it. ⭐ Rain lands by the
+    piece's reach (matter-model-overlaps D19, `Wet.takeRain`: a brick on
+    the ground takes a third of a segment's push, which still soaks it past
+    the slump line, so the timing did not move);
+  - ⭐ rain also SOAKS into its held water off the rain record — bounded at
+    its drying rate × `cure.soakFactor` up to full, none under the cover
+    ([spoilage.md § Drying is a RATE](./spoilage.md)) — so a wet week holds
+    the exposed bricks back from bone-dry while the covered ones dry, with
+    nobody watching;
   - its temperature below freezing (frost) or above boiling (a wet piece in a
     kiln — the steam burst) while it still holds water SHATTERS it — the
     ruin is the fact, with no crack flaw beside it (B99);
@@ -353,8 +361,21 @@ from what is in it (`workVerb`): `knead` a stiff mass, `stir` a runny one,
 and the wrong verb is refused, naming the right one (`wrong-work`,
 controller-liquidity W19). Stirring the temper used to be a two-minute shortcut past the
 kneading. The *vessel* names the glaze — there is no
-dominant-flux naming. Salt glaze is the chamber-vapor path with any salt a
-player brings (the Delight potter is an earthenware potter).
+dominant-flux naming.
+
+⭐ **Salt glaze is a row** (matter-model-overlaps D16 — no longer deferred).
+Salt authors `vaporizesAboveK: 1350` and `vapourMaterial:
+/stuff/idea/material/gas/salt-vapor`; the clay's stoneware firing authors
+`vapor: { …/gas/salt-vapor: /stuff/idea/material/glaze/salt }`. `put salt
+in kiln` while a load fires (the kiln is a Container): at the peak the salt
+becomes salt vapor by the one vapor route (`BiomeApi.vent`), the lit kiln
+keeps nine tenths of it as its own air (`chamberVapors`, litres by vapor
+row), and a body reaching its stoneware rung under it takes the salt glaze
+on its outside. When the fire goes out the kiln vents its air up the flue
+(an `Oven` is `Flued`); a flueless chamber lets it into the room, where
+`smell` finds the salt fume. The Delight potter salts her jugs and mugs
+(`pots`' `salt: { word, forms }`, salt among her shop's props); a player
+can salt anything they fire. The fume as a HARM stays deferred (below).
 
 ### The businesses and the people
 
@@ -531,8 +552,9 @@ From the review's combining re-plan (R1):
 - `Clay`'s stash fold → `absorbMakeup`.
 
 ⭐ **Judged legitimately different — do not re-litigate** (the review's
-overlap survey, R2; the overlaps it did NOT judge different are
-[matter-model-overlaps-slate](../slates/tech-debt/matter-model-overlaps-slate.md)):
+overlap survey, R2; the seven it did NOT judge different were each given
+one model by matter-model-overlaps, MR !644 — see the History notes in
+bulk.md, faces.md and thermal.md):
 Thermal shock vs materials-response heat (wounds through coverings vs flaws
 in an object); furnace lining wear (already `Assembled.wearLine`); relines
 vs residence maintains (only the walking code shared — D8); the screw
@@ -578,3 +600,10 @@ shell weathering (only if wall spalling is built).
 - **2026-11-09 (documents path identity):** the forms became `form` documents
   at `content/forms/`, cited by path. See git log for the
   `reqs/documents-path-identity` branch.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** Salt glazing shipped:
+  salt in a lit kiln vaporizes to the salt-vapor row and the stoneware
+  body's firing lays the salt glaze from the chamber's air; the potter salts
+  (`pots`), and the shop smells of it. Rain sheds off a glaze and soaks into
+  terracotta; a terracotta crock remembers what it held, a glazed one
+  nothing.

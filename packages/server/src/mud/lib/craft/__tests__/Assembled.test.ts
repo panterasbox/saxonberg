@@ -110,9 +110,10 @@ describe('AssembledMixin', () => {
     p.slackenJoint('hafting', 0.6);
     expect(p.failedLines()).toEqual([]);
     expect(p.slackJoints().map((j) => j.key)).toEqual(['hafting']);
-    expect(p.leaks()).toBe(true);
+    // ⭐ The leak is a SHARE of what it holds an hour (matter-model-overlaps D4).
+    expect(p.jointLeakShare()).toBeCloseTo(0.1, 9);
     p.tightenJoint('hafting', '/someone');
-    expect(p.leaks()).toBe(false);
+    expect(p.jointLeakShare()).toBe(0);
     expect(p.getJoints()[0]!.maker).toBe('/someone');
   });
 
@@ -200,8 +201,29 @@ describe('AssembledMixin', () => {
     expect(staves.warped).toBe(true);
     expect(staves.failed).toBe(1);
     expect(cask.getJoints()[0]!.tension).toBeLessThan(0.5);
-    expect(cask.leaks()).toBe(true);
+    // One warped (failed) stave and one slack hoop: 0.4 + 0.1 of what it holds an hour.
+    expect(cask.jointLeakShare()).toBeCloseTo(0.5, 9);
     WorldClockApi._resetForTesting();
+  });
+
+  it('⭐ the joints term — slack joints and failed structural members, each at its own share (D4)', () => {
+    const cask = makeStuff(() => new Assembly());
+    cask.recordAssembly(
+      [line('stave', ASH, { count: 30, plural: 'staves' }), line('head', ASH, { count: 2, role: 'structural' })],
+      [
+        { key: 'hooping', method: '/trade/coopering/joints/hooped', members: ['stave'], tension: 1, maker: '' },
+        { key: 'heading', method: '/trade/coopering/joints/hooped', members: ['head'], tension: 1, maker: '' },
+      ],
+    );
+    expect(cask.jointLeakShare()).toBe(0);
+    // Two sprung staves.
+    cask.recordAssembly(
+      [line('stave', ASH, { count: 30, plural: 'staves', failed: 2 }), line('head', ASH, { count: 2, role: 'structural' })],
+      cask.getJoints(),
+    );
+    expect(cask.jointLeakShare()).toBeCloseTo(0.8, 9);
+    cask.slackenJoint('heading', 0.6);
+    expect(cask.jointLeakShare()).toBeCloseTo(0.9, 9);
   });
 
   it('⭐ composes on the FAMILY — a tool with no bill is one piece (repair D4)', () => {

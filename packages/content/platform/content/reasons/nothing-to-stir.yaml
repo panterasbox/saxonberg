@@ -1,0 +1,6 @@
+# ⭐ `stir` met something with no liquid in it to stir (matter-model-overlaps
+# D15): an empty holder, a holder of something solid, a floor's puddle, a
+# build vessel with nothing banked and nothing in it.
+facts:
+  vessel: thing
+says: "There is nothing in {{ vessel | item }} to stir."

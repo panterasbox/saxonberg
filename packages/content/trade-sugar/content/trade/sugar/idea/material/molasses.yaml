@@ -1,6 +1,8 @@
-# Molasses — what drains out of a setting loaf. ⭐ It is still sugar: boiled
-# again it strikes again (one band darker each time) until it is too
-# poor to grain, and then it is blackstrap.
+# Molasses — the mother liquor a setting loaf leaves. ⭐ It is still sugar:
+# boiled again it strikes again, each pass poorer — the crop took sucrose
+# only, so what is left is less pure by the mass balance (matter-model-
+# overlaps D12) — until it is under the strike's purity, and then it is
+# blackstrap.
 extends: /trade/sugar/idea/material/raw-liquor
 data:
   smells: [{ aroma: /base-library/aromas/sugar/molasses, strength: 600 }]

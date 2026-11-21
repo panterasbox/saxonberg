@@ -14,6 +14,8 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
 import Provision from '../../../platform/thing/Provision';
+import Place from '../../stuff/Place';
+import Floor from '../../../platform/thing/Floor';
 import Syrup from '../../../platform/idea/material/Syrup';
 import { MouldMixin } from '../Mould';
 import { DurableMixin } from '../../material/Durable';
@@ -55,9 +57,7 @@ class TestPail extends ThermalMixin(BulkableMixin(Good)) {
 class TestPot extends PlacingMixin(CraftedMixin(ThermalMixin(BulkableMixin(Good)))) {
   static _mixinName = 'TestMouldPot';
 }
-class TestRoom extends ContainerMixin(Good) {
-  static _mixinName = 'TestMouldRoom';
-}
+class TestRoom extends Place {}
 /** A cast that remembers what it was made from — the wheel's duck. */
 class TestCast extends Provision {
   public madeFrom = '';
@@ -132,8 +132,17 @@ function curd(): Syrup {
   });
 }
 
+/** A room with a floor: what a mould drips runs to it when nothing else is under it. */
 function room(): TestRoom {
-  return makeStuff(() => new TestRoom());
+  const r = makeStuff(() => new TestRoom());
+  const floor = makeStuff(() => new Floor());
+  floor.surfaceBulk = true;
+  floor.setSurfaceCapacity(Quantity.of(100, 'L'));
+  r.addFixture(floor);
+  return r;
+}
+function floorOf(r: TestRoom): Floor {
+  return r.getFloor() as unknown as Floor;
 }
 
 function fillVessel<T extends Stuff>(v: T, mat: Syrup, litres: number, tempK: number): T {
@@ -295,6 +304,41 @@ describe('moulds — the container decides the shape', () => {
     expect(m.setState()).toBe('set');
   });
 
+  it('⭐ a fine pour into a poor mould casts poor; the maker is the batch\'s, never the mould\'s', async () => {
+    const r = room();
+    const m = fillVessel(mould(WHEEL), curd(), 2, 290);
+    m.stamp({ maker: '/platform/agent/Avatar/cooper', grade: Grade.of('poor'), recipe: '', craftedAt: 1 });
+    ContainmentApi.move(m, r);
+    m.setBulkPayload('interior', { grade: 'fine', maker: '/platform/agent/Avatar/milker', craftedAt: 42 });
+    expect(m.setState()).toBe('filled');
+    advanceTo(0.5 * DAY + 60);
+    m.reconcileSetting();
+    await settle();
+    const [cast] = contentsOf(m) as unknown as TestCast[];
+    expect(cast).toBeDefined();
+    expect(cast!.getGrade().getBand()).toBe('poor');
+    expect(cast!.getMaker()).toBe('/platform/agent/Avatar/milker');
+    expect(cast!.getCraftedAt()).toBe(42);
+    // …and the mould is still the cooper's poor mould.
+    expect(m.getMaker()).toBe('/platform/agent/Avatar/cooper');
+  });
+
+  it('a poor pour into a fine mould casts poor too — the lower of the two', async () => {
+    const r = room();
+    const m = fillVessel(mould(WHEEL), curd(), 2, 290);
+    m.stamp({ maker: '', grade: Grade.of('fine'), recipe: '', craftedAt: 0 });
+    ContainmentApi.move(m, r);
+    m.setBulkPayload('interior', { grade: 'poor' });
+    expect(m.setState()).toBe('filled');
+    advanceTo(0.5 * DAY + 60);
+    m.reconcileSetting();
+    await settle();
+    const [cast] = contentsOf(m) as unknown as TestCast[];
+    expect(cast!.getGrade().getBand()).toBe('poor');
+    // No batch maker: the cast names nobody, not the mould's maker.
+    expect(cast!.getMaker()).toBe('');
+  });
+
   it('under a weight of poolKg × loadRef it sets in half the time, drier', async () => {
     const r = room();
     const hoop = makeStuff(() => new TestHoop());
@@ -315,43 +359,45 @@ describe('moulds — the container decides the shape', () => {
     expect(storedMoisture(cast!)).toBeCloseTo(0.55, 2);
   });
 
-  describe('⭐ the drainings are kept (sugar D16)', () => {
-    const STRIKE = '/stuff/idea/material/_mould/strike';
-    const LOAF = '/stuff/idea/material/_mould/loaf-sugar';
-    const MOLASSES = '/stuff/idea/material/_mould/molasses';
-    function strike(): Syrup {
-      material(LOAF, () => {});
-      material(MOLASSES, (m) => m.setDensity(Quantity.of(1400, 'kg/m³')));
-      return material(STRIKE, (m) => {
+  describe('⭐ the drainings are kept — a drain set (whey off a curd; R1-D8)', () => {
+    const CURD = '/stuff/idea/material/_mould/drained-curd';
+    const CHEESE = '/stuff/idea/material/_mould/drained-cheese';
+    const WHEY = '/stuff/idea/material/_mould/whey';
+    function curd(): Syrup {
+      material(CHEESE, () => {});
+      material(WHEY, (m) => m.setDensity(Quantity.of(1400, 'kg/m³')));
+      return material(CURD, (m) => {
         m.setNutrientAmounts({ sugar: 700000, water: 300000 });
         m.setDrainSetting({
           days: 4,
-          becomes: LOAF,
-          drains: MOLASSES,
+          becomes: CHEESE,
+          drains: WHEY,
           moisture: { unloaded: 0.1, loaded: 0.1 },
           loadRef: 1,
         });
       });
     }
 
-    it('a cone on its pot fills the pot as it sets, a band poorer; the loaf is what is left', async () => {
+    it('a mould on its pot fills the pot as it sets, a band poorer; the cast is what is left', async () => {
       const r = room();
       const pot = makeStuff(() => new TestPot());
       (pot as unknown as { interiorBulk: boolean }).interiorBulk = true;
       pot.setInteriorCapacity(Quantity.of(10, 'L'));
       ContainmentApi.move(pot, r);
-      const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
+      const cone = fillVessel(mould(WHEEL), curd(), 5, 293);
       if (MixinApi.isGraded(cone)) cone.setGrade(Grade.of('fine'));
       ContainmentApi.move(cone, pot, Placements.ON);
-      expect(cone.drainsInto()).toBe(pot);
+      expect(cone.dripSlots()[0]?.getHolder()).toBe(pot);
 
       cone.reconcileSetting(); // stamps the start
       advanceTo(2 * DAY);
       cone.reconcileSetting();
       const halfway = pot.getBulkAmount('interior').rawValue();
       expect(halfway).toBeGreaterThan(0);
-      expect(pot.getBulkMaterialPath('interior')).toBe(MOLASSES);
-      expect(MixinApi.isGraded(pot) ? pot.getGrade().getBand() : '').toBe('fair');
+      expect(pot.getBulkMaterialPath('interior')).toBe(WHEY);
+      // The drainings' grade is their PAYLOAD's (matter-model-overlaps D2),
+      // a band below the pool's; the pot keeps its own making.
+      expect(pot.getBulkPayload('interior')?.grade).toBe('fair');
 
       advanceTo(5 * DAY);
       cone.reconcileSetting();
@@ -364,36 +410,19 @@ describe('moulds — the container decides the shape', () => {
       expect(loaf.getMass().rawValue()).toBeCloseTo(5 - 1.35, 3);
     });
 
-    it('⭐ the shape names what it becomes — a hogshead block is raw sugar, a cone loaf sugar', async () => {
-      const BLOCK = '/stuff/thing/_mould/raw-sugar-block';
-      const RAW = '/stuff/idea/material/_mould/raw-sugar';
-      const raw = material(RAW, () => {});
-      const s = strike();
-      s.setDrainSetting({ ...s.getDrainSetting()!.toSpec(), becomesAs: { [BLOCK]: RAW } });
-      const hogshead = mould(BLOCK);
-      fillVessel(hogshead, s, 5, 293);
-      ContainmentApi.move(hogshead, room());
-      const cone = fillVessel(mould(WHEEL), s, 5, 293);
-      ContainmentApi.move(cone, room());
-      for (const m of [hogshead, cone]) m.reconcileSetting();
-      advanceTo(5 * DAY);
-      for (const m of [hogshead, cone]) m.reconcileSetting();
-      await settle();
-      const matOf = (m: Stuff) => (contentsOf(m)[0] as unknown as { getMaterial(): Syrup }).getMaterial();
-      expect(matOf(hogshead)).toBe(raw);
-      expect(matOf(cone)?.getTemplatePath()).toBe(LOAF);
-    });
-
-    it('with nothing beneath, the drainings run away — the hoop on its board', async () => {
+    it('⭐ a mould lifted onto the floor pools its drainings there (the one drip, D10)', async () => {
       const r = room();
-      const cone = fillVessel(mould(WHEEL), strike(), 5, 293);
+      const cone = fillVessel(mould(WHEEL), curd(), 5, 293);
       ContainmentApi.move(cone, r);
-      expect(cone.drainsInto()).toBeNull();
+      expect(cone.dripSlots().map((s) => s.affordance)).toEqual(['surface']);
       cone.reconcileSetting();
       advanceTo(5 * DAY);
       cone.reconcileSetting();
       await settle();
       expect(contentsOf(cone)).toHaveLength(1);
+      const floor = floorOf(r);
+      expect(floor.getBulkMaterialPath('surface')).toBe(WHEY);
+      expect((floor.getBulkAmount('surface').rawValue() / 1000) * 1400).toBeCloseTo(1.35, 3);
     });
   });
 

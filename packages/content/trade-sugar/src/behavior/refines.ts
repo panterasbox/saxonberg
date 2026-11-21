@@ -138,6 +138,14 @@ interface Floor {
   /** A mould holds a set raw-sugar block (an estate's hogshead). */
   setBlock: boolean;
   /**
+   * ⭐ A mould holds a strike that nothing has started (matter-model-
+   * overlaps D14/D15): unseeded and unstirred, a struck cone cools and
+   * HOLDS. The boiler puts a piece of sugar in it, else stirs it.
+   */
+  unseeded?: boolean;
+  /** A loose piece of loaf sugar in reach to seed with. */
+  seed?: boolean;
+  /**
    * ⭐ The pan is thick (syrup) — the strike is minutes off. From syrup to
    * strike to caramel is a few game minutes on a full fire, and a boiler
    * idle on a twenty-second beat (four game minutes; twenty-four unwatched)
@@ -159,7 +167,16 @@ interface Floor {
    * what has set. A floor of three hogsheads binds `hogshead` to whichever
    * answers first, full or not (drive 13); absent, the plain word.
    */
-  refs?: { ready?: string; mould?: string; pot?: string; set?: string; sack?: string };
+  refs?: {
+    ready?: string;
+    mould?: string;
+    pot?: string;
+    set?: string;
+    sack?: string;
+    /** The mould holding an unstarted strike, and the piece to seed it with. */
+    unseeded?: string;
+    seed?: string;
+  };
   loaf: boolean;
   nips: boolean;
   piece: boolean;
@@ -177,7 +194,7 @@ export const brain = class {
   static kind: TaskKind = 'work';
   static summary =
     'Runs the pan: the liquor in, tempered, skimmed, the fire lit, boiled ' +
-    'to the strike, poured into a mould, and the sugar finished and shelved.';
+    'to the strike, poured into a mould and seeded, and the sugar finished and shelved.';
   static discipline = 'sugar-refining';
   static claims: readonly EngagementSlot[] = ['hands', 'body'];
   static presenceGated = false;
@@ -246,6 +263,13 @@ export const brain = class {
       // 23 — "you don't have a curing hogshead", every beat, as the pan burnt).
       if (f.coneAndPot) return `get ${ref.mould ?? w.mould}\nput ${ref.mould ?? w.mould} on ${ref.pot ?? w.pot}`;
     }
+    // ⭐ A strike in its mould waits for something to start it (D15): a
+    // piece of sugar put in — taken up first, `put` takes from the hands —
+    // else a stir. Unstarted, it cools and holds, and no loaf ever sets.
+    if (f.unseeded) {
+      const mould = ref.unseeded ?? w.mould;
+      return f.seed ? `get ${ref.seed ?? 'piece'}\nput ${ref.seed ?? 'piece'} in ${mould}` : `stir ${mould}`;
+    }
     // Finish what is made before starting more.
     if (w.finish === 'loaf') {
       // A milled sack is filled where the empty stood, so she picks it up
@@ -273,7 +297,9 @@ export const brain = class {
       return `pour butt into ${w.kettle} --amount ${BATCH_WATER}`;
     }
     if (f.liquor === 'water') {
-      if (f.block) return `put block in ${w.kettle}`;
+      // `put` takes from the hands (scope: inventory): the block is picked
+      // up first — a shipped defect, the line had no `get`.
+      if (f.block) return `get block\nput block in ${w.kettle}`;
       // The backstop: no island sugar on the floor — buy the import.
       return f.counterBlock ? errand('wallet use house', 'buy block') : null;
     }
@@ -308,7 +334,10 @@ export const brain = class {
       return Array.from({ length: Math.max(1, f.stokes ?? 1) }, () => `stoke ${f.fuel} into ${w.fire}`).join('\n');
     }
     if (!f.fireLit) return `light ${w.fire}`;
-    if (!f.onFire) return `heat ${w.kettle}`;
+    // ⭐ Set on the fire by hand — `heat <pot>` was retired for exactly this
+    // `put` (controller-liquidity), and the line still said `heat`, so the
+    // refiner never boiled (found by the matter-model-overlaps drive).
+    if (!f.onFire) return `get ${w.kettle}\nput ${w.kettle} on ${w.fire}`;
     return null;
   }
 
@@ -382,6 +411,14 @@ export const brain = class {
       );
     const moulded = (pred: (c: Stuff) => boolean): boolean => mouldOf(pred) !== undefined;
     const setMould = mouldOf((c) => c instanceof SugarLoaf || hasTag(c, 'raw-sugar'));
+    // ⭐ A mould holding a strike nothing has started (D14) — the hold is the
+    // phase engine's (`supersaturation`), read off the mould itself.
+    const unseededMould = here.find((m) => {
+      if (!MixinApi.isMould(m) || !MixinApi.isThermal(m)) return false;
+      const over = m.supersaturation();
+      return over !== null && !over.started;
+    });
+    const seedPiece = here.find((s) => !(s instanceof SugarLoaf) && hasTag(s, 'loaf-sugar'));
     const isSack = (s: Stuff): boolean =>
       s.getTemplatePath() === '/trade/cooking/thing/sugar-sack' &&
       MixinApi.isBulkable(s) &&
@@ -447,17 +484,29 @@ export const brain = class {
       thick,
       coneReady,
       coneAndPot: cones.length > 0 && freePot,
+      unseeded: unseededMould !== undefined,
+      seed: seedPiece !== undefined,
       setLoaf: moulded((c) => c instanceof SugarLoaf),
       setBlock: moulded((c) => hasTag(c, 'raw-sugar')),
       loaf: here.some((s) => s instanceof SugarLoaf),
       nips: here.some((s) => MixinApi.isTool(s) && s.hasCapability('nipping')),
-      piece: here.some((s) => !(s instanceof SugarLoaf) && hasTag(s, 'loaf-sugar')),
+      // ⭐ She keeps one piece back to seed the next strike (D15): only a
+      // second piece goes to the quern.
+      piece: here.filter((s) => !(s instanceof SugarLoaf) && hasTag(s, 'loaf-sugar')).length > 1,
       quern: here.some((s) => MixinApi.isTool(s) && s.hasCapability('millstone')),
       sack: sackHere !== undefined,
       sackHeld: sackHere !== undefined && MixinApi.isContainer(host) && host.getContents().includes(sackHere as never),
       counterBlock: onCounter('raw-sugar'),
       counterLime: onCounter('liming'),
-      refs: { ready: id(readyCone), mould: id(looseCone), pot: id(potFree), set: id(setMould), sack: id(sackHere) },
+      refs: {
+        ready: id(readyCone),
+        mould: id(looseCone),
+        pot: id(potFree),
+        set: id(setMould),
+        sack: id(sackHere),
+        unseeded: id(unseededMould),
+        seed: id(seedPiece),
+      },
     };
   }
 

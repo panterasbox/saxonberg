@@ -22,6 +22,8 @@
 # The pan stands open to the sky because nothing covers it.
 class: /trade/quarrying/thing/SaltPan
 data:
+  # A stock mould passes a batch up to fine (D3: a cast is min(batch, mould)).
+  gradeBand: fine
   shortDescription: salt pan
   keywords: [pan, "salt pan", saltpan, saltern, lead]
   register: indefinite

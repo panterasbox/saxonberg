@@ -12,9 +12,12 @@
 # bill at defaults. ⭐ The closure is the CEILING: a sprung stave or a
 # slack hoop and it weeps, whatever this row says.
 #
-# Its character: what fresh oak gives (`imparts`) and what a charred
-# inside gives (`charredImparts`, the re-fire's). Each fill after the
-# first since a re-fire spends a third of it.
+# ⭐ Its character is its WALL's (matter-model-overlaps D11): the oak body
+# gives oak and a little vanilla (oak's own `imparts`), a char coat inside
+# gives vanilla and char, and each fill after the first spends a third of
+# what the giving layer has (`faces.wallSpentPerFill`). Oak is absorbent:
+# the cask remembers what it held. A spent cask is re-fired: the bill's
+# `refire:` names the char the cooper's fire lays inside.
 class: /platform/thing/Vat
 data:
   shortDescription: cask
@@ -30,14 +33,8 @@ data:
   interiorCapacity: 25
   closure: liquidTight
   open: true
-  imparts:
-    - { type: /base-library/aromas/oak, amount: 25 }
-    - { type: /base-library/aromas/vanilla, amount: 3 }
-  charredImparts:
-    - { type: /base-library/aromas/vanilla, amount: 40 }
-    - { type: /base-library/aromas/char, amount: 120 }
-    - { type: /base-library/aromas/oak, amount: 15 }
   bill:
+    refire: /stuff/idea/material/wood/charred-oak
     parts:
       - { part: stave, template: /trade/coopering/thing/stave, count: 30, role: structural, plural: staves }
       - { part: head, template: /trade/coopering/thing/cask-head, count: 2, role: structural }
