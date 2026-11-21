@@ -177,6 +177,11 @@ are.
    *"if it's easy to make some of this stuff configurable, we can bury it in player settings."* The
    modes' defaults: **explore** — terminal → navigation card → cards; **watch** — video → terminal →
    second terminal → cards → watch card (*"splitting chat is more important than discovery"*).
+10. **Only the player changes the step** **[DECIDED — the owner, "for now"]** — by growing or
+    shrinking the card in the subject slot; no arriving card changes it (no auto-switch, applied to
+    sizes). **The window caps the step and never rewrites it**: when the chosen step no longer fits,
+    the largest that fits shows, and widening returns the player's step — as placed cards fold and
+    return today.
 
 **Explore in this language:** the terminal is the subject (the grammar's *single* split); the
 navigation card is the one permanent support explore argues for; cards come and go. Its behavior
