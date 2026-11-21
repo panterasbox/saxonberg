@@ -131,6 +131,38 @@ bracket) is already shared by mining and soil — a general readings frame plus 
 element could serve lab and bench alike. Across every mode surveyed, the server's state reaches
 the client **as prose**; most modes will want the server to publish structured state beside it.
 
+## 6a. The design language — what translates between modes **[DECIDED — the owner, 2026-11-21]**
+
+The owner: *"the important part is the design language translates between modes, the specific
+design doesn't have to."* And: *"any 'forever and always' decisions were made before we even had a
+map of the modes in front of us."* So the shipped stage (a fixed rail, a fixed panel every mode
+fills) is **not** preserved; the grammar's laws ([cockpit-composition.md](../../cockpit-composition.md))
+are.
+
+1. **A mode is a priority list over shared parts** — the chrome, the mode's subject (if it has one),
+   the terminal, cards, and anything the mode argues is permanent. Space is handed out down the
+   list; when it runs out, things fall off from the bottom.
+2. **The terminal never falls off** (law 1, never blind) — **except when the viewer explicitly
+   maximizes something else.** *"If someone wants to penetrate it and go max dimensions despite
+   losing the term that's up to them."* There is always a step just below max that keeps a
+   terminal.
+3. **The chrome never falls off, not even at max** — *"what I don't want to lose is the top nav and
+   things like connection status"* — so notices still arrive.
+4. **One terminal is always unfiltered.** *"If you only have space for one terminal, you have to
+   show a single unfiltered view … unless we like the notion of different messages being hidden
+   from view depending on which mode you're on which sounds like a nightmare to keep track of."*
+   With room for two, they **split** the stream — the union is everything, nothing is shown twice.
+   A mode never filters; a player may.
+5. **Nothing is permanent unless the mode argues for it.** No slot is filled because it exists —
+   the owner: *"you just saw a slot that needed filling and filled it."* The mode switcher is chrome
+   (it may live in the top bar as a menu that still lists every mode).
+6. **The subject sizes first** (law 4): a fixed-ratio subject such as a video takes its box at the
+   size chosen, and the rest is laid out in what it leaves.
+
+**Explore in this language:** the terminal is the subject (the grammar's *single* split); the
+navigation card is the one permanent support explore argues for; cards come and go. Its behavior
+does not change — its panel stops being *the panel every mode has*.
+
 ## 7. The lens pass
 
 Run per mode, in its own slate. Recorded here: **pedagogy** decided Learn's place in the queue

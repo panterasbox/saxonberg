@@ -172,6 +172,33 @@ So the BG3 pattern — the agenda state machine feeding a clickable overlay with
 Twitch Extension; on YouTube it degrades to native polls, on Kick to chat. This is the concrete
 version of the owner's *"it may even make twitch the premiere way to watch my stream."*
 
+## 7a. The layout — one screen, four video sizes **[LEAN — prototype]**
+
+The owner: *"given a fixed screen size, what are the different sizes the video portion of the
+screen uses and what real estate gets left to the rest of the page."* Watch's priority list:
+**the video** (the subject, sized by the viewer) → **the terminal** (chat included; unfiltered while
+alone) → **a second terminal** when there is room (stream chat splits out; the first keeps everything
+else) → **cards** (the ordinary feed; the agenda machine's card is one more arrival). *"If anything
+goes right in front of the viewer besides the video feed itself it's the chat. everything else can
+fall off but chat always needs to be there."*
+
+At 1440×900 (prototype: claude.ai artifact XY8FivnMEARSNiNxkJ5qcK, private):
+
+| step | video | left for everything else |
+|---|---|---|
+| **max** | 1416×797 | the chrome only — no terminal, by the viewer's choice |
+| **large** | 1044×587 | one unfiltered terminal (a 360px column) · a card row under the video |
+| **medium** | 704×396 | stream chat under the video · *everything else* as a second terminal · two card columns |
+| **small** | a card (344×194) | explore's shape: one unfiltered terminal leads, cards beside |
+
+- **Discovery and the schedule are not placed** **[LEAN]** — the owner: *"unless we're trying to
+  directly build a twitch competitor I don't know if that content is worth the same placement to us
+  as it gets on other sites … we never talked about it."* They are something you open (a card, a
+  command) until decided otherwise. Other performer-app features to decide: follow and go-live
+  notices, polls, raids, clips, rewards.
+- **Open:** who picks the step (the viewer only, or does the layout step down when a card needs
+  room); the step sizes at other screen sizes; the single bar vs a bar per terminal.
+
 ## 8. Open
 
 - The regular's experience mid-session; getting out of watch (the phone pocketed, the video in a
