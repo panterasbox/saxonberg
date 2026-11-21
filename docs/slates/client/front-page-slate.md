@@ -89,6 +89,25 @@ The Compact stands up before content ([separation-of-powers-slate § 7q](../soci
 only capital standing is minted, the vote on anything is the early-adopter incentive, and capital
 demand becomes labor demand. Two lines change:
 
+- ⭐ **Make → *Now hiring: three offices to stand up, and the moderators they lead*** (2026-11-20,
+  [separation-of-powers-slate § 7r](../society/separation-of-powers-slate.md)) — the owner: *"it's a
+  lot more to explain but it also has a little bit of something for everyone and hopefully that would
+  increase engagement."* Four rows, each derived:
+
+  | row | line | source |
+  |---|---|---|
+  | **Sergeant at Arms** | keeps order on the floor of the Compact · open | the floor office's opening |
+  | **High Constable** | keeps the peace between players · open | the Constabulary's opening |
+  | **Editor in Chief** | runs the Saxonberg Post · open | the Post's opening |
+  | **Moderators** | join the pool all three hire from · *start here* · *n* in the pool | **the moderator pool** |
+
+  and one line beneath: *Three separate authorities, each with its own rules. Most moderators will serve
+  more than one.* A filled seat shows its holder's name instead of *open*.
+  - ⭐ **The moderator pool** is a submitted section of the Post's directory
+    ([directory-slate](../society/directory-slate.md) § 3) — you join with `profile submit`, your
+    profile is your application, and **each of the three offices appoints its moderators from the same
+    pool** (appointment-mode openings, § 6). One pool, three authorities: a candidate applies once.
+  - The earlier rows below (the jobs report's headline) become the full report behind this block.
 - **Make → the monthly jobs report's headline.** The Compact's press office publishes it monthly,
   generated from the record: openings per institution with the load beside each (open cases per
   moderator, bills per clerk, cases awaiting a panel). The Make line shows the open seats ranked by
