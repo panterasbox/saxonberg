@@ -167,6 +167,16 @@ are.
    (`client-card grow`/`shrink`); only the steps differ by mode. A per-card ladder was proposed and
    **rejected** — the owner: *"it means like the order you expand and collapse cards in determines
    what breakpoints you're seeing represented on screen at any given time."*
+8. **The support slot** **[DECIDED]** — the left slot is not a ladder step. Each mode owns one
+   support slot that only ever holds that mode's support card (explore: the navigation card; watch:
+   the watch card); no other card docks there, because its value is being the same thing in the
+   same place (law 2). The support card is an ordinary card elsewhere — opened by its command it
+   flows and answers in the transcript. Whether the slot shows is decided by **the priority list**:
+   it is one entry and falls off in its turn.
+9. **The priority list is data** **[DECIDED — the owner]**, so a player may reorder it in settings
+   *"if it's easy to make some of this stuff configurable, we can bury it in player settings."* The
+   modes' defaults: **explore** — terminal → navigation card → cards; **watch** — video → terminal →
+   second terminal → cards → watch card (*"splitting chat is more important than discovery"*).
 
 **Explore in this language:** the terminal is the subject (the grammar's *single* split); the
 navigation card is the one permanent support explore argues for; cards come and go. Its behavior
