@@ -574,14 +574,15 @@ async function setFormationImpl(
   if (!party.isCaptain(memberIdOf(captain))) {
     return { ok: false, reason: "not-the-captain" };
   }
-  const trimmed = name.trim().toLowerCase();
-  if (!trimmed || !/^[a-z][a-z-]*$/.test(trimmed)) {
-    return { ok: false, reason: "unknown-formation" };
-  }
-  // ⭐ The captain's word names a formation document (a typed word, unique
-  // at install); resolving it loads it, so a mid-fight switch is live by
-  // its next beat (the beat's consult is a sync read).
-  const path = await PartyApi.formations().pathOfWord(trimmed);
+  // ⭐ A formation document's PATH (the controller named it by the one rule,
+  // naming overhaul D-C5 rule 3), or — for a script or a fixture — its
+  // exact word. Resolving it loads it, so a mid-fight switch is live by its
+  // next beat (the beat's consult is a sync read).
+  const ref = name.trim();
+  if (!ref) return { ok: false, reason: "unknown-formation" };
+  const path = ref.startsWith("/")
+    ? await PartyApi.formations().ensure(ref).then(() => ref, () => null)
+    : await PartyApi.formations().pathOfWord(ref);
   if (!path) return { ok: false, reason: "unknown-formation" };
   party.setFormationPath(path);
   await persistParty(party);

@@ -50,21 +50,24 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
-/** Measured at C0 (2026-11-21): 36. Lower it as the waves remove sites. */
-export const ARTICLE_STRIP_CEILING = 36;
+/** Measured at C0 (2026-11-21): 36. C2: 35 (the form word). */
+export const ARTICLE_STRIP_CEILING = 35;
 /**
  * Measured at C0 (2026-11-21): 92. C1: 89 — −2 the census corrected (a
  * length or number test names nothing), −1 the world clock's own parser.
  */
-export const HAND_COMPARE_CEILING = 89;
+// C2: 84 — the recipe, form, operation and call-up names go through the
+// rule, and the census was tightened (a variable holds a lowered value only
+// when the lowering is on its own receiver chain, not buried in an argument).
+export const HAND_COMPARE_CEILING = 84;
 /**
  * Measured at C0 (2026-11-21): 6. C1: 0 — rent, fire, the script `wait`, the
  * world clock and the test-harness clock read the one grammar
  * (`GrammarApi.parseDuration`, D-C6).
  */
 export const DURATION_PARSE_CEILING = 0;
-/** Measured at C0 (2026-11-21): 14. */
-export const WORD_MAP_CEILING = 14;
+/** Measured at C0 (2026-11-21): 14. C2: 11 (the recipe word index; `soul search` exempt as a search). */
+export const WORD_MAP_CEILING = 11;
 
 export type MatcherKind = "article-strip" | "hand-compare" | "duration-parse" | "word-map";
 
@@ -86,6 +89,8 @@ export const EXEMPT: ReadonlyArray<{ file: string; symbol: string; why: string }
   { file: "platform/idea/HelpCatalogue.ts", symbol: "HelpCatalogue.search", why: "a search is not a name" },
   { file: "platform/idea/HelpCatalogue.ts", symbol: "HelpCatalogue.typeaheadMatch", why: "a search is not a name" },
   { file: "platform/idea/cmd/social/WhoController.ts", symbol: "*", why: "`who --country` is a search, not a name" },
+  { file: "platform/idea/SoulCatalogue.ts", symbol: "SoulCatalogue.search", why: "`soul search` is a search, not a name" },
+  { file: "platform/idea/SoulCatalogue.ts", symbol: "buildSearchIndex", why: "`soul search`'s index — a search, not a name" },
   { file: "platform/idea/api/StreamLogic.ts", symbol: "*", why: "the stream verbs read the wall clock (owner, 2026-11-20)" },
 ];
 
@@ -188,7 +193,7 @@ export function scanModule(sf: ts.SourceFile, rel: string): MatcherSite[] {
       if (keys.some((k) => DURATION_WORDS.has(k)) && keys.some((k) => NUMBER_WORDS.has(k))) a.duration++;
     }
     // A variable that holds a lowered value (`const w = word.trim().toLowerCase()`).
-    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && containsLower(node.initializer)) {
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && lowersDirectly(node.initializer)) {
       a.lowered.add(node.name.text);
     }
     const isLowered = (x: ts.Node | undefined): boolean => !!x && mentionsLowered(x, a.lowered);
@@ -233,6 +238,23 @@ export function scanModule(sf: ts.SourceFile, rel: string): MatcherSite[] {
     if (a.map > 0) sites.push({ ...at, kind: "word-map" });
   }
   return sites.filter((s) => !EXEMPT.some((e) => s.file.endsWith(e.file) && (e.symbol === "*" || e.symbol === s.symbol)));
+}
+
+/**
+ * Is `n` itself a lowered string — a `toLowerCase()` on its receiver chain
+ * (`word.trim().toLowerCase()`, `(x ?? '').toLowerCase().replace(…)`) —
+ * rather than an expression with a lowering buried in an argument?
+ */
+function lowersDirectly(n: ts.Node): boolean {
+  let x: ts.Node = n;
+  for (;;) {
+    if (isLowerCall(x)) return true;
+    if (ts.isParenthesizedExpression(x) || ts.isNonNullExpression(x) || ts.isAsExpression(x)) x = x.expression;
+    else if (ts.isCallExpression(x)) x = x.expression;
+    else if (ts.isPropertyAccessExpression(x)) x = x.expression;
+    else if (ts.isBinaryExpression(x) && x.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken) x = x.left;
+    else return false;
+  }
 }
 
 /** Does `n` lower-case something, or read a variable holding a lowered value? */

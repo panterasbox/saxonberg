@@ -199,7 +199,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'setDisabled');
     const map = await this.ensureCache();
-    const existing = map.get(verb.toLowerCase());
+    const existing = await this.resolveAny(verb);
     if (!existing) return false;
     // ⚠ Write FIRST, then the cache: the write is title-gated, and a
     // refused write must leave the live catalogue as it was.
@@ -364,7 +364,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'delete');
     const map = await this.ensureCache();
-    const existing = map.get(verb.toLowerCase());
+    const existing = await this.resolveAny(verb);
     if (!existing) return false;
     // The gated delete first; the cache follows only a delete that landed.
     await DocumentApi.delete(existing.path);

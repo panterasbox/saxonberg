@@ -1232,6 +1232,30 @@ recipe verb takes article, plural and word start; two recipes sharing a
 word prompt.
 *Commit:* `build(naming-overhaul WC2): documents are named by their keywords`.
 
+✅ **Done.** `DocumentCatalogue.named(text, among?)` names a kind's
+documents by the words its kind derives (`keywordsOf`; a kind not yet
+declared `keyworded` still answers to its leaf), path order the tiebreak.
+`party adopt` names a formation through it and `setPartyFormation` takes the
+picked path (a bare word still resolves exactly, for a script or fixture);
+`operate … for <op>` names the operation. Recipes are template rows, not a
+document catalogue, so `RecipeCatalogue.recipeNamed(text, among?)` is the
+same rule over id · name · keywords; the word index and
+`Recipe.matchesKeyword` are deleted, `findByKeyword` keeps path and id and
+otherwise takes only a unique name, and the recipe verbs (`bake`, `cook`,
+`mix`, `forge`) name through `CraftController.recipeNamed` → `named`, so two
+recipes sharing a word prompt. `FormGrammar.parse` tokenizes with
+`GrammarApi.tokenize` (articles fall away there), keeps the proportion
+vocabulary and names the form word or class through the rule (forms gained
+a `keywords` field). `callUpImpl` names releases by headline and press, and
+home documents by title, through the rule — newest first, a tie the newest.
+⭐ **Decided:** emote dispatch stays an exact VERB word (a command word, not
+a name; `smile` smiles, unchanged) — `soul search`'s index joins the
+exemption table as a search. ⭐ **Decided:** the carving plan, an object
+answer that cannot prompt, takes the first carving of a tie. **Moved to C3:**
+`prescribe` (a Condition is an Idea). **Census:** article strips 35, hand
+compares 84 (removals plus one tightening — a variable holds a lowered value
+only when the lowering is on its own receiver chain), word-keyed indexes 11.
+
 **C3 — Ideas by keyword; proper names; no keys.**
 *Decisions:* D-C5 rules 4 and 2, D-C9.
 *Files:* `S/platform/idea/magic/Spell.ts` + `SpellCatalogue.ts` (holds live

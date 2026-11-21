@@ -222,7 +222,7 @@ export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
       return partyLogic().setSide(this as unknown as Stuff, side);
     }
 
-    /** Captain adopts a formation by short name. */
+    /** Captain adopts a formation — its document path (or its exact word). */
     public setPartyFormation(name: string): Promise<PartySimpleResult> {
       return partyLogic().setFormation(this as unknown as Stuff, name);
     }

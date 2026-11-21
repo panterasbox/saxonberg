@@ -21,6 +21,7 @@
  */
 
 import type { ActRefusal } from './ActPlan';
+import { GrammarApi } from '../../api/grammar';
 
 /** The five form classes. */
 export type FormClass = 'open' | 'closed' | 'flat' | 'block' | 'cone';
@@ -42,6 +43,8 @@ export interface FormWord {
   greenScale: number;
   /** The Discipline shaping it credits (`pottery`, `brickmaking`). */
   discipline: string;
+  /** The other words it answers to (`pitcher` for a jug) — lowercase. */
+  keywords: readonly string[];
 }
 
 /** A parsed form: what a `shape` asks for. */
@@ -143,7 +146,7 @@ export class FormGrammar {
   constructor(private readonly words: readonly FormWord[]) {}
 
   public parse(text: string): ParsedForm | FormRefusal {
-    let rest = (text ?? '').trim().toLowerCase().replace(/^(a|an|the)\s+/, '');
+    let rest = (text ?? '').trim().toLowerCase();
     // A trailing instrument phrase the binder left in the form is not the form.
     rest = rest.replace(/\s+(on|at|with|using)\s+.*$/, '').trim();
     if (rest === '') {
@@ -160,18 +163,31 @@ export class FormGrammar {
       capacityL = n * unit;
       rest = rest.slice(0, holding.index).trim();
     }
+    // ⭐ The words, articles aside (the rule's own tokenizer); a leading
+    // proportion is a fixed vocabulary, the rest NAMES a form by the one
+    // rule (naming overhaul D-C5 rule 3) — a pack's form word, else a class.
+    const tokens = GrammarApi.tokenize(rest);
     let proportion: FormProportion | null = null;
-    const first = rest.split(/\s+/)[0] ?? '';
-    if ((PROPORTIONS as readonly string[]).includes(first)) {
-      proportion = first as FormProportion;
-      rest = rest.slice(first.length).trim();
+    if (tokens.length > 1 && (PROPORTIONS as readonly string[]).includes(tokens[0]!)) {
+      proportion = tokens.shift() as FormProportion;
     }
-    const word = this.words.find((w) => w.key === rest) ?? null;
-    if (word !== null) {
+    rest = tokens.join(' ');
+    type Named = { kind: 'word'; word: FormWord } | { kind: 'class'; cls: FormClass };
+    const answer = GrammarApi.name<Named>(rest, [
+      ...this.words.map((w) => ({
+        value: { kind: 'word', word: w } as Named,
+        keywords: [w.key, w.key.replace(/-/g, ' '), ...w.keywords],
+        title: w.key,
+      })),
+      ...Object.entries(CLASS_WORDS).map(([k, cls]) => ({ value: { kind: 'class', cls } as Named, keywords: [k], title: k })),
+    ]);
+    const hit = answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
+    if (hit !== null && hit.kind === 'word') {
+      const word = hit.word;
       return new ParsedForm(word.formClass, capacityL ?? word.capacityL, proportion ?? word.proportion, word);
     }
-    const cls = CLASS_WORDS[rest];
-    if (cls !== undefined) {
+    if (hit !== null && hit.kind === 'class') {
+      const cls = hit.cls;
       if (capacityL === null && cls !== 'block' && cls !== 'flat') {
         return { ok: false, reason: 'bad-capacity', facts: { noun: CLASS_NOUNS[cls] } };
       }

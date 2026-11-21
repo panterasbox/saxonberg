@@ -1,6 +1,7 @@
 // DocumentLogic — the hot-reloadable logic singleton behind DocumentApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { GrammarApi, type NameAnswer } from '../../../api/grammar';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { WorldClockApi } from "../../../api/worldclock";
 import { ProseApi } from "../../../api/prose";
@@ -980,27 +981,38 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
 const CALL_UP_RELEASE_WINDOW = 200;
 
 async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
-  const w = word.trim().toLowerCase();
-  if (w === '') return null;
-  // Newest first by the release card's `publishedAt`, over a bounded page
-  // — the word picks the most recent match, never a scan of every release.
+  if (word.trim() === '') return null;
+  // ⭐ Named by the one rule (naming overhaul D-C5 rule 3), never a
+  // substring: a release answers to its headline and its press; newest
+  // first over a bounded page, so a word several share calls up the most
+  // recent (a tie in date order).
   const releases = (await findByKeyImpl(RELEASE_DOCUMENT_KIND, 'publishedAt', {
     order: 'desc',
     limit: CALL_UP_RELEASE_WINDOW,
   }))
     .map((d) => Release.fromDocument(d))
     .filter((r) => !r.isRetracted() && Release.publishedByOwner(r))
-    .filter((r) => r.getHeadline().toLowerCase().includes(w) || r.owner.toLowerCase().includes(w))
     .sort((a, b) => b.getPublishedAt() - a.getPublishedAt());
-  const release = releases[0];
-  if (release !== undefined) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
+  const firstOf = <T>(a: NameAnswer<T>): T | null => (a.kind === 'one' ? a.one : a.kind === 'tie' ? a.tie[0]! : null);
+  const release = firstOf(
+    GrammarApi.name(
+      word,
+      releases.map((r) => ({
+        value: r,
+        keywords: [r.getHeadline().toLowerCase(), r.owner.toLowerCase()],
+        title: r.getHeadline(),
+      })),
+    ),
+  );
+  if (release !== null) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
   const key = (reader.getIdentityPath() ?? '').split('/').filter(Boolean).pop() ?? '';
   if (key === '') return null;
+  const mine: Array<{ path: string; title: string }> = [];
   for (const d of await documentsUnder(`/home/${key}/`)) {
     const pages = await pagesOfImpl(d.getPath());
-    if (pages !== null && pages.title.toLowerCase().includes(w)) return { path: d.getPath(), title: pages.title };
+    if (pages !== null) mine.push({ path: d.getPath(), title: pages.title });
   }
-  return null;
+  return firstOf(GrammarApi.name(word, mine.map((m) => ({ value: m, keywords: [m.title.toLowerCase()], title: m.title }))));
 }
 
 /**
