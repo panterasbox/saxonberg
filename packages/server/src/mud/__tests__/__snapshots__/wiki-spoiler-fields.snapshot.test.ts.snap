@@ -1361,6 +1361,7 @@ ThermalMixin.shockCheckedS = 0
 ThermalMixin.stampedTemperatureK = 0
 ThermalMixin.thermalClockStamp = 0
 ThermalMixin.thermalLog = 0
+ThermalMixin.vaporWakeAtS = 0
 ThermalRegulationMixin.cachedHumidity = 0
 ThermalRegulationMixin.effectiveAmbientK = 0
 ThermalRegulationMixin.heatLoadJ = 0
