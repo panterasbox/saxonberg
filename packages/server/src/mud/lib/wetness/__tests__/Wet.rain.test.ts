@@ -172,6 +172,25 @@ describe('⭐⭐ the soak — off the rain record, into a porous body', () => {
     expect(glazed.getMoisture()).toBeLessThanOrEqual(EQ + 0.01);
   });
 
+  it('⭐ glazed inside AND out, a dry pot takes nothing from a wet hour — neither the rain nor the humid air; the bare one beside it does (found by the drive)', async () => {
+    const yard = makeStuff(() => new Yard());
+    weather(new Set([yard]), 5);
+    const sealed = pot(0.05, true);
+    void sealed.setCoats({
+      outside: [{ material: glaze.getTemplatePath()!, thicknessM: 0.0003, state: 'set' }],
+      inside: [{ material: glaze.getTemplatePath()!, thicknessM: 0.0003, state: 'set' }],
+    });
+    const bare = pot(0.05);
+    for (const p of [sealed, bare]) {
+      await ContainmentApi.move(p as never, yard as never);
+      p.getMoisture(); // the clock starts
+    }
+    expect(sealed.isSealed('inside')).toBe(true);
+    advance(3600);
+    expect(bare.getMoisture()).toBeGreaterThan(0.05);
+    expect(sealed.getMoisture()).toBeCloseTo(0.05, 9);
+  });
+
   it('a brick under the cover takes none — the rain record is the scope\'s, and the shed\'s has no rain', async () => {
     const yard = makeStuff(() => new Yard());
     const shed = makeStuff(() => new Shed());

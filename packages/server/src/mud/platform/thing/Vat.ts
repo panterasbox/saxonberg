@@ -47,6 +47,22 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { DurableMixin } from '../../lib/material/Durable';
 import { AssembledMixin, type JointState } from '../../lib/craft/Assembled';
 import { SoilableMixin } from '../../lib/cleanliness/Soilable';
+import type { MarkupAugmenter } from '../../api/mml';
+import { MixinApi } from '../../api/mixin';
+
+/**
+ * ⭐ The cask's OWN maker's mark (matter-model-overlaps requirement 6: `look`
+ * on the cask names its maker as the cooper) — the bottle's precedent
+ * (`GradedReceptacle`): a vat somebody made says so, band word and maker,
+ * beside the batch verdict of what is IN it (the holder's
+ * `batchVerdictAugmenter`). An unmarked vat says nothing. Found by the drive:
+ * no line anywhere named a cask's cooper.
+ */
+function makersMarkAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (!MixinApi.isCrafted(host) || host.getMaker() === '') return text;
+  const verdict = host.renderVerdict(viewer);
+  return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
+}
 
 /** How far an empty cask's hoops ride loose when it dries out. */
 const DRY_OUT_SLACK = 0.6;
@@ -85,6 +101,8 @@ const VatBase = SoilableMixin(
 );
 
 export default class Vat extends VatBase {
+  static markupAugmenters: MarkupAugmenter[] = [makersMarkAugmenter];
+
   /** Game-seconds it was first read empty; 0 = wet (or never read empty). */
   public emptySince = 0;
 

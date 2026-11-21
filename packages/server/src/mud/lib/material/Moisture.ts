@@ -846,6 +846,15 @@ export function MoistureMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
         this.waterClockStamp = nowS;
         return;
       }
+      // ⭐ Sealed on every face (glazed inside and out), its body meets no
+      // air and no rain: its water neither leaves nor comes (D19's sealed
+      // outside, carried to the air it shares with the rain). Found by the
+      // drive: a pot glazed both sides took in a wet hour's humidity as fast
+      // as the bare terracotta beside it.
+      if (MixinApi.isFaced(self) && self.isSealed('outside') && self.isSealed('inside')) {
+        this.waterClockStamp = nowS;
+        return;
+      }
 
       this._reconcilingCure = true;
       try {

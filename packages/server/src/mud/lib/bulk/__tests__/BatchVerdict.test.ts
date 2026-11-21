@@ -14,6 +14,7 @@ import { Grade } from '../../craft/Grade';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import CraftVessel from '../../../platform/thing/CraftVessel';
+import Vat from '../../../platform/thing/Vat';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
@@ -85,5 +86,18 @@ describe('⭐⭐ the batch verdict is the contents\', on any holder', () => {
     const look = glass.getMarkupLong(makeStuff(() => new Maker()), {});
     expect(look).toContain('What is in it looks exceptional');
     expect(look).toContain('It looks poor: cloudy and carelessly put together.');
+  });
+
+  it('⭐ a cask names its cooper beside the distiller\'s batch; an unmarked cask says nothing of itself (found by the drive)', () => {
+    const cooper = makeStuff(() => new Maker());
+    stampTemplatePathForTest(cooper, '/stuff/agent/_verdict/cooper');
+    vi.spyOn(cooper, 'describeFor').mockReturnValue('a man');
+    const cask = makeStuff(() => holding(new Vat(), { grade: 'poor', maker: '/stuff/agent/_verdict/hester' }));
+    cask.stamp({ maker: '/stuff/agent/_verdict/cooper', grade: Grade.of('fine'), recipe: 'cask', craftedAt: 0 });
+    const look = cask.getMarkupLong(makeStuff(() => new Maker()), {});
+    expect(look).toContain('It looks fine: clean, balanced, and well made. Made by a man.');
+    expect(look).toContain('What is in it looks poor: cloudy and carelessly put together. Made by a woman.');
+    const plain = makeStuff(() => holding(new Vat(), { grade: 'poor', maker: '/stuff/agent/_verdict/hester' }));
+    expect(plain.getMarkupLong(makeStuff(() => new Maker()), {})).not.toMatch(/\bIt looks\b/);
   });
 });

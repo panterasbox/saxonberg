@@ -48,7 +48,7 @@ function loafAugmenter(
   opts?: { filter?: readonly string[] },
 ): string {
   if (opts?.filter || !(host instanceof SugarLoaf)) return text;
-  const line = `It is ${host.colourLine()}.`;
+  const line = host.materialLine();
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
@@ -110,6 +110,20 @@ export default class SugarLoaf extends CuttableMixin(PercolatingMixin(Provision)
       at(reach >= 2 / 3 - 1e-9 ? base : base - 2),
       at(reach >= 1 - 1e-9 ? base - 1 : base - 2),
     ];
+  }
+
+  /**
+   * ⭐ What the loaf is, in a sentence: a cane loaf's colour head to foot
+   * (claying is a cane-sugar act), or — a cone of something else set in the
+   * same mould, maple strike seeded in a sugar cone — its own material and
+   * how it looks. Found by the drive: a maple loaf read "muscovado from head
+   * to foot", which it can never be.
+   */
+  public materialLine(): string {
+    const mat = MixinApi.isTangible(this) ? this.getMaterial() : null;
+    if (mat === null || mat.hasTag('loaf-sugar')) return `It is ${this.colourLine()}.`;
+    const look = mat.getAppearance();
+    return look ? `It is ${mat.getName()}: ${look}.` : `It is ${mat.getName()}.`;
   }
 
   /** The loaf in words: its colour, head to foot. */
