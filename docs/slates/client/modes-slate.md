@@ -255,6 +255,31 @@ own control, remembered, never changed by moving. ⚠ It bends the navigation ca
 no tabs"* — argued consistent (that rule is about sections within one model; each depth is still
 one column in a fixed order). **Open:** the card's name (LEAN *Where*) and *Region*.
 
+**It shows what was authored here** **[DECIDED — the owner, 2026-11-21]**. The first prototype made
+the room depth a second room inspection card (who's here, what to read). The owner: *"what I want
+the explore card to answer is what was authored here? I don't need to know about everything in
+reach but I do want to know what's staged. that's essentially what my maps try to tell me too.
+this is what makes it a little different than the other kinds of inspection cards … those are
+much more concerned with whatever the current runtime state is and how it's diverged from what's
+staged or authored."* So:
+
+- **The explore card is the staged layer, as you know it** — it changes when the place is restaged
+  or you learn more, never when someone sets a glass down; that is why it can stay put.
+  **Inspection and query cards are runtime** — what is there now and how it drifted. The room's
+  inspection card keeps following your attention, arrival included (the `here` role is unchanged:
+  *"your attention should move when you move and the card follows your attention"*).
+- **The room depth:** the authored **ways** on their walls (a concealed way absent until found);
+  **fixtures and props** grouped by where they sit; the **details** you can look closer at; **the
+  cast — who belongs here, shown when absent** (*Dave runs the bar*; whether he is in now is the
+  inspection card's); **what the place offers** (its authored business, menu, positions — the
+  handoff); **searched and found**. Players never appear — they are not authored.
+- **Server:** a projection of a place's authored layer (its row's ways, props, cast, details,
+  business), filtered **by what you know** (the map's firewall) and **by spoiler appetite** (a
+  place's details are spoilers on the same axis as paths). Staged content changes rarely, so it
+  refreshes on restage or new knowledge, never live.
+- The navigation design's *"position, never place"* holds at zone depth; the room depth is the
+  authored place at your position.
+
 ## 6b. Chat and post **[DECIDED — the owner, 2026-11-21]**
 
 **Chat, in the design language:** the terminal is the subject (steps unit · medium · full · max);
