@@ -1190,6 +1190,32 @@ for 90 minutes`; `for soon` and `for a while` give the identical line; a
 is 0 outside the stream exemption.
 *Commit:* `build(naming-overhaul WC1): one duration slot, in game time`.
 
+✅ **Done.** ⭐ **Decided (placement):** the one grammar is
+`GrammarApi.parseDuration` / `isDurationUnit`, with
+`CommandDefinition.parseDuration` forwarding — the world clock
+(`WorldClockRegistry`) must read it too, and `CommandDefinition` imports the
+command Api (a boot-cycle risk from a registry); a duration is English
+grammar, and `grammar.ts` is the rule's census-exempt home. Word forms
+(`a week`, `two days`, `an hour and 30 minutes`, `a fortnight`) read as
+digits. `granularity:` / `min:` / `max:` on a duration slot, validated at
+load (schema, `lint:view-keys`, `validateField`, and a default that will
+not do refuses the view). ⭐ **Decided (the refusal channel):** a bind error
+had no row — only `bind-failed` with a summary — so `BindErr` and the
+assembly result gained an optional `refusal {reason, facts}` that
+`CommandGiver` emits through `context.refuse`; `bad-duration` is now the
+binder's line, and `for soon` / `for a while` give the identical one
+(an unreadable run takes every word up to the next slot's preposition). The
+binder takes the longest run of up to four words that reads as one
+duration. ⭐ **Decided (D-C6 over the file list):** the plan's file list said
+the Interpreter's `wait` was not touched, but D-C6 and the acceptance (*the
+census's duration count is 0*) say it reads the same grammar; it does, with
+a bare number still meaning seconds. The world clock's `after('5 minutes')`
+and `testharness clock-advance` read it too. Rent's slot is `span`
+(`granularity: day`, `min: 1 day`); fire's `hold` (`min: 1 minute`).
+`press --expires` already read game seconds (A3). Census: duration parses
+**0**; hand compares **89** (−2 a census correction — a length or number test
+names nothing — and −1 the world clock's parser); controller decisions 503.
+
 **C2 — Documents by keyword.**
 *Decisions:* D-C5 rule 3.
 *Files:* `DocumentCatalogue.named`; `S/platform/idea/RecipeCatalogue.ts:103`

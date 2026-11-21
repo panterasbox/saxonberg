@@ -121,6 +121,23 @@ function scoreKeywords(keywords: readonly string[], queryWords: readonly string[
   return TIER_PARTIAL * begun.length;
 }
 
+/** Game seconds per written duration unit (naming overhaul D-C6: game time). */
+const DURATION_UNITS: Readonly<Record<string, number>> = {
+  s: 1, sec: 1, secs: 1, second: 1, seconds: 1,
+  m: 60, min: 60, mins: 60, minute: 60, minutes: 60,
+  h: 3_600, hr: 3_600, hrs: 3_600, hour: 3_600, hours: 3_600,
+  d: 86_400, day: 86_400, days: 86_400,
+  w: 604_800, week: 604_800, weeks: 604_800,
+  fortnight: 1_209_600, fortnights: 1_209_600,
+};
+
+/** The number words a duration may be written with (`a week`, `two days`). */
+const DURATION_NUMBER_WORDS: Readonly<Record<string, number>> = {
+  a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7,
+  eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, fourteen: 14,
+  twenty: 20, thirty: 30,
+};
+
 /** The regular English plural: `watch` → `watches`, `berry` → `berries`. */
 function pluralOf(word: string): string {
   if (/(s|x|z|ch|sh)$/i.test(word)) return `${word}es`;
@@ -426,6 +443,44 @@ export class GrammarApi {
     const partitive = /^(\S+)( of .+)$/.exec(singular);
     if (partitive) return `${GrammarApi.pluralWord(partitive[1]!)}${partitive[2]}`;
     return GrammarApi.pluralWord(singular);
+  }
+
+  /**
+   * ⭐⭐ THE duration grammar (naming overhaul D-C6 — one reading, game
+   * seconds): `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours`
+   * · `1 hour 30 minutes` · `a week` · `two days` · `a fortnight`. A unit is
+   * required — a bare number is not a duration. Null for anything else.
+   * The `type: duration` slot, the script `wait`/`every`, the world clock's
+   * `after('5 minutes')` and the test harness all read through here.
+   */
+  static parseDuration(text: string): number | null {
+    const t = text
+      .trim()
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w !== 'and')
+      .map((w) => (DURATION_NUMBER_WORDS[w] !== undefined ? String(DURATION_NUMBER_WORDS[w]) : w))
+      .join(' ');
+    if (t.length === 0) return null;
+    const re = /(\d+(?:\.\d+)?)\s*([a-z]+)\s*/y;
+    let total = 0;
+    let at = 0;
+    while (at < t.length) {
+      re.lastIndex = at;
+      const m = re.exec(t);
+      if (m === null) return null;
+      const unit = DURATION_UNITS[m[2]!];
+      if (unit === undefined) return null;
+      total += Number(m[1]) * unit;
+      at = re.lastIndex;
+    }
+    if (at !== t.length || at === 0) return null;
+    return Math.round(total);
+  }
+
+  /** Whether a word is a duration unit (`s`, `seconds`, `hour`, `fortnight` …). */
+  static isDurationUnit(word: string): boolean {
+    return DURATION_UNITS[word.toLowerCase()] !== undefined;
   }
 
   /**

@@ -27,6 +27,7 @@
 
 import type { CardId } from '@saxonberg/types';
 import { SourceTreeApi } from '../../api/source-tree';
+import { GrammarApi } from '../../api/grammar';
 import type {
   CommandView,
   ViewDefaultAlias,
@@ -647,22 +648,27 @@ export class CommandDefinition {
    * guess). Null for anything else.
    */
   static parseDuration(text: string): number | null {
-    const t = text.trim().toLowerCase();
-    if (t.length === 0) return null;
-    const re = /(\d+(?:\.\d+)?)\s*([a-z]+)\s*/y;
-    let total = 0;
-    let at = 0;
-    while (at < t.length) {
-      re.lastIndex = at;
-      const m = re.exec(t);
-      if (m === null) return null;
-      const unit = DURATION_UNITS[m[2]!];
-      if (unit === undefined) return null;
-      total += Number(m[1]) * unit;
-      at = re.lastIndex;
+    return GrammarApi.parseDuration(text);
+  }
+
+  /**
+   * ⭐ Why `seconds` will not do for a duration slot (naming overhaul
+   * D-C6) — off its `granularity`, under its `min`, over its `max` — or
+   * null when it will. The words are the `bad-duration` row's `why`.
+   */
+  static durationRefusal(
+    seconds: number,
+    def: { granularity?: 'minute' | 'hour' | 'day'; min?: string; max?: string },
+  ): string | null {
+    if (def.granularity !== undefined) {
+      const step = GRANULARITY_S[def.granularity];
+      if (seconds % step !== 0) return `it is reckoned in whole ${def.granularity}s`;
     }
-    if (at !== t.length || at === 0) return null;
-    return Math.round(total);
+    const min = def.min !== undefined ? CommandDefinition.parseDuration(def.min) : null;
+    if (min !== null && seconds < min) return `it is ${def.min} at the least`;
+    const max = def.max !== undefined ? CommandDefinition.parseDuration(def.max) : null;
+    if (max !== null && seconds > max) return `it is ${def.max} at the most`;
+    return null;
   }
 
   /**
@@ -670,7 +676,7 @@ export class CommandDefinition {
    * binder lets a `type: duration` slot take `2 hours` as two tokens.
    */
   static isDurationUnit(word: string): boolean {
-    return DURATION_UNITS[word.toLowerCase()] !== undefined;
+    return GrammarApi.isDurationUnit(word);
   }
 
   /**
@@ -695,30 +701,11 @@ export class CommandDefinition {
   }
 }
 
-/** Milliseconds per written duration unit. */
-/** Game seconds per duration unit (naming overhaul D-C6: a duration is game time). */
-const DURATION_UNITS: Readonly<Record<string, number>> = {
-  s: 1,
-  sec: 1,
-  secs: 1,
-  second: 1,
-  seconds: 1,
-  m: 60,
-  min: 60,
-  mins: 60,
+/** Game seconds per duration `granularity:` step. */
+const GRANULARITY_S: Readonly<Record<'minute' | 'hour' | 'day', number>> = {
   minute: 60,
-  minutes: 60,
-  h: 3_600,
-  hr: 3_600,
-  hrs: 3_600,
   hour: 3_600,
-  hours: 3_600,
-  d: 86_400,
   day: 86_400,
-  days: 86_400,
-  w: 604_800,
-  week: 604_800,
-  weeks: 604_800,
 };
 
 /** The help line a view with a `type: duration` slot carries. */
@@ -726,7 +713,7 @@ const DURATION_UNITS: Readonly<Record<string, number>> = {
 const COMPELLABLE_LINE = 'Another character may ask you to do this; you are always asked first.';
 
 const DURATION_FORMS =
-  '  A duration is written 90s, 15m, 2h, 1h30m, 3d, 90 seconds or 2 hours.';
+  '  A duration is written 90s, 15m, 2h, 1h30m, 3d, 90 seconds, 2 hours or a week.';
 
 /* ────────────────────── helpers ────────────────────── */
 
@@ -1104,7 +1091,7 @@ function validateStanzaShape(
  * any `default:` among it; a `duration`'s default must read.
  */
 function validateGrammar(
-  field: Pick<FieldDefinition, 'type' | 'values'> & {
+  field: Pick<FieldDefinition, 'type' | 'values' | 'granularity' | 'min' | 'max'> & {
     name?: string;
     default?: unknown;
   },
@@ -1112,6 +1099,27 @@ function validateGrammar(
   where: string
 ): void {
   const label = `${filePath} (${where}${field.name ? `.${field.name}` : ''})`;
+  // ⭐ A duration's step and bounds (naming overhaul D-C6), checked here so
+  // a view that cannot be satisfied never loads.
+  for (const key of ['granularity', 'min', 'max'] as const) {
+    if (field[key] !== undefined && field.type !== 'duration') {
+      throw new Error(`${label}: ${key}: is only valid on a type: duration slot (got type=${field.type ?? 'string'})`);
+    }
+  }
+  if (field.granularity !== undefined && !['minute', 'hour', 'day'].includes(field.granularity)) {
+    throw new Error(`${label}: granularity: must be minute, hour or day (got ${String(field.granularity)})`);
+  }
+  for (const key of ['min', 'max'] as const) {
+    const v = field[key];
+    if (v !== undefined && CommandDefinition.parseDuration(String(v)) === null) {
+      throw new Error(`${label}: ${key}: "${String(v)}" is not a duration`);
+    }
+  }
+  if (field.type === 'duration' && typeof field.default === 'string' && !field.default.startsWith('$')) {
+    const d = CommandDefinition.parseDuration(field.default);
+    const why = d === null ? null : CommandDefinition.durationRefusal(d, field);
+    if (why !== null) throw new Error(`${label}: default "${field.default}" will not do — ${why}`);
+  }
   if (field.type === 'enum' && field.values === undefined) {
     throw new Error(`${label}: type: enum needs values: (the closed word list)`);
   }

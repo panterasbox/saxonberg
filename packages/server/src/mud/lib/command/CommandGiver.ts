@@ -1632,6 +1632,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               reason: 'unknown-subcommand',
               detail: `unknown subcommand '${built.subcommand}'; valid: ${list}`,
             });
+          } else if (built.refusal !== undefined) {
+            // ⭐ A slot whose value will not do refuses with its own row
+            // (`bad-duration`, naming overhaul D-C6), worded at emit.
+            outer.refuse(new Refusal(built.refusal.reason, built.refusal.facts));
           } else {
             outer.note({
               kind: 'command-rejected',

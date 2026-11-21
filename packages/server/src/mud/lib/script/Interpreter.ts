@@ -42,6 +42,7 @@ import { CommandLineApi } from "../../api/command-line";
 import { CommandApi } from "../../api/command";
 import type { CommandModel, CommandContext } from "../../api/command";
 import { MixinApi } from "../../api/mixin";
+import { GrammarApi } from "../../api/grammar";
 import { Expression } from "./Expression";
 import { Block } from "./Block";
 import { Scope } from "./Scope";
@@ -196,16 +197,15 @@ function itemsOf(value: ScriptValue): ScriptValue[] {
 }
 
 /**
- * Parse a duration literal (`5m`, `30s`, `2h`, `1d`, or a bare number =
- * seconds) into game-seconds. Unparseable → 0 (fires next tick).
+ * A script duration (`5m`, `30s`, `2 hours`, `a day`) in game seconds —
+ * the one duration grammar (naming overhaul D-C6), with a bare number read
+ * as seconds (a script's own shorthand). Unparseable → 0 (fires next tick).
  */
 function parseDurationSeconds(text: string): number {
-  const match = /^(\d+(?:\.\d+)?)\s*(s|m|h|d)?$/.exec(text.trim());
-  if (!match) return 0;
-  const value = Number(match[1]);
-  const unit = match[2] ?? "s";
-  const scale = unit === "m" ? 60 : unit === "h" ? 3600 : unit === "d" ? 86400 : 1;
-  return value * scale;
+  const t = text.trim();
+  const bare = Number(t);
+  if (t !== "" && Number.isFinite(bare)) return bare;
+  return GrammarApi.parseDuration(t) ?? 0;
 }
 
 /** Extract `def` param names from a `($a $b)` island source. */

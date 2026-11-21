@@ -46,11 +46,17 @@ describe('parseDuration — the written forms', () => {
     ['2 hours', 7_200],
     ['1 hour 30 minutes', 5_400],
     ['90m', 5_400],
+    // The word forms (naming overhaul D-C6).
+    ['a week', 604_800],
+    ['two days', 172_800],
+    ['an hour and 30 minutes', 5_400],
+    ['a fortnight', 1_209_600],
+    ['2 fortnights', 2_419_200],
   ])('%s → %d game seconds', (text, ms) => {
     expect(CommandDefinition.parseDuration(text)).toBe(ms);
   });
 
-  it.each(['90', '', 'soon', '2 fortnights', '1h?', 'h'])('refuses %j', (text) => {
+  it.each(['90', '', 'soon', '1h?', 'h', 'a while', 'a'])('refuses %j', (text) => {
     expect(CommandDefinition.parseDuration(text)).toBeNull();
   });
 });
@@ -72,7 +78,7 @@ describe('type: duration — bound as game seconds', () => {
   it('⭐ refuses a bad option value, naming the forms', () => {
     const r = assemble('awayish --for soon', defOf(AWAY));
     expect(r).toMatchObject({ error: 'bind' });
-    expect((r as { summary: string }).summary).toMatch(/'soon' is not a duration/);
+    expect((r as { summary: string }).summary).toMatch(/'soon' is not a length of time this takes/);
   });
 
   it('a REQUIRED duration positional refuses a word that is not one', () => {

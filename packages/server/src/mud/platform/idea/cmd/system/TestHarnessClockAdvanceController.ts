@@ -5,6 +5,7 @@
  */
 
 import type { CommandContext } from '../../../../api/command';
+import { GrammarApi } from '../../../../api/grammar';
 import { TestHarnessApi } from '../../../../api/test-harness';
 import {
   TestHarnessControllerBase,
@@ -12,13 +13,6 @@ import {
   type TestHarnessModel,
 } from './TestHarnessControllerBase';
 
-/** The one-token durations the verb takes, in the clock's own grammar. */
-const UNIT_WORDS: Record<string, string> = {
-  s: 'seconds',
-  m: 'minutes',
-  h: 'hours',
-  d: 'days',
-};
 
 export default class TestHarnessClockAdvanceController extends TestHarnessControllerBase {
   async execute(model: TestHarnessModel, context: CommandContext): Promise<void> {
@@ -45,7 +39,7 @@ export default class TestHarnessClockAdvanceController extends TestHarnessContro
       const jump = await TestHarnessApi.advanceClock(duration);
       TestHarnessControllerBase.say(
         context,
-        `The clock moved ${duration}: ${Math.round(jump.before)}s → ` +
+        `The clock moved ${model.value}: ${Math.round(jump.before)}s → ` +
           `${Math.round(jump.after)}s (settled in ${jump.settledMs} ms` +
           `${jump.quiet ? '' : ', still draining'}).\n` +
           (await TestHarnessControllerBase.clockLine(context.commandGiver)),
@@ -53,10 +47,9 @@ export default class TestHarnessClockAdvanceController extends TestHarnessContro
     });
   }
 
-  /** A one-token duration (`30m`, `2h`, `1d`, `90s`) in the clock's grammar. */
+  /** A duration (`30m`, `2h`, `1d`, `a week`) as the clock's `N seconds` — the one grammar (D-C6). */
   private static durationOf(token: string): string | null {
-    const m = /^(\d+(?:\.\d+)?)([smhd])$/.exec(token.trim());
-    if (!m) return null;
-    return `${m[1]} ${UNIT_WORDS[m[2] as string]}`;
+    const seconds = GrammarApi.parseDuration(token);
+    return seconds === null ? null : `${seconds} seconds`;
   }
 }

@@ -52,10 +52,17 @@ import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
 /** Measured at C0 (2026-11-21): 36. Lower it as the waves remove sites. */
 export const ARTICLE_STRIP_CEILING = 36;
-/** Measured at C0 (2026-11-21): 92. */
-export const HAND_COMPARE_CEILING = 92;
-/** Measured at C0 (2026-11-21): 6. */
-export const DURATION_PARSE_CEILING = 6;
+/**
+ * Measured at C0 (2026-11-21): 92. C1: 89 — −2 the census corrected (a
+ * length or number test names nothing), −1 the world clock's own parser.
+ */
+export const HAND_COMPARE_CEILING = 89;
+/**
+ * Measured at C0 (2026-11-21): 6. C1: 0 — rent, fire, the script `wait`, the
+ * world clock and the test-harness clock read the one grammar
+ * (`GrammarApi.parseDuration`, D-C6).
+ */
+export const DURATION_PARSE_CEILING = 0;
 /** Measured at C0 (2026-11-21): 14. */
 export const WORD_MAP_CEILING = 14;
 
@@ -90,9 +97,6 @@ export const EXEMPT: ReadonlyArray<{ file: string; symbol: string; why: string }
  */
 export const MUST_FIND: ReadonlyArray<{ file: string; symbol: string; kind: MatcherKind }> = [
   { file: "platform/thing/CharterBook.ts", symbol: "CharterBook.shipFor", kind: "article-strip" },
-  { file: "platform/idea/cmd/retail/RentController.ts", symbol: "RentController.daysOf", kind: "duration-parse" },
-  { file: "platform/idea/cmd/device/FireController.ts", symbol: "FireController.parseHoldS", kind: "duration-parse" },
-  { file: "lib/script/Interpreter.ts", symbol: "parseDurationSeconds", kind: "duration-parse" },
   { file: "platform/idea/SpellCatalogue.ts", symbol: "SpellCatalogue.loadCacheFromTemplates", kind: "word-map" },
   { file: "lib/retail/Stock.ts", symbol: "Stock.lineForWord", kind: "hand-compare" },
   { file: "lib/retail/Stock.ts", symbol: "Stock.pricedKeyFor", kind: "hand-compare" },
@@ -189,7 +193,11 @@ export function scanModule(sf: ts.SourceFile, rel: string): MatcherSite[] {
     }
     const isLowered = (x: ts.Node | undefined): boolean => !!x && mentionsLowered(x, a.lowered);
     if (ts.isBinaryExpression(node) && [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken].includes(node.operatorToken.kind)) {
-      const empty = (x: ts.Node): boolean => (ts.isStringLiteral(x) || ts.isNoSubstitutionTemplateLiteral(x)) && x.text === "";
+      // An emptiness or length test (`w === ''`, `t.length === 0`) names nothing.
+      const empty = (x: ts.Node): boolean =>
+        ((ts.isStringLiteral(x) || ts.isNoSubstitutionTemplateLiteral(x)) && x.text === "") ||
+        ts.isNumericLiteral(x) ||
+        (ts.isPropertyAccessExpression(x) && x.name.text === "length");
       if ((isLowered(node.left) || isLowered(node.right)) && !empty(node.left) && !empty(node.right)) a.compare++;
     }
     if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) && COMPARE_CALLS.has(node.expression.name.text)) {

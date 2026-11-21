@@ -331,6 +331,20 @@
         "values": {
           "$ref": "#/$defs/values"
         },
+        "granularity": {
+          "enum": ["minute", "hour", "day"],
+          "description": "\u2b50 A `type: duration` slot's smallest step (naming overhaul D-C6): a hire is let by the `day`. A value off the step is the `bad-duration` refusal. Refused on every other type (load-time)."
+        },
+        "min": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A `type: duration` slot's least value, written as a duration (`1 day`). Below it is the `bad-duration` refusal."
+        },
+        "max": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A `type: duration` slot's greatest value, written as a duration (`4 weeks`). Above it is the `bad-duration` refusal."
+        },
         "cardinality": {
           "$ref": "#/$defs/cardinality"
         },
@@ -430,6 +444,20 @@
         },
         "values": {
           "$ref": "#/$defs/values"
+        },
+        "granularity": {
+          "enum": ["minute", "hour", "day"],
+          "description": "\u2b50 A `type: duration` slot's smallest step (naming overhaul D-C6): a hire is let by the `day`. A value off the step is the `bad-duration` refusal. Refused on every other type (load-time)."
+        },
+        "min": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A `type: duration` slot's least value, written as a duration (`1 day`). Below it is the `bad-duration` refusal."
+        },
+        "max": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A `type: duration` slot's greatest value, written as a duration (`4 weeks`). Above it is the `bad-duration` refusal."
         },
         "schema": {
           "type": "object",

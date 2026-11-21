@@ -54,7 +54,8 @@ const FIRE_EFFORT_W = 420;
 export interface FireModel extends CommandModel {
   kiln?: MqlOneResult;
   /** `for 30 minutes` — how long to hold the chamber at heat. */
-  hold?: string;
+  /** The hold in game seconds (`type: duration`). */
+  hold?: number;
   /** `--draught low` — the air to fire at. */
   draught?: string;
 }
@@ -88,19 +89,8 @@ export default class FireController extends CommandController<FireModel> {
       }
     }
 
-    let holdS = FIRE_MS / 1000;
-    if (typeof model.hold === 'string' && model.hold.trim() !== '') {
-      const parsed = FireController.parseHoldS(model.hold);
-      if (parsed === null) {
-        this.decline(
-          context,
-          Mml.compose`Fire it for how long? Say it the way a clock does — "for 30 minutes", "for 2 hours".`,
-          'bad-duration',
-        );
-        return;
-      }
-      holdS = parsed;
-    }
+    // ⭐ Game seconds, read by the view's one duration slot (D-C6).
+    const holdS = model.hold ?? FIRE_MS / 1000;
 
     // ⭐ The charge is whatever is IN the chamber — and in a mould standing
     // in it. Never an argument: the heat reaches what is there.
@@ -160,20 +150,6 @@ export default class FireController extends CommandController<FireModel> {
       // heat over game time.
       void settle(context, kiln, heldK, holdS);
     });
-  }
-
-  /**
-   * `"30 minutes"`, `"2 hours"`, `"1 day"` → game-seconds; `null` when it
-   * is not a duration. The world clock's own grammar.
-   */
-  private static parseHoldS(text: string): number | null {
-    const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day)s?\s*$/i.exec(text);
-    if (!m) return null;
-    const n = Number(m[1]);
-    const unit = (m[2] ?? '').toLowerCase();
-    const per = unit === 'second' ? 1 : unit === 'minute' ? 60 : unit === 'hour' ? 3600 : 86_400;
-    const s = n * per;
-    return s > 0 ? s : null;
   }
 
   /**

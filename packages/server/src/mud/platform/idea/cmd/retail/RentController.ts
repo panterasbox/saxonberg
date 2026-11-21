@@ -33,14 +33,11 @@ const TOPIC = "act.deed";
 const DAY_S = 86_400;
 
 /** The day-counts said as words (`for a day`, `for two days`). */
-const DAY_WORDS: Record<string, number> = {
-  a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7,
-  eight: 8, nine: 9, ten: 10, fourteen: 14, week: 7, fortnight: 14,
-};
 
 interface RentModel extends CommandModel {
   boat?: MqlOneResult;
-  days?: string;
+  /** The hire in game seconds, whole days (`type: duration`, `granularity: day`). */
+  span?: number;
   book?: MqlOneResult;
 }
 
@@ -52,11 +49,8 @@ export default class RentController extends CommandController<RentModel> {
       this.reject(giver, context, Mml.compose`That is not something anybody lets by the day.`, "not-hirable");
       return;
     }
-    const days = this.daysOf(model.days);
-    if (days === null) {
-      this.reject(giver, context, Mml.compose`For how many days? Say it as so many days: for 2 days, for a day.`, "bad-days");
-      return;
-    }
+    // ⭐ Whole days, read by the view's one duration slot (D-C6).
+    const days = Math.round((model.span ?? DAY_S) / DAY_S);
     const kind = boat.getTemplatePath() ?? "";
     const bound = model.book?.stuff ?? null;
     const book = bound instanceof HireBook && bound.rateFor(kind) !== null ? bound : null;
@@ -110,21 +104,6 @@ export default class RentController extends CommandController<RentModel> {
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} hires ${Mml.thing(boat)}.`)
       .send();
-  }
-
-  /** `2 days`, `two days`, `a day`, `a week`; absent → one. `null` when it is not a whole number of days. */
-  private daysOf(text: string | undefined): number | null {
-    const t = (text ?? "").trim().toLowerCase();
-    if (t === "") return 1;
-    const m = /^(\d+|[a-z]+)(?:\s+(days?|weeks?))?$/.exec(t);
-    if (!m) return null;
-    const head = m[1]!;
-    const word = /^\d+$/.test(head) ? Number.parseInt(head, 10) : DAY_WORDS[head];
-    if (word === undefined || !Number.isInteger(word) || word <= 0) return null;
-    // `a week`, `2 weeks`; a bare `week`/`fortnight` is already in days.
-    const unit = m[2] ?? "";
-    if (unit.startsWith("week")) return head === "week" ? null : word * 7;
-    return word;
   }
 
   private span(days: number): string {

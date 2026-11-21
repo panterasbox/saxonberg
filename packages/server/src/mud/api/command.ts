@@ -908,6 +908,16 @@ export interface FieldDefinition {
    */
   values?: string[];
   /**
+   * ⭐ A `type: duration` slot's bounds (naming overhaul D-C6): its smallest
+   * step (`granularity` — a hire is let by the `day`), and its least and
+   * greatest values written as durations (`min: 1 day`). A value off the
+   * step or out of bounds is the one refusal `bad-duration`. Refused on
+   * every other type (load-time).
+   */
+  granularity?: 'minute' | 'hour' | 'day';
+  min?: string;
+  max?: string;
+  /**
    * Cardinality constraint for `objects` fields. Ignored on other
    * field types. Defaults to `{ min: 0, max: Infinity }`.
    */
@@ -1171,6 +1181,10 @@ export interface OptionDefinition {
   type: 'boolean' | FieldType;
   /** The closed set of words this option accepts — see `FieldDefinition.values`. */
   values?: string[];
+  /** A duration's step and bounds — see `FieldDefinition.granularity`. */
+  granularity?: 'minute' | 'hour' | 'day';
+  min?: string;
+  max?: string;
   /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
   schema?: Record<string, unknown>;
   /** Cardinality / onExcess / onShortage — see `FieldDefinition`. */
@@ -1517,7 +1531,7 @@ export type AssembleResult =
    * suggestion the client offers to run.
    */
   | { error: 'shape'; summary: string; missing?: string; quoteHint?: string; quoteLine?: string }
-  | { error: 'bind'; summary: string }
+  | { error: 'bind'; summary: string; refusal?: { reason: string; facts: Record<string, string> } }
   | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
 const LOGIC_PATH = '/platform/idea/api/command';

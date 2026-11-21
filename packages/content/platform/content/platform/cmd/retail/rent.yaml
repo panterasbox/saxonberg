@@ -26,6 +26,8 @@ examples:
     note: Two days' hire, paid now
   - cmd: rent rowboat
     note: A day's hire
+  - cmd: rent canoe for a week
+    note: Seven days' hire, paid now
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
@@ -39,13 +41,16 @@ args:
     required: true
     scope: ["~peers", "~person"]
     requires: [SmallCraftMixin]
-  # ⭐ HOW LONG — `for 2 days`, `for a day`. Optional: a day.
-  # ⚠ `greedy: true` — "2 days" is two tokens and one span.
-  - name: days
+  # ⭐ HOW LONG — `for 2 days`, `for a week`, `for a fortnight`: the one
+  # duration slot (naming overhaul D-C6), let by the whole day. Optional:
+  # a day. `for 90 minutes` refuses — a boat is let by the day.
+  - name: span
     prepositionRequired: true
-    type: string
+    type: duration
     required: false
-    greedy: true
+    default: "1 day"
+    granularity: day
+    min: "1 day"
     prepositions: [for]
   # ⭐ WHO LETS HER, declared rather than hunted for — the hire book here
   # (`at the book`). ⚠ `requires:` is a knowingly-accepted SUPERSET (the

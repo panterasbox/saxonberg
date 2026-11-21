@@ -1283,7 +1283,7 @@ export class CommandLogic extends ApiLogic {
         continue;
       }
       const r = bindOptionToken(command, 'verb', tokens, i, fields);
-      if (!r.ok) return { error: 'bind', summary: r.summary };
+      if (!r.ok) return { error: 'bind', summary: r.summary, ...(r.refusal ? { refusal: r.refusal } : {}) };
       i = r.nextIndex;
     }
 
@@ -1345,7 +1345,7 @@ export class CommandLogic extends ApiLogic {
           t.kind === 'long-with-value')
       ) {
         const r = bindOptionToken(command, scope, tokens, i, fields);
-        if (!r.ok) return { error: 'bind', summary: r.summary };
+        if (!r.ok) return { error: 'bind', summary: r.summary, ...(r.refusal ? { refusal: r.refusal } : {}) };
         i = r.nextIndex;
         continue;
       }
@@ -2775,6 +2775,8 @@ interface BindOk {
 interface BindErr {
   ok: false;
   summary: string;
+  /** A refusal with its own row (`bad-duration`), worded at emit. */
+  refusal?: { reason: string; facts: Record<string, string> };
 }
 
 function bindOptionToken(
@@ -2847,20 +2849,20 @@ function bindOptionToken(
     }
     // ⭐ A duration may be written as two words (`--for 2 hours`): a
     // number followed by a unit is one value.
-    const unit = tokens[i + 2];
-    const twoWord =
-      opt.def.type === 'duration' &&
-      isNumericToken(next.value) &&
-      unit?.kind === 'word' &&
-      CommandDefinition.isDurationUnit(unit.value);
-    const text = twoWord ? `${next.value} ${(unit as WordToken).value}` : next.value;
+    let width = 1;
+    if (opt.def.type === 'duration') {
+      const words: string[] = [];
+      for (let k = i + 1; k < tokens.length && tokens[k]!.kind === 'word'; k++) words.push((tokens[k] as WordToken).value);
+      width = durationWidth(words);
+    }
+    const text = tokens.slice(i + 1, i + 1 + width).map((w) => (w as WordToken).value).join(' ');
     const coerced = coerceOptionValue(opt.def, text);
     if (!coerced.ok) {
-      return { ok: false, summary: `option --${t.name}: ${coerced.error}` };
+      return { ok: false, summary: `option --${t.name}: ${coerced.error}`, ...(coerced.refusal ? { refusal: coerced.refusal } : {}) };
     }
     const r = applyOptionValue(fields, fname, opt.def, coerced.value, opt.name);
     if (!r.ok) return r;
-    return { ok: true, nextIndex: i + (twoWord ? 3 : 2) };
+    return { ok: true, nextIndex: i + 1 + width };
   }
 
   if (t.kind === 'long-with-value') {
@@ -2922,10 +2924,25 @@ interface CoerceOk {
 interface CoerceErr {
   ok: false;
   error: string;
+  /** A refusal with its own row (`bad-duration`), worded at emit. */
+  refusal?: { reason: string; facts: Record<string, string> };
+}
+
+/**
+ * ⭐ How many words a duration takes (naming overhaul D-C6): the longest
+ * run (up to four) that reads as one (`a week`, `1 hour 30 minutes`); when
+ * none does, every word offered — so `for a while` is refused as `a while`,
+ * the same line as `for soon`.
+ */
+function durationWidth(words: readonly string[]): number {
+  for (let w = Math.min(4, words.length); w >= 1; w--) {
+    if (CommandDefinition.parseDuration(words.slice(0, w).join(' ')) !== null) return w;
+  }
+  return Math.max(1, words.length);
 }
 
 function coerceOptionValue(
-  def: Pick<OptionDefinition, 'type' | 'values'>,
+  def: Pick<OptionDefinition, 'type' | 'values' | 'granularity' | 'min' | 'max'>,
   raw: string
 ): CoerceOk | CoerceErr {
   switch (def.type) {
@@ -2949,10 +2966,15 @@ function coerceOptionValue(
     }
     case 'duration': {
       const seconds = CommandDefinition.parseDuration(raw);
-      if (seconds === null) {
+      const why =
+        seconds === null
+          ? 'write it like 90s, 15m, 2 hours or a week'
+          : CommandDefinition.durationRefusal(seconds, def);
+      if (seconds === null || why !== null) {
         return {
           ok: false,
-          error: `'${raw}' is not a duration (write it like 90s, 15m, 2h, 1h30m or 2 hours)`,
+          error: `'${raw}' is not a length of time this takes — ${why}`,
+          refusal: { reason: 'bad-duration', facts: { what: raw.trim(), why: why ?? '' } },
         };
       }
       return { ok: true, value: seconds };
@@ -3142,7 +3164,7 @@ function bindPositionalsImpl(
    * `draught <fire> <setting>` with the setting `at`; it is the next view's
    * `draught <setting> at <fire>`.
    */
-  let unread: { error: 'bind'; summary: string } | undefined;
+  let unread: { error: 'bind'; summary: string; refusal?: { reason: string; facts: Record<string, string> } } | undefined;
   /**
    * ⭐ A typed slot's value (controller-liquidity D1): a `number` or
    * `duration` is coerced, an `enum` word canonicalized — the same
@@ -3153,7 +3175,10 @@ function bindPositionalsImpl(
     text: string
   ): CoerceOk | CoerceErr =>
     def.type === 'number' || def.type === 'duration' || def.type === 'enum'
-      ? coerceOptionValue({ type: def.type, values: def.values }, text)
+      ? coerceOptionValue(
+          { type: def.type, values: def.values, granularity: def.granularity, min: def.min, max: def.max },
+          text,
+        )
       : { ok: true, value: text };
   /** A defaulted value, coerced like a typed one (a default is the author's word). */
   const defaulted = (def: PositionalDefinition): FieldValue => {
@@ -3458,14 +3483,15 @@ function bindPositionalsImpl(
     // followed by a unit is one value.
     const tokenText = (): { text: string; width: number } => {
       const tok = positionals[pi]!;
-      const unit = positionals[pi + 1];
-      if (
-        def.type === 'duration' &&
-        isNumericToken(tok.value) &&
-        unit !== undefined &&
-        CommandDefinition.isDurationUnit(unit.value)
-      ) {
-        return { text: `${tok.value} ${unit.value}`, width: 2 };
+      if (def.type === 'duration') {
+        // ⭐ `a week`, `2 hours`, `1 hour 30 minutes` — up to the next
+        // slot's preposition (naming overhaul D-C6).
+        const words: string[] = [];
+        for (let k = pi; k < positionals.length && !laterPreps.has(positionals[k]!.value.toLowerCase()); k++) {
+          words.push(positionals[k]!.value);
+        }
+        const width = durationWidth(words);
+        return { text: words.slice(0, width).join(' ') || tok.value, width: Math.max(1, width) };
       }
       return { text: tok.value, width: 1 };
     };
@@ -3493,7 +3519,7 @@ function bindPositionalsImpl(
       }
       const { text, width } = tokenText();
       const c = typed(def, expand(text));
-      if (!c.ok) unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+      if (!c.ok) unread ??= { error: 'bind', summary: `${name}: ${c.error}`, ...(c.refusal ? { refusal: c.refusal } : {}) };
       bound[name] = c.ok ? c.value : text;
       pi += width;
       continue;
@@ -3512,9 +3538,10 @@ function bindPositionalsImpl(
       if (c.ok) {
         bound[name] = c.value;
         pi += width;
-      } else if (def.type === 'enum') {
-        // A closed word set refuses, naming the set — once the shape fits.
-        unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+      } else if (def.type === 'enum' || def.type === 'duration') {
+        // A closed word set refuses, naming the set — once the shape fits;
+        // a duration that will not do refuses with its row (D-C6).
+        unread ??= { error: 'bind', summary: `${name}: ${c.error}`, ...(c.refusal ? { refusal: c.refusal } : {}) };
         bound[name] = text;
         pi += width;
       } else if (def.default !== undefined) {
