@@ -284,7 +284,9 @@ suite('6 · a season of work (H), and a season of nothing (L)', () => {
 
   it('⭐⭐ `lift 60` is afforded from the floor, holds the hands, and the mass moves', async () => {
     const before = await massOf(H);
-    for (let set = 0; set < 3; set++) {
+    // Five sets (three left the cue on its threshold — the indifference
+    // drive saw it both ways on one tree).
+    for (let set = 0; set < 5; set++) {
       const r = await H.cmd('lift 60');
       expectOk(r);
       await H.awaitActivity(engagementIdOf(r), 60_000);
@@ -351,7 +353,9 @@ suite('7 · heat', () => {
     if (donning.notes.some((n) => n.kind === 'engagement-started')) {
       await H.awaitActivity(engagementIdOf(donning), 120_000);
     }
-    for (let set = 0; set < 3; set++) {
+    // Five sets (three left the cue on its threshold — the indifference
+    // drive saw it both ways on one tree).
+    for (let set = 0; set < 5; set++) {
       const r = await H.cmd('lift 60');
       expectOk(r);
       const notes = await H.awaitActivity(engagementIdOf(r), 60_000);
@@ -361,7 +365,7 @@ suite('7 · heat', () => {
     // The cue rides the thermal slice (one a game-minute), and the slice
     // runs on a VITALS read — `assess` is one; `look` is not. Read the
     // body a few times to let the slices run.
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 8 && !sweatSeen; i++) {
       await new Promise((r) => setTimeout(r, 2500));
       if (/sweating/i.test(await H.prose('assess'))) sweatSeen = true;
     }
@@ -440,10 +444,19 @@ suite('10 · reach', () => {
     L.close();
     H = await Session.open(hName, { startLocation: CLIMB });
     L = await Session.open(lName, { startLocation: CLIMB });
+    // ⭐ A checkpoint owns its position: both straight off the lane runs
+    // above, and H was sometimes refused the ladder winded (the indifference
+    // drive saw it both ways on one tree). A breather of a few game minutes:
+    // the claim is a TRAINED body climbing without stopping, not a spent one.
+    await new Promise((r) => setTimeout(r, 20_000));
     const l = await L.cmd('climb down');
     expectOk(l);
     expect(await l.said()).toMatch(/stop on the way to get your breath/i);
     const h = await H.cmd('climb down');
+    if (h.status !== 'ok') {
+      // eslint-disable-next-line no-console -- the drive's own record of WHY
+      console.log(`[nutrition] H's climb refused: ${await h.said()} · carrying: ${await H.prose('inventory')}`);
+    }
     expectOk(h);
     expect(await h.said()).not.toMatch(/get your breath/i);
     expect(await H.prose('look')).toMatch(/shaft foot/i);
