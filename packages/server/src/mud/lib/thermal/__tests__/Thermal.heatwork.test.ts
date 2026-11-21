@@ -26,7 +26,8 @@ import { ThermalMixin } from '../Thermal';
 import Oven from '../../../platform/thing/Oven';
 import { Quantity } from '../../quantity';
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../platform/idea/WorldClockRegistry';
+import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { TemplatePaths } from '../../paths';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -334,6 +335,35 @@ describe('vapor in the chamber’s air', () => {
     expect(coat?.state).toBe('set');
   });
 
+  it('⭐ doused before anybody looked in, the stoneware still takes its glaze — the chamber settles before its air goes (found by the drive)', async () => {
+    const glaze = material('salt glaze', {
+      transitions: [{ key: 'fuse', rate: { referenceK: 1300, zK: 30, fullDoseS: 3600 }, ladder: [{ atDegree: 1, becomes: '/x' }] }],
+    });
+    const saltVapor = '/stuff/idea/material/gas/_heatwork-salt-vapor-douse';
+    const stone = material('stoneware');
+    const clay = material('clay', {
+      transitions: [
+        {
+          key: 'stoneware',
+          rate: { referenceK: 1350, zK: 30, fullDoseS: 3600 },
+          ladder: [{ atDegree: 1, becomes: stone.getTemplatePath()! }],
+          vapor: { [saltVapor]: glaze.getTemplatePath()! },
+        },
+      ],
+    });
+    const kiln = await litChamber(() => new Oven(), 1450);
+    kiln.receiveVolatiles(saltVapor, 100);
+    const pot = lumpOf(clay);
+    await load(kiln, pot);
+    advance(6 * 3600);
+    // Nobody reads the pot: the fire is put out, and THEN it is looked at.
+    expect(kiln.douse()).toBe(true);
+    expect(kiln.getChamberVapors()).toEqual({});
+    pot.getTemperature();
+    expect(pot.getMaterial()?.getTemplatePath()).toBe(stone.getTemplatePath());
+    expect(pot.getCoats('outside')[0]?.material).toBe(glaze.getTemplatePath());
+  });
+
   it('⭐ a lump of salt at the peak becomes salt vapor in the kiln\'s air — litres by the vapor row (D16)', async () => {
     const vaporPath = '/stuff/idea/material/gas/_heatwork-salt-vapor-2';
     makeStuffAtPath(() => {
@@ -359,6 +389,44 @@ describe('vapor in the chamber’s air', () => {
     lump.getTemperature();
     expect(lump.isDestroyed()).toBe(true);
     // 1.3 kg at 2.6 kg/m³ is 500 L of vapor; the kiln keeps nine tenths.
+    expect(kiln.getChamberVapors()[vaporPath] ?? 0).toBeCloseTo(450, 0);
+  });
+
+  it('⭐ …and it goes on TIME, with nobody reading it: one wake at the moment it reaches its point (found by the drive)', async () => {
+    const vaporPath = '/stuff/idea/material/gas/_heatwork-salt-vapor-3';
+    makeStuffAtPath(() => {
+      const g = new Gas();
+      g.setName('salt vapor');
+      g.setDensity(Quantity.of(2.6, 'kg/m³'));
+      return g;
+    }, vaporPath);
+    const saltRow = makeStuffAtPath(() => {
+      const m = new EdibleSalt();
+      m.setName('salt');
+      m.setSpecificHeat(Quantity.of(880, 'J/(kg·K)'));
+      m.setThermalConductivity(Quantity.of(0.6, 'W/(m·K)'));
+      m.setDensity(Quantity.of(2160, 'kg/m³'));
+      m.setVaporizesAboveK(1350);
+      m.setVapourMaterial(vaporPath);
+      return m;
+    }, `/stuff/idea/material/_heatwork/salt-${++seq}`) as unknown as Material;
+    // The world's clock stands (a wake is set on it).
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+      makeStuffAtPath(() => new WorldClockRegistry(), TemplatePaths.worldClockRegistry);
+    }
+    const kiln = await litChamber(() => new Oven(), 1500);
+    const lump = lumpOf(saltRow, 1.3);
+    await load(kiln, lump);
+    // A minute on, the firing begins and reads its charge (`fire`'s first
+    // act): not there yet, and the wake is armed for when it is.
+    advance(60);
+    lump.getTemperature();
+    expect(lump.isDestroyed()).toBe(false);
+    const due = lump.getVaporWakeAtS();
+    expect(due).toBeGreaterThan(WorldClockApi.getNow().rawValue());
+    // Nothing reads it: the clock passes the moment and the wake does it.
+    WorldClockApi._advanceForTesting(((due - WorldClockApi.getNow().rawValue() + 60) / SCALE) * 1000);
+    expect(lump.isDestroyed()).toBe(true);
     expect(kiln.getChamberVapors()[vaporPath] ?? 0).toBeCloseTo(450, 0);
   });
 });

@@ -369,6 +369,13 @@ export interface Thermal {
   getLiquorWakeAtS(): number;
   /** Set (or clear, `0`) that moment, and arm its wake. */
   setLiquorWakeAtS(value: number): void;
+  /**
+   * When this body, lying in a lit chamber hotter than its material's
+   * `vaporizesAboveK`, reaches that heat and goes to vapor (D16), or `0`.
+   */
+  getVaporWakeAtS(): number;
+  /** Set (or clear, `0`) that moment, and arm its wake. */
+  setVaporWakeAtS(value: number): void;
   reachableHeatK(): number;
   /** The hottest lit burner in reach, or `null` — the fire, not its heat. */
   reachableHeatSource(): (Stuff & Burner) | null;
@@ -690,6 +697,9 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       shockCheckedS: { persistent: true, runtimeState: true },
       // ⭐ The spent liquor's drain is through (D13) — re-armed on restore.
       liquorWakeAtS: { persistent: true, runtimeState: true },
+      // ⭐ A volatile body in a lit chamber goes to vapor on time (D16) —
+      // re-armed on restore.
+      vaporWakeAtS: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -722,6 +732,41 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
           this.reconcilePhase();
         },
         { tag: 'liquor-drain' },
+      );
+    }
+
+    /**
+     * ⭐ Game-seconds this body reaches its material's `vaporizesAboveK` in
+     * the lit chamber it lies in (D16), or `0`. Persisted and re-armed by
+     * {@link setVaporWakeAtS}: salt thrown into a kiln goes to vapor when it
+     * gets hot, not when somebody next reads it (found by the drive — the
+     * salt lay in a kiln at 1560 K for six hours, unread, and never fumed).
+     */
+    public vaporWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _vaporWake: ClockHandle | null = null;
+
+    public getVaporWakeAtS(): number {
+      return this.vaporWakeAtS;
+    }
+
+    public setVaporWakeAtS(value: number): void {
+      this._vaporWake?.cancel();
+      this._vaporWake = null;
+      this.vaporWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.vaporWakeAtS === 0) return;
+      this._vaporWake = WorldClockApi.at(
+        Quantity.of(this.vaporWakeAtS, 's'),
+        () => {
+          this._vaporWake = null;
+          // Not host-bound (the leak wake's rule): a body gone since does nothing.
+          if ((this as unknown as Stuff).isDestroyed()) return;
+          this.vaporWakeAtS = 0;
+          // The read IS the act: it reconciles the body to now, and a body
+          // past its point in a lit chamber vaporizes there.
+          this.getTemperature();
+        },
+        { tag: 'vaporize' },
       );
     }
 
@@ -1700,10 +1745,32 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     private vaporizeIfHot(mat: Material): boolean {
       if (!MixinApi.hasVolatility(mat)) return false;
       const above = mat.getVaporizesAboveK();
-      if (!(above > 0) || !(this.stampedTemperatureK >= above)) return false;
+      if (!(above > 0)) return false;
       const self = this.thermalHost;
       const holder = self.getContainer() as unknown as Stuff | null;
-      if (holder === null || !MixinApi.isBurner(holder) || !holder.isLit()) return false;
+      const litChamber = holder !== null && MixinApi.isBurner(holder) && holder.isLit();
+      if (!(this.stampedTemperatureK >= above)) {
+        // ⭐ Not there yet, but heading there: arm ONE wake at the computable
+        // moment it arrives (Newton's approach to the chamber's heat, D9's
+        // shape), so it vaporizes on time with nobody reading it.
+        // The chamber's own held heat, when it is still climbing to it: a
+        // wake that finds the body short re-arms from where it then is.
+        const ambient = litChamber && MixinApi.isBurner(holder)
+          ? Math.max(this.lastAmbientK, holder.getHeldTemperatureK())
+          : this.lastAmbientK;
+        const nowS = this.thermalNowSeconds();
+        if (litChamber && ambient > above && nowS !== null) {
+          const tau = this.getTau().rawValue();
+          const dt = tau > 0 ? tau * Math.log((ambient - this.stampedTemperatureK) / (ambient - above)) : 0;
+          // A second past the moment, so the read finds it over the line.
+          const due = nowS + Math.max(1, Math.ceil(dt) + 1);
+          if (Math.abs(due - this.vaporWakeAtS) > 1) this.setVaporWakeAtS(due);
+        } else if (this.vaporWakeAtS !== 0) {
+          this.setVaporWakeAtS(0);
+        }
+        return false;
+      }
+      if (!litChamber) return false;
       const litres = vaporLitres(mat, self.getMass().rawValue());
       if (litres === null) {
         throw new TypeError(
@@ -1711,6 +1778,7 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         );
       }
       BiomeApi.vent({ from: self as unknown as Stuff, material: mat.getVapourMaterial(), litres });
+      if (this.vaporWakeAtS !== 0) this.setVaporWakeAtS(0);
       void StuffApi.destruct(self as unknown as Stuff);
       return true;
     }

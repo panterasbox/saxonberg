@@ -607,6 +607,26 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
     }
 
     /**
+     * ⭐ Bring what is IN the chamber current before its air goes (the
+     * {@link settleRoomAir} rule, one level in): each body reads its own heat
+     * history while the chamber's air still holds what it held, so a
+     * stoneware jug that reached its rung under salt vapor takes its glaze
+     * even when nobody read it before the fire went out (found by the drive:
+     * a firing doused before anybody looked in vented the salt first and
+     * glazed nothing). Sparse: a chamber holding no air of its own reads
+     * nothing.
+     */
+    private settleChamber(): void {
+      if (Object.keys(this.chamberVapors).length === 0) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return;
+      for (const c of [...self.getContents()]) {
+        const body = c as unknown as Stuff;
+        if (!body.isDestroyed() && MixinApi.isThermal(body)) body.getTemperature();
+      }
+    }
+
+    /**
      * ⭐ The fourth rung of the vapor route (D16): the fire is out, and the
      * chamber's air goes on — up the flue to the sky when there is one (the
      * documented sink), else into the air of the place it stands in, which a
@@ -1699,6 +1719,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
      * therefore skipped a restamp path its sibling ran.
      */
     private _goOut(): void {
+      this.settleChamber();
       this.settleRoomAir();
       this.lit = false;
       this.ventChamberAir();
@@ -1709,6 +1730,7 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
     @Final
     @Unshadowable
     public _setLit(value: boolean): void {
+      if (this.lit && value !== true) this.settleChamber();
       this.settleRoomAir();
       this.lit = value === true;
       if (!this.lit) this.ventChamberAir();
