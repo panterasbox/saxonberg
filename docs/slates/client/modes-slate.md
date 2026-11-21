@@ -264,8 +264,14 @@ any number of feeds still leaves at most two places to type. Feeds are the playe
 may overlap. It becomes its own mode (an operator's console) only if it grows non-message content —
 gauges, the moderation queue, server health.
 
-**Open:** the one-terminal case (the phone): unfiltered, picking a channel only sets where you talk?
-Unread and mention badges (no server source).
+**The phone works the way Discord's mobile app does** **[DECIDED — the owner]**: one channel at a
+time, full screen; the channel list a swipe away (a drawer from the left) with unread and mention
+badges; who's here a swipe the other way. *Everything else* — the world, the room, your phone's
+notices — is one more entry in the list, not a hidden remainder. This is the one place the
+one-terminal-is-unfiltered rule bends, and it bends honestly: what the screen does not show is
+**counted** on the list, never silently gone — which makes unread and mention counts load-bearing.
+
+**Open:** unread and mention counts and badges (no server source today — required by the phone).
 
 ## 7. The lens pass
 
