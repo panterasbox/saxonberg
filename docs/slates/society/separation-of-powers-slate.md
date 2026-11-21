@@ -5,6 +5,9 @@
 > curriculum describe it (§§ 6a–6d there). The owner: *"I kinda wanna use this as a jumping-off point
 > to actually start drilling into the governance design for real — what are the various inputs and
 > outputs for the different bodies within the different branches."*
+> ⭐ **2026-11-20 (§ 7s): grants delegate, titles convey** — the fix to § 7l's revocation gap; the city
+> provides the lot, the holder fills it in (class 4); the first statute book (the Procedure Act, the Title
+> Act, the Terminus Charter) cited from the code.
 > ⭐ **2026-11-20 (§ 7r): who directs enforcement** — the Sergeant at Arms (the floor), the High
 > Constable (the executive's Constabulary), the Clerk of the Court (elected by every citizen, the second
 > election); the four top seats incompatible; one report desk.
@@ -1579,6 +1582,98 @@ seats, ranked by load in the monthly jobs report (§ 7q).
 1. The Clerk's term length and the tenure threshold for voting.
 2. The High Constable's notice period.
 3. When the Inspector General seat is created.
+
+## 7s. ⭐⭐⭐ Who authors a business — titles, grants, and the first statute book **[DECIDED — the owner, 2026-11-20; lens pass]**
+
+The owner, asking where the show's content and authority come from: *"either the taxonomy is wrong or we
+have to be able to attach controls that someone at the top of the tree is bound to with regard to their
+descendants."*
+
+### Where versus who — and the fix to § 7l
+
+**A path says where something is; a title says who holds the pen.** Authority resolves by title,
+longest prefix first (parcel.md: chain of title, `subdivide`, `transfer`), so a business at
+`/world/terminus/…` under its own title is the business's, though the path runs through Terminus.
+Businesses live **with their place** in the locality's tree (shipped: `/world/terminus/hearthworks`,
+`…/hearts-delight/…`, `…/hollow-mere/idea/ice-company`) — never under `/corpo/`, which is the handful of
+megacorps. Home directories are the sandbox, unpublished and unprivileged; nothing public is served from
+one.
+
+⭐ **The gap:** § 7l said *"a private parcel is a committee of one, granted its subtree"* and *"the grantor
+may revoke"* — Terminus could revoke a business's premises. **Grants delegate; titles convey:**
+
+| | **grant** (delegation) | **title** (property) |
+|---|---|---|
+| is | a parent lending part of its authority | a parent conveying property |
+| the parent may | revoke, on the record, appealably | **only** what private protections allow |
+| fits | a city block's committee, a public office, an institution | a business's premises, a home, a private parcel |
+
+**A parent is bound toward a titled descendant by the private protections** (§ 7l: the right to exclude, a
+warrant before public power enters, no taking without compensation, appeal to the Compact always) **and
+the Compact's law — and by nothing else.** Its public law still applies inside its borders: zoning (land
+use resolves by `landUseOf`), local conduct rules that add to the code and never subtract, its covenants.
+Whether a city's committee plays that out as a fiction of town government is its own choice.
+
+### Where content comes from, and how it is reviewed
+
+- **The city provides the lot; the holder fills it in.** The city subdivides from its plat (the settlement
+  model's plat book; Hinkley's lane ships), sold through **Mayfield & Co.** (one realty office fronts
+  every plat book — holding.md D14), with its boundaries, frontage and zoning, and may offer a building
+  shell (`FloorplanWarren`, the plan on the owner's row). Everything inside is authored **under the
+  holder's title**. **Hiring** someone to build is a sub-grant of the holder's parcel — authority always
+  flows from the title.
+- **Review** — the procedure law's **class 4** (§ 6): *content in your extent, by the extent's holder,
+  within its covenants; authority: title; review: after merge, on challenge.* Two things lift it out:
+  **levers** (prices on NPC businesses, NPC demand, faucets — the authors'-conflict rule sends them to
+  governance when the author has a stake) and **code** (the wizards' pen; class 1 if it changes no law,
+  **class 5 — reviewed before merge** — if it adds law-bearing behavior).
+
+### The founder on both sides
+
+Today the founder holds Terminus's title by default (caretaker) **and** is a business in it. Written
+honestly: *as founder I hold Terminus's pen; as Bobalu Smallberries I am a business in it*; every act names
+its seat. ⚠ **Self-dealing on the founder's own premises** (lens 7): a committee setting terms for ground
+it conveys to its own holder is a lever with a stake — so the founder takes premises **on the published
+terms anyone gets, on the record**, never special ones.
+
+### The statute book — start it now **[DECIDED]**
+
+`docs/compact/law/`, beside the draft constitution and the founding charter. Three statutes, **received
+law** the founder enacts under Art. XI and the legislature may amend:
+
+1. **The Procedure Act** — § 6 as statute text; every merge carries its class and authority; its first
+   reader is the merge check.
+2. **The Title Act** — grants delegate, titles convey; subdivide and transfer; the private protections;
+   what a parent may and may not do to a titled descendant.
+3. **The Terminus Charter** — the city's grant from the Compact: its extent, its public-law powers
+   (zoning, local conduct additions, covenants) and its public duties. ⭐ Because *no escalation — grant
+   only a subset* (§ 7l), **the charter is a Dillon's Rule charter** (a city has only the powers expressly
+   granted), against **home rule** (every power not denied) — a real lesson and the legislature's to change.
+
+⭐ **The code cites them** — the tech-tree slate's annotation palette (§ 6b: inert, typed decorators behind
+an import gate, each shipping with its first reader): `ParcelRegistry.subdivide` / `transfer` carry
+`@law(Laws.TitleAct)`, the protections `@clause` statics, the merge check reads each MR's class and
+citation. Law, code and the link between them, on the record from the first statute.
+
+### Lens pass
+
+1. **Pedagogy** — property law (title against license, takings, *Cedar Point*, the warrant); administrative
+   law (the Procedure Act); municipal law (Dillon's Rule against home rule); the code citing its statutes
+   so law becomes curriculum. **Chose** the statute book with citations.
+2. **Expression** — a business is rows under a title; crew are positions; house rules a document; lots
+   from a plat; every business and every streamer the same path. **Chose** the lot from the plat, filled by
+   the holder.
+3. **3a** — a realtor selling city ground; a studio seen from the street; the founder as an ordinary
+   tenant in town. **3b** — realtor, hired builders, constables, a show's crew; the unwanted (a committee
+   leaning on its parcels, a landlord gouging, the founder on both sides) each answered.
+4. **Values** — titles convey; protections bind the parent.
+5. **Continuity** — caretaker enactments become received law, amendable after handover; a business's
+   records belong to it, not to the founder's seat.
+6. **Economy** — a business employing a crew (labor demand), a lease, a lot sale into the city treasury;
+   paid by the founder in zorkmids as a player; crew wages the business's choice (the Terminus Gazette's
+   editor already sits at zero).
+7. **Governance** — grants against titles closes § 7l's revocation gap (the Title Act); self-dealing on
+   the founder's premises answered by published terms.
 
 ## 8. Lens pass
 

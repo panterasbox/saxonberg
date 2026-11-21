@@ -544,6 +544,7 @@ What must exist before the owner invites the stream in:
 8. **The relay**: retract on Twitch deletion; one-click *also on Twitch*; sanctions on external
    identities (§ 10).
 9. **The conduct code** published canonically and mirrored (§ 15).
+10. ⭐ **The host's slur filter** (§ 25) — the instance is on the public web.
 
 **Not needed for go-live:** prisons and rehabilitation content (§ 16), the hock (§ 17 — nothing to
 restitute until there is griefing to undo), channel domains, mod tiers, the raid dial, ghost
@@ -903,6 +904,113 @@ run that on behalf of the population. It's its own estate … set up the stage a
   home, escalations, the reserved list) under a **High Constable** reporting to the executive; appeals go
   to the court, whose **Clerk of the Court** is elected by every citizen. The four top seats (with the
   Post's **Editor in Chief**) are incompatible.
+
+## 25. ⭐⭐⭐ Moderators and constables, reach, public moderators, the host's filter, and thanks (2026-11-20) **[DECIDED — the owner]**
+
+### Two words for two jobs
+
+| term | does | power |
+|---|---|---|
+| **moderator** | presides **inside** a conversation — keeps it moving, stops one person derailing it, **makes the reports** so members with social or political reasons not to never have to | none beyond a brief flood mute |
+| **constable** | enforces — holds: delete, mute, eject, ban (§ 14a) | real, **only inside the extent that grants it** |
+
+**Moderator** is the American town-meeting sense: Massachusetts law still requires every town meeting to
+have one — the moderator recognizes speakers, keeps debate on the question, limits how long anyone holds
+the floor, and has a disorderly person removed **by the constable**, never personally. **Constable** covers
+public and private: **the Constabulary** under the High Constable is the public one
+([separation-of-powers-slate § 7r](./separation-of-powers-slate.md)); a venue's own enforcers are **its
+constables** (private constables long predate public police). The owner: *"we need two different terms
+for moderators vs enforcers."*
+
+**A moderator's tools** — time, place and manner only: a speaking queue (who has the floor next); time
+limits per speaker while a thread is heated; slow mode; **splitting a thread** (a side argument moved to
+its own thread — nothing deleted); report with context attached; at most a brief flood mute.
+
+### Moderation scales with reach
+
+Obligations grow with how far speech travels (the EU Digital Services Act puts heavier duties on
+platforms above 45 million users; Reddit requires active moderators and takes over unmoderated
+communities). **Reach** = a Subject's subscribers plus its active readers over a recent window (the
+measure and threshold: open). Below the threshold, nothing — speech spreads and diverges freely. **Above
+it, a Subject needs moderation coverage** — a moderator who answers reports within a set time. When
+coverage lapses, **a public moderator is assigned first**; only if none is free does the Subject **slow
+down rather than shut down** (slow mode, new accounts' first posts held, dropped from discovery) — the
+soft-limits doctrine. Restoring coverage lifts the brakes.
+
+### Public moderators — the public-defender model
+
+The owner: *"in the absence of a moderator from their own, a community may need to recruit from a public
+moderator, like a public defender."* The precedent: *Gideon v. Wainwright* (1963) and the federal
+**CJA panel** — private lawyers on a list the court keeps and assigns from case by case; Federal Public
+Defenders sit in the **judicial branch**.
+
+- **The moderator pool is the court's panel** — the same pool all three offices recruit from (front page,
+  a section of the Post's directory).
+- **The Clerk of the Court assigns** from it (§ 7r) — bounded: an event, a thread's life, a set period;
+  the community may replace an assigned moderator with its own at any time.
+- **What qualifies** (Gideon's test was what is at stake; here, reach and heat): a Subject **above the
+  reach threshold with no moderator of its own** · **a community that asks**, at any size, queued by reach
+  · **a conversation between parties in a dispute** wanting a neutral chair. The Compact's floor is
+  excluded — the Sergeant at Arms's deputies moderate it.
+- **Public moderators preside; they never enforce.** Their reports go to the constables of the extent
+  where the conversation is (§ 23), or the Constabulary when it has no local home.
+
+### The good-intentions problem
+
+The owner, on Richard Jewell: *"people with the best intentions … clearly finding that bomb was a one in a
+million fluke and most often in life this guy is wrong."* Volunteer enforcement self-selects for zeal,
+well-meaning people are wrong most of the time, and the visible one draws the anger. **The separation of
+powers is the answer to good intentions, not only to bad actors**: the one who reports is not the one
+who acts (an enforcer may decline), the one who acts is not the one who judges (holds expire; sentences
+need a court), so a zealous moderator's error costs minutes, never a person's place. Added:
+
+- ⭐ **A private mirror** — *"your reports this month: 12 acted on, 9 not"* — shown **only to the moderator**
+  and whoever supervises their seat (measurement.md: the mirror shows you, never ranks you).
+- **Bad-faith reporting** is already conduct (§ 13, rule 6); a public moderator who keeps doing it is
+  removed from the panel by the Clerk, for cause.
+- **Protect the visible ones** — reporter anonymity holds for a presiding moderator; **harassment of a
+  moderator goes to the front of the queue.**
+
+### Opt-in, visible, never punished; thanks, not pay
+
+- **The constitution settles compulsion**: Art. III §3, *"absence is never penalized; only the faucet
+  stops."* Being in the pool is **visible** (a verified profile line, *In the moderator pool*); not being
+  in it is **invisible** — no shame badge. Culture does the rest.
+- ⭐ **Reward service, never actions** — anything per ban or per verdict breeds zeal. **Tenure badges**
+  (a month, six months, a year; shifts and panels served); **a permanent chronicle record of service**;
+  **a verified profile line** (*Moderator, the Saxonberg Post*); **thanks on the show, by name**; **a seat
+  at the table** on the conduct rules they enforce; **the ladder** to the three offices. **No leaderboards,
+  no points, no per-action reward.** Moderation and jury service fit the civic-service criterion
+  ([standing-mint-slate](./standing-mint-slate.md)), but only capital standing is minted for now — the
+  service is **recorded**; the standing schedule decides later.
+- **The tools** so it is not a ball and chain: a triage queue with the case assembled (reported lines,
+  their surroundings, the person's history in this extent); one-key holds that end themselves; **circuit
+  breakers** (a sudden spike in messages or new accounts slows a Subject while someone looks — § 19's
+  deferred raid dial); **LLM triage that sorts, never decides** (separation-of-powers § 7c; the
+  speed-camera doctrine); ⭐ **protecting moderators' heads** — slurs and flagged media hidden until
+  clicked, a cap on the hardest material per shift, rotation, an easy *hand this one on*; visible shifts
+  and queue depth; appeals never back to the moderator (§ 14).
+
+### ⭐ The host's slur filter — needed now
+
+The instance is on the public web today. **The host's floor** — the operator as host, a separate actor
+from the Compact (content-neutrality: the engine never denies content; the host has its own floor):
+
+- **A short list** — the unambiguous slurs only; anything wider is the Compact's (§ 18: *the word list*).
+- ⚠ **Whole words and common evasions, never substrings** — the **Scunthorpe problem** (1996: AOL blocked
+  Scunthorpe's residents because the town's name contains a slur).
+- **Every shared surface**: channels, `say` in public places, character names, profile lines, list names
+  and annotations (a slur as a character name is a griefer's first move).
+- **A refusal with a plain reason**, never a silent swallow — *"That word isn't allowed in shared spaces on
+  this server"* — on the record; repeated attempts surfaced to a constable as a pattern.
+- **1:1 DMs exempt** (§ 11: ignore, block and report cover them).
+- **Go-live item** — add to § 19.
+
+### A show's crew
+
+A broadcaster's own staff — **its constables** over its program's chat (in the game and relayed on
+Twitch, YouTube and Kick, the carriers' tools granted to the seats, § 24) and optional moderators. The
+first is the owner's show at **Hallett's** ([halletts-slate](../world/halletts-slate.md)).
 
 ## Cross-references
 
