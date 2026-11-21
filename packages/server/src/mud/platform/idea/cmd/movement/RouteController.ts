@@ -32,6 +32,7 @@
  * `map-slate`'s business.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { Expanse } from '../../../../lib/expanse/Expanse';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { TaggedPath, WireRoutePlan } from '@saxonberg/types';
@@ -824,24 +825,14 @@ export default class RouteController extends CommandController<RouteModel> {
    * whichever of fourteen yards was enumerated first.
    */
   private static pick(pool: readonly Known[], asked: string): Known[] {
-    const want = asked.trim().toLowerCase();
-    if (want.length === 0) return [];
-    const rungs: Array<(k: Known) => boolean> = [
-      (k) => k.keywords.some((kw) => kw.toLowerCase() === want),
-      (k) => k.name.toLowerCase() === want,
-      (k) => k.place.toLowerCase() === want,
-      (k) => k.keywords.some((kw) => kw.toLowerCase().startsWith(want)),
-      (k) => k.name.toLowerCase().startsWith(want),
-      (k) => k.name.toLowerCase().includes(want),
-    ];
-    // ⚠ Every rung returns EVERY match, and the first rung that
-    // matches anything wins the whole pool. One match plans; several
+    // ⭐ The one rule (naming overhaul D-C5 rule 7) — every match of the
+    // best tier, never a substring of prose. One match plans; several
     // prompt. Nothing here picks.
-    for (const rung of rungs) {
-      const hits = pool.filter(rung);
-      if (hits.length > 0) return hits;
-    }
-    return [];
+    const named = GrammarApi.name(
+      asked,
+      pool.map((k) => ({ value: k, keywords: [...k.keywords, k.name, k.place].map((w) => w.toLowerCase()), title: k.name })),
+    );
+    return named.kind === 'one' ? [named.one] : named.kind === 'tie' ? named.tie : [];
   }
 
   /** `between <a> and <b>` → the pair, or null for the ordinary form. */
@@ -861,14 +852,15 @@ export default class RouteController extends CommandController<RouteModel> {
   /* ─────────────────────────── the traveller ─────────────────────── */
 
   private static profileFor(by: string | undefined): Profile | null {
-    const want = (by ?? '').trim().toLowerCase();
-    if (want.length === 0) {
+    if ((by ?? '').trim().length === 0) {
       return { spec: { mode: 'walk', medium: 'ground' } };
     }
-    for (const [words, mode, medium] of BY_WORDS) {
-      if (words.includes(want)) return { spec: { mode, medium } };
-    }
-    return null;
+    // The closed ways of going, through the one rule.
+    const named = GrammarApi.name(
+      by ?? '',
+      BY_WORDS.map(([words, mode, medium]) => ({ value: { mode, medium }, keywords: [...words], title: mode })),
+    );
+    return named.kind === 'one' ? { spec: named.one } : null;
   }
 
   /**

@@ -428,8 +428,9 @@ export function OpenWorkingMixin<
       tool: (Stuff & Tooled) | null,
       what: string | null,
     ): Promise<WorkPlan<DigBegin, DigDone, DigRefusal> | DigRefusal> {
-      const asked = what?.trim().toLowerCase() ?? '';
-      if (UPWARD_WORDS.includes(asked)) return { ok: false, reason: 'no-face-above' };
+      const asked = what?.trim() ?? '';
+      // The way up is not a face — the few words for it, through the rule.
+      if (asked !== '' && GrammarApi.name(asked, [{ value: 'up', keywords: [...UPWARD_WORDS], title: 'up' }]).kind === 'one') return { ok: false, reason: 'no-face-above' };
 
       const face = await this.faceOf(what);
       if (face === null) {

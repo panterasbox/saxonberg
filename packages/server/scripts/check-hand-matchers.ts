@@ -63,9 +63,11 @@ export const ARTICLE_STRIP_CEILING = 0; // C5: 0 — every recorded name and slu
 // localities, organizations, brands, offices, accounts.
 // C4: 71 — the stock line, priced key, held goods, receipts, hulls and
 // services; and a compare operand counts only when it IS a lowered word.
+// C6: 0 — records, labels, social and the controller leftovers through the
+// rule; the keyword substrate, parsers and validation exempt with reasons.
 // C5: 46 — the holders name their own entries (harbor, herds, fields,
 // bands, claims, ice, landings, loads, lines, moulds, cuts, metals, parts).
-export const HAND_COMPARE_CEILING = 46;
+export const HAND_COMPARE_CEILING = 0;
 /**
  * Measured at C0 (2026-11-21): 6. C1: 0 — rent, fire, the script `wait`, the
  * world clock and the test-harness clock read the one grammar
@@ -73,7 +75,7 @@ export const HAND_COMPARE_CEILING = 46;
  */
 export const DURATION_PARSE_CEILING = 0;
 /** Measured at C0 (2026-11-21): 14. C2: 11 (the recipe word index; `soul search` exempt as a search). */
-export const WORD_MAP_CEILING = 8; // C3: 9 (the spell and locality indexes). C4: 8 (the same narrowing).
+export const WORD_MAP_CEILING = 0; // C6: 0 — channel/subject lookups go through the rule; their UNIQUENESS indexes are exempt.
 
 export type MatcherKind = "article-strip" | "hand-compare" | "duration-parse" | "word-map";
 
@@ -101,6 +103,23 @@ export const EXEMPT: ReadonlyArray<{ file: string; symbol: string; why: string }
   { file: "trade-chandlery/src/thing/Candle.ts", symbol: "Candle.getShortDescription", why: "RENDERING a name (no doubled stem), not naming" },
   { file: "platform/idea/api/ContainmentLogic.ts", symbol: "isRegionZeroWord", why: "a preposition — the command grammar's closed vocabulary (D-C5 rule 8)" },
   { file: "lib/spatial/Placing.ts", symbol: "PlacingMixin.resolvePlacement", why: "a preposition — the command grammar's closed vocabulary (D-C5 rule 8)" },
+  { file: "platform/idea/ChannelCatalogue.ts", symbol: "*", why: "the name-UNIQUENESS index (a case-insensitive collision check on create/rename), not naming; lookups go through the rule" },
+  { file: "platform/idea/SubjectCatalogue.ts", symbol: "*", why: "the title-UNIQUENESS index, not naming; lookups go through the rule" },
+  { file: "lib/description/Perceptible.ts", symbol: "*", why: "the KEYWORD substrate's own upkeep (add/remove/has/primary normalize the list the rule reads)" },
+  { file: "lib/description/Detailed.ts", symbol: "wrapDetailKeywords", why: "keyword DERIVATION for a detail — the list the rule reads" },
+  { file: "lib/document/DocumentKind.ts", symbol: "DocumentKind.keywordsOf", why: "keyword DERIVATION for a document — the list the rule reads" },
+  { file: "platform/idea/BerthExit.ts", symbol: "BerthExit.getKeywords", why: "keyword DERIVATION for a berth — the list the rule reads" },
+  { file: "lib/streaming/StreamerTarget.ts", symbol: "StreamerTarget.parseUrl", why: "a URL parser, not naming" },
+  { file: "lib/time/DefaultCalendar.ts", symbol: "DefaultCalendar.parseDate", why: "a date parser, not naming" },
+  { file: "platform/idea/WorldClockRegistry.ts", symbol: "WorldClockRegistry.resolveName", why: "AUTHORED cron names (code), not a player's words" },
+  { file: "platform/idea/WikiRenderer.ts", symbol: "WikiRenderer.expandOne", why: "template expansion over authored markup, not naming" },
+  { file: "platform/idea/HelpCatalogue.ts", symbol: "HelpCatalogue.findCommandTopic", why: "a VERB word — command dispatch's vocabulary, not a name" },
+  { file: "platform/idea/api/CommandLogic.ts", symbol: "bindPositionalsImpl", why: "the binder itself — the command grammar, the rule's home with MQL" },
+  { file: "platform/idea/cmd/charactergen/EmbodyController.ts", symbol: "*", why: "name VALIDATION (reserved words) and the enroll draft's CLOSED choices (species/sex keys, `reroll`) — a choice list, not naming an entry" },
+  { file: "lib/husbandry/Bonded.ts", symbol: "BondedMixin.takeName", why: "a name being GIVEN (its validation), not naming" },
+  { file: "lib/behavior/doorman.ts", symbol: "judge", why: "an NPC's authored admission rules, not a player's words" },
+  { file: "platform/idea/cmd/work/JobPostController.ts", symbol: "*", why: "a CONDITION grammar parser (`job post … when …`), not naming" },
+  { file: "trade-farming/src/lib/Share.ts", symbol: "Share.constructor", why: "a FRACTION parser (`a third`, `the rest`), not naming" },
   { file: "platform/idea/species/Species.ts", symbol: "pickGiven", why: "name GENERATION (a first-letter riff), not naming" },
   { file: "platform/idea/api/CommandLogic.ts", symbol: "<module>", why: "the binder's article fold — the command grammar, the rule's home with MQL" },
 ];
@@ -112,9 +131,6 @@ export const EXEMPT: ReadonlyArray<{ file: string; symbol: string; why: string }
  * A site leaves this list in the commit that removes it.
  */
 export const MUST_FIND: ReadonlyArray<{ file: string; symbol: string; kind: MatcherKind }> = [
-  { file: "lib/archetype/Archetype.ts", symbol: "answersTo", kind: "hand-compare" },
-  { file: "platform/idea/cmd/social/CallController.ts", symbol: "answersTo", kind: "hand-compare" },
-  { file: "platform/idea/cmd/social/ContactsRemoveController.ts", symbol: "ContactsRemoveController.execute", kind: "hand-compare" },
 ];
 
 const NAMEISH = /\b\w*(name|keyword|label|title|key|leaf|word|berth|alias)\w*\b/i;

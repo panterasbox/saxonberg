@@ -585,7 +585,18 @@ function satisfyingItem(
     return hit ? hit.getPresentation() : null;
   }
   if ('presence' in need) {
-    const hit = pool.find((i) => answersTo(i, need.presence));
+    // By the one rule (naming overhaul D-C8) over each item's keywords.
+    const named = GrammarApi.name(
+      need.presence,
+      pool
+        .filter((i) => MixinApi.isPerceptible(i))
+        .map((i) => ({
+          value: i,
+          keywords: (MixinApi.isPerceptible(i) ? [i.getPrimaryKeyword() ?? '', ...i.getKeywords()] : []).filter((k) => k !== '').map((k) => k.toLowerCase()),
+          title: i.getPresentation(),
+        })),
+    );
+    const hit = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : undefined;
     return hit ? hit.getPresentation() : null;
   }
   if ('lightLux' in need) {
@@ -688,10 +699,3 @@ function posturedFor(item: Stuff, posture: string): string | null {
   return slots.length > 0 ? slots[0]! : null;
 }
 
-/** Does `item` answer to `keyword` — its name or any of its keywords? */
-function answersTo(item: Stuff, keyword: string): boolean {
-  const want = keyword.toLowerCase();
-  if (!MixinApi.isPerceptible(item)) return false;
-  if (item.getPrimaryKeyword()?.toLowerCase() === want) return true;
-  return item.getKeywords().some((k) => k.toLowerCase() === want);
-}

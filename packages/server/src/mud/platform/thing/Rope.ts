@@ -768,8 +768,10 @@ export default class Rope extends CuttableMixin(
    * credited to it. A knot nobody knows is refused by name.
    */
   private async makeKnot(by: Stuff, asked: string | null): Promise<{ ok: true; knot: KnotRecord } | TieRefusal> {
-    const key = GrammarApi.withoutArticle(asked ?? 'bowline').toLowerCase().replace(/\s+/g, '-');
-    if (!(KNOTS as readonly string[]).includes(key)) {
+    // The knots there are, through the one rule (naming overhaul D-C5).
+    const named = GrammarApi.name<string>(asked ?? 'bowline', KNOTS.map((k) => ({ value: k, keywords: [k, k.replace(/-/g, ' ')], title: k })));
+    const key = named.kind === 'one' ? named.one : '';
+    if (key === '') {
       return { ok: false, reason: 'no-such-knot', facts: { gear: this as unknown as Stuff, knot: asked ?? key } };
     }
     // The act loads the knot it ties (documents D7: the act holds it). A

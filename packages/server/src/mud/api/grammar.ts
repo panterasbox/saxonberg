@@ -300,6 +300,11 @@ export class GrammarApi {
     }));
     let ranked = GrammarApi.rank(withPlurals, words);
     if (quoted) ranked = ranked.filter((r) => r.score >= TIER_PHRASE);
+    // ⭐ A NAME is answered by every word (each begins a keyword word); a
+    // partial — some words matching nothing — names nothing, so `reef bend`
+    // is no knot and `northern rock` no face (MQL keeps partials as its own
+    // fallback; a name does not).
+    ranked = ranked.filter((r) => r.score >= TIER_PREFIX);
     if (ranked.length === 0) return { kind: 'none', offered };
     const top = Math.max(...ranked.map((r) => r.score));
     ranked = ranked.filter((r) => r.score === top);

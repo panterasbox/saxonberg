@@ -29,14 +29,7 @@ export default class TreasuryAppropriateController extends BankingControllerBase
       context.note({ kind: "controller-rejected", reason: "bad-amount", detail: model.amount ?? "" });
       return;
     }
-    if ((model.to ?? "").toLowerCase() !== "to") {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`Usage: \`treasury appropriate <amount> to <target>\`.`)
-        .send();
-      context.note({ kind: "controller-rejected", reason: "bad-syntax", detail: model.to ?? "" });
-      return;
-    }
+    // `to` is the view's own word (type: enum) — the binder held it.
     const target = TreasuryAppropriateController.resolvePayee(model.target ?? "");
     if (!target) {
       MessageApi.scene(giver)

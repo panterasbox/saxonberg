@@ -238,7 +238,7 @@ export const RAW_REREAD_CEILING = 35;
  * `relation`) or through `MqlApi.effectiveTarget`, and a model string
  * lower-cased in a controller. Measured at C0 (2026-11-21).
  */
-export const VIA_AND_WORDS_CEILING = 45; // naming overhaul C3: −4, the reading, cast and record words go through the rule.
+export const VIA_AND_WORDS_CEILING = 36; // naming overhaul C6: −9, the vocabularies became enums and the controller leftovers name through the rule. C3: −4, the reading, cast and record words go through the rule.
 
 /** The `via` facets a controller may read (`MqlMatchVia`). */
 const DECLARED_FACETS = new Set(['detailPath', 'bulk', 'region', 'relation']);

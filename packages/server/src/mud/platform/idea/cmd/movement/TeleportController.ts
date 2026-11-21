@@ -40,6 +40,7 @@
  * tooling.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import type { CommandContext } from '../../../../api/command';
 import { MqlApi } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
@@ -402,18 +403,18 @@ export default class TeleportController extends TeleportControllerBase {
 
     // 2 — registered nodes. An enumerated set, so this is a walk over a
     // handful of live singletons rather than any kind of query.
-    const kw = raw.trim().toLowerCase();
-    const hits: Stuff[] = [];
+    // ⭐ A node by its keywords, through the one rule (naming overhaul
+    // D-C5); alike nodes all answer (two is ambiguous, below).
+    const registered: Stuff[] = [];
     for (const ref of TeleportController.registeredNodes(giver)) {
       const node = StuffApi.findByTemplatePath<Stuff>(ref);
-      if (!node) continue;
-      if (
-        MixinApi.isPerceptible(node) &&
-        node.getKeywords().some((k) => k.toLowerCase() === kw)
-      ) {
-        hits.push(node);
-      }
+      if (node && MixinApi.isPerceptible(node)) registered.push(node);
     }
+    const named = GrammarApi.name(
+      raw,
+      registered.map((n) => ({ value: n, keywords: MixinApi.isPerceptible(n) ? n.getKeywords().map((k) => k.toLowerCase()) : [], title: n.getPresentation() })),
+    );
+    const hits: Stuff[] = named.kind === 'one' ? [named.one] : named.kind === 'tie' ? named.tie : [];
     if (hits.length > 1) {
       return { stuff: null, ambiguous: true, anchor: "registered" };
     }

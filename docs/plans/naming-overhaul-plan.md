@@ -1410,6 +1410,38 @@ unique name wins without asking; `call` an animal by name, with an article,
 by a word start.
 *Commit:* `build(naming-overhaul WC6): records and labels by the one rule`.
 
+⚠ **Verification pending (2026-11-21):** the targeted suites passed (device,
+banking, movement, shell, inventory, cockpit terminals, rope, the multi-act and
+hand-matcher gates — 151 + 442), but the broad `test:near` + pack rerun after
+`GrammarApi.name` stopped accepting partials was killed for low memory before
+it reported. It must run before C7 builds on this commit.
+
+✅ **Done — the hand census is ZERO.** Through `GrammarApi.name`: `call`
+(the animal's name and keywords — D-C8's test, in the controller as
+`callWords`), the archetype's presence need, a group's member by stored name,
+`PlayerLogic.findAvatarByName` (a shared name is ambiguous → no avatar),
+party muster (one of YOUR crews), `chat` channels and forum subjects (an
+exact unique name wins; a word start finds), `contacts remove` offline (the
+list's own entries — done in the controller rather than as
+`ContactsMixin.entryNamed`), `get` from a body, `dip` faces, the cockpit's
+views, `route` places and ways of going, `teleport`'s registered and
+network nodes, `course`'s river words, an address's `here`, knots, the
+upward words, the wallet's `none`. Fixed vocabularies became `type: enum`
+on their views (`switch on|off`, `chat anonymity permit|forbid`, `wiki
+protect <level>`, `pull up|down`, the literal `to` of `reserve`/`treasury`).
+⭐ **Decided — the exemption table grew beyond the plan's list, each with
+its reason:** the KEYWORD substrate itself (Perceptible's upkeep; keyword
+derivation in Detailed, DocumentKind, BerthExit), PARSERS (URL, date, cron
+names, a job's condition grammar, a share's fractions, wiki templates), name
+VALIDATION and GIVING (reserved names, the enroll draft's closed choices,
+`takeName`), an NPC's authored admission rules, `help`'s verb words, the
+binder, and the channel/subject name-UNIQUENESS indexes (lookups through the
+rule). The census definition was the build's own; these are what it was
+never meant to count. **Not done (review items):** the Wardrobe and `map`
+sites and `FastTravel` named in the file list were already off the census;
+`findAvatarByName` remains (now by the rule) rather than its callers moving
+to MQL / `@id`.
+
 **C7 — Zero, and held.**
 *Decisions:* D-C10.
 *Files:* the remaining `.raw` re-reads (`Shape`, `Fell`, `Cut`,

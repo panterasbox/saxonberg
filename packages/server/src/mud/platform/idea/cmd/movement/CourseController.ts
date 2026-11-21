@@ -15,6 +15,7 @@
  * passage (a channel over a bar) only its two ends are a course.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import type { CommandContext } from '../../../../api/command';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
@@ -139,7 +140,7 @@ export default class CourseController extends CourseControllerBase {
     if (frame === null || here === null) {
       return this.decline(context, 'There is no river under her to set a course along.', 'no-line');
     }
-    let heading = (model.heading ?? '').trim().toLowerCase();
+    let heading = (model.heading ?? '').trim();
     // ⭐ `slow` (D29): through snag water a master who has seen the snags
     // runs at a crawl, slow enough to read the water ahead.
     const slow = /\s+slow$/.test(heading);
@@ -149,11 +150,15 @@ export default class CourseController extends CourseControllerBase {
     // river has no such landing, which reads as if naming the right one
     // would have worked.
     if (!this.mayHelm(context, craft, context.commandGiver)) return;
-    let direction = RIVER_WAYS[heading];
+    // ⭐ The river's own few words, through the one rule (naming overhaul
+    // D-C5) — else a landing by name.
+    const way = GrammarApi.name<'upstream' | 'downstream'>(heading, [
+      { value: 'upstream', keywords: Object.keys(RIVER_WAYS).filter((k) => RIVER_WAYS[k] === 'upstream'), title: 'upstream' },
+      { value: 'downstream', keywords: [...Object.keys(RIVER_WAYS).filter((k) => RIVER_WAYS[k] === 'downstream'), 'bar', 'sea', 'mouth'], title: 'downstream' },
+    ]);
+    let direction: 'upstream' | 'downstream' | undefined = way.kind === 'one' ? way.one : undefined;
     let landing: string | null = null;
-    if (direction === undefined && (heading === 'bar' || heading === 'sea' || heading === 'mouth')) {
-      direction = 'downstream';
-    } else if (direction === undefined) {
+    if (direction === undefined) {
       const named = frame.landingNamed(heading);
       if (named === null) {
         return this.decline(context, `You know of no '${heading}' on this river. Say \`course upstream\`, \`course downstream\`, or a landing by name.`, 'unknown-landing');

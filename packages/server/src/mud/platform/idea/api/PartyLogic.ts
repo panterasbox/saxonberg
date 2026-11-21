@@ -1,6 +1,7 @@
 // PartyLogic — the hot-reloadable logic singleton behind PartyApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { GrammarApi } from '../../../api/grammar';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
@@ -630,11 +631,11 @@ async function musterImpl(
     return { ok: false, reason: "not-a-party-member" };
   }
   const memberId = memberIdOf(member);
-  const trimmed = name.trim().toLowerCase();
-  const records = await PartyRecord.find<PartyRecord>({});
-  const rec = records.find(
-    (r) => r.name.toLowerCase() === trimmed && r.memberIds.includes(memberId),
-  );
+  // ⭐ One of YOUR crews, by its chosen name through the one rule (naming
+  // overhaul D-C5 rule 6).
+  const records = (await PartyRecord.find<PartyRecord>({})).filter((r) => r.memberIds.includes(memberId));
+  const named = GrammarApi.name(name, records.map((r) => ({ value: r, keywords: [r.name.toLowerCase()], title: r.name })));
+  const rec = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : undefined;
   if (!rec) return { ok: false, reason: "no-such-crew" };
   const party = partyAt(rec.path) ?? (await materializeParty(rec));
 

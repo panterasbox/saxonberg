@@ -61,7 +61,8 @@ export default class PullController extends CommandController<PullModel> {
       }
       return this.refuse(context, 'act.deed', `You see no ${named} to pull.`, 'nothing-to-pull');
     }
-    const word = (model.sense ?? '').trim().toLowerCase();
+    // `up` / `down` — canonicalized by the view (type: enum).
+    const word = model.sense ?? '';
     if (word !== '' && word !== 'up' && word !== 'down') {
       return this.refuse(context, 'act.deed', 'Pull it up, or down?', 'which-way');
     }

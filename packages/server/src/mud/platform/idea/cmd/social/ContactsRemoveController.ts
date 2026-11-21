@@ -8,6 +8,7 @@
  * was promised by the view and never happened.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import type { CommandContext } from '../../../../api/command';
 import { Mml } from '../../../../api/mml';
 import { PlayerApi } from '../../../../api/player';
@@ -45,7 +46,7 @@ export default class ContactsRemoveController extends ContactsControllerBase {
       targets = [playerId ? { kind: 'avatar', ref: playerId } : { kind: 'npc', ref: person.getIdentityPath() ?? '' }];
       who = person.getPresentation();
     } else {
-      const needle = (offline ? offline[2]! : raw).trim().toLowerCase();
+      const needle = (offline ? offline[2]! : raw).trim();
       if (!needle) {
         return ContactsControllerBase.fail(context, 'target required', 'target-required');
       }
@@ -56,15 +57,17 @@ export default class ContactsRemoveController extends ContactsControllerBase {
       const npcNames = await ContactsControllerBase.templateNames(
         entries.flatMap((e) => (e.kind === 'npc' ? [e.templatePath] : [])),
       );
-      targets = entries.flatMap((e) => {
-        const ref = e.kind === 'avatar' ? e.playerId : e.templatePath;
-        const name =
-          e.kind === 'avatar' ? avatarNames.get(e.playerId) : npcNames.get(e.templatePath);
-        const match =
-          ref.toLowerCase() === needle ||
-          (name !== undefined && name.toLowerCase() === needle);
-        return match ? [{ kind: e.kind, ref }] : [];
-      });
+      // ⭐ The list's own entries, by the one rule (naming overhaul D-B12):
+      // the name each goes by now, or its raw id.
+      const named = GrammarApi.name(
+        needle,
+        entries.map((e) => {
+          const ref = e.kind === 'avatar' ? e.playerId : e.templatePath;
+          const name = (e.kind === 'avatar' ? avatarNames.get(e.playerId) : npcNames.get(e.templatePath)) ?? '';
+          return { value: { kind: e.kind, ref }, keywords: [ref, name].filter((k) => k !== '').map((k) => k.toLowerCase()), title: name || ref };
+        }),
+      );
+      targets = named.kind === 'one' ? [named.one] : named.kind === 'tie' ? named.tie : [];
       who = needle;
     }
     let removed = false;

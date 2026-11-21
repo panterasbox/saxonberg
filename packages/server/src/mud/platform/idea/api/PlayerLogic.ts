@@ -227,13 +227,18 @@ export class PlayerLogic extends ApiLogic {
   /** See {@link PlayerApi.findAvatarByName}. */
   @CallSecurity(PlayerApiCallers)
   public findAvatarByName(name: string): Avatar | undefined {
-    const want = name.trim().toLowerCase();
-    if (!want) return undefined;
-    for (const avatar of this.avatarsByPlayerId.values()) {
-      if (avatar.getName()?.toLowerCase() === want) return avatar;
-      if (avatar.getPresentation().toLowerCase() === want) return avatar;
-    }
-    return undefined;
+    // ⭐ By the one rule (naming overhaul D-C5 rule 6): a loaded avatar's
+    // name or presentation. A shared name is ambiguous — no avatar (the
+    // caller asks for `@<id>`).
+    const answer = GrammarApi.name(
+      name,
+      [...this.avatarsByPlayerId.values()].map((a) => ({
+        value: a,
+        keywords: [a.getName() ?? '', a.getPresentation()].filter((k) => k !== '').map((k) => k.toLowerCase()),
+        title: a.getPresentation(),
+      })),
+    );
+    return answer.kind === 'one' ? answer.one : undefined;
   }
 
   /** See {@link PlayerApi.findAvatarByUserId}. */

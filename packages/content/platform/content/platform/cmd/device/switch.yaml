@@ -24,5 +24,6 @@ args:
     validators:
       - /lib/command/validators/canReach
   - name: state
-    type: string
+    type: enum
+    values: [on, off]
     required: false

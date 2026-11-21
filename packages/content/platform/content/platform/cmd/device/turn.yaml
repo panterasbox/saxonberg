@@ -39,5 +39,6 @@ subcommands:
   # ⭐ A closed word after the verb is a subcommand (the `draught.yaml`
   # lesson): a bare word would be swallowed by the object arg.
   back:
+    controller: /platform/idea/cmd/device/TurnBackController
     description: "Slacken it right off"
     args: *turnable

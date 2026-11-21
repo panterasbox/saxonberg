@@ -61,9 +61,10 @@ describe('GrammarApi.name', () => {
     expect(GrammarApi.name('   ', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
   });
 
-  it('the best partial wins a pool of partials', () => {
+  it('⭐ a partial names nothing — every word must begin a keyword word', () => {
     const got = GrammarApi.name('long red pole', [e('a', ['long rod']), e('b', ['long red rod'])]);
-    expect(got).toEqual({ kind: 'one', one: 'b' });
+    expect(got).toEqual({ kind: 'none', offered: ['a', 'b'] });
+    expect(GrammarApi.name('long red', [e('a', ['long rod']), e('b', ['long red rod'])])).toEqual({ kind: 'one', one: 'b' });
   });
 });
 

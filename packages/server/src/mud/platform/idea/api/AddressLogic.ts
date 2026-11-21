@@ -1,6 +1,7 @@
 // AddressLogic — the hot-reloadable logic singleton behind AddressApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { GrammarApi } from '../../../api/grammar';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -231,7 +232,7 @@ export class AddressLogic extends ApiLogic {
     const trimmed = raw.trim();
     if (trimmed.length === 0) return '';
     // 1. `here` — where the asker is standing.
-    if (trimmed.toLowerCase() === 'here') return herePath;
+    if (GrammarApi.name(trimmed, [{ value: 'here', keywords: ['here'], title: 'here' }]).kind === 'one' && trimmed.split(/\s+/).length === 1) return herePath;
     // 2. Something they can point at (a shed behind the desk).
     const hit = MixinApi.isCommandGiver(giver)
       ? MqlApi.resolveMany(trimmed, {

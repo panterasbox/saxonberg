@@ -33,6 +33,7 @@
  * data: {} }`.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
 import { Channel } from '../../lib/social/Channel';
@@ -216,9 +217,18 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
 
   // --- Channel resolution -------------------------------------------
 
+  /**
+   * ⭐ The channel a player's words name (naming overhaul D-C5 rule 6) —
+   * by its chosen name through the one rule: an exact unique name wins
+   * without asking, a word that begins one finds it. A tie is no channel.
+   */
   public async resolveByName(name: string): Promise<Channel | null> {
     const map = await this.ensureNameCache();
-    return map.get(name.toLowerCase()) ?? null;
+    const answer = GrammarApi.name(
+      name,
+      [...map.values()].map((c) => ({ value: c, keywords: [c.name.toLowerCase()], title: c.name })),
+    );
+    return answer.kind === 'one' ? answer.one : null;
   }
 
   public resolveHandle(handle: string): AdHocChannel | null {
