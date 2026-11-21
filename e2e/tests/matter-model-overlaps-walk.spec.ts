@@ -54,6 +54,7 @@ const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
 const T = {
   glowcap: '/world/terminus/rejection/thing/glowcap-jar',
   cone: '/trade/sugar/thing/cone',
+  coal: '/trade/quarrying/thing/coal',
   saltCrystals: '/stuff/thing/salt-crystals',
   sugarPiece: '/trade/sugar/thing/sugar-piece',
   pail: '/stuff/thing/vessel/pail',
@@ -507,7 +508,7 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       await hand(handle, T.gasAnalyzer);
 
       // ⭐ The salt, smelled in the shop (and named by the analyzer).
-      const nosed = await sayAwaiting(page, 'smell here', /smell|scent|air|nothing/i);
+      const nosed = await sayAwaiting(page, 'smell here', /The air smells|Obvious exits|smell anything/i);
       const measured = await sayAwaiting(page, 'measure aroma', /\d OU|finds nothing|anything you could name|cannot/i);
       expect(`${nosed}\n${measured}`, 'the salted shop').toMatch(/salt|fume/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/12-salt-smelled.png', fullPage: true });
@@ -529,22 +530,37 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
     const w = await walker(browser, 'mmo-steam', BOILING);
     const { page, handle } = w;
     try {
-      await afterHours(handle);
-      await hand(handle, T.hygrometer);
-      const dry = figure(await sayAwaiting(page, 'measure humidity', /%|humid|cannot/i), /humid|%/i);
+      // From 18:30, not merely "after hours": the boil and the retort take
+      // six hours, and a step begun at 04:00 met the refiner back at 06:00.
+      await toHour(handle, 18.5);
+      // The glowcap set down to light the floor: the copper wants a free hand
+      // (the walk's first fresh run: "Your hands are full").
+      await runCommand(page, 'drop jar');
       // Plain water in the copper (what the refiner left in it spilled
       // first), and the copper SET ON the arch — `heat <pot>` is retired (the
       // wire drive's run 1).
       await sayAwaiting(page, 'get copper', /You (get|pick|take)|cannot|can't/i);
       await sayAwaiting(page, 'spill copper', /spill|empty|nothing|cannot|can't/i);
       expect(await sayAwaiting(page, 'put copper on arch', /You put|You set|cannot|can't/i)).not.toMatch(NOT_UNDERSTOOD);
+      // The hygrometer after the copper: the copper takes both hands.
+      await hand(handle, T.hygrometer);
+      const dry = figure(await sayAwaiting(page, 'measure humidity', /%|humid|cannot/i), /humid|%/i);
       await sayAwaiting(page, 'pour butt into copper --amount 20L', /You pour|cannot|can't/i);
-      for (let i = 0; i < 3; i++) await sayAwaiting(page, 'stoke coal into arch', /You lay|stoke|feed|put|cannot|can.t/i);
+      // The coal HANDED, a lump at a time: the floor's heap is the refiner's,
+      // and a walked world runs out of it (the walk's runs: "You don't see
+      // any 'coal' here").
+      const stokeCoal = async (): Promise<void> => {
+        await hand(handle, T.coal);
+        // A full firebox takes no more ("There is no room in it for that").
+        await sayAwaiting(page, 'stoke coal into arch', /You lay|stoke|feed|put|no room|cannot|can.t/i);
+        await runCommand(page, 'drop coal');
+      };
+      for (let i = 0; i < 3; i++) await stokeCoal();
       await sayAwaiting(page, 'light arch', /light|catch|kindle|cannot|can't/i);
       // Kept in, as the wire drive keeps it: three lumps burn out inside the hour.
       for (let i = 0; i < 4; i++) {
         await advance(handle, 30 * 60);
-        for (let j = 0; j < 2; j++) await sayAwaiting(page, 'stoke coal into arch', /You lay|stoke|feed|put|cannot|can.t/i);
+        for (let j = 0; j < 2; j++) await stokeCoal();
         await sayAwaiting(page, 'light arch', /light|catch|kindle|already|cannot|can't/i);
       }
       const steamy = figure(await sayAwaiting(page, 'measure humidity', /%|humid|cannot/i), /humid|%/i);
@@ -552,32 +568,43 @@ test.describe('the matter-model-overlaps build, in a browser', () => {
       // ⭐ A nose two hours in a smell has stopped hearing it (`Olfactory`'s
       // adaptation); the body walking IN to a steamy room notices. Out to the
       // curing house for twenty minutes, and back.
-      await sayAwaiting(page, 'go north', /curing|You go|cannot|can't/i);
+      await sayAwaiting(page, 'go north', /Obvious exits|cannot|can't/i);
       await advance(handle, 20 * 60);
-      await sayAwaiting(page, 'go south', /boiling|arch|copper|You go|cannot|can't/i);
+      await sayAwaiting(page, 'go south', /Obvious exits|cannot|can't/i);
       // ⭐ The steam, in `smell here` (a bare `smell` takes the last thing named).
-      expect(await sayAwaiting(page, 'smell here', /damp|steam|wet|smell|nothing/i)).toMatch(/damp|steam|wet/i);
+      // …and `analyze aroma`, which names every note the nose has: a bare
+      // `smell here` from an untrained nose tells only the loudest (the walk's
+      // run: "strongly of smoke from a sugar arch"), as the wire drive found.
+      const steamNose = await sayAwaiting(page, 'smell here', /The air smells|Obvious exits|smell anything/i);
+      const steamNotes = await sayAwaiting(page, 'analyze aroma', /You pick out|anything you could name|cannot/i);
+      expect(`${steamNose}\n${steamNotes}`, 'the steam, smelled').toMatch(/damp|steam|wet/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/13-steam.png', fullPage: true });
 
-      // (staged) A retort with nothing on its pipe, handed where she stands.
+      // (staged) A retort with nothing on its pipe, handed where she stands;
+      // the hygrometer set down first, so its charge and its fuel go into her
+      // two hands (the walk's run: "You don't have any 'cordwood'").
+      await runCommand(page, 'drop hygrometer');
       await hand(handle, T.retort);
       await hand(handle, T.charcoal);
-      await hand(handle, T.cordwood);
+      const cordwood = await hand(handle, T.cordwood);
       await sayAwaiting(page, 'stoke charcoal into retort', /You lay|stoke|feed|put|cannot|can.t/i);
       await sayAwaiting(page, 'light retort', /light|catch|kindle|cannot|can't/i);
-      await sayAwaiting(page, 'put cordwood in retort', /You put|cannot|can't/i);
+      // Into the hand first: a handed length a full pair cannot take is set
+      // down where she stands (the walk's runs).
+      await sayAwaiting(page, `get #${cordwood}`, /You (get|pick|take)|Nothing picked up|cannot|can't/i);
+      await sayAwaiting(page, `put #${cordwood} in retort`, /You put|cannot|can't/i);
       expect(await sayAwaiting(page, 'fire in retort for 3 hours', /fire|firing|seal|settle|hold it|cannot|can.t/i)).not.toMatch(NOT_UNDERSTOOD);
       // Out for the last twenty minutes of the firing and back — a nose three
       // hours in the fumes has stopped hearing them — with an analyzer and a
       // reader trained to name what is in the air (the wire drive's run 9).
       await advance(handle, 160 * 60);
-      await sayAwaiting(page, 'go north', /curing|You go|cannot|can't/i);
+      await sayAwaiting(page, 'go north', /Obvious exits|cannot|can't/i);
       await advance(handle, 20 * 60);
-      await sayAwaiting(page, 'go south', /boiling|arch|copper|You go|cannot|can't/i);
+      await sayAwaiting(page, 'go south', /Obvious exits|cannot|can't/i);
       await hand(handle, T.gasAnalyzer);
       for (let i = 0; i < 16; i++) await sayAwaiting(page, 'practice awareness hard success', /practi|record|deed/i);
       // ⭐ The fumes, in `smell here` (or named by the analyzer's atmosphere read).
-      const fouled = await sayAwaiting(page, 'smell here', /smell|scent|air|nothing/i);
+      const fouled = await sayAwaiting(page, 'smell here', /The air smells|Obvious exits|smell anything/i);
       const air = await sayAwaiting(page, 'analyze atmosphere', /air|atmosphere|gas|nothing|cannot/i);
       expect(`${fouled}\n${air}`, 'the retort’s fumes').toMatch(/smoke|tar|acrid|creosote|pitch|gas/i);
       await page.screenshot({ path: 'test-results/matter-model-overlaps-walk/13-fumes.png', fullPage: true });
