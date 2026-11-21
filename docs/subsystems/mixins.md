@@ -1310,3 +1310,10 @@ contribute or whether one wins.
   *answers: <verb>* on the card, in Studio and in `help <verb>` (D8b).
   Every view that used to say `requires: any` for want of a shared mixin
   now names its protocol, except `cut`, `dig`, `tap` and `teleport`.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** New: `FlawedMixin` (the
+  flaw record, split out of `IntegrityMixin`, which composes it — `Ship`
+  carries a hole without being an article), the `StirTargetMixin` and
+  `MaintainableMixin` protocols (`keptByUpkeep()` went), the
+  `ExtractionMixin` material capability, and trade-fuel's
+  `VolatileReceiverMixin`.

@@ -1244,8 +1244,9 @@ rule) is gone.
   as salt's bittern does. ⭐ A spent
   pan's bittern with nothing under the pan runs to the ground; a pan still
   concentrating keeps its brine. A mold standing over nothing at all (no
-  vessel, no floor) throws `DetachedError`, checked before the liquor
-  changes.
+  vessel, no floor) lets its liquor run away — the drip reports it `lost`
+  (pre-merge audit: a read never throws); the CROP still needs a place,
+  checked before the liquor changes.
 - **The rows.** Sea water (`bulk/salt-water`: 0.035 kg/L; 0.316 → 0.329
   kg/L freezing to boiling — salt barely cares about heat, which is why it is
   made by taking the water away); `bulk/bittern`; the saltpeter liquor (0.9
@@ -1300,3 +1301,11 @@ and `sufferThermalShock(stepK, rateKPerS)` (past the tolerance a dunt,
 twice past a crack). It was two private Thermal methods until the
 ceramics review.
 
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+Sugar crystallizes by solubility: a supersaturated liquor HOLDS until
+nucleated (a seed, `stir` → `noteAgitated`, cooling past `metastableRatio`,
+the drying edge), each pass's purity falls by the mass balance and grades
+it, and a liquor under `minCrystalPurity` is blackstrap. Spent liquor drips
+out over `drainDays` on one wake. `routeVolatile` became `BiomeApi.vent`; a
+boiling solution steams its solvent's vapor.

@@ -10,7 +10,7 @@
 > supplier · menu v2's line (dairy / egg / the blender) · the generic
 > drain's remaining direction (Part 7) · ⭐ **the whiskey tails** (§ below
 > — salvaged from the two whiskey plans at their sweep, 2026-10-06):
-> coopering · a sherry-seasoned cask · whisky colour · `vat-malts` ·
+> a sherry-seasoned cask · whisky colour · `vat-malts` ·
 > cask-strength and dilution · the grappa/pomace schedule
 > **Size:** a tail
 
@@ -95,17 +95,10 @@ live here now. The shipped halves are
 [fractionation.md](../../subsystems/fractionation.md) and
 [maturation.md](../../subsystems/maturation.md).
 
-**⭐⭐ Coopering — and it is the biggest of them.** Making, charring and
-seasoning a cask. The styles build made `MaturingMixin.imparts` a
-**vessel-authored** field, which turned "which barrel" into a decision a
-distiller buys — so the cooper's product is now a thing with a market and
-no producer. ⚠ The real prize is **`imparts` as a DEPLETING reservoir**:
-a cask's second fill should give less than its first (first-fill vs
-refill is the whole economics of barrel trading), and that is the RGO
-law's reservoir/recharge shape applied to a vessel instead of to ground.
-✅ Built by coopering: `imparts` depletes — each fill after the first
-spends `maturing.impartsSpentPerFill` (`impartsSpent`), and a re-fire
-restores it ([maturation.md](../../subsystems/maturation.md) § `imparts`).
+*Coopering — built:* a cask's give depletes per fill and a re-fire restores
+it; since matter-model-overlaps (MR !644) it is the WALL's give
+([faces.md](../../subsystems/faces.md) § The wall's exchange,
+[assembly.md](../../subsystems/assembly.md) § Coopering and the cask).
 
 **A sherry-seasoned cask** — vessel *history* writing `imparts`. The same
 mechanism as coopering, one step further: what the cask held last changes

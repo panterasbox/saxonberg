@@ -119,3 +119,8 @@ recipes. Competence grades; it never gates.
   room otherwise takes the zone's 20 m cell and a 400 m² room reads
   `very-dim` under any lantern. The cheese room keeps the cell: sized, its
   racked wheel spoiled (suspected atmosphere, not traced).
+
+- **2026-11-20 — matter-model overlaps (MR !644).** Whey runs to what is
+  under the hoop by the one drip (a puddle on a bare board); the terracotta
+  starter crock and the oak churn remember what they held and `wash` spends
+  it; a glazed crock remembers nothing.

@@ -608,3 +608,11 @@ plateau, not to an `evaporative` profile. The lye hopper still runs
   door and load the kind in `onCreate` (§ Profiles are the whole authoring
   surface). ⭐ W10 (same review): the kind became `BulkableApi`'s `needs`,
   stood at boot; the `onCreate` loads went and the path setters are plain.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** The vessel's eleven
+  imparts members (`imparts` … `refire`, `isSpent`) and
+  `maturing.impartsSpentPerFill` were deleted: a cask's give is its wall
+  material's, read by `Faced.exchangeWith`, and a charred cask's is its char
+  coat. The batch is signed and graded onto the payload
+  (`signBatch`/`gradeBatch`); a ferment never writes its vessel's
+  `Graded`/`Crafted`.

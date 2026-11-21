@@ -210,3 +210,9 @@ The chain's goods are titled by the kernel's fresh-good rule
   one verb, the round that never ran, the full crock, and the attribution
   build (continuations carry their author; the communal oven). See the
   plan's drive record.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** Water poured onto a heap
+  of ash (`pour <pail> onto <heap>`) works down through it and drips lye —
+  trade-fuel's lye row, titled by the communal-oven rule — into what is
+  under the heap, else a puddle on the floor. The hopper is unchanged; an
+  oak hopper gives oak to its lye.

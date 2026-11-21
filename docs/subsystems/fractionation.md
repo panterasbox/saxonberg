@@ -389,6 +389,10 @@ the kind in `onCreate` (W10, same review: the kind became `BulkableApi`'s
 `needs`, stood at boot, and that load went); `lint:fraction-schedules`
 reads the new dirs (§ The pieces).
 
+- **2026-11-20 — matter-model overlaps (MR !644).** A run's grade and maker
+  ride the DRAW's payload (read from the charge's); the still's own
+  `Graded`/`Crafted` is its making and a run never writes it.
+
 ## ⭐⭐⭐ `separation` — grades of one thing, or different things (the drilling build, 2026-10)
 
 A schedule now declares what KIND of separation it performs, and the

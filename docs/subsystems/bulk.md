@@ -933,3 +933,13 @@ their keys were **deleted**, so no shipped prose regressed.
   and every milking into a pail kept nothing. Unit tests stubbed the
   source with an interior, which is how it hid; the row authors
   `interiorBulk: true` now.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+The batch's grade, maker and craft time ride the PAYLOAD
+(`carryBatchIdentity`/`carryTopUpGrade` deleted; a top-up takes the lower
+grade), so a vessel keeps its own making. One leak read
+(`leakLPerHour`/`isLiquidTight`: pores · flaws · joints) decides every
+vessel's `getClosure`; one drip (`BulkableApi.drip`: in → on → the floor,
+else `lost`) replaced five receiver finders; the wall's exchange moved to
+`Faced.exchangeWith`; `BulkableMixin` answers `stir` (`StirTargetMixin`).

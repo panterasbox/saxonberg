@@ -692,3 +692,11 @@ hooks, and a COMBUSTIBLE heap whose core passes its (wetness-adjusted)
 autoignition point ignites, the fire driver spreading it. Hay is not
 combustible here and smokes as before; a heap of oily rags catches. See
 [painting.md](./painting.md) § The hazards.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+`chamberVapors` became the chamber's AIR — litres keyed by vapor row;
+`addChamberVapor` went and the Burner's default `receiveVolatiles` keeps
+nine tenths when lit and enclosing. Going out, a flued chamber vents to the
+sky and an unflued one into the room (`BiomeApi.vent`). Salt glazing is a
+row on the stoneware body's firing.

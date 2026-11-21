@@ -199,8 +199,9 @@ already holding a different liquid is skipped. ⭐ Nothing runs away any
 more: a hoop on a bare board pools its whey on the floor, a cone lifted off
 its pot pools its molasses there, and a floor already wet with something
 else lets the rest soak into the ground (said on the drip's result). A mold
-standing over nothing at all — no vessel and no floor — throws
-`DetachedError`. Shipped consumers: a sugar cone on its curing pot (the
+standing over nothing at all — no vessel and no floor — lets its drainings
+run away, reported `lost` on the drip's result (never a throw: a drip is a
+read's consequence). Shipped consumers: a sugar cone on its curing pot (the
 crystallize arm's timed drain, below), and the salt pan on its **bittern
 tub**.
 
@@ -513,3 +514,10 @@ The set path follows *refuse, skip or throw*
   way: the shipped dairy `Hoop` (`PlacingMixin(MouldMixin(…))`) hid the
   mould's own placement hook, so a weight set on a hoop never counted
   until the next read; the placement hooks now chain.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** Drainings leave by the
+  one drip (in → on → the floor; over nothing they run away, reported
+  `lost`), one band under the pool's grade on the PAYLOAD; `drainsInto` and
+  `bandsBelowFine` went. A cast reads `min(batch, mould)` (`castGradeOf`),
+  so a poor mould lowers it. Sugar's drain set (`becomesAs`, `drainPerBand`)
+  retired to `crystallizesTo.productAs`/`drainDays`.

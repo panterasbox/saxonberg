@@ -359,3 +359,9 @@ after a season jump can outlast 30 s.
   who lies there into a `berth-roll` document each ship writes for herself
   (the `BerthRoll` Idea was deleted). The boat's *painter* row became
   `/platform/thing/bow-line` when paint merged (`5cfd1a5db`).
+
+- **2026-11-20 — matter-model overlaps (MR !644).** The snag rule was lifted
+  out of `plotPassage` into `WatercourseCatalogue.snagVerdict`; `riverAt`
+  reports the stretch's `obstruction`, and `Propel` asks the rule for the
+  stretch a stroke enters, so a paddled boat is held off by day and holed by
+  night.

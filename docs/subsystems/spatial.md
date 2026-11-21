@@ -1493,3 +1493,11 @@ a programmatic `move` into differing chambers with none named throws;
 `reachRefusal` gained `packed` and the region of a shut chamber;
 `getReachableContents()` lost its rungs; `put`'s home-setting retired with
 homes (W10).
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+One drip: `Containable.dripSlots()` (in → on → the floor) and
+`BulkableApi.drip` replaced five callers' receiver choices;
+`Bulkable.passesDripsThrough()` lets a mould's open foot hand on;
+`GivenUpSlot` lets a solid give up liquid through the one transfer. See §
+What is under it — the drip.

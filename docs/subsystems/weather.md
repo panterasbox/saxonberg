@@ -843,3 +843,9 @@ Locality: whoever pins, unpins.
   `WetMixin` gauge borrows (not `ReservedMixin` reuse).
 - [perception.md](./perception.md) / light — the `AmbientLit` cached
   weather-dim factor + `VisionModality` sync read (cloud → light dimming).
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+`wetOccupants` calls `Wet.takeRain(delta)` on every Wet occupant in place of
+a structural cast: rain lands by the thing's `weatherReach()`, and a sealed
+outside sheds `wetness.shedShare` of it.

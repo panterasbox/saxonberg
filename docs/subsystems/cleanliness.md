@@ -467,3 +467,10 @@ rows re-cite them by path (`/platform/cleansers/<word>`), the setter
 returns the load, and `cleanser` joined census clause (g). `sunlight` and
 `sulfur-fume` remain documents no material cites and no code reads, as
 before.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+`wash` on a Faced vessel also spends what its wall has absorbed
+(`Faced.washAbsorbed`, at most `faces.washClears` a wash, never the wall's
+own give); `Vat` composes `SoilableMixin`, so casks, coppers and hoppers
+wash.

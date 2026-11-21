@@ -929,3 +929,8 @@ three MR-iteration rounds before the final shape; key shifts:
 - **2026-11-09 (documents path identity):** the aroma library moved into folders;
   the folder is the tree and `parent:` survives only for a parent in another pack
   (`lint:aromas` folder rule). See git log for the `reqs/documents-path-identity` branch.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** Smell reads the air: a
+  room's atmosphere contents are sources in `ownSmell` (the fold writes
+  nothing while the world is held still; a restored room's air rows load
+  through `set_atmosphereContents`). New aromas `damp` and `salt-fume`.

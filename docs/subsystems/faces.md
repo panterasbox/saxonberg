@@ -322,3 +322,12 @@ her seams, worn at the house's rate once it has gone and read by the ship's
 seam bands at her length (`Bilge.hullLeakLps`). The shipped boats are
 tarred, so they are tight until the pitch goes. See
 [painting.md](./painting.md).
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+The wall's exchange became ONE model with two sources — the wall material's
+`imparts` (`ExtractionMixin`, spent per fill, re-fired as a coat) and what
+the wall has absorbed (spent by `wash`); the lead leach rides it.
+`isSealed(face)` is the one coat question; `holdsWater` lost its crack
+clause (a crack is a flaw that leaks by the one hole rule). A boat has a
+fabric now (her seams), and rain sheds off a sealed outside.

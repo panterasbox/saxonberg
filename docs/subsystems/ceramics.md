@@ -599,3 +599,10 @@ shell weathering (only if wall spalling is built).
 - **2026-11-09 (documents path identity):** the forms became `form` documents
   at `content/forms/`, cited by path. See git log for the
   `reqs/documents-path-identity` branch.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** Salt glazing shipped:
+  salt in a lit kiln vaporizes to the salt-vapor row and the stoneware
+  body's firing lays the salt glaze from the chamber's air; the potter salts
+  (`pots`), and the shop smells of it. Rain sheds off a glaze and soaks into
+  terracotta; a terracotta crock remembers what it held, a glazed one
+  nothing.

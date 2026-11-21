@@ -1122,3 +1122,10 @@ or a hand it waits. A midden takes rotten food as refuse whatever its
 material (`Midden.takeRefuse`). How waste gets to being gone is
 [waste-slate](../slates/trades/waste-slate.md).
 
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+Exposure moved to `Wet.weatherReach()` (one reach for film and soak). The
+rain arm of `reconcileWater` is a bounded soak — the body's own drying rate
+× `cure.soakFactor`, up to capacity, zero through a sealed face; the film
+and the soak are two records fed by one rain, with nothing moved between
+them.

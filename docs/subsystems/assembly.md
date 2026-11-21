@@ -731,6 +731,13 @@ families and a monolith is one piece; the nine twins (`AssembledTool`,
 and their 23 rows re-point to the family. What made the reversal safe is
 that every method had become total on an empty record.
 
+- **2026-11-20 — matter-model overlaps (MR !644).** `Assembled.leaks()`
+  became `jointLeakShare()`, a term of the one leak: a sprung stave drains a
+  full cask (a 25 L cask about a third down in a game hour) and `fit stave
+  to cask` stops it. A cask's re-fire lays the bill's `refire` coat
+  (`Faced.refireFace`); `Vat` composes Soilable so a cask washes; a vessel's
+  `Crafted` is its making, never its batch.
+
 ## ⭐ The slip joint — green clay joined at leather-hard (ceramics W4, 2026-10)
 
 `/platform/joints/slip` (`slipped`; `reversible: never`, no instrument,

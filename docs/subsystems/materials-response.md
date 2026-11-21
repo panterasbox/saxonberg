@@ -582,3 +582,9 @@ hot) past `ΔT_tol = impact.shockStrain ÷ α × (1 + 10·porosity) ÷ (1 −
 2·grog) × (0.7 if glazed)`. Past it a `dunt` (hidden unless a glaze shows its
 craze line); past twice it a visible `crack`. Porosity and grog are why a
 cooking pot stands a fire a stoneware crock does not.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+`leaches` moved off `Toxicity` onto the new `Extraction` capability beside
+`imparts` (what a wall gives what it holds); an unmended crack leaks by the
+one hole rule (`Flawed.flawLeakLPerHour`).

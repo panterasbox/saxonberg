@@ -856,6 +856,12 @@ constituent, `getBiome()` throws on a cold non-empty path, and the root
 biome's `_enclosureMaterial` replaced the `enclosure.defaultMaterial` dial
 (§ `getBiome()` reads a constituent).
 
+- **2026-11-20 — matter-model overlaps (MR !644).** `BiomeApi.vent` is the
+  ONE vapor route (head → chamber → room → the sky or the flue) and replaced
+  six receiver sites; humidity counts `water-vapor` in a room's air
+  (`airFor` too, not `airSegmentsFor`); `reconcileAtmosphereContents` writes
+  nothing held still. See § The one vapor route.
+
 ---
 
 ## ⭐ The air as a value object — `airFor` / `airSegmentsFor` (extraction W1)

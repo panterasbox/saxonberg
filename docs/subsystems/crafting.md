@@ -2047,3 +2047,11 @@ what runs, knead what is stiff* (W19, `9a25745d1`, `Compounding.workVerb`).
 `ActChoices` (W4) lets the model return the set and the controller pick,
 refuse or ask; `engagePlan` moved up to `CommandController` so any controller
 can engage an `ActPlan`.
+
+## History — matter-model overlaps (MR !644, 2026-11-20)
+
+`stir` is a protocol (`StirTargetMixin`: a build, a compound, a liquid — the
+controller's three host arms went, and an empty build hands the stir to the
+liquid). The mend ladder gained `mendHoles` (a `patched` mend from the
+hull's own material). A by-hand build stamps its out slot's PAYLOAD, never
+the vessel (`vessel-not-crafted` is gone).

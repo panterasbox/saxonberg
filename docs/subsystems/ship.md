@@ -672,3 +672,11 @@ still lists `ashore` among its exits.
   - **No `isWaterNow`.** It is `depthNow() > 0` (`d5e2c84f9`).
   - **The paint merge** (`5cfd1a5db`) retired the warren's
     `WeatheringMixin` for a hull that is `Durable` under `Faced`.
+
+- **2026-11-20 — matter-model overlaps (MR !644).** `Ship.holed` became a
+  `holed` FLAW (`FlawedMixin`; `isHoled()` derives) and her leak
+  `Bilge.hullLeakLps()` — seams by band plus the one hole rule at her draft
+  and length. `repair` patches a hole with the hull's own `hull.material`
+  (else `no-hull-material`). Boats are Durable and tarred, their seams wear
+  bare, and `Boat.enterReach` holes one at a choked snag; `maintain` and the
+  mend ladder ask `MaintainableMixin`.
