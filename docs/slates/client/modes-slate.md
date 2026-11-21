@@ -301,21 +301,26 @@ wall-slot adornments are listed (below).
   interzone exits) **float outside the cube** in a strip of their own; wall-slot adornments are
   listed, not drawn; sizes come only from the engine's own size read (authored box, else what mass
   and material give) — nothing read means no box, listed *size unknown*. Arrangement **within one
-  container** may be arbitrary — *"I'm okay with making up relative position between the items if
+  container** is the drawing's — *"I'm okay with making up relative position between the items if
   the server just says they're all in a big container together. as long as the models stay
-  noticeably abstract"* — plain boxes, never a detailed render, and **no relationship the engine
-  does not hold** (no stacking, no facing, no *next to*). Relations it does hold are drawn as held
-  (*on the well: 10*).
+  noticeably abstract"* — plain boxes, never a detailed render, packed by the rule below.
+  Relations the engine holds are drawn as held (*on the well: 10*).
 - **One renderer for any container's interior** **[LEAN]**: a place is the largest container (the
   size code gives it a cubic interior). For a vessel, packing is the function, not decoration — fit
   by the sides it closes, its mouth, how full it is, a liquid's fill line. **One rule for places and
   vessels alike** **[DECIDED — the owner]**: *"their physics isn't any different or shouldn't be.
-  just how they're applied."* (A place floods as a vessel fills — `WaterPlaceMixin`.) Contents sit
-  **on the container's floor, side by side, arbitrarily placed**, as plain boxes; **once they no
-  longer fit on the floor nothing is stacked** (*"I dunno about putting a loaf of bread at the bottom
-  of a sack of melons. the game doesn't express any of that"*) — the drawing shows a fill level
-  (packed volume over interior) and how many things are not drawn; a liquid shows as a level in
-  either; relations the engine holds are drawn as held. What differs comes from the data, never
+  just how they're applied."* (A place floods as a vessel fills — `WaterPlaceMixin`.) Contents **pack into the container by a fixed, visible rule — stacking
+  included** — largest footprint first, filling the floor, then upward. The owner: *"the bag of
+  groceries can just put the melons on top of the bread as long as no one's walking away thinking
+  that's actually how things are arranged in the bag and that the model is an abstraction. that's
+  your job to do as a designer."* (An earlier cut forbade stacking; it held stacking to a stricter
+  standard than lateral placement, which is equally unexpressed.) **Making the abstraction legible
+  is the design's job:** the same order every time, so it reads as the drawing's convention; plain
+  flat boxes, no render of the objects; the legend says *arrangement is the drawing's, not the
+  world's*; tooltips give only the facts the engine holds (name, size, what it is on), never a
+  position; **engine-held relations** (*on* the well) are drawn distinctly from incidental packing.
+  A fill level and a *not drawn* count appear only when the contents exceed the interior; a liquid
+  shows as a level. What differs comes from the data, never
   from the kind of container. Consumers: the
   inspection card for a container, craft (the pot on the fire — likely first), carrying and
   inventory, a ship's hold.
