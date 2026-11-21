@@ -962,6 +962,35 @@ changes `me:~` with no relog, and a list and a group both named `bookclub`
 prompt (and refuse in a script).
 *Commit:* `build(naming-overhaul WB2): contact lists, parties, books, cards and warrens answer`.
 
+✅ **Done.** `RelatingMixin` composes ONCE (the `Slottable` guard), so every
+contributor pulls it in beneath itself and one `super` chain runs through
+them all. Holders: `ContactsMixin` (one relation per label, owner-only),
+`PartyMemberMixin` (`~party`, `party:<path>` ref), new
+**`GroupMemberMixin`** on the Avatar (resident groups — filled in
+`Avatar.enter`, re-read by each group's change hook, and refreshed
+directly by `GroupAddController` and `GroupLogic.ensureMember` for a group
+the member was not yet listening to; unsubscribed in `onDestruct`),
+`Warren` (`~rooms`; `flatMapMembers` and the `members` chain word deleted —
+the plan's "three uses" were all tests and docs), `CharterBook` (`~ships`;
+`setShips` returns the load so listed ships stand resident; `lets()` reads
+residents), `TravelCard` (`~nodes`, the tpa pack), `AetherHostMixin`
+(`~apps` = the running apps). Decided: **`RegisterBook` gets no `~ships`** —
+it pages ship-register DOCUMENTS (kind + key), not live ships; the charter
+book is the holder `charter` binds through. **The `apps` and `teleport`
+views stay string slots until C3/C6** — an offered app is not made yet
+(D-C5 rule 5) and the teleport destination is a route on the node, not the
+card. `charter`'s `ship` is an object slot scoped
+`~reachable:[class.CharterBook]:~ships` (no `greedy:` — object slots refuse
+it). The tie prompt lives in the binder's one resolve funnel
+(`scopedMany` → `settleRelationTie`); a script gets `needs-input`.
+`contacts add` warns when a label is a built-in's name, by asking MQL
+(`me:~`) rather than importing the sealed table. ⚠ Deleting the resolver's
+now-unused `Warren` import changed module load order and exposed a LATENT
+cycle (`Place` → … → `Tombstone` → `Location` → `Place`) in the three
+`biome.*Of` tests — the only ones that loaded the runtime without
+`test-bootstrap`; they import it now. The server's boot imports the
+bootstrap first; the drive's boot is the check that production order holds.
+
 **B3a — The mechanical sweep: seeds and scopes become `~`; `online` goes.**
 *Decisions:* D-B7, D-B10.
 *Files:* every view `scope:` and `default:` in `packages/content` **except

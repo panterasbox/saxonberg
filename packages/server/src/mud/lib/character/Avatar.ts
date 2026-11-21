@@ -63,6 +63,7 @@ import { NotifyPolicyMixin } from "../social/NotifyPolicy";
 import { CalendarMixin } from "../calendar/Calendar";
 import { SubjectSubscriberMixin } from "../forum/SubjectSubscriber";
 import { PartyMemberMixin } from "../party/PartyMember";
+import { GroupMemberMixin } from "../social/GroupMember";
 import { Events } from "../events";
 import type { User } from "../identity/User";
 import type { AccountSubjects } from "../standing/AccountScoped";
@@ -207,6 +208,10 @@ const AvatarBase = PersistableMixin(
                     // collection and no marshaller of their own.
                     WardrobeMixin(
                       PartyMemberMixin(
+                        // ⭐ Your managed groups, resident on you (naming
+                        // overhaul D-B11): each answers as a relation of
+                        // you (`~bookclub`). Transient — rebuilt at enter.
+                        GroupMemberMixin(
                         SubjectSubscriberMixin(
                           // ⭐ A player body has a name because EMBODY WRITES
                           // ONE, and it is the one piece of identity a player
@@ -219,6 +224,7 @@ const AvatarBase = PersistableMixin(
                           // missing field hydrates as empty and the banner
                           // reads "Welcome, ." with nothing thrown.
                           NamedMixin(ShelledCharacter),
+                        ),
                         ),
                       ),
                     ),
@@ -970,6 +976,12 @@ export default abstract class Avatar extends AvatarBase {
     // read-modify-write with a write-through, so an unfilled map
     // overwrites a stored regard with a value derived from zero.
     await this.recordFirstArrival(startingLocation);
+    // ⭐ Your groups, resident (naming overhaul D-B11): read once here so
+    // `~<group>` answers synchronously; a group that cannot be read is
+    // logged and the session goes on without it.
+    await this.refreshGroups().catch((err: unknown) =>
+      console.warn(`Avatar.enter: could not read the groups of ${this.getIdentityPath() ?? '?'}`, err),
+    );
     const payload = await this.buildWelcomePayload(interactive);
     this.sendWelcome(payload, opts.firstArrival === true);
     // Force a sense so the player perceives where they are across every

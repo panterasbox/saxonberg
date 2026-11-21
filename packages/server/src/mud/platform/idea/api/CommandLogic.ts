@@ -766,11 +766,34 @@ async function scopedMany(
       throw err;
     }
   };
-  const named = await ask(admits);
+  const named = await settleRelationTie(await ask(admits), context);
   const seen = perceivedOf(named, giver);
   if (seen.stuff.length > 0 || named.stuff.length === 0 || named.isSet) return seen;
   const sees = (s: Stuff): boolean => PerceptionApi.perceives(giver, s) && (admits ? admits(s) : true);
   return perceivedOf(await ask(sees), giver);
+}
+
+/**
+ * ⭐ A name two of your own sets share (a contact list and a group both
+ * called `bookclub` — naming overhaul D-B11): the player is asked which,
+ * and the chosen set's matches are kept. A script never prompts — the
+ * tie is the refusal (`requireInteractive` says so).
+ */
+async function settleRelationTie(r: MqlMany, context: CommandContext): Promise<MqlMany> {
+  const tie = r.relationTie;
+  if (tie === undefined) return r;
+  const interactive = context.requireInteractive(`to know which ~${tie.name} you mean (${tie.sets.join(' or ')})`);
+  if (!interactive) return { stuff: [] };
+  const chosen = await interactive.promptChoice(
+    `~${tie.name} — which do you mean?`,
+    tie.sets.map((meaning) => ({ label: meaning, response: meaning })),
+  );
+  const keep = r.stuff.map((_, i) => i).filter((i) => r.vias?.[i]?.relation?.meaning === chosen);
+  const out: MqlMany = { ...r, stuff: keep.map((i) => r.stuff[i]!) };
+  delete out.relationTie;
+  if (r.vias) out.vias = keep.map((i) => r.vias![i]);
+  if (r.tiers) out.tiers = keep.map((i) => r.tiers![i]!);
+  return out;
 }
 
 @Unshadowable

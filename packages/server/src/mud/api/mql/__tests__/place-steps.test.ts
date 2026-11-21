@@ -2,7 +2,7 @@
  * ⭐ The steps between places: `:exits` (a place's
  * exits, as the viewer sees them), `:to` (an exit's destination — live
  * only, never materialized), `:from` (an exit's source). Element-derivable
- * flat-maps, reserved like `:members`.
+ * flat-maps, reserved chain words.
  */
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';

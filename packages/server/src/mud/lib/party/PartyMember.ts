@@ -37,6 +37,10 @@ import type { PartyOpResult, PartySimpleResult } from "../../api/party";
 // eslint-disable-next-line no-restricted-imports -- the F3 member face: a member's party verbs forward into the party logic singleton exactly as the api/party facade does (the Combustible/Energized precedent)
 import { PartyLogic } from "../../platform/idea/api/PartyLogic";
 import type { Stuff } from "../stuff/Stuff";
+import { RelatingMixin, type HeldRelation, type RelatedSet } from "../relation/Relating";
+
+/** The player-avatar identity family a roster's bare player id keys under. */
+const AVATAR_IDENTITY_ROOT = "/platform/agent/Avatar";
 
 /** Public read surface for PartyMemberMixin. */
 export interface PartyMember {
@@ -112,7 +116,7 @@ const ByInvitingParty = SecurityPolicies.AnyOf(
 );
 
 export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
-  class PartyMemberMixin extends Base implements PartyMember {
+  class PartyMemberMixin extends RelatingMixin(Base) implements PartyMember {
     static _mixinName = "PartyMemberMixin";
     static fieldMeta: FieldMeta = {
       activePartyPath: { persistent: true, runtimeState: true },
@@ -239,6 +243,43 @@ export function PartyMemberMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Go dormant: clear the active pointer. */
     public standDown(): Promise<PartySimpleResult> {
       return partyLogic().standDown(this as unknown as Stuff);
+    }
+
+    /* ── `~party` (naming overhaul D-B5): your active party, to you ── */
+
+    /** The live party Idea this member is active in, or null. */
+    private activeParty(): Party | null {
+      const path = this.activePartyPath;
+      return path === "" ? null : (StuffApi.findByTemplatePath<Party>(path) ?? null);
+    }
+
+    public relationsFor(asker: Stuff | null): HeldRelation[] {
+      const mine =
+        asker === (this as unknown as Stuff) && this.activeParty() !== null
+          ? [{ name: "party", meaning: "the members of your active party" }]
+          : [];
+      return [...mine, ...super.relationsFor(asker)];
+    }
+
+    /** The members of your active party who are in the world. */
+    public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
+      const below = super.relatedBy(name, asker);
+      const party = name === "party" && asker === (this as unknown as Stuff) ? this.activeParty() : null;
+      if (party === null) return below;
+      const members: Stuff[] = [];
+      for (const id of party.getMemberIds()) {
+        const s = StuffApi.findByIdentityPath(id.startsWith("/") ? id : `${AVATAR_IDENTITY_ROOT}/${id}`)[0];
+        if (s !== undefined && !members.includes(s)) members.push(s);
+      }
+      return [{ name, meaning: "the members of your active party", members }, ...below];
+    }
+
+    /** The party's durable ref (`party:<path>`), for `notify`. */
+    public groupRefOf(name: string, asker: Stuff | null): string | null {
+      if (name === "party" && asker === (this as unknown as Stuff) && this.activePartyPath !== "") {
+        return `party:${this.activePartyPath}`;
+      }
+      return super.groupRefOf(name, asker);
     }
   }
   return PartyMemberMixin;

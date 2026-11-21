@@ -8,7 +8,7 @@
  */
 
 import type { CommandContext } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import { GrammarApi } from '../../../../api/grammar';
 import { PlayerApi } from '../../../../api/player';
@@ -23,6 +23,18 @@ export default class ContactsAddController extends ContactsControllerBase {
     if (!host) return;
     const label = ContactsControllerBase.labelOf(model, context);
     if (!label) return;
+    // ⭐ A list named for a built-in relation is allowed, and warned about
+    // (naming overhaul D-B15): `~inventory` will always mean what you carry,
+    // so no query reaches a list called that.
+    const builtins = MqlApi.resolveMany('me:~', { commandGiver: context.commandGiver, scope: '' }).relations ?? [];
+    if (builtins.some((r) => r.builtin && r.name === label.toLowerCase())) {
+      ContactsControllerBase.send(
+        context,
+        Mml.compose`
+(~${label} is a built-in — it always means ${builtins.find((r) => r.name === label.toLowerCase())!.meaning}, so a query will never reach this list by that name.)
+`,
+      );
+    }
     const resolved =
       model.target && typeof model.target === 'object'
         ? (model.target as MqlOneResult)

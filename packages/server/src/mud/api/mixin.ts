@@ -321,6 +321,7 @@ import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Registrar } from '../lib/document/Registrar';
 import type { Relating } from '../lib/relation/Relating';
+import type { GroupMember } from '../lib/social/GroupMember';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Cast } from '../lib/npc/Cast';
@@ -2559,6 +2560,11 @@ export class MixinApi {
    */
   public static isRegistrar(obj: Stuff): obj is Stuff & Registrar {
     return this.hasMixin(obj, Mixins.Registrar);
+  }
+
+  /** A person whose managed groups are resident on them (`~<group>`). */
+  public static isGroupMember(obj: Stuff): obj is Stuff & GroupMember {
+    return this.hasMixin(obj, Mixins.GroupMember);
   }
 
   /** ⭐ A holder that keeps named sets MQL can ask for (`holder:~name`). */

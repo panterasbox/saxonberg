@@ -23,7 +23,6 @@
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
 import { MixinApi } from '../mixin';
-import { Warren } from '../../lib/location/Warren';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
 import { PerceptionApi } from '../perception';
@@ -228,7 +227,7 @@ function namesASet(ast: QueryNode): boolean {
     const w = el.words[0]!.toLowerCase();
     return atHead
       ? SEED_WORDS.has(w)
-      : w === 'members' || PLACE_STEPS.has(w) || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
+      : PLACE_STEPS.has(w) || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
   };
   // One referent stepped through a set (`me:i` — your contents) is a set.
   const oneReferent = (el: ChainElement): boolean =>
@@ -946,9 +945,6 @@ function applyColon(
     case 'keywords': {
       if (el.words.length === 1) {
         const name = el.words[0]!;
-        if (name === 'members') {
-          return flatMapMembers(input);
-        }
         if (PLACE_STEPS.has(name)) {
           return flatMapPlaceStep(input, name, ctx.commandGiver);
         }
@@ -1099,39 +1095,14 @@ function listRelations(input: MqlMatch[], ctx: MqlContext): void {
 }
 
 /**
- * `:members` — the keyed-member locator (residences D16): expand each
- * prior element that is a `Warren` (an institution — or a holding
- * programme, which is warren-shaped one level down) to its LIVE
- * members, union the results. A non-Warren prior element contributes
- * nothing. Live members only, deliberately: a sync query cannot
- * materialize a dormant holding — the locator serves the operator /
- * author surface, and a drive admits first. Reserved as a chain word;
- * an object keyworded `members` is reachable via `[keyword.members]`.
- */
-function flatMapMembers(input: MqlMatch[]): MqlMatch[] {
-  const out: MqlMatch[] = [];
-  const seen = new Set<string>();
-  for (const m of input) {
-    if (!(m.stuff instanceof Warren)) continue;
-    for (const member of m.stuff.getMembers()) {
-      const s = member as Stuff;
-      if (seen.has(s.stuffId)) continue;
-      seen.add(s.stuffId);
-      out.push({ stuff: s, score: m.score });
-    }
-  }
-  return out;
-}
-
-/**
  * ⭐ **The steps between places** — element-derivable
- * flat-maps, reserved as chain words like `:members`:
+ * flat-maps, reserved as chain words:
  *
  *   - `:exits` — each prior PLACE's exits, as the viewer sees them
  *     (`obviousExitsFor(viewer)`; system mode: every obvious exit);
  *   - `:to` — each prior EXIT's destination, LIVE ONLY: a far place that
  *     is not loaded contributes nothing (a query never materializes a
- *     place — the `:members` rule). Perception still gates the verb:
+ *     place — the relations' rule). Perception still gates the verb:
  *     `look here:exits:north:to` describes the far place only where it is
  *     seen across;
  *   - `:from` — each prior EXIT's source place.

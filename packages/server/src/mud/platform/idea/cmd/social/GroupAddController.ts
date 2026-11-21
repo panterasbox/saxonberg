@@ -8,6 +8,7 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { GroupApi } from '../../../../api/group';
 import { PlayerApi } from '../../../../api/player';
 import { GroupControllerBase, type GroupModel } from './GroupControllerBase';
+import { MixinApi } from '../../../../api/mixin';
 
 export default class GroupAddController extends GroupControllerBase {
   async execute(model: GroupModel, context: CommandContext): Promise<void> {
@@ -43,6 +44,9 @@ export default class GroupAddController extends GroupControllerBase {
       const reg = await GroupApi.registry();
       reg.managed().fireChange(g._id);
     }
+    // ⭐ A group the member was not listening to yet: refresh their
+    // resident groups directly, so `~<group>` answers with no relog.
+    if (MixinApi.isGroupMember(target)) await target.refreshGroups();
     this.send(
       context,
       Mml.compose`\nAdded ${target.getPresentation()} to '${name}'.\n`,

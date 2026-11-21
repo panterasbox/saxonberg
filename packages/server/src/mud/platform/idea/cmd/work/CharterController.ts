@@ -15,9 +15,11 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import CharterBook from '../../../thing/CharterBook';
+import Ship from '../../Ship';
 
 interface CharterModel extends CommandModel {
-  ship?: string;
+  /** ⭐ A ship the book keeps (`~ships`) — bound by the binder, not matched here. */
+  ship?: MqlOneResult;
   book?: MqlOneResult;
 }
 
@@ -29,7 +31,11 @@ export default class CharterController extends CommandController<CharterModel> {
     const found = model.book?.stuff ?? null;
     const book = found instanceof CharterBook ? found : null;
     if (book === null) return this.refuse(context, TOPIC, 'There is no charter book here.', 'no-book');
-    const ship = await book.shipFor(model.ship ?? null);
+    const named = model.ship?.stuff ?? null;
+    let ship: Ship | string;
+    if (named === null) ship = await book.shipFor(null);
+    else if (named instanceof Ship && book.lets().includes(named)) ship = named;
+    else ship = `This book does not let ${named.getPresentation()}.`;
     if (typeof ship === 'string') return this.refuse(context, TOPIC, ship, 'no-such-ship');
     const rate = book.rateFor(ship);
     const refused = await ship.charterTo(giver, rate, book.getPayTo());

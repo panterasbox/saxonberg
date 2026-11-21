@@ -61,9 +61,14 @@ export interface Relating {
 /**
  * The base of the chain: a holder that keeps nothing until a contributor
  * says otherwise. Contributors override all three and call `super`.
+ *
+ * ⭐ Composed ONCE (the `Slottable` shape): every contributing mixin pulls
+ * it in beneath itself, and a second application over a class that already
+ * composes it returns that class — so one `super` chain runs through every
+ * contributor instead of a second base cutting it off.
  */
 export function RelatingMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class RelatingMixin extends Base implements Relating {
+  class RelatingLayer extends Base implements Relating {
     static _mixinName: string = Mixins.Relating;
 
     public relationsFor(_asker: Stuff | null): HeldRelation[] {
@@ -77,5 +82,17 @@ export function RelatingMixin<TBase extends MixinConstructor>(Base: TBase) {
     public groupRefOf(_name: string, _asker: Stuff | null): string | null {
       return null;
     }
-  };
+  }
+  if (composesRelating(Base)) return Base as unknown as typeof RelatingLayer;
+  return RelatingLayer;
+}
+
+/** Whether a class already composes the layer (anywhere down its chain). */
+function composesRelating(ctor: unknown): boolean {
+  for (let c = ctor; typeof c === 'function'; c = Object.getPrototypeOf(c)) {
+    if (Object.prototype.hasOwnProperty.call(c, '_mixinName') && (c as { _mixinName?: string })._mixinName === Mixins.Relating) {
+      return true;
+    }
+  }
+  return false;
 }

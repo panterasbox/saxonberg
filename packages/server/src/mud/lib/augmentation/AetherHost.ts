@@ -38,6 +38,7 @@ import { CommandApi, type CommandContributions } from '../../api/command';
 import { StuffApi } from '../../api/stuff';
 import { Final, Unshadowable } from '../security/decorators';
 import type { AetherHosted } from './AetherHosted';
+import { RelatingMixin, type HeldRelation, type RelatedSet } from '../relation/Relating';
 
 /** How what arrives through a host shows to its bearer (D9). */
 export type AetherManifestation = 'known' | 'read';
@@ -111,7 +112,7 @@ function appKeyOf(path: string): string {
 }
 
 export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
-  class AetherHostMixin extends Base implements AetherHost {
+  class AetherHostMixin extends RelatingMixin(Base) implements AetherHost {
     static _mixinName = 'AetherHostMixin';
 
     /**
@@ -231,6 +232,17 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     hasApp(key: string): boolean {
       return this.installedApps.some((p) => appKeyOf(p) === key);
+    }
+
+    /** ⭐ `device:~apps` — the apps running on it (naming overhaul D-B5); anyone may ask. */
+    public relationsFor(asker: Stuff | null): HeldRelation[] {
+      return [{ name: 'apps', meaning: 'the apps installed and running on it' }, ...super.relationsFor(asker)];
+    }
+
+    public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
+      const below = super.relatedBy(name, asker);
+      if (name !== 'apps') return below;
+      return [{ name, meaning: 'the apps installed and running on it', members: [...this._hostedApps] }, ...below];
     }
 
     availableApps(): readonly string[] {

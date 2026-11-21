@@ -46,6 +46,7 @@ import { StuffApi } from '../../api/stuff';
 import { ContainmentApi } from '../../api/containment';
 import { MixinApi } from '../../api/mixin';
 import { NavigationApi } from '../../api/navigation';
+import { RelatingMixin, type HeldRelation, type RelatedSet } from '../relation/Relating';
 
 /** Host-side hub topology for one member: the direction host→member. */
 export interface Attachment {
@@ -56,7 +57,22 @@ export interface Attachment {
 type MemberStuff = Stuff & Container;
 type ExitableContainer = Stuff & Container & Exitable;
 
-export abstract class Warren extends Idea {
+export abstract class Warren extends RelatingMixin(Idea) {
+  /**
+   * ⭐ `warren:~rooms` — its live members (naming overhaul D-B5; the
+   * retired `:members` chain word). Live only: a sync query never
+   * materializes a dormant holding. Answers anyone.
+   */
+  public relationsFor(asker: Stuff | null): HeldRelation[] {
+    return [{ name: 'rooms', meaning: 'its rooms that are in the world' }, ...super.relationsFor(asker)];
+  }
+
+  public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
+    const below = super.relatedBy(name, asker);
+    if (name !== 'rooms') return below;
+    return [{ name, meaning: 'its rooms that are in the world', members: this.getMembers() as unknown as Stuff[] }, ...below];
+  }
+
   /**
    * The member set. Truth of membership — a Location is a member iff it
    * is here, regardless of whether it composes `WarrenMemberMixin`.

@@ -25,6 +25,9 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { CommandContributions } from '../../api/command';
+import { RelatingMixin, type HeldRelation, type RelatedSet } from '../relation/Relating';
+import { StuffApi } from '../../api/stuff';
+import type { Stuff } from '../stuff/Stuff';
 
 /**
  * Per-entry source of provenance. `self` = added by the owner via
@@ -87,7 +90,7 @@ export interface Contacts {
 }
 
 export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class ContactsMixin extends Base implements Contacts {
+  return class ContactsMixin extends RelatingMixin(Base) implements Contacts {
     static _mixinName = 'ContactsMixin';
 
     /**
@@ -195,8 +198,36 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
     allContacts(): readonly ContactEntry[] {
       return this._contacts;
     }
+
+    /* ── relations (naming overhaul D-B5): each list is `~<label>`, owner-only ── */
+
+    /** ⭐ Your lists, each a relation — to you only (contacts are owner-only). */
+    public relationsFor(asker: Stuff | null): HeldRelation[] {
+      const mine =
+        asker === (this as unknown as Stuff)
+          ? this.contactLabels().map((label) => ({ name: label, meaning: `your list "${label}"` }))
+          : [];
+      return [...mine, ...super.relationsFor(asker)];
+    }
+
+    /** The people on the list named `name` who are in the world (to you only). */
+    public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
+      const below = super.relatedBy(name, asker);
+      if (asker !== (this as unknown as Stuff)) return below;
+      const entries = this.contactsByLabel(name);
+      if (entries.length === 0) return below;
+      const members: Stuff[] = [];
+      for (const e of entries) {
+        const s = StuffApi.findByIdentityPath(e.kind === 'avatar' ? `${AVATAR_IDENTITY_ROOT}/${e.playerId}` : e.templatePath)[0];
+        if (s !== undefined && !members.includes(s)) members.push(s);
+      }
+      return [{ name, meaning: `your list "${name}"`, members }, ...below];
+    }
   };
 }
+
+/** The player-avatar identity family a contact's `playerId` keys under (D17). */
+const AVATAR_IDENTITY_ROOT = '/platform/agent/Avatar';
 
 function refOf(e: ContactEntry): string {
   return e.kind === 'avatar' ? e.playerId : e.templatePath;
