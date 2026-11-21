@@ -209,7 +209,7 @@ describe('the author\'s word: block and reach (D5)', () => {
 });
 
 describe('the MQL seed', () => {
-  it('⭐ `horizon` is a set and `horizon:light` a name', async () => {
+  it('⭐ `horizon` is a set and `~horizon:light` a name', async () => {
     const v = await viewerIn('/t/pell/room-0');
     const all = MqlApi.resolveMany('~horizon', { commandGiver: v as never, scope: '' });
     expect(all.isSet).toBe(true);

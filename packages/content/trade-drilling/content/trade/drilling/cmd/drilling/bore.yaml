@@ -32,7 +32,7 @@ args:
     type: object
     required: false
     default: "~reachable:[mixin.GroundPointMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [GroundPointMixin]
   - name: rig
     prepositionRequired: true
@@ -40,5 +40,5 @@ args:
     required: false
     prepositions: [at, with, using]
     default: "~reachable:[capability.derrick]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]

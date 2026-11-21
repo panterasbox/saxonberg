@@ -21,5 +21,5 @@ args:
     required: false
     prepositions: [at, in]
     default: "~reachable:[mixin.BurnerMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [BurnerMixin]

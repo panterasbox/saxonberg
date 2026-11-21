@@ -28,7 +28,7 @@ describe('MQL resolver — direct seeds', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
   });
 
   it('me resolves to the giver', () => {
@@ -198,13 +198,13 @@ describe('MQL resolver — keyword search', () => {
   });
 
   it('here scope alone matches keywords on the location itself', () => {
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
     const out = resolve('square', ctx);
     expect(ids(out)).toContain(world.location.stuffId);
   });
 
-  it('here scope alone does NOT match peers (post-split)', () => {
-    ctx = { commandGiver: world.giver, scope: 'here' };
+  it('~here scope alone does NOT match peers (post-split)', () => {
+    ctx = { commandGiver: world.giver, scope: '~here' };
     const out = resolve('rose', ctx);
     expect(ids(out)).not.toContain(world.rose.stuffId);
   });
@@ -251,7 +251,7 @@ describe('MQL resolver — transforms', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
   });
 
   it(':i lists giver contents (no via — Stuff containment)', () => {
@@ -414,7 +414,7 @@ describe('MQL resolver — detail-keyword extension on `:`', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
   });
 
   it('here:inscription navigates to the inscription detail', () => {
@@ -527,10 +527,10 @@ describe('MQL resolver — scope-as-MQL evaluation', () => {
     expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
   });
 
-  it('scope: "here" still hits the fast path', () => {
+  it('scope: "~here" is the place', () => {
     // The fast path predates this work; it still produces the right
     // candidates for keyword search.
-    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
+    const ctx: MqlContext = { commandGiver: world.giver, scope: '~here' };
     const out = resolve('square', ctx);
     expect(ids(out)).toContain(world.location.stuffId);
   });
@@ -847,7 +847,7 @@ const out = MqlApi.resolveMany('flower', ctx);
 describe('⭐ resolveMany carries each match its OWN via (maritime browser walk, 2026-10-14)', () => {
   it('a mixed set keeps every path: the room through its feature, its contents through nothing', () => {
     const world = makeWorld();
-    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
+    const ctx: MqlContext = { commandGiver: world.giver, scope: '~here' };
     const out = MqlApi.resolveMany('~here:inscription, ~here:i', ctx);
     expect(out.stuff.length).toBeGreaterThan(1);
     expect(out.via).toBeUndefined();
@@ -859,7 +859,7 @@ describe('⭐ resolveMany carries each match its OWN via (maritime browser walk,
 
   it('a set with no feature in it carries no vias at all', () => {
     const world = makeWorld();
-    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
+    const ctx: MqlContext = { commandGiver: world.giver, scope: '~here' };
     expect(MqlApi.resolveMany('~here:i', ctx).vias).toBeUndefined();
   });
 });

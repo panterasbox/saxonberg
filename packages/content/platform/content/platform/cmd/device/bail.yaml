@@ -50,7 +50,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "me:e", "~peers", "~person"]
     requires: LiftSourceMixin
   - name: tool
     prepositionRequired: true

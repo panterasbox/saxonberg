@@ -44,7 +44,7 @@ args:
     # fell through to "no known command shape". Found by live-driving;
     # no controller test can catch it, because controller tests skip the
     # binder entirely.
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     prepositions: [at]
     # ⭐ D17: see `throw-to.yaml`.
     prepositionRequired: true

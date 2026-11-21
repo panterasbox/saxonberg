@@ -31,7 +31,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: any
   # ⭐ WHAT WITH — DECLARED (`lint:controller-resolution`): a broom for a floor,
   # a flue brush for a chimney; bare hands work, slowly.

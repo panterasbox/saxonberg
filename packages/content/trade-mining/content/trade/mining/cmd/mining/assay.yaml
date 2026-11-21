@@ -79,5 +79,5 @@ args:
     # shape — with everything upstream of it already correct.
     prepositions: [at, on, with]
     default: "~reachable:[capability.assay-scale]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]

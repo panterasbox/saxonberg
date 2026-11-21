@@ -118,7 +118,7 @@ async function run(
 ): Promise<CommandContext> {
   const ctx = makeContext(actor as unknown as Stuff, where, text);
   // ⚠ Stand in for the BINDER: `shore`'s `timber` arg now DEFAULTS
-  // through `reachable:[capability.timber-set]` — the arg always
+  // through `~reachable:[capability.timber-set]` — the arg always
   // existed, and what was missing was the default, so the controller
   // fell back to a walk. A hand-built model that names no timber has to
   // supply what the view would have found.

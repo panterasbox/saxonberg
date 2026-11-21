@@ -19,5 +19,5 @@ args:
     required: false
     prepositions: [at, in, into]
     default: "~reachable:[mixin.ShoreMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: any

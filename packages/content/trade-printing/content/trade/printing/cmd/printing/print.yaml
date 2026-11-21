@@ -43,5 +43,5 @@ args:
     required: false
     prepositions: [on, with]
     default: "~reachable:[mixin.ToolMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]

@@ -94,7 +94,7 @@ beforeEach(() => {
   room = makeStuff(() => new TestRoom());
   const giver = makeStuff(() => new TestGiver());
   ContainmentApi.move(giver as never, room as never);
-  ctx = { commandGiver: giver as never, scope: 'here' };
+  ctx = { commandGiver: giver as never, scope: '~here' };
 
   bar = thing(STEEL);
   pig = thing(CAST_IRON);

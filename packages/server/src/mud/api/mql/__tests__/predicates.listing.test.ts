@@ -36,7 +36,7 @@ let ledger: Gear;
 
 const ids = (xs: readonly Stuff[]): string[] => xs.map((x) => x.stuffId).sort();
 const q = (query: string): string[] =>
-  ids(MqlApi.resolveMany(query, { commandGiver: bob as never, scope: 'here' }).stuff);
+  ids(MqlApi.resolveMany(query, { commandGiver: bob as never, scope: '~here' }).stuff);
 
 beforeEach(() => {
   StuffApi.clearAll();

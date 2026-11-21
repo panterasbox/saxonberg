@@ -41,7 +41,6 @@ subcommands:
       - from
       default: "~reachable:[mixin.HeldGoodsMixin] - ~reachable:[mixin.ConsignmentShelfMixin]"
       scope:
-      - here
       - "~peers"
       - "~person"
       requires:
@@ -68,7 +67,6 @@ subcommands:
       - from
       default: "~reachable:[mixin.HeldGoodsMixin] - ~reachable:[mixin.ConsignmentShelfMixin]"
       scope:
-      - here
       - "~peers"
       - "~person"
       requires:

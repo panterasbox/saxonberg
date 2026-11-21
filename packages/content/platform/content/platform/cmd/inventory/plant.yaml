@@ -44,7 +44,7 @@ args:
   - name: pot
     type: object
     required: false
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~peers", "~person"]
     prepositions: [in, into, on, over]
     requires: [VisibleMixin, CultivableMixin|SoilMixin]
 options:
@@ -55,7 +55,7 @@ options:
   at:
     type: object
     field: part
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~peers", "~person"]
     requires: SoilMixin
     description: "Which field of ground marked into fields"
   # ⭐ A SEED DRILL, when one stands within reach (field population, the

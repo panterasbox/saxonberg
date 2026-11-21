@@ -101,7 +101,7 @@ describe('`at <patch>` — which part of a divided field (field population D5)',
       expect(at).toBeDefined();
       expect(at!.type).toBe('object');
       expect(at!.field).toBe('part');
-      expect(at!.scope).toEqual(['here', '~peers', '~person']);
+      expect(at!.scope).toEqual(['~here', '~peers', '~person']);
       expect([at!.requires].flat()).toEqual(['SoilMixin']);
       expect(args(view).find((a) => a.name === 'part')).toBeUndefined();
     });
@@ -123,7 +123,7 @@ describe('`at <patch>` — which part of a divided field (field population D5)',
       expect(patch!.greedy).toBeUndefined();
       expect(patch!.prepositions).toEqual(['at']);
       // A patch is ground underfoot: a world act, room first (D21).
-      expect(patch!.scope).toEqual(['here', '~peers', '~person']);
+      expect(patch!.scope).toEqual(['~here', '~peers', '~person']);
       expect([patch!.requires].flat()).toEqual(['SoilMixin']);
       // Every arg after it stops it with a preposition of its own.
       const after = all.slice(all.indexOf(patch!) + 1);

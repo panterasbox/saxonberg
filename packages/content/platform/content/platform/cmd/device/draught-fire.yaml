@@ -26,7 +26,7 @@ args:
     type: object
     required: true
     prepositions: [on, at, in]
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     default: "~reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin
     validators:

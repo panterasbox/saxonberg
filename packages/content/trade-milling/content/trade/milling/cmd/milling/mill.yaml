@@ -110,5 +110,5 @@ args:
     required: false
     prepositions: [at, with, on]
     default: "~reachable:[mixin.ComminutingMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ComminutingMixin]

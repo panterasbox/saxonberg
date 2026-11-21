@@ -95,7 +95,7 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     // pick, and the player would be told there is no face rather than that
     // they have the wrong tool. Which tool is right is the GROUND's to say.
     const tool = args('dig.yaml').find((a) => a.name === 'tool')!;
-    expect(tool.default).toBe('person:[mixin.ToolMixin]');
+    expect(tool.default).toBe('~person:[mixin.ToolMixin]');
     expect([tool.requires].flat()).toEqual(['ToolMixin']);
     expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
     expect(MixinApi.hasMixin(Spade, Mixins.Tool)).toBe(true);
@@ -106,7 +106,7 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     expect(target.required).toBe(true);
     expect(target.requires).toBe('SplittableMixin');
     const tool = args('split.yaml').find((a) => a.name === 'tool')!;
-    expect(tool.default).toBe('person:[mixin.ToolMixin]');
+    expect(tool.default).toBe('~person:[mixin.ToolMixin]');
   });
 
   it('⭐⭐ the affordance: `dig` is on the SPADE, and NOT on the working', () => {

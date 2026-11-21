@@ -44,5 +44,5 @@ args:
     required: false
     prepositions: [in, into]
     default: "~reachable:[mixin.ContainerMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ContainerMixin]

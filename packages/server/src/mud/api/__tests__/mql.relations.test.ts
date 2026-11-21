@@ -32,7 +32,7 @@ describe('MQL relations (B1)', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
   });
 
   it('~here is the place — in a query, and as a bare relation of me', () => {

@@ -32,7 +32,7 @@ args:
     required: false
     prepositions: [with, using]
     default: "~person:[capability.bailing],~reachable:[capability.bailing]"
-    scope: ["~inventory", "here", "~peers", "~person"]
+    scope: ["~inventory", "~peers", "~person"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

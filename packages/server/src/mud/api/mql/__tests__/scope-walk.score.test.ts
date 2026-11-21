@@ -168,7 +168,7 @@ import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 class Angler extends PerceptionMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))) {}
 class Gear extends VisibleMixin(PerceptibleMixin(ContainableMixin(Idea))) {}
 
-describe('reachable:net — the whole-word tier in situ (fishing B8)', () => {
+describe('~reachable:net — the whole-word tier in situ (fishing B8)', () => {
   it('⭐ resolves to the net on the floor, not the keepnet in hand, under the top policy', () => {
     const room = makeStuff(() => new Place());
     const angler = makeStuff(() => new Angler());

@@ -25,7 +25,6 @@ import type { CommandGiver } from '../../lib/command/CommandGiver';
 import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
-import { PerceptionApi } from '../perception';
 import {
   ExecutionContextApi,
   OMNI_SCOPE,
@@ -40,9 +39,6 @@ import { parse, type MqlParseError } from './parser';
 import { isPredicateName, MQL_PREDICATES } from './predicates';
 import {
   candidatesForFlat,
-  candidatesForHere,
-  candidatesHeldBy,
-  candidatesForPeers,
   candidatesForReachable,
   candidateFor,
   noteTouched,
@@ -228,7 +224,7 @@ function namesASet(ast: QueryNode): boolean {
     const w = el.words[0]!.toLowerCase();
     return atHead
       ? SEED_WORDS.has(w)
-      : PLACE_STEPS.has(w) || NAMED_SEED_KEYWORDS.has(w) || ELEMENT_DERIVABLE_SEEDS.has(w);
+      : PLACE_STEPS.has(w) || NAMED_SEED_KEYWORDS.has(w);
   };
   // One referent stepped through a set (`me:i` — your contents) is a set.
   const oneReferent = (el: ChainElement): boolean =>
@@ -236,9 +232,16 @@ function namesASet(ast: QueryNode): boolean {
     el.kind === 'stuffId' ||
     el.kind === 'player' ||
     el.kind === 'homePath';
-  const chainIsSet = (c: ChainNode): boolean =>
-    (isSetStep(c.head, true) || (oneReferent(c.head) && c.rest.length > 0)) &&
-    c.rest.every((op) => isSetStep(op.element, false));
+  // A one-referent relation (`~here`) is a step through ONE thing — it
+  // neither makes nor breaks a set (`~here:exits` is a set; `~here` is not).
+  const single = (el: ChainElement): boolean => el.kind === 'relation' && SINGLE_RELATIONS.has(el.name);
+  const chainIsSet = (c: ChainNode): boolean => {
+    const steps = c.rest.filter((op) => !single(op.element));
+    return (
+      (isSetStep(c.head, true) || (oneReferent(c.head) && steps.length > 0)) &&
+      steps.every((op) => isSetStep(op.element, false))
+    );
+  };
   return ast.sublists.every((sub) => chainIsSet(sub.base) && sub.subtract.every(chainIsSet));
 }
 
@@ -753,7 +756,12 @@ function candidatesForScopePart(
     return matches.map((m) => ({ ...candidateFor(m.stuff, ctx.commandGiver), ...(m.via ? { via: m.via } : {}) }));
   }
   const lower = part.toLowerCase();
-  if (lower === 'here' || lower === '') return candidatesForHereScope(ctx);
+  // ⭐ The empty scope is the reachable backstop; there is no scope word
+  // `here` any more (naming overhaul D-B3 — `~here` is the place, and a view
+  // says what else it means).
+  if (lower === '') {
+    return candidatesForReachable(requireGiver(ctx, "the default '~reachable' scope"));
+  }
   if (lower === 'world') {
     // ⚠ The scope keyword is never index-answerable: a scope is a
     // candidate POOL that later keyword matching runs over, so there is
@@ -782,13 +790,6 @@ function candidatesForScopePart(
 }
 
 
-function candidatesForHereScope(ctx: MqlContext): ScopeCandidate[] {
-  // The place, past any vessel (controller-liquidity D7) — and the
-  // surface of the vessel you sit in, when that is not the place: its
-  // door and its way `out` are as much to hand as the road's. Which
-  // things those are is `PerceptionApi.reach`'s (W20).
-  return candidatesForHere(requireGiver(ctx, "the 'here' scope"));
-}
 
 function scopeKeywordSearch(words: string[], ctx: MqlContext): MqlMatch[] {
   const pool = candidatesForScope(ctx.scope, ctx);
@@ -821,23 +822,6 @@ function applyChainOp(
  */
 const NAMED_SEED_KEYWORDS: ReadonlySet<string> = new Set(['world']);
 
-/**
- * Element-derivable seeds. Mid-chain, these flat-map over the prior
- * set: for each prior match, build the seed's candidate pool with
- * that prior Stuff as the anchor (in place of the giver), union the
- * results, and exclude the prior set's stuffIds from the union (so
- * "peers of these people" doesn't include those people).
- *
- * The fixed-pool seeds (`me`, `world`, paths,
- * stuff ids, `$$`, groups) take the intersection path — see
- * {@link intersectWithSeed}. The transforms `:i` / `:e` are
- * conceptually the same family as flat-map (already per-element);
- * they have their own dispatch in {@link applyTransform}.
- *
- * See `docs/subsystems/mql.md` and `docs/mql-grammar.md` for the
- * grammar-level rationale.
- */
-const ELEMENT_DERIVABLE_SEEDS: ReadonlySet<string> = new Set<string>([]);
 
 function applyColon(
   input: MqlMatch[],
@@ -852,9 +836,6 @@ function applyColon(
         const name = el.words[0]!;
         if (PLACE_STEPS.has(name)) {
           return flatMapPlaceStep(input, name, ctx.commandGiver);
-        }
-        if (ELEMENT_DERIVABLE_SEEDS.has(name)) {
-          return flatMapBySeed(input, name, ctx.commandGiver);
         }
         if (NAMED_SEED_KEYWORDS.has(name)) {
           return intersectWithSeed(input, el, ctx);
@@ -1039,115 +1020,9 @@ function flatMapPlaceStep(input: MqlMatch[], step: string, viewer: Stuff | null)
   return out;
 }
 
-function flatMapBySeed(
-  input: MqlMatch[],
-  seedName: string,
-  viewer: Stuff | null
-): MqlMatch[] {
-  if (input.length === 0) return [];
-  const excludePriorSet = SEEDS_EXCLUDING_PRIOR.has(seedName);
-  const priorIds = excludePriorSet
-    ? new Set(input.map((m) => m.stuff.stuffId))
-    : null;
-  const out: MqlMatch[] = [];
-  const seen = new Set<string>();
-  for (const m of input) {
-    const candidates = candidatesForElementDerivable(seedName, m.stuff, viewer);
-    for (const c of candidates) {
-      if (priorIds && priorIds.has(c.stuff.stuffId)) continue;
-      const key = c.stuff.stuffId + '|' + viaKey(c.via);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const next: MqlMatch = { stuff: c.stuff, score: m.score };
-      if (c.via) next.via = c.via;
-      out.push(next);
-    }
-  }
-  return out;
-}
 
-/**
- * Element-derivable seeds whose per-element definition excludes the
- * focal Stuff (peers excludes the focal by definition; inventory's
- * contents-of-x doesn't include x). For these, `flatMapBySeed`
- * subtracts the prior set from the union to prevent cross-pollination
- * — bob appearing in `peers(joe)` and joe appearing in `peers(bob)`.
- *
- * `reachable` is intentionally absent: it includes the focal in its
- * per-element definition (you can reach yourself), so excluding the
- * prior set would silently drop self-reachable matches.
- */
-const SEEDS_EXCLUDING_PRIOR: ReadonlySet<string> = new Set([
-  'peers',
-  'inventory',
-]);
 
-/**
- * ⛔⛔ A stable dedupe key for a match's `via`, **and it may not be
- * `JSON.stringify` of anything Stuff-shaped.**
- *
- * `MqlMatchVia` is an open interface every subsystem augments. It once
- * carried a LIVE `Exit` (`via.exit`), which reaches its `Boundary`, whose
- * anchors point back at it — stringifying one threw `Converting circular
- * structure to JSON`, and `unlock north` failed with `mql-error` at the
- * realm's one locked door (found by the lock build's drive). Since
- * an exit binds as itself and every via is plain data
- * (`detailPath: string[]`, `bulk: { affordance }`), but the rule stays:
- * anything Stuff-shaped contributes its `stuffId`, everything else is
- * JSON, so a future augmentation cannot reopen it.
- */
-function viaKey(via: MqlMatchVia | undefined): string {
-  if (!via) return '';
-  const parts: string[] = [];
-  for (const [k, v] of Object.entries(via as Record<string, unknown>)) {
-    const id = (v as { stuffId?: unknown } | null)?.stuffId;
-    if (typeof id === 'string') {
-      parts.push(`${k}=${id}`);
-      continue;
-    }
-    try {
-      parts.push(`${k}=${JSON.stringify(v)}`);
-    } catch {
-      // A future augmentation that is neither Stuff-shaped nor plain
-      // data: fall back to the key alone rather than failing the whole
-      // resolve. Over-merging two candidates is a far smaller fault
-      // than a thrown query.
-      parts.push(`${k}=?`);
-    }
-  }
-  return parts.sort().join('&');
-}
 
-/**
- * ⚠ Mid-chain (`bob:inventory`) the anchor is somebody — or something —
- * else, read from OUTSIDE (size-and-carrying D17): what it holds and wears,
- * its top level and one level into the open things there, as the room is
- * read — never down through its bags. `peers` is the anchor's place's.
- * Which things answer depends on the anchor alone (D23); the viewer only
- * names them.
- */
-function candidatesForElementDerivable(
-  seedName: string,
-  anchor: Stuff,
-  viewer: Stuff | null,
-): ScopeCandidate[] {
-  switch (seedName) {
-    case 'peers':
-      return candidatesForPeers(anchor, viewer);
-    case 'inventory':
-      return candidatesHeldBy(anchor, false, viewer);
-    case 'person':
-      return candidatesHeldBy(anchor, true, viewer);
-    case 'reachable':
-      return [
-        ...candidatesHeldBy(anchor, true, viewer),
-        ...candidatesForHere(anchor, viewer),
-        ...candidatesForPeers(anchor, viewer),
-      ];
-    default:
-      return [];
-  }
-}
 
 /**
  * Apply a chain transform — `:i` (descend), `:I` (descend deep),

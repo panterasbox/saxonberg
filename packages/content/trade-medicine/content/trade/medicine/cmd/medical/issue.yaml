@@ -29,5 +29,5 @@ args:
     type: object
     required: false
     default: "~reachable:[mixin.DonationBankMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [DonationBankMixin]

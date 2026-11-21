@@ -23,7 +23,7 @@ args:
   - name: item
     type: object
     required: true
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     # The article defect (the water-supply browser walk): `repair lead run`
     # bound `lead` and took `run` for the kit.
     requires: DurableMixin

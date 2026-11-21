@@ -83,14 +83,14 @@ describe('an exit binds as itself', () => {
   });
 
   it('⭐ …and on the slow path (a scope that is a query), the same', () => {
-    const one = MqlApi.resolveOne('north', ctx('reachable:[class.Exit]'));
+    const one = MqlApi.resolveOne('north', ctx('~reachable:[class.Exit]'));
     expect(one.stuff).toBe(north());
   });
 
   it('⭐⭐ `n` binds the north exit through the EXIT’s keywords — no query-side rewrite', () => {
     expect(north().getKeywords()).toEqual(expect.arrayContaining(['north', 'n']));
     expect(MqlApi.resolveOne('n', ctx('reachable')).stuff).toBe(north());
-    expect(MqlApi.resolveOne('n', ctx('reachable:[class.Exit]')).stuff).toBe(north());
+    expect(MqlApi.resolveOne('n', ctx('~reachable:[class.Exit]')).stuff).toBe(north());
   });
 
   it('⭐ an exit answers to its authored keywords too (a berth way’s `gangway`)', () => {
@@ -118,7 +118,7 @@ describe('an exit binds as itself', () => {
     expect(MqlApi.resolveOne('north', ctx('reachable')).stuff).toBeNull();
     // The slow path used to list `getObviousExits()` viewer-blind.
     expect(MqlApi.resolveOne('north', ctx('here:i,here')).stuff).toBeNull();
-    expect(MqlApi.resolveOne('north', ctx('reachable:[class.Exit]')).stuff).toBeNull();
+    expect(MqlApi.resolveOne('north', ctx('~reachable:[class.Exit]')).stuff).toBeNull();
   });
 
   it('⭐ the exit describes itself — its direction, and what hangs in it; never where it leads', () => {

@@ -161,7 +161,7 @@ export default class SenseController extends CommandController<SenseModel> {
     // through the one perception filter, honest fog included (D23).
     const visibleContents = PerceptionApi.perceived(
       actor,
-      MqlApi.resolveMany(ROOM_LISTING, { commandGiver: actor, scope: 'here' }).stuff,
+      MqlApi.resolveMany(ROOM_LISTING, { commandGiver: actor, scope: '~here' }).stuff,
     );
 
     if (

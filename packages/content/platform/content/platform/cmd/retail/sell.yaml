@@ -34,5 +34,5 @@ args:
     required: false
     prepositions: [to, at]
     default: "~reachable:[mixin.ConsignmentShelfMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ConsignmentShelfMixin]

@@ -61,7 +61,7 @@ describe('canReach — used where it sits (D-W10-7/-12)', () => {
 
   it('a defaulted tool list containing a packed spare passes the validator, and the controller narrows it', () => {
     const { me, compass, spare, ctx, room } = staged();
-    const pool = { stuff: [compass, spare], raw: 'reachable:[mixin.ToolMixin]', defaulted: true as const };
+    const pool = { stuff: [compass, spare], raw: '~reachable:[mixin.ToolMixin]', defaulted: true as const };
     expect(canReach(pool, 'tool', ctx)).toBeUndefined();
     expect(PerceptionApi.reachableAmong(me, pool.stuff, { location: room })).toEqual([compass]);
   });

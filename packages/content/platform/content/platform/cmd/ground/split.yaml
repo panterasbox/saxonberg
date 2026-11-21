@@ -31,7 +31,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: SplittableMixin
     validators:
       - /lib/command/validators/canReach

@@ -116,7 +116,7 @@ describe('buy — a good whose name is a phrase is quoted', () => {
   });
 
   it('⚠ a bare good leaves `counter` to its MQL default, never to word two', () => {
-    expect(bind('buy loaf', 'buy').counter).toBe('reachable:[mixin.ForSaleMixin]');
+    expect(bind('buy loaf', 'buy').counter).toBe('~reachable:[mixin.ForSaleMixin]');
     expect(refuse('buy dog loaf', 'buy').quoteLine).toBe('buy "dog loaf"');
   });
 });
@@ -135,7 +135,7 @@ describe('shelf reclaim — the same shape, the same answer', () => {
 
   it('a bare good leaves `shelf` to its default', () => {
     expect(bind('shelf reclaim lantern', 'shelf').shelf).toBe(
-      'reachable:[mixin.ConsignmentShelfMixin]',
+      '~reachable:[mixin.ConsignmentShelfMixin]',
     );
   });
 });
@@ -163,13 +163,13 @@ describe('the book is the operand — shelf / rack / house / job', () => {
     const m = bind('shelf consign lantern --ask 12', 'shelf');
     expect(m.subcommand).toBe('consign');
     expect(m.ask).toBe('12');
-    expect(m.shelf).toBe('reachable:[mixin.ConsignmentShelfMixin]');
+    expect(m.shelf).toBe('~reachable:[mixin.ConsignmentShelfMixin]');
   });
 
   it('⚠ `rack reclaim knife` binds a RACK — the flat reclaim bound only a shelf', () => {
     const m = bind('rack reclaim knife', 'rack');
     expect(m.thing).toBe('knife');
-    expect(m.rack).toBe('reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]');
+    expect(m.rack).toBe('~reachable:[mixin.HeldGoodsMixin] - ~reachable:[mixin.ConsignmentShelfMixin]');
     expect(view('rack').controllerForSubcommand('reclaim')).toBe(
       '/platform/idea/cmd/retail/RackReclaimController',
     );
@@ -186,7 +186,7 @@ describe('the book is the operand — shelf / rack / house / job', () => {
     const m = bindAt('job claim 3fa on the "depot board"', 'work', 'job');
     expect(m.id).toBe('3fa');
     expect(m.board).toBe('depot board');
-    expect(bindAt('job', 'work', 'job').board).toBe('reachable:[class.JobBoard]');
+    expect(bindAt('job', 'work', 'job').board).toBe('~reachable:[class.JobBoard]');
   });
 
   it('each noun carries its transactions as subcommands, each with its own controller', () => {

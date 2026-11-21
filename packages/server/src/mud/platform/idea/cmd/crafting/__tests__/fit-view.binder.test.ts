@@ -55,7 +55,7 @@ describe('fit — the view', () => {
   });
 
   it('the tool defaults to the reachable tools, and can be named', () => {
-    expect(bind('fit stave to cask').tool).toBe('reachable:[mixin.ToolMixin]');
+    expect(bind('fit stave to cask').tool).toBe('~reachable:[mixin.ToolMixin]');
     expect(bind('fit stave to cask with the driver').tool).toBe('driver');
   });
 });

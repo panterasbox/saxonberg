@@ -76,7 +76,7 @@ subcommands:
         required: false
         prepositions: [at]
         default: "~reachable:[class.DeedDesk]"
-        scope: ["here", "~peers", "~person"]
+        scope: ["~peers", "~person"]
         requires: [TangibleMixin]
   buy:
     controller: /system/residence/idea/cmd/civics/TitleBuyController
@@ -105,7 +105,7 @@ subcommands:
         required: false
         prepositions: [at]
         default: "~reachable:[class.DeedDesk]"
-        scope: ["here", "~peers", "~person"]
+        scope: ["~peers", "~person"]
         requires: [TangibleMixin]
     examples:
       - cmd: title buy lot 2

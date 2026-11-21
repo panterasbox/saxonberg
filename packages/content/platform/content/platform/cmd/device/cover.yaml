@@ -48,7 +48,7 @@ args:
   - name: fire
     type: object
     required: false
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     default: "~reachable:[mixin.BurnerMixin]"
     requires: BurnerMixin
     validators:

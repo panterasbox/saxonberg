@@ -1418,7 +1418,7 @@ async function observePlace(
   // is the perceived subset (size-and-carrying D23).
   const named = MqlApi.resolveMany(ROOM_LISTING, {
     commandGiver: viewer as never,
-    scope: 'here',
+    scope: '~here',
   }).stuff;
   const seen = named.filter((x) => perceivesImpl(viewer, x));
   // ⭐ Nothing to perceive teaches nothing — the void on a fresh login

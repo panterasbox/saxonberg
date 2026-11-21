@@ -34,7 +34,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: VisibleMixin
   - name: launcher
     type: object

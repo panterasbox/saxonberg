@@ -178,7 +178,7 @@ describe("work verbs", () => {
 
   /**
    * The `job` subcommand's own controller, with `board` bound as the
-   * view's default binds it (`reachable:[class.JobBoard]` from the giver)
+   * view's default binds it (`~reachable:[class.JobBoard]` from the giver)
    * — a controller test skips the binder, so it does the binder's one job.
    */
   const JOB = {

@@ -36,7 +36,7 @@ args:
     prepositionRequired: true
     type: object
     required: true
-    scope: ["here", "~peers", "~person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     prepositions: [from]
     requires: VisibleMixin
     validators:

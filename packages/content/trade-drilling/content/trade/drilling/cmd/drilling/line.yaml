@@ -27,7 +27,7 @@ args:
     type: object
     required: false
     default: "~reachable:[mixin.GroundPointMixin]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [GroundPointMixin]
   - name: rig
     prepositionRequired: true
@@ -37,7 +37,7 @@ args:
     # `line with liner` bound the rig's slot — controller-liquidity W12).
     prepositions: [at]
     default: "~reachable:[capability.derrick]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]
   - name: liner
     prepositionRequired: true

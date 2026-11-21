@@ -115,7 +115,7 @@ describe('the binder compares keyword tiers across scope tries', () => {
   it('⭐ drive 23: `cut ice` standing over a block cuts the block underfoot, not the one carried', async () => {
     thing(['ice', 'block', 'small block'], world.giver);
     const block = thing(['ice', 'block', 'ice block'], world.location);
-    const cut = await view('cutish', '["$focus", "here", "~peers", "~person"]');
+    const cut = await view('cutish', '["$focus", "~peers", "~person"]');
     expect(await run(cut, 'cutish ice')).toBe(block);
   });
 

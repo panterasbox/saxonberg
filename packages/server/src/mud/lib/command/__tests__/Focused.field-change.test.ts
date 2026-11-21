@@ -80,7 +80,7 @@ describe('FocusedMixin — focus field-change firing', () => {
     expect(seen[0]).toMatchObject({
       target: giver.stuffId,
       field: 'focus',
-      oldValue: 'here',
+      oldValue: '~here',
       newValue: 'apple',
     });
   });
@@ -127,7 +127,7 @@ describe('FocusedMixin — focus field-change firing', () => {
       target: giver.stuffId,
       field: 'focus',
       oldValue: 'apple',
-      newValue: 'here',
+      newValue: '~here',
     });
 
     // Second clearFocus from 'here' is a no-op.
@@ -149,7 +149,7 @@ describe('FocusedMixin — focus field-change firing', () => {
     giver.setFocus('   ');
     await flushMicrotasks();
     expect(seen).toEqual([]);
-    expect(giver.getFocus()).toBe('here');
+    expect(giver.getFocus()).toBe('~here');
 
     // 'here' → 'apple' — one fire.
     giver.setFocus('apple');
@@ -161,6 +161,6 @@ describe('FocusedMixin — focus field-change firing', () => {
     giver.setFocus('   ');
     await flushMicrotasks();
     expect(seen).toHaveLength(1);
-    expect(giver.getFocus()).toBe('here');
+    expect(giver.getFocus()).toBe('~here');
   });
 });

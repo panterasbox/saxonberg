@@ -36,7 +36,7 @@ args:
     # up first. (`reachable` for a day widened every hand tool to the room.
     # Naming one still reaches it.)
     default: "~person:[capability.whetstone]"
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

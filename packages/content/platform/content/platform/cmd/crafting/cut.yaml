@@ -56,7 +56,7 @@ args:
     # liquidity W20), `cut rope` at the ropewalk binds the rope you hold,
     # not the walk whose keywords say "rope walk" (finalize, the cordage
     # drive). The seed's order is the command-taxonomy slate's question.
-    scope: ["$focus", "~person", "here", "~peers"]
+    scope: ["$focus", "~person", "~here", "~here:exits", "~here:~buildings", "~peers"]
     requires: any
   # ⭐ How much to cut off (cordage D4): `cut rope at 10 m`. A preposition,
   # because a greedy target may be followed only by prepositional args

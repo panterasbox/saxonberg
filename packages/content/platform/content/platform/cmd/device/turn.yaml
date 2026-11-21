@@ -31,7 +31,7 @@ args: &turnable
   - name: target
     type: object
     required: true
-    scope: ["here", "~peers", "~person"]
+    scope: ["~peers", "~person"]
     requires: TurnableMixin
     validators:
       - /lib/command/validators/canReach

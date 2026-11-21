@@ -1078,6 +1078,23 @@ green. The wire drive's existing files that exercise these verbs are run
 (`pnpm wire` for the touched trades' files, not the whole wire suite).
 *Commit:* `build(naming-overhaul WB3b): here is the place — every view says what it meant`.
 
+✅ **Done.** 116 slots (the 142 counted lines) judged by `requires:` from a
+scratch worklist: a thing that stands in the place (tools, burners,
+counters, boards, books, desks, baths…) **drops** the word (`~peers`
+beside it already); the ground/place (`SoilMixin`, `CultivableMixin`,
+`Growing|Soil`, a pump's source, the market square, the midden) → `~here`;
+`bail` → `~here, me:e`; `any` / `affords` / `VisibleMixin` (non-book) /
+`DetailedMixin` / `DurableMixin` → **`~here, ~here:exits, ~here:~buildings`**
+in the word's place — the landing row spelled with the build's
+`~buildings`. The scope word `here`, `candidatesForHereScope` and the dead
+element-derivable flat-map code are gone; an empty scope is the
+`~reachable` backstop. `PerceptionApi.reach`'s `here` pool STAYS — the
+`~reachable` pool still includes the place's surface. Card `query:` strings
+were missed by the B3a call-site scan (the shopkeeping stock card found
+it) — swept. ⚠ The per-row binder table test is replaced by the touched
+packs' suites and the drive (no isolated fixture world reproduces a coach,
+a bench and a lane at once cheaply).
+
 **B4 — Notify and contacts over relations; the id is visible.**
 *Decisions:* D-B6, D-B9, D-B12.
 *Files:* `NotifyControllerBase.ts` (`normalizeRef` goes; the typed subject
