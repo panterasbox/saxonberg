@@ -67,11 +67,11 @@ export default class ContactsRemoveController extends ContactsControllerBase {
       });
       who = needle;
     }
-    let removed = 0;
-    for (const t of targets) if (host.removeContact(t.kind, t.ref, label)) removed++;
+    let removed = false;
+    for (const t of targets) if (host.removeContact(t.kind, t.ref, label)) removed = true;
     ContactsControllerBase.send(
       context,
-      removed > 0
+      removed
         ? Mml.compose`\nRemoved ${who} from your ${label} list.\n`
         : Mml.compose`\n${who} isn't in your ${label} list.\n`,
     );

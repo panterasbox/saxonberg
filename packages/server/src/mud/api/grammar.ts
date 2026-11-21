@@ -96,6 +96,67 @@ const ORDINAL_WORDS: ReadonlyMap<string, number> = new Map([
  */
 const ORDINAL_NUMERIC: RegExp = /^(\d+)(st|nd|rd|th)$/;
 
+/**
+ * The keyword tiers — see {@link GrammarApi.TIER_PHRASE}. Module constants
+ * so the pure scorer below reads them without a static dispatch.
+ */
+const TIER_PHRASE = 100;
+const TIER_WORDS = 60;
+const TIER_PREFIX = 40;
+const TIER_PARTIAL = 10;
+
+/**
+ * ⭐ THE naming rule, pure: how a query's words meet ONE keyword list.
+ * See {@link GrammarApi.TIER_PHRASE} for the tiers and why a word only
+ * matches where a keyword word BEGINS.
+ */
+function scoreKeywords(keywords: readonly string[], queryWords: readonly string[]): number {
+  if (keywords.length === 0 || queryWords.length === 0) return 0;
+  const phrase = queryWords.join(' ');
+  if (keywords.some((kw) => kw === phrase)) return TIER_PHRASE;
+  const words = keywords.flatMap((kw) => kw.split(/\s+/)).filter((w) => w.length > 0);
+  if (queryWords.every((qw) => words.includes(qw))) return TIER_WORDS;
+  const begun = queryWords.filter((qw) => words.some((w) => w.startsWith(qw)));
+  if (begun.length === queryWords.length) return TIER_PREFIX;
+  return TIER_PARTIAL * begun.length;
+}
+
+/** The regular English plural: `watch` → `watches`, `berry` → `berries`. */
+function pluralOf(word: string): string {
+  if (/(s|x|z|ch|sh)$/i.test(word)) return `${word}es`;
+  if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`;
+  return `${word}s`;
+}
+
+/**
+ * One entry a holder offers to be named — anything that is not runtime
+ * Stuff in reach (a quay in a book, a reading channel, a list label, an
+ * offer not yet made). `keywords` are lowercase; `title` is how a prompt
+ * or a refusal lists it.
+ */
+export interface NameEntry<T> {
+  value: T;
+  keywords: readonly string[];
+  title: string;
+}
+
+/**
+ * What a player's words named among a holder's entries (naming overhaul
+ * D-C2): exactly one, a tie (in entry order — a prompt asks among these),
+ * or none, with the titles that could have been named. It never prompts
+ * and never refuses — that is I/O (`CommandController.named`).
+ */
+export type NameAnswer<T> =
+  | { kind: 'one'; one: T }
+  | { kind: 'tie'; tie: T[]; titles: string[] }
+  | { kind: 'none'; offered: string[] };
+
+/** A scored entry, best first (see {@link GrammarApi.rank}). */
+export interface RankedEntry<T> {
+  value: T;
+  score: number;
+}
+
 export class GrammarApi {
   /**
    * Articles stripped from the head of a query during MQL desugar.
@@ -117,6 +178,122 @@ export class GrammarApi {
    * `4th`, … Group 1 is the integer.
    */
   public static readonly ORDINAL_NUMERIC: RegExp = ORDINAL_NUMERIC;
+
+  /**
+   * ⭐⭐ The keyword tiers (one-resolution § 4: *the name is not special*;
+   * naming overhaul D-C1 — the rule's one home). The scorer reads ONE
+   * list — the candidate's keywords — and ranks how the query's words
+   * meet it:
+   *
+   *   - `TIER_PHRASE` — a keyword IS the phrase. `look clay` at the pit is
+   *     the lumps (`clay`), not the pit (`clay pit`).
+   *   - `TIER_WORDS` — every query word is a WHOLE word of a keyword: `net`
+   *     is a word of `drift net` and begins no word of `keepnet`.
+   *   - `TIER_PREFIX` — every query word BEGINS a keyword word.
+   *   - partials — `TIER_PARTIAL` × the words that begin one; a fallback
+   *     for when nothing answers to every word.
+   *
+   * ⚠ A query word matches where a WORD of a keyword BEGINS, never in the
+   * middle of one: `consign "plant pot"`, with no plant pot in hand, put
+   * the player's aether imPLANT up for sale (the ceramics drive C).
+   */
+  public static readonly TIER_PHRASE: number = TIER_PHRASE;
+  /** See {@link GrammarApi.TIER_PHRASE}. */
+  public static readonly TIER_WORDS: number = TIER_WORDS;
+  /** See {@link GrammarApi.TIER_PHRASE}. */
+  public static readonly TIER_PREFIX: number = TIER_PREFIX;
+  /** See {@link GrammarApi.TIER_PHRASE}: the per-word step of a partial. */
+  public static readonly TIER_PARTIAL: number = TIER_PARTIAL;
+
+  /**
+   * The tier a score sits in — what the binder compares ACROSS scope tries
+   * (`CommandLogic.walkScopes`): a whole-name hit in a later try beats a
+   * partial in an earlier one. Partials are one tier.
+   */
+  static scoreTier(score: number): number {
+    if (score >= TIER_PHRASE) return 3;
+    if (score >= TIER_WORDS) return 2;
+    if (score >= TIER_PREFIX) return 1;
+    return 0;
+  }
+
+  /**
+   * Score each keyword list against `queryWords` (lowercase words) — the
+   * naming rule over a whole pool in ONE call, so a crowded room pays one
+   * Api frame, not one per candidate. 0 = no match; higher is better.
+   */
+  static scoreAll(lists: ReadonlyArray<readonly string[]>, queryWords: readonly string[]): number[] {
+    return lists.map((kw) => scoreKeywords(kw, queryWords));
+  }
+
+  /**
+   * Rank entries by the tiers: the matches, best tier only — the highest
+   * tier present cuts every tier below it, and a full-word answer cuts
+   * every partial (a partial is a fallback, never a companion). Entry
+   * order is the tiebreak.
+   */
+  static rank<T>(
+    entries: ReadonlyArray<{ value: T; keywords: readonly string[] }>,
+    queryWords: readonly string[],
+  ): RankedEntry<T>[] {
+    const out: RankedEntry<T>[] = [];
+    for (const e of entries) {
+      const score = scoreKeywords(e.keywords, queryWords);
+      if (score > 0) out.push({ value: e.value, score });
+    }
+    for (const floor of [TIER_PHRASE, TIER_WORDS, TIER_PREFIX]) {
+      if (out.some((m) => m.score >= floor)) return out.filter((m) => m.score >= floor);
+    }
+    return out;
+  }
+
+  /**
+   * ⭐⭐ Name one of a holder's entries from a player's words (naming
+   * overhaul D-C2) — the one entry for everything that is not Stuff. It
+   * strips a leading article, reads a leading ordinal (`second`, `2nd`), treats a
+   * quoted phrase as phrase-tier only, lets an entry answer to the plural
+   * of its keywords, and ranks by the tiers. A tie keeps entry order and
+   * an ordinal picks from it.
+   */
+  static name<T>(text: string, entries: ReadonlyArray<NameEntry<T>>): NameAnswer<T> {
+    const offered = entries.map((e) => e.title);
+    let typed = text.trim().toLowerCase();
+    const quoted = /^"(.*)"$/.exec(typed) ?? /^'(.*)'$/.exec(typed);
+    if (quoted) typed = quoted[1]!.trim();
+    let words = typed.split(/\s+/).filter((w) => w.length > 0);
+    if (!quoted && words.length > 1 && ARTICLES.has(words[0]!)) words = words.slice(1);
+    let ordinal: number | null = null;
+    if (!quoted && words.length > 1) {
+      const head = words[0]!;
+      const numeric = ORDINAL_NUMERIC.exec(head);
+      const n = ORDINAL_WORDS.get(head) ?? (numeric ? Number(numeric[1]) : undefined);
+      if (n !== undefined) {
+        ordinal = n;
+        words = words.slice(1);
+      }
+    }
+    if (words.length === 0) return { kind: 'none', offered };
+    const withPlurals = entries.map((e) => ({
+      value: e,
+      keywords: [...e.keywords, ...e.keywords.map((k) => {
+        const parts = k.split(' ');
+        parts[parts.length - 1] = pluralOf(parts[parts.length - 1]!);
+        return parts.join(' ');
+      })],
+    }));
+    let ranked = GrammarApi.rank(withPlurals, words);
+    if (quoted) ranked = ranked.filter((r) => r.score >= TIER_PHRASE);
+    if (ranked.length === 0) return { kind: 'none', offered };
+    const top = Math.max(...ranked.map((r) => r.score));
+    ranked = ranked.filter((r) => r.score === top);
+    if (ordinal !== null) {
+      const at = ordinal < 0 ? ranked.length + ordinal : ordinal - 1;
+      const pick = ranked[at];
+      return pick ? { kind: 'one', one: pick.value.value } : { kind: 'none', offered };
+    }
+    if (ranked.length === 1) return { kind: 'one', one: ranked[0]!.value.value };
+    return { kind: 'tie', tie: ranked.map((r) => r.value.value), titles: ranked.map((r) => r.value.title) };
+  }
 
   /**
    * Capitalize the first character. Operates on raw strings only —
@@ -251,11 +428,13 @@ export class GrammarApi {
     return GrammarApi.pluralWord(singular);
   }
 
-  /** The regular English plural: `watch` → `watches`, `berry` → `berries`. */
-  private static pluralWord(word: string): string {
-    if (/(s|x|z|ch|sh)$/i.test(word)) return `${word}es`;
-    if (/[^aeiou]y$/i.test(word)) return `${word.slice(0, -1)}ies`;
-    return `${word}s`;
+  /**
+   * The regular English plural: `watch` → `watches`, `berry` → `berries`.
+   * Public (naming overhaul D-C1) so an entry with no Stuff behind it
+   * answers to its plurals.
+   */
+  static pluralWord(word: string): string {
+    return pluralOf(word);
   }
 
   /**

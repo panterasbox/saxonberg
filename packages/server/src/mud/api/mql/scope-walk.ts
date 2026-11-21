@@ -11,7 +11,7 @@
  * file builds and scores their candidates.
  *
  * Score returned by {@link scoreCandidate} is the keyword tier
- * ({@link TIER_PHRASE} and below) — one list, the object's own; the
+ * (`GrammarApi.TIER_PHRASE` and below) — one list, the object's own; the
  * name is not special (one-resolution slate § 4).
  */
 
@@ -272,67 +272,15 @@ function ownKeywords(stuff: Stuff, viewer: Stuff | undefined): string[] {
 }
 
 /**
- * The keyword tiers (one-resolution § 4: *the name is not special*). The
- * scorer reads ONE list — the candidate's keywords — and ranks how the
- * query's words meet it:
- *
- *   - {@link TIER_PHRASE} — a keyword IS the phrase. `look clay` at the pit
- *     is the lumps (`clay`), not the pit (`clay pit`); `look at the top end`
- *     is the patch (`top end`), not the stand that answers to `top`.
- *   - {@link TIER_WORDS} — every query word is a WHOLE word of a keyword:
- *     `net` is a word of `drift net` and begins no word of `keepnet` (the
- *     fishing drive found it three times: creel/eel, ledger/edge,
- *     keepnet/net).
- *   - {@link TIER_PREFIX} — every query word BEGINS a keyword word.
- *   - partials — {@link TIER_PARTIAL} × the words that begin one; a
- *     fallback for when nothing answers to every word.
- *
- * ⚠ A query word matches where a WORD of a keyword BEGINS, never in the
- * middle of one: `consign "plant pot"`, with no plant pot in hand, put the
- * player's aether imPLANT up for sale (the ceramics drive C, run 28); `get
- * 1 brick` took the "brick table" by its keyword's tail.
- */
-export const TIER_PHRASE = 100;
-/** See {@link TIER_PHRASE}. */
-export const TIER_WORDS = 60;
-/** See {@link TIER_PHRASE}. */
-export const TIER_PREFIX = 40;
-/** See {@link TIER_PHRASE}: the per-word step of a partial. */
-export const TIER_PARTIAL = 10;
-
-/**
- * The tier a score sits in — what the binder compares ACROSS scope tries
- * (`CommandLogic.walkScopes`): a whole-name hit in a later try beats a
- * partial in an earlier one, and a tie goes to the earlier. Partials are
- * one tier, however many words they caught.
- */
-export function scoreTier(score: number): number {
-  if (score >= TIER_PHRASE) return 3;
-  if (score >= TIER_WORDS) return 2;
-  if (score >= TIER_PREFIX) return 1;
-  return 0;
-}
-
-/**
- * Score `candidate` against `queryWords` by its keywords alone. Returns 0
- * when no match; higher is better. See {@link TIER_PHRASE}.
+ * Score `candidate` against `queryWords` by its keywords alone — the
+ * naming rule is `GrammarApi`'s (naming overhaul D-C1); this reads the
+ * candidate's one list into it. 0 when no match; higher is better.
  */
 export function scoreCandidate(
   candidate: ScopeCandidate,
   queryWords: string[]
 ): number {
-  return scoreKeywords(candidate.keywords, queryWords);
-}
-
-function scoreKeywords(keywords: readonly string[], queryWords: string[]): number {
-  if (keywords.length === 0 || queryWords.length === 0) return 0;
-  const phrase = queryWords.join(' ');
-  if (keywords.some((kw) => kw === phrase)) return TIER_PHRASE;
-  const words = keywords.flatMap((kw) => kw.split(/\s+/)).filter((w) => w.length > 0);
-  if (queryWords.every((qw) => words.includes(qw))) return TIER_WORDS;
-  const begun = queryWords.filter((qw) => words.some((w) => w.startsWith(qw)));
-  if (begun.length === queryWords.length) return TIER_PREFIX;
-  return TIER_PARTIAL * begun.length;
+  return GrammarApi.scoreAll([candidate.keywords], queryWords)[0] ?? 0;
 }
 
 /**
@@ -343,9 +291,12 @@ function scoreKeywords(keywords: readonly string[], queryWords: string[]): numbe
 function attributionOf(c: ScopeCandidate, queryWords: string[], score: number): MqlMatchVia | undefined {
   if (!c.facets) return c.via;
   const facetWords = new Set(c.facets.flatMap((f) => f.keywords));
-  const rest = scoreKeywords(c.keywords.filter((k) => !facetWords.has(k)), queryWords);
+  const [rest = 0, ...facetScores] = GrammarApi.scoreAll(
+    [c.keywords.filter((k) => !facetWords.has(k)), ...c.facets.map((f) => f.keywords)],
+    queryWords,
+  );
   if (rest >= score) return c.via;
-  const reached = c.facets.filter((f) => scoreKeywords(f.keywords, queryWords) >= score);
+  const reached = c.facets.filter((_, i) => (facetScores[i] ?? 0) >= score);
   // ⭐ A word naming several chambers of this one host (`pocket` on a coat)
   // names the host, not a chamber (size and carrying D-W10-6): the
   // container decides among alike chambers and `put` asks among differing.
@@ -359,7 +310,11 @@ function attributionOf(c: ScopeCandidate, queryWords: string[], score: number): 
  * words that matched carry — or `null` when it does not answer at all.
  */
 export function matchCandidate(c: ScopeCandidate, queryWords: string[]): MqlMatch | null {
-  const score = scoreCandidate(c, queryWords);
+  return matchScored(c, queryWords, scoreCandidate(c, queryWords));
+}
+
+/** {@link matchCandidate} for a score already computed (the batch path). */
+function matchScored(c: ScopeCandidate, queryWords: string[], score: number): MqlMatch | null {
   if (score <= 0) return null;
   const match: MqlMatch = { stuff: c.stuff, score };
   const via = attributionOf(c, queryWords, score);
@@ -373,7 +328,7 @@ export function matchCandidate(c: ScopeCandidate, queryWords: string[]): MqlMatc
  * (insertion order of candidates) is the tiebreak per req §14.2.
  *
  * ⭐ The highest tier present cuts every tier below it, and a candidate
- * that answers to EVERY word ({@link TIER_PREFIX} or better) cuts every
+ * that answers to EVERY word (`GrammarApi.TIER_PREFIX` or better) cuts every
  * partial absolutely — a partial is a fallback for when nothing names the
  * whole phrase, never a companion to one (`get "latex cup"` once picked
  * up the three cups AND the coagulating pan, whose keywords say "latex
@@ -384,12 +339,14 @@ export function scoreCandidates(
   candidates: ReadonlyArray<ScopeCandidate>,
   queryWords: string[]
 ): MqlMatch[] {
+  // ⭐ One Api call for the whole pool (a crowd pays one frame).
+  const scores = GrammarApi.scoreAll(candidates.map((c) => c.keywords), queryWords);
   const out: MqlMatch[] = [];
-  for (const c of candidates) {
-    const match = matchCandidate(c, queryWords);
+  candidates.forEach((c, i) => {
+    const match = matchScored(c, queryWords, scores[i] ?? 0);
     if (match) out.push(match);
-  }
-  for (const floor of [TIER_PHRASE, TIER_WORDS, TIER_PREFIX]) {
+  });
+  for (const floor of [GrammarApi.TIER_PHRASE, GrammarApi.TIER_WORDS, GrammarApi.TIER_PREFIX]) {
     if (out.some((m) => m.score >= floor)) return out.filter((m) => m.score >= floor);
   }
   return out;

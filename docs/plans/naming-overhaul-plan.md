@@ -1151,6 +1151,26 @@ article, case, word start, mid-word refusal (`plant` never finds `implant`),
 plural, ordinal, quoted phrase, tie, none-with-offered.
 *Commit:* `build(naming-overhaul WC0): the naming rule lives in GrammarApi; the census is pinned`.
 
+✅ **Done.** `GrammarApi` holds the tiers, `scoreTier`, `rank`, `name` and a
+public `pluralWord`; `scope-walk` keeps candidates, facets and attribution.
+⭐ **Decided (perf, crowded-rooms precedent):** every Api static pushes a
+security frame, so the scorer is `GrammarApi.scoreAll(lists, words)` — ONE
+call per pool — and the pure per-list rule is a module function in
+`grammar.ts`; a per-candidate static would have put a frame on every
+candidate in a crowd. ⭐ **Decided (lint:duck-typing):** `NameAnswer` is
+discriminated by `kind` (`one` · `tie` · `none`), since `'one' in answer` is
+an `in` probe the ratchet counts. `named(context, answer, noun, what)` takes
+the typed words for the refusal's `what` fact; `no-such-name` already
+existed from A1. ⭐ **Decided:** the hand census also reads controllers (the
+plan said not), because the duration parsers the C1 acceptance names
+(`daysOf`, `parseHoldS`) are controller methods; the controller-only counts
+are `.raw` re-reads and `.via`/lowered-model reads. **Ceilings pinned:**
+article strips **36**, hand compares **92**, duration parses **6** (incl.
+`WorldClockRegistry.durationSeconds` and the test-harness clock, which C1
+must judge), word-keyed indexes **14**; raw re-reads **35**, via/lowered
+**49**. `MUST_FIND` names twelve grounding sites; the first draft missed two
+(fixed), the second overcounted dedup sets and date placeholders (cut).
+
 **C1 — One duration.**
 *Decisions:* D-C6.
 *Files:* `S/lib/command/CommandDefinition.ts` (`parseDuration` → game

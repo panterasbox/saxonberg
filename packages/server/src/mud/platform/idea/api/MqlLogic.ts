@@ -7,7 +7,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
 import { trackTouched } from '../../../api/mql/scope-walk';
-import { scoreTier } from '../../../api/mql/scope-walk';
+import { GrammarApi } from '../../../api/grammar';
 import { PerceptionApi } from '../../../api/perception';
 
 import type { Container } from '../../../lib/spatial/Container';
@@ -160,7 +160,7 @@ export class MqlLogic extends ApiLogic {
     if (isSet) out.isSet = true;
     if (via) out.via = via;
     if (matches.some((m) => m.via)) out.vias = matches.map((m) => m.via);
-    if (matches.length > 0) out.tiers = matches.map((m) => scoreTier(m.score));
+    if (matches.length > 0) out.tiers = matches.map((m) => GrammarApi.scoreTier(m.score));
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;
     if (ordinal !== undefined) out.ordinal = ordinal;

@@ -10,12 +10,14 @@ import { describe, it, expect } from 'vitest';
 import {
   scoreCandidate,
   scoreCandidates,
-  scoreTier,
-  TIER_PHRASE,
-  TIER_WORDS,
-  TIER_PREFIX,
 } from '../scope-walk';
 import type { ScopeCandidate } from '../scope-walk';
+import { GrammarApi } from '../../grammar';
+
+// ⭐ The tiers are GrammarApi's (naming overhaul D-C1); scope-walk reads
+// a candidate's one keyword list into them.
+const { TIER_PHRASE, TIER_WORDS, TIER_PREFIX } = GrammarApi;
+const scoreTier = (n: number): number => GrammarApi.scoreTier(n);
 
 const cand = (keywords: string[]): ScopeCandidate =>
   ({ stuff: { keywords } as never, keywords }) as ScopeCandidate;

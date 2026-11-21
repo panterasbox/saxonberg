@@ -22,6 +22,7 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
+import { GrammarApi } from '../grammar';
 import { MixinApi } from '../mixin';
 import { PathPatternApi } from '../path-pattern';
 import { StuffApi } from '../stuff';
@@ -44,7 +45,6 @@ import {
   noteTouched,
   matchCandidate,
   scoreCandidates,
-  TIER_PHRASE,
   type ScopeCandidate,
 } from './scope-walk';
 import type {
@@ -550,12 +550,7 @@ function resolveLiteralSeed(value: string, ctx: MqlContext): MqlMatch[] {
   // (one-resolution slate § 3 row 12).
   const lit = value.toLowerCase();
   const candidates = candidatesForScope(ctx.scope, ctx);
-  const out: MqlMatch[] = [];
-  for (const c of candidates) {
-    const m = matchCandidate(c, [lit]);
-    if (m && m.score >= TIER_PHRASE) out.push(m);
-  }
-  return out;
+  return scoreCandidates(candidates, [lit]).filter((m) => m.score >= GrammarApi.TIER_PHRASE);
 }
 
 // ----- scope-walking -------------------------------------------------

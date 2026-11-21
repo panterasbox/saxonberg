@@ -74,6 +74,7 @@
     "lint:command-views": "tsx scripts/check-command-views.ts",
     "lint:contribution-keys": "tsx scripts/check-contribution-keys.ts",
     "lint:controller-resolution": "tsx scripts/check-controller-resolution.ts",
+    "lint:hand-matchers": "tsx scripts/check-hand-matchers.ts",
     "lint:controller-mutations": "tsx scripts/check-controller-mutations.ts",
     "lint:controller-decisions": "tsx scripts/check-controller-decisions.ts",
     "lint:controller-functions": "tsx scripts/check-controller-functions.ts",
