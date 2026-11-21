@@ -279,6 +279,34 @@ Still open, and not this build's: the remaining pilot items (how lycanthropy is 
 living-culture calls, the realm-lore suggestions, the goblin pick). They belong to the
 [bestiary slate](../world/bestiary-slate.md) and to the realm authors.
 
+## Reuse ledger for the plan **[2026-11-21, at requirements]**
+
+Every concept the build needs, what already does it on master, and whether the build reuses or
+generalizes it. Requirements: [organism-biology-requirements](../../requirements/organism-biology-requirements.md).
+
+| concept | already doing it | verdict |
+|---|---|---|
+| module composition | `BodyPlan.bodyParts[]` (flat, dotted keys, `parent`); swine `extends:` quadruped; `lint:anatomy` (sum-to-1, tissue resolves, plan carries claimed tissue) | **generalize** — modules expand into the same part list; the lint keeps its checks, sum-to-1 by construction |
+| governs / serves | `governs[]` min, `serves[]` mean, `functionAt`, `capacity(k)`, six `BodyCapacity` keys | **reuse**; add the third rule (max) beside them |
+| produces (glands → stores) | `Species.production[]` (`TapSpec`), one reader `husbandry/Producing.ts`; the reserve axis (`ReservedMixin`) | **generalize** — taps read the organ; the feedback law moves onto it; `production[]` retires |
+| sense organs as parts | `BodyPlan.sensoryPorts` → `PerceptionLogic.sensorium`; `Species.visionProfile` / `olfactoryProfile.acuity` | **retire ports** into organ parts; acuity and the watched share derive from the eye; site-conditions-slate's organ half absorbed |
+| breathing from organs | `BodyPlan.breathing[]`, `getBreathableMedia()`, `Species.breathingFor()` + `breathingByStage` | **generalize** — derive from respiratory organs per stage; plan field retires |
+| locomotion, thermal strategy | `locomotionModes` (Exit, LocomotionLogic, SpeciesLogic), `thermalStrategy` (ThermalRegulation) | **derive where physics can** (limbs, fins, wings); declared where it cannot |
+| integument as armor | the covering stack + materials-response grids, the depth ladder | **reuse** — the integument is the innermost covering |
+| integument as face | `SoilableMixin` deposits; `faces.md` coats | **reuse** on animals; tattoos deferred |
+| integument as pelt | `trade/ranching/thing/hide` on 4 species; `Trauma.site` per part; `salt-hide`/`tan` | **generalize** hide → pelt recording per-part wounds |
+| integument as insulation | textiles' derived per-part `clo` + wet model → `thermal.md` worn insulation | **reuse** — the coat is one more layer in the same sum |
+| tissue materials | horn (Horn, keratin tag), leather, rawhide, wool, down, bone (HideHorn), fat kinds, tallow, eggshell; the capability/kind split + `lint:material-kinds` | **reuse kinds**; new rows (keratin, chitin, cartilage, dentine, enamel, ivory, blubber, shell, feather, fur, scale); crab's bone → chitin |
+| cut maps | `CutMixin.tissues[]` claims muscles; 15 hand-written `butcheryYield` lists; `butcher <body> [for <cut>]` | **generalize** — cuts derive from modules; the lists retire; skinning is a `for pelt` line on the same verb |
+| severed part | `VitalsMixin.severPart` → `BodyPartDelta.missing` (absence); the corpse on the Thing branch | **generalize** — the subtree mints a Thing like the corpse does; harm's absence sentence retires |
+| part states (regrowing, cycling) | `bodyPartDeltas`; calendar windows (`TapWindowSpec` photoperiod/biome); harm's channel record | **generalize** the delta; cycling on the shipped windows; regrowth stopped by the recorded channel |
+| sex, age | sex on `OrganismMixin` (SexedMixin retired); `bornAt`, `ageCurve`, `getLifeStage()` | **reuse**; add per-sex module deltas and stage deltas |
+| reproductive states, castration | milk's `window: event` (freshen/dry off); `breed` writes served; `WorkingAnimal` ox role; herdbook `femaleFraction` | **generalize** — states on the body; lactation drives the udder; `castrate` in trade-ranching; herdbook records it |
+| body states | metabolism's rate; Q10 ectotherm (ships); thermal strategy | **genuinely new** as one shape — searched metabolism.md, thermal.md, vitals.md: no state with its own rate + trigger exists |
+| metamorphosis, the swap | `breathingByStage` (frog); sericulture's degree-day clock on the tray | **generalize** — per-stage plans, one identity; the tray becomes the compression of individual worms (ranching D19) |
+| square-cube check | `lint:anatomy` (structural only) | **genuinely new** gate (a census over species rows; never refuses — requires a declared payer) |
+| module fill | materials-response delivery by construction | **genuinely new** field on the module; read by the same delivery |
+
 ## Cross-references
 
 [bestiary-slate](../world/bestiary-slate.md) · [the pilot](../../bestiary/pilot.md) ·
