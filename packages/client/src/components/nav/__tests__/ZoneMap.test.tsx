@@ -93,10 +93,12 @@ describe("ZoneMap", () => {
     expect(whole).toEqual({ minX: 0, maxX: 1, minY: 0, maxY: 2 });
   });
 
-  it("names the places only at close zoom", () => {
-    const { container, rerender } = render(<ZoneMap view={fixture()} level={0} zoom="nearby" />);
+  it("names the places once a cell is big enough to read them", () => {
+    const { container, rerender } = render(
+      <ZoneMap view={fixture()} level={0} pxWidth={320} box={{ minX: -20, maxX: 20, minY: -15, maxY: 15 }} />,
+    );
     expect(container.querySelector("[data-layer=places] text")).toBeNull();
-    rerender(<ZoneMap view={fixture()} level={0} zoom="close" here={{ x: 0, y: 0, level: 0 }} />);
+    rerender(<ZoneMap view={fixture()} level={0} pxWidth={320} box={{ minX: -1.5, maxX: 1.5, minY: -1, maxY: 1.2 }} />);
     expect(container.querySelector("[data-layer=places] text")?.textContent).toBe("vestibule");
   });
 });

@@ -62,7 +62,11 @@ export interface ZoneMapProps {
   onPreview?: (command: string | null) => void;
   commandFor?: (mark: { place?: ViewPlace; edge?: ViewEdge }) => string | null;
   tipFor?: (mark: { place?: ViewPlace; edge?: ViewEdge; lens?: LensName; leg?: number }) => TooltipDoc | null;
-  onZoomStep?: (direction: 1 | -1) => void;
+  /**
+   * The box shown, in world cells (north up) — the map-app camera. When
+   * given it wins over `zoom`: the caller pans and zooms continuously.
+   */
+  box?: { minX: number; maxX: number; minY: number; maxY: number };
   /**
    * The ways from where you stand that the ways section says leave this
    * zone: drawn as leaving, never as a `?` — a look does not record that a
@@ -180,15 +184,18 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
     boundaries = [],
     pxWidth = thumbnail ? 96 : 320,
   } = props;
-  const box = viewBoxFor(view, level, thumbnail ? "whole" : zoom, here);
-  const margin = 0.9;
+  const fitted = viewBoxFor(view, level, thumbnail ? "whole" : zoom, here);
+  const margin = props.box && !thumbnail ? 0 : 0.9;
+  const box = props.box && !thumbnail ? props.box : fitted;
   const vbX = box.minX - margin;
   const vbY = -box.maxY - margin;
   const vbW = box.maxX - box.minX + 2 * margin;
   const vbH = box.maxY - box.minY + 2 * margin;
   // A mark is never smaller on screen than about 1/24 of the view (a
   // sparse zone still reads at *whole zone*).
-  const half = Math.max(HALF, vbW / 48);
+  // A mark is never smaller on screen than about 1/24 of the view — but
+  // never more than a cell, so one place alone is not a giant square.
+  const half = Math.min(HALF * 1.25, Math.max(HALF, vbW / 48));
   const cellPx = pxWidth / vbW;
   const smallCells = cellPx < 10;
 
@@ -307,7 +314,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
     }
 
     if (e.shape === "vertical") {
-      if (smallCells && zoom === "whole") continue;
+      if (smallCells) continue;
       const up = e.dir === "up";
       const cx = sx(from.x) + half * 0.62;
       const cy = sy(from.y) + (up ? -half * 0.62 : half * 0.62);
@@ -423,7 +430,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
           strokeDasharray={walked ? undefined : "3 2"}
           vectorEffect="non-scaling-stroke"
         />
-        {zoom === "close" && !thumbnail ? (
+        {(cellPx >= 44 || zoom === "close") && !thumbnail ? (
           <text x={sx(p.x)} y={sy(p.y) + half + 0.28} fontSize={0.22} textAnchor="middle" fill={tokens.color.fg}>
             {p.name}
           </text>
@@ -552,11 +559,6 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
     }
   };
 
-  const onWheel = (e: React.WheelEvent<SVGSVGElement>): void => {
-    if (!props.onZoomStep) return;
-    props.onZoomStep(e.deltaY < 0 ? 1 : -1);
-  };
-
   return (
     <svg
       data-testid={thumbnail ? "nav-thumb" : "nav-map"}
@@ -568,11 +570,11 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
       preserveAspectRatio="xMidYMid meet"
       tabIndex={interactive ? 0 : undefined}
       onKeyDown={onKeyDown}
-      onWheel={interactive ? onWheel : undefined}
       style={{
         width: thumbnail ? 96 : "100%",
         height: thumbnail ? 96 : undefined,
         aspectRatio: thumbnail ? undefined : "4 / 3",
+        touchAction: "none",
         display: "block",
         background: tokens.color.surfaceSunken,
         borderRadius: 4,
