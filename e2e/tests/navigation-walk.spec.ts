@@ -107,7 +107,7 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
 
       // 8 · a place further off: a click draws the route; nobody moves.
       await page.getByTestId('nav-level-0').click();
-      await page.getByTestId('nav-zoom-whole').click();
+      await page.getByTestId('nav-map-fit').click();
       const here = await coords(page);
       const vestibule = places(page).first();
       await vestibule.click();
@@ -196,7 +196,7 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       await runCommand(page, 'look');
       // 14 · walk a track, and its two ends are a long dashed link.
       await runCommand(page, 'northeast');
-      await page.getByTestId('nav-zoom-whole').click();
+      await page.getByTestId('nav-map-fit').click();
       await expect(page.locator('[data-testid="nav-edge"][data-shape="track"]').first()).toBeVisible({ timeout: 60_000 });
     } finally {
       await close();
