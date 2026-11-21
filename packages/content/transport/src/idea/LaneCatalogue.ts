@@ -38,6 +38,7 @@
  */
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { WayIndexMixin } from '@saxonberg/server/mud/lib/location/WayIndex';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -249,14 +250,20 @@ export default class LaneCatalogue extends WayIndexMixin(Idea) {
    */
   private async placeNamed(named: string, bound: string | null, here: string): Promise<string> {
     if (bound) return bound;
-    const want = LaneCatalogue.normalizePlace(named);
-    if (want.length > 0) {
-      for (const lane of await this.lanesAt(here)) {
-        const match = lane.nodes.find((n) => LaneCatalogue.normalizePlace(LaneCatalogue.leafOf(n)) === want);
-        if (match) return match;
-      }
-    }
-    return named.startsWith('/') ? named : '';
+    if (named.startsWith('/')) return named;
+    // ⭐ A stop on a road from here, named by the one rule (naming
+    // overhaul D-C5 rule 2) — `the ford`, `ford`, `kestrel-ford` agree.
+    const stops = new Set<string>();
+    for (const lane of await this.lanesAt(here)) for (const n of lane.nodes) stops.add(n);
+    const answer = GrammarApi.name(
+      named,
+      [...stops].map((n) => ({
+        value: n,
+        keywords: [LaneCatalogue.leafOf(n), (n.split('/').filter(Boolean).pop() ?? n)],
+        title: LaneCatalogue.leafOf(n),
+      })),
+    );
+    return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : '';
   }
 
   /** Every stop the roads from here reach — what a refused journey offers. */
@@ -291,11 +298,6 @@ export default class LaneCatalogue extends WayIndexMixin(Idea) {
     const out: Array<{ from: string; to: string }> = [];
     for (const [from, tos] of lane.adjacency) for (const to of tos) out.push({ from, to });
     return out;
-  }
-
-  /** A place name two spellings agree on: lowercase, no leading article, spaces = hyphens. */
-  private static normalizePlace(raw: string): string {
-    return raw.trim().toLowerCase().replace(/^the\s+/, '').replace(/[\s-]+/g, ' ').trim();
   }
 
   /** The last path segment, spaced. */

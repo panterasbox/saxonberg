@@ -31,6 +31,8 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
+import { OFFICE_APPARATUS, type Office } from '../../../../lib/governance/Office';
 import { PlayerApi } from '../../../../api/player';
 
 const TOPIC = 'shell.result';
@@ -43,6 +45,27 @@ export interface OfficeModel extends CommandModel {
 }
 
 export abstract class OfficeControllerBase extends CommandController<OfficeModel> {
+  /**
+   * ⭐ The office a player's words name — its display name (`prime
+   * minister`) or its key, through the one rule (naming overhaul D-C5);
+   * returns null after refusing (`no-such-name`, listing the offices).
+   */
+  protected async officeNamed(context: CommandContext, text: string): Promise<Office | null> {
+    return this.named(
+      context,
+      GrammarApi.name(
+        text,
+        OFFICE_APPARATUS.map((o) => ({
+          value: o,
+          keywords: [o.getKey(), o.getKey().replace(/-/g, ' '), o.getDisplayName().toLowerCase()],
+          title: o.getDisplayName(),
+        })),
+      ),
+      'office',
+      text,
+    );
+  }
+
   /** Present a holder by their body if they are here, else the name on their record. */
   protected async presentHolder(playerId: string): Promise<string> {
     if (!playerId) return '(vacant)';

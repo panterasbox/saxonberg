@@ -32,6 +32,7 @@
  * scan `getHostedApps()` directly.
  */
 
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CommandApi, type CommandContributions } from '../../api/command';
@@ -98,6 +99,12 @@ export interface AetherHost {
    * installed answers `already`.
    */
   installByKey(key: string): Promise<AppInstallResult>;
+  /**
+   * ⭐ The apps a player's words name (naming overhaul D-C5 rule 5) — by
+   * its key and its running name, through the one rule — among the
+   * `installed` ones, or every one the host could run (`any`). Paths.
+   */
+  appNamed(text: string, among: 'installed' | 'any'): NameAnswer<string>;
 }
 
 /** What `installByKey` did. */
@@ -254,16 +261,28 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     async installByKey(key: string): Promise<AppInstallResult> {
-      const k = key.trim().toLowerCase();
-      const installed = this.installedApps.find((p) => appKeyOf(p) === k);
-      if (installed !== undefined) {
-        return { ok: true, app: await this.installApp(installed), already: true };
-      }
-      const offered = this.offersApps.find((p) => appKeyOf(p) === k);
-      if (offered === undefined) {
-        return { ok: false, offered: this.availableApps().map(appKeyOf) };
-      }
-      return { ok: true, app: await this.installApp(offered), already: false };
+      // A path (named by the controller) or a key (a script's exact word).
+      const path =
+        [...this.installedApps, ...this.offersApps].find((p) => p === key || appKeyOf(p) === key) ?? null;
+      if (path === null) return { ok: false, offered: this.availableApps().map(appKeyOf) };
+      const already = this.installedApps.includes(path);
+      return { ok: true, app: await this.installApp(path), already };
+    }
+
+    appNamed(text: string, among: 'installed' | 'any'): NameAnswer<string> {
+      const pool = among === 'installed' ? [...this.installedApps] : [...new Set([...this.installedApps, ...this.offersApps])];
+      return GrammarApi.name(
+        text,
+        pool.map((p) => {
+          const running = this._hostedApps.find((a) => a.getTemplatePath() === p);
+          const name = running ? running.getAppName() : appKeyOf(p);
+          return {
+            value: p,
+            keywords: [appKeyOf(p), appKeyOf(p).replace(/-/g, ' '), name].map((k) => k.toLowerCase()),
+            title: name,
+          };
+        }),
+      );
     }
   }
   return AetherHostMixin;

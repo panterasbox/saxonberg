@@ -20,6 +20,7 @@
  * `{ class: /platform/idea/SpellCatalogue, data: {} }`.
  */
 
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import { Template } from '../../lib/stuff/Template';
 import Spell, {
@@ -72,17 +73,6 @@ export default class SpellCatalogue extends SpellCatalogueBase {
    */
   private cache: Map<string, SpellDescriptor> | null = null;
 
-  /**
-   * **The player-input index: short name → paths.**
-   *
-   * Deliberately separate, and deliberately allowed to be ambiguous.
-   * Typing `cast firebolt` is *name resolution* — the same kind of act
-   * as naming an item by keyword — so a collision there is a
-   * disambiguation problem, not a corruption. A durable reference is a
-   * different thing and must never come through here.
-   */
-  private byName: Map<string, string[]> | null = null;
-
   /** The authored descriptor at `path`, or `null`. The durable read. */
   public getSpellAt(path: string): SpellDescriptor | null {
     this.ensureCache();
@@ -90,23 +80,36 @@ export default class SpellCatalogue extends SpellCatalogueBase {
   }
 
   /**
-   * The descriptor a player MEANT by a short name, or `null`.
-   *
-   * First match when a name is ambiguous — the honest v1 answer, and the
-   * seam where a disambiguation prompt goes. Never use this to resolve a
-   * stored reference: see {@link getSpellAt}.
+   * ⭐⭐ The spells a player's words name (naming overhaul D-C5 rule 4) —
+   * a working answers to its short id, its name and its keywords, by the
+   * one rule (`GrammarApi.name`: `cast Glowlight`, `cast glow`); two that
+   * share a word are a TIE, asked between (never the first silently).
    */
-  public getSpellNamed(name: string): SpellDescriptor | null {
+  public spellNamed(text: string): NameAnswer<SpellDescriptor> {
     this.ensureCache();
-    const paths = this.byName!.get(name.trim().toLowerCase()) ?? [];
-    const first = paths[0];
-    return first ? (this.cache!.get(first) ?? null) : null;
+    const pool = [...this.cache!.values()].sort((a, b) => (a.path ?? '').localeCompare(b.path ?? ''));
+    return GrammarApi.name(
+      text,
+      pool.map((d) => ({
+        value: d,
+        keywords: [d.spellId, d.spellId.replace(/-/g, ' '), d.name, ...(d.keywords ?? [])]
+          .filter((k) => k !== '')
+          .map((k) => k.toLowerCase()),
+        title: d.name || d.spellId,
+      })),
+    );
   }
 
-  /** Every path a short name resolves to — the ambiguity, made visible. */
-  public pathsNamed(name: string): readonly string[] {
+  /**
+   * A working by its path (a durable reference), or the ONE working a
+   * short name names; `null` when none or several do. A player's words
+   * go through {@link spellNamed} and the controller's `named`.
+   */
+  public getSpellNamed(ref: string): SpellDescriptor | null {
     this.ensureCache();
-    return this.byName!.get(name.trim().toLowerCase()) ?? [];
+    if (ref.startsWith('/')) return this.cache!.get(ref) ?? null;
+    const answer = this.spellNamed(ref);
+    return answer.kind === 'one' ? answer.one : null;
   }
 
   /** Whether `path` names a cataloged spell. */
@@ -151,7 +154,6 @@ export default class SpellCatalogue extends SpellCatalogueBase {
   private ensureCache(): void {
     if (this.cache !== null) return;
     this.cache = new Map();
-    this.byName = new Map();
   }
 
   private async loadCacheFromTemplates(): Promise<void> {
@@ -159,7 +161,6 @@ export default class SpellCatalogue extends SpellCatalogueBase {
     // root it holds, and the catalogue must not need a kernel edit.
     const templates = await Template.findByClass(Spell.CLASS_PATH);
     const map = new Map<string, SpellDescriptor>();
-    const names = new Map<string, string[]>();
     for (const tpl of templates) {
       const descriptor = buildDescriptor(tpl.data);
       if (!descriptor) continue;
@@ -169,13 +170,8 @@ export default class SpellCatalogue extends SpellCatalogueBase {
       // The PATH is the key. The id is a short name, indexed separately
       // and allowed to collide.
       map.set(tpl.path, descriptor);
-      const key = descriptor.spellId.trim().toLowerCase();
-      const bucket = names.get(key);
-      if (bucket) bucket.push(tpl.path);
-      else names.set(key, [tpl.path]);
     }
     this.cache = map;
-    this.byName = names;
   }
 }
 
@@ -263,6 +259,7 @@ function buildDescriptor(data: unknown): SpellDescriptor | null {
     spellId: d.spellId,
     name:
       typeof d.name === 'string' && d.name.length > 0 ? d.name : d.spellId,
+    keywords: Array.isArray(d.keywords) ? d.keywords.filter((k): k is string => typeof k === 'string') : [],
     verb: d.verb,
     noun: d.noun,
     castingProfile,

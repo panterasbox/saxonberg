@@ -29,6 +29,7 @@
  * eager insert and a Locality's own self-registration converge.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import { SecurityApi } from '../../api/security';
 import { CallSecurity } from '../../lib/security/decorators';
@@ -95,21 +96,11 @@ export default class AddressRegistry extends AddressRegistryBase {
    * naming a place they are not standing in means the big one: a bill
    * consigned "to Terminus" means the town, not one district of it.
    */
-  private byName = new Map<string, Locality>();
+  private named = new Set<Locality>();
 
-  /** Index `locality` under its name, broadest-claim-wins (see above). */
+  /** Keep `locality` to be named (naming overhaul D-C5: by the one rule). */
   private indexName(locality: Locality): void {
-    const name = locality.getName().trim().toLowerCase();
-    if (name.length === 0) return;
-    const held = this.byName.get(name);
-    if (held && held !== locality) {
-      const heldAddr = held.getAddress();
-      const mine = locality.getAddress();
-      // Shorter claimed address = the broader place = the winner. A tie
-      // keeps the incumbent, so the order of a rebuild cannot matter.
-      if (heldAddr.length > 0 && heldAddr.length <= mine.length) return;
-    }
-    this.byName.set(name, locality);
+    if (locality.getName().trim().length > 0) this.named.add(locality);
   }
 
   public override async onCreate(_context?: unknown): Promise<void> {
@@ -135,8 +126,7 @@ export default class AddressRegistry extends AddressRegistryBase {
   public deregisterLocality(locality: Locality): void {
     const addr = locality.getAddress();
     if (addr.length > 0) this.coverage.remove(addr, locality);
-    const name = locality.getName().trim().toLowerCase();
-    if (this.byName.get(name) === locality) this.byName.delete(name);
+    this.named.delete(locality);
   }
 
   /** Drop + rebuild the index from the cloned Locality roster. */
@@ -183,10 +173,21 @@ export default class AddressRegistry extends AddressRegistryBase {
     return this.coverage.exact(address)[0] ?? null;
   }
 
-  /** The Locality known by `name` (case-insensitive), or `null`. */
+  /**
+   * The Locality a name names, by the one rule (naming overhaul D-C5), or
+   * `null`. A shared name is a tie broken toward the BROADER place
+   * (shortest claimed address — see above), then the address.
+   */
   @CallSecurity(AddressLogicCaller)
   public findByName(name: string): Locality | null {
-    return this.byName.get(name.trim().toLowerCase()) ?? null;
+    const pool = [...this.named].sort(
+      (a, b) => a.getAddress().length - b.getAddress().length || a.getAddress().localeCompare(b.getAddress()),
+    );
+    const answer = GrammarApi.name(
+      name,
+      pool.map((l) => ({ value: l, keywords: [l.getName().toLowerCase()], title: l.getName() })),
+    );
+    return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
   }
 
   /**
@@ -196,7 +197,7 @@ export default class AddressRegistry extends AddressRegistryBase {
    */
   private async rebuildIndex(): Promise<void> {
     this.coverage.clear();
-    this.byName.clear();
+    this.named.clear();
     const templates = (await Promise.all(ADDRESS_ROSTER.map((p) => Template.findDescendants(p)))).flat();
     for (const t of templates) {
       if (t.class !== LOCALITY_CLASS) continue;

@@ -22,24 +22,16 @@ import { StuffApi } from '../../../../api/stuff';
 import ReadingCatalogue, {
   READING_CATALOGUE_PATH,
 } from '../../ReadingCatalogue';
-import { READING_TOPIC } from '../../../../lib/instrument/Reading';
 
 export default class AnalyzeController extends CommandController<ReadCommandModel> {
   async execute(model: ReadCommandModel, context: CommandContext): Promise<void> {
     const catalogue = await StuffApi.singleton<ReadingCatalogue>(
       READING_CATALOGUE_PATH,
     );
-    const reading = await catalogue.warmed(model.channel ?? '');
-    if (!reading) {
-      this.refuse(
-        context,
-        READING_TOPIC,
-        `There is no reading called '${model.channel ?? ''}'. \`readings\` lists what you can find out.`,
-        'unknown-channel',
-        model.channel ?? '',
-      );
-      return;
-    }
+    // ⭐ The channel, named by the one rule (naming overhaul D-C5 rule 4).
+    const typed = model.channel ?? '';
+    const reading = await this.named(context, await catalogue.readingNamed(typed), 'reading', typed);
+    if (!reading) return;
     // ⭐ Used where it sits (D-W10-7): the binder narrows a defaulted pool to what is to hand.
     const tools = model.tool?.stuff ?? [];
     await reading.runAnalyze(context, model.subject, tools);

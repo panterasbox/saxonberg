@@ -29,6 +29,7 @@
  * guard** (below), not a comment.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
@@ -698,7 +699,6 @@ async function treatNamed(
   treatment: Treatment,
   by: Stuff,
 ): Promise<TreatmentDone> {
-  const wanted = named.trim().toLowerCase();
   const carried = target.getConditions().filter((c): c is AfflictionRecord => c.kind === 'affliction');
   // What this body is showing, and everything that could show it.
   const signs = new Set<string>();
@@ -718,11 +718,19 @@ async function treatNamed(
         : candidates.length === 2
           ? 'standard'
           : 'easy';
-  const hit =
-    carried.find((c) => {
-      const row = ConditionApi.conditions().need(c.templatePath);
-      return (row?.getName() ?? '').toLowerCase() === wanted;
-    }) ?? null;
+  // ⭐ The medic NAMES a condition — any warmed one, so a wrong call is
+  // possible — by the one rule (naming overhaul D-C5 rule 4); the outcome
+  // is whether the body carries the one named.
+  const answer = GrammarApi.name(
+    named,
+    ConditionApi.conditions().roster().map((row) => ({
+      value: row.getTemplatePath() ?? '',
+      keywords: [row.getName().toLowerCase()],
+      title: row.getName(),
+    })),
+  );
+  const meant = answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
+  const hit = meant === null ? null : (carried.find((c) => c.templatePath === meant) ?? null);
   // The supply is spent either way — that is what makes a wrong call cost.
   if (treatment.by === 'dressing') await StuffApi.destruct(treatment.item);
   if (MixinApi.isAdvancing(by)) {

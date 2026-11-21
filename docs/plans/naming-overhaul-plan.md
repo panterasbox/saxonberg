@@ -1279,6 +1279,35 @@ its counter; `lint:identity` green (a name key lands only where a class
 holds one); no view arg's help asks for a path or a key.
 *Commit:* `build(naming-overhaul WC3): Ideas answer to keywords; organizations are reached, not searched`.
 
+✅ **Done, with one open.** Every Idea-shaped name below goes through
+`GrammarApi.name`, and every catalogue keyed by a lowered name lost its index:
+**spells** (`SpellCatalogue.spellNamed` / `MagicApi.spellNamed`; `byName`
+gone; an ambiguous short name is a TIE asked by `cast`, the cast carries the
+path; descriptors gain `keywords`), **readings** (`readingNamed`; `measure`,
+`analyze`, `readings`), **conditions** (`treat <condition>` names among the
+whole roster so a wrong call stays possible; `prescribe` names among the
+drugs and asks on a tie), **lanes** (a stop from here), **expanse nodes**
+(`nameKeywords` + `Expanse.nodeNamed`; `namesRiver` tokenizes),
+**stand species**, **apps** (`AetherHost.appNamed(text, installed|any)` —
+`apps install Messages`, `apps uninstall the messages`), **localities**
+(`AddressRegistry` keeps a set; a shared name breaks toward the broader
+place, as before), **organizations** (`findOrganization` by label and key,
+no substring), **brands** (`resolveBrandKey`), **offices**
+(`OfficeControllerBase.officeNamed` — `office vacate prime minister`) and
+**wallet accounts**. `job apply`, `job quit` and `clock` name the house
+among the ones in hand (`EmploymentApi.organizationNamed(text, paths)`:
+the openings here, your employers) and `house appoint`/`dismiss` (and their
+authority validator) take a house by name, a path still answering — no view
+arg asks for a path. Unknown names are the `no-such-name` row
+(reason-rows legacy −3). ⚠ **Open (recorded, not silently dropped):** D-C9's
+`~employers` / `~business` RELATIONS were not minted — the in-hand pool is
+the same scoping without the relation — and `findOrganization` stays a
+global name read for the record verbs (`chronicle`/`competence`) and
+`house appoint`; the Organization `name` field is unchanged and spells did
+not gain `PerceptibleMixin` (descriptors carry keywords instead). These are
+review items. **Census:** article strips 30, hand compares 75, word-keyed
+indexes 9; via/lowered 45.
+
 **C4 — Retail.**
 *Decisions:* D-C7.
 *Files:* `P/cmd/retail/buy.yaml`, `BuyController.ts`;
@@ -1293,6 +1322,25 @@ at the second, `buy rope` buys there and `buy rope at <first>` refuses
 naming the first; sold out, the shop's own line; eleven identical loaves do
 not prompt; a hull is ordered at the yard by name.
 *Commit:* `build(naming-overhaul WC4): buy targets the goods on the counter`.
+
+✅ **Done — re-planned in place.** ⭐ **Decided (D-C7's object slot NOT taken,
+lens 2 + the sale's own semantics):** `buy`'s `thing` stays a word. An object
+slot binds only goods PRESENT, and two of the sale's paths are about goods
+that are not: a store-fed line is brought up TO ORDER from the store when
+the shelf is bare (storage-and-ice D8), and *sold out* is the shop's own line
+for a good it carries but has none of today — both need a NAME for an absent
+good. What D-C7 was for is kept: every retail matcher names through the one
+rule — `Stock.lineForWord`, `pricedKeyFor`, `resolveBuy` (keywords + leaf),
+`HeldGoods.resolveHeld` (consignments), `HullBook.hullsNamed` (the yard's
+offers), `Tariff.serviceNamed` (`order` passes the phrase; no controller
+lower-casing), `Store`'s receipts — so `buy loaves`, `buy a loaf` and `buy
+block` work and alike goods are one choice (no prompt among eleven loaves).
+The `counter.raw` sniff is gone: a single bound result now carries
+`defaulted` (as a list did), and `buy rope at <first>` (`at` joins `from`)
+holds the named seller to its own refusal. `GrammarApi.withoutArticle` is the
+one place a RECORDED name drops its article (a ship's register); matching
+never uses it. Census: article strips 28, hand compares 71 (with one more
+narrowing — a compare operand counts only when it IS a lowered word), maps 8.
 
 **C5 — Lists not yet made, and a holder's own parts.**
 *Decisions:* D-C4, D-C5 rule 5.

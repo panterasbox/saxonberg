@@ -1,6 +1,7 @@
 // EmploymentLogic — the hot-reloadable logic singleton behind EmploymentApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { GrammarApi, type NameAnswer } from '../../../api/grammar';
 import { NavigationApi } from '../../../api/navigation';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
@@ -396,27 +397,6 @@ function fillRosters(rosters: Map<string, Set<string>>): void {
   }
 }
 
-/** The words a phrase is made of, lowercased and punctuation-stripped. */
-function words(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-}
-
-/** Drop a leading article — "the watch" and "watch" name one thing. */
-function needleOf(asked: string): string {
-  return asked.trim().toLowerCase().replace(/^(the|a|an)\s+/, '');
-}
-
-/** Whether `needle` is a WHOLE word of `text` (not merely a prefix). */
-function namesItself(text: string, needle: string): boolean {
-  const parts = words(needle);
-  if (parts.length === 0) return false;
-  const pool = words(text);
-  return parts.every((p) => pool.includes(p));
-}
 
 /** What a body of people calls itself. */
 function organizationLabelImpl(body: Stuff): string {
@@ -446,22 +426,22 @@ function organizationLabelImpl(body: Stuff): string {
  * which is what keeps a half-typed keyword working.
  */
 function findOrganizationImpl(asked: string): Stuff | null {
-  const needle = needleOf(asked);
-  if (!needle) return null;
-  const candidates = StuffApi.findByMixin('OrganizationMixin');
-  let loose: Stuff | null = null;
-  for (const org of candidates) {
-    const label = needleOf(organizationLabelImpl(org));
-    const path = (org.getIdentityPath() ?? '').toLowerCase();
-    if (namesItself(label, needle)) return org;
-    if (
-      loose === null &&
-      (label.includes(needle) || path.endsWith(`/${needle}`))
-    ) {
-      loose = org;
-    }
-  }
-  return loose;
+  // ⭐ By the one rule (naming overhaul D-C5 rule 6): a body of people is
+  // named by what it calls itself and its row key; a tie keeps the first
+  // by identity path (the stable order), never a substring.
+  if (asked.trim() === '') return null;
+  const candidates = [...StuffApi.findByMixin('OrganizationMixin')].sort((a, b) =>
+    (a.getIdentityPath() ?? '').localeCompare(b.getIdentityPath() ?? ''),
+  );
+  const answer = GrammarApi.name(
+    asked,
+    candidates.map((org) => {
+      const key = (org.getIdentityPath() ?? '').split('/').pop() ?? '';
+      const label = organizationLabelImpl(org);
+      return { value: org, keywords: [label, key, key.replace(/-/g, ' ')].filter((k) => k !== '').map((k) => k.toLowerCase()), title: label };
+    }),
+  );
+  return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
 }
 
 /**
@@ -1685,6 +1665,20 @@ export class EmploymentLogic extends ApiLogic {
   @CallSecurity(EmploymentApiCallers)
   public findOrganization(asked: string): Stuff | null {
     return findOrganizationImpl(asked);
+  }
+
+  /** See {@link EmploymentApi.organizationNamed}. */
+  @CallSecurity(EmploymentApiCallers)
+  public organizationNamed(text: string, paths: readonly string[]): NameAnswer<string> {
+    return GrammarApi.name(
+      text,
+      [...new Set(paths)].map((path) => {
+        const body = StuffApi.findByTemplatePath(path);
+        const label = body ? organizationLabelImpl(body) : (path.split('/').pop() ?? path);
+        const key = path.split('/').pop() ?? '';
+        return { value: path, keywords: [label, key, key.replace(/-/g, ' ')].filter((k) => k !== '').map((k) => k.toLowerCase()), title: label };
+      }),
+    );
   }
 
   /** See {@link EmploymentApi.organizationLabel}. */

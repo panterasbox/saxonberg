@@ -50,8 +50,8 @@ import { pathToFileURL } from "url";
 import ts from "typescript";
 import { CONTENT, MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 
-/** Measured at C0 (2026-11-21): 36. C2: 35 (the form word). */
-export const ARTICLE_STRIP_CEILING = 35;
+/** Measured at C0 (2026-11-21): 36. C2: 35 (the form word). C3: 30 (lanes, nodes, organizations). */
+export const ARTICLE_STRIP_CEILING = 28; // C4: 28 (the hull book's two; a recorded name uses GrammarApi.withoutArticle).
 /**
  * Measured at C0 (2026-11-21): 92. C1: 89 — −2 the census corrected (a
  * length or number test names nothing), −1 the world clock's own parser.
@@ -59,7 +59,11 @@ export const ARTICLE_STRIP_CEILING = 35;
 // C2: 84 — the recipe, form, operation and call-up names go through the
 // rule, and the census was tightened (a variable holds a lowered value only
 // when the lowering is on its own receiver chain, not buried in an argument).
-export const HAND_COMPARE_CEILING = 84;
+// C3: 75 — spells, readings, conditions, lanes, nodes, species, apps,
+// localities, organizations, brands, offices, accounts.
+// C4: 71 — the stock line, priced key, held goods, receipts, hulls and
+// services; and a compare operand counts only when it IS a lowered word.
+export const HAND_COMPARE_CEILING = 71;
 /**
  * Measured at C0 (2026-11-21): 6. C1: 0 — rent, fire, the script `wait`, the
  * world clock and the test-harness clock read the one grammar
@@ -67,7 +71,7 @@ export const HAND_COMPARE_CEILING = 84;
  */
 export const DURATION_PARSE_CEILING = 0;
 /** Measured at C0 (2026-11-21): 14. C2: 11 (the recipe word index; `soul search` exempt as a search). */
-export const WORD_MAP_CEILING = 11;
+export const WORD_MAP_CEILING = 8; // C3: 9 (the spell and locality indexes). C4: 8 (the same narrowing).
 
 export type MatcherKind = "article-strip" | "hand-compare" | "duration-parse" | "word-map";
 
@@ -102,9 +106,6 @@ export const EXEMPT: ReadonlyArray<{ file: string; symbol: string; why: string }
  */
 export const MUST_FIND: ReadonlyArray<{ file: string; symbol: string; kind: MatcherKind }> = [
   { file: "platform/thing/CharterBook.ts", symbol: "CharterBook.shipFor", kind: "article-strip" },
-  { file: "platform/idea/SpellCatalogue.ts", symbol: "SpellCatalogue.loadCacheFromTemplates", kind: "word-map" },
-  { file: "lib/retail/Stock.ts", symbol: "Stock.lineForWord", kind: "hand-compare" },
-  { file: "lib/retail/Stock.ts", symbol: "Stock.pricedKeyFor", kind: "hand-compare" },
   { file: "lib/archetype/Archetype.ts", symbol: "answersTo", kind: "hand-compare" },
   { file: "platform/idea/cmd/social/CallController.ts", symbol: "answersTo", kind: "hand-compare" },
   { file: "transport/src/idea/Harbor.ts", symbol: "Harbor.quayNamed", kind: "hand-compare" },
@@ -196,7 +197,10 @@ export function scanModule(sf: ts.SourceFile, rel: string): MatcherSite[] {
     if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && lowersDirectly(node.initializer)) {
       a.lowered.add(node.name.text);
     }
-    const isLowered = (x: ts.Node | undefined): boolean => !!x && mentionsLowered(x, a.lowered);
+    // An operand that IS a lowered word — lowered on its own receiver chain,
+    // or a variable holding one — never one with a lowering buried in an
+    // argument (`GrammarApi.name(w, keys.map(k => k.toLowerCase())).kind`).
+    const isLowered = (x: ts.Node | undefined): boolean => !!x && (lowersDirectly(x) || readsLoweredVar(x, a.lowered));
     if (ts.isBinaryExpression(node) && [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken].includes(node.operatorToken.kind)) {
       // An emptiness or length test (`w === ''`, `t.length === 0`) names nothing.
       const empty = (x: ts.Node): boolean =>
@@ -257,16 +261,17 @@ function lowersDirectly(n: ts.Node): boolean {
   }
 }
 
-/** Does `n` lower-case something, or read a variable holding a lowered value? */
-function mentionsLowered(n: ts.Node, lowered: ReadonlySet<string>): boolean {
-  let hit = false;
-  const walk = (x: ts.Node): void => {
-    if (hit) return;
-    if (isLowerCall(x) || (ts.isIdentifier(x) && lowered.has(x.text))) hit = true;
-    else ts.forEachChild(x, walk);
-  };
-  walk(n);
-  return hit;
+/** Is `n` (through `.trim()`-style receiver chains) a variable holding a lowered value? */
+function readsLoweredVar(n: ts.Node, lowered: ReadonlySet<string>): boolean {
+  let x: ts.Node = n;
+  for (;;) {
+    if (ts.isIdentifier(x)) return lowered.has(x.text);
+    if (ts.isParenthesizedExpression(x) || ts.isNonNullExpression(x) || ts.isAsExpression(x)) x = x.expression;
+    else if (ts.isCallExpression(x)) x = x.expression;
+    else if (ts.isPropertyAccessExpression(x)) x = x.expression;
+    else if (ts.isElementAccessExpression(x)) x = x.expression;
+    else return false;
+  }
 }
 
 function containsLower(n: ts.Node): boolean {

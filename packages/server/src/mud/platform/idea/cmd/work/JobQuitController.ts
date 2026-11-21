@@ -31,19 +31,30 @@ export default class JobQuitController extends JobControllerBase<QuitModel> {
     }
     const held = giver.getActiveEmployments();
     const wanted = (model.organization ?? '').trim();
-    const record = wanted
-      ? held.find((e) => e.organizationPath === wanted)
-      : held.length === 1
-        ? held[0]
-        : undefined;
+    // ⭐ The house, named among the ones you work for (naming overhaul D-C5).
+    let record = held.length === 1 && !wanted ? held[0] : undefined;
+    if (wanted) {
+      const path = await this.named(
+        context,
+        EmploymentApi.organizationNamed(wanted, held.map((e) => e.organizationPath)),
+        'house',
+        wanted,
+      );
+      if (path === null) return;
+      record = held.find((e) => e.organizationPath === path);
+    }
     if (!record) {
       if (held.length === 0) {
         return this.fail(context, "You don't hold a position anywhere.", 'not-employed');
       }
       if (!wanted) {
+        // The houses by what they call themselves — nothing named, so the
+        // rule's `offered` is every one of them.
+        const houses = EmploymentApi.organizationNamed('', held.map((e) => e.organizationPath));
+        const list = houses.kind === 'none' ? houses.offered.join(', ') : '';
         return this.fail(
           context,
-          `Quit which? You hold positions at ${held.map((e) => e.organizationPath).join(', ')}.`,
+          `Quit which? You hold positions at ${list}.`,
           'ambiguous-position',
         );
       }

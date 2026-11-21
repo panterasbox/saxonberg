@@ -10,8 +10,12 @@ export default class AppsInstallController extends AppsControllerBase {
   async execute(model: AppsModel, context: CommandContext): Promise<void> {
     const device = this.deviceFor(model, context);
     if (!device) return;
+    // ⭐ The app, named by the one rule (naming overhaul D-C5 rule 5):
+    // `apps install Messages`; an unknown word lists what it offers.
     const key = model.app ?? '';
-    const result = await device.installByKey(key);
+    const path = await this.named(context, device.appNamed(key, 'any'), 'app', key);
+    if (path === null) return;
+    const result = await device.installByKey(path);
     if (!result.ok) {
       const offered = result.offered.length
         ? `It offers: ${result.offered.join(', ')}.`

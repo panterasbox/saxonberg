@@ -39,9 +39,9 @@ interface CastModel extends CommandModel {
 export default class CastController extends CommandController<CastModel> {
   async execute(model: CastModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const spellId = (model.spell ?? '').trim().toLowerCase();
+    const typed = (model.spell ?? '').trim();
 
-    if (!spellId) {
+    if (!typed) {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(Mml.compose`Cast what? (\`spells\` lists your workings.)`)
@@ -67,6 +67,12 @@ export default class CastController extends CommandController<CastModel> {
       return;
     }
     const target = model.target?.stuff ?? undefined;
+    // ⭐ The working, named by the one rule (naming overhaul D-C5 rule 4):
+    // `cast Glowlight`, `cast glow`; two that share the word are asked
+    // between. Its PATH is what the cast carries — a durable reference.
+    const spell = await this.named(context, MagicApi.spellNamed(typed), 'working', typed);
+    if (!spell) return;
+    const spellId = spell.path ?? spell.spellId;
 
     const prep = await (actor as Stuff & CommandGiver & Caster).prepareCast(
       spellId,

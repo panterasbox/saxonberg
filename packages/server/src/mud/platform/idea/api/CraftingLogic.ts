@@ -870,22 +870,16 @@ async function gatherMatter(
  * Identity.
  */
 function resolveBrandKey(token: string): string | null {
-  const t = token.trim().toLowerCase();
-  if (!t) return null;
-  const brands = CorpoApi.listBrands();
-  const exact = brands.find(
-    (b) => b.key.toLowerCase() === t || b.name.toLowerCase() === t,
+  // ⭐ A mark by the one rule (naming overhaul D-C5 rule 4): its key, its
+  // name and their words begin-match — `crowsfoot` for `crowsfoot-gin`,
+  // `hollis` for `old-hollis`; a tie keeps the first by key.
+  if (token.trim() === '') return null;
+  const brands = [...CorpoApi.listBrands()].sort((a, b) => a.key.localeCompare(b.key));
+  const answer = GrammarApi.name(
+    token,
+    brands.map((b) => ({ value: b.key, keywords: [b.key, b.key.replace(/-/g, ' '), b.name].map((k) => k.toLowerCase()), title: b.name })),
   );
-  if (exact) return exact.key;
-  // A shorter spoken form of the mark — "crowsfoot" for `crowsfoot-gin`,
-  // "hollis" for `old-hollis`. Segments of the key and words of the
-  // name, never a free substring.
-  const spoken = brands.find(
-    (b) =>
-      b.key.toLowerCase().split('-').includes(t) ||
-      b.name.toLowerCase().split(/\s+/).includes(t),
-  );
-  return spoken?.key ?? null;
+  return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
 }
 
 /**
