@@ -162,7 +162,7 @@ are.
    size chosen, and the rest is laid out in what it leaves.
 7. **A mode owns its breakpoints; a card renders at any size** **[DECIDED — the owner]**. Cards stay
    mode-blind. Inside a mode, every card grows and shrinks through the **same** steps — the mode's
-   slots (explore: unit · medium · full; watch: unit · medium · large · max, shaped around the video
+   slots (explore: unit · medium · full · max; watch: unit · medium · large · max, shaped around the video
    because it is watch's subject, but any card may take them). One card per slot; the previous
    holder returns to its size (the shipped `sizeBefore` rule). *Zoom* is one gesture everywhere
    (`client-card grow`/`shrink`); only the steps differ by mode. A per-card ladder was proposed and
@@ -200,9 +200,17 @@ customization design and interface which has gotten changed around several times
 isn't yet where it needs to be."*
 
 
-**Explore in this language:** the terminal is the subject (the grammar's *single* split); the
-navigation card is the one permanent support explore argues for; cards come and go. Its behavior
-does not change — its panel stops being *the panel every mode has*.
+**Explore in this language** **[DECIDED — the owner]**: the terminal is the subject (the grammar's
+*single* split); the navigation card is its support slot (22rem); cards come and go. Two changes
+from what ships:
+
+- **Every mode's top pair is the same: full and max.** *Full* — the grown card takes the stage and
+  the terminal stays at its floor; *max* — chrome only, the terminal given up by explicit choice.
+  Explore's steps become **unit · medium · full · max** (a document or an illustrated map at max
+  gets the whole screen as a stream does).
+- **A card the player grows is laid out first** — the player's choice outranks the list, as a
+  video's box does — then the list hands out the rest: terminal → navigation card → cards. At
+  full the navigation card falls off and the terminal holds its floor; at medium it stays.
 
 ## 7. The lens pass
 
