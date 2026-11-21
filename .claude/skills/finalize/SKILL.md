@@ -341,7 +341,7 @@ hand back to the user for the merge.
 > pending, **stop and say so before calling the merge tool**: name the
 > check, and ask whether to wait or merge without it. Their earlier
 > "merge" is not consent to merge unverified. `tools/hooks/guard-merge`
-> backs this mechanically — it puts the merge to the owner as a
+> and the owner's `/merge` skill back this — the hook puts the merge to the owner as a
 > permission prompt unless `.suite/green` matches the branch's source —
 > but the sentence is yours to get right first.
 
