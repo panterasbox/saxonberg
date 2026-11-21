@@ -241,8 +241,10 @@ soak drive**, deliberately. It carries a restart (step 6).
    none of its rows.
 3. **Indifferent to state** (`short`, `staged`). Run the migrated kernel and
    platform drives on a fresh world; run them again on the same world without a
-   drop; run them after the whole suite has dirtied it. All pass all three
-   times.
+   drop; run them a third time on a world other drives have dirtied. All
+   pass all three times. (Owner, 2026-11-21: "dirtied" means a world other
+   drives have run in, not the whole wire suite run first — that took 6.5
+   hours and its own results do not count.)
 4. **No placeholder content** (`instant`, `staged`). With Terminus's pack left
    out of the world, the migrated drives still pass.
 5. **Clean after itself** (`short`, `staged`). After a full run, the world
@@ -271,7 +273,8 @@ None. Nothing here moves with the game clock.
 ## Acceptance criteria
 
 - The 19 migrated drives and the 11 kernel halves pass on a fresh world,
-  again on the same world without a drop, and after the whole suite — and with
+  again on the same world without a drop, and on a world other drives have
+  dirtied — and with
   Terminus's pack absent; the 6 content drives and the 11 content halves are
   recorded for build 2.
 - None of them names placeholder content.

@@ -6,8 +6,12 @@
 #
 #   (default)     steps 3, 4 and 5 —
 #     3  indifferent to state: the migrated set on a FRESH world, again on
-#        the same world with no drop, the whole suite, then the migrated set
-#        a third time; three green readings of .wire/result.json;
+#        the same world with no drop, then a third time on a world other
+#        drives have dirtied; three green readings of .wire/result.json.
+#        ⚠ The `suite` leg (the WHOLE wire suite, to dirty the world) is
+#        OPT-IN (`--legs …,suite,…`): it took 6.5 h on 2026-11-21 and its own
+#        results do not count — a reused world any drive has run in is
+#        dirty enough (owner, the same day);
 #     4  no placeholder content: a world booted with Terminus — and every
 #        pack that depends on it — left out, and the migrated set again;
 #     5  clean after itself: the money supply and the test-character count
@@ -18,7 +22,7 @@
 #                 ORDINARY world (no SAXONBERG_TEST_WORLD) on the wire port,
 #                 expect the REFUSED line and zero test-fixtures rows, stop.
 #   --legs a,b,…  run only some legs: fresh, reuse, suite, again, absent,
-#                 clean, crash (default: all, in that order).
+#                 clean, crash (default: all but `suite`, in that order).
 #
 # The MIGRATED SET is every drive `lint:wire-content` does not list (a file
 # at zero), minus soak files: the files this build is accountable for.
@@ -41,7 +45,7 @@ export WIRE_PORT=${WIRE_PORT:-2012}
 WAIT=1
 TAG=wire-indifference
 MODE=runs
-LEGS=fresh,reuse,suite,again,absent,clean,crash
+LEGS=fresh,reuse,again,absent,clean,crash
 
 while [ $# -gt 0 ]; do
   case "$1" in

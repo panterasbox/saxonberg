@@ -534,8 +534,11 @@ location-graph). A drive that names a `/trade/…` or `/stuff/…` row to `hand`
 keeps its `declareFile({ packs })` line; pack rows are not locality content.
 
 **The pass criterion**, per migrated file, run by `tools/wire-indifference`
-(D9): fresh world · the same world again with no drop · after the whole suite
-· with Terminus absent. *Terminus absent* is `SAXONBERG_PACKS` = every
+(D9): fresh world · the same world again with no drop · a world other drives
+have dirtied · with Terminus absent. ⚠ Re-planned at build time (owner,
+2026-11-21): the tool's whole-suite leg is opt-in — run as written it took
+6.5 h and its own results do not count; the third reading runs on the world
+the earlier legs (and 6.5 h of the whole suite, that once) left dirty. *Terminus absent* is `SAXONBERG_PACKS` = every
 discovered pack minus `terminus` and every pack that transitively depends on
 it — computed by the tool from the packs' `package.json` files, never a
 hand-kept list. A migrated drive whose declared `packs` include a dropped pack
