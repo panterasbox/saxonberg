@@ -1162,7 +1162,11 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
     expect(refused, `the holed Hesper's course: ${refused}`).toMatch(/until she is patched/);
     const mended = await act(master, 'repair hesper');
     expect(mended.said, `repair the Hesper: ${mended.said}`).toMatch(/patch/i);
-    const sails = await say(master, 'course downstream');
+    // ⭐ SLOW: she still lies in the choked pool, and run 12's patched Hesper,
+    // sent off at speed again by night, was holed a second time on the way
+    // out (step 16 read her back holed). Taken through slow — the river-d
+    // drive's idiom — she is held to what her people can see.
+    const sails = await say(master, 'course downstream slow');
     expect(sails, `the patched Hesper's course: ${sails}`).toMatch(/lay a course|under way/i);
     expect(sails).not.toMatch(/until she is patched/);
   }, 3_600_000);
