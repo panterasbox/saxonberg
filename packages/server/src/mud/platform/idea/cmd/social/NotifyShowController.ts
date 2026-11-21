@@ -11,12 +11,13 @@ export default class NotifyShowController extends NotifyControllerBase {
     const me = this.hostOf(context);
     if (me === null) return;
     const rawRef = (model.ref ?? "").trim();
-    const ref = NotifyShowController.normalizeRef(me.vid, rawRef);
+    const ref = this.refOrFail(context, rawRef);
+    if (ref === null) return;
     const rule = me.host.effectiveNotifyRules().find((r) => r.groupRef === ref);
     if (!rule) {
-      this.send(context, Mml.fromMarkup(`\nNo rule for ${ref}.\n`));
+      this.send(context, Mml.fromMarkup(`\nNo rule for ${rawRef}.\n`));
       return;
     }
-    this.send(context, Mml.fromMarkup(`\n${NotifyShowController.renderRuleLine(rule)}\n`));
+    this.send(context, Mml.fromMarkup(`\n${NotifyShowController.renderRuleLine(me.host, rule)}\n`));
   }
 }

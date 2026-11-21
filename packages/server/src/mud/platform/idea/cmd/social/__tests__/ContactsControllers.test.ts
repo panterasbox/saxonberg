@@ -17,6 +17,9 @@ import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
 import type { CommandContext } from "../../../../../api/command";
 import { TestHarnessApi } from "../../../../../api/test-harness";
 
+/** An object slot that bound nothing — the person is not in the world. */
+const unbound = (raw: string) => ({ stuff: null, raw });
+
 type Entry = { kind: "avatar"; playerId: string } | { kind: "npc"; templatePath: string };
 
 describe("contacts controllers (C73 — names from the identity substrate)", () => {
@@ -35,9 +38,9 @@ describe("contacts controllers (C73 — names from the identity substrate)", () 
     removed = [];
     said = [];
     const host = {
-      contactsByLabel: () => entries,
-      removeContact: (_kind: string, ref: string) => {
-        removed.push(ref);
+      contactsByLabel: (label: string) => (label === "friends" ? entries : []),
+      removeContact: (_kind: string, ref: string, label: string) => {
+        removed.push(label === "friends" ? ref : `${label}:${ref}`);
         return true;
       },
     };
@@ -67,7 +70,7 @@ describe("contacts controllers (C73 — names from the identity substrate)", () 
 
   it("remove matches an offline player by their stored name", async () => {
     await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
-      { target: "bram", label: "friends" } as never,
+      { target: unbound("bram"), label: "friends" } as never,
       ctx,
     ));
     expect(removed).toEqual(["p-bram"]);
@@ -75,11 +78,11 @@ describe("contacts controllers (C73 — names from the identity substrate)", () 
 
   it("remove matches an online player by their presentation, and an NPC by its row's name", async () => {
     await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
-      { target: "Aria", label: "friends" } as never,
+      { target: unbound("Aria"), label: "friends" } as never,
       ctx,
     ));
     await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
-      { target: "katie", label: "friends" } as never,
+      { target: unbound("katie"), label: "friends" } as never,
       ctx,
     ));
     expect(removed).toEqual(["p-aria", "/stuff/agent/katie"]);
@@ -87,10 +90,43 @@ describe("contacts controllers (C73 — names from the identity substrate)", () 
 
   it("remove still takes the raw id", async () => {
     await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
-      { target: "p-bram", label: "friends" } as never,
+      { target: unbound("p-bram"), label: "friends" } as never,
       ctx,
     ));
     expect(removed).toEqual(["p-bram"]);
+  });
+
+  it("⭐ an offline person named through a list (`~friends:bram`) comes off that list", async () => {
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
+      { target: unbound("~friends:bram") } as never,
+      ctx,
+    ));
+    expect(removed).toEqual(["p-bram"]);
+  });
+
+  it("⭐ a bound person comes off the list they were named through, and no other (D-B6)", async () => {
+    const aria = { getPresentation: () => "Aria", getPlayerId: () => "p-aria", getIdentityPath: () => "/platform/agent/Avatar/p-aria" };
+    vi.spyOn(PlayerApi, "isAvatarStuff").mockImplementation(((o: unknown) => o === aria) as never);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
+      {
+        target: {
+          stuff: aria,
+          raw: "~work:aria",
+          via: { relation: { holder: ctx.commandGiver, name: "work", meaning: 'your list "work"' } },
+        },
+      } as never,
+      ctx,
+    ));
+    expect(removed).toEqual(["work:p-aria"]);
+  });
+
+  it("⭐ with no list named anywhere, remove asks which", async () => {
+    await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ContactsRemoveController()).execute(
+      { target: unbound("bram") } as never,
+      ctx,
+    ));
+    expect(removed).toEqual([]);
+    expect(note).toHaveBeenCalled();
   });
 
   it("show prints names, never player ids", async () => {

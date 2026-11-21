@@ -1116,6 +1116,24 @@ off that list and no other; with them logged out, `contacts remove <their
 name>` still removes them; `who` shows ids.
 *Commit:* `build(naming-overhaul WB4): notify and contacts speak relations`.
 
+✅ **Done.** `normalizeRef` became `groupRefFor(giver, raw)`: the bare
+pseudo-subjects pass, `~name` asks `Relating.groupRefOf`, and a typed
+`contacts:`/`managed:`/`mql:`/`party:`/`guild:` ref, a bare word or an
+unkept relation is refused with the relation spelling. `Contacts.groupRefOf`
+keys on `getPlayerId()` — the same key `SocialLogic.canonicalReservedRef`
+uses, so the reserved dedup holds. ⚠ **Found:** the settings card issued
+`notify set <groupRef>` — every button would have been refused. Decided:
+the `social.rules` projection carries a typed `subject` (`~friends`, the
+bare pseudo-subjects) and the card's commands use it; rule lines and echoes
+print the subject, never the ref. `subjectFor` asks `friends`/`foes` by
+name as well, since an empty reserved list answers `groupRefOf` but is not
+in `relationsFor`. `contacts remove` reads the list off `via.relation`,
+else the typed `~<label>:<them>`, else a trailing label; the offline
+fallback is still the old name match over the list's entries
+(`entryNamed` arrives with C6). `who` and the profile card print `@<id>`
+(`addressOf`) — ⭐ decided: withheld when a disguise masks identity, since
+the id would unmask them (lens 3a).
+
 ### Stage C — one rule
 
 **C0 — The rule moves; the census is taken and pinned.**

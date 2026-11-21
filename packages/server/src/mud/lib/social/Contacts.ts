@@ -223,6 +223,19 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       return [{ name, meaning: `your list "${name}"`, members }, ...below];
     }
+
+    /**
+     * A list's durable group ref (`contacts:<you>:<label>`) — what `notify`
+     * stores. `friends` and `foes` are reserved lists and stand even empty.
+     */
+    public groupRefOf(name: string, asker: Stuff | null): string | null {
+      const self = this as unknown as Stuff;
+      if (asker === self && (this.contactsByLabel(name).length > 0 || name === 'friends' || name === 'foes')) {
+        const playerId = self.getPlayerId();
+        if (playerId) return `contacts:${playerId}:${name}`;
+      }
+      return super.groupRefOf(name, asker);
+    }
   };
 }
 

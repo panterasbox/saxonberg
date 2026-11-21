@@ -222,6 +222,8 @@ export type PresenceStatus = 'active' | 'idle' | 'engaged' | 'reconnecting';
 export interface RosterRow {
   handle: string;
   header: string;
+  /** `@<id>` — what to type to address this player (absent when masked). */
+  address?: string;
   country?: string;
   status?: PresenceStatus;
   recognized: boolean;
@@ -405,6 +407,9 @@ export type ReleaseFeedFrame =
 export interface SocialRuleProjection {
   groupRef: string;
   label: string;
+  /** What the player types to name this rule in `notify` (`~friends`,
+   *  `~bookclub`, `strangers`) — the card's commands use it, never `groupRef`. */
+  subject: string;
   nameRendering: 'name' | 'feature-string' | 'count-only' | 'hidden';
   boostInDense: boolean;
   onConnect: 'show' | 'silent';

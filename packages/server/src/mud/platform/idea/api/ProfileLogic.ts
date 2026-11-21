@@ -54,6 +54,22 @@ function handleOf(target: Stuff): string {
   return target.getIdentityPath() ?? target.stuffId;
 }
 
+/**
+ * ⭐ The address a viewer may TYPE for a player — `@<their id>` (naming
+ * overhaul D-B6: nobody can type an id they cannot see). Undefined for a
+ * non-player, and for a disguise that masks who they are (the id would
+ * unmask them).
+ */
+function addressOf(viewer: Stuff, target: Stuff): string | undefined {
+  if (!PlayerApi.isAvatarStuff(target)) return undefined;
+  const self = viewer.stuffId === target.stuffId;
+  const masked =
+    !self &&
+    MixinApi.isDisguisable(target) &&
+    !!target.getDisguise()?.masksIdentity;
+  return masked ? undefined : `@${target.getPlayerId()}`;
+}
+
 /** Map a regard scalar to a qualitative line, or undefined when neutral. */
 function regardWord(regard: number): string | undefined {
   if (regard > 0) return 'You regard them warmly.';
@@ -130,6 +146,8 @@ export class ProfileLogic extends ApiLogic {
       header: self ? target.getPresentation() : target.describeFor(viewer),
       recognized,
     };
+    const address = addressOf(viewer, target);
+    if (address) row.address = address;
     if (PlayerApi.isAvatarStuff(target)) {
       const country = ConnectionApi.originOf(target.getPlayerId()).country;
       if (country) row.country = country;
@@ -155,6 +173,8 @@ export class ProfileLogic extends ApiLogic {
       isSelf: self,
       recognized,
     };
+    const address = addressOf(viewer, target);
+    if (address) card.address = address;
 
     // --- Account / world facts — always shown (Avatar-only) ---
     if (PlayerApi.isAvatarStuff(target)) {

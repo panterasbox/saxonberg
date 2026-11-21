@@ -179,11 +179,16 @@ their template name with an `(NPC)` suffix.
 entry counts. No `make` / `delete` for labels — once the last entry
 of a label is removed, the label drops out of `list` automatically.
 
-`contacts remove <target> <label>` matches against entries **already
-in the caller's list**. It does not do a global search. The match is
-case-insensitive against the stored `playerId` (for avatar entries)
-or `templatePath` (for npc entries). This makes `remove` cheap and
-keeps it from accidentally targeting an unrelated Avatar.
+`contacts remove ~<label>:<them>` takes one person off one list (naming
+overhaul D-B6/D-B12). Each list is a relation of yours (`me:~friends`),
+so the person binds THROUGH the list, and the controller reads the list
+off the binding (`via.relation`) — never re-parsing the words; they come
+off that list and no other. When the person is not in the world the
+query binds nothing, and `remove` falls back to the entries **already in
+the caller's list**: the list from the typed `~<label>:` (or a trailing
+label), the person matched case-insensitively by the name the entry goes
+by, or by the raw `playerId` / `templatePath`. It never does a global
+search, which keeps it from targeting an unrelated Avatar.
 
 `contacts clear <label>` bulk-removes every entry of a label;
 `contacts rename <old> <new>` is a non-destructive relabel.
