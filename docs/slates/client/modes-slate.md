@@ -287,18 +287,31 @@ always one place, so scale must be explicit), quarter-turn rotation and a top-do
 their walls by compass direction at their openings' sizes (a hidden way absent until found);
 staged fixtures as boxes to scale, arranged by a deterministic packing and **labeled as packed, not
 placed** (nothing records a position — the map-slate's rule); a count of what sits on each host.
-Every mark gets a tooltip (the tooltips rule). **Open:** named exits with no direction (`out`,
-`unit-4`) — on the wall facing their destination when the map knows it, else a strip; wall-slot
-adornments (a slot id, no position) — listed, not drawn.
+Every mark gets a tooltip (the tooltips rule). Named and interzone exits float outside the cube;
+wall-slot adornments are listed (below).
 
 - **Survey finding (2026-11-21, four rooms):** almost nothing has an authored size (only mugs and a
   phone charger carry `dimensions:`); no room authors `extent:`, `enclosure:`, `roof:` or a floor.
   A true-scale view needs **sizes derived on the server** from mass and material (the size code's
   fallback for things with no box). The cast is staged by business roles with shifts — the
   authored layer can say *when* someone works here.
+- **The client draws only what the server expresses** **[DECIDED — the owner]**: *"I don't want to
+  invent any geometry or relationships that aren't there. and no jumping through hoops to derive
+  from the engine it doesn't express naturally."* So exits with no compass direction (named exits,
+  interzone exits) **float outside the cube** in a strip of their own; wall-slot adornments are
+  listed, not drawn; sizes come only from the engine's own size read (authored box, else what mass
+  and material give) — nothing read means no box, listed *size unknown*. Arrangement **within one
+  container** may be arbitrary — *"I'm okay with making up relative position between the items if
+  the server just says they're all in a big container together. as long as the models stay
+  noticeably abstract"* — plain boxes, never a detailed render, and **no relationship the engine
+  does not hold** (no stacking, no facing, no *next to*). Relations it does hold are drawn as held
+  (*on the well: 10*).
 - **One renderer for any container's interior** **[LEAN]**: a place is the largest container (the
   size code gives it a cubic interior). For a vessel, packing is the function, not decoration — fit
-  by the sides it closes, its mouth, how full it is, a liquid's fill line. Consumers: the
+  by the sides it closes, its mouth, how full it is, a liquid's fill line. **Nothing is stacked
+  inside a vessel** (*"I dunno about putting a loaf of bread at the bottom of a sack of melons. the
+  game doesn't express any of that"*): the shell with a fill level (packed volume over interior),
+  the contents listed or as a flat row of sized blocks beside it; only a liquid's level sits inside. Consumers: the
   inspection card for a container, craft (the pot on the fire — likely first), carrying and
   inventory, a ship's hold.
 
