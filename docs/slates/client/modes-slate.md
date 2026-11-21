@@ -63,6 +63,7 @@ discussed what it is yet"*):
 
 1. **Explore** — finish the navigation card; then the perception half and the handoff (§ 5).
 2. **Watch** — the Twitch arrival funnel. Deadline: the Twitch launch after New Year.
+   *Then the prompt design pass (§ 6a), before chat.*
 3. **Learn** — sooner than it looked. The first session runs lounge → dorm → orientation, so
    Learn is the mode a new player reaches right after explore; and it produces the cards
    everything else reuses (§ 6). The cockpit slate's study / classroom / tutor modes fold into it.
@@ -182,6 +183,22 @@ are.
     sizes). **The window caps the step and never rewrites it**: when the chosen step no longer fits,
     the largest that fits shows, and widening returns the player's step — as placed cards fold and
     return today.
+11. **Terminals and bars** **[DECIDED — the owner]** — a bar per terminal (input lives with its
+    output, grammar § Command bars), and **a mode's default layout never opens more than two
+    terminals** (everything, plus at most one split). The owner: *"multiple command bars have
+    diminishing returns pretty quickly. two helps you context switch but more than 3 and it's a
+    decision matrix to work out."* A player may open more. **The everything terminal's bar is the
+    plain prompt** in every mode; **the prefix follows what you mostly type in that terminal** — so
+    watch's lone terminal at the large step carries the chat prefix, with `/` always reaching
+    commands.
+
+**Open, its own pass before chat: the prompt design.** What a prompt shows, how a prefix reads at a
+glance so two bars compare instantly, `prompt.format` customization (`PromptMixin`, named in
+[shell-environment.md](../../subsystems/shell-environment.md) and unbuilt), and the phone's target
+chip. The owner: *"one thing all this stuff does is make us have to revisit the whole prompt
+customization design and interface which has gotten changed around several times and probably
+isn't yet where it needs to be."*
+
 
 **Explore in this language:** the terminal is the subject (the grammar's *single* split); the
 navigation card is the one permanent support explore argues for; cards come and go. Its behavior
