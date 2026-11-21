@@ -61,7 +61,8 @@ export const handleLocalityFacts: InboundHandler = async (ctx, message) => {
 };
 
 async function factsFor(viewer: Stuff, address: string): Promise<LocalityFacts | null> {
-  const key = viewer.getIdentityPath();
+  // The map's OWNER key — a guest's map is a session map.
+  const key = MixinApi.isCartographer(viewer) ? viewer.mapOwnerKey() : viewer.getIdentityPath();
   if (!key) return null;
   // ⭐ The gate: your own map holds this Locality.
   const docs = await NavigationApi.readMap(key, address);
