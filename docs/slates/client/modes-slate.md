@@ -280,6 +280,21 @@ staged or authored."* So:
 - The navigation design's *"position, never place"* holds at zone depth; the room depth is the
   authored place at your position.
 
+**Reconciled with the navigation card as built** **[LEAN, 2026-11-21]** (MR !640, build-2, in
+review — read from `build/navigation`): the built card is, top to bottom, **the trail** (one trail,
+areas then the room — *the trail is an address*), the map and its lens row, **the ground line**
+(whose ground, who keeps it), the ways, then the sections **horizon · structure · here (the place)
+· you** — *every row in every place, always* (a newcomer has no baseline). Mapping the depths onto
+it, with no change to !640:
+
+- **The trail is the spine** shared by every depth (it replaces the prototype's *you are here*
+  plus crumbs). The depth switch sits above it — a follow-on build after !640 merges.
+- **Zone depth is the built card, unchanged**, including its *here (the place)* section: those rows
+  (light, sky, water, crowding, hazards, what your map knows) bear on moving through, so they stay
+  at zone depth and the room depth does not repeat them.
+- **Room depth** is the authored layer and the room view; *every row, always* applies to it too.
+- **Region depth** grows from the trail's upper levels and the ground line — undesigned.
+
 **The room view — an isometric cube at true scale** **[LEAN — the owner: "this actually looks pretty
 sexy"; prototype artifact AZNSH7t6edfN4kpiLgpPnz]**. Zooming from the minimap's cell into the room:
 the room as its true cube (its extent, ceiling = extent), a 1 m grid and a ruler (the card is
