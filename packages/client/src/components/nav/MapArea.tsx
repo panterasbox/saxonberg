@@ -16,7 +16,7 @@ import React from "react";
 import styled from "styled-components";
 import type { NavSections, TooltipDoc, WireRoutePlan } from "@saxonberg/types";
 import { useStore } from "../../store/index";
-import { zoneView, type ViewEdge, type ViewPlace, type ZoneView } from "../../store/navSelectors";
+import { PRESENT_KEY, withPresent, zoneView, type ViewEdge, type ViewPlace, type ZoneView } from "../../store/navSelectors";
 import { tokens } from "../ui";
 import { Tip } from "../tooltip/Tip";
 import { controlDoc, levelDoc } from "../doc/docs";
@@ -154,11 +154,23 @@ export function MapArea(props: MapAreaProps): React.ReactElement {
     () => sections.localities?.chain.map((c) => c.address) ?? [],
     [sections.localities],
   );
-  const view = React.useMemo(
-    () => (zonePath ? zoneView(mapCopy, zonePath, addresses) : null),
-    [mapCopy, zonePath, addresses],
-  );
-  const at = sections.place?.at ?? props.standAt;
+  const view = React.useMemo(() => {
+    if (!zonePath) return null;
+    const recorded = zoneView(mapCopy, zonePath, addresses);
+    const place = sections.place;
+    // The room you stand in, from what you see now, when your map has not
+    // recorded it (a fresh player; the lounge, never recorded).
+    return place
+      ? withPresent(recorded, {
+          name: place.name,
+          ...(place.at ?? props.standAt ? { at: (place.at ?? props.standAt)! } : {}),
+          ...(place.dark ? { dark: true } : {}),
+          ways: sections.ways?.ways ?? [],
+        })
+      : recorded;
+  }, [mapCopy, zonePath, addresses, sections.place, sections.ways, props.standAt]);
+  const present = view?.places.find((p) => p.key === PRESENT_KEY);
+  const at = sections.place?.at ?? props.standAt ?? (present ? { x: present.x, y: present.y, z: present.level } : undefined);
   const here = at ? { x: at.x, y: at.y, level: at.z } : undefined;
 
   const [shownLevel, setShownLevel] = React.useState<number | null>(null);

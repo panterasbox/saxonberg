@@ -728,3 +728,73 @@ export function inferStanding(
   }
   return undefined;
 }
+
+/** The key of the room you stand in when it is drawn from what you see now. */
+export const PRESENT_KEY = "__present";
+
+/**
+ * ⭐ The room you stand in, drawn from what you perceive NOW when your map
+ * has not recorded it (owner, review: *"I dont understand why I dont have a
+ * map in the lounge"*): a fresh player has walked nowhere, and a copy's
+ * room — the lounge — is never recorded at all. Lit, it is drawn where you
+ * stand with its ways out; dark, nothing is (you cannot see it). Recorded
+ * places build up around it as you walk. Never written to your map.
+ */
+export function withPresent(
+  view: ZoneView,
+  present: {
+    name: string;
+    at?: { x: number; y: number; z: number };
+    dark?: boolean;
+    ways: readonly { direction: string; crossesZone: boolean }[];
+  },
+): ZoneView {
+  if (present.dark) return view;
+  const at = present.at ?? (view.places.length === 0 ? { x: 0, y: 0, z: 0 } : undefined);
+  if (!at) return view;
+  if (view.places.some((p) => p.x === at.x && p.y === at.y && p.level === at.z)) return view;
+  const place: ViewPlace = {
+    key: PRESENT_KEY,
+    name: present.name,
+    keywords: [],
+    locality: "",
+    placed: true,
+    zone: view.zone,
+    x: at.x,
+    y: at.y,
+    level: at.z,
+    tier: "walked",
+    sources: [],
+    firstSeen: 0,
+    lastSeen: 0,
+  };
+  const edges: ViewEdge[] = [];
+  for (const w of present.ways) {
+    const dir = longDirection(w.direction);
+    const vec = DIRECTION_VECTORS[dir];
+    if (!vec) continue;
+    const far = view.places.find((p) => p.x === at.x + vec[0] && p.y === at.y + vec[1] && p.level === at.z + vec[2]);
+    const shape: EdgeShape = vec[2] !== 0 ? "vertical" : far ? "link" : w.crossesZone ? "leaves" : "opening";
+    edges.push({
+      id: `${PRESENT_KEY}|${dir}|0`,
+      from: PRESENT_KEY,
+      dir,
+      shape,
+      ...(far ? { to: far.key } : {}),
+      stale: false,
+      foundBySearching: false,
+      conflict: false,
+      variant: 0,
+      ...(shape === "vertical" ? { farKnown: far !== undefined } : {}),
+      claims: [],
+      firstSeen: 0,
+      lastSeen: 0,
+    });
+  }
+  return {
+    ...view,
+    places: [...view.places, place],
+    edges: [...view.edges, ...edges],
+    levels: view.levels.includes(at.z) ? view.levels : [...view.levels, at.z].sort((a, b) => a - b),
+  };
+}
