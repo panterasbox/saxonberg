@@ -127,10 +127,13 @@ const WEATHERING = `${BF}/weathering-ground`;
 const HACKS = `${BF}/hacks`;
 const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
 const PUT_IN = '/world/terminus/rejection/put-in/landing';
+const TOWN_QUAY = '/world/terminus/harbor/town-quay';
 const HESPER = '/world/terminus/hesper/structure';
 const HESPER_DECK = '/world/terminus/hesper/deck';
 const HESPER_CO = '/world/terminus/hesper/idea/outfit';
 const KESTREL = '/stuff/idea/Watercourse/kestrel';
+/** The water pack's extent — where an `eval` may read the river's own catalogue. */
+const WATER = '/system/water';
 const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
 
 /* ───────────────────────────── rows ───────────────────────────── */
@@ -1025,10 +1028,21 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
     // By night: a snag in a choked reach is SEEN by day and held off, and
     // STRUCK by night (`snagVerdict`).
     await toHour(22);
-    boatman = await at(boatman.handle, PUT_IN);
+    // ⭐ DISCOVERED (run 8, the line asked over the /system/water seat): the
+    // Kestrel above km 51 is ALL rapid — a cascade, every bend broken water —
+    // so the first stretch (the Rejection put-in, bend #4 at km 58.5–59.2)
+    // put a holed, bailed rowboat over in its own white water (runs 2–7:
+    // `Boat.reconcileFloat`, wave = roughness × 0.6 over her 0.3 m freeboard).
+    // A choked bend low on the river is a crossing, a run and a POOL that
+    // share one obstruction: kestrel:634–636, km 2.0–2.26 (0.55 over
+    // `SNAG_CHOKED` 0.5), a kilometer and a half above the Town Quay. Paddled
+    // UP from the quay she enters its pool first — still water — and is
+    // stove in there, where bailing and patching her is a thing a boatman
+    // can do.
+    boatman = await at(boatman.handle, TOWN_QUAY);
     // No light: the snag is struck by night. The jar in her pocket leaves her
     // hands for the planking and the edge (a full pair would set them down
-    // on the shingle, out of reach once she is afloat).
+    // on the quay, out of reach once she is afloat).
     await pocketJar(boatman);
     // Stock of her own planking and an edge to work it (`repair` help).
     await hand(boatman, T.billet);
@@ -1037,16 +1051,13 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
     const boat = await hand(boatman, T.rowboat, { keywords: ['rowboat', 'boat', 'skiff', TAG.boat11] });
     expectOk(await boatman.cmd(`go #${boat}`));
     expect(await say(boatman, 'launch')).toMatch(/floats/);
-    // ⚠ DISCOVERED (W0, offline): the put-in is km 60.4 (bend #2, clear);
-    // the nearest choked bend is #4, about km 59.2–58.5 (obstruction ≈ 0.52
-    // over `SNAG_CHOKED` 0.5). Paddled hard downstream into it.
-    expectOk(await boatman.cmd('paddle downstream --hard'));
+    expectOk(await boatman.cmd('paddle upstream --hard'));
     let heard = '';
-    for (let i = 0; i < 60 && !/stove in on a snag/.test(heard); i++) {
+    for (let i = 0; i < 80 && !/stove in on a snag/.test(heard); i++) {
       heard += ' ' + squash(await boatman.listen(15_000));
       if (/swamp|goes over|upside down/.test(heard)) break;
-      if (/grounds|nothing to paddle|not on any water|stops/.test(heard) && !/stove in/.test(heard)) {
-        await boatman.cmd('paddle downstream --hard');
+      if (/grounds|nothing to paddle|not on any water|stops|arms are going|wrong way/.test(heard) && !/stove in/.test(heard)) {
+        await boatman.cmd('paddle upstream --hard');
       }
     }
     note(`  [11] the paddle: ${heard.slice(0, 600)}`);
@@ -1075,23 +1086,24 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
     for (let i = 0; i < 3; i++) after += ' ' + (await act(boatman, `bail #${boat}`)).said;
     expect(after, `the patched boat: ${after}`).toMatch(/She is dry|not rising|dry/i);
     // A staged cross-check, recorded: the boat's flaws after the patch.
-    const flaws = await evalOn(boatman, REJ, TAG.boat11, `JSON.stringify(this.getFlaws())`).catch((err: unknown) => String(err));
+    const flaws = await evalOn(boatman, TERMINUS, TAG.boat11, `JSON.stringify(this.getFlaws())`).catch((err: unknown) => String(err));
     note(`  [11] the rowboat's flaws after the patch: ${JSON.stringify(flaws)}`);
 
     // ── the Hesper ──
-    // ⚠ DISCOVERED: the choked stretch she is run into. Snags are SEEDED per
-    // bend on wooded stretches, never authored, and none was computed for
-    // the city's river at plan time — so the catalogue is asked.
-    const gov = await founder(BANK_HALL);
-    let choked: { id: string; downKm: number; upKm: number; obstruction: number }[] = [];
+    // ⭐ The choked stretch she is run into. Snags are SEEDED per bend on
+    // wooded stretches, never authored, so the catalogue is asked — over the
+    // /system/water seat (run 8: from the city's own extent the sandbox
+    // refused `lineOf`, a /system/water object, so this half had never run).
+    const gov = await Session.open('founder', { startLocation: BANK_HALL, committees: [...SEATS, WATER] });
+    let choked: { id: string; ordinal: number; downKm: number; upKm: number; obstruction: number }[] = [];
     let quayKm = NaN;
     try {
       const found = (await evalIn(
         gov,
-        TERMINUS,
+        WATER,
         `return JSON.stringify(await (async () => { const cat = await StuffApi.singleton('/system/water/idea/WatercourseCatalogue'); ` +
           `const line = await cat.lineOf('kestrel'); const seen = {}; const out = []; ` +
-          `for (let km = 0.05; km < 62; km += 0.05) { const s = line.stretchAt(km); if (s && s.obstruction > 0.5 && !seen[s.id]) { seen[s.id] = 1; out.push({ id: s.id, downKm: s.downKm, upKm: s.upKm, obstruction: s.obstruction }); } } ` +
+          `for (let km = 0.05; km < 62; km += 0.02) { const s = line.stretchAt(km); if (s && s.obstruction > 0.5 && !seen[s.id]) { seen[s.id] = 1; out.push({ id: s.id, ordinal: s.ordinal, downKm: s.downKm, upKm: s.upKm, obstruction: s.obstruction }); } } ` +
           `const quay = cat.landingNamed('kestrel', 'town quay'); return { choked: out, quayKm: quay ? quay.km : null }; })())`,
       )) as { choked?: typeof choked; quayKm?: number | null };
       choked = found.choked ?? [];
@@ -1099,15 +1111,19 @@ suite('⭐⭐ one hole rule — a snag, `bail` and `repair` (AC 1, 10)', () => {
     } finally {
       gov.close();
     }
-    note(`  [11] ⚠ DISCOVERED: choked stretches on the Kestrel ${JSON.stringify(choked)}; the Town Quay at km ${quayKm}`);
+    note(`  [11] ⚠ DISCOVERED: ${choked.length} choked stretches on the Kestrel; the Town Quay at km ${quayKm}`);
     expect(choked.length, 'no choked stretch on the Kestrel to run the Hesper into').toBeGreaterThan(0);
-    // The choked stretch nearest the quay; she is staged on its far side, in
-    // the stretch beside it, so her course to the quay runs through it.
-    const target = [...choked].sort((x, y) => Math.abs((x.upKm + x.downKm) / 2 - quayKm) - Math.abs((y.upKm + y.downKm) / 2 - quayKm))[0]!;
-    const ordinal = Number(target.id.split(':')[1]);
-    // Stretch ids are source-first: a larger ordinal is downstream.
-    const beside = (target.upKm + target.downKm) / 2 > quayKm ? ordinal - 1 : ordinal + 1;
-    note(`  [11] the Hesper staged at kestrel:${beside}, beside ${target.id} (km ${target.downKm.toFixed(2)}–${target.upKm.toFixed(2)})`);
+    // The choked bend nearest above the quay (the rowboat's); she is staged
+    // just above it — the first stretch upstream that is NOT choked (a bend's
+    // crossing, run and pool share one obstruction; stretch ids are
+    // source-first, so upstream is the smaller ordinal) — and her course to
+    // the quay runs down through it.
+    const above = choked.filter((c) => c.downKm > quayKm).sort((x, y) => x.downKm - y.downKm);
+    expect(above.length, 'no choked stretch above the Town Quay').toBeGreaterThan(0);
+    const chokedIds = new Set(choked.map((c) => c.ordinal));
+    let beside = above[0]!.ordinal;
+    while (chokedIds.has(beside)) beside -= 1;
+    note(`  [11] the Hesper staged at kestrel:${beside}, above ${above[0]!.id} (km ${above[0]!.downKm.toFixed(2)}–${above[0]!.upKm.toFixed(2)})`);
     await stageShip(HESPER, {});
     const master = await at(boatman.handle, HESPER_DECK);
     boatman = master;
@@ -1249,6 +1265,16 @@ suite('⭐⭐ one vaporization — the kiln, the copper, the retort (AC 7, 8)', 
     }
     note(`  [13] the copper after the boil: ${await kelvin(boiler, 'copper')} K`);
     const steamy = figure(await say(boiler, 'measure humidity'), /humid|%/i);
+    // ⭐ A nose two hours in a smell has stopped hearing it (`Olfactory`'s
+    // adaptation: two bands down after twenty minutes' stay). Run 7's boiler
+    // stood over the copper the whole boil and smelt no damp at 106 %; a
+    // body walking IN to a steamy room is the one that notices. So she steps
+    // out to the curing house for twenty minutes (her nose recovers a band
+    // each ten) with the fire kept in, and smells the floor coming back.
+    await fire(boiler, 'arch', 'coal', 2);
+    boiler = await at(boiler.handle, CURING);
+    await advanceLiving('20 minutes', [boiler]);
+    boiler = await at(boiler.handle, BOILING);
     // ⚠ `smell here`, not a bare `smell`: the bare form takes the last thing
     // named as its object (the first run's smelled the arch it had looked at).
     // `analyze aroma` names every note the nose has; a bare `smell` tells the
@@ -1268,7 +1294,17 @@ suite('⭐⭐ one vaporization — the kiln, the copper, the retort (AC 7, 8)', 
     await say(boiler, 'light retort');
     await say(boiler, 'put cordwood in retort');
     await say(boiler, 'fire in retort for 3 hours');
-    await advanceLiving('3 hours', [boiler]);
+    // ⚠ Out and back again for the last twenty minutes of the firing, for
+    // the reason the damp needed it: run 8's boiler stood three hours over
+    // the retort and her nose had stopped hearing it ("smell here" told the
+    // room and nothing in its air).
+    await advanceLiving('160 minutes', [boiler]);
+    boiler = await at(boiler.handle, CURING);
+    await advanceLiving('20 minutes', [boiler]);
+    boiler = await at(boiler.handle, BOILING);
+    // The analyzer to NAME what is in the air (run 8 read it bare: "thick
+    // with something").
+    await hand(boiler, T.gasAnalyzer);
     const fouled = await say(boiler, 'smell here');
     const air = await say(boiler, 'analyze atmosphere');
     expect(`${fouled} ${air}`, `the retort's fumes: ${fouled} | ${air}`).toMatch(/smoke|tar|acrid|creosote|pitch|gas/i);
