@@ -335,7 +335,7 @@ export function NavCard(props: NavCardProps): React.ReactElement {
         key={name}
         name={name}
         summary={summaries[name]!}
-        {...(name === "you" ? { title: "You" } : {})}
+        {...(name === "you" ? { title: "You" } : name === "place" ? { title: "Here" } : {})}
         open={isOpen(name)}
         set={memory.sections[name] !== undefined}
         onToggle={(open) => setSection(name, open ? "open" : "closed")}

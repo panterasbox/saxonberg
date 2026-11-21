@@ -42,17 +42,23 @@ const Link = styled.button`
 
 /** One fact on one row, led by its icon — the card's one way to show a fact. */
 const FactRow = styled.div`
-  display: flex;
+  display: grid;
+  grid-template-columns: 14px 4.6rem 1fr;
   align-items: center;
   gap: ${tokens.space.sm};
   min-height: 20px;
   color: ${tokens.color.fg};
 `;
 
+const FactLabel = styled.span`
+  color: ${tokens.color.fgMuted};
+`;
+
 export function Fact({ icon, label, children, testid }: { icon: string; label: string; children: React.ReactNode; testid?: string }): React.ReactElement {
   return (
     <FactRow {...(testid ? { "data-testid": testid } : {})}>
       <Icon name={icon} label={label} size={13} decorative color={tokens.color.fgDim} />
+      <FactLabel>{label}</FactLabel>
       <span>{children}</span>
     </FactRow>
   );
@@ -78,8 +84,8 @@ export function GroundLine({ sections }: { sections: NavSections }): React.React
       }}
     >
       <div data-testid="nav-jurisdiction" tabIndex={0}>
-        <Fact icon="place.ground" label="whose ground">
-          {keepers[0]?.name ?? "Unclaimed ground"}
+        <Fact icon="place.ground" label="government">
+          {keepers[0]?.name ?? "none — unclaimed ground"}
         </Fact>
       </div>
     </Tip>
@@ -243,6 +249,11 @@ export function placeSummary(s: NavSections): string {
   return light.charAt(0).toUpperCase() + light.slice(1);
 }
 
+/**
+ * ⭐ Every row, in every place, always (owner, review): a newcomer has no
+ * baseline, so hiding the "ordinary" value hides the vocabulary. A row the
+ * server leaves out does not apply here, and says so in words.
+ */
 export function PlaceBody({
   sections,
   known,
@@ -251,26 +262,28 @@ export function PlaceBody({
   known?: ViewPlace;
 }): React.ReactElement {
   const p = sections.place!;
+  const light = p.dark ? "dark — you cannot see" : (p.light ?? "unknown");
+  const overhead =
+    p.openSky === undefined ? "unknown" : p.openSky ? "open sky" : "a roof";
+  const ceiling =
+    p.lowCeiling === undefined ? "unknown" : p.lowCeiling ? "low — you must stoop" : "clear";
+  const crowd = p.crowd ?? 0;
   return (
     <div data-testid="nav-place-section">
-      {p.openSky !== undefined ? (
-        <Fact icon={p.openSky ? "place.sky" : "place.roof"} label="above">
-          {p.openSky ? "open sky" : "under a roof"}
-          {p.lowCeiling ? " (low)" : ""}
-        </Fact>
-      ) : null}
-      {p.water ? <Fact icon="place.water" label="water">{p.water}</Fact> : null}
-      {p.crowd !== undefined && p.crowd > 0 ? (
-        <Fact icon="place.crowd" label="others here">
-          {p.crowd} other{p.crowd === 1 ? "" : "s"} here
-        </Fact>
-      ) : null}
-      {p.elevationM !== undefined && Math.round(p.elevationM) !== 0 ? (
-        <Fact icon="place.elevation" label="elevation">
-          {Math.round(p.elevationM)} m above the sea
-        </Fact>
-      ) : null}
-      <Fact icon="nav.room" label="on your map" testid="nav-place-known">
+      <Fact icon={p.dark ? "place.dark" : "place.lit"} label="light">{light}</Fact>
+      <Fact icon={p.openSky ? "place.sky" : "place.roof"} label="overhead">{overhead}</Fact>
+      <Fact icon="place.roof" label="ceiling">{ceiling}</Fact>
+      <Fact icon="place.weather" label="weather">{p.weather ?? "unknown"}</Fact>
+      <Fact icon="place.season" label="season">{p.season ?? "unknown"}</Fact>
+      <Fact icon="place.time" label="time">{p.daylight ?? "unknown"}</Fact>
+      <Fact icon="place.water" label="water">{p.water ?? "none"}</Fact>
+      <Fact icon="place.crowd" label="others">
+        {crowd === 0 ? "nobody else here" : `${crowd} other${crowd === 1 ? "" : "s"} here`}
+      </Fact>
+      <Fact icon="place.elevation" label="height">
+        {p.elevationM === undefined ? "unknown" : `${Math.round(p.elevationM)} m above the sea`}
+      </Fact>
+      <Fact icon="nav.room" label="your map" testid="nav-place-known">
         {known ? "on your map" : "not on your map"}
       </Fact>
     </div>
@@ -290,22 +303,31 @@ export function youSummary(s: NavSections): string | null {
   return parts.join(" · ");
 }
 
+/** Every row, always — the same rule as the place (see PlaceBody). */
 export function YouBody({ sections }: { sections: NavSections }): React.ReactElement {
   const y = sections.you!;
+  const hands =
+    y.hands && y.hands.length > 0
+      ? y.hands.map((h) => `${h.slot}: ${h.holds ?? "empty"}`).join(", ")
+      : y.freeHands !== undefined
+        ? `${y.freeHands} free`
+        : "unknown";
   return (
     <div data-testid="nav-you">
-      {y.pace ? <Fact icon="mode.walk" label="pace">{y.pace}</Fact> : null}
-      {y.posture ? <Fact icon="nav.you" label="posture">{y.posture}</Fact> : null}
-      {y.load ? <Fact icon="you.load" label="load">{y.load}</Fact> : null}
-      {y.light ? <Fact icon="place.lit" label="light">{y.light}</Fact> : null}
-      {y.mount ? <Fact icon="mode.walk" label="riding">riding {y.mount}</Fact> : null}
-      {y.bars && y.bars.length > 0 ? <Fact icon="way.refuses" label="held back">{y.bars.join(" ")}</Fact> : null}
-      {y.fighting ? (
-        <Fact icon="you.fighting" label="fighting">
-          {y.fighting.foes} foe{y.fighting.foes === 1 ? "" : "s"}
-          {y.fighting.breakaway ? ` — ${y.fighting.breakaway}` : ""}
-        </Fact>
-      ) : null}
+      <Fact icon="mode.walk" label="pace">{y.pace ?? "unknown"}</Fact>
+      <Fact icon="you.posture" label="posture">{y.posture ?? "unknown"}</Fact>
+      <Fact icon="you.hands" label="hands">{hands}</Fact>
+      <Fact icon="you.load" label="load">{y.load ?? "unknown"}</Fact>
+      <Fact icon="you.light" label="your light">{y.light ?? "none"}</Fact>
+      <Fact icon="mode.walk" label="riding">{y.mount ?? "nothing"}</Fact>
+      <Fact icon="you.lead" label="leading">{y.led && y.led.length > 0 ? y.led.join(", ") : "nobody"}</Fact>
+      <Fact icon="you.cart" label="pulling">{y.cart ?? "nothing"}</Fact>
+      <Fact icon="you.held" label="held back">{y.bars && y.bars.length > 0 ? y.bars.join(" ") : "no"}</Fact>
+      <Fact icon="you.fighting" label="fighting">
+        {y.fighting
+          ? `${y.fighting.foes} foe${y.fighting.foes === 1 ? "" : "s"}${y.fighting.breakaway ? ` — ${y.fighting.breakaway}` : ""}`
+          : "no"}
+      </Fact>
     </div>
   );
 }

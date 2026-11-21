@@ -16,6 +16,15 @@
  */
 
 import {
+  CloudSun,
+  Clock,
+  Flashlight,
+  Hand,
+  Leaf,
+  Link,
+  PersonStanding,
+  ShoppingCart,
+  Ban,
   ArrowDown,
   ArrowDownLeft,
   ArrowDownRight,
@@ -155,6 +164,15 @@ export const ICONS = {
   "section.you": User,
   "you.load": Package,
   "you.fighting": Swords,
+  "you.posture": PersonStanding,
+  "you.hands": Hand,
+  "you.light": Flashlight,
+  "you.lead": Link,
+  "you.cart": ShoppingCart,
+  "you.held": Ban,
+  "place.weather": CloudSun,
+  "place.season": Leaf,
+  "place.time": Clock,
   "ui.open": ChevronDown,
   "ui.closed": ChevronRight,
 } satisfies Record<string, LucideIcon>;
