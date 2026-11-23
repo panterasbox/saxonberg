@@ -47,6 +47,7 @@ export class PersistedRecord extends Document {
     state: { persistent: true },
     place: { persistent: true },
     writtenAt: { persistent: true },
+    pinned: { persistent: true },
   };
 
   /** The host's singleton `templatePath` — identity + re-clone base. */
@@ -76,6 +77,14 @@ export class PersistedRecord extends Document {
    * `PersistableLogic` on every write; 0 on a row written before it existed.
    */
   writtenAt: number = 0;
+
+  /**
+   * ⭐ Stand this record's host up at boot without anybody asking
+   * (persistence-model N8): set on capture when the host's class pins
+   * (`pinsResidency`, a kept animal) and it has an explicit key. The
+   * residency pin roll's one read — a sparse field under a partial index.
+   */
+  pinned: boolean = false;
 
   getWrittenAt(): number {
     return this.writtenAt;
@@ -109,6 +118,11 @@ export class PersistedRecord extends Document {
   ): Promise<PersistedRecord | null> {
     const rows = await PersistedRecord.find<PersistedRecord>({ scope, owner });
     return rows[0] ?? null;
+  }
+
+  /** Every pinned record — the residency pin roll's input (the partial index's own predicate). */
+  static async findPinned(): Promise<PersistedRecord[]> {
+    return PersistedRecord.find<PersistedRecord>({ pinned: true });
   }
 
   /** Every record a principal owns (the account-deletion cascade input). */

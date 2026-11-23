@@ -238,7 +238,6 @@ describe('Garment — pockets as regions (D26)', () => {
       },
       captureState: () => ({}),
       indexOf: () => -1,
-      noteOwnedGood: () => undefined,
     });
     expect(slice.contents).toHaveLength(1);
     expect(captured).toEqual([{ item: k, placement: { placement: 'right pocket' } }]);

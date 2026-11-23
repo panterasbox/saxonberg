@@ -19,7 +19,7 @@
  * The stack, outer → inner, and what each earns its place with:
  *
  * ```
- * Persistable   it can be promoted to something the world remembers
+ * Persistable   once kept (it chose somebody) it keeps itself — a body
  *   Behaved     it decides things: follows · feeds · homes
  *     Bonded    the bond, the home, the verbs           ⟵ the point
  *       Status  legible attention ("watching the stock")
@@ -84,6 +84,9 @@ import { BehavedMixin } from '../behavior/Behaved';
 import { PersistableMixin } from '../persistence/Persistable';
 import { ChattelMixin } from '../chattel/Chattel';
 import { BrandedMixin } from '../corpo/Branded';
+import { PersistableApi } from '../../api/persistable';
+import type { Stuff } from '../stuff/Stuff';
+import type { Container } from '../spatial/Container';
 
 // Named beneath the agency layers so the stack reads outermost-first and
 // inference does not collapse across this many nested factories in one
@@ -134,6 +137,29 @@ export class KeptAnimal extends KeptAnimalBase {
    */
   public override pinsResidency(): boolean {
     return true;
+  }
+
+  /**
+   * ⭐⭐ A kept animal keeps itself; a stray keeps nothing (persistence-model
+   * D8). Kept is the bond's own fact (`isKept` — it followed somebody it is
+   * bonded to, or earned a home), never its name.
+   */
+  public override shouldPersist(): boolean {
+    return super.shouldPersist() && this.isKept();
+  }
+
+  /**
+   * ⭐ A kept animal's record follows it: it captures when it changes place,
+   * so the pin roll stands it up where it now is (the write the chattel
+   * `place` made before, persistence-model D8). Fire-and-forget; a failure
+   * is said.
+   */
+  public onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+    super.onMoved?.(from, to);
+    if (to === null || !this.isKept() || !this.isPersistenceKeyExplicit()) return;
+    void PersistableApi.capture(this as unknown as Stuff).catch((err: unknown) =>
+      console.warn('KeptAnimal: capturing after a move failed:', err),
+    );
   }
 }
 

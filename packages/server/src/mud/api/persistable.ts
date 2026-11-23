@@ -34,15 +34,7 @@ import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 import { ExecutionContextApi } from './execution-context';
 import { TestOnly } from '../lib/security/decorators';
-import type {
-  MixinSlice,
-  EstateEntry,
-} from "../lib/persistence/PersistenceSlice";
-
-export type {
-  EstateEntry,
-  EstateSlice,
-} from "../lib/persistence/PersistenceSlice";
+import type { MixinSlice } from "../lib/persistence/PersistenceSlice";
 
 const LOGIC_PATH = "/platform/idea/api/persistable";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -95,6 +87,15 @@ export class PersistableApi {
    */
   static captureAtShutdown(): Promise<ShutdownCaptureReport> {
     return logic().captureAtShutdown();
+  }
+
+  /**
+   * ⭐ Every pinned record — `(scope, key)` of each host the residency pin
+   * roll stands up at boot (persistence-model N8: a kept animal). Reads the
+   * partial index, sized by the number of pins and nothing else.
+   */
+  static pinned(): Promise<Array<{ scope: string; key: string }>> {
+    return logic().pinned();
   }
 
   /**
@@ -206,18 +207,7 @@ export class PersistableApi {
     return logic().standUpKeyed(scope, key, opts);
   }
 
-  /**
-   * Capture one **non-host** Stuff's composed state, detached from any
-   * record — the shape a {@link ContentEntry} nests and an
-   * {@link EstateEntry} carries. Synchronous, because the capture walk is.
-   *
-   * The seam owner-based persistence needs: a good whose `place` is not its
-   * owner's own container is not in anybody's container slice, so its state
-   * has to be taken directly at the moment it moves.
-   */
-  static captureDetached(item: Stuff): Record<string, MixinSlice> {
-    return logic().captureDetached(item);
-  }
+
 
   /**
    * The **room identity** an owned good's `place` names — a host's
@@ -229,18 +219,7 @@ export class PersistableApi {
     return logic().placeIdOf(host);
   }
 
-  /**
-   * Reconstitute a good from an {@link EstateEntry} into `container`, as
-   * `principal` — the room-overlay half of owner-based persistence (D4).
-   * Returns the live good, or null when its template no longer resolves.
-   */
-  static restoreDetached(
-    entry: EstateEntry,
-    container: Stuff,
-    principal: Stuff,
-  ): Promise<Stuff | null> {
-    return logic().restoreDetached(entry, container, principal);
-  }
+
 
   /**
    * One field of one mixin as it stands on `scope`'s record, with nothing loaded;

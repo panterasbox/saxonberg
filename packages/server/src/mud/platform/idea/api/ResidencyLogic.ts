@@ -44,7 +44,6 @@ import { ConnectionApi } from '../../../api/connection';
 import { MixinApi } from '../../../api/mixin';
 import type { BlessingOdds } from '../../../lib/magic/Blessing';
 import { PersistableApi } from '../../../api/persistable';
-import { ChattelApi } from '../../../api/chattel';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
@@ -831,15 +830,16 @@ export class ResidencyLogic extends ApiLogic {
   @CallSecurity(ResidencyBootCallers)
   public async pinNow(): Promise<PinRollReport> {
     const report: PinRollReport = { pinned: 0, stoodUp: 0, failed: 0 };
-    let pins: Array<{ pin: { scope: string; key: string }; place: string }>;
+    let pins: Array<{ scope: string; key: string }>;
     try {
-      pins = await ChattelApi.pinned();
+      // ⭐ The pin rides the record (persistence-model N8).
+      pins = await PersistableApi.pinned();
     } catch (err) {
-      console.warn('[residency] pin roll could not read the chattel index', err);
+      console.warn('[residency] pin roll could not read the pinned records', err);
       return report;
     }
     report.pinned = pins.length;
-    for (const { pin } of pins) {
+    for (const pin of pins) {
       try {
         const live = await PersistableApi.standUpKeyed(pin.scope, pin.key);
         if (live) report.stoodUp += 1;

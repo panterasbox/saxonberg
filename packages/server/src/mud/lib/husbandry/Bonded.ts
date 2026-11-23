@@ -583,10 +583,36 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.followedKeys;
     }
 
+    /**
+     * ⭐⭐ **Is this animal KEPT?** (persistence-model D8) — it has followed
+     * somebody it is bonded to, or earned a home. Derived, never stamped: a
+     * kept animal is a body that keeps itself, named or not. Bonding is the
+     * animal's own act, not a wand.
+     */
+    public isKept(): boolean {
+      return this.followedKeys.length > 0 || this.homeEarnedDay >= 0;
+    }
+
+    /**
+     * ⭐ Start this animal's own record at the moment it becomes kept
+     * (persistence-model D8): mint its explicit key and capture it. A no-op
+     * when it is not kept, or already has its key. Fire-and-forget at the
+     * transition; a failed capture is said.
+     */
+    public keepSelf(): void {
+      const self = this as unknown as Stuff;
+      if (!this.isKept() || !MixinApi.isPersistable(self) || self.isPersistenceKeyExplicit()) return;
+      self.setPersistenceKey(SecurityApi.uuid(), true);
+      void PersistableApi.capture(self).catch((err: unknown) =>
+        console.warn('Bonded: the first capture of a kept animal failed:', err),
+      );
+    }
+
     public rememberFollowed(person: Stuff): void {
       const key = person.getIdentityPath();
       if (!key || this.followedKeys.includes(key)) return;
       this.followedKeys = [...this.followedKeys, key];
+      this.keepSelf();
     }
 
     /**
@@ -612,6 +638,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
         this.homeCandidate = '';
         this.homeCandidateDays = 0;
         this.homeCandidateLastDay = -1;
+        this.keepSelf();
       }
     }
 
@@ -652,14 +679,15 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐⭐ An animal's naming is its **promotion** — identity and durability
-     * arrive together (pets; moved off the `name` verb, controller-liquidity
-     * W8): the name (public to everybody from here), the title and chain of
-     * title (⚠ and so the metabolic clock starts integrating its owner's
-     * absences — *yes iff somebody owns it*), an explicit persistence key
-     * and a recorded place, its first capture, and every witness who can
-     * perceive it learning the name (the `introduce` shape — a neighbour can
-     * return it). Every refusal before any write.
+     * ⭐⭐ An animal's naming (pets; moved off the `name` verb,
+     * controller-liquidity W8): the name (public to everybody from here),
+     * the title and chain of title (⚠ and so the metabolic clock starts
+     * integrating its owner's absences — *yes iff somebody owns it*), and
+     * every witness who can perceive it learning the name (the `introduce`
+     * shape — a neighbour can return it). Every refusal before any write.
+     * ⭐ Naming confers NO persistence (persistence-model D8 — the "wand"
+     * objection): a kept animal already keeps itself, because it chose
+     * somebody; the name is captured with it.
      */
     public async takeName(
       name: string,
@@ -682,18 +710,11 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
       if (clash) return { ok: false, reason: 'name-taken' };
 
-      // ── the promotion, in order ──
+      // ── the naming, in order ──
       self.setName(wanted);
       if (MixinApi.isChattel(self)) await self.stampChattel(by);
-      if (MixinApi.isPersistable(self)) {
-        // The key BEFORE the place: the place write stamps the residency
-        // pin onto the chattel row, and the pin is `(scope, key)`.
-        self.setPersistenceKey(SecurityApi.uuid(), true);
-      }
-      if (MixinApi.isChattel(self)) {
-        await self.setChattelPlace(PersistableApi.placeIdOf(self));
-      }
-      if (MixinApi.isPersistable(self)) await PersistableApi.capture(self);
+      this.keepSelf();
+      if (MixinApi.isPersistable(self) && self.isPersistenceKeyExplicit()) await PersistableApi.capture(self);
       // ⭐ Witnessed: everybody who can PERCEIVE it learns the name — the
       // same set a scene reaches (never the room's crockery).
       const room = MixinApi.isContainable(self) ? self.getContainer() : null;

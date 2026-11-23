@@ -800,13 +800,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       // The skipped goods are reported so `PersistableLogic` can flush them
       // into their owners' estates after this synchronous walk. Dropping
       // one here without reporting it would destroy it with the host.
+      // ⭐ A good is kept by its container, whoever holds title
+      // (persistence-model D9): an owned good is captured here like any other.
       const contents = container.getContents().filter((item) => {
         if (MixinApi.isHasInteractive(item)) return false;
         if (MixinApi.isBehaved(item)) return false;
-        if (MixinApi.isChattel(item) && item.isOwnerPersisted()) {
-          ctx.noteOwnedGood(item);
-          return false;
-        }
         return true;
       });
       const entries: ContentEntry[] = contents.map((item) => {
@@ -821,10 +819,6 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           const idx = ctx.indexOf(placed.host);
           if (idx >= 0) {
             placement.hostIndex = idx;
-            placement.placement = placed.name;
-          } else if (MixinApi.isChattel(placed.host) && placed.host.isOwnerPersisted()) {
-            // ⭐ An owned host persists in its owner's estate, not here (W7).
-            placement.hostChattelId = placed.host.getChattelId();
             placement.placement = placed.name;
           }
         }
@@ -908,14 +902,9 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
             ContainmentApi.move(item, evacuationFallback);
           } else {
             // ⭐ A persistable host's destruct is its dormancy: its record
-            // keeps its contents and an owned good rides its owner's
-            // estate, naming this host — so the good's title must outlive
-            // this instance.
-            if (
-              MixinApi.isPersistable(host) &&
-              MixinApi.isChattel(item) &&
-              item.isOwnerPersisted()
-            ) {
+            // keeps its contents, an owned good among them — so a good's
+            // title must outlive this instance.
+            if (MixinApi.isPersistable(host) && MixinApi.isChattel(item) && item.isStamped()) {
               item.keepTitleThroughDestruct();
             }
             StuffApi.destruct(item);
