@@ -215,8 +215,13 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       // a look only when you can see — and at night the seep is only dim.)
       await runCommand(page, 'northeast');
       await runCommand(page, 'southwest');
-      await page.getByTestId('nav-map-fit').click();
-      await expect(page.locator('[data-testid="nav-edge"][data-shape="track"]').first()).toBeVisible({ timeout: 60_000 });
+      // "Show everything" frames what you know at the moment you press it,
+      // and a command's result lands after `runCommand` returns — so press
+      // it again until the walk's far end is in the frame, as a person would.
+      await expect(async () => {
+        await page.getByTestId('nav-map-fit').click();
+        await expect(page.locator('[data-testid="nav-edge"][data-shape="track"]').first()).toBeVisible({ timeout: 3_000 });
+      }).toPass({ timeout: 60_000 });
     } finally {
       await close();
     }
