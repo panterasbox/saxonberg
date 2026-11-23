@@ -193,6 +193,7 @@ function activeDocumentKinds(): DocumentKind[] {
       if (byName.has(name)) continue;
       try {
         byName.set(name, new DocumentKind(name, readYamlObject(pack, file, 'kind declaration')));
+        kindDeclarers.set(name, pack.manifest.id);
       } catch (err) {
         throw new PackStepError('read', `pack '${pack.manifest.id}': ${(err as Error).message}`);
       }
@@ -211,11 +212,15 @@ const KIND_CATALOGUE = '/platform/idea/DocumentKindCatalogue';
 /** The shipped declarations, read once per installer run (`beginKindRun`). */
 let declaredKindsCache: DocumentKind[] | null = null;
 
+/** Which pack declared each shipped kind (filled beside `declaredKindsCache`). */
+const kindDeclarers = new Map<string, string>();
+
 /** Packs a run names from outside the shipped tree, whose `kinds/` also count. */
 let extraKindPacks: ResolvedPack[] = [];
 
 /** Start an installer run: re-read the declarations (with `packs`' own). */
 function beginKindRun(packs: readonly ResolvedPack[] = []): void {
+  kindDeclarers.clear();
   extraKindPacks = [...packs];
   declaredKindsCache = null;
 }
@@ -3035,6 +3040,55 @@ interface ReadPack {
 }
 
 /**
+ * ⭐ A kind belongs to the pack that declares it (naming overhaul D-A5): a
+ * pack that ships documents of a kind must declare the kind itself or
+ * depend — through its `package.json`, transitively — on the pack that
+ * does. Otherwise its documents would install only when the declarer
+ * happens to be in the set, and go dark the day it is not. A kind declared
+ * at runtime (the resident catalogue) has no declaring pack and is not
+ * checked, and neither is a kind the platform declares (pack zero is always
+ * installed). Returns the failures by packId; runs before any write.
+ */
+function kindDeclarerFailures(packs: ReadPack[]): Map<string, PackFailure> {
+  const failures = new Map<string, PackFailure>();
+  const depsOf = new Map<string, readonly string[]>();
+  for (const p of discoverUnfiltered()) depsOf.set(p.manifest.id, p.manifest.dependsOn ?? []);
+  for (const rp of packs) depsOf.set(rp.pack.manifest.id, rp.pack.manifest.dependsOn ?? []);
+  const reaches = (from: string, to: string): boolean => {
+    const seen = new Set<string>();
+    const stack = [from];
+    while (stack.length > 0) {
+      const id = stack.pop()!;
+      if (id === to) return true;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      stack.push(...(depsOf.get(id) ?? []));
+    }
+    return false;
+  };
+  for (const rp of packs) {
+    const id = rp.pack.manifest.id;
+    for (const [kind, files] of rp.content.documents) {
+      if (files.length === 0) continue;
+      const declarer = kindDeclarers.get(kind);
+      // The platform is pack zero — always installed — so its kinds are everyone's.
+      if (declarer === undefined || declarer === PLATFORM_PACK || reaches(id, declarer)) continue;
+      const relFile = (files[0] as { relFile?: string }).relFile;
+      failures.set(id, {
+        step: 'kind-declarer',
+        error:
+          `PackApi: pack '${id}' ships '${kind}' documents (${relFile ?? kind}) but neither ` +
+          `declares the kind nor depends on '${declarer}', which does. Add ` +
+          `@saxonberg/content-${declarer} to its package.json dependencies.`,
+        ...(relFile !== undefined ? { file: relFile } : {}),
+      });
+      break;
+    }
+  }
+  return failures;
+}
+
+/**
  * The install-set uniqueness check (A17.2): every kind with a flat key
  * namespace (the banks — later kinds plug in by giving their strategy a
  * `flatKeyOf`) must see each key claimed once across the whole install
@@ -4041,6 +4095,7 @@ export class PackLogic extends ApiLogic {
       }
     }
     const flat = flatKeyFailures(read);
+    for (const [id, f] of kindDeclarerFailures(read)) if (!flat.has(id)) flat.set(id, f);
     for (const [id, f] of await storeWordFailures(read)) if (!flat.has(id)) flat.set(id, f);
     for (const [id, f] of await meaningFailures(read)) if (!flat.has(id)) flat.set(id, f);
     const set = installSetOf(read);
@@ -4090,6 +4145,7 @@ export class PackLogic extends ApiLogic {
     // explicit install set, or nothing.
     const siblings = packRoot && !packRoots ? [] : siblingsOf(pack, packRoots);
     const flat = flatKeyFailures([...siblings, rp]);
+    for (const [id, sf] of kindDeclarerFailures([rp])) if (!flat.has(id)) flat.set(id, sf);
     for (const [id, sf] of await storeWordFailures([...siblings, rp])) if (!flat.has(id)) flat.set(id, sf);
     for (const [id, sf] of await meaningFailures([rp])) if (!flat.has(id)) flat.set(id, sf);
     const f = flat.get(packId);
