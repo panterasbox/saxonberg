@@ -3,7 +3,7 @@
 Executes [stream-arrival-requirements](../requirements/stream-arrival-requirements.md) as rewritten
 2026-11-23 (`e365cad4c`): **nobody is *the* streamer; the unit is the program; the broadcaster's
 verbs come from instruments.** **Kind: feature, three stages.** **Stage A leads from the kernel** — the program as a record (owned by a person or an
-organization, its video feeds optional and proven when attached), the stream verb running a
+organization, its video feeds optional and proven when attached), the stream verb — renamed `rodney` — running a
 program, one setting naming the program the front page features, and the retirement of every
 environment variable that hardwired one streamer. **Stage B leads from the client** — a visitor
 from Twitch, YouTube or Kick sees the program their link names (else the featured one) playing on
@@ -11,7 +11,7 @@ the front page, signs in, keeps the video docked through character select and cr
 arrives in the lounge already in watch mode with the same video still playing; plus the front
 page's client rebuild and aspiration's removal. **Stage C leads from the kernel** — an installed
 app confers its verbs on whoever bears its device (first consumer: the broadcast app), the body
-stops carrying `stream` and `program`, and Hallett's front-window booth exists as one place with
+stops carrying `rodney` and `program`, and Hallett's front-window booth exists as one place with
 a broadcast desk and an on-air sign. This is the minimum to start the founder's
 livestream; broadcasting's economics and lens pass are their own build and are not planned here.
 
@@ -23,7 +23,7 @@ exactly as written, or where the plan had to choose.
 1. **A fifth environment variable goes with the four.** `BROADCAST_TOKEN` (the overlay's
    changeover door, `services/websocket/WebSocketService.ts:92–260`) resolves to *the first id in
    `STREAMER_PLAYER_IDS`*. With that list retired the door names nobody, so it is deleted too; the
-   overlay uses the per-player token `stream token` already mints. It is a go-live step (the
+   overlay uses the per-player token `rodney token` already mints. It is a go-live step (the
    founder's Rodney browser source needs the minted token).
 2. **The program's agenda stays with the run.** The requirements list the agenda among the
    record's fields, *"the segments the stream verb already runs"*. Those live on the body that is
@@ -81,6 +81,23 @@ exactly as written, or where the plan had to choose.
     would squat a short name forever under an owner nobody is. `program create` refuses a guest
     (A1); a guest can still read `program show`.
 
+16. **`stream` becomes `rodney`** *(the owner, 2026-11-23)* — and two things the requirements'
+    list does not settle (D22):
+    - **`off` is missing from the list** (`start · live · away · back · end · segment · agenda ·
+      next · token · rotation`). `stream off` is the only way off the air at once — `end` holds the
+      outro first — and the controls card has a button for it. The plan keeps it as `rodney off`.
+    - **The rotation goes flat** *(the owner, 2026-11-23)*. `rodney rotation pin <panel>` would be
+      three deep, against `verb subcommand target` (controller-liquidity W16) — the reason
+      `stream-rotation` was its own verb. So the lower third's controls are three ordinary
+      subcommands: **`rodney pin <panel>` · `rodney skip` · `rodney unpin`**; the word *rotation*
+      leaves the grammar.
+17. **The Stream Deck's buttons are configured outside this repo.** The control door accepts one
+    verb; after the rename it accepts `rodney` and refuses `stream`. Every game-command button the
+    deck sends through pblive must be retyped at go-live. `packages/rodney` itself sends no
+    command text (checked — only its README, `docs/obs-setup.md`, `docs/phase-1-server-spec.md`
+    and three code comments NAME the verb); those are prose, and a sibling worktree holds
+    `build/rodney`, so they are a coordination item, not edited here.
+
 ## Grounding
 
 Verified by opening the files, 2026-11-23, on `reqs/stream-to-game` at `26d312b54`.
@@ -118,6 +135,22 @@ Verified by opening the files, 2026-11-23, on `reqs/stream-to-game` at `26d312b5
   with THEIR token — keyed by playerId. `BROADCAST_TOKEN` (env) is the changeover door.
 - The env names are documented in `packages/server/.env.example:10–25`, `docs/deployment.md:524`,
   `packages/rodney/README.md:51`.
+
+- **Who types the verb's text today** (the rename's census): the views `stream.yaml` and
+  `stream-rotation.yaml` (own verb, three controllers `StreamRotation{Pin,Skip,Clear}Controller`,
+  the mixin's `steerRotation`, `Broadcast.ts:302`); fourteen `Stream*Controller.ts` and their
+  controller rows; `backend/inbound/command.ts:120–175` (`handleControlCommand`: the verb must be
+  literally `stream`, `stream token` refused, an alias named `stream` refused, refusal codes
+  `stream-only` …) and `backend/__tests__/ControlCommand.test.ts`; `lib/connection/Cards.ts:409–419`
+  (the `stream` card: `command: 'stream'`, label *the stream controls*); the client's
+  `components/cards/StreamControls.tsx` (every button is a typed `stream …` /
+  `stream-rotation …` string, `:157–273`) and `CardBodies.tsx:1155`; content prose in
+  `standby-reasons/generic.yaml` and `settings/stream.yaml`; `packages/wire/tests/
+  broadcast-ready.wire.test.ts`, `e2e/tests/broadcast-ready-walk.spec.ts`,
+  `BroadcastFeed.test.ts`, `Broadcast.test.ts`, `Avatar.test.ts`; docs `livestream.md`,
+  `streaming.md`, `cockpit.md`, `card-surface.md`, `client-shell.md`, `command-spec.md`,
+  `access.md`, `connection.md`, `display.md`, and `CLAUDE.md`'s category list. `pblive` is not in
+  this repo. `packages/rodney` sends no command text.
 
 **What proves a channel is yours** (`mud/lib/identity/`)
 
@@ -284,7 +317,7 @@ Against watch-slate § 7b (superseded where conflict note 5 says) and the regist
 | A-3 | `ProgramCatalogue` (`platform/idea/ProgramCatalogue.ts`, a `DocumentCatalogue`), reached as `StreamApi.programs()` | same; the house pattern for a kind something cites | P13 the catalogue is where a family's documents are looked up; the body cites its program, so the program is resident whenever the body is and the overlay's synchronous reads stand. P14 *a memory, never a roster*. |
 | A-4 | `DocumentApi.saveProgram(name, data)` — a narrow transport gated to `StreamLogic` | the `saveStreamToken` precedent | P12 not a second `save`: the title gate cannot express *the owner edits the title but nobody edits a feed except by proof*. Path pinned under the branch, name pattern checked, kind pinned, fields taken typed. |
 | A-5 | `StreamApi` statics → `StreamLogic`: `createProgram`, `amendProgram`, `attachFeed`, `detachFeed`, `runProgram`, `programListing` | *the show's on-air state — reuse*; the rest genuinely new | P11 no caller branches on owner kind — one pen test (D11). P12 `attachFeed` replaces `stream channel`. P13 `StreamApi`'s header already covers per-streamer channel reads. P14 every write names its actor from context, never a parameter. |
-| A-6 | the `program` verb: `create · title · schedule · feed · run · show` (`…/cmd/stream/program*.yaml`, controllers under `platform/idea/cmd/stream/`) | **genuinely new** verb. `stream` was checked first: its header is *"run your stream"* (the run), and it is already twelve subcommands; a record you edit while off air is a different noun (*an institution transaction is a subcommand of its noun*). | P9 each subcommand's def and help say exactly what it writes; `feed` says whose account proves it. P12 one word, no synonym; `stream channel` is deleted, not kept beside it. |
+| A-6 | the `program` verb: `create · title · schedule · feed · run · show` (`…/cmd/stream/program*.yaml`, controllers under `platform/idea/cmd/stream/`) | **genuinely new** verb. The stream verb was checked first: every one of its subcommands drives Rodney and OBS (it is renamed `rodney` for that reason — D22), and a record any broadcaster has, edited off air, with or without Rodney, is a different noun (*an institution transaction is a subcommand of its noun*). | P9 each subcommand's def and help say exactly what it writes; `feed` says whose account proves it. P12 one word, no synonym; `stream channel` is deleted, not kept beside it. |
 | A-7 | reason rows `program-name-taken`, `program-bad-name`, `no-such-program`, `not-your-program`, `no-linked-account`, `not-your-channel`, `program-in-use`, `no-program` | the failure model's rows | Refusals are rows, never controller strings. |
 | A-8 | `BroadcastMixin.streamProgram` (persistent; setter returns the catalogue's `ensure`) | *the show's channel per carrier* — replaces `streamChannels`, which is deleted | Host table below. |
 | A-9 | validator `requiresProgram` | replaces `requiresStreamer`, which is deleted with `AccessApi.isStreamer`, the registry's cache and the group seeding | P12 a replacement, not an addition: the gate stops being a role and becomes the pen. |
@@ -299,7 +332,7 @@ Against watch-slate § 7b (superseded where conflict note 5 says) and the regist
 | C-1 | **the seam**: a hosted app's `self` verbs reach the bearers of a host that is not itself a command giver, kept exact on every move; a matched verb whose source is an app on a device that refuses to run falls to the verb's other offer, else is refused with the device's reason | **genuinely new**. Searched: `applyHostedAppDeltaImpl` (returns early), `applyContainmentDelta` (pushes a carried thing's `environment` only), `lint:self-contributions`, aether-devices § Deferred seams (which names exactly this). | P9 the verb's def is unchanged; `affordances` shows the app as the source, and the refusal names the device's state and the fix. P10 n/a. P11 no caller asks *is the host a person or a phone* — the delta decides the receiver. P12 not a new bucket: the app's `self` still means *whoever this app serves*. P13 `CommandLogic` owns every push and pop of the recency stack. P14 nothing moves; a device that is off, dead, packed or not yours SAYS so. |
 | C-2 | `BroadcastApp` (`platform/idea/BroadcastApp.ts`, an `App`) + row `/platform/idea/app/broadcast` | aether-devices *apps* — reuse; the app itself new | P9 `apps` lists it in the store; `look phone` lists it installed. P12 it REPLACES `BroadcastMixin`'s `self` contribution, which is deleted. P13 an app class is where an app's verbs are declared. |
 | C-7 | **the app store**: the published app rows, read by their branch when `apps` is typed; `published: true` on an `App` row; `offersApps` deleted from `AetherHostMixin` and from the four device rows | aether-devices `offersApps` — **generalize**, and the specific one is gone | P9 `apps` prints the store and what is installed; `apps install <app>` installs any published app — its help says so. P10 the store IS the rows; no document, no roster, no Idea of its own. P11 no caller asks what kind of device it is. P12 `apps install` is the shipped verb. P13 the read sits behind the Api that already fronts aether hosts. P14 an unpublished row (the person's wallet, calendar, forums) is never listed and never installable on a device. |
-| C-3 | `BroadcastDesk` (`platform/thing/BroadcastDesk.ts`) — a fixed thing affording `stream`, `stream-rotation` and `program` through `peers` | the `JobBoard` precedent — reuse | P12 the same three views as the app; it grants nothing the app does not. P14 standing at a desk decides nothing about whose program you may run — the pen does. |
+| C-3 | `BroadcastDesk` (`platform/thing/BroadcastDesk.ts`) — a fixed thing affording `rodney` and `program` through `peers` | the `JobBoard` precedent — reuse | P12 the same three views as the app; it grants nothing the app does not. P14 standing at a desk decides nothing about whose program you may run — the pen does. |
 | C-4 | `OnAirSign` (`platform/thing/OnAirSign.ts`) — a light whose lit-ness is derived on read: someone in its place is on air | the light subsystem's source — reuse; the derivation new | P10 no state. P14 it reads; nothing pokes it. |
 | C-5 | the booth: rows in the `terminus` pack — the place, its zone / address / title rows as its neighbors have, the way pair with the avenue crossing, a lamp, the desk row, the sign row | halletts-slate § 2 — content | Rows only; a second studio is rows. |
 | C-6 | the test-fixtures testbed gains a desk and a sign as props of one existing place | the scaffold — reuse | So the wire drive can stand at a desk without naming a locality. |
@@ -362,7 +395,7 @@ owner write, for the page (conflict note 3).
 
 **D12 — The body runs a program; the program names who is running it; the run's state stays on
 the body.** `program run <name>` (the pen test) sets the body's `streamProgram` to the program's
-path and the program's `runner` to that player. Everything `stream` does — phases, timers, the
+path and the program's `runner` to that player. Everything `rodney` does — phases, timers, the
 segment, the agenda, the rotation, the tokens — stays on the body, where it already survives a
 restart and where the overlay reads it; the program holds the standing facts. Nothing is in both
 places except the pointer pair, and both ends are needed: the body cites the program (so it is
@@ -375,9 +408,9 @@ who is online).
   and is refused while you are on air.
 - **On air** = the program's `runner` is a resident body whose `streamProgram` is this program and
   `isOnAir()`. Not resident → off air.
-- `stream` and `stream-rotation` are gated by `requiresProgram`: the body runs a program and the
+- `rodney` is gated by `requiresProgram`: the body runs a program and the
   giver still holds its pen. A body with none is refused (`no-program`), with the row naming
-  `program create` and `program run`. `stream token` stays per player — the overlay shows a run,
+  `program create` and `program run`. `rodney token` stays per player — the overlay shows a run,
   and a run is a body's.
 - `stream channel`, `streamChannels`, `nameChannel`, `getStreamChannels` and
   `StreamChannelController` are deleted. The overlay's chat read opens on the program's feeds;
@@ -437,11 +470,11 @@ by the app:
   device's app serves the bearer.
 
 **D17 — The broadcast app carries the verbs; the body carries none.** `BroadcastApp` declares
-`self: [stream.yaml, stream-rotation.yaml, program.yaml]`. `BroadcastMixin.commandContributions`
+`self: [rodney.yaml, program.yaml]`. `BroadcastMixin.commandContributions`
 loses its `self` entries (and the `program` entry A1 put beside them). The run's state stays on
 the body — it is state, not affordance: a broadcaster whose phone dies mid-stream is still on air
 and cannot steer until they charge it or reach a desk. The row is `/platform/idea/app/broadcast`
-(`appName: Broadcast`, `published: true`). The control socket is unchanged: it runs `stream` as
+(`appName: Broadcast`, `published: true`). The control socket (D22) runs `rodney` as
 the streamer through the ordinary dispatcher, so it works exactly when the streamer has an
 instrument.
 
@@ -480,10 +513,10 @@ stand.
 the owner, 2026-11-23)*. `OnAirSign` is a light source
 whose *lit* is computed when read: some body in the sign's own place is a broadcast host that
 `isOnAir()`. It follows one reference (the sign → its place → that place's contents) — no world
-scan, no event from `stream`, no flag to drift after a restart. Lit, it adds its light to the
+scan, no event from `rodney`, no flag to drift after a restart. Lit, it adds its light to the
 booth and says so on `look`; dark, it says that. ⚠ If the light subsystem's source cannot answer
 *lit* from a derivation without a stored flag, the sign is a described state on `look` and the
-booth's lamp is the room's only light — never a flag the kernel's `stream` pokes on a content
+booth's lamp is the room's only light — never a flag the kernel's `rodney` pokes on a content
 fixture (stop and say which it was).
 
 **D20 — The booth is one place off the avenue crossing.** `/world/terminus/halletts/location/booth`
@@ -497,6 +530,38 @@ room (the row the general store's shop floor uses) so it reads at night; the sig
 lit. Props: the lamp, the desk, the sign. `longDescription` and `details` carry the lettered
 glass, the dust and the sheeted piano as prose only — the piano, the photographs, the record
 library and the screen in the glass are the Hallett's content build's.
+
+**D22 — `stream` is renamed `rodney`; nothing else is.** A renamed view is not new substrate.
+
+- **The view:** `…/cmd/stream/rodney.yaml`, `verbs: [rodney]`, `category: stream` — the directory
+  and category stay `stream` (a view's category equals its directory; `rodney` and `program` sit
+  with `watch` and `tune`, and no new category is invented). Subcommands `start · live · away ·
+  back · end · off · segment · agenda · next · token · pin · skip · unpin`; `channel` is deleted
+  (D12). Bare
+  `rodney` prints the phase and the program and opens the controls card. No alias, no
+  compatibility view: `stream` is not a verb after this (one view, one word; breaking is fine).
+- **The lower third** *(owner: flat)*: `rodney pin <panel>` (a required panel argument), `rodney
+  skip`, `rodney unpin` — three subcommands of the one view, each with its controller (the three
+  `StreamRotation{Pin,Skip,Clear}Controller` renamed `Rodney{Pin,Skip,Unpin}Controller`), each
+  passing to the mixin's existing rotation methods; the controllers do not branch.
+  `stream-rotation.yaml` is deleted.
+- **Controllers** are renamed with the verb (`Stream*Controller` → `Rodney*Controller`, and their
+  rows): a controller's name is its verb's, and a class named for a verb that does not exist
+  sends the next reader looking for it. Mechanical; done in the same commit as the view.
+- **Kept, deliberately:** `BroadcastMixin`, `StreamApi` / `StreamLogic`, `StreamRelay`,
+  `BroadcastFeed`, the `stream.state` client-state key, the settings keys `stream.*`, the
+  document kinds `stream-token` / `standby-reason`, the card's id `stream` and the client's test
+  ids (`stream-start` …). They name the broadcast and its state, which any driver would have —
+  not the verb — and renaming them buys nothing a player sees. The card's `command` becomes
+  `rodney` and its label *Rodney's controls*.
+- **The control door:** `handleControlCommand` accepts the verb `rodney` only; `rodney token` is
+  refused; an alias named `rodney` is refused; the refusal code `stream-only` becomes
+  `rodney-only` (pblive shows these — conflict note 17).
+- **The client:** `StreamControls.tsx` builds every string from the new verb (`rodney start in
+  5m`, `rodney pin agenda` …) in the same commit as the view, or the card's buttons send
+  a verb nobody has.
+- **Prose:** the standby-reason and settings comments, `help` text, and the subsystem docs are
+  the sweep's; `CLAUDE.md`'s category list is an index file and is left to the sweep.
 
 **D2 — The return after sign-in is the client's, carried in `sessionStorage`; the server adds one
 word.** The carrier, the program name, whether the visitor closed the video and the sound choice
@@ -609,7 +674,7 @@ boot id and a tick count.
 | `cockpit.sessionMode`, `arriveWatching`, `showPersonalStream` | `SaxonbergClientMixin` | Every host on it has a cockpit mode and `cockpit.watch` already. No guard; a player, a guest and a returning character all can. |
 | the guest's `watch` / `carrier` words | `Interactive`, beside `arrivedFrom` | A fact about one connection, read once at the guest mint. |
 | an app's verbs on its bearer | the bearer's recency stack, pushed by `CommandLogic` | ⚠ P2 for a cross-cutting seam: every hosted app on every device now reaches its bearer. Today that changes NOTHING for the four shipped apps — `messages` declares no verbs, and the other three are installed on the person. Any future device app with a `self` verb gets it by this rule, which is the requirement. No host is asked a question it answers *no* to. |
-| `stream` · `stream-rotation` · `program` | `BroadcastApp` (`self`) and `BroadcastDesk` (`peers`) | Off `BroadcastMixin`, so off every Avatar. The two classes that carry them are the two things that should. |
+| `rodney` · `program` | `BroadcastApp` (`self`) and `BroadcastDesk` (`peers`) | Off `BroadcastMixin`, so off every Avatar. The two classes that carry them are the two things that should. |
 | *lit* | `OnAirSign`, derived | A fact about the sign's place at this moment; not stored on the sign, the desk, the program or the body. |
 | the booth | rows in the `terminus` pack | Content. No kernel class knows Hallett's; a second studio props the same two kernel things. |
 | `startingOutfit` | the char-gen config | Nothing added to `Persona`, `Character` or `PrimaryAvatar`. |
@@ -705,7 +770,7 @@ worn, an empty bio, no claims, the phone pocketed; a guest wears the same three.
   to make one), `program create <name>` (`--owner <path>`, `--title`), `program title <name>
   <title…>`, `program schedule <name> <line…>`, `program feed <name> <carrier> [<channel>]`
   (`--clear`), `program show <name>` (title, owner caption, schedule, which carriers have a feed,
-  on air or not — public facts only). Afforded beside `stream` on `BroadcastMixin`'s `self` for
+  on air or not — public facts only). Afforded beside the stream verb on `BroadcastMixin`'s `self` for
   now (the shipped placement); **C2 moves both onto the instruments**.
 - Reason rows (A-7) in the platform pack's `reasons/`.
 - `services/auth/TestAuthRoutes.ts` + `backend/TestHooks.ts` — `test-login` accepts `linked:
@@ -725,7 +790,7 @@ demo twitch` (signed in with Twitch) and `program show demo` read back; a second
 `program feed demo twitch` is refused. Commit:
 `feat(program): the program record — a short name, an owner's pen, feeds proven at attach`.
 
-### A2 — The stream runs a program; nothing names a streamer (D12, D15)
+### A2 — `rodney` runs a program; nothing names a streamer (D12, D15, D22)
 
 - `lib/livestream/Broadcast.ts` — `streamProgram` (persistent, `fieldMeta`; `setStreamProgram`
   returns the catalogue's `ensure` so restore awaits it; `getStreamProgram`); delete
@@ -734,10 +799,19 @@ demo twitch` (signed in with Twitch) and `program show demo` read back; a second
   `refreshOverlayReading`); `channelsOf(playerId)` = the feeds of the program the body runs (a
   synchronous `need`); delete `founderPlayerId`, the three `overlay*` readers and the env
   fallback. View + controller `program run <name>`.
-- `lib/command/validators/requiresProgram.ts`; `stream.yaml` and `stream-rotation.yaml` name it;
-  the `channel` stanza and `StreamChannelController` are deleted; `stream.yaml`'s help loses
+- **The rename (D22):** `stream.yaml` → `rodney.yaml` (`verbs: [rodney]`, every help line and
+  example retyped); `stream-rotation.yaml` deleted, `pin · skip · unpin` added as subcommands with
+  their three controllers renamed; the `Stream*Controller` files and their
+  controller rows renamed; `BroadcastMixin`'s `self` names `rodney.yaml` (until C2 moves it);
+  `Cards.ts` (`command: 'rodney'`, the label); `backend/inbound/command.ts` (the verb, the token
+  refusal, the alias check, the code); client `StreamControls.tsx` and `CardBodies.tsx`'s comment;
+  `standby-reasons/generic.yaml`, `settings/stream.yaml` prose. B4: grep `packages/content`,
+  `packages/client`, `packages/wire`, `e2e` for `stream ` + each subcommand and for
+  `stream-rotation` — zero left outside `packages/rodney` and history notes.
+- `lib/command/validators/requiresProgram.ts`; `rodney.yaml` names it;
+  the `channel` stanza and `StreamChannelController` are deleted; `rodney.yaml`'s help loses
   *restricted to streamers* and gains *your stream runs a program — `program run <name>`*. Bare
-  `stream` prints the program beside the phase.
+  `rodney` prints the program beside the phase.
 - Delete `requiresStreamer.ts`, `AccessApi.isStreamer`, `AccessLogic.isStreamer`,
   `AccessRegistry.isStreamer` + its cache + the group seeding (`:708–728`); update the comments
   that cite them (`Broadcast.ts:38, 147`, `Author.ts:128`, `api/mixin.ts:1383`,
@@ -750,7 +824,13 @@ demo twitch` (signed in with Twitch) and `program show demo` read back; a second
   `stream channel`.
 - `.env.example`, `docs/deployment.md`, `packages/rodney/README.md:51` (prose only) — the five
   names removed; the go-live steps in their place.
-- Tests: `stream start` with no program → `no-program`; after `program run` → as today; the pen
+- Tests: `stream` is not a verb for anyone (the dispatcher's *not a verb you have*), and no
+  alias reaches it; every `rodney` subcommand dispatches through its real view, `pin` /
+  `skip` / `unpin` included, and `pin` with no panel is refused at the binder; the control
+  door runs `rodney away 15m`, refuses `stream away 15m` (`rodney-only`) and `rodney token`;
+  `StreamControls` sends only `rodney …` strings (a unit test over every control);
+  `ControlCommand.test.ts`, `broadcast-ready.wire.test.ts` and the broadcast walk retyped.
+  `rodney start` with no program → `no-program`; after `program run` → as today; the pen
   lost → refused; `program-in-use` while the other runner is on air, replaced when they are not;
   `channelsFor` returns the program's feeds; a restart restores `streamProgram` with the program
   resident (a synchronous `show()` and `channelsFor` right after materialize); a body whose
@@ -758,9 +838,9 @@ demo twitch` (signed in with Twitch) and `program show demo` read back; a second
   no source file reads any of the five env names (a source scan).
 
 Acceptance: on a dev world with no stream env set, a player creates a program, attaches a feed,
-runs it, `stream start` / `stream live` work, and the overlay opened with their `stream token`
+runs it, `rodney start` / `rodney live` work (and `stream` is refused as no verb), and the overlay opened with their `rodney token`
 shows their chat. Commit:
-`feat(stream): the stream runs a program; the streamer group and five env vars retired`.
+`feat(rodney): stream is renamed rodney and runs a program; the streamer group and five env vars retired`.
 
 ### A3 — The featured program and the anonymous read (D14)
 
@@ -811,10 +891,10 @@ character's pocket, and leaves when the phone does. Commit:
   `headset.yaml`, `AetherImplant.yaml` (B4: grep `packages/content` for the key).
 - `lib/livestream/Broadcast.ts` — the `self` entries deleted; the header prose (*afforded to every
   played body*) rewritten; `api/mixin.ts:1383`, `lib/shell/Author.ts:128` comments follow.
-- `stream.yaml`, `program.yaml` help — one line each: *you get this verb from the Broadcast app
+- `rodney.yaml`, `program.yaml` help — one line each: *you get this verb from the Broadcast app
   on a phone you carry, or at a broadcast desk*.
 - The harness: `streamer: true` also installs the app on the test character's phone
-  (`TestHooks`); grep every test that types `stream` or `program` as a plain character
+  (`TestHooks`); grep every test that types `rodney` or `program` as a plain character
   (`StreamLogic` and controller units are handed a model and do not care; the wire and e2e ones
   do) — `broadcast-ready.wire.test.ts`, `broadcast-ready-walk.spec.ts`, Stage A's own wire steps.
 - Tests: a fresh character has neither verb (the dispatcher's *not a verb you have*); `apps`
@@ -823,7 +903,7 @@ character's pocket, and leaves when the phone does. Commit:
   Broadcast; `apps install wallet` on a phone is refused, naming the store; a published row in a
   second root is listed; two published rows with one leaf are reported, neither installed; after
   `apps install broadcast` both verbs work, in another place too; `apps uninstall broadcast` while on air leaves the stream on air and the verbs gone; the
-  control socket runs `stream` only while the streamer has an instrument; a guest installs the app
+  control socket runs `rodney` only while the streamer has an instrument; a guest installs the app
   on the implant and `program create` refuses them.
 
 Acceptance: drive step 13 and 14 by hand on a dev world. Commit:
@@ -843,7 +923,7 @@ Acceptance: drive step 13 and 14 by hand on a dev world. Commit:
 - B4: grep the pack for the new paths; run the booth's gates (Convention conformance).
 
 Acceptance: walk from the arrival gate to the crossing and through the door; `look` by day and
-after dark reads the room; at the desk a character with no app has `stream` and `program`; the
+after dark reads the room; at the desk a character with no app has `rodney` and `program`; the
 sign reads lit only while someone in the booth is on air. Commit:
 `feat(terminus): Hallett's front-window booth — the broadcast desk and the on-air sign`.
 
@@ -953,14 +1033,14 @@ Commit: `test(stream-arrival): the wire drive and the browser walk`.
 |---|---|---|---|---|---|
 | make and edit a program | `program create · title · schedule · show` | `BroadcastMixin`'s `self` in A1, then the app and the desk (C2) — ⚠ a view nothing affords is a dead verb; each wave's test dispatches the verb through the real affordance, never a hand-built model | the `program` kind in `DocumentKinds` (a kind not listed there has no catalogue and no go-live) | `DocumentApi.read` by path; the catalogue on reach | the name pattern; the pen on `--owner`; the pen for `title` / `schedule` — refusals are rows |
 | attach a feed | `program feed <name> <carrier> [<channel>]` | the same | the giver's own `TwitchProfile.login` / `KickProfile.slug` / `GoogleProfile.youtubeChannelId` | the profile by the user's own id — no carrier call | `carrier` is an `enum` arg; the pen; the linked account; a stated channel must match. ⚠ a guest and a player with an empty Kick slug must refuse, not attach an empty string — tested |
-| run a program | `program run <name>`; then the shipped `stream …` | after C2: the Broadcast app on a borne phone, or a desk in the place (below); gated by `requiresProgram` | `streamProgram` on the body; `runner` on the program | the body's setter ensures the program at restore — ⚠ a cold catalogue would make the overlay's sync read THROW at login; A2 tests materialize-then-`show()` | the pen; the chair |
+| run a program | `program run <name>`; then `rodney …` — the renamed view; ⚠ a rename is three silent failures waiting: the client's buttons, the control door's literal, and a `self` static still naming `stream.yaml` (a path that no longer resolves). A2's tests dispatch each through the real view, and `lint:reachability` must find `rodney.yaml` named by a static | after C2: the Broadcast app on a borne phone, or a desk in the place (below); gated by `requiresProgram` | `streamProgram` on the body; `runner` on the program | the body's setter ensures the program at restore — ⚠ a cold catalogue would make the overlay's sync read THROW at login; A2 tests materialize-then-`show()` | the pen; the chair |
 | the overlay's chat | none | the token socket, as shipped | the program's feeds through `channelsFor` | resident with the body | n/a — ⚠ a program run with no feed shows no chat and says nothing; correct, and stated in `program run`'s reply |
 | the featured program on the page | none (REST) | `FrontRoutes.setup` mounted in `Server` — an unmounted route is a silent 404 the client renders as *no show band*; the route test and wire step 0 hit the mounted app | `stream.featuredProgram` → `/platform/programs/<name>` → `runner` → the body | three followed references | `watch` by pattern, `carrier` by list; anything else 400 |
 | arriving watching — a player | `play <id> --watch <program> --<carrier>` · `embody confirm --watch …` | both afforded only to a `Login`; Enter and confirm send them | the name and carrier from the tab (as answered by `/api/front`); the channel from the program's feed | `programListing` at `enter` | the program exists, has that feed, is on air — a no is the usual mode with a line. ⚠ the greedy `playerId` swallowing the options would be a silent plain entry — tested in both orders |
 | arriving watching — a guest | none; two words on the socket URL | the guest link | the same | the same, from `Login.enterAsGuest` | the same lists in `WebSocketService`; ⚠ words dropped between the socket and the mint → a silent explore — the wire file reads the guest's first snapshot |
 | an app's verbs (the seam) | whatever the app's class declares in `self` | the app, on a device in the bearer's container chain — ⚠ the three silent failures: a row-level `commandContributions:` (read by nothing — the class static is the record); the early return for a non-giver host (the shipped behavior); a push at install that no MOVE keeps exact. C1 tests install, move, drop, hand-over and restart | `installedApps` on the device (persisted); the app re-cloned at restore | the app's row loads when installed | the device must run: `conferralRefusal()` → the other offer, else a refusal naming the fix |
 | the app store | `apps` · `apps install <app>` (shipped verbs) | `apps` is afforded by any borne device, as today | every `App` row with `published: true` — ⚠ `published` must be a DECLARED field or the applier drops it silently and the store is empty (the trap aether-devices already hit with `offersApps`); a test reads the real rows | the branch read when the verb is typed; no boot entry | the key must name a published row; an unpublished or unknown one is refused, listing the store |
-| the broadcast app | `apps install broadcast` → `stream`, `stream-rotation`, `program` | the app, through the seam above | `/platform/idea/app/broadcast`, `class: /platform/idea/BroadcastApp`, `published: true` | on install | as the store's |
+| the broadcast app | `apps install broadcast` → `rodney`, `program` | the app, through the seam above | `/platform/idea/app/broadcast`, `class: /platform/idea/BroadcastApp`, `published: true` | on install | as the store's |
 | the desk | the same three views | `BroadcastDesk.peers` — whoever is in its place (and one passable exit away) | the desk row, in a place's `props:` — ⚠ a desk row no place props is unreachable (`lint:reachability`) | minted with its place | the pen, as everywhere |
 | the sign | none (`look`) | n/a | derived from the bodies in its place | none | n/a |
 | the plain outfit | none | n/a | `startingOutfit`; the three rows | rows load when worn | W0 asserts all three are WORN |
@@ -979,7 +1059,7 @@ Commit: `test(stream-arrival): the wire drive and the browser walk`.
 | The video plays in a corner through select and creation | W4, W6 |
 | Entered while playing → watch mode, same stream and carrier, not restarted; otherwise the usual mode | A3, W3, W4, W6 |
 | Select and creation look like the front page | W5, W6 |
-| No app and not at the desk → no `stream` or `program`; the app gives both anywhere; the desk gives both while at it | C1, C2, C3 |
+| No app and not at the desk → no `rodney` or `program`; the app gives both anywhere; the desk gives both while at it | C1, C2, C3 |
 | The booth's sign is lit exactly while the program run from its desk is live | C3 (D19; conflict note 13) |
 | *Aspiration* nowhere; everyone in the plain outfit | W0 |
 | Only bands with real content | W5 |
@@ -996,8 +1076,8 @@ the clock is moved to after dusk through the harness's clock seam, and the walke
 through its nourish seam afterward — a jumped clock starves a body). No span step, no soak drive.
 
 **Staging:** provider sign-ins are staged by `test-login`'s `linked` (A-12). A broadcaster is
-staged by PLAYING: `program create`, `program feed`, `program run`, `stream start` / `stream
-live` / `stream off`. The featured setting is set by the e2e founder (`config set
+staged by PLAYING: `program create`, `program feed`, `program run`, `rodney start` / `stream
+live` / `rodney off`. The featured setting is set by the e2e founder (`config set
 stream.featuredProgram <name>`).
 
 **The wire file** — step 0, and the server's half of 1, 4, 4a, 7, 8, 10, 11:
@@ -1007,8 +1087,8 @@ stream.featuredProgram <name>`).
    `program feed <the first's> twitch` → refused; `program feed … twitch <the first's channel>` on
    their OWN program → `not-your-channel`. A second program with no feed exists; `/api/front`
    never answers it for a carrier. The founder sets the featured setting to the first. `program
-   run` + `stream live` → `live: true`; `stream off` → `false`. `restartWorld()` → the program,
-   its three feeds, the runner's `streamProgram` and the setting are intact, and `stream live`
+   run` + `rodney live` → `live: true`; `rodney off` → `false`. `restartWorld()` → the program,
+   its three feeds, the runner's `streamProgram` and the setting are intact, and `rodney live`
    works without re-running.
 1. `/api/front?watch=<second program with a Kick feed>&carrier=kick` → that program;
    `…&carrier=twitch` where it has none, a name that does not exist, a malformed name → the
@@ -1024,24 +1104,24 @@ stream.featuredProgram <name>`).
 5. A guest → three garments, no *Aspires*; a guest socket with the two words → the first snapshot
    is watch.
 6. `restartWorld()` → the newcomer's garments, empty bio, mode `explore`.
-7. *(steps 13, 14, 16)* A fresh character: `stream` and `program` are not verbs they have.
-   `apps` lists Broadcast in the store; `apps install broadcast` → `program create`, `program feed`, `program run`, `stream live` work;
-   they walk to another testbed place and `stream away` works; they switch the phone off →
-   `stream back` is refused with the phone's row, and at the testbed desk it runs. A second
+7. *(steps 13, 14, 16)* A fresh character: `rodney` and `program` are not verbs they have (nor is `stream`, for anyone).
+   `apps` lists Broadcast in the store; `apps install broadcast` → `program create`, `program feed`, `program run`, `rodney live` work;
+   they walk to another testbed place and `rodney away` works; they switch the phone off →
+   `rodney back` is refused with the phone's row, and at the testbed desk it runs. A second
    character with no app, at the testbed desk: has both verbs; `program run <the first's>` →
    `not-your-program`. The testbed sign reads lit while the first is on air in that place, dark
-   after `stream end`, dark when they walk out on air. `restartWorld()` → the app is still
+   after `rodney end`, dark when they walk out on air. `restartWorld()` → the app is still
    installed, the program intact, the sign agrees with who is on air there.
 
 **The walk** — the blocking drive:
 
 | step | pace | the check, and how it is made to fail once |
 |---|---|---|
-| 0 a program | staged | (the wire file owns the proofs.) In the browser: the broadcaster context creates, feeds and runs its program by typing; `program show` prints it; the founder context sets the featured setting. Fail: skip `program run` → `stream start` is refused. |
+| 0 a program | staged | (the wire file owns the proofs.) In the browser: the broadcaster context creates, feeds and runs its program by typing; `program show` prints it; the founder context sets the featured setting. Fail: skip `program run` → `rodney start` is refused. |
 | 1 tagged, on air | instant · staged | the player frame's URL is the Twitch stub with the program's channel and the mute flag; *You came from Twitch.*; Twitch first. Fail: drop `from`. |
 | 2 unmute | instant | the frame's URL loses the mute flag. |
 | 3 untagged | instant | no frame; the thumbnail tile; Google · Twitch · Kick; the guest link outside the tile. |
-| 4 off air | instant · staged | `stream off` → `show-offline` with the program's next show, no frame. Fail: leave it live. |
+| 4 off air | instant · staged | `rodney off` → `show-offline` with the program's next show, no frame. Fail: leave it live. |
 | 4a a named program | instant | `from=kick&watch=<second program, Kick feed>` (its runner live) → the Kick stub with ITS channel; `watch=<a program with no Kick feed>` and `watch=<nothing>` → the featured program's Kick feed (or its tile). Fail: point the link at a channel string instead of a name → still the featured program. |
 | 4b Rodney's link | instant | `from=stream`, no referrer → the featured program on the Twitch stub; Twitch first; *You came from the stream.* |
 | 5 sign in | instant · staged (D8) | a real navigation away and back; a NEW frame on the same URL with no click, `data-player-place="dock"`. Fail: clear `sessionStorage` first. |
@@ -1051,9 +1131,9 @@ stream.featuredProgram <name>`).
 | 9 returning, YouTube | instant | `from=youtube`; the YouTube stub; the Google line and order; the dock on character select; `roster-sends-as` reads `play <id> --watch <name> --youtube`; *Enter* → watch, no other stage, the same boot id. |
 | 10 guest | instant | untagged: the small link → explore, three garments, no *Aspires*. Tagged and playing: the note says so; the link → watch, the same boot id. |
 | 11 restart | staged | the wire file's steps 0 and 6 (a browser cannot restart the world it is attached to). |
-| 13 no instruments | instant | a fresh character types `stream` and `program`: neither is a verb they have. Fail: use the staged `streamer` character. |
-| 14 the app | instant | `apps install broadcast` on the phone; `program create` / `feed` / `run`, `stream live`; walk out of the place; `stream away` still answers. Fail: uninstall first. |
-| 15 the desk | short · staged | a character with no app walks arrival gate → crossing → the booth's door; `look` by day reads the room, the desk and the dark sign; the clock is moved past dusk, `look` again still reads them (the lamp) and never *something*; at the desk they have both verbs; `program run <founder's>` is refused (`not-your-program`); the founder's character, in the booth, `stream live` → the sign reads lit (in the room's `look` and `look sign`); `stream end` → dark. Fail (light): remove the lamp from the row → the night look is dark. Fail (sign): the founder goes live standing in the street. |
+| 13 no instruments | instant | a fresh character types `rodney` and `program`: neither is a verb they have. Fail: use the staged `streamer` character. |
+| 14 the app | instant | `apps install broadcast` on the phone; `program create` / `feed` / `run`, `rodney live`; walk out of the place; `rodney away` still answers. Fail: uninstall first. |
+| 15 the desk | short · staged | a character with no app walks arrival gate → crossing → the booth's door; `look` by day reads the room, the desk and the dark sign; the clock is moved past dusk, `look` again still reads them (the lamp) and never *something*; at the desk they have both verbs; `program run <founder's>` is refused (`not-your-program`); the founder's character, in the booth, `rodney live` → the sign reads lit (in the room's `look` and `look sign`); `rodney end` → dark. Fail (light): remove the lamp from the row → the night look is dark. Fail (sign): the founder goes live standing in the street. |
 | 16 restart | staged | the wire file's step 7; and in the browser after it: the booth is there and the sign agrees with the program's state. |
 | 12 phone width | instant | 390×844: sign-in, the show, the chambers, Latest; the dock stays inside the viewport and off `chargen-confirm`. |
 
@@ -1072,7 +1152,7 @@ at code-complete and once at `/finalize`; the walk once at code-complete.
   command-routing.md § *③ The other offer* and § *Affordance resolution* before writing it; if it
   cannot be done without the dispatcher learning about aether hosts by name, stop and ask (a
   kernel protocol on the source — *will you run?* — is the shape, not an `isAetherHost` branch).
-- **Every shipped test that types `stream`** as a plain character breaks at C2 until the harness
+- **Every shipped test that types the stream verb** breaks at A2 (the rename) and again at C2 until the harness
   installs the app. Find them before the wave, not after.
 - **The sign as a light.** D19 has a fallback; say which was built.
 - **A drive's clock jump** (step 15) starves and chills bodies; feed them after it, and re-run the
@@ -1082,7 +1162,7 @@ at code-complete and once at `/finalize`; the walk once at code-complete.
   forget the path and the running body must re-ensure it, or the overlay reads a stale feed. A2
   tests attach-while-running.
 - **A body citing a program that is gone or no longer theirs.** Restore must clear the pointer
-  with a logged reason, never throw at login; `requiresProgram` re-tests the pen on every `stream`.
+  with a logged reason, never throw at login; `requiresProgram` re-tests the pen on every `rodney`.
 - **The shipped broadcast tests** (`broadcast-ready.wire.test.ts`, the walk, `StreamLogic`'s
   units) assume the streamer group and `stream channel`. A2 re-points the harness option so most
   pass unchanged; budget for the rest.
@@ -1110,11 +1190,22 @@ at code-complete and once at `/finalize`; the walk once at code-complete.
 program is the unit; a feed is proven at attach, no queue; one setting features one program;
 links name a program; one app store, not per-device lists; the on-air sign lit by presence;
 the dispatcher's pass-over kept (a device keeps its verbs so it can say why it will not run);
+`stream` is renamed `rodney`, `program` stays Rodney-free;
 `from=stream` is the featured program on Twitch; the unmute reload and
 resuming muted; the env vars retired in this build; the outfit is the three rows untouched; the
 character arrives in watch with no other mode painted.
 
 **Opens — the owner's calls; the plan's lean is what gets built unless told otherwise**
+
+*The rename:*
+
+- **`rodney off` is kept** though the requirements' list omits it (conflict note 16).
+- **`rodney pin <panel>` · `rodney skip` · `rodney unpin`** — flat, by the owner (note 16).
+- **The Stream Deck's configured buttons** must be retyped (`stream …` → `rodney …`), and pblive
+  will see the refusal code `rodney-only`; **`packages/rodney`'s README and OBS docs** still name
+  the old verb until that worktree picks it up (note 17).
+- **Controllers renamed, everything else kept** (`BroadcastMixin`, `StreamApi`, `stream.state`,
+  `stream-token`, the card id): D22 lists them.
 
 *Stage C:*
 
@@ -1131,7 +1222,8 @@ character arrives in watch with no other mode painted.
 
 *Stages A and B:*
 
-1. **A new verb, `program`**, rather than more subcommands on `stream` (A-6).
+1. **A new verb, `program`**, rather than more subcommands on `rodney` (A-6) — and now the split is the point: `rodney` drives
+   Rodney, `program` is Rodney-free.
 2. **A document, not an Idea** (D10) — and one flat branch `/platform/programs/` for the names.
 3. **The agenda stays with the run** (conflict note 2).
 4. **`BROADCAST_TOKEN` goes too** (conflict note 1) — one more step at go-live.
@@ -1145,7 +1237,8 @@ character arrives in watch with no other mode painted.
 11. An in-world `watch off` counts as *closed for the visit*; footer links with no URL are absent;
     the founding deed's line; the guest's words on the socket URL.
 
-**Stop and ask** if: the seam cannot be one routine beside the `environment` pushes; the
+**Stop and ask** if: anything in `packages/rodney` must change for the build to work (prose there
+is a coordination item; code would be a blocker); the seam cannot be one routine beside the `environment` pushes; the
 pass-over needs the dispatcher to know aether hosts by name; any read turns out to need a program found by channel or by owner (that is
 the collection the plan refused); the catalogue cannot serve a document that changes at runtime;
 a real carrier embed cannot play docked; `play`'s options cannot be bound without controller
@@ -1169,15 +1262,18 @@ This build deletes `OVERLAY_TWITCH_LOGIN`, `OVERLAY_YOUTUBE_CHANNEL`, `OVERLAY_K
    program feed <short-name> kick
    program feed <short-name> youtube
    program run <short-name>
-   stream token            # paste into Rodney's browser source — the env token is gone
-   stream token --control  # if the Stream Deck used the env door
+   rodney token            # paste into Rodney's browser source — the env token is gone
+   rodney token --control  # if the Stream Deck used the env door
    ```
 3. As the Prime Minister: `config set stream.featuredProgram <short-name>`.
 4. Remove the five names from SSM / `.env`.
-5. Check: `curl https://<host>/api/front` names the program and its three feeds; `stream live`
+5. Check: `curl https://<host>/api/front` names the program and its three feeds; `rodney live`
    turns `"live": true`; the overlay shows chat.
 
-⛔ No test and no deploy script performs these. Until step 2 the founder has no `stream` verb at
+6. Retype the Stream Deck's game-command buttons: `stream …` → `rodney …` (`rodney away bathroom`,
+   `rodney back`, `rodney next`); the control door refuses the old verb.
+
+⛔ No test and no deploy script performs these. Until step 2 the founder has no `rodney` verb at
 all, the overlay is silent and the front page has no show band.
 
 ## Deferred seams
@@ -1216,7 +1312,7 @@ all, the overlay is silent and the front page has no show band.
    `platform/idea/api/DocumentLogic.ts` (`:438–467`), `api/document.ts`.
 3. `docs/subsystems/livestream.md`; `lib/livestream/Broadcast.ts`;
    `platform/idea/api/StreamLogic.ts` (`:680–900`), `api/stream.ts`;
-   `packages/content/platform/content/platform/cmd/stream/stream.yaml` and
+   `packages/content/platform/content/platform/cmd/stream/stream.yaml`, `stream-rotation.yaml` and
    `platform/idea/cmd/stream/` (`StreamControllerBase`, `StreamChannelController`,
    `WatchControllerBase`); `lib/command/validators/requiresStreamer.ts`;
    `platform/idea/AccessRegistry.ts` (`:280–295`, `:700–730`).
