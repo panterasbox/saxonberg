@@ -1,30 +1,47 @@
 /**
- * PersistentBusiness — ⭐ **a business that is KEPT, and keeps a table of
- * its owners** (the institutions slate's cap table): a
- * {@link BusinessEntity} composing `CapTableMixin`, with `PersistableMixin`
- * outermost so the table outlives the process.
+ * Company — ⭐ **a business with owners**: a {@link BusinessEntity}
+ * composing `CapTableMixin` (the institutions slate's cap table). Renamed
+ * from `PersistentBusiness` by persistence-model D6, because it keeps no
+ * record: a business is not a container, so it does not keep one.
  *
- * A cap table changes hands — a sale, a gift — and a change a restart
- * forgot would be a silent write, so the one class that carries a table is
- * one that keeps a record. Two ways it stands up:
+ * ⭐⭐ Its cap table is HISTORY, filed as a paper (`cap-table`, in the
+ * business's own branch through `DocumentApi.saveAsBusiness`) after every
+ * sale, gift or transfer, and read back as the company stands up — its
+ * hydration source. The authored `capTable:` is the table until a paper
+ * exists. Two ways a company stands up:
  *
- *   - **an authored row** (the Hesper's company, the Kittiwake's): through
- *     `StuffApi.singleton`, which restores its record, or lays the row down
- *     and captures it the first time;
- *   - **a minted company** (a smack's, `<seed>/<serial>`): keyed
- *     `(seed row, serial)` by the ship that owns her company
- *     (`PersistableApi.restoreOrSeed`), and saved with her.
+ *   - **an authored row** (the Hesper's company, the Kittiwake's), through
+ *     `StuffApi.singleton`;
+ *   - **a minted company** (a smack's, `<seed>/<serial>`), cloned by the
+ *     ship that owns it, which files its first paper when it founds it.
  *
- * ⚠ Kept means the record is authoritative over the row's runtime fields
- * once it exists — the kept-host trade every persistable makes; a pack sync
- * (go-live) still re-applies the row's authored fields to the live host.
- *
- * Ships are the first consumer. A general business gets a table when the
- * institutions slate's forms land; nothing here is ship-specific.
+ * Ships are the first consumer; nothing here is ship-specific.
  */
 
 import BusinessEntity from './Business';
-import { CapTableMixin } from '../../lib/employment/CapTable';
-import { PersistableMixin } from '../../lib/persistence/Persistable';
+import { CapTableMixin, type CapTableData } from '../../lib/employment/CapTable';
+import { DocumentApi } from '../../api/document';
+import type { Stuff } from '../../lib/stuff/Stuff';
+import type { HydrationSource, HydrateOutcome } from '../../lib/persistence/PersistenceSlice';
 
-export default class PersistentBusiness extends PersistableMixin(CapTableMixin(BusinessEntity)) {}
+export default class Company extends CapTableMixin(BusinessEntity) {
+  /**
+   * What the world remembers of who owns it: its filed `cap-table` paper.
+   * `required: false` — an unreachable store (early boot, every unit test)
+   * is a recorded skip, and the authored table stands.
+   */
+  static hydrationSource: HydrationSource = { name: 'documents (cap-table)', required: false };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    if (!(host instanceof Company)) return { status: 'skipped', reason: 'not a company' };
+    try {
+      const doc = await DocumentApi.read(host.capTablePaperPath());
+      const table = (doc?.getData() as { capTable?: CapTableData | null } | undefined)?.capTable;
+      if (table !== undefined) host.capTable = table;
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built company.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+}

@@ -1405,7 +1405,7 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
   }
 
   /**
-   * ⭐ Her own company: a `PersistentBusiness` minted from
+   * ⭐ Her own company: a `Company` minted from
    * her kind's seed row (`house:`) at `<seed>/<serial>` — the drilling
    * outfit's precedent — whose appointing authority is its OWN cap table
    * (`kind: owners`). KEPT, keyed `(seed, serial)`: at her commissioning
@@ -1443,14 +1443,16 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
         overlay.capTable = { units, transfer: shape?.transfer ?? 'free', rows: [{ holder: { ...founder }, units }] };
       }
       const company = await StuffApi.clone<Stuff>(seed, undefined, {
-        // identity-keyed-by: own-record — her company's `holder_snapshots`
-        // record (its table) is filed `(seed, serial)`; her register
+        // identity-keyed-by: own-record — her company's cap-table paper is
+        // filed under this identity (persistence-model D6); her register
         // entry's `owner`, her own `house` field and the employment records
         // of whoever holds her seats name it.
         asIdentityPath: identity,
         dataOverlay: overlay,
       });
-      if (MixinApi.isPersistable(company)) await PersistableApi.restoreOrSeed(company, serial);
+      // ⭐ Founded: its first paper (persistence-model D6). A company that
+      // loads again reads its paper as it stands up.
+      if (founder !== undefined && MixinApi.isCapTable(company)) await company.fileCapTable();
       this.house = identity;
       return company;
     } catch (err) {
@@ -2264,13 +2266,7 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
     const out: (Stuff & Persistable)[] = [];
     const w = this._warren;
     if (w !== null && !w.isDestroyed()) out.push(w as unknown as Stuff & Persistable);
-    // ⭐ Her minted company: its table is kept with her.
-    const house = this.house ?? '';
-    const serial = this.mintedSerial() ?? '';
-    if (this.isOfKind() && serial !== '' && house.endsWith(`/${serial}`)) {
-      const c = StuffApi.findByTemplatePath<Stuff>(house);
-      if (c !== undefined && !c.isDestroyed() && MixinApi.isPersistable(c)) out.push(c);
-    }
+    // (Her company keeps no record: its table is its own paper — persistence-model D6.)
     return out;
   }
 

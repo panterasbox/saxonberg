@@ -143,10 +143,10 @@ const KEEP_DERIVATIONS: Record<
   'declared-document-kinds': {
     imports: [
       "import { RELEASE_DOCUMENT_KIND } from '../press/Release';",
-      "import { DECLARED_DOCUMENT_KINDS } from '../document/DocumentKinds';",
+      "import { RESET_KEPT_DOCUMENT_KINDS } from '../document/DocumentKinds';",
     ],
     expression:
-      'kind: { $in: [RELEASE_DOCUMENT_KIND, ...DECLARED_DOCUMENT_KINDS] },',
+      'kind: { $in: [RELEASE_DOCUMENT_KIND, ...RESET_KEPT_DOCUMENT_KINDS] },',
   },
 };
 

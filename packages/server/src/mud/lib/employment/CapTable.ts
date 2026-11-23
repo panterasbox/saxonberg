@@ -31,9 +31,9 @@
  * takes the consents (the seller's, and under `consent` every other
  * holder's) before it asks.
  *
- * ⚠ A table that changes hands must be KEPT: a write on a host that does
- * not compose `PersistableMixin` throws (a sale that a restart forgets
- * would be a silent write). The concrete host is `PersistentBusiness`.
+ * ⭐ A table that changes hands is HISTORY: every sale, gift or transfer
+ * files it as the business's `cap-table` paper (persistence-model D6), so
+ * a restart never forgets one. The concrete host is `Company`.
  *
  * ## Not here (the institutions slate keeps them)
  *
@@ -50,8 +50,8 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
-import { MixinApi } from '../../api/mixin';
-import { PersistableApi } from '../../api/persistable';
+import { DocumentApi } from '../../api/document';
+import type { Business } from '../../platform/idea/Business';
 import { BankingApi, Money } from '../../api/banking';
 
 /** How units may move between holders. */
@@ -122,6 +122,10 @@ export interface UnitGift {
 
 /** Public shape provided by {@link CapTableMixin}. */
 export interface CapTable {
+  /** Where the business's cap-table paper is filed (persistence-model D6). */
+  capTablePaperPath(): string;
+  /** File the table as the business's paper — after every move, and at founding. */
+  fileCapTable(): Promise<void>;
   /** The table as it stands (a copy), or `null` when this host keeps none. */
   getCapTable(): CapTableData | null;
   /** What the whole is divided into (`0` with no table). */
@@ -301,7 +305,7 @@ export function CapTableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return { ok: true, rows: this.capTableRows() };
     }
 
-    /** Why `n` units cannot move from `from` to `to` now — or `null`. Throws on a host that keeps no record. */
+    /** Why `n` units cannot move from `from` to `to` now — or `null`. */
     private refusalOf(
       from: UnitHolder,
       to: UnitHolder,
@@ -310,9 +314,6 @@ export function CapTableMixin<TBase extends MixinConstructor>(Base: TBase) {
     ): (CapTableResult & { ok: false }) | null {
       const t = this.capTable;
       if (t === null || t.rows.length === 0) return { ok: false, code: 'no-table', reason: 'Nobody holds any of it to move.' };
-      if (!MixinApi.isPersistable(this as unknown as Stuff)) {
-        throw new Error('CapTable: a table that changes hands must be kept — compose PersistableMixin on its host');
-      }
       if (!Number.isInteger(n) || n <= 0 || n > t.units) {
         return { ok: false, code: 'bad-count', reason: `Name a whole number of units from 1 to ${t.units}.` };
       }
@@ -349,8 +350,26 @@ export function CapTableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Capture the host's record — the table is kept. */
+    /** ⭐ Where this business's cap-table paper is filed: its own branch (persistence-model D6). */
+    public capTablePaperPath(): string {
+      return `${(this as unknown as Stuff).getIdentityPath() ?? ''}/cap-table`;
+    }
+
+    /**
+     * ⭐ File the table as the business's paper (persistence-model D6) —
+     * after every sale, gift or transfer, and when a company is founded.
+     */
+    public async fileCapTable(): Promise<void> {
+      await DocumentApi.saveAsBusiness(
+        this as unknown as Stuff & Business,
+        this.capTablePaperPath(),
+        'cap-table',
+        { capTable: this.capTable === null ? null : { ...this.capTable, rows: this.capTableRows() } },
+      );
+    }
+
     private async keep(): Promise<void> {
-      await PersistableApi.capture(this as unknown as Stuff);
+      await this.fileCapTable();
     }
   }
   return CapTableMixin;

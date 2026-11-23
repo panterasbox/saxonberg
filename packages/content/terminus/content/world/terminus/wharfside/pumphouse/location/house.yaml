@@ -4,9 +4,9 @@
 # else stands between a player and the switch that turns off a city. No
 # permission check reads a seat; the lock is the gate.
 #
-# Staged (D30): a Locale, not a PersistentLocale. Its furnishing is
-# authored, and the state worth keeping — whether the main is on, whether
-# it is cut — is the intake's own record (`PersistentConduit`).
+# Staged (D30): a plain Hall. Its furnishing is authored; the intake's
+# delivery log is history on the water ledger (persistence-model D5), and
+# whether the main is cut restages with the house.
 class: /platform/location/Hall
 data:
   shortDescription: pump house

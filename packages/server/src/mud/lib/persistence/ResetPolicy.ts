@@ -44,7 +44,7 @@
 
 import { Collections } from './Collections';
 import { RELEASE_DOCUMENT_KIND } from '../press/Release';
-import { DECLARED_DOCUMENT_KINDS } from '../document/DocumentKinds';
+import { RESET_KEPT_DOCUMENT_KINDS } from '../document/DocumentKinds';
 
 /**
  * What the reset does to one collection.
@@ -102,7 +102,7 @@ export const RESET_DISPOSITIONS: Readonly<
   [Collections.Documents]: {
     verb: 'wipe-except',
     keep: {
-      kind: { $in: [RELEASE_DOCUMENT_KIND, ...DECLARED_DOCUMENT_KINDS] },
+      kind: { $in: [RELEASE_DOCUMENT_KIND, ...RESET_KEPT_DOCUMENT_KINDS] },
     },
     because:
       'published press releases — the front door reads them without an ' +
@@ -118,7 +118,10 @@ export const RESET_DISPOSITIONS: Readonly<
       'happened, which nothing may erase because a night went by. ⭐ A map ' +
       'is one player\'s knowledge of one locality, written from what they ' +
       'perceived; walk somewhere, let the reset run, and the map still ' +
-      'says you were there',
+      'says you were there ⭐ Except the kinds marked `onReset: \'wipe\'` ' +
+      '(persistence-model D5): the LEDGERS history moved to from ' +
+      'holder_snapshots — the water ledger, a business\'s cap table and ' +
+      'hull sales — are wiped as the records they replace were.',
   },
   [Collections.ForumBoards]: { verb: 'wipe' },
   [Collections.ForumEntries]: { verb: 'wipe' },

@@ -1,7 +1,7 @@
 # The Furtado turnout (water-supply W6, D21) — the senior farm's gate onto
 # the flats. LIVE (D30): its openings are the field's water. Its turns are
 # the rota's (`turnOf`, set with the company in W9).
-class: /system/water/thing/PersistentGate
+class: /system/water/thing/Gate
 data:
   shortDescription: Furtado turnout
   keywords: [turnout, gate, "furtado turnout", furtado]

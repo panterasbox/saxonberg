@@ -22,7 +22,7 @@ import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
-import PersistentBusiness from '../../../platform/idea/PersistentBusiness';
+import Company from '../../../platform/idea/Company';
 import TitleTransferController from '../../../platform/idea/cmd/civics/TitleTransferController';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
 import { StuffApi } from '../../../api/stuff';
@@ -85,14 +85,14 @@ function installStore(): void {
     appointingAuthority: { kind: 'owners' },
     capTable: { units: 64, transfer, rows },
   });
-  add(CO, '/platform/idea/PersistentBusiness', row([{ holder: player(ANN, 'Ann'), units: 64 }]));
-  add(LINE, '/platform/idea/PersistentBusiness', { name: 'the line', appointingAuthority: { kind: 'entity', path: BOB } });
-  add(HELD, '/platform/idea/PersistentBusiness', row([{ holder: { kind: 'organization', path: LINE }, units: 64 }]));
-  add(EVEN, '/platform/idea/PersistentBusiness', row([
+  add(CO, '/platform/idea/Company', row([{ holder: player(ANN, 'Ann'), units: 64 }]));
+  add(LINE, '/platform/idea/Company', { name: 'the line', appointingAuthority: { kind: 'entity', path: BOB } });
+  add(HELD, '/platform/idea/Company', row([{ holder: { kind: 'organization', path: LINE }, units: 64 }]));
+  add(EVEN, '/platform/idea/Company', row([
     { holder: player(ANN), units: 32 },
     { holder: player(BOB), units: 32 },
   ]));
-  add(BAD, '/platform/idea/PersistentBusiness', row([{ holder: player(ANN), units: 60 }]));
+  add(BAD, '/platform/idea/Company', row([{ holder: player(ANN), units: 60 }]));
 
   const save = vi.fn(async (c: string, doc: Doc) => {
     const arr = col(c);
@@ -148,25 +148,25 @@ describe('CapTableMixin — a table of owners and their units', () => {
   afterEach(reset);
 
   it('⭐ an authored table stands, whole; a table that does not come to its units is refused loudly', async () => {
-    const co = await StuffApi.singleton<PersistentBusiness>(CO);
+    const co = await StuffApi.singleton<Company>(CO);
     expect(MixinApi.isCapTable(co)).toBe(true);
     expect(co.getCapTable()).toEqual({ units: 64, transfer: 'free', rows: [{ holder: player(ANN, 'Ann'), units: 64 }] });
     await expect(StuffApi.singleton(BAD)).rejects.toThrow(/come to 60, not 64/);
   });
 
   it('⚠ only the applier lays a table down — a script cannot rewrite who owns a business', async () => {
-    const co = await StuffApi.singleton<PersistentBusiness>(CO);
+    const co = await StuffApi.singleton<Company>(CO);
     expect(() => co.setCapTable({ units: 64, rows: [{ holder: player(BOB), units: 64 }] })).toThrow(/TemplateApplier/);
     expect(co.majorityHolder()?.path).toBe(ANN);
   });
 
   it('⭐ the majority read: more than half, else nobody', async () => {
-    expect((await StuffApi.singleton<PersistentBusiness>(CO)).majorityHolder()?.path).toBe(ANN);
-    expect((await StuffApi.singleton<PersistentBusiness>(EVEN)).majorityHolder()).toBeNull();
+    expect((await StuffApi.singleton<Company>(CO)).majorityHolder()?.path).toBe(ANN);
+    expect((await StuffApi.singleton<Company>(EVEN)).majorityHolder()).toBeNull();
   });
 
   it('⭐ units move only from a holder who has them, only by the transfer verb; a row at nothing comes off', async () => {
-    const co = await StuffApi.singleton<PersistentBusiness>(CO);
+    const co = await StuffApi.singleton<Company>(CO);
     expect(() => co.giveUnits({ from: player(ANN), to: player(BOB), units: 1 })).toThrow(/TitleTransferController/);
     const stranger = await asTransfer(() => co.giveUnits({ from: player(BOB), to: player(ANN), units: 1 }));
     expect(stranger).toMatchObject({ ok: false, code: 'not-a-holder' });
@@ -179,28 +179,28 @@ describe('CapTableMixin — a table of owners and their units', () => {
   });
 
   it('⭐ the table is KEPT: after a sale, the process going, the row stands up with the record, not the authored table', async () => {
-    const co = await StuffApi.singleton<PersistentBusiness>(CO);
+    const co = await StuffApi.singleton<Company>(CO);
     await asTransfer(() => co.giveUnits({ from: player(ANN, 'Ann'), to: player(BOB, 'Bob'), units: 16 }));
     StuffApi.clearAll();
     installV1QuantityMarshallers();
-    const again = await StuffApi.singleton<PersistentBusiness>(CO);
+    const again = await StuffApi.singleton<Company>(CO);
     expect(again.capTableRows().map((x) => [x.holder.path, x.units])).toEqual([[ANN, 48], [BOB, 16]]);
   });
 
   it('⭐ holdsAuthority(owners): a sole owner appoints themself; an organization majority through ITS authority; no majority, nobody', async () => {
     const ann = makeAvatar('ann');
     const bob = makeAvatar('bob');
-    const co = await StuffApi.singleton<PersistentBusiness>(CO);
+    const co = await StuffApi.singleton<Company>(CO);
     // Authored bare, the authority reads the organization's OWN table.
     expect(co.getAppointingAuthority()).toEqual({ kind: 'owners', organization: CO });
     expect(await EmploymentApi.holdsAuthority(ann, co.getAppointingAuthority())).toBe(true);
     expect(await EmploymentApi.holdsAuthority(bob, co.getAppointingAuthority())).toBe(false);
     // The line holds this one; the line's authority is Bob's.
-    const held = await StuffApi.singleton<PersistentBusiness>(HELD);
+    const held = await StuffApi.singleton<Company>(HELD);
     expect(await EmploymentApi.holdsAuthority(bob, held.getAppointingAuthority())).toBe(true);
     expect(await EmploymentApi.holdsAuthority(ann, held.getAppointingAuthority())).toBe(false);
     // An even split: nobody appoints until somebody holds a majority.
-    const even = await StuffApi.singleton<PersistentBusiness>(EVEN);
+    const even = await StuffApi.singleton<Company>(EVEN);
     expect(await EmploymentApi.holdsAuthority(ann, even.getAppointingAuthority())).toBe(false);
     expect(await EmploymentApi.holdsAuthority(bob, even.getAppointingAuthority())).toBe(false);
     // `organization:` names another's table; one that keeps none admits nobody.

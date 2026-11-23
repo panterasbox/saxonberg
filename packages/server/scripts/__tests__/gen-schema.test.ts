@@ -102,11 +102,12 @@ describe('gen-schema', () => {
 
   it('emits the derived keep filter as an expression, not a frozen list', () => {
     // The whole point of the named derivation: the emitted table
-    // references DECLARED_DOCUMENT_KINDS rather than copying it.
+    // references RESET_KEPT_DOCUMENT_KINDS (every declared kind but the
+    // ledgers marked `onReset: 'wipe'`) rather than copying it.
     const reset = emitReset(docs);
-    expect(reset).toContain('DECLARED_DOCUMENT_KINDS');
+    expect(reset).toContain('RESET_KEPT_DOCUMENT_KINDS');
     expect(reset).toContain(
-      "import { DECLARED_DOCUMENT_KINDS } from '../document/DocumentKinds';"
+      "import { RESET_KEPT_DOCUMENT_KINDS } from '../document/DocumentKinds';"
     );
   });
 

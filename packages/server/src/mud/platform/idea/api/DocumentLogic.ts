@@ -234,6 +234,9 @@ const BUSINESS_DOCUMENT_KINDS: readonly string[] = [
   'bill-of-lading',
   'warehouse-receipt',
   'rate-card',
+  // persistence-model D6/D7: a business's books.
+  'cap-table',
+  'hull-sale',
 ];
 
 /**
@@ -822,6 +825,8 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'body':
     case 'bore':
     case 'ship':
+    case 'cap-table':
+    case 'hull-sale':
       return { title: summaryLine(doc), pages: [summaryLine(doc)] };
     case 'msh':
     case 'emote':
@@ -832,6 +837,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'map':
     case 'berth-roll':
     case 'berth-book':
+    case 'water-ledger':
     case 'aroma':
     case 'pump-mechanism':
     case 'form':

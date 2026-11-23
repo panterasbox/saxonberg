@@ -1,0 +1,11 @@
+# /system/water/idea/ledger — the WATER LEDGER (persistence-model D5): the
+# commons' history, kept as documents rather than in anybody's record. One
+# document per subject — an aquifer's draws, a gate's opening curve and work
+# log, a conduit's deliveries — filed at `/system/water/ledger<subject>`.
+# History is never staged: a restage leaves the ledger alone, and every
+# gate, conduit and aquifer files. Lazily stood up on first use.
+class: /system/water/idea/WaterLedger
+data:
+  registerOwner: /system/water
+  registerPrefix: /system/water/ledger
+  registerKind: water-ledger

@@ -20,8 +20,10 @@
  *      register in the buyer's name (her deed: all sixty-four shares),
  *      keyway + key, her buyer her master, stood up from her kind's plan and
  *      brought alongside the yard's quay (`quay:`);
- *   7. the slot is SOLD — kept in this book's own record, so a sold-out
- *      yard stays sold out across a restart. No faucet: nothing restocks.
+ *   7. the slot is SOLD — ⭐ history, filed as the yard house's `hull-sale`
+ *      paper (persistence-model D7: the ship register does not record a
+ *      hull's slot, so the sale cannot derive), so a sold-out yard stays
+ *      sold out across a restart. No faucet: nothing restocks.
  *
  * ⭐ The slot is claimed synchronously before the money awaits, and given
  * back if the money does not come — two buyers naming at once cannot both
@@ -32,10 +34,11 @@ import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Ship from '@saxonberg/server/mud/platform/idea/Ship';
 import ShipRegister from '@saxonberg/server/mud/platform/idea/ShipRegister';
 import { ForSaleMixin, type SaleOutcome, type SaleRequest } from '@saxonberg/server/mud/lib/retail/ForSale';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import { DocumentApi } from '@saxonberg/server/mud/api/document';
+import type { HydrationSource, HydrateOutcome } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { GovernmentApi } from '@saxonberg/server/mud/api/government';
-import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
+import { EmploymentApi, type Business } from '@saxonberg/server/mud/api/employment';
 import { BankingApi, Money } from '@saxonberg/server/mud/api/banking';
 import { SecurityApi } from '@saxonberg/server/mud/api/security';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -74,7 +77,7 @@ export interface HullSale {
   soldAtS: number;
 }
 
-export default class HullBook extends PersistableMixin(ForSaleMixin(Good)) {
+export default class HullBook extends ForSaleMixin(Good) {
   /** ⭐ A ship is bought at the book. */
   static commandContributions: CommandContributions = {
     peers: ['platform/cmd/retail/buy.yaml'],
@@ -92,6 +95,38 @@ export default class HullBook extends PersistableMixin(ForSaleMixin(Good)) {
   protected quay: string | null = null;
   /** The hulls sold off this book. */
   protected sold: HullSale[] = [];
+
+  /**
+   * ⭐ What the yard remembers it sold: the house's `hull-sale` paper
+   * (persistence-model D7), read as the book stands up. `required: false` —
+   * an unreachable store is a recorded skip, and every hull reads on the
+   * stocks.
+   */
+  static hydrationSource: HydrationSource = { name: 'documents (hull-sale)', required: false };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    if (!(host instanceof HullBook)) return { status: 'skipped', reason: 'not a hull book' };
+    try {
+      const paper = await host.salePaper();
+      if (paper === null) return { status: 'skipped', reason: 'no house to keep its paper' };
+      const doc = await DocumentApi.read(paper.path);
+      const sold = (doc?.getData() as { sold?: HullSale[] } | undefined)?.sold;
+      if (Array.isArray(sold)) host.sold = sold.map((x) => ({ ...x }));
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built book.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+
+  /** The house that sells off this book and where its paper is filed — `null` with no house. */
+  private async salePaper(): Promise<{ house: Stuff & Business; path: string } | null> {
+    const venue = (this as unknown as Stuff).getIdentityPath() ?? '';
+    const house = await EmploymentApi.ensureOperatorAt(venue);
+    if (house === null || !MixinApi.isBusiness(house)) return null;
+    const leaf = venue.slice(venue.lastIndexOf('/') + 1) || 'book';
+    return { house: house as Stuff & Business, path: `${house.getIdentityPath() ?? ''}/hull-sales/${leaf}` };
+  }
 
   public getHulls(): HullSlot[] {
     return this.hulls.map((h) => ({ ...h }));
@@ -277,12 +312,13 @@ export default class HullBook extends PersistableMixin(ForSaleMixin(Good)) {
     return null;
   }
 
+  /** File the sales as the house's paper (persistence-model D7) — fire-and-forget, a failure said. */
   private save(): void {
-    try {
-      void PersistableApi.capture(this as unknown as Stuff).catch((err) => console.warn('HullBook: capture failed:', err));
-    } catch (err) {
-      console.warn('HullBook: capture failed:', err);
-    }
+    void (async () => {
+      const paper = await this.salePaper();
+      if (paper === null) throw new Error('no house keeps this book');
+      await DocumentApi.saveAsBusiness(paper.house, paper.path, 'hull-sale', { sold: this.getSold() });
+    })().catch((err: unknown) => console.warn('HullBook: filing the sale failed:', err));
   }
 }
 

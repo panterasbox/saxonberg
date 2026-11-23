@@ -457,10 +457,8 @@ describe('Plant — the growing object', () => {
     pot(a, potA);
     pot(b, potB);
 
-    // Same template path, distinct per-instance record keys.
+    // Same template path; each rides its own pot (persistence-model D3).
     expect(a.getTemplatePath()).toBe(b.getTemplatePath());
-    expect(a.getPersistenceKey()).not.toBe(b.getPersistenceKey());
-    expect(a.getPersistenceKey()).toBeTruthy();
 
     // Care for one, neglect the other.
     for (let d = 4; d <= 60; d += 4) {

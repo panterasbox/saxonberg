@@ -182,7 +182,7 @@ describe('the line’s regulars (harbors A2)', () => {
     // The smack's company is kept, appointed by whoever holds a majority of
     // its sixty-four units, and held by nobody until a buyer founds it
     //; she flies the city's colors.
-    expect(rowAt('/stuff/idea/Business/ship-company').class).toBe('/platform/idea/PersistentBusiness');
+    expect(rowAt('/stuff/idea/Business/ship-company').class).toBe('/platform/idea/Company');
     expect(data('/stuff/idea/Business/ship-company')).toMatchObject({
       appointingAuthority: { kind: 'owners' },
       capTable: { units: 64, transfer: 'free', rows: [] },
@@ -208,7 +208,7 @@ describe('the line’s regulars (harbors A2)', () => {
       expect(e.key).toBe(ship);
       // ⭐ The register keeps her title — her company — and no shares.
       expect(e).not.toHaveProperty('shares');
-      expect(rowAt(e.owner).class).toBe('/platform/idea/PersistentBusiness');
+      expect(rowAt(e.owner).class).toBe('/platform/idea/Company');
       // Her company's table is the line's, whole; whoever holds a majority appoints her master.
       expect(data(e.owner)).toMatchObject({
         appointingAuthority: { kind: 'owners' },

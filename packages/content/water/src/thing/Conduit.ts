@@ -76,6 +76,9 @@ import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import WaterLedger, { type Ledgered } from '../idea/WaterLedger';
+import type { HydrationSource, HydrateOutcome } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
+
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import {
   type SupplyState,
@@ -130,7 +133,7 @@ const ConduitBase = PumpSourceMixin(
 
 export default class Conduit
   extends ConduitBase
-  implements PumpSource, SupplyServing, WaterSupply
+  implements PumpSource, SupplyServing, WaterSupply, Ledgered
 {
   static fieldMeta: FieldMeta = {
     conduitKey: { persistent: true, authorable: true },
@@ -275,8 +278,8 @@ export default class Conduit
   /**
    * ⭐ When it delivered and when it did not — a 0/1 ring of breakpoints,
    * written on every cut and every switch, so a tank it fills integrates an
-   * outage it never saw (D5). Rides a record only on the `PersistentConduit`
-   * twin (D30).
+   * outage it never saw (D5). ⭐ History — filed on the water ledger by
+   * every conduit (persistence-model D5).
    */
   public deliveryLog: Breakpoint[] = [];
 
@@ -450,6 +453,44 @@ export default class Conduit
     const now = WorldClockApi.getNow().rawValue();
     const v = !this.cut && this.isOn() ? 1 : 0;
     new TrajectoryLog(this.deliveryLog).record(now, v, v, 0);
+    this.fileLedger();
+  }
+
+  /**
+   * ⭐ What the commons remembers of this conduit: its history on the water
+   * ledger (persistence-model D5), read as it stands up. `required: false`
+   * — an unreachable store (early boot, every unit test) is a recorded
+   * skip, and the row's authored state stands.
+   */
+  static hydrationSource: HydrationSource = { name: 'documents (water-ledger)', required: false };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    if (!(host instanceof Conduit)) return { status: 'skipped', reason: 'not a conduit' };
+    try {
+      const data = await (await WaterLedger.get()).read(host);
+      if (data) host.takeLedger(data);
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built conduit.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+
+  /** File this conduit's history on the water ledger (fire-and-forget; a failure is a diagnostic). */
+  private fileLedger(): void {
+    void WaterLedger.get()
+      .then((ledger) => ledger.file(this as unknown as Stuff & Ledgered))
+      .catch((err: unknown) => console.warn('Conduit: filing on the water ledger failed:', err));
+  }
+
+  /** See {@link Ledgered.ledgerRecord}: when it delivered. */
+  public ledgerRecord(): Record<string, unknown> {
+    return { deliveryLog: this.deliveryLog.map((b) => ({ ...b })) };
+  }
+
+  /** See {@link Ledgered.takeLedger}. */
+  public takeLedger(data: Record<string, unknown>): void {
+    if (Array.isArray(data.deliveryLog)) this.deliveryLog = data.deliveryLog as typeof this.deliveryLog;
   }
 
   /**

@@ -78,6 +78,14 @@ export interface DocumentKindSpec {
   /** File extension the reader accepts. */
   ext: 'yaml' | 'msh' | 'md';
   onVanish: DocumentVanishPolicy;
+  /**
+   * ⭐ What the nightly reset does to this kind (persistence-model D5).
+   * Absent ⇒ a declared kind survives the night, as every one always has.
+   * `'wipe'` ⇒ it is player state that a record used to carry — a ledger
+   * the history moved to from `holder_snapshots` (which is wiped) — so it
+   * is wiped as that record was.
+   */
+  onReset?: 'wipe';
 }
 
 /** The last segment of a document's path — the word a typed-word kind is named by. */
@@ -579,6 +587,28 @@ export const DOCUMENT_KINDS = {
    * no pack ships one. `onVanish: 'keep'` — a debt outlives a night.
    */
   'berth-book': { kind: 'berth-book', contentDir: 'berth-books', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * ⭐ The **water ledger** (persistence-model D5) — the commons' history,
+   * one document per subject (an aquifer's draws, a gate's opening curve
+   * and work log, a conduit's deliveries, a reach's stops), filed by the
+   * water pack's `WaterLedger` register at `/system/water/ledger<subject>`.
+   * History is never staged: every gate, conduit and aquifer files, and a
+   * restage leaves its ledger alone. Runtime-written; no pack ships one.
+   * `onReset: 'wipe'` — the records it replaces were wiped each night.
+   */
+  'water-ledger': { kind: 'water-ledger', contentDir: 'water-ledgers', ext: 'yaml', onVanish: 'keep', onReset: 'wipe' },
+  /**
+   * ⭐ A business's **cap table** (persistence-model D6) — who holds its
+   * shares, filed by the business in its own branch
+   * (`DocumentApi.saveAsBusiness`) after every sale, gift or transfer. The
+   * authored `capTable:` is the table until a paper exists.
+   */
+  'cap-table': { kind: 'cap-table', contentDir: 'cap-tables', ext: 'yaml', onVanish: 'keep', onReset: 'wipe' },
+  /**
+   * ⭐ A **hull sale** (persistence-model D7) — the slots a builder's hull
+   * book has sold, filed by the selling house.
+   */
+  'hull-sale': { kind: 'hull-sale', contentDir: 'hull-sales', ext: 'yaml', onVanish: 'keep', onReset: 'wipe' },
 } as const satisfies Record<string, DocumentKindSpec>;
 
 export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;
@@ -586,3 +616,11 @@ export type DeclaredDocumentKind = keyof typeof DOCUMENT_KINDS;
 export const DECLARED_DOCUMENT_KINDS = Object.keys(
   DOCUMENT_KINDS,
 ) as DeclaredDocumentKind[];
+
+/**
+ * ⭐ The declared kinds the nightly reset keeps — every kind but the ones
+ * marked `onReset: 'wipe'` (persistence-model D5).
+ */
+export const RESET_KEPT_DOCUMENT_KINDS = DECLARED_DOCUMENT_KINDS.filter(
+  (k) => (DOCUMENT_KINDS[k] as DocumentKindSpec).onReset !== 'wipe',
+);

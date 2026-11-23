@@ -40,11 +40,16 @@ describe('the documents indexes (path identity + the catalogue card)', () => {
 });
 
 describe('the reset policy over documents', () => {
-  it('keeps releases AND every declared document kind', () => {
+  it('keeps releases AND every declared document kind — but the ledgers marked onReset: wipe (persistence-model D5)', () => {
     const d = RESET_DISPOSITIONS[Collections.Documents];
     expect(d.verb).toBe('wipe-except');
     const keep = (d as unknown as { keep: { kind: { $in: string[] } } }).keep.kind.$in;
     expect(keep).toContain(RELEASE_DOCUMENT_KIND);
-    for (const k of DECLARED_DOCUMENT_KINDS) expect(keep).toContain(DOCUMENT_KINDS[k].kind);
+    for (const k of DECLARED_DOCUMENT_KINDS) {
+      const spec = DOCUMENT_KINDS[k] as { kind: string; onReset?: string };
+      if (spec.onReset === 'wipe') expect(keep).not.toContain(spec.kind);
+      else expect(keep).toContain(spec.kind);
+    }
+    expect(keep).not.toContain('water-ledger');
   });
 });

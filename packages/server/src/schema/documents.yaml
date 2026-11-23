@@ -60,6 +60,10 @@ reset:
     is one player's knowledge of one locality, written from what they
     perceived; walk somewhere, let the reset run, and the map still says
     you were there
+    ⭐ Except the kinds marked `onReset: 'wipe'` (persistence-model D5): the
+    LEDGERS history moved to from holder_snapshots — the water ledger, a
+    business's cap table and hull sales — are wiped as the records they
+    replace were.
 indexes:
   - keys: { path: 1 }
     unique: true
