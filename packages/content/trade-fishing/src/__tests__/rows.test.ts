@@ -94,15 +94,18 @@ describe('the species rows', () => {
 
 describe('the body plans', () => {
   it('⚠⚠ the fish plan breathes WATER and only water; the crab breathes water, and air nearly as well', () => {
-    const fish = YAML.parse(readFileSync(join(SPECIES_DIR, 'BodyPlan', 'fish.yaml'), 'utf8'));
-    expect(fish.data.breathing).toEqual([{ medium: 'water', apparatus: 'gills', intake: 1 }]);
+    // ⭐ organism-biology W8 (D10): breathing derives from the ORGANS — the
+    // gills on each torso module say what they breathe.
+    const gills = (file: string): unknown => {
+      const m = YAML.parse(readFileSync(new URL(`../../content/body-modules/${file}.yaml`, import.meta.url), 'utf8')) as { parts: { key: string; breathes?: unknown }[] };
+      return m.parts.find((p) => p.key === 'gills')?.breathes;
+    };
+    expect(gills('torso-fish')).toEqual([{ medium: 'water', apparatus: 'gills', intake: 1 }]);
     // ⭐ organism-biology W3: gaits ride the limbs — the fish swims by its tail.
     const tail = YAML.parse(readFileSync(new URL('../../content/body-modules/tail-fish.yaml', import.meta.url), 'utf8')) as { parts: { gait?: string[] }[] };
     expect(tail.parts[0]!.gait).toEqual(['swim']);
-    expect(fish.data.respires).toBe(true);
-    const crab = YAML.parse(readFileSync(join(SPECIES_DIR, 'BodyPlan', 'crustacean.yaml'), 'utf8'));
     // ⭐ Water freely; air, at nine-tenths of its need (underwater D21).
-    expect(crab.data.breathing).toEqual([
+    expect(gills('torso-crustacean')).toEqual([
       { medium: 'water', apparatus: 'gills', intake: 1 },
       { medium: 'air', apparatus: 'gills', intake: 0.9 },
     ]);

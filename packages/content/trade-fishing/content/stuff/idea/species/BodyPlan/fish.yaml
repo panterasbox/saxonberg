@@ -1,10 +1,10 @@
 # Fish — the body plan of a thing that breathes WATER. One torso, a head,
 # a tail, gills where a lung would be; it swims and nothing else.
 #
-# ⚠ `breathing: gills in water` is the load-bearing line. `Respiration`
-# reads the body plan, not the species, and a plan that left the default
-# would read `['air']` — so a landed fish would be perfectly comfortable
-# in your hand and drown in its bowl. The species test pins it.
+# ⚠ The gills' `breathes: water` (on `torso-fish`) is the load-bearing
+# line: breathing derives from the organs (organism-biology D10), so a
+# landed fish drowns in air and is comfortable in its bowl. The species
+# test pins it.
 #
 # It ships here rather than in the species commons because a pack owns
 # the rows it has a reason for (the `avian` precedent in trade-mining);
@@ -18,9 +18,6 @@ data:
   thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: swim
-  breathing:
-    - { medium: water, apparatus: gills, intake: 1 }
-  respires: true
   sensoryPorts:
     - { modality: vision, count: 2, position: lateral }
     - { modality: touch, count: 1, position: circumferential }

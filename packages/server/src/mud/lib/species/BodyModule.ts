@@ -21,7 +21,7 @@
  * only), so the anatomy lint can parse a module from a YAML file.
  */
 
-import type { BodyFill, ComesOff, Integument, IntegumentLayer } from '../../platform/idea/species/BodyPlan';
+import type { BodyFill, BreathingSpec, ComesOff, Integument, IntegumentLayer } from '../../platform/idea/species/BodyPlan';
 import type { TapSpec } from '../../platform/idea/species/Species';
 
 /** One tissue of a module part: a material row and its relative weight. */
@@ -64,6 +64,8 @@ export interface ModulePart {
   integument?: Integument;
   /** As `BodyPart.regrows`. */
   regrows?: 'moult';
+  /** As `BodyPart.breathes` (D10). */
+  breathes?: BreathingSpec[];
 }
 
 export class BodyModule {
@@ -121,6 +123,19 @@ export class BodyModule {
       }
       if (raw.severable === true) part.severable = true;
       if (raw.regrows === 'moult') part.regrows = 'moult';
+      if (Array.isArray(raw.breathes) && raw.breathes.length > 0) {
+        part.breathes = (raw.breathes as Record<string, unknown>[]).map((b) => {
+          if (typeof b.medium !== 'string' || typeof b.intake !== 'number' || !(b.intake >= 0 && b.intake <= 1)) {
+            throw new Error(`body-module '${path}' part '${key}': a breathing organ names a medium and an intake 0..1`);
+          }
+          return {
+            medium: b.medium,
+            apparatus: typeof b.apparatus === 'string' ? b.apparatus : 'lungs',
+            intake: b.intake,
+            ...(typeof b.volumeL === 'number' && b.volumeL > 0 ? { volumeL: b.volumeL } : {}),
+          };
+        });
+      }
       if (raw.fill !== undefined) part.fill = BodyModule.fillOf(raw.fill, path, key);
       if (raw.integument !== undefined) part.integument = BodyModule.integumentOf(raw.integument, path, key);
       if (Array.isArray(raw.produces) && raw.produces.length > 0) {

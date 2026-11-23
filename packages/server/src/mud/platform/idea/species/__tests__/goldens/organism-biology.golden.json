@@ -281,7 +281,18 @@
         "swim",
         "walk"
       ],
-      "breathing": null
+      "breathing": [
+        {
+          "medium": "water",
+          "apparatus": "skin",
+          "intake": 0.75
+        },
+        {
+          "medium": "air",
+          "apparatus": "lungs",
+          "intake": 1
+        }
+      ]
     },
     "/stuff/idea/species/BodyPlan/avian": {
       "parts": [
@@ -2802,6 +2813,28 @@
     }
   },
   "massAt": {
+    "/stuff/idea/species/animalia/chordata/amphibia/anura/ranidae/lithobates/catesbeianus": [
+      {
+        "ageDays": 0,
+        "kg": 0.035
+      },
+      {
+        "ageDays": 150,
+        "kg": 0.354045
+      },
+      {
+        "ageDays": 300,
+        "kg": 0.486674
+      },
+      {
+        "ageDays": 320,
+        "kg": 0.494002
+      },
+      {
+        "ageDays": 340,
+        "kg": 0.5
+      }
+    ],
     "/stuff/idea/species/animalia/chordata/aves/galliformes/phasianidae/gallus/domesticus": [
       {
         "ageDays": 0,

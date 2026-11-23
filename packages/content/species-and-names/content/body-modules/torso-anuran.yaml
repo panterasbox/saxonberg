@@ -4,6 +4,7 @@
 # the tadpole and the froglet their own modules beside this one.
 parts:
 - key: ''
+  breathes: [{medium: water, apparatus: skin, intake: 0.75}]
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.05}
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.25}
@@ -16,6 +17,7 @@ parts:
 - key: lungs
   parent: ''
   governs: [respiratoryRate, respiration]
+  breathes: [{medium: air, apparatus: lungs, intake: 1}]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.01}
 - key: spine

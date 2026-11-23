@@ -24,18 +24,19 @@ data:
   # which takes three-quarters of what it needs from the water, so it stays
   # under four times as long as its breath alone would let it, and still
   # has to come up.
-  breathingByStage:
-    newborn:
-      - { medium: water, apparatus: gills, intake: 1 }
-    juvenile:
-      - { medium: water, apparatus: gills, intake: 0.6 }
-      - { medium: air, apparatus: lungs, intake: 0.6 }
-    adult:
-      - { medium: air, apparatus: lungs, intake: 1 }
-      - { medium: water, apparatus: skin, intake: 0.75 }
-    aged:
-      - { medium: air, apparatus: lungs, intake: 1 }
-      - { medium: water, apparatus: skin, intake: 0.75 }
+  # ⭐⭐ One creature, several bodies (organism-biology D10): a tadpole on
+  # gills, a froglet between, a frog on lungs and its skin — each stage its
+  # own plan, the same object throughout. Breathing derives from the organs
+  # each plan has (the `breathingByStage` this replaced). A bullfrog
+  # tadpole takes the best part of a year before its legs come.
+  ageCurve: { weanedAt: 300, matureAt: 340, agedAt: 2000, senescentAt: 2700 }
+  development:
+    newborn: { plan: /stuff/idea/species/BodyPlan/tadpole }
+    juvenile: { plan: /stuff/idea/species/BodyPlan/froglet }
+  variants:
+    stage:
+      newborn: { commonNames: [tadpole, pollywog] }
+      juvenile: { commonNames: [froglet] }
   # ⭐ What water a tadpole needs (underwater D21): fresh, and not foul — the
   # adult has its lungs and the bank; the tadpole has only the water.
   habitatByStage:

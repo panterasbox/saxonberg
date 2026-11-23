@@ -99,6 +99,7 @@ import { Postures } from '../slot/Postured';
 import { DaylengthBand } from '../time/DaylengthBand';
 import { CelestialApi } from '../../api/celestial';
 import { LIFE_STAGES } from '../../platform/idea/species/Species';
+import type { LifeStage } from '../../platform/idea/species/Species';
 
 /** The life stages, young to old, as a plain string list for rank reads. */
 const LIFE_STAGE_ORDER: readonly string[] = LIFE_STAGES;
@@ -1370,6 +1371,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // severed again by its own row on a restore.
       lostParts: { authorable: true, seed: true },
       subtree: { persistent: true, runtimeState: true },
+      formStage: { persistent: true, runtimeState: true },
       conditions: { persistent: true, runtimeState: true },
       scars: { persistent: true, runtimeState: true },
       // ⭐ Blood build D2. The genotype PIN — authored on an NPC whose
@@ -1429,6 +1431,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The losses a row authors (D7) — read once, at mint, by {@link seedLostParts}. */
     public lostParts: LostPart[] | null = null;
+
+    /**
+     * ⭐ The life stage whose plan this body's state is keyed to (organism-
+     * biology D10) — `''` until first read. When the stage moves onto a
+     * different plan (a tadpole into a froglet), `reconcileForm` remaps
+     * what the body carries onto the new one and stamps this.
+     */
+    public formStage = '';
 
     /** The part this body IS, when it is a severed part (D7); null = whole. */
     public subtree: string | null = null;
@@ -2855,6 +2865,77 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getParts().filter((p) => p.missing);
     }
 
+    /**
+     * ⭐⭐ **The change** (organism-biology D10): one creature, several
+     * bodies. `getBody()` already answers the new stage's body; what needs
+     * the event is the state keyed to the old plan. Deltas on parts the new
+     * body lacks go with them (a tadpole's tail); a wound on such a part
+     * passes to its nearest ancestor the new body has; a slot the new plan
+     * lacks lets go of what it held; the room is told; `formStage` is
+     * stamped. Mass carries — it derives from the curve. The same object,
+     * the same identity, the same record.
+     */
+    private reconcileForm(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const stage = self.getLifeStage() ?? '';
+      if (this.formStage === stage) return;
+      const was = this.formStage;
+      this.formStage = stage;
+      const species = self.getSpecies();
+      if (!was || !species) return; // the first stamp
+      const oldPlan = species.planFor(was as LifeStage);
+      const newPlan = species.planFor((stage || null) as LifeStage | null);
+      if (!oldPlan || !newPlan || oldPlan === newPlan) return;
+      const variant = self.getVariant();
+      const oldBody = species.bodyFor({ ...variant, stage: was as LifeStage });
+      const newBody = self.getBody();
+      if (!oldBody || !newBody) return;
+      const keep = new Set(newBody.getParts().map((p) => p.key));
+      const root = newBody.getParts().find((p) => p.parent === null)?.key ?? null;
+      const landing = (key: string): string | null => {
+        let k: string | null = key;
+        while (k !== null && !keep.has(k)) k = oldBody.getPart(k)?.parent ?? null;
+        return k ?? root;
+      };
+      const deltas: Record<string, BodyPartDelta> = {};
+      for (const [key, d] of Object.entries(this.bodyPartDeltas)) if (keep.has(key)) deltas[key] = d;
+      this.bodyPartDeltas = deltas;
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma' || keep.has(c.site)) continue;
+        const to = landing(c.site);
+        if (to) c.site = to;
+      }
+      const kept = new Set(newPlan.getSlots().map((s) => s.name));
+      const lost = oldPlan.getSlots().map((s) => s.name).filter((n) => !kept.has(n));
+      if (lost.length > 0) this.releaseSlots(lost);
+      const before = species.getCommonNames({ ...variant, stage: was as LifeStage })[0];
+      const now = self.getCommonNames()[0];
+      if (before && now && before !== now && MixinApi.isContainable(self) && self.getContainer()) {
+        MessageApi.scene(self)
+          .topic('sense.sight')
+          .toPeers(Mml.compose`The ${before} is a ${now} now.`)
+          .send();
+      }
+    }
+
+    /** Let go of what the named slots hold — to the hands' own rule, or to the place. */
+    private releaseSlots(names: readonly string[]): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isCarrying(self)) {
+        self.releaseHeld([...names]);
+        return;
+      }
+      if (!MixinApi.isSlotted(self)) return;
+      const destination = MixinApi.isContainable(self) ? self.getContainer() : null;
+      for (const name of names) {
+        for (const occupant of [...self.getOccupants(name)]) {
+          self.vacate(name, occupant);
+          if (destination !== null && MixinApi.isContainable(occupant)) ContainmentApi.move(occupant, destination);
+        }
+      }
+    }
+
     /** See {@link Vitals.reconcilePhenology}. */
     public reconcilePhenology(): void {
       const self = this as unknown as Stuff;
@@ -3044,31 +3125,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // (2) release what the lost slots were carrying — a carrier lets go
       // its own way (size and carrying D13: the room hears it).
-      if (MixinApi.isCarrying(self)) {
-        self.releaseHeld(
-          plan
-            .getSlots()
-            .filter((spec) => spec.bodyPart !== undefined && severed.has(spec.bodyPart))
-            .map((spec) => spec.name),
-        );
-        return;
-      }
-      if (!MixinApi.isSlotted(self)) return;
-      const destination = MixinApi.isContainable(self)
-        ? self.getContainer()
-        : null;
-      for (const spec of plan.getSlots()) {
-        if (spec.bodyPart === undefined) continue;
-        if (!severed.has(spec.bodyPart)) continue;
-        for (const occupant of [...self.getOccupants(spec.name)]) {
-          self.vacate(spec.name, occupant);
-          // A body with nowhere to be (mid-construction, a test fixture)
-          // simply drops the reference — the slot is still released.
-          if (destination !== null && MixinApi.isContainable(occupant)) {
-            ContainmentApi.move(occupant, destination);
-          }
-        }
-      }
+      // A body with nowhere to be (mid-construction, a test fixture) simply
+      // drops the reference — the slot is still released.
+      this.releaseSlots(
+        plan
+          .getSlots()
+          .filter((spec) => spec.bodyPart !== undefined && severed.has(spec.bodyPart))
+          .map((spec) => spec.name),
+      );
     }
 
     public isSlotDisabledByAnatomy(slot: string): boolean {
@@ -3520,6 +3584,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
       this.seedFromSpecies();
+      this.reconcileForm();
       // A corpse doesn't bleed — nothing left to progress.
       if (self.getLifecycleState() === 'dead') return;
       this.reconcileRegrowth();

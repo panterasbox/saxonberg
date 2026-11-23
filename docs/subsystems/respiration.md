@@ -36,8 +36,9 @@ water (breath, ears, gas, tread). Cold → thermal; toxin → metabolism's
 toxin-burden; opacity → perception; the medium's physics →
 `lib/biome/Medium.ts`. It does **not** read `MetabolicMixin.spo2Throttle()`.
 **Plumbing, not anatomy**: it reads channel-state (exchanging or not),
-never orifices. The `respires` opt-out on the body plan opts a body out
-entirely.
+never orifices. A body with parts and no breathing organ does not
+respire at all — derived from its organs (organism-biology D10); the
+plan's `respires` opt-out retired.
 
 ## Composition
 
@@ -87,11 +88,16 @@ effort term on the crossing; it is a known gap.
 Whether a body exchanges gas turns on what it is breathing *from* and how
 much of its need that medium meets.
 
-⭐ **Breathing is a rate** (underwater D21). `BodyPlan.breathing:
-BreathingSpec[]` — `{ medium, apparatus, intake }`, intake 0..1 of basal
-need — with per-stage overrides on the species
-(`Species.breathingByStage`: the bullfrog on gills as a newborn, lungs and
-skin as an adult). `getBreathableMedia()` is derived: the media with
+⭐ **Breathing is a rate** (underwater D21), and ⭐⭐ **it derives from the
+organs** (organism-biology D10, W8): a breathing part authors `breathes:
+[{ medium, apparatus, intake, volumeL? }]` — intake 0..1 of basal need —
+and `Body.breathing(present)` is the per-medium maximum over the present,
+working organs (a lost lung breathes nothing). The bullfrog is a tadpole
+on gills, a froglet on both, a frog on lungs and its skin because each
+stage is its own plan (`Species.development`), not because the species
+authors a per-stage table (`breathingByStage`, `BodyPlan.breathing`,
+`respires` and `lungVolumeL` all retired). An UNMODELLED body (a plan with
+no parts) breathes air as a person does. `getBreathableMedia()` is derived: the media with
 intake ≥ 1. A partial intake (a frog's skin under water) slows the drain
 by what it takes in; it does not stop it. Gills in water take the
 water's dissolved oxygen against the stage's habitat tolerance
@@ -141,7 +147,8 @@ D10). `_heldBreathUntil`, `INHALE_HOLD_SEC` and `UNPREPARED_GRACE_SEC` are
 gone; the reflex hold is the store itself.
 
 - **Full store** = lung volume × `USABLE_O2_PER_LUNG_L` (0.075). Lung
-  volume is the plan's `lungVolumeL` (default `LUNG_VOLUME_L`, 6) × the
+  volume is the present air organs' `volumeL` (`Body.lungVolumeL`; a lung
+  that authors none holds 6) × the
   body's **size factor** (mass over the plan's base mass, clamped
   0.05–4). Gills hold no breath: a body that does not breathe air has a
   zero store.
@@ -395,9 +402,10 @@ game-time dial is the tick cadence (`EMISSION_INTERVAL_MS`).
 - `lib/respiration/RespirationDrain.ts` — the three engagements, the
   `RespirationCause` type, the real-time beat.
 - `platform/thing/AirTank.ts` — the worn tank + the gauge.
-- `platform/idea/species/BodyPlan.ts` (`breathing`, `lungVolumeL`,
-  `voice`, port media), `platform/idea/species/Species.ts`
-  (`breathingByStage`, `habitatByStage`).
+- `lib/species/Body.ts` (`breathing`, `respires`, `lungVolumeL` — derived
+  from the parts' `breathes`), `platform/idea/species/BodyPlan.ts` (`voice`,
+  port media), `platform/idea/species/Species.ts` (`development`,
+  `habitatByStage`).
 - Condition rows `platform/idea/Condition/respiration/{asphyxiation,
   aspiration,squeeze,burst-eardrum,decompression-sickness}.yaml`;
   Discipline rows `swimming`, `diving`.

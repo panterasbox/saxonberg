@@ -93,6 +93,12 @@ export interface BreathingSpec {
   medium: string;
   apparatus: 'lungs' | 'gills' | 'skin' | string;
   intake: number;
+  /**
+   * ⭐ A lung's volume at the plan's base mass, liters (organism-biology
+   * D10) — on the organ that holds the breath. Absent on gills and skin,
+   * which hold none; a lung that authors none holds the default 6.
+   */
+  volumeL?: number;
 }
 
 /**
@@ -264,6 +270,13 @@ export interface BodyPart {
   integument?: Integument;
   /** ⭐ It grows back (D7): `moult` — at the species' moult; a burned stump never does. */
   regrows?: 'moult';
+  /**
+   * ⭐⭐ What this organ breathes (organism-biology D10): one spec per
+   * medium it takes oxygen from. A body's breathing DERIVES from its
+   * present, working organs — a tadpole's gills, a frog's lungs and its
+   * skin — and a body with none does not respire.
+   */
+  breathes?: BreathingSpec[];
   /** ⭐ What its tissues and outside leave a carcass as (D5): the module's own map. */
   comesOffAs?: readonly ComesOff[];
 }
@@ -427,38 +440,10 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   protected thermalStrategy: 'endotherm' | 'ectotherm' = 'endotherm';
 
   /**
-   * ⭐ How this body breathes (underwater D21): one spec per medium it
-   * takes oxygen from, each with the share of its need met there. Default
-   * lungs in air (the biped); a fish authors gills in water; a crab gills
-   * in water and, poorly, in air. The media it breathes FREELY (intake 1)
-   * are {@link getBreathableMedia} — derived, never authored. An empty
-   * list is the crisis-everywhere trap, NOT an opt-out — {@link respires}
-   * is the opt-out.
-   */
-  protected breathing: BreathingSpec[] = [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
-
-  /**
    * ⭐ The media a voice from this body carries in (underwater D21) —
    * `['air']` unless authored (merfolk: `['air', 'water']`).
    */
   protected voice: { media: string[] } = { media: ['air'] };
-
-  /**
-   * Whether a body of this plan respires at all — the respiration
-   * opt-out. Default `true` (a body breathes unless authored
-   * otherwise). A `respires: false` plan (construct, undead, a corpse
-   * archetype) makes the respiration engine never engage a drain: no
-   * medium ever threatens it. Boolean noun-form field per the project
-   * rule (`isRespiring()` predicate getter, `setRespires()` setter).
-   */
-  protected respires: boolean = true;
-
-  /**
-   * ⭐ The lungs of a body of this plan at its base mass, liters (an adult
-   * human's 6) — what one full breath holds (underwater D10). A bigger
-   * or smaller body scales it by its mass over the plan's `baseMass`.
-   */
-  protected lungVolumeL: number = 6;
 
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
@@ -469,10 +454,7 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     baseMass: { persistent: true },
     baseStature: { persistent: true },
     thermalStrategy: { persistent: true },
-    breathing: { persistent: true },
     voice: { persistent: true },
-    respires: { persistent: true },
-    lungVolumeL: { persistent: true },
   };
 
   public getName(): string { return this.name; }
@@ -506,13 +488,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
 
   public getBaseStature(): number { return this.baseStature; }
   /** What one full breath holds at the plan's base mass, liters. */
-  public getLungVolumeL(): number { return this.lungVolumeL; }
-  public setLungVolumeL(value: number): void {
-    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
-      throw new RangeError(`BodyPlan.setLungVolumeL: must be a positive number, got ${String(value)}`);
-    }
-    this.lungVolumeL = value;
-  }
   public setBaseStature(value: number): void {
     if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
       throw new RangeError(
@@ -552,25 +527,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   }
 
 
-  public setBreathing(value: BreathingSpec[]): void {
-    // Per-field invariant: a medium once, an intake in [0, 1].
-    const seen = new Set<string>();
-    const out: BreathingSpec[] = [];
-    for (const v of value) {
-      if (!v || typeof v.medium !== 'string' || v.medium === '') {
-        throw new TypeError('BodyPlan.setBreathing: each entry needs a medium');
-      }
-      if (seen.has(v.medium)) throw new TypeError(`BodyPlan.setBreathing: duplicate medium '${v.medium}'`);
-      seen.add(v.medium);
-      const intake = Number(v.intake);
-      if (!Number.isFinite(intake) || intake < 0 || intake > 1) {
-        throw new RangeError(`BodyPlan.setBreathing: intake for '${v.medium}' must be in [0, 1]`);
-      }
-      out.push({ medium: v.medium, apparatus: String(v.apparatus ?? 'lungs'), intake });
-    }
-    this.breathing = out;
-    this.body = null;
-  }
 
   /** The media a voice from this body carries in. */
   public getVoiceMedia(): readonly string[] {
@@ -582,15 +538,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     this.voice = { media: media.length > 0 ? media : ['air'] };
   }
 
-  public isRespiring(): boolean { return this.respires; }
-  public setRespires(value: boolean): void {
-    if (typeof value !== 'boolean') {
-      throw new TypeError(
-        `BodyPlan.setRespires: must be a boolean, got ${typeof value}`,
-      );
-    }
-    this.respires = value;
-  }
 
   public getDefaultLocomotionMode(): string | null {
     return this.defaultLocomotionMode;
@@ -665,7 +612,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
           modules: this.modules,
           slots: this.slots,
           sensoryPorts: this.sensoryPorts,
-          breathing: this.breathing,
         },
         (path) => catalogue.need(path),
       );
@@ -685,7 +631,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
         modules: this.modules,
         slots: this.slots,
         sensoryPorts: this.sensoryPorts,
-        breathing: this.breathing,
       },
       (path) => catalogue.need(path),
       deltas,

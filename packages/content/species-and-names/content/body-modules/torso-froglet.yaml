@@ -1,0 +1,37 @@
+# torso-froglet — between the water and the air (organism-biology D10):
+# gills still working and lungs begun, each doing part of the job.
+parts:
+- key: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.04}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.25}
+  - {tissue: /stuff/idea/material/tissue/intestine, weight: 0.05}
+- key: heart
+  parent: ''
+  governs: [heartRate, circulation]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.003}
+- key: gills
+  parent: ''
+  breathes: [{medium: water, apparatus: gills, intake: 0.6}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.01}
+- key: lungs
+  parent: ''
+  governs: [respiratoryRate, respiration]
+  breathes: [{medium: air, apparatus: lungs, intake: 0.6}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.008}
+- key: spine
+  parent: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.005}
+- key: liver
+  parent: ''
+  governs: [clearance]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.03}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.03, form: skin}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}

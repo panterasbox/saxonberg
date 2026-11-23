@@ -278,6 +278,59 @@ describe('the rearing clock', () => {
     expect(t.rearingLine()).toMatch(/cocoons on it/);
   });
 
+  it('⭐⭐ the tray golden (organism-biology W8): every stack\'s count and shell, to the milligram', async () => {
+    // Pinned from the tray as it stood BEFORE the shell derived from the
+    // worm's silk gland (D10): the gland's share is calibrated so the
+    // shipped strain spins exactly what it did.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      const made =
+        path.endsWith('/cocoons') ? makeStuff(() => new Cocoons()) : makeStuff(() => new Good());
+      stampTemplatePathForTest(made as unknown as Stuff, path);
+      return made;
+    }) as never);
+    const t = tray(298);
+    await hatchOn(t, lot(0, 300));
+    let brushed = false;
+    for (let h = 1; h <= 60 * 2; h++) {
+      setNow((h / 2) * DAY);
+      pin(t as unknown as Stuff, 298);
+      const state = t.getRearingState();
+      if (state === 'feeding' && t.leafOnTray().length === 0) ContainmentApi.move(leaf(20), t);
+      if (state === 'wandering' && !brushed) {
+        ContainmentApi.move(brush(), t);
+        brushed = true;
+      }
+      if (state === 'empty') break;
+    }
+    await new Promise((r) => setTimeout(r, 0));
+    const stacks = t.getContents().filter((s): s is Cocoons & typeof s => s instanceof Cocoons);
+    const golden = stacks
+      .map((s) => ({ band: s.getHeftBand(), count: s.getQuantity(), meanShellMg: Math.round(s.getMeanShellMg()), lotMeanMg: Math.round(s.getLotMeanMg()) }))
+      .sort((a, b) => a.band.localeCompare(b.band));
+    expect(golden).toMatchInlineSnapshot(`
+      [
+        {
+          "band": "heavy",
+          "count": 51,
+          "lotMeanMg": 380,
+          "meanShellMg": 436,
+        },
+        {
+          "band": "light",
+          "count": 51,
+          "lotMeanMg": 380,
+          "meanShellMg": 324,
+        },
+        {
+          "band": "middling",
+          "count": 153,
+          "lotMeanMg": 380,
+          "meanShellMg": 380,
+        },
+      ]
+    `);
+  });
+
   it('underfed in the fifth age: lighter cocoons', async () => {
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       const made =

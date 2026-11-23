@@ -666,6 +666,18 @@ export interface NeuteredSpec extends VariantSpec {
   stage?: Partial<Record<LifeStage, VariantSpec>>;
 }
 
+/**
+ * ⭐⭐ One stage of a species that changes its body (organism-biology D10):
+ * the plan the stage is built on, and its mass as a factor of the curve's
+ * (≤ 1 across a change — mass is never created). A tadpole, a froglet, a
+ * frog; a larva, a pupa, a moth. The stage's names are
+ * `variants.stage.<stage>.commonNames` (D8).
+ */
+export interface DevelopmentStage {
+  plan: string;
+  massFactor?: number;
+}
+
 /** A species' forms: by sex, castration, and life stage. */
 export interface SpeciesVariants {
   sex?: Record<string, VariantSpec>;
@@ -739,6 +751,9 @@ export default class Species extends SingletonMixin(
 
   /** One `Body` per variant key, built on first read; reset when the plan's body changes. */
   private bodies: { of: Body | null; byKey: Map<string, Body> } = { of: null, byKey: new Map() };
+
+  /** ⭐ Its development (D10): a stage that changes the body names its own plan. */
+  protected development: Partial<Record<LifeStage, DevelopmentStage>> = {};
 
   /** Path to the BodyPlan singleton. */
   public _bodyPlanPath: string | null = null;
@@ -992,13 +1007,6 @@ export default class Species extends SingletonMixin(
    */
   protected habitat: Habitat | null = null;
 
-  /**
-   * ⭐ How this species breathes at a stage, where it differs from its
-   * plan's (underwater D21): a tadpole on gills, a froglet on gills and
-   * lungs both, the adult on its plan. Unset stages take the plan's.
-   */
-  protected breathingByStage: Partial<Record<LifeStage, BreathingSpec[]>> = {};
-
   /** ⭐ What water a stage needs, where it differs from {@link habitat} (D21). */
   protected habitatByStage: Partial<Record<LifeStage, Habitat>> = {};
 
@@ -1088,6 +1096,7 @@ export default class Species extends SingletonMixin(
     commonNames: { persistent: true },
     variants: { persistent: true },
     _bodyPlanPath: { persistent: true, ref: 'identity:constituent' },
+    development: { persistent: true, authorable: true },
     _parentCladePath: { persistent: true, ref: 'identity:constituent' },
     _defaultMaterialPath: { persistent: true, ref: 'identity:constituent' },
     lifecycleStates: { persistent: true },
@@ -1137,7 +1146,6 @@ export default class Species extends SingletonMixin(
     // number, and a wiki panel printing the tolerances is the field
     // guide the angler is supposed to have read.
     habitat: { persistent: true, authorable: true },
-    breathingByStage: { persistent: true, authorable: true },
     habitatByStage: { persistent: true, authorable: true },
 
     // ── What you learn by meeting it ──
@@ -1326,13 +1334,16 @@ export default class Species extends SingletonMixin(
    * resolvable plan.
    */
   public bodyFor(variant?: BodyVariant): Body | null {
-    const plan = this.getBodyPlan();
+    const plan = this.planFor(variant?.stage ?? null);
     if (!plan) return null;
     const base = plan.getBody();
     const deltas = [this.body, ...this.formsOf(variant).map((f) => f.body)].filter((d): d is BodyDelta => !!d);
     if (deltas.length === 0) return base;
-    if (this.bodies.of !== base) this.bodies = { of: base, byKey: new Map() };
-    const key = `${variant?.sex ?? ''}|${variant?.stage ?? ''}|${variant?.neutered && variant.sex ? 'n' : ''}`;
+    // ⭐ Memoized against the DEFAULT plan's body (a module change resets
+    // it); a stage on its own plan carries that plan in its key.
+    const home = this.getBodyPlan()?.getBody() ?? base;
+    if (this.bodies.of !== home) this.bodies = { of: home, byKey: new Map() };
+    const key = `${plan.getTemplatePath() ?? ''}|${variant?.sex ?? ''}|${variant?.stage ?? ''}|${variant?.neutered && variant.sex ? 'n' : ''}`;
     let body = this.bodies.byKey.get(key);
     if (!body) {
       body = plan.bodyWith(deltas);
@@ -1426,38 +1437,6 @@ export default class Species extends SingletonMixin(
       if (h) out[stage as LifeStage] = h;
     }
     this.habitatByStage = out;
-  }
-
-  /**
-   * ⭐ How a body of this species breathes at `stage` (underwater D21):
-   * the stage's own breathing, else the plan's.
-   */
-  public breathingFor(stage: LifeStage | null): readonly BreathingSpec[] {
-    // A body with no age to read is taken as grown (an authored frog is an adult).
-    const own = this.breathingByStage[stage ?? 'adult'];
-    return own ?? this.bodyFor()?.breathing() ?? [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
-  }
-
-  public getBreathingByStage(): Partial<Record<LifeStage, BreathingSpec[]>> {
-    return { ...this.breathingByStage };
-  }
-
-  public setBreathingByStage(value: Partial<Record<LifeStage, BreathingSpec[]>> | null): void {
-    const out: Partial<Record<LifeStage, BreathingSpec[]>> = {};
-    for (const [stage, specs] of Object.entries(value ?? {})) {
-      if (!(LIFE_STAGES as readonly string[]).includes(stage)) {
-        throw new TypeError(`Species.setBreathingByStage: '${stage}' is not a life stage`);
-      }
-      if (!Array.isArray(specs)) continue;
-      out[stage as LifeStage] = specs.map((b) => {
-        const intake = Number(b.intake);
-        if (typeof b.medium !== 'string' || b.medium === '' || !Number.isFinite(intake) || intake < 0 || intake > 1) {
-          throw new RangeError(`Species.setBreathingByStage: a bad breathing entry at '${stage}'`);
-        }
-        return { medium: b.medium, apparatus: String(b.apparatus ?? 'lungs'), intake };
-      });
-    }
-    this.breathingByStage = out;
   }
 
   /**
@@ -1559,6 +1538,42 @@ export default class Species extends SingletonMixin(
   public getBodyPlan(): BodyPlan | null {
     if (!this._bodyPlanPath) return null;
     return StuffApi.findByTemplatePath<BodyPlan>(this._bodyPlanPath) ?? null;
+  }
+
+  /**
+   * ⭐ The plan a body at `stage` is built on (D10): the stage's own, where
+   * its development names one, else the species' plan. A frog's tadpole is
+   * not the frog's plan with a tail; it is the tadpole's.
+   */
+  public planFor(stage: LifeStage | null): BodyPlan | null {
+    const own = stage ? this.development[stage]?.plan : undefined;
+    if (own) return StuffApi.findByTemplatePath<BodyPlan>(own) ?? this.getBodyPlan();
+    return this.getBodyPlan();
+  }
+
+  /** This species' development (D10). */
+  public getDevelopment(): Partial<Record<LifeStage, DevelopmentStage>> { return { ...this.development }; }
+  /**
+   * Name the development. ⭐ Async: every stage's plan is ensured, with
+   * this species as holder, so a body at any stage builds on a read. A
+   * stage that is not a life stage, or a plan path that names no plan,
+   * throws (P3).
+   */
+  public async setDevelopment(value: Partial<Record<LifeStage, DevelopmentStage>> | null): Promise<void> {
+    const out: Partial<Record<LifeStage, DevelopmentStage>> = {};
+    for (const [stage, d] of Object.entries(value ?? {})) {
+      if (!(LIFE_STAGES as readonly string[]).includes(stage)) throw new TypeError(`Species.setDevelopment: '${stage}' is not a life stage`);
+      if (!d || typeof d.plan !== 'string' || d.plan === '') throw new TypeError(`Species.setDevelopment: '${stage}' names no plan`);
+      out[stage as LifeStage] = { plan: d.plan, ...(typeof d.massFactor === 'number' && d.massFactor > 0 ? { massFactor: d.massFactor } : {}) };
+    }
+    const holder = this.getIdentityPath() ?? null;
+    await Promise.all(Object.values(out).map((d) => StuffApi.ensureConstituent(d!.plan, holder)));
+    this.applyDevelopment(out);
+  }
+  /** Name the development when its plans are already resident (a fixture; the setter above). */
+  public applyDevelopment(value: Partial<Record<LifeStage, DevelopmentStage>> | null): void {
+    this.development = { ...(value ?? {}) };
+    this.bodies = { of: null, byKey: new Map() };
   }
 
   public setBodyPlan(value: BodyPlan | null): void {
@@ -1701,6 +1716,10 @@ export default class Species extends SingletonMixin(
    */
   public massAt(ageDays: number, variant?: BodyVariant): number {
     let adult = this.adultMass;
+    // ⭐ A stage on its own plan weighs its share of the curve (D10): a
+    // tadpole is not a frog's mass with a tail.
+    const stageFactor = variant?.stage ? this.development[variant.stage]?.massFactor : undefined;
+    if (typeof stageFactor === 'number' && stageFactor > 0) adult *= stageFactor;
     for (const f of this.formsOf(variant)) if (typeof f.massFactor === 'number' && f.massFactor > 0) adult *= f.massFactor;
     if (adult <= 0) return 0;
     const curve = this.ageCurve;

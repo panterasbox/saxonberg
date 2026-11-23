@@ -18,6 +18,7 @@ parts:
 - key: gills
   parent: ''
   governs: [respiratoryRate]
+  breathes: [{medium: water, apparatus: gills, intake: 1}]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0097}
 - key: kidney.left

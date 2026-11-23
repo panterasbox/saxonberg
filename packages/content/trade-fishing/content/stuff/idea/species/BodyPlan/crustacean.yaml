@@ -15,10 +15,6 @@ data:
   thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: walk
-  breathing:
-    - { medium: water, apparatus: gills, intake: 1 }
-    - { medium: air, apparatus: gills, intake: 0.9 }
-  respires: true
   sensoryPorts:
     - { modality: vision, count: 2, position: frontal }
     - { modality: touch, count: 1, position: circumferential }

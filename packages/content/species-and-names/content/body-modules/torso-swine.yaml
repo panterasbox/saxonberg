@@ -23,6 +23,7 @@ parts:
 - key: lungs
   parent: ''
   governs: [respiratoryRate, respiration]
+  breathes: [{medium: air, apparatus: lungs, intake: 1}]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.007}
 - key: spine.upper

@@ -192,7 +192,12 @@ function computeGolden(): Golden {
       // ⭐ W3: gaits derive from the limbs; compared as a set (order is the
       // parts' order, which carries no meaning).
       gaits: [...plan.getBody().gaits()].sort(),
-      breathing: data.breathing ?? null,
+      // ⭐ W8 (D10): breathing DERIVES from the organs — compared to what
+      // W0's plan authored, where `null` was the plan default (lungs in
+      // air, freely): a body breathing air freely and nothing else.
+      breathing: ((b) => (b.length === 1 && b[0]!.medium === 'air' && b[0]!.intake === 1 ? null : b))(
+        plan.getBody().breathing().map((x) => ({ medium: x.medium, apparatus: x.apparatus, intake: x.intake })),
+      ),
     };
   }
 

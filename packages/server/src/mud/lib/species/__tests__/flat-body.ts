@@ -17,7 +17,7 @@ import type Species from '../../../platform/idea/species/Species';
 import type { TapSpec } from '../../../platform/idea/species/Species';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import Material from '../../material/Material';
-import type { BodyPart } from '../../../platform/idea/species/BodyPlan';
+import type { BodyPart, BreathingSpec } from '../../../platform/idea/species/BodyPlan';
 import type { ModuleRef } from '../Body';
 import { BodyModule } from '../BodyModule';
 import { SpeciesApi } from '../../../api/species';
@@ -36,8 +36,15 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
   fixtureSeq += 1;
   const base = `${plan.getTemplatePath() ?? '/test/body'}#${fixtureSeq}`;
   const refs: ModuleRef[] = [];
+  // ⭐ W8 (D10): breathing derives from organs. A fixture's flat parts
+  // authored none, and a plan used to breathe air by default — so the root
+  // part breathes air, unless a part says otherwise or `setFlatBreathing`
+  // has given the plan its own organ.
+  const keepsBreath = plan.getModules().some((r) => r.module.endsWith('#breath'));
+  const authored = parts.some((p) => (p.breathes?.length ?? 0) > 0);
   for (const part of parts) {
     const path = `${base}/${part.key}`;
+    const breathes = part.breathes ?? (!keepsBreath && !authored && !part.parent ? [{ medium: 'air', apparatus: 'lungs', intake: 1 }] : undefined);
     const data: Record<string, unknown> = {
       parts: [
         {
@@ -52,6 +59,7 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
           ...(part.fill ? { fill: part.fill } : {}),
           ...(part.integument ? { integument: part.integument } : {}),
           ...(part.regrows ? { regrows: part.regrows } : {}),
+          ...(breathes ? { breathes } : {}),
         },
       ],
       ...(part.comesOffAs ? { comesOffAs: part.comesOffAs } : {}),
@@ -64,7 +72,23 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
     refs.push(ref);
   }
   // ⭐ A gait-only instance a fixture gave the plan earlier survives.
-  plan.applyModules([...plan.getModules().filter((r) => r.module.endsWith('#gait')), ...refs]);
+  plan.applyModules([...plan.getModules().filter((r) => r.module.endsWith('#gait') || r.module.endsWith('#breath')), ...refs]);
+}
+
+/**
+ * Give a plan the breathing a fixture used to author as `breathing` /
+ * `respires` (organism-biology W8: breathing derives from organs). A
+ * weightless part at its own root, `body.breath`, carries the specs; an
+ * empty list means a body with parts and no breathing organ — it does not
+ * respire.
+ */
+export function setFlatBreathing(plan: BodyPlan, breathes: readonly BreathingSpec[]): void {
+  fixtureSeq += 1;
+  const path = `${plan.getTemplatePath() ?? '/test/body'}#${fixtureSeq}#breath`;
+  SpeciesApi.modules().remember(path, new BodyModule(path, {
+    parts: [{ key: '', tissues: [], ...(breathes.length > 0 ? { breathes: breathes.map((b) => ({ ...b })) } : {}) }],
+  }));
+  plan.applyModules([...plan.getModules().filter((r) => !r.module.endsWith('#breath')), { module: path, as: ['body.breath'] }]);
 }
 
 /**

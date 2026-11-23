@@ -1,0 +1,15 @@
+# tail-tadpole — the tail a tadpole swims with and a frog does not have
+# (organism-biology D10). At the change it goes, and a wound on it passes
+# to the body it was part of.
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.3}
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.02}
+  gait: [swim]
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.01, form: skin}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/muscle, cut: /stuff/thing/items/offal}

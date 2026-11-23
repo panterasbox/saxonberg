@@ -72,8 +72,6 @@ export interface BodySpec {
   slots?: readonly SlotSpec[];
   /** Still authored on the plan until W9 derives senses from organs (D1's proxy). */
   sensoryPorts?: readonly SensoryPort[];
-  /** Still authored on the plan until W8 derives breathing from organs. */
-  breathing?: readonly BreathingSpec[];
 }
 
 /** ⭐ One line of a carcass (D5): a row, the materials that named it, the parts that carry them. */
@@ -98,7 +96,8 @@ const PORT_MEDIA_DEFAULT: Readonly<Record<string, readonly string[]>> = {
   taste: ['air'],
 };
 
-const DEFAULT_BREATHING: readonly BreathingSpec[] = [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
+/** A lung that authors no volume holds an adult's, liters, at the plan's base mass (D10). */
+const DEFAULT_LUNG_VOLUME_L = 6;
 
 export class Body {
   private readonly parts: readonly BodyPart[];
@@ -106,7 +105,6 @@ export class Body {
   private readonly conduitKeys: ReadonlySet<string>;
   private readonly slots: readonly SlotSpec[];
   private readonly sensoryPorts: readonly SensoryPort[];
-  private readonly breathingSpecs: readonly BreathingSpec[];
   private surfaceFractions: Map<string, number> | null = null;
   private tissues: ResolvedTissue[] | null = null;
 
@@ -123,7 +121,6 @@ export class Body {
   ) {
     this.slots = spec.slots ?? [];
     this.sensoryPorts = spec.sensoryPorts ?? [];
-    this.breathingSpecs = spec.breathing ?? DEFAULT_BREATHING;
 
     const refs: ModuleRef[] = [...spec.modules];
     const scale = new Map<string, number>();
@@ -229,6 +226,7 @@ export class Body {
     if (mp.serves) part.serves = [...mp.serves];
     if (mp.severable) part.severable = true;
     if (mp.regrows) part.regrows = mp.regrows;
+    if (mp.breathes) part.breathes = mp.breathes.map((b) => ({ ...b }));
     const inner = (mp.innervatedBy ?? []).map((k) => Body.absolute(as, k));
     const supply = (mp.suppliedBy ?? []).map((k) => Body.absolute(as, k));
     if (isRoot) {
@@ -252,6 +250,52 @@ export class Body {
   /** Every part, in expansion order (plan order, then deltas). */
   public getParts(): readonly BodyPart[] {
     return this.parts;
+  }
+
+  /**
+   * ⭐⭐ **How this body breathes** (organism-biology D10): per medium, the
+   * best intake over its breathing organs that are `present` — the
+   * tadpole's gills, the frog's lungs and its skin. Empty: it does not
+   * respire. The apparatus named is the organ that gives the best intake.
+   */
+  public breathing(present: (partKey: string) => boolean = () => true): BreathingSpec[] {
+    // An UNMODELLED body (no parts at all — a plan with no modules) breathes
+    // as a person does: unmodelled reads as the ordinary case, never as a
+    // body that cannot breathe anywhere.
+    if (this.parts.length === 0) return [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
+    const best = new Map<string, BreathingSpec>();
+    for (const part of this.parts) {
+      if (!part.breathes || !present(part.key)) continue;
+      for (const b of part.breathes) {
+        const had = best.get(b.medium);
+        if (!had || b.intake > had.intake) best.set(b.medium, { medium: b.medium, apparatus: b.apparatus, intake: b.intake });
+      }
+    }
+    return [...best.values()];
+  }
+
+  /** Does a body of this form respire at all — has it an organ that breathes? (D10) */
+  public respires(): boolean {
+    return this.parts.length === 0 || this.parts.some((p) => (p.breathes?.length ?? 0) > 0);
+  }
+
+  /**
+   * ⭐ The air its lungs hold at the plan's base mass, liters (D10): the
+   * `volumeL` of its present air-breathing organs (6 for a lung that says
+   * none), 0 with none.
+   */
+  public lungVolumeL(present: (partKey: string) => boolean = () => true): number {
+    if (this.parts.length === 0) return DEFAULT_LUNG_VOLUME_L;
+    let total = 0;
+    for (const part of this.parts) {
+      if (!present(part.key)) continue;
+      for (const b of part.breathes ?? []) {
+        if (b.medium !== 'air') continue;
+        if (b.volumeL !== undefined) total += b.volumeL;
+        else if (b.apparatus === 'lungs') total += DEFAULT_LUNG_VOLUME_L;
+      }
+    }
+    return total;
   }
 
   /** One part by key, or null. */
@@ -455,7 +499,7 @@ export class Body {
     return this.slots.filter((s) => (s.covers ?? []).includes(partKey));
   }
 
-  // ---- senses, gaits, breathing (proxied from the plan until derived) ----
+  // ---- senses and gaits ----
 
   /** The sense organs this body declares (the plan's ports until W9 derives them). */
   public getSensoryPorts(): readonly SensoryPort[] {
@@ -500,13 +544,8 @@ export class Body {
     return this.byKey.get(partKey)?.fill ?? 'solid';
   }
 
-  /** The ways this body breathes (the plan's until W8 derives them from organs). */
-  public breathing(): readonly BreathingSpec[] {
-    return this.breathingSpecs;
-  }
-
-  /** The media this body breathes freely — the intake-1 specs. */
-  public breathableMedia(): readonly string[] {
-    return this.breathingSpecs.filter((b) => b.intake >= 1).map((b) => b.medium);
+  /** The media this body breathes freely — the intake-1 specs over its present organs. */
+  public breathableMedia(present?: (partKey: string) => boolean): readonly string[] {
+    return this.breathing(present).filter((b) => b.intake >= 1).map((b) => b.medium);
   }
 }

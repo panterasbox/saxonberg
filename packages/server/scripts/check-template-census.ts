@@ -919,6 +919,18 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   if (Array.isArray(data.buildings)) {
     for (const b of data.buildings) push('buildings', b);
   }
+  // ⭐ A species' seasons (organism-biology D9): each `phenology[].condition`
+  // names a Condition row the reconcile afflicts — a rowless one is a body
+  // that throws at hydration (setPhenology ensures it), caught here first.
+  if (Array.isArray(data.phenology)) {
+    for (const e of data.phenology) push('phenology.condition', (e as Record<string, unknown>)?.condition);
+  }
+  // …and its development (D10): each stage's `plan` is a BodyPlan row.
+  if (data.development && typeof data.development === 'object') {
+    for (const d of Object.values(data.development as Record<string, unknown>)) {
+      push('development.plan', (d as Record<string, unknown>)?.plan);
+    }
+  }
   return out;
 }
 
@@ -1236,7 +1248,9 @@ const DOCUMENT_ROW_CITATIONS: Readonly<Record<string, (d: Record<string, unknown
     const part = (p ?? {}) as Record<string, unknown>;
     const tissues = (Array.isArray(part.tissues) ? (part.tissues as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.tissue);
     const yields = (Array.isArray(part.produces) ? (part.produces as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.yieldRow);
-    return [...tissues, ...yields];
+    // …and the condition a tap runs in (D9): `produces[].activeIn`.
+    const active = (Array.isArray(part.produces) ? (part.produces as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.activeIn);
+    return [...tissues, ...yields, ...active.filter((a) => a !== undefined)];
   }).concat(
     // …and its carcass map (W5): each `comesOffAs[].cut` names the row a
     // butchering clones — a rowless one opens onto nothing, silently.
