@@ -72,7 +72,11 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   `Thermal`+`Reserved`, it overrides `getTemperature()` to pin the flame
   temperature while aflame (the generalized Campfire pin) and delegates to
   `super` (the cooling embers) once out. Fuel drain is **reconcile-on-read**
-  over game-time — a fire left alone burns down to char even unobserved. The
+  over game-time — a fire left alone burns down to char even unobserved.
+  ⚠ **Except under a held-still walk**: a read never writes, so while the
+  light walk asks every source for its flux the burner reads its fuel as it
+  stands and leaves the burn to the next ordinary read (test-world-lifecycle,
+  2026-11 — a lit lamp had turned every light read into a fuel write). The
   gated `FireLogic` is the **single external writer** of the Burning state
   (`ApiOnly` mutators); the host's own burnout is internal.
 - **Ignition is a derivable energy balance (D3).** An object ignites when its

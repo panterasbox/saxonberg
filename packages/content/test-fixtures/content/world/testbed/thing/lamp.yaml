@@ -1,0 +1,15 @@
+# A wall lamp — the light a lit testbed room names (test-world-lifecycle D2).
+# A light source that is simply on and burns nothing (the Ferrow glowcap
+# fixture is the exemplar of the shape), so a lit room stays lit through
+# any run and needs no fuel chain. ⚠ TEST-ONLY.
+class: /platform/thing/equipment/PortableLight
+data:
+  shortDescription: wall lamp
+  keywords: [lamp, light, "wall lamp"]
+  register: indefinite
+  longDescription: >-
+    A lamp on a bracket on the wall, lit.
+  mass: 3
+  emittedIntensity: 400
+  emittedColorTemperature: 2700
+  on: true

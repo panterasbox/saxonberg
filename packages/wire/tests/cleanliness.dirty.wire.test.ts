@@ -25,7 +25,7 @@
  * default).
  */
 
-import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe as suite, it, expect, beforeAll } from 'vitest';
 import {
   Session,
   type CommandResult,
@@ -34,11 +34,9 @@ import {
   expectOk,
   advanceWorldClock,
   isOwnedTestWorld,
+  restartWorld,
 } from '../src/harness';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { WIRE_LOG } from '../src/runner/boot';
 import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
@@ -765,19 +763,13 @@ suite('⭐⭐⭐ drive 23 — a stain, a band and a kept floor survive a restart
     } catch {
       /* no log to keep */
     }
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
     // ⭐ A RESTART, not a crash (the harbors and sugar drives' precedent):
     // preflight's default two seconds SIGKILLs the server before its
     // shutdown capture, and the cookhouse's record — the rack and the shirt
     // on it — was never written (controller-liquidity W21's diagnosis; the
     // !527 finalize measured a loaded world's capture at ~3.5 min, so the
     // grace is longer than harbors' minute).
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-      env: { ...process.env, PREFLIGHT_GRACE_MS: '300000' },
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
     const s = await Session.open(cookHandle, { startLocation: COOKHOUSE });
     try {
       // ⭐ Where it was LEFT: drive 9 hung the washed shirt on the

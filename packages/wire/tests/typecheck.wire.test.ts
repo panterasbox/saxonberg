@@ -10,7 +10,7 @@
  *     frame that arrives AFTER the command has answered, which is why this
  *     file listens for it rather than reading `said()`;
  *   - `reload --no-check X` swaps and says nothing more;
- *   - `reload --strict X` checks first and refuses to swap a type error in.
+ *   - `reload --force X` checks first and refuses to swap a type error in.
  *
  * The probe is a real source file the founder's verbs resolve by class
  * path. This file writes it, breaks it, and removes it; a probe left
@@ -24,14 +24,17 @@ import { fileURLToPath } from 'node:url';
 import {
   Session,
   declareFile,
-  uniqueHandle,
   expectOk,
   expectNote,
+  standIn,
+  PLAZA,
 } from '../src/harness';
 
+// Stands in the testbed (test-world-lifecycle D8). The founder stays: its
+// seat is the title over the platform the verbs check.
 declareFile({
   file: 'typecheck.wire.test.ts',
-  packs: ['platform'],
+  packs: ['platform', 'test-fixtures'],
 });
 
 const PROBE_CLASS = '/platform/thing/WireTypecheckProbe';
@@ -53,8 +56,8 @@ let player: Session;
 beforeAll(async () => {
   rmSync(PROBE_FILE, { force: true });
   writeFileSync(PROBE_FILE, CLEAN);
-  founder = await Session.open('founder');
-  player = await Session.open(uniqueHandle('tc'));
+  founder = await Session.open('founder', { startLocation: PLAZA });
+  player = await standIn(PLAZA, 'tc');
 }, 120_000);
 
 afterAll(() => {
@@ -93,10 +96,13 @@ suite('a file with a type error', () => {
     expect(await result.said()).toMatch(/1 error\(s\)[\s\S]*2:3 TS2322/);
   });
 
-  it('reload --strict refuses to swap it in', async () => {
-    const result = await founder.cmd(`reload --strict ${PROBE_CLASS}`);
+  it('reload --force refuses to swap it in', async () => {
+    // ⚠ The option is `--force` now (the view: "checks first and refuses to
+    // swap code with type errors in"); `--strict` was renamed and an
+    // unknown option is ignored, so this step was red on master.
+    const result = await founder.cmd(`reload --force ${PROBE_CLASS}`);
     expectNote(result, 'controller-rejected', { reason: 'type-errors' });
-    expect(await result.said()).toMatch(/not reloaded \(--strict\)/);
+    expect(await result.said()).toMatch(/not reloaded \(--force\)/);
   });
 
   it('reload swaps it anyway, then reports the error', async () => {

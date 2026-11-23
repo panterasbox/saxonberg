@@ -193,4 +193,4 @@ starting brand (lineage-slate).
   [persistence.md](./persistence.md)); and a glass starter phone that broke when dropped (both
   phones are rubber). The record was the retired plan's § Drive record — `git log
   b8b0fb71d^..07760516f` has each fix. The browser walk is `e2e/tests/aether-devices-walk.spec.ts`;
-  the soak drive `packages/wire/tests/aether-devices.soak.dirty.wire.test.ts`.
+  the soak drive `packages/wire/tests/aether-devices.soak.wire.test.ts`.

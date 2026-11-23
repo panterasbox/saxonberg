@@ -1,0 +1,15 @@
+# /world/testbed — the testbed, the wire suite's scaffold (test-world-lifecycle
+# D2). ⚠ TEST-ONLY: the pack installs only in a test world.
+#
+# A grid, so every place here plots (the lounge's zone is the exemplar).
+# Ownership (`/world/testbed` → the `testbed` group) lives in the gated
+# `parcels` collection, from the pack's title claim, never on this row.
+class: /platform/idea/location/CartesianZone
+data:
+  name: testbed
+  # ⭐ Where the testbed sits in the address namespace — the Locality
+  # `testbed` (/stuff/idea/Locality/testbed) claims `testbed`, so weather,
+  # `map` and the breadcrumb resolve here.
+  address: testbed
+  # 4 m cells — the lounge's span: rooms and a small square.
+  cellSize: 4.0

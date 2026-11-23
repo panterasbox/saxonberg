@@ -1,0 +1,18 @@
+# The cellar door — locked, keyed, and free from the cellar side
+# (test-world-lifecycle D2; the pump-house door is the exemplar). A drive
+# stages its state (`setOpen` / `setLocked`) before use. ⚠ TEST-ONLY.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
+data:
+  shortDescription: cellar door
+  keywords: [door, "cellar door", trapdoor]
+  register: definite
+  longDescription: >
+    A heavy plank door with a lock plate, leading down to the cellar.
+  open: false
+  locked: true
+  keyway: testbed-cellar
+  lockTechnology: pin-tumbler
+  freeFrom: /world/testbed/location/cellar
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 45

@@ -28,7 +28,13 @@ export default class PackStatusController extends PackControllerBase {
 
   private formatStatus(r: PackStatusReport): string {
     const lines: string[] = [];
-    const head = `pack '${r.packId}'` + (r.discovered ? '' : ' (NOT in this build)');
+    const head =
+      `pack '${r.packId}'` +
+      (r.refused === 'test-only'
+        ? ' refused (test-only) — installs only in a test world'
+        : r.discovered
+          ? ''
+          : ' (NOT in this build)');
     lines.push(head);
     if (!r.record) {
       lines.push('  not installed (no record)');

@@ -1,0 +1,25 @@
+# The shop counter — a Stock fixture (test-world-lifecycle D2; the general
+# store's counter is the exemplar). Two import lines (no `from:`) of the
+# platform's own goods, so the sweep restocks them to par from nothing and
+# the pack needs no other pack's rows. Self-service: the shop sells with or
+# without the attendant at it. ⚠ TEST-ONLY.
+class: /trade/shopkeeping/thing/Stock
+data:
+  shortDescription: shop counter
+  keywords: [counter, shop, till]
+  register: definite
+  longDescription: |
+    A plain plank counter with a till at one end and shelving behind it holding notebooks and coils of rope.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [attendant]
+  businessPath: /world/testbed/idea/venue
+  stockLines:
+    - { itemTemplatePath: /platform/thing/book, par: 3 }
+    - { itemTemplatePath: /platform/thing/rope, par: 2 }
+  prices:
+    /platform/thing/book: 2
+    /platform/thing/rope: 3
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 120

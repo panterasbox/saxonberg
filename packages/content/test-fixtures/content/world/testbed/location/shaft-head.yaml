@@ -1,0 +1,25 @@
+# The shaft head — the top of a climbable drop (test-world-lifecycle D2; the
+# Ferrow winze is the exemplar). Outdoor, lit by the sky. A ladder goes down.
+# ⚠ TEST-ONLY.
+class: /platform/location/Locale
+data:
+  shortDescription: shaft head
+  keywords: [shaft, head, "shaft head", ladder]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A square shaft goes straight down out of the yard, with a ladder spiked to its side. The yard is to the west.
+  coords: { x: 2, y: -1, z: 0 }
+  exits:
+    west:
+      destination: /world/testbed/location/yard
+    down:
+      destination: /world/testbed/location/shaft-foot
+      media: [vertical]
+  props:
+    - /world/testbed/thing/ladder
+  details:
+    shaft:
+      keywords: [shaft, hole, drop]
+      description: |
+        Square, a fathom on a side, and straight down. The ladder is the way.

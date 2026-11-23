@@ -104,13 +104,13 @@ suite REPORTS these; fixing them was an explicit non-goal.
 | the tailor's shop has ONE set of shears, needle-case and book, takeable, never restocked — a second tailor cannot work | trade-tailoring |
 | the campus farm's yard holds ONE spade, scythe, kit and plough — a teaching farm that outfits exactly one student | eternal-university |
 | the job board never expires an unclaimed gig; they accumulate forever | contract substrate |
-| `reserve issue` is a faucet with no sink — a test that needs money cannot give it back | banking |
+| `reserve issue` is a faucet with no sink — a test that needs money cannot give it back | banking ✅ **sink shipped**: `reserve retire` (test-world-lifecycle D10), and the wire purge retires what a run minted |
 | a written history is laid down once at birth; the seeder skips a host that already has one | identity |
 | the smithy ships two ingots sharing a keyword, one of which fails a durability validator — the bareword picks the decoy | trade-smithing |
 | the by-hand smithing build completes and confers no deed (`forge` stays `not-learned`) | trade-smithing |
 | `measure strike` without an instrument is `unknown-verb`, not a refusal naming the instrument — two defensible designs | trade-mining |
-| a standing MQL subscription has no teardown a flow can reach, so a wire file that opens one leaks it for the rest of the run (`world-scan.dirty` is the first to do it) | mql-subscription / the harness |
-| `office assign` answers "No such player." over the raw socket, so no wire flow can move a seat — `world-scan.dirty` step 14 warns instead of proving the handoff | governance ⭐ two builds have routed around this |
+| a standing MQL subscription has no teardown a flow can reach, so a wire file that opens one would leak it for the rest of the run (⚠ `world-scan` does NOT: both its `world:` subscriptions are refused — corrected 2026-11-20, test-world-lifecycle) | mql-subscription / the harness |
+| `office assign` answers "No such player." over the raw socket, so no wire flow can move a seat — `world-scan` step 14 warns instead of proving the handoff | governance ⭐ two builds have routed around this |
 | the fuel yard's charcoal is authored props that nothing restocks, and `char` is a **three-day burn** — so `metallurgy.dirty` burning a basket is unrepeatable and the realm has a demand surface with no supply | trade-fuel ⭐ wants a `chars` producer brain |
 | a mined face stays worked and a staked claim is a permanent `ParcelRecord` — `metallurgy.dirty` consumes ground, which nothing anywhere regenerates | trade-mining (by design; the note is that the dirty set will only grow) |
 

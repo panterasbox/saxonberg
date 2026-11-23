@@ -1,0 +1,15 @@
+# The yard gate — locked, with a keyway and no key for it anywhere
+# (test-world-lifecycle D2; the campus gate is the exemplar). It names no
+# free side. ⚠ TEST-ONLY.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/gate
+data:
+  shortDescription: yard gate
+  keywords: [gate, "yard gate"]
+  register: definite
+  longDescription: >
+    A plank gate in the yard wall, shut and locked.
+  open: false
+  locked: true
+  keyway: testbed-gate
+  lockTechnology: pin-tumbler

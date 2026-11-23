@@ -124,7 +124,7 @@ CANARY='canary.soak.wire.test.ts'
 # The soak files commit $1 brought in (added, changed or renamed into).
 files_of() {
   c=$1
-  out=$(git -C "$SOAK_WORKTREE" diff --name-status "$c^1" "$c" -- 'packages/wire/tests/*.soak.*' 2>/dev/null |
+  out=$(git -C "$SOAK_WORKTREE" diff --name-status "$c^1" "$c" -- 'packages/wire/tests/*.soak.*' 'packages/content/*/wire/*.soak.*' 2>/dev/null |
     awk '$1 ~ /^(A|M|R)/ { print $NF }' | xargs -r -n1 basename)
   for t in $TOOLING; do
     if [ -n "$(git -C "$SOAK_WORKTREE" diff --name-only "$c^1" "$c" -- "$t" 2>/dev/null)" ]; then
@@ -290,7 +290,9 @@ file_issue() {
 fail_body() {
   c=$1; f=$2; mr=$3; subj=$4; wall=$5
   db=$(sed -n 's/^MONGODB_DATABASE=//p' "$SOAK_WORKTREE/packages/server/.env" 2>/dev/null)
-  printf '**File:** `packages/wire/tests/%s`\n' "$f"
+  # A soak file lives in the wire package or in a pack's wire/ (test-world-lifecycle D6).
+  path=$(git -C "$SOAK_WORKTREE" ls-files "packages/wire/tests/$f" "packages/content/*/wire/*$f" 2>/dev/null | head -1)
+  printf '**File:** `%s`\n' "${path:-packages/wire/tests/$f}"
   printf '**Merge:** `%s` — %s — %s\n' "$c" "$subj" "$mr"
   printf '**Run:** %s, wall %dm%02ds, world on :%s, db %s\n\n' \
     "$(jq -r .finishedAt "$RESULT")" $((wall / 60)) $((wall % 60)) "$SOAK_PORT" "${db:-?}"

@@ -1,0 +1,12 @@
+# The shop's consignment shelf (test-world-lifecycle D2; trade-shopkeeping's
+# generic shelf is the exemplar): goods on it stay their consignor's until
+# they sell. ⚠ TEST-ONLY.
+class: /trade/shopkeeping/thing/ConsignmentShelf
+data:
+  shortDescription: consignment shelf
+  keywords: [shelf, consignment, resale]
+  register: definite
+  longDescription: |
+    An open shelf by the door where goods left to be sold on wait for a buyer. Whatever sits here still belongs to whoever brought it, until the day it sells.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 20

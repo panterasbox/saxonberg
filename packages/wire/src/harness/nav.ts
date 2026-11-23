@@ -144,7 +144,7 @@ export class NavClient {
 
   /**
    * ⭐ No bare path anywhere the navigation sources sent: every string that
-   * starts with a namespace root sits in a `{ path, spoiler }`.
+   * starts with a namespace root sits in a `{ path, spoiler: 2 }` (`TaggedPath`).
    */
   assertAllPathsTagged(): void {
     const bare: string[] = [];
@@ -159,9 +159,9 @@ export class NavClient {
       }
       if (v && typeof v === 'object') {
         const o = v as Record<string, unknown>;
-        // A path rides the spoiler axis at level 2 since the tooltips build
-        // (`TaggedPath`); any spoiler level is a tag — a bare string is not.
-        const tagged = typeof o.path === 'string' && typeof o.spoiler === 'number' && o.spoiler >= 1;
+        // `TaggedPath` — `{ path, spoiler: 2 }` since tooltips W2 (paths are
+        // level-2 spoilers); it read `=== 1` and went red on master then.
+        const tagged = typeof o.path === 'string' && o.spoiler === 2;
         for (const [k, x] of Object.entries(o)) walk(x, `${at}.${k}`, tagged && k === 'path');
       }
     };

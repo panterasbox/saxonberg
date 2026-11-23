@@ -1,0 +1,16 @@
+# A chair (test-world-lifecycle D2; the bar stool is the exemplar). The hall
+# has three. ⚠ TEST-ONLY.
+class: /platform/thing/Chair
+data:
+  shortDescription: wooden chair
+  keywords: [chair, seat, wooden]
+  register: indefinite
+  longDescription: A plain wooden chair.
+  restQuality: 0.8
+  mass: 6
+  staticSlots:
+    - name: 'sit:1'
+      accepts: SlottableMixin
+      capacity: 1
+      postures: [sit]
+      userFacingDetail: seat

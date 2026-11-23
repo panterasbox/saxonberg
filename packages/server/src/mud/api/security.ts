@@ -1194,6 +1194,12 @@ export class SecurityApi {
     'removeInteractive',
     'onConnectionAttached',
     'onLinkdead',
+    // The socket's close code, recorded on the holder for `onLinkdead` to
+    // consume (sign-out vs drop). Without it a body that disconnected INSIDE
+    // a circle threw an uncaught SecurityError out of the socket's close
+    // handler and took the whole world down (test-world-lifecycle drive,
+    // 2026-11-20 — the avatar-family drive's circle door, newly reachable).
+    'setLeaveIntent',
   ]);
 
   /** Containment-walk cap for the jurisdiction test — insurance, not policy. */
