@@ -1,5 +1,6 @@
 # Persistence model — requirements
 
+**Status:** AGREED 2026-11-23 (owner)
 **Kind:** refactor/sweep
 **Leads from:** the kernel. First consumers: the test scaffold's venue and a
 new two-room stage in it, the dorm and letting buildings, ships, consignment
