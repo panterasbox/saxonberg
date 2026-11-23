@@ -4,9 +4,10 @@
 > restarting the estate-nesting slate from first principles. It covers two
 > facts per thing, one rule for every thing, keepers, legibility, and what it
 > retires.
-> **Left:** requirements for **persistence + [staging](../platform/staging-slate.md)
-> as ONE design** (owner, 2026-11-23) · the open questions in § 6 ·
-> a fresh code survey against the reuse ledger (§ 8)
+> **Left:** requirements drafted 2026-11-23 for **persistence +
+> [staging](../platform/staging-slate.md) as ONE design** —
+> [persistence-model-requirements](../../requirements/persistence-model-requirements.md);
+> then the plan
 > **Size:** **a build, with staging** — it retires the estate, the promoted
 > tier and the room overlay, gives every container a keeping rule, and
 > builds the stage manager
@@ -228,3 +229,24 @@ keeping rows at requirements.
   succession state lives on the estate today, so it must move
 - [sandbox-overlay-plan](../../plans/sandbox-overlay-plan.md) D6: where a
   record lands composes with what a record holds
+
+### Ledger additions — the survey of 2026-11-23 (both halves)
+
+| concept | what already does it | reuse / retire |
+|---|---|---|
+| a part recalled, re-minted only if destroyed | `ToolRack` (`trade-farming/src/thing/ToolRack.ts:51-170`, `_lent` by stuffId) — a SECOND reset-sweep consumer beside `Stock` | **generalize** to the recall/re-mint policies |
+| a stage's staff tidying strays into a kept inside | `ShipWarren.stow()` (`platform/idea/ShipWarren.ts:188-240`); `fitOut` on wake | **generalize** — a stray "look" the author names |
+| lease end | `LettingWarren` end-let → estate storage | **re-point** — the landlord's kept storeroom |
+| part identity | none stamped; `as:` is a list key only (`Template.ts:543-555`); Cast singletons only (`Cast.ts:29-33`) | genuinely new — (stage, part) on the instance |
+| restaging a place | nothing place-level; per-object `reset()` + the sweep (`ResidencyLogic.ts:496-549`, `WorldClockApi.every`) | **generalize** the sweep to stages |
+| unload as restage | eviction culls a plain room's loose contents and re-clones it (`Container.canEvict`, `Behaved` veto) | reuse — becomes the restage; the Behaved veto must let a stage's own parts go |
+| a kept container outside a kept room | none — keyless props are plain clones (`Template.ts:617`); `MarketStalls.onCreate` is the workaround | genuinely new — the per-container rule |
+| a kept animal | `KeptAnimal` (`PersistableMixin`, `pinsResidency`), but a record only after `Bonded.takeName` | **re-key** on the bond, not the name |
+| the kept marker | `PlaceSection.staged?: boolean` declared, unfilled (`types/src/index.ts:1560`, navigation-server W2) | reuse |
+| a once-per-character line | nothing; nearest store `EnvironmentMixin` settings | genuinely new |
+| shift → home | employment roster tick teleports to `Offstage` (`EmploymentLogic.ts:977-1080`) | retire the teleport; walk home |
+| cast duplication | `Persistable.reseedCast` mints if no live instance has the path; an Extra re-clones on a plain home | fixed by part identity |
+
+Found, not in scope (→ an issue each): `Bonded.canEvict` returns a boolean
+not a `VetoResult`, so a kept animal never evicts; `Persistable.reseedCast`
+skips object-form `{template, as}` cast entries.
