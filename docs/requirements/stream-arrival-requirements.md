@@ -1,8 +1,9 @@
 # Stream arrival — requirements
 
-**Kind:** feature (two stages)
+**Kind:** feature (three stages)
 **Leads from:** kernel in Stage A (the program — first consumer: Stage B of this build, the arrival
-and the front page); the client leads Stage B.
+and the front page) and Stage C (an app that brings its verbs — first consumer: the broadcast app and
+the booth's desk, in this build); the client leads Stage B.
 
 ⭐ **Nobody is *the* streamer** (owner, 2026-11-23; watch-slate § 1). Today the founder is the only
 broadcaster, with a weekly show — but who broadcasts, how many, and on what schedule can all change.
@@ -13,6 +14,13 @@ to an audience: one source, many receivers, on a schedule*. **Stage A** builds t
 person or an organization; its video feeds optional and proven) and retires the four environment
 variables that hardwire one streamer; **Stage B** is the arrival, reading programs. The front page
 *features* one program by a setting — the founder's show today, changed without code.
+
+**Stage C** puts the broadcaster's verbs in **instruments** (owner, 2026-11-23): *"I'd prefer it if
+these verb affordances came from tools we use at the studio, but … I need portable versions of these
+instruments because I may need to leave the studio mid stream … probably just through an app on my
+phone … but then we can have bench instruments too at the station."* So: a **broadcast app** on the
+phone, and the **broadcast desk** in Hallett's front-window booth, both affording the same verbs; the
+body no longer carries them.
 
 ⚠ **This is the minimum to start the founder's livestream, not broadcasting.** Broadcasting as a whole
 — its economics, a full lens pass, what a broadcaster *is* across press conferences, a hunting party's
@@ -95,6 +103,16 @@ reuse ledger the plan must account for is in
 - The whole path — front page, sign-in, character select, character creation — reads as **one
   thing**: the same visual language as the new front page.
 
+## Goals — Stage C (instruments)
+
+- **An app can bring its verbs** to whoever carries the device it is installed on.
+- **The broadcast app**: every phone offers it; anyone installs it (`apps install broadcast`); with it,
+  the bearer has `stream` and `program`, wherever they are — they can leave the studio mid-stream.
+- **The broadcast desk** in Hallett's front-window booth affords the same verbs to whoever is at it.
+- **The body no longer carries `stream` or `program`**: no app and no desk, no broadcasting verbs.
+- **Hallett's booth** exists as a place — one room, reached from a Terminus street — and its window's
+  on-air sign is lit while the program being run from there is live, dark otherwise.
+
 ## Non-goals
 
 - **The front page's server half** — the demand digest, the books and Fund's goals, the Saxonberg
@@ -113,6 +131,12 @@ reuse ledger the plan must account for is in
   read for third-party overlays → the registry's portal build
   ([streamer-registry-slate](../slates/platform/streamer-registry-slate.md) wave 3), reframed by the
   program.
+- **The rest of Hallett's** — the Dial as a street, the lease from the Halletts, June's piano and the
+  window as a stage, the screen in the glass, the photographs, the record library, the show as a
+  business with its crew, the founder's home → **Hallett's content build**
+  ([halletts-slate](../slates/world/halletts-slate.md)).
+- **Other apps bringing verbs** (a map app, the camera, …) — this build makes the capability and its
+  first consumer; others are their own builds.
 - **Other programs on the front page** — it shows only the featured program, live or offline (owner)
   → nowhere, deliberately.
 - **The intent route** (`/go/watch/<streamer>`), the confirm card, link previews → the deep-links
@@ -132,6 +156,10 @@ reuse ledger the plan must account for is in
 its feed proof rides is the kernel's). A second program is a second record, never code. Which program
 the front page features is an operator setting (the Compact's choice, like which publisher the page
 stocks).
+
+**Stage C — instruments.** An app bringing its verbs is kernel (true of any app on any device). The
+broadcast app is a platform app row beside messages and the wallet. The booth and its desk are
+**content** — a Terminus locality row set (world-seed, under Terminus), a second studio being rows.
 
 **Stage B — the client**, over a thin platform slice: the front page, the player that survives the
 funnel, the resume after sign-in, the docked video, character select, character creation's page; on
@@ -163,6 +191,10 @@ the profile and the guest. No pack, no new content beyond the plain starter outf
   the body today) and the `streamers` group hang off the hardwired founder; they move onto the program
   being run. ⚠ A go-live step: the founder's show is set up as a program, with its feeds attached, on
   the live server before the overlay can read it.
+- **`stream` on every body** — `stream` is afforded by the body today (every Avatar); it moves to the
+  app and the desk. The only current broadcaster (the founder) installs the app at go-live.
+- **Hallett's** — designed, unbuilt; this build makes only its front-window booth, with the slate's
+  provisional names.
 - **`watch` typed by hand** stays open to any channel (deep-links § 1): only a *link's* target must be
   a program with a feed.
 - **Watch mode's viewer layout** — the arrival lands in it as built today.
@@ -188,6 +220,19 @@ The front page features **one program, chosen by a setting** — the founder's s
 Prime Minister's livestream* (owner: *"I dont know if that will actually hold true long term"*) — just
 whatever the setting names. On air → its feed (for a visitor with an origin) or its tile; off air →
 **its offline tile** (the glowing `@`, its next show). Other programs never appear on the page.
+
+### Verbs come from instruments **[owner, 2026-11-23]**
+`stream` (running your broadcast now) and `program` (the program as a record) are afforded by the
+**broadcast app** on a phone you carry and by the **broadcast desk** while you are at it — never by the
+body. Every phone offers the app; anyone installs it (lens 2: any broadcaster gets the same). The desk
+grants nothing the app does not: whose program you may run or edit is decided by its owner's pen, not by
+where you stand. Leaving the booth mid-stream with the phone keeps the broadcast going.
+
+### Hallett's booth **[owner, 2026-11-23; halletts-slate § 2]**
+One room — the front-window booth at Hallett's (names provisional) — reached by a way from an existing
+Terminus street near the arrival plaza (the slate's lean). It holds the broadcast desk and the window's
+**on-air sign**, lit while the program run from the desk is live and dark otherwise. Its light, and the
+sign's, are visited at night in the drive.
 
 ### A link names a program **[deep-links-slate § 1]**
 A link carries the carrier and, optionally, a program's short name: `?from=twitch&watch=<name>`. The
@@ -318,12 +363,30 @@ is client-led, so the drive is a **browser walk** with a wire step for the serve
 12. **A phone-width screen**: the page orders sign-in, the show, the chambers, Latest; the docked
     video stays visible through creation. `instant`
 
+### Blocking drive — Stage C (instruments)
+
+13. **No instruments**: a fresh character types `stream` and `program` — neither is a verb they have.
+    `instant` `player`
+14. **The app**: `apps install broadcast` on their phone; `program create`, `program feed`, `program
+    run`, `stream live` work; they walk out of the room with the phone and `stream away` still works.
+    `instant` `player`
+15. **The desk**: a character without the app walks into Hallett's booth (by its way from the street),
+    `look`s at it by day and at night (the booth's light, the sign); at the desk they have `stream` and
+    `program`; running the founder's program from the desk is refused unless they hold its pen; the
+    founder at the desk goes live and **the window's sign is lit**; `stream end` → dark. `short` (the
+    night look) `staged` (the founder's program set up)
+16. **Restart**: the app is still installed on the phone; the program and the booth intact; the sign
+    matches the program's state. `staged`
+
 ### Soak drive
 
 None — every step is `instant`.
 
 ## Acceptance criteria
 
+- A character with no broadcast app and not at the desk has no `stream` or `program`; installing the
+  app gives them both, wherever they go; the desk gives them both while they are at it.
+- The window's sign at Hallett's booth is lit exactly while the program run from its desk is live.
 - A player can run a program and attach a feed only for a channel they own, with nobody approving it;
   a program with no feed is still a program.
 - No environment variable names a streamer; the overlay reads the program being run.
@@ -348,6 +411,8 @@ None — every step is `instant`.
 ## Cross-references
 
 - [broadcasting-slate](../slates/trades/broadcasting-slate.md) — what broadcasting is; its own build
+- [halletts-slate](../slates/world/halletts-slate.md) — the station; this build makes its booth
+- [aether-devices.md](../subsystems/aether-devices.md) § Deferred seams — *an app that brings its own verb*
 - [streamer-registry-slate](../slates/platform/streamer-registry-slate.md) — the record, the proof
 - [watch-slate](../slates/client/watch-slate.md) — the funnel, guests, the reuse ledger
 - [front-page-slate](../slates/client/front-page-slate.md) — the page, the origin (§ 4a)
