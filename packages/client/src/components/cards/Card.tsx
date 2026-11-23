@@ -189,6 +189,9 @@ export interface CardProps {
   docked?: boolean;
 }
 
+/** Cards whose body names what they show, so docked they need no header. */
+const HEADS_ITSELF: ReadonlySet<string> = new Set(["map"]);
+
 /** The body, cut from the bottom when it does not fit. */
 const Body = styled.div<{ $cut: boolean }>`
   ${(p) => (p.$cut ? "overflow: hidden; min-height: 0; flex: 1;" : "")}
@@ -335,6 +338,12 @@ export function Card({
       data-card-size={size}
       style={cut ? { display: "flex", flexDirection: "column", minHeight: 0 } : undefined}
     >
+      {/*
+        ⭐ A docked card whose body heads itself shows no header: the nav
+        card's trail already says where you are, and a docked card has no
+        controls to carry — the header would only repeat the trail.
+      */}
+      {docked && HEADS_ITSELF.has(card.cardId) ? null : (
       <Head
         draggable={!faded}
         onDragStart={(e) => {
@@ -485,6 +494,7 @@ export function Card({
         </Controls>
         )}
       </Head>
+      )}
       <Body ref={bodyRef} $cut={cut} data-testid="card-body">
         {popNote ? <PopNote data-testid="card-popout-note">{popNote}</PopNote> : null}
         {popOut.win ? (

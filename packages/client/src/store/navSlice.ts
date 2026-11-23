@@ -9,17 +9,16 @@
  * that answers the replayed subscribe — the slice is overwritten, never
  * patched across a gap.
  *
- * ⭐ The map copy is held and rendered by nothing yet (the pane ships
- * later). The navigator card reads the sections through
- * {@link whereaboutsOf}, which builds the shape its body always read.
+ * ⭐ The navigation card (`components/nav/NavCard`) draws both — and reads
+ * the copy only through the views in `navSelectors.ts`, never directly.
  */
 
 import type {
+  RoutePlanNote,
   MapCopySnapshot,
   NavSectionName,
   NavSections,
   SubscriptionChange,
-  WayRecord,
   WireClaim,
 } from "@saxonberg/types";
 
@@ -38,6 +37,14 @@ export interface NavSlice {
   applyNavChanges: (changes: readonly SubscriptionChange[]) => void;
   applyMapSnapshot: (snapshot: MapCopySnapshot) => void;
   applyMapChanges: (changes: readonly SubscriptionChange[]) => void;
+  /**
+   * ⭐ The latest plan `route` answered with (navigation card D5) — the
+   * note itself. Session-only: a plan is a hypothesis about NOW, and must
+   * not come back after a restart as if it were current. A new plan
+   * replaces it.
+   */
+  routePlan: RoutePlanNote | null;
+  setRoutePlan: (note: RoutePlanNote | null) => void;
 }
 
 export const createNavSlice = (
@@ -47,6 +54,8 @@ export const createNavSlice = (
 ): NavSlice => ({
   navSections: {},
   mapCopy: {},
+  routePlan: null,
+  setRoutePlan: (note) => set(() => ({ routePlan: note })),
   applyNavSnapshot: (sections) => set(() => ({ navSections: { ...sections } })),
   applyNavChanges: (changes) =>
     set((s) => {
@@ -66,7 +75,9 @@ export const createNavSlice = (
           mapCopy[`${doc.locality}|${claim.key}`] = { locality: doc.locality, claim };
         }
       }
-      return { mapCopy };
+      // A fresh copy (a new connection, another character) drops the
+      // plan: it was a hypothesis about a moment that has passed.
+      return { mapCopy, routePlan: null };
     }),
   applyMapChanges: (changes) =>
     set((s) => {
@@ -78,43 +89,3 @@ export const createNavSlice = (
       return { mapCopy };
     }),
 });
-
-/**
- * ⭐ Where you are, at zone level — the navigator card's body, the shape it
- * has always read. Built from the sections; `null` until the place
- * section has arrived. Every field is what the server sent; an absent one
- * says it is not known rather than showing a guess.
- */
-export interface Whereabouts {
-  place: { stuffId: string; name: string };
-  structure?: { name: string };
-  /** The covering Localities, OUTERMOST first. */
-  localities: { name: string; address: string }[];
-  coords?: { x: number; y: number; z: number };
-  exits: WhereaboutsExit[];
-  conditions: { weather?: string; season?: string; daylight?: "day" | "night" };
-  /** The innermost government whose ground this is; null = none claims it. */
-  jurisdiction: string | null;
-}
-
-/** A whereabouts exit — a {@link WayRecord}. */
-export type WhereaboutsExit = WayRecord;
-
-export function whereaboutsOf(sections: NavSections): Whereabouts | null {
-  const place = sections.place;
-  if (!place) return null;
-  const loc = sections.localities;
-  return {
-    place: { stuffId: place.stuffId, name: place.name },
-    ...(sections.building?.name ? { structure: { name: sections.building.name } } : {}),
-    localities: loc?.chain.map((c) => ({ name: c.name, address: c.address })) ?? [],
-    ...(place.at ? { coords: place.at } : {}),
-    exits: sections.ways?.ways ?? [],
-    conditions: {
-      ...(place.weather ? { weather: place.weather } : {}),
-      ...(place.season ? { season: place.season } : {}),
-      ...(place.daylight ? { daylight: place.daylight } : {}),
-    },
-    jurisdiction: loc?.jurisdiction[0]?.name ?? null,
-  };
-}

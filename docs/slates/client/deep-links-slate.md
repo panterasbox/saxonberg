@@ -38,6 +38,10 @@ runs `give all to scammer`. So:
 
 The front door offers the lowest-friction path:
 
+> ⚠ **Superseded 2026-11-21 ([watch-slate § 4](./watch-slate.md)):** guests stay supported but are
+> **never advertised** — the funnel offers *sign in with the platform you watched on*, and the video
+> plays from the front page on, so a guest path buys nothing for watching.
+
 - ⭐ **watch as a guest** — at once, nothing to create;
 - **sign in with Twitch** — which also links the account the [giving slate](../society/giving-slate.md)
   attributes subs to: the *claim your standing* pitch of the stream's lower third

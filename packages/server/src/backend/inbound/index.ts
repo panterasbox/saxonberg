@@ -48,6 +48,7 @@ import { handleClientStateWrite } from './clientState';
 import { handleReactionExpand } from './reaction';
 import { handleAffordanceResolve } from './affordance';
 import { handleWikiExcerpt } from './wiki';
+import { handleLocalityFacts } from './locality';
 
 export const inboundHandlers: Record<string, InboundHandler> = {
   ping: handlePing,
@@ -63,4 +64,5 @@ export const inboundHandlers: Record<string, InboundHandler> = {
   'reaction-expand': handleReactionExpand,
   'affordance-resolve': handleAffordanceResolve,
   'wiki-excerpt': handleWikiExcerpt,
+  'locality-facts': handleLocalityFacts,
 };

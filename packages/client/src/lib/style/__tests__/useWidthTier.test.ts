@@ -12,13 +12,17 @@ const rem = (px: number): number => px / 16;
 
 describe("units per CSS width (the slate's table)", () => {
   it.each([
+    // The 22rem panel (navigation card D14): below ~1476px an open panel
+    // leaves no card column — the owner's caveat, in numbers.
     [1280, 0, 1],
-    [1366, 1, 1],
-    [1440, 1, 1],
+    [1366, 0, 1],
+    [1440, 0, 1],
     [1536, 1, 2],
-    [1728, 2, 2],
+    [1728, 1, 2],
     [1920, 2, 3],
-    [2560, 4, 4],
+    // 2560 at 125%: two columns; 2560 at 100%: three.
+    [2048, 2, 3],
+    [2560, 3, 4],
   ])("%ipx: %i with the panel open, %i shut", (px, open, shut) => {
     expect(unitsFor(rem(px), true)).toBe(open);
     expect(unitsFor(rem(px), false)).toBe(shut);

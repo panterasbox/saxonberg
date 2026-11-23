@@ -70,9 +70,9 @@ describe('AddressApi.resolvePlace', () => {
   });
 
   it('⚠⚠ a NAME COLLISION resolves to the BROADER place, deterministically', async () => {
-    // Two shipped Localities really are called Terminus: the
-    // municipality and the city proper. A plain Map would let whichever
-    // indexed last win — silently, and differently on every boot.
+    // Two Localities may share a name (the realm and its city both
+    // were called Terminus until 2026-11-20). A plain Map would let
+    // whichever indexed last win — silently, and differently on every boot.
     const city = locality('/stuff/idea/Locality/terminus-city', 'Terminus', 'terminus/city');
     const town = locality('/stuff/idea/Locality/terminus', 'Terminus', 'terminus');
     AddressApi.registerLocality(city);
