@@ -20,4 +20,7 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: Hinkley Hills lots
+  # Covered by a Locality, so a walk here files claims on your map
+  # (navigation card review — a zone with no address wrote nothing).
+  address: terminus/hinkley-hills
   cellSize: 6.0

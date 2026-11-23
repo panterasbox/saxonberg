@@ -23,6 +23,7 @@ import type { TipEntry } from "../../store/tooltipSlice";
 import { DocView, type DocLinkHandlers } from "../doc/blocks";
 import { tokens } from "../ui";
 import { useFloat } from "./useFloat";
+import type { Placement } from "@floating-ui/react-dom";
 import {
   TIP_LOCK_MS,
   TipDepthContext,
@@ -211,8 +212,11 @@ function FloatingTip({
   links: DocLinkHandlers;
 }): React.ReactElement {
   const lockTips = useStore((s) => s.lockTips);
-  // Placed when it opens AND once more when its document arrives.
-  const float = useFloat(entry.anchor, { contentKey: entry.doc !== null });
+  // Placed when it opens AND once more when its document arrives. An anchor
+  // in a stack of controls says which side to open on
+  // (`data-tip-placement`), so its tooltip never covers its neighbor.
+  const side = entry.anchor.getAttribute("data-tip-placement") as Placement | null;
+  const float = useFloat(entry.anchor, { contentKey: entry.doc !== null, ...(side ? { placement: side } : {}) });
   // Dwell locks it, so the pointer can travel into it.
   React.useEffect(() => {
     if (entry.locked) return;

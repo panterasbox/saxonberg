@@ -9,4 +9,7 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: The Hearthworks
+  # Covered by a Locality, so a walk here files claims on your map
+  # (navigation card review — a zone with no address wrote nothing).
+  address: terminus/hearthworks
   cellSize: 3.0

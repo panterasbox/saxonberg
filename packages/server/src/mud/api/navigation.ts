@@ -430,6 +430,15 @@ export class NavigationApi {
     return logic().readMapCopy(viewerKey, localityPrefix);
   }
 
+  /**
+   * Drop a session map (a guest's, kept in memory for the visit) — called
+   * when the guest's body goes. A key that is not a session key is ignored:
+   * a written map is never forgotten this way.
+   */
+  public static forgetSessionMap(ownerKey: string): void {
+    logic().forgetSessionMap(ownerKey);
+  }
+
   public static readMap(
     viewerKey: string,
     localityPrefix: string,

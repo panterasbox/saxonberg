@@ -52,8 +52,12 @@ const REPO_ROOT = resolve(fileURLToPath(new URL(".", import.meta.url)), "..", ".
 // of 2026-11-21 brought matter-model-overlaps' two pack-mechanism drives,
 // written while this gate was not yet on master. They are build 2's class
 // (the pack drives) and are on its list; the ceiling takes them once and
-// falls from here.
-export const WIRE_CONTENT_CEILING = 112;
+// falls from here. → 113 (owner, 2026-11-22): the navigation card's drive
+// (MR !640, `navigation.dirty.wire.test.ts`), written 2026-11-20 while this
+// gate was not yet on master — the same case. It walks the lounge (the
+// backstop), the Delve's traps and levels and the bank's locked door; it is
+// build 2's to migrate with the other content drives.
+export const WIRE_CONTENT_CEILING = 113;
 
 const PLACEHOLDER = [/\/world\/(?!testbed(?:\/|\b))[a-z]/, /\/corpo\/[a-z]/];
 

@@ -453,7 +453,14 @@ export default class Place extends PlaceBase {
     const warren = MixinApi.isWarrenMember(self) ? self.getWarren() : null;
     const minted = warren?.mintedKeyOf(self) ?? null;
     const row = self.getTemplatePath();
-    const place = self.getDurableHandle() ?? (minted !== null && row ? `${row}#${minted}` : null);
+    // ⭐ A warren member with no minted key is an interchangeable BUD — the
+    // lounge's load-balancing rooms, cloned from one row with no identity of
+    // their own. Every bud is the same place to a player, so it files under
+    // its row (owner, review: *"it'd still be mappable"*); a keyed member (a
+    // holding's room) under its key, as before.
+    const place =
+      self.getDurableHandle() ??
+      (minted !== null && row ? `${row}#${minted}` : warren !== null && row ? row : null);
     if (place === null) return null;
     const home = self.getZone();
     const zone = home ? (home.getIdentityPath() ?? home.getTemplatePath()) : null;

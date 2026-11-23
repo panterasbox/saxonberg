@@ -114,6 +114,19 @@ const Action = styled.div`
   font-size: ${tokens.font.micro};
 `;
 
+/**
+ * ⭐ Outdoors (navigation card D13): the weather, the season and day or
+ * night where you stand — what every mode sees, read off the place
+ * section. ⚠ *Time* is season and daylight: no clock hour is on the wire.
+ */
+const Outdoors = styled.div`
+  flex: none;
+  color: ${tokens.color.fgDim};
+  font-family: ${tokens.font.family};
+  font-size: ${tokens.font.micro};
+  white-space: nowrap;
+`;
+
 /** The tray: the cards YOU minimized (client-surface D8). */
 const Tray = styled.div`
   flex: none;
@@ -190,6 +203,7 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
       <Action data-testid="status-bar-action">
         {previewing ? "click to send" : ""}
       </Action>
+      <OutdoorsRegion />
       {onCommandClick ? (
         <Tray data-testid="tray" aria-label="minimized cards">
           {tray.map((c) => {
@@ -222,5 +236,32 @@ export function StatusBar({ onCommandClick, onCommandPreview }: StatusBarProps =
         </Tray>
       ) : null}
     </Bar>
+  );
+}
+
+/** The outdoors region; absent when the place section says nothing of it. */
+function OutdoorsRegion(): React.ReactElement | null {
+  const place = useStore((s) => s.navSections.place);
+  if (!place) return null;
+  const parts = [place.weather, place.season, place.daylight].filter(
+    (p): p is string => typeof p === "string" && p.length > 0,
+  );
+  if (parts.length === 0) return null;
+  const text = parts.join(" · ");
+  return (
+    <Tip
+      tip={{
+        header: { name: "Outdoors", kindWord: "where you stand" },
+        facts: [
+          ...(place.weather ? [{ label: "weather", value: place.weather, source: "seen" as const }] : []),
+          ...(place.season ? [{ label: "season", value: place.season, source: "seen" as const }] : []),
+          ...(place.daylight ? [{ label: "light", value: place.daylight === "day" ? "day" : "night", source: "seen" as const }] : []),
+        ],
+      }}
+    >
+      <Outdoors data-testid="status-outdoors" tabIndex={0}>
+        {text}
+      </Outdoors>
+    </Tip>
   );
 }

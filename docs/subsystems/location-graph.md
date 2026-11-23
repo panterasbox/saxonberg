@@ -444,11 +444,20 @@ already answers about itself, rather than narrowing its own composers
 by shape. `Avatar` chains through `super` and adds the one fact only
 the family can answer: a wire body persists nothing (a circle's geography is
 not real geography and must not be written onto the person wearing the
-body) and a guest is a throwaway persona — **both already answer
-`shouldPersist() → false`**, so the override reads an existing honest
-fact rather than inventing a second one. Documents are `pass` under the
-sandbox, so that check is the only thing stopping a circle visit from
-writing real geography.
+body), and it answers `shouldPersist() → false`, so the override reads an
+existing honest fact rather than inventing a second one. Documents are
+`pass` under the sandbox, so that check is the only thing stopping a circle
+visit from writing real geography.
+
+⭐ **A guest keeps a map for the length of the visit** (navigation card,
+owner at review: *a guest is the newcomer the card is for*). A guest also
+answers `shouldPersist() → false`, so `keepsMaps()` admits it by name
+(`getIsGuest()`), and `mapOwnerKey()` files it under a **session key**,
+`` `session:<identity>` ``. `NavigationLogic` holds a session key's map
+in memory and never writes it; the subscription and the readers
+(`map`, `route`, `locality-facts`) all ask the owner key, so a guest's
+card, route and crumb tooltips work exactly like a player's and vanish
+with the session.
 
 ⚠⚠ **The `map` VERB stays on `Avatar`**, deliberately: *writing* a map
 is a capability, *reading* one is a person's — the document is under
@@ -865,6 +874,9 @@ afterwards (`at`: zone — in a copy, the copy's own minted zone (zone instancin
 river's course and km; at sea, the sea alone, or the helm's reckoning with
 its error and bracket). The place answers (`Place.mapSubject()`): a copy's
 room is `<row>#<minted key>`, so two houses of one plan are two places;
+⭐ a warren member with NO minted key is an interchangeable **bud** (the
+lounge's load-balancing rooms, cloned from one row) and files under its
+row, so every lounge a player is sent to is the same place on their map;
 moving water names its river or sea, never the patch. An edge records the
 way's **state as seen** (`state`, in the growth key — *shut* then *locked*
 are two claims). A chart's claims carry `via`/`viaName`, so two charts are

@@ -5,6 +5,9 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: The Bathhouse
+  # Covered by a Locality, so a walk here files claims on your map
+  # (navigation card review — a zone with no address wrote nothing).
+  address: terminus/city/market
   cellSize: 4.0
   # Nothing beyond the walls is seen from in here (geography D5).
   horizon:
