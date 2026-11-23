@@ -1256,11 +1256,11 @@ This build deletes `OVERLAY_TWITCH_LOGIN`, `OVERLAY_YOUTUBE_CHANNEL`, `OVERLAY_K
    desk in Hallett's booth works too.
    ```
    program create <short-name>
-   program title <short-name> <the show's title>
+   program retitle <short-name> <the show's title>
    program schedule <short-name> <the next show, with its time zone>
-   program feed <short-name> twitch
-   program feed <short-name> kick
-   program feed <short-name> youtube
+   program channel <short-name> twitch
+   program channel <short-name> kick
+   program channel <short-name> youtube
    program run <short-name>
    rodney token            # paste into Rodney's browser source — the env token is gone
    rodney token --control  # if the Stream Deck used the env door
@@ -1343,6 +1343,33 @@ all, the overlay is silent and the front page has no show band.
    `terminal/location/arrival-gate.yaml`; `scripts/check-light-sources.ts`.
 10. Subsystem docs: `client-shell.md`, `char-gen.md`, `cockpit.md`, `streaming.md`, `access.md`,
    `app-settings.md`.
+
+## Build log — decisions the build made (newest last)
+
+- **W0 ✅ `5417695d4`.** Aspiration out, `startingOutfit:` in. The field-meta
+  `--snapshot` refuses on 11 pre-existing unparsed forms, so the two goldens
+  were edited by hand; `lint:field-meta` is clean. No guest-mint unit test
+  exists — the wire drive's guest step covers the three garments.
+- **A1 ✅ `0905b857b`.** ⚠ **Subcommand words changed**: `program title` →
+  **`retitle`**, `program feed` → **`channel`** (it replaces the deleted
+  `stream channel`), `program show` → **`about`** — each collided with a flat
+  verb (`title`, `feed`, `show`) and `lint:subcommand-words` is a ratchet.
+  The go-live checklist below reads with the new words. `streamProgram` was
+  pulled forward from A2 (the listing's on-air test needs it). The catalogue
+  `remember`s the record after each write instead of `forget`ting it, so a
+  running body's synchronous reads never miss. `saveProgram` takes a
+  `create | update` mode; create inserts and answers `taken` (D10's
+  first-come, the index as the backstop).
+- **A2 + A3 ✅ `40e0308b9`** (one commit). `rodney skip <panel>` keeps its
+  panel argument — the mixin's skip needs a key; the overlay owns which panel
+  is showing. `ProgramCatalogue.parse` reads feeds as written rather than
+  filtering against `BROADCAST_SERVICES` (`lint:closed-vocabularies`).
+  `lint:duck-typing` fell 467 → 464 and was re-pinned. `streamer: true` in the
+  harness types `program create` / `program run` as the character.
+- **C1 ✅ `ab712d94f`.** One routine, `lendHostedApps`, beside every
+  `environment` push and pop. The pass-over asks the source by mixin
+  (`isAetherHosted` → its host `isAugment` → `conferralRefusal()`), never by
+  device kind; refusals reuse the `aether-*` rows.
 
 ## Drive record
 
