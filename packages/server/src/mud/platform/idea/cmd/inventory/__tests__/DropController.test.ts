@@ -157,7 +157,7 @@ describe('DropController — bareword path (no quantity)', () => {
 
     const controller = makeStuff(() => new DropController());
     const ctx = makeContext(giver, loc);
-    await controller.execute(makeModel(makeResult([sword], 'sword')), ctx);
+    await TestHarnessApi.actAs(ctx.commandGiver, () => controller.execute(makeModel(makeResult([sword], 'sword')), ctx));
     expect(sword.getContainer()).toBe(loc);
     expect(ctx.getNotes()).not.toContainEqual(
       expect.objectContaining({ reason: 'nothing-dropped' }),
