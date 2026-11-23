@@ -7,7 +7,8 @@
 > tuner ([aether-devices-slate](../engine/aether-devices-slate.md)), the grid's power
 > ([energy.md](../../subsystems/energy.md)), the epoch covenants
 > ([content-declaration-slate](../platform/content-declaration-slate.md) § 3).
-> **Left:** stations and receivers · propagation as the light model at another frequency · the station as a
+> **Left:** ⭐ the broadcasting build — a full lens conversation and broadcasting economics over the program
+> (§ 7, 2026-11-23) · stations and receivers · propagation as the light model at another frequency · the station as a
 > business · spectrum law as Tier C · the radio-engineering hardware · ⭐ (§ 7) the two carriers — the aether
 > for real streamed media at launch, physical for in-fiction reach · one trade across the ladder, crier to
 > stream · craft measured by agendas kept · venues owning their screens · (§ 8) the town crier — a job over
@@ -210,6 +211,27 @@ the stream (moderation § 14a), is broadcast content: the judiciary on air.
    places without powered screens, and ceremony.
 7. **Governance** — spectrum as Tier C law; a venue's screen is its pen (government speech on public
    buildings); audience measures are the broadcaster's; stream moderation is the show's committee.
+
+### ⭐⭐ 2026-11-23 — a livestream is only a medium; broadcasting needs its own build **[DECIDED — the owner]**
+
+*"A twitch or youtube livestream for us is just a medium and not much else. We're specifically growing
+our own discovery and everything else and just using the video player. So our concept of what a
+livestreamer is can be anything we want it to be. For me, it's the head of government doing what's
+essentially a press conference with all of chat as the reporters in the room. Someone who wants to
+livestream their party hunting the kraken is also broadcasting but that's totally different content. And
+someone could possibly broadcast in the fiction without even livestreaming at all, the content is purely
+assumed. It's all still broadcasting."*
+
+- **The unit is the program**, by this section's definition: a title, a short name, an owner (a person, or an
+  organization or office), a schedule, an agenda, an audience — and **optional video feeds** on the carriers,
+  proven when attached. A program with no feed is still a program.
+- **The stream arrival build** ([stream-arrival-requirements](../../requirements/stream-arrival-requirements.md))
+  builds only that minimum — the program, its proven feeds, the featured program on the front page — to start
+  the founder's livestream. The owner: *"this all needs a specific build just for broadcasting economics which
+  this has none of … it was a full lens conversation."*
+- ⭐ **Owed: the broadcasting build** — a full lens conversation on what a broadcaster is across the press
+  conference, the hunting party and the feedless broadcast; broadcasting economics (outlets, sponsors, audience
+  as standing, craft as agendas kept); and how the program grows into it.
 
 ### Open
 

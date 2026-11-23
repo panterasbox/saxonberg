@@ -1,16 +1,34 @@
 # Stream arrival — requirements
 
-**Kind:** client
-**Leads from:** kernel is a thin slice (show settings, a watch-on-entry intent, aspiration's
-removal); the client leads.
+**Kind:** feature (two stages)
+**Leads from:** kernel in Stage A (the program — first consumer: Stage B of this build, the arrival
+and the front page); the client leads Stage B.
 
-A viewer watching the show on Twitch, YouTube or Kick clicks our link and **never has to stop
-watching** to become a player. The front page plays the show on the carrier they came from; signing
+⭐ **Nobody is *the* streamer** (owner, 2026-11-23; watch-slate § 1). Today the founder is the only
+broadcaster, with a weekly show — but who broadcasts, how many, and on what schedule can all change.
+And a carrier livestream is only a medium: *"we're specifically growing our own discovery and
+everything else and just using the video player"* (owner). So the unit is the **program**, by
+[broadcasting-slate § 7](../slates/trades/broadcasting-slate.md)'s definition — *delivering a program
+to an audience: one source, many receivers, on a schedule*. **Stage A** builds the program (owned by a
+person or an organization; its video feeds optional and proven) and retires the four environment
+variables that hardwire one streamer; **Stage B** is the arrival, reading programs. The front page
+*features* one program by a setting — the founder's show today, changed without code.
+
+⚠ **This is the minimum to start the founder's livestream, not broadcasting.** Broadcasting as a whole
+— its economics, a full lens pass, what a broadcaster *is* across press conferences, a hunting party's
+stream and broadcasts with no video at all — is its own build (owner, 2026-11-23;
+[broadcasting-slate](../slates/trades/broadcasting-slate.md)).
+
+A viewer watching a program on Twitch, YouTube or Kick clicks its link and **never has to stop
+watching** to become a player. The front page plays the program's feed on the carrier they came from; signing
 in costs the video a second or two (the provider's page and back), and it resumes by itself on the
 same stream; the video docks in a corner through character select and character creation; and they
 enter the lounge in watch mode, on their own phone, the same video still playing. Along the way: the new front page (its client half), sign-in
 retouched for this path, and **aspiration removed from character creation entirely** (lineage will
-bring real origins later). Seeding slates: [watch-slate](../slates/client/watch-slate.md) § 3–4
+bring real origins later). Seeding slates: the
+[streamer-registry-slate](../slates/platform/streamer-registry-slate.md) (the record, claim-by-proof,
+retiring the singleton), [broadcasting-slate](../slates/trades/broadcasting-slate.md) § 7 (the
+definition), [watch-slate](../slates/client/watch-slate.md) § 1, 3–4
 (the funnel), [front-page-slate](../slates/client/front-page-slate.md) § 4, 4a, 4d, 5 (the page),
 [deep-links-slate](../slates/client/deep-links-slate.md) (origin, never a command),
 [modes-slate](../slates/client/modes-slate.md) § 3 (watch is the queue's second mode; the deadline is
@@ -38,8 +56,14 @@ the Twitch launch after New Year).
 - **Arrival:** every new character gets a bound phone in a pocket and lands in the lounge in
   **explore**; a returning character lands in its last mode.
 - **The show's state:** the founder's on-air phases, the three transports, the live count.
+- **Streamers:** nothing about a streamer is stored. `watch` resolves a channel lazily and keeps
+  nothing; the broadcaster side is hardwired to one person by four environment variables (the
+  overlay's three channels and the streamer account list). The OAuth links that make claim-by-proof
+  possible already ship (a Twitch login, a Kick slug); a "connect YouTube" consent that grants read
+  access to the user's YouTube account ships too.
 
-Therefore what is genuinely new here is: **the origin with a carrier**, **a video that lives outside
+Therefore what is genuinely new here is: **the program as a record, with feeds proven at attach**, **a
+featured program instead of a hardwired streamer**, **the origin with a carrier and a program**, **a video that lives outside
 watch mode and survives every step of the funnel**, **a return to what the visitor meant after
 sign-in, the video resuming by itself**, **entering in watch when you were watching**, **the front page's
 client rebuild over the sources that exist**, and **character creation without aspiration**. The
@@ -48,8 +72,17 @@ reuse ledger the plan must account for is in
 
 ## Goals
 
-- A visitor who arrives from a carrier sees the show **playing** on the front page, on that carrier,
-  the moment the page loads — or, when the show is offline, its offline tile.
+- **Any player or organization can run a program**: a title, a short name (what a link names), a
+  schedule, an agenda — under its owner's pen. A program may have **video feeds** on Twitch, YouTube
+  or Kick; attaching one requires owning that channel (signed in or linked with it, or YouTube
+  connected) — no approval, no admin. A program with no feed is still a program.
+- **Nothing hardwires one streamer**: the overlay, the front page and the arrival read programs; the
+  environment variables that named the founder are gone.
+- The front page features **one program chosen by a setting** (the founder's show today), live or
+  offline.
+- A visitor who arrives from a carrier sees the program their link names (or the featured program,
+  when it names none) **playing** on the front page, on that carrier, the moment the page loads — or,
+  when it is off air, its offline tile.
 - Signing in costs the video only the trip to the provider and back: when the visitor returns,
   signed in, the same stream on the same carrier is already playing again, with no click.
 - The video stays playing, docked in a corner, through character select and character creation.
@@ -72,8 +105,16 @@ reuse ledger the plan must account for is in
   build** (watch-slate § 5–7a).
 - **Our chat on the stream overlay** (launch-blocking) → Rodney / the broadcast slate, not client
   work.
-- **The streamer registry** (any streamer's link) — the page knows only the founder's show here →
-  [streamer-registry-slate](../slates/platform/streamer-registry-slate.md).
+- ⭐ **Broadcasting** — its economics (outlets, sponsors, audience as standing), a full lens pass, the
+  broadcaster as a role across institutions, broadcasts with no video, craft measured by agendas kept
+  → **its own build** (owner, 2026-11-23), [broadcasting-slate](../slates/trades/broadcasting-slate.md).
+- **The rest of the streamer registry** — a viewer listing someone else's channel so `watch shroud`
+  works, persisted tunes, platform preference, the consenting public directory, the documented REST
+  read for third-party overlays → the registry's portal build
+  ([streamer-registry-slate](../slates/platform/streamer-registry-slate.md) wave 3), reframed by the
+  program.
+- **Other programs on the front page** — it shows only the featured program, live or offline (owner)
+  → nowhere, deliberately.
 - **The intent route** (`/go/watch/<streamer>`), the confirm card, link previews → the deep-links
   build (deep-links-slate § 1–4); this build carries the origin only, never an intent naming a
   command.
@@ -87,12 +128,15 @@ reuse ledger the plan must account for is in
 
 ## Placement
 
-The **client** owns almost all of it: the front page, the player that survives the funnel, the
-resume after sign-in, the docked video, character select, character creation's page. The **platform**
-owns a thin slice: which channels are the show on each carrier (settings), the follow-up that a
-character entering while watching enters in watch, sign-in's return to the page that asked for it,
-and aspiration's removal from character creation, the profile and the guest. No pack, no new
-content beyond the plain starter outfit. A second streamer needs the registry, not code here.
+**Stage A — the platform.** The program is kernel substrate (true of every instance; the OAuth spine
+its feed proof rides is the kernel's). A second program is a second record, never code. Which program
+the front page features is an operator setting (the Compact's choice, like which publisher the page
+stocks).
+
+**Stage B — the client**, over a thin platform slice: the front page, the player that survives the
+funnel, the resume after sign-in, the docked video, character select, character creation's page; on
+the platform, entering in watch, sign-in's return, and aspiration's removal from character creation,
+the profile and the guest. No pack, no new content beyond the plain starter outfit.
 
 ## Collisions
 
@@ -113,11 +157,43 @@ content beyond the plain starter outfit. A second streamer needs the registry, n
   or are replaced; the respiration condition named *aspiration* (water in the lungs) is unrelated
   and untouched.
 - **The `from=stream` tag** and the ticker's *straight from the stream* line — the tag gains the
-  carrier (`from=twitch|youtube|kick`); the ticker keeps its line for any carrier.
+  carrier (`from=twitch|youtube|kick`); Rodney's one on-screen link stays `from=stream` and plays
+  **Twitch** (owner); the ticker keeps its line for any carrier.
+- **The broadcaster side** — the overlay's chat read, `stream token`, the on-air phases (live state on
+  the body today) and the `streamers` group hang off the hardwired founder; they move onto the program
+  being run. ⚠ A go-live step: the founder's show is set up as a program, with its feeds attached, on
+  the live server before the overlay can read it.
+- **`watch` typed by hand** stays open to any channel (deep-links § 1): only a *link's* target must be
+  a program with a feed.
 - **Watch mode's viewer layout** — the arrival lands in it as built today.
 - **The lounge** — the arrival room is unchanged (the warren's host, now the grid's origin).
 
 ## Surface decisions
+
+### The program **[owner, 2026-11-23; broadcasting-slate § 7]**
+A program is the record: a **title**, a **short name** (what a link names), its **owner** (a player,
+or an organization or office — whose pen it is under), a **schedule** (the next show, with its time
+zone), and its **agenda** (the segments the stream verb already runs). A program may carry **video
+feeds** — a Twitch channel, a YouTube channel, a Kick channel — or none. The owner edits it. It
+replaces every environment variable that named the founder.
+
+### A feed is proven when it is attached **[owner; streamer-registry-slate]**
+Attaching a feed requires owning that channel: signed in with, or linked to, the Twitch or Kick account
+whose channel it is; for YouTube, the "connect YouTube" consent that already ships (owner), which tells
+us the channel. No queue, no admin, no pending state. An organization's program takes feeds from a
+member who proves them. Short names are first come.
+
+### The featured program **[owner, 2026-11-23]**
+The front page features **one program, chosen by a setting** — the founder's show today. Not *the
+Prime Minister's livestream* (owner: *"I dont know if that will actually hold true long term"*) — just
+whatever the setting names. On air → its feed (for a visitor with an origin) or its tile; off air →
+**its offline tile** (the glowing `@`, its next show). Other programs never appear on the page.
+
+### A link names a program **[deep-links-slate § 1]**
+A link carries the carrier and, optionally, a program's short name: `?from=twitch&watch=<name>`. The
+named program must exist and have a feed on that carrier (else the page ignores the name — a link must
+never frame an arbitrary channel inside our client); a link naming none means the featured program.
+Data, never a command.
 
 ### The origin — a carrier, known three ways **[front-page-slate § 4a]**
 A link we post carries `from=twitch`, `from=youtube` or `from=kick`; an untagged link is read from
@@ -127,11 +203,12 @@ they start the video; the third only orders the sign-in buttons (a preference, n
 Nobody else's session is read.
 
 ### The video on the front page **[owner, 2026-11-23]**
-Plays **only for a visitor with an origin**, on that carrier, the founder's show; no origin → the
-show tile as a thumbnail with its *sign in to watch inside Saxonberg* line. Offline → no video, the
-offline tile (the glowing `@`, the next show). It starts **muted** (browsers refuse sound before a
-click) with a plain unmute; the first click anywhere on the page may carry sound. Which channel is
-the show on each carrier is a setting per carrier.
+Plays **only for a visitor with an origin**, on that carrier, the program the link names (else the
+featured program); no origin → that program's tile as a thumbnail with its *sign in to watch inside
+Saxonberg* line. Off air → no video, its offline tile (the glowing `@`, its next show). It starts
+**muted** (browsers refuse sound before a click) with a plain unmute — the unmute rebuffers the player
+once (owner-accepted), and after the sign-in trip it resumes muted. Which channel to play comes from
+the program's feed.
 
 ### Sign-in, and the video resuming **[owner, 2026-11-23]**
 Sign-in works as it does today: the tab goes to the provider's page and comes back (a second or two
@@ -157,9 +234,9 @@ Rebuilt to the new design with the bands whose sources exist now: the host bar, 
 chambers' sentences (their *WANTED · FUNDING NOW · NEEDS* lines are absent — no source yet), sign-in
 (the three providers, ordered by origin with *You came from Twitch.* / *You came from YouTube — sign
 in with the Google account you watch on.*; neutral order with no signal), the show (the video or its
-tile, the founder's avatar, the show title, *Bobalu Smallberries*), Latest (the press room's
-headlines), the footer. **Coming up** shows the next show from its setting; elections join it with
-the front-page build. Phone order: sign-in, the show, the chambers, Latest.
+tile, the program's owner and avatar, its title — *Bobalu Smallberries* today), Latest (the
+press room's headlines), the footer. **Coming up** shows the featured program's next show from its
+record; elections join it with the front-page build. Phone order: sign-in, the show, the chambers, Latest.
 
 ### One visual language, front page to lounge **[owner, 2026-11-23]**
 Character select and character creation are restyled into the new front page's design language —
@@ -182,8 +259,8 @@ arrives in **one plain everyday outfit**; the bio starts **empty** (the player w
 
 1. **Pedagogy** — none directly; the funnel's job is to get a learner to the door. The watch build's
    agenda machine is where watching teaches.
-2. **Creative expression** — a streamer's link is the ordinary case; a second streamer waits on the
-   registry, not on code here.
+2. **Creative expression** — anyone runs a program and hands out its link; a second program is a
+   second record, never code (lens 2 chose the program over a singleton).
 3. **Immersion / participation** — the page and character creation stay outside the fiction; the
    first in-fiction moment is watching on *your own phone* in the lounge, never a bodiless spectator.
    Participation: the viewer becomes a character without a gap in what they came for.
@@ -192,7 +269,9 @@ arrives in **one plain everyday outfit**; the bio starts **empty** (the player w
 5. **Continuity** — the same origin and resume-after-sign-in serve the web today and a desktop client later.
 6. **Economy** — the funnel is the platform's acquisition; it produces signed-in, platform-linked
    players (the owner's ask: *tied to whatever platform they're watching me on*).
-7. **Governance** — none; no person is judged.
+7. **Governance** — a feed's proof judges nothing (an OAuth identity matches a channel). Which program
+   the front page features is the Compact's setting, changed in the open. The full lens pass belongs to
+   the broadcasting build.
 
 ## The drive
 
@@ -201,13 +280,24 @@ is client-led, so the drive is a **browser walk** with a wire step for the serve
 
 ### Blocking drive
 
-1. **A tagged visitor** opens the front page with `from=twitch` while the show is live
-   (`staged`: the show marked live, its channel set). The show plays, muted, on Twitch; *You came
+0. **A broadcaster sets up a program** — a player creates a program (title, short name, next show),
+   attaches a Twitch feed while signed in with that Twitch account, a Kick feed the same way, and a
+   YouTube feed after connecting YouTube; attaching a channel they do not own is refused. A second
+   program with no feed exists and plays nowhere. The featured-program setting names the first.
+   After a restart the program and its feeds are intact. `staged` (test sign-ins standing in for the
+   providers)
+1. **A tagged visitor** opens the front page with `from=twitch` while the featured program is on air
+   (`staged`: its broadcaster live). The show plays, muted, on Twitch; *You came
    from Twitch.*; Twitch is first among the providers. `instant`
 2. **Unmute** — the video has sound. `instant`
 3. **An untagged visitor** (no `from`, no referrer) sees the show tile as a thumbnail, no video, the
    providers in the neutral order, and the guest as a plain small link. `instant`
-4. **Offline** (`staged`): the tagged visitor sees the offline tile, no video. `instant`
+4. **Off air** (`staged`): the tagged visitor sees the featured program's offline tile with its next
+   show, no video. `instant`
+4a. **A link naming a program** (`from=kick&watch=<a second program with a Kick feed>`): it plays on
+   Kick; a link naming a program with no such feed, or no program, plays the featured program
+   instead. `instant`
+4b. **Rodney's link** (`from=stream`): the featured program plays on Twitch. `instant`
 5. **Sign in with Twitch** (`staged`: the test sign-in standing in for the provider): the visitor
    comes back signed in, and the show is already playing again — docked, on Twitch, the same
    channel — with no click. `instant`
@@ -234,8 +324,14 @@ None — every step is `instant`.
 
 ## Acceptance criteria
 
-- A visitor arriving from Twitch, YouTube or Kick sees the show playing on that carrier on the front
-  page while it is live, and its offline tile when it is not.
+- A player can run a program and attach a feed only for a channel they own, with nobody approving it;
+  a program with no feed is still a program.
+- No environment variable names a streamer; the overlay reads the program being run.
+- The front page features the program its setting names, and changing the setting changes the page
+  without code.
+- A visitor arriving from Twitch, YouTube or Kick sees the program their link names — else the
+  featured program — playing on that carrier while on air, and its offline tile when not.
+- A link never plays a channel that is not a program's feed.
 - A visitor with no origin sees no playing video and the providers in the neutral order.
 - After signing in, the visitor is back where they were and the same stream is playing again on the
   same carrier, without a click.
@@ -251,6 +347,8 @@ None — every step is `instant`.
 
 ## Cross-references
 
+- [broadcasting-slate](../slates/trades/broadcasting-slate.md) — what broadcasting is; its own build
+- [streamer-registry-slate](../slates/platform/streamer-registry-slate.md) — the record, the proof
 - [watch-slate](../slates/client/watch-slate.md) — the funnel, guests, the reuse ledger
 - [front-page-slate](../slates/client/front-page-slate.md) — the page, the origin (§ 4a)
 - [deep-links-slate](../slates/client/deep-links-slate.md) — origin, never a command
