@@ -331,6 +331,20 @@ Push the sweep commit when it's ready — no need to ask. The one
 thing you never do on your own is merge: surface what you did and
 hand back to the user for the merge.
 
+> ⛔⛔ **Never say "ready" while a check is still pending — not even
+> "ready once it passes."** In a conversation about finishing a build,
+> the owner reads *merge* and *ready* as *verified* (2026-11-21, MR !644:
+> the agent wrote "once it passes, the MR is ready for you to merge," the
+> suite was still queued behind a sibling, the owner said "merge it," and
+> it merged). Report a pending check as **not ready**, say what is
+> pending and how long. If the owner asks to merge while anything is
+> pending, **stop and say so before calling the merge tool**: name the
+> check, and ask whether to wait or merge without it. Their earlier
+> "merge" is not consent to merge unverified. `tools/hooks/guard-merge`
+> and the owner's `/merge` skill back this — the hook puts the merge to the owner as a
+> permission prompt unless `.suite/green` matches the branch's source —
+> but the sentence is yours to get right first.
+
 > ⚠ **When a merge IS requested, do it on origin through the GitLab
 > tool — never the git CLI.** A CLI merge joins in a *worktree* (the
 > machinery CLAUDE.md § Worktrees exists to keep away from) and

@@ -1,0 +1,18 @@
+#!/bin/sh
+# source-fingerprint — one hash for the SOURCE a full suite run covers.
+#
+# The committed tree at a revision (default HEAD), minus docs/ and every
+# *.md file: CLAUDE.md § Build / Test / Quality — "a green run stays valid
+# until a SOURCE file changes". tools/suite records it after an
+# unfiltered green run; tools/hooks/guard-merge compares it before a
+# merge. One definition, read by both, so they cannot drift apart.
+#
+#   tools/source-fingerprint            # HEAD
+#   tools/source-fingerprint <rev>
+#   tools/source-fingerprint --dirty    # exit 1 if source files are modified in the working tree
+set -u
+if [ "${1:-}" = "--dirty" ]; then
+  [ -z "$(git status --porcelain -- . ':(exclude)docs' ':(exclude)*.md')" ]
+  exit $?
+fi
+git ls-tree -r "${1:-HEAD}" | awk -F'\t' '$2 !~ /^docs\// && $2 !~ /\.md$/' | sha1sum | cut -d' ' -f1
