@@ -245,6 +245,23 @@ The contacts controllers call `fireChange(ownerPlayerId, label)` after
 every CRUD mutation, and subscribed listeners (chat audience cache,
 future targeting subscriptions) get a tick.
 
+## Your lists and your groups, as relations
+
+Every list answers as a relation of its owner — `~friends`,
+`~friends:iffy`, `me:~` lists them — and so does every **managed group
+you belong to** (`~bookclub`). Both answer to you only. Both come from
+`ContactsMixin` (folded there in naming-overhaul review): a list and a
+group are both named sets of people a person keeps, so one contributor
+answers for both, and the `group` verb already rides this mixin.
+
+⚠ The groups are a **resident read** of the `groups` records, not a
+second store: read once when your session starts (`refreshGroups`, from
+`Avatar.enter`), re-read when a group's roster changes (each group's
+change hook) or when you are added to one, never persisted, and never
+deciding membership — `GroupApi` does that. A body whose session never
+starts (an NPC) holds no groups. When a list and a group share a name,
+the binder asks which.
+
 ## Online-only `contacts add` — v1 limitation
 
 The `add` subcommand resolves `target` at `scope: online`. Targeting

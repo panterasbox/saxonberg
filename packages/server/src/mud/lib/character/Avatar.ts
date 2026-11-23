@@ -63,7 +63,6 @@ import { NotifyPolicyMixin } from "../social/NotifyPolicy";
 import { CalendarMixin } from "../calendar/Calendar";
 import { SubjectSubscriberMixin } from "../forum/SubjectSubscriber";
 import { PartyMemberMixin } from "../party/PartyMember";
-import { GroupMemberMixin } from "../social/GroupMember";
 import { Events } from "../events";
 import type { User } from "../identity/User";
 import type { AccountSubjects } from "../standing/AccountScoped";
@@ -208,10 +207,6 @@ const AvatarBase = PersistableMixin(
                     // collection and no marshaller of their own.
                     WardrobeMixin(
                       PartyMemberMixin(
-                        // ⭐ Your managed groups, resident on you (naming
-                        // overhaul D-B11): each answers as a relation of
-                        // you (`~bookclub`). Transient — rebuilt at enter.
-                        GroupMemberMixin(
                         SubjectSubscriberMixin(
                           // ⭐ A player body has a name because EMBODY WRITES
                           // ONE, and it is the one piece of identity a player
@@ -224,7 +219,6 @@ const AvatarBase = PersistableMixin(
                           // missing field hydrates as empty and the banner
                           // reads "Welcome, ." with nothing thrown.
                           NamedMixin(ShelledCharacter),
-                        ),
                         ),
                       ),
                     ),

@@ -423,7 +423,7 @@ asker)` (the durable `GroupRef` a set stands for — what `notify` stores).
 It composes ONCE beneath every contributor, which chain with `super`.
 Shipped holders: contact lists (one relation per label, owner-only —
 `~friends`), the party (`~party`), your managed groups (one per group,
-resident on you through `GroupMemberMixin` — `~bookclub`), a warren
+resident on you through `ContactsMixin`, beside your lists — `~bookclub`), a warren
 (`~rooms`, its live members), a charter book (`~ships`), a travel card
 (`~nodes`, the tpa pack), an aether host (`~apps`). A list named like a
 built-in is warned about when made, and never reached by a query.

@@ -46,7 +46,7 @@ export default class GroupAddController extends GroupControllerBase {
     }
     // ⭐ A group the member was not listening to yet: refresh their
     // resident groups directly, so `~<group>` answers with no relog.
-    if (MixinApi.isGroupMember(target)) await target.refreshGroups();
+    if (MixinApi.isContacts(target)) await target.refreshGroups();
     this.send(
       context,
       Mml.compose`\nAdded ${target.getPresentation()} to '${name}'.\n`,

@@ -21,6 +21,15 @@
  * Privacy: members-of/role-of reads are owner-only — see
  * `ContactsGroupProvider.members`. Per-list visibility tuning is a
  * future refinement.
+ *
+ * ⭐ **The managed groups you belong to answer here too** (naming overhaul
+ * D-B11, folded in review): a contact list and a group are both named
+ * sets of people a person keeps, so both are relations of you (`~friends`,
+ * `~bookclub`) through one contributor. The groups are a RESIDENT READ of
+ * the `groups` records — read at session start (`refreshGroups`, from
+ * `Avatar.enter`), kept current by each group's change hook, never
+ * persisted and never deciding membership (`GroupApi` does). A body whose
+ * session never starts (an NPC) holds none.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -28,6 +37,8 @@ import type { CommandContributions } from '../../api/command';
 import { RelatingMixin, type HeldRelation, type RelatedSet } from '../relation/Relating';
 import { StuffApi } from '../../api/stuff';
 import type { Stuff } from '../stuff/Stuff';
+import { Group } from './Group';
+import type { GroupChangeHandle } from './GroupProvider';
 
 /**
  * Per-entry source of provenance. `self` = added by the owner via
@@ -65,7 +76,18 @@ export interface ContactEntryNpc {
 
 export type ContactEntry = ContactEntryAvatar | ContactEntryNpc;
 
+/** One managed group as you hold it: its ref, its name and who is in it. */
+export interface ResidentGroup {
+  ref: string;
+  name: string;
+  memberIds: readonly string[];
+}
+
 export interface Contacts {
+  /** Re-read the managed groups this person belongs to (and listen to each). */
+  refreshGroups(): Promise<void>;
+  /** The managed groups this person belongs to, as last read. */
+  residentGroups(): readonly ResidentGroup[];
   /** Append a contact entry. Duplicates (same kind+ref+label) are no-ops. */
   addContact(entry: ContactEntry): boolean;
   /**
@@ -199,13 +221,57 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this._contacts;
     }
 
-    /* ── relations (naming overhaul D-B5): each list is `~<label>`, owner-only ── */
+    /* ── the managed groups you belong to, resident (D-B11) ── */
 
-    /** ⭐ Your lists, each a relation — to you only (contacts are owner-only). */
+    /** The groups as last read — transient, never captured. */
+    private _groups: ResidentGroup[] = [];
+    /** One change subscription per group held. */
+    private _groupHandles: GroupChangeHandle[] = [];
+
+    public residentGroups(): readonly ResidentGroup[] {
+      return this._groups;
+    }
+
+    public async refreshGroups(): Promise<void> {
+      const self = this as unknown as Stuff;
+      const identity = self.getIdentityPath() ?? '';
+      const playerId = identity.split('/').filter(Boolean).pop() ?? '';
+      if (identity === '') return;
+      const rows = await Group.find<Group>({ memberIds: { $in: [identity, playerId] } });
+      this._groups = rows
+        .filter((g) => g._id !== undefined)
+        .map((g) => ({ ref: `managed:${g._id}`, name: g.name, memberIds: [...g.memberIds] }));
+      for (const h of this._groupHandles) h.cancel();
+      // Lazy: the Api reaches this mixin's host; a static import cycles.
+      const { GroupApi } = await import('../../api/group');
+      this._groupHandles = await Promise.all(
+        this._groups.map((g) =>
+          GroupApi.onMembershipChange(g.ref as never, () => {
+            void this.refreshGroups().catch((err: unknown) =>
+              console.warn(`ContactsMixin: could not re-read groups for ${identity}`, err),
+            );
+          }),
+        ),
+      );
+    }
+
+    /** Stop listening to every group — the body is going. */
+    public onDestruct(): void {
+      for (const h of this._groupHandles) h.cancel();
+      this._groupHandles = [];
+      super.onDestruct();
+    }
+
+    /* ── relations (naming overhaul D-B5): each list and each group is `~<name>`, owner-only ── */
+
+    /** ⭐ Your lists and your groups, each a relation — to you only. */
     public relationsFor(asker: Stuff | null): HeldRelation[] {
       const mine =
         asker === (this as unknown as Stuff)
-          ? this.contactLabels().map((label) => ({ name: label, meaning: `your list "${label}"` }))
+          ? [
+              ...this.contactLabels().map((label) => ({ name: label, meaning: `your list "${label}"` })),
+              ...this._groups.map((g) => ({ name: g.name, meaning: `your group "${g.name}"` })),
+            ]
           : [];
       return [...mine, ...super.relationsFor(asker)];
     }
@@ -214,14 +280,18 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
       const below = super.relatedBy(name, asker);
       if (asker !== (this as unknown as Stuff)) return below;
+      const sets: RelatedSet[] = [];
       const entries = this.contactsByLabel(name);
-      if (entries.length === 0) return below;
-      const members: Stuff[] = [];
-      for (const e of entries) {
-        const s = StuffApi.findByIdentityPath(e.kind === 'avatar' ? `${AVATAR_IDENTITY_ROOT}/${e.playerId}` : e.templatePath)[0];
-        if (s !== undefined && !members.includes(s)) members.push(s);
+      if (entries.length > 0) {
+        const ids = entries.map((e) => (e.kind === 'avatar' ? `${AVATAR_IDENTITY_ROOT}/${e.playerId}` : e.templatePath));
+        sets.push({ name, meaning: `your list "${name}"`, members: residentOf(ids) });
       }
-      return [{ name, meaning: `your list "${name}"`, members }, ...below];
+      const group = this._groups.find((g) => g.name === name);
+      if (group !== undefined) {
+        const ids = group.memberIds.map((id) => (id.startsWith('/') ? id : `${AVATAR_IDENTITY_ROOT}/${id}`));
+        sets.push({ name, meaning: `your group "${name}"`, members: residentOf(ids) });
+      }
+      return [...sets, ...below];
     }
 
     /**
@@ -234,6 +304,10 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
         const playerId = self.getPlayerId();
         if (playerId) return `contacts:${playerId}:${name}`;
       }
+      if (asker === self) {
+        const group = this._groups.find((g) => g.name === name);
+        if (group !== undefined) return group.ref;
+      }
       return super.groupRefOf(name, asker);
     }
   };
@@ -241,6 +315,16 @@ export function ContactsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
 /** The player-avatar identity family a contact's `playerId` keys under (D17). */
 const AVATAR_IDENTITY_ROOT = '/platform/agent/Avatar';
+
+/** The bodies in the world for these identity paths, each once (an absent one is skipped). */
+function residentOf(ids: readonly string[]): Stuff[] {
+  const out: Stuff[] = [];
+  for (const id of ids) {
+    const s = StuffApi.findByIdentityPath(id)[0];
+    if (s !== undefined && !out.includes(s)) out.push(s);
+  }
+  return out;
+}
 
 function refOf(e: ContactEntry): string {
   return e.kind === 'avatar' ? e.playerId : e.templatePath;

@@ -10,7 +10,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { makeStuffAtPath, makeStuff } from '../../security/__tests__/test-setup';
 import { ContactsMixin } from '../../social/Contacts';
-import { GroupMemberMixin } from '../../social/GroupMember';
+
 import { Group } from '../../social/Group';
 import { GroupApi } from '../../../api/group';
 import { ContainerMixin } from '../../spatial/Container';
@@ -23,8 +23,8 @@ import { Agent } from '../../stuff/Agent';
 import { Idea } from '../../stuff/Idea';
 import type { Stuff } from '../../stuff/Stuff';
 
-class Person extends GroupMemberMixin(
-  ContactsMixin(ContainerMixin(ContainableMixin(FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Agent))))))),
+class Person extends ContactsMixin(
+  ContainerMixin(ContainableMixin(FocusedMixin(CommandGiverMixin(NamedMixin(PerceptibleMixin(Agent)))))),
 ) {}
 class Room extends ContainerMixin(NamedMixin(PerceptibleMixin(Idea))) {}
 class Thing extends ContainableMixin(NamedMixin(PerceptibleMixin(Idea))) {}

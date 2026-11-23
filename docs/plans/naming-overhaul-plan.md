@@ -495,7 +495,7 @@ keeps `world`, paths and ids. The 23 views, by what the verb is:
 A view row that turns out to need something else is the build's to adjust
 and record here; none may add a relation.
 
-**D-B11 — Your own groups are resident on you.** `GroupMemberMixin` on the
+**D-B11 — Your own groups are resident on you.** *(Review, 2026-11-23: `GroupMemberMixin` was folded into `ContactsMixin` — a list and a group are both named sets of people a person keeps, and a cache is not a capability; the owner wants a general conversation on the DB-vs-RAM balance and one dial for it.)* `GroupMemberMixin` on the
 avatar family holds, transiently, each managed group you belong to with its
 member ids: filled when the avatar materializes (that path is already async),
 kept current by `GroupApi.onMembershipChange`, dropped with the avatar. It is

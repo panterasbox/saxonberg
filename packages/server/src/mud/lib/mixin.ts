@@ -826,7 +826,6 @@ export const Mixins = {
   Publisher: 'PublisherMixin',
   Registrar: 'RegistrarMixin',
   Relating: 'RelatingMixin',
-  GroupMember: 'GroupMemberMixin',
   // Attendant — the universal storefront-attention substrate: a service-point
   // fixture holding the queue + being-attended leases (a server's attention).
   Attendant: 'AttendantMixin',

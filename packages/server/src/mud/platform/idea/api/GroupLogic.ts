@@ -152,7 +152,7 @@ export class GroupLogic extends ApiLogic {
     // ⭐ The new member's resident groups (naming overhaul D-B11), when
     // their body is in the world — they were not listening to this group.
     for (const body of StuffApi.findByIdentityPath(memberKey)) {
-      if (MixinApi.isGroupMember(body)) await body.refreshGroups();
+      if (MixinApi.isContacts(body)) await body.refreshGroups();
     }
     return true;
   }
