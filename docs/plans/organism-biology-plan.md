@@ -1910,6 +1910,20 @@ restart and the words.
 
 ### The blocking drive
 
+⚠ **Stand in the test world, never in a real place** (test-world-lifecycle,
+!638, merged 2026-11-22). `lint:wire-content` fails a new or edited wire
+file that names `/world/<x>` (other than `/world/testbed`) or `/corpo/<x>`.
+The drive stands in the test-only `test-fixtures` pack's `/world/testbed`
+through `standIn()` / `fundedAccount()` / `standInNpc()`
+(`packages/wire/src/harness/scaffold.ts`), and restarts through the
+harness's `restartWorld()`, never `bootOwnedWorld` / `stopOwnedWorld`.
+The animals, the herd and its book, the tray, the tanning pit, the pond
+and the `PersistentHall` the restart step reads back are **cloned or
+authored into the testbed** (a herd and a persistent hall there are
+test-fixtures rows this build owes in W0), not borrowed from Hearts
+Delight, Hollow Mere or the newbie wilds. The runner purges `wire-`
+characters at the start and end of every run.
+
 | # | pace | how it is staged |
 |---|---|---|
 | 1 | instant | `clone` a cow, `testharness body-wound <cow> body.torso point 2`, `testharness body-kill <cow>`; then the player's `butcher … for pelt`, `look pelt` |
@@ -1922,7 +1936,7 @@ restart and the words.
 | 8 | instant | draft a ewe; `testharness daylight-pin 0.35` (winter): she is not in milk and `milk` refuses with the reason; `daylight-pin 0.55`: she gives. Draft a cow; `testharness afflict <cow> …/reproduction/lactating 0`, `milk` refuses; afflict again, she gives |
 | 9 | instant | draft a bull calf; the player's `operate calf for castration with knife` (and first a bare `operate calf`, which finds nothing to do); the herd read says steer; `/auth/test-stage` `setAge` to adult beside a staged bull of the same age; `handle` both; the player's `herd enter steer in oxen`; read the ox book and draft him back out |
 | 10 | instant | `testharness body-wound <wolf> body.head.eye.left point 2`; a hidden player; `testharness body <wolf> perceiving <player>` and the same for a cow |
-| 11 | instant | in Hearts Delight's `PersistentHall`: `clone` a wolf, `testharness body-sever <wolf> body.leg.frontLeft`; the player picks the foreleg up, butchers a second one for a shank, and leaves one lying |
+| 11 | instant | in the testbed's `PersistentHall`: `clone` a wolf, `testharness body-sever <wolf> body.leg.frontLeft`; the player picks the foreleg up, butchers a second one for a shank, and leaves one lying |
 | 12 | short | two sheep; the player's `shear`; `testharness weather-pin rain`, `clock-advance` a night in one-hour steps (each fires the wakes at the new time and the whole step is integrated) — **nobody moves and nobody reads**; then `testharness body <sheep>`: the shorn one is colder and carries hypothermia first; `assess` it twice and its conditions are the same both times; a wet and a dry wolf by `setWetness` |
 | 13 | short | `clone` a tadpole; `/auth/test-stage` `setAge` past the change; then `testharness daylight-pin 0.35`, `weather-pin snow`, `clock-advance`: the frog, which has not moved and has not been read, carries `sluggish`, then `denning` |
 | 14 | short | `/auth/test-stage` `setDegreeDays` on a tray; `get silkworm from tray`; the stifling oven; `unwind`; a second stack with `setSpunAt` back-dated past ten days, then `clock-advance` across its wake |
