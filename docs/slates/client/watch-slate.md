@@ -215,7 +215,7 @@ build needs, and what already does it:
 | the show's on-air state | `BroadcastMixin` phases, the three transports, `/auth/status` | **reuse** — the page reads live / offline from what ships |
 | the show's channel per carrier | four singleton env vars today (streamer-registry-slate) | **generalize** — settings per carrier for the founder's show; the registry replaces them later |
 | where the visitor came from | `?from=stream` → sessionStorage → `Interactive.arrivedFrom` | **generalize** — the value names a carrier; referrer fallback; last method remembered |
-| sign-in | Passport strategies + `*-link`; callbacks to `?auth=success` | **reuse** the strategies; **new** — the window flow and a return to the asking page |
+| sign-in | Passport strategies + `*-link`; callbacks to `?auth=success` | **reuse** the strategies and today's trip to the provider; **new** — the return to what the visitor was doing (a separate sign-in window was rejected by the owner) |
 | the mode a character enters in | `getCockpitMode` (explicit → legacy → `explore`) | **reuse** — entering while watching sets `watch` the ordinary way |
 | a new character's clothes, bio, prologue | aspiration's `outfit` / `bioSeed` / `claimSeeds` | **replace** — one plain outfit; empty bio; no prologue |
 | the guest's look | a random aspiration's outfit and bio | **replace** — the plain outfit |

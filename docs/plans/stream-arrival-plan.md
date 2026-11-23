@@ -5,45 +5,44 @@ who clicks our link from Twitch, YouTube or Kick sees the show playing on the fr
 keeps the video docked through character select and creation, and enters the lounge in watch mode
 with the same video still playing. Along the way: the front page's client rebuild, sign-in's return,
 and aspiration removed from character creation. **Kind: client. Leads from: the client**, over a
-thin kernel slice (show settings and one anonymous read, the origin vocabulary, a session-only
-cockpit mode, aspiration's removal).
+thin kernel slice (show settings and one anonymous read, the origin vocabulary, an *arrive
+watching* option on the three ways in, aspiration's removal).
 
 ## ⚠ Requirements conflicts and notes — read first
 
 Nothing here changes scope. Each is a place where planning found the requirements cannot be met
 exactly as written, or where the plan had to choose; the owner should see all of them before `/build`.
 
-1. **`from=stream` cannot be retired.** The requirements say the tag *gains the carrier*
-   (`from=twitch|youtube|kick`). Rodney's on-screen card and its QR
-   (`packages/rodney/src/scenes/live/panels.tsx:24`, `JOIN_LINK = …/?from=stream`) are drawn into
-   ONE picture that goes out to all three carriers, so that link cannot name a carrier. **The plan
-   keeps `stream` as a fourth legal value meaning *from the show, carrier unknown*** (D7): the
-   ticker line still fires; no video starts (the requirements start the video *on that carrier*);
-   the provider order is neutral. The owner may prefer a default carrier for it — that is a product
-   call, listed under Opens. Rodney is not touched (a sibling worktree holds `build/rodney`).
-2. **The reuse ledger's sign-in row is stale.** watch-slate § 7b says *"new — the window flow and a
-   return to the asking page"*. The requirements rejected the window. The plan follows the
-   requirements (D2); the ledger row should be corrected at the sweep.
+1. **`from=stream` cannot be retired — and it means Twitch** *(decided by the owner, 2026-11-23)*.
+   The requirements say the tag *gains the carrier* (`from=twitch|youtube|kick`). Rodney's
+   on-screen card and its QR (`packages/rodney/src/scenes/live/panels.tsx:24`,
+   `JOIN_LINK = …/?from=stream`) are drawn into ONE picture that goes out to all three carriers, so
+   that link cannot name one. `stream` stays a fourth legal word and is treated as **Twitch, the
+   launch carrier**: the Twitch video plays and Twitch sign-in goes first; the ticker's *straight
+   from the stream* line still fires. A referrer that names another carrier wins over it (the
+   referrer is more specific) (D7). Rodney is not touched (a sibling worktree holds `build/rodney`).
+2. **The reuse ledger's sign-in row was stale** (it named the rejected sign-in window) — corrected
+   in watch-slate § 7b with this plan's commit. The plan follows the requirements (D2).
 3. **"On their phone" is the personal `watch` embed.** Nothing ships that makes the phone a screen
    (`aether-devices.md` lists *the phone as a held, watchable screen* as unbuilt —
    display-manifestation-slate). The arrival writes the same `cockpit.watch` the `watch` verb writes;
    the drive's own check is only that the phone is in the pocket. No conflict, but the sentence
    promises more than the fiction can yet show.
-4. **Our unmute reloads the embed once** (D3). The player is a sandboxed cross-origin iframe with no
-   carrier SDK on our page, so the only carrier-neutral way to turn sound on from our own control is
-   to rebuild the embed address without the mute flag — a one-to-two-second rebuffer of a live
-   stream. Each carrier's own in-player unmute also works and reloads nothing. *The video did not
-   restart* is held for **entering**, which is where the requirements put it.
-5. **After the sign-in trip the video resumes muted**, always. A fresh document has no user gesture
-   and browsers refuse sound without one. The requirements' *"the first click anywhere on the page
-   may carry sound"* is NOT implemented as an automatic unmute on any click (D3): the first click
-   after returning is often *Enter*, and an unmute-reload at that instant would break *the video
-   did not restart*.
+4. **Our unmute reloads the embed once** (D3) — *accepted by the owner, 2026-11-23*. The player is
+   a sandboxed cross-origin iframe with no carrier SDK on our page, so the only carrier-neutral way
+   to turn sound on from our own control is to rebuild the embed address without the mute flag — a
+   one-to-two-second rebuffer of a live stream. Each carrier's own in-player unmute also works and
+   reloads nothing. *The video did not restart* is held for **entering**, which is where the
+   requirements put it.
+5. **After the sign-in trip the video resumes muted**, always — *accepted by the owner*. A fresh
+   document has no user gesture and browsers refuse sound without one. The requirements' *"the
+   first click anywhere on the page may carry sound"* is NOT implemented as an automatic unmute on
+   any click (D3): the first click after returning is often *Enter*, and an unmute-reload at that
+   instant would break *the video did not restart*.
 6. **Step 8 forces a mode that is not remembered.** *"The returning character enters in its usual
-   mode, not watch"* — for a character whose only session was the watch arrival — means entering
-   while watching must not become the character's stored mode. The plan adds a visit-only form of
-   the existing command, `cockpit mode watch --session` (D4). No scope change; a new option on a
-   shipped verb.
+   mode, not watch"* — for a character whose only session was the watch arrival — means arriving
+   in watch must not become the character's stored mode. The plan keeps the arrival's mode in a
+   transient key that dies with the visit (D4, S7). No scope change, and no new command.
 7. **Twitch's embed rules** (minimum player size, the player must be visible) may not hold for the
    docked corner on a phone-width screen. The dock is sized ≥ 400 px wide on a desktop; on a phone
    it is as wide as the screen allows. Re-check Twitch's embed requirements before the walk; if the
@@ -125,6 +124,19 @@ requirements).
   payload → auto-look → `openArrangementGuarded` → `announceFirstArrival`. ⚠ `enter` also serves a
   **reconnect** (`:1275`, `PlayerReconnected`). `:990–1003` — `announceFirstArrival` emits
   `PlayerFirstArrival` with `interactive.getArrivedFrom()`.
+
+**Server — the three ways in**
+
+- `play <playerId>` — view `…/cmd/charactergen/play.yaml` (one `playerId` arg, `greedy: true`, no
+  options today); `PlayController` is a thin surface over `Login.playCharacter(playerId)`
+  (`platform/idea/Login.ts:376–405`), which restores the body and calls `avatar.enter(interactive)`.
+- `embody confirm` — its own stanza in `embody.yaml` (`subcommands.confirm`), controller
+  `EmbodyConfirmController` → `EmbodyController.commit(draft, cfg)`, which ends in `avatar.enter`.
+- The guest runs **no command**: `POST /auth/guest` mints an anonymous session, the socket opens,
+  `Application.handleUserConnect` (`backend/Application.ts:225–285`) stamps the Interactive and
+  `Login.enter` → `Login.enterAsGuest()` (`Login.ts:217–224`) mints the body and calls
+  `avatar.enter(interactive, { firstArrival: true })`. The only thing a guest's client sends
+  before it is in the world is the socket URL, which already carries `from=`.
 
 **Server — origin, sign-in, the anonymous reads**
 
@@ -211,14 +223,14 @@ category or exported server helper. Every item, against watch-slate § 7b:
 | S1 | settings `show.streamer`, `show.twitch`, `show.youtube`, `show.kick`, `show.title`, `show.host`, `show.schedule` (`AppSettingKeys`, Tier B, `settings/show.yaml`) | *the show's channel per carrier — **generalize*** | P9 listed by `config`, each with its comment in the yaml. P10 they are rows in the existing settings Document — no Idea. P11 n/a. P12 they REPLACE the three `OVERLAY_*` channel env vars, which are deleted in the same wave (P1's *is the specific one gone*). P13 `AppSettings` is *"application-wide, operator-managed configuration"* — one show per instance is that. P14 an unset value is absent, never defaulted. |
 | S2 | `StreamApi.showListing()` → `StreamLogic.showListing()`; wire type `ShowListing` in `@saxonberg/types` | *the show's on-air state — **reuse*** (`BroadcastMixin.isOnAir`, `streamTopic`) | P9 n/a (no command). P10 a wire shape, not stored. P11 none. P12 not a synonym: `channelsFor(playerId)` answers a streamer's chat reads; this answers *what is billed and is it on*. P13 `StreamApi`'s header covers *"per-streamer channel reads"* and the show's rows. P14 reads only; a non-resident streamer is `live: false` and says so in its doc. |
 | S3 | `FrontRoutes` (`backend/FrontRoutes.ts`, `GET /api/front`), wire type `FrontResponse` | *genuinely new* — the slice of front-page-slate § 6 item 8 that carries only the show. Searched: `PressRoutes`, `HelpRoutes`, `/auth/status`. | P9 n/a. P10 n/a. P11 none. P12 `/auth/status` was considered and refused (D1): it is awaited by sign-in. P13 `backend/` holds the REST route classes. P14 reads no session, writes nothing. |
-| S4 | `ARRIVAL_DOORS` (`twitch · youtube · kick · stream`) + type `ArrivalDoor` in `@saxonberg/types` | *where the visitor came from — **generalize*** | P9 n/a. P10 a four-word closed list in code, read by two validators — not metadata anyone browses. P11 none. P12 it replaces the literal `'stream'` at three sites. P13 n/a. P14 an unknown value is `null`, as today. |
+| S4 | `ARRIVAL_DOORS` (`twitch · youtube · kick · stream`) + type `ArrivalDoor` in `@saxonberg/types` | *where the visitor came from — **generalize*** | P9 n/a. P10 a four-word closed list in code, read by two validators — not metadata anyone browses. P11 none. P12 it replaces the literal `'stream'` at three sites. P13 n/a. P14 an unknown value is `null`, as today; `stream` reading as Twitch is the owner's stated rule, written in `services/arrival.ts`'s header and the help of nothing (no command carries it). |
 | S5 | `via=<provider>` on the success redirect; one private `AuthRoutes.finishSignIn` | *sign-in — a return to the asking page* | P9 n/a. P10 n/a. P11 removes three copies of one redirect. P12 no. P13 n/a. P14 data the client reads, never a command (deep-links § 1). |
 | S6 | test seam `GET /auth/test-return` (TestAuthRoutes), and `playerId` on `test-login`'s answer | *genuinely new* — every existing seam is a `fetch`ed POST; none leaves the page. | Test-only, mounted under `AUTH_MODE=test`; enrolled with `lint:test-seams`. |
-| S7 | transient client-state key `cockpit.sessionMode`; `SaxonbergClient.setSessionMode()`; the `--session` option on `cockpit mode` | *the mode a character enters in — **reuse*** (`getCockpitMode`), plus the one new piece: a mode that is not remembered. Searched: `cockpit.watch` and `cockpit.inputModes` are the transient precedents; nothing offers a visit-only mode. | P9 the option and its sentence are in `cockpit.yaml`'s `mode` stanza and its help. P10 a client-state key. P11 none. P12 not a new verb — an option whose only difference is *not remembered*. P13 `SaxonbergClient` is *our client's keyspace and its resolution*. P14 the mode changes only when a command says so; the transcript prints it. |
+| S7 | **arrive watching**: the `--watch <carrier>` option on `play` and on `embody confirm`; the guest's `watch=<carrier>` word on the socket; `enter(…, { watching })`; `SaxonbergClient.arriveWatching(target)`; the transient client-state key `cockpit.sessionMode` | *what is being watched — **reuse*** (`cockpit.watch`, the key `watch` writes) and *the mode a character enters in — **reuse*** (`getCockpitMode`), plus the one new piece: a mode that is not remembered. Searched: `cockpit.watch` and `cockpit.inputModes` are the transient precedents; nothing offers a visit-only mode. | P9 the option, its three legal words and what it does are in `play.yaml` and `embody.yaml`'s `confirm` stanza and their help; the Enter and confirm controls show the exact command. The guest has no command to read, so its control says it in words (D4). P10 a client-state key. P11 none — every way in ends in the one `enter`. P12 not a synonym for `watch`: it writes the same key through the same mixin method `watch` uses, and differs only in WHEN (before the first paint). P13 `SaxonbergClient` is *our client's keyspace and its resolution*. P14 the server resolves the channel from its own settings and says so in the arrival line; when the show is not on it says that and enters the usual mode — it never picks another stream. |
 | S8 | `startingOutfit:` in `mud/config/char-gen.yaml` | *a new character's clothes · the guest's look — **replace*** | P9 n/a. P10 a config list beside `startingKit:` (same file, same reader). P11 none — `Character.wearGarments` for players, guests and test characters alike. P12 no. P13 n/a. P14 a garment that will not go on is skipped with the diagnostic `wearGarments` already gives. |
 | C1 | `StreamPlayer` (the one player, mounted above the phase switch) | *playing a carrier's video — **reuse*** | The iframe builder MOVES here from `StreamEmbed`; there is one place that builds a carrier iframe after this build, not two. |
 | C2 | `PlayerSlot` (a place the player sits) — `StreamEmbed` becomes one | same row | `StreamEmbed` keeps its stage, placeholder and shared-display caption and loses its iframe. |
-| C3 | `store/playerSlice.ts` (target · muted · closed · slot · handoff) | same row | A slice beside the eleven that exist. |
+| C3 | `store/playerSlice.ts` (target · muted · closed · slot) | same row | A slice beside the eleven that exist. |
 | C4 | `services/arrival.ts` (the origin, the remembered provider) | *where the visitor came from — **generalize*** | `config.ts`'s `arrivalDoor` / `withArrivalDoor` are deleted; `WS_URL` reads the service. |
 | C5 | `components/front/` — the band grammar and the bands (`HostBar`, `IdentityBand`, `Chambers`, `SignInPanel`, `ShowTile`, `Latest`, `ComingUp`, `FrontFooter`) | *the front page — **rebuild*** | `StartScreen` is rebuilt over them; `PressRoom` is replaced by `Latest` (its fetch moves, its file goes). Character select and creation import the same primitives. |
 | C6 | `front` facts in the store (the `/api/front` answer) | same row | Beside `serverFacts`. |
@@ -243,7 +255,8 @@ catch-all, and the front-page build grows this same answer with its other slices
 - **`live`** = `show.streamer` names a resident body that `isOnAir()`. Not resident → `false` (the
   phase lives on the body and only the streamer's own commands move it). `title` = that body's
   `streamTopic` while on air, else `show.title`. An empty setting is an absent field.
-- ⭐ **The three `OVERLAY_*` channel env vars are retired in the same wave** (P1: a generalization
+- ⭐ **The three `OVERLAY_*` channel env vars are retired in the same wave** *(confirmed by the
+  owner, 2026-11-23; see § Go-live checklist)* (P1: a generalization
   that leaves the old one standing is two of the thing). `StreamLogic.channelsOf`'s fallback becomes
   *the show's streamer → the `show.*` settings*; `overlayTwitchLogin` / `overlayYoutubeChannel` /
   `overlayKickChannel` are deleted; if any of the three env names is still set, the first read
@@ -283,17 +296,19 @@ desktop, the width the screen allows on a phone. Because the iframe's parent nev
   carrier (D7) × the show's channel for it (`/api/front`), only while `live` and not `closed`;
   in-world, `clientState['cockpit.watch']` (server-authoritative, as today).
 - **In-world the dock does not exist.** With no slot in-world the player unmounts — exactly today's
-  behavior (the video lives only in watch mode). The one exception is the **handoff** (D4): from
-  entering the world until the watch slot registers, the player stays docked so the iframe
-  survives. A video in a corner while exploring is watch-slate § 8's open question, not this build.
+  behavior (the video lives only in watch mode). The one exception is the arrival's first frames:
+  in-world, with a target, **while the mode is watch**, the player stays mounted (docked) until
+  the watch slot registers, so the iframe survives the mount of the stage. A video in a corner
+  while exploring is watch-slate § 8's open question, not this build.
 - **`src` is one function** of `(target, muted)` — the moved `iframeFor`, now adding the mute and
   autoplay flags for Twitch (`&autoplay=true&muted=true`) and YouTube (`&autoplay=1&mute=1`); Kick
   already carries them. The iframe is keyed by that string, never by object identity.
 - **Sound:** `muted` starts `true` on every document load. Our control (*Unmute* / *Mute*, on the
   player's own strip) flips it, which changes `src` — one reload (conflict note 4). A `cockpit.watch`
   that arrives in-world and is NOT the target already playing (a `watch` the player typed) sets
-  `muted` false: they just acted, and sound is allowed. The handoff keeps whatever `muted` is, so
-  its `src` is unchanged.
+  `muted` false: they just acted, and sound is allowed. The arrival's target EQUALS the one
+  already playing, so `muted` and the `src` are unchanged. *(The reload on unmute, and resuming
+  muted after sign-in, were accepted by the owner, 2026-11-23.)*
 - **Closed:** the dock's ✕ (and the tile's, on the front page) sets `closed`, stored in
   `sessionStorage['saxonberg.player.closed']` — the tab's lifetime is *the visit*. In-world, the
   server clearing a personal `cockpit.watch` the player was on (`watch off`; never a shared
@@ -301,35 +316,58 @@ desktop, the width the screen allows on a phone. Because the iframe's parent nev
   switched off.
 - Layering: above the page, below the tooltip layer, the command sheet and any summoned panel.
 
-**D4 — Entering while watching is two ordinary commands the client sends on arrival, the second
-with a new option.** When `connectionPhase` becomes `in-world` and the player is playing an
-arrival target, the client sends, in order: `watch <channel> --twitch|--kick` (or
-`watch <UC…> --youtube`), and — once `cockpit.watch` comes back equal to the target —
-`cockpit mode watch --session`. Both are echoed and answered in the transcript like anything typed
-(*Watching Twitch #…*, *mode set to watch*). Why not a parameter on `play` / `embody confirm`: that
-is two verbs plus the guest path (a guest runs neither), and it hides the act inside entry; the
-arrival effect is one place and covers a new character, a returning one and a guest alike.
+**D4 — The character ARRIVES watching: an option on the two entry verbs, a word on the guest's
+socket, one `enter`.** *(Re-decided 2026-11-23: the owner rejected entering in the remembered mode
+and switching afterwards — no intermediate mode may be painted.)* The request to start in watch
+rides the act of entering, so the welcome snapshot, the first paint and the first arrangement are
+already watch.
 
-- ⭐ **The channel in the command comes from the server's own show read, never from the URL.** The
-  link contributes one of three carrier words; deep-links § 1 (*a URL never holds a command*) holds.
-- **The controls say so before they send** (the axiom *a tap names its command before it sends*):
-  while the video plays, `roster-sends-as` and the confirm control carry a second line naming both
-  follow-up commands.
-- **`--session`** (S7): `cockpit mode <name> --session` sets the transient `cockpit.sessionMode`
-  and leaves the stored `cockpit.mode` alone; `getCockpitMode()` resolves *session → stored →
-  legacy → explore*; the pushes carry the resolved values, nothing is saved. A plain
-  `cockpit mode <name>` clears the session mode. `Avatar.enter` clears it before the welcome
-  snapshot is built, so every entry — a login or a reconnect — starts from the remembered mode and
-  the client re-asserts if (and only if) the video is still playing. That is what makes step 8 and
-  step 11 true.
-- **No restart:** the server's `cockpit.watch` must equal the arrival target field for field, so
-  the `src` string is identical. D1 ships the channels already in the form `watch` produces
-  (lower-case login and slug; the channel id verbatim). A unit test on each side pins the equality.
-- **Refused or silent:** if `cockpit.watch` has not matched within 5 s the handoff ends — the
-  second command is not sent, the player unmounts (in-world, no slot), and the transcript holds
-  whatever `watch` answered. Not playing at entry → nothing is sent; the usual mode.
-- A brief paint of the remembered mode's layout precedes the switch (one round trip). The docked
-  player rides through it, so the video does not blink.
+- **The verbs.** `play <playerId> --watch <carrier>` and `embody confirm --watch <carrier>`, where
+  `<carrier>` is `twitch`, `youtube` or `kick`. One option, declared in each view with its help
+  (*"arrive watching the show on that carrier, for this visit; your remembered mode is not
+  changed"*). Still `verb target` / `verb subcommand`; no new verb, no new word.
+- ⭐ **The client sends a carrier word and nothing else; the server owns the channel.** The option's
+  value is checked against the closed list, then the server reads ITS OWN show listing (D1):
+  `show.<carrier>` set and the show on air → the target is built from the setting. There is no
+  channel, URL or free text in the option, so nothing a link or a client supplies can name a
+  stream (deep-links § 1: a URL never holds a command, and a linked watch target must be the
+  registered show).
+- **The guest.** A guest runs no command — the body is minted inside `Login.enter` when the socket
+  opens. So the same word rides the only request a guest makes: the socket URL, `watch=<carrier>`
+  beside the shipped `from=`, stamped on the `Interactive` the way the door is and read by
+  `Login.enterAsGuest`. Why not a field on `POST /auth/guest`: that would have to be parked in the
+  session and read back at the socket — a second hop and a second store for one word. Why not
+  follow-up commands after entry: that is the flash the owner rejected. ⚠ The socket word is read
+  **only** by the guest mint; a signed-in session's entry is its verb's option, evaluated at the
+  moment of entering (the video may have been closed since the socket opened).
+- **One implementation.** `PlayController`, `EmbodyConfirmController` and `Login.enterAsGuest`
+  each pass the word to `avatar.enter(interactive, { watching })`. Before the welcome payload is
+  built, `enter` asks `StreamApi.showListing()` and calls `SaxonbergClient.arriveWatching(target)`,
+  which writes `cockpit.watch` (the personal-embed write `watch` makes — lifted out of
+  `WatchControllerBase.setWatch` into this mixin method so both use it) and sets the transient
+  `cockpit.sessionMode` to `watch`. `getCockpitMode()` resolves *session → stored → legacy →
+  explore*, so the snapshot, `openArrangement` and every later read agree. After `enter`, the same
+  best-effort `StreamApi.tune` that `watch` does follows the show's chat. The arrival prints one
+  line (*Watching Twitch #… — for this visit*).
+- **Not remembered** (steps 8, 11): `cockpit.sessionMode` is transient and is never saved; the
+  stored `cockpit.mode` is untouched. `enter` called with `watching: null` (a `play`, a commit or a
+  guest mint with no option) CLEARS it; `enter` called with no `watching` key at all (a reconnect)
+  leaves it, so a dropped socket comes back to the same screen. A plain `cockpit mode <name>`
+  clears it too — choosing a mode is choosing it. There is **no `--session` option on `cockpit
+  mode`**: the first plan had one and it is gone; the key is the smallest form of *not remembered*.
+- **Refuse · skip** (P3): an option value outside the three words → the verb refuses
+  (`unknown-carrier`) and the player stays where they were — the client never sends one. A valid
+  carrier whose show is not on, or whose channel is unset → the character enters in its usual mode
+  and is told why in one line; entry is never refused for it.
+- **The controls say what they send** (the axiom *a tap names its command before it sends*):
+  while the video plays, `roster-sends-as` reads `sends as play <id> --watch twitch` and the
+  confirm control reads `embody confirm --watch twitch` — exactly the strings sent. The guest link
+  has no command, so while the video plays its note gains *You will arrive watching the show.*
+- **No restart:** the snapshot's `cockpit.watch` equals the arrival target field for field — both
+  are built from the same settings (D1 stores them in the form the embed uses) — so the `src`
+  string is identical and the iframe is untouched when the stage mounts. A unit test on each side
+  pins the equality.
+- Not playing at entry (offline, closed, never started) → no option is sent; the usual mode.
 
 **D5 — The plain outfit is the three rows that exist.** `startingOutfit:` in `char-gen.yaml`
 (beside `startingKit:`) lists `/stuff/thing/clothes/student-shirt`, `student-trousers`,
@@ -337,7 +375,8 @@ arrival effect is one place and covers a new character, a returning one and a gu
 the kit's phone goes. Worn through `Character.wearGarments` by `EmbodyController.commit` (players),
 `Login.mintRandomGuestAvatar` (guests) and `TestHooks.#dress` (test characters) — one list, three
 callers that already exist. The five other aspiration outfits' rows stay in `generic-objects`
-(NPC costumes and shops use them). No new content.
+(NPC costumes and shops use them). **No new content and no content edits** — the three rows as
+they are *(the owner, 2026-11-23)*.
 
 **D6 — The restyle shares the front page's parts; it does not copy its styles.** The band grammar
 moves out of `StartScreen` into `components/front/` (`Band`, `BandInner`, `Eyebrow`, `Panel`,
@@ -349,21 +388,26 @@ chrome, Plex Mono for the command previews. **Behavior and test ids do not chang
 / two-screen split, the three hatches, *sends as*, the field renderer, the dossier card all stay.
 
 **D7 — The origin.** `services/arrival.ts` decides once per tab and stores the answer in
-`sessionStorage['saxonberg.arrival']` (the old `saxonberg.arrivedFrom` key is dropped):
+`sessionStorage['saxonberg.arrival']` (the old `saxonberg.arrivedFrom` key is dropped). Two things
+are kept: the **door** (the word sent to the server) and the **carrier** (what plays).
 
-1. `?from=` ∈ `twitch · youtube · kick · stream` — exact, ours;
-2. else the referrer's host (`twitch.tv`, `youtube.com` / `youtu.be`, `kick.com`, and subdomains);
-3. else none.
+| the load | door | carrier |
+|---|---|---|
+| `?from=twitch` · `youtube` · `kick` | that word | that carrier |
+| `?from=stream`, the referrer names a carrier | `stream` | **the referrer's** (more specific) |
+| `?from=stream`, no such referrer | `stream` | **Twitch** — the launch carrier *(the owner, 2026-11-23)* |
+| no `from`, the referrer's host is `twitch.tv`, `youtube.com` / `youtu.be`, `kick.com` (or a subdomain) | that carrier's word | that carrier |
+| anything else | none | none |
 
 ⚠ The decision is made **only on a load that carries no `?auth=`**, and never re-made once stored
 — otherwise a visitor with no origin who signs in with Twitch comes back with `id.twitch.tv` as
-the referrer and would be read as having come from Twitch. The carrier (the first three words)
-starts the video and orders the buttons; `stream` and *none* do neither. The remembered sign-in
-method (D2) is the third signal: it only orders the buttons, with no *You came from* line. Order:
-the origin's provider first (YouTube → Google), else the remembered one, else Google · Twitch ·
-Kick. Every button keeps the same look. The server accepts the four words on the socket
-(`ARRIVAL_DOORS`), and the feed's `fromStream` becomes *any door* — the ticker line is unchanged
-and Rodney needs no change.
+the referrer and would be read as having come from Twitch. A carrier starts the video and orders
+the buttons; none does neither. The remembered sign-in method (D2) is the third signal: it only
+orders the buttons, with no *You came from* line. Order: the carrier's provider first (YouTube →
+Google), else the remembered one, else Google · Twitch · Kick. Every button keeps the same look.
+For `from=stream` with no referrer the line reads *You came from the stream.* (it does not claim
+Twitch). The server accepts the four words on the socket (`ARRIVAL_DOORS`), and the feed's
+`fromStream` becomes *any door* — the ticker line is unchanged and Rodney needs no change.
 
 **D8 — The walk exercises the return honestly.** Twitch is not configured under e2e, and no test
 may reach a real provider. The walk (a) answers `/auth/status` through `page.route` so Twitch
@@ -385,7 +429,8 @@ check reads claims.
 
 | what | host | what composing it claims about the rest |
 |---|---|---|
-| `cockpit.sessionMode` + `setSessionMode` | `SaxonbergClientMixin` (`lib/connection/SaxonbergClient.ts`) | Everything that composes it has a cockpit mode, so everything on it can have a visit-only one. No guard, and no host that answers *never*: any played body may be told `cockpit mode <x> --session`. |
+| `cockpit.sessionMode` + `arriveWatching` | `SaxonbergClientMixin` (`lib/connection/SaxonbergClient.ts`) | Everything that composes it has a cockpit mode and the `cockpit.watch` key already, so everything on it can arrive watching. No guard, and no host that answers *never*: a player, a guest and a returning character all can. |
+| the `watch` word of a guest's connection | `Interactive`, beside `arrivedFrom` | A fact about one connection, read once at the guest mint. It is not put on the Avatar (it is not a fact about the character) nor on the session (it would outlive the click that meant it). |
 | the `show.*` values | the `AppSettings` bag | One show per instance. It is a fact about the instance, so it is stamped on nothing — not on every streamer's body, not on the lounge. A second show is the registry's record, not a second key. |
 | `showListing` | `StreamLogic` behind `StreamApi` | Forwarding shell + logic singleton, the mandatory split. It reads one body through `MixinApi.isBroadcastHost`; it adds nothing to `BroadcastMixin`. |
 | `startingOutfit` | the char-gen config; worn by `Character.wearGarments` | Nothing is added to `Persona`, `Character` or `PrimaryAvatar`. The list claims only that every newcomer body is a biped the rows' `slotClaims` name; a body the rows do not fit skips that garment with the existing diagnostic. |
@@ -408,14 +453,16 @@ No new field lands on a base class; no mixin is added to any host.
   (`FromModule('/api/stream#StreamApi')`), as its neighbors do.
 - **Import boundary:** `backend/` and `services/` may import the Apis; the mudlib imports nothing
   new from outside `src/mud/`.
-- **Verbs on objects / the controller is dumb (P5):** `CockpitModeController` parses `--session`
-  and calls `host.setSessionMode(mode)`; resolution stays in `getCockpitMode`. The plain path's
-  three writes are not moved in this build.
+- **Verbs on objects / the controller is dumb (P5):** `PlayController` and
+  `EmbodyConfirmController` check the option's word against the list and pass it on; whether the
+  show is on, which channel, and what arriving watching writes are decided in ONE place
+  (`Avatar.enter` → `SaxonbergClient.arriveWatching`). `WatchControllerBase.setWatch`'s personal
+  write moves into the same mixin method, so there is one writer of a personal `cockpit.watch`.
 - **P3 refuse · skip · throw:** an unset show setting → the field is absent (skip); `/api/front`
   with the world not up → `{}` with a logged reason, never a defaulted `live: false`; a refused
-  `watch` on arrival → the handoff ends and the refusal is in the transcript; a `from` or `via`
-  outside its list → ignored (unknown, not wrong); `--session` on an unknown mode → the shipped
-  `unknown-mode` refusal.
+  `--watch` word → the verb refuses (`unknown-carrier`); a valid one whose show is not on → the
+  usual mode, with a line that says so; a `from`, `via` or socket `watch` word outside its list →
+  ignored (unknown, not wrong).
 - **P4 no duck typing:** narrowing is `MixinApi.isBroadcastHost` / `isSaxonbergClient`; no pack is
   involved.
 - **P6 persistence:** `cockpit.sessionMode` is transient by declaration (the `cockpit.watch`
@@ -424,22 +471,23 @@ No new field lands on a base class; no mixin is added to any host.
 - **P7 load on use:** `showListing` follows one authored reference (`show.streamer` →
   `PlayerApi.findAvatarByPlayerId`) — no scan of who is online, no boot entry.
 - **P8 names:** `showListing` (not `show()`, which is the streamer's state on `BroadcastMixin`);
-  `StreamPlayer` for the one player, `PlayerSlot` for where it sits; `--session`, the client-state
-  doc's own word for a transient key's lifetime. American English throughout.
+  `StreamPlayer` for the one player, `PlayerSlot` for where it sits; `--watch`, the verb the
+  option stands in for; `arriveWatching`, what the body does. American English throughout.
 - **Gates this build must pass:** `lint:family` entire, and by name the ones it moves —
-  `lint:view-keys` + `lint:command-views` (the `--session` option; `options` on a subcommand is
-  already a pinned key), `lint:field-meta` (re-snapshot the golden after `aspiration` leaves:
+  `lint:view-keys` + `lint:command-views` (the `--watch` option on `play` and on `embody`'s
+  `confirm` stanza; `options` on a view and on a subcommand are already pinned keys), `lint:reason-rows`
+  (the `unknown-carrier` refusal is a reason row, not a controller string), `lint:field-meta` (re-snapshot the golden after `aspiration` leaves:
   `tsx scripts/check-field-meta.ts --snapshot`, then `--lint`), `lint:test-seams` (the new seam),
   `lint:wire-content` (the wire file names no `/world/<x>`), `lint:drive-scripts`,
   `lint:silent-catch`, `lint:controller-mutations` / `lint:controller-decisions` (must not rise —
-  if either does, the session write is not in the mixin), `lint:schema` (no collection);
+  if either does, the arrival's writes are not in the mixin), `lint:schema` (no collection);
   client `tsc`, ESLint, and `noNativeTitle`.
 
 ## Waves
 
 Each wave ends at one commit and leaves the tree green on `pnpm test:near`, the touched suites and
-the gates it moved. W0–W3 are independent of each other; W4 needs nothing before it; W5 needs W1,
-W2, W4; W6 needs W3, W4, W5; W7 needs all.
+the gates it moved. W0–W2 are independent of each other; W3 needs W1 (the listing); W4 needs nothing before it; W5
+needs W1, W2, W4; W6 needs W3, W4, W5; W7 needs all.
 
 ### W0 — Aspiration out; the plain outfit in (D5, D9)
 
@@ -488,7 +536,7 @@ three. Commit: `feat(char-gen): aspiration removed; one plain outfit for players
 - `backend/FrontRoutes.ts` + mount in `services/Server.ts` beside `PressRoutes`. Anonymous: reads
   no session, sets no cookie, `GET` only, no query.
 - `.env.example`, `docs/deployment.md` — the three env names removed, the `config set show.*`
-  step written in their place (a go-live step: without it the overlay's chat read stops).
+  step written in their place (§ Go-live checklist, which also goes in the MR description).
 - Tests: `StreamLogic` (listing: unset → `{ live:false, channels:{} }`; streamer not resident →
   `live:false`; resident on air → `live:true` with the topic as title; channels pass through in
   stored form; `channelsFor(show streamer)` returns the settings), `FrontRoutes.test.ts` (the
@@ -511,7 +559,8 @@ Acceptance: `curl /api/front` on a dev world answers the staged listing with no 
   `providerOrder()`. `config.ts` — the two door functions deleted; `WS_URL` uses `door()`.
   `App.tsx:367–378` — read `via` before stripping the query.
 - `packages/wire/src/harness/session.ts:462` — the door type widens to `ArrivalDoor`.
-- Tests: `arrival.test.ts` (each `from`; each referrer host; a spoofed `from=evil` → none; the
+- Tests: `arrival.test.ts` (each `from`; `from=stream` → carrier Twitch, door `stream`;
+  `from=stream` with a `kick.com` referrer → carrier Kick, door `stream`; each referrer host; a spoofed `from=evil` → none; the
   OAuth-return referrer is never read; decided once; `via` outside the three ignored; order for
   every signal combination), `TestAuthRoutes.test.ts` (the redirect), the `Interactive` door test,
   the feed's `fromStream` for a carrier word.
@@ -519,23 +568,49 @@ Acceptance: `curl /api/front` on a dev world answers the staged listing with no 
 Acceptance: a socket opened with `?from=kick` stamps `kick`; `?from=evil` stamps `null`. Commit:
 `feat(arrival): the origin names a carrier; sign-in returns with via=`.
 
-### W3 — A cockpit mode for this visit only (D4's server half)
+### W3 — Arrive watching: the server's half (D4)
+
+Goal: any of the three ways in can be told *start in watch on the show*, and the body's first
+snapshot already says so. Nothing in the client sends it yet; the wave lands alone (the option is
+typed by hand, or by the wire harness).
 
 - `SaxonbergClient.ts` — schema entry `cockpit.sessionMode` (transient, default `null`, validated
-  against `COCKPIT_MODES`); `setSessionMode(mode | null)` (set + push the resolved `cockpit.mode`,
-  `cockpit.arrangements`, `cockpit.layout`; no save); `getCockpitMode()` consults it first.
-- `Avatar.enter` — clear it (guarded by `isSaxonbergClient`, as `openArrangementGuarded` is)
-  before `buildWelcomePayload`.
-- `CockpitModeController.ts` — `--session` → `setSessionMode(mode)` then the same
-  `applyCardArrangement` and a line that says *for this visit*; the plain path calls
-  `setSessionMode(null)` first. `cockpit.yaml` — the option under `mode`, its help paragraph, an
-  example.
-- Tests: resolution order; `--session` leaves the stored `cockpit.mode` byte-identical; plain
-  clears; `enter` clears; the snapshot carries the resolved mode; the existing source scan (*nothing
+  against `COCKPIT_MODES`); `getCockpitMode()` consults it first; `arriveWatching(target)` (write
+  `cockpit.watch`, set the session mode to `watch`; no push — the welcome snapshot carries both);
+  `showPersonalStream(target)` — the personal `cockpit.watch` write + push lifted from
+  `WatchControllerBase.setWatch`, which now calls it (one writer); a private clear used by `enter`
+  and by the plain mode commit.
+- `lib/character/Avatar.ts` — `enter(interactive, opts)` gains `watching?: BroadcastService | null`.
+  Before `buildWelcomePayload`: a carrier → read `StreamApi.showListing()`; live and the channel
+  set → `arriveWatching(target)`, else clear and remember the one-line reason to print after the
+  welcome; `null` → clear; key absent → leave (a reconnect). After the arrangement opens: the
+  arrival line, and the best-effort `StreamApi.tune` `watch` makes.
+- `CockpitModeController.ts` — the plain commit clears the session mode first. No new option.
+- `play.yaml` + `PlayController.ts` — `options: watch` (type string, its description and a help
+  paragraph, an example `play <id> --watch twitch`); the controller checks the word, passes it to
+  `Login.playCharacter(playerId, { watching })`. ⚠ `playerId` is a `greedy` arg: confirm the
+  binder takes `--watch <word>` out before the greedy tail, in either order; if it does not, make
+  `playerId` non-greedy (an id has no spaces) rather than teach the controller to parse.
+- `embody.yaml` (`subcommands.confirm.options: watch`, help) + `EmbodyConfirmController.ts` →
+  `commit(draft, cfg, { watching })` → `enter`.
+- A reason row for `unknown-carrier` beside the platform's other reason rows.
+- The guest: `WebSocketService.ts` reads `watch` beside `from` (same closed-word validation) →
+  `ConnectOptions.arrivalWatch` → `Interactive.setArrivalWatch` / `getArrivalWatch` →
+  `Login.enterAsGuest` passes it to `enter`. No other path reads it.
+- `packages/wire/src/harness/session.ts` — `Session.embody` and the play path take an optional
+  `watch` word; the guest opener takes it for the socket URL.
+- Tests: resolution order; arriving watching leaves the stored `cockpit.mode` byte-identical and
+  the snapshot says `watch` with the target; `enter({ watching: null })` clears, a reconnect-shaped
+  `enter` does not; a plain `cockpit mode explore` clears; the show off → usual mode + the line;
+  an unknown word → refused, still at character select; a guest socket with `watch=kick` arrives
+  watching Kick; the target equals what `watch <channel> --<carrier>` writes, field for field, for
+  all three carriers; `watch` still works through `showPersonalStream`; the source scan (*nothing
   outside the cockpit's own files reads `cockpit.mode`*) still passes.
 
-Acceptance: `cockpit mode watch --session`, then a relog, lands in the remembered mode. Commit:
-`feat(cockpit): cockpit mode <name> --session — a mode for this visit, not remembered`.
+Acceptance: on a dev world with the show staged live, typing `play <id> --watch twitch` at the
+roster lands in watch mode with the embed set and no other mode in the welcome snapshot; relogging
+with plain `play <id>` lands in the remembered mode. Commit:
+`feat(entry): play / embody confirm --watch <carrier> and the guest's watch word — arrive watching the show`.
 
 ### W4 — The one player (D3)
 
@@ -550,7 +625,8 @@ Acceptance: `cockpit mode watch --session`, then a relog, lands in the remembere
   `clientState['cockpit.watch']` into the slice while in-world.
 - Tests: `StreamPlayer.test.tsx` — the `src` for each carrier and each `muted`; the iframe element
   is the SAME node across slot → dock → slot and across a re-render with an equal target object;
-  in-world with no slot and no handoff renders nothing; a new in-world target unmutes; the
+  in-world with no slot and a mode that is not watch renders nothing; in-world in watch mode
+  with a target and no slot yet stays mounted, docked; a new in-world target unmutes; the
   shared-display caption still shows. Existing watch-mode tests (`client-surface-layout.spec.ts`,
   `cockpit.spec.ts`) keep passing.
 
@@ -563,7 +639,7 @@ before; switching arrangements does not reload it. Commit:
 - `components/front/` — the band grammar and the bands (C5). `StartScreen.tsx` rebuilt over them,
   top to bottom per front-page-slate § 4 with **only the bands that have a source**:
   host bar · identity · the three chambers' sentences (no *WANTED / FUNDING NOW / NEEDS* lines) ·
-  sign-in (ordered by `arrival.providerOrder()`; *You came from Twitch.* / *You came from Kick.* /
+  sign-in (ordered by `arrival.providerOrder()`; *You came from Twitch.* / *You came from Kick.* / *You came from the stream.* /
   *You came from YouTube — sign in with the Google account you watch on.*; the guest as a plain
   small link *Look around as a guest* and *A guest keeps nothing, and nobody can find them.*; the
   live count; the dev login) · the show (`ShowTile`: a `PlayerSlot` when the arrival target plays;
@@ -596,26 +672,30 @@ Acceptance: `/?from=twitch` on a dev world with the show staged live plays it mu
 bare `/` shows the thumbnail tile and the neutral order. Commit:
 `feat(client): the front page rebuilt — real bands, the show playing for a visitor from a carrier`.
 
-### W6 — The funnel: docked through select and creation, restyled, and entering in watch (D4, D6)
+### W6 — The funnel: docked through select and creation, restyled, and arriving in watch (D4, D6)
 
 - `CharacterSelect.tsx`, `CharGenStage.tsx` — re-skinned over `components/front/` (D6); on a
   phone-width screen each reserves the dock's height at the bottom while the player is playing, so
   the confirm and Enter controls are never under it.
-- The follow-up preview lines: `roster-then-watch` under `roster-sends-as`; `chargen-then-watch`
-  beside `chargen-confirm`.
-- The arrival effect in `App.tsx` (or a hook beside the slice): on entering `in-world` with a
-  playing arrival target → `handoff: true`, send `watch …`; on `cockpit.watch` equal → send
-  `cockpit mode watch --session`; on the watch slot registering → `handoff: false`; 5 s without a
-  match → `handoff: false`.
+- **What the controls send** (D4): while the player is playing an arrival target, Enter sends
+  `play <id> --watch <carrier>` and `roster-sends-as` shows that exact string; the confirm control
+  sends and shows `embody confirm --watch <carrier>`; the guest link opens its socket with
+  `watch=<carrier>` and `guest-warning` gains *You will arrive watching the show.* Not playing →
+  the shipped strings, unchanged. One function builds the string for both the preview and the
+  send, so they cannot disagree.
+- `services/websocket.ts` / `config.ts` — the guest's socket URL is built at connect time (it is a
+  module constant today), so it can carry the word.
 - `closed` from an in-world `watch off` (D3).
-- Tests: the effect (playing → both commands in order with the exact strings; not playing →
-  nothing; closed → nothing; a guest → the same; refusal/timeout → the second is not sent; a
-  reconnect re-asserts); `CharacterSelect.test.tsx` and `charGenFields.test.tsx` keep their
-  behavior assertions; e2e `chargen.spec.ts`, `avatar-family.spec.ts`, `mobile-chrome.spec.ts`
-  keep passing on the kept test ids.
+- **Nothing is sent after entry.** There is no arrival effect and no timer: the welcome snapshot
+  already holds watch mode and the target, and the stage's slot takes the docked player.
+- Tests: Enter / confirm / guest each send the option only while playing, with the exact string
+  the preview shows; closed → the plain command; the first in-world render is the watch stage (no
+  explore stage is ever rendered); `CharacterSelect.test.tsx` and `charGenFields.test.tsx` keep
+  their behavior assertions; e2e `chargen.spec.ts`, `avatar-family.spec.ts`,
+  `mobile-chrome.spec.ts` keep passing on the kept test ids.
 
 Acceptance: by hand on a dev world — `/?from=twitch`, dev-login, create a character, land in the
-lounge in watch mode with the docked video gliding into the stage. Commit:
+lounge already in watch mode — no other mode painted — the docked video gliding into the stage. Commit:
 `feat(client): the video docks through select and creation; entering while watching enters in watch`.
 
 ### W7 — The drive, the walk, the record
@@ -633,8 +713,9 @@ Commit: `test(stream-arrival): the wire drive and the browser walk`.
 
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
-| a visit-only mode | `cockpit mode <name> --session` — the shipped view, one new option | `cockpit` is afforded to every client host already (`requiresHasInteractive`) | `cockpit.sessionMode` declared in `SaxonbergClient`'s `clientStateSchema` — an undeclared key THROWS on write, so a missed declaration fails loudly | none — in-memory on the live body | `name` is checked against `COCKPIT_MODES` before the option is read |
-| entering in watch | `watch <channel> --<carrier>` then the above — both shipped views | every played body, guests included (`requiresAnimate`) | the channel from `/api/front`; the carrier from the tab | `watch` resolves with no external call for all three forms D1 stores | `show.youtube` must be a `UC…` id or `watch` falls to the handle path (the reader) — validated where the setting is read, and unit-tested |
+| arriving watching — a player | `play <id> --watch <carrier>` · `embody confirm --watch <carrier>` — shipped views, one new option each | both verbs are afforded only to a `Login` (the roster / the draft), as today; Enter and the confirm control send them | the carrier word from the tab; the channel from the SERVER's `show.<carrier>` | `StreamApi.showListing()` at `enter` — one setting read and one `findAvatarByPlayerId`; no external call | the word against the three; then *is the show on and is that channel set* — a no is the usual mode with a line, never a silent explore. ⚠ `playerId` is greedy: a swallowed `--watch` would be a silent plain entry — unit-tested in both argument orders |
+| arriving watching — a guest | none; `watch=<carrier>` on the socket URL | the guest link | the same | the same, from `Login.enterAsGuest` | the same closed list in `WebSocketService`; ⚠ if the word is dropped between the socket and the mint the guest silently arrives in explore — the wire file opens a guest socket with it and reads the snapshot |
+| the visit-only mode | none of its own | n/a | `cockpit.sessionMode` declared in `SaxonbergClient`'s `clientStateSchema` — an undeclared key THROWS on write, so a missed declaration fails loudly | none — in-memory on the live body | n/a |
 | the show read | none (REST) | `FrontRoutes.setup` mounted in `Server` — ⚠ an unmounted route is a silent 404 that the client renders as *no show band*; `FrontRoutes.test.ts` and wire step 1 both hit the mounted app | the seven settings; `show.yaml` must ship the keys or `AppApi.setting` has nothing to read | `show.streamer` → `findAvatarByPlayerId`; no boot entry | n/a |
 | the plain outfit | none (worn at mint) | n/a | `startingOutfit` in `char-gen.yaml`; the three rows in `generic-objects` | rows load when `wearGarments` clones them | a path that does not resolve is skipped with a diagnostic — the W0 test asserts all three are WORN, so a typo cannot pass |
 | the origin | none | n/a | `?from=` / referrer → the tab → the socket's `from=` | n/a | `ARRIVAL_DOORS` on both ends |
@@ -647,7 +728,7 @@ Commit: `test(stream-arrival): the wire drive and the browser walk`.
 | No origin: no playing video, the neutral order | W2, W5 |
 | After sign-in: back where they were, the same stream playing, no click | W2 (D2), W4, W5, W6 |
 | The video plays in a corner through select and creation | W4, W6 |
-| Entered while playing → watch mode, same stream and carrier, not restarted; otherwise the usual mode | W3, W4, W6 |
+| Entered while playing → watch mode, same stream and carrier, not restarted; otherwise the usual mode | W1 (the channel), W3 (arriving), W4 (no remount), W6 (the controls send it) |
 | Select and creation look like the front page | W5 (parts), W6 |
 | *Aspiration* nowhere; everyone in the plain outfit | W0 |
 | Only bands with real content; none says *coming soon* | W5 |
@@ -675,10 +756,15 @@ one tool this build owed), `config set show.twitch|youtube|kick …`, then `stre
    feed's new-player event says `fromStream: true`; the newcomer wears the three garments, the
    phone is in a pocket, `profile` has no *Aspires*, the chronicle has the founding deed and no
    claim, the bio is empty.
-3. `watch <show channel> --twitch` then `cockpit mode watch --session` → the client-state deltas
-   read `cockpit.watch` = the listing's channel and `cockpit.mode` = `watch`.
-4. Sign out and `play` again → `cockpit.mode` is `explore` (step 8's server half).
-5. A guest session → the three garments, no *Aspires*.
+3. The newcomer of step 2 is embodied with `embody confirm --watch twitch` → the FIRST client-state
+   snapshot reads `cockpit.mode` = `watch` and `cockpit.watch` = the listing's Twitch channel; no
+   earlier snapshot or delta carries another mode.
+4. Sign out and plain `play <id>` → `cockpit.mode` is `explore` (step 8's server half);
+   `play <id> --watch youtube` → watch, the YouTube channel id; `play <id> --watch nonsense` →
+   refused, still at the roster; with the show off, `play <id> --watch twitch` → `explore` and the
+   line.
+5. A guest session → the three garments, no *Aspires*; a guest socket opened with `watch=kick`
+   → the first snapshot is watch on the Kick channel.
 6. `restartWorld()` → `play` the newcomer → the garments still worn, the bio empty, the mode
    `explore` (step 11).
 
@@ -686,16 +772,16 @@ one tool this build owed), `config set show.twitch|youtube|kick …`, then `stre
 
 | step | pace | the check, and how it is made to fail once (B2) |
 |---|---|---|
-| 1 tagged, live | instant · staged show | the player frame's URL is the Twitch stub with the staged channel and the mute flag; `came-from` reads *You came from Twitch.*; the first `provider-*` is Twitch. Fail: drop `from`. |
+| 1 tagged, live | instant · staged show | the player frame's URL is the Twitch stub with the staged channel and the mute flag; `came-from` reads *You came from Twitch.*; the first `provider-*` is Twitch. Fail: drop `from`. **1b** — `from=stream` with no referrer: the same Twitch frame, Twitch first, *You came from the stream.* |
 | 2 unmute | instant | the frame's URL loses the mute flag. Fail: click nothing. |
 | 3 untagged | instant | no player frame; `show-tile` is the thumbnail; order Google · Twitch · Kick; the guest control is a link outside the tile. Fail: add `from`. |
 | 4 offline | instant · staged | `stream off` → `show-offline`, no frame. Fail: leave it live. |
 | 5 sign in | instant · staged (D8) | a real navigation away and back; a NEW frame on the same URL appears with no click, `data-player-place="dock"`. Fail: clear `sessionStorage` before returning. |
 | 6 creation | instant | no element or text matching /aspir/i anywhere on the page; the frame's boot id is unchanged and its tick count rose since step 5; confirm. Fail: force a remount with a changed key. |
-| 7 the lounge | instant | `cockpit.mode` renders watch; the frame's boot id is STILL the one from step 5 and `data-player-place="slot"`; `inventory` shows the phone in a pocket and the three garments worn; `profile` has no *Aspires*; `chronicle` has no prologue line; `look` reads the lounge by its own light. Fail: send plain `watch` with a different-case channel. |
+| 7 the lounge | instant | `chargen-confirm` shows and sends `embody confirm --watch twitch`; a recorder installed BEFORE the click logs every stage the client mounts — the log holds the watch stage and **no other**; the frame's boot id is STILL the one from step 5 and `data-player-place="slot"`; `inventory` shows the phone in a pocket and the three garments worn; `profile` has no *Aspires*; `chronicle` has no prologue line; `look` reads the lounge by its own light. Fail (restart): stage `show.twitch` in a different case than the client holds. Fail (flash): send the plain `embody confirm`, then `cockpit mode watch` by hand — the recorder must show the explore stage. |
 | 8 closed | instant | `watch off`; sign out; no frame on the front page; sign in again; *Enter* → the mode is explore. Fail: skip `watch off`. |
-| 9 returning, YouTube | instant | `from=youtube`; the YouTube stub plays; the YouTube line; Google first; character select shows the dock; *Enter* → watch, the same boot id. |
-| 10 guest | instant | the small link → the lounge; three garments; no *Aspires*. |
+| 9 returning, YouTube | instant | `from=youtube`; the YouTube stub plays; the YouTube line; Google first; character select shows the dock; `roster-sends-as` reads `play <id> --watch youtube`; *Enter* → watch with no other stage mounted, the same boot id. |
+| 10 guest | instant | untagged: the small link → the lounge in explore; three garments; no *Aspires*. Tagged and playing: `guest-warning` says *You will arrive watching the show.*; the link → watch, the same boot id. |
 | 11 restart | staged | the wire file's step 6 (a browser cannot restart the world it is attached to); the walk's step 8 is its client half. |
 | 12 phone width | instant | 390×844: the DOM order is sign-in, the show, the chambers, Latest; through creation the dock is inside the viewport and does not overlap `chargen-confirm`. |
 
@@ -706,10 +792,11 @@ code-complete and once at `/finalize`; the walk once at code-complete.
 
 **Risks**
 
-- **The handoff's equality.** If the server's `WatchTarget` differs from the arrival target by one
+- **The arrival's equality.** If the server's `WatchTarget` differs from the arrival target by one
   character, the video reloads at the moment the build exists to protect. Pinned by two unit tests
-  and walk step 7; if `StreamerTarget.parse` normalizes differently than D1 stores, store what it
-  produces.
+  and walk step 7. The arrival builds its target from the settings directly; the unit test compares
+  it with what `watch <channel> --<carrier>` writes, so a hand-typed `watch` of the show is the
+  same embed too.
 - **Twitch's embed rules** (conflict note 7) and each carrier's autoplay behavior can only be
   confirmed against the real players. The walk uses stubs. **Before the MR, check all three real
   embeds by hand on a dev world with a live channel** (docked on a desktop, docked at phone width,
@@ -728,30 +815,63 @@ code-complete and once at `/finalize`; the walk once at code-complete.
 - **A stored `aspiration` on an old snapshot.** The restore must ignore an unknown key. Verify once
   in W0 against a snapshot written before the wave; if restore throws, the dev databases are
   dropped (no migration, by standing rule) — do not write a shim.
-- **`enter` on a second connection to the same body** clears the session mode for the first tab
-  too. Accepted: the client re-asserts on its own next entry; two tabs on one body is not this
-  build's path.
-- **React StrictMode** double-mounts in dev; the player mounts once per document either way, but a
-  dev-only double `watch` send must be guarded by the `handoff` flag, not by a ref.
+- **Which `enter` calls are reconnects.** D4 depends on a reconnect calling `enter` with no
+  `watching` key while `play`, the commit and the guest mint always pass one (a word or `null`).
+  `Login.playCharacter` may itself be the reconnect path for a lingering body; read
+  `Login.ts:376–405` before W3 and make the three ways in the only callers that pass the key.
+- **React StrictMode** double-mounts in dev; the player mounts once per document either way, and
+  Enter / confirm must send once (the shipped controls already do).
+- **The greedy `playerId`** (W3): if the binder hands `--watch twitch` to the greedy arg, the entry
+  is a silent plain one. Tested in both orders; the fix is the arg, not the controller.
+- **A show that goes off between the click and the entry** → the usual mode and a line. The client
+  must then stop the player (its target is gone from `cockpit.watch`), which also marks nothing
+  closed — the visitor did not close it.
+
+**Decided by the owner, 2026-11-23** (recorded so the build does not re-open them): `from=stream`
+is Twitch unless the referrer names another carrier (D7); the unmute reload and resuming muted
+after sign-in (D3); the `OVERLAY_*` channel env vars retired in this build (D1); the plain outfit
+is the three existing rows, untouched (D5); the character arrives in watch with no other mode
+painted (D4).
 
 **Opens — the owner's calls; the plan's lean is what gets built unless told otherwise**
 
-1. `from=stream` (conflict note 1): carrier-less, no video (lean) — or a default carrier.
-2. The unmute reload, and resuming muted after sign-in (notes 4, 5).
-3. Retiring the `OVERLAY_*` channel env vars now (D1) rather than leaving two sources until the
-   registry.
-4. `show.host` as its own key rather than `compact.founderName`; the names `showListing` and
-   `--session`.
-5. The plain outfit is the existing *student* rows — their prose says *student* and *campus*.
-   Rewording them is a content call the build does not make.
-6. An in-world `watch off` counts as *closed for the visit* (D3).
-7. Footer links with no URL in the tree (Discord, Privacy, the public record) are absent until
+1. `show.host` as its own key rather than `compact.founderName`; the names `showListing`,
+   `--watch` and `arriveWatching`.
+2. `show.streamer` is a new statement of *whose stream is the show* (a playerId setting), beside
+   `STREAMER_PLAYER_IDS`'s first id, which keeps the token changeover.
+3. An in-world `watch off` counts as *closed for the visit* (D3).
+4. Footer links with no URL in the tree (Discord, Privacy, the public record) are absent until
    given.
-8. The founding deed's line, *"Embodied as {{ name }}."* (D9).
+5. The founding deed's line, *"Embodied as {{ name }}."* (D9).
+6. *You came from the stream.* for a `from=stream` arrival (D7) — the line does not claim Twitch
+   though the Twitch player and button lead.
+7. The guest's word rides the socket URL (D4) rather than `POST /auth/guest`.
 
-**Stop and ask** if: a real carrier embed cannot play docked; the snapshot restore throws on the
+**Stop and ask** if: a real carrier embed cannot play docked; the option cannot be bound
+beside `play`'s greedy arg without controller parsing; the snapshot restore throws on the
 old field; `lint:controller-mutations` or any ceiling would have to rise; or a wave needs a new
 file that is not on the substrate list.
+
+## ⭐ Go-live checklist — copy into the MR description
+
+W1 retires `OVERLAY_TWITCH_LOGIN`, `OVERLAY_YOUTUBE_CHANNEL` and `OVERLAY_KICK_CHANNEL`. **Before
+or at the deploy that carries this build, on the live box, as the Prime Minister:**
+
+```
+config set show.streamer <the founder's playerId>
+config set show.twitch   <twitch login, lower case>
+config set show.youtube  <channel id, UC…>      # an id, not an @handle
+config set show.kick     <kick slug, lower case>
+config set show.title    <the show's name>
+config set show.host     Bobalu Smallberries
+config set show.schedule <the next-show line, with its time zone>
+```
+
+Without the first four the overlay's chat read stops (a warning in the log, silence on the
+overlay) and the front page shows no show band. Then remove the three env names from SSM / `.env`.
+Check: `curl https://<host>/api/front` lists the three channels; with the stream on it says
+`"live": true`. ⛔ The MR description must carry this list — it is the one step of this build that
+no test and no deploy script performs.
 
 ## Deferred seams
 
@@ -786,7 +906,10 @@ Read first, in this order:
    `docs/design/brand/README.md`.
 5. `packages/server/src/mud/lib/connection/SaxonbergClient.ts` (`:540–570`, `:769–800`,
    `:985–1030`), `lib/connection/ClientState.ts`,
-   `platform/idea/cmd/shell/CockpitModeController.ts`, `lib/character/Avatar.ts` (`:940–1010`).
+   `platform/idea/cmd/shell/CockpitModeController.ts`, `lib/character/Avatar.ts` (`:940–1010`);
+   the three ways in — `platform/idea/cmd/charactergen/PlayController.ts`,
+   `EmbodyConfirmController.ts`, `platform/idea/Login.ts` (`:182–224`, `:376–405`),
+   `backend/Application.ts` (`:225–290`), and the views `play.yaml`, `embody.yaml`.
 6. `packages/server/src/mud/platform/idea/cmd/stream/WatchControllerBase.ts`,
    `lib/streaming/StreamerTarget.ts`.
 7. `packages/server/src/mud/platform/idea/api/StreamLogic.ts` (`:680–725`), `api/stream.ts`,
