@@ -95,7 +95,8 @@ interface Known {
 export default class RouteController extends CommandController<RouteModel> {
   async execute(model: RouteModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const viewerKey = giver.getIdentityPath() ?? '';
+    // The map's OWNER key — a guest's map is a session map (navigation card review).
+    const viewerKey = MixinApi.isCartographer(giver) ? giver.mapOwnerKey() : (giver.getIdentityPath() ?? '');
     if (viewerKey.length === 0) {
       return this.declineWith(context, 'You have no map.', 'no-identity');
     }

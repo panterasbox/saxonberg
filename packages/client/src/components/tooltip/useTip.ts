@@ -72,6 +72,12 @@ export function openTipNow(
   locked = false,
   touch = false,
 ): void {
+  // ⭐ A fresh open cancels the grace a previous stack left running (found
+  // by the navigation card's walk): pointer off a locked tooltip, Escape,
+  // then focus the next control — the old timer fired 300 ms later and
+  // closed the tooltip focus had just opened. Hover already cancelled it;
+  // focus did not.
+  cancelTipGrace();
   const st = useStore.getState();
   const here = st.tipStack.find((e) => e.depth === depth);
   if (here && here.key === spec.key && here.anchor === anchor) {

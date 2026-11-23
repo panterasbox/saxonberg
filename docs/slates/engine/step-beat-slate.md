@@ -152,3 +152,10 @@ sneak · walk · run switch and an endurance bar:
    place for many (`run to the Ossuary`); `go` is the same with your default
    mode, and the map's click uses it. The shipped Journey is the delegated
    form. `crawl` would be a fourth pace on the same axis if it should exist.
+
+## Left by the navigation card (2026-11-21)
+
+- **The movement block — walking to a distant place.** The card draws a
+  route on a distant click and nobody moves (`route …`); walking it is
+  this slate's. The attach point is a section under the place in the
+  card's order — see [navigation-card.md](../../subsystems/navigation-card.md).

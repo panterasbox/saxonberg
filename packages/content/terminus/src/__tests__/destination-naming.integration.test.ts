@@ -141,7 +141,7 @@ describe("destination naming + crossroads (real seeds)", () => {
   it("names each destination by its covering Locality", async () => {
     const arrival = await StuffApi.singleton<Stuff & FastTravel>(ARRIVAL);
     const crossroads = await StuffApi.singleton<Stuff & FastTravel>(CROSSROADS);
-    expect(await arrival.getDestinationLabel()).toBe("Terminus");
+    expect(await arrival.getDestinationLabel()).toBe("Terminus City");
     expect(await crossroads.getDestinationLabel()).toBe("The Last Counted Mile");
   });
 

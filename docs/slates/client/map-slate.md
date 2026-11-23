@@ -1278,26 +1278,28 @@ when you last looked*. A renderer that tidied either away would undo
 the knowledge model. See
 [location-graph.md](../../subsystems/location-graph.md).
 
-## Reuse ledger for the plan (navigation build, 2026-11-10)
+## Reuse ledger for the plan (navigation card build, rewritten 2026-11-20)
 
-From the requirements survey ([navigation-requirements](../../requirements/navigation-requirements.md)).
-Every row is one the plan must account for — reuse it, generalize it, or
-say why it is genuinely new.
+From the requirements survey ([navigation-card.md](../../subsystems/navigation-card.md)),
+rewritten after navigation-server (!595), zone instancing (!599) and
+tooltips (!633) merged — the 2026-11-10 ledger's client copy, transport,
+zone-facts read, first-visit claims and claim positions all shipped. Every
+row is one the plan must account for — reuse it, generalize it, or say why
+it is genuinely new.
 
 | concept | what already does it | this build |
 |---|---|---|
-| your knowledge | the `map` document kind, one per player per Locality (`/home/<key>/map/<locality>`); `MapClaim` (`lib/location/MapClaim.ts`); append-only `NavigationLogic.growMap` | **reuse**; the claim **grows** zone, coordinates and level (the firewall decision) |
-| writing knowledge | `Cartographer` (`onTraversed` → `walked`, `recordSurroundings` → `seen`/`searched`, `recordTimetable` → `published`); `Charted` (`charted`/`told`) | **extend** the writers to record where the place is; a place with no handle or no Locality still writes nothing |
-| reading knowledge | `NavigationApi.readMap(viewerKey, prefix)`, the `map` verb (`MapController`) | **reuse** as the replica's source; the zone slice is a filter on the new zone field |
-| routing on your map | `NavigationApi.routeOnMap`, `RoutePlan` (legs, cost, assumptions — plain data) | **reuse**; the latest plan rides to the client for the route lens (session only) |
-| a way's state | `WayRecord` / `WayState` (`open·shut·locked·window`, `crossesZone`), `Exit.wayRecord()`, `spansOpenGround()` (boundary build) | **reuse** as the map's edge vocabulary |
-| where you are now | `Perceiver.whereabouts()`, `Whereabouts`, `refreshNavigator()` after moves | **reuse** as "you are here" and the push trigger; drop its conditions/jurisdiction rows from the pane |
-| the docked slot | the `map` CardId (`Cards.ts`, `payload/navigation`), `ModeStage` explore panel, `NavigatorBody` | **replace** `NavigatorBody`; keep the CardId and slot |
-| a client-side copy | none — `stuffRegistry` is a rendering-metadata map; the store has no selectors | **genuinely new**: the knowledge replica + zone-facts cache + session cache, selectors only ([client-knowledge-model-slate](./client-knowledge-model-slate.md)) — searched the client store, every slice, `stuffRegistry` |
-| replica transport | MQL subscriptions (per-Interactive deltas, `mql-subscription.md`); card pushes (`touchCard`) | **decide in the plan**: a subscription over your map documents, or a delta envelope; generalize, don't add a third push path without saying why |
-| zone facts | `CartesianZone.cellSize`/`getGrid`, `SpatialZone` (kind, sky, epoch ceiling), `GovernmentApi.governmentAt`, `Atmospheric` (biome) | **reuse** the reads; a zone-facts read is **new** (searched: none exists); extent and levels come from your claims, never the zone |
-| Locality facts on first visit | Locality rows (name, government, tier fields) | **extend**: a first-visit claim kind ([locality-knowledge-slate](../engine/locality-knowledge-slate.md)); Locality gaining Named/Perceptible/Visible per that slate |
-| the drawn map | none (no SVG, no map component, no graph-layout dependency) | **genuinely new** — SVG per § The rendering decision |
-| direction glyphs | `components/ui/icons/iconMap.ts` + `<Icon>` (no direction/elevation glyphs) | **extend** the one icon map with the direction tier ([iconography-slate](./iconography-slate.md)) |
-| the status bar | client-shell's status bar | **extend** with the outdoor conditions the navigator used to show |
-| caching documents server-side | `DocumentCache<T>` (documents build, !560 — ⚠ the survey reports that branch later removes it in favour of catalogues) | **check after !560 merges** |
+| your knowledge on the client | `store/navSlice.ts` `mapCopy` (`Record<"<locality>\|<key>", CopyClaim>`), fed by the map-copy subscription (`MapCopySource`, `services/websocket.ts`); `WireClaim` with `at?: WirePosition` (zone, x, y, z, level, line, geo) | **reuse** — read through selectors (views over the copy); no second store, no second model ([client-knowledge-model-slate](./client-knowledge-model-slate.md)) |
+| where you are | `navSlice.navSections` — the seven where-you-are sections (`zone`, `localities`, `horizon`, `building`, `ways`, `place`, `you`) from `WhereaboutsSource` | **reuse** as every section's feed; the `zone` section IS the zone-facts read |
+| first-visit Locality claims | `Cartographer.recordLocalities` (`kind: 'locality'` claims: name, government, localityKind) | **reuse** — the breadcrumb reads these from the copy instead of the `localities` section's live chain |
+| routing on your map | `RouteController` emits `RoutePlanNote` (`kind: 'route-plan'`, `WireRoutePlan`: nodes, legs, cost, assumptions, leastCertain) | **reuse** — the client handles the note (none does today); the route lens holds the latest for the session |
+| a way's state | `NavWay` (`WayRecord` + oneWay, muffled, needs, lengthM, opening, facts, `take` — `go`'s own check asked without moving) | **reuse** — `take` is the amber state; no client-side rule decides it |
+| the docked slot | `map` CardId; `ModeStage` explore panel `"navigator"`; `CardBodies` → `NavigatorCardBody` → `NavigatorBody` | **replace** `NavigatorBody`; keep the CardId and the slot |
+| tooltips | `components/tooltip/Tip.tsx` + `useTip`, `useFloat`, `TooltipLayer`; `components/doc/blocks.tsx` + `docs.ts` builders (`wayDoc`, `frameDoc`, …); `services/tooltipSource.ts` | **reuse**; new builders join `docs.ts` composed from the copy; ⛔ no buttons (the walk asserts it) |
+| a way's acts (open, unlock, look through) | the affordance radial (`AffordanceRadial`, `RadialOverlay`, `store/affordanceSlice.ts`) | **reuse** on the rose and list entries — never tooltip actions |
+| the drawn map | none (no SVG renderer, no map component) | **genuinely new** — one SVG renderer, lenses as overlays (§ The rendering decision) |
+| direction glyphs | `components/ui/icons/iconMap.ts` (10 Lucide icons; no direction or elevation) | **extend** the one icon map ([iconography-slate](./iconography-slate.md)) |
+| the status bar | `components/frame/StatusBar.tsx` (command preview + flash only) | **extend** with the `place` section's weather, season, daylight |
+| the panel width | `tokens.width.panel = 15` (`components/ui/tokens.ts`) | **change** to 22 rem |
+| section open/closed memory | client-side per-viewer conveniences (card layout prefs) | **decide in the plan** — reuse whatever remembers card state today; no new server state |
+| the old navigator's outdoors / jurisdiction / "leaving this area" | `NavigatorBody` rows | **move**: outdoors → status bar, jurisdiction → zone section, leaving → a marker on the exit |

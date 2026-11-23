@@ -1803,12 +1803,22 @@ export type IllustrationShape = 'wide' | 'tall' | 'square';
 // ============================================================================
 
 /**
- * ⭐ Where one tooltip fact came from (tooltips D2). A closed list of the
- * producers this build has; the navigation build's knowledge model adds
- * `walked` / `told` when it lands. `client` = composed from what the client
- * already holds (a control, a frame); `seen` = a perception-gated describe.
+ * ⭐ Where one tooltip fact came from (tooltips D2). `client` = composed
+ * from what the client already holds (a control, a frame); `seen` = a
+ * perception-gated describe, or a map claim on that channel. The other map
+ * channels are your map's own (navigation card D12): `walked` · `searched`
+ * · `published` · `charted` · `told` — the six words a claim is filed on.
  */
-export type TooltipSource = 'seen' | 'help' | 'wiki' | 'client';
+export type TooltipSource =
+  | 'seen'
+  | 'help'
+  | 'wiki'
+  | 'client'
+  | 'walked'
+  | 'searched'
+  | 'published'
+  | 'charted'
+  | 'told';
 
 /** A tooltip's (and a card's) head: icon, name, what kind of thing. */
 export interface TooltipHeader {
@@ -1861,6 +1871,12 @@ export interface TooltipDoc {
   command?: string;
   /** A line said instead of content — *You can't see that now.* */
   miss?: string;
+  /**
+   * ⭐ A small map of a zone you know (navigation card D12) — the zone a way
+   * leads into, drawn from your own map. `zone` is the zone's path, a KEY
+   * the client looks up in its copy; it is never shown.
+   */
+  zoneThumb?: { zone: string; level: number };
 }
 export const ILLUSTRATION_SHAPES: readonly IllustrationShape[] = ['wide', 'tall', 'square'];
 
@@ -2077,6 +2093,37 @@ export interface WikiExcerptResultEnvelope {
   requestId: string;
   ref: string;
   doc: TooltipDoc | null;
+}
+
+/**
+ * ⭐ Ask for a Locality's civic facts — a crumb's tooltip (navigation card
+ * W8). Answered only for a Locality the asker's own map holds a claim for:
+ * a place you have not been gets the same `null` as no such place.
+ */
+export interface LocalityFactsMessage {
+  type: 'locality-facts';
+  requestId: string;
+  /** The Locality's address (`terminus/city`) — a crumb's own. */
+  address: string;
+}
+
+/** A Locality's civic facts, as a crumb's tooltip shows them. */
+export interface LocalityFacts {
+  government?: { key: string; name: string };
+  /** Each seat and who holds it now — a name, never a path; `null` = vacant. */
+  seats: { seat: string; holder: string | null }[];
+  /** Whether you are a resident under that government (else a visitor). */
+  resident: boolean;
+  /** The weather coming where you stand — inside every crumb's Locality. */
+  forecast?: string;
+}
+
+export interface LocalityFactsResultEnvelope {
+  type: 'locality-facts-result';
+  frameId: number;
+  requestId: string;
+  address: string;
+  facts: LocalityFacts | null;
 }
 
 /**
@@ -3258,6 +3305,7 @@ export type Envelope =
   | AffordanceResultEnvelope
   | AffordanceErrorEnvelope
   | WikiExcerptResultEnvelope
+  | LocalityFactsResultEnvelope
   | StreamStateEnvelope
   | StreamEventEnvelope
   | ControlResultEnvelope
@@ -3286,6 +3334,7 @@ export type EnvelopeTemplate =
   | Omit<AffordanceResultEnvelope, 'frameId'>
   | Omit<AffordanceErrorEnvelope, 'frameId'>
   | Omit<WikiExcerptResultEnvelope, 'frameId'>
+  | Omit<LocalityFactsResultEnvelope, 'frameId'>
   | Omit<StreamStateEnvelope, 'frameId'>
   | Omit<StreamEventEnvelope, 'frameId'>
   | Omit<ControlResultEnvelope, 'frameId'>
