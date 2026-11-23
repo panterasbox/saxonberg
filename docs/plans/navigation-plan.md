@@ -1256,3 +1256,34 @@ a hand-set section across a reload, two players two maps).
 **Full suite** (`tools/suite`, at code-complete): all 56 packages pass (42 min). **`lint:family`**: 118/118 after one fix (client fixtures moved to `/test` paths).
 
 **Soak drive:** none — every step is `instant` or `short`.
+
+### The sweep's run (2026-11-21, after the last review change)
+
+Master merged in (`f978e299c`), the worktree's database dropped, one
+fresh world on `WIRE_PORT=2013`, both navigation drives against it.
+
+- **First run — 4 red.** The card drive's step 20: the walker, wounded
+  by corridor-1's dart, bled out across the restart and came back a
+  SHADE with an empty copy — `keepsMaps` asked `shouldPersist()`, which a
+  shade answers false (a pre-existing defect, not this branch's:
+  master has the same rule). The `navigation-server` drive's steps 2, 3
+  and 19: red on master since the tooltips build moved paths on the wire
+  to spoiler level 2; the harness and step 2 still required 1.
+- **Fixed** (`5e9f1b754`): `ShadeAvatar.keepsMaps` answers by the
+  identity; the harness accepts any spoiler level as a tag.
+- **Second run, fresh world — green.** `navigation.dirty.wire.test.ts`
+  **10/10** (the walker died again across the restart; the copy came back
+  whole — the fix exercised, not dodged); `navigation-server.dirty.wire.test.ts`
+  **17/17**.
+- **Audit fixes** in the same sweep (`365bd7c02`): a guest's session map
+  freed with the guest; directions compared in long form; lens counts on
+  the level you stand on; one failed seat-holder lookup no longer blanks
+  the crumb tooltip; dead code from review iteration removed.
+- **The browser walks**, on a fresh world after the drives: first pass
+  red on what review had changed (the zone section, the preview strip,
+  coordinates now behind the grid) and on the clock (night: the track's
+  seep is only dim). The walk found one real defect — **a tooltip opened
+  by focus was closed 300 ms later by the previous stack's grace timer**
+  (`openTipNow` now cancels it; `f83df37f2`, with a regression test proved
+  red). Final: `navigation-walk` **4/4**, `navigation-server-walk` **2/2**,
+  `tooltips-walk` **5/5** (wide viewport — the 22 rem panel, D14).

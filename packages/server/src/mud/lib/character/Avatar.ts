@@ -1637,7 +1637,11 @@ export default abstract class Avatar extends AvatarBase {
     // A guest's map lives only in memory for the visit — the visit is over.
     if (this.getIsGuest()) {
       const ownerKey = this.mapOwnerKey();
-      void import('../../api/navigation').then(({ NavigationApi }) => NavigationApi.forgetSessionMap(ownerKey));
+      void import('../../api/navigation')
+        .then(({ NavigationApi }) => NavigationApi.forgetSessionMap(ownerKey))
+        .catch((err) => {
+          console.error(`Avatar.onDestruct: forgetting the guest map failed for playerId=${this.playerId}:`, err);
+        });
     }
     PlayerApi.unregisterAvatar(this);
     // Snapshot — detach() mutates the underlying set via removeInteractive.
