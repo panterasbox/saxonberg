@@ -2588,6 +2588,25 @@ Decisions the build made that the plan did not, and what decided each.
   no eggs while it holds cocoons; the vetoed move threw inside the
   un-awaited lay and the unhandled rejection killed the world at boot.
   The card now lands where the tray stands (else the eggs are lost).
+- **B45 (drive) — findings, pre-existing, not this build's.** (1) `cure`
+  refuses every hide — a clean one from its row too — with *"There isn't
+  enough rawhide to make that"* (`insufficient-input: rawhide`); the
+  carcass-chain drive asserts only "not `no-recipe`", so it passes over
+  it. Step 3 tans the green hide directly (it may go in within the week).
+  (2) A tanned hide still reads *"a green hide … still warm"*: becoming
+  leather changes the material, not the name. (3) In play a stump seals
+  only on an AVULSION by heat or a caustic, and a heat wound is a burn —
+  no shipped delivery was found that seals one; `testharness body-sever
+  <body> <part> heat` stages it (D7's burned crab).
+- **B46 (drive) — finding, cause not isolated: a hide left lying is
+  refused on re-pickup.** In the drive, the tanned sheepskin dropped in
+  step 3 and left in the yard through the 8 h storm, the 6 h snow and the
+  whale's eighty blanket pieces answered `nowhere-to-carry` to `get` with
+  both hands empty. A probe re-picking a tanned hide after a drop, a 4 h
+  storm or blinding picked it up every time, and a probe through the
+  snow stalled in the loaded world. The drive now carries the leather and
+  the foreleg in a worn frame pack from the moment they exist; the
+  refusal is for the carrying subsystem to reproduce.
 
 ## Drive record
 

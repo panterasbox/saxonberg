@@ -202,7 +202,7 @@ subcommands:
         required: false
   body-sever:
     controller: /platform/idea/cmd/system/TestHarnessBodySeverController
-    description: "Take a part off by a real avulsion: `body-sever <body> <part>`"
+    description: "Take a part off by a real avulsion: `body-sever <body> <part> [heat|corrosion]` — the third word seals the stump"
     args:
       - name: target
         type: object
@@ -212,6 +212,9 @@ subcommands:
       - name: part
         type: string
         required: true
+      - name: sealedBy
+        type: string
+        required: false
   body-kill:
     controller: /platform/idea/cmd/system/TestHarnessBodyKillController
     description: "Kill a body through the death transition: `body-kill <body>`"

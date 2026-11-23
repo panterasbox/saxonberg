@@ -585,13 +585,20 @@ export class TestHarnessLogic extends ApiLogic {
    * whatever a sever does in play all happen. Never a woundless loss.
    */
   @CallSecurity(TestHarnessApiCallers)
-  public async severBodyPart(handle: string, part: string): Promise<BodyWoundReport> {
+  public async severBodyPart(handle: string, part: string, sealedBy: 'heat' | 'corrosion' | null = null): Promise<BodyWoundReport> {
     const body = await this.bodyByHandle(handle, 'body-sever');
     if (!MixinApi.isVitals(body)) throw new Error(`testharness body-sever: '${body.getPresentation()}' has no vitals`);
     const p = body.getPart(part);
     if (p === null) throw new Error(`testharness body-sever: '${body.getPresentation()}' has no part '${part}'`);
     if (!p.severable) throw new Error(`testharness body-sever: '${part}' is not a part that comes off`);
     const energy = HARM_DEFAULTS.SEVER_SEVERITY / HARM_DEFAULTS.SEVERITY_PER_ENERGY;
+    if (sealedBy !== null) {
+      // ⭐ A sealed stump (D7): a burn at the site, and the part taken with
+      // its seal recorded (heat or a caustic) — it never regrows.
+      const out = ConditionApi.inflict(body, { mechanism: 'heat', site: part, energy });
+      body.severPart(part, { sealed: sealedBy });
+      return this.woundReport(body, out);
+    }
     const out = ConditionApi.inflict(body, { mechanism: 'tearing', site: part, energy });
     return this.woundReport(body, out);
   }

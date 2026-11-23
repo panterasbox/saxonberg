@@ -60,6 +60,8 @@ export interface TestHarnessModel extends CommandModel {
   other?: string;
   /** A part key (`body.head.eye.left`). */
   part?: string;
+  /** `body-sever`'s third word: what sealed the stump (`heat` | `corrosion`). */
+  sealedBy?: string;
   /** A mechanism channel (`body-wound`'s enum slot). */
   channel?: string;
   /** A number: a wound's magnitude, a condition's stage, a daylength fraction. */

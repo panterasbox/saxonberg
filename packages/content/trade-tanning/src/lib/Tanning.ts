@@ -276,6 +276,18 @@ export function TanningMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     /**
+     * ⭐ Stage how far the tan has gone (organism-biology B33) — the staging
+     * setter a drive reaches through `testharness stage` (which is
+     * `@TestOnly`): the weeks in the pit, without the weeks. The clock is
+     * reconciled first, so the stretch before is not counted twice.
+     * Nothing in play sets a tannage — the liquor does.
+     */
+    public setTannage(value: number): void {
+      this.reconcileTanning();
+      this._tannage = Number.isFinite(value) && value > 0 ? value : 0;
+    }
+
+    /**
      * ⭐ The liquor this hide is standing in, or `null`.
      *
      * A **condition read**, never a host narrowing: it asks the container
