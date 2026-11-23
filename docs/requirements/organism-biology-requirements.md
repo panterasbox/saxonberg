@@ -208,7 +208,7 @@ sits on it (review question R3: it makes sense with no trade at all).
 Modules and shared base rows live with the species catalogue, in the
 species-and-names pack. Tissue materials go in the commons with the other
 tissues. Yields and the trades they feed stay in their packs: ranching's
-livestock and castration, fishing's fish and crab, sericulture's silkworm,
+livestock, fishing's fish and crab, sericulture's silkworm,
 the whale in the fishing pack beside the other sea creatures until whaling
 gives it a home.
 
@@ -302,12 +302,15 @@ scaling are the same act on a different coat. *One verb per act:* the act
 is breaking the carcass down. The skinner's hand carries its own risk, the
 same rule as the joint versus the trim.
 
-### Castration is a ranching verb
+### Castration is an operation, not a new verb
 
-`castrate <animal>` ships in trade-ranching. It is a real act with a
-season and a risk, not a setting. The common word wins over *geld*, which
-is the horseman's word for one species. On a herd animal it is recorded in
-the herdbook.
+Castration is one more operation in medicine's catalogue:
+`operate <animal> for castration`. Medicine's rule is that a second
+operation is a file, and amputation already severs a part the same way.
+It works on any male body (a bull calf, a pit pony, a dog), it is a real
+act with a season and a risk, and the body answers a refusal in its own
+words. On a herd animal it is recorded in the herdbook (owner, 2026-11-22,
+replacing the earlier `castrate` verb).
 
 ### Rendered oil is dead oil (ruling 12.1)
 
@@ -403,7 +406,8 @@ Each step is tagged **pace** (`instant` · `short` · `staged` · `span`) and
 8. *instant · staged.* The player rides the cow's udder through the milk
    tap. A cow that is not lactating gives nothing, and the refusal says
    why. A lactating cow gives milk.
-9. *instant · player.* The player `castrate`s a bull calf in a herd. The
+9. *instant · player.* The player `operate`s on a bull calf in a herd
+   `for castration`. The
    herdbook records a steer. A staged steer at adult age is an ox: heavier
    than a bull of the same age and the calmer animal, and the ox register
    counts it.
