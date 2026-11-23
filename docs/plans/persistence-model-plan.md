@@ -550,6 +550,47 @@ serve a few of its descendants.
 Each wave ends at a commit with `pnpm test:near`, each touched pack's
 vitest and `pnpm -C packages/server lint:family` green.
 
+### Build progress (branch `build/persistence-model`)
+
+⚠ The phase guard refuses `lint:family` outside `suite`; each wave ran
+the gates it moves by name, and the whole family runs at code-complete.
+
+- **W0 ✅ `c651b2621`.** Harness tools are routes + wire helpers
+  (`failSavesOf`, `saveBatch`) over two TestOnly `PersistableApi` seams
+  (`refuseSavesOf`, `captureBatch`); the `testharness` subcommands were not
+  added — the drive uses the helpers, a second door is a P12 synonym. The
+  batch writer (`writeBatch`: one `saveMany`, retried one record at a time
+  on a throw) landed here because the drive tool needs it (D10's
+  isolation). Clerk (08–18) and cat in the testbed.
+- **W1 ✅ `1440aafd6`.** D1/D2/N3 as planned. ⭐ Decided: `Container.keepWords()`
+  is dropped (it only wrapped `isKept()` and made a second cluster in
+  `ContainerMixin` — `lint:mixin-clusters`); `look` and the card word
+  `isKept()`. Stockpile's keyless hydration source went with MarketStalls'
+  (it seeds from its row in `seedBornWith`).
+- **W2 ✅ `281884ba1`.** D11 as planned, with two decisions:
+  `storeroom:` names the OFFICE PLACE (its first non-sale `Locker` is the
+  store), and ⭐ a vacant unit is reaped while an end-let awaits, so
+  `boxGoods` reads its rows first and then moves every good into the store
+  with no await between. Only chattel goods box (reclaim authorizes on
+  title). Duncan Hall's lobby has a storeroom cage, Seznick's a boxroom.
+- **W3 ✅ `3e43c847c`.** Things ride: Plant, Field, StorageNode, IceSheet
+  lose `PersistableMixin`; PersistentWell/PersistentWaterStore retire.
+  ⭐ New, beyond the plan: **riders** — `PersistableApi.adoptRider(host,
+  name, rider)` (state under `@riders` in the host's record; a rider adopted
+  after the restore takes its state then; `captureHostOf` hops through a
+  rider) replaces N7's two bespoke slices: HoldingBuilding rides its
+  holding, the kernel Building rides its entrance when that is kept.
+  `Adornable.adoptRestoredState` gives a fixture minted after its host's
+  restore its slot's state (a tract's marked field, a pool's sheet).
+  `capture()` now refuses a non-host. ⭐ Decided against the plan:
+  **Wellhead keeps** (it composes `ContainerMixin` — a pump is set in it;
+  only containers keep, and drilling banks depth); the district tank (a
+  plain lane) and the ice pond (a plain `Pool`) now restage at reboot —
+  the model the player is shown, R5 closed that way; Building rides its
+  ENTRANCE only (sugar-house's entrance is already kept). Forestry's
+  planting deed keys on a new `Standard.plantingKey`. PersistentConduit /
+  PersistentGate's physical fields move with their classes in W4.
+
 ### W0 — tools and scaffold
 
 - `TestHarnessApi.failSavesOf(handle, on)` (a TestOnly set of record ids
