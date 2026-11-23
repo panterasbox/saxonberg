@@ -193,6 +193,26 @@ export function clausePlansBuild(rows: ReturnType<typeof bodyPlanRows>): Finding
     }
     if (row.error) out.push({ file: row.file, detail: `does not build: ${row.error}` });
   }
+  // ⭐ …and its slots are what `setSlots` will take at hydration: each a
+  // mapping with a `name` and an `accepts`. A stray list item under
+  // `slots:` (the biped's `stoop`/`crawl`, left behind when gaits moved onto
+  // the limbs in W3) failed EVERY person's plan at hydration while every
+  // lint and unit test stayed green — the full suite found it.
+  for (const row of allRows()) {
+    if (row.cls !== '/platform/idea/species/BodyPlan') continue;
+    const slots = (row.doc as { slots?: unknown }).slots;
+    if (slots === undefined) continue;
+    if (!Array.isArray(slots)) {
+      out.push({ file: row.file, detail: "'slots' is not a list" });
+      continue;
+    }
+    for (const s of slots) {
+      const spec = s as { name?: unknown; accepts?: unknown } | null;
+      if (!spec || typeof spec !== 'object' || typeof spec.name !== 'string' || typeof spec.accepts !== 'string') {
+        out.push({ file: row.file, detail: `a slot is not { name, accepts }: ${JSON.stringify(s)}` });
+      }
+    }
+  }
   return out;
 }
 

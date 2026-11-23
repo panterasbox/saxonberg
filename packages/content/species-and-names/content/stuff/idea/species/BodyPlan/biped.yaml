@@ -60,10 +60,9 @@ data:
     # lives in the slot's name and the augment's targetSlot field,
     # not in the validator enum. See docs/subsystems/augmentation.md.
     - { name: cranial,        accepts: SlottableMixin, bodyPart: body.head }
-    # ⭐ Bent under a low lintel, and on hands and knees (size and
-    # carrying D20). The plan decides: a quadruped lists neither.
-    - stoop
-    - crawl
+  # ⭐ Bent under a low lintel, and on hands and knees (size and carrying
+  # D20): `stoop` and `crawl` are the biped LEG's gaits now (organism-biology
+  # W3 — gaits derive from limbs); a quadruped's legs list neither.
   defaultLocomotionMode: walk
   # Typed anatomy (Vitals substrate). Sixteen parts: limbs / head / torso,
   # plus brain / spine ×2 / heart / lungs / liver. Tissue masses (kg) are
