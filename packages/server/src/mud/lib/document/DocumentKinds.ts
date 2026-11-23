@@ -333,6 +333,24 @@ export const DOCUMENT_KINDS = {
    * The writer is `StreamLogic` alone, through the token transport.
    */
   'stream-token': { kind: 'stream-token', contentDir: 'stream-tokens', ext: 'yaml', onVanish: 'keep' },
+  /**
+   * A **program** — a broadcast's standing record, at
+   * `/platform/programs/<short-name>` (stream arrival D10): its title, the
+   * owner whose pen edits it (a titled path — a player's home or an
+   * institution's branch), a caption naming that owner, a one-line
+   * schedule, the video feeds PROVEN at attach (each `{ channel, provenBy,
+   * provenAt }`), and the player in its chair. What a program IS:
+   * `lib/livestream/Program.ts`.
+   *
+   * ⭐ The short name is the path's leaf, so *first come* is the store's
+   * own unique path index — never a check-then-write.
+   *
+   * ⚠ Runtime-written, `onVanish: 'keep'` for `stream-token`'s reason: no
+   * pack ships one. The ONE writer is `StreamLogic`, through the
+   * `saveProgram` transport — the owner holds the pen on the title, never
+   * on a feed (*you file; you do not hold the pen*).
+   */
+  program: { kind: 'program', catalogue: '/platform/idea/ProgramCatalogue', contentDir: 'programs', ext: 'yaml', onVanish: 'keep' },
   map: { kind: 'map', contentDir: 'maps', ext: 'yaml', onVanish: 'keep' },
   /**
    * A **herd** — a register naming these head, this composition, this

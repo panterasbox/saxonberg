@@ -1,0 +1,126 @@
+verbs: [program]
+category: stream
+controller: /platform/idea/cmd/stream/ProgramController
+description: "A broadcast's standing record: its title, its owner, its schedule and the channels that carry it"
+help: |
+  A program is what a broadcast IS between shows — a short name, a title,
+  an owner, a line saying when the next show is, and the video channels
+  that carry it. Anybody can make one; nobody approves it.
+
+  The owner holds the pen: you own a program you make, or — with
+  `--owner` — an institution whose pen you already hold owns it, and its
+  members can edit and run it. Its short name is first come and never
+  changes.
+
+  A channel is attached by proof, not by typing it: `program channel` reads
+  your OWN linked account on that carrier (Twitch, Kick, or the YouTube
+  channel you linked in your settings) and attaches that channel. A
+  program with no channel is still a program.
+
+  `program` on its own shows the program your stream runs.
+examples:
+  - cmd: program create cafe-hour --title "The Cafe Hour"
+    note: File a program named cafe-hour, owned by you
+  - cmd: program schedule cafe-hour Saturdays at 10am Eastern
+    note: Say when the next show is
+  - cmd: program channel cafe-hour twitch
+    note: Attach your own Twitch channel, read from your linked account
+  - cmd: program about cafe-hour
+    note: What anyone can read about it
+fallthrough: true
+args:
+  - name: rest
+    type: string
+    required: false
+subcommands:
+  create:
+    controller: /platform/idea/cmd/stream/ProgramCreateController
+    description: "File a new program under a short name (`program create cafe-hour`)"
+    help: |
+      File a new program. Its short name — two to thirty-two lower-case
+      letters, digits and hyphens — is what a link names, and it is first
+      come: a name somebody already filed is refused.
+
+      You own it, unless `--owner <path>` names an institution's branch
+      whose pen you hold (a committee's, a corporation's). `--title` gives
+      its title; `program retitle` changes it later.
+
+      A guest cannot make a program — a guest keeps nothing.
+    args:
+      - name: name
+        type: string
+        required: true
+    options:
+      owner:
+        type: string
+        field: owner
+        description: "An institution's branch whose pen you hold, to own it instead of you"
+      title:
+        type: string
+        field: title
+        description: "The program's title — quote it when it has spaces"
+  retitle:
+    controller: /platform/idea/cmd/stream/ProgramRetitleController
+    description: "Change a program's title (`program retitle cafe-hour The Cafe Hour`)"
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: title
+        type: string
+        required: true
+        greedy: true
+  schedule:
+    controller: /platform/idea/cmd/stream/ProgramScheduleController
+    description: "Say when the next show is, in one line (`program schedule cafe-hour Saturdays 10am Eastern`)"
+    help: |
+      One free line saying when the next show is — give its time zone, so
+      a reader anywhere can work it out. The front page shows it while the
+      program is off the air. `program schedule <name> clear` removes it.
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: line
+        type: string
+        required: true
+        greedy: true
+  channel:
+    controller: /platform/idea/cmd/stream/ProgramChannelController
+    description: "Attach your own channel on twitch, youtube or kick (`program channel cafe-hour twitch`)"
+    help: |
+      Attach the channel that carries this program on a carrier. It is
+      read from YOUR linked account — your Twitch login, your Kick
+      channel, or the YouTube channel you linked in settings (`Link
+      YouTube`) — so a program only ever carries a channel somebody proved
+      is theirs. Nobody approves it and nothing is queued.
+
+      Name a channel after the carrier only to check it: if it is not the
+      one your account proves, the feed is refused. `--clear` removes the
+      feed. Either way you must hold the program's pen.
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: carrier
+        type: enum
+        required: true
+        values: [twitch, youtube, kick]
+      - name: channel
+        type: string
+        required: false
+    options:
+      clear:
+        type: boolean
+        field: clear
+        description: "Remove the program's feed on that carrier"
+  about:
+    controller: /platform/idea/cmd/stream/ProgramAboutController
+    description: "What anyone can read about a program (`program about cafe-hour`)"
+    help: |
+      A program's public facts: its title, who owns it, when the next show
+      is, which carriers carry it, and whether it is on the air now.
+    args:
+      - name: name
+        type: string
+        required: true

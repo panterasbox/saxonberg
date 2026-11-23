@@ -3221,6 +3221,39 @@ export const STREAM_PANEL_WHENS: readonly StreamPanelWhen[] = [
   "client",
 ];
 
+/** A carrier a program's video may be on (stream arrival). */
+export type ProgramCarrier = "twitch" | "youtube" | "kick";
+
+/** The three carriers, in the order the page and the help name them. */
+export const PROGRAM_CARRIERS: readonly ProgramCarrier[] = ["twitch", "youtube", "kick"];
+
+/**
+ * ⭐ A program's PUBLIC facts (stream arrival D14) — what the front page and
+ * `program show` read. `feeds` are bare channel strings in the form the
+ * embed uses (a Twitch login, a Kick slug, a YouTube `UC…` id), and only
+ * ever ones somebody proved were theirs. `live` is whether the program's
+ * runner is on the air with it now.
+ */
+export interface ProgramListing {
+  /** The short name — what a link names, and what the client sends back. */
+  name: string;
+  title: string;
+  ownerName?: string;
+  live: boolean;
+  feeds: Partial<Record<ProgramCarrier, string>>;
+  /** The schedule line, when the owner wrote one. */
+  nextShow?: string;
+}
+
+/**
+ * The anonymous front-page read, `GET /api/front` (stream arrival D14).
+ * `show` is absent when nothing is featured and the link named nothing
+ * valid — the page then has no show band.
+ */
+export interface FrontResponse {
+  show?: ProgramListing;
+}
+
 /** The running build's identity — null when the deploy did not stamp one. */
 export interface StreamBuild {
   sha: string;

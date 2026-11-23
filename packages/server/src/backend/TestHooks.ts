@@ -1,3 +1,13 @@
+/** Synthetic carrier accounts `test-login` may link (stream arrival A-12). */
+export interface TestLinkedAccounts {
+  /** A Twitch login. */
+  twitch?: string;
+  /** A Kick channel slug. */
+  kick?: string;
+  /** A YouTube channel id (`UC…`), as the step-up writes it. */
+  youtube?: string;
+}
+
 /**
  * TestHooks — every backend seam that exists ONLY to support tests, in
  * one module, out of the business logic.
@@ -45,6 +55,9 @@ import type { PassportGoogleProfile } from '@saxonberg/types';
 import type { Application } from './Application';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { User } from '../mud/lib/identity/User';
+import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
+import { KickProfile } from '../mud/lib/identity/KickProfile';
+import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { PlayerApi } from '../mud/api/player';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
@@ -118,14 +131,15 @@ export class TestHooks {
   public static async authenticate(
     app: Application,
     handle: string,
-    done: (error: unknown, user?: { id: string }) => void,
+    done: (error: unknown, user?: { id: string; playerId?: string }) => void,
     withCharacter = false,
     startLocation?: string,
     wizard = false,
     parcels: readonly string[] = [],
     committees: readonly string[] = [],
     offices: readonly string[] = [],
-    streamer = false
+    streamer = false,
+    linked: TestLinkedAccounts = {}
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('TestHooks: test authentication is disabled'));
@@ -140,6 +154,11 @@ export class TestHooks {
           // The seam stays Google-shaped — passes provider: 'google'
           // through the same provider-parameterized creation path.
           const id = await app.findOrCreateUserFromProvider('google', profile);
+          // ⭐ Synthetic linked accounts (stream arrival A-12): the fields a
+          // program's feed proof reads, on THIS user — a state nothing else
+          // can stage, since a real Twitch / Kick / YouTube grant is a
+          // provider round trip.
+          await TestHooks.#linkAccounts(id, handle, linked);
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
           if (withCharacter) {
@@ -157,7 +176,9 @@ export class TestHooks {
           return id;
         }
       );
-      done(null, { id: userId });
+      const user = await User.findById(userId);
+      const playerId = user?.playerIds[0];
+      done(null, playerId ? { id: userId, playerId } : { id: userId });
     } catch (error) {
       console.error('TestHooks: error in authenticate:', error);
       done(error);
@@ -226,6 +247,48 @@ export class TestHooks {
       if (!r.ok) throw new Error(`TestHooks: '${office}' is not an office`);
     }
     if (parcels.length > 0) await TestHooks.#grantParcels(playerId, parcels);
+  }
+
+  /**
+   * TEST-ONLY: link synthetic carrier accounts to the user — a Twitch login,
+   * a Kick slug, a stepped-up YouTube channel id — exactly the stored fields
+   * the feed proof reads (stream arrival D13). Idempotent per handle.
+   */
+  static async #linkAccounts(
+    userId: string,
+    handle: string,
+    linked: TestLinkedAccounts
+  ): Promise<void> {
+    if (!linked.twitch && !linked.kick && !linked.youtube) return;
+    const user = await User.findById(userId);
+    if (!user) return;
+    const safe = handle.replace(/[^a-z0-9_-]/gi, '').toLowerCase() || 'default';
+    if (linked.twitch) {
+      const p =
+        (await TwitchProfile.findByTwitchUserId(`e2e:${safe}`)) ?? new TwitchProfile();
+      p.twitchUserId = `e2e:${safe}`;
+      p.login = linked.twitch.toLowerCase();
+      p.displayName = linked.twitch;
+      await p.save();
+      user.twitchProfileId = p._id;
+    }
+    if (linked.kick) {
+      const p = (await KickProfile.findByKickUserId(`e2e:${safe}`)) ?? new KickProfile();
+      p.kickUserId = `e2e:${safe}`;
+      p.slug = linked.kick.toLowerCase();
+      p.displayName = linked.kick;
+      await p.save();
+      user.kickProfileId = p._id;
+    }
+    if (linked.youtube && user.googleProfileId) {
+      const p = await GoogleProfile.findById<GoogleProfile>(user.googleProfileId);
+      if (p) {
+        p.youtubeRefreshToken = 'e2e-stepped-up';
+        p.youtubeChannelId = linked.youtube;
+        await p.save();
+      }
+    }
+    await user.save();
   }
 
   /** Add the character to one managed group by name (the `group` verb's write). */

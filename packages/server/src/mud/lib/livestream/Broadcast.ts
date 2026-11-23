@@ -115,6 +115,10 @@ export interface BroadcastHost {
   advanceStreamAgenda(): BroadcastResult;
   nameChannel(service: BroadcastService, handle: string | null): void;
   getStreamChannels(): BroadcastChannels;
+  /** The path of the program this body runs (stream arrival D12), or null. */
+  getStreamProgram(): string | null;
+  /** Point the body at a program — the program loads with it; a gone one clears. */
+  setStreamProgram(path: string | null): Promise<void>;
   steerRotation(action: 'pin' | 'skip' | 'clear', key: string | null): BroadcastResult;
   noteVerb(verb: string): void;
   getStreamTokenHash(scope: BroadcastTokenScope): string | null;
@@ -141,6 +145,7 @@ export function BroadcastMixin<
       streamAgendaIndex: { persistent: true, runtimeState: true },
       streamChannels: { persistent: true, runtimeState: true },
       streamTokenHashes: { persistent: true, runtimeState: true },
+      streamProgram: { persistent: true, runtimeState: true },
     };
 
     /**
@@ -149,7 +154,13 @@ export function BroadcastMixin<
      * visibility is the host's, its authorization the axis's).
      */
     static commandContributions: CommandContributions = {
-      self: ['platform/cmd/stream/stream.yaml', 'platform/cmd/stream/stream-rotation.yaml'],
+      // `program` sits beside the stream verb for now (stream arrival A1);
+      // the instruments take both (C2).
+      self: [
+        'platform/cmd/stream/stream.yaml',
+        'platform/cmd/stream/stream-rotation.yaml',
+        'platform/cmd/stream/program.yaml',
+      ],
       peers: [],
       environment: [],
     };
@@ -169,6 +180,13 @@ export function BroadcastMixin<
     public streamChannels: BroadcastChannels = {};
     /** sha256 hex of the live token per scope — what `stream token` rotates. */
     public streamTokenHashes: Partial<Record<BroadcastTokenScope, string>> = {};
+    /**
+     * ⭐ The program this body runs (stream arrival D12) — the path of a
+     * `program` document, or null. The program holds the standing facts
+     * (title, owner, feeds); the RUN stays here. Its setter loads the
+     * program, so a restored body's overlay reads it synchronously.
+     */
+    public streamProgram: string | null = null;
 
     /** The outro timer — transient, re-armed from `streamEndsAt`. */
     private streamOutroHandle: ScheduleHandle | null = null;
@@ -296,6 +314,33 @@ export function BroadcastMixin<
 
     public getStreamChannels(): BroadcastChannels {
       return { ...this.streamChannels };
+    }
+
+    public getStreamProgram(): string | null {
+      return this.streamProgram;
+    }
+
+    /**
+     * The restore door and `program run`'s write: the program loads with
+     * the body (the applier awaits this). ⚠ A program whose document is
+     * gone is CLEARED with a logged reason — never a throw at login.
+     */
+    public async setStreamProgram(path: string | null): Promise<void> {
+      const p = typeof path === 'string' ? path.trim() : '';
+      if (p.length === 0) {
+        this.streamProgram = null;
+        return;
+      }
+      try {
+        const { StreamApi } = await import('../../api/stream');
+        await StreamApi.programs().ensure(p);
+        this.streamProgram = p;
+      } catch (err) {
+        // @quiet logged below; a body citing a gone program runs none —
+        // never a throw at login (stream arrival A2).
+        console.warn(`BroadcastMixin: the program '${p}' could not be read; the body runs none:`, err);
+        this.streamProgram = null;
+      }
     }
 
     /** `stream-rotation pin|skip|clear [<key>]` — steer the lower third. */

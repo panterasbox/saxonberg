@@ -37,6 +37,7 @@ import {
 } from '../../../lib/document/Edition';
 import type { ServesDocuments } from '../../../lib/document/DocumentCatalogue';
 import { StuffApi } from '../../../api/stuff';
+import { PROGRAM_NAME_RE, PROGRAMS_BRANCH, type ProgramData } from '../../../lib/livestream/Program';
 
 const DocumentApiCallers = SecurityPolicies.FromModule("/api/document#DocumentApi",
 );
@@ -466,6 +467,55 @@ async function deleteStreamTokenImpl(hash: string): Promise<boolean> {
   return true;
 }
 
+/** The document kind a program is stored under (stream arrival D10). */
+const PROGRAM_KIND = 'program';
+
+/**
+ * ⚠⚠ **The program transport** (stream arrival D10) — the program
+ * register, written by `StreamLogic` and nothing else.
+ *
+ * The owner holds the pen on a program's title and schedule, but a feed
+ * may be written only by proof and the runner only by taking the chair, so
+ * the title gate cannot express the write (*you file; you do not hold the
+ * pen*). Rails, all structural: the Api face is gated to `StreamLogic`,
+ * the path is pinned to a short name under `/platform/programs/`, the kind
+ * is pinned, and the record's fields are taken typed. `create` INSERTS — a
+ * name already taken is answered `'taken'`, by the store's unique path
+ * index, never by a check that could race.
+ */
+async function saveProgramImpl(
+  name: string,
+  data: ProgramData,
+  mode: 'create' | 'update',
+): Promise<'saved' | 'taken' | 'missing'> {
+  if (!PROGRAM_NAME_RE.test(name)) throw new Error('DocumentApi.saveProgram: not a program name');
+  if (data.owner.length === 0) throw new Error('DocumentApi.saveProgram: no owner');
+  const path = `${PROGRAMS_BRANCH}/${name}`;
+  const existing = await StoredDocument.findByPath(path);
+  if (mode === 'create' && existing) return 'taken';
+  if (mode === 'update' && (!existing || existing.getKind() !== PROGRAM_KIND)) return 'missing';
+  const doc = existing ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = PROGRAMS_BRANCH;
+  doc.kind = PROGRAM_KIND;
+  doc.data = {
+    title: data.title,
+    owner: data.owner,
+    ownerName: data.ownerName,
+    schedule: data.schedule,
+    feeds: { ...data.feeds },
+    runner: data.runner,
+  };
+  try {
+    await doc.save();
+  } catch (err) {
+    // A second create of one name in the same instant: the index decides.
+    if (mode === 'create' && (err as { code?: unknown }).code === 11000) return 'taken';
+    throw err;
+  }
+  return 'saved';
+}
+
 /** The branch every landing's berth roll lives under. */
 const BERTHS_BRANCH = '/platform/berths';
 
@@ -852,6 +902,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'standby-reason':
     case 'lower-third-panel':
     case 'stream-token': // ⛔ a credential is never paper
+    case 'program': // a register row; the broadcasting build may print a bill
       return null;
     default: {
       const unreachable: never = kind;
@@ -1064,6 +1115,16 @@ export class DocumentLogic extends ApiLogic {
   @CallSecurity(DocumentApiCallers)
   public async deleteStreamToken(hash: string): Promise<boolean> {
     return deleteStreamTokenImpl(hash);
+  }
+
+  /** See {@link DocumentApi.saveProgram}. Rails in `saveProgramImpl`. */
+  @CallSecurity(DocumentApiCallers)
+  public async saveProgram(
+    name: string,
+    data: ProgramData,
+    mode: 'create' | 'update',
+  ): Promise<'saved' | 'taken' | 'missing'> {
+    return saveProgramImpl(name, data, mode);
   }
 
   /** See {@link DocumentApi.saveBerth}. Rails in `saveBerthImpl`. */

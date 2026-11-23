@@ -25,14 +25,18 @@ import type { StreamerTarget, ParsedTarget } from '../lib/streaming/StreamerTarg
 import type { RelayChannelRef } from '../platform/idea/StreamRelay';
 import { SecurityApi } from './security';
 import type { StandbyReason, StandbyReading } from '../lib/livestream/StandbyReason';
-import type { StreamPanelRow } from '@saxonberg/types';
+import type { StreamPanelRow, ProgramListing } from '@saxonberg/types';
 import type {
   BroadcastChannels,
   BroadcastHost,
+  BroadcastService,
   BroadcastTokenScope,
 } from '../lib/livestream/Broadcast';
+import ProgramCatalogue from '../platform/idea/ProgramCatalogue';
+import type { Program } from '../lib/livestream/Program';
 
 const LOGIC_PATH = '/platform/idea/api/stream';
+const PROGRAM_CATALOGUE = '/platform/idea/ProgramCatalogue';
 const LOGIC_CLASS_FILE = fileURLToPath(
   new URL('../platform/idea/api/StreamLogic', import.meta.url),
 );
@@ -117,7 +121,88 @@ export interface NormalizedInbound {
   text: string;
 }
 
+/**
+ * Why a program act was refused — each a reason row (`<platform>/reasons/`)
+ * that words it (stream arrival A-7).
+ */
+export type ProgramReason =
+  | 'program-bad-name'
+  | 'program-name-taken'
+  | 'program-guest'
+  | 'program-owner-refused'
+  | 'no-such-program'
+  | 'not-your-program'
+  | 'no-linked-account'
+  | 'not-your-channel'
+  | 'program-in-use'
+  | 'program-on-air'
+  | 'no-program';
+
+/** A program act: the record as it now stands, or the refusal and its facts. */
+export type ProgramAnswer =
+  | { ok: true; program: Program }
+  | { ok: false; reason: ProgramReason; facts: Readonly<Record<string, string>> };
+
 export class StreamApi {
+  /**
+   * The program register — every `program` document, served by its
+   * catalogue (stream arrival D10): `ensure(path)` reads one, `need(path)`
+   * finds a resident one. Written only by this Api's program statics.
+   */
+  static programs(): ProgramCatalogue {
+    return StuffApi.singletonSync(PROGRAM_CATALOGUE, () => new ProgramCatalogue());
+  }
+
+  /**
+   * File a new program named `name` (stream arrival D10, D11): its owner the
+   * acting player's own home, or — `owner` — an institution's branch the
+   * actor holds the pen of. First come: a taken name is refused. A guest is
+   * refused (a guest's identity is thrown away at disconnect).
+   */
+  static createProgram(
+    name: string,
+    opts: { title?: string; owner?: string } = {},
+  ): Promise<ProgramAnswer> {
+    return logic().createProgram(name, opts);
+  }
+
+  /** Change a program's title or schedule — the owner's pen (D11). */
+  static amendProgram(
+    name: string,
+    patch: { title?: string; schedule?: string },
+  ): Promise<ProgramAnswer> {
+    return logic().amendProgram(name, patch);
+  }
+
+  /**
+   * Attach the acting player's OWN channel on `carrier` to the program
+   * (D13): the pen AND their linked account. `stated`, when given, must
+   * equal the proven channel — a statement to check, never an input.
+   */
+  static attachFeed(
+    name: string,
+    carrier: BroadcastService,
+    stated?: string,
+  ): Promise<ProgramAnswer> {
+    return logic().attachFeed(name, carrier, stated);
+  }
+
+  /**
+   * A program's PUBLIC facts (D14) — the named one, or null when there is
+   * no such program. With `carrier`, only a program with a feed on it.
+   */
+  static programListing(
+    name: string,
+    carrier?: BroadcastService,
+  ): Promise<ProgramListing | null> {
+    return logic().programListing(name, carrier);
+  }
+
+  /** Remove the program's feed on `carrier` — the pen only (D13). */
+  static detachFeed(name: string, carrier: BroadcastService): Promise<ProgramAnswer> {
+    return logic().detachFeed(name, carrier);
+  }
+
   /**
    * Resolve a parsed target into a transport channel — Twitch login→id over
    * the network, YouTube handle/URL→channel, character→linked login over the

@@ -35,7 +35,7 @@
 
 import type { Express, Request, Response } from 'express';
 import type { Application } from '../../backend/Application';
-import { TestHooks } from '../../backend/TestHooks';
+import { TestHooks, type TestLinkedAccounts } from '../../backend/TestHooks';
 
 const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
 
@@ -64,6 +64,7 @@ export class TestAuthRoutes {
             committees?: unknown;
             offices?: unknown;
             streamer?: unknown;
+            linked?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -114,6 +115,14 @@ export class TestAuthRoutes {
         return;
       }
 
+      // ⭐ Synthetic linked carrier accounts (stream arrival A-12).
+      const linkedRaw = (body?.linked ?? {}) as Record<string, unknown>;
+      const linked: TestLinkedAccounts = {};
+      for (const k of ['twitch', 'kick', 'youtube'] as const) {
+        const v = linkedRaw[k];
+        if (typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v)) linked[k] = v;
+      }
+
       void TestHooks.authenticate(
         application,
         handle,
@@ -137,7 +146,11 @@ export class TestAuthRoutes {
               res.status(500).json({ error: 'session establishment failed' });
               return;
             }
-            res.json({ isAuthenticated: true, user: { id: user.id } });
+            res.json({
+              isAuthenticated: true,
+              user: { id: user.id },
+              ...(user.playerId ? { playerId: user.playerId } : {}),
+            });
           });
         },
         withCharacter,
@@ -148,7 +161,8 @@ export class TestAuthRoutes {
         (offices as string[] | undefined) ?? [],
         // ⭐ The streamer axis (broadcast-ready drive): membership of the
         // `streamers` group, the same write `group add` makes.
-        body?.streamer === true
+        body?.streamer === true,
+        linked
       );
     });
 

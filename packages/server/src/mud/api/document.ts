@@ -41,6 +41,7 @@ import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
 import type { ServesDocuments } from '../lib/document/DocumentCatalogue';
+import type { ProgramData } from '../lib/livestream/Program';
 
 /**
  * ⚠⚠ **The release write transport's whole blast radius.** The transport
@@ -424,6 +425,22 @@ export class DocumentApi {
     record: { playerId: string; scope: string; issuedAt: number },
   ): Promise<void> {
     return logic().saveStreamToken(hash, record);
+  }
+
+  /**
+   * ⚠⚠ Write a program's record at `/platform/programs/<name>` (stream
+   * arrival D10) — an ownership bypass, narrow by construction: gated to
+   * `StreamLogic`, the path pinned to a short name, the kind pinned, the
+   * fields typed. `create` inserts and answers `'taken'` for a name already
+   * filed; `update` answers `'missing'` for one that is not.
+   */
+  @CallSecurity(STREAM_TOKEN_TRANSPORT_CALLERS)
+  static saveProgram(
+    name: string,
+    data: ProgramData,
+    mode: 'create' | 'update',
+  ): Promise<'saved' | 'taken' | 'missing'> {
+    return logic().saveProgram(name, data, mode);
   }
 
   /** Revoke a stream token by its hash — the same gate. */

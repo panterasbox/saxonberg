@@ -1,0 +1,3 @@
+# `rodney` with no program to run (stream arrival D12).
+says: "Your stream runs no program. `program create <name>` makes one; `program run <name>` puts you in its chair."
+topic: act.deed

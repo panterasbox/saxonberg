@@ -1,0 +1,5 @@
+# Editing, feeding or running somebody else's program (stream arrival D11).
+facts:
+  name: text
+says: "'{{ name }}' is not your program — only whoever holds its owner's pen may change or run it."
+topic: act.deed
