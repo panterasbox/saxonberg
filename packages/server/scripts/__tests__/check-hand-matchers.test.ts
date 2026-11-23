@@ -48,7 +48,7 @@ describe("the four matcher shapes", () => {
   });
 
   it("the same work done by the one rule finds nothing", () => {
-    expect(scan(`class H { quayNamed(text: string) { return GrammarApi.name(text, this.quays.map((q) => ({ value: q, keywords: q.keywords, title: q.title }))); } }`))
+    expect(scan(`class H { quayNamed(text: string) { return GrammarApi.nameAmong(text, this.quays.map((q) => ({ value: q, keywords: q.keywords, title: q.title }))); } }`))
       .toEqual([]);
   });
 

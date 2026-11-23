@@ -59,7 +59,7 @@ export default class ContactsRemoveController extends ContactsControllerBase {
       );
       // ⭐ The list's own entries, by the one rule (naming overhaul D-B12):
       // the name each goes by now, or its raw id.
-      const named = GrammarApi.name(
+      const named = GrammarApi.nameAmong(
         needle,
         entries.map((e) => {
           const ref = e.kind === 'avatar' ? e.playerId : e.templatePath;

@@ -29,7 +29,7 @@ export default class WalletBeneficiaryController extends BankingControllerBase<W
       return;
     }
     const want = (model.player ?? "").trim();
-    if (!want || GrammarApi.name(want, [{ value: "none", keywords: ["none", "nobody"], title: "none" }]).kind === "one") {
+    if (!want || GrammarApi.nameAmong(want, [{ value: "none", keywords: ["none", "nobody"], title: "none" }]).kind === "one") {
       giver.setBeneficiary("");
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Your estate passes to the Compact, held unclaimed for your return.`).send();
       return;

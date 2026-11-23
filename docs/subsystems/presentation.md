@@ -353,7 +353,7 @@ one by hand, each its own way. Both have one home in `GrammarApi` now:
   One Ring* answers to `one ring`). `lint:hand-matchers` counts a hand
   strip anywhere else, and that count is zero.
 - ⭐ **Matching never calls it.** A player's words name a thing that is
-  not runtime Stuff through **`GrammarApi.name(text, entries)`** — it drops
+  not runtime Stuff through **`GrammarApi.nameAmong(text, entries)`** — it drops
   the article itself, reads an ordinal, treats a quoted phrase as
   phrase-tier only, adds plurals, matches only where a keyword word
   begins, and names nothing on a partial (some words matching nothing);

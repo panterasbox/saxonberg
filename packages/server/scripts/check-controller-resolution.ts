@@ -762,7 +762,7 @@ function main(): void {
     vias,
     '⭐ Read a declared facet (`detailPath`, `bulk`, `region`, `relation`) or\n' +
       '  `MqlApi.effectiveTarget`; name a non-Stuff entry through the holder\'s\n' +
-      '  `…Named(text)` (GrammarApi.name), never by lower-casing the model.',
+      '  `…Named(text)` (GrammarApi.nameAmong), never by lower-casing the model.',
   );
   if (!ok || !okRaw || !okVia) process.exit(1);
   console.log('check-controller-resolution: ✔');

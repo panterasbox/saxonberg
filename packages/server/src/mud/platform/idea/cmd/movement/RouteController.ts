@@ -828,7 +828,7 @@ export default class RouteController extends CommandController<RouteModel> {
     // ⭐ The one rule (naming overhaul D-C5 rule 7) — every match of the
     // best tier, never a substring of prose. One match plans; several
     // prompt. Nothing here picks.
-    const named = GrammarApi.name(
+    const named = GrammarApi.nameAmong(
       asked,
       pool.map((k) => ({ value: k, keywords: [...k.keywords, k.name, k.place].map((w) => w.toLowerCase()), title: k.name })),
     );
@@ -856,7 +856,7 @@ export default class RouteController extends CommandController<RouteModel> {
       return { spec: { mode: 'walk', medium: 'ground' } };
     }
     // The closed ways of going, through the one rule.
-    const named = GrammarApi.name(
+    const named = GrammarApi.nameAmong(
       by ?? '',
       BY_WORDS.map(([words, mode, medium]) => ({ value: { mode, medium }, keywords: [...words], title: mode })),
     );

@@ -7,7 +7,7 @@ matcher with a real grammar: one root (the asker, `me`), relations
 evaluation, pronoun memory. ⭐ MQL finds **runtime Stuff** and nothing
 else; everything a player names that is not Stuff (a spell, a recipe, a
 ship in a register) is named by the same keyword rule through
-`GrammarApi.name` (§ Match-quality scoring).
+`GrammarApi.nameAmong` (§ Match-quality scoring).
 
 This doc is the **developer reference** — pipeline, modules, internals,
 extension seams. For the player/author-facing grammar reference, see
@@ -602,7 +602,7 @@ present cuts every tier below it, and anything at 40+ answers every word.
 ACROSS scope tries (`MqlMany.tiers`; see [command-spec.md §
 scope](./command-spec.md)).
 
-⭐⭐ **The same rule names what is not Stuff.** `GrammarApi.name(text,
+⭐⭐ **The same rule names what is not Stuff.** `GrammarApi.nameAmong(text,
 entries)` takes a holder's entries (`{ value, keywords, title }`) — a
 quay in a harbor, a spell, a reading channel, a recipe, a document by its
 kind's words, a list label — strips a leading article, reads a leading
@@ -1351,7 +1351,7 @@ respelled every view's scopes and defaults as relations, retired the seed
 words, `$$` and `online`, and added query aliases; B3b split `here` — 116
 slots now say what they meant, and the empty scope is the `~reachable`
 backstop; B4 moved `notify` and `contacts` onto relations. C0 moved the
-keyword tiers into `GrammarApi` and added `GrammarApi.name` +
+keyword tiers into `GrammarApi` and added `GrammarApi.nameAmong` +
 `CommandController.named`; C1–C7 drove every hand-rolled matcher onto it
 (`lint:hand-matchers` at zero). Decisions cited in code as `D-B*` /
 `D-C*`.

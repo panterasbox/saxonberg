@@ -274,7 +274,7 @@ export default class Line extends PullableMixin(TossableMixin(GoodBase)) {
       if (!MixinApi.isContainer(place)) continue;
       for (const who of place.getContents()) if (who !== holder && who.isAgent?.()) people.push(who);
     }
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       word,
       people.map((who) => ({
         value: who,

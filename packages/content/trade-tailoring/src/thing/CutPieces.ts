@@ -90,7 +90,7 @@ export default class CutPieces extends CutPiecesBase {
    */
   public sewPlan(actor: Stuff, pattern: string, instrument: Stuff | null): SewPlan | SewRefusal {
     // ⭐ A pattern by the one rule (naming overhaul D-C4) over the patterns.
-    const named = GrammarApi.name(pattern, [...PATTERNS.keys()].map((k) => ({ value: k, keywords: [k, k.replace(/-/g, ' ')], title: k })));
+    const named = GrammarApi.nameAmong(pattern, [...PATTERNS.keys()].map((k) => ({ value: k, keywords: [k, k.replace(/-/g, ' ')], title: k })));
     const row = named.kind === 'one' ? PATTERNS.get(named.one) : undefined;
     if (!row) return { ok: false, reason: 'unknown-pattern', facts: { pattern } };
     const self = this as unknown as Stuff;

@@ -370,7 +370,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     // it (*draft 1 from calves*), with or without the article or a trailing
     // "herd" — two herds sharing the word are ambiguous, and ambiguity is a
     // miss here (the keeper names one).
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       needle,
       (await this.all()).map((h) => ({
         value: h,

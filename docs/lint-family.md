@@ -1540,7 +1540,7 @@ that needs types, and a typed lint is a deferred seam.
 ### ⭐⭐ `lint:hand-matchers` — one naming rule (naming overhaul, 2026-11-21)
 
 A player's words name a thing by ONE rule: `GrammarApi`'s keyword tiers,
-reached through MQL for runtime Stuff and through `GrammarApi.name` for
+reached through MQL for runtime Stuff and through `GrammarApi.nameAmong` for
 everything else (a quay in a book, a list label, a reading channel, an
 offer not yet made). Every hand-rolled matcher is a second rule that
 disagrees somewhere — `the` stripped here and not there, `plant` finding

@@ -99,7 +99,7 @@ export default class ElevationReading extends Reading {
   private bodyOf(param: string): Body | null {
     if (param.trim() === '') return 'sun';
     // The closed few bodies, through the one rule (naming overhaul D-C4).
-    const answer = GrammarApi.name<Body>(param, BODIES.map((b) => ({ value: b, keywords: [b], title: b })));
+    const answer = GrammarApi.nameAmong<Body>(param, BODIES.map((b) => ({ value: b, keywords: [b], title: b })));
     return answer.kind === 'one' ? answer.one : null;
   }
 

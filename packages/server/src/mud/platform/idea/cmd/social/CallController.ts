@@ -84,7 +84,7 @@ export default class CallController extends CommandController<CallModel> {
       if (!MixinApi.isBonded(animal)) continue;
       // ⭐ By the one rule (naming overhaul D-C8): its name and what it is
       // called — an article, a word start.
-      if (wanted && GrammarApi.name(wanted, [{ value: animal, keywords: callWords(animal), title: animal.getPresentation() }]).kind === 'none') continue;
+      if (wanted && GrammarApi.nameAmong(wanted, [{ value: animal, keywords: callWords(animal), title: animal.getPresentation() }]).kind === 'none') continue;
 
       // ⚠ Attention first: an animal that is busy is not disobeying, and
       // it is the one refusal the player genuinely needs told apart.

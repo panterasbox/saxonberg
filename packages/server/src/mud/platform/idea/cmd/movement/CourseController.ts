@@ -152,7 +152,7 @@ export default class CourseController extends CourseControllerBase {
     if (!this.mayHelm(context, craft, context.commandGiver)) return;
     // ⭐ The river's own few words, through the one rule (naming overhaul
     // D-C5) — else a landing by name.
-    const way = GrammarApi.name<'upstream' | 'downstream'>(heading, [
+    const way = GrammarApi.nameAmong<'upstream' | 'downstream'>(heading, [
       { value: 'upstream', keywords: Object.keys(RIVER_WAYS).filter((k) => RIVER_WAYS[k] === 'upstream'), title: 'upstream' },
       { value: 'downstream', keywords: [...Object.keys(RIVER_WAYS).filter((k) => RIVER_WAYS[k] === 'downstream'), 'bar', 'sea', 'mouth'], title: 'downstream' },
     ]);

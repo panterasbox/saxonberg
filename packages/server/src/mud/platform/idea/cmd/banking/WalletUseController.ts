@@ -49,7 +49,7 @@ export default class WalletUseController extends BankingControllerBase<WalletUse
     // D-C5): its bank's key or the bank's place.
     const match = await this.named(
       context,
-      GrammarApi.name(
+      GrammarApi.nameAmong(
         corpo,
         mine.map((a) => {
           const leaf = a.bank.split("/").pop() ?? "";

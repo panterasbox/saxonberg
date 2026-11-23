@@ -224,7 +224,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    */
   public async resolveByName(name: string): Promise<Channel | null> {
     const map = await this.ensureNameCache();
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       name,
       [...map.values()].map((c) => ({ value: c, keywords: [c.name.toLowerCase()], title: c.name })),
     );

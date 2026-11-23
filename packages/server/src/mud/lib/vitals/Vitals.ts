@@ -721,7 +721,7 @@ async function treatNamed(
   // ⭐ The medic NAMES a condition — any warmed one, so a wrong call is
   // possible — by the one rule (naming overhaul D-C5 rule 4); the outcome
   // is whether the body carries the one named.
-  const answer = GrammarApi.name(
+  const answer = GrammarApi.nameAmong(
     named,
     ConditionApi.conditions().roster().map((row) => ({
       value: row.getTemplatePath() ?? '',

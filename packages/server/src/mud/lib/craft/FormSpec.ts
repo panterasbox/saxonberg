@@ -173,7 +173,7 @@ export class FormGrammar {
     }
     rest = tokens.join(' ');
     type Named = { kind: 'word'; word: FormWord } | { kind: 'class'; cls: FormClass };
-    const answer = GrammarApi.name<Named>(rest, [
+    const answer = GrammarApi.nameAmong<Named>(rest, [
       ...this.words.map((w) => ({
         value: { kind: 'word', word: w } as Named,
         keywords: [w.key, w.key.replace(/-/g, ' '), ...w.keywords],

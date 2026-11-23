@@ -223,7 +223,7 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
       const held = ((this as unknown as Stuff & Container).getContents() as Array<Stuff & Containable>).filter(
         (item) => MixinApi.isPerceptible(item) && MixinApi.isChattel(item) && this.holdingFor(item.getChattelId()),
       );
-      const answer = GrammarApi.name(
+      const answer = GrammarApi.nameAmong(
         keyword,
         held.map((item) => ({
           value: item,

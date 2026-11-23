@@ -53,7 +53,7 @@ export abstract class OfficeControllerBase extends CommandController<OfficeModel
   protected async officeNamed(context: CommandContext, text: string): Promise<Office | null> {
     return this.named(
       context,
-      GrammarApi.name(
+      GrammarApi.nameAmong(
         text,
         OFFICE_APPARATUS.map((o) => ({
           value: o,

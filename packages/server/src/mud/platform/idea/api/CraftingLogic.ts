@@ -875,7 +875,7 @@ function resolveBrandKey(token: string): string | null {
   // `hollis` for `old-hollis`; a tie keeps the first by key.
   if (token.trim() === '') return null;
   const brands = [...CorpoApi.listBrands()].sort((a, b) => a.key.localeCompare(b.key));
-  const answer = GrammarApi.name(
+  const answer = GrammarApi.nameAmong(
     token,
     brands.map((b) => ({ value: b.key, keywords: [b.key, b.key.replace(/-/g, ' '), b.name].map((k) => k.toLowerCase()), title: b.name })),
   );
@@ -4813,7 +4813,7 @@ async function partInReachFor(
 ): Promise<Stuff | string> {
   whole.ensureParts();
   // By the one rule (naming overhaul D-C4) — the plural comes with it.
-  const named = GrammarApi.name(word, whole.getParts().map((l) => ({ value: l, keywords: [l.part.toLowerCase()], title: l.part })));
+  const named = GrammarApi.nameAmong(word, whole.getParts().map((l) => ({ value: l, keywords: [l.part.toLowerCase()], title: l.part })));
   const line = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : null;
   if (!line) return word.trim();
   const pool: Stuff[] = [...carriedToHand(maker).near];

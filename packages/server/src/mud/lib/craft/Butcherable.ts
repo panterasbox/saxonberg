@@ -293,7 +293,7 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       let lines = dressed;
       if (kit.cut.trim()) {
         // By the one rule (naming overhaul D-C4); alike lines all answer.
-        const named = GrammarApi.name(
+        const named = GrammarApi.nameAmong(
           kit.cut,
           dressed.map((line) => {
             const ex = exemplarFor.get(line.cut);

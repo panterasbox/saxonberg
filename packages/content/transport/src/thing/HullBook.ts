@@ -260,7 +260,7 @@ export default class HullBook extends PersistableMixin(ForSaleMixin(Good)) {
    * device for what is not on a shelf. Alike hulls are all returned.
    */
   private hullsNamed(word: string): HullSlot[] {
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       word,
       this.hulls.map((h) => ({
         value: h,

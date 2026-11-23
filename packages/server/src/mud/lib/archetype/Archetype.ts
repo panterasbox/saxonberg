@@ -586,7 +586,7 @@ function satisfyingItem(
   }
   if ('presence' in need) {
     // By the one rule (naming overhaul D-C8) over each item's keywords.
-    const named = GrammarApi.name(
+    const named = GrammarApi.nameAmong(
       need.presence,
       pool
         .filter((i) => MixinApi.isPerceptible(i))

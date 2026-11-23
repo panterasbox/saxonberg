@@ -100,7 +100,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
   /**
    * ⭐⭐ The recipes a player's words name (naming overhaul D-C5 rule 3) —
    * every recipe answers to its id, its name and its keywords, ranked by
-   * THE rule (`GrammarApi.name`: article, ordinal, plural, word start; a
+   * THE rule (`GrammarApi.nameAmong`: article, ordinal, plural, word start; a
    * tie in id order). `among` narrows the pool (the carvings). Never
    * prompts — a controller's `named` does.
    */
@@ -110,7 +110,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     const pool = [...this.cache!.values()]
       .filter((r) => among === undefined || among(r))
       .sort((a, b) => a.getRecipeId().localeCompare(b.getRecipeId()));
-    return GrammarApi.name(
+    return GrammarApi.nameAmong(
       text,
       pool.map((r) => ({
         value: r,

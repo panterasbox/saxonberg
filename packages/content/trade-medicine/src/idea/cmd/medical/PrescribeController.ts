@@ -65,7 +65,7 @@ export default class PrescribeController extends CommandController<PrescribeMode
     // (naming overhaul D-C5 rule 4); a shared word is asked between.
     const row = await this.named(
       context,
-      GrammarApi.name(
+      GrammarApi.nameAmong(
         active,
         ConditionApi.conditions()
           .roster()

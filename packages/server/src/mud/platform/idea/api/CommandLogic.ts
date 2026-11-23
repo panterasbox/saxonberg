@@ -3451,7 +3451,12 @@ function bindPositionalsImpl(
     // ⭐ A `string` slot that names a GOOD the next object offers
     // (`buy <good> from <counter>`, `shelf reclaim <good> from <shelf>`)
     // is a name too, and folds the same way (controller-liquidity W5).
-    const isObject = def.type === 'object' || def.type === 'objects' || namesAnOfferedGood(args, ai);
+    // ⭐ And a view's LAST one-word `string` slot holds a NAME a controller
+    // names by the one rule (`party adopt the wedge`, naming overhaul): it
+    // folds too. A greedy (prose) slot was bound above and keeps every word;
+    // a string slot with others after it keeps its shape.
+    const namesLast = (def.type === 'string' || def.type === undefined) && ai === args.length - 1;
+    const isObject = def.type === 'object' || def.type === 'objects' || namesLast || namesAnOfferedGood(args, ai);
     if (isObject && pi + 1 < positionals.length) {
       const head = positionals[pi]!;
       if (head.raw === head.value && FOLDED_ARTICLES.has(head.value.toLowerCase())) pi++;

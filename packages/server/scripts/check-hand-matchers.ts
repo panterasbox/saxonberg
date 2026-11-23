@@ -4,7 +4,7 @@
  *
  * A player's words name a thing by ONE rule — `GrammarApi`'s keyword
  * tiers, reached through MQL for runtime Stuff and through
- * `GrammarApi.name` for everything else (a quay in a book, a reading
+ * `GrammarApi.nameAmong` for everything else (a quay in a book, a reading
  * channel, a list label, an offer not yet made). Every hand-rolled matcher
  * is a second rule that disagrees with the first somewhere: `the` stripped
  * here and not there, `plant` finding `implant` by a substring, a plural
@@ -219,7 +219,7 @@ export function scanModule(sf: ts.SourceFile, rel: string): MatcherSite[] {
     }
     // An operand that IS a lowered word — lowered on its own receiver chain,
     // or a variable holding one — never one with a lowering buried in an
-    // argument (`GrammarApi.name(w, keys.map(k => k.toLowerCase())).kind`).
+    // argument (`GrammarApi.nameAmong(w, keys.map(k => k.toLowerCase())).kind`).
     const isLowered = (x: ts.Node | undefined): boolean => !!x && (lowersDirectly(x) || readsLoweredVar(x, a.lowered));
     if (ts.isBinaryExpression(node) && [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken].includes(node.operatorToken.kind)) {
       // An emptiness or length test (`w === ''`, `t.length === 0`) names nothing.
@@ -335,7 +335,7 @@ function main(): void {
   const fmt = (s: MatcherSite): string => `${s.file}:${s.line}  ${s.symbol}`;
   const advice =
     "⭐ Name it by the one rule: an `object` slot (runtime Stuff), the holder's\n" +
-    "  `…Named(text)` over `GrammarApi.name` (everything else), or `type: duration`.";
+    "  `…Named(text)` over `GrammarApi.nameAmong` (everything else), or `type: duration`.";
   const of = (k: MatcherKind): MatcherSite[] => sites.filter((s) => s.kind === k);
   const oks = [
     ratchet("check-hand-matchers", "article strips", of("article-strip").length, ARTICLE_STRIP_CEILING, of("article-strip").map(fmt), advice),

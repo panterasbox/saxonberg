@@ -399,7 +399,7 @@ export default class Tariff extends TariffBase {
    */
   private serviceNamed(phrase: string): string | null {
     const keys = Object.keys(this.services).filter((k) => this.serviceFor(k) !== null);
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       phrase,
       keys.map((k) => ({ value: k, keywords: [k, k.replace(/-/g, ' ')], title: k })),
     );

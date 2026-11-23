@@ -387,7 +387,7 @@ export function OpenWorkingMixin<
         return faces.find((f) => f.floor) ?? faces[faces.length - 1] ?? null;
       }
       // ⭐ By the one rule (naming overhaul D-C4).
-      const named = GrammarApi.name(word, faces.map((f) => ({ value: f, keywords: bandKeywords(f), title: nameOfBand(f) })));
+      const named = GrammarApi.nameAmong(word, faces.map((f) => ({ value: f, keywords: bandKeywords(f), title: nameOfBand(f) })));
       if (named.kind === 'one') return named.one;
       if (named.kind === 'tie') return named.tie[0]!;
       // ⭐ A word that names the WORKING itself (`dig pit`, `dig the
@@ -430,7 +430,7 @@ export function OpenWorkingMixin<
     ): Promise<WorkPlan<DigBegin, DigDone, DigRefusal> | DigRefusal> {
       const asked = what?.trim() ?? '';
       // The way up is not a face — the few words for it, through the rule.
-      if (asked !== '' && GrammarApi.name(asked, [{ value: 'up', keywords: [...UPWARD_WORDS], title: 'up' }]).kind === 'one') return { ok: false, reason: 'no-face-above' };
+      if (asked !== '' && GrammarApi.nameAmong(asked, [{ value: 'up', keywords: [...UPWARD_WORDS], title: 'up' }]).kind === 'one') return { ok: false, reason: 'no-face-above' };
 
       const face = await this.faceOf(what);
       if (face === null) {
@@ -705,7 +705,7 @@ export function OpenWorkingMixin<
         const host = await resolveMaterial(b.hostPath);
         buried.push({ ...b, host, earth: host?.hasTag(EARTH_TAG) ?? false, floor: false, won: 0, capacity: 0 });
       }
-      const named = GrammarApi.name(word, buried.map((f) => ({ value: f, keywords: bandKeywords(f), title: nameOfBand(f) })));
+      const named = GrammarApi.nameAmong(word, buried.map((f) => ({ value: f, keywords: bandKeywords(f), title: nameOfBand(f) })));
       return named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : null;
     }
 

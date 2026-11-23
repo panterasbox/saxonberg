@@ -409,7 +409,7 @@ export default class Stock extends StockBase {
     // ⭐ By the one rule (naming overhaul D-C7): a good answers to its
     // keywords and to the line leaf the shelf list prints; alike goods are
     // one choice (the first), so eleven loaves never prompt.
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       keyword,
       this.offeredItems().map((item) => {
         const leaf = (item.getTemplatePath() ?? "").split("/").pop() ?? "";
@@ -428,7 +428,7 @@ export default class Stock extends StockBase {
    * start — `buy loaves`, `buy a loaf`, `buy block` at an ice-block counter.
    */
   public lineForWord(word: string): StockLine | null {
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       word,
       this.stockLines.map((l) => {
         const leaf = l.itemTemplatePath.split("/").pop() ?? "";
@@ -523,7 +523,7 @@ export default class Stock extends StockBase {
    * over the price list.
    */
   private pricedKeyFor(word: string): string | null {
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       word,
       this.pricedKeys()
         .filter((key) => this.lineFor(key) === null)
@@ -551,7 +551,7 @@ export default class Stock extends StockBase {
       if (thing === self || !MixinApi.isContainable(thing) || !MixinApi.isChattel(thing)) continue;
       const path = thing.getTemplatePath() ?? "";
       if (this.lineFor(path) !== null || this.priceFor(path) == null) continue;
-      const named = path === key || (MixinApi.isPerceptible(thing) && GrammarApi.name(word, [{ value: thing, keywords: [...thing.getKeywords()].map((k) => k.toLowerCase()), title: "" }]).kind === "one");
+      const named = path === key || (MixinApi.isPerceptible(thing) && GrammarApi.nameAmong(word, [{ value: thing, keywords: [...thing.getKeywords()].map((k) => k.toLowerCase()), title: "" }]).kind === "one");
       if (!named) continue;
       if (MixinApi.isHirable(thing) && thing.isHired()) continue;
       const owner = thing.stampedOwner();

@@ -1,5 +1,5 @@
 /**
- * GrammarApi.name — the one entry for naming what is not Stuff (naming
+ * GrammarApi.nameAmong — the one entry for naming what is not Stuff (naming
  * overhaul D-C2): article, case, word start, the mid-word refusal, plural,
  * ordinal, quoted phrase, tie, and none-with-offered. And `rank`'s tier cut.
  */
@@ -16,28 +16,34 @@ const QUAYS = [
   e('dock', ['dry dock', 'dock'], 'the dry dock'),
 ];
 
-describe('GrammarApi.name', () => {
+describe('GrammarApi.nameAmong', () => {
+  it('⚠ the class keeps its own `name` — a static `name` shadowed Function.prototype.name and broke `eval`\'s Api binding', () => {
+    expect(GrammarApi.name).toBe('GrammarApi');
+  });
+
   it('names one by its whole keyword, case and a leading article aside', () => {
-    expect(GrammarApi.name('The East Quay', QUAYS)).toEqual({ kind: 'one', one: 'east' });
-    expect(GrammarApi.name('dock', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
+    expect(GrammarApi.nameAmong('The East Quay', QUAYS)).toEqual({ kind: 'one', one: 'east' });
+    expect(GrammarApi.nameAmong('dock', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
   });
 
   it('a word that begins a keyword word names it', () => {
-    expect(GrammarApi.name('dr', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
+    expect(GrammarApi.nameAmong('dr', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
   });
 
   it('⚠ never matches mid-word — `plant` never finds `implant`', () => {
-    const got = GrammarApi.name('plant', [e('implant', ['implant', 'aether implant'])]);
+    const got = GrammarApi.nameAmong('plant', [e('implant', ['implant', 'aether implant'])]);
     expect(got).toEqual({ kind: 'none', offered: ['implant'] });
   });
 
   it('an entry answers to the plural of its keywords', () => {
-    expect(GrammarApi.name('docks', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
-    expect(GrammarApi.name('berries', [e('b', ['berry'])])).toEqual({ kind: 'one', one: 'b' });
+    expect(GrammarApi.nameAmong('docks', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
+    expect(GrammarApi.nameAmong('berries', [e('b', ['berry'])])).toEqual({ kind: 'one', one: 'b' });
+    expect(GrammarApi.nameAmong('loaves', [e('l', ['loaf'])])).toEqual({ kind: 'one', one: 'l' });
+    expect(GrammarApi.nameAmong('knives', [e('k', ['knife'])])).toEqual({ kind: 'one', one: 'k' });
   });
 
   it('a tie keeps entry order and carries the titles', () => {
-    expect(GrammarApi.name('quay', QUAYS)).toEqual({
+    expect(GrammarApi.nameAmong('quay', QUAYS)).toEqual({
       kind: 'tie',
       tie: ['east', 'west'],
       titles: ['the East Quay', 'the West Quay'],
@@ -45,26 +51,26 @@ describe('GrammarApi.name', () => {
   });
 
   it('a leading ordinal picks from the tie (word and numeric forms, and last)', () => {
-    expect(GrammarApi.name('second quay', QUAYS)).toEqual({ kind: 'one', one: 'west' });
-    expect(GrammarApi.name('1st quay', QUAYS)).toEqual({ kind: 'one', one: 'east' });
-    expect(GrammarApi.name('last quay', QUAYS)).toEqual({ kind: 'one', one: 'west' });
-    expect(GrammarApi.name('third quay', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
+    expect(GrammarApi.nameAmong('second quay', QUAYS)).toEqual({ kind: 'one', one: 'west' });
+    expect(GrammarApi.nameAmong('1st quay', QUAYS)).toEqual({ kind: 'one', one: 'east' });
+    expect(GrammarApi.nameAmong('last quay', QUAYS)).toEqual({ kind: 'one', one: 'west' });
+    expect(GrammarApi.nameAmong('third quay', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
   });
 
   it('a quoted phrase is phrase-tier only', () => {
-    expect(GrammarApi.name('"dry dock"', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
-    expect(GrammarApi.name('"dry"', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
+    expect(GrammarApi.nameAmong('"dry dock"', QUAYS)).toEqual({ kind: 'one', one: 'dock' });
+    expect(GrammarApi.nameAmong('"dry"', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
   });
 
   it('none says what could have been named', () => {
-    expect(GrammarApi.name('harbor', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
-    expect(GrammarApi.name('   ', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
+    expect(GrammarApi.nameAmong('harbor', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
+    expect(GrammarApi.nameAmong('   ', QUAYS)).toEqual({ kind: 'none', offered: QUAYS.map((q) => q.title) });
   });
 
   it('⭐ a partial names nothing — every word must begin a keyword word', () => {
-    const got = GrammarApi.name('long red pole', [e('a', ['long rod']), e('b', ['long red rod'])]);
+    const got = GrammarApi.nameAmong('long red pole', [e('a', ['long rod']), e('b', ['long red rod'])]);
     expect(got).toEqual({ kind: 'none', offered: ['a', 'b'] });
-    expect(GrammarApi.name('long red', [e('a', ['long rod']), e('b', ['long red rod'])])).toEqual({ kind: 'one', one: 'b' });
+    expect(GrammarApi.nameAmong('long red', [e('a', ['long rod']), e('b', ['long red rod'])])).toEqual({ kind: 'one', one: 'b' });
   });
 });
 

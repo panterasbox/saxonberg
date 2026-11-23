@@ -134,7 +134,7 @@ export default class MoveController extends CommandController<MoveModel> {
     wanted: string,
   ): Promise<Field | string | null> {
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    if (here && GrammarApi.name(wanted, [{ value: 'here', keywords: ['here'], title: 'here' }]).kind === 'one' && wanted.trim().split(/\s+/).length === 1) return here instanceof Tract ? this.fieldOfTract(here) : null;
+    if (here && GrammarApi.nameAmong(wanted, [{ value: 'here', keywords: ['here'], title: 'here' }]).kind === 'one' && wanted.trim().split(/\s+/).length === 1) return here instanceof Tract ? this.fieldOfTract(here) : null;
     const candidates: Stuff[] = [];
     if (here) candidates.push(here);
     if (here && MixinApi.isExitable(here)) {
@@ -153,7 +153,7 @@ export default class MoveController extends CommandController<MoveModel> {
     const tracts = candidates.filter((c): c is Tract & Stuff => c instanceof Tract);
     // ⭐ By the one rule (naming overhaul D-C4): a FIELD by its own name or
     // keywords first; else a TRACT by its name or keywords, meaning its field.
-    const fields = GrammarApi.name<Field>(
+    const fields = GrammarApi.nameAmong<Field>(
       wanted,
       tracts.flatMap((t) => t.getFields()).map((f) => ({
         value: f,
@@ -163,7 +163,7 @@ export default class MoveController extends CommandController<MoveModel> {
     );
     const hit = fields.kind === 'one' ? fields.one : fields.kind === 'tie' ? fields.tie[0]! : null;
     if (hit !== null) return hit;
-    const named = GrammarApi.name(
+    const named = GrammarApi.nameAmong(
       wanted,
       tracts.map((t) => ({ value: t, keywords: [t.getFieldName(), ...t.getKeywords()].map((k) => k.toLowerCase()), title: t.getFieldName() })),
     );

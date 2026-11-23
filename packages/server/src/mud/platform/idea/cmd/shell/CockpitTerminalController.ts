@@ -92,7 +92,7 @@ export default class CockpitTerminalController extends CommandController<Termina
     const giver = context.commandGiver;
     const tabs = MixinApi.isClientState(giver) ? (giver.getClientState<ConsoleTab[]>('console.tabs') ?? []) : [];
     // ⭐ One of the player's views (or All), by the one rule (D-C5 rule 7).
-    const named = GrammarApi.name<ConsoleTab | null>(target, [
+    const named = GrammarApi.nameAmong<ConsoleTab | null>(target, [
       { value: null, keywords: [ALL_VIEW.toLowerCase()], title: ALL_VIEW },
       ...tabs.map((t) => ({ value: t, keywords: [t.name.toLowerCase()], title: t.name })),
     ]);

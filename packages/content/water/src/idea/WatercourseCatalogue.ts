@@ -1529,7 +1529,7 @@ export default class WatercourseCatalogue extends WaterSourceMixin(Idea) {
   public landingNamed(course: string, word: string): { path: string; km: number; name: string } | null {
     // ⭐ By the one rule (naming overhaul D-C4): the way's name, its leaf
     // (`town quay` and `town-quay` are one word to a pilot).
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       word,
       this.placesOfSync(course)
         .filter((p) => p.kind === 'bank')

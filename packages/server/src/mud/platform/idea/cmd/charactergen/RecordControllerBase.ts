@@ -74,7 +74,7 @@ export abstract class RecordControllerBase<
     const entries: Array<{ value: Subject; keywords: string[]; title: string }> = [];
     if (person) entries.push({ value: { kind: 'person', stuff: person }, keywords: [person.getPresentation().toLowerCase()], title: person.getPresentation() });
     if (body) entries.push({ value: { kind: 'body', stuff: body }, keywords: [this.labelOf(body).toLowerCase()], title: this.labelOf(body) });
-    const answer = GrammarApi.name(asked, entries);
+    const answer = GrammarApi.nameAmong(asked, entries);
     if (answer.kind === 'one') return answer.one;
     if (answer.kind === 'tie') return answer.tie[0]!;
     if (person) return { kind: 'person', stuff: person };

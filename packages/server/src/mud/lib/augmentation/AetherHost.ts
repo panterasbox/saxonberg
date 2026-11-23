@@ -271,7 +271,7 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     appNamed(text: string, among: 'installed' | 'any'): NameAnswer<string> {
       const pool = among === 'installed' ? [...this.installedApps] : [...new Set([...this.installedApps, ...this.offersApps])];
-      return GrammarApi.name(
+      return GrammarApi.nameAmong(
         text,
         pool.map((p) => {
           const running = this._hostedApps.find((a) => a.getTemplatePath() === p);

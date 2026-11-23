@@ -232,7 +232,7 @@ export class AddressLogic extends ApiLogic {
     const trimmed = raw.trim();
     if (trimmed.length === 0) return '';
     // 1. `here` — where the asker is standing.
-    if (GrammarApi.name(trimmed, [{ value: 'here', keywords: ['here'], title: 'here' }]).kind === 'one' && trimmed.split(/\s+/).length === 1) return herePath;
+    if (GrammarApi.nameAmong(trimmed, [{ value: 'here', keywords: ['here'], title: 'here' }]).kind === 'one' && trimmed.split(/\s+/).length === 1) return herePath;
     // 2. Something they can point at (a shed behind the desk).
     const hit = MixinApi.isCommandGiver(giver)
       ? MqlApi.resolveMany(trimmed, {

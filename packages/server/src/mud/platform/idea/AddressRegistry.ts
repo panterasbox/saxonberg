@@ -183,7 +183,7 @@ export default class AddressRegistry extends AddressRegistryBase {
     const pool = [...this.named].sort(
       (a, b) => a.getAddress().length - b.getAddress().length || a.getAddress().localeCompare(b.getAddress()),
     );
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       name,
       pool.map((l) => ({ value: l, keywords: [l.getName().toLowerCase()], title: l.getName() })),
     );

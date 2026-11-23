@@ -131,7 +131,7 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
   public async resolveByTitle(title: string): Promise<Subject | null> {
     await this.ensureCache();
     // ⭐ By the one rule (naming overhaul D-C5 rule 6); a tie is no subject.
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       title,
       [...this.byTitle.values()].map((s) => ({ value: s, keywords: [s.title.toLowerCase()], title: s.title })),
     );

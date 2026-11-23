@@ -856,7 +856,7 @@ MQL finds things in the world. Many verbs name something else — a
 spell (`cast glow`), a recipe, a formation (`party adopt the wedge`), a
 ship in a charter book, a quay, a reading channel, a chat channel, an
 app not yet installed. Those are named by **the same rule** (the
-engine's `GrammarApi.name`):
+engine's `GrammarApi.nameAmong`):
 
 - a leading `the` / `a` / `an` is dropped, and a leading ordinal picks
   (`charter second schooner`);

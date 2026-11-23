@@ -48,7 +48,7 @@ function stubLookup(reading: Reading): void {
           allWarmed: async () => [reading],
           // The one rule over the one row (naming overhaul D-C5 rule 4).
           readingNamed: async (text: string) =>
-            GrammarApi.name(text, [{ value: reading, keywords: [reading.getChannel()], title: reading.getChannel() }]),
+            GrammarApi.nameAmong(text, [{ value: reading, keywords: [reading.getChannel()], title: reading.getChannel() }]),
         }
       : real(path, factory as never)) as never);
 }

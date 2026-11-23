@@ -230,7 +230,7 @@ export class PlayerLogic extends ApiLogic {
     // ⭐ By the one rule (naming overhaul D-C5 rule 6): a loaded avatar's
     // name or presentation. A shared name is ambiguous — no avatar (the
     // caller asks for `@<id>`).
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       name,
       [...this.avatarsByPlayerId.values()].map((a) => ({
         value: a,

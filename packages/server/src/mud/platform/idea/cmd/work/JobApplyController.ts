@@ -53,7 +53,7 @@ export default class JobApplyController extends JobControllerBase<ApplyModel> {
       openings = openings.filter((o) => keep.includes(o.organizationPath));
     }
     if (wantPosition) {
-      const named = GrammarApi.name(
+      const named = GrammarApi.nameAmong(
         wantPosition,
         openings.map((o) => ({ value: o, keywords: [o.position.key, o.position.key.replace(/-/g, ' ')], title: o.position.key })),
       );

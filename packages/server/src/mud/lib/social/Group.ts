@@ -204,7 +204,7 @@ export class Group extends Document {
       const name = await PlayerApi.storedNameOf(id.slice(id.lastIndexOf('/') + 1));
       if (name !== null) entries.push({ value: id, keywords: [name.toLowerCase()], title: name });
     }
-    const answer = GrammarApi.name(want, entries);
+    const answer = GrammarApi.nameAmong(want, entries);
     if (answer.kind === 'one') return answer.one;
     return null;
   }

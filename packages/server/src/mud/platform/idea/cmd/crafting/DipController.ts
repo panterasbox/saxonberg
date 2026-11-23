@@ -60,7 +60,7 @@ export default class DipController extends ManualBuildController<DipModel> {
     let faces: FaceName[] | null = null;
     if (faceWord !== '') {
       // The closed faces, through the one rule (naming overhaul D-C5).
-      const named = GrammarApi.name<FaceName>(faceWord, FACE_WORDS.map((f) => ({ value: f, keywords: [f], title: f })));
+      const named = GrammarApi.nameAmong<FaceName>(faceWord, FACE_WORDS.map((f) => ({ value: f, keywords: [f], title: f })));
       if (named.kind !== 'one') {
         this.declineStep(
           context,

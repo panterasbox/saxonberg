@@ -128,7 +128,7 @@ export function HaulOutMixin<
       // ⭐ By what the PULLER knows them as (the lifeline's lesson): a
       // stranger answers to "a human", never to a name nobody told — through
       // the one rule (naming overhaul D-C4).
-      const answer = GrammarApi.name(
+      const answer = GrammarApi.nameAmong(
         word,
         (this as unknown as Stuff & Container)
           .getContents()

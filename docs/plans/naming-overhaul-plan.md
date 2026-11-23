@@ -238,7 +238,7 @@ new* and what was searched.
 | N6 | `RelatingMixin` — *a thing that keeps named sets it can be asked for* | `S/lib/relation/Relating.ts`, `Mixins.Relating` | **genuinely new.** Generalizes `flatMapMembers`' `instanceof Warren` (which retires). Searched: `S/lib/mixin.ts` for Relat/Keep/List/Member (none); `GroupProvider` (durable-id membership, async, answers offline people — a different question, see D-B9); `Registrar` (a write transport's holder); `Listing` (the rejected § 1 protocol, never built). Seven implementers in this build |
 | N7 | the built-in relation table | `S/api/mql/relations.ts` (sealed pipeline internal) | generalizes — and replaces — the two hand-written seed/scope tables in `resolver.ts` |
 | N8 | `MqlMatchVia.relation` (a facet), `MqlMany.relations` and `MqlMany.relationTie` (facts) | `S/api/mql/types.ts` | reuse — the `via.detailPath` / `isSet` precedents |
-| N9 | the naming rule on `GrammarApi`: the scorer **moved** from `scope-walk.ts`, plus one entry `GrammarApi.name()` returning a `NameAnswer<T>` | `S/api/grammar.ts` | § 6 rows 1–4 (reuse the scorer, generalize plurals, reuse articles/ordinals/literals). `name()` is new composition of existing parts |
+| N9 | the naming rule on `GrammarApi`: the scorer **moved** from `scope-walk.ts`, plus one entry `GrammarApi.nameAmong()` returning a `NameAnswer<T>` | `S/api/grammar.ts` | § 6 rows 1–4 (reuse the scorer, generalize plurals, reuse articles/ordinals/literals). `name()` is new composition of existing parts |
 | N10 | `CommandController.named()` — the I/O half: prompt on a tie, refuse listing what was there | `S/lib/command/CommandController.ts` | reuse — beside `refuse` / `promptForObject`; § 6 row *the prompt on a tie* |
 | N11 | query aliases: `AliasEntry.at: 'verb' \| 'query'` | `S/lib/shell/Alias.ts`, `ShellApi.expandQueryAliases` | generalizes `AliasMixin` (mql-anchors § 13 ruled *the alias system, not the grammar*) |
 | N12 | `granularity:` · `min:` · `max:` on a `type: duration` slot, and the slot returning game seconds | `CommandDefinition`, the binder, `lint:view-keys` | generalizes the existing `type: duration`; § 6 row *durations* |
@@ -529,7 +529,7 @@ score. `GrammarApi` stays logic-free statics (it has no logic singleton and
 the scorer is pure).
 
 **D-C2 — One entry for everything that is not Stuff.**
-`GrammarApi.name<T>(text, entries: ReadonlyArray<{ value: T; keywords:
+`GrammarApi.nameAmong<T>(text, entries: ReadonlyArray<{ value: T; keywords:
 readonly string[]; title: string }>): NameAnswer<T>` — strips a leading
 article, reads a leading ordinal, treats a quoted phrase as phrase-tier only,
 adds plurals, ranks, and returns `{ one }`, `{ tie: [...] }` (in entry order;
@@ -1478,6 +1478,20 @@ waves). ⚠ **Found by the docs pass:** `callUp` (`show <words>`) read releases
 ordered on the retired `publishedAt` card key — A3 files the date under `date`
 — so it found no release at all; fixed, with a test that fails on the old key.
 Also respelled `get`'s help scope (`~peers`, `~reachable`).
+
+⚠ **Found by the blocking drive (first run, 2026-11-22) — fixed:**
+- **`GrammarApi.name` → `GrammarApi.nameAmong`.** A static method called
+  `name` SHADOWS `Function.prototype.name`, so the class's name became a
+  function — `eval`'s sandbox binds each Api by its class name and died
+  (`(cls.name ?? "").replace is not a function`). Renamed everywhere (code
+  and docs) with a guard test that the class keeps its own name.
+- **`buy loaves`** — the plural rule knew only `+s`; a keyword in `-f`/`-fe`
+  now also answers to `-ves` (`loaves`, `knives`).
+- **`party adopt the vanguard`** failed to bind (a one-word string slot,
+  two words). ⭐ **Decided:** a view's LAST one-word `string` slot holds a
+  name and folds a leading article like an object slot does; a string slot
+  with others after it keeps its shape (a narrower fold broke a fixture's
+  two-slot fall-through).
 
 **Then, in order:** push, open the MR ready, report the number; run
 `pnpm test` once and the blocking drive once, alongside review; the browser

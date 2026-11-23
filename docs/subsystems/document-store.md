@@ -235,7 +235,7 @@ delete.
 
 ⭐ **A document is NAMED through its kind's words** —
 `DocumentCatalogue.named(text, among?)` hands a catalogue's documents to
-`GrammarApi.name` with `keywordsOf` as their keywords (the one naming rule
+`GrammarApi.nameAmong` with `keywordsOf` as their keywords (the one naming rule
 — [mql.md](./mql.md) § Match-quality scoring), path order the tiebreak;
 the controller's `named` prompts on a tie or refuses `no-such-name`.
 `party adopt wedge`, `operate … for <op>` and the press's `callUp` name

@@ -83,7 +83,7 @@ export default class ReadingCatalogue extends ReadingCatalogueBase {
    */
   public async readingNamed(text: string): Promise<NameAnswer<Reading>> {
     const all = await this.allWarmed();
-    return GrammarApi.name(
+    return GrammarApi.nameAmong(
       text,
       all.map((r) => ({
         value: r,

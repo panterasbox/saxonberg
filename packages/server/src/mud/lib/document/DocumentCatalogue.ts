@@ -159,7 +159,7 @@ export abstract class DocumentCatalogue<T> extends Idea implements ServesDocumen
    * ⭐⭐ The documents a player's words name (naming overhaul D-C5 rule 3):
    * the kind is `keyworded`, and every document answers to the words its
    * kind derives (`DocumentKind.keywordsOf` — the leaf, its keywords
-   * field, its title), ranked by THE rule (`GrammarApi.name` — article,
+   * field, its title), ranked by THE rule (`GrammarApi.nameAmong` — article,
    * ordinal, plural, word start, a tie in path order). `among` narrows to
    * these paths (the formations a party may adopt). Never prompts — the
    * controller's `named` does.
@@ -170,7 +170,7 @@ export abstract class DocumentCatalogue<T> extends Idea implements ServesDocumen
     const docs = (await DocumentApi.listOfKind(this.kind))
       .filter((d) => among === undefined || among.includes(d.getPath()))
       .sort((a, b) => a.getPath().localeCompare(b.getPath()));
-    return GrammarApi.name(
+    return GrammarApi.nameAmong(
       text,
       docs.map((doc) => {
         const path = doc.getPath();

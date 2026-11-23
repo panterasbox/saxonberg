@@ -704,7 +704,7 @@ export default class Place extends PlaceBase {
   public groundRefusal(named?: string): string | null {
     if (this.getFloor() !== null) return null;
     // The ground's closed few words, through the one rule (D-C4).
-    if ((named ?? '').trim() !== '' && GrammarApi.name(named ?? '', [{ value: 'ground', keywords: [...GROUND_WORDS], title: 'the ground' }]).kind === 'none') return null;
+    if ((named ?? '').trim() !== '' && GrammarApi.nameAmong(named ?? '', [{ value: 'ground', keywords: [...GROUND_WORDS], title: 'the ground' }]).kind === 'none') return null;
     return this.noGroundLine();
   }
 

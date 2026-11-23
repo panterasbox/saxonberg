@@ -185,7 +185,7 @@ export default class ClaimsRegister extends Thing {
 
   public surfaceWorkingFor(word: string): string | null {
     // ⭐ By the one rule (naming overhaul D-C4) over each working's keywords.
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       word,
       this.surfaceWorkings.map((e) => ({
         value: e.path,

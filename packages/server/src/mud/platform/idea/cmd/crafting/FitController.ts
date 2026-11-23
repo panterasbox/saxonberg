@@ -81,7 +81,7 @@ export default class FitController extends CraftController<FitModel> {
     // a slack barrel bound the cask HEAD ("cask head") and fitted it into
     // the barrel (the assembly drive). `fit head` still means the head.
     const ownWord =
-      part !== null && MixinApi.isPerceptible(part) && GrammarApi.name(raw, [{ value: part, keywords: part.getKeywords().map((k) => k.toLowerCase()), title: part.getPresentation() }]).kind === 'one';
+      part !== null && MixinApi.isPerceptible(part) && GrammarApi.nameAmong(raw, [{ value: part, keywords: part.getKeywords().map((k) => k.toLowerCase()), title: part.getPresentation() }]).kind === 'one';
     if (part && !whole && raw && (!ownWord || !this.wholeFor(part, giver))) {
       const recipe = await CraftingApi.lookupRecipe(raw);
       if (recipe) return this.raise(raw, giver, context);
@@ -158,7 +158,7 @@ export default class FitController extends CraftController<FitModel> {
   private namesLine(whole: Stuff & Assembled, word: string): boolean {
     whole.ensureParts();
     // By the one rule (naming overhaul D-C4) — the plural comes with it.
-    return GrammarApi.name(word, whole.getParts().map((l) => ({ value: l, keywords: [l.part.toLowerCase()], title: l.part }))).kind !== 'none';
+    return GrammarApi.nameAmong(word, whole.getParts().map((l) => ({ value: l, keywords: [l.part.toLowerCase()], title: l.part }))).kind !== 'none';
   }
 
   /** Say the replace arm's outcome to the room. */
@@ -220,7 +220,7 @@ export default class FitController extends CraftController<FitModel> {
     const tpl = part.getTemplatePath() ?? '';
     const fits = (s: Stuff): { failed: boolean } | null => {
       if (s === part || !MixinApi.isAssembled(s)) return null;
-      if (named && GrammarApi.name(named, [{ value: s, keywords: MixinApi.isPerceptible(s) ? s.getKeywords().map((k) => k.toLowerCase()) : [], title: s.getPresentation() }]).kind === 'none') return null;
+      if (named && GrammarApi.nameAmong(named, [{ value: s, keywords: MixinApi.isPerceptible(s) ? s.getKeywords().map((k) => k.toLowerCase()) : [], title: s.getPresentation() }]).kind === 'none') return null;
       const lines = s
         .getParts()
         .filter(

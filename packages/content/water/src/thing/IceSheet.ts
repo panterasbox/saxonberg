@@ -160,7 +160,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
    */
   private patchKindNamed(word: string | null): PatchKind | null {
     if ((word ?? '').trim() === '') return 'field';
-    const answer = GrammarApi.name<PatchKind>(word ?? '', [
+    const answer = GrammarApi.nameAmong<PatchKind>(word ?? '', [
       { value: 'field', keywords: ['ice', 'sheet', 'field', 'snowy'], title: 'the field' },
       { value: 'scraped', keywords: ['scraped', 'bare'], title: 'the scraped patch' },
       { value: 'marked', keywords: ['marked', 'grid'], title: 'the marked grid' },

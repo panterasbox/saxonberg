@@ -81,7 +81,7 @@ export default class GetController extends CommandController<GetModel> {
       const onThem = (MixinApi.isContainer(source) ? source.getDeepContents() : []).filter((t) => PerceptionApi.perceives(giver, t));
       // ⭐ By what the GIVER perceives, through the one rule (naming
       // overhaul D-C5); alike things all answer.
-      const named = GrammarApi.name(
+      const named = GrammarApi.nameAmong(
         raw,
         onThem.map((t) => ({ value: t, keywords: t.perceivedKeywordsFor(giver).map((k) => k.toLowerCase()), title: t.describeFor(giver) })),
       );

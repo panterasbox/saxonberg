@@ -995,7 +995,7 @@ async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; 
     .sort((a, b) => b.getPublishedAt() - a.getPublishedAt());
   const firstOf = <T>(a: NameAnswer<T>): T | null => (a.kind === 'one' ? a.one : a.kind === 'tie' ? a.tie[0]! : null);
   const release = firstOf(
-    GrammarApi.name(
+    GrammarApi.nameAmong(
       word,
       releases.map((r) => ({
         value: r,
@@ -1012,7 +1012,7 @@ async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; 
     const pages = await pagesOfImpl(d.getPath());
     if (pages !== null) mine.push({ path: d.getPath(), title: pages.title });
   }
-  return firstOf(GrammarApi.name(word, mine.map((m) => ({ value: m, keywords: [m.title.toLowerCase()], title: m.title }))));
+  return firstOf(GrammarApi.nameAmong(word, mine.map((m) => ({ value: m, keywords: [m.title.toLowerCase()], title: m.title }))));
 }
 
 /**

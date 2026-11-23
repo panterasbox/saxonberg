@@ -433,7 +433,7 @@ function findOrganizationImpl(asked: string): Stuff | null {
   const candidates = [...StuffApi.findByMixin('OrganizationMixin')].sort((a, b) =>
     (a.getIdentityPath() ?? '').localeCompare(b.getIdentityPath() ?? ''),
   );
-  const answer = GrammarApi.name(
+  const answer = GrammarApi.nameAmong(
     asked,
     candidates.map((org) => {
       const key = (org.getIdentityPath() ?? '').split('/').pop() ?? '';
@@ -1670,7 +1670,7 @@ export class EmploymentLogic extends ApiLogic {
   /** See {@link EmploymentApi.organizationNamed}. */
   @CallSecurity(EmploymentApiCallers)
   public organizationNamed(text: string, paths: readonly string[]): NameAnswer<string> {
-    return GrammarApi.name(
+    return GrammarApi.nameAmong(
       text,
       [...new Set(paths)].map((path) => {
         const body = StuffApi.findByTemplatePath(path);

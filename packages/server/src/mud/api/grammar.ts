@@ -272,7 +272,7 @@ export class GrammarApi {
    * of its keywords, and ranks by the tiers. A tie keeps entry order and
    * an ordinal picks from it.
    */
-  static name<T>(text: string, entries: ReadonlyArray<NameEntry<T>>): NameAnswer<T> {
+  static nameAmong<T>(text: string, entries: ReadonlyArray<NameEntry<T>>): NameAnswer<T> {
     const offered = entries.map((e) => e.title);
     let typed = text.trim().toLowerCase();
     const quoted = /^"(.*)"$/.exec(typed) ?? /^'(.*)'$/.exec(typed);
@@ -290,13 +290,19 @@ export class GrammarApi {
       }
     }
     if (words.length === 0) return { kind: 'none', offered };
+    // Each keyword answers to its plurals — the regular one and, for a word
+    // in -f / -fe, the -ves one (`loaves`, `knives`, `leaves`).
+    const pluralsOf = (k: string): string[] => {
+      const parts = k.split(' ');
+      const last = parts[parts.length - 1]!;
+      const forms = [pluralOf(last)];
+      const ves = /fe?$/.test(last) ? last.replace(/fe?$/, 'ves') : null;
+      if (ves !== null) forms.push(ves);
+      return forms.map((f) => [...parts.slice(0, -1), f].join(' '));
+    };
     const withPlurals = entries.map((e) => ({
       value: e,
-      keywords: [...e.keywords, ...e.keywords.map((k) => {
-        const parts = k.split(' ');
-        parts[parts.length - 1] = pluralOf(parts[parts.length - 1]!);
-        return parts.join(' ');
-      })],
+      keywords: [...e.keywords, ...e.keywords.flatMap(pluralsOf)],
     }));
     let ranked = GrammarApi.rank(withPlurals, words);
     if (quoted) ranked = ranked.filter((r) => r.score >= TIER_PHRASE);
@@ -407,7 +413,7 @@ export class GrammarApi {
   /**
    * ⭐ A name without its leading article — `The Swift` → `Swift` — for a
    * name being RECORDED (a ship's register, a slug), never for matching
-   * (that is {@link name}, which drops the article itself). The one place
+   * (that is {@link nameAmong}, which drops the article itself). The one place
    * the engine knows what an article is (naming overhaul D-C1).
    */
   static withoutArticle(text: string): string {

@@ -1070,7 +1070,7 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public async carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       const self = this as unknown as Stuff;
       // The mould's own small vocabulary, through the one rule (D-C4).
-      if (GrammarApi.name(req.word, [{ value: 'riser', keywords: ['riser', 'runner', 'gate'], title: 'a riser' }]).kind === 'none') {
+      if (GrammarApi.nameAmong(req.word, [{ value: 'riser', keywords: ['riser', 'runner', 'gate'], title: 'a riser' }]).kind === 'none') {
         return { ok: false, reason: 'not-carvable', facts: { carves: 'riser' } };
       }
       if (!this.impressible || this.impression === null) return { ok: false, reason: 'no-cavity' };

@@ -309,7 +309,7 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
 
   /** The nodes a player's words name, by the one rule (naming overhaul D-C5 rule 2). */
   public async nodeNamed(text: string): Promise<NameAnswer<ExpanseNode>> {
-    return GrammarApi.name(
+    return GrammarApi.nameAmong(
       text,
       (await this.nodes()).map((n) => ({ value: n, keywords: n.nameKeywords(), title: n.getName() })),
     );

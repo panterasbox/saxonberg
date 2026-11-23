@@ -322,7 +322,7 @@ export function StandMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     public speciesNamed(word: string): StandSpecies | null {
       // ⭐ By the one rule (naming overhaul D-C5 rule 4): its name (and its
       // plural), its row key; a tie takes the first in the mix.
-      const answer = GrammarApi.name(
+      const answer = GrammarApi.nameAmong(
         word,
         this.mix.map((sp) => {
           const key = sp.speciesPath.split('/').pop() ?? '';

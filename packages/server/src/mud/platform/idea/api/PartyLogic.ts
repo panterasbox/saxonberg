@@ -615,7 +615,7 @@ async function assignRoleImpl(
   if (!formationPath) return { ok: false, reason: "no-formation" };
   const roles = formationRolesAt(formationPath);
   // ⭐ A role of the formation's own vocabulary, by the one rule.
-  const named = GrammarApi.name(role, roles.map((r) => ({ value: r, keywords: [r], title: r })));
+  const named = GrammarApi.nameAmong(role, roles.map((r) => ({ value: r, keywords: [r], title: r })));
   if (named.kind !== 'one') {
     return { ok: false, reason: "unknown-role" };
   }
@@ -636,7 +636,7 @@ async function musterImpl(
   // ⭐ One of YOUR crews, by its chosen name through the one rule (naming
   // overhaul D-C5 rule 6).
   const records = (await PartyRecord.find<PartyRecord>({})).filter((r) => r.memberIds.includes(memberId));
-  const named = GrammarApi.name(name, records.map((r) => ({ value: r, keywords: [r.name.toLowerCase()], title: r.name })));
+  const named = GrammarApi.nameAmong(name, records.map((r) => ({ value: r, keywords: [r.name.toLowerCase()], title: r.name })));
   const rec = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : undefined;
   if (!rec) return { ok: false, reason: "no-such-crew" };
   const party = partyAt(rec.path) ?? (await materializeParty(rec));

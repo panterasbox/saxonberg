@@ -82,13 +82,13 @@ export default class SpellCatalogue extends SpellCatalogueBase {
   /**
    * ⭐⭐ The spells a player's words name (naming overhaul D-C5 rule 4) —
    * a working answers to its short id, its name and its keywords, by the
-   * one rule (`GrammarApi.name`: `cast Glowlight`, `cast glow`); two that
+   * one rule (`GrammarApi.nameAmong`: `cast Glowlight`, `cast glow`); two that
    * share a word are a TIE, asked between (never the first silently).
    */
   public spellNamed(text: string): NameAnswer<SpellDescriptor> {
     this.ensureCache();
     const pool = [...this.cache!.values()].sort((a, b) => (a.path ?? '').localeCompare(b.path ?? ''));
-    return GrammarApi.name(
+    return GrammarApi.nameAmong(
       text,
       pool.map((d) => ({
         value: d,

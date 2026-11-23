@@ -224,14 +224,14 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
       const name = await nameOf(q.place);
       entries.push({ value: q.place, keywords: [leaf, leaf.replace(/-/g, ' '), name].map((k) => k.toLowerCase()), title: name });
     }
-    const answer = GrammarApi.name(word, entries);
+    const answer = GrammarApi.nameAmong(word, entries);
     return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
   }
 
   /** Is `word` the harbor's roads (`roads`, `the roads`, or the node's name)? */
   public async isRoadsWord(word: string): Promise<boolean> {
     const name = await this.roadsName();
-    return GrammarApi.name(word, [{ value: true, keywords: ['roads', name.toLowerCase()], title: name }]).kind === 'one';
+    return GrammarApi.nameAmong(word, [{ value: true, keywords: ['roads', name.toLowerCase()], title: name }]).kind === 'one';
   }
 
   /** ⭐ How deep the water lies at a quay's berth, m, or `null`. */
@@ -527,7 +527,7 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
    */
   public async shipNamed(word: string, nowS: number): Promise<Ship | null> {
     // ⭐ By the one rule (naming overhaul D-C4): her name, her handle's leaf.
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       word,
       (await this.liveBook()).knownShips(nowS).map((k) => {
         const leaf = k.ship.split('/').filter((x) => x !== '' && x !== 'structure').pop() ?? '';

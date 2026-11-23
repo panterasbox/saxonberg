@@ -1322,7 +1322,7 @@ function liveIdOf(item: Stuff): string {
  */
 function receiptsNamed(rs: readonly StoreReceipt[], word: string): StoreReceipt[] {
   if (!word) return [...rs];
-  const answer = GrammarApi.name(
+  const answer = GrammarApi.nameAmong(
     word,
     rs.map((r) => {
       const leaf = r.good.split('/').pop() ?? '';

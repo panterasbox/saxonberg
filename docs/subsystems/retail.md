@@ -737,7 +737,7 @@ outside the command frame, where the bath's comment says there is no acting paye
 
 ## Naming a good (naming overhaul, 2026-11-21)
 
-`buy <word>` names the good by the one rule (`GrammarApi.name`): a shelf
+`buy <word>` names the good by the one rule (`GrammarApi.nameAmong`): a shelf
 good answers to its keywords and to the line leaf the shelf list prints, a
 priced house good lying in the room to its leaf, a consignment to its
 keywords, a yard's hull to her kind or her slot, a service to its key —

@@ -54,7 +54,7 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     /** The metal a word names, among the metals — or `null`. */
     protected async metalNamed(word: string): Promise<Material | null> {
       // By the one rule (naming overhaul D-C4): a metal's name and keywords.
-      const answer = GrammarApi.name(
+      const answer = GrammarApi.nameAmong(
         word,
         (await MaterialApi.findByTag('metal')).map((m) => ({
           value: m,
@@ -73,7 +73,7 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      */
     public async carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       const self = this as unknown as Stuff;
-      if (GrammarApi.name(req.word, [{ value: 'pattern', keywords: ['pattern'], title: 'a pattern' }]).kind === 'none') return null;
+      if (GrammarApi.nameAmong(req.word, [{ value: 'pattern', keywords: ['pattern'], title: 'a pattern' }]).kind === 'none') return null;
       const of = req.of ?? null;
       if (of === null) return { ok: false, reason: 'not-carvable', facts: { carves: 'pattern' } };
       if (of === self) return { ok: false, reason: 'self-target' };

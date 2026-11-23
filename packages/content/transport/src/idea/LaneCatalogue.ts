@@ -255,7 +255,7 @@ export default class LaneCatalogue extends WayIndexMixin(Idea) {
     // overhaul D-C5 rule 2) — `the ford`, `ford`, `kestrel-ford` agree.
     const stops = new Set<string>();
     for (const lane of await this.lanesAt(here)) for (const n of lane.nodes) stops.add(n);
-    const answer = GrammarApi.name(
+    const answer = GrammarApi.nameAmong(
       named,
       [...stops].map((n) => ({
         value: n,

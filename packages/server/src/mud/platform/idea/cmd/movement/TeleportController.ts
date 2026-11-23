@@ -410,7 +410,7 @@ export default class TeleportController extends TeleportControllerBase {
       const node = StuffApi.findByTemplatePath<Stuff>(ref);
       if (node && MixinApi.isPerceptible(node)) registered.push(node);
     }
-    const named = GrammarApi.name(
+    const named = GrammarApi.nameAmong(
       raw,
       registered.map((n) => ({ value: n, keywords: MixinApi.isPerceptible(n) ? n.getKeywords().map((k) => k.toLowerCase()) : [], title: n.getPresentation() })),
     );
