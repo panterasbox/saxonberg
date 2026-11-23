@@ -13,6 +13,8 @@ import BodyPlan from '../../../platform/idea/species/BodyPlan';
 import HideHorn from '../../../platform/idea/material/HideHorn';
 import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
+import { WorldClockApi } from '../../../api/worldclock';
+import '../../../platform/idea/WorldClockRegistry';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
@@ -82,4 +84,25 @@ describe('the coat', () => {
     expect(clo(shorn)).toBe(0);
     expect(clo(grown)).toBeGreaterThan(1);
   });
+
+  it('⭐⭐ reading a fleeced body\'s core does not reconcile her fleece — the coat is banked (B23)', () => {
+    WorldClockApi._resetForTesting();
+    let real = 100000;
+    WorldClockApi._setNowProviderForTesting(() => real);
+    try {
+      const ewe = beast({ coat: { material: FUR, depthM: 0.06, loft: 0.9, tap: 'wool' } }, true);
+      ewe.setMass(Quantity.of(60, 'kg'));
+      (ewe as unknown as { setEffectiveAmbientK(k: number): void }).setEffectiveAmbientK(260);
+      ewe.reconcileThermalRegulation(); // seed: stamps, banks the fleece
+      const stamp = ewe.productionStamp;
+      real += (3600 / 12) * 1000;
+      ewe.getVitalSign('coreTemperature'); // a read
+      expect(ewe.productionStamp).toBe(stamp); // …moved nothing on her
+      ewe.reconcileThermalRegulation(); // the reconcile may
+      expect(ewe.productionStamp).toBeGreaterThan(stamp);
+    } finally {
+      WorldClockApi._resetForTesting();
+    }
+  });
 });
+

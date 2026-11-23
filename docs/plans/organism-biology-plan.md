@@ -1757,7 +1757,26 @@ authoring `lostParts` whose claw has regrown still has it after a restore
 > the corpse template from the store, so it is proved by the drive (W11),
 > as the plan's own acceptance says (*wire*).
 
-### W6b — Reads are pure; bodies wake themselves
+### W6b — Reads are pure; bodies wake themselves ✅ done
+
+> **Done note.** The read runs the reconcile's own guards and slices on a
+> probe (`_probe`: core, heat load, the reserves a slice spends) routed
+> through `readCore`/`setCore`/`reserveCurrent`/`spendReserve`, so the
+> projection equals the reconcile by construction. The wake is armed at
+> the end of every reconcile and every re-stamp; a unit world with no
+> event bus arms nothing (guarded on the EventRegistry), and the thermal
+> suites' `core(c); // seed` reads became `reconcileThermalRegulation()`
+> — a read no longer seeds. The W0 goldens passed **unchanged** (their
+> torpor pairs reconcile explicitly), so nothing was re-pinned. ⚠ B17 was
+> real: the projection reached `standingIn`, which reconciles production —
+> fixed by banking the coat (B23). Smoke fan-out: a unit test, proven red
+> with the call removed. Not done here: the wire step (a body torpid after
+> `clock-advance` with no read) goes to the W11 drive; the bath-in-a-smoky-
+> room case is not separately tested (the fan-out only reaches occupants
+> one level deep, which a bath's occupant is not). Counted: one wake per
+> resident living body, and at most one reconcile per body per game hour
+> when no threshold is near (the cap) — a full room of N bodies costs N
+> reconciles an hour, against N × reads-per-hour before.
 
 **Goal:** looking at a body stops changing it; a body standing still is
 brought current by its own game-clock wake; a room that turns to smoke
@@ -2392,6 +2411,16 @@ Decisions the build made that the plan did not, and what decided each.
   synchronously (the body is missing the part when it returns) and the
   part's async mint follows, its failure logged. *Decided by:* the nearest
   pattern (`inflict`'s shape is shipped).
+
+- **B23 (W6b) — the coat's tap is BANKED for the thermal read.** Reading a
+  tap live (`standingIn`) reconciles production, so a projection that
+  called it wrote (B17's flag). Each coat tap's fill is banked at the end
+  of every reconcile, at the seed and at every re-stamp; the reconcile
+  integrates its span with the banked fill (the coat the body wore across
+  that span) and then re-banks, so the projection still equals the
+  reconcile. Cost: a shearing shows in the core at the next reconcile or
+  wake, never more than a game hour on. *Decided by:* D17 (a read never
+  writes) over the nearest pattern; no new member on `Producing`.
 
 ## Drive record
 

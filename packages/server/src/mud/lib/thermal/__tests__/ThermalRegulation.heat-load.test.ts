@@ -35,7 +35,7 @@ function advance(c: Creature, gameSec: number, chunkSec = 60): void {
   while (remaining > 0) {
     const s = Math.min(chunkSec, remaining);
     real += (s / SCALE) * 1000;
-    c.getVitalSign("coreTemperature");
+    c.reconcileThermalRegulation(); // the body's own wake (D17)
     remaining -= s;
   }
 }
@@ -51,7 +51,7 @@ function advanceAll(bodies: Creature[], gameSec: number, chunkSec = 60): void {
   while (remaining > 0) {
     const s = Math.min(chunkSec, remaining);
     real += (s / SCALE) * 1000;
-    for (const c of bodies) c.getVitalSign("coreTemperature");
+    for (const c of bodies) c.reconcileThermalRegulation(); // their own wakes (D17)
     remaining -= s;
   }
 }
@@ -111,7 +111,7 @@ describe("the internal heat load", () => {
 
   it("⭐⭐ a load RAISES the core — before this it was erased on the next slice", () => {
     const c = person();
-    core(c); // seed the stamp
+    c.reconcileThermalRegulation(); // seed the stamp
     expect(core(c)).toBeCloseTo(THERMAL_DEFAULTS.SETPOINT_K, 1);
 
     // 1 MJ into a 70 kg body: ΔT = 1e6 / (70 × 4186) ≈ 3.4 K.
@@ -122,7 +122,7 @@ describe("the internal heat load", () => {
 
   it("⭐ …and SHEDS it over time, at a sustainable rate", () => {
     const c = person();
-    core(c);
+    c.reconcileThermalRegulation();
     c.absorbHeatLoad(1_000_000);
     advance(c, 1);
     const hot = core(c);
@@ -139,8 +139,8 @@ describe("the internal heat load", () => {
     // 400 W can carry away.
     const paced = person();
     const chained = person();
-    core(paced);
-    core(chained);
+    paced.reconcileThermalRegulation();
+    chained.reconcileThermalRegulation();
     // Same five loads, same wall-clock — one spaces them, one does not.
     for (let i = 0; i < 5; i++) {
       paced.absorbHeatLoad(200_000);
@@ -159,7 +159,7 @@ describe("the internal heat load", () => {
     // temperature, past the 308 K ceiling. Sweat has nowhere to go.
     const steamy = person(310);
     steamy.setCachedHumidity(100);
-    core(steamy);
+    steamy.reconcileThermalRegulation();
     steamy.absorbHeatLoad(500_000);
     advance(steamy, 1);
     const before = steamy.heatLoadJ;
@@ -175,8 +175,8 @@ describe("the internal heat load", () => {
     // garment system and the thermal system not talking to each other.
     const naked = dressed(0);
     const parka = dressed(3);
-    core(naked);
-    core(parka);
+    naked.reconcileThermalRegulation();
+    parka.reconcileThermalRegulation();
     naked.absorbHeatLoad(600_000);
     parka.absorbHeatLoad(600_000);
     advanceAll([naked, parka], 600);
@@ -190,8 +190,8 @@ describe("the internal heat load", () => {
     // the rate exactly.
     const naked = dressed(0);
     const suit = dressed(1);
-    core(naked);
-    core(suit);
+    naked.reconcileThermalRegulation();
+    suit.reconcileThermalRegulation();
     naked.absorbHeatLoad(1_000_000);
     suit.absorbHeatLoad(1_000_000);
     advanceAll([naked, suit], 60);
@@ -202,7 +202,7 @@ describe("the internal heat load", () => {
 
   it("a body carrying nothing is byte-identical — pinned at setpoint, free", () => {
     const c = person();
-    core(c);
+    c.reconcileThermalRegulation();
     advance(c, 1800);
     expect(core(c)).toBeCloseTo(THERMAL_DEFAULTS.SETPOINT_K, 1);
     expect(c.heatLoadJ).toBe(0);
@@ -212,7 +212,7 @@ describe("the internal heat load", () => {
     // A nine-hour moulding day at ~260 W, a quarter of it work: ~6.3 MJ. It
     // used to land at once — over 20 K of core — and kill (drive A, run 23).
     const c = person();
-    core(c);
+    c.reconcileThermalRegulation();
     const water = c.getReserve('hydration')!.current.rawValue();
     c.absorbHeatLoad(6_300_000, 9 * 3600);
     expect(c.heatLoadJ).toBe(0);
@@ -220,7 +220,7 @@ describe("the internal heat load", () => {
     expect(c.getReserve('hydration')!.current.rawValue()).toBeLessThan(water);
     // The same heat in an instant is still a load.
     const d = person();
-    core(d);
+    d.reconcileThermalRegulation();
     d.absorbHeatLoad(6_300_000);
     expect(d.heatLoadJ).toBe(6_300_000);
   });
@@ -228,7 +228,7 @@ describe("the internal heat load", () => {
   it("⚠ …but not past the wet-bulb ceiling: in a sauna the work's heat stays", () => {
     const c = person(318);
     c.setCachedHumidity(100);
-    core(c);
+    c.reconcileThermalRegulation();
     c.absorbHeatLoad(2_000_000, 3600);
     expect(c.heatLoadJ).toBe(2_000_000);
   });
@@ -265,7 +265,7 @@ describe("⭐⭐ the hyperthermia onset moved to setpoint + 2.5 K", () => {
     // temperature — a player who knows physiology would have been
     // surprised WRONGLY, which is lens 1's exact failure mode.
     const c = person();
-    core(c);
+    c.reconcileThermalRegulation();
     // ~1 MJ → +3.4 K, past the +2.5 K onset and well under +5 K.
     c.absorbHeatLoad(1_000_000);
     advance(c, 60);
@@ -275,7 +275,7 @@ describe("⭐⭐ the hyperthermia onset moved to setpoint + 2.5 K", () => {
 
   it("⚠ …and does NOT spawn just under the onset", () => {
     const c = person();
-    core(c);
+    c.reconcileThermalRegulation();
     // 500 kJ → +1.7 K, under +2.5 K.
     c.absorbHeatLoad(500_000);
     advance(c, 1);
@@ -297,7 +297,7 @@ describe("⭐⭐ the hyperthermia onset moved to setpoint + 2.5 K", () => {
       return b;
     }) as RegBody;
     c.adjustReserve("hydration", Quantity.of(-100, "%")); // nothing to sweat
-    core(c);
+    c.reconcileThermalRegulation();
     // Walk it up in small steps and catch the onset on the way through.
     let spawnedAt: number | null = null;
     for (let i = 0; i < 120 && spawnedAt === null; i++) {
@@ -315,7 +315,7 @@ describe("⭐⭐ the hyperthermia onset moved to setpoint + 2.5 K", () => {
     // is miserable rather than doomed. The two thresholds are now two
     // independently authorable facts.
     const c = person();
-    core(c);
+    c.reconcileThermalRegulation();
     c.absorbHeatLoad(1_000_000);
     advance(c, 60);
     expect(hasHyperthermia(c)).toBe(true);

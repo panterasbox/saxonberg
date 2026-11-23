@@ -52,7 +52,7 @@ import { MixinApi } from "../../api/mixin";
 import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
-import { WorldClockApi } from "../../api/worldclock";
+import { WorldClockApi, type ClockHandle } from "../../api/worldclock";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
 import { AppApi } from "../../api/app";
@@ -88,6 +88,14 @@ type RegulationHost = Stuff &
   Reserved &
   Organism &
   Containable;
+
+/**
+ * ⭐ The longest a living body waits between thermal wakes (organism-biology
+ * D17) — one game hour, the mould's `MOULD_SET_STEP_S` shape. It bounds what
+ * the crossing projection holds still (the room, the weather, the reserves).
+ * A constant, not a dial.
+ */
+const THERMAL_WAKE_STEP_S = 3600;
 
 /**
  * ⭐ A watcher sees a body shiver (organism-biology D3): the third-person
@@ -178,7 +186,22 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       cachedHumidity: { persistent: true, runtimeState: true },
       thermalRegStamp: { persistent: true, runtimeState: true },
       heatLoadJ: { persistent: true, runtimeState: true },
+      // ⭐ The body's next wake on the game clock (organism-biology D17):
+      // persisted, re-armed by its setter — a restart re-arms it and a
+      // wake already past fires at once.
+      thermalWakeAtS: { persistent: true, runtimeState: true },
     };
+
+    /** Game-seconds of this body's next thermal wake, or 0 (D17). */
+    public thermalWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _thermalWake: ClockHandle | null = null;
+    /**
+     * ⭐ A scratch copy of what the slice step writes (D17): set while the
+     * read PROJECTS the core, so the projection and the reconcile run the
+     * ONE formula and only the reconcile keeps what it computes.
+     */
+    private _probe: { core: number; heatLoadJ: number; reserves: Record<string, number> } | null = null;
 
     public setpointK: number = THERMAL_DEFAULTS.SETPOINT_K;
     public effectiveAmbientK: number = THERMAL_DEFAULTS.SETPOINT_K;
@@ -230,6 +253,8 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * three times a slice. Transient; `null` outside a reconcile.
      */
     private _reconcileClo: number | null = null;
+    /** Each coat tap's fill as of the last reconcile (B23) — transient, re-banked at every re-stamp. */
+    private _tapFillBanked: Record<string, number> = {};
 
     /** The body's worn insulation (clo) — the reconcile's one read, else live. */
     private wornClo(): number {
@@ -282,15 +307,49 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       return CelestialApi.daylightSecondsFor(EARTH_LIKE, lat, now) / EARTH_LIKE.dayLengthSeconds;
     }
 
+    /**
+     * ⭐ How full a coat's tap stands, 0…1, as BANKED at the last reconcile
+     * (B23). Reading the tap live reconciles production — a write — so the
+     * projection must not, and the reconcile integrates its span with the
+     * coat the body wore across it, then banks the new fill for the next
+     * span: one input for both, so the projection still equals the
+     * reconcile. A fleece grows over months; a wake is never an hour off.
+     */
+    private tapFill(tap: string): number {
+      const banked = this._tapFillBanked[tap];
+      if (banked !== undefined) return banked;
+      // Nothing banked yet (before the first reconcile or re-stamp): a
+      // reconcile may read it live; a projection takes the coat as grown.
+      return this._probe !== null ? 1 : this.bankTapFill(tap);
+    }
+
+    /** Read one coat tap live and bank its fill (a reconcile's write, never a read's). */
+    private bankTapFill(tap: string): number {
+      const host = this.regHost;
+      if (!MixinApi.isProducing(host)) return 1;
+      const cap = host.taps().find((t) => t.key === tap)?.capUnits ?? 0;
+      const fill = cap > 0 ? Math.max(0, Math.min(1, host.standingIn(tap) / cap)) : 1;
+      this._tapFillBanked[tap] = fill;
+      return fill;
+    }
+
+    /** Re-bank every coat tap's fill — at the end of a reconcile, and at every re-stamp. */
+    private bankCoatTaps(): void {
+      const host = this.regHost;
+      const body = MixinApi.isOrganism(host) ? host.getBody() : null;
+      if (!body || !MixinApi.isProducing(host)) return;
+      for (const part of body.getParts()) {
+        for (const layer of [part.integument?.under, part.integument?.coat]) {
+          if (layer?.tap) this.bankTapFill(layer.tap);
+        }
+      }
+    }
+
     /** One coat layer's clo — the garment's law, the body's wetness. */
     private layerClo(layer: IntegumentLayer, wetness: number): number {
       const host = this.regHost;
       let depth = layer.depthM ?? 0;
-      if (layer.tap && MixinApi.isProducing(host)) {
-        const spec = host.taps().find((t) => t.key === layer.tap);
-        const cap = spec?.capUnits ?? 0;
-        depth *= cap > 0 ? Math.max(0, Math.min(1, host.standingIn(layer.tap) / cap)) : 1;
-      }
+      if (layer.tap && MixinApi.isProducing(host)) depth *= this.tapFill(layer.tap);
       if (!(depth > 0)) return 0;
       const material = MaterialApi.materials().peek(layer.material);
       if (!material) return 0;
@@ -362,10 +421,136 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * straight through.
      */
     public getVitalSign(sign: VitalSign): Quantity<Unit> {
+      // ⭐⭐ Reading is PURE (organism-biology D17): the core this body
+      // would have NOW, projected from its stamp by the same slice
+      // arithmetic — nothing stored, no reserve drawn, nothing afflicted.
+      // A still body is brought current by its own wake, not by a look.
       if (sign === "coreTemperature" && !this._thermalRegReconciling) {
-        this.reconcileThermalRegulation();
+        return Quantity.of(this.projectedCoreK(), "K") as Quantity<Unit>;
       }
       return this.innerVitalSign(sign);
+    }
+
+    /**
+     * ⭐ The core the reconcile WOULD store now (D17): the same guards and
+     * the same slices, run on the probe. Over a long gap it tracks reserve
+     * spending on the probe too, so it equals what the reconcile stores.
+     */
+    private projectedCoreK(): number {
+      const stored = this.innerVitalSign("coreTemperature").rawValue();
+      const nowS = this.regNowSeconds();
+      if (nowS === null || this.thermalRegStamp === 0) return stored;
+      const elapsed = nowS - this.thermalRegStamp;
+      if (!this.wouldIntegrate(elapsed)) return stored;
+      return this.probeFrom(elapsed, stored).core;
+    }
+
+    /** Would a reconcile now integrate `elapsed` (the reconcile's own guards)? */
+    private wouldIntegrate(elapsed: number): boolean {
+      const D = THERMAL_DEFAULTS;
+      const self = this.regHost;
+      if (ExecutionContextApi.worldHeldStill) return false;
+      if (MixinApi.isHasInteractive(self) && self.isLinkdead()) return false;
+      if (elapsed <= 0) return false;
+      if (elapsed > D.MAX_REASONABLE_GAP_SEC && !this.billsTheGap()) return false;
+      return !(elapsed < D.REG_STEP_SEC && !(this.heatLoadJ > 0));
+    }
+
+    /**
+     * ⭐⭐ The far-past guard drops a gap only for a body that had NO wake
+     * armed (D17): absence is not billed. A resident body with a wake
+     * integrates the whole gap — a wake that fires late, after a restart or
+     * a day's clock jump, must still cool the frog through the night. A
+     * player's body is never billed for a gap: its absence is a logout.
+     */
+    private billsTheGap(): boolean {
+      if (MixinApi.isHasInteractive(this.regHost)) return false;
+      return this.thermalWakeAtS !== 0;
+    }
+
+    /** Run `elapsed` seconds of slices on a probe seeded from now's state. */
+    private probeFrom(elapsed: number, core: number): { core: number } {
+      const D = THERMAL_DEFAULTS;
+      this._probe = { core, heatLoadJ: this.heatLoadJ, reserves: {} };
+      const guard = this._thermalRegReconciling;
+      this._thermalRegReconciling = true;
+      try {
+        let remaining = elapsed;
+        let steps = 0;
+        while (remaining > 0 && steps < D.REG_MAX_STEPS) {
+          const slice = Math.min(D.REG_STEP_SEC, remaining);
+          this.integrateThermalSlice(slice);
+          remaining -= slice;
+          steps++;
+        }
+        if (remaining > 0) this.integrateThermalSlice(remaining);
+        return { core: this._probe.core };
+      } finally {
+        this._probe = null;
+        this._thermalRegReconciling = guard;
+      }
+    }
+
+    /** Set (or clear, `0`) this body's next wake, and arm it on the game clock (D17). */
+    public setThermalWakeAtS(value: number): void {
+      this._thermalWake?.cancel();
+      this._thermalWake = null;
+      this.thermalWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.thermalWakeAtS === 0) return;
+      this._thermalWake = WorldClockApi.at(
+        Quantity.of(this.thermalWakeAtS, "s"),
+        () => this.thermalWake(),
+        { host: this as unknown as Stuff, tag: "thermal-regulation" },
+      );
+    }
+
+    /** The wake: bring the body current, then arm the next (D17). */
+    private thermalWake(): void {
+      this._thermalWake = null;
+      this.reconcileThermalRegulation();
+      if (this._thermalWake === null) this.armThermalWake();
+    }
+
+    /**
+     * ⭐ Arm the next wake (D17): at the projected next crossing of a
+     * threshold the cascade reads, never more than one game hour away (the
+     * cap bounds what the projection holds still — the room, the weather).
+     * Disarmed for a body that runs no living processes, and while
+     * linkdead (frozen until the reconnect's re-stamp).
+     */
+    private armThermalWake(): void {
+      const self = this.regHost;
+      const nowS = this.regNowSeconds();
+      if (nowS === null) return;
+      // A world with a clock but no event bus (a unit world) cannot hold a
+      // host-bound wake: idle, as the reconcile idles with no clock.
+      if (!StuffApi.findByTemplatePath('/platform/idea/EventRegistry')) return;
+      const frozen = MixinApi.isHasInteractive(self) && self.isLinkdead();
+if (frozen || !self.isLivingBody()) {
+        if (this.thermalWakeAtS !== 0) this.setThermalWakeAtS(0);
+        return;
+      }
+      this.setThermalWakeAtS(nowS + this.secondsToNextCrossing());
+    }
+
+    /** Seconds until the core crosses a threshold the cascade reads, capped at one game hour. */
+    private secondsToNextCrossing(): number {
+      const D = THERMAL_DEFAULTS;
+      const cap = THERMAL_WAKE_STEP_S;
+      const band = this.regHost.getVitalBand("coreTemperature");
+      const lines = [band.survivableMin, band.survivableMax, this.setpointK + D.HYPERTHERMIA_ONSET_K, ...this.extraColdLines()];
+      const side = (k: number): string => lines.map((l) => (k < l ? 0 : 1)).join("");
+      const start = this.innerVitalSign("coreTemperature").rawValue();
+      const was = side(start);
+      for (let t = D.REG_STEP_SEC; t <= cap; t += D.REG_STEP_SEC * 5) {
+        if (side(this.probeFrom(t, start).core) !== was) return t;
+      }
+      return cap;
+    }
+
+    /** More cold thresholds the cascade reads (a hook for the near cold line, W7). */
+    protected extraColdLines(): number[] {
+      return [];
     }
 
     /**
@@ -440,12 +625,15 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
       if (this.thermalRegStamp === 0) {
         this.thermalRegStamp = nowS;
+        this.bankCoatTaps();
         return;
       }
 
       const self = this.regHost;
       if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
         this.thermalRegStamp = nowS;
+        // Frozen: no wake until the reconnect's re-stamp (D17).
+        if (this.thermalWakeAtS !== 0) this.setThermalWakeAtS(0);
         return;
       }
 
@@ -454,8 +642,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         this.thermalRegStamp = nowS;
         return;
       }
-      if (elapsed > D.MAX_REASONABLE_GAP_SEC) {
+      if (elapsed > D.MAX_REASONABLE_GAP_SEC && !this.billsTheGap()) {
         this.thermalRegStamp = nowS;
+        this.armThermalWake();
         return;
       }
       // ⭐ Below the model's own step, do nothing YET and do not re-stamp
@@ -482,10 +671,12 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         if (remaining > 0) this.integrateThermalSlice(remaining);
         this.reconcileThermalCascade(elapsed);
         this.thermalRegStamp = nowS;
+        this.bankCoatTaps();
       } finally {
         this._thermalRegReconciling = false;
         this._reconcileClo = null;
       }
+      this.armThermalWake();
     }
 
     /**
@@ -526,8 +717,10 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         // a comfortable room was set to exactly 310 K on every slice,
         // whatever had just happened to it.
         this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
-        this._shiverNoted = false;
-        this._sweatNoted = false;
+        if (this._probe === null) {
+          this._shiverNoted = false;
+          this._sweatNoted = false;
+        }
         return;
       }
 
@@ -548,7 +741,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         const covered = Math.min(gap, coverableGap);
         const spend = D.COLD_SPEND_PER_DEGREE * covered * (sliceSec / 60);
         if (this.reserveCurrent("satiation") >= spend && spend > 0) {
-          host.adjustReserve("satiation", Quantity.of(-spend, "%"));
+          this.spendReserve("satiation", spend);
           this.noteShiver();
           if (gap <= coverableGap) {
             // ⚠ The internal load rides on top of the cold branch too, and
@@ -578,7 +771,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const gap = ambient - highBand;
       const spend = D.HEAT_SPEND_PER_DEGREE * gap * (sliceSec / 60);
       if (this.reserveCurrent("hydration") >= spend && spend > 0) {
-        host.adjustReserve("hydration", Quantity.of(-spend, "%"));
+        this.spendReserve("hydration", spend);
         // Already sweating for the ambient; the internal load rides on
         // top of that and sheds through the same channel.
         this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
@@ -606,7 +799,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     protected shedAndOffset(sliceSec: number, ambientK: number): number {
       const host = this.regHost;
       const D = THERMAL_DEFAULTS;
-      if (this.heatLoadJ <= 0) return 0;
+      if (this.heatLoadNow() <= 0) return 0;
 
       const wetBulb = this.wetBulbK(ambientK, this.cachedHumidity);
       const canSweat =
@@ -620,22 +813,20 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         const body = D.SHED_BODY_CLO;
         const damping = body / (body + Math.max(0, clo));
         const shed = Math.min(
-          this.heatLoadJ,
+          this.heatLoadNow(),
           D.HEAT_SHED_W * damping * sliceSec,
         );
         if (shed > 0) {
-          this.heatLoadJ -= shed;
+          this.setHeatLoadNow(this.heatLoadNow() - shed);
           // Each degree's worth of shedding costs what holding a degree
           // against the ambient costs — one scale, not a second one.
           const degrees = shed / this.bodyHeatCapacityJPerK();
           const spend = D.HEAT_SPEND_PER_DEGREE * degrees;
-          if (spend > 0) {
-            host.adjustReserve("hydration", Quantity.of(-spend, "%"));
-          }
-          if (this.heatLoadJ > 0) this.noteSweat();
+          if (spend > 0) this.spendReserve("hydration", spend);
+          if (this.heatLoadNow() > 0) this.noteSweat();
         }
       }
-      return this.heatLoadJ / this.bodyHeatCapacityJPerK();
+      return this.heatLoadNow() / this.bodyHeatCapacityJPerK();
     }
 
     /** `m · c` for this body (J/K); the specific heat defaults to water. */
@@ -873,6 +1064,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       this._ambientOffsetK = eff.rawValue() - (await this.baseAmbientK());
       const nowS = this.regNowSeconds();
       if (nowS !== null) this.thermalRegStamp = nowS;
+      this.bankCoatTaps();
+      // ⭐ Every re-stamp arms the next wake (D17).
+      this.armThermalWake();
     }
 
     // ---------- the cascade → conditions ----------
@@ -987,15 +1181,39 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     // ---------- helpers ----------
 
     protected readCore(): number {
+      if (this._probe !== null) return this._probe.core;
       return this.innerVitalSign("coreTemperature").rawValue();
     }
     protected setCore(k: number): void {
+      if (this._probe !== null) {
+        this._probe.core = Math.max(0, k);
+        return;
+      }
       const host = this.regHost;
       host.setVitalSign("coreTemperature", Quantity.of(Math.max(0, k), "K"));
     }
 
     protected reserveCurrent(key: string): number {
-      return this.regHost.reserves[key]?.currentValue ?? 0;
+      const real = this.regHost.reserves[key]?.currentValue ?? 0;
+      if (this._probe !== null) return this._probe.reserves[key] ?? real;
+      return real;
+    }
+
+    /** Draw a reserve by `amount` — onto the probe while projecting (D17). */
+    protected spendReserve(key: string, amount: number): void {
+      if (this._probe !== null) {
+        this._probe.reserves[key] = this.reserveCurrent(key) - amount;
+        return;
+      }
+      this.regHost.adjustReserve(key, Quantity.of(-amount, "%"));
+    }
+
+    private heatLoadNow(): number {
+      return this._probe !== null ? this._probe.heatLoadJ : this.heatLoadJ;
+    }
+    private setHeatLoadNow(j: number): void {
+      if (this._probe !== null) this._probe.heatLoadJ = j;
+      else this.heatLoadJ = j;
     }
 
     protected strategy(): "endotherm" | "ectotherm" {
@@ -1071,12 +1289,12 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     }
 
     protected noteShiver(): void {
-      if (this._shiverNoted) return;
+      if (this._probe !== null || this._shiverNoted) return;
       this._shiverNoted = true;
       this.emitCue("You're shivering.");
     }
     protected noteSweat(): void {
-      if (this._sweatNoted) return;
+      if (this._probe !== null || this._sweatNoted) return;
       this._sweatNoted = true;
       this.emitCue("You're sweating.");
     }

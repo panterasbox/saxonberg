@@ -315,11 +315,15 @@ the floor and relieved on recovery above it.
    fire-and-forget `reassess()`, so a resurface or a tank refill ends the
    crisis without a move.
 4. **A conferred medium changes** — `setConferredBreathing`.
-
-⚠ An in-place atmosphere flip (a room becoming water under a standing
-body) is still not a trigger; the water's flood answers its own case by
-reconciling its occupants (underwater.md). See
-`docs/slates/engine/respiration-slate.md`.
+5. ⭐ **The air changes** — `Atmospheric.setAtmosphere`, when the tag
+   actually changes, tells every respiring occupant one containment level
+   deep to `reassess()` (fire-and-forget, each failure caught and said —
+   the `onMoved` shape). Smoke filling a room poisons the people standing
+   in it with nobody moving and nobody reading; a room whose air never
+   changes costs nothing, because there is no poll (organism-biology D17,
+   respiration-slate § 2). A detail atmosphere (`detailKey`) is not a room
+   change and tells nobody. The water's flood still answers its own case
+   by reconciling its occupants (underwater.md).
 
 ## Voluntary breath control — `inhale` / `exhale`
 
