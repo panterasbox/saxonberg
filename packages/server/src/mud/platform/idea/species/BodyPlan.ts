@@ -47,6 +47,9 @@ const GOVERNABLE: ReadonlySet<string> = new Set<string>([
   ...BODY_CAPACITIES,
 ]);
 import type { SenseChannel } from '../../../lib/description/Perceiver';
+import { Body, type ModuleRef } from '../../../lib/species/Body';
+import { SpeciesApi } from '../../../api/species';
+import { StuffApi } from '../../../api/stuff';
 import type { FieldMeta } from '../../../lib/mixin';
 
 import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
@@ -77,11 +80,6 @@ export interface SensoryPort {
   media?: string[];
 }
 
-/** What an organ works in when its row does not say. */
-const PORT_MEDIA_DEFAULT: Readonly<Record<string, readonly string[]>> = {
-  smell: ['air'],
-  taste: ['air'],
-};
 
 /**
  * ⭐ One way a body takes oxygen from one medium (underwater D21): lungs
@@ -258,12 +256,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
    */
   public slots: SlotSpec[] = [];
 
-  /**
-   * Derived, transient — the parts something else's `innervatedBy` /
-   * `suppliedBy` names. Rebuilt by `setBodyParts`; never persisted (it is
-   * a projection of the part list, and a second copy would drift).
-   */
-  private conduitKeys: Set<string> = new Set();
 
   /**
    * Locomotion modes the body plan supports: `['walk']`,
@@ -293,11 +285,21 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   protected sensoryPorts: SensoryPort[] = [];
 
   /**
-   * Typed anatomical structure — the body's parts as a tree, shared
-   * across every organism of this body plan. Parallel to `slots`.
-   * Instances carry only deltas; see {@link BodyPart}.
+   * ⭐⭐ **The modules this plan is composed of** (organism-biology D1) —
+   * which `body-module` documents, how many of each (`as`), where each
+   * hangs (`at`) and how big (`weight`). The parts themselves are never
+   * authored here: {@link getBody} expands them, and that expansion is the
+   * only place parts are computed.
+   *
+   * ⚠ A plain persistent field, not a constituent reference: the async
+   * setter ensures each module document AND every tissue material the
+   * expansion cites, with the plan as holder.
    */
-  public bodyParts: BodyPart[] = [];
+  protected modules: ModuleRef[] = [];
+
+  /** The default body this plan expands to (no variant), built on first read. */
+  private body: Body | null = null;
+
 
   /**
    * Default whole-body mass in kg (plain number, keeping `BodyPlan` a
@@ -395,7 +397,7 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     locomotionModes: { persistent: true },
     defaultLocomotionMode: { persistent: true },
     sensoryPorts: { persistent: true },
-    bodyParts: { persistent: true, ref: 'identity:constituent' },
+    modules: { persistent: true },
     baseMass: { persistent: true },
     baseStature: { persistent: true },
     thermalStrategy: { persistent: true },
@@ -476,18 +478,14 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     // Referential integrity: any anatomical reference (bodyPart / covers)
     // must name a real part. Checked against whichever set is already
     // populated, so it fires regardless of hydration order.
-    this.validateSlotPartRefs(value, this.bodyParts);
     this.slots = value;
+    this.body = null;
+    if (this.modules.length > 0 && this.modulesResident()) this.validateSlotPartRefs(value, this.getBody().getParts());
   }
 
-  public getLocomotionModes(): readonly string[] { return this.locomotionModes; }
   public setLocomotionModes(value: string[]): void {
     this.locomotionModes = value;
-  }
-
-  /** The ways this body breathes (underwater D21). */
-  public getBreathing(): readonly BreathingSpec[] {
-    return this.breathing;
+    this.body = null;
   }
 
   public setBreathing(value: BreathingSpec[]): void {
@@ -507,11 +505,7 @@ export default class BodyPlan extends SingletonMixin(Idea) {
       out.push({ medium: v.medium, apparatus: String(v.apparatus ?? 'lungs'), intake });
     }
     this.breathing = out;
-  }
-
-  /** The media this body breathes freely — the intake-1 specs. Derived. */
-  public getBreathableMedia(): readonly string[] {
-    return this.breathing.filter((b) => b.intake >= 1).map((b) => b.medium);
+    this.body = null;
   }
 
   /** The media a voice from this body carries in. */
@@ -522,18 +516,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   public setVoice(value: { media: string[] } | null): void {
     const media = Array.isArray(value?.media) ? value!.media.filter((m) => typeof m === 'string' && m !== '') : [];
     this.voice = { media: media.length > 0 ? media : ['air'] };
-  }
-
-  /** The media one sense organ works in — its row's, or the default for its kind. */
-  public portMedia(port: SensoryPort): readonly string[] {
-    return port.media ?? PORT_MEDIA_DEFAULT[port.modality] ?? ['air', 'water'];
-  }
-
-  /** ⭐ The senses this body has that work in `medium` (underwater D21). */
-  public getModalitiesIn(medium: string): SenseChannel[] {
-    return Array.from(new Set(
-      this.sensoryPorts.filter((p) => this.portMedia(p).includes(medium)).map((p) => p.modality),
-    ));
   }
 
   public isRespiring(): boolean { return this.respires; }
@@ -560,63 +542,93 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     this.defaultLocomotionMode = value;
   }
 
-  public getSensoryPorts(): readonly SensoryPort[] { return this.sensoryPorts; }
   public setSensoryPorts(value: SensoryPort[]): void {
     this.sensoryPorts = value;
+    this.body = null;
   }
 
-  public getBodyParts(): readonly BodyPart[] { return this.bodyParts; }
-  public setBodyParts(value: BodyPart[]): void {
-    const keys = new Set<string>();
-    for (const part of value) {
-      if (!part.key || typeof part.key !== 'string') {
-        throw new Error(
-          `BodyPlan.setBodyParts: part missing 'key' (${JSON.stringify(part)})`,
-        );
+  /** The module instances this plan is composed of (D1). */
+  public getModules(): readonly ModuleRef[] {
+    return this.modules;
+  }
+
+  /**
+   * ⭐ Name this plan's modules (D1): ensures each module document, builds
+   * the body (which validates it), then ensures every tissue material the
+   * body cites, with the plan as holder — so a body cloned in a cold world
+   * has its tissues resident. A path naming no document throws (P3). The
+   * applier awaits it on hydrate and on restore (the `Shaped.setShape`
+   * shape).
+   */
+  public async setModules(value: ModuleRef[]): Promise<void> {
+    const catalogue = SpeciesApi.modules();
+    await Promise.all([...new Set((value ?? []).map((r) => r.module))].map((p) => catalogue.ensure(p)));
+    this.applyModules(value ?? []);
+    const holder = this.getIdentityPath() ?? null;
+    await Promise.all(this.getBody().tissuePaths().map((p) => StuffApi.ensureConstituent(p, holder)));
+  }
+
+  /**
+   * Name this plan's modules when every module document is already
+   * resident (a fixture that `remember`ed them; the loaded setter above).
+   * Builds and validates the body at once; throws `DocumentNotResidentError`
+   * for a module nobody loaded.
+   */
+  public applyModules(value: ModuleRef[]): void {
+    for (const ref of value) {
+      if (!ref || typeof ref.module !== 'string' || !Array.isArray(ref.as) || ref.as.length === 0) {
+        throw new Error(`BodyPlan.setModules: each entry names a module and its instances (as) — got ${JSON.stringify(ref)}`);
       }
-      if (keys.has(part.key)) {
-        throw new Error(`BodyPlan.setBodyParts: duplicate key '${part.key}'`);
-      }
-      keys.add(part.key);
-      if (!Array.isArray(part.tissues)) {
-        throw new Error(
-          `BodyPlan.setBodyParts: part '${part.key}' missing 'tissues' array`,
-        );
-      }
-      // ⭐⭐ **A tissue states a SHARE of the body, and a `mass` key is
-      // refused BY NAME.** Same reasoning as the `governs` typo below: a
-      // row still authoring kilograms would otherwise be read as a share
-      // of 6 or 12 — silently enormous — and a plan that looked authored
-      // would be wrong everywhere it was read. Naming the dead key in the
-      // error is what turns a mystifying range failure into a one-line
-      // fix.
-      for (const tissue of part.tissues) {
-        if ('mass' in (tissue as object)) {
-          throw new Error(
-            `BodyPlan.setBodyParts: part '${part.key}' tissue ` +
-              `'${tissue.tissuePath}' authors 'mass' — tissues state a ` +
-              `'share' of the whole body's mass now (0,1]; absolute ` +
-              `kilograms cannot serve one plan across species sizes`,
-          );
-        }
-        if (!Number.isFinite(tissue.share) || tissue.share <= 0 || tissue.share > 1) {
-          throw new Error(
-            `BodyPlan.setBodyParts: part '${part.key}' tissue ` +
-              `'${tissue.tissuePath}' share '${tissue.share}' is not a ` +
-              `finite number in (0, 1]`,
-          );
-        }
-      }
-      // ⭐⭐ **A typo in `governs` is a throw at registration, not an inert
-      // organ.** Before this, `governs: [hartRate]` produced a part that
-      // ran nothing, looked authored, and failed silently forever — the
-      // closed-and-silent class this repo keeps paying for. The vocabulary
-      // is `VITAL_SIGNS ∪ BODY_CAPACITIES`: a lung governs a rate AND a
-      // capacity, and both are legitimate.
+    }
+    this.modules = value;
+    this.body = null;
+    const body = this.getBody();
+    BodyPlan.validateVocabulary(body);
+    this.validateSlotPartRefs(this.slots, body.getParts());
+  }
+
+  /**
+   * ⭐⭐ **The body this plan expands to** — no variant, no species
+   * adjustment (`Species.bodyFor` applies those). Every anatomy question
+   * is asked of it, never of the plan. Built on first read; requires the
+   * plan's modules resident (they are, once {@link setModules} has run).
+   */
+  public getBody(): Body {
+    if (this.body === null) {
+      const catalogue = SpeciesApi.modules();
+      this.body = new Body(
+        {
+          modules: this.modules,
+          slots: this.slots,
+          sensoryPorts: this.sensoryPorts,
+          locomotionModes: this.locomotionModes,
+          breathing: this.breathing,
+        },
+        (path) => catalogue.need(path),
+      );
+    }
+    return this.body;
+  }
+
+  /** Every module this plan cites is resident. */
+  private modulesResident(): boolean {
+    const catalogue = SpeciesApi.modules();
+    return this.modules.every((r) => catalogue.has(r.module));
+  }
+
+  /**
+   * ⭐⭐ **A typo in `governs` is a throw at registration, not an inert
+   * organ.** `governs: [hartRate]` would otherwise produce a part that
+   * runs nothing, looks authored and fails silently forever. The
+   * vocabulary is `VITAL_SIGNS ∪ BODY_CAPACITIES`: a lung governs a rate
+   * AND a capacity, and both are legitimate. `serves` names a capacity.
+   */
+  private static validateVocabulary(body: Body): void {
+    for (const part of body.getParts()) {
       for (const key of part.governs ?? []) {
         if (!GOVERNABLE.has(key)) {
           throw new Error(
-            `BodyPlan.setBodyParts: part '${part.key}' governs unknown ` +
+            `BodyPlan.setModules: part '${part.key}' governs unknown ` +
               `key '${key}' — expected a vital sign or a body capacity`,
           );
         }
@@ -624,77 +636,20 @@ export default class BodyPlan extends SingletonMixin(Idea) {
       for (const key of part.serves ?? []) {
         if (!(BODY_CAPACITIES as readonly string[]).includes(key)) {
           throw new Error(
-            `BodyPlan.setBodyParts: part '${part.key}' serves unknown ` +
+            `BodyPlan.setModules: part '${part.key}' serves unknown ` +
               `capacity '${key}'`,
           );
         }
       }
     }
-    // Parent edges must reference a known key (or null/undefined for a root).
-    for (const part of value) {
-      if (
-        part.parent !== null &&
-        part.parent !== undefined &&
-        !keys.has(part.parent)
-      ) {
-        throw new Error(
-          `BodyPlan.setBodyParts: part '${part.key}' parent ` +
-            `'${part.parent}' is not a known part`,
-        );
-      }
-    }
-    // Re-validate the slot→part references against the new part set (the
-    // other half of the order-independent integrity check in setSlots).
-    this.validateSlotPartRefs(this.slots, value);
-    this.bodyParts = value;
-    this.rebuildConduits(value);
-  }
-
-  /**
-   * The set of parts some other part's control or supply runs THROUGH —
-   * recomputed whenever the part list changes (a lifecycle, never module
-   * scope). Half of the interiority predicate; see {@link isInterior}.
-   */
-  private rebuildConduits(parts: readonly BodyPart[]): void {
-    const conduits = new Set<string>();
-    for (const part of parts) {
-      for (const key of part.innervatedBy ?? []) conduits.add(key);
-      for (const key of part.suppliedBy ?? []) conduits.add(key);
-    }
-    this.conduitKeys = conduits;
-  }
-
-  /**
-   * ⭐⭐ **Is this part INSIDE the body?** — the one predicate, replacing
-   * five copies of `if (part.governs?.length) continue;`.
-   *
-   * Two ways to be interior, and the second is why this is a method:
-   *
-   * 1. **It governs something.** An organ runs a sign or a capacity, and
-   *    organs are inside you. This is the shipped rule, unchanged.
-   * 2. ⭐ **Something's control or supply runs through it.** A conduit is
-   *    inside you. This is what lets the **spine** — which governs nothing
-   *    and conducts everything — be interior without inventing a field
-   *    nobody else would ever read. Without it the spine would be an
-   *    exterior part: counted in the surface-fraction walk, expected to be
-   *    covered by a garment, and colder for having no sleeve.
-   *
-   * Interior parts are excluded from every covering / insulation /
-   * concealment walk, which is exactly right: you cannot put a coat on a
-   * liver.
-   */
-  public isInterior(partKey: string): boolean {
-    if (this.conduitKeys.has(partKey)) return true;
-    const part = this.bodyParts.find((p) => p.key === partKey);
-    return (part?.governs?.length ?? 0) > 0;
   }
 
   /**
    * The slot↔part relations are typed references on the slot side
    * (`SlotSpec.bodyPart` / `covers`). This enforces referential
-   * integrity: every reference must name a real `BodyPart`. Lenient when
-   * either set is empty (nothing to check yet — covers the hydration
-   * window where slots load before bodyParts).
+   * integrity: every reference must name a real part. Lenient when
+   * either set is empty (the hydration window where slots load before
+   * modules).
    */
   private validateSlotPartRefs(
     slots: readonly SlotSpec[],
@@ -717,137 +672,5 @@ export default class BodyPlan extends SingletonMixin(Idea) {
         }
       }
     }
-  }
-
-  /** Slots located at (attached to / enabled by) the given part key. */
-  public getSlotsAt(partKey: string): readonly SlotSpec[] {
-    return this.slots.filter((s) => s.bodyPart === partKey);
-  }
-
-  /** Slots whose occupant covers the given part key (coverage relation). */
-  public getSlotsCovering(partKey: string): readonly SlotSpec[] {
-    return this.slots.filter((s) => (s.covers ?? []).includes(partKey));
-  }
-
-  /**
-   * The share of this body's **external surface** that `partKey`
-   * carries, as a fraction summing to 1 across the plan.
-   *
-   * ⭐ Derived by **Meeh's law** — surface scales as `mass^(2/3)` — over
-   * the tissue masses `bodyParts` already authors. There is no new
-   * authored field and there is not going to be one: a per-part surface
-   * number would be a second copy of a fact the tissue masses already
-   * carry, and the two would drift.
-   *
-   * ⚠ **Organs are excluded.** A part with a non-empty `governs` is internal
-   * (the heart, the lungs) and has no external surface at all; counting
-   * it would dilute every other part's share by a body nobody can put a
-   * coat on. That signal is already in the data, so the exclusion is
-   * principled rather than a hand-picked list.
-   *
-   * This is what lets *"an uncovered part is colder"* mean something
-   * proportionate: a bare hand costs exactly its surface share (~2.7% of
-   * a biped, each), and a cloak beats a shirt because it covers more.
-   * A plan with no authored tissue masses returns `0` for everything
-   * and the caller falls back to a body-wide read.
-   */
-  public getPartSurfaceFraction(partKey: string): number {
-    const parts = this.bodyParts;
-    if (this.surfaceFractionsOf !== parts) {
-      this.surfaceFractionsOf = parts;
-      this.surfaceFractions = this.readSurfaceFractions();
-    }
-    return this.surfaceFractions.get(partKey) ?? 0;
-  }
-
-  /** The anatomy {@link surfaceFractions} was read from: a plan's parts are its row's. */
-  private surfaceFractionsOf: unknown = null;
-  private surfaceFractions: Map<string, number> = new Map();
-
-  private readSurfaceFractions(): Map<string, number> {
-    const areas = new Map<string, number>();
-    let total = 0;
-    for (const part of this.bodyParts) {
-      // Exterior parts only — you cannot put a coat on a liver. (Was an
-      // inline `governs?.length`; the predicate is now one method, and it
-      // knows about conduits too.)
-      if (this.isInterior(part.key)) continue;
-      const area = this.partArea(part.key);
-      if (!(area > 0)) continue;
-      total += area;
-      areas.set(part.key, area);
-    }
-    const out = new Map<string, number>();
-    if (!(total > 0)) return out;
-    for (const [key, area] of areas) out.set(key, area / total);
-    return out;
-  }
-
-  /**
-   * ⭐⭐ **A part's cross-sectional area**, by Meeh's law —
-   * `(Σ share)^(2/3)` over its authored tissue shares. `0` for an unknown
-   * or shareless part.
-   *
-   * ⭐ **A proportion, and that changes nothing here.** Both readers
-   * below are ratio-only — one divides by the exterior total, the other
-   * only ORDERS parts — so taking the law over shares instead of
-   * kilograms leaves every shipped answer identical (the hand's 2.7 % of
-   * a biped, liver before heart on the depth ladder) while making the
-   * number mean the same thing on a canary and an ox.
-   *
-   * Two readers, and they want the same number for different reasons:
-   * {@link getPartSurfaceFraction} normalises it across the exterior to
-   * answer *"how much of the skin is this"*, and the depth ladder orders
-   * organs by it to answer *"what does a blow through here meet first"* —
-   * a bigger organ presents more cross-section to whatever is coming
-   * through, which is **why** it is reached first.
-   *
-   * ⚠⚠ **An organ must call THIS, never `getPartSurfaceFraction`.** That
-   * walk skips interior parts by construction (it is exterior-only on
-   * purpose), so it returns 0 for every organ — a caller reaching for the
-   * fraction would get a silently empty ladder.
-   *
-   * ⚠ There is no authored `area` field and there is not going to be one:
-   * it would be a second copy of a fact the tissue masses already carry,
-   * and the two would drift.
-   */
-  public partArea(partKey: string): number {
-    const part = this.bodyParts.find((p) => p.key === partKey);
-    if (!part) return 0;
-    let share = 0;
-    for (const t of part.tissues ?? []) share += t.share;
-    if (!(share > 0)) return 0;
-    return Math.pow(share, 2 / 3);
-  }
-
-  /**
-   * The interior parts sitting immediately under `partKey` — what a blow
-   * through that site can reach. Ordered **largest cross-section first**,
-   * which is the depth ladder's order.
-   */
-  public interiorChildrenOf(partKey: string): readonly BodyPart[] {
-    return this.bodyParts
-      .filter((p) => p.parent === partKey && this.isInterior(p.key))
-      .slice()
-      .sort((a, b) => this.partArea(b.key) - this.partArea(a.key));
-  }
-
-  /**
-   * Derived helper — the deduped list of sense channels this body
-   * plan instantiates. Built from `sensoryPorts` in insertion order
-   * (a Set preserves first-insertion order). A sessile body plan
-   * with no ports returns `[]`.
-   *
-   * Used by the `senseStripAugmenter` to determine a viewer's
-   * sensorium and by the `requires*` verb-level validators to
-   * decide whether the giver can drive a single-sense verb.
-   *
-   * ESP / alien channels are NOT included — `SenseChannel`'s union
-   * is physical-senses only. When ESP-as-channel registration
-   * lands (Wave 2+), a sibling helper on the ESP organ surface
-   * extends the sensorium with non-physical channels.
-   */
-  public getModalities(): SenseChannel[] {
-    return Array.from(new Set(this.sensoryPorts.map((p) => p.modality)));
   }
 }

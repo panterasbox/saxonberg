@@ -49,7 +49,7 @@ function armedCreature(): Creature {
   plan.setSlots([
     { name: 'grip', accepts: 'SlottableMixin', bodyPart: 'body.arm.left.hand' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,
@@ -175,7 +175,7 @@ describe('VitalsMixin — severPart', () => {
     // without the missing-part term a body walks off a lost leg.
     const plan = makeStuff(() => new BodyPlan());
     plan.setName('test-walker');
-    plan.setBodyParts([
+    setFlatParts(plan, [
       {
         key: 'body.torso',
         parent: null,
@@ -295,13 +295,14 @@ describe('AVULSION_BEHAVIOR — the sever gate', () => {
 import { WorldClockApi } from '../../../api/worldclock';
 import '../../../platform/idea/WorldClockRegistry';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 let headedSeq = 0;
 /** A body whose head is severable and whose brain governs consciousness. */
 function headedCreature(): Creature {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-headed');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

@@ -27,6 +27,7 @@ import BodyPlan from '../BodyPlan';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 const MEAT = '/stuff/thing/items/stew-meat';
 const HIDE = '/trade/ranching/thing/hide';
@@ -189,7 +190,7 @@ describe('⭐⭐⭐ a CLAIMING line derives its share from the muscles it takes'
       '/stuff/idea/species/BodyPlan/test-claims',
     );
     plan.setName('test-claims');
-    plan.setBodyParts([
+    setFlatParts(plan, [
       {
         key: 'body.torso',
         parent: null,

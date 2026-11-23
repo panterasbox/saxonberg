@@ -1168,6 +1168,9 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A garment's fabric (`/platform/fabrics/woven`) — load-on-use W2; a
   // kernel form (`plate`) is a word, so only path-shaped values are checked.
   constructionForm: 'fabrics',
+  // ⭐ A body plan's modules (`/species-and-names/body-modules/torso-quadruped`,
+  // organism-biology D1) — each entry's `module` is a document path.
+  modules: 'body-modules',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */
@@ -1207,10 +1210,14 @@ function checkDocumentRefs(rows: Map<string, string>): number {
       for (const entry of Array.isArray(value) ? value : [value]) {
         // ⭐ A named placement region (size and carrying D26) is an object
         // `{ member, name, … }` — its document path is the `member`.
+        // ⭐ …and a body plan's module instance (organism-biology D1) is an
+        // object `{ module, as, at, … }` — its document path is the `module`.
         const path =
           entry !== null && typeof entry === 'object' && 'member' in entry
             ? (entry as { member: unknown }).member
-            : entry;
+            : entry !== null && typeof entry === 'object' && 'module' in entry
+              ? (entry as { module: unknown }).module
+              : entry;
         // A field name another family uses for a WORD (a maturation
         // profile's `mechanism: microbial`) is checked only where it holds
         // a path; a pump naming a bare word fails at its setter instead.
@@ -1249,6 +1256,12 @@ const DOCUMENT_ROW_CITATIONS: Readonly<Record<string, (d: Record<string, unknown
     ...(Array.isArray(d.fractions) ? d.fractions.map((f) => (f as Record<string, unknown>)?.material) : []),
   ],
   dyestuffs: (d) => [d.material],
+  // ⭐ A body module's tissues (organism-biology D1): the material rows a
+  // plan's parts are made of moved off the plan row into its modules, so
+  // the census reads them here or goes blind on every one.
+  'body-modules': (d) => (Array.isArray(d.parts) ? d.parts : []).flatMap((p) =>
+    (Array.isArray((p as Record<string, unknown>)?.tissues) ? ((p as Record<string, unknown>).tissues as unknown[]) : [])
+      .map((t) => (t as Record<string, unknown>)?.tissue)),
 };
 
 function checkDocumentCitations(rows: Map<string, string>): number {

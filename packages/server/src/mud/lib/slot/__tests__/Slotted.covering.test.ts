@@ -32,6 +32,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 class TestGarment extends WearableMixin(
   SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
@@ -61,7 +62,7 @@ function dressableBody(): Creature {
     },
     { name: 'sheath', accepts: 'SlottableMixin' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,
@@ -419,18 +420,18 @@ describe('per-part thermal — the consumer `getSlotsCovering` never had', () =>
   it('⭐ a bare hand costs exactly its SURFACE SHARE, not a flat penalty', () => {
     const body = dressableBody();
     const plan = body.getSpecies()!.getBodyPlan()!;
-    const torso = plan.getPartSurfaceFraction('body.torso');
-    const hand = plan.getPartSurfaceFraction('body.arm.left.hand');
+    const torso = plan.getBody().getPartSurfaceFraction('body.torso');
+    const hand = plan.getBody().getPartSurfaceFraction('body.arm.left.hand');
     expect(torso).toBeGreaterThan(hand);
     // The shares are a partition of 1 over the EXTERNAL parts.
     const total =
       torso +
-      plan.getPartSurfaceFraction('body.head') +
+      plan.getBody().getPartSurfaceFraction('body.head') +
       hand +
-      plan.getPartSurfaceFraction('body.arm.right.hand');
+      plan.getBody().getPartSurfaceFraction('body.arm.right.hand');
     expect(total).toBeCloseTo(1, 6);
     // ⚠ The heart is internal — it has no surface and no share.
-    expect(plan.getPartSurfaceFraction('body.torso.heart')).toBe(0);
+    expect(plan.getBody().getPartSurfaceFraction('body.torso.heart')).toBe(0);
   });
 
   it('⭐ a garment covering MORE parts is worth more at the same clo', () => {

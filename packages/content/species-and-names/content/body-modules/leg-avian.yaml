@@ -1,0 +1,8 @@
+# leg-avian — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.027}

@@ -80,6 +80,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import type { Trauma } from '../../../platform/idea/Condition';
 import type Interactive from '../../../platform/idea/Interactive';
 import { TestHarnessApi } from '../../../api/test-harness';
+import { setFlatParts } from '../../../lib/species/__tests__/flat-body';
 
 const PH = TemplateApplier.templatePath;
 // The trap rows are the generic-objects pack's (content-packs wave 3).
@@ -217,7 +218,7 @@ function footedBodyPlan(): BodyPlan {
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.left.foot', parent: 'body.leg.left', tissues: [] },

@@ -31,6 +31,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { massThing } from '../../../../lib/encumbrance/__tests__/encumbrance-fixtures';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 class SelfHauler extends HaulerMixin(MobileMixin(SensorMixin(Creature))) {
   static _mixinName = 'SelfHauler';
@@ -50,7 +51,7 @@ function bearer<T extends Creature>(factory: () => T, baseMass: number): T {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName(`haul-int-${n}`);
   plan.setBaseMass(baseMass);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

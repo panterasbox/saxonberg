@@ -27,6 +27,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 // Per-instance unique paths — several bodies / materials coexist in one test.
 let seq = 0;
@@ -75,7 +76,7 @@ function bodied(): Creature {
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

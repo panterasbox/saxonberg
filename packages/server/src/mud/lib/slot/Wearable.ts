@@ -589,7 +589,8 @@ export function WearableMixin<
         for (const part of spec?.covers ?? []) parts.add(part);
       }
       let fraction = 0;
-      for (const part of parts) fraction += plan.getPartSurfaceFraction(part);
+      const body = plan.getBody();
+      for (const part of parts) fraction += body.getPartSurfaceFraction(part);
       return fraction > 0 ? surface * fraction : fallback;
     }
 

@@ -47,6 +47,7 @@ import EventRegistry from '../../../EventRegistry';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../../../../lib/material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { setFlatParts } from '../../../../../lib/species/__tests__/flat-body';
 
 beforeEach(() => {
   standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
@@ -113,7 +114,7 @@ function bodyAndPlanPath(): { body: Wearer; planPath: string } {
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
     { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,
@@ -316,7 +317,7 @@ describe('the impossible fit', () => {
     plan.setSlots([
       { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
     ]);
-    plan.setBodyParts([
+    setFlatParts(plan, [
       {
         key: 'body.torso',
         parent: null,

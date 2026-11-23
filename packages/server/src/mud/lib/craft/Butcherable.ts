@@ -400,7 +400,7 @@ function handFor(difficulty: Difficulty): number {
 function woundedAt(body: Stuff, tissues: readonly string[], species: Species): boolean {
   if (!tissues.length || !MixinApi.isVitals(body)) return false;
   const parts = new Set<string>();
-  for (const t of tissues) for (const k of species.partsCarrying(t)) parts.add(k);
+  for (const t of tissues) for (const k of species.bodyFor()?.partsCarrying(t) ?? []) parts.add(k);
   if (!parts.size) return false;
   for (const condition of body.getConditions()) {
     if (condition.kind === 'trauma' && parts.has(condition.site)) return true;

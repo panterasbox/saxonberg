@@ -30,6 +30,7 @@ import type { Container } from '../../spatial/Container';
 import { ContainmentApi } from '../../../api/containment';
 import { material } from '../../spatial/__tests__/size-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 /** An acting body that carries (Mobile, a Combatant, a Sensor) — what a player's is. */
 export class Body extends CarryingMixin(Actor) {}
@@ -78,7 +79,7 @@ export function handsSpecies(spec: BodySpec = {}): { species: Species; plan: str
         ]
       : []),
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body', parent: null, tissues: [] },
     ...(hands
       ? [

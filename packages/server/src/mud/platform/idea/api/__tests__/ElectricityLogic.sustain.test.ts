@@ -35,6 +35,7 @@ import { installCorpseMintStub } from '../../../../lib/mortality/__tests__/corps
 import type { Trauma, SustainedShock } from '../../Condition';
 import requiresConscious from '../../../../lib/command/validators/requiresConscious';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 class TestWire extends EnergizedMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'TestWire';
@@ -88,7 +89,7 @@ function makeBody(room: Place, connected = true): TestBody {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-biped');
   plan.setSlots([]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     {

@@ -35,6 +35,7 @@ import {
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { setFlatParts } from '../../lib/species/__tests__/flat-body';
 
 let snapshots: Record<string, unknown>[] = [];
 let chattelRows: Record<string, unknown>[] = [];
@@ -124,7 +125,7 @@ function makeAvatar(playerId: string): Avatar {
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
     { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body', parent: null, tissues: [] },
     { key: 'body.hand.left', parent: 'body', tissues: [], serves: ['manipulation'] },
     { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },

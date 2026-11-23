@@ -93,6 +93,7 @@ import { ConditionApi } from '../../../api/condition';
 import { PartyApi } from '../../../api/party';
 import { MaterialApi } from '../../../api/material';
 import { ContainmentApi } from '../../../api/containment';
+import { SpeciesApi } from '../../../api/species';
 import { MessageApi } from '../../../api/message';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
@@ -195,6 +196,7 @@ const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: 
   formation: (d, p) => void PartyApi.formations().parse(d, p),
   placement: (d, p) => void ContainmentApi.placements().parse(d, p),
   shape: (d, p) => void ContainmentApi.shapes().parse(d, p),
+  'body-module': (d, p) => void SpeciesApi.modules().parse(d, p),
   reason: (d, p) => void CommandApi.reasons().parse(d, p),
   topic: (d) => {
     if (typeof d.label !== 'string' || d.label === '') throw new Error('a topic needs a label');

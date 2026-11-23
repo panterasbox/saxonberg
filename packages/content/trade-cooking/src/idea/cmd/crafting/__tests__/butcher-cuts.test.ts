@@ -42,6 +42,7 @@ import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
+import { setFlatParts } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 const SPECIES = '/stuff/idea/species/_test/cutbeast';
 const PLAN = '/stuff/idea/species/BodyPlan/_test/cutplan';
@@ -101,7 +102,7 @@ function world(): Species {
   shoulder.setWork(0.8);
   const plan = makeStuffAtPath(() => new BodyPlan(), PLAN);
   plan.setName('cutplan');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

@@ -33,8 +33,8 @@ describe('BodyPlan', () => {
       { name: 'hand:left', accepts: 'WieldableMixin' },
       { name: 'hand:right', accepts: 'WieldableMixin' },
     ]);
-    expect(bp.getLocomotionModes()).toEqual(['walk']);
-    expect(bp.getSensoryPorts()).toEqual([
+    expect(bp.getBody().gaits()).toEqual(['walk']);
+    expect(bp.getBody().getSensoryPorts()).toEqual([
       { modality: 'vision', count: 2, position: 'frontal' },
     ]);
   });
@@ -43,8 +43,8 @@ describe('BodyPlan', () => {
     const bp = makeStuff(() => new BodyPlan());
     bp.setName('sessile');
     expect(bp.getSlots()).toEqual([]);
-    expect(bp.getLocomotionModes()).toEqual([]);
-    expect(bp.getSensoryPorts()).toEqual([]);
+    expect(bp.getBody().gaits()).toEqual([]);
+    expect(bp.getBody().getSensoryPorts()).toEqual([]);
   });
 
   it('setSlots rejects spec missing name', () => {
@@ -89,7 +89,7 @@ describe('BodyPlan', () => {
         { modality: 'touch', count: 1, position: 'circumferential' },
       ]);
       // Insertion-order preservation via Set.
-      expect(bp.getModalities()).toEqual([
+      expect(bp.getBody().modalities()).toEqual([
         'vision',
         'hearing',
         'smell',
@@ -101,7 +101,7 @@ describe('BodyPlan', () => {
     it('returns [] for a sessile body plan with no ports', () => {
       const bp = makeStuff(() => new BodyPlan());
       bp.setName('sessile');
-      expect(bp.getModalities()).toEqual([]);
+      expect(bp.getBody().modalities()).toEqual([]);
     });
 
     it('dedupes when one channel has multiple ports', () => {
@@ -111,7 +111,7 @@ describe('BodyPlan', () => {
         { modality: 'vision', count: 2, position: 'dorsal' },
         { modality: 'hearing', count: 2, position: 'lateral' },
       ]);
-      expect(bp.getModalities()).toEqual(['vision', 'hearing']);
+      expect(bp.getBody().modalities()).toEqual(['vision', 'hearing']);
     });
   });
 

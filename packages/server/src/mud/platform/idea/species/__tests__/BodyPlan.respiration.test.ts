@@ -13,15 +13,15 @@ import { MixinApi } from '../../../../api/mixin';
 describe('BodyPlan — respiration fields', () => {
   it('defaults to lungs in air, respiring', () => {
     const bp = makeStuff(() => new BodyPlan());
-    expect(bp.getBreathableMedia()).toEqual(['air']);
-    expect(bp.getBreathing()).toEqual([{ medium: 'air', apparatus: 'lungs', intake: 1 }]);
+    expect(bp.getBody().breathableMedia()).toEqual(['air']);
+    expect(bp.getBody().breathing()).toEqual([{ medium: 'air', apparatus: 'lungs', intake: 1 }]);
     expect(bp.isRespiring()).toBe(true);
   });
 
   it('inverts to a water-breather', () => {
     const bp = makeStuff(() => new BodyPlan());
     bp.setBreathing([{ medium: 'water', apparatus: 'gills', intake: 1 }]);
-    expect(bp.getBreathableMedia()).toEqual(['water']);
+    expect(bp.getBody().breathableMedia()).toEqual(['water']);
   });
 
   it('⭐ a partial intake is breathing, but not freely: it is not in the breathable set', () => {
@@ -30,7 +30,7 @@ describe('BodyPlan — respiration fields', () => {
       { medium: 'water', apparatus: 'gills', intake: 1 },
       { medium: 'air', apparatus: 'gills', intake: 0.4 },
     ]);
-    expect(bp.getBreathableMedia()).toEqual(['water']);
+    expect(bp.getBody().breathableMedia()).toEqual(['water']);
   });
 
   it('rejects a missing medium, a duplicate, and an intake out of range', () => {
@@ -46,7 +46,7 @@ describe('BodyPlan — respiration fields', () => {
   it('allows an empty breathing list (breathes nothing — not the opt-out)', () => {
     const bp = makeStuff(() => new BodyPlan());
     bp.setBreathing([]);
-    expect(bp.getBreathableMedia()).toEqual([]);
+    expect(bp.getBody().breathableMedia()).toEqual([]);
   });
 
   it('⭐ under the water a nose does not work and eyes do; a voice is air-only unless authored', () => {
@@ -55,8 +55,8 @@ describe('BodyPlan — respiration fields', () => {
       { modality: 'vision', count: 2, position: 'frontal' },
       { modality: 'smell', count: 1, position: 'frontal' },
     ]);
-    expect(bp.getModalitiesIn('water')).toEqual(['vision']);
-    expect(bp.getModalitiesIn('air')).toEqual(['vision', 'smell']);
+    expect(bp.getBody().modalitiesIn('water')).toEqual(['vision']);
+    expect(bp.getBody().modalitiesIn('air')).toEqual(['vision', 'smell']);
     expect(bp.getVoiceMedia()).toEqual(['air']);
     bp.setVoice({ media: ['air', 'water'] });
     expect(bp.getVoiceMedia()).toEqual(['air', 'water']);

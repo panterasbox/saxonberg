@@ -1,0 +1,14 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/HideHorn
+data:
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 10 }]
+  name: dentine
+  keywords: [dentine, tooth]
+  appearance: dense yellow-white dentine
+  density: 2100
+  specificHeat: 1200
+  thermalConductivity: 0.6
+  hardness: 120
+  toughness: 4
+  tags: ["tissue", "animal", "tooth", "mineral", "once-living"]

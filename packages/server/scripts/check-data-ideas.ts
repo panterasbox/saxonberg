@@ -99,7 +99,7 @@ import {
 // this syntax-only census cannot see; its subclasses (`ForumsApp`,
 // `CalendarApp`) carry behavior and are not counted. The plan (P10) said to
 // bring it back as a finding: it is the MR's first item.
-export const DATA_IDEAS_CEILING = 13;
+export const DATA_IDEAS_CEILING = 12; // organism-biology W1 re-pinned the floor (was 13).
 
 const IDEA_ROOT = "/lib/stuff/Idea";
 const LOGIC_ROOT = "/lib/stuff/ApiLogic";

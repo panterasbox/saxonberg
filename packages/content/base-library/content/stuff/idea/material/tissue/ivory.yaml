@@ -1,0 +1,13 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/HideHorn
+data:
+  name: ivory
+  keywords: [ivory, tusk]
+  appearance: creamy ivory, faintly cross-hatched
+  density: 1850
+  specificHeat: 1200
+  thermalConductivity: 0.5
+  hardness: 110
+  toughness: 6
+  tags: ["tissue", "animal", "tooth", "ivory", "mineral", "once-living"]

@@ -26,6 +26,7 @@ import type { SpeciesDossier } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { SpeciesLogic } from '../platform/idea/api/SpeciesLogic';
+import BodyModuleCatalogue from '../platform/idea/BodyModuleCatalogue';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { NamePools } from '../lib/species/NameBank';
@@ -140,6 +141,16 @@ export class SpeciesApi {
    */
   public static async preloadAnatomy(actor: Stuff): Promise<void> {
     return logic().preloadAnatomy(actor);
+  }
+
+  /**
+   * ⭐ The body modules — the reusable pieces a body plan is composed of
+   * (a limb, a head, a torso), any pack's `content/body-modules/`, served
+   * by {@link BodyModuleCatalogue} (organism-biology D1). A plan's
+   * `modules` setter ensures the ones it cites; a body reads them resident.
+   */
+  public static modules(): BodyModuleCatalogue {
+    return StuffApi.singletonSync('/platform/idea/BodyModuleCatalogue', () => new BodyModuleCatalogue());
   }
 
   /**

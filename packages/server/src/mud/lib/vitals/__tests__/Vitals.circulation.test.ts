@@ -31,6 +31,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { standShippedConditions } from './conditions';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 // load-on-use W6: the shipped condition roster, as a world loads it with the body.
 beforeEach(async () => {
@@ -43,7 +44,7 @@ function bleeder(): Creature {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-bleeder');
-  plan.setBodyParts([{ key: 'body.torso', parent: null, tissues: [] }]);
+  setFlatParts(plan, [{ key: 'body.torso', parent: null, tissues: [] }]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/bleed-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);

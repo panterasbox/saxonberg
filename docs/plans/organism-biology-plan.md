@@ -1539,6 +1539,18 @@ row; `lint:anatomy` fails on a deliberately broken module; a body cloned in
 a cold world has its tissue materials resident.
 **Commit:** `feat(species): W1 body plans compose from modules`
 
+> ✅ **W1 done.** `BodyModule` + `BodyModuleCatalogue` (`SpeciesApi.modules()`,
+> a `DOCUMENT_KINDS` shim — naming-overhaul has not landed), `Body` (its
+> constructor is the expansion; imports types only), `Species.bodyFor()`,
+> `OrganismMixin.getBody()`, `BodyPlan.setModules` (async: modules, then
+> every tissue via `ensureConstituent`) and `applyModules` (sync, for
+> resident modules). Every anatomy reader moved to the body; `BodyPlan` lost
+> `bodyParts` and its anatomy getters. The nine plans became 26 modules
+> (generated with today's shares as weights, so the golden matches to the
+> digit) plus the `insect` plan; the 20 D4 rows landed; `lint:anatomy`
+> builds every plan through `Body`. Fixtures moved to `setFlatParts`
+> (`lib/species/__tests__/flat-body.ts`). Decisions B4–B8.
+
 ### W2 — Bodies that vary: sex, stage, growth
 
 **Goal:** the variant machinery every later organ hangs on.
@@ -2167,6 +2179,40 @@ Decisions the build made that the plan did not, and what decided each.
   code-complete. The staging tools are unit-tested here
   (`TestHarnessController.test.ts`). *Decided by:* the build skill's
   "drive once at code-complete".
+
+- **B4 (W1) — the `body-module` kind is the `DOCUMENT_KINDS` stanza only.**
+  naming-overhaul has not landed, so there is no `content/kinds/` reader on
+  master; a `kinds/body-module.yaml` would be a file nothing reads. The
+  stanza is marked as the shim; the merge that deletes the const adds the
+  yaml. *Decided by:* the plan's own fallback (D1).
+- **B5 (W1) — three ceilings moved, each with a caller audit in the
+  script.** `lint:boundary-roles` +1 (the new catalogue is commons, as every
+  document family's is: every anatomy read in any circle goes through it);
+  `lint:material-kinds` +207 (the D4 rows author every field their nearest
+  shipped kin authors; what stays unauthored is what no comparable row
+  authors — template forms, `biologicalSource`, rare dials); and
+  `lint:data-ideas` fell 13 → 12 and was re-pinned. The plan said *no
+  ceiling rises*; both rises are direct consequences of S1 and D4 as the
+  plan wrote them. *Decided by:* CLAUDE.md's ratchet rule (a rise wants a
+  caller audit, and these have one).
+- **B6 (W1) — part order is the modules' order.** A body expands module by
+  module, so `body.torso.heart` now follows `body.torso` rather than the
+  legs. No reader depends on order (a root is `parent: null`, the depth
+  ladder sorts by area); the golden compares parts by key. *Decided by:*
+  the model (order was never a fact about a body).
+- **B7 (W1) — fixtures keep flat part lists through `setFlatParts`.** Each
+  part becomes a resident single-part module via the catalogue's sanctioned
+  `remember` (its own doc says "a fixture"), so 58 test files changed one
+  call each instead of being rewritten as modules. Shares are renormalized,
+  which every ratio-only reader ignores. *Decided by:* the nearest pattern
+  (`remember` is the documented fixture door).
+- **B8 (W1) — module paths are the pack's own root.** `species-and-names`
+  has no `root:`, so its modules are `/species-and-names/body-modules/…`
+  (the plan's example said `/stuff/body-modules/…`); trade-fishing's are
+  `/trade/fishing/body-modules/…`. Names are `<segment>-<plan>`; a module
+  two plans share keeps the base plan's name (the canid's legs are
+  `leg-fore-quadruped`). A species `body:` block arrives with variants in
+  W2, its first author. *Decided by:* the installer's path rule.
 
 ## Drive record
 

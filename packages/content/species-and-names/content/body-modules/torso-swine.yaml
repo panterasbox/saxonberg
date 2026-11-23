@@ -1,0 +1,36 @@
+# torso-swine — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+parts:
+- key: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0348}
+  - {tissue: /stuff/idea/material/tissue/muscles/neck, weight: 0.0244}
+  - {tissue: /stuff/idea/material/tissue/muscles/rib, weight: 0.0348}
+  - {tissue: /stuff/idea/material/tissue/muscles/loin, weight: 0.0348}
+  - {tissue: /stuff/idea/material/tissue/muscles/tenderloin, weight: 0.0077}
+  - {tissue: /stuff/idea/material/tissue/muscles/belly, weight: 0.1}
+  - {tissue: /stuff/idea/material/food/animal-fat, weight: 0.28}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.2173}
+- key: heart
+  parent: ''
+  governs: [heartRate, circulation]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.0014}
+- key: lungs
+  parent: ''
+  governs: [respiratoryRate, respiration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.007}
+- key: spine.upper
+  parent: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0042}
+- key: spine.lower
+  parent: spine.upper
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0035}
+- key: liver
+  parent: ''
+  governs: [clearance]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0084}

@@ -65,6 +65,7 @@ import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 import type { MqlOneResult } from '../../../api/mql';
 import type { CommandContext } from '../../../api/command';
 import { TestHarnessApi } from '../../../api/test-harness';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 let n = 0;
 let real = 0;
@@ -111,7 +112,7 @@ function footedBodyPlan(): BodyPlan {
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.left.foot', parent: 'body.leg.left', tissues: [] },

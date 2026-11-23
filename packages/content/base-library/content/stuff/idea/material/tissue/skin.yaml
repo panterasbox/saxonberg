@@ -1,0 +1,18 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/Hide
+data:
+  smells: [{ aroma: /base-library/aromas/hide, strength: 200 }]
+  name: skin
+  keywords: [skin]
+  appearance: bare skin
+  density: 1100
+  specificHeat: 3400
+  thermalConductivity: 0.37
+  hardness: 2
+  toughness: 3
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 40
+  spoilActivationEnergy: 70000
+  waterActivity: 0.98
+  tags: ["tissue", "animal", "skin", "organic", "once-living"]

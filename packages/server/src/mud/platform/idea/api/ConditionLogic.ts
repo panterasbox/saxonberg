@@ -1440,9 +1440,9 @@ function reachInterior(
   nowS: number | null,
 ): Trauma[] {
   if (!MixinApi.isOrganism(target)) return [];
-  const plan = target.getSpecies()?.getBodyPlan();
-  if (!plan) return [];
-  const organs = plan.interiorChildrenOf(exterior.site);
+  const body = target.getBody();
+  if (!body) return [];
+  const organs = body.interiorChildrenOf(exterior.site);
   if (organs.length === 0) return [];
 
   const threshold = dial(AppSettingKeys.responseDepthReachThreshold, 2);

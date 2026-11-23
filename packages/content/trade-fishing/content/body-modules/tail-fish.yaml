@@ -1,0 +1,7 @@
+# tail-fish — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+parts:
+- key: ''
+  severable: true
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.0483}

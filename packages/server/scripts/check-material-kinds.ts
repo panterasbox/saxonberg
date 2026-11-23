@@ -62,7 +62,7 @@ import {
 // strike's dropped `drainSetting`; graining's new facts (metastable ratio,
 // purity, grade table) ride `crystallizesTo` itself, so no solution row
 // gained a loose gap.
-export const DATA_GAP_CEILING = 5950; // was 5955, 5962, and 6067 before W4 (controller-liquidity W15 merge: −3, re-pinned at the merged floor — sulfurous iron's `castTemplate` among them).
+export const DATA_GAP_CEILING = 6157; // organism-biology W1: +207 — the 20 tissue rows of D4 (keratin … swim-bladder, blubber, spermaceti, whale-oil, silk-gland). CALLER AUDIT: each authors every field its nearest shipped kin authors (bone, horn, rawhide, flesh, olive oil, beeswax, lamp oil); what stays unauthored is what no comparable row authors — the template forms (`brokenTemplate`, `soddenTemplate`, `castTemplate`, …), `biologicalSource` (a generic tissue names no one species) and the rare dials (`wetStrength` on 4 rows, `cleavability` on 11). Was 5950; was 5955, 5962, and 6067 before W4 (controller-liquidity W15 merge: −3, re-pinned at the merged floor — sulfurous iron's `castTemplate` among them).
 
 const GATE = 'check-material-kinds';
 const LIB = join(MUD, 'lib', 'material');

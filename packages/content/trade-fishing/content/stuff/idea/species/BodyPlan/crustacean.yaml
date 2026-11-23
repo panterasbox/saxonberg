@@ -22,31 +22,10 @@ data:
   sensoryPorts:
     - { modality: vision, count: 2, position: frontal }
     - { modality: touch, count: 1, position: circumferential }
-  bodyParts:
-    - key: body.torso
-      parent: null
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.3886 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.3883 }
-    - key: body.claw.left
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0485 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0485 }
-    - key: body.claw.right
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0485 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0485 }
-    - key: body.torso.heart
-      parent: body.torso
-      governs: [heartRate]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0097 }
-    - key: body.torso.gills
-      parent: body.torso
-      governs: [respiratoryRate]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0194 }
+  # ⭐ Composed from body modules (organism-biology D1): each entry names
+  # a module document, the absolute key of each instance (`as`) and the
+  # part it hangs from (`at`). The expansion reproduces the keys and the
+  # tissue shares this plan always had.
+  modules:
+    - { module: /trade/fishing/body-modules/torso-crustacean, as: [body.torso] }
+    - { module: /trade/fishing/body-modules/claw-crustacean, as: [body.claw.left, body.claw.right], at: body.torso }

@@ -171,7 +171,7 @@ export class SpeciesLogic extends ApiLogic {
       const anat: DossierSection['rows'] = [
         { label: 'Body plan', value: cap(bodyPlan.getName()) },
       ];
-      const ports = bodyPlan.getSensoryPorts();
+      const ports = bodyPlan.getBody().getSensoryPorts();
       if (ports.length) {
         anat.push({
           label: 'Senses',
@@ -180,7 +180,7 @@ export class SpeciesLogic extends ApiLogic {
             .join(' · '),
         });
       }
-      const moves = bodyPlan.getLocomotionModes();
+      const moves = bodyPlan.getBody().gaits();
       if (moves.length) anat.push({ label: 'Locomotion', value: moves.join(' · ') });
       const slots = bodyPlan.getSlots();
       if (slots.length) {

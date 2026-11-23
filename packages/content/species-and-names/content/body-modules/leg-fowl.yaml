@@ -1,0 +1,10 @@
+# leg-fowl — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.018}
+  - {tissue: /stuff/idea/material/tissue/muscles/leg, weight: 0.045}
+  - {tissue: /stuff/idea/material/tissue/muscles/shank, weight: 0.025}

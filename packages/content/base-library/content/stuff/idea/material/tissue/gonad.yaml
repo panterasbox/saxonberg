@@ -1,0 +1,19 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/Flesh
+data:
+  smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 60 }]
+  name: gonad
+  keywords: [gonad, gonads, organ]
+  appearance: a pale, glistening gonads
+  density: 1050
+  specificHeat: 3600
+  thermalConductivity: 0.5
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 25
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
+  nutrients: ["protein", "water"]
+  tags: ["tissue", "animal", "organ", "organic", "living", "edible"]

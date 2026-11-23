@@ -47,89 +47,12 @@ data:
   # lungs / liver — because a wolf is an animal with the same insides. All
   # four legs innervate off the LOWER spine: a quadruped's forelimbs are
   # legs, not arms, and the tree says so.
-  bodyParts:
-    - key: body.torso
-      parent: null
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.05 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/neck, share: 0.035 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/rib, share: 0.05 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/loin, share: 0.05 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/tenderloin, share: 0.011 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/belly, share: 0.05 }
-        - { tissuePath: /stuff/idea/material/food/animal-fat, share: 0.06 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.312 }
-    - key: body.head
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.03 }
-    - key: body.leg.frontLeft
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      innervatedBy: [body.torso.spine.lower]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.035 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.011 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
-    - key: body.leg.frontRight
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      innervatedBy: [body.torso.spine.lower]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.035 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.011 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
-    - key: body.leg.rearLeft
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      innervatedBy: [body.torso.spine.lower]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.017 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.042 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.014 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
-    - key: body.leg.rearRight
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      innervatedBy: [body.torso.spine.lower]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.017 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.042 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.014 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
-    - key: body.torso.heart
-      parent: body.torso
-      governs: [heartRate, circulation]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.002 }
-    - key: body.torso.lungs
-      parent: body.torso
-      governs: [respiratoryRate, respiration]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.01 }
-    - key: body.head.brain
-      parent: body.head
-      governs: [consciousness]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.003 }
-    - key: body.torso.spine.upper
-      parent: body.torso
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.006 }
-    - key: body.torso.spine.lower
-      parent: body.torso.spine.upper
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.005 }
-    - key: body.torso.liver
-      parent: body.torso
-      governs: [clearance]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.012 }
+  # ⭐ Composed from body modules (organism-biology D1): each entry names
+  # a module document, the absolute key of each instance (`as`) and the
+  # part it hangs from (`at`). The expansion reproduces the keys and the
+  # tissue shares this plan always had.
+  modules:
+    - { module: /species-and-names/body-modules/torso-quadruped, as: [body.torso] }
+    - { module: /species-and-names/body-modules/head-quadruped, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/leg-fore-quadruped, as: [body.leg.frontLeft, body.leg.frontRight], at: body.torso, innervatedBy: [body.torso.spine.lower] }
+    - { module: /species-and-names/body-modules/leg-hind-quadruped, as: [body.leg.rearLeft, body.leg.rearRight], at: body.torso, innervatedBy: [body.torso.spine.lower] }

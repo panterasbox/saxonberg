@@ -17,7 +17,7 @@ data:
   smells: [{ aroma: /base-library/aromas/animal/silkworm, strength: 10 }]
   binomial: Bombyx mori
   commonNames: ["silkworm", "silkworms", "silk moth"]
-  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/insect
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   lifecycleStates: ["alive", "dead"]

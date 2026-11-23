@@ -33,6 +33,9 @@ import Species from '../Species';
 import BodyPlan from '../BodyPlan';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
+import { SpeciesApi } from '../../../../api/species';
+import { BodyModule } from '../../../../lib/species/BodyModule';
+import type { ModuleRef } from '../../../../lib/species/Body';
 
 afterEach(() => StuffApi.clearAll());
 
@@ -45,12 +48,33 @@ interface Row {
   data?: Record<string, unknown>;
 }
 
-/** Every shipped row, by template path (the path under a pack's `content/`). */
+/** A pack's namespace root: its manifest's `root:`, else `/<id>`. */
+function packRoot(pack: string): string {
+  const manifest = join(CONTENT, pack, 'pack.yaml');
+  if (!existsSync(manifest)) return `/${pack}`;
+  const m = parse(readFileSync(manifest, 'utf8')) as { id?: string; root?: string };
+  return m.root ?? `/${m.id ?? pack}`;
+}
+
+/**
+ * Every shipped row, by template path (the path under a pack's `content/`),
+ * and every body-module document by its document path (the pack's root +
+ * `/body-modules/<name>`).
+ */
 function contentIndex(): Map<string, Row> {
   const out = new Map<string, Row>();
   for (const pack of readdirSync(CONTENT)) {
     const root = join(CONTENT, pack, 'content');
     if (!existsSync(root)) continue;
+    const modDir = join(root, 'body-modules');
+    if (existsSync(modDir)) {
+      const proot = packRoot(pack);
+      for (const name of readdirSync(modDir)) {
+        if (!name.endsWith('.yaml')) continue;
+        const data = parse(readFileSync(join(modDir, name), 'utf8')) as Record<string, unknown>;
+        out.set(`${proot}/body-modules/${name.slice(0, -5)}`, { data });
+      }
+    }
     const walk = (dir: string, rel: string): void => {
       for (const name of readdirSync(dir)) {
         const full = join(dir, name);
@@ -92,6 +116,23 @@ function planData(index: Map<string, Row>, path: string): Record<string, unknown
   return { ...parent, ...(row.data ?? {}) };
 }
 
+/**
+ * ⭐ A shipped plan, built the way the engine builds it (W1): its module
+ * documents parsed and made resident, then `applyModules` — so the golden
+ * reads the SAME expansion the game does.
+ */
+function buildPlan(index: Map<string, Row>, planPath: string, data: Record<string, unknown>): BodyPlan {
+  const refs = (data.modules as ModuleRef[] | undefined) ?? [];
+  for (const r of refs) {
+    const doc = index.get(r.module);
+    if (!doc) throw new Error(`golden: plan ${planPath} cites module ${r.module}, which no pack ships`);
+    SpeciesApi.modules().remember(r.module, new BodyModule(r.module, doc.data ?? {}));
+  }
+  const plan = makeStuffAtPath(() => new BodyPlan(), planPath);
+  plan.applyModules(refs);
+  return plan;
+}
+
 function computeGolden(): Golden {
   const index = contentIndex();
   const species = [...index.entries()].filter(([, r]) => r.class === SPECIES_CLASS);
@@ -105,9 +146,8 @@ function computeGolden(): Golden {
   const plans: Record<string, unknown> = {};
   for (const planPath of [...planPaths].sort()) {
     const data = planData(index, planPath);
-    const plan = makeStuffAtPath(() => new BodyPlan(), planPath);
-    plan.setBodyParts((data.bodyParts as never) ?? []);
-    const parts = plan.getBodyParts();
+    const plan = buildPlan(index, planPath, data);
+    const parts = plan.getBody().getParts();
     let total = 0;
     for (const p of parts) for (const t of p.tissues ?? []) total += t.share;
     plans[planPath] = {
@@ -166,9 +206,7 @@ function computeGolden(): Golden {
     const yieldLines = (d.butcheryYield as Record<string, unknown>[] | undefined) ?? [];
     if (yieldLines.length > 0 && typeof d._bodyPlanPath === 'string') {
       StuffApi.clearAll();
-      const pdata = planData(index, d._bodyPlanPath);
-      const plan = makeStuffAtPath(() => new BodyPlan(), d._bodyPlanPath);
-      plan.setBodyParts((pdata.bodyParts as never) ?? []);
+      buildPlan(index, d._bodyPlanPath, planData(index, d._bodyPlanPath));
       const sp = makeStuffAtPath(() => new Species(), path);
       sp._bodyPlanPath = d._bodyPlanPath;
       sp.setButcheryYield(yieldLines as never);
@@ -207,7 +245,27 @@ describe('⭐⭐ organism-biology goldens — today’s behavior, frozen at W0',
   });
 
   it('every plan: the same parts, roles and resolved tissue shares (to 1e-6)', () => {
-    expect(computed.plans).toEqual(frozen.plans);
+    // ⭐ W1: a module expands part by part, so the ORDER of the list is the
+    // modules' order, not the hand-authored one; nothing in the model reads
+    // order (a root is `parent: null`, a ladder sorts by area). Compared by
+    // key. The `insect` plan is new in W1 (bee, silkworm, cricket left
+    // `sessile`) and is checked on its own below.
+    const byKey = (plans: Record<string, unknown>): Record<string, unknown> =>
+      Object.fromEntries(
+        Object.entries(plans)
+          .filter(([path]) => path in frozen.plans)
+          .map(([path, plan]) => {
+            const p = plan as { parts: { key: string }[] };
+            return [path, { ...p, parts: [...p.parts].sort((a, b) => a.key.localeCompare(b.key)) }];
+          }),
+      );
+    expect(byKey(computed.plans)).toEqual(byKey(frozen.plans));
+  });
+
+  it('⭐ W1: the insect plan — six legs, a head and a torso of chitin', () => {
+    const insect = computed.plans['/stuff/idea/species/BodyPlan/insect'] as { parts: { key: string }[] };
+    expect(insect.parts.map((p) => p.key)).toContain('body.leg.hindRight');
+    expect(insect.parts.filter((p) => p.key.startsWith('body.leg.')).length).toBe(6);
   });
 
   it('every tapped species: the same taps by sex', () => {

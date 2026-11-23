@@ -647,13 +647,11 @@ function mediumOf(viewer: Stuff): string {
 function walkInnateModalities(viewer: Stuff): Modality[] {
   if (!MixinApi.isOrganism(viewer)) return [];
   const organism = viewer as Stuff & Organism;
-  const species = organism.getSpecies();
-  if (!species) return [];
-  const bodyPlan = species.getBodyPlan();
-  if (!bodyPlan) return [];
+  const body = organism.getBody();
+  if (!body) return [];
   // ⭐ An organ works in its own media (underwater D21): under the water a
   // nose would breathe it in, eyes and ears go on working.
-  const organKeys = bodyPlan.getModalitiesIn(mediumOf(viewer));
+  const organKeys = body.modalitiesIn(mediumOf(viewer));
   const out: Modality[] = [];
   for (const key of organKeys) {
     const modality = resolveByOrganKey(key);

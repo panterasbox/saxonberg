@@ -28,6 +28,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberShippedDirt } from './soil-fixtures';
 import { MaterialApi } from '../../../api/material';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 const atGameSeconds = (g: number): void => {
   const scale = WorldClockApi.getScale();
@@ -62,7 +63,7 @@ function body(): Creature {
       covers: ['body.arm.left.hand', 'body.arm.right.hand'],
     },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.arm.left.hand', parent: 'body.torso', serves: ['manipulation'], tissues: [] },
     { key: 'body.arm.right.hand', parent: 'body.torso', serves: ['manipulation'], tissues: [] },

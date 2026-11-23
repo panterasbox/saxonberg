@@ -34,6 +34,7 @@ import {
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 /** A body that carries (size and carrying W8: the capability is the carrier classes'). */
 class CarrierBody extends CarryingMixin(Creature) {}
@@ -130,7 +131,7 @@ function makeBody(room: Place | null): Creature {
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
     { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.hand.left', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
     { key: 'body.hand.right', parent: 'body.torso', tissues: [], serves: ['manipulation'] },

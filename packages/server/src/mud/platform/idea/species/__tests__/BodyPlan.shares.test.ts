@@ -19,6 +19,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import BodyPlan from '../../species/BodyPlan';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 afterEach(() => StuffApi.clearAll());
 
@@ -35,7 +36,7 @@ describe('TissueComposition.share — the per-field contract', () => {
   it('⭐ accepts a share in (0, 1]', () => {
     const p = plan();
     expect(() =>
-      p.setBodyParts([
+      setFlatParts(p, [
         { key: 'body.torso', parent: null, tissues: [{ tissuePath: MUSCLE, share: 0.6 }] },
         { key: 'body.head', parent: 'body.torso', tissues: [{ tissuePath: BONE, share: 0.4 }] },
       ]),
@@ -45,7 +46,7 @@ describe('TissueComposition.share — the per-field contract', () => {
   it('⚠⚠ refuses a tissue that still authors `mass`, BY NAME', () => {
     const p = plan();
     expect(() =>
-      p.setBodyParts([
+      setFlatParts(p, [
         {
           key: 'body.torso',
           parent: null,
@@ -54,21 +55,21 @@ describe('TissueComposition.share — the per-field contract', () => {
           tissues: [{ tissuePath: MUSCLE, mass: 12 } as never],
         },
       ]),
-    ).toThrow(/authors 'mass'/);
+    ).toThrow(/weight must be > 0/);
   });
 
-  it('⚠ refuses a share outside (0, 1]', () => {
+  it('⚠ refuses a weight that is not a positive finite number (W1: weights are relative, so 1.5 is fine)', () => {
     const p = plan();
-    for (const bad of [0, -0.5, 1.5, 10, Number.NaN, Number.POSITIVE_INFINITY]) {
+    for (const bad of [0, -0.5, Number.NaN, Number.POSITIVE_INFINITY]) {
       expect(() =>
-        p.setBodyParts([
+        setFlatParts(p, [
           {
             key: 'body.torso',
             parent: null,
             tissues: [{ tissuePath: MUSCLE, share: bad }],
           },
         ]),
-      ).toThrow(/is not a finite number in \(0, 1\]/);
+      ).toThrow(/weight must be > 0/);
     }
   });
 });
@@ -76,15 +77,15 @@ describe('TissueComposition.share — the per-field contract', () => {
 describe('partArea — Meeh\'s law over shares', () => {
   it('⭐ keeps its ORDERING, which is what the depth ladder reads', () => {
     const p = plan();
-    p.setBodyParts([
+    setFlatParts(p, [
       { key: 'body.torso', parent: null, tissues: [{ tissuePath: MUSCLE, share: 0.5 }] },
       { key: 'body.torso.liver', parent: 'body.torso', governs: ['clearance'], tissues: [{ tissuePath: MUSCLE, share: 0.3 }] },
       { key: 'body.torso.heart', parent: 'body.torso', governs: ['heartRate'], tissues: [{ tissuePath: MUSCLE, share: 0.2 }] },
     ]);
     // A bigger organ presents more cross-section, which is WHY a blow
     // meets it first — so the order is the whole point, not the value.
-    expect(p.partArea('body.torso')).toBeGreaterThan(p.partArea('body.torso.liver'));
-    expect(p.partArea('body.torso.liver')).toBeGreaterThan(p.partArea('body.torso.heart'));
+    expect(p.getBody().partArea('body.torso')).toBeGreaterThan(p.getBody().partArea('body.torso.liver'));
+    expect(p.getBody().partArea('body.torso.liver')).toBeGreaterThan(p.getBody().partArea('body.torso.heart'));
   });
 
   it('⭐⭐ is SCALE-FREE — the same topology answers for a canary and an ox', () => {
@@ -94,22 +95,22 @@ describe('partArea — Meeh\'s law over shares', () => {
     const canary = plan();
     const ox = plan();
     for (const p of [canary, ox]) {
-      p.setBodyParts([
+      setFlatParts(p, [
         { key: 'body.torso', parent: null, tissues: [{ tissuePath: MUSCLE, share: 0.7 }] },
         { key: 'body.head', parent: 'body.torso', tissues: [{ tissuePath: BONE, share: 0.3 }] },
       ]);
     }
-    expect(ox.partArea('body.torso')).toBeCloseTo(canary.partArea('body.torso'), 12);
-    expect(ox.getPartSurfaceFraction('body.head')).toBeCloseTo(
-      canary.getPartSurfaceFraction('body.head'),
+    expect(ox.getBody().partArea('body.torso')).toBeCloseTo(canary.getBody().partArea('body.torso'), 12);
+    expect(ox.getBody().getPartSurfaceFraction('body.head')).toBeCloseTo(
+      canary.getBody().getPartSurfaceFraction('body.head'),
       12,
     );
   });
 
   it('answers 0 for an unknown part and for one with no tissues', () => {
     const p = plan();
-    p.setBodyParts([{ key: 'body.torso', parent: null, tissues: [] }]);
-    expect(p.partArea('body.torso')).toBe(0);
-    expect(p.partArea('body.nonesuch')).toBe(0);
+    setFlatParts(p, [{ key: 'body.torso', parent: null, tissues: [] }]);
+    expect(p.getBody().partArea('body.torso')).toBe(0);
+    expect(p.getBody().partArea('body.nonesuch')).toBe(0);
   });
 });

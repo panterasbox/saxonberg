@@ -1,0 +1,19 @@
+# Insect — six legs on a thorax, a head capsule, all under a chitin
+# cuticle (organism-biology W1). The bee, the silkworm and the delve
+# cricket named `sessile` before this, which said a bee has no body at
+# all. Wings, the silkworm's stages and the senses each arrive in their
+# own wave (W3 gaits, W8 metamorphosis, W9 senses).
+class: /platform/idea/species/BodyPlan
+data:
+  name: insect
+  slots: []
+  locomotionModes: [walk]
+  defaultLocomotionMode: walk
+  sensoryPorts:
+    - { modality: vision, count: 2, position: lateral }
+    - { modality: smell, count: 2, position: forward }
+    - { modality: touch, count: 1, position: circumferential }
+  modules:
+    - { module: /species-and-names/body-modules/torso-insect, as: [body.torso] }
+    - { module: /species-and-names/body-modules/head-insect, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/leg-insect, as: [body.leg.foreLeft, body.leg.foreRight, body.leg.midLeft, body.leg.midRight, body.leg.hindLeft, body.leg.hindRight], at: body.torso }

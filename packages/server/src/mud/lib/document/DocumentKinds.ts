@@ -232,6 +232,16 @@ export const DOCUMENT_KINDS = {
    */
   shape: { kind: 'shape', catalogue: '/platform/idea/ShapeCatalogue', contentDir: 'shapes', ext: 'yaml', onVanish: 'delete' },
   /**
+   * A **body module** — one reusable piece of a body (a limb, a head, a
+   * torso): a subtree of parts with relative keys and tissue weights
+   * (`lib/species/BodyModule.ts`, organism-biology D1). A body plan names
+   * its modules by path. ⚠ A shim: when the kind declarations land
+   * (`<pack>/content/kinds/<leaf>.yaml`), this stanza is deleted and
+   * `body-module.yaml` in the platform pack's `content/kinds/` is the
+   * whole declaration.
+   */
+  'body-module': { kind: 'body-module', catalogue: '/platform/idea/BodyModuleCatalogue', contentDir: 'body-modules', ext: 'yaml', onVanish: 'delete' },
+  /**
    * A **reason** — why an act was refused: the facts it carries and the
    * sentence that words them (`lib/command/Reason.ts`, failure-model D1). A
    * refusal names its reason by code — a bare word is the platform's

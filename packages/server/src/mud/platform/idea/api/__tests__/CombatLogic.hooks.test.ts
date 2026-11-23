@@ -52,6 +52,7 @@ import type { Channel } from "../../../../lib/material/Channel";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
 import { standMaterials, TEST_TISSUES } from "../../../../lib/material/__tests__/materials";
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 /* ───────────────────────── fixtures ───────────────────────── */
 
@@ -237,7 +238,7 @@ function makeFighter(
     { name: "grip", accepts: "WieldableMixin", covers: ["body.arm.right"] },
     { name: "offgrip", accepts: "WieldableMixin" },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: "body.torso",
       parent: null,

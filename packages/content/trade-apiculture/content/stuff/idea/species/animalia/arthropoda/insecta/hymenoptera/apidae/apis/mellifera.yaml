@@ -20,7 +20,7 @@ data:
   smells: [{ aroma: /base-library/aromas/animal/bee, strength: 3 }]
   binomial: Apis mellifera
   commonNames: ["bee", "honeybee", "bees"]
-  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/insect
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   lifecycleStates: ["alive", "dead"]

@@ -1075,7 +1075,7 @@ export default class Exit extends VisibleMixin(PerceptibleMixin(ConcealableMixin
   ): Promise<{ lower?: string; pack?: Stuff }> {
     const height = current?.getProfileHeight() ?? 1;
     const plan = body.getSpecies()?.getBodyPlan() ?? null;
-    for (const name of plan?.getLocomotionModes() ?? []) {
+    for (const name of body.getBody()?.gaits() ?? []) {
       try {
         await LocomotionApi.loadMode(name);
       } catch (err) {

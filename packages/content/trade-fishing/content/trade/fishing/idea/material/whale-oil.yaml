@@ -1,0 +1,22 @@
+# organism-biology D4, D13: oil rendered from blubber. ⭐ It carries the
+# `lamp-oil` tag, so a lamp burns it and the street-lighting store counts
+# it with no code — a second lamp oil, the one that came first.
+class: /platform/idea/material/Oil
+data:
+  smells: [{ aroma: /base-library/aromas/oil/olive, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 900 }]
+  name: whale-oil
+  keywords: [whale-oil, oil, train-oil]
+  appearance: an amber oil with a rank, fishy edge
+  density: 880
+  specificHeat: 2000
+  thermalConductivity: 0.16
+  electricalConductivity: 1.0e-13
+  meltingPoint: 270
+  boilingPoint: 590
+  latentHeatOfFusion: 150000
+  latentHeatOfVaporization: 250000
+  heatOfCombustion: 39
+  autoignitionTemperature: 520
+  smokePoint: 480
+  tags: [liquid, lamp-oil, fuel, flammable, animal, once-living]

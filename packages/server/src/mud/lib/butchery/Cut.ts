@@ -141,7 +141,7 @@ export function CutMixin<TBase extends MixinConstructor>(Base: TBase) {
         const work = material.getWork();
         flat += work;
         count += 1;
-        const share = species?.tissueShareOf(path) ?? 0;
+        const share = species?.bodyFor()?.tissueShareOf(path) ?? 0;
         if (share > 0) {
           weighted += work * share;
           weight += share;

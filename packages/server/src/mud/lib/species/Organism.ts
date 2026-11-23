@@ -41,6 +41,7 @@
  * presentation) stays separate and composes orthogonally.
  */
 
+import type { Body } from './Body';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -58,6 +59,14 @@ const SECONDS_PER_GAME_DAY = 86_400;
 
 export interface Organism {
   getSpecies(): Species | null;
+  /**
+   * ⭐⭐ The body of THIS organism (organism-biology D1, S3) — its
+   * species' body for its kind, sex and stage. Every anatomy reader asks
+   * here, never `getSpecies()?.getBodyPlan()`. A method, so a timed
+   * shadow (polymorph) can answer a different body. `null` with no
+   * resolvable species or plan.
+   */
+  getBody(): Body | null;
   /**
    * The species row this body CITES — whether or not that row is
    * resident (`getSpecies()` answers only for a resident one). A body
@@ -267,6 +276,10 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getSpecies(): Species | null {
       if (!this._speciesPath) return null;
       return StuffApi.findByTemplatePath<Species>(this._speciesPath) ?? null;
+    }
+
+    public getBody(): Body | null {
+      return this.getSpecies()?.bodyFor() ?? null;
     }
 
     public getSpeciesPath(): string | null {

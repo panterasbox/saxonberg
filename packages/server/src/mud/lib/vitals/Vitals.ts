@@ -514,7 +514,7 @@ const TREATER_BAND_SCORE: Record<string, number> = {
  */
 function isInteriorWound(target: Stuff & Vitals, w: Trauma): boolean {
   if (!MixinApi.isOrganism(target)) return false;
-  return target.getSpecies()?.getBodyPlan()?.isInterior(w.site) ?? false;
+  return target.getBody()?.isInterior(w.site) ?? false;
 }
 
 /** Pick the most-pressing dressable wound: bleeding first, then severity. */
@@ -2271,9 +2271,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private functionScalar(key: string): number {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return 1;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return 1;
-      const parts = plan.getBodyParts();
+      const body = self.getBody();
+      if (!body) return 1;
+      const parts = body.getParts();
       const part = parts.find((p) => p.key === key);
       if (!part) return 1;
 
@@ -2321,12 +2321,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private capacityScalar(key: BodyCapacity): number {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return 1;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return 1;
+      const body = self.getBody();
+      if (!body) return 1;
       let governed = 1;
       let servedSum = 0;
       let servedCount = 0;
-      for (const part of plan.getBodyParts()) {
+      for (const part of body.getParts()) {
         if (part.governs?.includes(key)) {
           // ⭐ MIN — one brain. Lose it and the capacity is gone; a second
           // organ governing the same thing is a redundancy an author can
@@ -2419,9 +2419,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private hasMissingVitalGovernor(): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return false;
-      for (const part of plan.getBodyParts()) {
+      const body = self.getBody();
+      if (!body) return false;
+      for (const part of body.getParts()) {
         if (this.bodyPartDeltas[part.key]?.missing !== true) continue;
         for (const cap of part.governs ?? []) {
           if (VITAL_GOVERNED_CAPACITIES.has(cap)) return true;
@@ -2433,9 +2433,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private hasGovernorFor(key: BodyCapacity): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return false;
-      return plan.getBodyParts().some((p) => p.governs?.includes(key));
+      const body = self.getBody();
+      if (!body) return false;
+      return body.getParts().some((p) => p.governs?.includes(key));
     }
 
     /** The `SlotSpec.bodyPart` behind a slot name, or `null`. */
@@ -2587,9 +2587,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getParts(): ResolvedBodyPart[] {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return [];
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return [];
-      return plan.getBodyParts().map((part) => ({
+      const body = self.getBody();
+      if (!body) return [];
+      return body.getParts().map((part) => ({
         ...part,
         missing: this.bodyPartDeltas[part.key]?.missing ?? false,
       }));
@@ -2613,11 +2613,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public isPartUnsalvageable(key: string): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const spec = self
-        .getSpecies()
-        ?.getBodyPlan()
-        ?.getBodyParts()
-        .find((p) => p.key === key);
+      const spec = self.getBody()?.getPart(key);
       if (!spec?.severable) return false;
       const woundHere = this.conditions.some(
         (c) => c.kind === 'trauma' && c.site === key && c.severity > 0,
@@ -2660,8 +2656,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
       const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return;
-      const parts = plan.getBodyParts();
+      const body = self.getBody();
+      if (!plan || !body) return;
+      const parts = body.getParts();
       if (!parts.some((p) => p.key === key)) return;
 
       // (1) the part and every descendant — a fixpoint over `parent`, so

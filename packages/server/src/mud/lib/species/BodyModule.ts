@@ -1,0 +1,118 @@
+/**
+ * BodyModule — one reusable piece of a body (organism-biology D1, S1): a
+ * limb, a head, a torso, a wing, a claw. A `body-module` document in a
+ * pack's `content/body-modules/`, cited by path from a body plan's
+ * `modules:` list and served by `BodyModuleCatalogue`
+ * (`SpeciesApi.modules()`).
+ *
+ * ⭐ A module holds a SUBTREE of parts with RELATIVE keys: `''` is the
+ * module's root and takes the instance's absolute key (`as`), and `hand`
+ * becomes `<as>.hand`. So a plan composed of modules expands to exactly
+ * the keys it always had — which is what keeps every slot's `covers`,
+ * every stored wound `site` and every stored part delta valid with no
+ * migration.
+ *
+ * ⭐ Tissues carry **weights**, any positive numbers: a module's tissue
+ * shares are its weights normalized, and its share of the body is its
+ * `weight` against the other modules'. The sum is 1 by construction, so a
+ * module means the same thing on a canary and an ox.
+ *
+ * Pure: a value read from a document, never a Stuff. Import-pure (types
+ * only), so the anatomy lint can parse a module from a YAML file.
+ */
+
+/** One tissue of a module part: a material row and its relative weight. */
+export interface ModuleTissue {
+  /** A tissue material's template path. */
+  tissue: string;
+  /** A positive relative weight within the module. */
+  weight: number;
+}
+
+/** One part of a module, keyed relative to the module's root. */
+export interface ModulePart {
+  /** `''` for the module's root; otherwise a dotted suffix (`hand`, `spine.upper`). */
+  key: string;
+  /** The relative key of its parent within the module; absent for the root (and `''` = the root). */
+  parent?: string;
+  tissues: ModuleTissue[];
+  /** As `BodyPart.governs` — what this part RUNS (an organ; makes it interior). */
+  governs?: string[];
+  /** As `BodyPart.serves` — what this part is FOR (a limb). */
+  serves?: string[];
+  /** As `BodyPart.severable` — it can come off. */
+  severable?: boolean;
+  /**
+   * As `BodyPart.innervatedBy`, within the module: relative keys, or an
+   * absolute `body.*` key for a supply outside it.
+   */
+  innervatedBy?: string[];
+  /** As `BodyPart.suppliedBy`, the same relation for the blood supply. */
+  suppliedBy?: string[];
+}
+
+export class BodyModule {
+  public readonly path: string;
+  /** This module's default share of a body, relative to its siblings'. */
+  public readonly weight: number;
+  public readonly parts: readonly ModulePart[];
+
+  /**
+   * Read one module document's data. Throws on a malformed module (P3):
+   * no root, a duplicate key, a parent nobody declares, a non-positive
+   * weight. The installer validates every shipped module through this.
+   */
+  constructor(path: string, data: Record<string, unknown>) {
+    this.path = path;
+    const rawParts = data.parts;
+    if (!Array.isArray(rawParts) || rawParts.length === 0) {
+      throw new Error(`body-module '${path}' has no parts`);
+    }
+    const keys = new Set<string>();
+    const parts: ModulePart[] = [];
+    for (const raw of rawParts as Record<string, unknown>[]) {
+      const key = typeof raw.key === 'string' ? raw.key : '';
+      if (keys.has(key)) throw new Error(`body-module '${path}': duplicate part key '${key}'`);
+      keys.add(key);
+      const tissues = (Array.isArray(raw.tissues) ? raw.tissues : []) as Record<string, unknown>[];
+      const part: ModulePart = {
+        key,
+        tissues: tissues.map((t) => {
+          const weight = Number(t.weight);
+          if (typeof t.tissue !== 'string' || t.tissue === '') {
+            throw new Error(`body-module '${path}' part '${key}': a tissue names its material`);
+          }
+          if (!Number.isFinite(weight) || weight <= 0) {
+            throw new Error(`body-module '${path}' part '${key}' tissue '${t.tissue}': weight must be > 0`);
+          }
+          return { tissue: t.tissue, weight };
+        }),
+      };
+      if (key !== '') part.parent = typeof raw.parent === 'string' ? raw.parent : '';
+      for (const f of ['governs', 'serves', 'innervatedBy', 'suppliedBy'] as const) {
+        const v = raw[f];
+        if (Array.isArray(v) && v.length > 0) part[f] = v.map(String);
+      }
+      if (raw.severable === true) part.severable = true;
+      parts.push(part);
+    }
+    if (!keys.has('')) throw new Error(`body-module '${path}' has no root part (key '')`);
+    for (const p of parts) {
+      if (p.parent !== undefined && !keys.has(p.parent)) {
+        throw new Error(`body-module '${path}' part '${p.key}': parent '${p.parent}' is not a part of the module`);
+      }
+    }
+    this.parts = parts;
+    const own = parts.reduce((a, p) => a + p.tissues.reduce((b, t) => b + t.weight, 0), 0);
+    const authored = data.weight === undefined ? own : Number(data.weight);
+    if (!Number.isFinite(authored) || authored < 0) {
+      throw new Error(`body-module '${path}': weight must be a number ≥ 0`);
+    }
+    this.weight = authored;
+  }
+
+  /** The sum of this module's tissue weights (its parts' own scale). */
+  public tissueWeight(): number {
+    return this.parts.reduce((a, p) => a + p.tissues.reduce((b, t) => b + t.weight, 0), 0);
+  }
+}

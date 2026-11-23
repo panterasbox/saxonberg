@@ -48,6 +48,8 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
+import { Body, type ModuleRef } from '../src/mud/lib/species/Body';
+import { BodyModule } from '../src/mud/lib/species/BodyModule';
 
 const HERE = resolve(fileURLToPath(import.meta.url), '..');
 const CONTENT = resolve(HERE, '../../content');
@@ -72,33 +74,77 @@ function walk(dir: string, ext: string): string[] {
   return out;
 }
 
-/** Every shipped row whose `data` carries a `bodyParts` list. */
-function bodyPlanRows(): { file: string; parts: unknown[] }[] {
-  const rows: { file: string; parts: unknown[] }[] = [];
-  if (!existsSync(CONTENT)) return rows;
-  for (const pack of readdirSync(CONTENT)) {
-    const root = join(CONTENT, pack, 'content');
-    if (!existsSync(root)) continue;
-    for (const file of walk(root, '.yaml')) {
-      let parsed: unknown;
-      try {
-        parsed = YAML.parse(readFileSync(file, 'utf8'));
-      } catch {
-        continue; // a malformed row is another gate's finding
-      }
-      const data = (parsed as { data?: { bodyParts?: unknown } } | null)?.data;
-      if (!data || !Array.isArray(data.bodyParts)) continue;
-      rows.push({ file: relative(resolve(HERE, '../../..'), file), parts: data.bodyParts });
-    }
-  }
-  return rows;
+/** A pack's namespace root: its manifest's `root:`, else `/<id>`. */
+function packRoot(pack: string): string {
+  const manifest = join(CONTENT, pack, 'pack.yaml');
+  if (!existsSync(manifest)) return `/${pack}`;
+  const m = YAML.parse(readFileSync(manifest, 'utf8')) as { id?: string; root?: string } | null;
+  return m?.root ?? `/${m?.id ?? pack}`;
 }
 
+/** Every shipped body-module document, by its document path (organism-biology D1). */
+function moduleDocs(): Map<string, Record<string, unknown>> {
+  const out = new Map<string, Record<string, unknown>>();
+  if (!existsSync(CONTENT)) return out;
+  for (const pack of readdirSync(CONTENT)) {
+    const dir = join(CONTENT, pack, 'content', 'body-modules');
+    if (!existsSync(dir)) continue;
+    const root = packRoot(pack);
+    for (const file of walk(dir, '.yaml')) {
+      const rel = relative(dir, file).replace(/\.yaml$/, '');
+      out.set(`${root}/body-modules/${rel}`, (YAML.parse(readFileSync(file, 'utf8')) ?? {}) as Record<string, unknown>);
+    }
+  }
+  return out;
+}
+
+/**
+ * ⭐ Every shipped body plan, EXPANDED the way the engine expands it
+ * (organism-biology W1): its `modules:` (through `extends:`) built into a
+ * `Body` from the parsed module documents. A plan that will not build — a
+ * module path nobody ships, two instances on one key, an instance hung from
+ * a missing part, a malformed module — is a finding here, not a boot error.
+ */
+function bodyPlanRows(): { file: string; path: string; body: Body | null; error?: string; authorsBodyParts: boolean }[] {
+  const docs = moduleDocs();
+  const parsed = new Map<string, BodyModule>();
+  const resolveModule = (path: string): BodyModule => {
+    const hit = parsed.get(path);
+    if (hit) return hit;
+    const data = docs.get(path);
+    if (!data) throw new Error(`cites module '${path}', which no pack ships`);
+    const mod = new BodyModule(path, data);
+    parsed.set(path, mod);
+    return mod;
+  };
+  const rows = allRows().filter((r) => (r as { cls?: string }).cls === '/platform/idea/species/BodyPlan');
+  const byPath = new Map(rows.map((r) => [rowPathOf(r.file) ?? '', r]));
+  const dataOf = (path: string, depth = 0): Record<string, unknown> => {
+    const row = byPath.get(path);
+    if (!row || depth > 8) return {};
+    const own = row.doc as Record<string, unknown>;
+    const parent = (row as { ext?: string }).ext;
+    return parent ? { ...dataOf(parent, depth + 1), ...own } : own;
+  };
+  const out: { file: string; path: string; body: Body | null; error?: string; authorsBodyParts: boolean }[] = [];
+  for (const row of rows) {
+    const path = rowPathOf(row.file) ?? row.file;
+    const data = dataOf(path);
+    const authorsBodyParts = 'bodyParts' in (row.doc as object);
+    try {
+      const body = new Body({ modules: (data.modules as ModuleRef[] | undefined) ?? [] }, resolveModule);
+      out.push({ file: row.file, path, body, authorsBodyParts });
+    } catch (err) {
+      out.push({ file: row.file, path, body: null, error: (err as Error).message, authorsBodyParts });
+    }
+  }
+  return out;
+}
 
 /** Every shipped row's `data` block, with the file it came from. */
-function allRows(): { file: string; doc: unknown }[] {
+function allRows(): AnyRow[] {
   if (rowCache) return rowCache;
-  const out: { file: string; doc: unknown }[] = [];
+  const out: AnyRow[] = [];
   if (existsSync(CONTENT)) {
     for (const pack of readdirSync(CONTENT)) {
       const root = join(CONTENT, pack, 'content');
@@ -110,16 +156,18 @@ function allRows(): { file: string; doc: unknown }[] {
         } catch {
           continue;
         }
-        const data = (parsed as { data?: unknown } | null)?.data;
+        const row = parsed as { data?: unknown; class?: string; extends?: string } | null;
+        const data = row?.data;
         if (!data || typeof data !== 'object') continue;
-        out.push({ file: relative(resolve(HERE, '../../..'), file), doc: data });
+        out.push({ file: relative(resolve(HERE, '../../..'), file), doc: data, cls: row?.class, ext: row?.extends });
       }
     }
   }
   rowCache = out;
   return out;
 }
-let rowCache: { file: string; doc: unknown }[] | null = null;
+let rowCache: AnyRow[] | null = null;
+interface AnyRow { file: string; doc: unknown; cls?: string; ext?: string }
 
 /**
  * The template path a content file ships at — `content/<root>/<rest>`
@@ -131,35 +179,36 @@ function rowPathOf(file: string): string | null {
   return m ? `/${m[1]}` : null;
 }
 
-/** Clause (a) — the shares of a plan sum to the whole body. */
-export function clauseSharesSumToOne(
-  rows: { file: string; parts: unknown[] }[],
-): Finding[] {
+/**
+ * Clause (0) — no row authors `bodyParts:` (organism-biology W1: a plan is
+ * composed of modules; the parts are derived, never authored) — and every
+ * plan builds.
+ */
+export function clausePlansBuild(rows: ReturnType<typeof bodyPlanRows>): Finding[] {
   const out: Finding[] = [];
   for (const row of rows) {
+    if (row.authorsBodyParts) {
+      out.push({ file: row.file, detail: "authors 'bodyParts' — a plan names its modules (`modules:`); parts are derived" });
+    }
+    if (row.error) out.push({ file: row.file, detail: `does not build: ${row.error}` });
+  }
+  return out;
+}
+
+/** Clause (a) — the shares of a plan sum to the whole body (a regression check: true by construction). */
+export function clauseSharesSumToOne(rows: ReturnType<typeof bodyPlanRows>): Finding[] {
+  const out: Finding[] = [];
+  for (const row of rows) {
+    if (!row.body) continue;
     let sum = 0;
     let count = 0;
-    for (const part of row.parts) {
-      const tissues = (part as { tissues?: unknown }).tissues;
-      if (!Array.isArray(tissues)) continue;
-      for (const t of tissues) {
-        const share = (t as { share?: unknown }).share;
-        if (typeof share !== 'number') {
-          out.push({
-            file: row.file,
-            detail:
-              `part '${(part as { key?: string }).key}' tissue ` +
-              `'${(t as { tissuePath?: string }).tissuePath}' states no ` +
-              `numeric 'share'` +
-              ('mass' in (t as object) ? " — it still authors 'mass'" : ''),
-          });
-          continue;
-        }
-        sum += share;
+    for (const part of row.body.getParts()) {
+      for (const t of part.tissues) {
+        sum += t.share;
         count += 1;
       }
     }
-    // An EMPTY plan is exempt; a partial one is not. See the header.
+    // An EMPTY plan is exempt (`sessile`: the plants have no anatomy).
     if (count === 0) continue;
     if (Math.abs(sum - 1) > SUM_TOLERANCE) {
       out.push({
@@ -295,21 +344,11 @@ export function clauseClaimsResolve(): Finding[] {
   return out;
 }
 
-/** Tissue paths each shipped body-plan row carries, by row path. */
+/** Tissue paths each shipped body plan's expanded body carries, by plan path. */
 function planTissues(): Map<string, Set<string>> {
   const plans = new Map<string, Set<string>>();
-  for (const { file, doc } of allRows()) {
-    const parts = (doc as { bodyParts?: unknown }).bodyParts;
-    if (!Array.isArray(parts)) continue;
-    const tissues = new Set<string>();
-    for (const part of parts) {
-      for (const t of (part as { tissues?: unknown[] }).tissues ?? []) {
-        const path = (t as { tissuePath?: string }).tissuePath;
-        if (path) tissues.add(path);
-      }
-    }
-    const rowPath = rowPathOf(file);
-    if (rowPath) plans.set(rowPath, tissues);
+  for (const row of bodyPlanRows()) {
+    if (row.body) plans.set(row.path, new Set(row.body.tissuePaths()));
   }
   return plans;
 }
@@ -340,6 +379,7 @@ function materialPaths(): Set<string> {
 function main(): void {
   const rows = bodyPlanRows();
   const findings = [
+    ...clausePlansBuild(rows),
     ...clauseSharesSumToOne(rows),
     ...clauseSpeciesPlanResolves(),
     ...clauseNoDoubleShare(),

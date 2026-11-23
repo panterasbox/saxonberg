@@ -44,65 +44,12 @@ data:
   #
   # Shares of the whole body, summing to 1. The breast is the single
   # biggest muscle on a table bird — which is the point of a table bird.
-  bodyParts:
-    - key: body.torso
-      parent: null
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.1 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/breast-white, share: 0.24 }
-        - { tissuePath: /stuff/idea/material/food/animal-fat, share: 0.05 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.318 }
-    - key: body.head
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.02 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.02 }
-    # ⚠ No `serves: [locomotion]` — see the header. A hen's wing is not
-    # how it gets anywhere.
-    - key: body.wing.left
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/breast-white, share: 0.018 }
-    - key: body.wing.right
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.012 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/breast-white, share: 0.018 }
-    # ⭐ The dark half: a yard bird walks all day, so thigh and drumstick
-    # carry the work — and `leg`/`shank` are the same rows the ox's
-    # hindquarter names, because it is the same fact about muscle.
-    - key: body.leg.left
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.018 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.045 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.025 }
-    - key: body.leg.right
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.018 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.045 }
-        - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.025 }
-    - key: body.torso.heart
-      parent: body.torso
-      governs: [heartRate]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.003 }
-    - key: body.torso.lungs
-      parent: body.torso
-      governs: [respiratoryRate]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.005 }
-    - key: body.torso.liver
-      parent: body.torso
-      governs: [clearance]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.008 }
+  # ⭐ Composed from body modules (organism-biology D1): each entry names
+  # a module document, the absolute key of each instance (`as`) and the
+  # part it hangs from (`at`). The expansion reproduces the keys and the
+  # tissue shares this plan always had.
+  modules:
+    - { module: /species-and-names/body-modules/torso-fowl, as: [body.torso] }
+    - { module: /species-and-names/body-modules/head-fowl, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/wing-fowl, as: [body.wing.left, body.wing.right], at: body.torso }
+    - { module: /species-and-names/body-modules/leg-fowl, as: [body.leg.left, body.leg.right], at: body.torso }
