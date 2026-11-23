@@ -1501,6 +1501,15 @@ closes the sheep's milk window; `body-sever` leaves an avulsion on the
 body.
 **Commit:** `test(organism-biology): W0 goldens and the body staging tools`
 
+> ✅ **W0 done.** `DaylengthBand` (S17) shipped with both evaluators on it
+> (`breedsAtDaylight`, `inBand`/`seasonSide`); bands not moved. The
+> testharness gained `body`, `body-wound`, `body-sever`, `body-kill`,
+> `daylight-pin`, `daylight-unpin`; `afflict` takes an object target
+> (scope `reachable, online`, so a player is still named by name) and
+> stage 0 relieves. The goldens freeze plans, taps by sex, `massAt` and
+> `dressOut` to `species/__tests__/goldens/organism-biology.golden.json`
+> (`WRITE_GOLDEN=1` regenerates). Decisions B1–B3 below.
+
 ### W1 — The composed body
 
 **Goal:** modules, `Body`, `getBody()`; nothing a player can see changes.
@@ -2130,6 +2139,34 @@ Read first, in this order:
     `docs/antipatterns.md` § *A read the room makes for everyone that
     changes the world*,
     `docs/subsystems/ranching.md` §§ D19–D21
+
+## Build decisions (recorded by `/build`)
+
+Decisions the build made that the plan did not, and what decided each.
+
+- **B1 (W0) — the daylight pin is the world's, not a Locality's.** The plan
+  said `--at <place>` as `weather-pin`. Daylength is a function of latitude
+  and time with no place tier (`daylightSecondsFor(profile, lat, t)` takes
+  no place), and the sync readers (`Producing`) never hold one. So the pin
+  is one slot on `CelestialLogic`, reached only through the `@TestOnly`
+  `CelestialApi.pinDaylightFraction`, and `daylight-pin` takes no `--at`.
+  *Decided by:* the nearest pattern (a pin lives on the thing the read
+  consults) and lens 1 (daylength is derivable from latitude, so a
+  per-Locality pin would assert something false). A pinned day reads as
+  neither rising nor falling (yesterday equals today), which only matters
+  to a `rising` band; none of the drive's bands has one. The fan-out to
+  living bodies (D9) arrives with phenology in W7, its first reader.
+- **B2 (W0) — goldens for detection, insulation and torpor are pinned in
+  the wave that changes them, before the change.** Each is taken against
+  untouched code at the start of W4 (insulation), W6b (torpor) and W9
+  (detection), which is the same guarantee as taking them at W0 and keeps
+  each beside the code it guards. *Decided by:* the nearest pattern.
+- **B3 (W0) — the drive's testbed fixtures and the W0 wire acceptance
+  land with the drive (W11).** Their only consumer is the drive, and a
+  wire run needs a standing world; the build skill runs the drive once, at
+  code-complete. The staging tools are unit-tested here
+  (`TestHarnessController.test.ts`). *Decided by:* the build skill's
+  "drive once at code-complete".
 
 ## Drive record
 

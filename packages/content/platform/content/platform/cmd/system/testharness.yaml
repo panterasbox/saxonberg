@@ -6,7 +6,7 @@ category: system
 # verb — not in help, not in the affordances — and `requiresTestWorld`
 # keeps the gate in the view's own data too.
 testOnly: true
-description: "Test-world staging: read and move the clock, pin the weather, stage a ship, a room's gravity, a condition, a body"
+description: "Test-world staging: read and move the clock, pin the weather and the daylength, stage a ship, a room's gravity, a condition, a body"
 help: |
   Scaffolding for drives and staging, in a test world only. Subcommands
   and options, never phrases; a bare subcommand reads.
@@ -39,10 +39,24 @@ help: |
   (or `--at <place>`) — `0` for none, `clear` to inherit again. What is
   no longer pressed into an open container leaves it at once.
 
-  `testharness afflict <name> <condition path> [stage]` puts a resident
-  character under a condition: one with a toxin behind it (anaesthesia) is
-  dosed to its top band, so it takes them under at once and their hands
-  let go.
+  `testharness afflict <body> <condition path> [stage]` puts a body — a
+  person by name, an animal by its words — under a condition: one with a
+  toxin behind it (anaesthesia) is dosed to its top band, so it takes them
+  under at once and their hands let go. Stage `0` relieves it.
+
+  `testharness body <body> [perceiving <other>]` reads a body: its stage,
+  sex, names, conditions, wounds, core temperature, what it can still do
+  and the parts it has lost — and whether it perceives the other. It
+  changes nothing. `testharness body-wound <body> <part> <channel>
+  [magnitude]` wounds one part through the channel's own fold (edge,
+  point, blunt, shock, heat, cold, corrosion), as in play; `testharness
+  body-sever <body> <part>` takes a part off by a real avulsion, wound
+  and all; `testharness body-kill <body>` kills it (a carcass is `clone`
+  and this).
+
+  `testharness daylight-pin <fraction>` holds the length of the day at a
+  fraction of the rotation everywhere (0.35 is winter, 0.55 spring);
+  `testharness daylight-unpin` releases it. Whoever pins, unpins.
 
   `testharness vanish #<id>` takes a thing out of the world wherever it
   is — a wizard reaching into a character's shut pack.
@@ -72,6 +86,12 @@ examples:
     note: No gravity in the room you stand in
   - cmd: testharness afflict Mara /platform/idea/Condition/metabolism/anaesthesia
     note: Take Mara under
+  - cmd: testharness body cow perceiving Mara
+    note: Read the cow, and whether it perceives Mara
+  - cmd: testharness body-wound wolf body.head.eye.left point 2
+    note: Puncture the wolf's left eye
+  - cmd: testharness daylight-pin 0.35
+    note: Hold a winter's day
 validators:
   - /lib/command/validators/requiresTestWorld
 options:
@@ -134,17 +154,84 @@ subcommands:
         required: false
   afflict:
     controller: /platform/idea/cmd/system/TestHarnessAfflictController
-    description: "Put a resident character under a condition: `afflict <name> <condition path> [stage]`"
+    description: "Put a body under a condition: `afflict <body> <condition path> [stage]` (stage 0 relieves)"
     args:
-      - name: op
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable", "online"]
+        requires: VitalsMixin
+      - name: condition
+        type: string
+        required: true
+      - name: amount
         type: string
         required: false
-      - name: value
+  body:
+    controller: /platform/idea/cmd/system/TestHarnessBodyController
+    description: "Read a body: `body <body> [perceiving <other>]` — stage, sex, names, conditions, core, capacities, lost parts"
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable", "online"]
+        requires: OrganismMixin
+      - name: other
+        type: object
+        required: false
+        prepositions: [perceiving]
+        prepositionRequired: true
+        scope: ["reachable", "online"]
+  body-wound:
+    controller: /platform/idea/cmd/system/TestHarnessBodyWoundController
+    description: "Wound one part through its channel's fold: `body-wound <body> <part> <channel> [magnitude]`"
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable", "online"]
+        requires: VitalsMixin
+      - name: part
+        type: string
+        required: true
+      - name: channel
+        type: enum
+        required: true
+        values: [edge, point, blunt, shock, heat, cold, corrosion]
+      - name: amount
         type: string
         required: false
-      - name: cite
+  body-sever:
+    controller: /platform/idea/cmd/system/TestHarnessBodySeverController
+    description: "Take a part off by a real avulsion: `body-sever <body> <part>`"
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable", "online"]
+        requires: VitalsMixin
+      - name: part
         type: string
-        required: false
+        required: true
+  body-kill:
+    controller: /platform/idea/cmd/system/TestHarnessBodyKillController
+    description: "Kill a body through the death transition: `body-kill <body>`"
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable", "online"]
+        requires: OrganismMixin
+  daylight-pin:
+    controller: /platform/idea/cmd/system/TestHarnessDaylightPinController
+    description: "Hold the length of the day at a fraction of the rotation, everywhere: `daylight-pin <fraction>`"
+    args:
+      - name: amount
+        type: string
+        required: true
+  daylight-unpin:
+    controller: /platform/idea/cmd/system/TestHarnessDaylightUnpinController
+    description: "Release the daylength pin"
   species:
     controller: /platform/idea/cmd/system/TestHarnessSpeciesController
     description: "Stage a resident character as another species: `species <name> <species path>`"

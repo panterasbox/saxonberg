@@ -1,0 +1,2723 @@
+{
+  "plans": {
+    "/stuff/idea/species/BodyPlan/avian": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.1351
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/breast-red",
+              "share": 0.2702
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.2027
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0338
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0676
+            }
+          ]
+        },
+        {
+          "key": "body.wing.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0338
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0676
+            }
+          ]
+        },
+        {
+          "key": "body.wing.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0338
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0676
+            }
+          ]
+        },
+        {
+          "key": "body.leg.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.027
+            }
+          ]
+        },
+        {
+          "key": "body.leg.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.027
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0135
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0203
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "hearing",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        }
+      ],
+      "locomotionModes": [
+        "walk",
+        "fly"
+      ],
+      "breathing": null
+    },
+    "/stuff/idea/species/BodyPlan/biped": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0826
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.124
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.2067
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0103
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0413
+            }
+          ]
+        },
+        {
+          "key": "body.arm.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0155
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.031
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0103
+            }
+          ]
+        },
+        {
+          "key": "body.arm.left.hand",
+          "parent": "body.arm.left",
+          "governs": [],
+          "serves": [
+            "manipulation"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0041
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0031
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0031
+            }
+          ]
+        },
+        {
+          "key": "body.arm.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0155
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.031
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0103
+            }
+          ]
+        },
+        {
+          "key": "body.arm.right.hand",
+          "parent": "body.arm.right",
+          "governs": [],
+          "serves": [
+            "manipulation"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0041
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0031
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0031
+            }
+          ]
+        },
+        {
+          "key": "body.leg.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0413
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0826
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.031
+            }
+          ]
+        },
+        {
+          "key": "body.leg.left.foot",
+          "parent": "body.leg.left",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0083
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0052
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0052
+            }
+          ]
+        },
+        {
+          "key": "body.leg.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0413
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0826
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.031
+            }
+          ]
+        },
+        {
+          "key": "body.leg.right.foot",
+          "parent": "body.leg.right",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0083
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0052
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0052
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0031
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0103
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0134
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0062
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0052
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0155
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "frontal"
+        },
+        {
+          "modality": "hearing",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "smell",
+          "count": 1,
+          "position": "forward"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        },
+        {
+          "modality": "taste",
+          "count": 1,
+          "position": "forward"
+        }
+      ],
+      "locomotionModes": [
+        "walk",
+        "climb",
+        "swim",
+        "stoop",
+        "crawl"
+      ],
+      "breathing": null
+    },
+    "/stuff/idea/species/BodyPlan/canid": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/neck",
+              "share": 0.035
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/rib",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/loin",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/tenderloin",
+              "share": 0.011
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/belly",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/food/animal-fat",
+              "share": 0.06
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.312
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.027
+            }
+          ]
+        },
+        {
+          "key": "body.head.mouth",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [
+            "manipulation"
+          ],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.003
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shoulder",
+              "share": 0.035
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.011
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shoulder",
+              "share": 0.035
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.011
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.017
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.042
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.014
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.017
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.042
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.014
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.002
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.003
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.006
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.005
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.012
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "frontal"
+        },
+        {
+          "modality": "hearing",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "smell",
+          "count": 1,
+          "position": "forward"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        },
+        {
+          "modality": "taste",
+          "count": 1,
+          "position": "forward"
+        }
+      ],
+      "locomotionModes": [
+        "walk",
+        "swim",
+        "crawl"
+      ],
+      "breathing": null
+    },
+    "/stuff/idea/species/BodyPlan/crustacean": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.3886
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.3883
+            }
+          ]
+        },
+        {
+          "key": "body.claw.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0485
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0485
+            }
+          ]
+        },
+        {
+          "key": "body.claw.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0485
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0485
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0097
+            }
+          ]
+        },
+        {
+          "key": "body.torso.gills",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0194
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "frontal"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        }
+      ],
+      "locomotionModes": [
+        "walk",
+        "swim"
+      ],
+      "breathing": [
+        {
+          "medium": "water",
+          "apparatus": "gills",
+          "intake": 1
+        },
+        {
+          "medium": "air",
+          "apparatus": "gills",
+          "intake": 0.9
+        }
+      ]
+    },
+    "/stuff/idea/species/BodyPlan/fish": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.1449
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.4832
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.2415
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0386
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.029
+            }
+          ]
+        },
+        {
+          "key": "body.tail",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0483
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0048
+            }
+          ]
+        },
+        {
+          "key": "body.torso.gills",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0097
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        }
+      ],
+      "locomotionModes": [
+        "swim"
+      ],
+      "breathing": [
+        {
+          "medium": "water",
+          "apparatus": "gills",
+          "intake": 1
+        }
+      ]
+    },
+    "/stuff/idea/species/BodyPlan/fowl": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.1
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/breast-white",
+              "share": 0.24
+            },
+            {
+              "tissue": "/stuff/idea/material/food/animal-fat",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.318
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.02
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.02
+            }
+          ]
+        },
+        {
+          "key": "body.wing.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/breast-white",
+              "share": 0.018
+            }
+          ]
+        },
+        {
+          "key": "body.wing.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/breast-white",
+              "share": 0.018
+            }
+          ]
+        },
+        {
+          "key": "body.leg.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.018
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.045
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.025
+            }
+          ]
+        },
+        {
+          "key": "body.leg.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.018
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.045
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.003
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.005
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.008
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "hearing",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "smell",
+          "count": 1,
+          "position": "forward"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        },
+        {
+          "modality": "taste",
+          "count": 1,
+          "position": "forward"
+        }
+      ],
+      "locomotionModes": [
+        "walk"
+      ],
+      "breathing": null
+    },
+    "/stuff/idea/species/BodyPlan/quadruped": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/neck",
+              "share": 0.035
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/rib",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/loin",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/tenderloin",
+              "share": 0.011
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/belly",
+              "share": 0.05
+            },
+            {
+              "tissue": "/stuff/idea/material/food/animal-fat",
+              "share": 0.06
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.312
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.03
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shoulder",
+              "share": 0.035
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.011
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shoulder",
+              "share": 0.035
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.011
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.017
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.042
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.014
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.017
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.042
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.014
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.002
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.003
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.006
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.005
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.012
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "frontal"
+        },
+        {
+          "modality": "hearing",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "smell",
+          "count": 1,
+          "position": "forward"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        },
+        {
+          "modality": "taste",
+          "count": 1,
+          "position": "forward"
+        }
+      ],
+      "locomotionModes": [
+        "walk",
+        "swim"
+      ],
+      "breathing": null
+    },
+    "/stuff/idea/species/BodyPlan/sessile": {
+      "parts": [],
+      "sensoryPorts": [],
+      "locomotionModes": [],
+      "breathing": null
+    },
+    "/stuff/idea/species/BodyPlan/swine": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.034783
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/neck",
+              "share": 0.024388
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/rib",
+              "share": 0.034783
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/loin",
+              "share": 0.034783
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/tenderloin",
+              "share": 0.007696
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/belly",
+              "share": 0.09995
+            },
+            {
+              "tissue": "/stuff/idea/material/food/animal-fat",
+              "share": 0.27986
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.217191
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.008396
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.02089
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.008396
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shoulder",
+              "share": 0.024388
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.007696
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.006997
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.008396
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shoulder",
+              "share": 0.024388
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.007696
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.006997
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.011794
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.029285
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.009795
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.006997
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.011794
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.029285
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/shank",
+              "share": 0.009795
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.006997
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.001399
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.006997
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.002099
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.004198
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.003498
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.008396
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "frontal"
+        },
+        {
+          "modality": "hearing",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "smell",
+          "count": 1,
+          "position": "forward"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        },
+        {
+          "modality": "taste",
+          "count": 1,
+          "position": "forward"
+        }
+      ],
+      "locomotionModes": [
+        "walk",
+        "swim"
+      ],
+      "breathing": null
+    }
+  },
+  "taps": {
+    "/stuff/idea/species/animalia/arthropoda/insecta/hymenoptera/apidae/apis/mellifera": {
+      "female": [
+        "honey"
+      ],
+      "male": [
+        "honey"
+      ],
+      "specs": [
+        {
+          "key": "honey",
+          "yieldRow": "/trade/apiculture/thing/comb",
+          "perGameDay": 0.5,
+          "behaviour": "accrue",
+          "window": "biome"
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/aves/galliformes/phasianidae/gallus/domesticus": {
+      "female": [
+        "eggs"
+      ],
+      "male": [],
+      "specs": [
+        {
+          "key": "eggs",
+          "yieldRow": "/trade/ranching/thing/egg",
+          "perGameDay": 0.8,
+          "behaviour": "accrue",
+          "window": "photoperiod"
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus": {
+      "female": [
+        "milk"
+      ],
+      "male": [],
+      "specs": [
+        {
+          "key": "milk",
+          "yieldRow": "/stuff/idea/material/food/milk",
+          "perGameDay": 22,
+          "behaviour": "expire",
+          "window": "event"
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/capra/hircus": {
+      "female": [
+        "milk"
+      ],
+      "male": [],
+      "specs": [
+        {
+          "key": "milk",
+          "yieldRow": "/stuff/idea/material/food/goat-milk",
+          "perGameDay": 3,
+          "behaviour": "expire",
+          "window": "event"
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/ovis/aries": {
+      "female": [
+        "wool",
+        "milk"
+      ],
+      "male": [
+        "wool"
+      ],
+      "specs": [
+        {
+          "key": "wool",
+          "yieldRow": "/trade/ranching/thing/fleece",
+          "perGameDay": 0.008,
+          "behaviour": "continuous",
+          "window": null
+        },
+        {
+          "key": "milk",
+          "yieldRow": "/stuff/idea/material/food/ewe-milk",
+          "perGameDay": 1.2,
+          "behaviour": "expire",
+          "window": "photoperiod"
+        }
+      ]
+    },
+    "/stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/betula/pendula": {
+      "female": [
+        "sap"
+      ],
+      "male": [
+        "sap"
+      ],
+      "specs": [
+        {
+          "key": "sap",
+          "yieldRow": "/stuff/idea/material/food/birch-sap",
+          "perGameDay": 3,
+          "behaviour": "accrue",
+          "window": "weather"
+        }
+      ]
+    },
+    "/stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/euphorbiaceae/hevea/brasiliensis": {
+      "female": [
+        "latex"
+      ],
+      "male": [
+        "latex"
+      ],
+      "specs": [
+        {
+          "key": "latex",
+          "yieldRow": "/stuff/idea/material/organic/latex",
+          "perGameDay": 0.3,
+          "behaviour": "accrue",
+          "window": "weather"
+        }
+      ]
+    },
+    "/stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/sapindaceae/acer/saccharum": {
+      "female": [
+        "sap"
+      ],
+      "male": [
+        "sap"
+      ],
+      "specs": [
+        {
+          "key": "sap",
+          "yieldRow": "/stuff/idea/material/food/maple-sap",
+          "perGameDay": 2,
+          "behaviour": "accrue",
+          "window": "freeze-thaw"
+        }
+      ]
+    },
+    "/stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/pinaceae/pinus/sylvestris": {
+      "female": [
+        "gum"
+      ],
+      "male": [
+        "gum"
+      ],
+      "specs": [
+        {
+          "key": "gum",
+          "yieldRow": "/trade/forestry/idea/material/pine-gum",
+          "perGameDay": 0.04,
+          "behaviour": "accrue",
+          "window": "weather"
+        }
+      ]
+    }
+  },
+  "massAt": {
+    "/stuff/idea/species/animalia/chordata/aves/galliformes/phasianidae/gallus/domesticus": [
+      {
+        "ageDays": 0,
+        "kg": 0.175
+      },
+      {
+        "ageDays": 5,
+        "kg": 0.36875
+      },
+      {
+        "ageDays": 10,
+        "kg": 0.5625
+      },
+      {
+        "ageDays": 35,
+        "kg": 1.53125
+      },
+      {
+        "ageDays": 60,
+        "kg": 2.5
+      }
+    ],
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus": [
+      {
+        "ageDays": 0,
+        "kg": 38.5
+      },
+      {
+        "ageDays": 30,
+        "kg": 89.65
+      },
+      {
+        "ageDays": 60,
+        "kg": 140.8
+      },
+      {
+        "ageDays": 180,
+        "kg": 345.4
+      },
+      {
+        "ageDays": 300,
+        "kg": 550
+      }
+    ],
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/capra/hircus": [
+      {
+        "ageDays": 0,
+        "kg": 4.2
+      },
+      {
+        "ageDays": 15,
+        "kg": 9.78
+      },
+      {
+        "ageDays": 30,
+        "kg": 15.36
+      },
+      {
+        "ageDays": 90,
+        "kg": 37.68
+      },
+      {
+        "ageDays": 150,
+        "kg": 60
+      }
+    ],
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/ovis/aries": [
+      {
+        "ageDays": 0,
+        "kg": 4.9
+      },
+      {
+        "ageDays": 15,
+        "kg": 11.41
+      },
+      {
+        "ageDays": 30,
+        "kg": 17.92
+      },
+      {
+        "ageDays": 90,
+        "kg": 43.96
+      },
+      {
+        "ageDays": 150,
+        "kg": 70
+      }
+    ],
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/suidae/sus/domesticus": [
+      {
+        "ageDays": 0,
+        "kg": 8.4
+      },
+      {
+        "ageDays": 10,
+        "kg": 16.984615
+      },
+      {
+        "ageDays": 20,
+        "kg": 25.569231
+      },
+      {
+        "ageDays": 75,
+        "kg": 72.784615
+      },
+      {
+        "ageDays": 130,
+        "kg": 120
+      }
+    ],
+    "/stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris": [
+      {
+        "ageDays": 0,
+        "kg": 1.4
+      },
+      {
+        "ageDays": 10,
+        "kg": 2.33
+      },
+      {
+        "ageDays": 20,
+        "kg": 3.26
+      },
+      {
+        "ageDays": 110,
+        "kg": 11.63
+      },
+      {
+        "ageDays": 200,
+        "kg": 20
+      }
+    ],
+    "/stuff/idea/species/brown-trout": [
+      {
+        "ageDays": 0,
+        "kg": 0.084
+      },
+      {
+        "ageDays": 15,
+        "kg": 0.107914
+      },
+      {
+        "ageDays": 30,
+        "kg": 0.131829
+      },
+      {
+        "ageDays": 365,
+        "kg": 0.665914
+      },
+      {
+        "ageDays": 700,
+        "kg": 1.2
+      }
+    ],
+    "/stuff/idea/species/carp": [
+      {
+        "ageDays": 0,
+        "kg": 0.175
+      },
+      {
+        "ageDays": 15,
+        "kg": 0.204063
+      },
+      {
+        "ageDays": 30,
+        "kg": 0.233125
+      },
+      {
+        "ageDays": 615,
+        "kg": 1.366562
+      },
+      {
+        "ageDays": 1200,
+        "kg": 2.5
+      }
+    ],
+    "/stuff/idea/species/cat": [
+      {
+        "ageDays": 0,
+        "kg": 0.28
+      },
+      {
+        "ageDays": 4,
+        "kg": 0.404
+      },
+      {
+        "ageDays": 8,
+        "kg": 0.528
+      },
+      {
+        "ageDays": 64,
+        "kg": 2.264
+      },
+      {
+        "ageDays": 120,
+        "kg": 4
+      }
+    ],
+    "/stuff/idea/species/eel": [
+      {
+        "ageDays": 0,
+        "kg": 0.056
+      },
+      {
+        "ageDays": 30,
+        "kg": 0.07088
+      },
+      {
+        "ageDays": 60,
+        "kg": 0.08576
+      },
+      {
+        "ageDays": 780,
+        "kg": 0.44288
+      },
+      {
+        "ageDays": 1500,
+        "kg": 0.8
+      }
+    ],
+    "/stuff/idea/species/grey-mullet": [
+      {
+        "ageDays": 0,
+        "kg": 0.105
+      },
+      {
+        "ageDays": 15,
+        "kg": 0.119946
+      },
+      {
+        "ageDays": 30,
+        "kg": 0.134893
+      },
+      {
+        "ageDays": 715,
+        "kg": 0.817446
+      },
+      {
+        "ageDays": 1400,
+        "kg": 1.5
+      }
+    ],
+    "/stuff/idea/species/shore-crab": [
+      {
+        "ageDays": 0,
+        "kg": 0.007
+      },
+      {
+        "ageDays": 5,
+        "kg": 0.008163
+      },
+      {
+        "ageDays": 10,
+        "kg": 0.009325
+      },
+      {
+        "ageDays": 205,
+        "kg": 0.054662
+      },
+      {
+        "ageDays": 400,
+        "kg": 0.1
+      }
+    ],
+    "/stuff/idea/species/sturgeon": [
+      {
+        "ageDays": 0,
+        "kg": 2.8
+      },
+      {
+        "ageDays": 30,
+        "kg": 3.0232
+      },
+      {
+        "ageDays": 60,
+        "kg": 3.2464
+      },
+      {
+        "ageDays": 2530,
+        "kg": 21.6232
+      },
+      {
+        "ageDays": 5000,
+        "kg": 40
+      }
+    ]
+  },
+  "dressOut": {
+    "/stuff/idea/species/animalia/chordata/aves/galliformes/phasianidae/gallus/domesticus": {
+      "liveKg": 2.5,
+      "lines": [
+        {
+          "row": "/trade/cooking/thing/cut-breast",
+          "units": 1,
+          "kgEach": 0.57
+        },
+        {
+          "row": "/trade/cooking/thing/cut-thigh",
+          "units": 2,
+          "kgEach": 0.09
+        },
+        {
+          "row": "/trade/cooking/thing/cut-drumstick",
+          "units": 2,
+          "kgEach": 0.05
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus": {
+      "liveKg": 550,
+      "lines": [
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 4,
+          "kgEach": 7.97
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 4,
+          "kgEach": 9.56
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 4,
+          "kgEach": 5.69
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 2,
+          "kgEach": 2.5
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 4,
+          "kgEach": 5.69
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 2,
+          "kgEach": 7.97
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 3,
+          "kgEach": 7.59
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 5.69
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 6,
+          "kgEach": 7.59
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 3,
+          "kgEach": 18.21
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 2,
+          "kgEach": 11.38
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 2,
+          "kgEach": 4.55
+        },
+        {
+          "row": "/trade/cooking/thing/vell",
+          "units": 1,
+          "kgEach": 1.82
+        },
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 38.5
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 4,
+          "kgEach": 16.5
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/capra/hircus": {
+      "liveKg": 60,
+      "lines": [
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 1.74
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 2.09
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 2,
+          "kgEach": 1.24
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 2,
+          "kgEach": 1.24
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 1.74
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 2,
+          "kgEach": 1.24
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.62
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 2,
+          "kgEach": 2.48
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 1.99
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 0.99
+        },
+        {
+          "row": "/trade/cooking/thing/vell",
+          "units": 1,
+          "kgEach": 0.2
+        },
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 4.8
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 2,
+          "kgEach": 3.6
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/ovis/aries": {
+      "liveKg": 70,
+      "lines": [
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 2.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 2.43
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 2,
+          "kgEach": 1.45
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 2,
+          "kgEach": 1.45
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 2.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 2,
+          "kgEach": 1.45
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.72
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 2,
+          "kgEach": 2.9
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 2.32
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 1.16
+        },
+        {
+          "row": "/trade/cooking/thing/vell",
+          "units": 1,
+          "kgEach": 0.23
+        },
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 5.6
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 2,
+          "kgEach": 4.2
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/suidae/sus/domesticus": {
+      "liveKg": 120,
+      "lines": [
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 2.42
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 2,
+          "kgEach": 1.73
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 4,
+          "kgEach": 2.48
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 2.91
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 2,
+          "kgEach": 1.73
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 3,
+          "kgEach": 3.97
+        },
+        {
+          "row": "/trade/ranching/thing/leaf-fat",
+          "units": 2,
+          "kgEach": 3.97
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 2,
+          "kgEach": 1.49
+        },
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 7.2
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 2,
+          "kgEach": 6
+        }
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus": {
+      "liveKg": 250,
+      "lines": [
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 12,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 3,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/brown-trout": {
+      "liveKg": 1.2,
+      "lines": [
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 2,
+          "kgEach": null
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/carp": {
+      "liveKg": 2.5,
+      "lines": [
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 2,
+          "kgEach": null
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/eel": {
+      "liveKg": 0.8,
+      "lines": [
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 2,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/grey-mullet": {
+      "liveKg": 1.5,
+      "lines": [
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 2,
+          "kgEach": null
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/hog": {
+      "liveKg": 100,
+      "lines": [
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 6,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 2,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 2,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/shore-crab": {
+      "liveKg": 0.1,
+      "lines": [
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/sturgeon": {
+      "liveKg": 40,
+      "lines": [
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 8,
+          "kgEach": null
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 3,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 2,
+          "kgEach": null
+        }
+      ]
+    },
+    "/stuff/idea/species/wolf": {
+      "liveKg": 100,
+      "lines": [
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 3,
+          "kgEach": null
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": null
+        }
+      ]
+    }
+  }
+}

@@ -500,6 +500,28 @@ export class CelestialLogic extends ApiLogic {
     return sunriseHourAngleDeg(profile, latitudeDegrees, t);
   }
 
+  /**
+   * ⛔ The test world's daylength pin (organism-biology D16): a fraction of
+   * the rotation every daylength read answers while it is set, so a drive
+   * can stand a ewe in winter without waiting for one. Reached only through
+   * `CelestialApi.pinDaylightFraction`, which is `@TestOnly` — in a world
+   * somebody plays in it is always `null`. Daylength is a function of
+   * latitude and time with no place tier, so the pin is the world's, not a
+   * Locality's.
+   */
+  private _daylightPin: number | null = null;
+
+  /** See {@link CelestialApi.pinDaylightFraction}. */
+  @CallSecurity(CelestialApiCallers)
+  public pinDaylightFraction(fraction: number | null): void {
+    this._daylightPin = fraction;
+  }
+
+  /** The pinned daylength in seconds for `profile`, or null when unpinned. */
+  private pinnedSeconds(profile: CelestialProfile): number | null {
+    return this._daylightPin === null ? null : this._daylightPin * profile.dayLengthSeconds;
+  }
+
   /** See {@link CelestialApi.daylightSecondsFor}. */
   @CallSecurity(CelestialApiCallers)
   public daylightSecondsFor(
@@ -507,7 +529,7 @@ export class CelestialLogic extends ApiLogic {
     latitudeDegrees: number,
     t: number
   ): number {
-    return daylightSeconds(profile, latitudeDegrees, t);
+    return this.pinnedSeconds(profile) ?? daylightSeconds(profile, latitudeDegrees, t);
   }
 
   /** See {@link CelestialApi.daylightAt}. */
@@ -519,7 +541,7 @@ export class CelestialLogic extends ApiLogic {
     const profile = await this.profileFor(location);
     const lat = await latitudeFor(location);
     return Quantity.of(
-      daylightSeconds(profile, lat, nowOr(time)),
+      this.pinnedSeconds(profile) ?? daylightSeconds(profile, lat, nowOr(time)),
       's'
     );
   }
@@ -534,7 +556,7 @@ export class CelestialLogic extends ApiLogic {
     const lat = await latitudeFor(location);
     const day = profile.dayLengthSeconds;
     if (day <= 0) return 0;
-    return daylightSeconds(profile, lat, nowOr(time)) / day;
+    return (this.pinnedSeconds(profile) ?? daylightSeconds(profile, lat, nowOr(time))) / day;
   }
 
   /** See {@link CelestialApi.sunriseSecOfDay}. */

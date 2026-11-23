@@ -20,6 +20,7 @@
  * template resolves to one instance via `StuffApi.singleton(path)`.
  */
 
+import { DaylengthBand } from '../../../lib/time/DaylengthBand';
 import { type OdorTag } from '../../../lib/perception/Aroma';
 import type { PalateProfile } from '../../../lib/metabolism/Palate';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -1600,10 +1601,7 @@ export default class Species extends SingletonMixin(
   public breedsAtDaylight(daylightFraction: number): boolean {
     const b = this.breeding;
     if (!b) return false;
-    const { daylightFrom: from, daylightTo: to } = b;
-    return from <= to
-      ? daylightFraction >= from && daylightFraction <= to
-      : daylightFraction >= from || daylightFraction <= to;
+    return new DaylengthBand(b).contains(daylightFraction);
   }
 
   public getAdultMass(): number { return this.adultMass; }

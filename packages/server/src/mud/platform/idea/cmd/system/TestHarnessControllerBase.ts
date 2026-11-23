@@ -31,6 +31,7 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { TestHarnessApi } from '../../../../api/test-harness';
@@ -49,6 +50,18 @@ export interface TestHarnessModel extends CommandModel {
   alive?: boolean;
   /** `ship`'s fourth word: a frame citation after `at <frame>`. */
   cite?: string;
+  /** The body a `body*` / `afflict` subcommand acts on (organism-biology D16). */
+  target?: MqlOneResult;
+  /** `body … perceiving <other>`: the body whose perception of `other` is read. */
+  other?: MqlOneResult;
+  /** A part key (`body.head.eye.left`). */
+  part?: string;
+  /** A mechanism channel (`body-wound`'s enum slot). */
+  channel?: string;
+  /** A number: a wound's magnitude, a condition's stage, a daylength fraction. */
+  amount?: string;
+  /** A condition's template path (`afflict`). */
+  condition?: string;
 }
 
 export abstract class TestHarnessControllerBase extends CommandController<TestHarnessModel> {
@@ -106,6 +119,13 @@ export abstract class TestHarnessControllerBase extends CommandController<TestHa
         'the global field. Name one with --at <place>.',
       'test-no-locality',
     );
+  }
+
+  /** The bound body of a `body*` subcommand (the binder already refused an unbound one). */
+  protected static bodyOf(model: TestHarnessModel): Stuff {
+    const stuff = model.target?.stuff as Stuff | undefined;
+    if (stuff === undefined) throw new Error('testharness: name a body');
+    return stuff;
   }
 
   protected static say(context: CommandContext, text: string): void {

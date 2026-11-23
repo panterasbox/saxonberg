@@ -31,6 +31,7 @@
  * `StuffApi.singletonSync`. `dest /platform/idea/api/celestial` reloads it.
  */
 
+import { TestOnly } from '../lib/security/decorators';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { Quantity } from '../lib/quantity';
 import { type CelestialProfile, type Season } from '../lib/time/CelestialProfile';
@@ -308,6 +309,16 @@ export class CelestialApi {
     time?: Quantity<'s'>
   ): Promise<number> {
     return logic().daylightFractionAt(location, time);
+  }
+
+  /**
+   * ⛔ Hold every daylength read at `fraction` of the rotation (`null`
+   * releases it) — the test world's daylight pin (organism-biology D16).
+   * Nothing in the game moves the length of the day.
+   */
+  @TestOnly('In a test world, pin the daylength with `testharness daylight-pin <fraction>`.')
+  public static pinDaylightFraction(fraction: number | null): void {
+    logic().pinDaylightFraction(fraction);
   }
 
   /**

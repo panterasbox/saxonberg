@@ -56,6 +56,7 @@
  * no common pack ancestor, which is CLAUDE.md's promotion test.
  */
 
+import { DaylengthBand } from '../time/DaylengthBand';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
@@ -1250,7 +1251,7 @@ function airPlaceOf(host: Stuff): (Stuff & Atmospheric) | null {
  * reads as one band rather than an empty one.
  */
 function inBand(day: number, from: number, to: number): boolean {
-  return from <= to ? day >= from && day <= to : day >= from || day <= to;
+  return new DaylengthBand({ daylightFrom: from, daylightTo: to }).contains(day);
 }
 
 /**
@@ -1260,7 +1261,9 @@ function inBand(day: number, from: number, to: number): boolean {
  * sentence ("the run is over for the year") land at the right moment.
  */
 function seasonSide(day: number, from: number): TapClosedReason {
-  return day < from ? 'before-season' : 'after-season';
+  return new DaylengthBand({ daylightFrom: from, daylightTo: from }).sideOf(day) === 'before'
+    ? 'before-season'
+    : 'after-season';
 }
 
 /** Game-seconds now, or null when no world clock (pre-boot / tests). */
