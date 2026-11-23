@@ -13,6 +13,9 @@
 class: /platform/idea/species/BodyPlan
 data:
   name: fish
+  # ⭐ An ectotherm (organism-biology W7): its core is the water's —
+  # sluggish when chilled, torpid past its floor, never hypothermic.
+  thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: swim
   breathing:

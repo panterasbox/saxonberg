@@ -2559,6 +2559,10 @@ export const AppSettingKeys = {
   /** Exertion — extra power per unit of load ratio above the light-load
    * floor, as a fraction of the walk. Reproduces the old traversal drain. */
   exertionLoadPowerPerRatio: "exertion.loadPowerPerRatio",
+  /** Exertion — extra power per band of suppressed expression (a chilled,
+   * sluggish body; a drugged one), as a fraction of the traverse: a slow
+   * body pays more to cross (organism-biology D9). */
+  exertionSuppressedPowerPerBand: "exertion.suppressedPowerPerBand",
   /** Exertion — endurance `%` under which a body cannot hold a pace
    * faster than a walk: the run breaks. */
   exertionPaceFloorPct: "exertion.paceFloorPct",
@@ -3299,6 +3303,7 @@ export const AppSettingTiers: Readonly<
   exertionTraverseNominalS: "B",
   exertionWalkW: "B",
   exertionLoadPowerPerRatio: "B",
+  exertionSuppressedPowerPerBand: "B",
   exertionPaceFloorPct: "B",
   exertionFreshPct: "B",
   exertionExhaustionFloorPct: "B",

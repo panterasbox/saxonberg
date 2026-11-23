@@ -180,6 +180,7 @@ export const TemplatePaths = {
   thermalHypothermia: "/platform/idea/Condition/thermal/hypothermia",
   thermalHyperthermia: "/platform/idea/Condition/thermal/hyperthermia",
   thermalTorpor: "/platform/idea/Condition/thermal/torpor",
+  thermalSluggish: "/platform/idea/Condition/thermal/sluggish",
 
   // Respiration anoxia condition — the affliction the drain accrues
   // dwell-time on toward the death seam (asphyxiation: drowning/vacuum).

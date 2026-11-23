@@ -5,7 +5,8 @@ data:
   smells: [{ aroma: /base-library/aromas/animal/frog, strength: 3 }]
   binomial: Lithobates catesbeianus
   commonNames: ["bullfrog", "frog"]
-  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  # ⭐ Its own plan (organism-biology W7): an ectotherm with no coat.
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/anuran
   # ⭐ Adult liveweight in kg. A grown bullfrog, which is a heavy frog and still half a kilo.
   adultMass: 0.5
   _parentCladePath: /stuff/idea/species/animalia

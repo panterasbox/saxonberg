@@ -537,9 +537,9 @@ if (frozen || !self.isLivingBody()) {
       return cap;
     }
 
-    /** More cold thresholds the cascade reads (a hook for the near cold line, W7). */
+    /** More cold thresholds the cascade reads — an ectotherm's near cold line (D9). */
     protected extraColdLines(): number[] {
-      return [];
+      return this.strategy() === "ectotherm" ? [this.setpointK - THERMAL_DEFAULTS.SLUGGISH_ONSET_K] : [];
     }
 
     /**
@@ -1085,6 +1085,7 @@ if (frozen || !self.isLivingBody()) {
         for (const path of [
           TemplatePaths.thermalHypothermia,
           TemplatePaths.thermalTorpor,
+          TemplatePaths.thermalSluggish,
           TemplatePaths.thermalHyperthermia,
         ]) {
           const rec = this.findAffliction(path);
@@ -1110,6 +1111,22 @@ if (frozen || !self.isLivingBody()) {
       } else {
         this.clearAffliction(TemplatePaths.thermalHypothermia, core, band.survivableMin);
         this.clearAffliction(TemplatePaths.thermalTorpor, core, band.survivableMin);
+      }
+
+      // ⭐ The cold edge's near line, for an ectotherm (D9): sluggish below
+      // `setpoint − SLUGGISH_ONSET_K` and above the floor; torpor takes over
+      // past it (one expression band, not two). Cleared on rewarming by the
+      // hysteresis margin.
+      if (ecto) {
+        const sluggishLine = this.setpointK - D.SLUGGISH_ONSET_K;
+        if (core < sluggishLine && core >= band.survivableMin) {
+          this.ensureAffliction(TemplatePaths.thermalSluggish);
+        } else if (core < band.survivableMin) {
+          const rec = this.findAffliction(TemplatePaths.thermalSluggish);
+          if (rec) host.relieve(rec);
+        } else {
+          this.clearAffliction(TemplatePaths.thermalSluggish, core, sluggishLine);
+        }
       }
 
       // ⭐⭐ Hot edge. The ROW spawns at `setpoint + HYPERTHERMIA_ONSET_K`

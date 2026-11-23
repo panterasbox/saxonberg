@@ -1,5 +1,288 @@
 {
   "plans": {
+    "/stuff/idea/species/BodyPlan/anuran": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.050251
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.251256
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/intestine",
+              "share": 0.030151
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.030151
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.003015
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01005
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.005025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.030151
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.00402
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.00402
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.030151
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.050251
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.005025
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.00201
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.01005
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.030151
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.00201
+            }
+          ]
+        },
+        {
+          "key": "body.leg.frontRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.01005
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.030151
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.00201
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.030151
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.150754
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.020101
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.00402
+            }
+          ]
+        },
+        {
+          "key": "body.leg.rearRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.030151
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscles/leg",
+              "share": 0.150754
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.020101
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.00402
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "hearing",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "smell",
+          "count": 1,
+          "position": "forward"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
+        },
+        {
+          "modality": "taste",
+          "count": 1,
+          "position": "forward"
+        }
+      ],
+      "gaits": [
+        "swim",
+        "walk"
+      ],
+      "breathing": null
+    },
     "/stuff/idea/species/BodyPlan/avian": {
       "parts": [
         {
@@ -2390,7 +2673,7 @@
           "yieldRow": "/trade/ranching/thing/egg",
           "perGameDay": 0.8,
           "behaviour": "accrue",
-          "window": "photoperiod"
+          "window": null
         }
       ]
     },
@@ -2405,7 +2688,7 @@
           "yieldRow": "/stuff/idea/material/food/milk",
           "perGameDay": 22,
           "behaviour": "expire",
-          "window": "event"
+          "window": null
         }
       ]
     },
@@ -2420,7 +2703,7 @@
           "yieldRow": "/stuff/idea/material/food/goat-milk",
           "perGameDay": 3,
           "behaviour": "expire",
-          "window": "event"
+          "window": null
         }
       ]
     },
@@ -2445,7 +2728,7 @@
           "yieldRow": "/stuff/idea/material/food/ewe-milk",
           "perGameDay": 1.2,
           "behaviour": "expire",
-          "window": "photoperiod"
+          "window": null
         }
       ]
     },
@@ -3267,84 +3550,18 @@
     "/stuff/idea/species/animalia/chordata/amphibia/anura/ranidae/lithobates/catesbeianus": {
       "adult": [
         {
-          "row": "/trade/ranching/thing/hide",
-          "units": 1,
-          "kgEach": 0.03
-        },
-        {
-          "row": "/trade/ranching/thing/bone",
-          "units": 1,
-          "kgEach": 0.05
-        },
-        {
-          "row": "/trade/cooking/thing/cut-neck",
-          "units": 1,
-          "kgEach": 0.01
-        },
-        {
-          "row": "/trade/cooking/thing/cut-rib",
-          "units": 1,
-          "kgEach": 0.02
-        },
-        {
-          "row": "/trade/cooking/thing/cut-loin",
-          "units": 1,
-          "kgEach": 0.02
-        },
-        {
-          "row": "/trade/cooking/thing/cut-chop",
-          "units": 1,
-          "kgEach": 0.04
-        },
-        {
-          "row": "/trade/cooking/thing/cut-belly",
-          "units": 1,
-          "kgEach": 0.02
-        },
-        {
-          "row": "/trade/ranching/thing/suet",
-          "units": 1,
-          "kgEach": 0.02
-        },
-        {
           "row": "/stuff/thing/items/offal",
           "units": 1,
-          "kgEach": 0.13
-        },
-        {
-          "row": "/trade/cooking/thing/gut",
-          "units": 1,
-          "kgEach": 0.01
-        },
-        {
-          "row": "/trade/cooking/thing/cut-shoulder",
-          "units": 2,
-          "kgEach": 0.01
-        },
-        {
-          "row": "/trade/cooking/thing/cut-shank",
-          "units": 4,
-          "kgEach": 0.01
+          "kgEach": 0.19
         },
         {
           "row": "/trade/cooking/thing/cut-leg",
           "units": 2,
-          "kgEach": 0.02
+          "kgEach": 0.06
         }
       ],
       "newborn": [
-        "/trade/ranching/thing/hide",
-        "/trade/ranching/thing/bone",
-        "/trade/cooking/thing/cut-neck",
-        "/trade/cooking/thing/cut-rib",
-        "/trade/cooking/thing/cut-loin",
-        "/trade/cooking/thing/cut-chop",
-        "/trade/cooking/thing/cut-belly",
-        "/trade/ranching/thing/suet",
         "/stuff/thing/items/offal",
-        "/trade/cooking/thing/gut",
-        "/trade/cooking/thing/cut-shoulder",
-        "/trade/cooking/thing/cut-shank",
         "/trade/cooking/thing/cut-leg"
       ]
     },

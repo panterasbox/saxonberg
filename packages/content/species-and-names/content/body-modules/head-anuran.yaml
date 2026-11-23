@@ -1,0 +1,17 @@
+# head-anuran — a frog's head (organism-biology W7): wide, flat, the eyes
+# on top. Bare skin, no coat.
+parts:
+- key: ''
+  severable: true
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.03}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.05}
+- key: brain
+  parent: ''
+  governs: [consciousness]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.002}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.005, form: skin}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}
