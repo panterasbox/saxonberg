@@ -28,6 +28,35 @@ hearing / tactile / gustatory profiles — remain Wave 3+. (Vitals
 burn-damage on scalding contact, listed deferred here originally,
 shipped with the thermal build — see [thermal.md](./thermal.md).)
 
+## ⭐⭐ Sense organs are parts (organism-biology D11, W9)
+
+A body's senses DERIVE from its organs: a part authors `senses: [{ modality,
+media?, watchDeg? }]` (and `serves: [vision | hearing | smell]` for the
+organs a wound can cost), and `Body.modalitiesIn(medium, present)` /
+`modalities()` read them — the plan's `sensoryPorts` retired (every
+shipped plan's derived senses equal its old ports, golden-pinned). Eyes,
+ears and a nose are on the head modules, the tongue on the head (or the
+mouth), touch on the torso.
+
+- **A wound costs the sense.** `vision`, `hearing` and `smell` are body
+  capacities, read AS THE BODY STANDS (`capacityAsStands` — no reconcile
+  under a sight gate): an `impaired` pair of eyes costs one perceived
+  band, `failing` two, `lost` cannot see (`Actor.perceivedBandModifier` /
+  `canSeeOverride`); the nose's acuity scales by its band; hearing ships
+  as a capacity `assess` shows, with no multiplier. A lost organ senses
+  nothing. Looking at YOURSELF says so (`Your sight is blurred.`);
+  anyone else's wounds stay `assess`'s.
+- **The species' vision reaches perception.** `Actor.getVisionProfile()`
+  answers the species row; `VisionModality.perceiveFor` now reads
+  `scotopicMin` (below it, nothing) and `photopicMax` (above it, dazzled to
+  one band under) as well as `bandShift`. ⚠ `bandShift` stays DECLARED on
+  the species (B36): deriving it from an eye's aperture would need a
+  per-species eye override on shared plans.
+- **The watched share.** `watchDeg` on an eye (person 190, wolf 250, cow
+  330, crab 360): effective perception gains `(watchDeg/360 − 190/360) ×
+  detection.watchWeight (6) × the eyes' band` — persons read exactly as
+  before, a cow spots a `subtle` hide a wolf misses. No facing.
+
 ## Substrate consumed
 
 - [light.md](./light.md) — vision substrate; unchanged. `look` stays

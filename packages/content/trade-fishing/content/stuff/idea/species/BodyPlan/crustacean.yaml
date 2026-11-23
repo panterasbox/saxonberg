@@ -15,9 +15,6 @@ data:
   thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: walk
-  sensoryPorts:
-    - { modality: vision, count: 2, position: frontal }
-    - { modality: touch, count: 1, position: circumferential }
   # ⭐ Composed from body modules (organism-biology D1): each entry names
   # a module document, the absolute key of each instance (`as`) and the
   # part it hangs from (`at`). The expansion reproduces the keys and the

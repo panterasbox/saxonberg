@@ -1,4 +1,5 @@
 import "../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect } from 'vitest';
 import BodyPlan from '../BodyPlan';
 import { Idea } from '../../../../lib/stuff/Idea';
@@ -24,7 +25,7 @@ describe('BodyPlan', () => {
       { name: 'hand:right', accepts: 'WieldableMixin' },
     ]);
     setFlatGaits(bp, ['walk']);
-    bp.setSensoryPorts([
+    setFlatSenses(bp, [
       { modality: 'vision', count: 2, position: 'frontal' },
     ]);
     expect(bp.getName()).toBe('biped');
@@ -35,9 +36,8 @@ describe('BodyPlan', () => {
       { name: 'hand:right', accepts: 'WieldableMixin' },
     ]);
     expect(bp.getBody().gaits()).toEqual(['walk']);
-    expect(bp.getBody().getSensoryPorts()).toEqual([
-      { modality: 'vision', count: 2, position: 'frontal' },
-    ]);
+    // ⭐ W9 (D11): senses derive from organs.
+    expect(bp.getBody().modalities()).toEqual(['vision']);
   });
 
   it('sessile body plan can be all-empty', () => {
@@ -45,7 +45,7 @@ describe('BodyPlan', () => {
     bp.setName('sessile');
     expect(bp.getSlots()).toEqual([]);
     expect(bp.getBody().gaits()).toEqual([]);
-    expect(bp.getBody().getSensoryPorts()).toEqual([]);
+    expect(bp.getBody().modalities()).toEqual([]);
   });
 
   it('setSlots rejects spec missing name', () => {
@@ -82,7 +82,7 @@ describe('BodyPlan', () => {
   describe('getModalities (senses build)', () => {
     it('returns deduped channel list from sensoryPorts', () => {
       const bp = makeStuff(() => new BodyPlan());
-      bp.setSensoryPorts([
+      setFlatSenses(bp, [
         { modality: 'vision', count: 2, position: 'frontal' },
         { modality: 'hearing', count: 2, position: 'lateral' },
         { modality: 'smell', count: 1, position: 'forward' },
@@ -107,7 +107,7 @@ describe('BodyPlan', () => {
 
     it('dedupes when one channel has multiple ports', () => {
       const bp = makeStuff(() => new BodyPlan());
-      bp.setSensoryPorts([
+      setFlatSenses(bp, [
         { modality: 'vision', count: 2, position: 'frontal' },
         { modality: 'vision', count: 2, position: 'dorsal' },
         { modality: 'hearing', count: 2, position: 'lateral' },

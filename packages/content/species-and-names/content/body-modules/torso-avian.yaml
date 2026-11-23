@@ -4,6 +4,7 @@
 # share taken from the torso's flesh.
 parts:
 - key: ''
+  senses: [{modality: touch}]
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.1351}
   - {tissue: /stuff/idea/material/tissue/muscles/breast-red, weight: 0.2702}

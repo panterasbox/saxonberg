@@ -8,6 +8,7 @@ parts:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.012}
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.021}
 - key: mouth
+  senses: [{modality: taste}]
   parent: ''
   serves: [manipulation]
   tissues:
@@ -17,6 +18,36 @@ parts:
   governs: [consciousness]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.003}
+- key: eye.left
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 250}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+- key: eye.right
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 250}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+- key: ear.left
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.0005}
+- key: ear.right
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.0005}
+- key: nose
+  parent: ''
+  serves: [smell]
+  senses: [{modality: smell}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0005}
 integument:
   skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.006, form: hide}
   coat:

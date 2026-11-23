@@ -21,7 +21,8 @@
  * only), so the anatomy lint can parse a module from a YAML file.
  */
 
-import type { BodyFill, BreathingSpec, ComesOff, Integument, IntegumentLayer } from '../../platform/idea/species/BodyPlan';
+import type { BodyFill, BreathingSpec, ComesOff, Integument, IntegumentLayer, SenseOrgan } from '../../platform/idea/species/BodyPlan';
+import { SENSE_CHANNELS } from '../description/Perceiver';
 import type { TapSpec } from '../../platform/idea/species/Species';
 
 /** One tissue of a module part: a material row and its relative weight. */
@@ -66,6 +67,8 @@ export interface ModulePart {
   regrows?: 'moult';
   /** As `BodyPart.breathes` (D10). */
   breathes?: BreathingSpec[];
+  /** As `BodyPart.senses` (D11). */
+  senses?: SenseOrgan[];
 }
 
 export class BodyModule {
@@ -123,6 +126,18 @@ export class BodyModule {
       }
       if (raw.severable === true) part.severable = true;
       if (raw.regrows === 'moult') part.regrows = 'moult';
+      if (Array.isArray(raw.senses) && raw.senses.length > 0) {
+        part.senses = (raw.senses as Record<string, unknown>[]).map((o) => {
+          if (!(SENSE_CHANNELS as readonly string[]).includes(o.modality as string)) {
+            throw new Error(`body-module '${path}' part '${key}': '${String(o.modality)}' is not a sense`);
+          }
+          return {
+            modality: o.modality as SenseOrgan['modality'],
+            ...(Array.isArray(o.media) ? { media: (o.media as unknown[]).filter((m): m is string => typeof m === 'string') } : {}),
+            ...(typeof o.watchDeg === 'number' && o.watchDeg > 0 && o.watchDeg <= 360 ? { watchDeg: o.watchDeg } : {}),
+          };
+        });
+      }
       if (Array.isArray(raw.breathes) && raw.breathes.length > 0) {
         part.breathes = (raw.breathes as Record<string, unknown>[]).map((b) => {
           if (typeof b.medium !== 'string' || typeof b.intake !== 'number' || !(b.intake >= 0 && b.intake <= 1)) {

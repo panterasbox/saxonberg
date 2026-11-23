@@ -60,6 +60,7 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
           ...(part.integument ? { integument: part.integument } : {}),
           ...(part.regrows ? { regrows: part.regrows } : {}),
           ...(breathes ? { breathes } : {}),
+          ...(part.senses ? { senses: part.senses } : {}),
         },
       ],
       ...(part.comesOffAs ? { comesOffAs: part.comesOffAs } : {}),
@@ -72,7 +73,7 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
     refs.push(ref);
   }
   // ⭐ A gait-only instance a fixture gave the plan earlier survives.
-  plan.applyModules([...plan.getModules().filter((r) => r.module.endsWith('#gait') || r.module.endsWith('#breath')), ...refs]);
+  plan.applyModules([...plan.getModules().filter((r) => r.module.endsWith('#gait') || r.module.endsWith('#breath') || r.module.endsWith('#senses')), ...refs]);
 }
 
 /**
@@ -83,12 +84,37 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
  * respire.
  */
 export function setFlatBreathing(plan: BodyPlan, breathes: readonly BreathingSpec[]): void {
+  // A senses part breathed air on the plan's old default; this plan says how it breathes now.
+  for (const r of plan.getModules().filter((m) => m.module.endsWith('#senses'))) {
+    const senses = SpeciesApi.modules().need(r.module).parts[0]?.senses ?? [];
+    SpeciesApi.modules().remember(r.module, new BodyModule(r.module, { parts: [{ key: '', tissues: [], senses: senses.map((o) => ({ ...o })) }] }));
+  }
   fixtureSeq += 1;
   const path = `${plan.getTemplatePath() ?? '/test/body'}#${fixtureSeq}#breath`;
   SpeciesApi.modules().remember(path, new BodyModule(path, {
     parts: [{ key: '', tissues: [], ...(breathes.length > 0 ? { breathes: breathes.map((b) => ({ ...b })) } : {}) }],
   }));
   plan.applyModules([...plan.getModules().filter((r) => !r.module.endsWith('#breath')), { module: path, as: ['body.breath'] }]);
+}
+
+/**
+ * Give a plan the senses a fixture used to author as `sensoryPorts`
+ * (organism-biology W9: senses derive from organs). A weightless part,
+ * `body.senses`, carries one organ per port (count and position are the
+ * ports' and drop out). ⭐ It also breathes air — the plan default a
+ * port-only fixture assumed — unless `setFlatBreathing` gave the plan its
+ * own organ.
+ */
+export function setFlatSenses(plan: BodyPlan, ports: readonly { modality: string; media?: string[]; count?: number; position?: string }[]): void {
+  fixtureSeq += 1;
+  const path = `${plan.getTemplatePath() ?? '/test/body'}#${fixtureSeq}#senses`;
+  const breathes = plan.getModules().some((r) => r.module.endsWith('#breath'))
+    ? {}
+    : { breathes: [{ medium: 'air', apparatus: 'lungs', intake: 1 }] };
+  SpeciesApi.modules().remember(path, new BodyModule(path, {
+    parts: [{ key: '', tissues: [], ...breathes, senses: ports.map((p) => ({ modality: p.modality, ...(p.media ? { media: [...p.media] } : {}) })) }],
+  }));
+  plan.applyModules([...plan.getModules().filter((r) => !r.module.endsWith('#senses')), { module: path, as: ['body.senses'] }]);
 }
 
 /**

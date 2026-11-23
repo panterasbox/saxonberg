@@ -6,6 +6,30 @@ parts:
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0338}
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0646}
+- key: eye.left
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 300}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+- key: eye.right
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 300}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+- key: ear.left
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.0005}
+- key: ear.right
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.0005}
 integument:
   skin: {material: /stuff/idea/material/tissue/skin, weight: 0.003}
   coat: {material: /stuff/idea/material/tissue/feather, depthM: 0.015, loft: 0.9}

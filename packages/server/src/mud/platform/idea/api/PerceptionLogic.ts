@@ -16,6 +16,7 @@ import type { Organism } from '../../../lib/species/Organism';
 import type { Perception } from '../../../lib/perception/Perception';
 import { Modality } from '../../../lib/perception/Modality';
 import type { Percept } from '../../../lib/perception/Modality';
+import { PERSON_WATCH_DEG } from '../../../lib/species/Body';
 import { MixinApi } from '../../../api/mixin';
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import { StuffApi } from '../../../api/stuff';
@@ -102,6 +103,8 @@ const NEUTRAL_LIGHT_INDEX = LIGHT_BANDS.indexOf('lit');
  * the platform pack's `content/settings/`.
  */
 const DEFAULT_CAPACITY_PER_BAND = 3;
+/** The watched share's weight when the setting is unset (D11). */
+const DEFAULT_WATCH_WEIGHT = 6;
 const DEFAULT_PASSIVE_BASELINE = 0;
 /** `concealment.hintCutoff` fallback (Phase 3). Kept in sync with the dial. */
 const DEFAULT_HINT_CUTOFF = 4;
@@ -651,7 +654,9 @@ function walkInnateModalities(viewer: Stuff): Modality[] {
   if (!body) return [];
   // ⭐ An organ works in its own media (underwater D21): under the water a
   // nose would breathe it in, eyes and ears go on working.
-  const organKeys = body.modalitiesIn(mediumOf(viewer));
+  // ⭐ An organ the body has lost senses nothing (organism-biology D11).
+  const present = MixinApi.isVitals(viewer) ? (k: string) => viewer.getPart(k)?.missing !== true : undefined;
+  const organKeys = body.modalitiesIn(mediumOf(viewer), present);
   const out: Modality[] = [];
   for (const key of organKeys) {
     const modality = resolveByOrganKey(key);
@@ -998,7 +1003,29 @@ function effectivePerceptionImpl(
   target: Stuff,
   attention: number,
 ): number {
-  return capacityOf(viewer) + attention + lightConditionsFor(viewer, target);
+  return capacityOf(viewer) + attention + lightConditionsFor(viewer, target) + watchedShareOf(viewer);
+}
+
+/** What the eyes' capacity leaves of the watched share (D11). */
+const WATCH_BAND_FACTOR: Record<string, number> = { full: 1, impaired: 0.5, failing: 0.25, lost: 0 };
+
+/**
+ * ⭐⭐ The watched share (organism-biology D11): eyes that cover more of
+ * the world catch more of it — `(watchDeg/360 − 190/360) × watchWeight ×
+ * the eyes' band`. A person's 190° is the reference, so persons and players
+ * read exactly as before; a cow's 330° spots what a wolf's 250° misses. No
+ * facing is introduced. A viewer with no body reads 0.
+ */
+function watchedShareOf(viewer: Stuff): number {
+  if (!MixinApi.isOrganism(viewer)) return 0;
+  const body = viewer.getBody();
+  if (!body) return 0;
+  const present = MixinApi.isVitals(viewer) ? (k: string) => viewer.getPart(k)?.missing !== true : undefined;
+  const watch = body.watchDeg(present);
+  if (watch === 0) return 0;
+  const band = MixinApi.isVitals(viewer) ? viewer.capacityAsStands('vision') : 'full';
+  const weight = dialNumber(AppSettingKeys.detectionWatchWeight, DEFAULT_WATCH_WEIGHT);
+  return (watch / 360 - PERSON_WATCH_DEG / 360) * weight * (WATCH_BAND_FACTOR[band] ?? 1);
 }
 
 /**

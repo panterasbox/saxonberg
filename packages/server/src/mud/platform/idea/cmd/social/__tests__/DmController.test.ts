@@ -9,6 +9,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DmController from '../DmController';
 import { StuffApi } from '../../../../../api/stuff';
@@ -66,7 +67,7 @@ function makeActor(name: string, attuned: boolean): Actor & AetherHost & Comms {
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/biped-dm-test-${seq}`,
   );
-  biped.setSensoryPorts([
+  setFlatSenses(biped, [
     { modality: 'vision', count: 2, position: 'frontal' },
     { modality: 'hearing', count: 2, position: 'lateral' },
   ]);

@@ -4,6 +4,7 @@
 # the tadpole and the froglet their own modules beside this one.
 parts:
 - key: ''
+  senses: [{modality: touch}]
   breathes: [{medium: water, apparatus: skin, intake: 0.75}]
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.05}

@@ -171,13 +171,13 @@ export class SpeciesLogic extends ApiLogic {
       const anat: DossierSection['rows'] = [
         { label: 'Body plan', value: cap(bodyPlan.getName()) },
       ];
-      const ports = bodyPlan.getBody().getSensoryPorts();
-      if (ports.length) {
+      // ⭐ The dossier renders ORGANS (D11): how many of each a body has.
+      const counts = new Map<string, number>();
+      for (const { organ } of bodyPlan.getBody().senseOrgans()) counts.set(organ.modality, (counts.get(organ.modality) ?? 0) + 1);
+      if (counts.size) {
         anat.push({
           label: 'Senses',
-          value: ports
-            .map((p) => `${p.count} ${organNoun(p.modality, p.count)} (${p.position})`)
-            .join(' · '),
+          value: [...counts.entries()].map(([m, n]) => `${n} ${organNoun(m, n)}`).join(' · '),
         });
       }
       const moves = bodyPlan.getBody().gaits();

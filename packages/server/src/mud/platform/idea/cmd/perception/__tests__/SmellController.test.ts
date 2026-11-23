@@ -13,6 +13,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect, beforeEach } from 'vitest';
 import SmellController from '../SmellController';
 import { MqlApi, type MqlOneResult } from '../../../../../api/mql';
@@ -91,7 +92,7 @@ function makeFixture(): Fixture {
     makeStuff(() => new BodyPlan()),
     '/stuff/idea/species/BodyPlan/test-smell',
   );
-  bodyPlan.setSensoryPorts([
+  setFlatSenses(bodyPlan, [
     { modality: 'vision', count: 2, position: 'frontal' },
     { modality: 'smell', count: 1, position: 'forward' },
     { modality: 'hearing', count: 2, position: 'lateral' },

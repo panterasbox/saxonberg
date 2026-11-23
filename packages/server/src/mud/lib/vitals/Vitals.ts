@@ -1003,6 +1003,12 @@ export interface Vitals {
    */
   operable(named: string | null, ops: readonly OperationDescriptor[], hand: OperatingHand): OperableAnswer;
   /**
+   * ⭐ A capacity's band AS THE BODY STANDS (organism-biology D11) — no
+   * reconcile. What a sight gate reads under every `describeFor`: the
+   * crowded-rooms rule (a room's reading never integrates the viewer).
+   */
+  capacityAsStands(key: BodyCapacity): FunctionBand;
+  /**
    * ⭐⭐ **The body's seasons** (organism-biology D9): walk its species'
    * `phenology` and carry each condition while its trigger holds, relieve
    * it when it stops — the shipped `afflict` / `relieve`, no arm of its
@@ -1291,6 +1297,30 @@ function missingPartsAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/** What a body says of a wounded sense, to itself (organism-biology D11). */
+const SENSE_WORDS: Record<string, Record<string, string>> = {
+  vision: { impaired: 'Your sight is blurred.', failing: 'You can barely see.', lost: 'You cannot see.' },
+  hearing: { impaired: 'Your hearing is muffled.', failing: 'You can barely hear.', lost: 'You cannot hear.' },
+  smell: { impaired: 'Your sense of smell is dulled.', failing: 'You can barely smell anything.', lost: 'You cannot smell anything.' },
+};
+
+/**
+ * ⭐ D11 — a wounded sense organ is worded when you `look` at YOURSELF:
+ * the eye that is failing is a fact you live with; anyone else's wounds
+ * stay `assess`'s. One line per sense below full, read as the body stands.
+ */
+function sensesAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (host !== viewer || !MixinApi.isVitals(host)) return text;
+  const lines: string[] = [];
+  for (const sense of ['vision', 'hearing', 'smell'] as const) {
+    const said = SENSE_WORDS[sense]?.[host.capacityAsStands(sense)];
+    if (said) lines.push(said);
+  }
+  if (lines.length === 0) return text;
+  const line = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 /** ⭐ D14 — one sentence about a body's most prominent scar, appended to
  * `look`. Never a penalty; the body wears what it survived. */
 function scarsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
@@ -1329,6 +1359,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** A lost part is visible on the body; so is a scar (D14). */
     static markupAugmenters: MarkupAugmenter[] = [
       missingPartsAugmenter,
+      sensesAugmenter,
       scarsAugmenter,
       shellAugmenter,
     ];
@@ -2507,6 +2538,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const served = servedCount > 0 ? servedSum / servedCount : 1;
       return governed * served * (sustained ?? 1);
+    }
+
+    /** See {@link Vitals.capacityAsStands}. */
+    public capacityAsStands(key: BodyCapacity): FunctionBand {
+      return this.bandOf(this.capacityScalar(key));
     }
 
     public capacity(key: BodyCapacity): FunctionBand {

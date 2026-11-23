@@ -4,3 +4,9 @@
 settings:
   - key: detection.capacityPerBand
     value: "3"
+
+  # The watched share (organism-biology D11): perception points per unit
+  # of the eyes' field beyond a person's 190°, × 360. A cow (330°) adds
+  # about +2.3 and spots a `subtle` hide a wolf (250°, +1) misses.
+  - key: detection.watchWeight
+    value: "6"

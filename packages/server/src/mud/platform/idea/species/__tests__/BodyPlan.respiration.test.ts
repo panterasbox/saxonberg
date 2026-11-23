@@ -7,6 +7,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect } from 'vitest';
 import BodyPlan from '../BodyPlan';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
@@ -65,7 +66,7 @@ describe('breathing — derived from organs (D10)', () => {
 
   it('⭐ under the water a nose does not work and eyes do; a voice is air-only unless authored', () => {
     const bp = makeStuff(() => new BodyPlan());
-    bp.setSensoryPorts([
+    setFlatSenses(bp, [
       { modality: 'vision', count: 2, position: 'frontal' },
       { modality: 'smell', count: 1, position: 'frontal' },
     ]);

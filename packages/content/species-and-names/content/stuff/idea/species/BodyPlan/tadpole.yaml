@@ -8,11 +8,7 @@ data:
   thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: swim
-  sensoryPorts:
-    - { modality: vision, count: 2, position: lateral }
-    - { modality: touch, count: 1, position: circumferential }
-    - { modality: taste, count: 1, position: forward, media: [water] }
   modules:
     - { module: /species-and-names/body-modules/torso-tadpole, as: [body.torso] }
-    - { module: /species-and-names/body-modules/head-anuran, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/head-tadpole, as: [body.head], at: body.torso }
     - { module: /species-and-names/body-modules/tail-tadpole, as: [body.tail], at: body.torso }

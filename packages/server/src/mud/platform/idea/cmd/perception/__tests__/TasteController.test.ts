@@ -5,6 +5,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect, beforeEach } from 'vitest';
 import TasteController from '../TasteController';
 import type { MqlOneResult } from '../../../../../api/mql';
@@ -70,7 +71,7 @@ function makeFixture(): { giver: ReceivingGiver; location: TestLocation } {
     makeStuff(() => new BodyPlan()),
     '/stuff/idea/species/BodyPlan/test-taste',
   );
-  bp.setSensoryPorts([
+  setFlatSenses(bp, [
     { modality: 'taste', count: 1, position: 'forward' },
   ]);
   const sp = withTemplatePath(

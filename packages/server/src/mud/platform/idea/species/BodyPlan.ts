@@ -55,30 +55,26 @@ import type { FieldMeta } from '../../../lib/mixin';
 
 import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
 /**
- * Anatomy descriptor for a sensory apparatus. Capability (range,
- * acuity) does NOT belong here — that's species-side. Decomposes as
- * three flat scalars under default hydration; if it grows nested
- * fields a `SensoryPortMarshaller` handles serialization.
+ * ⭐⭐ A sense organ (organism-biology D11): a part that perceives — an
+ * eye, an ear, a nose, the tongue, the skin. A body's senses DERIVE from
+ * the organs it has (and a wounded one costs the sense); the plan's
+ * `sensoryPorts` retired. Capability (acuity, the light range) stays the
+ * species'.
  */
-export interface SensoryPort {
-  /**
-   * Sense-channel vocabulary — one of the five physical channels
-   * declared by `SenseChannel`. The eyes-modality entry uses
-   * `'vision'` (the channel/process word), not the legacy organ
-   * word `'sight'`; the substrate's vocabulary is unified across
-   * BodyPlan / Detail / `<sense>` MML / SenseChannel TS type.
-   */
+export interface SenseOrgan {
+  /** One of the five physical channels (`vision`, not the organ word `sight`). */
   modality: SenseChannel;
-  /** How many of this port the body plan declares. */
-  count: number;
-  /** `'frontal'`, `'lateral'`, `'dorsal'`, `'forward'`, `'circumferential'`. */
-  position: string;
   /**
-   * ⭐ The media this organ works in (underwater D21). Unset: vision,
-   * touch and hearing work in air and water; smell and taste in air only —
-   * under the water you would breathe it in. A shark's nose says `[water]`.
+   * ⭐ The media it works in (underwater D21). Unset: vision, touch and
+   * hearing work in air and water; smell and taste in air only — under
+   * the water you would breathe it in. A shark's nose says `[water]`.
    */
   media?: string[];
+  /**
+   * ⭐ For an eye: the angle the eyes cover together, degrees — a person
+   * 190, a cow 330 (D11's watched share). Read off the body's widest.
+   */
+  watchDeg?: number;
 }
 
 
@@ -270,6 +266,8 @@ export interface BodyPart {
   integument?: Integument;
   /** ⭐ It grows back (D7): `moult` — at the species' moult; a burned stump never does. */
   regrows?: 'moult';
+  /** ⭐⭐ What it senses (D11): an eye, an ear, a nose — the body's senses derive from these. */
+  senses?: SenseOrgan[];
   /**
    * ⭐⭐ What this organ breathes (organism-biology D10): one spec per
    * medium it takes oxygen from. A body's breathing DERIVES from its
@@ -361,12 +359,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   protected defaultLocomotionMode: string | null = null;
 
   /**
-   * Sensory port anatomy. Position, count, modality only — capability
-   * is species-side.
-   */
-  protected sensoryPorts: SensoryPort[] = [];
-
-  /**
    * ⭐⭐ **The modules this plan is composed of** (organism-biology D1) —
    * which `body-module` documents, how many of each (`as`), where each
    * hangs (`at`) and how big (`weight`). The parts themselves are never
@@ -449,7 +441,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     name: { persistent: true },
     slots: { persistent: true },
     defaultLocomotionMode: { persistent: true },
-    sensoryPorts: { persistent: true },
     modules: { persistent: true },
     baseMass: { persistent: true },
     baseStature: { persistent: true },
@@ -553,10 +544,7 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     this.defaultLocomotionMode = value;
   }
 
-  public setSensoryPorts(value: SensoryPort[]): void {
-    this.sensoryPorts = value;
-    this.body = null;
-  }
+
 
   /** The module instances this plan is composed of (D1). */
   public getModules(): readonly ModuleRef[] {
@@ -611,7 +599,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
         {
           modules: this.modules,
           slots: this.slots,
-          sensoryPorts: this.sensoryPorts,
         },
         (path) => catalogue.need(path),
       );
@@ -630,7 +617,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
       {
         modules: this.modules,
         slots: this.slots,
-        sensoryPorts: this.sensoryPorts,
       },
       (path) => catalogue.need(path),
       deltas,

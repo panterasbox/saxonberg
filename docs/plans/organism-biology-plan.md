@@ -1933,7 +1933,16 @@ emergence leaves a moth and pierced cocoons once `clock-advance` crosses
 its wake.
 **Commit:** `feat(species): W8 metamorphosis — the frog and the silkworm`
 
-### W9 — Senses
+### W9 — Senses ✅ done
+
+> **Done note.** Organs on every head and torso module; `sensoryPorts`
+> gone (a fixture helper `setFlatSenses` stands in for 17 test files);
+> the derived senses equal every W0 plan's ports. `bandShift` stays
+> declared (B36). The capacity reads are AS THE BODY STANDS
+> (`capacityAsStands`), so a sight gate never integrates the viewer
+> (crowded-rooms D14). For the drive (W11): the dark-sighted species in a
+> dark place, a staged eye wound on a wolf and a player (and the player's
+> self-look line), the cow and the wolf against a `subtle` hide.
 
 **Goal:** eyes, ears and noses are parts; the species' vision is live.
 **Implements:** D11.
@@ -2510,6 +2519,18 @@ Decisions the build made that the plan did not, and what decided each.
   computed at boot.** `GLAND_SHARE_REFERENCE = 0.25`, asserted equal to
   the real modules' share. *Decided by:* load on use (no boot read) and
   the golden (the shipped worm spins exactly what it did).
+
+- **B36 (W9) — `bandShift` stays declared on the species.** D11 derived
+  it from an eye aperture, but many species with different shifts share
+  one plan (persons on `biped`), so a derived shift would need a
+  per-species eye override (a new delta kind) for no new behavior. The
+  species keeps `scotopicMin`, `photopicMax` and `bandShift` together,
+  and perception now reads all three. *Decided by:* lens 2 (one home an
+  author already edits) and the nearest pattern (the vision profile).
+- **B37 (W9) — a sense capacity is read as the body stands.** A new
+  `capacityAsStands` (no reconcile) is what sight gates, the nose and the
+  watched share read. *Decided by:* crowded-rooms D14 (a room's reading
+  never integrates the viewer).
 
 ## Drive record
 

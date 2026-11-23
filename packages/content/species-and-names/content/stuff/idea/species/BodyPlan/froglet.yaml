@@ -6,11 +6,6 @@ data:
   thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: swim
-  sensoryPorts:
-    - { modality: vision, count: 2, position: lateral }
-    - { modality: hearing, count: 2, position: lateral }
-    - { modality: touch, count: 1, position: circumferential }
-    - { modality: taste, count: 1, position: forward }
   modules:
     - { module: /species-and-names/body-modules/torso-froglet, as: [body.torso] }
     - { module: /species-and-names/body-modules/head-anuran, as: [body.head], at: body.torso }

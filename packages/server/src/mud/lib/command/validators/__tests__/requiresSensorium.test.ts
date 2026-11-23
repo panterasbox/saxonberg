@@ -6,6 +6,7 @@
  */
 
 import "../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../species/__tests__/flat-body';
 import { describe, it, expect, beforeEach } from 'vitest';
 import requiresHearing from '../requiresHearing';
 import requiresSmell from '../requiresSmell';
@@ -61,7 +62,7 @@ function makeOrganismWith(channels: SenseChannel[]): Stuff {
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/test-${channels.join('-') || 'sessile'}`,
   );
-  bp.setSensoryPorts(
+  setFlatSenses(bp, 
     channels.map((ch) => ({
       modality: ch,
       count: 1,

@@ -8,10 +8,6 @@ data:
   name: insect
   slots: []
   defaultLocomotionMode: walk
-  sensoryPorts:
-    - { modality: vision, count: 2, position: lateral }
-    - { modality: smell, count: 2, position: forward }
-    - { modality: touch, count: 1, position: circumferential }
   modules:
     - { module: /species-and-names/body-modules/torso-insect, as: [body.torso] }
     - { module: /species-and-names/body-modules/head-insect, as: [body.head], at: body.torso }

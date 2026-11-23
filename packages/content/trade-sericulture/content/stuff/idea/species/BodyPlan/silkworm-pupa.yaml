@@ -6,7 +6,5 @@ data:
   thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: null
-  sensoryPorts:
-    - { modality: touch, count: 1, position: circumferential }
   modules:
     - { module: /trade/sericulture/body-modules/torso-pupa, as: [body.torso] }

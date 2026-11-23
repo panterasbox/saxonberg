@@ -2,6 +2,7 @@
 # and abdomen under one chitin cuticle, with the gut and the heart tube.
 parts:
 - key: ''
+  senses: [{modality: touch}]
   breathes: [{medium: air, apparatus: tracheae, intake: 1, volumeL: 6}]
   tissues:
   - {tissue: /stuff/idea/material/tissue/chitin, weight: 0.12}

@@ -61,6 +61,16 @@ export const BODY_CAPACITIES = [
    * is the anatomy death floor.
    */
   'filtration',
+  /**
+   * ⭐ The senses (organism-biology D11), SERVED by their organs — two eyes,
+   * so one lost is impaired and both lost is blind. `vision` costs the
+   * perceived band and the sight; `smell` scales the nose's acuity;
+   * `hearing` ships as a capacity `assess` shows, with no multiplier (the
+   * `clearance` precedent, stated).
+   */
+  'vision',
+  'hearing',
+  'smell',
 ] as const;
 
 /** One of {@link BODY_CAPACITIES}. */

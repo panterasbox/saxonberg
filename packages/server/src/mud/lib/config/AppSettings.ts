@@ -1210,6 +1210,13 @@ export const AppSettingKeys = {
    */
   detectionCapacityPerBand: "detection.capacityPerBand",
   /**
+   * Detection — the weight of the WATCHED SHARE (organism-biology D11):
+   * `(watchDeg/360 − 190/360) × this` perception points, so a cow's eyes
+   * (330°) watch for what a wolf's (250°) miss; a person's are the
+   * reference and add nothing.
+   */
+  detectionWatchWeight: "detection.watchWeight",
+  /**
    * Detection — the active-attention bonus a broad `search` folds into
    * effective perception (on top of the passive baseline). A rank-0 seeker
    * reaches the `hidden` band by searching. Read with a seeded-literal
@@ -2956,6 +2963,7 @@ export const AppSettingTiers: Readonly<
   concealmentHiddenDefaultLevel: "B",
   concealmentPassiveBaseline: "B",
   detectionCapacityPerBand: "B",
+  detectionWatchWeight: "B",
   concealmentSearchBonus: "B",
   concealmentSearchDepthBonus: "B",
   concealmentSearchSeconds: "B",

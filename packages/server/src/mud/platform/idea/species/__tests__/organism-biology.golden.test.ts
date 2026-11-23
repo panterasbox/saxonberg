@@ -188,7 +188,11 @@ function computeGolden(): Golden {
           share: total > 0 ? round6(t.share / total) : 0,
         })),
       })),
-      sensoryPorts: data.sensoryPorts ?? [],
+      // ⭐ W9 (D11): senses derive from the organs — each modality the body
+      // has, with the media its organs work in (W0's ports, organ-shaped).
+      senses: [...new Map(plan.getBody().senseOrgans().map(({ organ }) => [organ.modality, [...plan.getBody().organMedia(organ)].sort()])).entries()]
+        .map(([modality, media]) => ({ modality, media }))
+        .sort((a, b) => a.modality.localeCompare(b.modality)),
       // ⭐ W3: gaits derive from the limbs; compared as a set (order is the
       // parts' order, which carries no meaning).
       gaits: [...plan.getBody().gaits()].sort(),

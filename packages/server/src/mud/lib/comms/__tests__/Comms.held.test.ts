@@ -8,6 +8,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { setFlatSenses } from '../../species/__tests__/flat-body';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -70,7 +71,7 @@ function makePerson(name: string): Person & Comms {
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/biped-held-${seq}`,
   );
-  biped.setSensoryPorts([
+  setFlatSenses(biped, [
     { modality: 'vision', count: 2, position: 'frontal' },
     { modality: 'hearing', count: 2, position: 'lateral' },
   ]);

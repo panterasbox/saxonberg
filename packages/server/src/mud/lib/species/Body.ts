@@ -29,7 +29,7 @@ import type {
   Integument,
   BodyPart,
   BreathingSpec,
-  SensoryPort,
+  SenseOrgan,
 } from '../../platform/idea/species/BodyPlan';
 import type { TapSpec } from '../../platform/idea/species/Species';
 import type { SlotSpec } from '../slot/Slotted';
@@ -70,8 +70,6 @@ export interface BodyDelta {
 export interface BodySpec {
   modules: readonly ModuleRef[];
   slots?: readonly SlotSpec[];
-  /** Still authored on the plan until W9 derives senses from organs (D1's proxy). */
-  sensoryPorts?: readonly SensoryPort[];
 }
 
 /** ⭐ One line of a carcass (D5): a row, the materials that named it, the parts that carry them. */
@@ -96,6 +94,9 @@ const PORT_MEDIA_DEFAULT: Readonly<Record<string, readonly string[]>> = {
   taste: ['air'],
 };
 
+/** The angle a person's eyes watch together, degrees — the watched share's reference (D11). */
+export const PERSON_WATCH_DEG = 190;
+
 /** A lung that authors no volume holds an adult's, liters, at the plan's base mass (D10). */
 const DEFAULT_LUNG_VOLUME_L = 6;
 
@@ -104,7 +105,6 @@ export class Body {
   private readonly byKey: ReadonlyMap<string, BodyPart>;
   private readonly conduitKeys: ReadonlySet<string>;
   private readonly slots: readonly SlotSpec[];
-  private readonly sensoryPorts: readonly SensoryPort[];
   private surfaceFractions: Map<string, number> | null = null;
   private tissues: ResolvedTissue[] | null = null;
 
@@ -120,7 +120,6 @@ export class Body {
     deltas: readonly BodyDelta[] = [],
   ) {
     this.slots = spec.slots ?? [];
-    this.sensoryPorts = spec.sensoryPorts ?? [];
 
     const refs: ModuleRef[] = [...spec.modules];
     const scale = new Map<string, number>();
@@ -227,6 +226,7 @@ export class Body {
     if (mp.severable) part.severable = true;
     if (mp.regrows) part.regrows = mp.regrows;
     if (mp.breathes) part.breathes = mp.breathes.map((b) => ({ ...b }));
+    if (mp.senses) part.senses = mp.senses.map((o) => ({ ...o }));
     const inner = (mp.innervatedBy ?? []).map((k) => Body.absolute(as, k));
     const supply = (mp.suppliedBy ?? []).map((k) => Body.absolute(as, k));
     if (isRoot) {
@@ -501,26 +501,41 @@ export class Body {
 
   // ---- senses and gaits ----
 
-  /** The sense organs this body declares (the plan's ports until W9 derives them). */
-  public getSensoryPorts(): readonly SensoryPort[] {
-    return this.sensoryPorts;
+  /**
+   * ⭐⭐ The sense organs this body has (organism-biology D11) — every
+   * part's `senses`, with the part that carries it, in part order;
+   * `present` drops the organs a body has lost.
+   */
+  public senseOrgans(present: (partKey: string) => boolean = () => true): readonly { partKey: string; organ: SenseOrgan }[] {
+    return this.parts.flatMap((p) => (present(p.key) ? (p.senses ?? []).map((organ) => ({ partKey: p.key, organ })) : []));
   }
 
   /** The media one sense organ works in — its own, or its kind's default. */
-  public portMedia(port: SensoryPort): readonly string[] {
-    return port.media ?? PORT_MEDIA_DEFAULT[port.modality] ?? ['air', 'water'];
+  public organMedia(organ: SenseOrgan): readonly string[] {
+    return organ.media ?? PORT_MEDIA_DEFAULT[organ.modality] ?? ['air', 'water'];
   }
 
   /** ⭐ The senses this body has that work in `medium`. */
-  public modalitiesIn(medium: string): SenseChannel[] {
+  public modalitiesIn(medium: string, present?: (partKey: string) => boolean): SenseChannel[] {
     return Array.from(new Set(
-      this.sensoryPorts.filter((p) => this.portMedia(p).includes(medium)).map((p) => p.modality),
+      this.senseOrgans(present).filter(({ organ }) => this.organMedia(organ).includes(medium)).map(({ organ }) => organ.modality),
     ));
   }
 
-  /** The deduped sense channels this body has, in declaration order. */
-  public modalities(): SenseChannel[] {
-    return Array.from(new Set(this.sensoryPorts.map((p) => p.modality)));
+  /** The deduped sense channels this body has, in part order. */
+  public modalities(present?: (partKey: string) => boolean): SenseChannel[] {
+    return Array.from(new Set(this.senseOrgans(present).map(({ organ }) => organ.modality)));
+  }
+
+  /**
+   * ⭐ The angle its eyes watch together, degrees (D11) — the widest any
+   * eye authors; a body with eyes that say none watches a person's 190;
+   * with no eyes, none.
+   */
+  public watchDeg(present?: (partKey: string) => boolean): number {
+    const eyes = this.senseOrgans(present).filter(({ organ }) => organ.modality === 'vision');
+    if (eyes.length === 0) return 0;
+    return Math.max(...eyes.map(({ organ }) => organ.watchDeg ?? PERSON_WATCH_DEG));
   }
 
   /**

@@ -30,10 +30,6 @@ data:
   slots:
     - { name: 'perch:1', accepts: SlottableMixin, userFacingDetail: perch }
   defaultLocomotionMode: walk
-  sensoryPorts:
-    - { modality: vision, count: 2, position: lateral }
-    - { modality: hearing, count: 2, position: lateral }
-    - { modality: touch, count: 1, position: circumferential }
   # ⭐ `serves: [locomotion]` on BOTH pairs, and it is not decorative: a
   # bird gets about on its wings as much as its legs, so the locomotion
   # capacity is the MEAN over all four. A broken wing costs a bird a

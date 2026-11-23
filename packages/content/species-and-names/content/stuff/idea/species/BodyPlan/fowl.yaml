@@ -30,12 +30,6 @@ data:
   slots:
     - { name: 'perch:1', accepts: SlottableMixin, userFacingDetail: perch }
   defaultLocomotionMode: walk
-  sensoryPorts:
-    - { modality: vision, count: 2, position: lateral }
-    - { modality: hearing, count: 2, position: lateral }
-    - { modality: smell, count: 1, position: forward }
-    - { modality: touch, count: 1, position: circumferential }
-    - { modality: taste, count: 1, position: forward }
   # ⚠ Bone FIRST in every list: trauma's two readers are
   # `primaryTissueMaterial` (the first resolvable tissue) and
   # `partHasBoneTissue` (tags), so the order is load-bearing.
