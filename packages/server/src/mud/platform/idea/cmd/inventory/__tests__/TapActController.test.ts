@@ -377,7 +377,7 @@ describe('the take as an act', () => {
         behaviour: 'accrue',
         windowDays: 4,
         // A band this world is never in.
-        window: { kind: 'photoperiod', daylightFrom: 0.999, daylightTo: 1 },
+        window: { kind: 'weather', daylightFrom: 0.999, daylightTo: 1, minK: 0, maxK: 1000 },
       },
     ]);
     setNow(2 * DAY);

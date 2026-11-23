@@ -153,6 +153,10 @@ export abstract class TapActController<
         return 'there is nothing out there to work';
       case 'wrong-sex':
         return 'there is nothing of that to be had from this one';
+      case 'not-lactating':
+        return 'she is not in milk';
+      case 'not-laying':
+        return 'she is not laying';
       default: {
         const never: never = season;
         return never;
@@ -174,6 +178,8 @@ export abstract class TapActController<
       case 'season-dried-off':
       case 'season-brooding':
       case 'season-no-forage':
+      case 'season-not-lactating':
+      case 'season-not-laying':
       case 'season-wrong-sex':
         return Mml.compose`${TapActController.seasonWords(out.facts.season)}`;
       case 'nothing-standing':

@@ -1,0 +1,13 @@
+# Rut — a mature, entire male in his season (organism-biology D9, W7). He
+# eats less and burns flesh: a satiation drain while it lasts. A steer has
+# no rut — `entire` is a term of the trigger.
+class: /platform/idea/Condition
+data:
+  name: rut
+  signature:
+    - { kind: reserve, reserve: satiation, pctPerHour: -1 }
+  progression: null
+  resolution:
+    by: season
+  observableSigns: [swollen-neck, roaring, pawing-the-ground]
+  contagion: null

@@ -1,0 +1,12 @@
+# In season — a female ready to be served (organism-biology D9, W7). On
+# her species' `breeding` band (never re-authored here) when she is
+# mature. `breed` reads it: a female out of season is not put to the male.
+class: /platform/idea/Condition
+data:
+  name: in season
+  signature: []
+  progression: null
+  resolution:
+    by: season
+  observableSigns: [restless, bellowing, seeking-the-male]
+  contagion: null

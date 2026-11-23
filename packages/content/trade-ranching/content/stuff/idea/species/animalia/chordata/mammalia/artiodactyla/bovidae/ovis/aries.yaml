@@ -69,6 +69,16 @@ data:
   feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 900, senescentAt: 1400 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
+  # ⭐ The season, on the body (organism-biology D9): a mature female in
+  # her species' breeding band is in season, and an entire male in rut —
+  # conditions the thermal reconcile carries and relieves, which `breed`
+  # and `assess` read. The band is `breeding`'s, never re-authored here.
+  phenology:
+    # ⭐ A ewe is in milk in spring, on her daylength (the band the udder's
+    # photoperiod window used to hold).
+    - { condition: /platform/idea/Condition/reproduction/lactating, trigger: { daylightFrom: 0.46, daylightTo: 0.62, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/in-season, trigger: { season: breeding, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/rut, trigger: { season: breeding, sex: male, stage: adult, entire: true } }
   longDescription: >-
     A blocky ewe with a fleece gone yellow at the tips and a startlingly
     level stare. She keeps one eye on you and both feet pointed at the

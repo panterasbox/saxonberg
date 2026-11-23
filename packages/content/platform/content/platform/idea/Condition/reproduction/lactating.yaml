@@ -1,0 +1,13 @@
+# Lactating — in milk (organism-biology D9, W7). ⭐ The ONE thing that says
+# a body gives milk: the udder's tap is `activeIn` it. A ewe carries it on
+# her daylength (spring); a cow and a goat on freshening, an act — brought
+# on at the draft past her rest and relieved when she dries off.
+class: /platform/idea/Condition
+data:
+  name: lactating
+  signature: []
+  progression: null
+  resolution:
+    by: drying-off
+  observableSigns: [full-udder, in-milk]
+  contagion: null

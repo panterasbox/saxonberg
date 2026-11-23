@@ -12,7 +12,9 @@ parts:
     behaviour: expire
     windowDays: 0.6
     yieldShape: volume
-    window: {kind: event}
+    # ⭐ In milk / in lay is the BODY's (organism-biology D9): its phenology
+    # carries the condition, and the tap runs only while it does.
+    activeIn: /platform/idea/Condition/reproduction/lactating
     restDays: 3
 comesOffAs:
 - {tissue: /stuff/idea/material/tissue/udder, cut: /stuff/thing/items/offal}

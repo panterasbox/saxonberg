@@ -21,6 +21,9 @@ import {
   type ScheduleOpts,
   type ClockHandle,
 } from '../../../api/worldclock';
+import { StuffApi } from '../../../api/stuff';
+import { TemplatePaths } from '../../../lib/paths';
+import { DEFAULT_CLIMATE_SITE } from '../../../lib/weather/WeatherType';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
 
@@ -530,6 +533,20 @@ export class CelestialLogic extends ApiLogic {
     t: number
   ): number {
     return this.pinnedSeconds(profile) ?? daylightSeconds(profile, latitudeDegrees, t);
+  }
+
+  /** See {@link CelestialApi.daylightHere}. */
+  @CallSecurity(CelestialApiCallers)
+  public daylightHere(stuff: Stuff, offsetS: number): number | null {
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return null;
+    let cursor: Stuff | null = stuff;
+    for (let i = 0; cursor !== null && i < 16; i++) {
+      if (MixinApi.isAtmospheric(cursor)) break;
+      cursor = MixinApi.isContainable(cursor) ? (cursor.getContainer() as Stuff | null) : null;
+    }
+    const site = cursor && MixinApi.isAtmospheric(cursor) ? cursor.climateSite() : DEFAULT_CLIMATE_SITE;
+    const t = WorldClockApi.getNow().rawValue() + offsetS;
+    return this.daylightSecondsFor(EARTH_LIKE, site.latitudeDeg, t) / EARTH_LIKE.dayLengthSeconds;
   }
 
   /** See {@link CelestialApi.daylightAt}. */

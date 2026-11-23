@@ -13,6 +13,8 @@ parts:
     windowDays: 0.6
     yieldShape: volume
     restDays: 3
-    window: {kind: photoperiod, daylightFrom: 0.46, daylightTo: 0.62}
+    # ⭐ In milk / in lay is the BODY's (organism-biology D9): its phenology
+    # carries the condition, and the tap runs only while it does.
+    activeIn: /platform/idea/Condition/reproduction/lactating
 comesOffAs:
 - {tissue: /stuff/idea/material/tissue/udder, cut: /stuff/thing/items/offal}

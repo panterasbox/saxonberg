@@ -43,8 +43,6 @@ import { Evaporation } from '../material/Evaporation';
 import { Quantity, M2K_PER_W_PER_CLO } from "../quantity";
 import { MaterialApi } from "../../api/material";
 import { CelestialApi } from "../../api/celestial";
-import { EARTH_LIKE } from "../time/CelestialProfile";
-import { DEFAULT_CLIMATE_SITE } from "../weather/WeatherType";
 import { K_AIR, K_WATER } from "../slot/Wearable";
 import type { IntegumentLayer } from "../../platform/idea/species/BodyPlan";
 import type { Unit } from "../quantity";
@@ -295,16 +293,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
     /** The length of the day where this body stands, as a fraction — the coat's year (D7). */
     private dayFractionHere(): number | null {
-      const host = this.regHost;
-      const now = this.regNowSeconds();
-      if (now === null) return null;
-      let cursor: Stuff | null = host;
-      for (let i = 0; cursor !== null && i < 16; i++) {
-        if (MixinApi.isAtmospheric(cursor)) break;
-        cursor = MixinApi.isContainable(cursor) ? (cursor.getContainer() as Stuff | null) : null;
-      }
-      const lat = (cursor && MixinApi.isAtmospheric(cursor) ? cursor.climateSite() : DEFAULT_CLIMATE_SITE).latitudeDeg;
-      return CelestialApi.daylightSecondsFor(EARTH_LIKE, lat, now) / EARTH_LIKE.dayLengthSeconds;
+      return CelestialApi.daylightHere(this.regHost as unknown as Stuff);
     }
 
     /**
@@ -670,6 +659,9 @@ if (frozen || !self.isLivingBody()) {
         }
         if (remaining > 0) this.integrateThermalSlice(remaining);
         this.reconcileThermalCascade(elapsed);
+        // ⭐ The body's seasons ride the same reconcile (D9): a living body
+        // wakes at least hourly (D17), so phenology needs no wake of its own.
+        if (MixinApi.isVitals(self)) self.reconcilePhenology();
         this.thermalRegStamp = nowS;
         this.bankCoatTaps();
       } finally {

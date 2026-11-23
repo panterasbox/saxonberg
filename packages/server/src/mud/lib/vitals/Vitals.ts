@@ -96,6 +96,12 @@ export type BloodDrawRefusal = ActRefusal<
 import type { Dressing } from './Dressing';
 import type { OperationDescriptor } from './Operation';
 import { Postures } from '../slot/Postured';
+import { DaylengthBand } from '../time/DaylengthBand';
+import { CelestialApi } from '../../api/celestial';
+import { LIFE_STAGES } from '../../platform/idea/species/Species';
+
+/** The life stages, young to old, as a plain string list for rank reads. */
+const LIFE_STAGE_ORDER: readonly string[] = LIFE_STAGES;
 
 /**
  * Why a body will not take the operation asked of it, in the order it asks
@@ -995,6 +1001,14 @@ export interface Vitals {
    * anaesthesia, in that order.
    */
   operable(named: string | null, ops: readonly OperationDescriptor[], hand: OperatingHand): OperableAnswer;
+  /**
+   * ⭐⭐ **The body's seasons** (organism-biology D9): walk its species'
+   * `phenology` and carry each condition while its trigger holds, relieve
+   * it when it stops — the shipped `afflict` / `relieve`, no arm of its
+   * own. Called from ONE place, the thermal reconcile, after its cascade;
+   * never from a read (D17). An `event` entry is its act's to bring on.
+   */
+  reconcilePhenology(): void;
   /**
    * ⭐⭐ **How well one part still works** — the axis a wound costs you.
    *
@@ -2839,6 +2853,53 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getMissingParts(): ResolvedBodyPart[] {
       return this.getParts().filter((p) => p.missing);
+    }
+
+    /** See {@link Vitals.reconcilePhenology}. */
+    public reconcilePhenology(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const species = self.getSpecies();
+      const entries = species?.getPhenology() ?? [];
+      if (!species || entries.length === 0) return;
+      const living = self.isLivingBody();
+      let day: number | null | undefined;
+      let rising: boolean | null | undefined;
+      let core: number | undefined;
+      const variant = self.getVariant();
+      const stageRank = (s: string | null | undefined): number => (s ? LIFE_STAGE_ORDER.indexOf(s) : -1);
+      for (const { condition, trigger: t } of entries) {
+        if (t.event) continue; // its act's to bring on and off
+        const held = this.conditions.find((c) => c.kind === 'affliction' && c.templatePath === condition);
+        let holds = living;
+        if (holds && (t.daylightFrom !== undefined || t.season === 'breeding')) {
+          const band = t.season === 'breeding' ? species.getBreeding() : t;
+          if (!band || band.daylightFrom === undefined || band.daylightTo === undefined) holds = false;
+          else {
+            if (day === undefined) day = CelestialApi.daylightHere(self);
+            if (day !== null) {
+              if (t.rising !== undefined && rising === undefined) {
+                const yesterday = CelestialApi.daylightHere(self, -86_400);
+                rising = yesterday === null ? null : day > yesterday;
+              }
+              holds = new DaylengthBand({ daylightFrom: band.daylightFrom, daylightTo: band.daylightTo, ...(t.rising !== undefined ? { rising: t.rising } : {}) }).holds(day, rising ?? null);
+            }
+          }
+        }
+        if (holds && (t.coreBelowK !== undefined || t.coreAboveK !== undefined)) {
+          if (core === undefined) core = this.getVitalSign('coreTemperature').rawValue();
+          if (t.coreBelowK !== undefined && !(core < t.coreBelowK)) holds = false;
+          if (t.coreAboveK !== undefined && !(core > t.coreAboveK)) holds = false;
+        }
+        if (holds && t.sex && variant.sex && variant.sex !== t.sex) holds = false;
+        if (holds && t.stage && variant.stage && stageRank(variant.stage) < stageRank(t.stage)) holds = false;
+        if (holds && t.entire && variant.neutered) holds = false;
+        if (holds && !held) {
+          this.afflict({ kind: 'affliction', templatePath: condition, stage: 0, elapsed: 0 });
+        } else if (!holds && held) {
+          this.relieve(held);
+        }
+      }
     }
 
     /** See {@link Vitals.operable}. */

@@ -69,6 +69,12 @@ import { AccessApi } from '@saxonberg/server/mud/api/access';
 /** The register this head was drafted out of (the Herdbook's own constant). */
 const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
 
+/** Her season and his (organism-biology D9) — conditions the species' phenology carries. */
+const IN_SEASON = '/platform/idea/Condition/reproduction/in-season';
+const RUT = '/platform/idea/Condition/reproduction/rut';
+/** In milk (D9) — brought on by freshening at the draft, relieved by drying off. */
+export const LACTATING = '/platform/idea/Condition/reproduction/lactating';
+
 const SECONDS_PER_GAME_DAY = 86_400;
 
 /** What `breed` answers: the words' facts, or why not. */
@@ -376,7 +382,10 @@ export default class Livestock extends LivestockBase {
     if (here && MixinApi.isContainer(here)) {
       for (const other of here.getContents()) {
         if (other.stuffId === this.stuffId || !MixinApi.isOrganism(other)) continue;
-        if (other.isAlive() && other.getSex() === 'male' && other.getSpecies() === kind) {
+        // ⭐ …and a male standing by her is one in RUT (D9): a steer or a
+        // yearling does not serve. A species with no rut on its schedule
+        // reads any live male, as before.
+        if (other.isAlive() && other.getSex() === 'male' && other.getSpecies() === kind && this.ready(other)) {
           return null;
         }
       }
@@ -388,6 +397,18 @@ export default class Livestock extends LivestockBase {
       if (herd && herd.tally * (1 - female) >= 1) return null;
     }
     return 'no-male';
+  }
+
+  /** Does this head carry the condition at `path`? */
+  public carries(path: string): boolean {
+    return this.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === path);
+  }
+
+  /** A male of her kind standing by: in rut, if his species schedules one. */
+  private ready(male: Stuff): boolean {
+    const ruts = this.getSpecies()?.getPhenology().some((e) => e.condition === RUT) ?? false;
+    if (!ruts) return true;
+    return MixinApi.isVitals(male) && male.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === RUT);
   }
 
   /**
@@ -428,6 +449,22 @@ export default class Livestock extends LivestockBase {
       if (typeof at !== 'number' || !(tap.restDays && tap.restDays > 0)) continue;
       if (nowS - at < tap.restDays * SECONDS_PER_GAME_DAY) this.dryOff(tap.key);
     }
+  }
+
+  /**
+   * ⭐⭐ **Freshening at the draft** (organism-biology D9): a mature female
+   * whose milk runs by the ACT (her species schedules `lactating` as an
+   * `event`) is in milk when she comes out of the book — unless she is
+   * still inside her rest (`restoreDryPeriods` has dried her). The draft
+   * is the stand-in for calving, as the shipped rest already was.
+   */
+  public freshenAtDraft(): void {
+    const schedule = this.getSpecies()?.getPhenology() ?? [];
+    if (!schedule.some((e) => e.condition === LACTATING && e.trigger.event)) return;
+    if (this.getSex() === 'male' || !this.isMature() || this.carries(LACTATING)) return;
+    const milk = this.taps().filter((t) => t.activeIn === LACTATING);
+    if (milk.length === 0 || milk.every((t) => this.isDriedOff(t.key))) return;
+    this.afflict({ kind: 'affliction', templatePath: LACTATING, stage: 0, elapsed: 0 });
   }
 
   /**
@@ -500,9 +537,12 @@ export default class Livestock extends LivestockBase {
     const spec = species?.getBreeding() ?? null;
     if (!species || !spec) return { ok: false, reason: 'no-breeding' };
     if (!this.isMature()) return { ok: false, reason: 'not-mature', stage: this.getLifeStage() ?? 'youngster' };
-    const where = MixinApi.isContainable(by) ? by.getContainer() : null;
-    const daylight = where ? await CelestialApi.daylightFractionAt(where) : 0.5;
-    if (!species.breedsAtDaylight(daylight)) {
+    // ⭐⭐ Her season is a condition on HER (organism-biology D9): the
+    // species' phenology brings `in-season` on in its breeding band, and
+    // this reads it — the daylength is read here only for the words.
+    if (!this.carries(IN_SEASON)) {
+      const where = MixinApi.isContainable(by) ? by.getContainer() : null;
+      const daylight = where ? await CelestialApi.daylightFractionAt(where) : 0.5;
       return { ok: false, reason: 'out-of-season', longDays: daylight > spec.daylightTo };
     }
     if (!this.herdId) return { ok: false, reason: 'not-in-herd' };

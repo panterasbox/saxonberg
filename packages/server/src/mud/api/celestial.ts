@@ -312,6 +312,17 @@ export class CelestialApi {
   }
 
   /**
+   * ⭐ The daylength where `stuff` stands, `offsetS` game-seconds from now,
+   * as a fraction — SYNC (organism-biology D9): the climate site of the
+   * first place up its containment that has an atmosphere, the world's
+   * own celestial profile, the daylight pin honored. `null` with no world
+   * clock. A body's coat and its seasons read it inside a reconcile.
+   */
+  public static daylightHere(stuff: Stuff, offsetS = 0): number | null {
+    return logic().daylightHere(stuff, offsetS);
+  }
+
+  /**
    * ⛔ Hold every daylength read at `fraction` of the rotation (`null`
    * releases it) — the test world's daylight pin (organism-biology D16).
    * Nothing in the game moves the length of the day.

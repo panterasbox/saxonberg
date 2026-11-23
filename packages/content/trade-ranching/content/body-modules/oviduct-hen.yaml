@@ -13,4 +13,6 @@ parts:
     windowDays: 10
     yieldShape: count
     broodAfterDays: 4
-    window: {kind: photoperiod, daylightFrom: 0.45, daylightTo: 1}
+    # ⭐ In milk / in lay is the BODY's (organism-biology D9): its phenology
+    # carries the condition, and the tap runs only while it does.
+    activeIn: /platform/idea/Condition/reproduction/laying

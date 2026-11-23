@@ -930,6 +930,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     if (flesh) animal.adjustReserve('flesh', Quantity.of(condition - flesh.current.rawValue(), '%'));
     animal.reconcileProduction();
     animal.restoreDryPeriods(species, overlay?.driedOffAt, this.nowSeconds() ?? 0);
+    animal.freshenAtDraft();
     if (into && MixinApi.isContainer(into)) {
       await ContainmentApi.move(animal as unknown as Stuff & Containable, into as Stuff & Container);
     }

@@ -272,6 +272,8 @@ export interface BodyWoundReport {
 /** What `testharness daylight-pin` / `daylight-unpin` left. */
 export interface DaylightPinReport {
   readonly pin: number | null;
+  /** How many living bodies read their seasons under the new day (the fan-out). */
+  readonly bodies: number;
 }
 
 /** What `testharness standing-history` did (db-performance drive 2). */
@@ -610,7 +612,18 @@ export class TestHarnessLogic extends ApiLogic {
       throw new Error(`testharness daylight-pin: a fraction of the day that is light, 0 to 1 (got ${fraction})`);
     }
     CelestialApi.pinDaylightFraction(fraction);
-    return { pin: fraction };
+    // ⭐ A pin is a setter and fans out (organism-biology D9), the way a
+    // weather pin is applied at once: every living body brings its core
+    // current and reads its seasons under the new day — the den, the rut,
+    // the milk — with no clock advanced and nobody looking.
+    let bodies = 0;
+    for (const o of StuffApi.getAllObjects()) {
+      if (!MixinApi.isVitals(o) || !MixinApi.isOrganism(o) || !o.isLivingBody()) continue;
+      if (MixinApi.isThermalRegulation(o)) o.reconcileThermalRegulation();
+      o.reconcilePhenology();
+      bodies++;
+    }
+    return { pin: fraction, bodies };
   }
 
   private woundReport(body: Stuff & Vitals, out: InflictOutcome): BodyWoundReport {

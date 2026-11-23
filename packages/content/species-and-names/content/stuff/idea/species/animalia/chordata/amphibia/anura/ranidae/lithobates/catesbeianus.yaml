@@ -48,6 +48,11 @@ data:
   reproductiveMode: sexual
   lifespanMin: 0
   lifespanMax: 8
+  # ⭐ The winter sleep (organism-biology D9): short days and a cold core
+  # put a frog under in the pond mud until spring — a condition on its
+  # schedule, brought on by the thermal reconcile, never by a read.
+  phenology:
+    - { condition: /platform/idea/Condition/dormancy/denning, trigger: { daylightFrom: 0, daylightTo: 0.42, coreBelowK: 283 } }
   circadianBand: nocturnal
   diet: carnivore
   visionProfile:

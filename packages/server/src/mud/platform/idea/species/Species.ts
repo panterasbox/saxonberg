@@ -20,7 +20,6 @@
  * template resolves to one instance via `StuffApi.singleton(path)`.
  */
 
-import { DaylengthBand } from '../../../lib/time/DaylengthBand';
 import type { Body, BodyDelta } from '../../../lib/species/Body';
 import { type OdorTag } from '../../../lib/perception/Aroma';
 import type { PalateProfile } from '../../../lib/metabolism/Palate';
@@ -39,6 +38,7 @@ import type { NaturalAttackSpec } from '../../../lib/combat/NaturalAttack';
 import { NaturalAttack } from '../../../lib/combat/NaturalAttack';
 import type { FieldMeta } from '../../../lib/mixin';
 import type { Season } from '../../../lib/time/CelestialProfile';
+import { ConditionApi } from '../../../api/condition';
 import { SpeciesApi } from '../../../api/species';
 
 import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
@@ -431,6 +431,16 @@ export interface TapSpec {
    */
   window?: TapWindowSpec;
   /**
+   * ⭐⭐ **The condition the body must carry for this tap to run**
+   * (organism-biology D9) — `/platform/idea/Condition/reproduction/
+   * lactating` on an udder, `…/laying` on an oviduct. ONE schedule says a
+   * body is in milk: the species' phenology (or the freshening act) brings
+   * the condition on, and the tap reads it. Shut: `not-lactating` /
+   * `not-laying`. (The `photoperiod` and `event` window kinds it replaced
+   * are gone.)
+   */
+  activeIn?: string;
+  /**
    * What a take produces, and therefore **whether a vessel is needed** —
    * derived from the shape, never a second flag.
    *
@@ -487,16 +497,6 @@ export interface TapSpec {
 export type TapWindowSpec =
   /** Always open. The default when `window` is absent. */
   | { kind: 'always' }
-  /**
-   * Opened by an event and closed by one: `freshen()` opens, drying off
-   * closes. Milk's own shape — a lactation is not a season.
-   */
-  | { kind: 'event' }
-  /**
-   * Open while daylength sits inside a band, as a fraction of the
-   * rotation. A wrapping band is legal (`breedsAtDaylight`'s shape).
-   */
-  | { kind: 'photoperiod'; daylightFrom: number; daylightTo: number }
   /** The HOST answers — a hive's forage radius. `biomeWindowOpen`. */
   | { kind: 'biome' }
   /**
@@ -544,6 +544,10 @@ export type TapClosedReason =
   | 'dried-off'
   | 'brooding'
   | 'no-forage'
+  /** ⭐ The body does not carry the tap's `activeIn` condition (D9): not in milk. */
+  | 'not-lactating'
+  /** ⭐ …nor in lay. */
+  | 'not-laying'
   /**
    * ⭐ Not a season at all (dairy D12): the tap is the other sex's. Never
    * answered by `tapWindow` — `planTap` asks it first, so the host's own
@@ -560,6 +564,35 @@ export type TapClosedReason =
  * authors** — the window is stated in daylength, and the calendar
  * decides when that happens.
  */
+/**
+ * ⭐⭐ When a body carries a condition on a schedule (organism-biology D9):
+ * a conjunction of the terms it authors. A term the world does not model
+ * (no clock, no sex recorded, no age curve) reads as HOLDING — the taps'
+ * tri-state rule. `stage` is *at or past* that stage (an aged cow still
+ * milks). `season: breeding` is the species' own `breeding` band, never
+ * re-authored. `event: true` is brought on and off by an ACT (freshening,
+ * drying off), never by the reconcile.
+ */
+export interface PhenologyTrigger {
+  daylightFrom?: number;
+  daylightTo?: number;
+  rising?: boolean;
+  season?: 'breeding';
+  coreBelowK?: number;
+  coreAboveK?: number;
+  sex?: string;
+  stage?: LifeStage;
+  /** Entire (not neutered) — a steer has no rut. */
+  entire?: boolean;
+  event?: boolean;
+}
+
+/** One scheduled condition: carried while its trigger holds, relieved when it stops. */
+export interface PhenologyEntry {
+  condition: string;
+  trigger: PhenologyTrigger;
+}
+
 export interface BreedingSpec {
   /**
    * The daylength band, as a fraction of the rotation, in which this
@@ -797,6 +830,9 @@ export default class Species extends SingletonMixin(
 
   /** When and how it breeds (D26), or `null` for a species that does not. */
   protected breeding: BreedingSpec | null = null;
+
+  /** ⭐ This species' schedule of conditions (D9) — the season, the rut, the milk, the den. */
+  protected phenology: PhenologyEntry[] = [];
 
   /**
    * `'diurnal'`, `'nocturnal'`, `'crepuscular'`, `'cathemeral'`,
@@ -1085,6 +1121,7 @@ export default class Species extends SingletonMixin(
     body: { persistent: true },
     moultEveryDays: { persistent: true, authorable: true },
     breeding: { persistent: true, authorable: true },
+    phenology: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
     visionProfile: { persistent: true },
@@ -1606,22 +1643,25 @@ export default class Species extends SingletonMixin(
   }
 
   public getBreeding(): BreedingSpec | null { return this.breeding; }
+
+  /** The species' schedule of conditions (D9). */
+  public getPhenology(): readonly PhenologyEntry[] { return this.phenology; }
+  /**
+   * Name the schedule. ⭐ Async (the `setVariants` shape): every condition
+   * it names is ensured, so a schedule naming no row throws at hydration
+   * (P3) rather than going silently inert.
+   */
+  public async setPhenology(value: PhenologyEntry[] | null): Promise<void> {
+    const entries = (value ?? []).filter((e) => e && typeof e.condition === 'string' && e.trigger && typeof e.trigger === 'object');
+    await Promise.all(entries.map((e) => ConditionApi.conditions().ensure(e.condition)));
+    this.applyPhenology(entries);
+  }
+  /** Name the schedule when its condition rows are already resident (a fixture; the setter above). */
+  public applyPhenology(value: PhenologyEntry[] | null): void {
+    this.phenology = [...(value ?? [])];
+  }
   public setBreeding(value: BreedingSpec | null): void {
     this.breeding = value ?? null;
-  }
-
-  /**
-   * ⭐ Is `daylightFraction` inside this species' breeding window?
-   *
-   * ⚠ A band, not a date, and it wraps: a short-day breeder's window is
-   * `[0, 0.42]` and a long-day breeder's is `[0.55, 1]`, so the test is
-   * a plain interval — but a species authoring `from > to` means a
-   * window that crosses the solstice, and that is a real shape too.
-   */
-  public breedsAtDaylight(daylightFraction: number): boolean {
-    const b = this.breeding;
-    if (!b) return false;
-    return new DaylengthBand(b).contains(daylightFraction);
   }
 
   public getAdultMass(): number { return this.adultMass; }

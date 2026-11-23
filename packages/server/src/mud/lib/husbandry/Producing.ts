@@ -469,29 +469,25 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (state?.brooding === true) {
         return { open: false, reason: 'brooding' };
       }
+      // ⭐⭐ The body says whether it is in milk (organism-biology D9): a
+      // tap `activeIn` a condition runs only while the body carries it —
+      // one schedule, the species' phenology or the freshening act.
+      if (tap.activeIn && !this.carriesCondition(tap.activeIn)) {
+        return { open: false, reason: tap.activeIn.endsWith('/laying') ? 'not-laying' : 'not-lactating' };
+      }
 
       const spec: TapWindowSpec = tap.window ?? { kind: 'always' };
       switch (spec.kind) {
         case 'always':
-        case 'event':
-          // `event` is opened and closed by `freshen`/dry-off, both of
-          // which are answered above. Open otherwise.
           return OPEN;
         case 'biome':
           return this.biomeWindowOpen(tap)
             ? OPEN
             : { open: false, reason: 'no-forage' };
-        case 'photoperiod': {
-          const day = daylightFraction(this as unknown as Stuff);
-          if (day === null) return OPEN;
-          return inBand(day, spec.daylightFrom, spec.daylightTo)
-            ? OPEN
-            : { open: false, reason: seasonSide(day, spec.daylightFrom) };
-        }
         case 'weather': {
           const day = daylightFraction(this as unknown as Stuff);
           if (day !== null) {
-            if (!inBand(day, spec.daylightFrom, spec.daylightTo)) {
+            if (!new DaylengthBand(spec as { daylightFrom: number; daylightTo: number }).contains(day)) {
               return {
                 open: false,
                 reason: seasonSide(day, spec.daylightFrom),
@@ -534,7 +530,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             day !== null &&
             spec.daylightFrom !== undefined &&
             spec.daylightTo !== undefined &&
-            !inBand(day, spec.daylightFrom, spec.daylightTo)
+            !new DaylengthBand(spec as { daylightFrom: number; daylightTo: number }).contains(day)
           ) {
             return { open: false, reason: seasonSide(day, spec.daylightFrom) };
           }
@@ -729,6 +725,25 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       const state = this.tapState[key];
       if (!state) return;
       this.tapState = { ...this.tapState, [key]: { ...state, driedOff: true } };
+      this.endActiveIn(key);
+    }
+
+    /** Does the body carry the condition at `path` (a tap's `activeIn`)? */
+    private carriesCondition(path: string): boolean {
+      const self = this as unknown as Stuff;
+      return MixinApi.isVitals(self) && self.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === path);
+    }
+
+    /**
+     * ⭐ Drying off ends the lactation (D9): the tap's `activeIn` condition
+     * is relieved — the one write path besides the freshening at the draft.
+     */
+    private endActiveIn(key: string): void {
+      const self = this as unknown as Stuff;
+      const path = this.taps().find((t) => t.key === key)?.activeIn;
+      if (!path || !MixinApi.isVitals(self)) return;
+      const held = self.getConditions().find((c) => c.kind === 'affliction' && c.templatePath === path);
+      if (held) self.relieve(held);
     }
 
     public freshen(key: string): void {
@@ -768,6 +783,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         const days = elapsed / SECONDS_PER_GAME_DAY;
         const factor = this.productionFactor();
         const next: Record<string, TapState> = { ...this.tapState };
+        const driedNow: string[] = [];
         for (const tap of this.taps()) {
           const state = next[tap.key] ?? seedState(nowS);
           const sinceTaken =
@@ -795,6 +811,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             // costs a season, never an animal.
             if (sinceTaken > tap.windowDays) {
               next[tap.key] = { ...state, standing: 0, driedOff: true };
+              driedNow.push(tap.key);
               continue;
             }
             if (state.driedOff) {
@@ -895,6 +912,8 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         }
         this.tapState = next;
         this.productionStamp = nowS;
+        // ⭐ An untaken lactation dries off as surely as a drying-off does (D9).
+        for (const key of driedNow) this.endActiveIn(key);
       } finally {
         this._reconcilingProduction = false;
       }
@@ -1279,14 +1298,6 @@ function airPlaceOf(host: Stuff): (Stuff & Atmospheric) | null {
   return null;
 }
 
-/**
- * Is `day` inside `[from, to]`? ⚠ A WRAPPING band is legal — the
- * `breedsAtDaylight` shape — so a winter season authored `[0.9, 0.1]`
- * reads as one band rather than an empty one.
- */
-function inBand(day: number, from: number, to: number): boolean {
-  return new DaylengthBand({ daylightFrom: from, daylightTo: to }).contains(day);
-}
 
 /**
  * Which side of a closed season we are on, in the only terms a player

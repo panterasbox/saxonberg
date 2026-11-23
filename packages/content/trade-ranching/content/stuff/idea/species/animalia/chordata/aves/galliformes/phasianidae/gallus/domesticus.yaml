@@ -61,6 +61,12 @@ data:
   # off as they shorten. The third distinct photoperiod response in the
   # roster, and between the three of them the signal is unmistakable.
   breeding: { daylightFrom: 0.5, daylightTo: 1, gestationDays: 3, litter: 6 }
+  phenology:
+  # ⭐ A hen lays on the long days (organism-biology D9) — the band the
+  # oviduct's photoperiod window used to hold — and is in season on her
+  # species' breeding band.
+    - { condition: /platform/idea/Condition/reproduction/laying, trigger: { daylightFrom: 0.45, daylightTo: 1, sex: female } }
+    - { condition: /platform/idea/Condition/reproduction/in-season, trigger: { season: breeding, sex: female, stage: adult } }
   longDescription: >-
     A brown hen with a comb flopped over one eye, moving in the short
     decisive bursts of something that has never once thought anything

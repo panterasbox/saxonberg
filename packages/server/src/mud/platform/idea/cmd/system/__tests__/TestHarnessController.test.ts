@@ -259,7 +259,7 @@ describe('testharness controllers', () => {
     });
 
     it('`daylight-pin <fraction>` / `daylight-unpin` hold and release the day', async () => {
-      const pin = vi.spyOn(TestHarnessApi, 'pinDaylight').mockImplementation(async (f) => ({ pin: f }));
+      const pin = vi.spyOn(TestHarnessApi, 'pinDaylight').mockImplementation(async (f) => ({ pin: f, bodies: 0 }));
       await run({ subcommand: 'daylight-pin', amount: '0.35' });
       expect(pin).toHaveBeenCalledWith(0.35);
       await run({ subcommand: 'daylight-unpin' });
