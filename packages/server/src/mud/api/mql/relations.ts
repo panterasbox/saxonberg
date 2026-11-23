@@ -117,19 +117,27 @@ const BUILTINS: readonly BuiltinRelation[] = [
       left.isPlace() ? candidatesForFlat(left.landedStructuresNow() as unknown as Stuff[], ctx.commandGiver) : [],
   },
   {
-    name: 'all',
-    meaning: 'everyone on any of your lists who is in the world',
+    // ⭐ Everyone you KEEP — every contact list and every managed group you
+    // belong to (owner, naming-overhaul review: `~contacts` promised the union of
+    // every built-in; it never was). Yourself excluded.
+    name: 'contacts',
+    meaning: 'everyone on your contact lists or in your groups who is in the world',
     whose: 'self',
     members: (left, ctx) => {
       if (!MixinApi.isContacts(left)) return [];
       const out: Stuff[] = [];
-      const seen = new Set<string>();
-      for (const e of left.allContacts()) {
-        const s = e.kind === 'avatar' ? avatarOfPlayer(e.playerId) : (StuffApi.findByIdentityPath(e.templatePath)[0] ?? null);
+      const seen = new Set<string>([left.stuffId]);
+      const keep = (s: Stuff | null): void => {
         if (s !== null && !seen.has(s.stuffId)) {
           seen.add(s.stuffId);
           out.push(s);
         }
+      };
+      for (const e of left.allContacts()) {
+        keep(e.kind === 'avatar' ? avatarOfPlayer(e.playerId) : (StuffApi.findByIdentityPath(e.templatePath)[0] ?? null));
+      }
+      for (const g of left.residentGroups()) {
+        for (const id of g.memberIds) keep(id.startsWith('/') ? (StuffApi.findByIdentityPath(id)[0] ?? null) : avatarOfPlayer(id));
       }
       return candidatesForFlat(out, ctx.commandGiver);
     },

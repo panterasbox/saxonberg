@@ -396,7 +396,7 @@ let relationTie: RelationTie | null = null;
  */
 const WORLD_REFUSED =
   "'world' is not available here — anchor the query on a relation " +
-  '(~reachable, ~here, ~person, ~inventory, ~all) or use a /path glob.';
+  '(~reachable, ~here, ~person, ~inventory, ~contacts) or use a /path glob.';
 
 /**
  * The whole registry, for a caller entitled to it — and a record of what

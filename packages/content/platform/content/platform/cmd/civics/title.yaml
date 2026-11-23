@@ -194,7 +194,7 @@ subcommands:
       - name: recipient
         type: object
         required: false
-        scope: ["~peers", "~all"]
+        scope: ["~peers", "~contacts"]
         prepositions: [to]
         requires: class:Agent
       # ⭐ Shares bought: whose shares — a holder, online, who is
@@ -203,7 +203,7 @@ subcommands:
         prepositionRequired: true
         type: object
         required: false
-        scope: ["~peers", "~all"]
+        scope: ["~peers", "~contacts"]
         prepositions: [from]
         requires: class:Agent
       - name: price

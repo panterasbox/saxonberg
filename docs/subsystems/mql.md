@@ -410,7 +410,7 @@ one answer each (no relation has two faces):
 | `~reachable` | self | carried, standing here, and the place's surface — `PerceptionApi.reach`, on-person first |
 | `~person` | self | your body, your apps, installed gear (+ apps), carried items (+ apps) |
 | `~horizon` | self | what you can see from here that is not here |
-| `~all` | self | every loaded person on any of your contact lists (not groups, not the party — they are named sets of their own) |
+| `~contacts` | self | every loaded person you keep — on any of your contact lists or in any managed group you belong to (not the party, which is `~party`). Was `~all` until naming-overhaul review: the name promised every built-in at once |
 | `~it` · `~them` · `~him` · `~her` · `~last` | self | the pronoun-memory slots (§ Pronoun memory) |
 
 `self` answers only when the left side is the asker — asked of anyone
@@ -1078,7 +1078,7 @@ after `perceived`. MQL is universal; perceiving is the act's job.
 There are **no permission tiers** (content-packs wave 3 deleted them
 along with the `core` group and the "author tier" — see
 [access.md](./access.md)). Every seed, relation, scope, namespace filter and
-predicate resolves for every giver: a guest may type `~all:flower`,
+predicate resolves for every giver: a guest may type `~contacts:flower`,
 `~reachable:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
 answer — the same answer anyone gets, which the verb then shows through
 `PerceptionApi.perceived`, exactly as `look` is fogged. ⚠ **The one thing
@@ -1199,8 +1199,8 @@ by parser keywords. Adding a predicate is a one-line append.
 The `online` seed, scope and predicate are gone, and with them the
 `online-provider` / `online-wire` seam that kept `ConnectionApi` off the
 eager import chain. A view that scoped to `online` says what it meant:
-`dm` → `["~here", "~all"]`; the money and invite verbs → `["~reachable",
-"~all"]`; the add/invite/office verbs → `["~peers", "~all"]`; the speech
+`dm` → `["~here", "~contacts"]`; the money and invite verbs → `["~reachable",
+"~contacts"]`; the add/invite/office verbs → `["~peers", "~contacts"]`; the speech
 verbs → `["~peers"]`. A stranger elsewhere is reached by `@<id>` (`who` and
 the profile card print it, withheld under a disguise that masks
 identity). Engine code that needs the connected players asks

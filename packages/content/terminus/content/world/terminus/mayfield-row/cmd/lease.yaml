@@ -19,5 +19,5 @@ args:
   - name: player
     type: object
     required: true
-    scope: ["~peers", "~all"]
+    scope: ["~peers", "~contacts"]
     requires: class:Agent

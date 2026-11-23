@@ -49,7 +49,7 @@ me                        you — the root every query starts from
 ~friends                  the people on your friends list who are in
                           the world (any list you keep is a relation)
 ~friends:iffy             Iffy, if she is on that list and in the world
-~all                      everyone on any of your lists who is in the world
+~contacts                 everyone on your lists or in your groups who is in the world
 @abc123                   the player whose id is abc123, wherever they are
 me:~                      list every relation you can ask for
 ~                         your home (`/home/<you>`); `~/workroom` under it
@@ -210,7 +210,7 @@ yours with the same name can never hide one:
 | `~reachable` | **what you could lay hands on now**: everything you carry, nearest first (a thing in a shut bag or the pack on your back is in the list, and the verb says why a hand cannot get at it), then the place — its ways and their doors, the buildings on its landing — and what stands here, one level into open things, never inside a shut thing there. Your own gear first; you last (a noun names someone else before you) |
 | `~horizon` | what you can see from where you stand that is NOT in your room — structures and craft in view. `~horizon:tower` drills to one; `query ~horizon` lists it. See [expanse.md § Perception at range](./subsystems/expanse.md) |
 | `~buildings` | (of a place) the buildings whose door is at hand from it — `~here:~buildings` |
-| `~all` | everyone on any of your contact lists who is in the world |
+| `~contacts` | everyone on your contact lists or in your groups who is in the world |
 | `~it` · `~him` · `~her` · `~them` · `~last` | what you last named (see Pronouns) |
 
 Most built-ins answer only about YOU: `@abc123:~peers` is empty. `~here`,
@@ -232,7 +232,7 @@ Most built-ins answer only about YOU: `@abc123:~peers` is empty. `~here`,
 me:~                      every relation you can ask for, each with a line
                           saying what it means (`query me:~` prints it)
 ~friends:iffy             Iffy, on your friends list, wherever she is
-dm ~all:iffy hi           the same, through any list you keep
+dm ~contacts:iffy hi      the same, through anyone you keep
 book:~                    what the charter book can be asked for
 ```
 
@@ -287,7 +287,7 @@ can type must not.
 | things you can act on | `~reachable` |
 | things on your person | `~person` · `~inventory` |
 | the room, and what is in it | `~here` · `~peers` |
-| people you keep | `~friends`, `~party`, `~<group>`, `~all` |
+| people you keep | `~friends`, `~party`, `~<group>`, `~contacts` |
 | one player anywhere | `@<their id>` |
 | everything under one branch of content | a `/path` glob — `/world/terminus/**` |
 | one thing you know the identity of | `/its/path` or `#id` |
@@ -510,7 +510,7 @@ predicates are reserved by name match against the published list.
 A relation step **flat-maps**: `x:~name` asks each thing in the set to
 its left for its set called `name`, and unions the answers (each thing
 once). A built-in that answers only about you (`~peers`, `~reachable`,
-`~person`, `~all`, …) gives nothing for anybody else; `~here`,
+`~person`, `~contacts`, …) gives nothing for anybody else; `~here`,
 `~inventory` and `~buildings` answer for anything:
 
 ```

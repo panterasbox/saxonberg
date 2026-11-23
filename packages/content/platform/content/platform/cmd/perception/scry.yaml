@@ -20,7 +20,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["~peers", "~all", "/stuff/**", "/platform/**"]
+    scope: ["~peers", "~contacts", "/stuff/**", "/platform/**"]
     requires: any
   # ⭐⭐ WHICH INSTRUMENT, declared rather than hunted for — and PLURAL,
   # which is the whole reason this could move off the controller.

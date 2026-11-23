@@ -68,7 +68,7 @@ describe('MQL relations (B1)', () => {
     const r = resolveWithQuantity('me:~', ctx);
     expect(r.matches).toEqual([]);
     const names = (r.relations ?? []).map((x) => x.name);
-    for (const n of ['here', 'inventory', 'peers', 'reachable', 'person', 'horizon', 'all', 'it', 'last']) {
+    for (const n of ['here', 'inventory', 'peers', 'reachable', 'person', 'horizon', 'contacts', 'it', 'last']) {
       expect(names).toContain(n);
     }
     expect((r.relations ?? []).every((x) => x.meaning.length > 0)).toBe(true);
@@ -88,13 +88,13 @@ describe('MQL relations (B1)', () => {
     expect(resolve('@nobody', ctx)).toEqual([]);
   });
 
-  it('~all is every loaded person on any of your lists', () => {
+  it('~contacts is every loaded person on any of your lists', () => {
     const me = makeStuffAtPath(() => new Keeper(), '/platform/agent/Avatar/me1');
     const iffy = makeStuffAtPath(() => new Keeper(), '/platform/agent/Avatar/iffy1');
     makeStuffAtPath(() => new Keeper(), '/platform/agent/Avatar/stranger');
     (me as unknown as { addContact(e: unknown): boolean }).addContact({ kind: 'avatar', playerId: 'iffy1', label: 'friends' });
     (me as unknown as { addContact(e: unknown): boolean }).addContact({ kind: 'avatar', playerId: 'gone', label: 'friends' });
-    const out = resolve('~all', { commandGiver: me as never, scope: '' });
+    const out = resolve('~contacts', { commandGiver: me as never, scope: '' });
     expect(ids(out)).toEqual([iffy.stuffId]);
   });
 

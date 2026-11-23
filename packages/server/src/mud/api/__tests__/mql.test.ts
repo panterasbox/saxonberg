@@ -91,7 +91,7 @@ describe('MQL resolver — direct seeds', () => {
       // unaffordable.
       expect(() => resolve('world', ctx)).toThrow(/not available here/);
       expect(() => resolve('world', ctx)).toThrow(
-        /~reachable, ~here, ~person, ~inventory, ~all/,
+        /~reachable, ~here, ~person, ~inventory, ~contacts/,
       );
       expect(() => resolve('world', ctx)).toThrow(/path glob/);
     });

@@ -34,7 +34,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: ["~peers", "~all"]
+        scope: ["~peers", "~contacts"]
         requires: class:Agent
         onExcess: prompt
       - name: label
@@ -55,11 +55,11 @@ subcommands:
         note: Take Iffy off your friends list
     args:
       # ⭐ A person you keep (naming overhaul D-B12): bound through your
-      # lists (`~all`), and the list it came by is read off the binding.
+      # lists (`~contacts`), and the list it came by is read off the binding.
       - name: target
         type: object
         required: true
-        scope: ["~all"]
+        scope: ["~contacts"]
         requires: class:Agent
       - name: label
         type: string

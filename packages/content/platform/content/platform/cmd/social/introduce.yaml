@@ -17,7 +17,7 @@ options:
   to:
     short: t
     type: object
-    scope: ["~peers", "~all"]
+    scope: ["~peers", "~contacts"]
     field: audience
     description: "Address the introduction to a particular person (the whole room still hears, and everyone learns the name)."
     requires: class:Agent

@@ -88,6 +88,14 @@ describe('holders answer relations (B2)', () => {
     expect(resolve('~bookclub', { commandGiver: me, scope: '' })).toEqual([]);
   });
 
+  it('~contacts is everyone you keep — your lists and your groups — never yourself', async () => {
+    vi.spyOn(Group, 'find').mockResolvedValue([
+      Object.assign(new Group(), { _id: 'g1', name: 'bookclub', memberIds: ['me1', 'iffy1'] }),
+    ] as never);
+    await me.refreshGroups();
+    expect(ids(resolve('~contacts', { commandGiver: me, scope: '' }))).toEqual([iffy.stuffId]);
+  });
+
   it('a list and a group of one name are a tie, each match saying its set', async () => {
     me.addContact({ kind: 'avatar', playerId: 'iffy1', label: 'bookclub', source: 'self', addedAt: 0 });
     vi.spyOn(Group, 'find').mockResolvedValue([

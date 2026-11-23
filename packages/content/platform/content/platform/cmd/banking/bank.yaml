@@ -92,5 +92,5 @@ subcommands:
         type: object
         required: true
         prepositions: [to]
-        scope: ["~reachable", "~all"]
+        scope: ["~reachable", "~contacts"]
         requires: any
