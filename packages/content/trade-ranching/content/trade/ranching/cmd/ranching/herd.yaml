@@ -1,0 +1,40 @@
+# herd — the register's own transactions (organism-biology D8). A
+# transaction with an institution's book is a subcommand of its noun
+# (`title transfer`, `shelf consign`): the record IS the herd. Moving the
+# animals themselves is `move`; giving a head back to its own book is
+# `return`.
+verbs: [herd]
+category: ranching
+description: "A herd's register — enter a head into another book"
+help: |
+  A herd is a book as much as it is animals. `herd enter <animal> in <herd>`
+  writes a head you have drafted out of one register into another of the
+  same kind of stock — a bull calf cut for the plough goes from the calf
+  register into the ox register, and is counted there from then on.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+subcommands:
+  enter:
+    description: Write a drafted head into another herd's book
+    controller: /trade/ranching/idea/cmd/ranching/HerdEnterController
+    help: |
+      `herd enter steer in oxen` takes a head you have drafted and writes it
+      into the named book: it leaves the tally it came from and joins this
+      one, keeping everything it is — its sex, its temper, its condition,
+      its age, what it has lost. Both books must be yours to keep, and they
+      must keep the same kind of animal.
+    args:
+    - name: animal
+      type: object
+      required: true
+      scope: [here, peers]
+      requires: [HandlingMixin]
+    - name: herd
+      type: string
+      required: true
+      greedy: true
+      prepositions: [in, into]
+    examples:
+    - cmd: herd enter steer in oxen
+      note: File the steer in the ox register

@@ -61,6 +61,7 @@ import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type HerdRegistry from '../idea/HerdRegistry';
 import { DEFAULT_FEMALE_FRACTION } from '../idea/HerdRegistry';
+import type { HeadOverlay, RefileAnswer } from '../idea/HerdRegistry';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { SlaughterRefusal } from '@saxonberg/server/mud/lib/species/Organism';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
@@ -350,6 +351,7 @@ export default class Livestock extends LivestockBase {
       const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
       await registry.cull(by, herdId, index, {
         note: 'slaughtered',
+        ...this.bookTraits(),
         ...(flesh !== undefined ? { flesh } : {}),
         handling,
       });
@@ -429,6 +431,20 @@ export default class Livestock extends LivestockBase {
   }
 
   /**
+   * ⭐ What the book must carry beyond the seed (organism-biology D8): the
+   * parts lost and the sex, so a steer is still a steer at the next draft
+   * and a refiled head is not redrawn by its new index.
+   */
+  public bookTraits(): HeadOverlay {
+    const sex = this.getSex();
+    const lost = this.getLostParts();
+    return {
+      ...(sex === 'male' || sex === 'female' ? { sex } : {}),
+      ...(lost.length > 0 ? { lostParts: lost } : {}),
+    };
+  }
+
+  /**
    * ⭐⭐ `return` (controller-liquidity W10): **turn this head back into
    * the book.** What it became — its flesh and when that was true (cover
    * build D10), its handling, its age, and when each expiring tap went dry
@@ -463,6 +479,7 @@ export default class Livestock extends LivestockBase {
       handling: Math.round(this.getHandling() * 100) / 100,
       ageDays: Math.round(this.getAgeDays() * 10) / 10,
       ...(driedOffAt ? { driedOffAt } : {}),
+      ...this.bookTraits(),
     });
     if (!ok) return { ok: false, reason: 'not-in-book' };
     const read = this.stockmanRead();
@@ -501,6 +518,28 @@ export default class Livestock extends LivestockBase {
   }
 
   /** Bind this object to the record it was drafted out of. */
+  /**
+   * ⭐ `herd enter <animal> in <herd>` (organism-biology D8): this drafted
+   * head is written into another register by `by`, and answers to its new
+   * book from then on. The register decides (`HerdRegistry.refile`); the
+   * head carries what the new book must not redraw — its sex, its handling
+   * and flesh, its birth, what it has lost.
+   */
+  public async enterHerd(toId: string, by: Stuff | null): Promise<RefileAnswer> {
+    if (!this.herdId || this.headIndex < 0) return { ok: false, reason: '/trade/ranching/reasons/not-drafted' };
+    const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+    const flesh = this.getReserve('flesh')?.current.rawValue();
+    const bornAt = this.getBornAt();
+    const answer = await registry.refile(this.herdId, this.headIndex, toId, by, {
+      ...this.bookTraits(),
+      handling: Math.round(this.getHandling() * 100) / 100,
+      ...(flesh !== undefined ? { flesh: Math.round(flesh * 10) / 10 } : {}),
+      ...(bornAt > 0 ? { bornAt } : {}),
+    });
+    if (answer.ok) this.bindToHerd(toId, answer.index);
+    return answer;
+  }
+
   public bindToHerd(herdId: string, index: number): void {
     this.herdId = herdId;
     this.headIndex = index;
