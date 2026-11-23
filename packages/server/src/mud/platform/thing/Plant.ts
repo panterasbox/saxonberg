@@ -1,18 +1,13 @@
 /**
  * Plant — a cultivated growing thing: the `Slottable` occupant of a pot's
- * one plant slot, and **its own persistence host**.
+ * one plant slot.
  *
- * **Growing ⇒ cultivated ⇒ durable.** A `Plant` owns its own persistence
- * record, keyed per instance, and carries its own location — so it keeps
- * growing wherever you take it, and nothing about its durability is wired
- * to dorm code. Decorative greenery in a lobby is *scenery* — an ordinary
- * `Thing` with a description — and needs none of this. A cultivated plant
- * left loose in a **transient** room is abandoned with it, the same rule
- * chattel.md already applies to owned goods.
- *
- * `PersistableMixin` composes **outermost** (the host rule): its
- * `cleanupOnDestruct` must fire before any inner evacuation, and its
- * `applyProps` override must wrap `Staged`.
+ * ⭐ **A plant is a THING, kept by its container** (persistence-model D3).
+ * It has no record of its own: its growth nests in the record of the bed,
+ * pot or kept place it stands in. A plant in a kept bed, a kept pot or on
+ * a kept tract is as you left it; the same row in a plain bed in a staged
+ * park comes back as authored. (Before, every cultivated plant carried its
+ * own record keyed per instance.)
  *
  * Everything about *how* it grows lives in `GrowingMixin`; this class is
  * only the three host seams the mixin declares plus the bed relationship:
@@ -44,14 +39,12 @@ import type { SampleAnswer, SampleRequest } from "../../lib/instrument/Sampleabl
 import { Quantity } from "../../lib/quantity";
 import { GrowingMixin, type GrowthStage, type Growing } from "../../lib/husbandry/Growing";
 import { SlottableMixin } from "../../lib/slot/Slottable";
-import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { LabelledMixin, type LabelAnswer, type LabelRequest } from "../../lib/description/Labelled";
 import { SampledMixin } from "../../lib/instrument/Sampled";
 import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { PersistableApi } from "../../api/persistable";
-import { SecurityApi } from "../../api/security";
 import type { Stuff } from "../../lib/stuff/Stuff";
 import type { Container } from "../../lib/spatial/Container";
 import type { Containable } from "../../lib/spatial/Containable";
@@ -92,15 +85,12 @@ const ROOT_ZONE_NITROGEN_EQUILIBRATION_DAYS = 10;
  */
 const ROOT_ZONE_FULL_WITHIN = 0.01;
 
-// PersistableMixin OUTERMOST — the documented host rule. ⭐ Labelled and
-// Sampled (field population D6/D7): every plant may carry a player's
-// name and a provenance stamp — a pot lily as much as a stem pulled from
-// a field. Both are inert fields.
-const PlantBase = PersistableMixin(
-  SampledMixin(
-    LabelledMixin(
-      SlottableMixin( GrowingMixin( ReservedMixin(OrganismMixin(ThermalMixin(Good))), ), ),
-    ),
+// ⭐ Labelled and Sampled (field population D6/D7): every plant may carry
+// a player's name and a provenance stamp — a pot lily as much as a stem
+// pulled from a field. Both are inert fields.
+const PlantBase = SampledMixin(
+  LabelledMixin(
+    SlottableMixin(GrowingMixin(ReservedMixin(OrganismMixin(ThermalMixin(Good))))),
   ),
 );
 
@@ -687,29 +677,6 @@ export default class Plant extends PlantBase {
     void from;
     void to;
     this.noteEnvironmentChanged();
-  }
-
-  /**
-   * Every cultivated plant is one of many instances of its template, so
-   * its record is keyed **per instance** — and the key is minted lazily,
-   * on first demand, never in `onCreate`: a keyed restore stamps the
-   * real key *after* register, so minting at register would race it.
-   *
-   * The override sits on the getter because the capture path is the only
-   * caller that asks — both directly (`capture` resolving the record
-   * owner) and through an ancestor's `{ref, key}` entry. A mint writes
-   * transient state only; no record exists until a capture writes one.
-   */
-  public override getPersistenceKey(): string | null {
-    return this.ensureCultivationKey();
-  }
-
-  /** Mint-if-absent, then return, this plant's per-instance record key. */
-  private ensureCultivationKey(): string {
-    if (this._persistenceKey) return this._persistenceKey;
-    const key = SecurityApi.uuid();
-    this.setPersistenceKey(key);
-    return key;
   }
 
   /**

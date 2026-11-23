@@ -98,6 +98,18 @@ export class PersistableApi {
   }
 
   /**
+   * ⭐ Let `rider` ride `host`'s record under `name` (persistence-model D4):
+   * a thing with no record of its own — a holding's building, a building
+   * on its first kept room — whose state nests in the kept host's record.
+   * If the host's record already restored a state for `name`, the rider
+   * takes it now. A capture of the rider's host (or `captureHostOf(rider)`)
+   * writes it. The host must keep a record.
+   */
+  static adoptRider(host: Stuff, name: string, rider: Stuff): Promise<void> {
+    return logic().adoptRider(host, name, rider);
+  }
+
+  /**
    * ⭐ Refuse every write of the records scoped `scope` (`on`), or stop
    * refusing — the staged twin of a save the database turned down
    * (persistence-model D10).

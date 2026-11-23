@@ -13,6 +13,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import Standard from '../thing/Standard';
 import Panel from '../thing/Panel';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import Material from '@saxonberg/server/mud/lib/material/Material';
@@ -246,8 +247,8 @@ describe('Panel — ⭐ the materialize round-trip (the restart claim at unit sc
   it('a cut stool comes back cut; the others come back ripe', async () => {
     const panel = makeStuffAtPath(newPanel, PANEL_PATH);
     const stools = seatSix(panel);
-    // Every stool is its own keyed host; touching the key mints it.
-    for (const s of stools) expect(s.getPersistenceKey()).toBeTruthy();
+    // ⭐ A stool has no record of its own (persistence-model D3): it rides
+    // the panel's.
     expect(stools.every((s) => s.isHarvestable())).toBe(true);
 
     // The cut: what `harvest` does to a polycarp — settle the cycle, then
@@ -285,8 +286,8 @@ class Planter extends PersonaMixin(NamedMixin(Idea)) {
 
 const OAK = '/stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur';
 
-function newStandard(opts: { stool?: boolean } = {}): Plant {
-  const p = new Plant();
+function newStandard(opts: { stool?: boolean } = {}): Standard {
+  const p = new Standard();
   p.setShortDescription(opts.stool ? 'hazel stool' : 'oak sapling');
   p.setMaterial(tissue());
   p.setMass(Quantity.of(2, 'kg'));
@@ -339,14 +340,14 @@ describe('Panel — the planting deed', () => {
     const plantings = wood.getPlantings();
     expect(plantings).toHaveLength(1);
     expect(plantings[0]).toMatchObject({
-      plantKey: tree.getPersistenceKey(),
+      plantKey: tree.getPlantingKey(),
       name: 'an oak sapling',
       planter: planter.getIdentityPath(),
       planterName: 'Tam Ferrier',
       gameDay: Math.floor(WorldClockApi.getNow().rawValue() / 86_400),
     });
     expect(deeds).toHaveLength(1);
-    expect(deeds[0]!.key).toBe(`forestry:planting:${tree.getPersistenceKey()}`);
+    expect(deeds[0]!.key).toBe(`forestry:planting:${tree.getPlantingKey()}`);
     expect(deeds[0]!.fields.tags).toEqual(['forestry', 'planting']);
     // …and the room's reading names them.
     expect(wood.standPhrase()).toMatch(/An oak sapling, planted by Tam Ferrier on the/);

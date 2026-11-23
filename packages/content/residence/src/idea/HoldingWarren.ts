@@ -64,7 +64,6 @@ import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
-import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import HoldingBuilding from './HoldingBuilding';
 import type StructureBase from '@saxonberg/server/mud/lib/structure/Structure';
@@ -346,21 +345,6 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
     return this.buildingOf(member);
   }
 
-  /**
-   * ⭐ The records this holding owns: its rooms' (the floorplan's) and
-   * its buildings' — each persists under its own key, so one capture of
-   * the holding writes them all and a revert marks them all.
-   *
-   * @hook
-   */
-  public override dependentPersistables(): (Stuff & Persistable)[] {
-    const out = super.dependentPersistables();
-    for (const house of this._houses.values()) {
-      if (!house.isDestroyed()) out.push(house as unknown as Stuff & Persistable);
-    }
-    return out;
-  }
-
   /** The buildings come down with the rooms. */
   public override teardown(): void {
     super.teardown();
@@ -374,14 +358,9 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
     }
   }
 
-  /** End-lease revert: the buildings' records go with the rooms'. */
+  /** End-lease revert: the buildings ride the holding's record, which goes with it. */
   public override async revert(): Promise<void> {
     const extent = this.holdingKey();
-    if (extent) {
-      for (const name of this._houses.keys()) {
-        if (name !== '') await PersistableApi.deleteAllFor(this.houseKeyOf(extent, name));
-      }
-    }
     const plan = await this.loadPlan();
     await super.revert();
     // ⭐ The lease is over: the copy is gone for good, its nodes with it
@@ -389,9 +368,9 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
     if (extent && plan !== null) await this.destroyCopy(plan.extent, extent);
   }
 
-  /** The record key a building persists under: the main one the holding's own extent. */
-  private houseKeyOf(extent: string, name: string): string {
-    return name === '' ? extent : `${extent}@${name}`;
+  /** The rider name a building takes on the holding's record: the main one `main`. */
+  private riderNameOf(name: string): string {
+    return name === '' ? 'building' : `building@${name}`;
   }
 
   /** Where a building is registered with the location graph: the main one at the holding's extent. */
@@ -429,7 +408,9 @@ export default class HoldingWarren extends ZoneMintingMixin(FloorplanWarren) {
       house.setEntrance(null);
       house.setRooms(rooms, i === 0);
       house.setHolding(this);
-      await PersistableApi.restoreOrSeed(house, this.houseKeyOf(extent, name));
+      // ⭐ A building rides its holding's record (persistence-model D4): it
+      // has no record of its own.
+      await PersistableApi.adoptRider(this, this.riderNameOf(name), house);
       for (const at of this.attachPointsOf(house)) NavigationApi.attachStructure(at, house);
       this._houses.set(name, house);
     }

@@ -87,6 +87,13 @@ export interface Adornable {
   hasFixture(f: Stuff & Adornment): boolean;
   /** The slot name `f` occupies on this host, or null when unattached. */
   slotOfFixture(f: Stuff & Adornment): string | null;
+  /**
+   * ⭐ Give a fixture minted AFTER this host's record restored what its slot
+   * held in that record (persistence-model D3): a tract's runtime-marked
+   * field is minted when the tract has restored, and it rides the tract's
+   * record. A no-op when the slot held nothing.
+   */
+  adoptRestoredState(f: Stuff & Adornment): Promise<void>;
   getFixtures(): readonly (Stuff & Adornment)[];
   /**
    * ⭐ **The one read for "what is the ground here".** Returns the first
@@ -201,12 +208,20 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
     ): Promise<void> {
       const fixtures = (slice as FixturesSlice).fixtures;
       if (!fixtures) return;
-      const adornable = host as Stuff & Adornable;
+      const adornable = host as Stuff & Adornable & { _pendingFixtureState: Map<string, (f: Stuff & Adornment) => Promise<void>> };
+      const standing = new Set<string>();
       for (const f of adornable.getFixtures()) {
         const slot = adornable.slotOfFixture(f);
+        if (slot) standing.add(slot);
         const fields = slot ? fixtures[slot] : undefined;
         if (!fields || MixinApi.isPersistable(f)) continue;
         await ctx.applyFields(f, fields);
+      }
+      // ⭐ A slot whose fixture the host mints later (a tract's marked field)
+      // keeps its restore until that fixture is adopted (persistence-model D3).
+      for (const [slot, fields] of Object.entries(fixtures)) {
+        if (standing.has(slot) || slot.startsWith('way:')) continue;
+        adornable._pendingFixtureState.set(slot, (f) => ctx.applyFields(f, fields));
       }
       for (const [key, boundary] of waysOf(host)) {
         const fields = fixtures[key];
@@ -329,6 +344,22 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
         if (v === f) return k;
       }
       return null;
+    }
+
+    /**
+     * Runtime-only: the restore of a slot whose fixture was not standing
+     * when the record was read — kept until that fixture is minted. Not in
+     * `fieldMeta`.
+     */
+    public _pendingFixtureState: Map<string, (f: Stuff & Adornment) => Promise<void>> = new Map();
+
+    /** See {@link Adornable.adoptRestoredState}. */
+    async adoptRestoredState(f: Stuff & Adornment): Promise<void> {
+      const slot = this.slotOfFixture(f);
+      const apply = slot ? this._pendingFixtureState.get(slot) : undefined;
+      if (!slot || !apply) return;
+      this._pendingFixtureState.delete(slot);
+      await apply(f);
     }
 
     getFixtures(): readonly (Stuff & Adornment)[] {

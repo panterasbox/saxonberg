@@ -465,9 +465,86 @@ function nearestPersistableHost(stuff: Stuff): Stuff | null {
     // ⭐ A fixture is not contained — it is HUNG on its host (a room's
     // floor, a sconce). Its host is the next hop (cleanliness D31b: an
     // act that soils the floor captures the room that keeps it).
-    cur = held ?? (MixinApi.isAdornment(cur) ? cur.getAdornedTo() : null);
+    // ⭐ A rider (persistence-model D4 — a building) is kept by the host it
+    // rides: that host is the next hop.
+    cur = held ?? (MixinApi.isAdornment(cur) ? cur.getAdornedTo() : null) ?? riderHost.get(cur) ?? null;
   }
   return null;
+}
+
+/* ─────────────────────────── riders (persistence-model D4) ──────────── */
+
+/**
+ * ⭐ The state slot a host's riders take in its record. A RIDER is a thing
+ * with no record of its own that a kept host carries by name — a holding's
+ * buildings, a building on its first kept room. Not a mixin slice: it is
+ * stripped before the host's own slices restore.
+ */
+const RIDERS_KEY = "@riders";
+
+/** Runtime: each host's riders by name. */
+const ridersOf = new WeakMap<Stuff, Map<string, Stuff>>();
+/** Runtime: the host each rider rides. */
+const riderHost = new WeakMap<Stuff, Stuff>();
+/** Runtime: a restored rider state whose rider was not standing yet, with the principal it restores as. */
+const pendingRiders = new WeakMap<Stuff, Map<string, { state: Record<string, MixinSlice>; principal: Stuff }>>();
+
+/** `state` with the host's live riders' states added under {@link RIDERS_KEY}. */
+function withRiders(host: Stuff, state: Record<string, MixinSlice>): Record<string, MixinSlice> {
+  const riders = ridersOf.get(host);
+  if (!riders || riders.size === 0) return state;
+  const out: Record<string, Record<string, MixinSlice>> = {};
+  for (const [name, rider] of riders) {
+    if (rider.isDestroyed()) continue;
+    out[name] = captureState(rider);
+  }
+  return { ...state, [RIDERS_KEY]: { fields: {}, riders: out } as unknown as MixinSlice };
+}
+
+/** Split a record's state into the host's own slices and its riders'. */
+function splitRiders(
+  state: Record<string, MixinSlice>,
+): { own: Record<string, MixinSlice>; riders: Record<string, Record<string, MixinSlice>> } {
+  const { [RIDERS_KEY]: slot, ...own } = state;
+  const riders = ((slot as unknown as { riders?: Record<string, Record<string, MixinSlice>> } | undefined)?.riders) ?? {};
+  return { own, riders };
+}
+
+/** Restore each rider standing on `host`; keep the rest for {@link adoptRiderImpl}. */
+async function restoreRiders(
+  host: Stuff,
+  riders: Record<string, Record<string, MixinSlice>>,
+  principal: Stuff,
+): Promise<void> {
+  const live = ridersOf.get(host);
+  for (const [name, state] of Object.entries(riders)) {
+    const rider = live?.get(name);
+    if (rider && !rider.isDestroyed()) {
+      await restoreState(rider, state, principal);
+      continue;
+    }
+    let pending = pendingRiders.get(host);
+    if (!pending) pendingRiders.set(host, (pending = new Map()));
+    pending.set(name, { state, principal });
+  }
+}
+
+/** See {@link PersistableApi.adoptRider}. */
+async function adoptRiderImpl(host: Stuff, name: string, rider: Stuff): Promise<void> {
+  if (!MixinApi.isPersistable(host)) {
+    throw new TypeError(`PersistableLogic.adoptRider: '${host.getTemplatePath()}' keeps no record to ride`);
+  }
+  let riders = ridersOf.get(host);
+  if (!riders) ridersOf.set(host, (riders = new Map()));
+  riders.set(name, rider);
+  riderHost.set(rider, host);
+  const pending = pendingRiders.get(host)?.get(name);
+  if (!pending) return;
+  pendingRiders.get(host)!.delete(name);
+  await ExecutionContextApi.run(rider, pending.principal, "persistenceRestore", undefined, async () => {
+    ExecutionContextApi.tagActingAuthor(pending.principal);
+    await restoreState(rider, pending.state, pending.principal);
+  });
 }
 
 /**
@@ -815,8 +892,8 @@ function captureItem(item: Stuff, placement: ContentPlacement): ContentEntry {
     // OMITTED (not null) in that case — keyless records stay
     // byte-identical to the pre-key shape.
     // Read the key BEFORE the provenance flag: a host that mints its key
-    // lazily (a cultivated Plant) does so in `getPersistenceKey`, and that
-    // mint is what makes it explicit.
+    // lazily does so in `getPersistenceKey`, and that mint is what makes it
+    // explicit.
     const stashed = item.getPersistenceKey();
     const key =
       stashed !== null && item.isPersistenceKeyExplicit()
@@ -1309,6 +1386,13 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
  * destructed during the awaits).
  */
 async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCapture | null> {
+  // ⭐ Only a host keeps a record (persistence-model D1): a thing is kept by
+  // its container, and a capture of one is a caller that has not caught up.
+  if (!MixinApi.isPersistable(host)) {
+    throw new TypeError(
+      `PersistableLogic.capture: '${host.getTemplatePath() ?? host.stuffId}' keeps no record of its own — capture its host (captureHostOf)`,
+    );
+  }
   if (optedOutOfPersistence(host)) return null; // guest / opted-out host
   const scope = host.getIdentityPath();
   if (!scope) {
@@ -1334,7 +1418,7 @@ async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCaptur
   // awaits, and a host destructed meanwhile (a warren put to sleep) is
   // inert — but what it owned must still be written.
   const dependents = MixinApi.isPersistable(host) ? host.dependentPersistables() : [];
-  let state = captureState(host);
+  let state = withRiders(host, captureState(host));
   let place = capturePlacement(host);
   // The skip rule's other half: goods this host does not persist because
   // someone else holds title go to their owners' estates, now, before the
@@ -1365,7 +1449,7 @@ async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCaptur
         if (!good.isDestroyed() && MixinApi.isChattel(good)) await good.followCustody();
       }
       if (!host.isDestroyed()) {
-        state = captureState(host);
+        state = withRiders(host, captureState(host));
         place = capturePlacement(host);
       }
       skippedOwnedGoods.clear();
@@ -1690,7 +1774,9 @@ async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void
     undefined,
     async () => {
       ExecutionContextApi.tagActingAuthor(principal);
-      await restoreState(host, record.getState(), principal);
+      const { own, riders } = splitRiders(record.getState());
+      await restoreState(host, own, principal);
+      await restoreRiders(host, riders, principal);
       // A Containable top-level host re-places itself at its captured
       // location (overriding the clone-time template spawn).
       await restorePlacement(host, record.getPlace());
@@ -1857,6 +1943,12 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async captureAtShutdown(): Promise<ShutdownCaptureReport> {
     return captureAtShutdownImpl();
+  }
+
+  /** See {@link PersistableApi.adoptRider}. */
+  @CallSecurity(PersistableApiCallers)
+  public async adoptRider(host: Stuff, name: string, rider: Stuff): Promise<void> {
+    return adoptRiderImpl(host, name, rider);
   }
 
   /** See {@link PersistableApi.refuseSavesOf}. */
