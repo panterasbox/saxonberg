@@ -241,6 +241,19 @@ function walk) and the **sever** (`severPart`, the one writer of
 severed limb is an absence, not yet an object; transplants, prosthetics);
 MQL anatomy queries.
 
+## ⭐⭐ The body's state, part by part (organism-biology, MR !652)
+
+See [body.md](./body.md) for the anatomy. What VitalsMixin carries of it:
+the **delta** (`bodyPartDeltas` — a part `missing`, `lostAtAgeDays`,
+`sealed`; the sever and the moult's regrowth), the **form**
+(`formStage` and `reconcileForm` — a body that changes plans keeps its
+state), the **seasons** (`reconcilePhenology`, called from the thermal
+reconcile), **`operable`** (the one place `operate` is decided —
+[harm.md](./harm.md)), and **`capacityAsStands`** — a capacity's band with
+no reconcile, what a sight gate reads. The capacities now include
+`filtration` (two kidneys) and the senses `vision`, `hearing`, `smell`,
+served by their organs.
+
 ## Conditions — the three-kind type system
 
 A condition is a discrete affliction on the body. All kinds present

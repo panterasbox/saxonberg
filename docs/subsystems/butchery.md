@@ -22,6 +22,20 @@ and a sow differed only in kilograms-per-unit. Meanwhile
 joints are, **which cut is which**, and how to open a carcass without
 opening its gut"* — two of those three had shipped.
 
+## ⭐⭐ What comes off derives from the body (organism-biology D5, W5)
+
+There is no yield list. A body MODULE says what each of its materials
+comes off as (`comesOffAs: [{ tissue, cut }]` — a loin as a loin and a
+chop, a skin as a hide, a feather coat as feathers and down), and
+`Species.dressOut` sizes each line from the body: the claimed materials'
+share of the parts still on it × the live weight × the finish (condition)
+— or no finish for what is the size the animal IS (the hide, the bones).
+A `Cut` row's `portionKg` says how big one piece is, so a whale comes off
+in strips and slabs, not one ten-tonne lot; anything else is one lot. The
+pelt records the holes it was killed through (`holed · slashed · burned ·
+nicked`, each with its site). A severed part (a foreleg on the ground) is
+a body of its own subtree and butchers like one. See [body.md](./body.md).
+
 ## The share model
 
 A `TissueComposition` on a `BodyPlan` states the **share of the whole

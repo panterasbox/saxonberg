@@ -414,6 +414,14 @@ deferred until a sub-clade lands and earns the inheritance machinery.
 
 ## BodyPlan — anatomy
 
+> ⭐⭐ **Superseded in shape by [body.md](./body.md)** (organism-biology,
+> MR !652): a plan is a list of body-module DOCUMENTS expanded into a
+> `Body`; `bodyParts`, `sensoryPorts`, `breathing`, `respires` and
+> `lungVolumeL` are no longer authored on the plan — parts carry their
+> tissues, senses and breathing. Read body.md first; what follows is the
+> history of the authored-plan era and the parts of it still true
+> (`slots`, `thermalStrategy`, `voice`, `defaultLocomotionMode`).
+
 `BodyPlan` is a singleton `Idea` declaring the physical anatomy:
 
 - `bodyParts: BodyPart[]` — typed anatomical part descriptors (the
