@@ -9,22 +9,18 @@
  * thing placed `on` a host lives in the room, not in the host; a stack
  * takes things IN. Named for what it IS (a stockpile), never an adjective.
  *
- * Persistence is the `MarketStalls` shape: one fixture per row, keyless,
- * its own `holder_snapshots` record restored at hydration; the ledger is
- * the record, the faces ride with it as contents, and the authored
- * `initialLines` are laid down only when no record exists.
+ * Persistence: a kept container, so a stack standing as a prop is keyed by
+ * its part name and restores its own record where it is staged
+ * (persistence-model D2); the ledger is the record, the faces ride with it
+ * as contents, and the authored `initialLines` are laid down only when no
+ * record exists.
  */
 
 import Holder from '../../lib/stuff/Holder';
 import { StoreMixin } from '../../lib/storage/Store';
 import { PersistableMixin } from '../../lib/persistence/Persistable';
-import { PersistableApi } from '../../api/persistable';
 import { MixinApi } from '../../api/mixin';
 import type { FieldMeta } from '../../lib/mixin';
-import type {
-  HydrationSource,
-  HydrateOutcome,
-} from '../../lib/persistence/PersistenceSlice';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { StoreLine } from '../../lib/storage/StoreLine';
 
@@ -34,28 +30,16 @@ export default class Stockpile extends StockpileBase {
   static fieldMeta: FieldMeta = {};
 
   /**
-   * What the world remembered about this stack. `required: false`: an
-   * unreachable store is a recorded skip (every test run), and the stack
-   * still stands — it seeds itself from its row.
+   * ⭐ A fresh stack lays its authored seed down (persistence-model D2): a
+   * stack standing as a prop is keyed by its part name and restored where
+   * the staging walk mints it, so "no record" is the establishing
+   * context's answer and this is its seed step — once (`seedFromRow`
+   * refuses a store that has lines).
    */
-  static hydrationSource: HydrationSource = {
-    name: 'holder_snapshots',
-    required: false,
-  };
-
-  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    try {
-      await PersistableApi.materialize(host);
-      // ⭐ No record restored a ledger → this is a fresh house: lay the
-      // authored seed down (once — `seedFromRow` refuses a store that has
-      // lines). Here and not in `onCreate`, because whether the world
-      // remembered the house is the hydration source's question.
-      if (MixinApi.isStore(host)) await host.seedFromRow();
-      return { status: 'hydrated' };
-    } catch (err) {
-      // ⚠ Never throw: a throw unregisters the half-built stack.
-      return { status: 'unreachable', reason: String(err) };
-    }
+  override async seedBornWith(): Promise<void> {
+    await super.seedBornWith();
+    const self = this as unknown as Stuff;
+    if (MixinApi.isStore(self)) await self.seedFromRow();
   }
 
   /**

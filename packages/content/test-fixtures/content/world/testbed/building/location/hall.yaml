@@ -1,7 +1,8 @@
 # The hall — the testbed's lit venue (test-world-lifecycle D2). The venue
 # Business operates here; the host is on its roster around the clock. A
 # shelf of three like notebooks, a staff tablet and three chairs. The double
-# doors to the plaza stand open. ⚠ TEST-ONLY.
+# doors to the plaza stand open. A bank of lockers keeps what is checked
+# into it while the hall itself restages (persistence-model W1). ⚠ TEST-ONLY.
 class: /platform/location/Hall
 data:
   shortDescription: testbed hall
@@ -22,5 +23,6 @@ data:
     - /world/testbed/thing/tablet
     - { template: /world/testbed/thing/chair, count: 3 }
     - /world/testbed/thing/lamp
+    - { template: /world/testbed/thing/lockers, as: lockers }
   cast:
     - /world/testbed/agent/host

@@ -413,8 +413,8 @@ describe('persistence — the ledger round-trips through materialize', () => {
   });
 });
 
-describe('⭐ the seed is laid down by the hydration source (a fresh house)', () => {
-  it('a stack with no record seeds its row; a second hydration does not seed again', async () => {
+describe('⭐ the seed is laid down by the establishing context (a fresh house, persistence-model D2)', () => {
+  it('a stack with no record seeds its row; a second seed does not seed again', async () => {
     const room = shed(48);
     const store = stack(room);
     // ⚠ Through the APPLIER, as a row's clone runs it (the drive, run 1:
@@ -431,10 +431,9 @@ describe('⭐ the seed is laid down by the hydration source (a fresh house)', ()
       },
       { mode: 'mint' },
     );
-    const out = await Stockpile.hydrateFromSource(store);
-    expect(out.status).toBe('hydrated');
+    await store.seedBornWith();
     expect(iceKg(store)).toBeCloseTo(20_000, 0);
-    await Stockpile.hydrateFromSource(store);
+    await store.seedBornWith();
     expect(iceKg(store)).toBeCloseTo(20_000, 0);
   });
 });

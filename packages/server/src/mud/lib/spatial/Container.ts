@@ -156,6 +156,13 @@ const TAPE_REASONS = new Set(['too-big-for-mouth', 'too-big-inside', 'no-room', 
  * about; absence is treated as "no opinion."
  */
 export interface Container {
+  /**
+   * ⭐ Is what stands in this container KEPT (persistence-model D1)? True
+   * when this container's class composes `PersistableMixin` and it has an
+   * established record; otherwise its container's answer; a place with
+   * neither is not kept. A body overrides (`Creature`).
+   */
+  isKept(): boolean;
   hasContainable(item: Stuff): boolean;
   addContainable(item: Stuff & Containable): void;
   removeContainable(item: Stuff & Containable): boolean;
@@ -705,6 +712,20 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       }
       return left;
+    }
+
+    /**
+     * ⭐ See {@link Container.isKept} (persistence-model D1). No field: the
+     * class says it, and the chain carries it — a chest in a kept room is
+     * kept, a chest in a plain room is not.
+     */
+    public isKept(): boolean {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isPersistable(self) && self.shouldPersist() && self.capturesAtShutdown()) {
+        return true;
+      }
+      const up = MixinApi.isContainable(self) ? self.getContainer() : null;
+      return up !== null && MixinApi.isContainer(up) ? up.isKept() : false;
     }
 
     /**

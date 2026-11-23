@@ -39,7 +39,7 @@ export type HoldRefusal = ActRefusal<HoldRefusalReason>;
 /** A good checked in: the holding and the claim ticket handed back. */
 export interface CheckedIn {
   ok: true;
-  facts: { holding: HeldGood; ticket: Stuff };
+  facts: { holding: HeldGood; ticket: Stuff | null };
 }
 
 
@@ -95,11 +95,14 @@ export interface HeldGoodsShelf {
    * ⭐ Check `item` in for `by`: what the fixture accepts, the owner-stamp
    * established (reclaim authorizes on it), custody moved here, the
    * holding recorded, and a claim ticket handed to `by`. Every refusal
-   * before any write.
+   * before any write. `{ ticket: false }` holds the good with no ticket —
+   * the holder is not standing there to take one (a landlord boxing a
+   * former tenant's goods, persistence-model D11).
    */
   checkIn(
     item: Stuff & Containable & Chattel,
     by: Stuff & Container,
+    opts?: { ticket?: boolean },
   ): Promise<HoldRefusal | CheckedIn>;
 }
 
@@ -197,6 +200,7 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
     public async checkIn(
       item: Stuff & Containable & Chattel,
       by: Stuff & Container,
+      opts: { ticket?: boolean } = {},
     ): Promise<HoldRefusal | CheckedIn> {
       const refusal = this.accepts(item);
       if (refusal) return refusal;
@@ -209,6 +213,9 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
       // The diegetic claim: a carried ticket stamped with this fixture.
       // The AUTHORITY to reclaim is the owner-stamp, not the ticket — so a
       // lost ticket never traps the good (it's flavor, not the key).
+      // ⭐ No ticket when the holder is not standing there to take one — a
+      // landlord boxing a former tenant's goods (persistence-model D11).
+      if (opts.ticket === false) return { ok: true, facts: { holding, ticket: null } };
       const ticket = await StuffApi.clone<ClaimTicket>("/platform/thing/Ticket");
       ticket.setClaim(self.getTemplatePath() ?? "", this.countHeld(consignorKey));
       // The good is already in custody: to you, else set down where you stand.

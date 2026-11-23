@@ -4,26 +4,27 @@
 # be reclaimed through the view at all — `rack reclaim` binds the rack.
 verbs: [rack]
 category: retail
-description: "A house's check rack — check / reclaim"
+description: "A rack or locker that holds your things — check / reclaim"
 help: |
-  Some houses do not allow arms inside; they keep a check rack at the
-  door. `rack check <weapon>` hands it over for a ticket, and `rack
-  reclaim <weapon>` takes it back. It stays yours — no one can buy it off
-  the rack.
+  A rack or a locker holds things for you, and keeps them. `rack check
+  <thing>` hands it over for a ticket, and `rack reclaim <thing>` takes
+  it back. It stays yours — no one can buy it off the rack. Some houses do
+  not allow arms inside and keep a check rack at the door that takes only
+  weapons; when a lease ends, the landlord boxes what you left in the
+  house's store, and you reclaim it there the same way.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 subcommands:
   check:
-    description: Check a weapon at a house's check rack
+    description: Hand something to a rack or locker to hold
     controller: /platform/idea/cmd/retail/RackCheckController
     help: |
-      Hand a weapon to the house's check rack — `rack check knife`. Custody passes
-      to the house and you get a claim ticket, but the weapon stays YOURS: no
+      Hand something to a rack or locker — `rack check knife`. Custody passes
+      to its keeper and you get a claim ticket, but the thing stays YOURS: no
       one can buy it off the rack, and you take it back any time with
-      `rack reclaim`. Only weapons can be checked (a shield is armor, not a
-      weapon), and the rack has to be here — you'll find one at the door of a
-      house that doesn't allow arms inside.
+      `rack reclaim`. A house's check rack at the door takes only weapons (a
+      shield is armor, not a weapon); a locker takes anything that fits.
     validators:
     - /lib/command/validators/requiresEmbodied
     args:
@@ -47,11 +48,12 @@ subcommands:
       requires:
       - HeldGoodsMixin
   reclaim:
-    description: Take back a weapon you checked
+    description: Take back something you checked
     controller: /platform/idea/cmd/retail/RackReclaimController
     help: |
-      Take back a weapon you checked at the rack — `rack reclaim knife`.
-      It was yours the whole time: the house only held it. Where more than
+      Take back something you checked — `rack reclaim knife` — or what a
+      landlord boxed for you when your lease ended. It was yours the whole
+      time: the keeper only held it. Where more than
       one rack is in reach, say which: `rack reclaim knife from the second
       rack`.
     validators:
