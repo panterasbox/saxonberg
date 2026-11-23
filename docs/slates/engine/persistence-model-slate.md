@@ -36,6 +36,30 @@ marshallers). This one is what the WORLD keeps.
 
 ---
 
+## ⭐⭐⭐ 0. Plan-review rulings (owner, 2026-11-23) — read first
+
+These supersede anything below that disagrees.
+
+- **The four kinds:**
+  - **things** are kept by their container;
+  - **history** is kept by a ledger (aquifer draws, gate openings, conduit
+    logs, a business's books); this moves in THIS build;
+  - **bodies** keep themselves (a player, a kept animal, a ship);
+  - **what the world derives** is never kept (ice, sward).
+- **Only containers twin.** Kept vs staged is the container's CLASS, never a
+  `keeps:` field on everything. The owner: *"if everything composes it then
+  what exactly is getting taught to players."* Plants, wells, wellheads and a
+  sold building's condition lose their own records and ride their container.
+- **Unloading stays off; the staged lifecycle is cut** to the
+  [staging slate](../platform/staging-slate.md). That covers policies,
+  restage on unload, the multi-place stage, prevent and staff clearing
+  strays. A staged place restages at reboot. The part NAME survives only as
+  the key a kept locker or shelf in a plain room uses to find its record.
+- **Out of the narrative is null; no content means "nowhere".** Every
+  `Offstage` row is axed. An agent acts for itself, and somewhere it should
+  be is content: the lounge regulars spend off shift in Dave's Bar, and the
+  ice company's hands go to their shed.
+
 ## 1. The player's question
 
 > *If I walk away, what will be here when I come back?*
