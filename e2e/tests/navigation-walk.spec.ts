@@ -1,0 +1,312 @@
+import { test, expect } from '@playwright/test';
+import type { Page, Locator } from '@playwright/test';
+import { openWorldAs, reenterWorld, runCommand, tipText } from './helpers';
+
+/**
+ * ⭐⭐ **The navigation card's browser walk** — what a person sees
+ * (requirements § The drive; the knowledge behind it is the wire drive,
+ * `packages/wire/tests/navigation.dirty.wire.test.ts`).
+ *
+ * Every step is `instant`. A real Chromium against the real client. Every
+ * assertion names a mark by test id and a state by attribute
+ * (`data-tier`, `data-state`, `data-shape`), never "the map is visible".
+ * Tooltips are read by FOCUS (`tipText`): the card column moves, and a
+ * hover races it.
+ *
+ * ⚠ The Delve is pitch black past its mouth: the walker clones the general
+ * store's torch (a seat over Terminus, the row's title) — a staged prop;
+ * every assertion is about what the player's own acts drew.
+ */
+
+const TREELINE = '/world/newbie-wilds/crossroads/treeline';
+const BANK = '/world/terminus/wharfside/bank';
+const YARD = '/world/newbie-wilds/steading/yard';
+const SEEP = '/world/terminus/rejection/location/seep-hollow';
+const GALLERY = '/world/terminus/rejection/hush/gallery';
+const DECK = '/world/terminus/hesper/deck';
+const TORCH = '/world/terminus/general-store/thing/torch';
+
+const card = (page: Page): Locator => page.getByTestId('nav-card');
+const places = (page: Page): Locator => page.getByTestId('nav-map').getByTestId('nav-place');
+
+async function openCard(page: Page): Promise<void> {
+  await runCommand(page, 'map');
+  await expect(card(page)).toBeVisible({ timeout: 30_000 });
+}
+
+/** Open a section the card may have folded to fit. */
+async function openSection(page: Page, name: string): Promise<Locator> {
+  const sec = page.getByTestId(`nav-section-${name}`);
+  await expect(sec).toBeVisible({ timeout: 30_000 });
+  if ((await sec.getAttribute('data-open')) !== 'true') {
+    await page.getByTestId(`nav-section-${name}-toggle`).click();
+  }
+  await expect(sec).toHaveAttribute('data-open', 'true');
+  return sec;
+}
+
+/** Where you stand, by the map's coordinates — shown while the grid is on. */
+async function coords(page: Page): Promise<string> {
+  const grid = page.getByTestId('nav-map-grid');
+  if ((await grid.getAttribute('aria-pressed')) !== 'true') await grid.click();
+  return (await page.getByTestId('nav-coords').innerText()).replace(/\s+/g, ' ').trim();
+}
+
+/** Wait until the map's coordinates match. */
+async function expectCoords(page: Page, re: RegExp): Promise<void> {
+  await expect.poll(() => coords(page).catch(() => ''), { timeout: 30_000 }).toMatch(re);
+}
+
+test.describe('navigation card — the zone map, the ways, the sections', () => {
+  // A click on a covered or moving mark must FAIL and name its step, not
+  // wait out the test's whole budget.
+  test.use({ actionTimeout: 20_000 });
+
+  test('1–10 · the Delve: drawn from your own walk, the map is how you move', async ({ browser }) => {
+    test.setTimeout(600_000);
+    const { page, close } = await openWorldAs(browser, 'navcard', {
+      startLocation: TREELINE,
+      committees: ['/world/terminus', '/world/newbie-wilds'],
+      contextOptions: { viewport: { width: 2048, height: 1100 } },
+    });
+    try {
+      await runCommand(page, `clone ${TORCH}`);
+      await runCommand(page, 'light me:i:torch');
+      await openCard(page);
+
+      // 1 · into the Delve: the vestibule is a walked place.
+      await runCommand(page, 'north');
+      await expect(places(page).first()).toHaveAttribute('data-tier', 'walked', { timeout: 30_000 });
+      await expect(page.getByTestId('nav-here')).toHaveCount(1);
+
+      // 2 · a look: the ways out are openings — the frontier marks them.
+      await runCommand(page, 'look');
+      await expect(page.getByTestId('nav-frontier').first()).toBeVisible({ timeout: 30_000 });
+      await expect(page.locator('[data-testid="nav-edge"][data-shape="opening"][data-dir="north"]')).toHaveCount(1);
+
+      // 3 · the room north of you that you have not been in is how you move:
+      // its dashed outline (drawn over the opening, the same way) is `go north`.
+      const before = await coords(page);
+      await page.locator('[data-testid="nav-frontier"][data-dir="north"]').click();
+      await expect.poll(() => coords(page), { timeout: 30_000 }).not.toBe(before);
+      await expect(places(page)).toHaveCount(2, { timeout: 30_000 });
+      // Back is now a link between two walked places.
+      await expect(page.locator('[data-testid="nav-edge"][data-shape="link"]').first()).toBeVisible();
+
+      // 5 · on into corridor-2: the pit (its trap, or a search and a climb
+      // on a world where it has sprung) — and the level control appears.
+      await runCommand(page, 'north');
+      await expectCoords(page, /y 2 /);
+      if (!(await coords(page)).includes('level -1')) {
+        // The pit has sprung (a kept world). Search finds the way down; with
+        // nothing to climb by it is not for you as you stand, and its
+        // tooltip says why — then the walker is staged into the pit.
+        await runCommand(page, 'search');
+        const down = page.getByTestId('nav-exit-down');
+        await expect(down).toHaveAttribute('data-state', 'refuses', { timeout: 60_000 });
+        expect(await tipText(page, down)).toMatch(/climb/);
+        await runCommand(page, 'goto /world/newbie-wilds/delve/pit-below');
+      }
+      await expectCoords(page, /level -1/);
+      await expect(page.getByTestId('nav-levels')).toBeVisible();
+      await expect(page.getByTestId('nav-level-0')).toBeVisible();
+      await expect(page.getByTestId('nav-level--1')).toHaveAttribute('data-yours', 'true');
+
+      // 8 · a place further off: a click draws the route; nobody moves.
+      await page.getByTestId('nav-level-0').click();
+      await page.getByTestId('nav-map-fit').click();
+      const here = await coords(page);
+      // The room's own box: a place's name sits beside it inside the same
+      // mark, so the mark's center can fall between the two.
+      const vestibule = places(page).first().locator('rect').first();
+      await vestibule.click();
+      await expect(page.getByTestId('nav-route-leg').first()).toBeVisible({ timeout: 30_000 });
+      expect(await coords(page)).toBe(here);
+      await page.getByTestId('nav-me').click();
+
+      // 7 · up, back to corridor-1, and search: the hidden way is found by searching.
+      await runCommand(page, 'up');
+      await runCommand(page, 'south');
+      await expectCoords(page, /y 1 /);
+      await runCommand(page, 'search');
+      await expect(page.locator('[data-testid="nav-edge"][data-dir="northeast"][data-found="searched"]')).toHaveCount(1, { timeout: 60_000 });
+
+      // 10 · every way says where it leads: its tooltip (the preview strip
+      // was cut in review — the tooltip and the status bar already say it).
+      const south = page.getByTestId('nav-exit-south');
+      // (Read by focus — the tooltip first: a second focus fires nothing.)
+      expect(await tipText(page, south)).toMatch(/south/);
+      // A mark has a tooltip with how you know it.
+      expect(await tipText(page, places(page).first())).toMatch(/walked/);
+
+      // 9 · the ground line: who keeps it; the place section: whether your
+      // map holds it (how you know it is the map mark's tooltip, above).
+      await expect(page.getByTestId('nav-jurisdiction')).toBeVisible();
+      await openSection(page, 'place');
+      await expect(page.getByTestId('nav-place-known')).toContainText(/on your map/);
+
+      // 21 · the status bar's outdoors.
+      await expect(page.getByTestId('status-bar')).toBeVisible();
+    } finally {
+      await close();
+    }
+  });
+
+  test('11–12 · a locked door listed by its name, its menu; a way not for you as you stand', async ({ browser }) => {
+    test.setTimeout(240_000);
+    const { page, close } = await openWorldAs(browser, 'navdoor', {
+      startLocation: BANK,
+      contextOptions: { viewport: { width: 2048, height: 1100 } },
+    });
+    try {
+      await openCard(page);
+      // 11 · the bank's pump-house door: a named way, locked, with its door's menu.
+      const pump = page.getByTestId('nav-exit-pumphouse');
+      await expect(pump).toHaveAttribute('data-state', 'locked', { timeout: 30_000 });
+      await expect(pump).toHaveAttribute('data-boundary', 'true');
+      await pump.click({ button: 'right' });
+      await expect(page.getByTestId('radial-overlay')).toBeVisible({ timeout: 15_000 });
+      // The menu asks the server what a door affords ("reading…") — seconds,
+      // more under a parallel walk.
+      await expect(page.locator('[data-verb="unlock"]')).toHaveCount(1, { timeout: 45_000 });
+      await page.keyboard.press('Escape');
+
+      // 21 · the status bar's outdoors; 24 · the crumbs are your own.
+      await expect(page.getByTestId('status-outdoors')).toBeVisible({ timeout: 30_000 });
+      const crumbs = page.getByTestId('nav-crumb');
+      await expect(crumbs.filter({ hasText: 'Terminus City' })).toHaveCount(1, { timeout: 30_000 });
+      const said = await tipText(page, crumbs.filter({ hasText: 'Terminus City' }));
+      expect(said).toMatch(/visitor|resident/);
+    } finally {
+      await close();
+    }
+
+    // 12 · the steading's low door: not for you as you stand — trying says why.
+    const yard = await openWorldAs(browser, 'navlow', {
+      startLocation: YARD,
+      contextOptions: { viewport: { width: 2048, height: 1100 } },
+    });
+    try {
+      await openCard(yard.page);
+      const east = yard.page.getByTestId('nav-exit-east');
+      await expect(east).toHaveAttribute('data-state', /refuses|mode/, { timeout: 30_000 });
+      expect(await tipText(yard.page, east)).toMatch(/stoop|low|crawl/i);
+    } finally {
+      await yard.close();
+    }
+  });
+
+  test('14, 22, 23 · a track at whole zone; the Hesper aboard; the Hush has no map yet', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const { page, close } = await openWorldAs(browser, 'navtrack', {
+      startLocation: SEEP,
+      // The torch, as in the Delve: Rejection is open sky, so at night a
+      // look writes nothing (Light) — the step owns its light, not the clock.
+      committees: ['/world/terminus'],
+      contextOptions: { viewport: { width: 2048, height: 1100 } },
+    });
+    try {
+      await runCommand(page, `clone ${TORCH}`);
+      await runCommand(page, 'light me:i:torch');
+      await openCard(page);
+      await runCommand(page, 'look');
+      // 14 · walk a track, there and back, and its two ends are a long
+      // dashed link. (Both ways: walking writes a place whatever the light,
+      // a look only when you can see — and at night the seep is only dim.)
+      await runCommand(page, 'northeast');
+      await runCommand(page, 'southwest');
+      // "Show everything" frames what you know at the moment you press it,
+      // and a command's result lands after `runCommand` returns — so press
+      // it again until the walk's far end is in the frame, as a person would.
+      await expect(async () => {
+        await page.getByTestId('nav-map-fit').click();
+        await expect(page.locator('[data-testid="nav-edge"][data-shape="track"]').first()).toBeVisible({ timeout: 3_000 });
+      }).toPass({ timeout: 60_000 });
+    } finally {
+      await close();
+    }
+
+    const deck = await openWorldAs(browser, 'navdeck', { startLocation: DECK });
+    try {
+      await openCard(deck.page);
+      // 22 · aboard: the structure is her.
+      await expect(deck.page.getByTestId('nav-section-structure-summary')).toContainText(/Hesper/i, { timeout: 30_000 });
+    } finally {
+      await deck.close();
+    }
+
+    const hush = await openWorldAs(browser, 'navhush', { startLocation: GALLERY });
+    try {
+      await openCard(hush.page);
+      // 23 · a space that is not a grid: no map for it yet, said plainly.
+      await expect(hush.page.getByTestId('nav-no-map')).toBeVisible({ timeout: 30_000 });
+    } finally {
+      await hush.close();
+    }
+  });
+
+  test('17, 19, 25 · two players two maps; fold, fill, remember; 22 rem at 2048 px', async ({ browser }) => {
+    test.setTimeout(300_000);
+    const { page, context, close, handle } = await openWorldAs(browser, 'navfold', {
+      startLocation: BANK,
+      contextOptions: { viewport: { width: 2048, height: 1100 } },
+    });
+    try {
+      await openCard(page);
+      // 25 · the panel is 22 rem; at 2048 px (2560 at 125%) two card columns remain.
+      const width = await page.getByTestId('mode-panel').evaluate((el) => el.getBoundingClientRect().width);
+      expect(Math.round(width / 16)).toBe(22);
+
+      // 19 · fill: with the height there, the card opens sections itself …
+      await expect(page.locator('[data-testid^="nav-section-"][data-open="true"]').first()).toBeVisible({ timeout: 30_000 });
+      // … and folds the last it opened when the window shrinks.
+      const openTall = await page.locator('[data-testid^="nav-section-"][data-open="true"]').count();
+      await page.setViewportSize({ width: 2048, height: 560 });
+      await expect.poll(() => page.locator('[data-testid^="nav-section-"][data-open="true"]').count(), { timeout: 30_000 }).toBeLessThan(openTall);
+      await page.setViewportSize({ width: 2048, height: 1100 });
+
+      // A section set by hand is remembered across a reload.
+      // Let the card settle (it re-fills after the resize) before pressing:
+      // a click at a position read mid-relayout lands on something else.
+      let last = -1;
+      await expect
+        .poll(async () => {
+          const n = await page.locator('[data-testid^="nav-section-"][data-open="true"]').count();
+          const settled = n === last;
+          last = n;
+          return settled;
+        }, { timeout: 30_000, intervals: [1_000] })
+        .toBe(true);
+      const you = page.getByTestId('nav-section-you');
+      const was = await you.getAttribute('data-open');
+      await page.getByTestId('nav-section-you-toggle').focus();
+      await page.keyboard.press('Enter');
+      const now = was === 'true' ? 'false' : 'true';
+      await expect(you).toHaveAttribute('data-open', now);
+      await expect(you).toHaveAttribute('data-set', 'true');
+      // The write rides the socket; a reload in the same instant closes it
+      // before the server has the change (a person does not reload that fast).
+      await page.waitForTimeout(2_000);
+      await page.reload();
+      await reenterWorld(page);
+      await openCard(page);
+      await expect(page.getByTestId('nav-section-you')).toHaveAttribute('data-open', now, { timeout: 30_000 });
+      void context;
+      void handle;
+    } finally {
+      await close();
+    }
+
+    // 17 · another player who has never been here holds none of it.
+    const other = await openWorldAs(browser, 'navother', {
+      startLocation: TREELINE,
+      contextOptions: { viewport: { width: 2048, height: 1100 } },
+    });
+    try {
+      await openCard(other.page);
+      await expect(other.page.getByTestId('nav-crumb').filter({ hasText: 'Terminus City' })).toHaveCount(0);
+    } finally {
+      await other.close();
+    }
+  });
+});

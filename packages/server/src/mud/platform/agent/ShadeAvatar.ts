@@ -75,6 +75,19 @@ export default class ShadeAvatar extends IncorporealMixin(Avatar) {
     return false;
   }
 
+  /**
+   * ⭐ A shade reads and keeps its PERSON's map (navigation card sweep).
+   * `Avatar.keepsMaps` asks `shouldPersist()`, which a shade answers
+   * `false` because its BODY saves nothing — but a map is not the body's:
+   * it is filed under the identity (`mapOwnerKey()`), which a shade carries
+   * unchanged. Without this a dead player's map went blank until they were
+   * re-embodied (found by the navigation drive: a walker the Delve's dart
+   * bled out across a restart came back with an empty copy).
+   */
+  public override keepsMaps(): boolean {
+    return this.getIdentityPath() !== null && this.mapOwnerKey() !== '';
+  }
+
   /** Nothing to save, so no periodic-save backstop. */
   public override startAutoSave(): void {
     // no-op

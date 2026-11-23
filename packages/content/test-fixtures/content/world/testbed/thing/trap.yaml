@@ -1,0 +1,21 @@
+# The passage trap — a pressure-plate blade on the way through
+# (test-world-lifecycle D2; the commons pressure blade is the exemplar). It
+# trips, it does not kill. A drive re-arms it with the trap's own setter
+# before use. ⚠ TEST-ONLY.
+class: /platform/thing/Trap
+data:
+  shortDescription: pressure-plate sweep blade
+  keywords: [blade, pressure-plate, sweep, trap]
+  register: indefinite
+  longDescription: |
+    A proud flag wired to a blade housed in the wall: tread the flag and the blade sweeps out low on a short arc at ankle height.
+  concealment: subtle
+  concealmentHint: a single flag sits proud before a coin-thin slot in the wall
+  trigger: traversal
+  traverseConsequence: trip
+  delivery:
+    channel: edge
+    energy: 2
+    siteSelector: [body.leg.left.foot, body.leg.right.foot]
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 5

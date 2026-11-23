@@ -6,7 +6,7 @@ import { openWorldAs, runCommand, tipText } from './helpers';
  * ⭐⭐ **The boundary build's live walk** — the half the wire drive cannot see
  * (review question B3).
  *
- * The wire drive (`packages/wire/tests/boundary.dirty.wire.test.ts`) asserts
+ * The wire drive (`packages/wire/tests/boundary.wire.test.ts`) asserts
  * the envelope and the prose. This is a real Chromium against the real
  * client, so it sees what a PERSON sees of one door with two sides: the
  * navigator's arm for a locked way says so and a window's arm is not a way

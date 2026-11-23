@@ -1,0 +1,12 @@
+# The testbed attendant — the venue's `attendant` on its roster every day
+# around the clock, at the shop counter (test-world-lifecycle D2).
+# ⚠ TEST-ONLY.
+class: /platform/agent/Extra
+data:
+  keywords: [attendant, shopkeeper, clerk]
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: attendant
+  register: indefinite
+  longDescription: |
+    A person in an apron behind the shop counter.

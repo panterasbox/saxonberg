@@ -6,7 +6,7 @@
 
 ## ⭐ The next ceiling — a body arriving in a full room (after crowded-rooms, 2026-11-18)
 
-The fourth quiet-box run of `crowd-timing.dirty.wire.test.ts` (the plan's
+The fourth quiet-box run of `crowd-timing.wire.test.ts` (the plan's
 Drive record, retired with the plan; numbers kept here) reached every step.
 What passed: idle 0.173 cores · `say` p95 110 ms · in turn p95 68 ms · the
 on-screen card 1.45 s · a hidden card receives nothing and is current 53 ms
@@ -32,7 +32,7 @@ those frames.
 
 **After call-security-performance (MR !610, 2026-11-18)** — its quiet-box
 drive reported this ceiling before and after, not gated (its own
-`call-security-performance.dirty.wire.test.ts`, same harness, thirty at
+`call-security-performance.wire.test.ts`, same harness, thirty at
 the avenue block then the square): thirty log in p95 **2 170 → 2 221 ms**
 (unmoved), five into the full square p95 **2 727 → 2 399 ms**, freeze
 samples over 100 ms **33/195 → 3/162**. The call-security layer is now
@@ -71,7 +71,7 @@ a muster or a market morning in the square looks like. With 30 connected bodies
 and the square's three greeting NPCs:
 
 - (a) a player arriving is greeted **once** by each NPC, and an NPC walking in
-  greets **nobody**. ✅ Shipped, blocking in `crowd.dirty.wire.test.ts`.
+  greets **nobody**. ✅ Shipped, blocking in `crowd.wire.test.ts`.
 - (b) `say hello` round-trips in **under 250 ms** at p95 over 20 commands. ❌ 375 ms at best.
 - (c) no event-loop stall over **100 ms** across a 60 s sample while the 30 arrive
   and speak. ❌ 1092 ms at best.

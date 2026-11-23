@@ -124,7 +124,8 @@ boot:                     # which rows are eager, and why — see § The boot un
 ```
 
 **The key set is closed** (`MANIFEST_KEYS` in `PackLogic`): `id`,
-`version`, `description`, `root`, `requires`, `boot`, `maintainers`.
+`version`, `description`, `root`, `requires`, `boot`, `maintainers`,
+`testOnly`.
 **`dependsOn` is not a key** — it is *derived* from the pack's
 `package.json`: every `@saxonberg/content-<id>` dependency is a pack id
 (the `@saxonberg/server` and `@saxonberg/types` lines are the kernel).
@@ -182,6 +183,34 @@ it omits is **ignored** — not installed, and (because `bootManifest`
 reads the same filter) not booted, even when an earlier unfiltered boot
 left its record behind. Unset or empty means every discovered pack.
 `platform` always sorts first: every other pack `dependsOn` it.
+
+### ⭐ A test-only pack (`testOnly: true`)
+
+A pack whose manifest says `testOnly: true` is the test suite's own
+scaffold — `test-fixtures` at `/world/testbed` is the first
+(test-world-lifecycle, 2026-11; [testing.md](../testing.md) § The
+scaffold). It installs **only in a test environment**
+(`SecurityApi.isTestEnvironment()`: a world the wire runner, CI or the soak
+lane booted with `SAXONBERG_TEST_WORLD=1`, or a unit test under `VITEST`),
+and discovery enforces it in the one function every reader of the pack set
+goes through:
+
+- **Outside a test world** the pack is dropped from the set, and the
+  installer prints, once per boot: `PackApi: '<id>' REFUSED — a test-only
+  pack installs only in a test world (SAXONBERG_TEST_WORLD=1)` — with `; N
+  row(s) from an earlier test boot remain in this database` when an earlier
+  test boot installed it there (nothing deletes them; no migration).
+  `pack status` lists it as `refused (test-only)`.
+- **`SAXONBERG_PACKS` naming it** outside a test world **throws** — an
+  operator setting cannot say yes for the live world.
+- **A pack that is not test-only and depends on one throws**, in every
+  world: a pack a live world installs can never come to need a fixture.
+  (A test-only pack may depend on another.)
+
+Its dependency line sits in the root `package.json` like every pack's; the
+live world discovers it and refuses it on every boot, which is the point.
+A mark on the pack rather than on rows is deliberate: a per-row flag would
+let a live pack ship half-test content.
 
 ## The installer — reconcile by `sourcePack` stamp + content-kind
 
@@ -1271,6 +1300,7 @@ defined who reviews packs would review itself.
 | Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
 |---|---|---|---|---|---|
 | **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 30 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue` (the address index, the material/biome/condition rosters and the profile/schedule catalogues load on use since load-on-use round two) |
+| **test-fixtures** (⚠ TEST-ONLY — `testOnly: true`; the wire suite's scaffold, test-world-lifecycle 2026-11) | platform, trade-shopkeeping | `testbed` | `/world/testbed` → group `testbed`; `/world/testbed/annex` → group `testbed-annex` (the one title a drive may take; the purge hands it back) | `testbed`, `testbed-annex` | — (both Businesses stand up on use off `operatingLocations`) |
 | **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
 | **arcana** (CAPABILITY — magic's substrate) | platform | default | `/system/arcana` → group `arcana` (PM-owned): `src/` ships Wand, Scroll, Spellbook, Conduit, Ring, Amulet, Potion, PotionMaterial and the five casting controllers; rows: the 18 `magic-*` disciplines, the five controller templates, the five views, `settings/magic.yaml`, the six descriptor banks | `arcana` | — |

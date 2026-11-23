@@ -19,3 +19,8 @@ class: /platform/idea/location/CartesianZone
 data:
   name: The Sunken Delve
   cellSize: 3.0
+  # ⭐ Joined to the Last Counted Mile beside the treeline and the steading
+  # (navigation card): a place no Locality covers files no claim on your
+  # map, so before this a walk through the Delve drew nothing. No
+  # government is declared under it, so jurisdiction is unchanged.
+  address: last-counted-mile/delve

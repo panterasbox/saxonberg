@@ -245,8 +245,12 @@ export const tokens = {
   width: {
     /** The nav rail. */
     rail: 3.5,
-    /** The mode panel — a region of cards. */
-    panel: 15,
+    /**
+     * The mode panel — a region of cards. 22rem (navigation card D14): the
+     * zone map needs the room, and the panel is the same width in every
+     * mode. ⚠ Below ~1476 CSS px an open panel leaves no card column.
+     */
+    panel: 22,
     /** A card-area column: stretches from min to max to absorb slack. */
     unit: { min: 22, max: 28 },
     /** The terminal column, padding included. */

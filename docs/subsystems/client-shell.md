@@ -918,12 +918,16 @@ intake.
 has no hover to report on a phone and would cost the feed a row. What
 replaces it is the command sheet.
 
-⭐ **It carries the shelf and the tray** (client-surface D10). In-world,
-the bar is three regions: the **shelf** figures at the left
-(`data-testid="status-shelf"`), the preview in the middle, and the
-**tray** at the right (`data-testid="tray"`) — the cards the player
-minimized, each a chip whose click sends `client-card restore <card>`
-and whose hover previews it. Char-gen's bar is the preview alone. The
+⭐ **It carries the outdoors and the tray.** In-world, the bar is the
+preview, then the **outdoors** (`data-testid="status-outdoors"` —
+weather · season · day or night where you stand, from the where-you-are
+place section, with a tooltip; absent when the place says nothing of
+them — navigation card D13), then the **tray** at the right
+(`data-testid="tray"`) — the cards the player minimized, each a chip
+whose click sends `client-card restore <card>` and whose hover previews
+it. ⚠ An earlier version of this section said the bar carries the shelf
+figures at its left (client-surface D10); the file does not — the shelf
+is the top bar's. Char-gen's bar is the preview alone. The
 preview region still never shows a frame count or a `here:` readout.
 
 ## ⭐ The command sheet — a tap names its command before it sends

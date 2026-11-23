@@ -27,10 +27,7 @@
  * run LAST and restart the world (a world this run owns).
  */
 
-import { spawnSync } from 'child_process';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
@@ -45,9 +42,9 @@ import {
   pinWeather,
   unpinWeather,
   engagementIdOf,
+  restartWorld,
 } from '../src/harness';
 import type { CommandResult } from '../src/harness';
-import { bootOwnedWorld, WIRE_PORT } from '../src/runner/boot';
 
 /**
  * ⭐ What the file consumes. Every act runs on fresh characters with
@@ -1417,12 +1414,7 @@ suite.skipIf(!isOwnedTestWorld())('17–18. what survives a restart', () => {
     for (const s of open) await park(s);
     open.length = 0;
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land
-    const serverDir = fileURLToPath(new URL('../../server', import.meta.url));
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
 
     const w = await Session.open(body, opts);
     open.push(w);

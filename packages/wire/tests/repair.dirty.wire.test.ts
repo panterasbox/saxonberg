@@ -32,12 +32,8 @@ import {
   expectOk,
   advanceWorldClock,
   isOwnedTestWorld,
+  restartWorld,
 } from '../src/harness';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
-import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
   'buys out picks, billhooks, whetstones, hafts and boots, clones iron, ' +
@@ -648,45 +644,10 @@ suite('⭐⭐⭐ drive 12 — a restart (AC 4, 18)', () => {
   it.skipIf(!isOwnedTestWorld())('the botched pick\'s mends, the keen billhook and the renamed blade, as left', async () => {
     mender?.close();
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout saves land
-    // ⭐ A RESTART, not a crash: SIGTERM and wait for the shutdown capture.
-    // The consigned pick lives in the SHELF's record, which is captured at
-    // shutdown (or when the store is evicted) — the preflight alone kills
-    // after two seconds, far short of a capture of a world this size, and
-    // run 8 lost the pick that way (run 7 kept it only because the store
-    // had sat empty long enough to be swept). Losing state to a crash is
-    // legitimate; AC 18 is about a restart. ⚠ And the signal goes to the
-    // SERVER: the harness's child is `pnpm exec`, which does not forward a
-    // SIGTERM (run 9: no "SIGTERM received", and the server died by
-    // SIGKILL), so the listener on the port is signalled directly and
-    // given the time a shutdown capture takes.
-    const listener = Number(
-      spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
-    );
-    if (listener > 0) {
-      process.kill(listener, 'SIGTERM');
-      const deadline = Date.now() + 180_000;
-      for (;;) {
-        try {
-          process.kill(listener, 0);
-        } catch {
-          break; // gone
-        }
-        if (Date.now() > deadline) break;
-        await new Promise((r) => setTimeout(r, 500));
-      }
-    }
-    await stopOwnedWorld();
-    try {
-      copyFileSync(WIRE_LOG, `${WIRE_LOG}.before-restart`);
-    } catch {
-      /* no log to keep */
-    }
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    // ⭐ A RESTART, not a crash: the harness's restart SIGTERMs the listener
+    // and waits for the shutdown capture (the consigned pick lives in the
+    // SHELF's record, captured at shutdown — run 8 lost it to a 2 s kill).
+    await restartWorld();
     await toHour(12); // by daylight: in the dark a thing is "something"
     const back = await Session.open(pickHandle, { startLocation: SMITHY });
     try {

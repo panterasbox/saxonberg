@@ -9,5 +9,8 @@
 class: /platform/idea/location/MintedZone
 data:
   name: the Hinkley house
+  # Covered by a Locality, so a walk here files claims on your map
+  # (navigation card review — a zone with no address wrote nothing).
+  address: terminus/hinkley-hills
   cellSize: 6.0
   mintedBy: /world/terminus/hinkley-hills/idea/house-programme

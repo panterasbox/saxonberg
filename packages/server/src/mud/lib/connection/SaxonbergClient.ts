@@ -267,6 +267,48 @@ export function SaxonbergClientMixin<
       },
       {
         /**
+         * ⭐ The navigation card's memory — which of its sections the
+         * player opened or closed BY HAND, and which map lenses are on.
+         *
+         * A section absent from `sections` is untouched: the card opens
+         * and folds it to fill the height. Only the player's own toggle
+         * writes here (the card writes nothing on mount — the
+         * `cards.views` seeding-clobber lesson).
+         */
+        key: 'nav.card',
+        defaultValue: { sections: {}, lenses: ['frontier', 'route'] },
+        description:
+          'The navigation card: sections set open or closed by hand ' +
+          '(`{ name: open | closed }`) and the map lenses that are on.',
+        validator: (v) => {
+          if (typeof v !== 'object' || v === null || Array.isArray(v)) {
+            return 'expected { sections, lenses }';
+          }
+          const { sections, lenses } = v as {
+            sections?: unknown;
+            lenses?: unknown;
+          };
+          if (
+            typeof sections !== 'object' ||
+            sections === null ||
+            Array.isArray(sections) ||
+            !Object.values(sections).every(
+              (s) => s === 'open' || s === 'closed',
+            )
+          ) {
+            return 'sections must be a { name: open | closed } object';
+          }
+          if (
+            !Array.isArray(lenses) ||
+            !lenses.every((l) => typeof l === 'string')
+          ) {
+            return 'lenses must be an array of lens names';
+          }
+          return true;
+        },
+      },
+      {
+        /**
          * ⭐ The feed routing table — one stream, several destinations.
          *
          * An ORDERED list, and the order is the semantics: first match

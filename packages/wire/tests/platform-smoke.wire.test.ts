@@ -21,31 +21,33 @@ import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
   declareFile,
-  uniqueHandle,
   expectOk,
   expectNote,
   installedPacks,
+  standIn,
+  PLAZA,
 } from '../src/harness';
 
 declareFile({
   file: 'platform-smoke.wire.test.ts',
   // The floor: pack zero plus the packs whose content the checks below
   // actually touch. A narrower world than this cannot run the file, and
-  // now says so instead of failing on "I don't understand".
-  packs: ['platform', 'wiki-starter', 'generic-objects'],
+  // now says so instead of failing on "I don't understand". It stands in
+  // the testbed (test-world-lifecycle D8), so it names no locality.
+  packs: ['platform', 'wiki-starter', 'generic-objects', 'test-fixtures'],
 });
 
 let player: Session;
 let founder: Session;
 
 beforeAll(async () => {
-  player = await Session.open(uniqueHandle('smoke'));
+  player = await standIn(PLAZA, 'smoke');
   // The founder holds the PM seat by founder default, so heads the
   // executive, which holds the platform — the authority `pack status`
   // wants, obtained the way production obtains it
   // (`FOUNDER_GOOGLE_EMAIL`, read by `OfficeRegistry` at boot). Nothing
   // here is test-only.
-  founder = await Session.open('founder');
+  founder = await Session.open('founder', { startLocation: PLAZA });
 }, 120_000);
 
 afterAll(() => {
@@ -120,8 +122,14 @@ suite('the shipped world answers', () => {
   });
 
   it('answers config and chat', async () => {
+    // ⚠ The setting is platform behavior; WHICH place it names is the
+    // world's content (the lounge in the shipped world, the void on a
+    // platform-only boot). So the check is that the setting is there and
+    // names a place the world can read — never which place.
     const config = await founder.prose('config defaultStartLocation');
-    expect(config.toLowerCase()).toContain('lounge');
+    const landing = /defaultStartLocation = (\/[\w./-]+)/.exec(config)?.[1];
+    expect(landing, `config said ${JSON.stringify(config)}`).toBeTruthy();
+    expectOk(await founder.cmd(`cat ${landing}`));
     const chat = await founder.prose('chat list');
     expect(chat).toMatch(/Global/i);
   });

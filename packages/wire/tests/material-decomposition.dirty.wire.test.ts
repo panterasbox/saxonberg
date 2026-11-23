@@ -19,12 +19,8 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import type { CommandResult } from '../src/harness';
-import { Session, declareFile, uniqueHandle, isOwnedTestWorld, hand } from '../src/harness';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from '../src/runner/boot';
+import { Session, declareFile, uniqueHandle, isOwnedTestWorld, hand, restartWorld } from '../src/harness';
 
 export const DIRTY_REASON =
   'hands the driver an oak washboard, a fork, a bronze breastplate, a bottle of gin, a flask of lye ' +
@@ -162,12 +158,7 @@ suite.skipIf(!isOwnedTestWorld())('the material decomposition — blocking drive
     p?.close();
     p = null;
     await new Promise((r) => setTimeout(r, 8_000)); // let the logout save land
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
     p = await Session.open(handle, { startLocation: SQUARE });
     await p.drainProse();
     const after = await readings();
@@ -189,6 +180,5 @@ suite.skipIf(!isOwnedTestWorld())('the material decomposition — blocking drive
       expect(strip(after[k]), `${k} after the restart`).toBe(strip(v));
     }
     expect(await tasteSalt(), 'salt tastes the same after the restart').toMatch(/salty/i);
-    await stopOwnedWorld();
   });
 });

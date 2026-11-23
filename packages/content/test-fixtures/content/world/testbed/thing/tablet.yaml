@@ -1,0 +1,14 @@
+# The hall's staff tablet — a display paired to the venue's staff
+# (test-world-lifecycle D2; the lounge's house tablet is the exemplar).
+# ⚠ TEST-ONLY.
+class: /platform/thing/Tablet
+data:
+  shortDescription: house tablet
+  keywords: [tablet, house-tablet, screen, house]
+  register: definite
+  longDescription: A tablet in a rubber case propped beside the shelf.
+  pairing: staff
+  shows:
+    - card
+  principal: /world/testbed/idea/venue
+  mass: 0.5

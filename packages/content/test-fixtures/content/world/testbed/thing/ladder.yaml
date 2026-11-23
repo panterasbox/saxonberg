@@ -1,0 +1,13 @@
+# The shaft ladder — what makes the drop climbable (test-world-lifecycle D2;
+# the Ferrow winze ladder is the exemplar). Propped at both ends.
+# ⚠ TEST-ONLY.
+class: /platform/thing/Ladder
+data:
+  shortDescription: shaft ladder
+  keywords: [ladder, rungs, "shaft ladder"]
+  register: definite
+  longDescription: >-
+    A ladder spiked to the side of the shaft, its rungs worn smooth.
+  mass: 40
+  axes: [down, up]
+  difficulty: null

@@ -4,6 +4,9 @@
 class: /platform/idea/location/CartesianZone
 data:
   name: Gannet Rock
+  # Covered by a Locality, so a walk here files claims on your map
+  # (navigation card review — a zone with no address wrote nothing).
+  address: terminus/gannet-rock
   cellSize: 10.0
   # The rock stands in the sea, not on the city's 35 m: its light's top is
   # the 30 m the sea already sights by (geography D12).

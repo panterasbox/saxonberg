@@ -1,0 +1,13 @@
+# The testbed teller — the bank's `teller` on its roster every day around the
+# clock (test-world-lifecycle D2; the general store's clerk is the exemplar,
+# as an `Extra` and with no costume from another pack).
+# ⚠ TEST-ONLY.
+class: /platform/agent/Extra
+data:
+  keywords: [teller, clerk, bank]
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: teller
+  register: indefinite
+  longDescription: |
+    A clerk in shirtsleeves behind the counter, a pen in hand.
