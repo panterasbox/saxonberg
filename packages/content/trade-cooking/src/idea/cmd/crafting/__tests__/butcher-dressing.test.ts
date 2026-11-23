@@ -63,6 +63,7 @@ import type {
 } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
+import { setFlatCarcass } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 const MEAT = '/stuff/thing/items/_test/stew-meat';
 const HIDE = '/trade/ranching/thing/_test/hide';
@@ -131,14 +132,21 @@ function sceneStub(): unknown {
   return leg;
 }
 
+/**
+ * A species whose carcass gives `lines` (organism-biology W5: the body says
+ * what comes off; `setFlatCarcass` builds one part per line). A counted
+ * line from before (no fraction) is a small share of its own.
+ */
 function species(
   path: string,
-  lines: Parameters<Species['setButcheryYield']>[0],
+  lines: { cut: string; units?: number; fraction?: number; conditioned?: boolean }[],
   sentient = false,
 ): Species {
   const s = makeStuffAtPath(() => new Species(), path) as Species;
   s.setSentient(sentient);
-  s.setButcheryYield(lines);
+  if (lines.length > 0) {
+    setFlatCarcass(s, lines.map((l) => ({ cut: l.cut, share: l.fraction ?? 0.01, unconditioned: l.conditioned === false })));
+  }
   return s;
 }
 
@@ -156,7 +164,7 @@ function body(speciesPath: string, kg: number, flesh: number | null): Corpse {
 /** Sum of the masses of everything the act laid down in the room. */
 function cutMasses(): number[] {
   return minted
-    .filter((c) => MixinApi.isTangible(c))
+    .filter((c) => MixinApi.isTangible(c) && !c.isDestroyed())
     .map((c) => (c as unknown as { getMass(): Quantity<'kg'> }).getMass().rawValue());
 }
 
@@ -277,18 +285,18 @@ describe('the yield is the animal\'s', () => {
     expect(unstamped).toBeLessThan(perfect);
   });
 
-  it('⭐ a COUNTED line is left alone — a hen is not dressed by share', async () => {
-    // Nobody weighs a chicken carcass and takes shares off it. A dressed
-    // reading of a 2.5 kg bird would hand out grams.
-    species(HEN, [{ cut: MEAT, units: 2 }]);
+  it('⭐ W5: every line is dressed by its share — a hen\'s cut weighs grams of her', async () => {
+    // The counted shape is retired (organism-biology D5): what comes off
+    // derives from the body, so a 2.5 kg bird's line is its share of her.
+    species(HEN, [{ cut: MEAT, fraction: 0.2 }]);
 
     const ctrl = makeStuff(() => new ButcherController());
     await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(body(HEN, 2.5, 55)), ctx$)))(ctx());
 
     expect(minted.length).toBeGreaterThan(0);
-    // The row's own authored mass stands: the stub mints 1 kg cuts and
-    // nothing rewrites them.
-    for (const kg of cutMasses()) expect(kg).toBe(1);
+    const total = cutMasses().reduce((a, b) => a + b, 0);
+    expect(total).toBeGreaterThan(0.1);
+    expect(total).toBeLessThan(0.5);
   });
 
   it('⭐ a hide does not care what condition the beast was in', async () => {

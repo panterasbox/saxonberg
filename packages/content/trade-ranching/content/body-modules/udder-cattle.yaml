@@ -14,3 +14,5 @@ parts:
     yieldShape: volume
     window: {kind: event}
     restDays: 3
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/udder, cut: /stuff/thing/items/offal}

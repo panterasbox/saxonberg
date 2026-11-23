@@ -58,8 +58,6 @@ data:
     fightRating: 0.1
     # ⭐ Where it feeds (B8): the bottom, where the pot is.
     feedsAt: bottom
-  butcheryYield:
-    - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A shore crab, green-brown and sideways, with claws it holds up at you as if that settled anything.
   nameBanks: []

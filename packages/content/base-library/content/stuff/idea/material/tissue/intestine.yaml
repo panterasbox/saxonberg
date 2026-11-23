@@ -1,0 +1,19 @@
+# organism-biology D5: a named organ tissue, so a module can say what it
+# comes off a carcass as (the gut).
+class: /platform/idea/material/Flesh
+data:
+  smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 80 }]
+  name: intestine
+  keywords: [intestine, gut, organ]
+  appearance: a coiled grey length of gut
+  density: 1040
+  specificHeat: 3600
+  thermalConductivity: 0.5
+  hardness: 1
+  toughness: 2
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 25
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
+  nutrients: ["protein", "water"]
+  tags: ["tissue", "animal", "organ", "organic", "living", "edible"]

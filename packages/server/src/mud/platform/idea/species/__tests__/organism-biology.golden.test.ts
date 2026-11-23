@@ -101,7 +101,10 @@ interface Golden {
   plans: Record<string, unknown>;
   taps: Record<string, unknown>;
   massAt: Record<string, unknown>;
+  /** ⚠ W0's yields, FROZEN (never rewritten): the containment reference for W5. */
   dressOut: Record<string, unknown>;
+  /** W5 on: what each body leaves as a carcass — adult lines, newborn rows. */
+  carcass: Record<string, { adult: { row: string }[]; newborn: string[] }>;
 }
 
 function round6(n: number): number {
@@ -131,6 +134,29 @@ function buildPlan(index: Map<string, Row>, planPath: string, data: Record<strin
   const plan = makeStuffAtPath(() => new BodyPlan(), planPath);
   plan.applyModules(refs);
   return plan;
+}
+
+/** A shipped species as the engine builds it: plan, body block, forms, every module resident. */
+function buildSpecies(index: Map<string, Row>, path: string, d: Record<string, unknown>): Species | null {
+  if (typeof d._bodyPlanPath !== 'string') return null;
+  StuffApi.clearAll();
+  buildPlan(index, d._bodyPlanPath, planData(index, d._bodyPlanPath));
+  const sp = makeStuffAtPath(() => new Species(), path);
+  sp._bodyPlanPath = d._bodyPlanPath;
+  const remember = (delta: unknown): void => {
+    for (const r of ((delta as { add?: ModuleRef[] } | undefined)?.add ?? [])) {
+      const doc = index.get(r.module);
+      if (!doc) throw new Error(`golden: ${path} adds module ${r.module}, which no pack ships`);
+      SpeciesApi.modules().remember(r.module, new BodyModule(r.module, doc.data ?? {}));
+    }
+  };
+  remember(d.body);
+  const variants = (d.variants ?? {}) as { sex?: Record<string, { body?: unknown }>; stage?: Record<string, { body?: unknown }> };
+  for (const v of [...Object.values(variants.sex ?? {}), ...Object.values(variants.stage ?? {})]) remember(v.body);
+  sp.applyBody((d.body as never) ?? null);
+  sp.applyVariants((d.variants as never) ?? null);
+  if (d.ageCurve) sp.setAgeCurve(d.ageCurve as never);
+  return sp;
 }
 
 function computeGolden(): Golden {
@@ -174,30 +200,15 @@ function computeGolden(): Golden {
   const taps: Record<string, unknown> = {};
   const massAt: Record<string, unknown> = {};
   const dressOut: Record<string, unknown> = {};
+  const carcass: Record<string, { adult: { row: string }[]; newborn: string[] }> = {};
   for (const [path, row] of species.sort(([a], [b]) => a.localeCompare(b))) {
     const d = row.data ?? {};
     // ⭐ W3: a tap is a GLAND — a part of the body of each form. Built the
     // way the engine builds it: the plan, the species' own body block and
     // its forms, every module resident.
     const glandsOf = (sex: string): { key: string; spec: Record<string, unknown> }[] => {
-      if (typeof d._bodyPlanPath !== 'string') return [];
-      StuffApi.clearAll();
-      buildPlan(index, d._bodyPlanPath, planData(index, d._bodyPlanPath));
-      const sp = makeStuffAtPath(() => new Species(), path);
-      sp._bodyPlanPath = d._bodyPlanPath;
-      const remember = (delta: unknown): void => {
-        for (const r of ((delta as { add?: ModuleRef[] } | undefined)?.add ?? [])) {
-          const doc = index.get(r.module);
-          if (!doc) throw new Error(`golden: ${path} adds module ${r.module}, which no pack ships`);
-          SpeciesApi.modules().remember(r.module, new BodyModule(r.module, doc.data ?? {}));
-        }
-      };
-      remember(d.body);
-      const variants = (d.variants ?? {}) as { sex?: Record<string, { body?: unknown }> };
-      for (const v of Object.values(variants.sex ?? {})) remember(v.body);
-      sp.applyBody((d.body as never) ?? null);
-      sp.applyVariants((d.variants as never) ?? null);
-      return (sp.bodyFor({ sex })?.producers() ?? []).map((g) => ({ key: g.spec.key, spec: g.spec as unknown as Record<string, unknown> }));
+      const sp = buildSpecies(index, path, d);
+      return (sp?.bodyFor({ sex })?.producers() ?? []).map((g) => ({ key: g.spec.key, spec: g.spec as unknown as Record<string, unknown> }));
     };
     const female = glandsOf('female');
     const male = glandsOf('male');
@@ -226,44 +237,56 @@ function computeGolden(): Golden {
       const ages = [0, weaned / 2, weaned, (weaned + mature) / 2, mature];
       massAt[path] = ages.map((a) => ({ ageDays: round6(a), kg: round6(sp.massAt(a)) }));
     }
-    const yieldLines = (d.butcheryYield as Record<string, unknown>[] | undefined) ?? [];
-    if (yieldLines.length > 0 && typeof d._bodyPlanPath === 'string') {
-      StuffApi.clearAll();
-      buildPlan(index, d._bodyPlanPath, planData(index, d._bodyPlanPath));
-      const sp = makeStuffAtPath(() => new Species(), path);
-      sp._bodyPlanPath = d._bodyPlanPath;
-      sp.setButcheryYield(yieldLines as never);
-      const claims = new Map<string, readonly string[]>();
-      for (const line of yieldLines) {
-        const cut = String(line.cut);
-        const tissues = index.get(cut)?.data?.tissues;
-        if (Array.isArray(tissues)) claims.set(cut, tissues.map(String));
-      }
+    // ⭐ W5: what comes off DERIVES from the body — its materials' rows,
+    // through each module's carcass map. Computed for the adult female form
+    // and the newborn (a calf's vell is a newborn's part).
+    const sp = typeof d._bodyPlanPath === 'string' ? buildSpecies(index, path, d) : null;
+    if (sp) {
       const liveKg = adult > 0 ? adult : 100;
-      dressOut[path] = {
-        liveKg,
-        lines: sp.dressOut({ liveKg, fleshPct: 55, claims }).map((l) => ({
-          row: l.cut,
-          units: l.units,
-          kgEach: l.kgEach === null ? null : round6(l.kgEach),
-        })),
+      const linesOf = (stage: 'adult' | 'newborn'): { row: string; units: number; kgEach: number | null }[] => {
+        const body = sp.bodyFor({ sex: 'female', stage });
+        if (!body) return [];
+        const lines = body.yieldLines().map((l) => {
+          const claims = (index.get(l.row)?.data?.tissues as string[] | undefined) ?? l.tissues;
+          const portion = index.get(l.row)?.data?.portionKg;
+          return {
+            row: l.row,
+            claims,
+            parts: index.get(l.row)?.class === '/platform/thing/Cut' ? l.parts.length : 1,
+            portionKg: typeof portion === 'number' ? portion : null,
+            conditioned: !l.integument,
+            coatKg: l.integument
+              ? l.tissues.reduce((a, m) => a + body.coatMassKg(m, liveKg, (x) => Number(index.get(x)?.data?.density ?? 0)), 0)
+              : 0,
+          };
+        });
+        return sp.dressOut({ liveKg, fleshPct: 55, lines, body }).map((x) => ({
+          row: x.cut,
+          units: x.units,
+          kgEach: x.kgEach === null ? null : round6(x.kgEach),
+        }));
       };
+      const adultLines = linesOf('adult');
+      if (adultLines.length > 0) carcass[path] = { adult: adultLines, newborn: linesOf('newborn').map((x) => x.row) };
     }
   }
-  return { plans, taps, massAt, dressOut };
+  return { plans, taps, massAt, dressOut, carcass };
 }
 
 describe('⭐⭐ organism-biology goldens — today’s behavior, frozen at W0', () => {
   const computed = computeGolden();
 
   if (process.env.WRITE_GOLDEN === '1') {
-    writeFileSync(GOLDEN, JSON.stringify(computed, null, 2) + '\n');
+    // ⚠ W0's `dressOut` is the containment reference and is never rewritten.
+    const prior = JSON.parse(readFileSync(GOLDEN, 'utf8')) as Golden;
+    writeFileSync(GOLDEN, JSON.stringify({ ...computed, dressOut: prior.dressOut }, null, 2) + '\n');
   }
   const frozen = JSON.parse(readFileSync(GOLDEN, 'utf8')) as Golden;
 
   it('finds the shipped plans and species', () => {
     expect(Object.keys(frozen.plans).length).toBeGreaterThanOrEqual(9);
     expect(Object.keys(frozen.dressOut).length).toBeGreaterThanOrEqual(14);
+    expect(Object.keys(computed.carcass).length).toBeGreaterThanOrEqual(14);
     expect(Object.keys(frozen.taps).length).toBeGreaterThanOrEqual(8);
   });
 
@@ -299,7 +322,17 @@ describe('⭐⭐ organism-biology goldens — today’s behavior, frozen at W0',
     expect(computed.massAt).toEqual(frozen.massAt);
   });
 
-  it('every yielding species: the same rows and masses at its adult weight', () => {
-    expect(computed.dressOut).toEqual(frozen.dressOut);
+  it('⭐⭐ W5: every row a species yielded at W0 still comes off it (containment, adult ∪ newborn)', () => {
+    const missing: string[] = [];
+    for (const [path, old] of Object.entries(frozen.dressOut)) {
+      const now = computed.carcass[path];
+      const rows = new Set([...(now?.adult ?? []).map((l) => l.row), ...(now?.newborn ?? [])]);
+      for (const l of (old as { lines: { row: string }[] }).lines) if (!rows.has(l.row)) missing.push(`${path}: ${l.row}`);
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('every body: the same carcass as pinned (regression from W5)', () => {
+    expect(computed.carcass).toEqual(frozen.carcass);
   });
 });

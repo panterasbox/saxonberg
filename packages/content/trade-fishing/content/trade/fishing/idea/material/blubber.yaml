@@ -22,4 +22,4 @@ data:
   nutrients: [fat]
   nutrientAmounts:
     fat: 70000
-  tags: [solid, fat, blubber, animal, once-living]
+  tags: [solid, fat, blubber, animal, organic, once-living]

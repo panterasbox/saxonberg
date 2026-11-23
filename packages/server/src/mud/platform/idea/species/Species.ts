@@ -46,54 +46,21 @@ import { PerceptionApi } from '../../../api/perception';
 import { MaterialApi } from '../../../api/material';
 /** A suggested character name (given + optional surname). */
 /**
- * One line of a species' butchery yield: a cut template and how many a
- * clean butchering gives. A messy one gives fewer; nothing gives more.
- *
- * ⭐⭐ **Two shapes, and the absence of `fraction` is what picks one.**
- *
- *  - **Counted** (`fraction` absent) — *this animal gives three cuts*.
- *    The shipped shape, and the honest one for a species nobody has
- *    weighed: the six fish, the wolf, the hog, the pony.
- *  - **Dressed** (`fraction` present) — *this cut is 40 % of live
- *    weight, in twelve joints*. What a stockman actually knows, and the
- *    only shape in which **the size and the condition of the animal can
- *    pay off**: a thin ewe dresses out light, a bullock dresses out
- *    heavy, and both read off one line.
- *
- * A species may mix them line by line. The arithmetic is
- * {@link Species.dressOut}.
+ * ⭐ One line to dress (organism-biology D5): a row the body's materials
+ * came off as, what it CLAIMS (a cut its muscles; any other row the
+ * materials that named it), how many parts carry it, and its piece size.
  */
-
-export interface ButcheryYield {
-  /** Template path of the Provision a cut produces. */
-  cut: string;
-  /** Units a clean butchering yields (a rounded-down share on a poor one). */
-  units: number;
-  /**
-   * Share of the animal's LIVE weight this line takes, `(0, 1]`. Absent
-   * ⇒ the counted shape: the units are the whole statement and no mass
-   * is derived.
-   */
-  fraction?: number;
-  /**
-   * Does body condition scale this line? Default **true**, because most
-   * of what comes off an animal is flesh and fat. ⭐ `false` is the
-   * interesting case and it is a real fact: **a hide and a skeleton are
-   * the size the animal is, not the shape it is in.** A starved ewe has
-   * the same bones as a finished one.
-   *
-   * Meaningless without `fraction` (a counted line has no mass to
-   * scale).
-   */
-  conditioned?: boolean;
-  /**
-   * ⭐ **This line comes off a YOUNG body only** (dairy D8): the vell — a
-   * calf's fourth stomach, the source of rennet — is only worth taking
-   * before the animal is weaned onto grass. Game-days; a body older than
-   * this yields nothing on the line. Absent ⇒ every age. An age the
-   * caller does not know keeps the line (unmodelled is open).
-   */
-  maxAgeDays?: number;
+export interface DressLine {
+  row: string;
+  claims: readonly string[];
+  /** The present parts carrying the claim — the floor on the piece count. */
+  parts: number;
+  /** One piece's size (a cut row's `portionKg`), or null. */
+  portionKg: number | null;
+  /** Does condition scale it? A hide and a skeleton are the size the animal IS. */
+  conditioned: boolean;
+  /** A coat's own mass, kg (`Body.coatMassKg`) — it has depth, not a tissue share. Kept at any weight. */
+  coatKg?: number;
 }
 
 /**
@@ -955,23 +922,7 @@ export default class Species extends SingletonMixin(
    */
   protected feedingStyle: FeedingStyle[] | null = null;
 
-  /**
-   * ⭐ **What a carcass of this species yields to a knife** — a list of
-   * `{ cut, units }`, where `cut` is the template path of the Provision a
-   * clean butchering produces and `units` is how many a clean one gives.
-   *
-   * It lives here because the Species row is already the field guide for
-   * the animal — `diet`, `lifespanMax`, `naturalAttacks`, `vitalProfile`,
-   * and `sentient` are all here — so a new huntable animal is ONE row and
-   * a second butcher is content. A separate butchery Idea would have been
-   * a row in strict 1:1 with this one plus a second catalogue to warm, for
-   * no gain.
-   *
-   * ⭐ **Empty is not a gap; it is a statement.** An empty yield means
-   * *there is nothing here worth cutting* — the right answer for a rat, a
-   * canary and a beetle, and authored rather than crashed.
-   */
-  protected butcheryYield: ButcheryYield[] = [];
+
 
 
 
@@ -1119,7 +1070,6 @@ export default class Species extends SingletonMixin(
     palate: { persistent: true },
     nameBanks: { persistent: true },
     sentient: { persistent: true },
-    butcheryYield: { persistent: true, authorable: true },
     // ⭐ Level 0: natural history a player is MEANT to learn — the whole
     // pedagogy claim of the fishery is that where a species is found is
     // derivable from what it needs (fishing D4). The game shows the
@@ -1282,38 +1232,6 @@ export default class Species extends SingletonMixin(
   public isSentient(): boolean { return this.sentient; }
   public setSentient(value: boolean): void { this.sentient = value; }
 
-  /** What a carcass yields to a knife; empty ⇒ nothing worth cutting. */
-  public getButcheryYield(): readonly ButcheryYield[] {
-    return this.butcheryYield;
-  }
-  /**
-   * ⚠ **Refuses a nonsense `fraction` rather than dropping it**, for
-   * `setFeedingStyle`'s reason: a line authored `fraction: 40` (percent,
-   * not share) would otherwise dress a 70 kg ewe out at 2,800 kg of meat
-   * and nothing would say a word. A share outside `(0, 1]` is a typo
-   * every time.
-   */
-  public setButcheryYield(value: ButcheryYield[]): void {
-    if (!Array.isArray(value)) {
-      this.butcheryYield = [];
-      return;
-    }
-    for (const line of value) {
-      if (line.fraction === undefined) continue;
-      if (
-        !Number.isFinite(line.fraction) ||
-        line.fraction <= 0 ||
-        line.fraction > 1
-      ) {
-        throw new RangeError(
-          `Species.butcheryYield: '${line.cut}' authors fraction ` +
-            `${String(line.fraction)} — a share of live weight in (0, 1], ` +
-            `not a percentage.`,
-        );
-      }
-    }
-    this.butcheryYield = value;
-  }
 
 
 
@@ -1367,67 +1285,35 @@ export default class Species extends SingletonMixin(
   public dressOut(args: {
     liveKg: number;
     fleshPct?: number;
-    /**
-     * ⭐⭐ **What each cut row CLAIMS**, keyed by the row's path — supplied
-     * by the caller, which reads it off one cloned exemplar per line.
-     *
-     * ⚠ Passed in rather than resolved here, and deliberately: resolving
-     * a template would make this method async and impure, and it is the
-     * one piece of arithmetic in the chain that a test can call with
-     * numbers and no world. The butcher has the exemplars in hand anyway.
-     */
-    claims?: ReadonlyMap<string, readonly string[]>;
-    /**
-     * The body's age in game-days — a line authoring `maxAgeDays` comes
-     * off only a body younger than that. Absent ⇒ every line is kept.
-     */
-    ageDays?: number;
+    /** ⭐ The lines the body gave (D5) — its materials' rows, with their claims. */
+    lines: readonly DressLine[];
+    /** The body they came off, and the parts still on it. */
+    body: Body;
+    present?: (partKey: string) => boolean;
   }): DressedLine[] {
     const liveKg = Number.isFinite(args.liveKg) ? Math.max(0, args.liveKg) : 0;
     const finish = finishFactor(
       Number.isFinite(args.fleshPct ?? NaN) ? (args.fleshPct as number) : 55,
     );
     const out: DressedLine[] = [];
-    const age = Number.isFinite(args.ageDays ?? NaN) ? (args.ageDays as number) : null;
-    for (const line of this.butcheryYield) {
-      if (
-        age !== null &&
-        line.maxAgeDays !== undefined &&
-        Number.isFinite(line.maxAgeDays) &&
-        age > line.maxAgeDays
-      ) {
-        continue;
-      }
-      const units = Math.max(1, Math.round(line.units));
-      const claimed = args.claims?.get(line.cut) ?? [];
-      // ⭐⭐⭐ **A claiming line's share DERIVES from the muscles it
-      // takes**, so `fraction` stops being a second copy of a fact the
-      // body plan already states. A line claiming nothing (a hide, the
-      // offal, the blood) keeps its authored share — those are not
-      // muscles and the plan says nothing about them.
-      const derived = claimed.length
-        ? claimed.reduce((a, t) => a + (this.bodyFor()?.tissueShareOf(t) ?? 0), 0)
-        : undefined;
-      const fraction = derived ?? line.fraction;
-      if (fraction === undefined) {
-        out.push({ cut: line.cut, units, kgEach: null, tissues: claimed });
-        continue;
-      }
-      // ⚠ A claimed line is never `conditioned: false`: the share came
-      // from muscle, and muscle is exactly what condition moves.
-      const scale =
-        derived === undefined && line.conditioned === false ? 1 : finish;
-      const kg = liveKg * fraction * scale;
-      // ⭐ Below the threshold the line yields NOTHING, which is the
-      // honest answer rather than a gram of suet: there is nothing worth
-      // taking off a animal that small. The retired stockyard controller
-      // used the same figure for the same reason.
-      if (kg < 0.05) continue;
+    for (const line of args.lines) {
+      // ⭐⭐⭐ A line's share DERIVES from what it claims, over the parts
+      // still on the body — never authored, never a second copy of a fact
+      // the body already states.
+      const share = line.claims.reduce((a, t) => a + args.body.tissueShareAmong(t, args.present), 0);
+      const kg = liveKg * share * (line.conditioned ? finish : 1) + (line.coatKg ?? 0);
+      // ⭐ Below five grams the line yields NOTHING — there is nothing
+      // worth taking. (A crab's meat is grams; a gram of suet is not.) A
+      // coat is kept at any weight: a fistful of down is a fistful.
+      if (!(kg >= 0.005) && !((line.coatKg ?? 0) > 0)) continue;
+      const byPortion = line.portionKg && line.portionKg > 0 ? Math.round(kg / line.portionKg) : 0;
+      const units = Math.max(1, line.parts, byPortion);
       out.push({
-        cut: line.cut,
+        cut: line.row,
         units,
-        kgEach: Math.round((kg / units) * 100) / 100,
-        tissues: claimed,
+        // A piece that weighs anything weighs at least a gram.
+        kgEach: Math.max(0.001, Math.round((kg / units) * 100) / 100),
+        tissues: line.claims,
       });
     }
     return out;

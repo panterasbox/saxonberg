@@ -1697,6 +1697,25 @@ gives feathers alone with no prompt; the crab gives chitin; both gates fail on a
 `comesOffAs` names no row.
 **Commit:** `feat(butchery): W5 cut maps derive from the body; the pelt`
 
+> ✅ **W5 done.** `comesOffAs: [{ tissue, cut }]` lives on the BODY MODULE
+> (B18), copied onto every part of its instance; `Body.yieldLines(present)`
+> gives the rows, the outside first; `Body.coatMassKg` weighs a coat (it
+> has depth, not share). `Species.dressOut` takes the derived lines (claims
+> over present parts × live weight × finish; a hide and bone unconditioned;
+> a cut a piece per part or per `portionKg`, anything else one lot; a 5 g
+> floor, a coat kept at any weight). `Butcherable.dress` rewritten; only a
+> cut goes joint-or-trim. The pelt: `holed`/`slashed`/`burned` per wound
+> at its site, `slashed` where a cut came off first, `nicked` per band
+> short; `Flaw.site` worded by `look`; a skinned `Corpse` says so.
+> `Species.butcheryYield` and the 14 lists are gone (the dog's deliberate
+> empty list too, B19); the vell is the newborn's `abomasum` part; new
+> rows: tissues `intestine`, `abomasum`; things `feathers`, `down`,
+> `carapace` (no `scales`/`shell` row: nothing has them yet). Golden: W0's
+> `dressOut` stays frozen as the containment reference and passes (every
+> row still comes off, adult ∪ newborn); the derived carcass is pinned as
+> `carcass`. `lint:anatomy` lost the yield-list clauses and gained *no two
+> rows off one body share a word* (the roe lost `fish`). Decisions B18–B20.
+
 ### W6 — Parts that change
 
 **Goal:** the severed part is a thing; stumps seal; claws regrow; coats
@@ -2317,6 +2336,31 @@ Decisions the build made that the plan did not, and what decided each.
   stamp). It is the shipped tap read; W6b, which makes the core read pure,
   owns whether the projection may call it. *Decided by:* the nearest
   pattern; flagged for W6b.
+
+- **B18 (W5) — `comesOffAs` is on the body module, not the material.** As
+  a material capability it would be unauthored on every food and animal
+  row (`lint:material-kinds` counts every `fieldMeta` key of a capability
+  mixin, and `comesOffAs: []` is a forbidden sentinel), and an honest
+  default answers *nothing* on most of them — P2's sign that the host is
+  wrong. On the module it is still forward (a tissue names its rows, not a
+  reverse search over cut rows), any species built from modules still
+  yields with no list of its own, and a module can say what ITS tissue
+  comes off as: the swine's fat is leaf fat and the cow's is suet, the
+  hen's leg is thigh and drumstick and the cow's is leg and shank, with no
+  new tissue rows for the difference. The entry field is `cut`, already a
+  reachability faucet. *Decided by:* P2 and the gate's own doctrine.
+- **B19 (W5) — the dog yields like any canid.** Its row authored an empty
+  yield as a deliberate refusal. With yields derived from the body, no
+  per-species list exists to be empty; the project's rule is that code
+  never legislates culture (soft limits), and the named-animal gate is
+  what protects a pet. *Decided by:* the soft-limits doctrine.
+- **B20 (W5) — units and the floor.** A cut comes off each part carrying
+  it (or in `portionKg` portions); anything else is one lot (a hide is one
+  hide). The *nothing worth taking* floor fell from 50 g to 5 g (a crab's
+  offal is grams), and a coat is kept at any weight. Unit counts changed
+  (the commit body lists them per species); masses re-derive from shares.
+  *Decided by:* lens 1 (a hide is one skin; a small animal's meat is
+  small, not absent).
 
 ## Drive record
 

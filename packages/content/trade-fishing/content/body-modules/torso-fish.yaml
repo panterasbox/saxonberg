@@ -2,12 +2,14 @@
 # relative keys ('' is the instance's own key) and tissue weights.
 # ⭐ W3: two kidneys (sustaining filtration) and the swim bladder — HOLLOW,
 # so a thrust through it mostly finds air — their share taken from flesh.
+# ⭐ W5: comesOffAs — what each material of this module leaves a carcass as.
 parts:
 - key: ''
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.1449}
   - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.4832}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.1865}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.1265}
+  - {tissue: /stuff/idea/material/tissue/gonad, weight: 0.06}
 - key: heart
   parent: ''
   governs: [heartRate]
@@ -35,3 +37,9 @@ parts:
   - {tissue: /stuff/idea/material/tissue/swim-bladder, weight: 0.03}
 integument:
   skin: {material: /trade/fishing/idea/material/fish-skin, weight: 0.02}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/muscle, cut: /trade/fishing/thing/fillet}
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/tissue/kidney, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/tissue/gonad, cut: /trade/fishing/thing/roe}
+- {tissue: /trade/fishing/idea/material/fish-skin, cut: /trade/fishing/thing/fish-skins}

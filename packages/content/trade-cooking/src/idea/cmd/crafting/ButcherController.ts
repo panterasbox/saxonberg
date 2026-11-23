@@ -168,7 +168,8 @@ export default class ButcherController extends CraftController<ButcherModel> {
     if (!species) return 'unidentified-species';
     if (SpeciesApi.isSentient(body)) return 'sentient-corpse';
     if (MixinApi.isNamed(body) && (body.getName() ?? '') !== '') return 'named-animal';
-    if (species.getButcheryYield().length === 0) return 'no-yield';
+    // ⭐ D5: what comes off derives from the body — nothing named, nothing to take.
+    if ((body.getBody()?.yieldLines().length ?? 0) === 0) return 'no-yield';
     return 'still-alive';
   }
 

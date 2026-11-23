@@ -256,6 +256,19 @@ export interface BodyPart {
   fill?: BodyFill;
   /** ⭐ Its outside (D3) — set on EXTERIOR parts only: an organ has no skin. */
   integument?: Integument;
+  /** ⭐ What its tissues and outside leave a carcass as (D5): the module's own map. */
+  comesOffAs?: readonly ComesOff[];
+}
+
+/**
+ * ⭐ One line of a module's carcass map (organism-biology D5): a material
+ * this module's parts are made of (a tissue, or an outside layer's) and a
+ * row it comes off as. A loin names the loin and the chop; a hide's skin
+ * names the hide; a feather coat names the feathers.
+ */
+export interface ComesOff {
+  tissue: string;
+  cut: string;
 }
 
 /** ⭐ What fills a part (D12) — a closed vocabulary. */

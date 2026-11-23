@@ -1,0 +1,11 @@
+# organism-biology D5: what an outside comes off a carcass as — its own
+# word, so `butcher <body> for feathers` takes it and nothing else.
+class: /platform/thing/Good
+data:
+  shortDescription: handful of feathers
+  keywords: [feathers, feather, plumage, handful]
+  register: indefinite
+  longDescription: >-
+    A loose handful of contour feathers, plucked. Good for fletching, for quills, for stuffing a pillow if there is enough of it.
+  _materialPath: /stuff/idea/material/tissue/feather
+  mass: 0.05

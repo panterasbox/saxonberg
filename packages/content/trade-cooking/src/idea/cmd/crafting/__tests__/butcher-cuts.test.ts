@@ -107,19 +107,18 @@ function world(): Species {
       key: 'body.torso',
       parent: null,
       tissues: [{ tissuePath: LOIN_M, share: 0.3 }],
+      comesOffAs: [{ tissue: LOIN_M, cut: LOIN_ROW }],
     },
     {
       key: 'body.leg.frontLeft',
       parent: 'body.torso',
       tissues: [{ tissuePath: SHOULDER_M, share: 0.7 }],
+      comesOffAs: [{ tissue: SHOULDER_M, cut: SHOULDER_ROW }],
     },
   ]);
   const sp = makeStuffAtPath(() => new Species(), SPECIES);
   sp._bodyPlanPath = PLAN;
-  sp.setButcheryYield([
-    { cut: LOIN_ROW, units: 1 },
-    { cut: SHOULDER_ROW, units: 1 },
-  ]);
+  // W5: what comes off derives from the body's carcass map (above).
   return sp;
 }
 

@@ -16,6 +16,7 @@ import BodyPlanClass from '../../../platform/idea/species/BodyPlan';
 import type Species from '../../../platform/idea/species/Species';
 import type { TapSpec } from '../../../platform/idea/species/Species';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
+import Material from '../../material/Material';
 import type { BodyPart } from '../../../platform/idea/species/BodyPlan';
 import type { ModuleRef } from '../Body';
 import { BodyModule } from '../BodyModule';
@@ -52,6 +53,7 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
           ...(part.integument ? { integument: part.integument } : {}),
         },
       ],
+      ...(part.comesOffAs ? { comesOffAs: part.comesOffAs } : {}),
     };
     SpeciesApi.modules().remember(path, new BodyModule(path, data));
     const ref: ModuleRef = { module: path, as: [part.key] };
@@ -99,4 +101,33 @@ export function setFlatTaps(species: Species, taps: readonly TapSpec[], opts: { 
   } else {
     species.applyBody(add);
   }
+}
+
+/**
+ * Give a species a carcass a fixture used to author as `butcheryYield`
+ * (organism-biology W5: what comes off derives from the body). Each line is
+ * a part carrying a tissue of its own that names the row, at `share` of the
+ * body; a filler part carries the rest, naming nothing. An `unconditioned`
+ * line's tissue is tagged `bone` (a hide and a skeleton are the size the
+ * animal IS). A species with no plan gets one.
+ */
+export function setFlatCarcass(
+  species: Species,
+  lines: readonly { cut: string; share: number; unconditioned?: boolean }[],
+): void {
+  fixtureSeq += 1;
+  const base = `${species.getTemplatePath() ?? '/test/species'}#${fixtureSeq}`;
+  const used = lines.reduce((a, l) => a + l.share, 0);
+  const parts: FlatPart[] = [
+    { key: 'body.torso', parent: null, tissues: used < 1 ? [{ tissuePath: `${base}/filler`, share: 1 - used }] : [] },
+  ];
+  lines.forEach((l, i) => {
+    const tissue = `${base}/t${i}`;
+    const m = makeStuffAtPath(() => new Material(), tissue);
+    if (l.unconditioned) m.setTags(['bone']);
+    parts.push({ key: `body.torso.c${i}`, parent: 'body.torso', tissues: [{ tissuePath: tissue, share: l.share }], comesOffAs: [{ tissue, cut: l.cut }] });
+  });
+  const plan = makeStuffAtPath(() => new BodyPlanClass(), `${base}/plan`);
+  setFlatParts(plan, parts);
+  species.setBodyPlan(plan);
 }

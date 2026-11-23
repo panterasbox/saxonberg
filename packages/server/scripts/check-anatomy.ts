@@ -268,6 +268,36 @@ export function clauseIntegument(rows: ReturnType<typeof bodyPlanRows>): Finding
   return out;
 }
 
+/**
+ * Clause (0d) — within one body's carcass lines, no two rows answer to the
+ * same word (organism-biology D5): `butcher hen for feathers` takes the
+ * feathers and leaves the down, and nothing is tied, so nothing prompts.
+ */
+export function clauseCarcassWords(rows: ReturnType<typeof bodyPlanRows>): Finding[] {
+  const out: Finding[] = [];
+  const keywordsOf = new Map<string, string[]>();
+  for (const r of allRows()) {
+    const path = rowPathOf(r.file);
+    const kw = (r.doc as { keywords?: unknown }).keywords;
+    if (path && Array.isArray(kw)) keywordsOf.set(path, kw.map((k) => String(k).toLowerCase()));
+  }
+  // The generic words every meat row shares (`cut`, `meat`) name no one line.
+  const GENERIC = new Set(['cut', 'cuts', 'meat', 'joint']);
+  for (const row of rows) {
+    if (!row.body) continue;
+    const owner = new Map<string, string>();
+    for (const line of row.body.yieldLines()) {
+      for (const word of keywordsOf.get(line.row) ?? []) {
+        if (GENERIC.has(word)) continue;
+        const first = owner.get(word);
+        if (first && first !== line.row) out.push({ file: row.file, detail: `'${word}' names both ${first} and ${line.row}` });
+        else owner.set(word, line.row);
+      }
+    }
+  }
+  return out;
+}
+
 /** Clause (a) — the shares of a plan sum to the whole body (a regression check: true by construction). */
 export function clauseSharesSumToOne(rows: ReturnType<typeof bodyPlanRows>): Finding[] {
   const out: Finding[] = [];
@@ -295,77 +325,7 @@ export function clauseSharesSumToOne(rows: ReturnType<typeof bodyPlanRows>): Fin
   return out;
 }
 
-/**
- * Clause (b) — every species' `_bodyPlanPath` resolves to a shipped
- * body-plan row.
- *
- * ⚠⚠ A species naming a plan that does not exist has **no anatomy at
- * all**: no parts, no tissues, so every cut derives a share of zero and
- * the animal butchers to nothing. `SpeciesApi.preloadAnatomy` warms what
- * it can find and says nothing about what it cannot.
- *
- * ⭐ This clause used to check `Species.tissueShares` keys. That field is
- * gone: a pig's proportions live in `BodyPlan/swine`, which `extends:`
- * quadruped and restates its shares, so the thing that could have been
- * authored wrong is now a plan reference — and this is the check for it.
- */
-export function clauseSpeciesPlanResolves(): Finding[] {
-  const out: Finding[] = [];
-  const plans = planTissues();
-  for (const { file, doc } of allRows()) {
-    const data = doc as { butcheryYield?: unknown; _bodyPlanPath?: unknown };
-    // Only a species that yields anything — a plant names no plan.
-    if (!Array.isArray(data.butcheryYield)) continue;
-    const planPath =
-      typeof data._bodyPlanPath === 'string' ? data._bodyPlanPath : '';
-    if (!planPath) {
-      out.push({ file, detail: 'has a butcheryYield but names no _bodyPlanPath' });
-      continue;
-    }
-    if (!plans.has(planPath)) {
-      out.push({
-        file,
-        detail:
-          `names body plan '${planPath}', which resolves to no shipped ` +
-          `row — the animal would have no anatomy and every claiming ` +
-          `cut would derive a share of ZERO`,
-      });
-    }
-  }
-  return out;
-}
 
-/**
- * Clause (c) — a yield line naming a CLAIMING cut must not also author a
- * `fraction`.
- *
- * ⚠ Two sources for one number. The claim derives the share from the body
- * plan; an authored `fraction` beside it is a second copy that will drift,
- * and the derivation silently wins — so the author's number would be a
- * comment that looks like data.
- */
-export function clauseNoDoubleShare(): Finding[] {
-  const out: Finding[] = [];
-  const claimsFor = cutClaims();
-  for (const { file, doc } of allRows()) {
-    const lines = (doc as { butcheryYield?: unknown }).butcheryYield;
-    if (!Array.isArray(lines)) continue;
-    for (const line of lines) {
-      const l = line as { cut?: string; fraction?: unknown };
-      if (!l.cut || l.fraction === undefined) continue;
-      if ((claimsFor.get(l.cut) ?? []).length > 0) {
-        out.push({
-          file,
-          detail:
-            `yield line '${l.cut}' authors a fraction AND its cut row ` +
-            `claims tissues — the claim derives the share, so the ` +
-            `authored number is a second copy that will drift`,
-        });
-      }
-    }
-  }
-  return out;
-}
 
 /**
  * Clause (d/e) — every tissue a cut claims resolves to a Material row,
@@ -380,7 +340,6 @@ export function clauseClaimsResolve(): Finding[] {
   const out: Finding[] = [];
   const materials = materialPaths();
   const claimsFor = cutClaims();
-  const plans = planTissues();
   for (const [cutPath, tissues] of claimsFor) {
     for (const t of tissues) {
       if (!materials.has(t)) {
@@ -388,29 +347,6 @@ export function clauseClaimsResolve(): Finding[] {
           file: cutPath,
           detail: `claims '${t}', which resolves to no Material row`,
         });
-      }
-    }
-  }
-  for (const { file, doc } of allRows()) {
-    const data = doc as { butcheryYield?: unknown; _bodyPlanPath?: unknown };
-    if (!Array.isArray(data.butcheryYield)) continue;
-    const planPath =
-      typeof data._bodyPlanPath === 'string' ? data._bodyPlanPath : '';
-    const carried = plans.get(planPath);
-    if (!carried) continue;
-    for (const line of data.butcheryYield) {
-      const cut = (line as { cut?: string }).cut;
-      if (!cut) continue;
-      for (const t of claimsFor.get(cut) ?? []) {
-        if (!carried.has(t)) {
-          out.push({
-            file,
-            detail:
-              `yield line '${cut}' claims '${t}', which this species' ` +
-              `body plan '${planPath}' does not carry — the line would ` +
-              `derive a share of ZERO and yield nothing`,
-          });
-        }
       }
     }
   }
@@ -456,8 +392,7 @@ function main(): void {
     ...clauseVariantsBuild(),
     ...clauseIntegument(rows),
     ...clauseSharesSumToOne(rows),
-    ...clauseSpeciesPlanResolves(),
-    ...clauseNoDoubleShare(),
+    ...clauseCarcassWords(rows),
     ...clauseClaimsResolve(),
   ];
   console.log(

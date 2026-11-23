@@ -40,7 +40,7 @@ import { AppSettingKeys } from '../config/AppSettings';
  * that froze last with nothing to feed it; `blowhole` is a damp mould's
  * steam through the metal (B104 — it was a baked grade and baked prose).
  */
-export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check' | 'holed';
+export type FlawKind = 'dunt' | 'crack' | 'misrun' | 'shrinkage' | 'blowhole' | 'check' | 'holed' | 'slashed' | 'burned' | 'nicked';
 
 /** A flaw in a body — a dunt from a heat shock, a crack, a casting fault, a hole. */
 export interface Flaw {
@@ -57,6 +57,11 @@ export interface Flaw {
    * is patched by a `patched` mend the same way. The mend is recorded once.
    */
   mended?: 'riveted' | 'patched';
+  /**
+   * ⭐ WHERE on the body it is (organism-biology D5): a pelt's flaw sits on
+   * the part the wound was on (`body.torso`). Absent = anywhere / the whole.
+   */
+  site?: string;
 }
 
 /**
@@ -70,6 +75,11 @@ const DAMAGE_PENALTY: Readonly<Partial<Record<FlawKind, number>>> = {
   check: 0.15,
   // ⭐ A hole stove in a hull: she leaks through it.
   holed: 0.5,
+  // ⭐ A pelt's damage (organism-biology D5): a cut through the skin, a
+  // burn that took the grain, and a skinner's nick.
+  slashed: 0.2,
+  burned: 0.25,
+  nicked: 0.05,
 };
 
 /** Which mend closes which flaw. */
@@ -89,7 +99,18 @@ const FLAW_WORDS: Readonly<Record<FlawKind, string>> = {
   blowhole: 'It is honeycombed with steam holes, where a damp mould blew under the pour.',
   check: 'Fine checks run across its surface where it dried too fast.',
   holed: 'There is a hole stove in it.',
+  slashed: 'It is slashed through.',
+  burned: 'It is burned, the grain gone.',
+  nicked: 'It is nicked where the knife slipped.',
 };
+
+/** The same, at a site: *There is a hole in it at the torso.* */
+function sitedWords(f: Flaw): string {
+  const base = FLAW_WORDS[f.kind];
+  if (!f.site) return base;
+  const where = f.site.replace(/^body\./, '').split('.').map((w) => w.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase()).reverse().join(' ');
+  return `${base.replace(/\.$/, '')} at the ${where}.`;
+}
 
 /** What a look says of a mended flaw. */
 const MEND_WORDS: Readonly<Record<'riveted' | 'patched', string>> = {
@@ -124,7 +145,7 @@ export interface Flawed {
   /** The flaws in this body, visible and hidden (ceramics M5), mends derived. */
   getFlaws(): readonly Flaw[];
   /** Record a flaw (`atS`: when, if the caller knows — the clock is the caller's). */
-  addFlaw(kind: FlawKind, visible: boolean, atS?: number): void;
+  addFlaw(kind: FlawKind, visible: boolean, atS?: number, site?: string): void;
   /**
    * ⭐ A pile's flaws when it splits or merges (R2-B6): `visible` copies
    * the flaws an eye can find (a split-off of a cracked pile is cracked —
@@ -175,7 +196,7 @@ const flawAugmenter: MarkupAugmenter = (text, host, _viewer, opts) => {
   const lines: string[] = [];
   const seen = new Set<string>();
   for (const f of host.getFlaws()) {
-    const line = f.mended !== undefined ? MEND_WORDS[f.mended] : f.visible ? FLAW_WORDS[f.kind] : '';
+    const line = f.mended !== undefined ? MEND_WORDS[f.mended] : f.visible ? sitedWords(f) : '';
     if (line && !seen.has(line)) {
       seen.add(line);
       lines.push(line);
@@ -215,18 +236,18 @@ export function FlawedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) 
       });
     }
 
-    public addFlaw(kind: FlawKind, visible: boolean, atS?: number): void {
+    public addFlaw(kind: FlawKind, visible: boolean, atS?: number, site?: string): void {
       // ⭐ A flaw is stamped with when it happened (the clock, when the
       // caller has no better time): a mend mends what came BEFORE it.
       const when = atS ?? flawedNowS();
-      this.flaws = [...this.flaws, { kind, visible, atS: when }];
+      this.flaws = [...this.flaws, { kind, visible, atS: when, ...(site ? { site } : {}) }];
     }
 
     public takeFlawsFrom(other: Stuff, visible: boolean): void {
       if (!MixinApi.isFlawed(other)) return;
       const taken = other.getFlaws().filter((f) => f.visible === visible);
       if (taken.length > 0) {
-        this.flaws = [...this.flaws, ...taken.map((f) => ({ kind: f.kind, visible: f.visible, atS: f.atS }))];
+        this.flaws = [...this.flaws, ...taken.map((f) => ({ kind: f.kind, visible: f.visible, atS: f.atS, ...(f.site ? { site: f.site } : {}) }))];
       }
     }
 

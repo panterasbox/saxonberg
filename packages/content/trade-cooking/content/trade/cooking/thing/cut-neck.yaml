@@ -15,6 +15,9 @@ data:
   longDescription: >-
     Coarse dark meat off the neck, well marbled and cut from a muscle that never rested.
   _materialPath: /stuff/idea/material/tissue/muscles/neck
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 8
   tissues:
     - /stuff/idea/material/tissue/muscles/neck
   cutting: boneless

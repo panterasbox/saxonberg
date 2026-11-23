@@ -85,6 +85,7 @@
  * CLAUDE.md § Instanceable Lives in `platform/<branch>/`.
  */
 
+import type { MarkupAugmenter } from '../../api/mml';
 import Thing from '../../lib/stuff/Thing';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { OrganismMixin } from '../../lib/species/Organism';
@@ -137,7 +138,27 @@ const CorpseBase = PostmortemMixin(
   ),
 );
 
+/**
+ * ⭐ A skinned carcass says so (organism-biology D5): once the line its skin
+ * came off as is taken, the body is bare.
+ */
+function skinnedAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!(host instanceof Corpse) || !MixinApi.isOrganism(host)) return text;
+  const body = host.getBody();
+  if (!body) return text;
+  const taken = new Set(host.getTakenLines());
+  const skinned = body.yieldLines().some(
+    (l) => l.integument && taken.has(l.row) && l.parts.some((k) => l.tissues.includes(body.integumentAt(k)?.skin?.material ?? '')),
+  );
+  if (!skinned) return text;
+  const line = 'It has been skinned.';
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export default class Corpse extends CorpseBase {
+  /** A skinned carcass says so (D5). */
+  static markupAugmenters: MarkupAugmenter[] = [skinnedAugmenter];
+
   static fieldMeta: FieldMeta = {
     conditionAtDeath: { persistent: true, authorable: true },
     takenTissues: { persistent: true },

@@ -487,7 +487,8 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       // chose to follow them — so this always fires on the dog called Moss.
       if (MixinApi.isNamed(self) && (self.getName() ?? '') !== '') return 'named-animal';
       // ⭐ An empty yield is authored: nothing here worth the killing.
-      if (species.getButcheryYield().length === 0) return 'no-yield';
+      // ⭐ D5: what comes off derives from the body — nothing named, nothing to take.
+      if ((this.getBody()?.yieldLines().length ?? 0) === 0) return 'no-yield';
       return null;
     }
 

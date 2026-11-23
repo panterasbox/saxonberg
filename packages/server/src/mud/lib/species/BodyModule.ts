@@ -21,7 +21,7 @@
  * only), so the anatomy lint can parse a module from a YAML file.
  */
 
-import type { BodyFill, Integument, IntegumentLayer } from '../../platform/idea/species/BodyPlan';
+import type { BodyFill, ComesOff, Integument, IntegumentLayer } from '../../platform/idea/species/BodyPlan';
 import type { TapSpec } from '../../platform/idea/species/Species';
 
 /** One tissue of a module part: a material row and its relative weight. */
@@ -73,6 +73,13 @@ export class BodyModule {
   public readonly fill: BodyFill;
   /** ⭐ The outside of this module's exterior parts (D3), unless a part says otherwise. */
   public readonly integument: Integument | null;
+  /**
+   * ⭐ What this module's materials leave a carcass as (D5) — the map the
+   * butcher reads. On the MODULE, not the material: most materials name
+   * nothing (a loaf of bread), and a module is reused by every species
+   * built from it, so a new animal still needs no list of its own.
+   */
+  public readonly comesOffAs: readonly ComesOff[];
 
   /**
    * Read one module document's data. Throws on a malformed module (P3):
@@ -132,6 +139,13 @@ export class BodyModule {
     this.parts = parts;
     this.fill = data.fill === undefined ? 'solid' : BodyModule.fillOf(data.fill, path, '');
     this.integument = data.integument === undefined ? null : BodyModule.integumentOf(data.integument, path, '');
+    this.comesOffAs = (Array.isArray(data.comesOffAs) ? data.comesOffAs : []).map((e) => {
+      const entry = (e ?? {}) as Record<string, unknown>;
+      if (typeof entry.tissue !== 'string' || typeof entry.cut !== 'string') {
+        throw new Error(`body-module '${path}': each comesOffAs entry names a tissue and a cut`);
+      }
+      return { tissue: entry.tissue, cut: entry.cut };
+    });
     const own = this.tissueWeight();
     const authored = data.weight === undefined ? own : Number(data.weight);
     if (!Number.isFinite(authored) || authored < 0) {

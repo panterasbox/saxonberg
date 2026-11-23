@@ -64,10 +64,6 @@ data:
     # ⭐ Where it feeds (B8): the bottom of the deep water. Nobody
     # floats for a sturgeon.
     feedsAt: bottom
-  butcheryYield:
-    - { cut: /trade/fishing/thing/fillet, units: 8 }
-    - { cut: /trade/fishing/thing/roe, units: 3 }
-    - { cut: /stuff/thing/items/offal, units: 2 }
   longDescription: >-
     A sturgeon, long as a man and armoured in bony plates along its back, a fish out of an older river than this one.
   nameBanks: []

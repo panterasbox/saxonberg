@@ -634,7 +634,11 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.267
+              "share": 0.247
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/intestine",
+              "share": 0.02
             },
             {
               "tissue": "/stuff/idea/material/organic/rawhide",
@@ -1083,7 +1087,11 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.1865
+              "share": 0.1265
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/gonad",
+              "share": 0.06
             },
             {
               "tissue": "/trade/fishing/idea/material/fish-skin",
@@ -1697,7 +1705,11 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.267
+              "share": 0.247
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/intestine",
+              "share": 0.02
             },
             {
               "tissue": "/stuff/idea/material/organic/rawhide",
@@ -2043,7 +2055,11 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.172214
+              "share": 0.152224
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/intestine",
+              "share": 0.01999
             },
             {
               "tissue": "/stuff/idea/material/organic/rawhide",
@@ -3244,6 +3260,1607 @@
           "units": 1,
           "kgEach": null
         }
+      ]
+    }
+  },
+  "carcass": {
+    "/stuff/idea/species/animalia/chordata/amphibia/anura/ranidae/lithobates/catesbeianus": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 0.03
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 0.05
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 0.04
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.13
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 0.02
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/aves/galliformes/phasianidae/gallus/domesticus": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/down",
+          "units": 1,
+          "kgEach": 0.001
+        },
+        {
+          "row": "/trade/ranching/thing/feathers",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-breast",
+          "units": 1,
+          "kgEach": 0.56
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.7
+        },
+        {
+          "row": "/trade/cooking/thing/cut-thigh",
+          "units": 2,
+          "kgEach": 0.09
+        },
+        {
+          "row": "/trade/cooking/thing/cut-drumstick",
+          "units": 2,
+          "kgEach": 0.05
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/down",
+        "/trade/ranching/thing/feathers",
+        "/trade/cooking/thing/cut-breast",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/cut-thigh",
+        "/trade/cooking/thing/cut-drumstick"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 33.43
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 58.47
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 2,
+          "kgEach": 7.81
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 4,
+          "kgEach": 5.58
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 4,
+          "kgEach": 5.58
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 6,
+          "kgEach": 7.44
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 2,
+          "kgEach": 2.45
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 4.91
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 3,
+          "kgEach": 7.44
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 26.78
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 153.99
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 8.93
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.89
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 4,
+          "kgEach": 7.81
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 5.58
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 4,
+          "kgEach": 9.37
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg",
+        "/trade/cooking/thing/vell"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/capra/hircus": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 3.63
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 6.35
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 1.7
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 2.42
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 2.42
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 4.85
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.53
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.53
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 2.42
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 2.91
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 16.96
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 0.97
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.1
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 1.7
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.61
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 2.04
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg",
+        "/trade/cooking/thing/vell"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/ovis/aries": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 4.25
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 7.44
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 1.99
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 2.84
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 2.84
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 5.68
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.62
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.62
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 2.84
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 3.41
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 19.6
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 1.14
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.11
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 1.99
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.71
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 2.39
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg",
+        "/trade/cooking/thing/vell"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/artiodactyla/suidae/sus/domesticus": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 7.44
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 9.06
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 2.42
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 3.46
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 3.46
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 6.91
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.76
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.76
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 9.93
+        },
+        {
+          "row": "/trade/ranching/thing/leaf-fat",
+          "units": 1,
+          "kgEach": 27.8
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 20.03
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 1.99
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.14
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 2.42
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.87
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 2.91
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/leaf-fat",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 1.24
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 2.17
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 0.58
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 0.83
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 0.83
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 1.66
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.18
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.18
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 0.83
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 0.99
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 5.38
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 0.33
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 0.58
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.21
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 0.7
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/asinus-mulus": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 24.8
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 43.38
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 11.59
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 3,
+          "kgEach": 5.52
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 3,
+          "kgEach": 5.52
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 4,
+          "kgEach": 8.28
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 3.64
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 3.64
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 2,
+          "kgEach": 8.28
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 19.87
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 107.61
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 6.62
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.66
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 3,
+          "kgEach": 7.73
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 3,
+          "kgEach": 9.27
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-major": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 55.8
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 97.59
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 3,
+          "kgEach": 8.69
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 7,
+          "kgEach": 5.32
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 7,
+          "kgEach": 5.32
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 10,
+          "kgEach": 7.45
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 3,
+          "kgEach": 2.73
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 8.19
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 5,
+          "kgEach": 7.45
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 44.7
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 242.12
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 14.9
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 1.49
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 7,
+          "kgEach": 7.45
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 7,
+          "kgEach": 5.32
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 7,
+          "kgEach": 8.94
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 15.5
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 27.11
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 7.24
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 2,
+          "kgEach": 5.17
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 2,
+          "kgEach": 5.17
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 3,
+          "kgEach": 6.9
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 2.28
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 2.28
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 10.35
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 12.42
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 67.26
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.41
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 7.24
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 2.59
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 8.69
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/rodentia/caviidae/subterracavia/pallida": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 0.07
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 0.13
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 0.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 0.05
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 0.05
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 0.1
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 0.05
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 0.06
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.32
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 0.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 0.04
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/animalia/chordata/mammalia/rodentia/muridae/rattus/fodinae": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 0.04
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 0.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.11
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.001
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 0.01
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/brown-trout": {
+      "adult": [
+        {
+          "row": "/trade/fishing/thing/fish-skins",
+          "units": 1,
+          "kgEach": 0.03
+        },
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 1,
+          "kgEach": 0.53
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.17
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": 0.06
+        }
+      ],
+      "newborn": [
+        "/trade/fishing/thing/fish-skins",
+        "/trade/fishing/thing/fillet",
+        "/stuff/thing/items/offal",
+        "/trade/fishing/thing/roe"
+      ]
+    },
+    "/stuff/idea/species/carp": {
+      "adult": [
+        {
+          "row": "/trade/fishing/thing/fish-skins",
+          "units": 1,
+          "kgEach": 0.06
+        },
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 1,
+          "kgEach": 1.11
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.35
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": 0.12
+        }
+      ],
+      "newborn": [
+        "/trade/fishing/thing/fish-skins",
+        "/trade/fishing/thing/fillet",
+        "/stuff/thing/items/offal",
+        "/trade/fishing/thing/roe"
+      ]
+    },
+    "/stuff/idea/species/cat": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 0.25
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 0.43
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 0.12
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 0.17
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 0.17
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 0.33
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.04
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.04
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 0.17
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 0.2
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 1.08
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 0.07
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.01
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 0.12
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 0.04
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 0.14
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/eel": {
+      "adult": [
+        {
+          "row": "/trade/fishing/thing/fish-skins",
+          "units": 1,
+          "kgEach": 0.02
+        },
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 1,
+          "kgEach": 0.36
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.11
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": 0.04
+        }
+      ],
+      "newborn": [
+        "/trade/fishing/thing/fish-skins",
+        "/trade/fishing/thing/fillet",
+        "/stuff/thing/items/offal",
+        "/trade/fishing/thing/roe"
+      ]
+    },
+    "/stuff/idea/species/grey-mullet": {
+      "adult": [
+        {
+          "row": "/trade/fishing/thing/fish-skins",
+          "units": 1,
+          "kgEach": 0.03
+        },
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 1,
+          "kgEach": 0.67
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.21
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": 0.07
+        }
+      ],
+      "newborn": [
+        "/trade/fishing/thing/fish-skins",
+        "/trade/fishing/thing/fillet",
+        "/stuff/thing/items/offal",
+        "/trade/fishing/thing/roe"
+      ]
+    },
+    "/stuff/idea/species/hog": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 6.2
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 10.84
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 2.9
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 8.28
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.91
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.91
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 4.97
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 26.9
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 1.66
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.17
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 2.9
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 1.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 3.48
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
+      ]
+    },
+    "/stuff/idea/species/shore-crab": {
+      "adult": [
+        {
+          "row": "/trade/fishing/thing/carapace",
+          "units": 1,
+          "kgEach": 0.05
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 0.03
+        }
+      ],
+      "newborn": [
+        "/trade/fishing/thing/carapace",
+        "/stuff/thing/items/offal"
+      ]
+    },
+    "/stuff/idea/species/sturgeon": {
+      "adult": [
+        {
+          "row": "/trade/fishing/thing/fish-skins",
+          "units": 1,
+          "kgEach": 0.92
+        },
+        {
+          "row": "/trade/fishing/thing/fillet",
+          "units": 1,
+          "kgEach": 17.76
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 5.54
+        },
+        {
+          "row": "/trade/fishing/thing/roe",
+          "units": 1,
+          "kgEach": 1.99
+        }
+      ],
+      "newborn": [
+        "/trade/fishing/thing/fish-skins",
+        "/trade/fishing/thing/fillet",
+        "/stuff/thing/items/offal",
+        "/trade/fishing/thing/roe"
+      ]
+    },
+    "/stuff/idea/species/wolf": {
+      "adult": [
+        {
+          "row": "/trade/ranching/thing/hide",
+          "units": 1,
+          "kgEach": 6.2
+        },
+        {
+          "row": "/trade/ranching/thing/bone",
+          "units": 1,
+          "kgEach": 10.84
+        },
+        {
+          "row": "/trade/cooking/thing/cut-neck",
+          "units": 1,
+          "kgEach": 2.9
+        },
+        {
+          "row": "/trade/cooking/thing/cut-rib",
+          "units": 1,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/trade/cooking/thing/cut-loin",
+          "units": 1,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/trade/cooking/thing/cut-chop",
+          "units": 1,
+          "kgEach": 8.28
+        },
+        {
+          "row": "/trade/cooking/thing/cut-tenderloin",
+          "units": 1,
+          "kgEach": 0.91
+        },
+        {
+          "row": "/stuff/thing/items/prime-cut",
+          "units": 1,
+          "kgEach": 0.91
+        },
+        {
+          "row": "/trade/cooking/thing/cut-belly",
+          "units": 1,
+          "kgEach": 4.14
+        },
+        {
+          "row": "/trade/ranching/thing/suet",
+          "units": 1,
+          "kgEach": 4.97
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 26.9
+        },
+        {
+          "row": "/trade/cooking/thing/gut",
+          "units": 1,
+          "kgEach": 1.66
+        },
+        {
+          "row": "/stuff/thing/items/stew-meat",
+          "units": 1,
+          "kgEach": 0.17
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shoulder",
+          "units": 2,
+          "kgEach": 2.9
+        },
+        {
+          "row": "/trade/cooking/thing/cut-shank",
+          "units": 4,
+          "kgEach": 1.03
+        },
+        {
+          "row": "/trade/cooking/thing/cut-leg",
+          "units": 2,
+          "kgEach": 3.48
+        }
+      ],
+      "newborn": [
+        "/trade/ranching/thing/hide",
+        "/trade/ranching/thing/bone",
+        "/trade/cooking/thing/cut-neck",
+        "/trade/cooking/thing/cut-rib",
+        "/trade/cooking/thing/cut-loin",
+        "/trade/cooking/thing/cut-chop",
+        "/trade/cooking/thing/cut-tenderloin",
+        "/stuff/thing/items/prime-cut",
+        "/trade/cooking/thing/cut-belly",
+        "/trade/ranching/thing/suet",
+        "/stuff/thing/items/offal",
+        "/trade/cooking/thing/gut",
+        "/stuff/thing/items/stew-meat",
+        "/trade/cooking/thing/cut-shoulder",
+        "/trade/cooking/thing/cut-shank",
+        "/trade/cooking/thing/cut-leg"
       ]
     }
   }

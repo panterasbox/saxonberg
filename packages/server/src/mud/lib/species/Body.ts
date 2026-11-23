@@ -74,6 +74,15 @@ export interface BodySpec {
   breathing?: readonly BreathingSpec[];
 }
 
+/** ⭐ One line of a carcass (D5): a row, the materials that named it, the parts that carry them. */
+export interface YieldLine {
+  row: string;
+  tissues: string[];
+  parts: string[];
+  /** It comes off the OUTSIDE (a hide, feathers): first, and not scaled by condition. */
+  integument: boolean;
+}
+
 /** One resolved tissue: which part carries it, and its share of the whole body. */
 export interface ResolvedTissue {
   partKey: string;
@@ -231,6 +240,7 @@ export class Body {
     if (gait.length) part.gait = [...new Set(gait)];
     const fill = mp.fill ?? mod.fill;
     if (fill !== 'solid') part.fill = fill;
+    if (mod.comesOffAs.length) part.comesOffAs = mod.comesOffAs;
     return part;
   }
 
@@ -342,6 +352,78 @@ export class Body {
       for (const layer of [p.integument?.skin, p.integument?.under, p.integument?.coat]) if (layer) out.add(layer.material);
     }
     return [...out];
+  }
+
+  /**
+   * ⭐⭐ **What this body leaves as a carcass** (organism-biology D5): every
+   * row its present parts' materials come off as, in body order and each
+   * once, the OUTSIDE first (a hide, feathers, down — the first lines of
+   * every carcass), then the tissues. Each line carries the materials that
+   * named it and the present parts that carry them.
+   *
+   * `present` filters the parts (a corpse's missing ones, a severed
+   * subtree's complement); absent = every part.
+   */
+  public yieldLines(present?: (partKey: string) => boolean): YieldLine[] {
+    const outside = new Map<string, YieldLine>();
+    const inside = new Map<string, YieldLine>();
+    const add = (into: Map<string, YieldLine>, row: string, tissue: string, partKey: string, integument: boolean): void => {
+      const line = into.get(row) ?? { row, tissues: [], parts: [], integument };
+      if (!line.tissues.includes(tissue)) line.tissues.push(tissue);
+      if (!line.parts.includes(partKey)) line.parts.push(partKey);
+      into.set(row, line);
+    };
+    for (const part of this.parts) {
+      if (present && !present(part.key)) continue;
+      const map = part.comesOffAs ?? [];
+      if (!map.length) continue;
+      for (const layer of [part.integument?.skin, part.integument?.under, part.integument?.coat]) {
+        if (!layer) continue;
+        for (const e of map) if (e.tissue === layer.material) add(outside, e.cut, layer.material, part.key, true);
+      }
+      for (const t of part.tissues) {
+        if (t.integument) continue;
+        for (const e of map) if (e.tissue === t.tissuePath) add(inside, e.cut, t.tissuePath, part.key, false);
+      }
+    }
+    // A row named from both sides is the outside's (it comes off first).
+    for (const row of outside.keys()) inside.delete(row);
+    return [...outside.values(), ...inside.values()];
+  }
+
+  /**
+   * ⭐ What a coat or underlayer of `material` weighs on a body of
+   * `liveKg` (D5): it has depth, not a tissue share. The body's surface by
+   * Meeh's law (`0.1 · M^(2/3)` m²), times each present exterior part's
+   * share of it, times the layer's depth and its FIBRE density (the loft
+   * is air). `densityOf` reads the material (this class imports nothing).
+   */
+  public coatMassKg(
+    material: string,
+    liveKg: number,
+    densityOf: (path: string) => number,
+    present?: (partKey: string) => boolean,
+  ): number {
+    const area = 0.1 * Math.pow(Math.max(0, liveKg), 2 / 3);
+    const density = densityOf(material);
+    let kg = 0;
+    for (const part of this.parts) {
+      if (present && !present(part.key)) continue;
+      for (const layer of [part.integument?.under, part.integument?.coat]) {
+        if (!layer || layer.material !== material || !layer.depthM) continue;
+        kg += this.getPartSurfaceFraction(part.key) * area * layer.depthM * density * (1 - (layer.loft ?? 0));
+      }
+    }
+    return kg;
+  }
+
+  /** This body's share of `tissuePath` over the parts `present` admits (all, absent a filter). */
+  public tissueShareAmong(tissuePath: string, present?: (partKey: string) => boolean): number {
+    let sum = 0;
+    for (const t of this.resolvedTissues()) {
+      if (t.tissuePath === tissuePath && (!present || present(t.partKey))) sum += t.share;
+    }
+    return sum;
   }
 
   /** ⭐ A part's outside (D3), or null for an interior or bare part. */

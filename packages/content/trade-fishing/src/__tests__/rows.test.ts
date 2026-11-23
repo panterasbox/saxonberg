@@ -61,10 +61,8 @@ describe('the species rows', () => {
       expect(rowExists(d._bodyPlanPath as string), `${file}: body plan`).toBe(true);
       expect(rowExists(d._defaultMaterialPath as string), `${file}: material`).toBe(true);
       expect(rowExists(d._parentCladePath as string), `${file}: clade`).toBe(true);
-      for (const line of d.butcheryYield as Array<{ cut: string }>) {
-        expect(rowExists(line.cut), `${file}: cut ${line.cut}`).toBe(true);
-        expect(line.cut).not.toMatch(/\/idea\/material\//);
-      }
+      // ⭐ organism-biology W5: no yield list — what comes off derives from the body.
+      expect(d.butcheryYield, `${file}: no yield list`).toBeUndefined();
     }
   });
 

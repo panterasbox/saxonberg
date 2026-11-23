@@ -19,4 +19,4 @@ data:
   heatOfCombustion: 39
   autoignitionTemperature: 520
   smokePoint: 480
-  tags: [liquid, lamp-oil, fuel, flammable, animal, once-living]
+  tags: [liquid, lamp-oil, fuel, flammable, animal, organic, once-living]

@@ -2,6 +2,7 @@
 # relative keys ('' is the instance's own key) and tissue weights.
 # ⭐ W3: two kidneys, each SUSTAINING filtration (any one suffices), their
 # share taken from the torso's flesh.
+# ⭐ W5: comesOffAs — what each material of this module leaves a carcass as.
 parts:
 - key: ''
   tissues:
@@ -12,7 +13,8 @@ parts:
   - {tissue: /stuff/idea/material/tissue/muscles/tenderloin, weight: 0.011}
   - {tissue: /stuff/idea/material/tissue/muscles/belly, weight: 0.05}
   - {tissue: /stuff/idea/material/food/animal-fat, weight: 0.06}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.267}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.247}
+  - {tissue: /stuff/idea/material/tissue/intestine, weight: 0.02}
 - key: heart
   parent: ''
   governs: [heartRate, circulation]
@@ -49,3 +51,18 @@ parts:
 integument:
   skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.04, form: hide}
   coat: {material: /stuff/idea/material/tissue/fur, depthM: 0.015, loft: 0.85}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/bone, cut: /trade/ranching/thing/bone}
+- {tissue: /stuff/idea/material/tissue/muscles/neck, cut: /trade/cooking/thing/cut-neck}
+- {tissue: /stuff/idea/material/tissue/muscles/rib, cut: /trade/cooking/thing/cut-rib}
+- {tissue: /stuff/idea/material/tissue/muscles/loin, cut: /trade/cooking/thing/cut-loin}
+- {tissue: /stuff/idea/material/tissue/muscles/loin, cut: /trade/cooking/thing/cut-chop}
+- {tissue: /stuff/idea/material/tissue/muscles/tenderloin, cut: /trade/cooking/thing/cut-tenderloin}
+- {tissue: /stuff/idea/material/tissue/muscles/tenderloin, cut: /stuff/thing/items/prime-cut}
+- {tissue: /stuff/idea/material/tissue/muscles/belly, cut: /trade/cooking/thing/cut-belly}
+- {tissue: /stuff/idea/material/tissue/muscle, cut: /stuff/thing/items/stew-meat}
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/tissue/kidney, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/tissue/intestine, cut: /trade/cooking/thing/gut}
+- {tissue: /stuff/idea/material/organic/rawhide, cut: /trade/ranching/thing/hide}
+- {tissue: /stuff/idea/material/food/animal-fat, cut: /trade/ranching/thing/suet}

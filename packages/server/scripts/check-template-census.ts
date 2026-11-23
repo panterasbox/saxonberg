@@ -518,23 +518,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // body-module part's `produces[].yieldRow`, read with the module's other
   // citations in DOCUMENT_ROW_CITATIONS['body-modules'] below.
 
-  /*
-   * ⭐ `butcheryYield[].cut` — what a species' carcass yields to a knife.
-   * Each line names the Provision template a cut clones from, resolved
-   * live at the butchering, so a rowless one is an animal that opens onto
-   * nothing: the act reports success and produces no meat, with nothing
-   * anywhere to say why. Exactly the shape of the `composition` gap two
-   * paragraphs down, found the same way — by this gate refusing a new
-   * path-valued field it did not read.
-   */
-  const butchery = data.butcheryYield;
-  if (Array.isArray(butchery)) {
-    for (const line of butchery) {
-      if (line && typeof line === 'object') {
-        push('butcheryYield.cut', (line as Record<string, unknown>).cut);
-      }
-    }
-  }
+  // ⭐ A carcass's rows moved onto the body modules (organism-biology W5):
+  // each `comesOffAs[].cut`, read with the module's other citations in
+  // DOCUMENT_ROW_CITATIONS['body-modules'] below.
 
   /*
    * ⭐ `materialPath` — a reference Idea naming the MATERIAL it is
@@ -1251,7 +1237,14 @@ const DOCUMENT_ROW_CITATIONS: Readonly<Record<string, (d: Record<string, unknown
     const tissues = (Array.isArray(part.tissues) ? (part.tissues as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.tissue);
     const yields = (Array.isArray(part.produces) ? (part.produces as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.yieldRow);
     return [...tissues, ...yields];
-  }),
+  }).concat(
+    // …and its carcass map (W5): each `comesOffAs[].cut` names the row a
+    // butchering clones — a rowless one opens onto nothing, silently.
+    (Array.isArray(d.comesOffAs) ? d.comesOffAs : []).flatMap((e) => [
+      (e as Record<string, unknown>)?.tissue,
+      (e as Record<string, unknown>)?.cut,
+    ]),
+  ),
 };
 
 function checkDocumentCitations(rows: Map<string, string>): number {

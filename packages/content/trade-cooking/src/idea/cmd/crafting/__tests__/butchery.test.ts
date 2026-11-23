@@ -122,25 +122,10 @@ describe('butchery — the act, over the shipped rows', () => {
 
   // ---- D9 / P9: the yield is content ----
 
-  it('⭐ the wolf row authors a butchery yield — a huntable animal is ONE row', () => {
-    const yields = shippedWolfYield();
-    expect(yields.length).toBeGreaterThan(0);
-    expect(yields[0]!.cut).toBe('/stuff/thing/items/stew-meat');
-    expect(yields[0]!.units).toBeGreaterThan(1); // more meat than one meal
-  });
-
-  it('…and `butcheryYield` round-trips onto the Species field', () => {
-    const s = makeStuff(() => {
-      const sp = new Species();
-      sp.setButcheryYield(shippedWolfYield());
-      return sp;
-    });
-    expect(s.getButcheryYield()).toEqual(shippedWolfYield());
-  });
-
-  it('⚠ an empty yield is a STATEMENT, not a gap — most species author none', () => {
-    const rat = makeStuff(() => new Species());
-    expect(rat.getButcheryYield()).toEqual([]);
+  it('⭐ W5: a huntable animal is ONE row — and it authors no yield list', () => {
+    // What comes off derives from its body (organism-biology D5): the wolf's
+    // modules name what their tissues leave a carcass as.
+    expect(shippedWolfYield()).toEqual([]);
   });
 
   // ---- D14: the gate ----

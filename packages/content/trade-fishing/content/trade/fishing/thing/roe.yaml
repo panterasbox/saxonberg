@@ -3,7 +3,7 @@
 class: /platform/thing/Provision
 data:
   shortDescription: skein of roe
-  keywords: [roe, eggs, skein, fish]
+  keywords: [roe, eggs, skein]
   register: indefinite
   _materialPath: /stuff/idea/material/food/fish-flesh
   mass: 0.1

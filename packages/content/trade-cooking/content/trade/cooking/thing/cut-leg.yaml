@@ -15,6 +15,9 @@ data:
   longDescription: >-
     A whole hind leg, the bone running through it, the shank left on.
   _materialPath: /stuff/idea/material/tissue/muscles/leg
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 9.5
   tissues:
     - /stuff/idea/material/tissue/muscles/leg
   cutting: bone-in

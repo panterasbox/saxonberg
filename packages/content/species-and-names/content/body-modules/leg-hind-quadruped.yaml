@@ -1,5 +1,6 @@
 # leg-hind-quadruped — a body module (organism-biology D1): a subtree of parts with
 # relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W5: comesOffAs — what each material of this module leaves a carcass as.
 parts:
 - key: ''
   severable: true
@@ -13,3 +14,9 @@ parts:
 integument:
   skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.004, form: hide}
   coat: {material: /stuff/idea/material/tissue/fur, depthM: 0.015, loft: 0.85}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/bone, cut: /trade/ranching/thing/bone}
+- {tissue: /stuff/idea/material/tissue/muscles/leg, cut: /trade/cooking/thing/cut-leg}
+- {tissue: /stuff/idea/material/tissue/muscles/shank, cut: /trade/cooking/thing/cut-shank}
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/organic/rawhide, cut: /trade/ranching/thing/hide}
