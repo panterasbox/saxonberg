@@ -3,9 +3,8 @@
 > **Status: UNBUILT** — opened 2026-11-23 (owner, in naming-overhaul
 > review, over the `lists: relations` view key); shape decided in the
 > design conversation the same day (below).
-> **Left:** the client's manifestation (a verbs card, verbs as links, the
-> radial and typeahead reading the answer) · scripts asking whether a verb
-> exists.
+> **Left:** typeahead and the radial reading the answer · scripts asking
+> whether a verb exists. (The `which` card is in the requirements.)
 > **In requirements (2026-11-23):** [which](../../requirements/which-requirements.md) — the server command.
 > **Size:** a build (server first; the client reads it after).
 

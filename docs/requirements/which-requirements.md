@@ -1,6 +1,6 @@
 # `which` — requirements
 
-**Kind:** feature
+**Kind:** feature (server command + its card)
 **Leads from:** the kernel. First consumer: every player, on day one —
 every verb already comes from something authored (your body, a tool you
 hold, a fixture, the room, an app on your phone), so no new content is
@@ -9,8 +9,9 @@ needed for `which` to have something true to say.
 MUD interfaces were terrible, and the first wall a newcomer hits is a
 prompt with no menu: *what can I type?* `which` answers it — the verbs you
 can type here, now, and **what gives you each one** — as a deliberate
-server command whose answer is plain text in any terminal. The client
-reads the same answer later (its own build). Seeded by
+server command whose answer is plain text in any terminal **and a live
+card** — the answer is a table, and tables are what cards are for (owner,
+2026-11-23). Seeded by
 [command-line-reflection-slate](../slates/engine/command-line-reflection-slate.md),
 whose design conversation (owner, 2026-11-23) decided the shape; its
 *Reuse ledger for the plan* is the plan's starting point.
@@ -62,12 +63,17 @@ naming of each source**, and **the `~` words moving from `query` to
   line accepts right now, and every one it accepts is listed; nothing a
   player cannot perceive appears.
 - The `~` words have **one** home: `query`'s relation listing retires.
+- The answer is also a **card** that stays current as the player plays,
+  shows more as it gets wider, and lets them put a verb on the command
+  line with a click — never run it.
 
 ## Non-goals
 
-- **The client's manifestation** — a verbs card, verbs as links, the
-  radial and typeahead reading this answer → a client build, from
-  command-line-reflection-slate § Open questions (the client).
+- **Typeahead and the radial reading this answer** → a client build,
+  from command-line-reflection-slate § Open questions (the client).
+- **The card size axis** (glance · feed · focal · full, a body per size)
+  → [card-sizes-slate](../slates/client/card-sizes-slate.md); this card
+  uses the width classes cards already have.
 - **Scripts asking whether a verb exists** (`type -t`) →
   [scripting-hand-economy-slate](../slates/engine/scripting-hand-economy-slate.md).
 - **A dry run of a whole line** (*what would this do*) → nowhere,
@@ -82,7 +88,8 @@ naming of each source**, and **the `~` words moving from `query` to
 
 ## Placement
 
-The platform (kernel + the platform pack's view): `which` is a shell
+The platform (kernel + the platform pack's view, and the client's
+`which` card): `which` is a shell
 verb every body has, whatever packs are installed. A pack contributes
 nothing to it and needs no code to appear in it — its verbs and their
 sources show up because the pack already declared them. **A second
@@ -100,6 +107,9 @@ day its content ships.
 - **stream-arrival** (in flight) — its app and desk verbs appear in
   `which` with their sources; whichever build merges second checks the
   two meet (drive step 10).
+- **The card feed** — gains one card, born the one way every card is
+  (the command pushes it). The `here` card is the precedent for a card
+  that follows you.
 - **No place or object** gains anything; nothing new is put in the
   world.
 
@@ -155,6 +165,33 @@ the live part — here, now — so it is `which`'s; the shape stays help's.
 A concealed or unseen thing's verbs are not listed and the thing gives
 no `which <thing>`; a thing in the dark is as unnamed to `which` as it is
 to `look`. Otherwise `which` would be a detector.
+
+### The `which` card
+
+`which` pushes a card as well as its terminal reply (the reply stays, for
+terminal-only players). The card is a table, and shows more as it widens:
+
+| width | shows |
+|---|---|
+| one column (a phone) | the verb · its source, short (*fish — rod*) |
+| across the terminal | the verb · its source and place (*the rod in your right hand*) · whether it can be used now, greyed with the reason if not |
+| the stage | all of that · a one-line *what it does* · a link to `help` |
+
+- ⚠ **The one-line *what it does* is borrowed from help**, knowingly: it
+  is help's own line, shown as help's, beside the link — the one place
+  this responsibility lives in two places. Narrower widths omit it.
+- **Live, not a snapshot.** The card stays current as the player moves,
+  picks things up and sets them down — like the `here` card, it follows
+  them. Pinned, it is a verbs panel that is always right (lens 1: the why
+  stays in view while they play, which is when it teaches).
+- **A click on a verb types it** onto the command line; it never runs it.
+  `which` is deliberate and never acts.
+- **A click on a source opens `which <thing>`** — the same card narrowed.
+- **The usual body verbs** are one collapsed row that opens.
+- **`which ~`** shows the card on its `~` words: the word · its meaning,
+  and from the terminal width up, who or what is in it now (*~friends —
+  3 in the world*).
+- Things are named by their primary keyword, as everywhere else.
 
 ### The `~` listing leaves `query`
 
@@ -229,6 +266,25 @@ so there is no light step. There is no soak drive.
     own terms, never as unknown); a verb `which` did not list is not
     available there.
 
+### The card — the browser walk
+
+12. **[instant · player]** In a browser, the player types `which` on the
+    plaza: a `which` card appears beside the terminal reply, its table
+    matching the reply's verbs and sources.
+13. **[instant · player]** At one-column width the card shows verb ·
+    short source; widened across the terminal it adds the place and the
+    usable/greyed state with a reason; on the stage it adds the one-line
+    *what it does* and a `help` link.
+14. **[instant · player]** With the card pinned, they walk into the shop:
+    *buy — the counter here* appears without typing anything; they walk
+    out and it goes.
+15. **[instant · player]** They click *buy*: `buy` is on the command line
+    and nothing was bought. They click *the counter*: the card shows
+    `which counter`.
+16. **[instant · player]** They open the collapsed usual-verbs row and see
+    `look`, `say`, `go` …; `which ~` shows the `~` words with meanings and,
+    for `~friends`, how many are in the world.
+
 ### Soak drive
 
 None — no step depends on the clock.
@@ -252,6 +308,9 @@ None — no step depends on the clock.
 - Every verb `which` lists is accepted by the command line where it was
   listed, and none it omits is.
 - `query me:~` no longer lists relations; it points to `which ~`.
+- In a browser, `which` shows a card whose table matches the reply; it
+  shows more columns as it widens; pinned, it changes as the player moves
+  without their typing; clicking a verb types it and runs nothing.
 
 ## Cross-references
 
@@ -259,6 +318,8 @@ None — no step depends on the clock.
 - [command-routing.md](../subsystems/command-routing.md) — what affords a verb, and where it came from
 - [presentation.md](../subsystems/presentation.md) — the handle
 - [help.md](../subsystems/help.md) — the reference half
+- [card-surface.md](../subsystems/card-surface.md) — the card feed, width classes, the `here` card
+- [card-sizes-slate](../slates/client/card-sizes-slate.md) — the size axis this card does not build
 - [mql.md](../subsystems/mql.md) — relations, the `~` words
 - [concealment.md](../subsystems/concealment.md) · [light.md](../subsystems/light.md) — what a player cannot perceive
 - In flight: stream-arrival (build-2) — apps and desks that bring verbs
