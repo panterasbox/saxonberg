@@ -42,6 +42,7 @@
  */
 
 import type { Body } from './Body';
+import type { BodyVariant } from '../../platform/idea/species/Species';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -67,6 +68,14 @@ export interface Organism {
    * resolvable species or plan.
    */
   getBody(): Body | null;
+  /** ⭐ Which form of its species this body is: its sex and life stage (D8). */
+  getVariant(): BodyVariant;
+  /**
+   * ⭐ The words this body answers to now (D8) — its species' words for its
+   * form, the most specific first (a calf, a bull, a cow). Read late, so a
+   * calf that grows up answers to its adult name with nothing re-stamped.
+   */
+  getCommonNames(): readonly string[];
   /**
    * The species row this body CITES — whether or not that row is
    * resident (`getSpecies()` answers only for a resident one). A body
@@ -279,7 +288,15 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public getBody(): Body | null {
-      return this.getSpecies()?.bodyFor() ?? null;
+      return this.getSpecies()?.bodyFor(this.getVariant()) ?? null;
+    }
+
+    public getVariant(): BodyVariant {
+      return { sex: this.getSex(), stage: this.getLifeStage() };
+    }
+
+    public getCommonNames(): readonly string[] {
+      return this.getSpecies()?.getCommonNames(this.getVariant()) ?? [];
     }
 
     public getSpeciesPath(): string | null {

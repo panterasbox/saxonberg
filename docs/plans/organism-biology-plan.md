@@ -1580,6 +1580,18 @@ with the old and new figures in the commit body; the yield and tap goldens
 still pass at the reference mass.
 **Commit:** `feat(species): W2 sex and stage variants; the growth curve`
 
+> ✅ **W2 done.** `Species.variants` (`sex`, `stage`; async setter ensures
+> added modules), `bodyFor(variant)` memoized per form through
+> `BodyPlan.bodyWith(deltas)`, variant-keyed `getCommonNames`,
+> `getBiddability`, `getHandlingRange`, `massAt`. `OrganismMixin` gained
+> `getVariant()` and `getCommonNames()`; `getBody()` passes the variant.
+> The species rung in `Stuff.ts` reads the organism. `maleNames` and
+> `answerToSpecies` are gone; `Livestock` folds its words late in
+> `getKeywords(viewer)` and `getShortDescription()`. Five ranching rows
+> re-authored; the calf has a young body's proportions. `massAt` is von
+> Bertalanffy (re-pinned: birth and adult unchanged, juveniles heavier —
+> the figures are in the commit body). Decisions B9–B12.
+
 ### W3 — What a part is for
 
 **Goal:** the third role, the third rule, gaits and fill.
@@ -2213,6 +2225,35 @@ Decisions the build made that the plan did not, and what decided each.
   two plans share keeps the base plan's name (the canid's legs are
   `leg-fore-quadruped`). A species `body:` block arrives with variants in
   W2, its first author. *Decided by:* the installer's path rule.
+
+- **B9 (W2) — `Livestock` folds its short description late, as well as
+  its keywords.** The plan named the keyword fold and the `Stuff.ts`
+  species rung; but the identity rung asks the short description FIRST,
+  and the generic row's `head of stock` would have won, so a cow would
+  have read *a head of stock*. `getShortDescription()` answers the form's
+  first word, else the row's. *Decided by:* the nearest pattern (the stamp
+  it replaces set exactly this field).
+- **B10 (W2) — the naming rule.** A body answers to its stage's words,
+  then its sex's, then the species' own, minus any word authored only
+  under the OTHER sex; a body of no recorded sex excludes nothing (as the
+  stamp never did). Stage words moved off the species list, so an adult
+  no longer answers to `calf`; and a bull no longer answers to `heifer` (a
+  female word). A bull still answers to `cow` and `cattle`, which the
+  room calls him. *Decided by:* lens 1 (the words are the animal's kind,
+  sex and age, derivable) and the shipped draft-names rule, kept.
+- **B11 (W2) — the growth curve reaches the adult mass exactly at
+  `matureAt`.** Raw von Bertalanffy reaches 95 % there and creeps up
+  after; normalizing to raw-at-maturity (and flat after) keeps the plan's
+  rule *an adult weighs what its row says*, with birth still at 7 %.
+  *Decided by:* the plan's own test (if an adult figure moves, the curve
+  is wrong).
+- **B12 (W2, fixing W0) — the staging statics take a handle, not a
+  body.** `lint:object-verbs` holds Api statics whose first parameter is a
+  world object at zero. The harness already names things by handle
+  (`stage` a path or `#id`, `vanish` an id), so `bodyReport`, `woundBody`,
+  `severBodyPart`, `killBody` and `afflict` take `#<stuffId>` / a path / a
+  resident name, and the controllers pass the bound body's id. *Decided
+  by:* the compliant path (no exemption added).
 
 ## Drive record
 

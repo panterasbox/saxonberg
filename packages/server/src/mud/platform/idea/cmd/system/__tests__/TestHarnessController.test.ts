@@ -228,33 +228,33 @@ describe('testharness controllers', () => {
       const aff = vi
         .spyOn(TestHarnessApi, 'afflict')
         .mockResolvedValue({ character: 'Mara', condition: '/c/x', consciousness: 'unconscious' });
-      const mara = { name: 'Mara' };
+      const mara = { name: 'Mara', stuffId: 'm1' };
       await run({ subcommand: 'afflict', target: { stuff: mara }, condition: '/c/x', amount: '2' });
-      expect(aff).toHaveBeenCalledWith(mara, '/c/x', 2);
+      expect(aff).toHaveBeenCalledWith('#m1', '/c/x', 2);
       expect(said.join('\n')).toMatch(/unconscious/);
       // ⭐ Stage 0 relieves (organism-biology D16).
       await run({ subcommand: 'afflict', target: { stuff: mara }, condition: '/c/x', amount: '0' });
-      expect(aff).toHaveBeenLastCalledWith(mara, '/c/x', 0);
+      expect(aff).toHaveBeenLastCalledWith('#m1', '/c/x', 0);
       expect(said.join('\n')).toMatch(/relieved of/);
     });
 
     it('⭐ the body subcommands forward the BOUND body (organism-biology D16)', async () => {
-      const cow = { name: 'a cow' };
-      const wolf = { name: 'a wolf' };
+      const cow = { name: 'a cow', stuffId: 'c1' };
+      const wolf = { name: 'a wolf', stuffId: 'w1' };
       const rep = vi.spyOn(TestHarnessApi, 'bodyReport').mockResolvedValue({ body: 'a cow' } as never);
       await run({ subcommand: 'body', target: { stuff: cow }, other: { stuff: wolf } });
-      expect(rep).toHaveBeenCalledWith(cow, wolf);
+      expect(rep).toHaveBeenCalledWith('#c1', '#w1');
       expect(said.join('\n')).toMatch(/Body of a cow/);
       const wound = { body: 'a cow', site: 'body.torso', type: 'puncture', severity: 2, afflicted: true, missing: [] };
       const w = vi.spyOn(TestHarnessApi, 'woundBody').mockResolvedValue(wound);
       await run({ subcommand: 'body-wound', target: { stuff: cow }, part: 'body.torso', channel: 'point', amount: '2' });
-      expect(w).toHaveBeenCalledWith(cow, 'body.torso', 'point', 2);
+      expect(w).toHaveBeenCalledWith('#c1', 'body.torso', 'point', 2);
       const sv = vi.spyOn(TestHarnessApi, 'severBodyPart').mockResolvedValue({ ...wound, type: 'avulsion' });
       await run({ subcommand: 'body-sever', target: { stuff: cow }, part: 'body.leg.frontLeft' });
-      expect(sv).toHaveBeenCalledWith(cow, 'body.leg.frontLeft');
+      expect(sv).toHaveBeenCalledWith('#c1', 'body.leg.frontLeft');
       const k = vi.spyOn(TestHarnessApi, 'killBody').mockResolvedValue({ body: 'a cow', alive: false });
       await run({ subcommand: 'body-kill', target: { stuff: cow } });
-      expect(k).toHaveBeenCalledWith(cow);
+      expect(k).toHaveBeenCalledWith('#c1');
       expect(said.join('\n')).toMatch(/a cow is dead/);
     });
 

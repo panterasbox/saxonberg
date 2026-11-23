@@ -389,20 +389,25 @@ export default class Livestock extends LivestockBase {
   }
 
   /**
-   * ⭐ Let the head answer to what it IS: the species' common names join
-   * the generic row's keywords, less the names only a male goes by when
-   * she is female (a cow is not a bull; a bull still answers to `cow`,
-   * which is what the room calls him).
+   * ⭐⭐ **A head answers to what it IS NOW** (organism-biology D8): the
+   * generic row's words, then its species' words for its form — a calf, a
+   * bull, a cow — read LATE, at every bind. Nothing is stamped at draft,
+   * which is what lets a calf come to answer to its adult name with no
+   * re-draft. A word only the other sex goes by is not hers (`milk bull`
+   * in a byre with a cow in it finds the bull or nothing).
    */
-  public answerToSpecies(species: Species | null, sex: string): void {
-    if (!species) return;
-    const notHers = sex === 'female' ? new Set(species.getMaleNames()) : new Set<string>();
-    const names = species.getCommonNames().filter((n) => !notHers.has(n)).map((n) => n.toLowerCase());
-    if (names.length === 0) return;
-    const existing = this.getKeywords().map((k) => k.toLowerCase());
-    this.setKeywords([...new Set([...existing, ...names])]);
-    const primary = names[0];
-    if (primary) this.setShortDescription(primary);
+  override getKeywords(viewer?: Stuff): string[] {
+    const own = super.getKeywords(viewer);
+    const words = this.getCommonNames().map((n) => n.toLowerCase());
+    return [...new Set([...own.map((k) => k.toLowerCase()), ...words])];
+  }
+
+  /**
+   * ⭐ What the head is called, read late for the same reason: the row's
+   * `head of stock` stands only for a head with no species words.
+   */
+  override getShortDescription(): string {
+    return this.getCommonNames()[0]?.toLowerCase() ?? super.getShortDescription();
   }
 
   /**

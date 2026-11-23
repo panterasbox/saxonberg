@@ -121,11 +121,14 @@ export abstract class TestHarnessControllerBase extends CommandController<TestHa
     );
   }
 
-  /** The bound body of a `body*` subcommand (the binder already refused an unbound one). */
-  protected static bodyOf(model: TestHarnessModel): Stuff {
-    const stuff = model.target?.stuff as Stuff | undefined;
+  /**
+   * The bound body of a `body*` subcommand, as the harness's handle
+   * (`#<stuffId>`): the binder resolved the object, the Api names it by id.
+   */
+  protected static bodyOf(model: TestHarnessModel, which: 'target' | 'other' = 'target'): string {
+    const stuff = model[which]?.stuff as Stuff | undefined;
     if (stuff === undefined) throw new Error('testharness: name a body');
-    return stuff;
+    return `#${stuff.stuffId}`;
   }
 
   protected static say(context: CommandContext, text: string): void {

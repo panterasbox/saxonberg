@@ -47,7 +47,7 @@ const GOVERNABLE: ReadonlySet<string> = new Set<string>([
   ...BODY_CAPACITIES,
 ]);
 import type { SenseChannel } from '../../../lib/description/Perceiver';
-import { Body, type ModuleRef } from '../../../lib/species/Body';
+import { Body, type BodyDelta, type ModuleRef } from '../../../lib/species/Body';
 import { SpeciesApi } from '../../../api/species';
 import { StuffApi } from '../../../api/stuff';
 import type { FieldMeta } from '../../../lib/mixin';
@@ -608,6 +608,26 @@ export default class BodyPlan extends SingletonMixin(Idea) {
       );
     }
     return this.body;
+  }
+
+  /**
+   * This plan's body with `deltas` applied on top (a species' forms: a
+   * calf's proportions, a cow's udder) — a fresh `Body`, never cached
+   * here; `Species.bodyFor` memoizes per form.
+   */
+  public bodyWith(deltas: readonly BodyDelta[]): Body {
+    const catalogue = SpeciesApi.modules();
+    return new Body(
+      {
+        modules: this.modules,
+        slots: this.slots,
+        sensoryPorts: this.sensoryPorts,
+        locomotionModes: this.locomotionModes,
+        breathing: this.breathing,
+      },
+      (path) => catalogue.need(path),
+      deltas,
+    );
   }
 
   /** Every module this plan cites is resident. */

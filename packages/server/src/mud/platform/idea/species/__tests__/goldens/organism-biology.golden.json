@@ -24,6 +24,36 @@
           ]
         },
         {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0135
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0203
+            }
+          ]
+        },
+        {
           "key": "body.head",
           "parent": "body.torso",
           "governs": [],
@@ -107,36 +137,6 @@
               "share": 0.027
             }
           ]
-        },
-        {
-          "key": "body.torso.heart",
-          "parent": "body.torso",
-          "governs": [
-            "heartRate"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.0135
-            }
-          ]
-        },
-        {
-          "key": "body.torso.lungs",
-          "parent": "body.torso",
-          "governs": [
-            "respiratoryRate"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.0203
-            }
-          ]
         }
       ],
       "sensoryPorts": [
@@ -186,6 +186,79 @@
           ]
         },
         {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0031
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0103
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0062
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0052
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0155
+            }
+          ]
+        },
+        {
           "key": "body.head",
           "parent": "body.torso",
           "governs": [],
@@ -199,6 +272,21 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.0413
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0134
             }
           ]
         },
@@ -377,94 +465,6 @@
               "share": 0.0052
             }
           ]
-        },
-        {
-          "key": "body.torso.heart",
-          "parent": "body.torso",
-          "governs": [
-            "heartRate",
-            "circulation"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.0031
-            }
-          ]
-        },
-        {
-          "key": "body.torso.lungs",
-          "parent": "body.torso",
-          "governs": [
-            "respiratoryRate",
-            "respiration"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.0103
-            }
-          ]
-        },
-        {
-          "key": "body.head.brain",
-          "parent": "body.head",
-          "governs": [
-            "consciousness"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.0134
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.upper",
-          "parent": "body.torso",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.0062
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.lower",
-          "parent": "body.torso.spine.upper",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.0052
-            }
-          ]
-        },
-        {
-          "key": "body.torso.liver",
-          "parent": "body.torso",
-          "governs": [
-            "clearance"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.0155
-            }
-          ]
         }
       ],
       "sensoryPorts": [
@@ -547,6 +547,79 @@
           ]
         },
         {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.002
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.006
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.005
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.012
+            }
+          ]
+        },
+        {
           "key": "body.head",
           "parent": "body.torso",
           "governs": [],
@@ -570,6 +643,21 @@
           "serves": [
             "manipulation"
           ],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.003
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
           "severable": false,
           "tissues": [
             {
@@ -685,94 +773,6 @@
               "share": 0.01
             }
           ]
-        },
-        {
-          "key": "body.torso.heart",
-          "parent": "body.torso",
-          "governs": [
-            "heartRate",
-            "circulation"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.002
-            }
-          ]
-        },
-        {
-          "key": "body.torso.lungs",
-          "parent": "body.torso",
-          "governs": [
-            "respiratoryRate",
-            "respiration"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.01
-            }
-          ]
-        },
-        {
-          "key": "body.head.brain",
-          "parent": "body.head",
-          "governs": [
-            "consciousness"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.003
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.upper",
-          "parent": "body.torso",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.006
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.lower",
-          "parent": "body.torso.spine.upper",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.005
-            }
-          ]
-        },
-        {
-          "key": "body.torso.liver",
-          "parent": "body.torso",
-          "governs": [
-            "clearance"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.012
-            }
-          ]
         }
       ],
       "sensoryPorts": [
@@ -829,6 +829,36 @@
           ]
         },
         {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0097
+            }
+          ]
+        },
+        {
+          "key": "body.torso.gills",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.0194
+            }
+          ]
+        },
+        {
           "key": "body.claw.left",
           "parent": "body.torso",
           "governs": [],
@@ -859,36 +889,6 @@
             {
               "tissue": "/stuff/idea/material/tissue/muscle",
               "share": 0.0485
-            }
-          ]
-        },
-        {
-          "key": "body.torso.heart",
-          "parent": "body.torso",
-          "governs": [
-            "heartRate"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.0097
-            }
-          ]
-        },
-        {
-          "key": "body.torso.gills",
-          "parent": "body.torso",
-          "governs": [
-            "respiratoryRate"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.0194
             }
           ]
         }
@@ -946,36 +946,6 @@
           ]
         },
         {
-          "key": "body.head",
-          "parent": "body.torso",
-          "governs": [],
-          "serves": [],
-          "severable": true,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.0386
-            },
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.029
-            }
-          ]
-        },
-        {
-          "key": "body.tail",
-          "parent": "body.torso",
-          "governs": [],
-          "serves": [],
-          "severable": true,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.0483
-            }
-          ]
-        },
-        {
           "key": "body.torso.heart",
           "parent": "body.torso",
           "governs": [
@@ -1002,6 +972,36 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.0097
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.0386
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.029
+            }
+          ]
+        },
+        {
+          "key": "body.tail",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.0483
             }
           ]
         }
@@ -1053,6 +1053,51 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.318
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.003
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.005
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.008
             }
           ]
         },
@@ -1152,51 +1197,6 @@
               "share": 0.025
             }
           ]
-        },
-        {
-          "key": "body.torso.heart",
-          "parent": "body.torso",
-          "governs": [
-            "heartRate"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.003
-            }
-          ]
-        },
-        {
-          "key": "body.torso.lungs",
-          "parent": "body.torso",
-          "governs": [
-            "respiratoryRate"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.005
-            }
-          ]
-        },
-        {
-          "key": "body.torso.liver",
-          "parent": "body.torso",
-          "governs": [
-            "clearance"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.008
-            }
-          ]
         }
       ],
       "sensoryPorts": [
@@ -1224,6 +1224,210 @@
           "modality": "taste",
           "count": 1,
           "position": "forward"
+        }
+      ],
+      "locomotionModes": [
+        "walk"
+      ],
+      "breathing": null
+    },
+    "/stuff/idea/species/BodyPlan/insect": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.12012
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.600601
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.005005
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.03003
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.06006
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01001
+            }
+          ]
+        },
+        {
+          "key": "body.leg.foreLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.02002
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.009009
+            }
+          ]
+        },
+        {
+          "key": "body.leg.foreRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.02002
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.009009
+            }
+          ]
+        },
+        {
+          "key": "body.leg.midLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.02002
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.009009
+            }
+          ]
+        },
+        {
+          "key": "body.leg.midRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.02002
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.009009
+            }
+          ]
+        },
+        {
+          "key": "body.leg.hindLeft",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.02002
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.009009
+            }
+          ]
+        },
+        {
+          "key": "body.leg.hindRight",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/chitin",
+              "share": 0.02002
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.009009
+            }
+          ]
+        }
+      ],
+      "sensoryPorts": [
+        {
+          "modality": "vision",
+          "count": 2,
+          "position": "lateral"
+        },
+        {
+          "modality": "smell",
+          "count": 2,
+          "position": "forward"
+        },
+        {
+          "modality": "touch",
+          "count": 1,
+          "position": "circumferential"
         }
       ],
       "locomotionModes": [
@@ -1275,6 +1479,79 @@
           ]
         },
         {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.002
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.01
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.006
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.005
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.012
+            }
+          ]
+        },
+        {
           "key": "body.head",
           "parent": "body.torso",
           "governs": [],
@@ -1288,6 +1565,21 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.03
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.003
             }
           ]
         },
@@ -1396,94 +1688,6 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.01
-            }
-          ]
-        },
-        {
-          "key": "body.torso.heart",
-          "parent": "body.torso",
-          "governs": [
-            "heartRate",
-            "circulation"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.002
-            }
-          ]
-        },
-        {
-          "key": "body.torso.lungs",
-          "parent": "body.torso",
-          "governs": [
-            "respiratoryRate",
-            "respiration"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.01
-            }
-          ]
-        },
-        {
-          "key": "body.head.brain",
-          "parent": "body.head",
-          "governs": [
-            "consciousness"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.003
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.upper",
-          "parent": "body.torso",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.006
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.lower",
-          "parent": "body.torso.spine.upper",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.005
-            }
-          ]
-        },
-        {
-          "key": "body.torso.liver",
-          "parent": "body.torso",
-          "governs": [
-            "clearance"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.012
             }
           ]
         }
@@ -1571,6 +1775,79 @@
           ]
         },
         {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.001399
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.006997
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.upper",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.004198
+            }
+          ]
+        },
+        {
+          "key": "body.torso.spine.lower",
+          "parent": "body.torso.spine.upper",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.003498
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.008396
+            }
+          ]
+        },
+        {
           "key": "body.head",
           "parent": "body.torso",
           "governs": [],
@@ -1584,6 +1861,21 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.02089
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.002099
             }
           ]
         },
@@ -1692,94 +1984,6 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.006997
-            }
-          ]
-        },
-        {
-          "key": "body.torso.heart",
-          "parent": "body.torso",
-          "governs": [
-            "heartRate",
-            "circulation"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/muscle",
-              "share": 0.001399
-            }
-          ]
-        },
-        {
-          "key": "body.torso.lungs",
-          "parent": "body.torso",
-          "governs": [
-            "respiratoryRate",
-            "respiration"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.006997
-            }
-          ]
-        },
-        {
-          "key": "body.head.brain",
-          "parent": "body.head",
-          "governs": [
-            "consciousness"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.002099
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.upper",
-          "parent": "body.torso",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.004198
-            }
-          ]
-        },
-        {
-          "key": "body.torso.spine.lower",
-          "parent": "body.torso.spine.upper",
-          "governs": [],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/bone",
-              "share": 0.003498
-            }
-          ]
-        },
-        {
-          "key": "body.torso.liver",
-          "parent": "body.torso",
-          "governs": [
-            "clearance"
-          ],
-          "serves": [],
-          "severable": false,
-          "tissues": [
-            {
-              "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.008396
             }
           ]
         }
@@ -1983,15 +2187,15 @@
       },
       {
         "ageDays": 5,
-        "kg": 0.36875
+        "kg": 0.456648
       },
       {
         "ageDays": 10,
-        "kg": 0.5625
+        "kg": 0.795873
       },
       {
         "ageDays": 35,
-        "kg": 1.53125
+        "kg": 2.085104
       },
       {
         "ageDays": 60,
@@ -2005,15 +2209,15 @@
       },
       {
         "ageDays": 30,
-        "kg": 89.65
+        "kg": 114.858022
       },
       {
         "ageDays": 60,
-        "kg": 140.8
+        "kg": 205.468869
       },
       {
         "ageDays": 180,
-        "kg": 345.4
+        "kg": 465.144981
       },
       {
         "ageDays": 300,
@@ -2027,15 +2231,15 @@
       },
       {
         "ageDays": 15,
-        "kg": 9.78
+        "kg": 12.529966
       },
       {
         "ageDays": 30,
-        "kg": 15.36
+        "kg": 22.414786
       },
       {
         "ageDays": 90,
-        "kg": 37.68
+        "kg": 50.743089
       },
       {
         "ageDays": 150,
@@ -2049,15 +2253,15 @@
       },
       {
         "ageDays": 15,
-        "kg": 11.41
+        "kg": 14.618294
       },
       {
         "ageDays": 30,
-        "kg": 17.92
+        "kg": 26.150583
       },
       {
         "ageDays": 90,
-        "kg": 43.96
+        "kg": 59.20027
       },
       {
         "ageDays": 150,
@@ -2071,15 +2275,15 @@
       },
       {
         "ageDays": 10,
-        "kg": 16.984615
+        "kg": 20.738246
       },
       {
         "ageDays": 20,
-        "kg": 25.569231
+        "kg": 35.641604
       },
       {
         "ageDays": 75,
-        "kg": 72.784615
+        "kg": 99.527221
       },
       {
         "ageDays": 130,
@@ -2093,15 +2297,15 @@
       },
       {
         "ageDays": 10,
-        "kg": 2.33
+        "kg": 2.664655
       },
       {
         "ageDays": 20,
-        "kg": 3.26
+        "kg": 4.176655
       },
       {
         "ageDays": 110,
-        "kg": 11.63
+        "kg": 16.177618
       },
       {
         "ageDays": 200,
@@ -2115,15 +2319,15 @@
       },
       {
         "ageDays": 15,
-        "kg": 0.107914
+        "kg": 0.114194
       },
       {
         "ageDays": 30,
-        "kg": 0.131829
+        "kg": 0.147946
       },
       {
         "ageDays": 365,
-        "kg": 0.665914
+        "kg": 0.942343
       },
       {
         "ageDays": 700,
@@ -2137,15 +2341,15 @@
       },
       {
         "ageDays": 15,
-        "kg": 0.204063
+        "kg": 0.210718
       },
       {
         "ageDays": 30,
-        "kg": 0.233125
+        "kg": 0.249143
       },
       {
         "ageDays": 615,
-        "kg": 1.366562
+        "kg": 1.943776
       },
       {
         "ageDays": 1200,
@@ -2159,15 +2363,15 @@
       },
       {
         "ageDays": 4,
-        "kg": 0.404
+        "kg": 0.441819
       },
       {
         "ageDays": 8,
-        "kg": 0.528
+        "kg": 0.629527
       },
       {
         "ageDays": 64,
-        "kg": 2.264
+        "kg": 3.18141
       },
       {
         "ageDays": 120,
@@ -2181,15 +2385,15 @@
       },
       {
         "ageDays": 30,
-        "kg": 0.07088
+        "kg": 0.074709
       },
       {
         "ageDays": 60,
-        "kg": 0.08576
+        "kg": 0.095508
       },
       {
         "ageDays": 780,
-        "kg": 0.44288
+        "kg": 0.627244
       },
       {
         "ageDays": 1500,
@@ -2203,15 +2407,15 @@
       },
       {
         "ageDays": 15,
-        "kg": 0.119946
+        "kg": 0.123267
       },
       {
         "ageDays": 30,
-        "kg": 0.134893
+        "kg": 0.142742
       },
       {
         "ageDays": 715,
-        "kg": 0.817446
+        "kg": 1.163898
       },
       {
         "ageDays": 1400,
@@ -2225,15 +2429,15 @@
       },
       {
         "ageDays": 5,
-        "kg": 0.008163
+        "kg": 0.008429
       },
       {
         "ageDays": 10,
-        "kg": 0.009325
+        "kg": 0.009966
       },
       {
         "ageDays": 205,
-        "kg": 0.054662
+        "kg": 0.077751
       },
       {
         "ageDays": 400,
@@ -2247,15 +2451,15 @@
       },
       {
         "ageDays": 30,
-        "kg": 3.0232
+        "kg": 3.06866
       },
       {
         "ageDays": 60,
-        "kg": 3.2464
+        "kg": 3.347776
       },
       {
         "ageDays": 2530,
-        "kg": 21.6232
+        "kg": 30.869049
       },
       {
         "ageDays": 5000,

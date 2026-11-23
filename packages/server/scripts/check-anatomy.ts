@@ -48,7 +48,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { Body, type ModuleRef } from '../src/mud/lib/species/Body';
+import { Body, type BodyDelta, type ModuleRef } from '../src/mud/lib/species/Body';
 import { BodyModule } from '../src/mud/lib/species/BodyModule';
 
 const HERE = resolve(fileURLToPath(import.meta.url), '..');
@@ -105,7 +105,7 @@ function moduleDocs(): Map<string, Record<string, unknown>> {
  * module path nobody ships, two instances on one key, an instance hung from
  * a missing part, a malformed module — is a finding here, not a boot error.
  */
-function bodyPlanRows(): { file: string; path: string; body: Body | null; error?: string; authorsBodyParts: boolean }[] {
+function bodyPlanRows(): { file: string; path: string; body: Body | null; modules?: ModuleRef[]; error?: string; authorsBodyParts: boolean }[] {
   const docs = moduleDocs();
   const parsed = new Map<string, BodyModule>();
   const resolveModule = (path: string): BodyModule => {
@@ -126,14 +126,15 @@ function bodyPlanRows(): { file: string; path: string; body: Body | null; error?
     const parent = (row as { ext?: string }).ext;
     return parent ? { ...dataOf(parent, depth + 1), ...own } : own;
   };
-  const out: { file: string; path: string; body: Body | null; error?: string; authorsBodyParts: boolean }[] = [];
+  const out: { file: string; path: string; body: Body | null; modules?: ModuleRef[]; error?: string; authorsBodyParts: boolean }[] = [];
   for (const row of rows) {
     const path = rowPathOf(row.file) ?? row.file;
     const data = dataOf(path);
     const authorsBodyParts = 'bodyParts' in (row.doc as object);
     try {
-      const body = new Body({ modules: (data.modules as ModuleRef[] | undefined) ?? [] }, resolveModule);
-      out.push({ file: row.file, path, body, authorsBodyParts });
+      const modules = (data.modules as ModuleRef[] | undefined) ?? [];
+      const body = new Body({ modules }, resolveModule);
+      out.push({ file: row.file, path, body, modules, authorsBodyParts });
     } catch (err) {
       out.push({ file: row.file, path, body: null, error: (err as Error).message, authorsBodyParts });
     }
@@ -191,6 +192,51 @@ export function clausePlansBuild(rows: ReturnType<typeof bodyPlanRows>): Finding
       out.push({ file: row.file, detail: "authors 'bodyParts' — a plan names its modules (`modules:`); parts are derived" });
     }
     if (row.error) out.push({ file: row.file, detail: `does not build: ${row.error}` });
+  }
+  return out;
+}
+
+/**
+ * Clause (0b) — every species FORM builds (organism-biology D8): a variant
+ * that adds or scales modules expands on its plan, so a calf whose `scale`
+ * names a leg the plan does not have, or an udder module nobody ships, is a
+ * finding here rather than a throw on the first read in play.
+ */
+export function clauseVariantsBuild(): Finding[] {
+  const out: Finding[] = [];
+  const docs = moduleDocs();
+  const resolveModule = (path: string): BodyModule => {
+    const data = docs.get(path);
+    if (!data) throw new Error(`cites module '${path}', which no pack ships`);
+    return new BodyModule(path, data);
+  };
+  const plans = new Map(bodyPlanRows().map((r) => [r.path, r]));
+  for (const row of allRows()) {
+    if (row.cls !== '/platform/idea/species/Species') continue;
+    const data = row.doc as { _bodyPlanPath?: string; variants?: { sex?: Record<string, { body?: BodyDelta }>; stage?: Record<string, { body?: BodyDelta }> } };
+    const forms = [...Object.entries(data.variants?.sex ?? {}), ...Object.entries(data.variants?.stage ?? {})];
+    const plan = data._bodyPlanPath ? plans.get(data._bodyPlanPath) : undefined;
+    for (const [name, form] of forms) {
+      if (!form?.body) continue;
+      if (!plan?.modules) {
+        out.push({ file: row.file, detail: `form '${name}' changes a body, but the species names no plan that builds` });
+        continue;
+      }
+      for (const key of Object.keys(form.body.scale ?? {})) {
+        const known = plan.body?.getPart(key) ?? null;
+        const added = (form.body.add ?? []).some((r) => r.as.includes(key));
+        if (!known && !added) out.push({ file: row.file, detail: `form '${name}' scales '${key}', which this body does not have` });
+      }
+      try {
+        const body = new Body({ modules: plan.modules }, resolveModule, [form.body]);
+        const sum = body.getParts().reduce((a, p) => a + p.tissues.reduce((b, t) => b + t.share, 0), 0);
+        if (body.getParts().length > 0 && Math.abs(sum - 1) > SUM_TOLERANCE) {
+          out.push({ file: row.file, detail: `form '${name}' sums to ${sum.toFixed(4)}, not 1` });
+        }
+      } catch (err) {
+        out.push({ file: row.file, detail: `form '${name}' does not build: ${(err as Error).message}` });
+      }
+    }
   }
   return out;
 }
@@ -380,6 +426,7 @@ function main(): void {
   const rows = bodyPlanRows();
   const findings = [
     ...clausePlansBuild(rows),
+    ...clauseVariantsBuild(),
     ...clauseSharesSumToOne(rows),
     ...clauseSpeciesPlanResolves(),
     ...clauseNoDoubleShare(),

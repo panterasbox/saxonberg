@@ -13,8 +13,14 @@
 class: /platform/idea/species/Species
 data:
   binomial: Gallus domesticus
-  commonNames: ["hen", "chicken", "fowl", "cockerel", "pullet", "bird"]
-  maleNames: [cockerel]
+  commonNames: ["chicken", "fowl", "bird"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [hen, pullet] }
+      male: { commonNames: [cockerel] }
   # ⚠⚠ This said `BodyPlan/biped` until 2026-10-05 — the HUMAN plan. A hen
   # had `body.arm.left.hand`, a liver, an upper and lower spine, and NO
   # WINGS. Nothing errored, because nothing checked: a body plan is named

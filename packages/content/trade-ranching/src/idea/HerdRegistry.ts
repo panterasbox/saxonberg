@@ -805,7 +805,6 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     } catch {
       /* the species keeps no sexes; the head stays unrecorded */
     }
-    animal.answerToSpecies(species, sample.sex);
     animal.setAge(sample.ageDays);
     animal.setHandling(sample.handling);
     const since = overlay?.fleshAt ?? herd.founded;

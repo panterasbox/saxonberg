@@ -15,8 +15,22 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/cattle, strength: 20 }]
   binomial: Bos taurus
-  commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]
-  maleNames: [bull, ox]
+  commonNames: ["cow", "cattle", "beast"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [cow, heifer] }
+      male: { commonNames: [bull, ox] }
+    stage:
+      # ⭐ A calf is not a small cow: a big head and long legs on a short
+      # body, scaled on the same modules (renormalized, so the shares
+      # still sum to one).
+      newborn:
+        commonNames: [calf]
+        body:
+          scale: { body.head: 1.6, body.leg.frontLeft: 1.25, body.leg.frontRight: 1.25, body.leg.rearLeft: 1.25, body.leg.rearRight: 1.25 }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh

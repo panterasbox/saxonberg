@@ -33,7 +33,6 @@ import {
   type PurgeReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
-import type { Stuff } from '../lib/stuff/Stuff';
 import { fileURLToPath } from 'url';
 
 export type {
@@ -215,25 +214,30 @@ export class TestHarnessApi {
    * and read the body once, so going under happens now (its hands let go).
    */
   @TestOnly('In a test world, afflict a body with `testharness afflict <body> <condition> [stage]`.')
-  public static afflict(body: Stuff, conditionPath: string, stage?: number): Promise<AfflictReport> {
+  public static afflict(body: string, conditionPath: string, stage?: number): Promise<AfflictReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'afflict', () =>
       logic().afflict(body, conditionPath, stage),
     );
   }
 
   /**
+   * ⭐ Bodies are named by HANDLE (organism-biology D16), as `stage` and
+   * `vanish` name theirs: `#<stuffId>` for one live instance (what the
+   * `testharness` controllers pass for the body the binder resolved), a
+   * template path, or a resident character's name.
+   *
    * ⭐ Read one body as a drive asserts on it (organism-biology D16): its
    * stage, sex, names, conditions, wounds, core temperature, capacities and
    * lost parts — and, given `other`, whether it perceives `other`.
    */
   @TestOnly('In a test world, read a body with `testharness body <target> [perceiving <other>]`.')
-  public static bodyReport(body: Stuff, other: Stuff | null = null): Promise<BodyReport> {
+  public static bodyReport(body: string, other: string | null = null): Promise<BodyReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'bodyReport', () => logic().bodyReport(body, other));
   }
 
   /** ⭐ Wound one part through `ConditionApi.inflict` — the channel's own fold, as in play. */
   @TestOnly('In a test world, wound a part with `testharness body-wound <target> <part> <channel> [magnitude]`.')
-  public static woundBody(body: Stuff, part: string, channel: string, magnitude: number): Promise<BodyWoundReport> {
+  public static woundBody(body: string, part: string, channel: string, magnitude: number): Promise<BodyWoundReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'woundBody', async () =>
       logic().woundBody(body, part, channel, magnitude),
     );
@@ -241,7 +245,7 @@ export class TestHarnessApi {
 
   /** ⭐ Take a part off by a real avulsion at the sever severity — never a woundless loss. */
   @TestOnly('In a test world, sever a part with `testharness body-sever <target> <part>`.')
-  public static severBodyPart(body: Stuff, part: string): Promise<BodyWoundReport> {
+  public static severBodyPart(body: string, part: string): Promise<BodyWoundReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'severBodyPart', async () =>
       logic().severBodyPart(body, part),
     );
@@ -249,7 +253,7 @@ export class TestHarnessApi {
 
   /** ⭐ Kill a body through the single death transition (`ConditionApi.die`). */
   @TestOnly('In a test world, kill a body with `testharness body-kill <target>`.')
-  public static killBody(body: Stuff): Promise<{ body: string; alive: boolean }> {
+  public static killBody(body: string): Promise<{ body: string; alive: boolean }> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'killBody', () => logic().killBody(body));
   }
 

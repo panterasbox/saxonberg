@@ -475,11 +475,12 @@ export class TestHarnessLogic extends ApiLogic {
    * whatever going under does (its hands let go, D13) happens now.
    */
   @CallSecurity(TestHarnessApiCallers)
-  public async afflict(body: Stuff, conditionPath: string, stage = 1): Promise<AfflictReport> {
+  public async afflict(handle0: string, conditionPath: string, stage = 1): Promise<AfflictReport> {
     // The stage is the logic's to judge, not the verb's (lint:controller-decisions).
     // ⭐ Stage 0 RELIEVES (organism-biology D16): the staged twin of a
     // condition's clearing, so a drive can take a cow out of milk.
     if (!(Number.isFinite(stage) && stage >= 0)) throw new Error(`testharness afflict: a stage is a number, 0 to relieve (got ${stage})`);
+    const body = await this.bodyByHandle(handle0, 'afflict');
     const handle = body.getPresentation();
     const row = await StuffApi.singleton<Stuff>(conditionPath).catch(() => null);
     if (!(row instanceof Condition)) throw new Error(`testharness afflict: '${conditionPath}' is not a condition`);
@@ -515,7 +516,9 @@ export class TestHarnessLogic extends ApiLogic {
 
   /** See {@link TestHarnessApi.bodyReport}. */
   @CallSecurity(TestHarnessApiCallers)
-  public async bodyReport(body: Stuff, other: Stuff | null): Promise<BodyReport> {
+  public async bodyReport(handle: string, otherHandle: string | null): Promise<BodyReport> {
+    const body = await this.bodyByHandle(handle, 'body');
+    const other = otherHandle === null ? null : await this.bodyByHandle(otherHandle, 'body');
     const organism = MixinApi.isOrganism(body) ? body : null;
     const vitals = MixinApi.isVitals(body) ? body : null;
     const capacities: Record<string, string> = {};
@@ -550,7 +553,8 @@ export class TestHarnessLogic extends ApiLogic {
 
   /** See {@link TestHarnessApi.woundBody}. */
   @CallSecurity(TestHarnessApiCallers)
-  public woundBody(body: Stuff, part: string, channel: string, magnitude: number): BodyWoundReport {
+  public async woundBody(handle: string, part: string, channel: string, magnitude: number): Promise<BodyWoundReport> {
+    const body = await this.bodyByHandle(handle, 'body-wound');
     if (!MixinApi.isVitals(body)) throw new Error(`testharness body-wound: '${body.getPresentation()}' has no vitals`);
     if (!(Number.isFinite(magnitude) && magnitude > 0)) {
       throw new Error(`testharness body-wound: a magnitude is a number above 0 (got ${magnitude})`);
@@ -578,7 +582,8 @@ export class TestHarnessLogic extends ApiLogic {
    * whatever a sever does in play all happen. Never a woundless loss.
    */
   @CallSecurity(TestHarnessApiCallers)
-  public severBodyPart(body: Stuff, part: string): BodyWoundReport {
+  public async severBodyPart(handle: string, part: string): Promise<BodyWoundReport> {
+    const body = await this.bodyByHandle(handle, 'body-sever');
     if (!MixinApi.isVitals(body)) throw new Error(`testharness body-sever: '${body.getPresentation()}' has no vitals`);
     const p = body.getPart(part);
     if (p === null) throw new Error(`testharness body-sever: '${body.getPresentation()}' has no part '${part}'`);
@@ -590,7 +595,8 @@ export class TestHarnessLogic extends ApiLogic {
 
   /** See {@link TestHarnessApi.killBody}: the single death transition. */
   @CallSecurity(TestHarnessApiCallers)
-  public async killBody(body: Stuff): Promise<{ body: string; alive: boolean }> {
+  public async killBody(handle: string): Promise<{ body: string; alive: boolean }> {
+    const body = await this.bodyByHandle(handle, 'body-kill');
     if (!MixinApi.isOrganism(body)) throw new Error(`testharness body-kill: '${body.getPresentation()}' is not a living thing`);
     const name = body.getPresentation();
     await ConditionApi.die(body, 'staged');
@@ -669,6 +675,25 @@ export class TestHarnessLogic extends ApiLogic {
     // forget: re-warm it, as a recipe go-live would.
     if (kind === 'recipe') await CraftingApi.recipes().warm();
     return { path, kind };
+  }
+
+  /**
+   * A body by handle (organism-biology D16): `#<stuffId>` for one live
+   * instance, a `/`-path for a template's live instance, else a resident
+   * character's name.
+   */
+  private async bodyByHandle(handle: string, verb: string): Promise<Stuff> {
+    if (handle.startsWith('#')) {
+      const hit = StuffApi.findById(handle.slice(1));
+      if (!hit || hit.isDestroyed()) throw new Error(`testharness ${verb}: nothing has the id '${handle.slice(1)}'`);
+      return hit;
+    }
+    if (handle.startsWith('/')) {
+      const hit = await StuffApi.singleton<Stuff>(handle).catch(() => null);
+      if (!hit || hit.isDestroyed()) throw new Error(`testharness ${verb}: nothing loads at '${handle}'`);
+      return hit;
+    }
+    return this.residentCharacter(handle, verb);
   }
 
   /** A resident character by name — what the staging verbs act on. */

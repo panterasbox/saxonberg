@@ -15,8 +15,16 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/goat, strength: 40 }]
   binomial: Capra hircus
-  commonNames: ["goat", "nanny", "billy", "kid"]
-  maleNames: [billy]
+  commonNames: ["goat"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [nanny] }
+      male: { commonNames: [billy] }
+    stage:
+      newborn: { commonNames: [kid] }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh

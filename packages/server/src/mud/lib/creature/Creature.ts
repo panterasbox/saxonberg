@@ -953,10 +953,15 @@ export class Creature extends CreatureBase {
      * maturation curve, is the honest number; the plan's default stands
      * for a species that does not state one.
      */
-    const speciesMass = species?.massAt(this.getAgeDays());
+    const speciesMass = species?.massAt(this.getAgeDays(), this.getVariant());
     if (speciesMass !== undefined && speciesMass > 0) {
       const seeded = Quantity.of(speciesMass, 'kg');
-      this.setMass(seeded);
+      // ⭐ An AGING body (organism-biology D8) derives its frame on every
+      // read and never stores it: a calf grows into a cow along the curve,
+      // where a stored seed would weigh what the calf did forever. A body
+      // that does not age (a player — `getLifeStage()` is null — or a
+      // species with no curve) seeds once, as before.
+      if (this.getLifeStage() === null) this.setMass(seeded);
       return seeded;
     }
     // ⚠⚠ `Species.getBaseMass()`, NOT the body plan's. The species

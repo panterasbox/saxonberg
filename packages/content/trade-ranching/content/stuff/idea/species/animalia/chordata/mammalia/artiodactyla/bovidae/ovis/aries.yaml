@@ -18,8 +18,16 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/sheep, strength: 20 }]
   binomial: Ovis aries
-  commonNames: ["sheep", "ewe", "ram", "lamb", "hogget"]
-  maleNames: [ram]
+  commonNames: ["sheep", "hogget"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [ewe] }
+      male: { commonNames: [ram] }
+    stage:
+      newborn: { commonNames: [lamb] }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh

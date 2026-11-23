@@ -10,8 +10,16 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/hog, strength: 40 }]
   binomial: Sus domesticus
-  commonNames: ["pig", "sow", "boar", "hog", "piglet", "swine"]
-  maleNames: [boar]
+  commonNames: ["pig", "hog", "swine"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [sow] }
+      male: { commonNames: [boar] }
+    stage:
+      newborn: { commonNames: [piglet] }
   # ⭐⭐ Its OWN plan: a pig is a third fat with twice a sheep's belly, and
   # `BodyPlan/swine` says so by extending quadruped's topology and
   # restating the shares. Not a dial on a sheep.

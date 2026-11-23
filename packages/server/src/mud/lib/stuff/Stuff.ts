@@ -463,7 +463,7 @@ export abstract class Stuff {
     }
     // 3 — what they are.
     if (MixinApi.isOrganism(this)) {
-      const common = this.getSpecies()?.getCommonNames()[0];
+      const common = this.getCommonNames()[0];
       if (common) return GrammarApi.phrase(common, 'indefinite');
     }
     // 4 — the description, which for a portrait row is too long for a
@@ -497,7 +497,7 @@ export abstract class Stuff {
       if (short) return GrammarApi.phrase(short, this.getRegister());
     }
     if (MixinApi.isOrganism(this)) {
-      const common = this.getSpecies()?.getCommonNames()[0];
+      const common = this.getCommonNames()[0];
       if (common) return GrammarApi.phrase(common, 'indefinite');
       return GrammarApi.properPhrase(DEFAULT_UNKNOWN_ORGANISM);
     }

@@ -21,7 +21,7 @@
  */
 
 import { DaylengthBand } from '../../../lib/time/DaylengthBand';
-import type { Body } from '../../../lib/species/Body';
+import type { Body, BodyDelta } from '../../../lib/species/Body';
 import { type OdorTag } from '../../../lib/perception/Aroma';
 import type { PalateProfile } from '../../../lib/metabolism/Palate';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -233,6 +233,16 @@ export interface VitalBand {
  * thing.
  */
 const BIRTH_MASS_FRACTION = 0.07;
+
+/**
+ * ⭐ The von Bertalanffy constants (organism-biology D8), derived — no row
+ * authors them. The raw curve reaches 95 % of its asymptote at `matureAt`
+ * (`k·matureAt = GROWTH_K_T`), and `b` puts the NORMALIZED curve (raw over
+ * raw-at-maturity) at {@link BIRTH_MASS_FRACTION} at birth:
+ * `(1 − b)³ / 0.95 = 0.07` and `b·e^(−kT) = 1 − 0.95^(1/3)`.
+ */
+const GROWTH_B = 1 - Math.cbrt(BIRTH_MASS_FRACTION * 0.95);
+const GROWTH_K_T = Math.log(GROWTH_B / (1 - Math.cbrt(0.95)));
 
 export interface AgeCurveSpec {
   /** Game-days from birth to weaning — off the mother, on solid feed. */
@@ -620,6 +630,41 @@ export const LIFE_STAGES = [
 export type LifeStage = (typeof LIFE_STAGES)[number];
 
 /**
+ * ⭐ Which form of a species one body is (organism-biology D8): its sex and
+ * its life stage. The key every variant-aware read takes — `bodyFor`,
+ * `getCommonNames`, the handling dials, `massAt`. Absent members mean
+ * *the species' own*, so `{}` is the plan's body with the species' words.
+ */
+export interface BodyVariant {
+  sex?: string | null;
+  stage?: LifeStage | null;
+}
+
+/**
+ * ⭐ How one form of a species differs from the species (D8): it overrides
+ * the species' own fields BY THEIR OWN NAMES — so no reader learns a second
+ * vocabulary — and changes the body.
+ */
+export interface VariantSpec {
+  /** Words this form answers to, most specific first (`bull`, `calf`). */
+  commonNames?: string[];
+  /** This form's own biddability (an ox is steadier than a bull). */
+  biddability?: number;
+  /** This form's own handling range. */
+  handlingRange?: HandlingRange;
+  /** This form's adult mass as a factor of the species' (a bull outweighs a cow). */
+  massFactor?: number;
+  /** Modules this form adds and scales on the plan (an udder; a calf's big head). */
+  body?: BodyDelta;
+}
+
+/** A species' forms: by sex, and by life stage. */
+export interface SpeciesVariants {
+  sex?: Record<string, VariantSpec>;
+  stage?: Partial<Record<LifeStage, VariantSpec>>;
+}
+
+/**
  * Per-species vital baselines + survivable bands. Keyed by the
  * `VitalSign` field names as literal keys deliberately — so `Species`
  * needs no import from `lib/vitals` (`VitalsMixin` maps its `VitalSign`
@@ -676,10 +721,15 @@ export default class Species extends SingletonMixin(
   protected commonNames: string[] = [];
 
   /**
-   * The {@link commonNames} only a male answers to (`bull`, `ram`, `billy`): a cow
-   * is not a bull, and `milk bull` must not find her.
+   * ⭐ This species' forms (organism-biology D8): what a male, a female, a
+   * newborn is called, how it handles, what it weighs, how its body
+   * differs. Words under one sex are that sex's alone — a cow is not a
+   * bull, and `milk bull` must not find her — which retired `maleNames`.
    */
-  protected maleNames: string[] = [];
+  protected variants: SpeciesVariants = {};
+
+  /** One `Body` per variant key, built on first read; reset when the plan's body changes. */
+  private bodies: { of: Body | null; byKey: Map<string, Body> } = { of: null, byKey: new Map() };
 
   /** Path to the BodyPlan singleton. */
   public _bodyPlanPath: string | null = null;
@@ -1028,7 +1078,7 @@ export default class Species extends SingletonMixin(
     baseMass: { persistent: true, authorable: true },
     stature: { persistent: true, authorable: true },
     commonNames: { persistent: true },
-    maleNames: { persistent: true },
+    variants: { persistent: true },
     _bodyPlanPath: { persistent: true, ref: 'identity:constituent' },
     _parentCladePath: { persistent: true, ref: 'identity:constituent' },
     _defaultMaterialPath: { persistent: true, ref: 'identity:constituent' },
@@ -1140,10 +1190,66 @@ export default class Species extends SingletonMixin(
     this.stature = value;
   }
 
-  public getCommonNames(): readonly string[] { return this.commonNames; }
+  /**
+   * ⭐ The words a body of this species answers to (D8) — with a variant,
+   * its form's words first, most specific first (stage, then sex), then the
+   * species' own; less any word that belongs only to the OTHER sex (a
+   * word authored under `variants.sex.<other>` and not the species' own or
+   * this sex's). Without a variant, the species' own words. The first is
+   * what the body is called.
+   */
+  public getCommonNames(variant?: BodyVariant): readonly string[] {
+    if (!variant) return this.commonNames;
+    const forms = this.formsOf(variant).reverse();
+    const words = [...forms.flatMap((f) => f.commonNames ?? []), ...this.commonNames];
+    const others = new Set<string>();
+    // A body of no recorded sex excludes nothing (as the stamp never did).
+    if (variant.sex) {
+      for (const [sex, spec] of Object.entries(this.variants.sex ?? {})) {
+        if (sex === variant.sex) continue;
+        for (const w of spec.commonNames ?? []) if (!this.ownOrSexWord(w, variant.sex)) others.add(w);
+      }
+    }
+    return [...new Set(words)].filter((w) => !others.has(w));
+  }
+
+  /** Is `w` one of the species' own words, or one of `sex`'s? */
+  private ownOrSexWord(w: string, sex: string | null | undefined): boolean {
+    if (this.commonNames.includes(w)) return true;
+    return !!sex && (this.variants.sex?.[sex]?.commonNames ?? []).includes(w);
+  }
   public setCommonNames(value: string[]): void { this.commonNames = value; }
-  public getMaleNames(): readonly string[] { return this.maleNames; }
-  public setMaleNames(value: string[]): void { this.maleNames = value; }
+  /** This species' forms (D8). */
+  public getVariants(): SpeciesVariants { return this.variants; }
+
+  /**
+   * Name this species' forms. ⭐ Async (the `setModules` shape): every
+   * module a form's body adds is ensured, so a variant's body can be built
+   * on a read. A path naming no module throws (P3).
+   */
+  public async setVariants(value: SpeciesVariants | null): Promise<void> {
+    const v = value ?? {};
+    const forms = [...Object.values(v.sex ?? {}), ...Object.values(v.stage ?? {})] as VariantSpec[];
+    const catalogue = SpeciesApi.modules();
+    const paths = new Set(forms.flatMap((f) => (f.body?.add ?? []).map((r) => r.module)));
+    await Promise.all([...paths].map((p) => catalogue.ensure(p)));
+    this.variants = v;
+    this.bodies = { of: null, byKey: new Map() };
+  }
+
+  /** The forms that apply to `variant`, least specific first (sex, then stage). */
+  private formsOf(variant: BodyVariant | undefined): VariantSpec[] {
+    const out: VariantSpec[] = [];
+    if (variant?.sex) {
+      const s = this.variants.sex?.[variant.sex];
+      if (s) out.push(s);
+    }
+    if (variant?.stage) {
+      const st = this.variants.stage?.[variant.stage];
+      if (st) out.push(st);
+    }
+    return out;
+  }
 
   public isSentient(): boolean { return this.sentient; }
   public setSentient(value: boolean): void { this.sentient = value; }
@@ -1189,12 +1295,25 @@ export default class Species extends SingletonMixin(
    * question is asked of it: which parts, what tissues as shares of the
    * whole (butchery's read), what is interior, which senses.
    *
-   * W1: the species adds nothing yet, so this is the plan's own body
-   * (memoized there); W2's variants key it by sex and stage. `null` for a
-   * species with no resolvable plan.
+   * With a variant (W2), its forms' body deltas apply — a calf's big head,
+   * a cow's udder — memoized per sex and stage; with none, or a form that
+   * changes no body, the plan's own body. `null` for a species with no
+   * resolvable plan.
    */
-  public bodyFor(): Body | null {
-    return this.getBodyPlan()?.getBody() ?? null;
+  public bodyFor(variant?: BodyVariant): Body | null {
+    const plan = this.getBodyPlan();
+    if (!plan) return null;
+    const base = plan.getBody();
+    const deltas = this.formsOf(variant).map((f) => f.body).filter((d): d is BodyDelta => !!d);
+    if (deltas.length === 0) return base;
+    if (this.bodies.of !== base) this.bodies = { of: base, byKey: new Map() };
+    const key = `${variant?.sex ?? ''}|${variant?.stage ?? ''}`;
+    let body = this.bodies.byKey.get(key);
+    if (!body) {
+      body = plan.bodyWith(deltas);
+      this.bodies.byKey.set(key, body);
+    }
+    return body;
   }
 
   /**
@@ -1551,24 +1670,32 @@ export default class Species extends SingletonMixin(
   }
 
   /**
-   * ⭐ What one of these weighs at `ageDays` — the adult mass walked back
-   * down the maturation curve, or `0` when the species does not say.
+   * ⭐ What one of these weighs at `ageDays` — the adult mass (times the
+   * form's `massFactor`: a bull outweighs a cow) walked back down the
+   * growth curve, or `0` when the species does not say.
    *
-   * Growth is linear from {@link BIRTH_MASS_FRACTION} of adult at birth
-   * to the whole of it at `matureAt`, and flat thereafter. A real growth
-   * curve is sigmoid; this is the honest cheap version, and the shape
-   * that matters is the one it gets right — **a calf is not a cow, and
-   * killing one early costs you the difference.** With no curve authored
-   * the species has no maturation to walk, so the adult mass stands.
+   * ⭐⭐ **Von Bertalanffy** (organism-biology D8): `W∞ (1 − b·e^(−kt))³`,
+   * the curve that falls out of a body that builds tissue in proportion to
+   * its surface and burns it in proportion to its mass. It is fast while
+   * young and slows toward its asymptote — so a half-grown animal is
+   * heavier than the old straight line said, and the last stretch to full
+   * size is slow. Nothing new is authored: `b` puts birth at
+   * {@link BIRTH_MASS_FRACTION}, `k` comes from `matureAt`, and the curve
+   * is normalized to reach the adult mass exactly at `matureAt` and stay
+   * there — **an adult weighs what its row says**. With no curve authored
+   * the species does not age, so the adult mass stands.
    */
-  public massAt(ageDays: number): number {
-    const adult = this.adultMass;
+  public massAt(ageDays: number, variant?: BodyVariant): number {
+    let adult = this.adultMass;
+    for (const f of this.formsOf(variant)) if (typeof f.massFactor === 'number' && f.massFactor > 0) adult *= f.massFactor;
     if (adult <= 0) return 0;
     const curve = this.ageCurve;
     if (!curve || curve.matureAt <= 0) return adult;
     if (ageDays >= curve.matureAt) return adult;
-    const grown = Math.max(0, ageDays) / curve.matureAt;
-    return adult * (BIRTH_MASS_FRACTION + (1 - BIRTH_MASS_FRACTION) * grown);
+    const t = Math.max(0, ageDays);
+    const k = GROWTH_K_T / curve.matureAt;
+    const raw = (x: number): number => Math.pow(1 - GROWTH_B * Math.exp(-k * x), 3);
+    return adult * (raw(t) / raw(curve.matureAt));
   }
 
   public getAgeCurve(): AgeCurveSpec | null { return this.ageCurve; }
@@ -1592,7 +1719,8 @@ export default class Species extends SingletonMixin(
   }
 
   /** See {@link HandlingRange}. `null` — the species does not participate. */
-  public getHandlingRange(): HandlingRange | null {
+  public getHandlingRange(variant?: BodyVariant): HandlingRange | null {
+    for (const f of this.formsOf(variant).reverse()) if (f.handlingRange) return f.handlingRange;
     return this.handlingRange;
   }
 
@@ -1612,7 +1740,8 @@ export default class Species extends SingletonMixin(
   }
 
   /** How readily this species does what it is asked, `0..1`, else `null`. */
-  public getBiddability(): number | null {
+  public getBiddability(variant?: BodyVariant): number | null {
+    for (const f of this.formsOf(variant).reverse()) if (typeof f.biddability === 'number') return f.biddability;
     return this.biddability;
   }
 
