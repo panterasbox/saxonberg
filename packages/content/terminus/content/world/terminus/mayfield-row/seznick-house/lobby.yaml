@@ -27,6 +27,9 @@ data:
     # ⭐ The residential consumer the grid readies (energy build) — lit because
     # the line reaches this premises, dark when a cut upstream takes it.
     - /world/terminus/mayfield-row/seznick-house/thing/hall-light
+    # ⭐ The agency's boxroom: a former tenant's things go here at the end of
+    # a lease (persistence-model D11).
+    - { template: /world/terminus/mayfield-row/seznick-house/thing/storeroom, as: storeroom }
   cast:
     - /world/terminus/mayfield-row/agent/walter
   details:

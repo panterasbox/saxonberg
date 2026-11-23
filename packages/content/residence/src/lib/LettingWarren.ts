@@ -28,12 +28,12 @@
 
 import { CirculationWarren } from "@saxonberg/server/mud/lib/location/CirculationWarren";
 import { Warren } from "@saxonberg/server/mud/lib/location/Warren";
+import { FloorplanWarren } from "@saxonberg/server/mud/lib/location/FloorplanWarren";
 import { Floorplan } from "@saxonberg/server/mud/lib/location/Floorplan";
 import { Template } from "@saxonberg/server/mud/lib/stuff/Template";
 import { Character } from "@saxonberg/server/mud/lib/character/Character";
 import { Lock, type LockType } from "@saxonberg/server/mud/lib/lock/Lock";
 import { BoundaryApi } from "@saxonberg/server/mud/api/boundary";
-import { ChattelApi } from "@saxonberg/server/mud/api/chattel";
 import { CompactApi } from "@saxonberg/server/mud/api/compact";
 import { ContainmentApi } from "@saxonberg/server/mud/api/containment";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
@@ -43,6 +43,9 @@ import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Container } from "@saxonberg/server/mud/lib/spatial/Container";
 import type { Containable } from "@saxonberg/server/mud/lib/spatial/Containable";
+import type { HeldGoodsShelf } from "@saxonberg/server/mud/lib/retail/HeldGoods";
+import { DiagnosticApi } from "@saxonberg/server/mud/api/diagnostics";
+import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 import { Ascent, type AscentRefusal } from "./Ascent";
 import { AccessApi } from "@saxonberg/server/mud/api/access";
 
@@ -70,16 +73,40 @@ export type LetAnswer =
     };
 
 /** Why an end-let refused. */
-export type EndLetRefusal = "not-authorized" | "no-player" | "not-housed";
+export type EndLetRefusal = "not-authorized" | "no-player" | "not-housed" | "no-storeroom";
 
-/** What {@link LettingWarren.endLet} answers. */
+/**
+ * What {@link LettingWarren.endLet} answers. `boxed` and `lost` name the
+ * tenant's goods (persistence-model D11): boxed into the house's store, or
+ * too big for it and lost with the unit.
+ */
 export type EndLetAnswer =
-  | { ok: true; unitExtent: string }
+  | { ok: true; unitExtent: string; boxed: Stuff[]; lost: string[] }
   | { ok: false; reason: EndLetRefusal; detail: string };
 
 type MemberStuff = Stuff & Container;
 
 export abstract class LettingWarren extends CirculationWarren {
+  static fieldMeta: FieldMeta = {
+    ...CirculationWarren.fieldMeta,
+    storeroom: { persistent: true, authorable: true, authorPicker: 'Template' },
+  };
+
+  /**
+   * ⭐ The letting office where a former tenant's goods are boxed
+   * (persistence-model D11): a place path, and the house's `Locker`
+   * standing in it is its store. Required — an end-let refuses without it.
+   */
+  public storeroom: string = "";
+
+  public getStoreroom(): string {
+    return this.storeroom;
+  }
+
+  public setStoreroom(value: string): void {
+    this.storeroom = value;
+  }
+
   // ─────────────── policy hooks (each building's) ──────────────────
 
   /** The Organization whose staff let units here (a position on its roster). */
@@ -218,6 +245,12 @@ export abstract class LettingWarren extends CirculationWarren {
   public async endLet(by: Stuff, tenant: Stuff | null): Promise<EndLetAnswer> {
     // who is acting must be who is named (call-security pass D5)
     AccessApi.requireActor(by);
+    // ⭐ Checked first (persistence-model D11): with nowhere to box the
+    // goods an end-let would destruct them with the unit.
+    const store = await this.storeroomLocker();
+    if (!store) {
+      return { ok: false, reason: "no-storeroom", detail: `no store stands at '${this.storeroom || "(unset)"}'` };
+    }
     if (!(await this.mayLetFor(by))) {
       return { ok: false, reason: "not-authorized", detail: "neither staff nor the owner" };
     }
@@ -234,14 +267,11 @@ export abstract class LettingWarren extends CirculationWarren {
       await ParcelApi.revokeUse(unit, grant.holder);
     }
 
-    // The unit's rooms, off the programme ROW — so a dormant unit reverts
-    // without being woken.
-    const rooms = await this.roomsOf(unit);
-    for (const room of rooms) {
-      if (room.row) await ChattelApi.evictToStorage(`${room.row}#${room.key}`);
-    }
-
+    // ⭐ The tenant's goods go into the house's store before the shell
+    // reverts (persistence-model D11).
     this.evacuate(unit);
+    const { boxed, lost } = await this.boxGoods(unit, tenant as Stuff & Container, store);
+    const rooms = await this.roomsOf(unit);
     await this.dropHolding(unit, { revert: true });
 
     for (const room of rooms) await PersistableApi.deleteAllFor(room.key);
@@ -249,7 +279,135 @@ export abstract class LettingWarren extends CirculationWarren {
 
     await ParcelApi.retire(unit);
     await this.refreshProvisioned();
-    return { ok: true, unitExtent: unit };
+    return { ok: true, unitExtent: unit, boxed, lost };
+  }
+
+  /**
+   * ⭐ **Box the tenant's goods into the house's store** (persistence-model
+   * D11). The unit is woken; the tenant's goods are what stands in its rooms
+   * that the rooms' own `props:` did not lay down (a room row's listed
+   * templates, and theirs, are the shell; everything else is the
+   * tenant's, including what lies in the shell's containers). Each that
+   * fits the store is held there for the tenant, no ticket; one that does
+   * not fit stays and is lost with the unit — named in `lost`, and in a
+   * diagnostic. The tenant reclaims at the office with `rack reclaim`.
+   */
+  public async boxGoods(
+    unit: string,
+    tenant: Stuff & Container,
+    store: Stuff & Container & HeldGoodsShelf,
+  ): Promise<{ boxed: Stuff[]; lost: string[] }> {
+    const boxed: Stuff[] = [];
+    const lost: string[] = [];
+    // 1. Read every row the walk will need while the unit stands — the
+    // reads await, and a vacant unit may go to sleep meanwhile.
+    const rows = new Map<string, Map<string, number>>();
+    const toRead = new Set<string>();
+    for (const room of await this.unitRooms(unit)) LettingWarren.pathsUnder(room, toRead);
+    for (const path of toRead) rows.set(path, await LettingWarren.shellOf(path));
+    // 2. Wake it again (a no-op if it stands), and with NO await from here
+    // until every good is in the store, find the goods and move them: the
+    // store is kept, so once a good is in it nothing a sleeping unit does
+    // can lose it.
+    const rooms = await this.unitRooms(unit);
+    const goods: Stuff[] = [];
+    for (const room of rooms) LettingWarren.collectGoods(room, rows, goods);
+    const held: Array<Stuff & Containable> = [];
+    for (const good of goods) {
+      const name = good.getPresentation() ?? good.getTemplatePath() ?? good.stuffId;
+      if (!MixinApi.isChattel(good) || !MixinApi.isContainable(good) || store.fitRefusal(good) !== null) {
+        lost.push(name);
+        continue;
+      }
+      ContainmentApi.move(good, store);
+      held.push(good);
+    }
+    // 3. Record each as held for the tenant (custody, no ticket).
+    for (const good of held) {
+      if (!MixinApi.isChattel(good)) continue;
+      const answer = await store.checkIn(good, tenant, { ticket: false });
+      if (answer.ok) boxed.push(good);
+      else lost.push(good.getPresentation() ?? good.stuffId);
+    }
+    if (lost.length > 0) {
+      await DiagnosticApi.record({
+        path: unit,
+        severity: "warning",
+        channel: "persistence",
+        message: `end of let: ${lost.length} good(s) did not fit the store at ${this.storeroom} and were lost with the unit: ${lost.join(", ")}`,
+      });
+    }
+    return { boxed, lost };
+  }
+
+  /** The unit's standing rooms, woken if it sleeps: a programme's plan rooms, or a plain-room holding itself. */
+  private async unitRooms(unit: string): Promise<MemberStuff[]> {
+    await this.admit(unit);
+    const holding = this.holdingFor(unit);
+    if (!holding) return [];
+    if (holding instanceof FloorplanWarren) {
+      return holding
+        .planRooms()
+        .map((r) => holding.roomForLeaf(r.leaf))
+        .filter((r): r is MemberStuff => r !== null);
+    }
+    return MixinApi.isContainer(holding) ? [holding] : [];
+  }
+
+  /** Every template path in `host` and under it (its own included). */
+  private static pathsUnder(host: Stuff, out: Set<string>): void {
+    const path = host.getTemplatePath();
+    if (path) out.add(path);
+    if (!MixinApi.isContainer(host)) return;
+    for (const c of host.getContents()) LettingWarren.pathsUnder(c, out);
+  }
+
+  /** A row's shell: each template its `props:` lays down, and how many. */
+  private static async shellOf(path: string): Promise<Map<string, number>> {
+    const shell = new Map<string, number>();
+    const row = await Template.findByPath(path);
+    const props = ((row?.data ?? {}) as { props?: unknown }).props;
+    for (const spec of Array.isArray(props) ? props : []) {
+      const p = typeof spec === "string" ? spec : (spec as { template?: string } | null)?.template;
+      if (typeof p !== "string") continue;
+      const n = typeof spec === "object" && spec !== null ? Number((spec as { count?: number }).count ?? 1) : 1;
+      shell.set(p, (shell.get(p) ?? 0) + n);
+    }
+    return shell;
+  }
+
+  /** The house's store: the first `Locker` (held goods, not a sale shelf) standing in {@link storeroom}. */
+  private async storeroomLocker(): Promise<(Stuff & Container & HeldGoodsShelf) | null> {
+    if (!this.storeroom) return null;
+    const office = await StuffApi.singleton<Stuff>(this.storeroom).catch(() => null);
+    if (!office || !MixinApi.isContainer(office)) return null;
+    for (const c of office.getContents()) {
+      if (MixinApi.isHeldGoodsShelf(c) && !MixinApi.isConsignmentShelf(c) && MixinApi.isContainer(c)) {
+        return c as unknown as Stuff & Container & HeldGoodsShelf;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * The goods in `host` its row did not lay down: each content that is not
+   * an agent and not one of the row's `props:` is the tenant's; a shell
+   * container is searched the same way, against its own row. Synchronous —
+   * the rows are read beforehand.
+   */
+  private static collectGoods(host: Stuff & Container, rows: Map<string, Map<string, number>>, out: Stuff[]): void {
+    const shell = new Map(rows.get(host.getTemplatePath() ?? "") ?? []);
+    for (const c of host.getContents()) {
+      if (c.isAgent()) continue;
+      const path = c.getTemplatePath() ?? "";
+      const left = shell.get(path) ?? 0;
+      if (left > 0) {
+        shell.set(path, left - 1);
+        if (MixinApi.isContainer(c)) LettingWarren.collectGoods(c, rows, out);
+        continue;
+      }
+      out.push(c);
+    }
   }
 
   // ─────────────── internals ────────────────────────────────────────

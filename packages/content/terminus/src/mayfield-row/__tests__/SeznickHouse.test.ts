@@ -60,6 +60,7 @@ const HOUSE = '/world/terminus/mayfield-row/seznick-house';
 const BUILDING = `${HOUSE}/building`;
 const PROGRAMME = `${HOUSE}/unit-programme`;
 const LOBBY = `${HOUSE}/lobby`;
+const BOXROOM = `${HOUSE}/thing/storeroom`;
 const CORRIDOR = `${HOUSE}/corridor`;
 
 let store: Map<string, Doc[]>;
@@ -136,6 +137,8 @@ function seedDomain(): void {
     domicile: 'terminus/mayfield-row/seznick-house',
     unitsBranch: 'units',
     plan: { shape: 'linear', frontagesPerNode: 2, frontageLeaf: 'u' },
+    // ⭐ The agency's boxroom off the lobby (persistence-model D11).
+    storeroom: LOBBY,
   });
   // ⭐ The unit's plan, the programme's own (harbors review 3; no
   // blueprint row): ordinary rows under its extent.
@@ -168,7 +171,9 @@ function seedDomain(): void {
   });
   add(LOBBY, '/platform/location/PersistentLocation', {
     shortDescription: 'the Seznick House lobby',
+    props: [{ template: BOXROOM, as: 'storeroom' }],
   });
+  add(BOXROOM, '/platform/thing/Locker', { shortDescription: 'boxroom' });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
   add('/world/test/lamp', '/platform/thing/Good', {
     shortDescription: 'a tin lamp',
@@ -436,7 +441,7 @@ describe('Seznick House — the lease loop', () => {
     ).toBe(true);
   });
 
-  it('⭐ unlease: goods to STORAGE intact + titled; the unit re-leases empty and re-keyed', async () => {
+  it('⭐ unlease: goods BOXED in the agency store intact + titled; the unit re-leases empty and re-keyed', async () => {
     const w = await building();
     const tenant = makeAvatar('iris');
     await run(makeStuff(() => new LeaseController()), walter, tenant, 'lease');
@@ -453,17 +458,17 @@ describe('Seznick House — the lease loop', () => {
     const lamp = await StuffApi.clone<Stuff>('/world/test/lamp');
     await (lamp as unknown as Stuff & Chattel).stampChattel(tenant as never);
     ContainmentApi.move(lamp as never, main);
-    await (lamp as unknown as Stuff & Chattel).setChattelPlace(
-      `${HOUSE}/location/main#${unit}/main`,
-    );
 
     const ctx = await run(makeStuff(() => new UnleaseController()), walter, tenant, 'unlease');
     expect(reasons(ctx)).toEqual([]);
 
-    // The good survived — in storage, still the tenant's (never destructed).
-    const rows = await ChattelApi.placedIn('storage');
-    expect(rows).toHaveLength(1);
-    expect(rows[0]!.owner).toMatchObject({
+    // ⭐ persistence-model D11: the good survived — held in the agency's
+    // boxroom for the tenant, still the tenant's (never destructed).
+    const lobby = await StuffApi.singleton<Stuff & Container>(LOBBY);
+    const box = lobby.getContents().find((c) => c.getTemplatePath() === BOXROOM) as (Stuff & Container) | undefined;
+    const held = box?.getContents() ?? [];
+    expect(held.map((c) => c.getTemplatePath())).toEqual(['/world/test/lamp']);
+    expect((held[0] as unknown as Stuff & Chattel).stampedOwner()).toMatchObject({
       templatePath: tenant.getIdentityPath(),
     });
 

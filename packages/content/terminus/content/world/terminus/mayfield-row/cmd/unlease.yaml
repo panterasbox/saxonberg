@@ -3,10 +3,11 @@ category: civics
 controller: /world/terminus/mayfield-row/idea/cmd/UnleaseController
 description: "End a Seznick House lease and reclaim the unit"
 help: |
-  End the named tenant's Seznick House lease: their owned goods go to
-  storage — intact, titled, recoverable — the shell reverts, the records
-  clear, the slot frees, and the unit re-keys (the old key is dead
-  metal).
+  End the named tenant's Seznick House lease: what they left in the flat
+  is boxed in the agency's boxroom off the lobby — still theirs, and they
+  reclaim each thing there with `rack reclaim` (a thing too big for the
+  boxroom is lost with the flat) — the shell reverts, the records clear,
+  the slot frees, and the unit re-keys (the old key is dead metal).
 
   Authorized for the letting agency's staff (Walter) or a member of the
   building's committee — a seat, never a credential.

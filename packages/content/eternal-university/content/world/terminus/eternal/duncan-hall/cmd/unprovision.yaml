@@ -7,7 +7,10 @@ help: |
   with `provision`); their held unit is resolved automatically. The lease is
   revoked, the room reverts to a clean shell (the tenant's personalization is
   cleared), and the slot is freed so the next provision can reuse it. A live
-  occupant is moved out to the corridor first.
+  occupant is moved out to the corridor first. What the tenant left in the
+  room is boxed in the storeroom cage in the lobby, and they reclaim each
+  thing there with `rack reclaim`; a thing too big for the cage is lost
+  with the room.
 
   Authorized for the college's staff (Katie fronts move-out in the world)
   or a member of the hall's committee — a seat, never a credential.

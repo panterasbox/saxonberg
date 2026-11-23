@@ -20,3 +20,6 @@ data:
   capacityKey: dorm.roomCap
   defaultCapacity: 240
   parentExtent: /world/terminus/eternal/duncan-hall/dorms
+  # ⭐ Where a former tenant's things are boxed (persistence-model D11): the
+  # lobby, whose storeroom cage is the house's store.
+  storeroom: /world/terminus/eternal/duncan-hall/location/lobby
