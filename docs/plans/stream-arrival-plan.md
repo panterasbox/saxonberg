@@ -1,15 +1,18 @@
 # Stream arrival — implementation plan
 
 Executes [stream-arrival-requirements](../requirements/stream-arrival-requirements.md) as rewritten
-2026-11-23 (`26d312b54`): **nobody is *the* streamer; the unit is the program.** **Kind: feature,
-two stages.** **Stage A leads from the kernel** — the program as a record (owned by a person or an
+2026-11-23 (`e365cad4c`): **nobody is *the* streamer; the unit is the program; the broadcaster's
+verbs come from instruments.** **Kind: feature, three stages.** **Stage A leads from the kernel** — the program as a record (owned by a person or an
 organization, its video feeds optional and proven when attached), the stream verb running a
 program, one setting naming the program the front page features, and the retirement of every
 environment variable that hardwired one streamer. **Stage B leads from the client** — a visitor
 from Twitch, YouTube or Kick sees the program their link names (else the featured one) playing on
 the front page, signs in, keeps the video docked through character select and creation, and
 arrives in the lounge already in watch mode with the same video still playing; plus the front
-page's client rebuild and aspiration's removal. This is the minimum to start the founder's
+page's client rebuild and aspiration's removal. **Stage C leads from the kernel** — an installed
+app confers its verbs on whoever bears its device (first consumer: the broadcast app), the body
+stops carrying `stream` and `program`, and Hallett's front-window booth exists as one place with
+a broadcast desk and an on-air sign. This is the minimum to start the founder's
 livestream; broadcasting's economics and lens pass are their own build and are not planned here.
 
 ## ⚠ Requirements conflicts and notes — read first
@@ -58,6 +61,20 @@ exactly as written, or where the plan had to choose.
     width. The walk uses stubbed players; the three real embeds are checked by hand before the MR.
 11. **The wiki uses the word once**, in a history note (`wiki-starter/…/employed.md:31`); W0
     rewords it.
+
+12. **Terminus is the `terminus` pack, not `world-seed`.** The booth's rows go in
+    `packages/content/terminus/content/world/terminus/` beside the Gazette's office and the tailor's
+    shop; `world-seed` holds other localities.
+13. **"The program run from the desk" is read as *its broadcaster is in the booth*.** The sign is
+    lit exactly while a body in the booth is on air; a broadcaster who walks out with the phone
+    keeps broadcasting and the window goes dark behind them (halletts-slate § 2: *"lit and
+    occupied"*). Nothing records where a program was started — that would be a second state
+    (D19). If the owner wants the window to stay lit for a stream started there and carried away,
+    that is a stored fact and a different design.
+14. **A phone that already exists keeps the app list it was made with.** `offersApps` is a
+    persisted field, so a phone minted before this build does not offer the broadcast app. No
+    migration (standing rule): dev worlds are dropped; on the live server the founder buys a phone
+    at the general store or uses the desk (the go-live checklist says which).
 
 ## Grounding
 
@@ -176,6 +193,52 @@ Verified by opening the files, 2026-11-23, on `reqs/stream-to-game` at `26d312b5
 - `components/ui/tokens.ts` — the prototype `docs/design/front-page/front-page.dc.html` is written
   in the same variables and the same three faces (`styles/GlobalFonts.ts`).
 
+**Apps, and how a verb reaches a person** (Stage C)
+
+- `platform/idea/App.ts` — an app is an incorporeal `Idea` bound to its host; rows under
+  `packages/content/platform/content/platform/idea/app/` (`messages`, `forums`, `wallet`,
+  `calendar`). `ForumsApp` / `WalletApp` / `CalendarApp` are `App` subclasses with a capability
+  mixin, installed on the PERSON.
+- `lib/augmentation/AetherHost.ts:130–200` — `hostApp` / `unhostApp` call
+  `CommandApi.applyHostedAppDelta(host, app, 'host' | 'unhost')`; `installedApps` persists and
+  `setInstalledApps` re-clones the apps at birth and at restore; `offersApps` is authored and
+  persisted. Every phone row ships `offersApps: [/platform/idea/app/messages]`
+  (`generic-objects/…/gear/hollis-pal.yaml:27`, `aevex-meridian.yaml:23`; also the headset and the
+  implant).
+- `platform/idea/api/CommandLogic.ts:4676–4692` — `applyHostedAppDeltaImpl` **returns at once for
+  a host that is not a command giver**; for one that is, it pushes
+  `collectBucketDefs(app.constructor, 'self')` onto the host's own stack with the APP as the
+  source. So an app on a phone contributes nothing to anyone today (aether-devices.md § Deferred
+  seams). ⚠ The record of what an app affords is its CLASS's `static commandContributions` — a row
+  field would be read by nothing.
+- `docs/subsystems/command-routing.md` § *CommandContributions*: `self` is read off three kinds of
+  host only — a command giver, a shadow, a hosted app — and `lint:self-contributions` gates it; a
+  carried thing grants outward through `environment` (its container chain, at any depth), a thing
+  you stand beside through `peers` (siblings, and one PASSABLE exit away).
+  `ContainmentApi.move` → `CommandApi.applyContainmentDelta` keeps both exact on every move
+  (`CommandLogic.ts:~4600–4672`). § *Affordance attribution*: every binding records its source
+  Stuff, threaded to `CommandContext.commandSource`. § *③ The other offer*: a verb two sources
+  afford.
+- `aether-devices.md` § Tuners — a device answers `conferralRefusal()`: `not-borne`, `off`,
+  `packed`, `dead`, `not-yours`; § *Held, never silent* — a refusal names the fix.
+- `lib/livestream/Broadcast.ts:151–155` — `BroadcastMixin` declares `self: [stream.yaml,
+  stream-rotation.yaml]`: every played body affords both. `backend/inbound/command.ts:131` — the
+  control socket runs `stream` as the streamer through the ordinary dispatcher.
+- A fixture that affords a verb to the people in its room: the `JobBoard` (*"`job` is afforded by
+  a `JobBoard` IN THE ROOM — `peers`, and only `peers`"*, the tailor's shop row).
+
+**Terminus, for the booth**
+
+- The arrival gate opens onto `/world/terminus/university-avenue/location/crossing`
+  (`terminal/location/arrival-gate.yaml:48`).
+- One-room houses off a street: the Gazette's office (`gazette/office.yaml` — `class:
+  /platform/location/Hall`, `_address`, `enclosure:` brick, `roof:` slate, `coords`, `props:`,
+  one named way back to the street) and the tailor's (`mayfield-row/tailor/location/shop.yaml` —
+  *"no ambient of its own: lit by spill through a doorway that stands open — bright by day and
+  DARK at night"*). Each is its own zone with a named cross-zone pair, both sides explicit.
+- `scripts/check-light-sources.ts` — a room's light has a named source: the sky, something lit in
+  the room, or spill through an open boundary; an enclosed room with none is dark, correctly.
+
 **Aspiration — every consumer** (the respiration condition excluded)
 
 - `mud/config/char-gen.yaml:76+` (`aspirations:`; `startingKit:` at `:26` is the precedent list).
@@ -221,6 +284,17 @@ Against watch-slate § 7b (superseded where conflict note 5 says) and the regist
 | A-10 | setting `stream.featuredProgram` (Tier B) | *the featured program* — genuinely new, one key | P10 a row in the settings Document. P14 unset → the page has no show band; nothing is featured by default. |
 | A-11 | `backend/FrontRoutes.ts` (`GET /api/front`), wire types `FrontResponse`, `ProgramListing` | front-page-slate § 6 item 8, the show slice | Anonymous: reads no session, sets no cookie. `/auth/status` refused (sign-in awaits it). |
 | A-12 | test seams: `linked` on `test-login` (a synthetic Twitch / Kick / YouTube identity on the test user) and `playerId` in its answer; the harness's `streamer: true` re-pointed at a staged program | the tools this build owes (a state nothing could stage) | Test-only; `lint:test-seams`. |
+
+**Stage C**
+
+| # | item | ledger | P9 · P10 · P11 · P12 · P13 · P14 |
+|---|---|---|---|
+| C-1 | **the seam**: a hosted app's `self` verbs reach the bearers of a host that is not itself a command giver, kept exact on every move; a matched verb whose source is an app on a device that refuses to run falls to the verb's other offer, else is refused with the device's reason | **genuinely new**. Searched: `applyHostedAppDeltaImpl` (returns early), `applyContainmentDelta` (pushes a carried thing's `environment` only), `lint:self-contributions`, aether-devices § Deferred seams (which names exactly this). | P9 the verb's def is unchanged; `affordances` shows the app as the source, and the refusal names the device's state and the fix. P10 n/a. P11 no caller asks *is the host a person or a phone* — the delta decides the receiver. P12 not a new bucket: the app's `self` still means *whoever this app serves*. P13 `CommandLogic` owns every push and pop of the recency stack. P14 nothing moves; a device that is off, dead, packed or not yours SAYS so. |
+| C-2 | `BroadcastApp` (`platform/idea/BroadcastApp.ts`, an `App`) + row `/platform/idea/app/broadcast`; the two phone rows' `offersApps` gain it | aether-devices *apps* — reuse; the app itself new | P9 `apps install broadcast` and `look phone` list it. P12 it REPLACES `BroadcastMixin`'s `self` contribution, which is deleted. P13 an app class is where an app's verbs are declared. |
+| C-3 | `BroadcastDesk` (`platform/thing/BroadcastDesk.ts`) — a fixed thing affording `stream`, `stream-rotation` and `program` through `peers` | the `JobBoard` precedent — reuse | P12 the same three views as the app; it grants nothing the app does not. P14 standing at a desk decides nothing about whose program you may run — the pen does. |
+| C-4 | `OnAirSign` (`platform/thing/OnAirSign.ts`) — a light whose lit-ness is derived on read: someone in its place is on air | the light subsystem's source — reuse; the derivation new | P10 no state. P14 it reads; nothing pokes it. |
+| C-5 | the booth: rows in the `terminus` pack — the place, its zone / address / title rows as its neighbors have, the way pair with the avenue crossing, a lamp, the desk row, the sign row | halletts-slate § 2 — content | Rows only; a second studio is rows. |
+| C-6 | the test-fixtures testbed gains a desk and a sign as props of one existing place | the scaffold — reuse | So the wire drive can stand at a desk without naming a locality. |
 
 **Stage B**
 
@@ -328,6 +402,68 @@ because `/auth/status` is awaited by sign-in.
 the `streamers` group seeding, `AccessApi.isStreamer` and its logic and cache, and the env token
 door. If any of the five is still set, boot logs one loud line naming what replaced it. The
 `streamers` managed group itself is left in the store (no migration, nothing reads it).
+
+**D16 — An app's verbs reach whoever bears its device, through the one stack.** The app's class
+declares its verbs in `self` (as `ForumsApp` does); *who is served* is decided by the delta, not
+by the app:
+
+- host is a command giver (a person's own apps) → as today;
+- host is not (a phone, a headset) → the defs are pushed onto every command-giver in the host's
+  container chain, with the APP as the source and the `environment` bucket as the hint — the same
+  receivers, at the same moments, as the device's own `environment` verbs (`apps`). One private
+  routine in `CommandLogic` is used at every site that pushes or pops a carried thing's
+  `environment` defs (`applyContainmentDelta`'s attach and detach, the giver's own `self-moved`
+  re-push) and by `applyHostedAppDeltaImpl` for an install or uninstall on a device already borne.
+  A phone handed over, dropped, pocketed or stolen moves its apps' verbs with it.
+- **Held, never silent; ownership is the lock.** The verb stays afforded while the device is
+  borne. At the match, a source that is an app whose host answers `conferralRefusal()` (off ·
+  dead · packed · not yours) is passed over for the verb's other offer (the desk, an app on a
+  second device); with no other offer the command is refused with a row naming that state and its
+  fix (*switch it on*, *charge it*, *ready it*, *that phone runs only for its owner*) — the rows
+  `sendOrHold` already words, reused. This sits in the dispatcher's match, not in each view,
+  because an app author must not be able to forget it and because a verb with two sources needs
+  the working one chosen. ⚠ It is not an implicit ACT: it moves nothing and chooses nothing the
+  player cannot see with `affordances` (flagged for the owner all the same).
+- `lint:self-contributions` already admits an app's `self`; its wording is updated to say a
+  device's app serves the bearer.
+
+**D17 — The broadcast app carries the verbs; the body carries none.** `BroadcastApp` declares
+`self: [stream.yaml, stream-rotation.yaml, program.yaml]`. `BroadcastMixin.commandContributions`
+loses its `self` entries (and the `program` entry A1 put beside them). The run's state stays on
+the body — it is state, not affordance: a broadcaster whose phone dies mid-stream is still on air
+and cannot steer until they charge it or reach a desk. The row is `/platform/idea/app/broadcast`
+(`appName: Broadcast`); `hollis-pal.yaml` and `aevex-meridian.yaml` add it to `offersApps` (every
+phone offers it; the guest's implant and the headset do not — a guest can prove no feed). The
+control socket is unchanged: it runs `stream` as the streamer through the ordinary dispatcher, so
+it works exactly when the streamer has an instrument.
+
+**D18 — The desk is a fixture that affords through `peers`.** `BroadcastDesk` is a fixed thing
+whose static `peers` names the same three views — the `JobBoard` pattern, so *at the desk* is *in
+its place*. ⚠ `peers` also reaches one PASSABLE exit away, as it does for every station in the
+game; the booth's way to the street is a door, and a shut door stops it. The desk grants nothing
+else: `requiresProgram` and the pen test (D11, D12) decide whose program you may run, wherever you
+stand.
+
+**D19 — The on-air sign derives its light; nothing stores it.** `OnAirSign` is a light source
+whose *lit* is computed when read: some body in the sign's own place is a broadcast host that
+`isOnAir()`. It follows one reference (the sign → its place → that place's contents) — no world
+scan, no event from `stream`, no flag to drift after a restart. Lit, it adds its light to the
+booth and says so on `look`; dark, it says that. ⚠ If the light subsystem's source cannot answer
+*lit* from a derivation without a stored flag, the sign is a described state on `look` and the
+booth's lamp is the room's only light — never a flag the kernel's `stream` pokes on a content
+fixture (stop and say which it was).
+
+**D20 — The booth is one place off the avenue crossing.** `/world/terminus/halletts/location/booth`
+(names provisional, halletts-slate § 5), a `Hall`, opening by a named way pair onto
+`/world/terminus/university-avenue/location/crossing` — the street the arrival gate itself opens
+on, so a newcomer passes the window. Brick under slate like its neighbors; a DOOR on the way (not
+an open doorway, D18); its own zone, address and title rows exactly as the Gazette's office and
+the tailor's shop have them, the cell chosen adjacent to the crossing on the city's 3 m grid.
+**Its light has two named sources:** spill through the door by day, and a lamp fixture lit in the
+room (the row the general store's shop floor uses) so it reads at night; the sign is a third when
+lit. Props: the lamp, the desk, the sign. `longDescription` and `details` carry the lettered
+glass, the dust and the sheeted piano as prose only — the piano, the photographs, the record
+library and the screen in the glass are the Hallett's content build's.
 
 **D2 — The return after sign-in is the client's, carried in `sessionStorage`; the server adds one
 word.** The carrier, the program name, whether the visitor closed the video and the sound choice
@@ -439,14 +575,28 @@ boot id and a tick count.
 | `stream.featuredProgram` | the settings bag | One per instance, by the requirements; it is the Compact's choice, not a fact about any program. |
 | `cockpit.sessionMode`, `arriveWatching`, `showPersonalStream` | `SaxonbergClientMixin` | Every host on it has a cockpit mode and `cockpit.watch` already. No guard; a player, a guest and a returning character all can. |
 | the guest's `watch` / `carrier` words | `Interactive`, beside `arrivedFrom` | A fact about one connection, read once at the guest mint. |
+| an app's verbs on its bearer | the bearer's recency stack, pushed by `CommandLogic` | ⚠ P2 for a cross-cutting seam: every hosted app on every device now reaches its bearer. Today that changes NOTHING for the four shipped apps — `messages` declares no verbs, and the other three are installed on the person. Any future device app with a `self` verb gets it by this rule, which is the requirement. No host is asked a question it answers *no* to. |
+| `stream` · `stream-rotation` · `program` | `BroadcastApp` (`self`) and `BroadcastDesk` (`peers`) | Off `BroadcastMixin`, so off every Avatar. The two classes that carry them are the two things that should. |
+| *lit* | `OnAirSign`, derived | A fact about the sign's place at this moment; not stored on the sign, the desk, the program or the body. |
+| the booth | rows in the `terminus` pack | Content. No kernel class knows Hallett's; a second studio props the same two kernel things. |
 | `startingOutfit` | the char-gen config | Nothing added to `Persona`, `Character` or `PrimaryAvatar`. |
 | `Persona.aspiration` | removed | It leaves every host that composed `Persona`. |
 | the player's state, the origin | a store slice; the tab's storage | Client only. |
 
 ## Convention conformance
 
-- **`props:` / `cast:`, locations, the five roots:** no place, no class path, no content row beyond
-  reason rows and command views. `/platform/programs` sits beside `/platform/stream-tokens`.
+- **`props:` / `cast:`, Locations not rooms, the five roots:** Stages A and B add no place.
+  Stage C adds ONE Location (`class: /platform/location/Hall`) whose fixtures are `props:` — no
+  `container:` on any row (`lint:instanceable` refuses it), no `populates:`. The desk and the sign
+  are instanceable kernel classes in `platform/thing/` with rows that name them; the app class is
+  in `platform/idea/` beside its three siblings. `/platform/programs` sits beside
+  `/platform/stream-tokens`.
+- **The booth's gates:** `lint:light-sources` (two named sources; no authored ambient number),
+  `lint:locations`, `lint:location-graph` (the way pair, both sides explicit), `lint:untitled`
+  (its path is titled as its neighbors' are), `lint:ground`, `lint:biome-sky`,
+  `lint:reachability` (every view is named by the app's and the desk's statics; the desk and sign
+  rows are reached through the booth's `props:`), `lint:self-contributions`,
+  `lint:content-refs`, `lint:authored-prose`.
 - **Module categories:** `Program` is a named value object in `lib/livestream/`; `ProgramCatalogue`
   is a Stuff singleton in `platform/idea/`; controllers in `platform/idea/cmd/stream/`; the
   validator beside its siblings in `lib/command/validators/`; `backend/FrontRoutes.ts` beside
@@ -480,7 +630,7 @@ boot id and a tick count.
 
 Each wave ends at one commit and leaves the tree green on `pnpm test:near`, the touched suites and
 the gates it moved. **W0 is independent of everything and may land first.** Stage A is A1 → A2 →
-A3. Stage B: W2 and W4 need nothing; W3 needs A3; W5 needs A3, W2, W4; W6 needs W3, W4, W5; W7
+A3. Stage C (C1 → C2 → C3) needs Stage A and nothing of Stage B; C1 alone needs nothing. Stage B: W2 and W4 need nothing; W3 needs A3; W5 needs A3, W2, W4; W6 needs W3, W4, W5; W7
 needs all. (The first plan's W1 — the show settings — is replaced by Stage A.)
 
 ### W0 — Aspiration out; the plain outfit in (D5, D9)
@@ -521,8 +671,8 @@ worn, an empty bio, no claims, the phone pocketed; a guest wears the same three.
   to make one), `program create <name>` (`--owner <path>`, `--title`), `program title <name>
   <title…>`, `program schedule <name> <line…>`, `program feed <name> <carrier> [<channel>]`
   (`--clear`), `program show <name>` (title, owner caption, schedule, which carriers have a feed,
-  on air or not — public facts only). Afforded to every played body (the `stream` precedent: a
-  self-contribution beside `BroadcastMixin`'s) — anyone may run a program.
+  on air or not — public facts only). Afforded beside `stream` on `BroadcastMixin`'s `self` for
+  now (the shipped placement); **C2 moves both onto the instruments**.
 - Reason rows (A-7) in the platform pack's `reasons/`.
 - `services/auth/TestAuthRoutes.ts` + `backend/TestHooks.ts` — `test-login` accepts `linked:
   { twitch?, kick?, youtube? }` (synthetic profiles on the test user, exactly the fields the
@@ -593,6 +743,66 @@ shows their chat. Commit:
 
 Acceptance: `curl /api/front` answers the featured program with no cookie. Commit:
 `feat(stream): the featured program and the anonymous /api/front read`.
+
+### C1 — The seam: an app's verbs reach its bearer (D16)
+
+- `platform/idea/api/CommandLogic.ts` — the one routine (push / pop a borne host's hosted-app
+  defs on its command-giver ancestors), called from `applyHostedAppDeltaImpl`'s non-giver branch
+  and from every site that pushes or pops a carried thing's `environment` defs; the match's
+  pass-over for an app whose host refuses, and the refusal with the device's reason row.
+- `scripts/check-self-contributions.ts` + `docs` wording (the gate's own prose says *the
+  implant's host*).
+- Tests, with a fixture app class declaring one verb: installed on a phone in a pocket → the
+  bearer has the verb, source = the app; in a bag in a pack → still (any depth); dropped → gone
+  from them and not conferred on the room; picked up by another → theirs; handed over by `move` →
+  follows; uninstalled → gone; the bearer walks to another place → kept; a restart → kept (the
+  apps are re-cloned from `installedApps` and the stack rebuilt); the phone off / dead / packed /
+  not yours → refused with that row, and with a second source for the same verb in reach → that
+  source runs; an app on the PERSON behaves exactly as before (`ForumsApp`'s tests unchanged).
+
+Acceptance: a test app's verb appears in `affordances` attributed to the app on the phone in the
+character's pocket, and leaves when the phone does. Commit:
+`feat(apps): an installed app confers its verbs on whoever bears its device`.
+
+### C2 — The broadcast app; the verbs come off the body (D17)
+
+- `platform/idea/BroadcastApp.ts`; `lib/paths.ts` (its template path, as its siblings);
+  `packages/content/platform/content/platform/idea/app/broadcast.yaml`;
+  `generic-objects/…/gear/hollis-pal.yaml`, `aevex-meridian.yaml` (`offersApps`).
+- `lib/livestream/Broadcast.ts` — the `self` entries deleted; the header prose (*afforded to every
+  played body*) rewritten; `api/mixin.ts:1383`, `lib/shell/Author.ts:128` comments follow.
+- `stream.yaml`, `program.yaml` help — one line each: *you get this verb from the Broadcast app
+  on a phone you carry, or at a broadcast desk*.
+- The harness: `streamer: true` also installs the app on the test character's phone
+  (`TestHooks`); grep every test that types `stream` or `program` as a plain character
+  (`StreamLogic` and controller units are handed a model and do not care; the wire and e2e ones
+  do) — `broadcast-ready.wire.test.ts`, `broadcast-ready-walk.spec.ts`, Stage A's own wire steps.
+- Tests: a fresh character has neither verb (the dispatcher's *not a verb you have*); `apps`
+  lists Broadcast as offered; after `apps install broadcast` both verbs work, in another place
+  too; `apps uninstall broadcast` while on air leaves the stream on air and the verbs gone; the
+  control socket runs `stream` only while the streamer has an instrument; a guest's implant does
+  not offer the app.
+
+Acceptance: drive step 13 and 14 by hand on a dev world. Commit:
+`feat(broadcast): the Broadcast app carries stream and program; the body carries neither`.
+
+### C3 — Hallett's booth: the desk and the sign (D18, D19, D20)
+
+- `platform/thing/BroadcastDesk.ts`, `platform/thing/OnAirSign.ts` (+ their unit tests: the
+  desk's `peers` reach; the sign lit with an on-air body present, dark with none, dark when that
+  body leaves, right after a restart with no stored field).
+- `packages/content/terminus/content/world/terminus/halletts/…` — the place, the lamp, the desk
+  and sign rows, whatever zone / address / parcel rows the Gazette's office has; the crossing's
+  row gains the named way out (`university-avenue/location/crossing.yaml`), the booth declares the
+  way back; a door on the pair.
+- `packages/content/test-fixtures/` — a desk and a sign as props of one existing testbed place;
+  `packages/wire/src/harness/scaffold.ts` names them.
+- B4: grep the pack for the new paths; run the booth's gates (Convention conformance).
+
+Acceptance: walk from the arrival gate to the crossing and through the door; `look` by day and
+after dark reads the room; at the desk a character with no app has `stream` and `program`; the
+sign reads lit only while someone in the booth is on air. Commit:
+`feat(terminus): Hallett's front-window booth — the broadcast desk and the on-air sign`.
 
 ### W2 — The origin's words and sign-in's return (D2, D7, the server half of D8)
 
@@ -698,13 +908,17 @@ Commit: `test(stream-arrival): the wire drive and the browser walk`.
 
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
-| make and edit a program | `program create · title · schedule · show` | every played body (a self-contribution, as `stream` is) — ⚠ a view nothing affords is a dead verb; A1's test dispatches each as a fresh character | the `program` kind in `DocumentKinds` (a kind not listed there has no catalogue and no go-live) | `DocumentApi.read` by path; the catalogue on reach | the name pattern; the pen on `--owner`; the pen for `title` / `schedule` — refusals are rows |
+| make and edit a program | `program create · title · schedule · show` | `BroadcastMixin`'s `self` in A1, then the app and the desk (C2) — ⚠ a view nothing affords is a dead verb; each wave's test dispatches the verb through the real affordance, never a hand-built model | the `program` kind in `DocumentKinds` (a kind not listed there has no catalogue and no go-live) | `DocumentApi.read` by path; the catalogue on reach | the name pattern; the pen on `--owner`; the pen for `title` / `schedule` — refusals are rows |
 | attach a feed | `program feed <name> <carrier> [<channel>]` | the same | the giver's own `TwitchProfile.login` / `KickProfile.slug` / `GoogleProfile.youtubeChannelId` | the profile by the user's own id — no carrier call | `carrier` is an `enum` arg; the pen; the linked account; a stated channel must match. ⚠ a guest and a player with an empty Kick slug must refuse, not attach an empty string — tested |
-| run a program | `program run <name>`; then the shipped `stream …` | `stream` stays afforded by `BroadcastMixin`; gated by `requiresProgram` | `streamProgram` on the body; `runner` on the program | the body's setter ensures the program at restore — ⚠ a cold catalogue would make the overlay's sync read THROW at login; A2 tests materialize-then-`show()` | the pen; the chair |
+| run a program | `program run <name>`; then the shipped `stream …` | after C2: the Broadcast app on a borne phone, or a desk in the place (below); gated by `requiresProgram` | `streamProgram` on the body; `runner` on the program | the body's setter ensures the program at restore — ⚠ a cold catalogue would make the overlay's sync read THROW at login; A2 tests materialize-then-`show()` | the pen; the chair |
 | the overlay's chat | none | the token socket, as shipped | the program's feeds through `channelsFor` | resident with the body | n/a — ⚠ a program run with no feed shows no chat and says nothing; correct, and stated in `program run`'s reply |
 | the featured program on the page | none (REST) | `FrontRoutes.setup` mounted in `Server` — an unmounted route is a silent 404 the client renders as *no show band*; the route test and wire step 0 hit the mounted app | `stream.featuredProgram` → `/platform/programs/<name>` → `runner` → the body | three followed references | `watch` by pattern, `carrier` by list; anything else 400 |
 | arriving watching — a player | `play <id> --watch <program> --<carrier>` · `embody confirm --watch …` | both afforded only to a `Login`; Enter and confirm send them | the name and carrier from the tab (as answered by `/api/front`); the channel from the program's feed | `programListing` at `enter` | the program exists, has that feed, is on air — a no is the usual mode with a line. ⚠ the greedy `playerId` swallowing the options would be a silent plain entry — tested in both orders |
 | arriving watching — a guest | none; two words on the socket URL | the guest link | the same | the same, from `Login.enterAsGuest` | the same lists in `WebSocketService`; ⚠ words dropped between the socket and the mint → a silent explore — the wire file reads the guest's first snapshot |
+| an app's verbs (the seam) | whatever the app's class declares in `self` | the app, on a device in the bearer's container chain — ⚠ the three silent failures: a row-level `commandContributions:` (read by nothing — the class static is the record); the early return for a non-giver host (the shipped behavior); a push at install that no MOVE keeps exact. C1 tests install, move, drop, hand-over and restart | `installedApps` on the device (persisted); the app re-cloned at restore | the app's row loads when installed | the device must run: `conferralRefusal()` → the other offer, else a refusal naming the fix |
+| the broadcast app | `apps install broadcast` (shipped verb) → `stream`, `stream-rotation`, `program` | `apps` is afforded by any borne device; the app must be in that device's `offersApps` — ⚠ a phone minted before this build does not list it (conflict note 14) | `/platform/idea/app/broadcast`, `class: /platform/idea/BroadcastApp` | on install | `apps install` refuses an app the device does not offer (shipped) |
+| the desk | the same three views | `BroadcastDesk.peers` — whoever is in its place (and one passable exit away) | the desk row, in a place's `props:` — ⚠ a desk row no place props is unreachable (`lint:reachability`) | minted with its place | the pen, as everywhere |
+| the sign | none (`look`) | n/a | derived from the bodies in its place | none | n/a |
 | the plain outfit | none | n/a | `startingOutfit`; the three rows | rows load when worn | W0 asserts all three are WORN |
 
 ## Acceptance-criteria coverage
@@ -721,6 +935,8 @@ Commit: `test(stream-arrival): the wire drive and the browser walk`.
 | The video plays in a corner through select and creation | W4, W6 |
 | Entered while playing → watch mode, same stream and carrier, not restarted; otherwise the usual mode | A3, W3, W4, W6 |
 | Select and creation look like the front page | W5, W6 |
+| No app and not at the desk → no `stream` or `program`; the app gives both anywhere; the desk gives both while at it | C1, C2, C3 |
+| The booth's sign is lit exactly while the program run from its desk is live | C3 (D19; conflict note 13) |
 | *Aspiration* nowhere; everyone in the plain outfit | W0 |
 | Only bands with real content | W5 |
 | After a restart: the outfit kept, no aspiration | W0, W7 |
@@ -731,7 +947,9 @@ Nothing is unmapped.
 
 Units carry the rules (the name, the pen, the proof, the chair, the listing, the origin table, the
 `src` strings, same-node, the mode resolution, creation without aspiration). The drive proves the
-path. Every step is `instant` except the restarts, which are `staged`. No span step, no soak drive.
+path. Every step is `instant` except the restarts (`staged`) and step 15's night look (`short`:
+the clock is moved to after dusk through the harness's clock seam, and the walkers are fed
+through its nourish seam afterward — a jumped clock starves a body). No span step, no soak drive.
 
 **Staging:** provider sign-ins are staged by `test-login`'s `linked` (A-12). A broadcaster is
 staged by PLAYING: `program create`, `program feed`, `program run`, `stream start` / `stream
@@ -762,6 +980,14 @@ stream.featuredProgram <name>`).
 5. A guest → three garments, no *Aspires*; a guest socket with the two words → the first snapshot
    is watch.
 6. `restartWorld()` → the newcomer's garments, empty bio, mode `explore`.
+7. *(steps 13, 14, 16)* A fresh character: `stream` and `program` are not verbs they have.
+   `apps install broadcast` → `program create`, `program feed`, `program run`, `stream live` work;
+   they walk to another testbed place and `stream away` works; they switch the phone off →
+   `stream back` is refused with the phone's row, and at the testbed desk it runs. A second
+   character with no app, at the testbed desk: has both verbs; `program run <the first's>` →
+   `not-your-program`. The testbed sign reads lit while the first is on air in that place, dark
+   after `stream end`, dark when they walk out on air. `restartWorld()` → the app is still
+   installed, the program intact, the sign agrees with who is on air there.
 
 **The walk** — the blocking drive:
 
@@ -781,6 +1007,10 @@ stream.featuredProgram <name>`).
 | 9 returning, YouTube | instant | `from=youtube`; the YouTube stub; the Google line and order; the dock on character select; `roster-sends-as` reads `play <id> --watch <name> --youtube`; *Enter* → watch, no other stage, the same boot id. |
 | 10 guest | instant | untagged: the small link → explore, three garments, no *Aspires*. Tagged and playing: the note says so; the link → watch, the same boot id. |
 | 11 restart | staged | the wire file's steps 0 and 6 (a browser cannot restart the world it is attached to). |
+| 13 no instruments | instant | a fresh character types `stream` and `program`: neither is a verb they have. Fail: use the staged `streamer` character. |
+| 14 the app | instant | `apps install broadcast` on the phone; `program create` / `feed` / `run`, `stream live`; walk out of the place; `stream away` still answers. Fail: uninstall first. |
+| 15 the desk | short · staged | a character with no app walks arrival gate → crossing → the booth's door; `look` by day reads the room, the desk and the dark sign; the clock is moved past dusk, `look` again still reads them (the lamp) and never *something*; at the desk they have both verbs; `program run <founder's>` is refused (`not-your-program`); the founder's character, in the booth, `stream live` → the sign reads lit (in the room's `look` and `look sign`); `stream end` → dark. Fail (light): remove the lamp from the row → the night look is dark. Fail (sign): the founder goes live standing in the street. |
+| 16 restart | staged | the wire file's step 7; and in the browser after it: the booth is there and the sign agrees with the program's state. |
 | 12 phone width | instant | 390×844: sign-in, the show, the chambers, Latest; the dock stays inside the viewport and off `chargen-confirm`. |
 
 **Cadence:** `pnpm test:near`, the touched suites and the moved gates per wave; `pnpm test` once
@@ -790,6 +1020,19 @@ at code-complete and once at `/finalize`; the walk once at code-complete.
 
 **Risks**
 
+- **The seam touches the hottest bookkeeping in the game** — the recency stack on every move.
+  One routine, called beside every `environment` push and pop, or a phone's verbs will drift from
+  its bearer the way the conferral leg once did. C1's move matrix is the guard; the four shipped
+  apps must behave exactly as before.
+- **The dispatcher's pass-over** (D16) is new behavior at the match. Read
+  command-routing.md § *③ The other offer* and § *Affordance resolution* before writing it; if it
+  cannot be done without the dispatcher learning about aether hosts by name, stop and ask (a
+  kernel protocol on the source — *will you run?* — is the shape, not an `isAetherHost` branch).
+- **Every shipped test that types `stream`** as a plain character breaks at C2 until the harness
+  installs the app. Find them before the wave, not after.
+- **The sign as a light.** D19 has a fallback; say which was built.
+- **A drive's clock jump** (step 15) starves and chills bodies; feed them after it, and re-run the
+  step alone before trusting it.
 - **A mutable document behind a catalogue.** `DocumentCatalogue` families are mostly authored and
   rarely change; a program changes whenever its owner types. Every `StreamLogic` write must
   forget the path and the running body must re-ensure it, or the overlay reads a stale feed. A2
@@ -827,6 +1070,23 @@ character arrives in watch with no other mode painted.
 
 **Opens — the owner's calls; the plan's lean is what gets built unless told otherwise**
 
+*Stage C:*
+
+- **The dispatcher passes over an app on a device that will not run** (D16) rather than each view
+  naming a validator. It is the one place this plan puts behavior in the match; the command def
+  does not show it, `affordances` and the refusal do.
+- **The sign is lit by presence** — dark when the broadcaster walks out on air (conflict note 13).
+- **The desk's reach is `peers`**: its place, and through an open door (D18).
+- **The desk and the sign are kernel classes** (`platform/thing/`), the booth is rows — so a second
+  studio is rows.
+- **The booth opens off the University Avenue crossing**, by the arrival gate; the Dial is not
+  built. Its path is `/world/terminus/halletts/…`.
+- **Only phones offer the app** — not the headset, not a guest's implant.
+- **A phone made before this build does not offer it** (conflict note 14).
+- **The Stream Deck's control socket works only while the streamer has an instrument.**
+
+*Stages A and B:*
+
 1. **A new verb, `program`**, rather than more subcommands on `stream` (A-6).
 2. **A document, not an Idea** (D10) — and one flat branch `/platform/programs/` for the names.
 3. **The agenda stays with the run** (conflict note 2).
@@ -841,7 +1101,8 @@ character arrives in watch with no other mode painted.
 11. An in-world `watch off` counts as *closed for the visit*; footer links with no URL are absent;
     the founding deed's line; the guest's words on the socket URL.
 
-**Stop and ask** if: any read turns out to need a program found by channel or by owner (that is
+**Stop and ask** if: the seam cannot be one routine beside the `environment` pushes; the
+pass-over needs the dispatcher to know aether hosts by name; any read turns out to need a program found by channel or by owner (that is
 the collection the plan refused); the catalogue cannot serve a document that changes at runtime;
 a real carrier embed cannot play docked; `play`'s options cannot be bound without controller
 parsing; a lint ceiling would have to rise; or a wave needs a file not on the substrate list.
@@ -853,7 +1114,10 @@ This build deletes `OVERLAY_TWITCH_LOGIN`, `OVERLAY_YOUTUBE_CHANNEL`, `OVERLAY_K
 
 1. The founder's account is signed in with (or linked to) the Twitch and Kick accounts whose
    channels carry the show, and has done *Link YouTube* in settings.
-2. As the founder's character:
+2. As the founder's character — first get an instrument: `apps install broadcast` on the phone.
+   ⚠ A phone that existed before this deploy does not offer it; buy one at the general store, or
+   do everything below standing at the desk in Hallett's booth (arrival gate → the crossing → the
+   door).
    ```
    program create <short-name>
    program title <short-name> <the show's title>
@@ -870,14 +1134,19 @@ This build deletes `OVERLAY_TWITCH_LOGIN`, `OVERLAY_YOUTUBE_CHANNEL`, `OVERLAY_K
 5. Check: `curl https://<host>/api/front` names the program and its three feeds; `stream live`
    turns `"live": true`; the overlay shows chat.
 
-⛔ No test and no deploy script performs these. Until step 2 the overlay is silent and the front
-page has no show band.
+⛔ No test and no deploy script performs these. Until step 2 the founder has no `stream` verb at
+all, the overlay is silent and the front page has no show band.
 
 ## Deferred seams
 
 - **Broadcasting** — economics, the lens pass, feedless broadcasts, a standing agenda, the run
   off the body, the program as an Idea → [broadcasting-slate](../slates/trades/broadcasting-slate.md)
   (its own build); the record and `StreamApi`'s program statics are where it attaches.
+- **The rest of Hallett's** — the Dial, the lease, the piano and the window as a stage, the screen
+  in the glass, the photographs, the record library, the show as a business, the founder's home →
+  [halletts-slate](../slates/world/halletts-slate.md); the booth's rows are where it grows.
+- **Other apps bringing verbs** (a map, a camera), and the wallet / calendar / forums as apps on a
+  device → aether-devices § Deferred seams; C1's routine is the attach point.
 - **Listing someone else's channel, persisted tunes, platform preference, the directory, the
   third-party REST read, `watch <short-name>`** →
   [streamer-registry-slate](../slates/platform/streamer-registry-slate.md) wave 3.
@@ -920,7 +1189,15 @@ page has no show band.
    `docs/design/brand/README.md`.
 8. `packages/wire/src/harness/session.ts`, `scaffold.ts`; `e2e/tests/helpers.ts`,
    `e2e/tests/broadcast-ready-walk.spec.ts`; `docs/testing.md`.
-9. Subsystem docs: `client-shell.md`, `char-gen.md`, `cockpit.md`, `streaming.md`, `access.md`,
+9. Stage C: `docs/subsystems/aether-devices.md`; `docs/subsystems/command-routing.md`
+   (§ CommandContributions, § Affordance attribution, § ③ The other offer, § Affordance
+   resolution); `platform/idea/api/CommandLogic.ts` (`:4590–4710`),
+   `lib/augmentation/AetherHost.ts`, `platform/idea/App.ts`, `platform/idea/ForumsApp.ts`;
+   `docs/slates/world/halletts-slate.md`; `docs/subsystems/light.md`, `location.md`, `zone.md`,
+   `boundary.md`; `packages/content/terminus/content/world/terminus/gazette/office.yaml`,
+   `mayfield-row/tailor/location/shop.yaml`, `university-avenue/location/crossing.yaml`,
+   `terminal/location/arrival-gate.yaml`; `scripts/check-light-sources.ts`.
+10. Subsystem docs: `client-shell.md`, `char-gen.md`, `cockpit.md`, `streaming.md`, `access.md`,
    `app-settings.md`.
 
 ## Drive record
