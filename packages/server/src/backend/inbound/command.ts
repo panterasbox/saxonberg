@@ -117,19 +117,23 @@ export type { InboundClientMessage };
  * ⚠⚠ **The control principal's one verb** (broadcast-ready D11).
  *
  * A `?control=<token>` socket (pblive's Stream Deck) has no Interactive;
- * it may run `stream …` as the player its token names and NOTHING else —
+ * it may run `rodney …` as the player its token names and NOTHING else —
  * the deliberate second writer the slate named, bounded to one verb. The
  * gate is literal and runs before any parse the dispatcher would do:
  *
  * - the message must be a `command`;
- * - the line must parse to ONE command whose verb is literally `stream`
+ * - the line must parse to ONE command whose verb is literally `rodney`
  *   (no `verb@source` scope, no emote sigil);
- * - `stream token` is refused — a control token must not mint tokens;
- * - a streamer alias named `stream` is refused (no alias expansion may
+ * - `rodney token` is refused — a control token must not mint tokens;
+ * - a streamer alias named `rodney` is refused (no alias expansion may
  *   turn the one verb into another);
  * - the streamer must be ONLINE (their body resident); the command then
- *   runs as them through the ordinary dispatcher, so `requiresStreamer`
- *   still gates.
+ *   runs as them through the ordinary dispatcher, so `requiresProgram`
+ *   still gates (and, once instruments carry the verb, only while the
+ *   streamer has one — stream arrival D17).
+ *
+ * ⚠ The verb was `stream` until stream arrival D22; a deck still sending
+ * `stream …` is refused `rodney-only` (retype its buttons).
  *
  * Every answer goes back as `control-result` so the deck lights ✓ or ⚠.
  */
@@ -150,18 +154,18 @@ export async function handleControlCommand(
   try {
     const pipeline = CommandLineApi.parsePipeline(text);
     const only = pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
-    if (!only || only.emotePrefixed || only.scope) return refuse('stream-only');
+    if (!only || only.emotePrefixed || only.scope) return refuse('rodney-only');
     verb = only.verb;
     const second = only.rawTokens[1];
     sub = second && second.kind === 'word' ? second.value.toLowerCase() : null;
   } catch {
     return refuse('unparseable');
   }
-  if (verb !== 'stream') return refuse('stream-only');
+  if (verb !== 'rodney') return refuse('rodney-only');
   if (sub === 'token') return refuse('no-token-minting');
   const avatar = PlayerApi.findAvatarByPlayerId(playerId);
   if (!avatar) return refuse('streamer-offline');
-  if (MixinApi.isAlias(avatar) && avatar.getAlias('stream')) return refuse('alias-shadows-stream');
+  if (MixinApi.isAlias(avatar) && avatar.getAlias('rodney')) return refuse('alias-shadows-rodney');
   let status: string | null = null;
   // Rooted AT the streamer, like the socket path: the token's player is the
   // one acting (call-security pass D8 — their own act, never compelled).

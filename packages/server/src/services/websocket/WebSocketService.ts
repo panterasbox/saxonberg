@@ -8,23 +8,23 @@
  */
 
 import { WebSocketServer } from 'ws';
-import { timingSafeEqual } from 'crypto';
 import type { Server as HttpServer } from 'http';
 import type { IncomingMessage } from 'http';
 import type { Socket } from 'net';
 import type { RequestHandler, Request, Response } from 'express';
 import type { Backend } from '../../backend/Backend';
 
-/** Sentinel userId for the read-only broadcast principal. */
-const BROADCAST_PRINCIPAL = 'service:broadcast';
-
 /**
- * Minimum acceptable `BROADCAST_TOKEN` length. The token rides in the
- * OBS browser-source URL (browsers can't set WS headers); it grants
- * only public read-only data, but we still refuse trivially-guessable
- * secrets so a misconfigured deploy fails loud rather than open.
+ * The environment names retired by stream arrival (D15) — a deploy that
+ * still sets one is told, once and loudly, what replaced it.
  */
-const MIN_BROADCAST_TOKEN_LENGTH = 16;
+const RETIRED_STREAM_ENV: Readonly<Record<string, string>> = {
+  OVERLAY_TWITCH_LOGIN: 'a program\'s Twitch feed (`program channel <name> twitch`)',
+  OVERLAY_YOUTUBE_CHANNEL: 'a program\'s YouTube feed (`program channel <name> youtube`)',
+  OVERLAY_KICK_CHANNEL: 'a program\'s Kick feed (`program channel <name> kick`)',
+  STREAMER_PLAYER_IDS: 'running a program (`program run <name>`) — nobody is the streamer',
+  BROADCAST_TOKEN: 'the per-player overlay token (`rodney token`)',
+};
 
 /**
  * WebSocketService - Manages WebSocket server.
@@ -38,7 +38,6 @@ export class WebSocketService {
    * is disabled (env var unset or too weak). Resolved once at
    * `initialize()` so per-upgrade work is a cheap compare.
    */
-  private broadcastToken: string | null = null;
 
   /**
    * Constructor.
@@ -66,7 +65,7 @@ export class WebSocketService {
       maxPayload: 50 * 1024 * 1024, // 50MB
     });
 
-    this.configureBroadcast();
+    this.warnRetiredStreamEnv();
 
     // Handle WebSocket upgrade with session middleware
     httpServer.on('upgrade', (request: IncomingMessage, socket: Socket, head: Buffer) => {
@@ -87,48 +86,15 @@ export class WebSocketService {
     return this.wss;
   }
 
-  /**
-   * Resolve + validate the broadcast token from the environment.
-   * Enables the read-only broadcast feed iff `BROADCAST_TOKEN` is set
-   * and strong enough; logs the decision at boot. A set-but-weak token
-   * is treated as disabled (fail loud, not open).
-   */
-  private configureBroadcast(): void {
-    const raw = process.env.BROADCAST_TOKEN?.trim();
-    if (!raw) {
-      this.broadcastToken = null;
-      console.info(
-        'WebSocketService: broadcast feed DISABLED (BROADCAST_TOKEN unset)'
+  /** One loud line for each retired stream env name still set (D15). */
+  private warnRetiredStreamEnv(): void {
+    for (const [name, replacement] of Object.entries(RETIRED_STREAM_ENV)) {
+      if ((process.env[name] ?? '').trim() === '') continue;
+      console.warn(
+        `WebSocketService: ${name} is set but RETIRED (stream arrival) and read by nothing — ` +
+          `its job is now ${replacement}. Remove it from the environment.`,
       );
-      return;
     }
-    if (raw.length < MIN_BROADCAST_TOKEN_LENGTH) {
-      this.broadcastToken = null;
-      console.error(
-        `WebSocketService: BROADCAST_TOKEN too weak ` +
-          `(< ${MIN_BROADCAST_TOKEN_LENGTH} chars) — broadcast feed DISABLED`
-      );
-      return;
-    }
-    this.broadcastToken = raw;
-    console.warn(
-      'WebSocketService: broadcast feed ENABLED — read-only ' +
-        `'${BROADCAST_PRINCIPAL}' connections accepted via ?broadcast=<token>`
-    );
-  }
-
-  /**
-   * Constant-time check of a candidate token against the configured
-   * broadcast token. Returns false when broadcast is disabled or the
-   * lengths differ (the early length check is unavoidable with
-   * `timingSafeEqual`, which requires equal-length buffers).
-   */
-  private matchesBroadcastToken(candidate: string): boolean {
-    if (!this.broadcastToken) return false;
-    const a = Buffer.from(candidate);
-    const b = Buffer.from(this.broadcastToken);
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
   }
 
   /**
@@ -206,9 +172,9 @@ export class WebSocketService {
    * Resolve a token socket to its player and accept or refuse it.
    *
    * ⭐ Fail loud, never open: an unknown, revoked or wrong-scope token is
-   * a 401 with a warning — never a fallback to some shared feed. The env
-   * `BROADCAST_TOKEN` (the changeover) still matches by constant-time
-   * compare and names the founder, the first id in `STREAMER_PLAYER_IDS`.
+   * a 401 with a warning — never a fallback to some shared feed. Every
+   * token is a player's own (`rodney token`); there is no env door
+   * (stream arrival D15).
    */
   private async acceptTokenSocket(
     request: IncomingMessage,
@@ -222,41 +188,23 @@ export class WebSocketService {
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
       socket.destroy();
     };
-    let playerId: string | null = null;
-    if (kind === 'broadcast' && this.matchesBroadcastToken(token)) {
-      playerId = this.founderPlayerId();
-      if (!playerId) {
-        console.error(
-          'WebSocketService: BROADCAST_TOKEN matched but STREAMER_PLAYER_IDS is empty — ' +
-            'the env token names nobody; refusing',
-        );
-        return refuse('env token with no streamer');
-      }
-    } else {
-      let resolved: { playerId: string; scope: string } | null = null;
-      try {
-        resolved = await this.backend.resolveStreamToken(token);
-      } catch (err) {
-        console.error('WebSocketService: stream token lookup failed', err);
-        return refuse('token lookup failed');
-      }
-      const wanted = kind === 'broadcast' ? 'overlay' : 'control';
-      if (!resolved) return refuse('unknown or revoked token');
-      if (resolved.scope !== wanted) return refuse(`a ${resolved.scope} token on the ${kind} door`);
-      playerId = resolved.playerId;
+    let resolved: { playerId: string; scope: string } | null = null;
+    try {
+      resolved = await this.backend.resolveStreamToken(token);
+    } catch (err) {
+      console.error('WebSocketService: stream token lookup failed', err);
+      return refuse('token lookup failed');
     }
+    const wanted = kind === 'broadcast' ? 'overlay' : 'control';
+    if (!resolved) return refuse('unknown or revoked token');
+    if (resolved.scope !== wanted) return refuse(`a ${resolved.scope} token on the ${kind} door`);
+    const playerId = resolved.playerId;
     const principal = `${kind}:${playerId}`;
     const pid = playerId;
     this.wss!.handleUpgrade(request, socket, head, (ws) => {
       console.info(`WebSocketService: ${kind} upgrade successful - principal=${principal}`);
       this.backend.handleWebSocketConnect(ws, principal, principal, { kind, playerId: pid });
     });
-  }
-
-  /** The founder — the first id in `STREAMER_PLAYER_IDS`, or null. */
-  private founderPlayerId(): string | null {
-    const first = (process.env.STREAMER_PLAYER_IDS ?? '').split(',')[0]?.trim();
-    return first ? first : null;
   }
 
   /**

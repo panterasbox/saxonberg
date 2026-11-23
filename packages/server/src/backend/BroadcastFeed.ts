@@ -57,7 +57,7 @@ export class BroadcastFeed {
   /** Overlay sockets → the player whose show they receive. */
   private connections: Map<string, string> = new Map();
 
-  /** Control sockets → the player whose `stream` they may run. */
+  /** Control sockets → the player whose `rodney` they may run. */
   private controls: Map<string, string> = new Map();
 
   /** The panel rows each overlay socket was given at connect (P7). */

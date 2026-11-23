@@ -17,7 +17,9 @@ help: |
   channel you linked in your settings) and attaches that channel. A
   program with no channel is still a program.
 
-  `program` on its own shows the program your stream runs.
+  `program run <name>` puts your stream in a program's chair — then
+  `rodney` drives it. `program` on its own shows the program your stream
+  runs.
 examples:
   - cmd: program create cafe-hour --title "The Cafe Hour"
     note: File a program named cafe-hour, owned by you
@@ -114,6 +116,19 @@ subcommands:
         type: boolean
         field: clear
         description: "Remove the program's feed on that carrier"
+  run:
+    controller: /platform/idea/cmd/stream/ProgramRunController
+    description: "Put your stream in the program's chair (`program run cafe-hour`)"
+    help: |
+      Your stream runs this program from now on: `rodney` drives it, and
+      Rodney shows the chat of the program's channels. You must hold its
+      pen. One chair at a time — while somebody else is on the air with
+      it, it is theirs; once they are off, running it takes the chair. You
+      cannot switch programs while you are on the air.
+    args:
+      - name: name
+        type: string
+        required: true
   about:
     controller: /platform/idea/cmd/stream/ProgramAboutController
     description: "What anyone can read about a program (`program about cafe-hour`)"

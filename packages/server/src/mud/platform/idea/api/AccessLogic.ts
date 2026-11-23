@@ -170,17 +170,6 @@ export class AccessLogic extends ApiLogic {
     return reg.isWizard(subject);
   }
 
-  /** See {@link AccessApi.isStreamer}. */
-  @CallSecurity(AccessApiCallers)
-  public async isStreamer(subject: Stuff | null): Promise<boolean> {
-    if (subject === null) return false;
-    const reg = lookupRegistry();
-    // ⚠⚠ FAIL CLOSED. See the note above the class.
-    if (!reg) return false;
-    if (!PlayerApi.isAvatarStuff(subject)) return false;
-    return reg.isStreamer(subject);
-  }
-
   /** See {@link AccessApi.isArchwizard}. */
   @CallSecurity(AccessApiCallers)
   public async isArchwizard(subject: Stuff | null): Promise<boolean> {

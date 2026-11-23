@@ -13,8 +13,10 @@
  * (this Stuff), one calling surface (`AccessApi`), and one
  * structurally-enforced path between them.
  *
- * `onCreate` runs idempotent bootstrap seeding: mint the three
- * axis groups (`'wizards'`, `'streamers'`, `'archwizards'`) if absent.
+ * `onCreate` runs idempotent bootstrap seeding: mint the two
+ * axis groups (`'wizards'`, `'archwizards'`) if absent. (The streamer axis
+ * retired with stream arrival D15; a `streamers` group left in a store is
+ * read by nothing.)
  * There is no `core` group (content-packs wave 3): title is the packs'
  * `requires`, and an untitled path is nobody's. Caches
  * (cached GroupRefs, the axis playerId Sets) warm
@@ -87,13 +89,6 @@ export default class AccessRegistry extends AccessRegistryBase {
   private cachedWizardPlayerIds: ReadonlySet<string> | null = null;
   /** Cancellation handle for the wizard onChange subscription. */
   private wizardCacheCancel: (() => void) | null = null;
-  private cachedStreamersRef: GroupRef | null = null;
-  /** Set of member keys (templatePaths) in `'streamers'` — the livestream-control axis.
-   *  Warmed lazily, invalidated via the managed provider's onChange
-   *  callback. Mirrors the wizard cache exactly. */
-  private cachedStreamerPlayerIds: ReadonlySet<string> | null = null;
-  /** Cancellation handle for the streamer onChange subscription. */
-  private streamerCacheCancel: (() => void) | null = null;
   private cachedArchwizardsRef: GroupRef | null = null;
   /** Set of member keys (templatePaths) in `'archwizards'` — the wizard-conferral axis.
    *  Archwizards run `wizard grant/revoke`. Warmed lazily, invalidated
@@ -113,7 +108,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     // resolution, and `can`/`canMutateZone` consult it via `ParcelApi`.
     // This registry only seeds the tag-like groups below.
     await this.seedWizardsGroup();
-    await this.seedStreamersGroup();
     await this.seedArchwizardsGroup();
   }
 
@@ -276,22 +270,6 @@ export default class AccessRegistry extends AccessRegistryBase {
   }
 
   /**
-   * Orthogonal streamer axis — is the actor in `'streamers'`? Gates
-   * the livestream control plane (the `stream` verb and, later, the
-   * scene / lower-third / afk mutators). Distinct from the wizard
-   * axis: a streamer drives the broadcast overlay without necessarily
-   * holding TypeScript-escape capability.
-   */
-  @CallSecurity(AccessApiCallers)
-  public async isStreamer(subject: Stuff | null): Promise<boolean> {
-    if (subject === null) return false;
-    const memberKey = this.memberKeyOf(subject);
-    if (memberKey === null) return false;
-    const cache = await this.ensureStreamerCache();
-    return cache.has(memberKey);
-  }
-
-  /**
    * Orthogonal archwizard axis — is the actor in `'archwizards'`?
    * Archwizards confer/revoke wizard status (the `wizard grant/revoke`
    * verb, authorized by the `requiresArchwizard` validator), and every
@@ -419,7 +397,7 @@ export default class AccessRegistry extends AccessRegistryBase {
    * The uniform group-membership key for any subject — its **identity**
    * path (a player as `/platform/agent/Avatar/<id>`, an NPC as its own path). Null
    * for an unregistered subject (no path). Authority groups (wizards /
-   * streamers / archwizards / author scopes) hold player keys only, so
+   * archwizards / author scopes) hold player keys only, so
    * an NPC's path simply isn't in them — no player-vs-NPC branch is
    * needed anywhere.
    *
@@ -580,26 +558,6 @@ export default class AccessRegistry extends AccessRegistryBase {
     return cache;
   }
 
-  private async ensureStreamerCache(): Promise<ReadonlySet<string>> {
-    if (this.cachedStreamerPlayerIds) return this.cachedStreamerPlayerIds;
-    const reg = await GroupApi.registry();
-    const provider = reg.managed();
-    const streamers = await provider.findByName('streamers');
-    if (!streamers || !streamers._id) {
-      this.cachedStreamerPlayerIds = new Set();
-      return this.cachedStreamerPlayerIds;
-    }
-    this.cachedStreamersRef = `managed:${streamers._id}`;
-    const cache = new Set(streamers.memberIds);
-    this.cachedStreamerPlayerIds = cache;
-    this.streamerCacheCancel?.();
-    const handle = provider.onChange?.(streamers._id, () => {
-      this.cachedStreamerPlayerIds = null;
-    });
-    this.streamerCacheCancel = handle?.cancel ?? null;
-    return cache;
-  }
-
   private async ensureArchwizardCache(): Promise<ReadonlySet<string>> {
     if (this.cachedArchwizardPlayerIds) return this.cachedArchwizardPlayerIds;
     const reg = await GroupApi.registry();
@@ -624,7 +582,7 @@ export default class AccessRegistry extends AccessRegistryBase {
    * ⭐⭐ **Re-establish the system groups after they have been deleted.**
    *
    * The nightly reset wipes `groups`, and the axis groups (`wizards`,
-   * `archwizards`, `streamers`) live there beside the player ones. They are minted in CODE rather than by a seed file — and the
+   * `archwizards`) live there beside the player ones. They are minted in CODE rather than by a seed file — and the
    * seeder is insert-only and runs at boot — so without this the world
    * would come back every morning with no axis groups at all. (The
    * titles and pack groups the reset also wipes are re-granted by
@@ -643,10 +601,8 @@ export default class AccessRegistry extends AccessRegistryBase {
   @CallSecurity(AccessApiCallers)
   public async reseedSystemGroups(): Promise<void> {
     this.cachedWizardsRef = null;
-    this.cachedStreamersRef = null;
     this.cachedArchwizardsRef = null;
     this.cachedWizardPlayerIds = null;
-    this.cachedStreamerPlayerIds = null;
     this.cachedArchwizardPlayerIds = null;
     await this.onCreate();
   }
@@ -668,10 +624,10 @@ export default class AccessRegistry extends AccessRegistryBase {
     this.cachedWizardsRef = `managed:${wizards._id}`;
 
     // Seed membership from WIZARD_PLAYER_IDS (comma-separated Avatar
-    // playerIds) — deploy-time config alongside STREAMER_PLAYER_IDS, read
+    // playerIds) — deploy-time config, read
     // straight from the env so there's no boot-ordering dependency on
     // AppSettings. Additive + idempotent (never removes), matching the
-    // merge-missing philosophy of the lounge/core/streamer seeding; drop a
+    // merge-missing philosophy of the lounge/core seeding; drop a
     // member via `wizard revoke`. Runs before any `isWizard` read, so the
     // lazy member cache picks the seeded ids up on first use.
     const ids = (process.env.WIZARD_PLAYER_IDS ?? '')
@@ -687,43 +643,6 @@ export default class AccessRegistry extends AccessRegistryBase {
       // Drop the (possibly already-warmed) member cache so the next
       // isWizard read reflects the freshly-seeded members.
       this.cachedWizardPlayerIds = null;
-    }
-  }
-
-  private async seedStreamersGroup(): Promise<void> {
-    const reg = await GroupApi.registry();
-    const provider = reg.managed();
-    let streamers = await provider.findByName('streamers');
-    if (!streamers) {
-      const g = new Group();
-      g.name = 'streamers';
-      g.owner = Group.systemOwner();
-      await g.save();
-      streamers = g;
-    }
-    if (!streamers._id) return;
-    this.cachedStreamersRef = `managed:${streamers._id}`;
-
-    // Seed membership from STREAMER_PLAYER_IDS (comma-separated Avatar
-    // playerIds) — deploy-time config alongside BROADCAST_TOKEN, read
-    // straight from the env so there's no boot-ordering dependency on
-    // AppSettings. Additive + idempotent (never removes), matching the
-    // merge-missing philosophy of the lounge/core seeding; drop a
-    // member via the `group` verb. Runs before any `isStreamer` read,
-    // so the lazy member cache picks the seeded ids up on first use.
-    const ids = (process.env.STREAMER_PLAYER_IDS ?? '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
-    let changed = false;
-    for (const id of ids) {
-      if (streamers.addMember(Avatar.getTemplatePath(id))) changed = true;
-    }
-    if (changed) {
-      await streamers.save();
-      // Drop the (possibly already-warmed) member cache so the next
-      // isStreamer read reflects the freshly-seeded members.
-      this.cachedStreamerPlayerIds = null;
     }
   }
 
@@ -743,8 +662,8 @@ export default class AccessRegistry extends AccessRegistryBase {
 
     // Seed membership from ARCHWIZARD_PLAYER_IDS (comma-separated Avatar
     // playerIds) — the operator/root floor that owns wizard conferral.
-    // Additive + idempotent (never removes), mirroring the streamer/
-    // wizard env seed. Runs before any `isArchwizard` read.
+    // Additive + idempotent (never removes), mirroring the wizard
+    // env seed. Runs before any `isArchwizard` read.
     const ids = (process.env.ARCHWIZARD_PLAYER_IDS ?? '')
       .split(',')
       .map((s) => s.trim())
@@ -762,8 +681,6 @@ export default class AccessRegistry extends AccessRegistryBase {
   public override onDestruct(): void {
     this.wizardCacheCancel?.();
     this.wizardCacheCancel = null;
-    this.streamerCacheCancel?.();
-    this.streamerCacheCancel = null;
     this.archwizardCacheCancel?.();
     this.archwizardCacheCancel = null;
     super.onDestruct();

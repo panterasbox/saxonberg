@@ -5,8 +5,8 @@
  * server-wide, in-memory `StreamState` singleton is now state on each
  * player's own character, saved by the persistence spine that already
  * saves them: five phases, a standby reason, three deadlines, a topic and
- * an agenda, the streamer's own chat channels and the hashes of the tokens
- * they issued. A restart restores all of it; two streamers never move each
+ * an agenda, the program the body runs (its pointer; the program holds the
+ * channels) and the hashes of the tokens they issued. A restart restores all of it; two streamers never move each
  * other.
  *
  * ```
@@ -17,7 +17,7 @@
  *
  * ⭐ **The mixin decides** (P5): every transition is a method here that
  * refuses BY NAME on an illegal move (`not-streaming`, `ending`, …); the
- * `stream` controller parses and renders. Every change emits
+ * `rodney` controller parses and renders. Every change emits
  * `Events.StreamShowChanged { playerId, show }`, which the backend
  * `BroadcastFeed` routes to the sockets opened with this streamer's token,
  * and pushes `stream.state` to the streamer's own client.
@@ -34,9 +34,10 @@
  * Away or Starting countdown that runs out changes nothing (fail closed —
  * only the streamer returns the desktop to the air).
  *
- * Composed on every `Avatar`; the streamer AXIS is the `streamers` group
- * (`AccessApi.isStreamer`), which gates the verb, not the state — most
- * bodies read `offline` forever, as most never fill a calendar.
+ * Composed on every `Avatar`. Nobody is *the* streamer (stream arrival):
+ * `rodney` is gated by the PROGRAM the body runs and its pen, not a role —
+ * most bodies run none and read `offline` forever, as most never fill a
+ * calendar.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -113,8 +114,6 @@ export interface BroadcastHost {
   nameTopic(topic: string | null): void;
   planAgenda(items: string[]): void;
   advanceStreamAgenda(): BroadcastResult;
-  nameChannel(service: BroadcastService, handle: string | null): void;
-  getStreamChannels(): BroadcastChannels;
   /** The path of the program this body runs (stream arrival D12), or null. */
   getStreamProgram(): string | null;
   /** Point the body at a program — the program loads with it; a gone one clears. */
@@ -143,22 +142,20 @@ export function BroadcastMixin<
       streamTopic: { persistent: true, runtimeState: true },
       streamAgenda: { persistent: true, runtimeState: true },
       streamAgendaIndex: { persistent: true, runtimeState: true },
-      streamChannels: { persistent: true, runtimeState: true },
       streamTokenHashes: { persistent: true, runtimeState: true },
       streamProgram: { persistent: true, runtimeState: true },
     };
 
     /**
-     * ⭐ `stream` is afforded to every played body; `requiresStreamer`
-     * on the view gates who may RUN it (the shipped split — the verb's
-     * visibility is the host's, its authorization the axis's).
+     * ⭐ `rodney` is afforded to every played body; `requiresProgram` on
+     * the view gates who may RUN it — the body runs a program whose pen it
+     * holds (stream arrival D12; the streamer axis is retired).
      */
     static commandContributions: CommandContributions = {
       // `program` sits beside the stream verb for now (stream arrival A1);
       // the instruments take both (C2).
       self: [
-        'platform/cmd/stream/stream.yaml',
-        'platform/cmd/stream/stream-rotation.yaml',
+        'platform/cmd/stream/rodney.yaml',
         'platform/cmd/stream/program.yaml',
       ],
       peers: [],
@@ -167,7 +164,7 @@ export function BroadcastMixin<
 
     /** The phase. Persisted. */
     public streamPhase: StreamPhase = 'offline';
-    /** The standby reason as resolved at `stream away` — persisted whole,
+    /** The standby reason as resolved at `rodney away` — persisted whole,
      *  so a restart needs no document read to show it. */
     public streamReason: StreamReason | null = null;
     public streamStartsAt: number | null = null;
@@ -177,8 +174,7 @@ export function BroadcastMixin<
     public streamAgenda: string[] = [];
     /** Index of the current agenda item; -1 before the first `next`. */
     public streamAgendaIndex = -1;
-    public streamChannels: BroadcastChannels = {};
-    /** sha256 hex of the live token per scope — what `stream token` rotates. */
+    /** sha256 hex of the live token per scope — what `rodney token` rotates. */
     public streamTokenHashes: Partial<Record<BroadcastTokenScope, string>> = {};
     /**
      * ⭐ The program this body runs (stream arrival D12) — the path of a
@@ -209,7 +205,7 @@ export function BroadcastMixin<
       );
     }
 
-    /** `stream start [in <dur>]` — Starting Soon, counting to `atMs`. */
+    /** `rodney start [in <dur>]` — Starting Soon, counting to `atMs`. */
     public startStream(atMs: number | null): BroadcastResult {
       if (this.streamPhase === 'ending') return { ok: false, refusal: 'ending' };
       if (this.streamPhase === 'live' || this.streamPhase === 'standby') {
@@ -223,7 +219,7 @@ export function BroadcastMixin<
       return { ok: true };
     }
 
-    /** `stream live` / `stream back` — the desktop goes on air. */
+    /** `rodney live` / `rodney back` — the desktop goes on air. */
     public goLive(): BroadcastResult {
       if (this.streamPhase === 'offline') return { ok: false, refusal: 'not-streaming' };
       if (this.streamPhase === 'ending') return { ok: false, refusal: 'ending' };
@@ -236,9 +232,9 @@ export function BroadcastMixin<
     }
 
     /**
-     * `stream away <reason> [<dur>]` — Away, with the reason's copy and a
+     * `rodney away <reason> [<dur>]` — Away, with the reason's copy and a
      * countdown (none for a privacy reason). ⭐ Allowed from `offline` as
-     * well (continuity, lens 5): the shipped `stream away 15m` worked with
+     * well (continuity, lens 5): the shipped `stream away 15m` (now `rodney away 15m`) worked with
      * no stream started, and still does.
      */
     public goStandby(reason: StandbyReason, durationMs: number | null): BroadcastResult {
@@ -252,7 +248,7 @@ export function BroadcastMixin<
       return { ok: true };
     }
 
-    /** `stream end` — the outro, then offline when its timer fires. */
+    /** `rodney end` — the outro, then offline when its timer fires. */
     public endStream(): BroadcastResult {
       if (this.streamPhase === 'offline') return { ok: false, refusal: 'not-streaming' };
       if (this.streamPhase === 'ending') return { ok: false, refusal: 'ending' };
@@ -266,7 +262,7 @@ export function BroadcastMixin<
       return { ok: true };
     }
 
-    /** `stream off` (and the outro's fire) — nothing on air. */
+    /** `rodney off` (and the outro's fire) — nothing on air. */
     public goOffline(): BroadcastResult {
       this.cancelOutro();
       this.streamPhase = 'offline';
@@ -292,7 +288,7 @@ export function BroadcastMixin<
       this.changed();
     }
 
-    /** `stream next` — the current item is done; the next is current. */
+    /** `rodney next` — the current item is done; the next is current. */
     public advanceStreamAgenda(): BroadcastResult {
       if (this.streamAgenda.length === 0) return { ok: false, refusal: 'no-agenda' };
       if (this.streamAgendaIndex >= this.streamAgenda.length) {
@@ -301,19 +297,6 @@ export function BroadcastMixin<
       this.streamAgendaIndex += 1;
       this.changed();
       return { ok: true };
-    }
-
-    public nameChannel(service: BroadcastService, handle: string | null): void {
-      const next: BroadcastChannels = { ...this.streamChannels };
-      const h = handle?.trim() ?? '';
-      if (h.length > 0) next[service] = h;
-      else delete next[service];
-      this.streamChannels = next;
-      this.changed();
-    }
-
-    public getStreamChannels(): BroadcastChannels {
-      return { ...this.streamChannels };
     }
 
     public getStreamProgram(): string | null {
@@ -343,7 +326,7 @@ export function BroadcastMixin<
       }
     }
 
-    /** `stream-rotation pin|skip|clear [<key>]` — steer the lower third. */
+    /** `rodney pin|skip|unpin [<key>]` — steer the lower third. */
     public steerRotation(
       action: 'pin' | 'skip' | 'clear',
       key: string | null,

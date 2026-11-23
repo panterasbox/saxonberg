@@ -232,7 +232,7 @@ export class Application {
 
     // ⭐ Token sockets (broadcast-ready D4/D11) never become an
     // Interactive: an overlay is a push target for ONE streamer's feed,
-    // a control socket may run that streamer's `stream` and nothing else.
+    // a control socket may run that streamer's `rodney` and nothing else.
     if (kind === 'broadcast' || kind === 'control') {
       if (!playerId) {
         console.error(`Application: ${kind} connection with no player - socketId=${socketId}`);

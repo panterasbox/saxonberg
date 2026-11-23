@@ -159,8 +159,8 @@ export class TestAuthRoutes {
         (parcels as string[] | undefined) ?? [],
         (committees as string[] | undefined) ?? [],
         (offices as string[] | undefined) ?? [],
-        // ⭐ The streamer axis (broadcast-ready drive): membership of the
-        // `streamers` group, the same write `group add` makes.
+        // ⭐ A broadcaster (stream arrival A2): a program named for the
+        // handle, created and run by the character — typed, not granted.
         body?.streamer === true,
         linked
       );

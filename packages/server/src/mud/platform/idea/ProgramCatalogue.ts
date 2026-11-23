@@ -15,7 +15,7 @@
 
 import { DocumentCatalogue } from "../../lib/document/DocumentCatalogue";
 import type { BoundaryRole } from "../../lib/security/BoundaryRole";
-import { BROADCAST_SERVICES, type BroadcastService } from "../../lib/livestream/Broadcast";
+import type { BroadcastService } from "../../lib/livestream/Broadcast";
 import {
   Program,
   PROGRAM_NAME_RE,
@@ -40,10 +40,12 @@ export default class ProgramCatalogue extends DocumentCatalogue<Program> {
     const text = (v: unknown): string => (typeof v === "string" ? v : "");
     const owner = text(data.owner);
     if (owner.length === 0) throw new Error(`program '${path}': no owner`);
+    // The feeds as the one writer wrote them (`StreamLogic`, typed by
+    // carrier) — read, not re-filtered against a kernel list.
     const feeds: ProgramFeeds = {};
     const raw = (data.feeds ?? {}) as Record<string, unknown>;
-    for (const carrier of BROADCAST_SERVICES) {
-      const feed = feedOf(raw[carrier]);
+    for (const [carrier, value] of Object.entries(raw)) {
+      const feed = feedOf(value);
       if (feed) feeds[carrier as BroadcastService] = feed;
     }
     const runner = typeof data.runner === "string" && data.runner.length > 0 ? data.runner : null;

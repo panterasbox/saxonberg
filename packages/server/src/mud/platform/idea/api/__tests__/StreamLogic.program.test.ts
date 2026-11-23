@@ -27,6 +27,10 @@ import { TwitchProfile } from '../../../../lib/identity/TwitchProfile';
 import { KickProfile } from '../../../../lib/identity/KickProfile';
 import { GoogleProfile } from '../../../../lib/identity/GoogleProfile';
 import { StuffApi } from '../../../../api/stuff';
+import { MixinApi } from '../../../../api/mixin';
+import { AppApi } from '../../../../api/app';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 /** The in-memory document store, by path. */
 let store: Map<string, { path: string; kind: string; owner: string; data: Record<string, unknown> }>;
@@ -42,6 +46,10 @@ interface FakePlayer {
   name: string;
   guest?: boolean;
   user: FakeUser;
+  /** The body's run (D12): the program it cites, and whether it is on air. */
+  program?: string | null;
+  onAir?: boolean;
+  resident?: boolean;
 }
 
 /** Who holds which pen: `home/<key>` for each player, plus any extras. */
@@ -57,6 +65,12 @@ function avatarOf(p: FakePlayer): unknown {
     getName: () => p.name,
     getPresentation: () => p.name,
     getUser: () => p.user,
+    getStreamProgram: () => p.program ?? null,
+    setStreamProgram: async (path: string | null) => {
+      if (path) await StreamApi.programs().ensure(path);
+      p.program = path;
+    },
+    isOnAir: () => p.onAir === true,
     _key: p.key,
   };
 }
@@ -76,8 +90,12 @@ beforeEach(() => {
     ['bo', new Set(['/home/bo'])],
   ]);
   profiles.clear();
-  ada.user = {};
-  bo.user = {};
+  for (const p of [ada, bo]) {
+    p.user = {};
+    p.program = null;
+    p.onAir = false;
+    p.resident = true;
+  }
   acting = null;
   StreamApi.programs().forget();
 
@@ -104,6 +122,12 @@ beforeEach(() => {
   );
   vi.spyOn(PlayerApi, 'isAvatarStuff').mockImplementation(((s: unknown) =>
     !!s && typeof (s as { _key?: unknown })._key === 'string') as never);
+  vi.spyOn(MixinApi, 'isBroadcastHost').mockImplementation(((s: unknown) =>
+    !!s && typeof (s as { _key?: unknown })._key === 'string') as never);
+  vi.spyOn(PlayerApi, 'findAvatarByPlayerId').mockImplementation(((id: string) => {
+    const p = [ada, bo].find((x) => x.key === id && x.resident !== false);
+    return p ? (avatarOf(p) as never) : undefined;
+  }) as never);
   vi.spyOn(AccessApi, 'canAtPath').mockImplementation(async (subject, _action, path) => {
     const key = (subject as unknown as { _key?: string } | null)?._key;
     if (!key) return false;
@@ -344,5 +368,162 @@ describe('DocumentApi.saveProgram — the transport\'s rails', () => {
         ))(),
     ).rejects.toThrow(/denied/);
     expect(store.size).toBe(0);
+  });
+});
+
+describe('program run — the chair (D12)', () => {
+  beforeEach(async () => {
+    linkTwitch(ada, 'adaplays');
+    await as(ada, () => StreamApi.createProgram('cafe-hour'));
+    await as(ada, () => StreamApi.attachFeed('cafe-hour', 'twitch'));
+  });
+
+  it('points the body at the program and the program at its player', async () => {
+    expect((await as(ada, () => StreamApi.runProgram('cafe-hour'))).ok).toBe(true);
+    expect(ada.program).toBe('/platform/programs/cafe-hour');
+    expect(store.get('/platform/programs/cafe-hour')?.data.runner).toBe('ada');
+    expect(StreamApi.channelsFor('ada')).toEqual({ twitch: 'adaplays' });
+  });
+
+  it('a stranger cannot run it', async () => {
+    expect(await as(bo, () => StreamApi.runProgram('cafe-hour'))).toMatchObject({
+      ok: false,
+      reason: 'not-your-program',
+    });
+    expect(bo.program).toBeNull();
+  });
+
+  it('one chair: refused while the runner is on air, replaced when not', async () => {
+    pens.get('bo')!.add('/home/ada');
+    await as(ada, () => StreamApi.runProgram('cafe-hour'));
+    ada.onAir = true;
+    expect(await as(bo, () => StreamApi.runProgram('cafe-hour'))).toMatchObject({
+      ok: false,
+      reason: 'program-in-use',
+    });
+    ada.onAir = false;
+    expect((await as(bo, () => StreamApi.runProgram('cafe-hour'))).ok).toBe(true);
+    expect(store.get('/platform/programs/cafe-hour')?.data.runner).toBe('bo');
+    expect(ada.program).toBeNull();
+  });
+
+  it('no switching programs while on the air', async () => {
+    await as(ada, () => StreamApi.createProgram('other-show'));
+    await as(ada, () => StreamApi.runProgram('cafe-hour'));
+    ada.onAir = true;
+    expect(await as(ada, () => StreamApi.runProgram('other-show'))).toMatchObject({
+      ok: false,
+      reason: 'program-on-air',
+      facts: { name: 'cafe-hour' },
+    });
+    ada.onAir = false;
+    expect((await as(ada, () => StreamApi.runProgram('other-show'))).ok).toBe(true);
+    // Leaving the old chair clears it.
+    expect(store.get('/platform/programs/cafe-hour')?.data.runner).toBeNull();
+  });
+
+  it('a feed attached while running is what the overlay reads', async () => {
+    await as(ada, () => StreamApi.runProgram('cafe-hour'));
+    linkKick(ada, 'adakick');
+    await as(ada, () => StreamApi.attachFeed('cafe-hour', 'kick'));
+    expect(StreamApi.channelsFor('ada')).toEqual({ twitch: 'adaplays', kick: 'adakick' });
+  });
+
+  it('on air in the listing only while the runner is resident, running it, on air', async () => {
+    await as(ada, () => StreamApi.runProgram('cafe-hour'));
+    expect((await StreamApi.programListing('cafe-hour'))?.live).toBe(false);
+    ada.onAir = true;
+    expect((await StreamApi.programListing('cafe-hour'))?.live).toBe(true);
+    ada.resident = false;
+    expect((await StreamApi.programListing('cafe-hour'))?.live).toBe(false);
+  });
+});
+
+describe("`rodney`'s gate — StreamApi.programGate (D12)", () => {
+  it('no program → no-program; its pen → ok; the pen lost → not-your-program', async () => {
+    const body = () => avatarOf(ada) as never;
+    expect(await StreamApi.programGate(body())).toBe('no-program');
+    await as(ada, () => StreamApi.createProgram('cafe-hour'));
+    await as(ada, () => StreamApi.runProgram('cafe-hour'));
+    expect(await StreamApi.programGate(body())).toBe('ok');
+    pens.get('ada')!.clear();
+    expect(await StreamApi.programGate(body())).toBe('not-your-program');
+  });
+
+  it('a body citing a program that is gone runs none', async () => {
+    ada.program = '/platform/programs/vanished';
+    expect(await StreamApi.programGate(avatarOf(ada) as never)).toBe('no-program');
+    expect(StreamApi.channelsFor('ada')).toEqual({});
+  });
+});
+
+describe('no source reads a retired stream env name (D15)', () => {
+  it('only the boot warning names them', () => {
+    const root = join(__dirname, '../../../../..');
+    const names = /OVERLAY_TWITCH_LOGIN|OVERLAY_YOUTUBE_CHANNEL|OVERLAY_KICK_CHANNEL|STREAMER_PLAYER_IDS|\bBROADCAST_TOKEN\b/;
+    const hits: string[] = [];
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir)) {
+        const full = join(dir, entry);
+        if (entry === '__tests__' || entry === 'node_modules') continue;
+        if (statSync(full).isDirectory()) walk(full);
+        else if (/\.ts$/.test(entry) && names.test(readFileSync(full, 'utf8'))) hits.push(full);
+      }
+    };
+    walk(root);
+    expect(hits.map((h) => h.slice(root.length + 1))).toEqual(['services/websocket/WebSocketService.ts']);
+  });
+});
+
+describe('the front page\'s program — frontListing (D14)', () => {
+  let featured: string;
+  beforeEach(async () => {
+    featured = '';
+    vi.spyOn(AppApi, 'setting').mockImplementation(((k: string) =>
+      k === 'stream.featuredProgram' ? featured : '') as never);
+    linkTwitch(ada, 'adaplays');
+    await as(ada, () => StreamApi.createProgram('cafe-hour', { title: 'The Cafe Hour' }));
+    await as(ada, () => StreamApi.amendProgram('cafe-hour', { schedule: 'Saturdays 10am ET' }));
+    await as(ada, () => StreamApi.attachFeed('cafe-hour', 'twitch'));
+    linkKick(bo, 'bokick');
+    await as(bo, () => StreamApi.createProgram('other-show'));
+    await as(bo, () => StreamApi.attachFeed('other-show', 'kick'));
+    await as(bo, () => StreamApi.createProgram('no-feed'));
+  });
+
+  it('unset → nothing is featured', async () => {
+    expect(await StreamApi.frontListing()).toBeNull();
+  });
+
+  it('featured, off air → live false with its next show; on air → live true', async () => {
+    featured = 'cafe-hour';
+    expect(await StreamApi.frontListing()).toMatchObject({
+      name: 'cafe-hour',
+      live: false,
+      nextShow: 'Saturdays 10am ET',
+      feeds: { twitch: 'adaplays' },
+    });
+    await as(ada, () => StreamApi.runProgram('cafe-hour'));
+    ada.onAir = true;
+    expect((await StreamApi.frontListing())?.live).toBe(true);
+  });
+
+  it('a link naming a program with a feed there gets THAT program', async () => {
+    featured = 'cafe-hour';
+    expect((await StreamApi.frontListing('other-show', 'kick'))?.name).toBe('other-show');
+  });
+
+  it('no feed on that carrier, no such program, or a malformed name → the featured one', async () => {
+    featured = 'cafe-hour';
+    for (const [w, c] of [['other-show', 'twitch'], ['no-feed', 'kick'], ['nope', 'kick'], ['Bad Name', 'kick']] as const) {
+      expect((await StreamApi.frontListing(w, c))?.name).toBe('cafe-hour');
+    }
+  });
+
+  it('changing the setting changes the answer', async () => {
+    featured = 'cafe-hour';
+    expect((await StreamApi.frontListing())?.name).toBe('cafe-hour');
+    featured = 'other-show';
+    expect((await StreamApi.frontListing())?.name).toBe('other-show');
   });
 });

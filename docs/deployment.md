@@ -521,8 +521,6 @@ KICK_WEBHOOK_URL         # the public webhook URL for Kick chat delivery —
                          #   (Caddy already terminates TLS for it). Local
                          #   dev: leave unset → transport-dormant, no
                          #   tunnel needed.
-OVERLAY_KICK_CHANNEL     # optional: the owner's own Kick slug for the
-                         #   broadcast-overlay chat forwarding
 ```
 
 Test/E2E-only (never set in production):

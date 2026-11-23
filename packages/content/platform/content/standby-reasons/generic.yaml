@@ -1,4 +1,4 @@
-# The reason a bare duration means — `stream away 15m`, the shipped grammar.
+# The reason a bare duration means — `rodney away 15m`, the shipped grammar.
 label: Away
 copy: Stepped away. Back soon.
 defaultDurationMs: null

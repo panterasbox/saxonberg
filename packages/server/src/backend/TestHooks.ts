@@ -240,7 +240,7 @@ export class TestHooks {
     const playerId = user.playerIds[0];
     if (playerId === undefined) return;
     if (wizard) await TestHooks.#joinGroup(playerId, 'wizards', 'member');
-    if (streamer) await TestHooks.#joinGroup(playerId, 'streamers', 'member');
+    if (streamer) await TestHooks.#stageProgram(user, playerId, name);
     if (committees.length > 0) await TestHooks.#seatOnCommittees(playerId, committees);
     for (const office of offices) {
       const r = await CompactApi.assignOfficeForTest(playerId, office);
@@ -289,6 +289,53 @@ export class TestHooks {
       }
     }
     await user.save();
+  }
+
+  /**
+   * TEST-ONLY: make the test character a broadcaster the way a player
+   * becomes one (stream arrival A2) — by PLAYING: `program create <name>`
+   * (taken by an earlier login of the same handle is fine) and `program run
+   * <name>`, typed as the character through the ordinary dispatcher. The
+   * program is named for the handle. Nobody is *the* streamer any more;
+   * this is the state `streamer: true` stands for.
+   */
+  static async #stageProgram(user: User, playerId: string, handle: string): Promise<void> {
+    let avatar = PlayerApi.findAvatarByPlayerId(playerId);
+    if (!avatar) {
+      const loaded = await PlayerApi.loadAvatarsForUser(user);
+      avatar = loaded.find((a) => a.getPlayerId() === playerId);
+    }
+    if (!avatar) throw new Error(`TestHooks: no body for ${playerId} to run a program`);
+    avatar.claimForLogin();
+    const name = TestHooks.programNameFor(handle);
+    const body = avatar;
+    const run = async (line: string): Promise<string | null> => {
+      let status: string | null = null;
+      await ExecutionContextApi.runRoot(body, 'executeCommand', () =>
+        body.executeCommand(line, {
+          onOutcome: (s) => {
+            status = s;
+          },
+        })
+      );
+      return status;
+    };
+    await run(`program create ${name}`);
+    const ran = await run(`program run ${name}`);
+    if (ran !== 'ok') {
+      throw new Error(`TestHooks: 'program run ${name}' answered ${String(ran)} for ${playerId}`);
+    }
+  }
+
+  /** The program a test handle's broadcaster runs: the handle, as a short name. */
+  public static programNameFor(handle: string): string {
+    const slug = handle
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 32)
+      .replace(/-+$/, '');
+    return slug.length >= 2 ? slug : `show-${slug || 'x'}`;
   }
 
   /** Add the character to one managed group by name (the `group` verb's write). */

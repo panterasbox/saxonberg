@@ -138,6 +138,9 @@ export type ProgramReason =
   | 'program-on-air'
   | 'no-program';
 
+/** What `rodney`'s gate finds (stream arrival D12): the pen, or why not. */
+export type ProgramGate = 'ok' | 'no-program' | 'not-your-program';
+
 /** A program act: the record as it now stands, or the refusal and its facts. */
 export type ProgramAnswer =
   | { ok: true; program: Program }
@@ -196,6 +199,39 @@ export class StreamApi {
     carrier?: BroadcastService,
   ): Promise<ProgramListing | null> {
     return logic().programListing(name, carrier);
+  }
+
+  /**
+   * Take the chair of program `name` (D12): the pen; one chair at a time
+   * (refused while another runner is on air with it, else they are
+   * replaced); refused while you are on air with a different one. Points
+   * the acting body at the program and the program at its player, and
+   * re-opens the overlay's chat on the program's feeds.
+   */
+  static runProgram(name: string): Promise<ProgramAnswer> {
+    return logic().runProgram(name);
+  }
+
+  /**
+   * `rodney`'s gate (D12): does `host` run a program whose pen it still
+   * holds? One followed reference and the title gate.
+   */
+  static programGate(host: Stuff): Promise<ProgramGate> {
+    return logic().programGate(host);
+  }
+
+  /**
+   * ⭐ The front page's program (D14): the one a link names — when it
+   * exists and has a feed on `carrier` — else the featured one
+   * (`stream.featuredProgram`), else null. So a link only ever selects
+   * among programs' proven feeds, and the answer names the program the
+   * client must use from then on.
+   */
+  static frontListing(
+    watch?: string,
+    carrier?: BroadcastService,
+  ): Promise<ProgramListing | null> {
+    return logic().frontListing(watch, carrier);
   }
 
   /** Remove the program's feed on `carrier` — the pen only (D13). */
@@ -303,7 +339,7 @@ export class StreamApi {
   }
 
   /**
-   * Read a `stream away` operand: a bare duration is the generic reason;
+   * Read a `rodney away` operand: a bare duration is the generic reason;
    * a word is a reason row, optionally followed by an overriding duration.
    */
   static interpretAway(first: string, second?: string): Promise<StandbyReading> {
@@ -338,14 +374,14 @@ export class StreamApi {
     logic().watchNumbers(playerId);
   }
 
-  /** Re-open `playerId`'s channel reads after `stream channel` changed them. */
+  /** Re-open `playerId`'s channel reads after their program's feeds changed. */
   static refreshOverlayReading(playerId: string): Promise<void> {
     return logic().refreshOverlayReading(playerId);
   }
 
   /**
-   * The chat channels `playerId`'s overlay shows — their body's own, else
-   * (the founder) the `OVERLAY_*` env seed. The feed's relay filter.
+   * The chat channels `playerId`'s overlay shows — the feeds of the
+   * program their body runs (D12). The feed's relay filter.
    */
   static channelsFor(playerId: string): BroadcastChannels {
     return logic().channelsFor(playerId);
@@ -353,7 +389,7 @@ export class StreamApi {
 
   /**
    * Issue (or rotate) `host`'s stream token for `scope` — returned once,
-   * stored only as its hash (broadcast-ready D4). The `stream token` verb.
+   * stored only as its hash (broadcast-ready D4). The `rodney token` verb.
    */
   static issueToken(host: Stuff & BroadcastHost, scope: BroadcastTokenScope): Promise<string> {
     return logic().issueToken(host, scope);

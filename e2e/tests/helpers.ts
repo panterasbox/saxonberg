@@ -91,7 +91,7 @@ export async function mintSession(
     committees?: string[];
     /** Seat the character in each office (the seat moves). */
     offices?: string[];
-    /** Join the `streamers` group — the `stream` verb's axis (broadcast-ready). */
+    /** A broadcaster: a program named for the handle, created and run by the character (stream arrival A2). */
     streamer?: boolean;
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {

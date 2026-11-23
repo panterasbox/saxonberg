@@ -1,6 +1,6 @@
 /**
  * requiresWizard — the verb-level code-trust gate. Mirrors the
- * `requiresStreamer` / `requiresAuthor` validator-test shape: the sync
+ * `requiresProgram` / `requiresAuthor` validator-test shape: the sync
  * body maps the preloaded boolean to a denial string (or pass), and the
  * async preload reads `AccessApi.isWizard(giver)`.
  */

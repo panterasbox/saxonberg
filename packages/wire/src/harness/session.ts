@@ -222,7 +222,7 @@ export interface SessionOptions {
   committees?: string[];
   offices?: string[];
   parcels?: string[];
-  /** Join the `streamers` group (broadcast-ready) — the `stream` verb's axis. */
+  /** A broadcaster: a program named for the handle, created and run by the character (stream arrival A2). */
   streamer?: boolean;
 }
 

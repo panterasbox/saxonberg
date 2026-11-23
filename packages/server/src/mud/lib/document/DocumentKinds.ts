@@ -311,7 +311,7 @@ export const DOCUMENT_KINDS = {
    * overlay's copy, a default duration or none, whether it is a privacy
    * reason, and the OBS scene it wants (broadcast-ready D2). Authored
    * metadata nothing writes, read by its path
-   * (`/platform/standby-reasons/<key>`) when `stream away <key>` names it.
+   * (`/platform/standby-reasons/<key>`) when `rodney away <key>` names it.
    */
   'standby-reason': { kind: 'standby-reason', contentDir: 'standby-reasons', ext: 'yaml', onVanish: 'delete' },
   /**
