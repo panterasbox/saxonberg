@@ -413,7 +413,7 @@ export function ZoneMap(props: ZoneMapProps): React.ReactElement {
           frontierEls.push(
             wrap(
               { header: { name: name ?? "a room you have not been in", kindWord: "not visited" }, ...(command ? { command } : {}) },
-              <g key={`f${e.id}`} data-testid="nav-frontier" data-ghost-name={name ?? undefined} {...markProps(name ?? "a room you have not been in", command, click)}>
+              <g key={`f${e.id}`} data-testid="nav-frontier" data-dir={e.dir} data-ghost-name={name ?? undefined} {...markProps(name ?? "a room you have not been in", command, click)}>
                 <rect
                   x={sx(gx) - half}
                   y={sy(gy) - half}

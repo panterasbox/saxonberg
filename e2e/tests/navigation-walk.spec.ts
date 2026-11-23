@@ -84,9 +84,10 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       await expect(page.getByTestId('nav-frontier').first()).toBeVisible({ timeout: 30_000 });
       await expect(page.locator('[data-testid="nav-edge"][data-shape="opening"][data-dir="north"]')).toHaveCount(1);
 
-      // 3 · the opening north of you is how you move: a click is `go north`.
+      // 3 · the room north of you that you have not been in is how you move:
+      // its dashed outline (drawn over the opening, the same way) is `go north`.
       const before = await coords(page);
-      await page.locator('[data-testid="nav-edge"][data-shape="opening"][data-dir="north"]').click();
+      await page.locator('[data-testid="nav-frontier"][data-dir="north"]').click();
       await expect.poll(() => coords(page), { timeout: 30_000 }).not.toBe(before);
       await expect(places(page)).toHaveCount(2, { timeout: 30_000 });
       // Back is now a link between two walked places.
@@ -115,7 +116,9 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       await page.getByTestId('nav-level-0').click();
       await page.getByTestId('nav-map-fit').click();
       const here = await coords(page);
-      const vestibule = places(page).first();
+      // The room's own box: a place's name sits beside it inside the same
+      // mark, so the mark's center can fall between the two.
+      const vestibule = places(page).first().locator('rect').first();
       await vestibule.click();
       await expect(page.getByTestId('nav-route-leg').first()).toBeVisible({ timeout: 30_000 });
       expect(await coords(page)).toBe(here);
@@ -163,7 +166,9 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       await expect(pump).toHaveAttribute('data-boundary', 'true');
       await pump.click({ button: 'right' });
       await expect(page.getByTestId('radial-overlay')).toBeVisible({ timeout: 15_000 });
-      await expect(page.locator('[data-verb="unlock"]')).toHaveCount(1, { timeout: 15_000 });
+      // The menu asks the server what a door affords ("reading…") — seconds,
+      // more under a parallel walk.
+      await expect(page.locator('[data-verb="unlock"]')).toHaveCount(1, { timeout: 45_000 });
       await page.keyboard.press('Escape');
 
       // 21 · the status bar's outdoors; 24 · the crumbs are your own.
@@ -195,13 +200,21 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
     test.setTimeout(300_000);
     const { page, close } = await openWorldAs(browser, 'navtrack', {
       startLocation: SEEP,
+      // The torch, as in the Delve: Rejection is open sky, so at night a
+      // look writes nothing (Light) — the step owns its light, not the clock.
+      committees: ['/world/terminus'],
       contextOptions: { viewport: { width: 2048, height: 1100 } },
     });
     try {
+      await runCommand(page, `clone ${TORCH}`);
+      await runCommand(page, 'light me:i:torch');
       await openCard(page);
       await runCommand(page, 'look');
-      // 14 · walk a track, and its two ends are a long dashed link.
+      // 14 · walk a track, there and back, and its two ends are a long
+      // dashed link. (Both ways: walking writes a place whatever the light,
+      // a look only when you can see — and at night the seep is only dim.)
       await runCommand(page, 'northeast');
+      await runCommand(page, 'southwest');
       await page.getByTestId('nav-map-fit').click();
       await expect(page.locator('[data-testid="nav-edge"][data-shape="track"]').first()).toBeVisible({ timeout: 60_000 });
     } finally {
@@ -266,6 +279,9 @@ test.describe('navigation card — the zone map, the ways, the sections', () => 
       const now = was === 'true' ? 'false' : 'true';
       await expect(you).toHaveAttribute('data-open', now);
       await expect(you).toHaveAttribute('data-set', 'true');
+      // The write rides the socket; a reload in the same instant closes it
+      // before the server has the change (a person does not reload that fast).
+      await page.waitForTimeout(2_000);
       await page.reload();
       await reenterWorld(page);
       await openCard(page);

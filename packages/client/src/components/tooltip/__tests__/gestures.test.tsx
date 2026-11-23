@@ -120,3 +120,26 @@ describe("keyboard", () => {
     expect(screen.queryByTestId("tooltip")).toBeNull();
   });
 });
+
+describe("a stale grace never closes a fresh tooltip", () => {
+  it("pointer off a locked tooltip, Escape, then focus another control: its tooltip stays open", async () => {
+    const { Tip } = await import("../Tip");
+    const { scheduleTipGrace } = await import("../useTip");
+    render(
+      <>
+        <Tip tip={{ header: { name: "grid" } }}><button type="button">grid</button></Tip>
+        <Tip tip={{ header: { name: "down" } }}><button type="button">down</button></Tip>
+        <TooltipLayer onCommandClick={() => {}} onCommandPreview={() => {}} />
+      </>,
+    );
+    act(() => void fireEvent.focus(screen.getByText("grid")));
+    expect(useStore.getState().tipStack).toHaveLength(1);
+    // The pointer leaves a locked stack: the grace starts.
+    act(() => scheduleTipGrace());
+    act(() => void fireEvent.keyDown(window, { key: "Escape" }));
+    expect(useStore.getState().tipStack).toHaveLength(0);
+    act(() => void fireEvent.focus(screen.getByText("down")));
+    advance(1_000);
+    expect(useStore.getState().tipStack).toHaveLength(1);
+  });
+});
