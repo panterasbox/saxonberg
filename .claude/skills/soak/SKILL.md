@@ -17,11 +17,26 @@ Two parts, and only one of them is you:
 | **the runner** — `tools/soak` | a script: finds unsoaked merges, runs their `*.soak.wire.test.ts` files, files a GitLab issue labeled `soak` on failure | no |
 | **you** — this session | triage: read a failure, diagnose it, write the diagnosis on the issue | only when something broke |
 
+## Start of every session
+
+Run `tools/soak --status` first. ⚠ **If it says NO WATCHER, nothing is
+soaking** — start `tools/soak --watch` in the window's second pane. The
+watcher died with its pane on 2026-10-31 and nobody noticed for two
+weeks.
+
 ## Where you live
 
 - **Worktree:** `/home/bobalu/play/saxonberg/soak`, **detached** at a
-  master commit. ⛔ **Never commit here, never branch here.** The runner
-  moves `HEAD` to the commit it is soaking; fixes go to a build worktree.
+  master commit while the watcher runs. The runner moves `HEAD` to the
+  commit it is soaking, so a **build's** fix goes to that build's
+  worktree, by whoever the owner assigns.
+- ⭐ **The lane's own repairs are built HERE** — the runner, the wire
+  harness's soak machinery, a stale soak drive: this is where their world
+  is, and the lane cannot produce a trustworthy result until they land
+  anyway. Branch (`build/<name>`), and the watcher waits while you are on
+  it — it never moves a worktree that is on a branch or has local
+  changes. When the MR merges, `git checkout --detach origin/master` and
+  the watcher picks up where it left off.
 - **Your world:** database `saxonberg_soak` (yours to drop), wire port
   **2020** (`WIRE_PORT` is set on this tmux window). Never use another
   worktree's port or database.
@@ -45,8 +60,9 @@ Two parts, and only one of them is you:
    slate owns it. ⚠ Distinguish a **real defect** from a **broken drive**
    (a step that cannot fail, a wrong world, a port collision — a world
    missing a whole feature is a wrong-world collision, not a bug).
-5. **Do not fix it here.** The fix is a branch in a build worktree, by
-   whoever the owner assigns.
+5. **Do not fix a build's defect here.** That fix is a branch in a build
+   worktree, by whoever the owner assigns. A broken **drive** or a broken
+   **lane** is the exception — see *Where you live*.
 
 ## Checking the lane's state
 
@@ -57,8 +73,13 @@ Two parts, and only one of them is you:
 - `.soak/log` — one line per file per run (`<time> <sha> <file>
   pass|fail|skipped <reason>`); `.soak/results/<sha>.json` — that run's
   `result.json` (per file, per test: state, ms, errors — the drive
-  record); `.soak/server-<sha>.log` — the world's log, kept on failure;
-  `.soak/run-<sha>.out` — the runner's own output for that run.
+  record), one per world: `.soak/results/<sha>/<world>.json`, where
+  `<world>` is the dirty file's name or `clean`;
+  `.soak/server-<sha>-<world>.log` — that world's log, kept on failure;
+  `.soak/run-<sha>-<world>.out` — the runner's own output for it.
+- ⭐ **One world per dirty file.** A dirty file leaves the world changed,
+  so it never shares one; the clean files do. Running every file in one
+  world (2026-11-14) failed 25 of 26, mostly on contamination.
 - **The runner itself runs in this window's second pane**:
   `tools/soak --watch`. It waits for the suite lock (the one
   `tools/suite` takes) and for memory (a 4 GB reserve plus a 3 GB
@@ -83,7 +104,10 @@ state_event=close`.
 
 ## What you never do
 
-- Commit, branch, push or merge from the soak worktree.
+- Commit, branch or push a BUILD's fix from the soak worktree (the lane's
+  own repairs are the exception), or merge from it at all.
+- Run soak files in a shared world by hand — one world per dirty file,
+  as the runner does.
 - Run a soak drive in a build worktree, or on a build's port.
 - Re-run a whole span "to see if it passes now" — that is the waiting
   this lane exists to remove from everyone else.

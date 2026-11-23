@@ -181,6 +181,8 @@ government speech.
 
 ### The first broadcasting institution is the owner's show
 
+> ⭐ **2026-11-20:** it broadcasts from **Hallett's**, the old station on **the Dial** — [halletts-slate](../world/halletts-slate.md).
+
 A committee with seats — the owner and the stream moderators whose grants reach into Twitch and YouTube
 ([moderation-slate](../society/moderation-slate.md) § 24). **Court day**, the moderation court held on
 the stream (moderation § 14a), is broadcast content: the judiciary on air.

@@ -76,14 +76,29 @@ async function look(s: Session): Promise<string> {
 async function morning(): Promise<void> {
   // ⭐ Late spring (days 60–100 of the 360-day year): the snowmelt is in the
   // river and the pools are open — the drive swims and steams in it.
-  for (let i = 0; i < 40; i++) {
-    const day = Math.floor((await worldClockNow()) / 86_400) % 360;
-    if (day >= 60 && day <= 100) break;
-    await advanceWorldClock('5 days');
-    await advanceWorldClock('5 days');
-  }
+  // ⚠ Few, large jumps to the season's first morning (soak run cc6de0972):
+  // climbed in 5-day steps, a fresh world took 10–38 s to settle each, the
+  // step overran its budget and the abandoned climb kept jumping into the
+  // steps after it. A jump past a game day is a span — this is a soak file, and
+  // the harness sends the soak flag under `pnpm wire:soak`. The drive's
+  // first call comes before any drive body is made, so nobody lives
+  // through the gap unfed.
   const DAY = 86_400;
-  const t = (await worldClockNow()) % DAY;
+  const now = await worldClockNow();
+  const day = Math.floor(now / DAY) % 360;
+  if (day < 60 || day > 100) {
+    const toDay = (60 - day + 360) % 360;
+    // ⚠ In fortnights, not one jump: a jump of a month or more blocks the
+    // world's event loop and never returns (#137); a fortnight did.
+    let left = Math.ceil(toDay * DAY + 8 * 3600 - (now % DAY));
+    while (left > 0) {
+      const step = Math.min(left, 14 * DAY);
+      await advanceWorldClock(`${step} seconds`);
+      left -= step;
+    }
+    return;
+  }
+  const t = now % DAY;
   if (t >= 8 * 3600 && t <= 13 * 3600) return;
   const hours = Math.ceil(((8 * 3600 - t + DAY) % DAY) / 3600);
   for (let h = hours; h > 0; h -= 5) await advanceWorldClock(`${Math.min(5, h)} hours`);
@@ -141,18 +156,31 @@ afterAll(() => {
 
 suite('stage D — a ship on the river', () => {
   it('25. aboard the Ostrander at the city quay; under way upstream, she makes ground against the current', async () => {
+    // The season first: nobody of the drive's is made until it has turned.
+    await morning();
     master = await session(MASTER, QUAY);
-    // ⭐ Only her master takes the helm: the founder, who holds
-    // the office that appoints her company, puts this player in command.
+    // ⭐ Only her master takes the helm. Her company is the City's (its
+    // cap table: /world/terminus/budget), and the City appoints through the
+    // committee over /world/terminus/terminal — so the founder, SEATED on
+    // that committee (the founder sits on none by default since the
+    // wizard-axis build, D18), puts this player in command.
+    // ⚠ (soak run cc6de0972) By what the founder KNOWS them as: a stranger
+    // is "a human" — they meet on the quay first.
     const me = await master.query('me', { fields: ['displayName'] });
-    const name = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
-    const gov = await Session.open('founder', { startLocation: BANK_HALL });
+    const self = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+    const gov = await Session.open('founder', {
+      startLocation: QUAY,
+      committees: ['/world/terminus/terminal'],
+    });
     try {
+      await gov.drainProse();
+      expectOk(await master.cmd('introduce'));
+      const met = squash(await gov.listen(4_000));
+      const name = met.match(/introduces themselves as ([^.]+)\./)?.[1]?.trim() ?? self;
       expectOk(await gov.cmd(`house appoint "${name}" to master at /world/terminus/ostrander/idea/outfit`));
     } finally {
       gov.close();
     }
-    await morning();
     const aboard = await master.cmd('go ostrander');
     expect(aboard.status, squash(await aboard.said())).toBe('ok');
     const deck = await look(master);
@@ -166,7 +194,7 @@ suite('stage D — a ship on the river', () => {
     await master.listen(3_000);
     const after = kmOf(await say(master, 'course'));
     expect(after!, 'she did not move up the river').toBeGreaterThan(before!);
-  }, 600_000);
+  }, 1_200_000); // the season climb (morning) runs in this step
 
   it('26. course for the woodyard: she comes alongside; ashore, buy cordwood, and feed her bin', async () => {
     let set = await steam(master, 'course woodyard');
@@ -248,6 +276,9 @@ suite('stage D — a ship on the river', () => {
       // one: at the mouth, stay for it (the browser walk saw her go out over
       // the bar a watch after she reached it; this loop never waited).
       const where = await say(master, 'course');
+      // ⚠ (soak repair, 2026-11-17) 31 undetermined: each half-hour's
+      // readout, so the next run shows where she stopped going down.
+      console.log(`down [${i}] course: ${where.slice(0, 200)} | heard: ${sea.slice(-200)}`);
       if (/at the mouth|0 meters above the mouth/.test(where)) {
         sea += ' ' + squash(await master.listen(70_000));
         break;

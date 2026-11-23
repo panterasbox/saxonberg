@@ -5,6 +5,15 @@
 > curriculum describe it (§§ 6a–6d there). The owner: *"I kinda wanna use this as a jumping-off point
 > to actually start drilling into the governance design for real — what are the various inputs and
 > outputs for the different bodies within the different branches."*
+> ⭐ **2026-11-20 (§ 7t): the ownership model** — one pen per path, legibility as a hard constraint,
+> placeholders titled to disclosed fictional owners, conveyance to players with covenants running with the
+> land, three buckets, collisions judged by engagement, the Title Act's clauses.
+> ⭐ **2026-11-20 (§ 7s): grants delegate, titles convey** — the fix to § 7l's revocation gap; the city
+> provides the lot, the holder fills it in (class 4); the first statute book (the Procedure Act, the Title
+> Act, the Terminus Charter) cited from the code.
+> ⭐ **2026-11-20 (§ 7r): who directs enforcement** — the Sergeant at Arms (the floor), the High
+> Constable (the executive's Constabulary), the Clerk of the Court (elected by every citizen, the second
+> election); the four top seats incompatible; one report desk.
 > ⭐ **2026-11-20 (§ 7q): stand the Compact up first** — capital standing only, the vote as the
 > early-adopter incentive, the Speakers as leaders who certify their houses' counts and hold a sealed
 > namespace, the first election (Speaker of the Capital House), the monthly jobs report, rules A–D on
@@ -1444,6 +1453,348 @@ Elections, polls and the whip count as one kind of question: [voting-slate](./vo
 3. **Zorkmid stipends** for office holders.
 4. **The seal-expiry default period.**
 5. **The certification deadline.**
+
+## 7r. ⭐⭐⭐ Who directs enforcement — the Sergeant at Arms, the High Constable, the Clerk of the Court **[DECIDED — the owner, 2026-11-20]**
+
+The owner: *"the Compact itself has chat and forum subjects that need moderation and that's like
+bills on the floor … as soon as we set up the ability to introduce a bill, it's gonna need moderators
+for the conversation that report to the Compact, not to the press. And then we need moderators too for
+general reports — DMs, says or emotes or any kind of harassment the first-line moderators can't handle
+… so that's a separate staff with a separate reporting structure."* This splits moderation-slate § 24's
+single *Compact* launch team. **American names throughout.**
+
+### The bodies, and who they report to
+
+| institution | reports to | handles | its head |
+|---|---|---|---|
+| **the Saxonberg Post** | its stakeholders (founder default) | its sections and public channels | **Editor in Chief** |
+| **the show** | the show's committee (the founder manages it) | stream chat, in game and on each carrier | — |
+| **the floor** | **the legislature — the three Speakers jointly** | bill threads; the floor's forums and chat | ⭐ **Sergeant at Arms** |
+| **the Constabulary** | **the executive** | reports with no local home (a DM belongs to no channel — § 23's lowest common holder is the root), escalations from first-line teams, the reserved list | ⭐ **High Constable** |
+| **the court** | **the judiciary** | appeals and cases | ⭐ **Clerk of the Court** |
+
+### The Sergeant at Arms — order on the floor
+
+Order in a chamber is the legislature's own business, never the executive's: the presiding officer keeps
+it (the Commons Speaker names a member; the US Speaker calls to order) and the **Sergeant at Arms**
+enforces it — an officer of the legislature, not the government (the Commons has had one since 1415).
+**One floor and three Speakers**, so **the Speakers jointly appoint and oversee** the Sergeant at Arms,
+who leads the **floor deputies**; the founder appoints as caretaker until then, and **a Speaker seated
+first decides** in the meantime.
+
+- **Content-neutral** — time, place and manner, never viewpoint (§ 24).
+- **Bounded by its reach** — removal from the floor's Subjects at most (§ 23).
+- ⭐ **Floor privilege** — debate answers **only to the floor's own officers**; the Constabulary cannot
+  sanction a member for what they said on the floor, the **reserved list** excepted (it always goes to
+  the root). The precedent: the English Bill of Rights 1689, art. 9; the US Speech or Debate Clause.
+- **The floor's seats open the moment a bill can be introduced.**
+
+### The High Constable — keeping the peace, never content
+
+The owner, rejecting *Commissioner of Conduct* as too Orwellian: *"it's content moderation … approving
+consumer content is basically censorship, which is why finding a good name for it is hard and Orwell
+ruined all the good words."* **The office polices how people treat each other — harassment, threats,
+disruption — never what anyone says or makes.** Approving content is the court's, and only for labor's
+content. ⭐ **A constable keeps the peace and serves process** — exactly a hold: stop the harm, hand the
+matter on; never judge, never vet speech. American history: **New York City's High Constable**
+(1802–1844, Jacob Hays throughout), the chief of the city's peacekeepers before a police department
+existed. The office is **the Constabulary**; its officers **constables**. (*The Department of Decorum*
+was the satirical alternative.)
+
+- An **enforcement institution** of the executive (Art. V §5), chartered by the legislature; its acts
+  are **holds** (moderation § 14a); anything over the line becomes a case.
+- ⭐ **Tenure** — *"never the personal instrument of the Prime Minister"* (Art. V §5): **appointed by the
+  PM, confirmed by the floor** (confirmations are on the secret-ballot list, § 7b); **removable by the
+  PM only with written public reasons and a notice period during which the floor can object** — the US
+  inspectors-general removal rule (30 days' notice), borrowed. The PM can fix a bad High Constable;
+  firing a good one costs something in public. **It binds the founder as acting PM.**
+- (*Inspector General* is a different, later seat — a **watchdog over every body's moderators**:
+  reversal rates, complaints about seats. Worth having once there are enough enforcers to watch.)
+
+### The Clerk of the Court — a sacred trust, elected by every citizen
+
+The Clerk decides nothing but **drives the court's commands** — draws juries by verifiable lot, files
+rulings, keeps the docket — a public trust like a Speaker's certification. The owner, rejecting
+selection by lot: *"I described the office as a sacred trust like I described the speaker's role
+despite being ceremonial. Would you select a speaker by lot? I don't think so."* And *"the court is
+everyone, just like the legislature is"* — there is no standing body of judges to appoint anyone.
+
+- ⭐ **Elected by every citizen, one member one vote** — standing counts for nothing. The constitution's
+  own principle: when the jury pool is the citizenry it is egalitarian, *"influence and reputation
+  counting for nothing"* (Art. VI §4). The American precedent: clerks of court are elected officials in
+  much of the US (every Florida county elects its Clerk of the Circuit Court). The pattern:
+
+  | office | chosen by | weight |
+  |---|---|---|
+  | a house's Speaker | that house | its standing |
+  | the Prime Minister | the floor | a majority of houses |
+  | **the Clerk of the Court** | **every citizen** | **one person, one vote** |
+
+- **A fixed term** — a sacred trust wants stability; **removal never by the court the Clerk runs** — by
+  the floor, for cause (the impeachment model). The election machinery is the voting slate's, counted by
+  heads ([voting-slate](./voting-slate.md)).
+- **Bootstrap:** the founder is the court's pool of one, hearing appeals on stream as content and doing
+  the Clerk's work, labelled honestly (Art. VI at a pool of one, operator-overridable). Independence
+  meanwhile rests on disclosure and every case heard in public.
+- ⭐ **The second election** (the owner): the Clerk of the Court is elected **after the Speaker of the
+  Capital House**, unless the other two Speakers' elections come first; its timing is the founder's,
+  and it is due no later than **the court widening beyond the founder** — the first sortition panel, or
+  a ratified due-process right (Art. VI §5).
+
+### The four top seats are incompatible **[DECIDED]**
+
+**Sergeant at Arms, Editor in Chief, High Constable, Clerk of the Court — nobody holds two at once.**
+The real rule: the US Constitution's Incompatibility Clause (Art. I §6) bars anyone holding a federal
+office from sitting in Congress; most parliaments bar officials and judges from the legislature —
+because one person in two such offices joins powers the system keeps apart. The press seat matters most:
+an Editor in Chief holding a state seat would be the state reporting on itself. These seats **direct
+enforcement; they never make rules** — the Compact does.
+
+**Rank-and-file moderators may serve several bodies** (the owner: *"most mods will work in more than one
+office for a little while"*), each act taken from one seat and logged under it (§ 24) — **and must know
+each body's rules**. The same holds for private moderators in guilds and businesses. The show's
+moderators and the game's will overlap; they are still different bodies with different authority.
+
+### One report desk, two back offices **[DECIDED — lens 2]**
+
+A player should not need to know which institution they need: **one `report` command and desk** takes
+everything; intake routes **reports to the Constabulary** and **appeals to the court** (a moderator
+never hears an appeal of their own action, moderation § 14). The routing goes on the record, so nobody
+loses a complaint by misfiling it.
+
+### What to advertise now
+
+Three seats, **each posted by the body that appoints it**, so the different authorities show from the
+start:
+
+| seat | posted by | selection |
+|---|---|---|
+| **Sergeant at Arms** | the Compact's press office, for the legislature | the founder as caretaker; a seated Speaker if one exists first; the three Speakers once all houses run |
+| **Editor in Chief of the Saxonberg Post** | the Saxonberg Post | its stakeholders (the founder, by default) |
+| **High Constable** | the Office of the Prime Minister | appointed by the PM; confirmed by the floor once it can confirm |
+
+**Every posting says:** which body the seat belongs to and its rules; that **the seat directs
+enforcement and never makes rules**; that **the four top seats are incompatible**; that moderators under
+any of them **may serve several teams**, one seat per act, under that body's rules; and that
+**everyone is restaffed** by the proper appointing authority once all three houses run. The Clerk of
+the Court is **not** advertised — it is elected. On the front page, the three are the Make line's open
+seats, ranked by load in the monthly jobs report (§ 7q).
+
+### Open
+
+1. The Clerk's term length and the tenure threshold for voting.
+2. The High Constable's notice period.
+3. When the Inspector General seat is created.
+
+## 7s. ⭐⭐⭐ Who authors a business — titles, grants, and the first statute book **[DECIDED — the owner, 2026-11-20; lens pass]**
+
+The owner, asking where the show's content and authority come from: *"either the taxonomy is wrong or we
+have to be able to attach controls that someone at the top of the tree is bound to with regard to their
+descendants."*
+
+### Where versus who — and the fix to § 7l
+
+**A path says where something is; a title says who holds the pen.** Authority resolves by title,
+longest prefix first (parcel.md: chain of title, `subdivide`, `transfer`), so a business at
+`/world/terminus/…` under its own title is the business's, though the path runs through Terminus.
+Businesses live **with their place** in the locality's tree (shipped: `/world/terminus/hearthworks`,
+`…/hearts-delight/…`, `…/hollow-mere/idea/ice-company`) — never under `/corpo/`, which is the handful of
+megacorps. Home directories are the sandbox, unpublished and unprivileged; nothing public is served from
+one.
+
+⭐ **The gap:** § 7l said *"a private parcel is a committee of one, granted its subtree"* and *"the grantor
+may revoke"* — Terminus could revoke a business's premises. **Grants delegate; titles convey:**
+
+| | **grant** (delegation) | **title** (property) |
+|---|---|---|
+| is | a parent lending part of its authority | a parent conveying property |
+| the parent may | revoke, on the record, appealably | **only** what private protections allow |
+| fits | a city block's committee, a public office, an institution | a business's premises, a home, a private parcel |
+
+**A parent is bound toward a titled descendant by the private protections** (§ 7l: the right to exclude, a
+warrant before public power enters, no taking without compensation, appeal to the Compact always) **and
+the Compact's law — and by nothing else.** Its public law still applies inside its borders: zoning (land
+use resolves by `landUseOf`), local conduct rules that add to the code and never subtract, its covenants.
+Whether a city's committee plays that out as a fiction of town government is its own choice.
+
+### Where content comes from, and how it is reviewed
+
+- **The city provides the lot; the holder fills it in.** The city subdivides from its plat (the settlement
+  model's plat book; Hinkley's lane ships), sold through **Mayfield & Co.** (one realty office fronts
+  every plat book — holding.md D14), with its boundaries, frontage and zoning, and may offer a building
+  shell (`FloorplanWarren`, the plan on the owner's row). Everything inside is authored **under the
+  holder's title**. **Hiring** someone to build is a sub-grant of the holder's parcel — authority always
+  flows from the title.
+- **Review** — the procedure law's **class 4** (§ 6): *content in your extent, by the extent's holder,
+  within its covenants; authority: title; review: after merge, on challenge.* Two things lift it out:
+  **levers** (prices on NPC businesses, NPC demand, faucets — the authors'-conflict rule sends them to
+  governance when the author has a stake) and **code** (the wizards' pen; class 1 if it changes no law,
+  **class 5 — reviewed before merge** — if it adds law-bearing behavior).
+
+### The founder on both sides
+
+Today the founder holds Terminus's title by default (caretaker) **and** is a business in it. Written
+honestly: *as founder I hold Terminus's pen; as Bobalu Smallberries I am a business in it*; every act names
+its seat. ⚠ **Self-dealing on the founder's own premises** (lens 7): a committee setting terms for ground
+it conveys to its own holder is a lever with a stake — so the founder takes premises **on the published
+terms anyone gets, on the record**, never special ones.
+
+### The statute book — start it now **[DECIDED]**
+
+`docs/compact/law/`, beside the draft constitution and the founding charter. Three statutes, **received
+law** the founder enacts under Art. XI and the legislature may amend:
+
+1. **The Procedure Act** — § 6 as statute text; every merge carries its class and authority; its first
+   reader is the merge check.
+2. **The Title Act** — grants delegate, titles convey; subdivide and transfer; the private protections;
+   what a parent may and may not do to a titled descendant.
+3. **The Terminus Charter** — the city's grant from the Compact: its extent, its public-law powers
+   (zoning, local conduct additions, covenants) and its public duties. ⭐ Because *no escalation — grant
+   only a subset* (§ 7l), **the charter is a Dillon's Rule charter** (a city has only the powers expressly
+   granted), against **home rule** (every power not denied) — a real lesson and the legislature's to change.
+
+⭐ **The code cites them** — the tech-tree slate's annotation palette (§ 6b: inert, typed decorators behind
+an import gate, each shipping with its first reader): `ParcelRegistry.subdivide` / `transfer` carry
+`@law(Laws.TitleAct)`, the protections `@clause` statics, the merge check reads each MR's class and
+citation. Law, code and the link between them, on the record from the first statute.
+
+### Lens pass
+
+1. **Pedagogy** — property law (title against license, takings, *Cedar Point*, the warrant); administrative
+   law (the Procedure Act); municipal law (Dillon's Rule against home rule); the code citing its statutes
+   so law becomes curriculum. **Chose** the statute book with citations.
+2. **Expression** — a business is rows under a title; crew are positions; house rules a document; lots
+   from a plat; every business and every streamer the same path. **Chose** the lot from the plat, filled by
+   the holder.
+3. **3a** — a realtor selling city ground; a studio seen from the street; the founder as an ordinary
+   tenant in town. **3b** — realtor, hired builders, constables, a show's crew; the unwanted (a committee
+   leaning on its parcels, a landlord gouging, the founder on both sides) each answered.
+4. **Values** — titles convey; protections bind the parent.
+5. **Continuity** — caretaker enactments become received law, amendable after handover; a business's
+   records belong to it, not to the founder's seat.
+6. **Economy** — a business employing a crew (labor demand), a lease, a lot sale into the city treasury;
+   paid by the founder in zorkmids as a player; crew wages the business's choice (the Terminus Gazette's
+   editor already sits at zero).
+7. **Governance** — grants against titles closes § 7l's revocation gap (the Title Act); self-dealing on
+   the founder's premises answered by published terms.
+
+## 7t. ⭐⭐⭐ The ownership model — one pen per path, placeholders held by fictions, conveyance to players **[DECIDED — the owner, 2026-11-20; lens pass]**
+
+Settles § 7s's open edges, after a long conversation (the studio at Hallett's as the test case). ⚠ It
+**supersedes** two ideas raised along the way: *delegation by grant to helpers* (the owner: *"if people are
+changing code I want it to be clear who's accountable for that code, and this delegation idea muddies
+that"*) and *an occupant's writing applied to a room by reference from the occupant's own folder* (it
+breaks legibility, below).
+
+### ⭐⭐⭐ Legibility is a hard constraint
+
+The owner: *"we have a very legible, very navigable content framework right now. There's a path on a
+thing, it's easily queried, I can look up the path and see what makes that thing tick and it's all right
+there. Having to go through a bunch of who owns what and when and the whole life story of a database
+record or TypeScript module is what I want to avoid."* **Whatever ownership does, the path is where the
+thing is** — no indirection to trace to understand a room. Ownership is a **record about a path**
+(`parcels`, `parcel_events`, `chattel`), never where a row or a file sits; a handoff changes that record and
+moves nothing.
+
+### The model
+
+1. ⭐ **One pen per path, one accountable holder** — no delegation. If someone else writes a thing, they
+   hold its title and the path says so. Every act is logged as the seat that took it.
+2. ⭐ **Placeholder content is titled to fictional owners** — the owner: *"we're gonna have a bunch of
+   dummy shops and stuff at launch that we're trying to get real players to take over if they can manage
+   the risk. The dummy shops need to just content that it's from the city or some other institution …
+   the story the filesystem shows doesn't have to tell that."* The city, or an invented institution that
+   explains why the place is the way it is (the pattern ships: Seznick House is held by **Mayfield
+   Holdings**). Behind each, the founder's pen by default — **disclosed**: fictional owners are proxies for
+   whoever writes them (*power is the pen*).
+3. ⭐ **Players take places over by conveyance** — buy or lease from the fictional owner (through Mayfield
+   & Co. or whoever sells); **the title moves, and with it the pen and the accountability.**
+4. ⭐ **The shared story is covenants that run with the land** — deed restrictions that bind every future
+   holder (the city's charter, the place's epoch, a building's preservation terms). The owner: *"all agreed
+   on who has the pen to what and all on the same page about the story being told, but different people
+   at the wheel."* The new holder agrees to them at conveyance.
+
+**The goal** (the owner): *"get as much of this in players' hands as possible."* The city is mostly streets
+and public works; most buildings, businesses and homes will be someone else's.
+
+### Three buckets — what a holder writes
+
+| bucket | who writes it | examples |
+|---|---|---|
+| **outside** | the landowner | facade, sign, the street, what the city sees |
+| **inside** | whoever holds the space | the rooms as a scene — prose, NPCs, things, the story there |
+| **physics and money** | neither — the world's rules and governance | what a material is, ore in the ground, anything minting goods or money, prices nobody chooses |
+
+**One voice per scene.** A place's **class and mixins are structural** (outside) — the landowner's; an
+occupant adds capability by **bringing things in** (commands come from a room's contents), and asks the
+landowner (consent not unreasonably withheld, deemed after a deadline, the court) when it needs the room
+itself to be another kind. The **authorable-field census** —
+[ownership-census.tsv](./ownership-census.tsv), all 921 authorable fields, a first pass (one row per field:
+category and reason; 79 marked ambiguous, in eight patterns) — is a **builder's checklist**, not something
+decided by hand; a lint keeps new fields from going unsorted.
+
+The eight patterns, for builders: a participant's price vs the world's (derived from **who holds the
+seat**: a person → their policy; autopilot → a lever) · authored starting quantities are **minting** (a
+faucet → governance) · a place's born-with things are **the place's fixtures**; an occupant's set dressing
+is their own things · physics that sets income is the place's, **flagged by the authors'-conflict rule**
+when the writer has a stake · rules that switch off capability are **covenants** · names on another's
+structure belong to its holder (public names to the locality) · ownership records (who holds, who made)
+come from **the registries, never authored** · licenses (a bank charter) are **grants held by the grantor**.
+
+### Collisions — the more engaged story wins
+
+The owner: *"I'm almost always going to lean towards whoever is more actively engaged with the content.
+If the landowner is telling some very long-running story that's at odds with a more condensed narrative
+happening on one of its lots … surely one of those stories is more engaging to the player and it's
+probably because the author is also more engaged with the content and its active maintenance. Even
+long-running quests need a little spontaneity."* **Talk first; then the court**, judged by **which story is
+more actively engaged — by players and by its author** (a judgment for people, never an engine metric).
+Long stories do not win by length.
+
+### Handoffs, concretely
+
+| event | what changes | what does not |
+|---|---|---|
+| **sale** (`title transfer`) | the parcel's owner; a chain-of-title entry | every row and document stays at its path; `authoring_events` keeps who wrote what |
+| **lease starts** | a use-grant on the parcel record | nothing else |
+| **lease ends / a holder leaves** | the grant is removed | — the departing holder's **things** and **staff** are theirs (chattel; the firm's own folder); ⚠ open: placed goods go back to the holder or to collectable storage (the estate system) |
+| **a firm moves** | one lease ends, another starts | its records, staff and equipment never lived in a building |
+
+⚠ **Open seam:** a pack-installed place later conveyed to a player — a pack reinstall could overwrite the
+holder's edits; who maintains a pack-installed place once it is sold needs its own look. ⚠ **Open:** an
+author's work on a place they leave stays with the place (credit kept in provenance); whether and how an
+author may reuse it elsewhere is unresolved — within the legibility constraint.
+
+### Lens pass
+
+1. **Pedagogy** — title, conveyance, chain of title; covenants running with the land, and their dark
+   chapter (*Shelley v. Kraemer*, 1948: racially restrictive covenants unenforceable); privatization;
+   property vs expression (5Pointz). Derivable: the path and its parcel record answer *who is accountable*.
+2. **Expression** — no code to convey a title; covenants are text; fictional owners are rows; legibility
+   holds.
+3. **3a** — fictional owners explain the world; a takeover is a story (*the old bakery changed hands*).
+   **3b** — players running businesses; dead-hand covenants, hoarding, and a placeholder sale enriching the
+   founder each answered below.
+4. **Values** — one accountable holder; proxies disclosed; as much in players' hands as they can carry;
+   the more engaged author wins.
+5. **Continuity** — titles, covenants and the chain of title survive handover, epochs and sales; the
+   founder's proxies convert to players one conveyance at a time.
+6. **Economy** — a market in land and businesses; the buyer pays in zorkmids; ⚠ **when a fictional owner
+   sells, the proceeds go to the public treasury, never the founder** (otherwise every placeholder sale is
+   founder self-dealing); risk is the player's, with the credit ladder.
+7. **Governance** — accountability is the pen; covenant disputes go to the court. ⚠ **Covenants may never
+   encode real-life traits** (*Shelley*; the real-life-trait ban); **unreasonable covenants are void**;
+   **covenants lapse on changed conditions** (real doctrine — the answer to the dead hand). **Hoarding** is a
+   soft limit: a covenant may require a place to operate, enforced by the court, never an engine switch.
+
+### The law it needs — the Title Act's clauses
+
+The statute book (§ 7s) gains its content: **one pen per path** · **title, conveyance and the chain of
+title** · **use-grants are never authorship** · **the private protections** · **fictional owners as disclosed
+proxies, their sale proceeds to the public treasury** · **covenants running with the land** — agreed at
+conveyance, never on real-life traits, void if unreasonable, lapsing on changed conditions · **the three
+buckets** · **the consent process** (not unreasonably withheld, deemed after a deadline, the court) ·
+**collisions judged by engagement**. Drafted as received law under Art. XI; the legislature's to amend.
 
 ## 8. Lens pass
 

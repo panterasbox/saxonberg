@@ -75,6 +75,7 @@ const PITHEAD = '/world/terminus/rejection/location/pithead-yard';
 const PROVISIONING = '/world/terminus/rejection/location/provisioning';
 const GLASSHOUSE = '/world/terminus/rejection/hanging-wood/glasshouse';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
+const STORE = '/world/terminus/general-store/shop-floor';
 const B = '/world/terminus/hearts-delight/brickfield/location';
 const SHED = `${B}/moulding-shed`;
 const HACKS = `${B}/hacks`;
@@ -169,14 +170,23 @@ async function examine(keyword: string): Promise<string> {
   return text;
 }
 
+/**
+ * Everything the character carries, one list. ⭐ `me:I`, never `me:i`: a
+ * body holds two things in its hands and the rest rides in pockets and bags
+ * (size and carrying, MR !576), and `me:i` sees only the direct contents.
+ */
 async function held(): Promise<string> {
-  const rows = await k.query('me:i', { fields: ['displayName'] }).catch(() => []);
+  const rows = await k.query('me:I', { fields: ['displayName'] }).catch(() => []);
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ');
 }
 
 /** Rest the way a person would: sit out a night on the clock. */
 async function rest(): Promise<void> {
   await drink();
+  // ⭐ And eats: endurance comes back by spending what the body has eaten
+  // (soak repair 2026-11-16 — the miner was refused `too-tired` from
+  // step 10 on, across 8- and 12-hour rests, because it never ate).
+  await say('eat rations');
   await say('sit');
   await advance('8 hours');
   await say('stand');
@@ -269,13 +279,14 @@ beforeAll(async () => {
   handle = uniqueHandle('liner');
   const bank = await Session.open(handle, { startLocation: BANK_HALL });
   expectOk(await bank.cmd('bank open'));
-  bank.close();
+  // ⭐ The payee must still be in the world: a closed session leaves it at once.
   const gov = await Session.open('founder', { startLocation: BANK_HALL });
   try {
     expectOk(await gov.cmd(`reserve override 400 to ${handle} "wire: ceramics drive B"`));
   } finally {
     gov.close();
   }
+  bank.close();
   // ⭐ Firebricks are moulded wet and dried in the shop: begin in the
   // working season, not wherever A left the year (run 31's froze).
   await toWarmSeason();
@@ -284,6 +295,16 @@ beforeAll(async () => {
   // ⭐ Dressed for the winter it will work through (run 26's founder died of it).
   await dress(k);
   await dressFounder();
+  // ⭐ Pockets first (size and carrying, MR !576): a body has two hands, and
+  // run 2026-11-18's rations filled both — the pail at the pump was refused
+  // `nowhere-to-carry`, the miner never drank, and every rest after it left
+  // `too-tired` standing. What fits a pocket goes there; the hands stay free
+  // for the clay, the bricks, the pail and the crucible.
+  expectOk(await k.cmd('settings set carry.order pockets-first'));
+  // Rations for the days the drive spans, bought as a person would.
+  await goTo(STORE);
+  for (let i = 0; i < 8; i++) await say('buy rations');
+  await goTo(QUARRY);
   at = QUARRY; // where a rest's drink comes back to
   await k.drainProse();
 }, 3_600_000);
@@ -344,6 +365,9 @@ suite('⭐ 10 — make firebrick', () => {
     const day = await act('shape clay into firebrick', '9 hours');
     expect(day.said, `the firebricks: ${day.said}`).toMatch(/brick/i);
     expect(await examine('here:i:firebrick')).toMatch(/green|thumbprint/i);
+    // ⚠ The shaping leaves the lump of clay in both hands; set it down, or
+    // the bricks have nowhere to go (size and carrying).
+    await say('drop clay');
     await say('get firebricks');
     // ⚠ Dried in the potter's shop, warm from the kiln, where the pottery
     // dries its own ware: on the open hacks a late frost burst them wet
@@ -367,7 +391,7 @@ suite('⭐ 10 — make firebrick', () => {
     await say('douse kiln');
     await advance('12 hours');
     await say('get firebricks from kiln');
-    const fired = await examine('me:i:firebrick');
+    const fired = await examine('me:I:firebrick');
     expect(fired, 'the burnt firebricks').toMatch(/refractory|pale, gritty|fired/i);
     expect(fired).not.toMatch(/thumbprint|bone-dry/i);
   }, 7_200_000);
@@ -377,6 +401,10 @@ suite('⭐ 11 — wear a lining', () => {
   it('fired again and again, the smelting furnace reads its lining thinning and its heat dropping, and at last will not light', async () => {
     await goTo(SMELTER);
     const first = await examine('furnace');
+    // ⚠ Hands free between acts (size and carrying): the burnt firebricks
+    // are set down here, by the furnace they may yet reline — a full hand
+    // refused the crucible `nowhere-to-carry` (run 2026-11-18).
+    await say('drop firebricks');
     // A charge for the chamber — the crucible stands in it.
     await say('get crucible');
     await say('put crucible in furnace');
@@ -546,7 +574,7 @@ suite('⭐ 13 — wear a crucible', () => {
       // pour" on every melt of runs 36 and 37, while the metal froze in the
       // furnace's own crucible and later melts found no room (no wear).
       const crucibleIds = async (): Promise<string[]> =>
-        ((await k.query('me:i:crucible', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])
+        ((await k.query('me:I:crucible', { fields: ['displayName'] }).catch(() => [])) as { stuffId?: string }[])
           .map((r) => r.stuffId ?? '')
           .filter((x) => x !== '');
       const heldBefore = new Set(await crucibleIds());
@@ -566,9 +594,48 @@ suite('⭐ 13 — wear a crucible', () => {
     await goTo(PROVISIONING);
     const bought = await say('buy crucible');
     expect(bought).toMatch(/you buy/i);
-    expect(await examine('me:i:crucible')).not.toMatch(/crack/i);
+    expect(await examine('me:I:crucible')).not.toMatch(/crack/i);
   }, 7_200_000);
 });
+
+/**
+ * ⭐ The furnace's LINING, in its own words: every sentence of a read that
+ * names its linings. A reline is asserted on these and nothing else — the
+ * whole read changes when the kiln merely dries out ("It is soaked
+ * through"), and soak run 2026-11-17 passed `not.toEqual(worn)` on exactly
+ * that while the lining had not been touched.
+ */
+function liningWords(read: string): string {
+  return (read.match(/[^.]*\blinings?\b[^.]*\./gi) ?? []).map((s) => s.trim()).join(' ');
+}
+
+/**
+ * The `relines` brain's threshold: a keeper relines only below
+ * `ceramics.lining.relineBelow` (0.4 —
+ * packages/content/trade-ceramics/src/behavior/relines.ts `wornThin`).
+ */
+const RELINE_BELOW = 0.4;
+
+/** The number an `eval` answered (`a brick kiln: 0.36…`). */
+function evalNumber(said: string): number {
+  return Number(/(-?[0-9.]+)\s*$/.exec(said)?.[1] ?? NaN);
+}
+
+/**
+ * Seat the miner on Rejection's committee as a wizard at the glasshouse
+ * (the blocking twin's staging session), and read the kiln's lining health.
+ */
+async function kilnHealth(): Promise<number> {
+  at = GLASSHOUSE;
+  k?.close();
+  k = await Session.open(handle, {
+    wizard: true,
+    committees: ['/world/terminus/rejection'],
+    startLocation: GLASSHOUSE,
+  });
+  await k.drainProse();
+  return evalNumber(await say('eval --parcel /world/terminus/rejection --on kiln self.liningHealth()'));
+}
 
 suite('⭐ 14 — the keeper does it', () => {
   it('the glasshouse kiln, worn and left, is relined by its keeper with no player present', async () => {
@@ -581,24 +648,51 @@ suite('⭐ 14 — the keeper does it', () => {
     // the kiln does not care what it is holding at heat).
     await winAtQuarry('limestone', 1, GLASSHOUSE);
     await say('put limestone in kiln');
-    for (let i = 0; i < 6; i++) {
+    // ⭐ Fired until the lining is worn PAST the keeper's threshold: he
+    // relines below 0.4, and six firings left "Thirteen of the linings …
+    // worn through" (≈ 0.57) — the keeper rightly idle (soak run
+    // 2026-11-17). Bounded.
+    let health = await kilnHealth();
+    for (let i = 0; i < 12 && !(health < RELINE_BELOW); i++) {
       await winAtQuarry('coal', 3, GLASSHOUSE);
       await say('stoke coal into kiln');
       const lit = await run('light kiln');
       if (refusedFor(lit.r) !== null) break;
       await act('fire kiln for 6 hours', '6 hours');
       await say('douse kiln');
+      health = await kilnHealth();
     }
+    // ⚠ STAGED, only if the firings fell short: what a firing wears is small
+    // (a coal pickup is often refused too heavy, and a thin charge fires
+    // cool), and the act under test here is the KEEPER's, not the wear —
+    // the remaining wear is the blocking twin's eval, worn only to just
+    // under the threshold. ⚠ No ';' in an eval line.
+    if (!(health < RELINE_BELOW)) {
+      // eslint-disable-next-line no-console -- the drive's own record
+      console.log(`  [drive] (the firings left the lining at ${health}: worn on by eval)`);
+      health = evalNumber(
+        await say(
+          `eval --parcel /world/terminus/rejection --on kiln (Array.from({ length: 30 }).forEach(() => self.liningHealth() >= ${RELINE_BELOW} && self.wearLine('lining', 1)), self.liningHealth())`,
+        ),
+      );
+    }
+    expect(health, 'the lining worn below the keeper\'s threshold').toBeLessThan(RELINE_BELOW);
     const worn = await examine('kiln');
     expect(worn, 'the kiln worn').toMatch(/lining/i);
-    expect(worn).not.toEqual(fresh);
-    // Nobody here now: the character goes to the Delight, and the clock
-    // runs through two working days.
+    expect(liningWords(worn), 'the kiln worn').toMatch(/worn|thin|burnt through/i);
+    expect(liningWords(worn)).not.toEqual(liningWords(fresh));
+    // The keeper takes a beat (fired from here: `--on` finds the keeper
+    // where the wizard stands — the session `kilnHealth` seated), then
+    // nobody is here: the character goes to the Delight, and the clock runs
+    // through two working days.
+    await say("eval --parcel /world/terminus/rejection --on glassblower self.fireBeat('/trade/ceramics/behavior/relines')");
     await goTo(SHOP);
     await advance('2 days');
     await goTo(GLASSHOUSE);
     const relined = await examine('kiln');
-    expect(relined, 'the keeper relined it').not.toEqual(worn);
-    expect(relined).not.toMatch(/burnt through|worn thin/i);
+    // ⭐ On the LINING's words, never the whole read (see `liningWords`).
+    expect(liningWords(relined), 'the keeper relined it').not.toEqual(liningWords(worn));
+    expect(liningWords(relined), 'the keeper relined it').toMatch(/linings/i);
+    expect(liningWords(relined)).not.toMatch(/burnt through|worn thin|worn through/i);
   }, 7_200_000);
 });
