@@ -1962,7 +1962,18 @@ says so (wire); a cow perceives a `subtle`-hidden player that a wolf does
 not (wire, through `testharness body <observer> perceiving <player>`).
 **Commit:** `feat(senses): W9 sense organs are parts; dark-sight is live`
 
-### W10 — The honesty check and the whale
+### W10 — The honesty check and the whale ✅ done
+
+> **Done note.** W10a `11b2fbcd9` (lint:scaling, `Species.pays`); W10b
+> the whale, rows only (its diff has no `.ts`). The check's first run
+> found the insect plan was never marked ectotherm — fixed in the plan,
+> nothing paid. The whale is exempt from the bone limit in water, so it
+> pays nothing. ⚠ Its first golden showed a 10-tonne single lot of
+> blubber: the whale's blubber, meat and spermaceti are `Cut` rows with a
+> `portionKg` (a carcass only portions a cut), the teeth one set. For the
+> drive (W11): a staged whale carcass butchered, blubber rendered into the
+> oil jar, the oil in a lamp. The recipe's `pot` tool and 373 K are the
+> tallow recipe's.
 
 **Goal:** every species passes or pays; a new animal is rows.
 **Implements:** D12 (check), D13.

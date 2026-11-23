@@ -1,0 +1,13 @@
+# flipper-cetacean — a whale's flipper (organism-biology D13): steering,
+# not swimming; bone and gristle under the skin, thin where a harpoon goes
+# through rather than in (`fill: sparse`).
+fill: sparse
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.006}
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.006}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.001, form: skin}

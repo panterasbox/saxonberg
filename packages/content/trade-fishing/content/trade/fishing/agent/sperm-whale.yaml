@@ -1,0 +1,16 @@
+# A sperm whale (organism-biology D13): a Beast on its own species and
+# plan, breathing air and surfacing to do it.
+class: /platform/agent/Beast
+data:
+  shortDescription: sperm whale
+  keywords: [whale, sperm, cachalot]
+  register: indefinite
+  longDescription: >-
+    A sperm whale, vast and slate-grey, its blunt head breaking the water
+    as it blows.
+  _speciesPath: /stuff/idea/species/sperm-whale
+  lifecycleState: alive
+  behaviors:
+    - brain: /lib/behavior/surfaces
+      trigger: candidate
+      config: { restS: 1800 }

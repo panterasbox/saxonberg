@@ -1,0 +1,17 @@
+# Spermaceti (organism-biology D13) — the waxy oil of the head's great
+# organ, bailed out of the case: the finest candles, the best lamp light.
+class: /platform/thing/Cut
+data:
+  shortDescription: lump of spermaceti
+  keywords: [spermaceti, wax, head-matter]
+  register: indefinite
+  longDescription: A heavy cake of white, pearly wax that softens in the hand and smells faintly of the sea.
+  _materialPath: /trade/fishing/idea/material/spermaceti
+  # ⭐ One piece of it, kg (organism-biology D5): a whale comes off in
+  # pieces, never one ten-tonne lot.
+  portionKg: 15
+  tissues:
+    - /trade/fishing/idea/material/spermaceti
+  cutting: boneless
+  difficulty: easy
+  mass: 5

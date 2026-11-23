@@ -1,0 +1,12 @@
+# An oil jar (organism-biology D13) — what rendered whale oil is run into.
+class: /platform/thing/CraftVessel
+data:
+  shortDescription: oil jar
+  keywords: [jar, oil-jar, oil]
+  register: indefinite
+  longDescription: A stoneware jar with a narrow neck and a wooden bung, its shoulder dark with old oil.
+  category: oil-jar
+  interiorBulk: true
+  interiorCapacity: 2
+  _materialPath: /stuff/idea/material/ceramic/stoneware
+  mass: 1.5

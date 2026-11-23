@@ -1,0 +1,17 @@
+# Blubber (organism-biology D13) — the whale's coat of fat, flensed off in
+# strips: what a whale gives first, and what renders to oil.
+class: /platform/thing/Cut
+data:
+  shortDescription: strip of blubber
+  keywords: [blubber, strip, fat]
+  register: indefinite
+  longDescription: A thick slab of pale, rubbery fat with the black skin still on one side of it, oozing at the cut.
+  _materialPath: /trade/fishing/idea/material/blubber
+  # ⭐ One piece of it, kg (organism-biology D5): a whale comes off in
+  # pieces, never one ten-tonne lot.
+  portionKg: 40
+  tissues:
+    - /trade/fishing/idea/material/blubber
+  cutting: boneless
+  difficulty: easy
+  mass: 20

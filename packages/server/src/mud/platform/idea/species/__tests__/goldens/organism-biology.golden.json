@@ -1564,6 +1564,351 @@
       ],
       "breathing": null
     },
+    "/stuff/idea/species/BodyPlan/cetacean": {
+      "parts": [
+        {
+          "key": "body.torso",
+          "parent": null,
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.075396
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.376979
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/intestine",
+              "share": 0.037698
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.012566
+            }
+          ]
+        },
+        {
+          "key": "body.torso.heart",
+          "parent": "body.torso",
+          "governs": [
+            "heartRate",
+            "circulation"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.005026
+            }
+          ]
+        },
+        {
+          "key": "body.torso.lungs",
+          "parent": "body.torso",
+          "governs": [
+            "respiratoryRate",
+            "respiration"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.012566
+            }
+          ]
+        },
+        {
+          "key": "body.torso.liver",
+          "parent": "body.torso",
+          "governs": [
+            "clearance"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.012566
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.002513
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.002513
+            }
+          ]
+        },
+        {
+          "key": "body.head",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.050264
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.050264
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.006283
+            }
+          ]
+        },
+        {
+          "key": "body.head.spermaceti-organ",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/trade/fishing/idea/material/spermaceti",
+              "share": 0.150792
+            }
+          ]
+        },
+        {
+          "key": "body.head.melon",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/trade/fishing/idea/material/blubber",
+              "share": 0.050264
+            }
+          ]
+        },
+        {
+          "key": "body.head.jaw",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [
+            "manipulation"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.037698
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/ivory",
+              "share": 0.005026
+            }
+          ]
+        },
+        {
+          "key": "body.head.brain",
+          "parent": "body.head",
+          "governs": [
+            "consciousness"
+          ],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/flesh",
+              "share": 0.000251
+            }
+          ]
+        },
+        {
+          "key": "body.head.eye.left",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [
+            "vision"
+          ],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/eye",
+              "share": 0.000126
+            }
+          ]
+        },
+        {
+          "key": "body.head.eye.right",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [
+            "vision"
+          ],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/eye",
+              "share": 0.000126
+            }
+          ]
+        },
+        {
+          "key": "body.head.ear.left",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [
+            "hearing"
+          ],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.000251
+            }
+          ]
+        },
+        {
+          "key": "body.head.ear.right",
+          "parent": "body.head",
+          "governs": [],
+          "serves": [
+            "hearing"
+          ],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.000251
+            }
+          ]
+        },
+        {
+          "key": "body.flipper.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.00754
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/cartilage",
+              "share": 0.00754
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.001257
+            }
+          ]
+        },
+        {
+          "key": "body.flipper.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/bone",
+              "share": 0.00754
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/cartilage",
+              "share": 0.00754
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.001257
+            }
+          ]
+        },
+        {
+          "key": "body.fluke",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [
+            "locomotion"
+          ],
+          "severable": true,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/muscle",
+              "share": 0.06283
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/cartilage",
+              "share": 0.012566
+            },
+            {
+              "tissue": "/stuff/idea/material/tissue/skin",
+              "share": 0.002513
+            }
+          ]
+        }
+      ],
+      "senses": [
+        {
+          "modality": "hearing",
+          "media": [
+            "air",
+            "water"
+          ]
+        },
+        {
+          "modality": "taste",
+          "media": [
+            "air"
+          ]
+        },
+        {
+          "modality": "touch",
+          "media": [
+            "air",
+            "water"
+          ]
+        },
+        {
+          "modality": "vision",
+          "media": [
+            "air",
+            "water"
+          ]
+        }
+      ],
+      "gaits": [
+        "swim"
+      ],
+      "breathing": null
+    },
     "/stuff/idea/species/BodyPlan/crustacean": {
       "parts": [
         {
@@ -3781,6 +4126,28 @@
         "kg": 0.1
       }
     ],
+    "/stuff/idea/species/sperm-whale": [
+      {
+        "ageDays": 0,
+        "kg": 2800
+      },
+      {
+        "ageDays": 350,
+        "kg": 5806.048788
+      },
+      {
+        "ageDays": 700,
+        "kg": 9427.326425
+      },
+      {
+        "ageDays": 3350,
+        "kg": 32616.161126
+      },
+      {
+        "ageDays": 6000,
+        "kg": 40000
+      }
+    ],
     "/stuff/idea/species/sturgeon": [
       {
         "ageDays": 0,
@@ -5661,6 +6028,42 @@
       "newborn": [
         "/trade/fishing/thing/carapace",
         "/stuff/thing/items/offal"
+      ]
+    },
+    "/stuff/idea/species/sperm-whale": {
+      "adult": [
+        {
+          "row": "/trade/fishing/thing/blubber",
+          "units": 257,
+          "kgEach": 40
+        },
+        {
+          "row": "/trade/fishing/thing/whale-meat",
+          "units": 589,
+          "kgEach": 25.01
+        },
+        {
+          "row": "/stuff/thing/items/offal",
+          "units": 1,
+          "kgEach": 2504.76
+        },
+        {
+          "row": "/trade/fishing/thing/spermaceti",
+          "units": 333,
+          "kgEach": 14.99
+        },
+        {
+          "row": "/trade/fishing/thing/whale-tooth",
+          "units": 1,
+          "kgEach": 166.43
+        }
+      ],
+      "newborn": [
+        "/trade/fishing/thing/blubber",
+        "/trade/fishing/thing/whale-meat",
+        "/stuff/thing/items/offal",
+        "/trade/fishing/thing/spermaceti",
+        "/trade/fishing/thing/whale-tooth"
       ]
     },
     "/stuff/idea/species/sturgeon": {

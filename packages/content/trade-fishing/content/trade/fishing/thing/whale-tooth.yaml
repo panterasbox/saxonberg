@@ -1,0 +1,11 @@
+# A sperm whale's teeth, drawn as a set (organism-biology D13) — ivory, a hand long, the
+# scrimshander's ground.
+class: /platform/thing/Good
+data:
+  shortDescription: set of whale teeth
+  keywords: [teeth, tooth, whale-tooth, ivory, set]
+  register: indefinite
+  longDescription: >-
+    The lower jaw's teeth, drawn and strung together: heavy curved cones of yellowed ivory, each as long as a hand.
+  _materialPath: /stuff/idea/material/tissue/ivory
+  mass: 1

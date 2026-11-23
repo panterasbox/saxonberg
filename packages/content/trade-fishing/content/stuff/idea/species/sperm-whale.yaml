@@ -1,0 +1,44 @@
+# The sperm whale (organism-biology D13) — ⭐ a new animal is rows: a plan
+# from four modules, this species, an agent, the things it comes off as and
+# the recipe that renders its blubber. No source changed for it. What comes
+# off a whale derives from its body like any other animal's: blubber,
+# spermaceti, teeth, meat.
+class: /platform/idea/species/Species
+data:
+  smells: [{ aroma: /base-library/aromas/flesh/fish, strength: 200 }]
+  binomial: Physeter macrocephalus
+  commonNames: ["sperm whale", "whale", "cachalot"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/cetacean
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/muscle
+  vitalProfile:
+    coreTemperature: { baseline: 309, survivableMin: 302, survivableMax: 313 }
+    heartRate: { baseline: 15, survivableMin: 4, survivableMax: 40 }
+    respiratoryRate: { baseline: 4, survivableMin: 1, survivableMax: 12 }
+    bloodPressureSystolic: { baseline: 120, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 130 }
+    spo2: { baseline: 97, survivableMin: 60, survivableMax: 100 }
+    bloodVolume: { baseline: 3000, survivableMin: 2000, survivableMax: 3600 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  variants:
+    sex:
+      female: { commonNames: [cow], massFactor: 0.4 }
+      male: { commonNames: [bull] }
+    stage:
+      newborn: { commonNames: [calf] }
+  adultMass: 40000
+  stature: 16
+  lifespanMin: 0
+  lifespanMax: 70
+  ageCurve: { weanedAt: 700, matureAt: 6000, agedAt: 18000, senescentAt: 23000 }
+  circadianBand: aperiodic
+  diet: carnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  longDescription: >-
+    A sperm whale, its great square head a third of its length, the skin
+    behind it wrinkled like a raisin, blowing a single slanted spout.
