@@ -5,4 +5,6 @@ parts:
   severable: true
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0386}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.029}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.026}
+integument:
+  skin: {material: /trade/fishing/idea/material/fish-skin, weight: 0.003}

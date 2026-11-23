@@ -211,10 +211,10 @@ const UNMEASURABLE: FitReading = Object.freeze({
   refused: false,
 });
 
-/** Thermal conductivity of still air, W/(m·K). */
-const K_AIR = 0.026;
+/** Thermal conductivity of still air, W/(m·K). (A body's coat uses the same law.) */
+export const K_AIR = 0.026;
 /** Thermal conductivity of water, W/(m·K) — ~23× air's. */
-const K_WATER = 0.6;
+export const K_WATER = 0.6;
 /** One clo, in m²·K/W — the unit's definition, beside the unit. */
 const R_CLO = M2K_PER_W_PER_CLO;
 

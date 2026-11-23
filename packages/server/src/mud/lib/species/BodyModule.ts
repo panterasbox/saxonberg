@@ -21,7 +21,7 @@
  * only), so the anatomy lint can parse a module from a YAML file.
  */
 
-import type { BodyFill } from '../../platform/idea/species/BodyPlan';
+import type { BodyFill, Integument, IntegumentLayer } from '../../platform/idea/species/BodyPlan';
 import type { TapSpec } from '../../platform/idea/species/Species';
 
 /** One tissue of a module part: a material row and its relative weight. */
@@ -60,6 +60,8 @@ export interface ModulePart {
   gait?: string[];
   /** As `BodyPart.fill` — overrides the module's own. */
   fill?: BodyFill;
+  /** As `BodyPart.integument` — overrides the module's own for this part. */
+  integument?: Integument;
 }
 
 export class BodyModule {
@@ -69,6 +71,8 @@ export class BodyModule {
   public readonly parts: readonly ModulePart[];
   /** What fills this module's parts (D12) unless a part says otherwise; `solid` when unsaid. */
   public readonly fill: BodyFill;
+  /** ⭐ The outside of this module's exterior parts (D3), unless a part says otherwise. */
+  public readonly integument: Integument | null;
 
   /**
    * Read one module document's data. Throws on a malformed module (P3):
@@ -108,6 +112,7 @@ export class BodyModule {
       }
       if (raw.severable === true) part.severable = true;
       if (raw.fill !== undefined) part.fill = BodyModule.fillOf(raw.fill, path, key);
+      if (raw.integument !== undefined) part.integument = BodyModule.integumentOf(raw.integument, path, key);
       if (Array.isArray(raw.produces) && raw.produces.length > 0) {
         part.produces = (raw.produces as Record<string, unknown>[]).map((t) => {
           if (typeof t.key !== 'string' || typeof t.yieldRow !== 'string') {
@@ -126,7 +131,8 @@ export class BodyModule {
     }
     this.parts = parts;
     this.fill = data.fill === undefined ? 'solid' : BodyModule.fillOf(data.fill, path, '');
-    const own = parts.reduce((a, p) => a + p.tissues.reduce((b, t) => b + t.weight, 0), 0);
+    this.integument = data.integument === undefined ? null : BodyModule.integumentOf(data.integument, path, '');
+    const own = this.tissueWeight();
     const authored = data.weight === undefined ? own : Number(data.weight);
     if (!Number.isFinite(authored) || authored < 0) {
       throw new Error(`body-module '${path}': weight must be a number ≥ 0`);
@@ -139,8 +145,38 @@ export class BodyModule {
     throw new Error(`body-module '${path}' part '${key}': fill must be solid, sparse or hollow (got ${String(v)})`);
   }
 
+  /** Read an integument block; throws on a layer naming no material or a bad number (P3). */
+  private static integumentOf(v: unknown, path: string, key: string): Integument {
+    if (v === null || typeof v !== 'object') throw new Error(`body-module '${path}' part '${key}': integument must be a block`);
+    const out: Integument = {};
+    for (const layer of ['skin', 'under', 'coat'] as const) {
+      const raw = (v as Record<string, unknown>)[layer] as Record<string, unknown> | undefined;
+      if (raw === undefined) continue;
+      if (typeof raw.material !== 'string' || raw.material === '') {
+        throw new Error(`body-module '${path}' part '${key}': integument ${layer} names no material`);
+      }
+      const l: IntegumentLayer = { material: raw.material };
+      for (const n of ['weight', 'depthM', 'loft'] as const) {
+        if (raw[n] === undefined) continue;
+        const x = Number(raw[n]);
+        if (!Number.isFinite(x) || x < 0) throw new Error(`body-module '${path}' part '${key}': integument ${layer}.${n} must be ≥ 0`);
+        l[n] = x;
+      }
+      if (typeof raw.form === 'string') l.form = raw.form;
+      if (typeof raw.tap === 'string') l.tap = raw.tap;
+      out[layer] = l;
+    }
+    return out;
+  }
+
   /** The sum of this module's tissue weights (its parts' own scale). */
   public tissueWeight(): number {
-    return this.parts.reduce((a, p) => a + p.tissues.reduce((b, t) => b + t.weight, 0), 0);
+    return this.parts.reduce((a, p) => a + p.tissues.reduce((b, t) => b + t.weight, 0), 0) + this.skinWeight();
+  }
+
+  /** ⭐ The root's skin weight (D3): skin is a tissue, so it is in the module's sum. */
+  public skinWeight(): number {
+    const root = this.parts.find((p) => p.key === '');
+    return (root?.integument ?? this.integument)?.skin?.weight ?? 0;
   }
 }

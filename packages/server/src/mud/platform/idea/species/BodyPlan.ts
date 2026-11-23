@@ -129,6 +129,35 @@ export interface TissueComposition {
    * `Quantity` — it is dimensionless, and the descriptor stays flat.
    */
   share: number;
+  /** ⭐ This tissue is the part's SKIN (organism-biology D3): in the sum, but never what a blow "meets" as flesh. */
+  integument?: boolean;
+}
+
+/**
+ * ⭐ One layer of a body's outside (organism-biology D3): what it is made of
+ * and how it behaves. `skin` is a tissue (its `weight` joins the part's);
+ * `coat` and `under` lie over it and insulate.
+ */
+export interface IntegumentLayer {
+  /** The layer's material row (`/stuff/idea/material/organic/rawhide`). */
+  material: string;
+  /** Skin only: its relative weight within the module (taken from flesh). */
+  weight?: number;
+  /** Skin only: the covering form it resists as (`hide`, `plate`); bare skin authors none. */
+  form?: string;
+  /** Coat/under: the depth of the layer at full growth, metres. */
+  depthM?: number;
+  /** Coat/under: the share of the layer that is air (0..1). */
+  loft?: number;
+  /** Coat: the tap whose standing is this coat's growth (the sheep's `wool`). */
+  tap?: string;
+}
+
+/** ⭐ A part's outside, outermost last: skin, then under, then coat (D3). */
+export interface Integument {
+  skin?: IntegumentLayer;
+  under?: IntegumentLayer;
+  coat?: IntegumentLayer;
 }
 
 /**
@@ -225,6 +254,8 @@ export interface BodyPart {
   gait?: string[];
   /** What is inside it, for a `point` insult (D12): `solid` (the default), `sparse` (a wing, a fin) or `hollow` (a swim bladder). */
   fill?: BodyFill;
+  /** ⭐ Its outside (D3) — set on EXTERIOR parts only: an organ has no skin. */
+  integument?: Integument;
 }
 
 /** ⭐ What fills a part (D12) — a closed vocabulary. */

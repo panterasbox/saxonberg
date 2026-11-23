@@ -7,3 +7,5 @@ parts:
   - {tissue: /stuff/idea/material/tissue/chitin, weight: 0.02}
   - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.009}
   gait: [walk]
+integument:
+  skin: {material: /stuff/idea/material/tissue/chitin}

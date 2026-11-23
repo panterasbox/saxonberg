@@ -4,5 +4,7 @@ parts:
 - key: ''
   severable: true
   tissues:
-  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0485}
+  - {tissue: /stuff/idea/material/tissue/chitin, weight: 0.0485}
   - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.0485}
+integument:
+  skin: {material: /stuff/idea/material/tissue/chitin, form: plate}

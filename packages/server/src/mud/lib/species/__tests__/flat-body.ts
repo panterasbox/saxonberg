@@ -49,6 +49,7 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
           ...(part.produces ? { produces: part.produces } : {}),
           ...(part.gait ? { gait: part.gait } : {}),
           ...(part.fill ? { fill: part.fill } : {}),
+          ...(part.integument ? { integument: part.integument } : {}),
         },
       ],
     };

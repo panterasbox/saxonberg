@@ -1211,6 +1211,22 @@ function scarsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/**
+ * ⭐ A shelled body says what its shell is (organism-biology D3): a crab's
+ * look names its carapace's material, read from the outside of its root
+ * part. A hide or bare skin says nothing — every animal has one.
+ */
+function shellAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isOrganism(host)) return text;
+  const body = host.getBody();
+  const root = body?.getParts().find((p) => p.parent === null);
+  const skin = root ? body?.integumentAt(root.key)?.skin : undefined;
+  if (!skin || skin.form !== 'plate') return text;
+  const name = MaterialApi.materials().peek(skin.material)?.getName() ?? skin.material.split('/').pop();
+  const line = `Its shell is ${name}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   // A class DECLARATION, not an expression: legacy decorators are only
   // valid on declarations, and `adoptMaterialState` carries a security
@@ -1223,6 +1239,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     static markupAugmenters: MarkupAugmenter[] = [
       missingPartsAugmenter,
       scarsAugmenter,
+      shellAugmenter,
     ];
 
     /**

@@ -1652,6 +1652,23 @@ reads lower than a dry one; `look crab` says chitin. ⚠ Run `pnpm test:gym`
 once here: animals gain natural armor and the balance benches may move.
 **Commit:** `feat(species): W4 the integument — armor, coat and skin`
 
+> ✅ **W4 done.** `integument` (skin · under · coat) on modules and parts,
+> overridable per instance by a body delta; skin is a tissue on the
+> module's root (its weight taken from flesh), resolved only on exterior
+> parts. Natural armor is one fold step after the worn stack (a separate
+> step, so `CoveringLayer` keeps its occupant); `primaryTissueMaterial`
+> skips the skin. `coatInsulation()` sits beside worn clo at all three
+> read sites; a coat tied to a tap is as deep as its standing; `look`
+> shows a watched body shivering (`isShivering`) and a plated body's shell
+> (*Its shell is chitin.*). Every module authored an outside; the crab is
+> chitin; the sheep's coat is wool tied to `wool`. `lint:anatomy` gained
+> the outside clause. The golden: dressOut, taps and mass unchanged; plans
+> only skin-for-flesh (the bird wing took its skin from generic muscle,
+> having no flesh) and the crab's chitin. `test:gym`: every bench but
+> `waster-spar` passes — that one was red on master already (it authored
+> `mass:`, refused since the textiles build, and calls a `setHardness` its
+> material lacks); a finding for its owner. Decisions B16–B17.
+
 ### W5 — What a carcass gives
 
 **Goal:** yields derive; the pelt comes off; `butcheryYield` is gone.
@@ -2288,6 +2305,18 @@ Decisions the build made that the plan did not, and what decided each.
   without copying the module. The crab's gaits sit on its torso (its legs
   are not modeled). Gaits are compared as sets. *Decided by:* lens 2 (a
   second canid-like plan is a one-line ref, not a module copy).
+
+- **B16 (W4) — natural armor is its own fold step, not a nullable
+  `CoveringLayer`.** The plan made `CoveringLayer.occ` nullable; the fold
+  reads the occupant in six places (wear, assembly, clo). One attenuate
+  step after the worn stack, from `body.integumentAt(site).skin`, is the
+  same innermost layer with no null guards. *Decided by:* the nearest
+  pattern (the fold's own call, reused).
+- **B17 (W4) — the coat depth reads the tap's standing through
+  `standingIn`.** That read reconciles production (it advances a tap's
+  stamp). It is the shipped tap read; W6b, which makes the core read pure,
+  owns whether the projection may call it. *Decided by:* the nearest
+  pattern; flagged for W6b.
 
 ## Drive record
 

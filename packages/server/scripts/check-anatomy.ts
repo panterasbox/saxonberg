@@ -241,6 +241,33 @@ export function clauseVariantsBuild(): Finding[] {
   return out;
 }
 
+/**
+ * Clause (0c) — every body has an outside (organism-biology D3): each
+ * exterior part that weighs anything has a skin, and every layer of every
+ * outside names a material row some pack ships. A part with no skin would
+ * come off a carcass with no pelt and take a blow with nothing between it
+ * and the world.
+ */
+export function clauseIntegument(rows: ReturnType<typeof bodyPlanRows>): Finding[] {
+  const out: Finding[] = [];
+  const materials = materialPaths();
+  for (const row of rows) {
+    if (!row.body) continue;
+    for (const part of row.body.getParts()) {
+      if (row.body.isInterior(part.key)) continue;
+      const weighs = part.tissues.some((t) => t.share > 0);
+      const outside = part.integument;
+      if (weighs && !outside?.skin) out.push({ file: row.file, detail: `exterior part '${part.key}' has no skin` });
+      for (const layer of [outside?.skin, outside?.under, outside?.coat]) {
+        if (layer && !materials.has(layer.material)) {
+          out.push({ file: row.file, detail: `part '${part.key}' integument names '${layer.material}', which no pack ships` });
+        }
+      }
+    }
+  }
+  return out;
+}
+
 /** Clause (a) — the shares of a plan sum to the whole body (a regression check: true by construction). */
 export function clauseSharesSumToOne(rows: ReturnType<typeof bodyPlanRows>): Finding[] {
   const out: Finding[] = [];
@@ -427,6 +454,7 @@ function main(): void {
   const findings = [
     ...clausePlansBuild(rows),
     ...clauseVariantsBuild(),
+    ...clauseIntegument(rows),
     ...clauseSharesSumToOne(rows),
     ...clauseSpeciesPlanResolves(),
     ...clauseNoDoubleShare(),

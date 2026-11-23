@@ -7,3 +7,5 @@ parts:
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.027}
   gait: [walk]
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin}

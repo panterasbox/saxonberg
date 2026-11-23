@@ -5,9 +5,11 @@ parts:
   severable: true
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0084}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0209}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0149}
 - key: brain
   parent: ''
   governs: [consciousness]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0021}
+integument:
+  skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.006, form: hide}

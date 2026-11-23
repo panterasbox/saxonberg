@@ -174,9 +174,12 @@ function partHasBoneTissue(part: { tissues?: { tissuePath: string }[] }): boolea
 
 /** The first resolvable tissue Material of the part (v1: type-decision only). */
 function primaryTissueMaterial(part: {
-  tissues?: { tissuePath: string }[];
+  tissues?: { tissuePath: string; integument?: boolean }[];
 }): Material | null {
   for (const t of part.tissues ?? []) {
+    // ⭐ The skin is not what a blow "meets" as flesh (D3): it already
+    // answered as the innermost covering layer.
+    if (t.integument) continue;
     const mat = MaterialApi.materials().need(t.tissuePath); // a body plan's constituent (load-on-use W8)
     if (mat) return mat;
   }
@@ -1334,6 +1337,26 @@ function inflictThroughStack(
         } else {
           layer.occ.wear(perBlow);
         }
+      }
+    }
+    // ⭐⭐ The body's own outside is the INNERMOST layer (organism-biology
+    // D3): a hide resists as `hide`, a carapace as `plate`. Bare skin
+    // authors no form and answers nothing, so no person's numbers move.
+    // A natural layer has no occupant to wear and no clo of its own here.
+    if (!(spec.mechanism === 'corrosion' && spec.bare) && MixinApi.isOrganism(target)) {
+      const skin = target.getBody()?.integumentAt(spec.site)?.skin;
+      if (skin?.form && Construction.isCoveringForm(skin.form)) {
+        residual = MaterialApi.attenuate(
+          channel,
+          residual,
+          MaterialApi.materials().need(skin.material),
+          Construction.of(skin.form),
+          undefined,
+          1,
+          agent,
+          'penetration' in spec ? (spec.penetration ?? 1) : 1,
+          null,
+        ).residualEnergy;
       }
     }
     const part = target.getPart(spec.site);

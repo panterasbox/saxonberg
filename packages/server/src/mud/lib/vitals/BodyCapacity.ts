@@ -95,7 +95,7 @@ export type FunctionBand = (typeof FUNCTION_BANDS)[number];
  * So the vocabulary is the two tuples and their types, and the two things
  * that would have been statics live where they are used:
  *
- * - **validation** — `BodyPlan.setBodyParts` checks membership against the
+ * - **validation** — `BodyPlan.setModules` checks membership against the
  *   tuple directly, which is one `includes` and no indirection;
  * - **band ordering** — `FUNCTION_BANDS` is ordered worst-last, so `worse`
  *   is `indexOf` and `atLeast` is `<=`, both inline on `VitalsMixin` where

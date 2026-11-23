@@ -31,6 +31,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
+import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
 import type { Containable } from "../spatial/Containable";
 import type { Reserved } from "../reserve/Reserved";
@@ -39,7 +40,10 @@ import type { Organism } from "../species/Organism";
 import type { Thermal } from "./Thermal";
 import type { AfflictionRecord } from "../../platform/idea/Condition";
 import { Evaporation } from '../material/Evaporation';
-import { Quantity } from "../quantity";
+import { Quantity, M2K_PER_W_PER_CLO } from "../quantity";
+import { MaterialApi } from "../../api/material";
+import { K_AIR, K_WATER } from "../slot/Wearable";
+import type { IntegumentLayer } from "../../platform/idea/species/BodyPlan";
 import type { Unit } from "../quantity";
 import { MixinApi } from "../../api/mixin";
 import { ExecutionContextApi } from '../../api/execution-context';
@@ -82,7 +86,21 @@ type RegulationHost = Stuff &
   Organism &
   Containable;
 
+/**
+ * ⭐ A watcher sees a body shiver (organism-biology D3): the third-person
+ * twin of the self-only cue — how *the shorn sheep is colder* is something
+ * a player can see. The body's own `look` stays the cue's.
+ */
+function shiverAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (host === viewer) return text;
+  if (!MixinApi.isThermalRegulation(host) || !host.isShivering()) return text;
+  const line = 'It is shivering.';
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export interface ThermalRegulation {
+  /** ⭐ Is this body shivering now (the cue's state, for a watcher's `look`)? */
+  isShivering(): boolean;
   /** ⭐ A held working's warmth on this body, K (underwater D18). */
   setWorkingOffsetK(deltaK: number): void;
   getWorkingOffsetK(): number;
@@ -148,6 +166,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
   return class ThermalRegulationMixin extends Base implements ThermalRegulation {
     static _mixinName = "ThermalRegulationMixin";
 
+    /** A watcher sees a body shiver (D3). */
+    static markupAugmenters: MarkupAugmenter[] = [shiverAugmenter];
+
     static fieldMeta: FieldMeta = {
       setpointK: { persistent: true, authorable: true },
       effectiveAmbientK: { persistent: true, runtimeState: true },
@@ -183,7 +204,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const D = THERMAL_DEFAULTS;
       const wetBulb = this.wetBulbK(this.effectiveAmbientK, this.cachedHumidity);
       if (wetBulb > D.WET_BULB_CEILING_K) return 0;
-      const clo = MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0;
+      const clo = this.wornClo();
       const damping = D.SHED_BODY_CLO / (D.SHED_BODY_CLO + Math.max(0, clo));
       const capacity = D.HEAT_SHED_W * damping * overS;
       // The water it costs, on the slice's scale; a body runs out of sweat.
@@ -211,7 +232,60 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     private wornClo(): number {
       if (this._reconcileClo !== null) return this._reconcileClo;
       const host = this.regHost;
-      return MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0;
+      return (MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0) + this.coatInsulation();
+    }
+
+    /**
+     * ⭐⭐ **What the body's own coat is worth, in clo** (organism-biology
+     * D3) — counted beside what it wears, never inside `Attired` (a body
+     * with clothes on it). Every exterior part's coat and underlayer, by
+     * the garment's own law (`thickness / k_eff / R_CLO`, the void filled
+     * by the BODY's wetness), weighted by that part's share of the skin.
+     * A coat tied to a tap (the sheep's fleece) is as deep as the fleece
+     * has grown: shear her and it falls to nothing. Bare skin is worth 0,
+     * so no person's numbers move.
+     */
+    private coatInsulation(): number {
+      const host = this.regHost;
+      const body = MixinApi.isOrganism(host) ? host.getBody() : null;
+      if (!body) return 0;
+      const wetness = MixinApi.isWet(host) ? host.getWetness() : 0;
+      let clo = 0;
+      for (const part of body.getParts()) {
+        const outside = part.integument;
+        if (!outside || (!outside.coat && !outside.under)) continue;
+        const share = body.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        for (const layer of [outside.under, outside.coat]) {
+          if (!layer?.depthM) continue;
+          clo += share * this.layerClo(layer, wetness);
+        }
+      }
+      return clo;
+    }
+
+    /** One coat layer's clo — the garment's law, the body's wetness. */
+    private layerClo(layer: IntegumentLayer, wetness: number): number {
+      const host = this.regHost;
+      let depth = layer.depthM ?? 0;
+      if (layer.tap && MixinApi.isProducing(host)) {
+        const spec = host.taps().find((t) => t.key === layer.tap);
+        const cap = spec?.capUnits ?? 0;
+        depth *= cap > 0 ? Math.max(0, Math.min(1, host.standingIn(layer.tap) / cap)) : 1;
+      }
+      if (!(depth > 0)) return 0;
+      const material = MaterialApi.materials().peek(layer.material);
+      if (!material) return 0;
+      const loft = layer.loft ?? 0;
+      const kFibre = material.getThermalConductivity().rawValue();
+      const kVoid = MixinApi.hasPorosity(material) ? material.wetProperty(K_AIR, K_WATER, wetness) : K_AIR;
+      const kEff = kFibre * (1 - loft) + kVoid * loft;
+      return kEff > 0 ? depth / kEff / M2K_PER_W_PER_CLO : 0;
+    }
+
+    /** ⭐ Is this body shivering now (the cue's state, for a watcher's `look`)? */
+    public isShivering(): boolean {
+      return this._shiverNoted;
     }
     /** Debounce flags so the reconcile doesn't spam cues per slice. */
     private _shiverNoted = false;
@@ -377,7 +451,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
       this._thermalRegReconciling = true;
       try {
-        this._reconcileClo = MixinApi.isAttired(self) ? self.bodyInsulation().rawValue() : 0;
+        this._reconcileClo = (MixinApi.isAttired(self) ? self.bodyInsulation().rawValue() : 0) + this.coatInsulation();
         this.refreshEffectiveAmbientFromEnvelope();
         let remaining = elapsed;
         let steps = 0;

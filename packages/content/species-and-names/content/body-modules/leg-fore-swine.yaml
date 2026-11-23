@@ -8,5 +8,7 @@ parts:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0084}
   - {tissue: /stuff/idea/material/tissue/muscles/shoulder, weight: 0.0244}
   - {tissue: /stuff/idea/material/tissue/muscles/shank, weight: 0.0077}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.007}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.003}
   gait: [walk, swim]
+integument:
+  skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.004, form: hide}

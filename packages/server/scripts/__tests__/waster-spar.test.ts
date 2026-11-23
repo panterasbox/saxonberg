@@ -45,6 +45,7 @@ import { EventApi } from "../../src/mud/api/event";
 import { runMatchup, Policies, type GymSide } from "../combat-gym";
 import type { Combatant } from '../../src/mud/lib/combat/Combatant';
 import type { Stuff } from '../../src/mud/lib/stuff/Stuff';
+import { setFlatParts } from '../../src/mud/lib/species/__tests__/flat-body';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class SparFighter extends Character {}
@@ -103,24 +104,24 @@ function makeFighter(
     { name: "head", accepts: "WearableMixin", covers: ["body.head"] },
     { name: "grip", accepts: "WieldableMixin", covers: ["body.arm.right"] },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: "body.torso",
       parent: null,
       tissues: [
-        { tissuePath: "/stuff/idea/material/tissue/bone", mass: 8 },
-        { tissuePath: "/stuff/idea/material/tissue/flesh", mass: 20 },
+        { tissuePath: "/stuff/idea/material/tissue/bone", share: 8 },
+        { tissuePath: "/stuff/idea/material/tissue/flesh", share: 20 },
       ],
     },
     {
       key: "body.head",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 4 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 4 }],
     },
     {
       key: "body.arm.right",
       parent: "body.torso",
-      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", mass: 3 }],
+      tissues: [{ tissuePath: "/stuff/idea/material/tissue/flesh", share: 3 }],
     },
   ]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/spar-${id}`);

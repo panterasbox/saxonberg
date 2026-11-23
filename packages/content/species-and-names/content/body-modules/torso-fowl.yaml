@@ -8,7 +8,7 @@ parts:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.1}
   - {tissue: /stuff/idea/material/tissue/muscles/breast-white, weight: 0.24}
   - {tissue: /stuff/idea/material/food/animal-fat, weight: 0.05}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.313}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.293}
 - key: heart
   parent: ''
   governs: [heartRate]
@@ -34,3 +34,7 @@ parts:
   sustains: [filtration]
   tissues:
   - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.02}
+  under: {material: /stuff/idea/material/textile/down, depthM: 0.01, loft: 0.97}
+  coat: {material: /stuff/idea/material/tissue/feather, depthM: 0.015, loft: 0.9}

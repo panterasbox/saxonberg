@@ -33,6 +33,11 @@ data:
   body:
     add:
       - { module: /trade/ranching/body-modules/fleece-sheep, as: [body.torso.fleece], at: body.torso }
+    # ⭐ Her coat IS the fleece (organism-biology D3): wool, as deep as the
+    # fleece has grown — shear her and it falls to nothing, and she is
+    # colder for it.
+    integument:
+      body.torso: { coat: { material: /stuff/idea/material/textile/wool, depthM: 0.06, loft: 0.9, tap: wool } }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh

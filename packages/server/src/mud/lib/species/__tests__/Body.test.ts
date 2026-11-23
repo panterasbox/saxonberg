@@ -84,4 +84,27 @@ describe('Body — the expansion is the constructor', () => {
     expect(() => new BodyModule('/x', { parts: [{ key: 'a', tissues: [] }] })).toThrow(/no root/);
     expect(() => new BodyModule('/x', { parts: [{ key: '', tissues: [] }, { key: 'a', parent: 'b', tissues: [] }] })).toThrow(/parent 'b'/);
   });
+
+  it('⭐ D3: skin is a tissue on the root, in the sum; an organ has no outside', () => {
+    const skinned = new BodyModule('/bm/skinned', {
+      integument: { skin: { material: '/m/skin', weight: 0.1, form: 'hide' }, coat: { material: '/m/fur', depthM: 0.02 } },
+      parts: [
+        { key: '', tissues: [{ tissue: FLESH, weight: 0.9 }] },
+        { key: 'liver', parent: '', governs: ['clearance'], tissues: [{ tissue: FLESH, weight: 0.01 }] },
+      ],
+    });
+    const b = new Body({ modules: [{ module: '/bm/skinned', as: ['body.torso'] }] }, () => skinned);
+    const torso = b.getPart('body.torso')!;
+    expect(torso.tissues.find((t) => t.integument)?.tissuePath).toBe('/m/skin');
+    const total = b.getParts().reduce((a, p) => a + p.tissues.reduce((x, t) => x + t.share, 0), 0);
+    expect(total).toBeCloseTo(1, 12);
+    expect(b.integumentAt('body.torso')?.coat?.material).toBe('/m/fur');
+    expect(b.integumentAt('body.torso.liver')).toBeNull();
+    // A delta overrides one layer, keeping the rest.
+    const sheep = new Body({ modules: [{ module: '/bm/skinned', as: ['body.torso'] }] }, () => skinned, [
+      { integument: { 'body.torso': { coat: { material: '/m/wool', depthM: 0.06, tap: 'wool' } } } },
+    ]);
+    expect(sheep.integumentAt('body.torso')?.coat?.material).toBe('/m/wool');
+    expect(sheep.integumentAt('body.torso')?.skin?.form).toBe('hide');
+  });
 });

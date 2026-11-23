@@ -7,3 +7,6 @@ parts:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.012}
   - {tissue: /stuff/idea/material/tissue/muscles/breast-white, weight: 0.018}
 fill: sparse
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin}
+  coat: {material: /stuff/idea/material/tissue/feather, depthM: 0.015, loft: 0.9}

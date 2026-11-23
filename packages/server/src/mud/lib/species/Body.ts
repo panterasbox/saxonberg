@@ -24,6 +24,7 @@
 import type { BodyModule, ModulePart } from './BodyModule';
 import type {
   BodyFill,
+  Integument,
   BodyPart,
   BreathingSpec,
   SensoryPort,
@@ -59,6 +60,8 @@ export interface BodyDelta {
   add?: ModuleRef[];
   /** Scale instances by their `as` key: `{ 'body.head': 1.4 }` (renormalized). */
   scale?: Record<string, number>;
+  /** ⭐ Override an instance's outside by its `as` key, layer by layer (D3): a sheep's fleece coat, a calf's thin one. */
+  integument?: Record<string, Integument>;
 }
 
 /** The plan-side inputs: the module list and the plan facts still authored on the plan. */
@@ -136,6 +139,13 @@ export class Body {
 
     const out: BodyPart[] = [];
     const seen = new Set<string>();
+    const outsideOf = new Map<string, Integument | null>();
+    const overrides = new Map<string, Integument>();
+    for (const d of deltas) {
+      for (const [k, v] of Object.entries(d.integument ?? {})) {
+        overrides.set(k, Body.mergeIntegument(overrides.get(k) ?? null, v));
+      }
+    }
     for (const inst of instances) {
       const tw = inst.mod.tissueWeight();
       const factor = totalWeight > 0 && tw > 0 ? inst.weight / totalWeight / tw : 0;
@@ -143,7 +153,15 @@ export class Body {
         const key = Body.absolute(inst.as, mp.key);
         if (seen.has(key)) throw new Error(`Body: two parts expand to the key '${key}' (module '${inst.mod.path}')`);
         seen.add(key);
-        out.push(Body.expandPart(mp, inst.mod, inst.as, inst.ref, key, factor));
+        const part = Body.expandPart(mp, inst.mod, inst.as, inst.ref, key, factor);
+        const own = mp.integument ?? inst.mod.integument;
+        const over = overrides.get(inst.as) ?? null;
+        outsideOf.set(key, own || over ? Body.mergeIntegument(own, over ?? {}) : null);
+        // ⭐ Skin is a tissue (D3): the root carries it, in the module's sum.
+        const skinW = mp.key === '' ? inst.mod.skinWeight() : 0;
+        const skin = outsideOf.get(key)?.skin;
+        if (skinW > 0 && skin) part.tissues.push({ tissuePath: skin.material, share: skinW * factor, integument: true });
+        out.push(part);
       }
     }
     for (const p of out) {
@@ -159,6 +177,21 @@ export class Body {
       for (const k of p.suppliedBy ?? []) conduits.add(k);
     }
     this.conduitKeys = conduits;
+    // ⭐ An outside belongs to an EXTERIOR part (D3): you cannot skin a liver.
+    for (const p of out) {
+      const outside = outsideOf.get(p.key);
+      if (outside && !this.isInterior(p.key)) p.integument = outside;
+    }
+  }
+
+  /** `over` layered on `base`, layer by layer (a layer's own fields merged). */
+  private static mergeIntegument(base: Integument | null, over: Integument): Integument {
+    const out: Integument = { ...(base ?? {}) };
+    for (const layer of ['skin', 'under', 'coat'] as const) {
+      const o = over[layer];
+      if (o) out[layer] = { ...(out[layer] ?? {}), ...o };
+    }
+    return out;
   }
 
   private static absolute(as: string, rel: string): string {
@@ -301,11 +334,19 @@ export class Body {
     return out;
   }
 
-  /** Every tissue material path this body cites, once each. */
+  /** Every material path this body cites — tissues and every integument layer — once each. */
   public tissuePaths(): string[] {
     const out = new Set<string>();
-    for (const p of this.parts) for (const t of p.tissues) out.add(t.tissuePath);
+    for (const p of this.parts) {
+      for (const t of p.tissues) out.add(t.tissuePath);
+      for (const layer of [p.integument?.skin, p.integument?.under, p.integument?.coat]) if (layer) out.add(layer.material);
+    }
     return [...out];
+  }
+
+  /** ⭐ A part's outside (D3), or null for an interior or bare part. */
+  public integumentAt(partKey: string): Integument | null {
+    return this.byKey.get(partKey)?.integument ?? null;
   }
 
   // ---- slots ----

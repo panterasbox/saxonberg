@@ -1229,10 +1229,34 @@ export default class Species extends SingletonMixin(
   public async setVariants(value: SpeciesVariants | null): Promise<void> {
     const v = value ?? {};
     const forms = [...Object.values(v.sex ?? {}), ...Object.values(v.stage ?? {})] as VariantSpec[];
-    const catalogue = SpeciesApi.modules();
-    const paths = new Set(forms.flatMap((f) => (f.body?.add ?? []).map((r) => r.module)));
-    await Promise.all([...paths].map((p) => catalogue.ensure(p)));
+    await this.ensureDeltas(forms.map((f) => f.body));
     this.applyVariants(v);
+  }
+
+  /**
+   * ⭐ Load what body deltas cite (D1, D3): every module they add, then
+   * every material those modules' parts and outsides are made of, and every
+   * material an integument override names — with this species as holder,
+   * so a form's body never meets an unloaded tissue on a read.
+   */
+  private async ensureDeltas(deltas: readonly (BodyDelta | null | undefined)[]): Promise<void> {
+    const catalogue = SpeciesApi.modules();
+    const modulePaths = new Set(deltas.flatMap((d) => (d?.add ?? []).map((r) => r.module)));
+    const modules = await Promise.all([...modulePaths].map((p) => catalogue.ensure(p)));
+    const materials = new Set<string>();
+    for (const m of modules) {
+      for (const part of m.parts) for (const t of part.tissues) materials.add(t.tissue);
+      for (const i of [m.integument, ...m.parts.map((p) => p.integument)]) {
+        for (const layer of [i?.skin, i?.under, i?.coat]) if (layer) materials.add(layer.material);
+      }
+    }
+    for (const d of deltas) {
+      for (const i of Object.values(d?.integument ?? {})) {
+        for (const layer of [i.skin, i.under, i.coat]) if (layer) materials.add(layer.material);
+      }
+    }
+    const holder = this.getIdentityPath() ?? null;
+    await Promise.all([...materials].map((p) => StuffApi.ensureConstituent(p, holder)));
   }
 
   /** Name this species' forms when the modules they add are already resident (a fixture; the setter above). */
@@ -1637,8 +1661,7 @@ export default class Species extends SingletonMixin(
    * be built on a read; a path naming no module throws (P3).
    */
   public async setBody(value: BodyDelta | null): Promise<void> {
-    const catalogue = SpeciesApi.modules();
-    await Promise.all([...new Set((value?.add ?? []).map((r) => r.module))].map((p) => catalogue.ensure(p)));
+    await this.ensureDeltas([value]);
     this.applyBody(value);
   }
 
