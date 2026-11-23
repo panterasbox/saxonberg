@@ -36,10 +36,17 @@ async function lookUntilLinks(page: Page): Promise<void> {
   await expect(thingLink(page).first()).toBeVisible({ timeout: 20_000 });
 }
 
+/**
+ * Wide enough for the card column beside the Explore panel: the navigation
+ * card's 22 rem panel leaves no card column below ~1476 CSS px (navigation
+ * card D14 — the panel no longer closes itself for a column).
+ */
+const WIDE = { viewport: { width: 2048, height: 1100 } };
+
 test.describe('tooltips — one tooltip for the whole client', () => {
   test('1–2, 6, 8 · controls, a thing in the scrollback, its path; a tooltip opens no card', async ({ browser }) => {
     test.setTimeout(240_000);
-    const { page, close } = await openWorldAs(browser, 'tipwalk', { startLocation: BANK });
+    const { page, close } = await openWorldAs(browser, 'tipwalk', { startLocation: BANK, contextOptions: WIDE });
     try {
       await lookUntilLinks(page);
 
@@ -103,8 +110,8 @@ test.describe('tooltips — one tooltip for the whole client', () => {
 
   test('3, 7 · a person in "Here"; a thing you have walked away from', async ({ browser }) => {
     test.setTimeout(240_000);
-    const other = await openWorldAs(browser, 'tipother', { startLocation: BANK });
-    const { page, close } = await openWorldAs(browser, 'tiphere', { startLocation: BANK });
+    const other = await openWorldAs(browser, 'tipother', { startLocation: BANK, contextOptions: WIDE });
+    const { page, close } = await openWorldAs(browser, 'tiphere', { startLocation: BANK, contextOptions: WIDE });
     try {
       await lookUntilLinks(page);
       // 3 · A chip in the place card's "Here" row describes that person.
@@ -128,7 +135,7 @@ test.describe('tooltips — one tooltip for the whole client', () => {
 
   test('4–5 · terms nest (help); a red wiki link is a command, not a term', async ({ browser }) => {
     test.setTimeout(240_000);
-    const { page, close } = await openWorldAs(browser, 'tipterms', { startLocation: SQUARE });
+    const { page, close } = await openWorldAs(browser, 'tipterms', { startLocation: SQUARE, contextOptions: WIDE });
     try {
       // 4 · An interface's stripe in a `look` card's gutter is its help
       // term; its "see also" terms nest.
@@ -177,7 +184,7 @@ test.describe('tooltips — one tooltip for the whole client', () => {
 
   test('9 · the keyboard: one tab stop for the transcript; focus opens; Esc closes', async ({ browser }) => {
     test.setTimeout(180_000);
-    const { page, close } = await openWorldAs(browser, 'tipkeys', { startLocation: BANK });
+    const { page, close } = await openWorldAs(browser, 'tipkeys', { startLocation: BANK, contextOptions: WIDE });
     try {
       await lookUntilLinks(page);
       await page.getByTestId('terminal').focus();

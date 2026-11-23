@@ -221,10 +221,6 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         if (!this.keepsMaps()) return;
         const viewerKey = this.mapOwnerKey();
         if (!viewerKey) return;
-        // ⭐ The HANDLE, not the template path. A place with no durable
-        // handle writes NO CLAIM — a lounge satellite is a fresh clone
-        // per landing, so an honest map of it is nothing rather than a
-        // stale entry for a room that no longer exists.
         // ⭐ The place says what a claim about it names and where it is
         // (navigation-server D2) — a copy's room by its minted key, moving
         // water by its river or sea; `null` writes nothing.
@@ -350,10 +346,23 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         const viewerKey = this.mapOwnerKey();
         if (!viewerKey) return;
         const source = via.getSource() as unknown as Stuff;
-        const from = source?.getDurableHandle();
-        if (!from) return;
-        const locality = await this.localityAddressOf(source);
-        if (!locality) return;
+        // The room's MAP handle — a lounge bud has no durable identity but
+        // is still a place on your map (Place.mapSubject).
+        const from = source?.isPlace()
+          ? ((source as unknown as Place).mapSubject()?.place ?? null)
+          : source?.getDurableHandle();
+        const locality = from ? await this.localityAddressOf(source) : null;
+        const now = NavigationApi.mapNow();
+        // ⭐ The room you walked INTO is written whatever the room you left
+        // was (navigation card review): a way out of a place with no
+        // durable handle (the lounge, a copy's satellite) records no edge,
+        // but the arrival is its own fact — leaving the lounge for Dave's
+        // Bar wrote nothing for the bar, and the card said *known, not
+        // walked* of the room you were standing in.
+        if (!from || !locality) {
+          await this.recordArrival(viewerKey, now);
+          return;
+        }
         let to: string | null = null;
         try {
           to =
@@ -362,7 +371,6 @@ export function CartographerMixin<TBase extends MixinConstructor>(
         } catch {
           to = null; // not loaded; the edge is still knowledge
         }
-        const now = NavigationApi.mapNow();
         await NavigationApi.recordPlace(viewerKey, locality, [
           {
             kind: 'edge',

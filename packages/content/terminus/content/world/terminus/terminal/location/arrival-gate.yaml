@@ -1,7 +1,8 @@
 # Terminus Terminal — the arrival gate. The alcove inbound travellers
 # materialise in (the arrival terminal seats here). Generic room. Carries an
 # `_address` under the Terminus locality prefix so `resolveLocalityFor` lands
-# on the "Terminus" Locality and the board names this destination "Terminus".
+# on the "Terminus City" Locality and the board names this destination
+# "Terminus City".
 #
 # Reoriented 2026-07-12: the terminal now sits SOUTH of the E–W University
 # Avenue, so this gate is the terminal's NORTH frontage onto the crossing.

@@ -35,8 +35,7 @@
  * affordance cache, which is answered fresh per subject.
  */
 
-import { NavigatorBody } from "./NavigatorBody";
-import { whereaboutsOf } from "../../store/navSlice";
+import { NavCard } from "../nav/NavCard";
 import { SettingsPanel } from "../settings/SettingsPanel";
 import { StreamControls } from "./StreamControls";
 import { useOnAir } from "../../lib/stream/onAir";
@@ -1181,10 +1180,9 @@ function NavigatorCardBody(props: {
   onSendCommand: (command: string) => void;
   onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement {
-  const sections = useStore((s) => s.navSections);
-  const where = React.useMemo(() => whereaboutsOf(sections), [sections]);
-  if (!where) return <Prose data-testid="card-navigator-waiting">Where you are is not known yet.</Prose>;
-  return <NavigatorBody where={where} {...props} />;
+  const known = useStore((s) => s.navSections.place !== undefined);
+  if (!known) return <Prose data-testid="card-navigator-waiting">Where you are is not known yet.</Prose>;
+  return <NavCard {...props} />;
 }
 
 /**

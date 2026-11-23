@@ -16,5 +16,8 @@
 class: /platform/idea/location/MintedZone
 data:
   name: Seznick House units
+  # Covered by a Locality, so a walk here files claims on your map
+  # (navigation card review — a zone with no address wrote nothing).
+  address: terminus/mayfield-row/seznick-house
   cellSize: 3.0
   mintedBy: /world/terminus/mayfield-row/seznick-house/unit-programme

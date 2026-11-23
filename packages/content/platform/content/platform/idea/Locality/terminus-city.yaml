@@ -27,11 +27,12 @@ data:
     costPerStreetNight: 0
     supplier: null
     supply: /system/energy/idea/GridCatalogue
-  # Display name "Terminus", same as the realm root — the Rome-metonymy
-  # made literal. The departures board names a destination by its
-  # COVERING Locality, which for the arrival gate is now this city tier;
-  # the D13 board label must stay "Terminus".
-  name: Terminus
+  # Display name "Terminus City" (navigation card, 2026-11-20): the realm
+  # root is "Terminus", and a breadcrumb that read *Terminus › Terminus*
+  # named two places with one word. The departures board names a
+  # destination by its COVERING Locality, which for the arrival gate is
+  # this city tier — so the board reads "Terminus City" there now.
+  name: Terminus City
   _address: terminus/city
   # ⭐ Where it stands on the chart (geography D12) — 3.5 km from the bar
   # on 300°, the land being the north-west quadrant of the Greywater. Inside
