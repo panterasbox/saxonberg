@@ -31,6 +31,7 @@ import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { CelestialApi } from '../../../api/celestial';
 
 import { EARTH_LIKE } from '../../time/CelestialProfile';
+import { setFlatTaps } from '../../species/__tests__/flat-body';
 
 const DAY = 86_400;
 const SPECIES_PATH = '/stuff/idea/species/_test/beast';
@@ -72,7 +73,7 @@ describe('the taps', () => {
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
     makeStuffAtPath(() => {
       const s = new Species();
-      s.setProduction(TAPS);
+      setFlatTaps(s, TAPS);
       return s;
     }, SPECIES_PATH);
     base = WorldClockApi.getNow().rawValue();
@@ -197,7 +198,7 @@ describe('the window — when a tap is open at all', () => {
     const path = `${SPECIES_2}-${++speciesSeq}`;
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, path);
     const b = makeStuff(() => {
@@ -410,7 +411,7 @@ describe('the window — when a tap is open at all', () => {
     const path = `${SPECIES_2}-unmodelled`;
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction([
+      setFlatTaps(sp, [
         {
           key: 'sap',
           yieldRow: '/x/sap',
@@ -462,7 +463,7 @@ describe('the window — when a tap is open at all', () => {
     const starvedPath = `${SPECIES_2}-starved`;
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(spec);
+      setFlatTaps(sp, spec);
       return sp;
     }, starvedPath);
     const hive = makeStuff(() => {
@@ -513,7 +514,7 @@ describe('⭐ MILK: no judgment at the act, and the loss visible coming', () => 
   const cow = (): TestBeast => {
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(MILK);
+      setFlatTaps(sp, MILK);
       return sp;
     }, SPECIES_2);
     const b = makeStuff(() => {
@@ -633,7 +634,7 @@ describe("⭐ the HEN's judgment: the clutch choice", () => {
   const hen = (taps: TapSpec[]): TestBeast => {
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, SPECIES_2);
     const b = makeStuff(() => {
@@ -731,7 +732,7 @@ describe("⭐ the FLEECE's judgment: the year it records", () => {
   const sheep = (taps: TapSpec[]): TestBeast => {
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, SPECIES_2);
     const b = makeStuff(() => {

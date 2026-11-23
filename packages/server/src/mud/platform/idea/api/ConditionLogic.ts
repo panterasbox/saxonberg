@@ -1340,6 +1340,15 @@ function inflictThroughStack(
     if (part) {
       partHasBone = partHasBoneTissue(part);
       tissueMaterial = primaryTissueMaterial(part);
+      // ⭐ What fills the part (organism-biology D12): a thrust through a
+      // wing or a fin mostly finds air, through a swim bladder more so. A
+      // solid part — every part of every person — takes the whole.
+      if (channel === 'point' && part.fill !== undefined && part.fill !== 'solid') {
+        residual *=
+          part.fill === 'sparse'
+            ? dial(AppSettingKeys.responseFillSparse, 0.4)
+            : dial(AppSettingKeys.responseFillHollow, 0.2);
+      }
     }
   }
 

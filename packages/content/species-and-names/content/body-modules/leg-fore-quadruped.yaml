@@ -9,3 +9,4 @@ parts:
   - {tissue: /stuff/idea/material/tissue/muscles/shoulder, weight: 0.035}
   - {tissue: /stuff/idea/material/tissue/muscles/shank, weight: 0.011}
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.01}
+  gait: [walk, swim]

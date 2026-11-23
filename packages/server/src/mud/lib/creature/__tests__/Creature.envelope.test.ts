@@ -20,6 +20,7 @@ import { ContainmentApi } from '../../../api/containment';
 import type { SlotSpec } from '../../slot/Slotted';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { setFlatGaits } from '../../species/__tests__/flat-body';
 
 let seq = 0;
 
@@ -36,7 +37,7 @@ function species(statureM: number, massKg: number, slots: SlotSpec[] = BIPED_SLO
   plan.setBaseMass(massKg);
   plan.setBaseStature(statureM);
   plan.setSlots(slots);
-  plan.setLocomotionModes(['walk', 'stoop', 'crawl']);
+  setFlatGaits(plan, ['walk', 'stoop', 'crawl']);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/envelope-${n}`);
   const sp = makeStuff(() => new Species());
   sp.setBodyPlan(plan);

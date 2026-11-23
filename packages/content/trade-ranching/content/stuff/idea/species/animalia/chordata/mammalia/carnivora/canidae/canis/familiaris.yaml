@@ -54,7 +54,6 @@ data:
   handlingRange: { floor: 0.2, ceiling: 1 }
   biddability: 0.9
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 25, litter: 5 }
-  production: []
   # ⭐⭐ **It authors NO yield, and the absence IS the refusal.**
   #
   # An empty `butcheryYield` is not a gap and not a TODO: it says *there is

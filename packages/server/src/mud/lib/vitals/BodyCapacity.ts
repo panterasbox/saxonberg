@@ -45,6 +45,7 @@
  * - **`respiration`** — moving air. Governed by the lungs.
  * - **`clearance`** — processing what is in the blood. Governed by the
  *   liver. The pharma seam.
+ * - **`filtration`** — cleaning the blood. Sustained by the kidneys.
  */
 export const BODY_CAPACITIES = [
   'consciousness',
@@ -53,6 +54,13 @@ export const BODY_CAPACITIES = [
   'circulation',
   'respiration',
   'clearance',
+  /**
+   * ⭐ Cleaning the blood (organism-biology D6). SUSTAINED by the kidneys:
+   * any surviving one suffices (the third rule — `max` — beside `governs`'
+   * min and `serves`' mean), so losing one leaves it full and losing both
+   * is the anatomy death floor.
+   */
+  'filtration',
 ] as const;
 
 /** One of {@link BODY_CAPACITIES}. */

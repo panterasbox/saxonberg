@@ -421,7 +421,7 @@ export default class Livestock extends LivestockBase {
     nowS: number,
   ): void {
     if (!driedOffAt || !species) return;
-    for (const tap of species.getProduction()) {
+    for (const tap of this.taps()) {
       const at = driedOffAt[tap.key];
       if (typeof at !== 'number' || !(tap.restDays && tap.restDays > 0)) continue;
       if (nowS - at < tap.restDays * SECONDS_PER_GAME_DAY) this.dryOff(tap.key);

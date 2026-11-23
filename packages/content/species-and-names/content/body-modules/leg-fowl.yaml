@@ -8,3 +8,4 @@ parts:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.018}
   - {tissue: /stuff/idea/material/tissue/muscles/leg, weight: 0.045}
   - {tissue: /stuff/idea/material/tissue/muscles/shank, weight: 0.025}
+  gait: [walk]

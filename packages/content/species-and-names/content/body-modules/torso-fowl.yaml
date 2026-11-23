@@ -1,12 +1,14 @@
 # torso-fowl — a body module (organism-biology D1): a subtree of parts with
 # relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W3: two kidneys, each SUSTAINING filtration (any one suffices), their
+# share taken from the torso's flesh.
 parts:
 - key: ''
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.1}
   - {tissue: /stuff/idea/material/tissue/muscles/breast-white, weight: 0.24}
   - {tissue: /stuff/idea/material/food/animal-fat, weight: 0.05}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.318}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.313}
 - key: heart
   parent: ''
   governs: [heartRate]
@@ -22,3 +24,13 @@ parts:
   governs: [clearance]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.008}
+- key: kidney.left
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+- key: kidney.right
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}

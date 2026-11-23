@@ -6,6 +6,5 @@ class: /platform/idea/species/BodyPlan
 data:
   name: sessile
   slots: []
-  locomotionModes: []
   defaultLocomotionMode: null
   sensoryPorts: []

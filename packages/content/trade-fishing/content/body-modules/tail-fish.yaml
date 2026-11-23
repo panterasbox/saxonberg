@@ -5,3 +5,4 @@ parts:
   severable: true
   tissues:
   - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.0483}
+  gait: [swim]

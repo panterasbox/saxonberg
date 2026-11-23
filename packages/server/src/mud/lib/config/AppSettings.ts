@@ -790,6 +790,14 @@ export const AppSettingKeys = {
   responseDepthStepPerOrgan: "response.depth.stepPerOrgan",
   responseBluntRuptureThreshold: "response.blunt.ruptureThreshold",
   /**
+   * ⭐ What fills a part, for a `point` insult (organism-biology D12): the
+   * share of a thrust's residual a SPARSE part (a wing, a fin) and a
+   * HOLLOW one (a swim bladder) delivers to tissue — a blade through a
+   * wing mostly finds air.
+   */
+  responseFillSparse: "response.fill.sparse",
+  responseFillHollow: "response.fill.hollow",
+  /**
    * Cold's residual→severity tail. ⚠ Its own key and NOT its own
    * insulation dials: `response.heat.*` describes the COVERING, not the
    * direction of flow, so heat and cold share the fold and differ only
@@ -2815,6 +2823,8 @@ export const AppSettingTiers: Readonly<
   responseDepthReachThreshold: "B",
   responseDepthStepPerOrgan: "B",
   responseBluntRuptureThreshold: "B",
+  responseFillSparse: "B",
+  responseFillHollow: "B",
   responseColdSeverityPerResidual: "B",
   responseCorrosionWearPerContact: "B",
   responseCorrosionShedAbsorptionMax: "B",

@@ -21,6 +21,9 @@
  * only), so the anatomy lint can parse a module from a YAML file.
  */
 
+import type { BodyFill } from '../../platform/idea/species/BodyPlan';
+import type { TapSpec } from '../../platform/idea/species/Species';
+
 /** One tissue of a module part: a material row and its relative weight. */
 export interface ModuleTissue {
   /** A tissue material's template path. */
@@ -49,6 +52,14 @@ export interface ModulePart {
   innervatedBy?: string[];
   /** As `BodyPart.suppliedBy`, the same relation for the blood supply. */
   suppliedBy?: string[];
+  /** As `BodyPart.sustains` — any surviving one suffices (D6). */
+  sustains?: string[];
+  /** As `BodyPart.produces` — the taps this part is the gland of (D2). */
+  produces?: TapSpec[];
+  /** As `BodyPart.gait` — the ways this part moves the body. */
+  gait?: string[];
+  /** As `BodyPart.fill` — overrides the module's own. */
+  fill?: BodyFill;
 }
 
 export class BodyModule {
@@ -56,6 +67,8 @@ export class BodyModule {
   /** This module's default share of a body, relative to its siblings'. */
   public readonly weight: number;
   public readonly parts: readonly ModulePart[];
+  /** What fills this module's parts (D12) unless a part says otherwise; `solid` when unsaid. */
+  public readonly fill: BodyFill;
 
   /**
    * Read one module document's data. Throws on a malformed module (P3):
@@ -89,11 +102,20 @@ export class BodyModule {
         }),
       };
       if (key !== '') part.parent = typeof raw.parent === 'string' ? raw.parent : '';
-      for (const f of ['governs', 'serves', 'innervatedBy', 'suppliedBy'] as const) {
+      for (const f of ['governs', 'serves', 'innervatedBy', 'suppliedBy', 'sustains', 'gait'] as const) {
         const v = raw[f];
         if (Array.isArray(v) && v.length > 0) part[f] = v.map(String);
       }
       if (raw.severable === true) part.severable = true;
+      if (raw.fill !== undefined) part.fill = BodyModule.fillOf(raw.fill, path, key);
+      if (Array.isArray(raw.produces) && raw.produces.length > 0) {
+        part.produces = (raw.produces as Record<string, unknown>[]).map((t) => {
+          if (typeof t.key !== 'string' || typeof t.yieldRow !== 'string') {
+            throw new Error(`body-module '${path}' part '${key}': a gland's tap names a key and a yieldRow`);
+          }
+          return t as unknown as TapSpec;
+        });
+      }
       parts.push(part);
     }
     if (!keys.has('')) throw new Error(`body-module '${path}' has no root part (key '')`);
@@ -103,12 +125,18 @@ export class BodyModule {
       }
     }
     this.parts = parts;
+    this.fill = data.fill === undefined ? 'solid' : BodyModule.fillOf(data.fill, path, '');
     const own = parts.reduce((a, p) => a + p.tissues.reduce((b, t) => b + t.weight, 0), 0);
     const authored = data.weight === undefined ? own : Number(data.weight);
     if (!Number.isFinite(authored) || authored < 0) {
       throw new Error(`body-module '${path}': weight must be a number ≥ 0`);
     }
     this.weight = authored;
+  }
+
+  private static fillOf(v: unknown, path: string, key: string): BodyFill {
+    if (v === 'solid' || v === 'sparse' || v === 'hollow') return v;
+    throw new Error(`body-module '${path}' part '${key}': fill must be solid, sparse or hollow (got ${String(v)})`);
   }
 
   /** The sum of this module's tissue weights (its parts' own scale). */

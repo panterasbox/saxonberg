@@ -11,9 +11,6 @@ class: /platform/idea/species/BodyPlan
 data:
   name: crustacean
   slots: []
-  locomotionModes:
-    - walk
-    - swim
   defaultLocomotionMode: walk
   breathing:
     - { medium: water, apparatus: gills, intake: 1 }

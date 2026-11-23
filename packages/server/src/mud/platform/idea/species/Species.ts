@@ -503,12 +503,6 @@ export interface TapSpec {
    */
   takeMs?: number;
   /**
-   * ⭐ **The sex that gives this** (dairy D12). A bull is not milked and a
-   * cockerel lays nothing — a species fact about the tap, read against the
-   * host's own sex. Absent ⇒ either sex (wool, honey, sap).
-   */
-  sex?: 'female' | 'male';
-  /**
    * ⭐ Game-days a dried-off `expire` tap RESTS before it may come back
    * (dairy D12) — a cow's dry period. Absent ⇒ no rest modelled.
    */
@@ -804,8 +798,13 @@ export default class Species extends SingletonMixin(
    */
   protected ageCurve: AgeCurveSpec | null = null;
 
-  /** What this species produces while you keep it (D25). Empty = nothing. */
-  protected production: TapSpec[] = [];
+  /**
+   * ⭐ How this species' body differs from its plan, for every form
+   * (organism-biology D1): modules it adds (a tree's sapwood, a sheep's
+   * fleece, a bee's crop) and instances it scales. Applied before a
+   * form's own. Absent on most rows: the plan's body is the species'.
+   */
+  protected body: BodyDelta | null = null;
 
   /** When and how it breeds (D26), or `null` for a species that does not. */
   protected breeding: BreedingSpec | null = null;
@@ -1110,7 +1109,7 @@ export default class Species extends SingletonMixin(
     feedingStyle: { persistent: true, authorable: true },
     adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
-    production: { persistent: true, authorable: true },
+    body: { persistent: true },
     breeding: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
@@ -1233,7 +1232,12 @@ export default class Species extends SingletonMixin(
     const catalogue = SpeciesApi.modules();
     const paths = new Set(forms.flatMap((f) => (f.body?.add ?? []).map((r) => r.module)));
     await Promise.all([...paths].map((p) => catalogue.ensure(p)));
-    this.variants = v;
+    this.applyVariants(v);
+  }
+
+  /** Name this species' forms when the modules they add are already resident (a fixture; the setter above). */
+  public applyVariants(value: SpeciesVariants | null): void {
+    this.variants = value ?? {};
     this.bodies = { of: null, byKey: new Map() };
   }
 
@@ -1304,7 +1308,7 @@ export default class Species extends SingletonMixin(
     const plan = this.getBodyPlan();
     if (!plan) return null;
     const base = plan.getBody();
-    const deltas = this.formsOf(variant).map((f) => f.body).filter((d): d is BodyDelta => !!d);
+    const deltas = [this.body, ...this.formsOf(variant).map((f) => f.body)].filter((d): d is BodyDelta => !!d);
     if (deltas.length === 0) return base;
     if (this.bodies.of !== base) this.bodies = { of: base, byKey: new Map() };
     const key = `${variant?.sex ?? ''}|${variant?.stage ?? ''}`;
@@ -1624,11 +1628,24 @@ export default class Species extends SingletonMixin(
     this.reproductiveMode = value;
   }
 
-  public getProduction(): readonly TapSpec[] { return this.production; }
-  public setProduction(value: TapSpec[]): void {
-    // ⭐ What a take dirties is DERIVED by the tap act (an animal's floor,
-    // a liquid's splash — `Producing.soilTheTaker`), never authored here.
-    this.production = Array.isArray(value) ? value : [];
+  /** How this species' body differs from its plan (D1), or `null`. */
+  public getBodyDelta(): BodyDelta | null { return this.body; }
+
+  /**
+   * Name how this species' body differs from its plan. Async (the
+   * `setModules` shape): every module it adds is ensured, so its body can
+   * be built on a read; a path naming no module throws (P3).
+   */
+  public async setBody(value: BodyDelta | null): Promise<void> {
+    const catalogue = SpeciesApi.modules();
+    await Promise.all([...new Set((value?.add ?? []).map((r) => r.module))].map((p) => catalogue.ensure(p)));
+    this.applyBody(value);
+  }
+
+  /** Name how this species' body differs when the modules it adds are already resident (a fixture; the setter above). */
+  public applyBody(value: BodyDelta | null): void {
+    this.body = value ?? null;
+    this.bodies = { of: null, byKey: new Map() };
   }
 
   public getBreeding(): BreedingSpec | null { return this.breeding; }

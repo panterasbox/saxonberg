@@ -43,7 +43,7 @@ async function cattle(): Promise<Species> {
   };
   const species = makeStuffAtPath(() => new Species(), '/stuff/idea/species/_test/cattle');
   species.setCommonNames(data.commonNames);
-  await species.setVariants(data.variants as never);
+  species.applyVariants(data.variants as never); // names only: no module is read
   species.setAgeCurve(data.ageCurve);
   species.setAdultMass(data.adultMass);
   species.setSexDeterminationSystem('xy');

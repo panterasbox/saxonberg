@@ -14,8 +14,6 @@ class: /platform/idea/species/BodyPlan
 data:
   name: fish
   slots: []
-  locomotionModes:
-    - swim
   defaultLocomotionMode: swim
   breathing:
     - { medium: water, apparatus: gills, intake: 1 }

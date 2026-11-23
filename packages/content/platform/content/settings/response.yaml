@@ -83,6 +83,15 @@ settings:
   - key: response.blunt.ruptureThreshold
     value: "1"
 
+  # ── fill (organism-biology D12) ───────────────────────────────────────
+  # What fills a part, for a THRUST: the share of a point's residual that
+  # meets tissue in a sparse part (a wing, a fin — mostly air and quill)
+  # and a hollow one (a swim bladder). A solid part takes the whole.
+  - key: response.fill.sparse
+    value: "0.4"
+  - key: response.fill.hollow
+    value: "0.2"
+
   # ── cold ─────────────────────────────────────────────────────────────
   # ⚠ Cold has ONE key of its own. The insulation fold is `response.heat.*`
   # for both directions, because those dials describe the COVERING — what

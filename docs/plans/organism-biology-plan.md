@@ -1619,6 +1619,21 @@ wing delivers the `sparse` share (unit); the gait golden passes; both gates
 fail on a module whose `yieldRow` names no row.
 **Commit:** `feat(species): W3 glands, the redundant rule, gaits and fill`
 
+> ✅ **W3 done.** Parts gained `produces`, `sustains`, `gait`, `fill`
+> (module-level `fill`, per-instance `gait` on a plan's module ref).
+> `Producing.taps()` reads the body's glands; `glandFactor` scales the fill
+> by the gland's function band; a body with no gland for a key another
+> form has refuses `wrong-sex`. `Species.production`, `TapSpec.sex` and
+> `BodyPlan.locomotionModes` are gone; `Species.body` (a species-wide
+> delta) carries the fleece, the crop and the sapwood; the udders and the
+> oviduct are female-delta modules. `filtration` (sustained by two kidneys
+> in every vertebrate torso, from flesh), the death floor's both-missing
+> rule, the swim bladder (hollow), wings sparse, `response.fill.*` dials.
+> The census reads glands' `yieldRow`s and module tissues; reachability
+> already walked every content file. Golden re-pinned: only kidneys and
+> the swim bladder added (from flesh), gaits identical as sets, taps by
+> sex identical. Decisions B13–B15.
+
 ### W4 — The integument
 
 **Goal:** every exterior part has a skin; coats insulate; hides armor.
@@ -2254,6 +2269,25 @@ Decisions the build made that the plan did not, and what decided each.
   `severBodyPart`, `killBody` and `afflict` take `#<stuffId>` / a path / a
   resident name, and the controllers pass the bound body's id. *Decided
   by:* the compliant path (no exemption added).
+
+- **B13 (W3) — a body of no recorded sex has no udder.** The tap's old
+  *tri-state rule* (an unrecorded sex is open) cannot survive the gland
+  becoming a female's part: a body of no recorded sex is the species' own
+  body. Herd heads always carry a sex; the change reaches only fixtures.
+  *Decided by:* D2 (the gland is a part of the female body).
+- **B14 (W3) — a species-wide `body:` block (`Species.body`).** D1 named
+  it; W3 is its first author: the sheep's fleece, the bee's crop and the
+  four trees' sapwood are on every form, so they are a species delta, not a
+  sex one. Sync `applyBody`/`applyVariants` twins exist for resident
+  modules (the `applyModules` shape), and the fixture helper gained
+  `setFlatTaps` and `setFlatGaits` (B7's door). *Decided by:* the plan
+  (D1, D2).
+- **B15 (W3) — gaits ride limbs, plus a per-instance `gait` on a module
+  ref.** The canid shares the quadruped's legs but also crawls; a ref-level
+  `gait` (beside `innervatedBy`) says *this plan's legs also crawl*
+  without copying the module. The crab's gaits sit on its torso (its legs
+  are not modeled). Gaits are compared as sets. *Decided by:* lens 2 (a
+  second canid-like plan is a one-line ref, not a module copy).
 
 ## Drive record
 

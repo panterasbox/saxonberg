@@ -20,9 +20,6 @@ data:
     # subsystem doc; sessile body plans deliberately omit this slot
     # (plants don't get implants in v1).
     - { name: cranial, accepts: SlottableMixin, bodyPart: body.head }
-  locomotionModes:
-    - walk
-    - swim
   defaultLocomotionMode: walk
   sensoryPorts:
     - { modality: vision, count: 2, position: frontal }

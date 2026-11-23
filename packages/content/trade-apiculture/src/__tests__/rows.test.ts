@@ -123,7 +123,8 @@ describe('the honeybee', () => {
   );
 
   it('⭐⭐ the tap ceiling is absurd on purpose — the BOX is the real one', () => {
-    const production = bee.data?.production as Array<{
+    // ⭐ organism-biology W3: the honey tap is the crop gland's (its module).
+    const production = (row(CONTENT, 'body-modules', 'crop-bee.yaml') as unknown as { parts: { produces: unknown }[] }).parts[0]!.produces as Array<{
       key: string;
       yieldRow: string;
       behaviour: string;

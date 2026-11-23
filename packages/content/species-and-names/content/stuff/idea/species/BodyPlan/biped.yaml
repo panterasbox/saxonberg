@@ -60,10 +60,6 @@ data:
     # lives in the slot's name and the augment's targetSlot field,
     # not in the validator enum. See docs/subsystems/augmentation.md.
     - { name: cranial,        accepts: SlottableMixin, bodyPart: body.head }
-  locomotionModes:
-    - walk
-    - climb
-    - swim
     # ⭐ Bent under a low lintel, and on hands and knees (size and
     # carrying D20). The plan decides: a quadruped lists neither.
     - stoop

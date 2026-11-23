@@ -344,11 +344,46 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     protected _tapAir: { k: number; atS: number } | null = null;
 
+    /**
+     * ⭐ The taps this body has: its GLANDS' (organism-biology D2). A gland
+     * is a part — the udder on a female's body, the oviduct on a hen's, a
+     * tree's sapwood — so a bull has no milk tap at all, and a tap's key
+     * is the key it always had (`tapState` restores by it).
+     */
     public taps(): readonly TapSpec[] {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return [];
+      return (self.getBody()?.producers() ?? []).map((p) => p.spec);
+    }
+
+    /**
+     * ⭐ How well the gland behind `key` can make it (D2): its part's
+     * function band — full 1, impaired ½, failing or lost 0 — on a body
+     * that takes wounds; 1 on one that does not (a hive, a tree).
+     */
+    protected glandFactor(key: string): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self) || !MixinApi.isVitals(self)) return 1;
+      const gland = self.getBody()?.producers().find((p) => p.spec.key === key);
+      if (!gland) return 1;
+      const band = self.functionAt(gland.partKey);
+      return band === 'full' ? 1 : band === 'impaired' ? 0.5 : 0;
+    }
+
+    /**
+     * Does another form of this species have a gland for `key` (a cow's
+     * udder, asked of a bull)? The refusal is then *wrong sex*, in her
+     * voice, rather than *no such thing*.
+     */
+    protected anotherFormGives(key: string): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
       const species = self.getSpecies() as Species | null;
-      return species?.getProduction() ?? [];
+      if (!species) return false;
+      const stage = self.getLifeStage();
+      return Object.keys(species.getVariants().sex ?? {}).some((sex) =>
+        (species.bodyFor({ sex, stage })?.producers() ?? []).some((p) => p.spec.key === key),
+      );
     }
 
     /**
@@ -685,13 +720,8 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public givesTap(key: string): boolean {
-      const tap = this.taps().find((t) => t.key === key);
-      if (!tap?.sex) return true;
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isOrganism(self)) return true;
-      const sex = self.getSex();
-      // ⚠ The tri-state rule: an unrecorded sex is open, not closed.
-      return sex === null || sex === tap.sex;
+      // ⭐ A body gives what it has a gland for (D2): a bull has no udder.
+      return this.taps().some((t) => t.key === key);
     }
 
     public dryOff(key: string): void {
@@ -755,7 +785,9 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           // the `Stand` growth-factor form. Honest-cheap, and stated:
           // a jump across a season boundary bills the whole interval at
           // the boundary's own answer.
-          const open = this.tapWindow(tap.key).open ? 1 : 0;
+          // ⭐ …and a wounded gland makes less (D2): the window's open
+          // fraction times the part's own function.
+          const open = (this.tapWindow(tap.key).open ? 1 : 0) * this.glandFactor(tap.key);
 
           if (tap.behaviour === 'expire') {
             // ⚠ She dries off. The SLOPE: production stops for this
@@ -895,10 +927,12 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       _what: string | null,
     ): Promise<TapPlan | TapRefusal> {
       const tap = this.taps().find((t) => t.key === key);
-      if (!tap) return { ok: false, reason: 'no-such-tap' };
-      // ⭐ Is this the animal that gives it, before is it the season?
-      if (!this.givesTap(key)) {
-        return { ok: false, reason: 'wrong-sex', facts: { key } };
+      // ⭐ Is this the animal that gives it, before is it the season? A
+      // bull has no udder; the species' cow does — so *wrong sex*.
+      if (!tap) {
+        return this.anotherFormGives(key)
+          ? { ok: false, reason: 'wrong-sex', facts: { key } }
+          : { ok: false, reason: 'no-such-tap' };
       }
       await this.bringTapAirCurrent();
       const window = this.tapWindow(key);

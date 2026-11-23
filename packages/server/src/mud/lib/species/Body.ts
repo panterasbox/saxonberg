@@ -23,10 +23,12 @@
 
 import type { BodyModule, ModulePart } from './BodyModule';
 import type {
+  BodyFill,
   BodyPart,
   BreathingSpec,
   SensoryPort,
 } from '../../platform/idea/species/BodyPlan';
+import type { TapSpec } from '../../platform/idea/species/Species';
 import type { SlotSpec } from '../slot/Slotted';
 import type { SenseChannel } from '../description/Perceiver';
 
@@ -44,6 +46,8 @@ export interface ModuleRef {
   innervatedBy?: string[];
   /** The blood supply of each instance's ROOT (absolute keys). */
   suppliedBy?: string[];
+  /** More gaits on each instance's ROOT (this plan's legs also crawl). */
+  gait?: string[];
 }
 
 /**
@@ -63,8 +67,6 @@ export interface BodySpec {
   slots?: readonly SlotSpec[];
   /** Still authored on the plan until W9 derives senses from organs (D1's proxy). */
   sensoryPorts?: readonly SensoryPort[];
-  /** Still authored on the plan until W3 derives gaits from limbs. */
-  locomotionModes?: readonly string[];
   /** Still authored on the plan until W8 derives breathing from organs. */
   breathing?: readonly BreathingSpec[];
 }
@@ -90,7 +92,6 @@ export class Body {
   private readonly conduitKeys: ReadonlySet<string>;
   private readonly slots: readonly SlotSpec[];
   private readonly sensoryPorts: readonly SensoryPort[];
-  private readonly locomotionModes: readonly string[];
   private readonly breathingSpecs: readonly BreathingSpec[];
   private surfaceFractions: Map<string, number> | null = null;
   private tissues: ResolvedTissue[] | null = null;
@@ -108,7 +109,6 @@ export class Body {
   ) {
     this.slots = spec.slots ?? [];
     this.sensoryPorts = spec.sensoryPorts ?? [];
-    this.locomotionModes = spec.locomotionModes ?? [];
     this.breathingSpecs = spec.breathing ?? DEFAULT_BREATHING;
 
     const refs: ModuleRef[] = [...spec.modules];
@@ -143,7 +143,7 @@ export class Body {
         const key = Body.absolute(inst.as, mp.key);
         if (seen.has(key)) throw new Error(`Body: two parts expand to the key '${key}' (module '${inst.mod.path}')`);
         seen.add(key);
-        out.push(Body.expandPart(mp, inst.as, inst.ref, key, factor));
+        out.push(Body.expandPart(mp, inst.mod, inst.as, inst.ref, key, factor));
       }
     }
     for (const p of out) {
@@ -169,6 +169,7 @@ export class Body {
 
   private static expandPart(
     mp: ModulePart,
+    mod: BodyModule,
     as: string,
     ref: ModuleRef,
     key: string,
@@ -191,6 +192,12 @@ export class Body {
     }
     if (inner.length) part.innervatedBy = inner;
     if (supply.length) part.suppliedBy = supply;
+    if (mp.sustains) part.sustains = [...mp.sustains];
+    if (mp.produces) part.produces = mp.produces.map((t) => ({ ...t }));
+    const gait = [...(mp.gait ?? []), ...(isRoot ? (ref.gait ?? []) : [])];
+    if (gait.length) part.gait = [...new Set(gait)];
+    const fill = mp.fill ?? mod.fill;
+    if (fill !== 'solid') part.fill = fill;
     return part;
   }
 
@@ -337,9 +344,25 @@ export class Body {
     return Array.from(new Set(this.sensoryPorts.map((p) => p.modality)));
   }
 
-  /** The ways this body can move (the plan's modes until W3 derives them from limbs). */
+  /**
+   * ⭐ The ways this body can move (W3): every gait its parts provide, in
+   * part order — a wing gives `fly`, a tail `swim`, legs `walk`. A body
+   * with no limbs has none (a plant).
+   */
   public gaits(): readonly string[] {
-    return this.locomotionModes;
+    return [...new Set(this.parts.flatMap((p) => p.gait ?? []))];
+  }
+
+  // ---- what a part is for ----
+
+  /** ⭐ Every gland on this body and the tap it makes (D2), in part order. */
+  public producers(): readonly { partKey: string; spec: TapSpec }[] {
+    return this.parts.flatMap((p) => (p.produces ?? []).map((spec) => ({ partKey: p.key, spec })));
+  }
+
+  /** What fills a part (D12): `solid` unless its module says otherwise. */
+  public fillAt(partKey: string): BodyFill {
+    return this.byKey.get(partKey)?.fill ?? 'solid';
   }
 
   /** The ways this body breathes (the plan's until W8 derives them from organs). */

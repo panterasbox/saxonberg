@@ -29,9 +29,6 @@ data:
   name: avian
   slots:
     - { name: 'perch:1', accepts: SlottableMixin, userFacingDetail: perch }
-  locomotionModes:
-    - walk
-    - fly
   defaultLocomotionMode: walk
   sensoryPorts:
     - { modality: vision, count: 2, position: lateral }

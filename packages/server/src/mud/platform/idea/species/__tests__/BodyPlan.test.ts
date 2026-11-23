@@ -5,6 +5,7 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { MixinApi } from '../../../../api/mixin';
 import { Mixins } from '../../../../lib/mixin';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import { setFlatGaits } from '../../../../lib/species/__tests__/flat-body';
 
 describe('BodyPlan', () => {
   it('extends Idea via SingletonMixin', () => {
@@ -22,7 +23,7 @@ describe('BodyPlan', () => {
       { name: 'hand:left', accepts: 'WieldableMixin' },
       { name: 'hand:right', accepts: 'WieldableMixin' },
     ]);
-    bp.setLocomotionModes(['walk']);
+    setFlatGaits(bp, ['walk']);
     bp.setSensoryPorts([
       { modality: 'vision', count: 2, position: 'frontal' },
     ]);

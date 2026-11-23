@@ -33,7 +33,7 @@ import type { SlotSpec } from '../../slot/Slotted';
 import { buildMode } from '../../locomotion/__tests__/test-helpers';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { setFlatParts } from '../../species/__tests__/flat-body';
+import { setFlatGaits, setFlatParts } from '../../species/__tests__/flat-body';
 
 class Carryable extends WieldableMixin(SlottableMixin(Thing)) {}
 
@@ -58,7 +58,8 @@ function human(): Carrier {
   plan.setBaseStature(1.75);
   plan.setSlots(SLOTS);
   setFlatParts(plan, PARTS);
-  plan.setLocomotionModes(['walk', 'stoop', 'crawl', 'climb']);
+  // W3: gaits ride a part of their own, given after the parts.
+  setFlatGaits(plan, ['walk', 'stoop', 'crawl', 'climb']);
   stampTemplatePathForTest(plan, PLAN_PATH);
   const sp = makeStuff(() => new Species());
   sp.setBodyPlan(plan);

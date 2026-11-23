@@ -1,0 +1,16 @@
+# udder-cattle — a gland (organism-biology D2): the part that makes
+# milk. The tap is today's, keyed as it always was, so a
+# stored tap state restores by its key; the store stays on the tap host.
+parts:
+- key: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/udder, weight: 0.02}
+  produces:
+  - key: milk
+    yieldRow: /stuff/idea/material/food/milk
+    perGameDay: 22
+    behaviour: expire
+    windowDays: 0.6
+    yieldShape: volume
+    window: {kind: event}
+    restDays: 3

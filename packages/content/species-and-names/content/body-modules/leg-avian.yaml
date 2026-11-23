@@ -6,3 +6,4 @@ parts:
   serves: [locomotion]
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.027}
+  gait: [walk]

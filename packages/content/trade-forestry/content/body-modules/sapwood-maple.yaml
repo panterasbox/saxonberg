@@ -1,0 +1,14 @@
+# sapwood-maple — a gland (organism-biology D2): the part that makes
+# sap. The tap is today's, keyed as it always was, so a
+# stored tap state restores by its key; the store stays on the tap host.
+parts:
+- key: ''
+  tissues: []
+  produces:
+  - key: sap
+    yieldRow: /stuff/idea/material/food/maple-sap
+    perGameDay: 2
+    behaviour: accrue
+    windowDays: 4
+    yieldShape: volume
+    window: {kind: freeze-thaw}

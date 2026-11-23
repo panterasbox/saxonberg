@@ -24,10 +24,15 @@ data:
   # the body is called. Read late, so a calf grows into its adult name.
   variants:
     sex:
-      female: { commonNames: [ewe] }
+      female: { commonNames: [ewe], body: { add: [{ module: /trade/ranching/body-modules/udder-sheep, as: [body.torso.udder], at: body.torso }] } }
       male: { commonNames: [ram] }
     stage:
       newborn: { commonNames: [lamb] }
+  # ⭐ What this species' body adds to its plan, for every form (D1, D2):
+  # the gland its tap comes from.
+  body:
+    add:
+      - { module: /trade/ranching/body-modules/fleece-sheep, as: [body.torso.fleece], at: body.torso }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
@@ -57,37 +62,6 @@ data:
   feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 900, senescentAt: 1400 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
-  production:
-    # ⭐⭐ Wool records its YEAR. `continuous` means there is no window
-    # to miss and nothing to decide at the act — the feedback law's third
-    # row — so what varies is the QUALITY the year put in, and
-    # `TapState.worst` carries the worst stretch she lived through onto
-    # the fleece's grade band. A break is a weak point wherever it fell,
-    # and feeding her up afterwards does not heal it.
-    #
-    # ⭐ `capUnits: 4` because a fleece that heavy has shed: past it the
-    # growth is simply lost and `look` says so. A sheep does not
-    # accumulate wool forever, which is what the uncapped row implied.
-    - key: wool
-      yieldRow: /trade/ranching/thing/fleece
-      perGameDay: 0.008
-      behaviour: continuous
-      windowDays: 0
-      capUnits: 4
-    # ⭐ Ewe's milk is a SEASON (dairy D13): a short-day breeder lambs in
-    # late winter, so she milks as the days lengthen past it and is done
-    # by midsummer. `photoperiod` rather than `event` — nobody freshens a
-    # ewe; the orbit does. Her milk is twice the cow's in fat and gives
-    # twice the curd, which the material row says and nothing here does.
-    - key: milk
-      yieldRow: /stuff/idea/material/food/ewe-milk
-      perGameDay: 1.2
-      behaviour: expire
-      windowDays: 0.6
-      yieldShape: volume
-      sex: female
-      restDays: 3
-      window: { kind: photoperiod, daylightFrom: 0.46, daylightTo: 0.62 }
   # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
   #
   # Until the carcass-chain build the game had two `butcher` verbs with two

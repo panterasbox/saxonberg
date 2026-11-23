@@ -163,7 +163,9 @@ function computeGolden(): Golden {
         })),
       })),
       sensoryPorts: data.sensoryPorts ?? [],
-      locomotionModes: data.locomotionModes ?? [],
+      // ⭐ W3: gaits derive from the limbs; compared as a set (order is the
+      // parts' order, which carries no meaning).
+      gaits: [...plan.getBody().gaits()].sort(),
       breathing: data.breathing ?? null,
     };
   }
@@ -174,16 +176,37 @@ function computeGolden(): Golden {
   const dressOut: Record<string, unknown> = {};
   for (const [path, row] of species.sort(([a], [b]) => a.localeCompare(b))) {
     const d = row.data ?? {};
-    const production = (d.production as Record<string, unknown>[] | undefined) ?? [];
-    if (production.length > 0) {
-      const bySex = (sex: string): string[] =>
-        production
-          .filter((t) => t.sex === undefined || t.sex === sex)
-          .map((t) => String(t.key));
+    // ⭐ W3: a tap is a GLAND — a part of the body of each form. Built the
+    // way the engine builds it: the plan, the species' own body block and
+    // its forms, every module resident.
+    const glandsOf = (sex: string): { key: string; spec: Record<string, unknown> }[] => {
+      if (typeof d._bodyPlanPath !== 'string') return [];
+      StuffApi.clearAll();
+      buildPlan(index, d._bodyPlanPath, planData(index, d._bodyPlanPath));
+      const sp = makeStuffAtPath(() => new Species(), path);
+      sp._bodyPlanPath = d._bodyPlanPath;
+      const remember = (delta: unknown): void => {
+        for (const r of ((delta as { add?: ModuleRef[] } | undefined)?.add ?? [])) {
+          const doc = index.get(r.module);
+          if (!doc) throw new Error(`golden: ${path} adds module ${r.module}, which no pack ships`);
+          SpeciesApi.modules().remember(r.module, new BodyModule(r.module, doc.data ?? {}));
+        }
+      };
+      remember(d.body);
+      const variants = (d.variants ?? {}) as { sex?: Record<string, { body?: unknown }> };
+      for (const v of Object.values(variants.sex ?? {})) remember(v.body);
+      sp.applyBody((d.body as never) ?? null);
+      sp.applyVariants((d.variants as never) ?? null);
+      return (sp.bodyFor({ sex })?.producers() ?? []).map((g) => ({ key: g.spec.key, spec: g.spec as unknown as Record<string, unknown> }));
+    };
+    const female = glandsOf('female');
+    const male = glandsOf('male');
+    if (female.length > 0 || male.length > 0) {
+      const all = [...female, ...male.filter((m) => !female.some((f) => f.key === m.key))];
       taps[path] = {
-        female: bySex('female'),
-        male: bySex('male'),
-        specs: production.map((t) => ({
+        female: female.map((g) => g.key),
+        male: male.map((g) => g.key),
+        specs: all.map(({ spec: t }) => ({
           key: t.key,
           yieldRow: t.yieldRow,
           perGameDay: t.perGameDay ?? null,

@@ -184,7 +184,7 @@ describe('VitalsMixin — anatomy resolver', () => {
           tissues: [],
         },
       ]),
-    ).toThrow(/serves unknown capacity 'heartRate'/);
+    ).toThrow(/serves or sustains unknown capacity 'heartRate'/);
   });
 
   it('⭐ `serves` does NOT make a part interior — a hand must stay coverable', () => {

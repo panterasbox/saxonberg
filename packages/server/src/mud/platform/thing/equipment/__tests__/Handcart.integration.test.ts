@@ -31,7 +31,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { massThing } from '../../../../lib/encumbrance/__tests__/encumbrance-fixtures';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
-import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
+import { setFlatGaits, setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 class SelfHauler extends HaulerMixin(MobileMixin(SensorMixin(Creature))) {
   static _mixinName = 'SelfHauler';
@@ -58,11 +58,12 @@ function bearer<T extends Creature>(factory: () => T, baseMass: number): T {
       tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 1.0 }],
     },
   ]);
+  // W3: gaits ride a part of their own, given after the parts.
+  setFlatGaits(plan, ['walk']);
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', covers: ['body.torso'] },
     { name: 'back:1', accepts: 'SlottableMixin' },
   ]);
-  plan.setLocomotionModes(['walk']);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/haul-int-${n}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);

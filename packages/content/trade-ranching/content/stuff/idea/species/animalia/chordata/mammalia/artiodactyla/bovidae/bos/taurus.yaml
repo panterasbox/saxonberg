@@ -21,7 +21,7 @@ data:
   # the body is called. Read late, so a calf grows into its adult name.
   variants:
     sex:
-      female: { commonNames: [cow, heifer] }
+      female: { commonNames: [cow, heifer], body: { add: [{ module: /trade/ranching/body-modules/udder-cattle, as: [body.torso.udder], at: body.torso }] } }
       male: { commonNames: [bull, ox] }
     stage:
       # ⭐ A calf is not a small cow: a big head and long legs on a short
@@ -59,35 +59,6 @@ data:
   feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 60, matureAt: 300, agedAt: 1800, senescentAt: 2600 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 120, litter: 1 }
-  production:
-    # ⭐⭐ Milk is a VOLUME, so `yieldRow` names the MATERIAL and the
-    # vessel is the object — there is no "pail of milk" row any more,
-    # because minting the pail along with the milk was a faucet shape
-    # for containers. Bring a pail; what it will not hold goes on the
-    # straw, and that is the one line in the build that teaches what a
-    # vessel is for.
-    #
-    # ⭐ `window: event` is a LACTATION, not a season: it opens when she
-    # freshens and closes when she dries off. A cow is near-aseasonal,
-    # and authoring a photoperiod band for her would be false.
-    #
-    # ⚠ Her ceiling is `perGameDay x windowDays`, and that is why milk
-    # carries no finer judgment at the act: she fills exactly as the
-    # window closes, so there is no interval in which she sits full. See
-    # the feedback-law table on `TapSpec`.
-    - key: milk
-      yieldRow: /stuff/idea/material/food/milk
-      perGameDay: 22
-      behaviour: expire
-      windowDays: 0.6
-      yieldShape: volume
-      window: { kind: event }
-      # ⭐ (dairy D12) A bull is not milked — read against the head's own
-      # sex, refused in her voice. And a cow that has dried off RESTS
-      # before she comes back into milk: the dry period starts when she is
-      # returned to the herd, and a redraft inside it is still dry.
-      sex: female
-      restDays: 3
   # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
   #
   # Until the carcass-chain build the game had two `butcher` verbs with two

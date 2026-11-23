@@ -1,5 +1,7 @@
 # torso-swine — a body module (organism-biology D1): a subtree of parts with
 # relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W3: two kidneys, each SUSTAINING filtration (any one suffices), their
+# share taken from the torso's flesh.
 parts:
 - key: ''
   tissues:
@@ -10,7 +12,7 @@ parts:
   - {tissue: /stuff/idea/material/tissue/muscles/tenderloin, weight: 0.0077}
   - {tissue: /stuff/idea/material/tissue/muscles/belly, weight: 0.1}
   - {tissue: /stuff/idea/material/food/animal-fat, weight: 0.28}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.2173}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.2123}
 - key: heart
   parent: ''
   governs: [heartRate, circulation]
@@ -34,3 +36,13 @@ parts:
   governs: [clearance]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0084}
+- key: kidney.left
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+- key: kidney.right
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}

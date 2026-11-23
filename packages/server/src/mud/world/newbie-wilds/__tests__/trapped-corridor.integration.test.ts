@@ -80,7 +80,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import type { Trauma } from '../../../platform/idea/Condition';
 import type Interactive from '../../../platform/idea/Interactive';
 import { TestHarnessApi } from '../../../api/test-harness';
-import { setFlatParts } from '../../../lib/species/__tests__/flat-body';
+import { setFlatGaits, setFlatParts } from '../../../lib/species/__tests__/flat-body';
 
 const PH = TemplateApplier.templatePath;
 // The trap rows are the generic-objects pack's (content-packs wave 3).
@@ -209,7 +209,6 @@ function footedBodyPlan(): BodyPlan {
   const plan = makeStuff(() => new BodyPlan());
   // A biped walks: `Mobile.traverse` runs the body-plan gate for every
   // mover, so the plan must say so.
-  plan.setLocomotionModes(['walk']);
   plan.setName('demo-biped');
   plan.setSlots([
     {
@@ -225,6 +224,8 @@ function footedBodyPlan(): BodyPlan {
     { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.right.foot', parent: 'body.leg.right', tissues: [] },
   ]);
+  // W3: gaits ride a part of their own, given after the parts.
+  setFlatGaits(plan, ['walk']);
   stampTemplatePathForTest(plan, bodyplanPath);
   return plan;
 }

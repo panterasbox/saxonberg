@@ -242,6 +242,9 @@ const VITAL_GOVERNED_CAPACITIES: ReadonlySet<string> = new Set([
   'consciousness',
   'circulation',
   'respiration',
+  // ⭐ organism-biology D6: sustained, not governed — fatal when EVERY
+  // kidney is gone (`hasMissingVitalGovernor` reads both rules).
+  'filtration',
 ]);
 
 const VITAL_UNITS: Record<VitalSign, Unit> = {
@@ -2326,6 +2329,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       let governed = 1;
       let servedSum = 0;
       let servedCount = 0;
+      let sustained: number | null = null;
       for (const part of body.getParts()) {
         if (part.governs?.includes(key)) {
           // ⭐ MIN — one brain. Lose it and the capacity is gone; a second
@@ -2338,9 +2342,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           servedSum += this.functionScalar(part.key);
           servedCount += 1;
         }
+        if (part.sustains?.includes(key)) {
+          // ⭐ MAX — two kidneys (organism-biology D6). Any one surviving
+          // suffices: the redundancy an organ pair really has.
+          sustained = Math.max(sustained ?? 0, this.functionScalar(part.key));
+        }
       }
       const served = servedCount > 0 ? servedSum / servedCount : 1;
-      return governed * served;
+      return governed * served * (sustained ?? 1);
     }
 
     public capacity(key: BodyCapacity): FunctionBand {
@@ -2421,11 +2430,24 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!MixinApi.isOrganism(self)) return false;
       const body = self.getBody();
       if (!body) return false;
+      const sustainers = new Map<string, { all: number; missing: number }>();
       for (const part of body.getParts()) {
-        if (this.bodyPartDeltas[part.key]?.missing !== true) continue;
+        const missing = this.bodyPartDeltas[part.key]?.missing === true;
+        for (const cap of part.sustains ?? []) {
+          const c = sustainers.get(cap) ?? { all: 0, missing: 0 };
+          c.all += 1;
+          if (missing) c.missing += 1;
+          sustainers.set(cap, c);
+        }
+        if (!missing) continue;
         for (const cap of part.governs ?? []) {
           if (VITAL_GOVERNED_CAPACITIES.has(cap)) return true;
         }
+      }
+      // ⭐ A SUSTAINED vital capacity is lost when every sustainer is gone
+      // (both kidneys), never when one is (D6).
+      for (const [cap, c] of sustainers) {
+        if (VITAL_GOVERNED_CAPACITIES.has(cap) && c.all > 0 && c.missing === c.all) return true;
       }
       return false;
     }

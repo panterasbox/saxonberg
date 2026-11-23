@@ -25,6 +25,11 @@ class: /platform/idea/species/Species
 data:
   binomial: Acer saccharum
   commonNames: ["maple", "sugar maple", "hard maple"]
+  # ⭐ What this species' body adds to its plan, for every form (D1, D2):
+  # the gland its tap comes from.
+  body:
+    add:
+      - { module: /trade/forestry/body-modules/sapwood-maple, as: [body.sapwood] }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
   _parentCladePath: /stuff/idea/species/plantae
   _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
@@ -35,19 +40,6 @@ data:
   lifespanMax: 300
   circadianBand: aperiodic
   diet: photosynthesis
-  production:
-    # ⭐ Less sap per spile than birch and far sweeter — which is the
-    # whole economic difference between the two, and it lands entirely in
-    # the maturation profiles' `productFraction` (maple 4%, birch 2%).
-    # Two litres a game day a spile, boiled at twice the yield.
-    - key: sap
-      yieldRow: /stuff/idea/material/food/maple-sap
-      perGameDay: 2
-      behaviour: accrue
-      windowDays: 4
-      yieldShape: volume
-      window:
-        kind: freeze-thaw
   longDescription: >-
     A broad-crowned maple with grey furrowed bark and big five-lobed
     leaves that go the colour of a fire in autumn.

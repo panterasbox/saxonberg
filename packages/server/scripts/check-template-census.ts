@@ -514,25 +514,9 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
    * `analyze chemistry`, `containsElementOf`, the flat element map —
    * would have been quietly wrong about what the material IS.
    */
-  /**
-   * ⭐ `production[].yieldRow` — a species' TAPS (farmstead D25). Each
-   * names the row a take mints, resolved live at the moment somebody
-   * milks or shears or gathers, so a rowless one is an animal that
-   * produces nothing for a reason no author could find: the take
-   * succeeds, the reserve empties, and nothing appears.
-   *
-   * ⚠ The census gate caught this on the wave that introduced it, which
-   * is exactly what it exists for — a nested path-shaped value in a new
-   * authored field is the shape that went blind once already.
-   */
-  const production = data.production;
-  if (Array.isArray(production)) {
-    for (const tap of production) {
-      if (tap && typeof tap === 'object') {
-        push('production.yieldRow', (tap as Record<string, unknown>).yieldRow);
-      }
-    }
-  }
+  // ⭐ A species' taps moved onto its glands (organism-biology W3): a
+  // body-module part's `produces[].yieldRow`, read with the module's other
+  // citations in DOCUMENT_ROW_CITATIONS['body-modules'] below.
 
   /*
    * ⭐ `butcheryYield[].cut` — what a species' carcass yields to a knife.
@@ -1259,9 +1243,15 @@ const DOCUMENT_ROW_CITATIONS: Readonly<Record<string, (d: Record<string, unknown
   // ⭐ A body module's tissues (organism-biology D1): the material rows a
   // plan's parts are made of moved off the plan row into its modules, so
   // the census reads them here or goes blind on every one.
-  'body-modules': (d) => (Array.isArray(d.parts) ? d.parts : []).flatMap((p) =>
-    (Array.isArray((p as Record<string, unknown>)?.tissues) ? ((p as Record<string, unknown>).tissues as unknown[]) : [])
-      .map((t) => (t as Record<string, unknown>)?.tissue)),
+  // …and its glands' taps (W3): each `produces[].yieldRow` names the row
+  // a take mints, resolved live at the milking — a rowless one is an
+  // animal that produces nothing for a reason no author could find.
+  'body-modules': (d) => (Array.isArray(d.parts) ? d.parts : []).flatMap((p) => {
+    const part = (p ?? {}) as Record<string, unknown>;
+    const tissues = (Array.isArray(part.tissues) ? (part.tissues as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.tissue);
+    const yields = (Array.isArray(part.produces) ? (part.produces as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.yieldRow);
+    return [...tissues, ...yields];
+  }),
 };
 
 function checkDocumentCitations(rows: Map<string, string>): number {

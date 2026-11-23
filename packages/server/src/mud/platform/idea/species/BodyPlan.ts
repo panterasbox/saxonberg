@@ -30,6 +30,7 @@
 import { Idea } from '../../../lib/stuff/Idea';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import type { SlotSpec } from '../../../lib/slot/Slotted';
+import type { TapSpec } from './Species';
 // ⚠ VALUE imports of two `as const` tuples — no class, no cycle. `BodyPlan`
 // stays free of `lib/vitals` CLASS imports (the `governs` comment's rule);
 // validating a key against a closed vocabulary needs the vocabulary.
@@ -207,7 +208,28 @@ export interface BodyPart {
   innervatedBy?: string[];
   /** The blood supply — the same relation, the other conduit. */
   suppliedBy?: string[];
+  /**
+   * ⭐ The third role (organism-biology D6): what this part SUSTAINS —
+   * any surviving one suffices (`max`), so a pair of kidneys loses
+   * nothing when one goes. Validated against `BODY_CAPACITIES`.
+   */
+  sustains?: string[];
+  /**
+   * ⭐ What this part MAKES (organism-biology D2): the gland is a part.
+   * Each entry is a tap (`TapSpec`); the store stays on the tap host
+   * (`ProducingMixin.tapState`), and the part's own function scales the
+   * fill — a wounded udder gives less.
+   */
+  produces?: TapSpec[];
+  /** The ways this part moves the body (`walk`, `swim`, `fly`) — a body's gaits derive from its limbs (D1 W3). */
+  gait?: string[];
+  /** What is inside it, for a `point` insult (D12): `solid` (the default), `sparse` (a wing, a fin) or `hollow` (a swim bladder). */
+  fill?: BodyFill;
 }
+
+/** ⭐ What fills a part (D12) — a closed vocabulary. */
+export const BODY_FILLS = ['solid', 'sparse', 'hollow'] as const;
+export type BodyFill = (typeof BODY_FILLS)[number];
 
 // ⭐⭐ **NOT `PropertiedMixin`, and it was here until the base-class
 // narrowing (2026-09-30).** `Propertied` is a per-INSTANCE bag of
@@ -257,12 +279,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   public slots: SlotSpec[] = [];
 
 
-  /**
-   * Locomotion modes the body plan supports: `['walk']`,
-   * `['walk', 'fly']`, `[]` for sessile. Drives the
-   * `Climbable`/`Swimmable`/`Flyable` traversal selection in Mobile.
-   */
-  protected locomotionModes: string[] = [];
 
   /**
    * Preferred default mode for organisms of this body plan, used by
@@ -272,9 +288,10 @@ export default class BodyPlan extends SingletonMixin(Idea) {
    * body plans (they have no locomotion at all). Resolution chain:
    * actor's explicit setting → bodyplan default → universe `'walk'`.
    *
-   * Authoring should pick from `locomotionModes` — substrate doesn't
-   * cross-check, but a default-mode not in the body plan's modes will
-   * fail the body-plan gate at traversal time.
+   * Authoring should pick from the body's gaits (its limbs' `gait`,
+   * organism-biology W3) — substrate doesn't cross-check, but a
+   * default-mode no limb provides fails the body-plan gate at traversal
+   * time.
    */
   protected defaultLocomotionMode: string | null = null;
 
@@ -394,7 +411,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
   static fieldMeta: FieldMeta = {
     name: { persistent: true },
     slots: { persistent: true },
-    locomotionModes: { persistent: true },
     defaultLocomotionMode: { persistent: true },
     sensoryPorts: { persistent: true },
     modules: { persistent: true },
@@ -483,10 +499,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
     if (this.modules.length > 0 && this.modulesResident()) this.validateSlotPartRefs(value, this.getBody().getParts());
   }
 
-  public setLocomotionModes(value: string[]): void {
-    this.locomotionModes = value;
-    this.body = null;
-  }
 
   public setBreathing(value: BreathingSpec[]): void {
     // Per-field invariant: a medium once, an intake in [0, 1].
@@ -601,7 +613,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
           modules: this.modules,
           slots: this.slots,
           sensoryPorts: this.sensoryPorts,
-          locomotionModes: this.locomotionModes,
           breathing: this.breathing,
         },
         (path) => catalogue.need(path),
@@ -622,7 +633,6 @@ export default class BodyPlan extends SingletonMixin(Idea) {
         modules: this.modules,
         slots: this.slots,
         sensoryPorts: this.sensoryPorts,
-        locomotionModes: this.locomotionModes,
         breathing: this.breathing,
       },
       (path) => catalogue.need(path),
@@ -653,10 +663,10 @@ export default class BodyPlan extends SingletonMixin(Idea) {
           );
         }
       }
-      for (const key of part.serves ?? []) {
+      for (const key of [...(part.serves ?? []), ...(part.sustains ?? [])]) {
         if (!(BODY_CAPACITIES as readonly string[]).includes(key)) {
           throw new Error(
-            `BodyPlan.setModules: part '${part.key}' serves unknown ` +
+            `BodyPlan.setModules: part '${part.key}' serves or sustains unknown ` +
               `capacity '${key}'`,
           );
         }

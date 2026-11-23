@@ -21,7 +21,7 @@ data:
   # the body is called. Read late, so a calf grows into its adult name.
   variants:
     sex:
-      female: { commonNames: [nanny] }
+      female: { commonNames: [nanny], body: { add: [{ module: /trade/ranching/body-modules/udder-goat, as: [body.torso.udder], at: body.torso }] } }
       male: { commonNames: [billy] }
     stage:
       newborn: { commonNames: [kid] }
@@ -51,18 +51,6 @@ data:
   feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 1000, senescentAt: 1500 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
-  production:
-    # ⭐ The cow's shape at a goat's scale (dairy D13). `sex: female` and a
-    # three-day rest, as the cow's.
-    - key: milk
-      yieldRow: /stuff/idea/material/food/goat-milk
-      perGameDay: 3
-      behaviour: expire
-      windowDays: 0.6
-      yieldShape: volume
-      window: { kind: event }
-      sex: female
-      restDays: 3
   # The ewe's joints (a goat breaks down the way a sheep does), and the vell
   # off a kid, as the calf's.
   butcheryYield:

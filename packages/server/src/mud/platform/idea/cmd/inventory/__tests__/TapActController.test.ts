@@ -64,6 +64,7 @@ import EventRegistry from '../../../EventRegistry';
 import { Stuff as StuffBase } from '../../../../../lib/stuff/Stuff';
 import '../../../WorldClockRegistry';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { setFlatTaps } from '../../../../../lib/species/__tests__/flat-body';
 
 const DAY = 86_400;
 const BASE = 40_000_000;
@@ -265,7 +266,7 @@ describe('the take as an act', () => {
     const speciesPath = freshPath('/stuff/idea/species/_test/tapped');
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, speciesPath);
     const producer = makeStuff(() => {

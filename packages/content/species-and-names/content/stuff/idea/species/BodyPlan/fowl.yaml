@@ -29,8 +29,6 @@ data:
   name: fowl
   slots:
     - { name: 'perch:1', accepts: SlottableMixin, userFacingDetail: perch }
-  locomotionModes:
-    - walk
   defaultLocomotionMode: walk
   sensoryPorts:
     - { modality: vision, count: 2, position: lateral }

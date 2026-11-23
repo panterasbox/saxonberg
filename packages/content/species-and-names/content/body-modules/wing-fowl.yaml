@@ -6,3 +6,4 @@ parts:
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.012}
   - {tissue: /stuff/idea/material/tissue/muscles/breast-white, weight: 0.018}
+fill: sparse

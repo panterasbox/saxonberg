@@ -1,11 +1,13 @@
 # torso-fish — a body module (organism-biology D1): a subtree of parts with
 # relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W3: two kidneys (sustaining filtration) and the swim bladder — HOLLOW,
+# so a thrust through it mostly finds air — their share taken from flesh.
 parts:
 - key: ''
   tissues:
   - {tissue: /stuff/idea/material/tissue/bone, weight: 0.1449}
   - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.4832}
-  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.2415}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.2065}
 - key: heart
   parent: ''
   governs: [heartRate]
@@ -16,3 +18,18 @@ parts:
   governs: [respiratoryRate]
   tissues:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0097}
+- key: kidney.left
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+- key: kidney.right
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+- key: swim-bladder
+  parent: ''
+  fill: hollow
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/swim-bladder, weight: 0.03}

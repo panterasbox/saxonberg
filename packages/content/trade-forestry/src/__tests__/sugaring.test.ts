@@ -142,6 +142,19 @@ describe('the sap chain — the rows agree', () => {
   });
 });
 
+/**
+ * ⭐ organism-biology W3: a tree's tap is its SAPWOOD gland's — the module
+ * the species' `body:` block adds — not a `production` list on the row.
+ */
+function glandTaps(sp: Record<string, never>): Array<Record<string, unknown>> {
+  const add = ((sp as Record<string, unknown>).body as { add: { module: string }[] }).add;
+  const name = add[0]!.module.split('/').pop();
+  const mod = YAML.parse(readFileSync(`${CONTENT}trade-forestry/content/body-modules/${name}.yaml`, 'utf8')) as {
+    parts: { produces: Array<Record<string, unknown>> }[];
+  };
+  return mod.parts[0]!.produces;
+}
+
 describe('the sap trees — the rows the mechanism reads', () => {
   const SPECIES = (rel: string): Record<string, never> =>
     data(`${F}/stuff/idea/species/plantae/tracheophyta/magnoliopsida/${rel}`);
@@ -153,7 +166,7 @@ describe('the sap trees — the rows the mechanism reads', () => {
 
   it('⭐⭐ a sap tap is a VOLUME naming the MATERIAL, not a thing row', () => {
     for (const sp of [birch(), maple()]) {
-      const tap = (sp.production as unknown as Array<Record<string, unknown>>)[0]!;
+      const tap = glandTaps(sp)[0]!;
       expect(tap.yieldShape).toBe('volume');
       // ⚠ For a volume tap `yieldRow` names a MATERIAL — the vessel is
       // the object, so there is nothing to clone. The one place a
@@ -166,7 +179,7 @@ describe('the sap trees — the rows the mechanism reads', () => {
     // Spring and autumn cross the same daylength band and are not the
     // same season for a tree. Without this term the sap would run in
     // September, and nothing in the game would ever have reported it.
-    const tap = (birch().production as unknown as Array<Record<string, unknown>>)[0]!;
+    const tap = glandTaps(birch())[0]!;
     const window = tap.window as Record<string, unknown>;
     expect(window.kind).toBe('weather');
     expect(window.rising).toBe(true);
@@ -177,15 +190,15 @@ describe('the sap trees — the rows the mechanism reads', () => {
     // a game day whose air crossed freezing both ways at the tree. No band
     // is GRAIN — the freeze-thaw is the season (a warm November spell runs
     // a maple too); the kind still accepts one.
-    const tap = (maple().production as unknown as Array<Record<string, unknown>>)[0]!;
+    const tap = glandTaps(maple())[0]!;
     const window = tap.window as Record<string, unknown>;
     expect(window.kind).toBe('freeze-thaw');
     expect(window.daylightFrom).toBeUndefined();
   });
 
   it('⭐ birch runs more sap per spile and maple carries more sugar', () => {
-    const b = (birch().production as unknown as Array<Record<string, unknown>>)[0]!;
-    const m = (maple().production as unknown as Array<Record<string, unknown>>)[0]!;
+    const b = glandTaps(birch())[0]!;
+    const m = glandTaps(maple())[0]!;
     expect(Number(b.perGameDay)).toBeGreaterThan(Number(m.perGameDay));
     expect(Number(data(SAP('maple')).solidsKgPerL)).toBeGreaterThan(
       Number(data(SAP('birch')).solidsKgPerL),
@@ -206,7 +219,7 @@ describe('the sap trees — the rows the mechanism reads', () => {
       // `taps()` reads SYNCHRONOUSLY, so a species nothing stood up
       // gives a tree with no taps (the apiculture lesson).
       const sp = data(`${F}${std.data._speciesPath}.yaml`.replace(`${F}/stuff`, `${F}/stuff`));
-      expect((sp.production as unknown as unknown[]).length).toBe(1);
+      expect(glandTaps(sp).length).toBe(1);
     }
   });
 

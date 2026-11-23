@@ -25,10 +25,6 @@ data:
     # ⭐ The mouth is a hand (size and carrying D9): a dog carries a stick,
     # a bird, a lead's end in it. One hand, so a dog holds one thing.
     - { name: mouth,   accepts: WieldableMixin, bodyPart: body.head.mouth }
-  locomotionModes:
-    - walk
-    - swim
-    - crawl
   defaultLocomotionMode: walk
   # ⭐ Composed from body modules (organism-biology D1): each entry names
   # a module document, the absolute key of each instance (`as`) and the
@@ -37,5 +33,5 @@ data:
   modules:
     - { module: /species-and-names/body-modules/torso-quadruped, as: [body.torso] }
     - { module: /species-and-names/body-modules/head-canid, as: [body.head], at: body.torso }
-    - { module: /species-and-names/body-modules/leg-fore-quadruped, as: [body.leg.frontLeft, body.leg.frontRight], at: body.torso, innervatedBy: [body.torso.spine.lower] }
-    - { module: /species-and-names/body-modules/leg-hind-quadruped, as: [body.leg.rearLeft, body.leg.rearRight], at: body.torso, innervatedBy: [body.torso.spine.lower] }
+    - { module: /species-and-names/body-modules/leg-fore-quadruped, as: [body.leg.frontLeft, body.leg.frontRight], at: body.torso, innervatedBy: [body.torso.spine.lower], gait: [crawl] }
+    - { module: /species-and-names/body-modules/leg-hind-quadruped, as: [body.leg.rearLeft, body.leg.rearRight], at: body.torso, innervatedBy: [body.torso.spine.lower], gait: [crawl] }

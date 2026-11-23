@@ -19,7 +19,7 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.2027
+              "share": 0.1977
             }
           ]
         },
@@ -50,6 +50,32 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.0203
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
             }
           ]
         },
@@ -156,9 +182,9 @@
           "position": "circumferential"
         }
       ],
-      "locomotionModes": [
-        "walk",
-        "fly"
+      "gaits": [
+        "fly",
+        "walk"
       ],
       "breathing": null
     },
@@ -181,7 +207,7 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.2067
+              "share": 0.2017
             }
           ]
         },
@@ -255,6 +281,32 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.0155
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
             }
           ]
         },
@@ -494,12 +546,12 @@
           "position": "forward"
         }
       ],
-      "locomotionModes": [
-        "walk",
+      "gaits": [
         "climb",
-        "swim",
+        "crawl",
         "stoop",
-        "crawl"
+        "swim",
+        "walk"
       ],
       "breathing": null
     },
@@ -542,7 +594,7 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.312
+              "share": 0.307
             }
           ]
         },
@@ -616,6 +668,32 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.012
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
             }
           ]
         },
@@ -802,10 +880,10 @@
           "position": "forward"
         }
       ],
-      "locomotionModes": [
-        "walk",
+      "gaits": [
+        "crawl",
         "swim",
-        "crawl"
+        "walk"
       ],
       "breathing": null
     },
@@ -905,9 +983,9 @@
           "position": "circumferential"
         }
       ],
-      "locomotionModes": [
-        "walk",
-        "swim"
+      "gaits": [
+        "swim",
+        "walk"
       ],
       "breathing": [
         {
@@ -941,7 +1019,7 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.2415
+              "share": 0.2065
             }
           ]
         },
@@ -972,6 +1050,45 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.0097
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.swim-bladder",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/swim-bladder",
+              "share": 0.03
             }
           ]
         },
@@ -1018,7 +1135,7 @@
           "position": "circumferential"
         }
       ],
-      "locomotionModes": [
+      "gaits": [
         "swim"
       ],
       "breathing": [
@@ -1052,7 +1169,7 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.318
+              "share": 0.313
             }
           ]
         },
@@ -1098,6 +1215,32 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.008
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
             }
           ]
         },
@@ -1226,7 +1369,7 @@
           "position": "forward"
         }
       ],
-      "locomotionModes": [
+      "gaits": [
         "walk"
       ],
       "breathing": null
@@ -1430,7 +1573,7 @@
           "position": "circumferential"
         }
       ],
-      "locomotionModes": [
+      "gaits": [
         "walk"
       ],
       "breathing": null
@@ -1474,7 +1617,7 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.312
+              "share": 0.307
             }
           ]
         },
@@ -1548,6 +1691,32 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.012
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.0025
             }
           ]
         },
@@ -1719,16 +1888,16 @@
           "position": "forward"
         }
       ],
-      "locomotionModes": [
-        "walk",
-        "swim"
+      "gaits": [
+        "swim",
+        "walk"
       ],
       "breathing": null
     },
     "/stuff/idea/species/BodyPlan/sessile": {
       "parts": [],
       "sensoryPorts": [],
-      "locomotionModes": [],
+      "gaits": [],
       "breathing": null
     },
     "/stuff/idea/species/BodyPlan/swine": {
@@ -1770,7 +1939,7 @@
             },
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
-              "share": 0.217191
+              "share": 0.212194
             }
           ]
         },
@@ -1844,6 +2013,32 @@
             {
               "tissue": "/stuff/idea/material/tissue/flesh",
               "share": 0.008396
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.left",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.002499
+            }
+          ]
+        },
+        {
+          "key": "body.torso.kidney.right",
+          "parent": "body.torso",
+          "governs": [],
+          "serves": [],
+          "severable": false,
+          "tissues": [
+            {
+              "tissue": "/stuff/idea/material/tissue/kidney",
+              "share": 0.002499
             }
           ]
         },
@@ -2015,9 +2210,9 @@
           "position": "forward"
         }
       ],
-      "locomotionModes": [
-        "walk",
-        "swim"
+      "gaits": [
+        "swim",
+        "walk"
       ],
       "breathing": null
     }

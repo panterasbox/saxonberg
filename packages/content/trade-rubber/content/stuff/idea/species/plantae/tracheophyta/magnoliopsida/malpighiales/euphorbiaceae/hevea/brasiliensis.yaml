@@ -17,6 +17,11 @@ class: /platform/idea/species/Species
 data:
   binomial: Hevea brasiliensis
   commonNames: ["rubber tree", "hevea", "para rubber tree"]
+  # ⭐ What this species' body adds to its plan, for every form (D1, D2):
+  # the gland its tap comes from.
+  body:
+    add:
+      - { module: /trade/rubber/body-modules/sapwood-hevea, as: [body.sapwood] }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
   _parentCladePath: /stuff/idea/species/plantae
   _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
@@ -27,21 +32,6 @@ data:
   lifespanMax: 100
   circadianBand: aperiodic
   diet: photosynthesis
-  production:
-    # ⭐ A third of a litre a game day a cut, standing two days before it
-    # skins over — latex is a slow, steady bleed, not a spring run.
-    - key: latex
-      yieldRow: /stuff/idea/material/organic/latex
-      perGameDay: 0.3
-      behaviour: accrue
-      windowDays: 2
-      yieldShape: volume
-      window:
-        kind: weather
-        daylightFrom: 0
-        daylightTo: 1
-        minK: 291
-        maxK: 309
   longDescription: >-
     A slender, smooth-barked tree with glossy three-lobed leaves. Where the
     bark has been cut in a sloping line, a white milk wells up and runs.

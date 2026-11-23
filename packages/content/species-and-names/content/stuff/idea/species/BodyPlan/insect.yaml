@@ -7,7 +7,6 @@ class: /platform/idea/species/BodyPlan
 data:
   name: insect
   slots: []
-  locomotionModes: [walk]
   defaultLocomotionMode: walk
   sensoryPorts:
     - { modality: vision, count: 2, position: lateral }

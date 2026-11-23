@@ -12,6 +12,10 @@
  */
 
 import type BodyPlan from '../../../platform/idea/species/BodyPlan';
+import BodyPlanClass from '../../../platform/idea/species/BodyPlan';
+import type Species from '../../../platform/idea/species/Species';
+import type { TapSpec } from '../../../platform/idea/species/Species';
+import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { BodyPart } from '../../../platform/idea/species/BodyPlan';
 import type { ModuleRef } from '../Body';
 import { BodyModule } from '../BodyModule';
@@ -41,6 +45,10 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
           ...(part.governs ? { governs: part.governs } : {}),
           ...(part.serves ? { serves: part.serves } : {}),
           ...(part.severable ? { severable: true } : {}),
+          ...(part.sustains ? { sustains: part.sustains } : {}),
+          ...(part.produces ? { produces: part.produces } : {}),
+          ...(part.gait ? { gait: part.gait } : {}),
+          ...(part.fill ? { fill: part.fill } : {}),
         },
       ],
     };
@@ -51,5 +59,43 @@ export function setFlatParts(plan: BodyPlan, parts: readonly FlatPart[]): void {
     if (part.suppliedBy?.length) ref.suppliedBy = [...part.suppliedBy];
     refs.push(ref);
   }
-  plan.applyModules(refs);
+  // ⭐ A gait-only instance a fixture gave the plan earlier survives.
+  plan.applyModules([...plan.getModules().filter((r) => r.module.endsWith('#gait')), ...refs]);
+}
+
+/**
+ * Give a plan the gaits a fixture used to author as `locomotionModes`
+ * (organism-biology W3: gaits derive from parts). A weightless part at its
+ * own root, `body.gait`, carries them — no tissue, no surface, no slot.
+ */
+export function setFlatGaits(plan: BodyPlan, gaits: readonly string[]): void {
+  fixtureSeq += 1;
+  const path = `${plan.getTemplatePath() ?? '/test/body'}#${fixtureSeq}#gait`;
+  SpeciesApi.modules().remember(path, new BodyModule(path, { parts: [{ key: '', tissues: [], gait: [...gaits] }] }));
+  plan.applyModules([...plan.getModules().filter((r) => !r.module.endsWith('#gait')), { module: path, as: ['body.gait'] }]);
+}
+
+/**
+ * Give a species the taps a fixture used to author as `production`
+ * (organism-biology W3: a gland is a part). The glands hang on a weightless
+ * part, `body.gland`, added for every form — or, with `sex`, for that sex
+ * only (an udder). A species with no plan gets an empty one, so it has a
+ * body to hang them on.
+ */
+export function setFlatTaps(species: Species, taps: readonly TapSpec[], opts: { sex?: string } = {}): void {
+  fixtureSeq += 1;
+  const base = `${species.getTemplatePath() ?? '/test/species'}#${fixtureSeq}`;
+  if (!species.getBodyPlan()) {
+    const plan = makeStuffAtPath(() => new BodyPlanClass(), `${base}/plan`);
+    plan.applyModules([]);
+    species.setBodyPlan(plan);
+  }
+  const path = `${base}/gland`;
+  SpeciesApi.modules().remember(path, new BodyModule(path, { parts: [{ key: '', tissues: [], produces: taps.map((t) => ({ ...t })) }] }));
+  const add = { add: [{ module: path, as: [`body.gland${fixtureSeq}`] }] };
+  if (opts.sex) {
+    species.applyVariants({ ...species.getVariants(), sex: { ...(species.getVariants().sex ?? {}), [opts.sex]: { body: add } } });
+  } else {
+    species.applyBody(add);
+  }
 }
