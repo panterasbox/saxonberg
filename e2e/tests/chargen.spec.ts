@@ -162,15 +162,6 @@ test('a new player creates a character and spawns into the world', async ({
     await page.getByTestId('chargen-surname-input').fill('Ashby');
     await page.getByTestId('chargen-next').click();
 
-    // Screen — aspiration.
-    await expect(page.getByTestId('chargen-option-healer')).toBeVisible();
-    await page.getByTestId('chargen-option-healer').click();
-    await expect(page.getByTestId('chargen-option-healer')).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await page.getByTestId('chargen-next').click();
-
     // Screen — review → Create the avatar and enter the world.
     await expect(page.getByTestId('chargen-confirm')).toBeVisible();
     await page.getByTestId('chargen-confirm').click();

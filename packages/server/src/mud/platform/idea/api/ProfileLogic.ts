@@ -216,8 +216,6 @@ export class ProfileLogic extends ApiLogic {
         }
       }
       if (MixinApi.isPersona(target)) {
-        const aspiration = target.getAspiration();
-        if (aspiration) card.aspiration = aspiration;
         const bio = target.getBio();
         if (bio) card.bio = bio;
       }

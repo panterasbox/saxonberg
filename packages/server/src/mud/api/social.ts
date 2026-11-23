@@ -82,7 +82,6 @@ export interface ProfileCard {
   flavor?: string;
   // persona — recognition-gated
   nameSurface?: ProfileNameSurface;
-  aspiration?: string;
   bio?: string;
   chronicle?: { prologue?: string; deeds: string[] };
   // always-outward standing

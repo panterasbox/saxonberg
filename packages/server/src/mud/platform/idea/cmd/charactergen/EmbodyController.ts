@@ -3,7 +3,7 @@
  * handler for character creation.
  *
  * Char-gen is a DRAFT STATE MACHINE, not a step flow. Each
- * `embody <field> <value>` (species / sex / name / pronouns / aspiration)
+ * `embody <field> <value>` (species / sex / name / pronouns)
  * validates + sets that field on the Login's `CharacterDraft` and
  * re-emits the FULL state (`session.identity`) — every field's
  * options + the current picks + what's missing. There is no server-side
@@ -14,7 +14,7 @@
  * nothing-missing, then runs the atomic commit here ({@link commit}):
  * clone + dress the Avatar, register ownership, hand off.
  *
- * The rosters (species / pronouns / aspirations) are CONTENT
+ * The rosters (species / pronouns) and the one plain outfit are CONTENT
  * (`config/char-gen.yaml`), loaded + cached here — not a switch. The
  * name suggester lives on `Species` (reads the `NameBank` Documents).
  * No new Api: this is a controller calling the security-threaded Apis.
@@ -60,7 +60,7 @@ import { Pronouns, PRONOUN_LABELS } from "@saxonberg/types";
  * is only the local `FIELDS` table's index type and widening it costs
  * nobody outside this file.
  */
-type CharGenField = "species" | "sex" | "name" | "pronouns" | "aspiration";
+type CharGenField = "species" | "sex" | "name" | "pronouns";
 import { SpeciesApi } from "../../../../api/species";
 import { SourceTreeApi } from "../../../../api/source-tree";
 import { WorldClockApi } from "../../../../api/worldclock";
@@ -109,21 +109,10 @@ interface SpeciesRosterEntry {
   /** Optional illustration URL; absent until image assets ship. */
   image?: string;
 }
-interface AspirationRosterEntry {
-  key: string;
-  label: string;
-  description: string;
-  bioSeed: string;
-  /** Author-trusted prologue lines the chronicle mints as `claim`s at
-   * embody — distinct from `bioSeed`. */
-  claimSeeds?: { text: string; order: number }[];
-  outfit: string[];
-  /** Optional illustration URL; absent until image assets ship. */
-  image?: string;
-}
 interface CharGenConfig {
   species: SpeciesRosterEntry[];
-  aspirations: AspirationRosterEntry[];
+  /** What every new character (and every guest) wears — garment paths. */
+  startingOutfit?: string[];
   /** What every new character is handed after dressing (aether-devices D11). */
   startingKit?: StartingKitEntry[];
 }
@@ -398,27 +387,6 @@ export const FIELDS: Record<CharGenField, FieldHandler> = {
       d.pronouns = v.toLowerCase();
     },
   },
-  aspiration: {
-    kind: "choose-one",
-    label: "aspiration",
-    applicable: () => true,
-    isSet: (d) => !!d.aspiration,
-    display: (d) => d.aspiration,
-    options: (_d, cfg) =>
-      cfg.aspirations.map((a) => ({
-        value: a.key,
-        label: a.label,
-        description: a.description,
-        image: a.image ?? null,
-      })),
-    validate: (v, _d, cfg) =>
-      cfg.aspirations.some((a) => a.key === v.toLowerCase())
-        ? undefined
-        : `Unknown aspiration '${v}'.`,
-    apply: (v, d) => {
-      d.aspiration = v.toLowerCase();
-    },
-  },
 };
 
 /**
@@ -434,7 +402,6 @@ export const FIELD_ORDER: CharGenField[] = [
   // an unrelated text field between two halves of one thought.
   "pronouns",
   "name",
-  "aspiration",
 ];
 
 /** Required fields still unset for the current draft (sex only if applicable). */
@@ -666,7 +633,6 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     const species = draft.speciesPath
       ? await StuffApi.singleton<Species>(draft.speciesPath)
       : null;
-    const aspiration = cfg.aspirations.find((a) => a.key === draft.aspiration);
 
     // 1. Build the per-character overlay (picks over the shared seed).
     //    NO per-player template row is forked (the identity doctrine —
@@ -688,8 +654,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
       name: draft.name,
       _speciesPath: draft.speciesPath,
       pronouns: draft.pronouns,
-      aspiration: draft.aspiration,
-      bio: aspiration?.bioSeed ?? "",
+      bio: "",
       // The species' generic appearance is the avatar's look — its
       // `longDescription` (what another player sees on `look`). Species
       // now speaks the standard Visible interface, so this is a plain
@@ -759,27 +724,21 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
       }
     }
 
-    // 5. Dress in the aspiration's themed outfit — the body's own recipe
+    // 5. Dress in the one plain outfit — the body's own recipe
     //    (`Character.wearGarments`: by claim, else placed; a garment that
     //    will not go on costs that garment, not the character).
-    if (aspiration && species) await avatar.wearGarments(aspiration.outfit);
+    if (species) await avatar.wearGarments(cfg.startingOutfit ?? []);
     // 5a. The starting kit — a bound phone in a pocket (aether-devices D11).
     await avatar.receiveStartingKit(cfg.startingKit ?? []);
 
-    // 5b. Seed the chronicle from the chosen aspiration — the prologue
-    //     (author-trusted `claim`s) plus a founding `deed`. Kept strictly
-    //     separate from the `bio` seed above; both read the same
-    //     aspiration, neither touches the other. The avatar is cloned +
-    //     registered (step 3), so `getTemplatePath()` resolves. The
-    //     founding deed is event-singular by trigger (embody fires once
-    //     per character by construction), so it needs no dedup `key`.
-    await avatar.seedChronicleClaims(aspiration?.claimSeeds ?? []);
+    // 5b. The founding deed. The avatar is cloned + registered (step 3),
+    //     so `getTemplatePath()` resolves. Event-singular by trigger
+    //     (embody fires once per character by construction), so it needs
+    //     no dedup `key`. No prologue claims: who you were before you came
+    //     is the lineage slate's.
     await avatar.recordDeed({
-      template: "Embodied as {{ name }}, {{ aspirationLabel }}.",
-      vars: {
-        name: draft.name,
-        aspirationLabel: aspiration?.label ?? "a newcomer",
-      },
+      template: "Embodied as {{ name }}.",
+      vars: { name: draft.name },
       tags: ["founding", "embody"],
     });
 
@@ -837,7 +796,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
     );
     EmbodyController.#config = {
       species: parsed.species ?? [],
-      aspirations: parsed.aspirations ?? [],
+      startingOutfit: parsed.startingOutfit ?? [],
       // ⚠ Copied by name like the rosters: a key left out here is dropped
       // silently (the drive's first run — every new player arrived with
       // no phone).

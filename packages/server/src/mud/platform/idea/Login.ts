@@ -92,8 +92,6 @@ export interface CharacterDraft {
   surname?: string;
   /** Chosen pronoun key. */
   pronouns?: string;
-  /** Chosen aspiration key. */
-  aspiration?: string;
   /** Current name suggestion (drives the name fields' pre-fill). */
   suggestion?: { name: string; surname?: string };
 }
@@ -252,7 +250,7 @@ export default class Login extends LoginBase {
   /**
    * Mint a randomized guest avatar — the no-char-gen fast path. Mirrors
    * `EmbodyController.commit`'s avatar build, but: every pick is random
-   * (species, a non-intersex sex, an aspiration → bio + themed outfit),
+   * (species, a non-intersex sex), every guest wears the one plain outfit,
    * pronouns are always they/them, and the name is the reserved-word
    * guest name. The roster + sex-set knowledge is read from
    * `EmbodyController` (`loadConfig` / `validSexSet`) so the two paths
@@ -278,7 +276,6 @@ export default class Login extends LoginBase {
     }
 
     const speciesEntry = pickRandom(cfg.species);
-    const aspiration = pickRandom(cfg.aspirations);
     const species = speciesEntry
       ? await StuffApi.singleton<Species>(speciesEntry.path)
       : null;
@@ -304,8 +301,7 @@ export default class Login extends LoginBase {
       startLocation: AppApi.setting(AppSettingKeys.defaultStartLocation),
       name: guestName.name,
       _speciesPath: speciesEntry?.path,
-      aspiration: aspiration?.key,
-      bio: aspiration?.bioSeed ?? "",
+      bio: "",
       longDescription:
         species?.getLongDescription() ||
         (seed.data as Record<string, unknown>).longDescription,
@@ -339,9 +335,9 @@ export default class Login extends LoginBase {
       }
     }
 
-    // Dress in the aspiration's themed outfit — the body's own recipe
+    // Dress in the one plain outfit — the body's own recipe
     // (`Character.wearGarments`), tolerant of content gaps.
-    if (aspiration && species) await avatar.wearGarments(aspiration.outfit);
+    if (species) await avatar.wearGarments(cfg.startingOutfit ?? []);
 
     return avatar;
   }

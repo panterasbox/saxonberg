@@ -333,13 +333,11 @@ describe('EmbodyController step model', () => {
     const sug = login.getCharacterDraft()!.suggestion!;
     await run(`name ${[sug.name, sug.surname].filter(Boolean).join(' ')}`);
     await run('pronouns she');
-    await run('aspiration healer');
 
     const draft = login.getCharacterDraft()!;
     expect(draft.sex).toBe('female');
     expect(draft.name?.[0]?.toLowerCase()).toBe('b'); // 'Bobby' → B-name
     expect(draft.pronouns).toBe('she');
-    expect(draft.aspiration).toBe('healer');
     expect(frames.at(-1)!.missing).toEqual([]);
 
     await run('confirm');

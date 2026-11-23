@@ -63,7 +63,7 @@ export interface ChronicleEntryFields {
   key?: string | null;
 }
 
-/** One authored prologue claim seed (char-gen aspiration). */
+/** One authored prologue claim seed (an authored character's history). */
 export interface ChronicleClaimSeed {
   text: string;
   order: number;

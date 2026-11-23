@@ -448,17 +448,17 @@ export class Session {
   /**
    * ⭐ ARRIVE: log in with NO character and walk char-gen itself —
    * `embody species …`, `embody name …`, `embody pronouns …`,
-   * `embody aspiration …`, `embody confirm` — the way a real newcomer
+   * `embody confirm` — the way a real newcomer
    * does (economic bootstrap: the Arrival Note is written at `embody
    * confirm`, so a drive of it cannot skip intake). `confirm` hands the
    * socket off to the new avatar and destructs the Login, so its
    * envelope has nowhere to land — the arrival is probed with `look`,
    * exactly as `play` is. The picks default to a human named after the
-   * handle, `they`, the striver's road.
+   * handle, `they`.
    */
   static async embody(
     handle: string,
-    picks: { species?: string; name?: string; pronouns?: string; aspiration?: string } = {},
+    picks: { species?: string; name?: string; pronouns?: string } = {},
     door: { from?: 'stream' } = {}
   ): Promise<Session> {
     await assertPacksPresent();
@@ -492,7 +492,6 @@ export class Session {
       `embody sex female`,
       `embody name ${given}`,
       `embody pronouns ${picks.pronouns ?? 'they'}`,
-      `embody aspiration ${picks.aspiration ?? 'something-better'}`,
     ]) {
       const r = await s.cmd(text);
       if (r.status !== 'ok') {

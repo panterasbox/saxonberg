@@ -103,14 +103,14 @@ describe('char-gen renders what the server sends', () => {
   it('renders fields in the order the server sent them', () => {
     seed({
       fields: [
-        field({ field: 'aspiration', label: 'aspiration', options: [{ value: 'healer', label: 'Healer' }] }),
+        field({ field: 'pronouns', label: 'pronouns', options: [{ value: 'they', label: 'they/them' }] }),
         field({ field: 'species', label: 'species' }),
       ],
       missing: [],
     });
     renderStage();
     const text = document.body.textContent ?? '';
-    expect(text.indexOf('aspiration')).toBeLessThan(text.indexOf('species'));
+    expect(text.indexOf('pronouns')).toBeLessThan(text.indexOf('species'));
   });
 
   /**
@@ -184,13 +184,13 @@ describe('char-gen renders what the server sends', () => {
   it('gates confirm on the server missing list, verbatim', () => {
     seed({
       fields: [field({ value: 'human' })],
-      missing: ['aspiration'],
+      missing: ['name'],
     });
     renderStage();
     const confirm = screen.getByTestId('chargen-confirm') as HTMLButtonElement;
     expect(confirm.disabled).toBe(true);
     expect(screen.getByTestId('chargen-missing').textContent).toMatch(
-      /aspiration/,
+      /name/,
     );
   });
 
@@ -201,10 +201,10 @@ describe('char-gen renders what the server sends', () => {
    * could not see while filling the form.
    */
   it('shows what is still missing while the form is being filled', () => {
-    seed({ fields: [field({})], missing: ['species', 'aspiration'] });
+    seed({ fields: [field({})], missing: ['species', 'name'] });
     renderStage();
     const line = screen.getByTestId('chargen-missing').textContent ?? '';
     expect(line).toMatch(/species/);
-    expect(line).toMatch(/aspiration/);
+    expect(line).toMatch(/name/);
   });
 });

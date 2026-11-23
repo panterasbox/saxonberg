@@ -939,7 +939,6 @@ PersistedRecord.scope = 0
 PersistedRecord.state = 0
 PersistedRecord.writtenAt = 0
 PersistentLocation.postedAs = 0
-PersonaMixin.aspiration = 0
 PersonaMixin.bio = 0
 Phone.ownerLocked = 0
 PipeRun.burstAt = 0

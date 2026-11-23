@@ -73,7 +73,6 @@ export abstract class ProfileControllerBase extends CommandController<ProfileMod
     if (card.flavor) lines.push(Mml.em(card.flavor).toString());
 
     // Persona (recognition-gated).
-    if (card.aspiration) lines.push(Mml.escape(`Aspires: ${card.aspiration}`));
     if (card.bio) lines.push(Mml.escape(card.bio));
 
     // Always-outward standing.

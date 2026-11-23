@@ -96,7 +96,6 @@ describe('EmbodyController.commit', () => {
       name: 'Bobalu',
       surname: 'Smallberries',
       pronouns: 'she',
-      aspiration: 'healer',
     });
     ctrl = makeStuff(() => new EmbodyConfirmController());
 
@@ -207,11 +206,11 @@ describe('EmbodyController.commit', () => {
     expect(d.surname).toBe('Smallberries');
     expect(d._speciesPath).toBe(SAPIENS);
     expect(d.pronouns).toBe('she');
-    expect(d.aspiration).toBe('healer');
+    expect(d).not.toHaveProperty('aspiration');
     // Spawn home injected from app config (defaultStartLocation), not the
     // seed literal.
     expect(d.startLocation).toBe('/world/lounge/idea/warren');
-    expect(String(d.bio)).toMatch(/mend/i); // healer bioSeed from char-gen.yaml
+    expect(d.bio).toBe(''); // char-gen seeds no bio — origins are lineage's
     // Species' generic appearance lands on the avatar's longDescription
     // (its look) now that Species speaks the Visible interface.
     expect(d.longDescription).toBe('an ordinary-looking person');
@@ -233,8 +232,14 @@ describe('EmbodyController.commit', () => {
   it('clones the avatar, sets sex, dresses, hands off, and destructs Login', async () => {
     await confirm();
     expect(avatar.setSex).toHaveBeenCalledWith('female');
-    // Healer outfit garments put on by the body's own recipe.
+    // The plain outfit, put on by the body's own recipe.
     expect(avatar.wearGarments).toHaveBeenCalledTimes(1);
+    // ⭐ The one plain outfit, for everybody (no aspiration picks it).
+    expect(avatar.wearGarments).toHaveBeenCalledWith([
+      '/stuff/thing/clothes/student-shirt',
+      '/stuff/thing/clothes/student-trousers',
+      '/stuff/thing/clothes/canvas-shoes',
+    ]);
     expect(dressed.length).toBeGreaterThan(0);
     expect(transfer).toHaveBeenCalled();
     expect(avatar.enter).toHaveBeenCalledTimes(1);

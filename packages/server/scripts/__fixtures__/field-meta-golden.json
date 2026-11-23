@@ -900,8 +900,7 @@
     "index": 0,
     "className": "PersonaMixin",
     "persistentFields": [
-      "bio",
-      "aspiration"
+      "bio"
     ],
     "fieldMarshallers": {},
     "instructionFields": [],

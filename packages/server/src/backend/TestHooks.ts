@@ -752,7 +752,7 @@ export class TestHooks {
 
   /**
    * ⭐ Dress the test character as `embody` dresses a real one — the
-   * first aspiration's outfit from `char-gen.yaml`, worn, and the
+   * one plain outfit from `char-gen.yaml` (`startingOutfit`), worn, and the
    * starting kit (a bound phone in a pocket) handed over. A naked body
    * spends food on cold at room temperature (`ThermalRegulation`'s
    * cold branch), starves in ~4.5 game hours and then loses its core
@@ -770,7 +770,7 @@ export class TestHooks {
     const { default: EmbodyController } = await import(
       '../mud/platform/idea/cmd/charactergen/EmbodyController'
     );
-    const outfit = EmbodyController.loadConfig().aspirations[0]?.outfit ?? [];
+    const outfit = EmbodyController.loadConfig().startingOutfit ?? [];
     // ⭐ The recipe itself is `Character.wearGarments` since the
     // envelope build (W1), where authored NPCs needed the same thing
     // and a second copy would have been the third. This hook still
