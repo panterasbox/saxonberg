@@ -376,7 +376,7 @@ image, live state, in-place expansion).
 > ⭐ **2026-11-10 (navigation requirements):** in the Explore pane the Zone
 > is a **tab of the docked pane**, not a separate card — the pane is one
 > docked card and the Zone tab is its other face
-> ([map-slate](./map-slate.md), [navigation-requirements](../../requirements/navigation-requirements.md)).
+> ([map-slate](./map-slate.md), [navigation-card.md](../../subsystems/navigation-card.md)).
 > Whether a Zone card also exists outside the pane (opened by inspecting a
 > zone elsewhere) is left to this slate.
 

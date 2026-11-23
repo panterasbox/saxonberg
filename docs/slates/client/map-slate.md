@@ -1280,7 +1280,7 @@ the knowledge model. See
 
 ## Reuse ledger for the plan (navigation card build, rewritten 2026-11-20)
 
-From the requirements survey ([navigation-requirements](../../requirements/navigation-requirements.md)),
+From the requirements survey ([navigation-card.md](../../subsystems/navigation-card.md)),
 rewritten after navigation-server (!595), zone instancing (!599) and
 tooltips (!633) merged — the 2026-11-10 ledger's client copy, transport,
 zone-facts read, first-visit claims and claim positions all shipped. Every
