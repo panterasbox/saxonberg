@@ -22,7 +22,7 @@ block, never this file. Back to [all slates](../README.md).
 | [notification](./notification-slate.md) | build | UNBUILT | the subject-keyed event · the substrate-owned prose templates (not a second bus) · the durable subscription (`PathTrie` routing) · derive-on-read delivery + the cursor/dismissal read state … |
 | [text-to-speech](./text-to-speech-slate.md) | tail | UNBUILT | a ▶ on authored prose only (card prose sections, prose terminal frames) · browser speech first · cached cloud voices later · sentence highlight, one voice at a time, settings |
 
-## Partial — substrate shipped, the remainder below (10)
+## Partial — substrate shipped, the remainder below (12)
 
 | slate | size | status | left |
 |---|---|---|---|
@@ -34,8 +34,10 @@ block, never this file. Back to [all slates](../README.md).
 | [console-filtering](./console-filtering-slate.md) | wave | PARTIAL | transcript search · sender filter · family mute (collapse a topic family to a count badge) · author/admin frames toggle … |
 | [display-manifestation](./display-manifestation-slate.md) | wave | PARTIAL | driver policy off the closed `pairing` enum and onto `AccessApi.can` · the network / channel / guide addressing layer · multiple simultaneous sources per screen · one shared wire shape for display projection (video push / card push / prose-read stay three mechanisms) … |
 | [message-rendering](./message-rendering-slate.md) | tail | PARTIAL | the rest of the bounded layout vocabulary — `<box>`, `<rule>`, `<indent>`, `<columns>`/`<col>`, the `align` attribute — and the authoring-freedom gate (system/content free, a player in chat gated) that none of them have; the richer **channel-admin-authored** stylesheet (custom semantic tags + a constrained presentational palette, as channel config) and its distribution to clients — distinct from the reader-side per-channel color that already shipped; the generic-class MML hook those custom tags would need. |
+| [modes](./modes-slate.md) | build | DESIGNING | the full mode list · the design queue · each mode's definition (five questions) · the handoff from explore into a mode … |
 | [onboarding](./onboarding-slate.md) | build | PARTIAL | the `onboarded` flag + lounge-exit routing · Dr. Limen (seat, model-backed brain, the reply contract) + the onboarding-progress flags and their subscription · scoped personal authoring (the dorm customization on-ramp) · the wayfinding signs … |
 | [tooltip](./tooltip-slate.md) | tail | PARTIAL | map glyph tooltips, breakdowns, action buttons and one block per mixin (the navigation build) · facts from the knowledge model · player words for the interface help a gutter stripe shows · live cards gated by light and reach (spoiler-slate) … |
+| [watch](./watch-slate.md) | build | DESIGNING | the funnel's server half (the intent link, the follow-up through sign-in, the origin vocabulary, the streamer record) · the video that never stops · the show's own chat and the unaffiliated-stream chat · the agenda state machine … |
 
 ## ⚠ No readable status block — fix the block (2)
 

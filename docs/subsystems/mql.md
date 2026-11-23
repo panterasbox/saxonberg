@@ -438,6 +438,29 @@ takes it (`query`'s, which prints it); every other slot and option refuses
 `relationTie`; the binder asks *which?* (the sets' meanings) and keeps the
 chosen set's matches. A script never prompts: the tie is the refusal.
 
+##### Why relations look like this
+
+- **One root, because of immersion** (lens 3a): a thing you have no
+  relation to is not a thing you can name. `/path`, `#id` and `@id` are
+  the second mode — names you must know exactly, answered by an index,
+  like an absolute path beside a relative one.
+- **A sigil, never a reserved word.** A list called `friends` can then
+  never collide with a thing keyworded `friends`, and `~here` never with a
+  thing keyworded `here`. Rejected first: one `:members` word with
+  per-list step words (`me:friends`) — every list name anyone made would
+  have become a reserved word.
+- **Built-ins win so nothing can be hidden**: a player cannot keep their
+  inventory out of other people's queries with a list named `inventory`.
+  Making such a list is a warning, not a refusal — a soft limit.
+- **Each holder answers per asker.** Contact lists are owner-only; two
+  holders may mean very different things by one `~foo`, and that is the
+  design.
+- **A verb that names a person reaches them through its view's default
+  scope** (`dm` scopes `["~here", "~contacts"]`) — never a binder special
+  case.
+- **`~` is also *home* in the shell's path arguments** (`cd ~`). That is a
+  path and never MQL; inside a query a home path is valid at the head only.
+
 #### Query aliases (D-B7)
 
 A **query alias** rewrites the HEAD word of a typed query when the whole

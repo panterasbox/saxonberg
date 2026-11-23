@@ -121,9 +121,9 @@ subcommands:            # one controller per subcommand (controller-liquidity W7
     options:
       char: { short: c, type: boolean }
     args:
-      - { name: target, type: object, required: true, scope: "online" }
+      - { name: target, type: object, required: true, scope: ["~peers", "~contacts"], requires: class:Agent }
       - { name: label,  type: string, required: true }
-  remove: { controller: …/ContactsRemoveController, args: [ { target: string }, { label: string } ] }
+  remove: { controller: …/ContactsRemoveController, args: [ { target: object, scope: ["~contacts"] }, { label: string, required: false } ] }
   show:   { controller: …/ContactsShowController,   args: [ { label:  string } ] }
   list:   { controller: …/ContactsListController }
   clear:  { controller: …/ContactsClearController,  args: [ { label:  string } ] }

@@ -1879,3 +1879,10 @@ charter's ship `requires: any` (the book's `~ships` decides); act-nulls
 and controller-functions re-pinned at their fallen counts; the commons
 ceiling 38 → 40 for WA0/WA1's two catalogues (caller audit in the
 ceiling's comment). Reserve retire's `from` became a view enum.
+
+### Sweep run (2026-11-23) — 13 of 13 green
+
+After the review changes (groups folded into `ContactsMixin`, `~all` →
+`~contacts`, the D-A5 kind-declarer check) and a second master merge
+(41749c352), on a fresh `saxonberg_build3`: 13/13. Full suite at
+4486af6a8: 56/56 packages, 37 min.

@@ -361,6 +361,20 @@ one by hand, each its own way. Both have one home in `GrammarApi` now:
   that into the value, a prompt among the entries' titles, or the
   `no-such-name` refusal. Runtime Stuff in reach is MQL's, scored by the
   same tiers — see [mql.md](./mql.md) § Match-quality scoring.
+- ⭐ **Who supplies the candidates is never the rule's** (naming overhaul
+  D-C4/D-C5) — it is decided by what the entry IS. Runtime Stuff in reach
+  is an `object` slot; runtime Stuff a holder keeps is a `~name` relation
+  on that holder ([mql.md](./mql.md) § Relations); a document is named
+  through its kind's words (`DocumentCatalogue.named`). Everything else —
+  a thing not yet made (a yard's hull, a tariff's service, a carcass's
+  cut), a holder's own part (a mine face, a plat lot, a position), a
+  collection record by its chosen name, a label a player gave — is the
+  **holder's own method** (`appNamed(text, among): NameAnswer<string>`):
+  its entries mapped to keywords and a title, and one `nameAmong` call.
+  Nothing is made `Visible`, and nothing is put into MQL, in order to be
+  nameable: MQL finds runtime Stuff only, and the holder describes its
+  own entries. A fixed vocabulary (`on|off`) is `type: enum`; a search
+  (`help search`) is not a name.
 
 ---
 

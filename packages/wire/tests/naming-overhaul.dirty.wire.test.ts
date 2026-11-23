@@ -3,9 +3,11 @@
  * reaches from the asker (`me`, `~relations`, `@id`); and one rule names
  * everything a player types.
  *
- * The blocking drive of `docs/requirements/naming-overhaul-requirements.md`
- * § The drive. Every step is `instant` or `staged`; the requirements' soak
- * drive is empty (no step depends on the clock). Steps a player cannot reach
+ * The naming overhaul's blocking drive (MR !650 — its requirements' § The
+ * drive, numbered as there; the docs retired at the sweep, and what it
+ * proves lives in document-store.md, mql.md and command-spec.md). Every
+ * step is `instant` or `staged`; there is no soak drive (no step depends on
+ * the clock). Steps a player cannot reach
  * by playing say how they are staged; steps the content does not carry as
  * written (a `wedge` formation, a lit limekiln) drive the nearest shipped
  * twin and say so.

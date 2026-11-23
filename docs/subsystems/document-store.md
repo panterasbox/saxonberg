@@ -74,6 +74,37 @@ The nightly reset **keeps the whole collection** (`documents.yaml`
 row is of a declared kind. `wiki` is deliberately not a document kind (a
 page has a revision log and a CAS edit path of its own).
 
+⭐ **Four decisions the declarations carry, and why** (naming overhaul):
+
+- **Validation is not a trait.** Shape is the declaration's `fields:`;
+  meaning is the reading service's `parse`. The installer no longer
+  hydrates a document into a value class to check it — doing so was the
+  sign of a kind that wanted to be a class.
+- **A reader that caches is the kind's declared catalogue.** `forget` is
+  the only way an edit reaches a cache, and `recipe`, `archetype`,
+  `help-concept`, `blueprint` and `name-bank` had readers nothing could
+  tell — a CMS edit to one never went live. Each has a declared catalogue
+  now.
+- **`ledger` is the constitution's A2 reaching the store** — *ledgers are
+  append-only* ([measurement.md](../measurement.md)) — for the bore log
+  and an instrument's history (`grows`), an edition and a rate card
+  (`immutable`).
+- **A release and an edition are dated in game seconds** (`publishedAtS`,
+  `expiresAtS`, `frozenAtS`): both are in-world. `real-ms` exists for an
+  out-of-character kind and none declares it today.
+
+`venue-eighty-six` (the list a venue's enforcement brain keeps) is declared
+plain — a `fields:` schema and no trait, written by the plain `save` — so
+that its write is checked instead of wiped at the next reset.
+
+⭐ **A kind belongs to the pack that declares it.** The installer reads every
+pack's `kinds/` first; a pack that ships documents of a kind must declare it
+or depend on its declarer (its `package.json`, transitively) — else it fails
+at the `kind-declarer` step, naming the declarer to add. Without the rule a
+pack's documents install only when the declarer happens to be in the set.
+The platform's kinds are everyone's (pack zero is always installed), and a
+kind declared at runtime has no declaring pack to check.
+
 ⭐ **The authored metadata kinds** — each cited by path, none with a
 second name; most read through a value class in `lib/` over a
 `DocumentCatalogue` (below — `Topic` keeps a dictionary of its own, and help

@@ -1,32 +1,20 @@
 # One resolution rule
 
-> **Status:** PARTIAL — opened 2026-11-03 (user, during the harbors MR review !511); applied
-> in !511 to exits and directions only (an exit is a candidate, no `via.exit`, § 5 row 14).
-> **Done (controllers-are-io W2, 2026-11-06):** § 3 rows 5, 11, 12 (`startsAWord` in the cut —
-> folded into the keyword tiers; tiers compared across scope tries, `go.yaml`'s private order
-> already retired by harbors; a literal is one phrase against keywords) · § 4 (the name tiers
-> collapsed into keyword tiers; `bareName` gone; `NamedMixin.getKeywords`; the six findings on
-> keyword data) · § 5 rows 1, 2, 5, 6, 7 (detail ids and the held substance are the object's own
-> derived `getKeywords()`; `pushDetails`/`pushBulkMaterials` retired; `via.detailPath`/`via.bulk`
-> are facets of the one candidate; the slow path and chain steps build the same candidate, so § 5
-> row 4's two-answers gap closed except `[keyword.x]` and a mid-chain literal, which still read the
-> viewer-blind face). Also done: § 3 row 6 (the exit is a candidate on both paths — harbors !511 +
-> W2 — so § 2 row 4 is closed: `look north` describes the way) · § 3 row 7 (the slow path lists
-> `obviousExitsFor(viewer)`) · § 2 row 8 (the room's visibility rule is the one MQL query) →
-> [mql.md § Match-quality scoring](../../subsystems/mql.md), § exits are candidates,
-> [perception.md § The room listing is one query](../../subsystems/perception.md). Still open below:
-> § 3 row 9's slow path and the implicit tract candidate (§ 5 row 3).
-> **In requirements (2026-11-20):** the matcher half → [naming-overhaul](../../requirements/naming-overhaul-requirements.md), Stage C (§§ 6–7). The `look` half waits for a look design conversation after the client work, with [carded-prose](../client/carded-prose-slate.md).
+> **Status:** PARTIAL — opened 2026-11-03 (user, during the harbors MR review !511). The
+> scorer, the exit as a candidate and the keyword tiers shipped with harbors !511 and
+> controllers-are-io W2; the matcher half (§§ 1, 6, 7 — one naming rule in `GrammarApi`, the
+> duration slot, `defaulted`, the `lint:hand-matchers` and `.raw`/`.via` censuses at zero)
+> shipped with the naming overhaul (2026-11) → [mql.md § Match-quality scoring](../../subsystems/mql.md),
+> [presentation.md](../../subsystems/presentation.md), [command-spec.md](../../subsystems/command-spec.md).
 > **Left:** `look` renders what MQL bound and nothing else — the class-specific appends moved onto
-> their objects behind an async augmenter pass (§ 2 rows 5, 11, 13, 14, 17, 20, 24–27) · a
-> `defaulted` fact on a bound result (which retires `buy`'s raw-text sniff; § 1 row 3) · ⭐ one
-> listing protocol + one scorer for words that name an ENTRY in a record (eleven hand-rolled
-> matchers; § 1 rows 4–10) · a `type: quantity` time arg for `rent` (§ 1 row 11) · § 3 row 9's slow
-> path (one neighborhood builder for both paths) and the implicit tract candidate (§ 5 row 3) ·
-> the recognition tokens on the slow path, `[keyword.x]` and a mid-chain literal (§ 5 row 4) · the
-> `lint:controller-resolution` census of `.raw` / `.via` / lower-casing reads (the shipped gate
-> counts self-resolution, not these).
-> **Size:** a build.
+> their objects behind an async augmenter pass (§ 2 rows 5, 11, 13, 14, 17, 20, 24–27) · § 3 row 9's
+> slow path (one neighborhood builder for both paths) and the implicit tract candidate (§ 5 row 3) ·
+> the recognition tokens on the slow path, `[keyword.x]` and a mid-chain literal (§ 5 row 4) · § 7's
+> unfinished families: Ideas named by word through `PerceptibleMixin` keywords · Brand, Locality and
+> Organization composing `NamedMixin` · organizations reached by relation with no global name
+> search · a published directory for collection records · `hail`'s matchers (signalling-slate's).
+> **Size:** a build — the `look` half waits for a look design conversation after the client work,
+> with [carded-prose](../client/carded-prose-slate.md); the § 7 remainders are a tail.
 
 ## ⭐⭐⭐ The rule (user, 2026-11-03)
 
@@ -51,50 +39,18 @@ through the way named `hesper` — swap in her deck inside `LookController`
 shows the quay, whose own description reads the way's (*"A gangway runs up to the Hesper's
 deck."* — `BerthExit.description`, authored on the `exits/berth` row).
 
-Counts, by verdict: **§ 1 harbors** — 16 rows: 3 violations (1 reverted here), 7 rows of
-hand-rolled word matchers (11 functions, at least six different word rules — one finding, one fix),
-1 quantity parsed in a controller, 5 accepted. **§ 2 `LookController`** — 28 behaviors: 0
-re-resolutions after the revert, 1 resolution-shape gap, 10 class- or feature-specific branches
-that belong on objects, 2 duplicated rules, 15 that are the verb's own I/O or already delegated.
-**§ 3 MQL** — 18 rules: 12 general and fine, 6 inconsistencies or half-applied carve-outs.
-
 ---
 
 ## 1. This MR's own carve-outs (harbors, `git diff origin/master...reqs/harbors`)
 
-| # | Site | What it does | Why it was added | Verdict | The uniform fix |
-|---|---|---|---|---|---|
-| 1 | `LookController` (review 2, `22564bc34`) | `look hesper` bound the quay via the way; the controller swapped in her deck when the far side was a `Place` seen across exits | so the player "sees her" from the quay | ⛔ **violation — REVERTED in this MR** | The way's own description (`BerthExit.description`, `{{ ship }}` her name), read by the landing's alongside line. Her deck is seen by going aboard (`go hesper`) — or by MQL's own tract rule, which `Compartment.isSeenAcrossExit` already answers (row 14). |
-| 2 | `go.yaml` `scope: ["reachable", "$focus"]` (Stage A drive, run 6) | the only one of 45 `$focus` scopes that puts the room first | after `look first line` (a line *from the Hesper*), `go hesper` searched the focused line first, matched its NAME at a partial tier, and never reached the way | ⚠ **violation of uniformity** — a private scope order on one verb, and the defect it dodges is live on all 44 others (`look hesper` after `look first line` looks at the line; the drive step is ORDERED to dodge it — *"asked before the line is looked at"*) | MQL/binder (§ 3, row 11): rank across scope tries by tier, so a whole-name hit in a later scope beats a partial in the focus. Then `go.yaml` returns to `["$focus", "reachable"]`. |
-| 3 | `BuyController` — `named = !!counter.raw && !/^reachable:/.test(counter.raw)` (review 1, `d898a4a15`) | parses the bound result's RAW query text to guess whether the player named a seller or the view's default bound one; if defaulted, re-routes the sale to `bound.sellerFor(word)` | a market of several sellers: the default binds the first `ForSale`, which may not offer the word | ⛔ **violation** — the controller second-guesses a binding by reading MQL's text | MQL states the fact: a bound result carries `defaulted: true` when the binder applied `default:` (it knows; nothing should parse for it). `sellerFor` stays the `ForSale` protocol's — the object decides who sells, the controller only asks. |
-| 4 | `Harbor.shipNamed` / `quayNamed` / `isRoadsWord` (`berth <ship> at <quay>`, P11) | `type: string` args matched by hand: strip `the`, exact compare against the book's ships, the hail log, the quays, the roads' name | the ship is at sea or off the bar and the quay elsewhere — nothing MQL can reach | ⚠ **hand-rolled matcher** (see ⭐ below) | One listing protocol + MQL's scorer. |
-| 5 | `CharterBook.shipFor` + `answersTo` (`charter <ship> at <book>`, P23) | strip `the`; way-word, name, or exact keyword | listed ships are rows, not reachable things | ⚠ hand-rolled matcher | same |
-| 6 | `HullBook.answersTo` (`buy <hull>` at the yard, review 1) | strip `a/an/the`, fold `-`/`_`, kind leaf or slot name | a hull on the stocks is a page in a book | ⚠ hand-rolled matcher — and a THIRD article rule | same |
-| 7 | `Hailable.answersTo` + `HailController` contacts (`hail <contact>`, P8) | the place's hail name by SUBSTRING (`includes`), keywords exact; contacts by substring | a hail reaches what is within hail, not in the room | ⚠ hand-rolled matcher — substring, which MQL's scorer bans mid-word (the ceramics *"imPLANT"* defect) | same; a hailable place is a candidate with `hailName()` as its name |
-| 8 | `Stock.pricedKeyFor` (review 1, `0b7c75e60`) — beside master's `lineForWord` | priced key's leaf, hyphen-folded, whole or one word | a boat sold where she lies, with no stock line | ⚠ hand-rolled matcher (the second in the same class) | same |
-| 9 | `ShipRegister.entryNamed` (← `transfer … shares of <ship>`, `testharness ship <name>`) | the register's own name compare | a ship is traded by her registered name, wherever she lies | ⚠ hand-rolled matcher; the harness one is test scaffolding (accept) | same, for the verb |
-| 10 | `WatercourseCatalogue.landingNamed` + `ExpanseNode.namesRiver` (`course <heading>`, P5) | name / hyphened / path leaf / `leaf.join(' ').includes(w)`; a river by its key unless the words say `bar`/`mouth`/`sea` | a heading names a place on a chart, not a thing in reach | ⚠ hand-rolled matcher with a word-specific exclusion list (`bar`, `mouth`, `sea`) — the shape the rule names | same; the exclusion becomes the candidates' own names (the bar node answers to `bar`; the river does not) |
-| 11 | `RentController.daysOf` | parses `2 days` / `a week` by regex + a word table | `for <n> days` | ⚠ a quantity parsed in a controller (not object resolution) | the Quantity substrate: a `type: quantity` arg in a time unit (`quantities.md`) |
-| 12 | `RentController` — `bound instanceof HireBook && rateFor(kind)` | narrows the bound book by class; refuses if it does not let the kind | `requires:` is a knowing superset | ✅ accept — narrows, refuses, never re-resolves. (A `HireBook` predicate in `requires:` would make the refusal the binder's.) | — |
-| 13 | `PayController` — `isPayable(recipient)` → pay bills | what was bound decides the act | `pay the harbor office` settles what you owe | ✅ accept — polymorphism on the resolved object, not resolution | — |
-| 14 | `Compartment.isSeenAcrossExit` + `BerthExit.peekDestination` (review 2) | her deck (only) answers master's tract hook; the way's far side is asked of HER, never the entrance row | so the deck takes part in MQL's tract rule, and a second smack's deck is never the one seen | ✅ accept — participates in an MQL rule through a hook any `Place` answers; no verb knows | — |
-| 15 | `Ship.commission` / `Rope` end / `WreckSite` keywords from her name | the object carries the words it answers to | `look hesper's line`, `go gull` | ✅ **the model** — better keywords on the object | — |
-| 16 | `FrameSited` alongside augmenter (`instanceof BerthExit`) | the landing's description reads its ways | *Alongside: …* + each way's description | ✅ accept — presentation on the room's own pipeline | — |
-
-### ⭐ Rows 4–10 are ONE finding: eleven matchers, six word rules
-
-Every book/record that a word must name rolled its own matcher, because the thing named is an
-ENTRY (a ship in a register, a hull on a page, a quay on a chart, a contact within hail) rather
-than a Stuff in a scope. The result is six different word rules: articles (`the` only · `a/an/the`
-· none), hyphen folding (yes · no), substring (`includes`) vs whole word vs exact, keywords
-(exact · none). A player who learns `look the gull` cannot predict `charter the gull`.
-
-**The fix is in MQL, once.** A **listing protocol** on the object (`Listing.entriesFor(viewer):
-{ name, keywords, key }[]` — a ship's book lists its ships, a harbor its quays and the roads, a
-chart its landings) and an MQL scope that walks it (`<the book>:listed`, or the arg's
-`scope: listed`), scored by the ONE `scoreCandidate`, prompting on excess like any other slot.
-The verbs keep `type: string` only where the word is not a name at all (a number, a free-text
-tail).
+*Shipped or settled, all sixteen rows → cut 2026-11-23. Row 1 was reverted in !511; row 2 closed with
+§ 3 row 11 (W2); row 3's `defaulted` fact rides a bound result
+([command-spec.md](../../subsystems/command-spec.md) § `default:`); rows 4–10's eleven matchers name
+through `GrammarApi.nameAmong` ([presentation.md](../../subsystems/presentation.md),
+`lint:hand-matchers` at zero) — except `hail`'s, exempted by name until
+[signalling-slate](../engine/signalling-slate.md); row 11 is the `type: duration` slot. The
+**listing protocol + `listed` MQL scope** proposed here was superseded by § 7: MQL finds runtime
+Stuff only.*
 
 ---
 
@@ -146,29 +102,8 @@ that put 25–26 here is real: the augmenter pipeline is SYNC and an owner or a 
 
 | # | Rule | Where | General or special? | Verdict |
 |---|---|---|---|---|
-| 1 | leading articles stripped from the query | `desugar.ts` (`GrammarApi.ARTICLES`) | general grammar | ✅ |
-| 2 | a candidate's own leading article dropped before the exact-name compare (`bareName`) | `scope-walk.ts` `scoreCandidate` | general | ✅ documented (field population pass 4) |
-| 3 | the tier cascade: name IS the query 100 · a KEYWORD is the query 70 · every word a whole word of the name 60 · word-starts 50/40 · keyword 25 · partials | `scoreCandidate` / `scoreCandidates` | general, each tier cites the drive that found it | ✅ — note the deliberate order **a thing NAMED by the word (100) outranks a keyword (70), and a keyword outranks a name merely containing the word (60)**; this is what makes the way `hesper` (name, 100) beat her deck (keyword) |
-| 4 | the whole-phrase cut (a partial never rides along with a whole match) | `scoreCandidates` | general | ✅ |
-| 5 | ⚠ `namesEveryWord` uses `includes` (MID-word) while `scoreCandidate` bans mid-word matches | `scope-walk.ts` | inconsistency | fix: `startsAWord` in both — ✅ **done W2**: one keyword scorer, "every word begins a keyword word" IS the cut |
-| 6 | a direction binds `(location, via: { exit })` — the exit is never itself a candidate | `candidatesForHere`, `candidatesForAnchor` | a shape choice every exit verb reads | ⚠ the root of § 2 row 4 and the harbors swap: `look` cannot show an exit. Fix: the exit is the candidate (`stuff: exit`); `go`/`open`/`lock`/`climb` already read through `effectiveTarget` (row 8) or `via.exit` and move to the exit itself — ✅ **done** (harbors review 3 + W2: `stuff: exit` on both paths, no `via.exit`; `look north` describes the way — mql.md § exits are candidates) |
-| 7 | ⚠ the slow path (`candidatesForAnchor`) lists `getObviousExits()`; the fast path lists `obviousExitsFor(viewer)` | `resolver.ts` vs `scope-walk.ts` | inconsistency — the slow path is viewer-blind to hidden exits | fix: `obviousExitsFor(viewer)` in both — ✅ **done W2** (`resolver.ts` `candidatesForAnchor` + the `:exits` step; mql-grammar.md § direction tokens) |
-| 8 | `effectiveTarget(result, predicate)`: the bound stuff → its exit's door → the exit | `MqlLogic` | ⭐ an MQL-hosted usability carve-out | ✅ principled (one question: *what, reachable that way, satisfies the predicate*), documented, used by every device verb — **not by `look`**, which is how row 6 stayed hidden |
+| 1–8, 10–18 | *cut 2026-11-23 — fine as audited, fixed in W2 (5, 6, 7, 11, 12), or retired with the seed words and `:members` (13, 14): [mql.md](../../subsystems/mql.md) § Match-quality scoring, § Seeds, § Relations* | | | |
 | 9 | the tract rule: a loaded `Place` across an exit that answers `isSeenAcrossExit()` is a `here` candidate by its own name | `candidatesForHere` (tracts D30) | ⭐ MQL-hosted carve-out, opt-in by hook | ✅ principled and uniform for the FAST path; ⚠ absent from `candidatesForAnchor` (the slow path), so a drilled focus never sees across — make both paths share one neighborhood builder |
-| 10 | `here` dropped when a later try is `reachable` | `CommandLogic.scopeTries` | general binder rule | ✅ documented (ceramics clay pit) |
-| 11 | ⚠ the FIRST scope try with an admissible match wins, at any tier | `CommandLogic.walkScopes` | general, but it lets a 10-point partial in the focus beat a 100-point name in the room | **the defect behind § 1 row 2**: compare tiers across tries (a drilled focus still wins a tie — that is what drill-first means), and retire `go.yaml`'s private order — ✅ **done W2** (`MqlMany.tiers`, `walkScopes`); `go.yaml`'s order was already retired by harbors review 3 (`here:exits`, shared by the seven locomotion views) |
-| 12 | ⚠ a quoted literal is an exact compare of the lowercased NAME only — no `bareName`, no keywords | `resolveLiteralSeed` | inconsistency with rows 2–3 | fix: the literal is one word for the scorer's 100 tier (`bareName`) and the keyword tier — ✅ **done W2**: a literal binds what has the phrase as a keyword (a name is one) |
-| 13 | seed words (`inventory` `online` `world` `peers` `reachable` `person` `horizon`) and chain words (`members`) shadow an object so named; `[keyword.x]` is the escape | `resolveKeywordSeed`, `flatMapMembers` | general, documented | ✅ |
-| 14 | `:members` expands a `Warren` only (`instanceof`) | `flatMapMembers` | class-specific, but a NAMED operator | ✅ |
-| 15 | peers: fixtures count; one level into an OPEN container | `candidatesForPeers` | general, agrees with `canReach` | ✅ |
-| 16 | `$focus` / pronouns from the stash; `updates_focus: extend` | `resolver.ts`, `pronoun-memory.ts` | general | ✅ |
-| 17 | `[capability.x]`, `[material.x]`, `[mixin.X]`, `[class.X]` predicates | `resolver.ts` | general | ✅ (`[class.X]` in a view's default is how `charter`/`berth`/`rent` find their book — fine) |
-| 18 | `onExcess: prompt` on ambiguity | binder | general | ✅ |
-
-**Verdict.** MQL is mostly principled: the rules are general, each cites the drive that forced it,
-and its two real carve-outs (rows 8–9) are hooks any object answers. The trouble is at its EDGES —
-the exit shape (row 6), the cross-scope order (row 11) and four small inconsistencies (5, 7, 9's
-slow path, 12) — and every one of them is exactly where a controller was tempted to compensate.
 
 ---
 
@@ -176,32 +111,16 @@ slow path, 12) — and every one of them is exactly where a controller was tempt
 
 **Order of work.**
 
-1. ✅ **done** (harbors !511 + W2) — MQL row 6 (an exit is a candidate; its verbs move to it),
-   `look`'s location branch is *the bound thing is the place you stand in*, an `Exit` composes
-   `Visible` with a description (mql.md § exits are candidates).
+*Steps 1, 3 and 4 shipped (the exit as a candidate; the binder's cross-try tiers and `defaulted`;
+the matchers on one scorer) — cut 2026-11-23. The `.raw` / `.via` / hand-matcher censuses sketched
+here shipped and sit at zero ([lint-family.md](../../lint-family.md) § `lint:hand-matchers`).
+What remains:*
+
 2. **The async augmenter pass**, then § 2 rows 5, 24–27 move onto their mixins (`Placing`,
    `Chattel`, `Display`, `Container`, `Soilable`'s settle). Rows 11, 13, 14, 17, 20 move onto the
    room's describe and perception. `look` ends as: resolve → `describeFor(viewer)` → card + send.
-3. **The binder** — row 11 (tier across tries; `go.yaml` back to the shared order), row 12, and the
-   `defaulted` fact (retires `BuyController`'s raw sniff). *(Rows 11, 12 ✅ W2; `defaulted` open —
-   `BuyController.ts:55` still sniffs `counter.raw`.)*
-4. **The listing protocol** — the eleven matchers of § 1 rows 4–10 onto one scorer.
 5. MQL rows 5, 7, 9 (one neighborhood builder for both paths). *(Rows 5, 7 ✅ W2; row 9's slow
    path open.)*
-
-**The ratchet — `lint:controller-resolution`.** A census over `platform/idea/cmd/**` and every
-pack's `src/idea/cmd/**` counting, per controller: reads of `.raw` on a bound result other than in
-a refusal's words; `.via` reads other than through `MqlApi.effectiveTarget`; `toLowerCase()` /
-`replace(/^the\s+/` / `includes(` applied to a model string; `StuffApi.find*` or `MqlApi.resolve*`
-inside `execute`. Today's count is the ceiling (it may fall, never rise); the build drives it to
-zero and flips it to a hard gate. Paired with a census of hand-rolled `answersTo`-shaped matchers
-in `lib/`/`platform/` (a method taking a `word: string` and lower-casing it) — the listing protocol
-is what lets that one fall. *(⚠ A gate of this name shipped at W0 (D26) counting instrument hunts
-+ self-resolution — `MqlApi.*`, `StuffApi.find*`, `.getContents()` in a controller; the `.raw` /
-`.via` / lower-casing counts above are not in it.)*
-
-**Size:** a build — two of its five steps (the exit as a candidate, the async augmenter pass) touch
-every exit verb and every described object.
 
 ---
 
@@ -223,53 +142,19 @@ for exits and directions only (`Exit.getKeywords`: authored ∪ direction ∪ sh
 
 | # | What MQL synthesizes | Where | In `mql-grammar.md`? | Judged against the rule |
 |---|---|---|---|---|
-| 1 ✅ W2 | **Detail candidates** — one candidate per detail id, `name: id, keywords: [id]`, on the HOST with `via.detailPath` | `pushDetails` (`scope-walk.ts`), `candidatesForAnchor`, `detailExtensionCandidates` / `directCandidate` (`resolver.ts`) | ✅ documented (`:keyword` detail-extension; `here:bookcase:book`) | ⚠ documented grammar, but the words are built by MQL from detail ids, not read from a Perceptible face. Conforming shape: a detail answers through the host's (or the detail's own) `getKeywords()` — the host's Detailed mixin contributes its ids as derived keywords, named there |
-| 2 ✅ W2 | **Bulk-material candidates** — a holder answers to its slot's MATERIAL name and keywords (`drink coffee` binds the cup), with `via.bulk` | `pushBulkMaterials` (`scope-walk.ts`, via `BlendIdentity`) | ⚠ only `:b` is touched (§ bracket text); the material-keyword path is not | ⛔ synthesized words — the holder never said it answers to `coffee`. Conforming: `Bulkable.getKeywords()` folds in the held material's words (derived, named on the mixin) |
+| 1, 2, 5–14 | *cut 2026-11-23 — closed in W2 / harbors review 3, or documented grammar: [mql.md](../../subsystems/mql.md) § Match-quality scoring* | | | |
 | 3 | **The tract candidate** — a loaded place across an exit answering `isSeenAcrossExit()` joins `here` by its own name | `candidatesForHere` (tracts D30) | ❌ not documented | ⚠ a synthesized CANDIDATE (not a word): the words are the place's own. Opt-in by hook, so it is the object saying so — but the pool membership is MQL's. With `:exits:…:to` (harbors review 3) the same place is NAMEABLE by grammar; the build decides whether the implicit candidate stays (§ 3 row 9) |
 | 4 | **Recognition-relative names and keywords** — a person answers only to what the viewer perceives (`describeFor(viewer)`, tokens of the `distinguishing` form); authored keywords dropped for a persona | `pushDirect` → `RecognitionLogic.perceivedKeywordsImpl` | ❌ not in the grammar (belief.md / presentation.md own it) | ⚠ synthesized words (tokenized prose), but on the object's own face (`perceivedKeywordsFor` is a Stuff method). Conforming once named on the class as derived; ⚠ and the SLOW path + chain steps read the viewer-blind `getPresentation`/`getKeywords` instead (`nameOf`/`keywordsOf`) — two answers to *what does this answer to* |
-| 5 ✅ W2 | **The candidate's name** is `getPresentation()` / `describeFor`, not `getName()` — an unnamed thing's name is its rendered short description | `nameOf`, `pushDirect` | ❌ | ⚠ the name read is a projection, not the Perceptible field. Moot under § 4's decision (the name becomes keywords) |
-| 6 ✅ W2 | **Article handling** — the query's leading article stripped; the candidate NAME's article dropped before the 100 compare (`bareName`) | `desugar.ts`; `scoreCandidate` | ✅ query side (§ Article stripping); ❌ candidate side | ⚠ `bareName` is name-tier machinery — under § 4 the bare form is a keyword `NamedMixin` contributes |
-| 7 ✅ W2 | **Quoted literal** — exact compare of the lowercased NAME only (no keywords, no `bareName`) | `resolveLiteralSeed`, `filterByLiteral` | ✅ (literals) | ⚠ inconsistent with the scorer (§ 3 row 12); under § 4 a literal is one phrase against keywords |
-| 8 | **`effectiveTarget`** — the bound thing, else the door hung in a bound way | `MqlLogic.effectiveTarget` | ✅ (harbors review 3, § Direction tokens) | ✅ not a word or candidate — a documented resolution rule over what was bound. The boundary slate retires the door rung (the side and its boundary become one candidate) |
-| 9 | **Pronoun memory** — `it`/`them`/`him`/`her`/`$$` replay a stored result | `pronoun-memory.ts`, `matchesFromStash` | ✅ (§ Pronouns) | ✅ grammar over results, not words |
-| 10 | **Seed and chain words** shadow objects so named (`inventory`, `world`, `peers`, `reachable`, `person`, `horizon`, `online`; `members`, `exits`, `to`, `from`) | `resolveKeywordSeed`, `applyColon` | ✅ (§ Reserved keywords) | ✅ documented grammar; `[keyword.x]` is the escape |
-| 11 | **Predicates** (`living`, `mine`, `here`, `visible`, …) shadow a single-word filter | `filterByKeywordsOrPredicate` | ✅ | ✅ documented grammar |
-| 12 | **Seed promotion scores** — every seed candidate scores 100 | `candidatesToMatches` | n/a | ✅ not a word |
-| 13 | **The quantity / ordinal prefixes** (`2 coins`, `second sword`, `all coins`) | `desugar.ts` | ✅ (§ Natural-language layer) | ✅ documented grammar |
-| 14 | ~~Direction words~~ — `via.exit`, exit candidates built as `{name: direction, keywords: [direction]}` | was `candidatesForHere` / `candidatesForAnchor` | — | ✅ **fixed in harbors review 3**: the exit's own `getKeywords()`; no query-side alias rewrite |
-
-**Verdict.** Three synthesize WORDS the object never supplied (1 detail ids, 2 bulk materials, 4/6 the
-recognition tokens and the bare name) and one synthesizes a CANDIDATE (3). Each has a conforming home
-on the object's own `getKeywords()` — a derived override, named where it lives — which is the same
-shape exits now have. Rows 5–7 dissolve under § 4's decision.
 
 ---
 
 ## 6. Reuse ledger for the plan — the matcher half (2026-11-20)
 
-Seeds [naming-overhaul-requirements](../../requirements/naming-overhaul-requirements.md) (Stage C).
-The census was retaken this cycle (HEAD `ace3d9b0a`): **~71 entity-set matchers, ~14 exact-key
-lookups, ~10 `.raw` re-reads, nineteen word rules** — the 11 of § 1 were a sample. Every row
-below is one the plan must account for.
-
-| concept the build needs | what already does it | reuse / generalize / new |
-|---|---|---|
-| scoring a word against names + keywords | `scoreCandidate` / `scoreCandidates` (`api/mql/scope-walk.ts`), the keyword tiers, the whole-phrase cut, `startsAWord` | **reuse** — entries are scored by it unchanged |
-| plurals | `scope-walk.ts` ~238: every keyword also answers as `GrammarApi.pluralize(stuff, k)` | **generalize** — the same derivation for an entry (no `Stuff` to pluralize against today) |
-| articles, ordinals, quantity prefixes, quoted literals | `desugar.ts`, `GrammarApi.ARTICLES`, `resolveLiteralSeed` | **reuse** |
-| the prompt on a tie | the binder's `onExcess: prompt`, `PromptApi` | **reuse** — entries prompt like candidates |
-| a thing saying what words it answers to | `Perceptible.getKeywords()`, `NamedMixin.getKeywords` (§ 5's rule) | **generalize** — an entry is `{ name, keywords, key }`; the listing protocol is § 1's `Listing.entriesFor(viewer)` |
-| scoping an arg to "the object the verb addresses" | view `scope:` lists, `$focus`, `default:` with `[class.X]` (charter/berth/rent find their book that way) | **generalize** — a `listed` scope that walks a bound object's listing (§ 1 ⭐) |
-| catalogues that already index by word | `RecipeCatalogue.findByKeyword`, `ChannelCatalogue.resolveByName`, `SubjectCatalogue.resolveByTitle`, `SoulCatalogue.resolve`, `SpellCatalogue.getSpellNamed`, `ReadingCatalogue.key`, `DocumentCatalogue.byWord`, `HelpCatalogue.find*`, `AddressRegistry.findByName` | **generalize** — each becomes a listing; their exact-lowercase compares retire |
-| a person by name | `PlayerLogic.findAvatarByName`, presentation's handle chain (`presentation.md`) | **reuse** the handle forms as an entry's name + keywords |
-| organizations by name | `EmploymentLogic.findOrganizationImpl` / `needleOf` / `namesItself`, `RecordControllerBase.resolveSubject` | **retire** into a listing |
-| the matchers themselves | Harbor `quayNamed`/`isRoadsWord`/`shipNamed`; HullBook, CharterBook, Hailable, ExpanseNode `answersTo`; `namesRiver`; `landingNamed`; ShipRegister `entryNamed`; LaneCatalogue `placeNamed`; Boat `paddleBy` (vocab — out); HaulOut `loadNamed`; Line `personWithinReach`; Stock `lineForWord`/`pricedKeyFor`/`resolveBuy`; HeldGoods `resolveHeld`; Store `matchesGood`; Tariff/Order first-token; `resolveBrandKey`; Fit `namesLine`/`wholeFor`; `partInReachFor`; `FormGrammar.parse` (form words; the `holding N unit` tail stays grammar); Billet `rivePlan`; Butcherable `for <cut>`; Stand `speciesNamed`; Rope `makeKnot`; PatternStock `metalNamed`; Working `faceNamed`/`sampleFace`; GradeReading; OpenWorking `faceOf`/`matchesBand`; ClaimsRegister `surfaceWorkingFor`; IceSheet `patchByWord` (synonyms → the patch's keywords); HerdRegistry `named`; ranching `pickField`; PlatBook `extentFor`; CallController + Archetype `answersTo`; Group `memberByName`; ContactsRemove; PartyLogic formation/role/crew; Wardrobe `normalize`; AetherHost `installByKey`/`uninstallApp`; DocumentLogic `callUpImpl` (a name, not a search); Vitals `treatNamed`; RouteController `candidates`/`inGroup`/`pick`; Teleport `resolveAnchored` + FastTravel `resolveRouteByKeyword`; GetController (from a person); MapController; CockpitTerminal `filterFor` | **retire** — each becomes a listing (or, where its entries are reachable Stuff, an ordinary MQL scope) |
-| exact-key lookups (§ G of the census) | `Office.byKey`, org-path compares in clock/job/house, position keys, `OperateController`, `PrescribeController`, `WalletUseController`, `Group.find`, `NotifyControllerBase.normalizeRef`, `LaneCatalogue.laneOf` | **retire** into listings named by name + keywords |
-| `.raw` re-reads on bound object args | Buy (`counter.raw`), Carve, Fit, Shape, Fell, Teleport, Get, WorkedAct/Dig, Sample, Cut | **retire** — the bound result says what it needs (`defaulted`, § 1 row 3) or the arg becomes a listed one |
-| durations | `RentController.daysOf`, `FireController.parseHoldS`, `StreamApi.parseDuration`; `quantities.md`'s time units | **generalize** — one duration arg type over the Quantity substrate; the three parsers retire |
-| the census gate | `lint:controller-resolution` (counts self-resolution only), the `lint:*` family's census-then-ratchet | **generalize** — a census of hand-rolled matchers (the § *The ratchet* sketch), ceiling today's count, driven to 0 |
-| searches | `HelpCatalogue.search`/`typeaheadMatch`, `WhoController --country` | **untouched** — a search is not a name |
-| fixed vocabularies (on/off, up/down, draught, posture, directions, dip faces) | the controllers' word sets; `type: enum` args | **out** — a setting, not an entry |
+*Cut 2026-11-23 — the census and reuse ledger that seeded the naming overhaul's Stage C. Its
+direction (a `listed` scope in MQL) was replaced by § 7; what shipped is in
+[presentation.md](../../subsystems/presentation.md) (the naming rule, who supplies candidates),
+[command-spec.md](../../subsystems/command-spec.md) (`type: duration`) and
+[lint-family.md](../../lint-family.md) (`lint:hand-matchers`).*
 
 ---
 
@@ -280,7 +165,15 @@ The § 6 ledger's census stands; its *direction* was wrong — it put a
 *MQL finds runtime Stuff only*). The re-cut, family by family, as settled
 so far:
 
-- **Real objects in reach** → plain MQL.
+*Shipped families cut 2026-11-23 — real objects in reach (MQL), the naming rule's home
+(`GrammarApi`), documents a player names (`keyworded`), lists of things not yet made and a holder's
+own parts (the holder's `…Named` method), labels a player gave, and durations (one `type: duration`
+slot; the stream verbs keep their own wall-clock parser):
+[presentation.md](../../subsystems/presentation.md), [document-store.md](../../subsystems/document-store.md),
+[command-spec.md](../../subsystems/command-spec.md). Two were superseded by the code: `buy`'s word
+stays a word, named by the one rule ([retail.md](../../subsystems/retail.md) § Naming a good), and
+a bound result DOES carry `defaulted`. Still open:*
+
 - **Real objects out of reach** → an existing MQL form where one exists
   (`bob:inventory`, `here:exits:to:i`, …); a set a **holder keeps** (a
   harbor or charter book's ships, a travel card's nodes, a device's
@@ -289,11 +182,6 @@ so far:
   **`call` and `hail`** are acts, not targets — whatever perceives them
   decides ([signalling-slate](../engine/signalling-slate.md)); their
   matchers retire with that redesign, not this cleanup.
-- **The naming rule** — MQL's scorer lifted to a shared home (likely
-  `GrammarApi`) that MQL and every non-Stuff matcher call.
-- **Documents a player names** → the document-traits `keyworded` trait
-  (+ `titled`): recipe, form, formation, operation, emote stay documents
-  ([document-traits-slate](./document-traits-slate.md)).
 - **Ideas a player names by word** → `PerceptibleMixin` keywords, held
   live by their catalogue (the Material pattern): Spell (its catalogue
   stops holding descriptors), Reading, Condition, Lane, Species, App.
@@ -307,40 +195,9 @@ so far:
   a business you belong to), else by path as an address. No global name
   search.
 
-- **A shop's inventory is real objects** — already true (*"the shelf is
-  always instances"*, retail.md; `Stock` is a `Vessel`). `buy loaf` targets
-  the counter's contents like any container: plain MQL. `lineForWord` /
-  `pricedKeyFor` retire: a sold-out kind is the shop's refusal in its own
-  words (no word matched against nothing); bring-up to order asks the
-  store, whose pooled lines keep real exemplars.
-- **Lists of things that do not exist yet** — a tariff's services, a
-  yard's hulls to order, a carcass's cuts, an assembly's missing parts, a
-  menu's recipes — are the **holder's own device**: it exposes its entries
-  and matches the word by the shared rule against their authored words (a
-  kind's row keywords; a recipe's keyworded document). ⛔ Nothing is made
-  `Visible` to carry a description — the holder describes its own entries.
-- **A holder's own parts** — mine faces (direction words), ice patches
-  (kind words), quarry bands (their Material's keywords), plat lots
-  (their number), a business's positions (title + keywords) — the holder
-  resolves them by the shared rule. No new machinery.
-
 - **Collection records** (channels, forum boards, groups, parties) are
   named by their player-chosen proper name through the shared rule, no
   keywords; unique names win on an exact hit, partial words prompt;
   candidates by relation (yours) plus a published directory to join.
-- **Labels a player gave** — people through your lists by MQL
-  (`contacts remove ~friends:iffy`); notify policies over MQL relations;
-  outfits, console tabs and wallet accounts resolved by their holder by
-  the shared rule ([mql-anchors-slate](../engine/mql-anchors-slate.md) §§ 15–17).
-- **Durations** — one shared duration argument (not MQL), game time only;
-  a verb states its granularity and bounds in its view (`rent` whole days,
-  `fire` to the minute); one refusal line. `rent`'s `daysOf`, `fire`'s
-  `parseHoldS` and `StreamApi.parseDuration` retire.
-- **No `defaulted` fact.** The inventory is real objects, so `buy loaf`
-  targets the loaf on any seller's counter here (the seller is where it
-  lies) and `at <seller>` narrows. The other `.raw` re-reads (`carve`, `fit`,
-  `shape`, `fell`, `teleport`, `get`, `dig`, `sample`, `cut`) fall under the
-  rules above — a real object, or a word the holder resolves among its own
-  entries.
 
 Every family in § 7 is settled (owner, 2026-11-20).
