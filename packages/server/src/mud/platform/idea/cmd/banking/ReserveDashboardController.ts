@@ -34,8 +34,8 @@ export default class ReserveDashboardController extends BankingControllerBase<Co
    * The Governor's three numbers, per currency: money per active member
    * (the perpetual rule's own input), the default rate on window paper (the
    * inflation dial), and the price index over the basket (inflation you
-   * can see) — beside the two lanes outstanding and the overrides on the
-   * record. Rates and shares in words; never a total across currencies.
+   * can see) — beside the two lanes outstanding and the overrides and
+   * retirements on the record. Rates and shares in words; never a total across currencies.
    */
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const blocks: string[] = [];
@@ -58,6 +58,7 @@ export default class ReserveDashboardController extends BankingControllerBase<Co
           `  default rate on window paper: ${ReserveDashboardController.percentInWords(defaults.rate)} per cent (${amount(defaults.defaulted)} of ${amount(defaults.advanced)} advanced)\n` +
           `  price index:               ${GrammarApi.inWords(index.percent)} against a base of one hundred\n` +
           `  overrides on the record:   ${amount(d.overridesOutstanding)}\n` +
+          `  retired on the record:     ${amount(d.retiredOnRecord)}\n` +
           `  the treasury holds:        ${amount(d.treasuryBalance)}`,
       );
     }

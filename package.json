@@ -27,6 +27,7 @@
     "@saxonberg/content-saxonberg-lounge": "workspace:*",
     "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-test-fixtures": "workspace:*",
     "@saxonberg/content-tpa": "workspace:*",
     "@saxonberg/content-trade-apiculture": "workspace:*",
     "@saxonberg/content-trade-baking": "workspace:*",

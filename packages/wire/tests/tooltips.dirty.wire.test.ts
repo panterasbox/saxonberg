@@ -23,7 +23,7 @@
  */
 
 import { describe as suite, it, expect, afterAll } from 'vitest';
-import { Session, declareFile, uniqueHandle, plain } from '../src/harness';
+import { Session, declareFile, uniqueHandle, plain, BANK, PLAZA, CELLAR } from '../src/harness';
 
 export const DIRTY_REASON =
   'mints fresh characters, writes a uniquely named wiki page it cannot ' +
@@ -31,14 +31,14 @@ export const DIRTY_REASON =
 
 declareFile({
   file: 'tooltips.dirty.wire.test.ts',
-  packs: ['world-seed', 'terminus', 'newbie-wilds', 'base-library', 'generic-objects'],
+  packs: ['platform', 'test-fixtures', 'base-library', 'generic-objects'],
   dirtyReason: DIRTY_REASON,
 });
 
-const BANK = '/world/terminus/wharfside/bank';
-const SQUARE = '/world/terminus/market/square';
-// The Delve is unlit — pitch black by day (the navigation-server drive's note).
-const CORRIDOR_1 = '/world/newbie-wilds/delve/corridor-1';
+// Stands in the scaffold (test-world-lifecycle D8): the lit bank, the plaza,
+// and the unlit cellar — pitch black by day, as the Delve was.
+const SQUARE = PLAZA;
+const CORRIDOR_1 = CELLAR;
 
 const FIELDS = ['displayName', 'kind', 'quantity', 'shortDescription', 'illustration', 'illustrationShape', 'path'];
 

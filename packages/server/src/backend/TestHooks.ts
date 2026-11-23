@@ -59,6 +59,7 @@ import {
   type WeatherPinReport,
   type ShipStageSpec,
   type ShipStageReport,
+  type PurgeReport,
 } from '../mud/api/test-harness';
 import type { WeatherPinMode } from '../mud/lib/weather/WeatherType';
 import { ParcelApi } from '../mud/api/parcel';
@@ -311,7 +312,12 @@ export class TestHooks {
       }
       const owner = cover.getOwner();
       const mine = owner?.kind === 'player' && owner.templatePath === identity;
-      if (mine || held.some((h) => path === h || path.startsWith(`${h}/`))) {
+      // ⚠ An EXACT held extent, never a parent's: a nested parcel with an
+      // owner of its own (the scaffold's annex, under a testbed committee
+      // seat) is not held through its parent — the prefix test kept the grant
+      // and the character then held no authority over it (test-world-
+      // lifecycle drive).
+      if (mine || held.includes(path)) {
         console.info(`TestHooks: ${identity} already holds ${path} (kept)`);
         continue;
       }
@@ -461,6 +467,12 @@ export class TestHooks {
     return ExecutionContextApi.runRoot(TestHooks, 'stageShip', () =>
       TestHarnessApi.stageShip(handle, spec)
     );
+  }
+
+  /** TEST-ONLY: purge what wire runs left (test-world-lifecycle D4) — `TestHarnessApi.purgeTestLitter`. */
+  public static async purgeLitter(): Promise<PurgeReport> {
+    TestHooks.#assertTestMode('purgeLitter');
+    return ExecutionContextApi.runRoot(TestHooks, 'purgeLitter', () => TestHarnessApi.purgeTestLitter());
   }
 
   /** TEST-ONLY: stage an outage — the next `calls` record reads/writes fail (failure-model D8). */
@@ -663,6 +675,17 @@ export class TestHooks {
       // body places it, or the move throws — a hand that cannot take it is
       // the test's finding, never a silent drop at the feet.
       ContainmentApi.move(thing, into);
+      // ⭐ Return once the good is the holder's. A fresh good's title is
+      // derived fire-and-forget after the move (ContainmentLogic's custody
+      // step), so a drive that acted at once — `shelf consign` — read "isn't
+      // yours to sell" whenever the world was busy (test-world-lifecycle
+      // drive). Bounded: a good the move does not title stays untitled.
+      if (MixinApi.isChattel(thing)) {
+        const until = Date.now() + 5_000;
+        while (thing.stampedOwner() === null && Date.now() < until) {
+          await new Promise((r) => setTimeout(r, 25));
+        }
+      }
       return thing.stuffId;
     });
   }

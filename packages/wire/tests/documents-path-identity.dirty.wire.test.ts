@@ -31,9 +31,6 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import {
   Session,
   type CommandResult,
@@ -44,8 +41,8 @@ import {
   hand,
   advanceWorldClock,
   isOwnedTestWorld,
+  restartWorld,
 } from '../src/harness';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'publishes press releases (documents nothing regenerates), forms a party, ' +
@@ -149,33 +146,6 @@ async function examine(s: Session, keyword: string): Promise<string> {
       return `${String(row.displayName ?? '')}: ${String(row.longDescription ?? '')}`;
     })
     .join('\n');
-}
-
-/** Restart the world (a SIGTERM, so the shutdown capture lands) — repair's pattern. */
-async function restartWorld(): Promise<void> {
-  const listener = Number(
-    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
-  );
-  if (listener > 0) {
-    process.kill(listener, 'SIGTERM');
-    const deadline = Date.now() + 180_000;
-    for (;;) {
-      try {
-        process.kill(listener, 0);
-      } catch {
-        break;
-      }
-      if (Date.now() > deadline) break;
-      await new Promise((r) => setTimeout(r, 500));
-    }
-  }
-  await stopOwnedWorld();
-  const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-  spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-    cwd: serverDir,
-    stdio: 'ignore',
-  });
-  process.env.WIRE_SERVER_URL = await bootOwnedWorld();
 }
 
 /** Move the clock to the next `fromH`–`toH` window (by daylight: in the dark a thing is "something"). */

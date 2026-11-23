@@ -1127,6 +1127,37 @@ export class Session {
     }
   }
 
+  /** Cancel an open prompt the way the client's dismiss would (`prompt-cancel`). */
+  cancelPrompt(promptId: string): void {
+    this.ws.send(JSON.stringify({ type: 'prompt-cancel', payload: { promptId } }));
+  }
+
+  /**
+   * ⭐ Send a command whose honest answer may be a QUESTION. If the world
+   * asks (a prompt arrives before the response), the prompt is cancelled —
+   * the command then answers — and both come back: a prompt is proof the
+   * verb was understood, which is what a step asking "does this word exist"
+   * wants. Without a prompt it is exactly {@link cmd}.
+   */
+  async cmdOrPrompt(text: string, waitMs = 8_000): Promise<{ result: CommandResult; prompt: PromptEnvelope | null }> {
+    const before = this.prompts.length;
+    const pending = this.cmd(text);
+    const settled = pending.then(
+      () => true,
+      () => true,
+    );
+    const deadline = Date.now() + waitMs;
+    while (Date.now() < deadline) {
+      if (this.prompts.length > before) {
+        const prompt = this.prompts.splice(before, 1)[0]!;
+        this.cancelPrompt(prompt.promptId);
+        return { result: await pending, prompt };
+      }
+      if (await Promise.race([settled, new Promise<false>((r) => setTimeout(() => r(false), 200))])) break;
+    }
+    return { result: await pending, prompt: null };
+  }
+
   /** Answer an open prompt the way the client's control would. */
   answerPrompt(promptId: string, response: unknown): void {
     this.ws.send(

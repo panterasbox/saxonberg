@@ -16,9 +16,6 @@
  */
 
 import { describe as suite, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import {
   Session,
   declareFile,
@@ -31,8 +28,8 @@ import {
   worldClockNow,
   advanceWorldClock,
   isOwnedTestWorld,
+  restartWorld,
 } from '../src/harness';
-import { bootOwnedWorld, WIRE_PORT } from '../src/runner/boot';
 
 export const DIRTY_REASON =
   'bites and spoils food the world does not regenerate, moves the world clock, ' +
@@ -463,12 +460,7 @@ suite('smell and taste', () => {
     await evalOn(s, 'me', 'this.recordAversion("kept-food", 7)');
     s.close();
     await new Promise((r) => setTimeout(r, 8_000));
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
     const back = await Session.open(handle, { startLocation: LOBBY, ...WIZARD });
     opened.push(back);
     expect(await evalOn(back, 'me', 'return JSON.stringify(this.getAversions())')).toMatch(/kept-food/);

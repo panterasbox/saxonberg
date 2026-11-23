@@ -1,0 +1,13 @@
+# The works' basin — a water fixture (test-world-lifecycle D2; the commons
+# washbasin is the exemplar). It draws on the cistern the testbed's title
+# cites. ⚠ TEST-ONLY.
+class: /platform/thing/WaterFixture
+data:
+  shortDescription: washbasin
+  keywords: [basin, sink, washbasin, tap, water]
+  register: indefinite
+  longDescription: |
+    A shallow stone basin with a single tap above it.
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/bulk/water
+  mass: 40

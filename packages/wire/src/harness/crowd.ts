@@ -3,13 +3,13 @@
  *
  * The owner: *"the game needs to be able to handle crowded rooms; this isn't
  * just a test-only sort of concern."* (controllers-are-io D27.) Thirty bodies
- * walk into the square one at a time, the way people do, and then speak. What
+ * walk into the plaza one at a time, the way people do, and then speak. What
  * comes back is the record a person reads: how many times each arriver was
  * greeted, how long a line took to round-trip, and whether the server's own
  * loop stalled, read from the server side by sampling `/healthz` (a timer in
  * this process is not the server's loop).
  *
- * The greeting COUNT is deterministic and gates in `crowd.dirty.wire.test.ts`;
+ * The greeting COUNT is deterministic and gates in `crowd.wire.test.ts`;
  * the TIMING is honest only on an idle box, so its bound lives in
  * `crowd.soak.wire.test.ts`. No `eval`, no wizard: thirty ordinary players.
  */
@@ -19,11 +19,15 @@ import { Worker } from 'worker_threads';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { Session, uniqueHandle, SERVER_URL } from './session';
+import { APPROACH, EXITS, PLAZA } from './scaffold';
 
-/** The place a crowd gathers, and the block one walk away it gathers from. */
-export const CROWD_PLACE = '/world/terminus/market/square';
-const STAGING = '/world/terminus/counting-houses/avenue-block';
-const WALK_IN = 'go southwest';
+/**
+ * The place a crowd gathers — the scaffold's plaza, where the greeter stands
+ * — and the place one walk away it gathers from (test-world-lifecycle D8).
+ */
+export const CROWD_PLACE = PLAZA;
+const STAGING = APPROACH;
+const WALK_IN = `go ${EXITS.approach.plaza}`;
 
 /** The number D27 fixes: the crowd that pegged the core. */
 export const CROWD_SIZE = Number(process.env.WIRE_CROWD_SIZE ?? 30);

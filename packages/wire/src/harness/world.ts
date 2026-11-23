@@ -29,8 +29,17 @@
  */
 
 import { readFileSync, existsSync } from 'fs';
-import { spawnSync } from 'child_process';
-import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT, WIRE_LOG } from '../runner/boot';
+import {
+  bootOwnedWorld,
+  describeStop,
+  liveDatabaseRefusal,
+  listenerPid,
+  stopWorldWithin,
+  WIRE_PORT,
+  WIRE_LOG,
+  WIRE_STOP_GRACE,
+  type TimedStop,
+} from '../runner/boot';
 import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { allFiles, currentFile } from './registry';
@@ -573,113 +582,98 @@ export async function stageShip(handle: string, spec: ShipStageSpec): Promise<Sh
   return out as ShipStageResult;
 }
 
+/* ──────────────────────── the purge ──────────────────────── */
+
+/** What a purge removed — the server's `PurgeReport`. */
+export interface PurgeReport {
+  characters: number;
+  things: number;
+  seats: number;
+  offices: number;
+  appointments: number;
+  accounts: number;
+  sunkMinor: number;
+  titles: number;
+  documents: number;
+  skipped: string[];
+}
+
 /**
- * ⭐ Restart the owned world: stop whatever listens on the wire port, reap
- * it, and boot it again — then point the harness at the new one. Every
- * persisted thing must be read back afterwards (review question R4).
- * Lifted from the drives that each carried a copy.
+ * ⭐ Purge what wire runs left in the world (test-world-lifecycle D4): every
+ * `wire-` test character, what it held, the seats and offices it was given,
+ * the money it was minted (retired to the reserve on the record), and the
+ * strays in the scaffold. The runner calls it when a run starts (a crashed
+ * run's leftovers) and before it stops the world. Returns the report, or
+ * `null` (said) when the world is not a test world — attach mode against a
+ * dev server, where the route does not exist — or when `WIRE_KEEP_LITTER=1`.
+ *
+ * @throws when the database is the live one (never posts), or the world
+ *   refuses — the server's own message.
  */
-export async function restartWorld(): Promise<void> {
-  const listener = Number(
-    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
-  );
-  if (listener > 0) {
-    process.kill(listener, 'SIGTERM');
-    const deadline = Date.now() + 180_000;
-    for (;;) {
-      try {
-        process.kill(listener, 0);
-      } catch {
-        break;
-      }
-      if (Date.now() > deadline) break;
-      await new Promise((r) => setTimeout(r, 500));
-    }
+export async function purgeLitter(): Promise<PurgeReport | null> {
+  if (process.env.WIRE_KEEP_LITTER === '1') {
+    console.log('wire: purge skipped — WIRE_KEEP_LITTER=1 keeps what runs left');
+    return null;
   }
-  await stopOwnedWorld();
-  const serverDir = join(REPO_ROOT, 'packages', 'server');
-  spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-    cwd: serverDir,
-    stdio: 'ignore',
-  });
+  if (!isOwnedTestWorld()) {
+    console.log(`wire: purge skipped — ${SERVER_URL()} is not a test world this run owns`);
+    return null;
+  }
+  const refusal = liveDatabaseRefusal();
+  if (refusal) throw new Error(refusal);
+  const res = await postTestRoute('/auth/test-purge', {});
+  const out = (await res.json()) as Partial<PurgeReport> & { error?: string };
+  if (!res.ok || typeof out.characters !== 'number') {
+    throw new Error(`purgeLitter failed (${res.status}): ${out.error ?? JSON.stringify(out)}`);
+  }
+  return out as PurgeReport;
+}
+
+/** The line a purge prints. */
+export function describePurge(r: PurgeReport): string {
+  return (
+    `wire: purged ${r.characters} test character(s), ${r.things} thing(s), ${r.seats} seat(s), ` +
+    `${r.offices} office(s), ${r.appointments} appointment(s); retired ${r.sunkMinor} from ` +
+    `${r.accounts} account(s); ${r.titles} title(s) returned; ${r.documents} row(s) deleted` +
+    (r.skipped.length > 0 ? `\n  left: ${r.skipped.join('; ')}` : '') +
+    `\n  (not reached: money paid to non-test parties and clones outside the scaffold — unmigrated drives, build 2)`
+  );
+}
+
+/* ──────────────────────── stop and restart ──────────────────────── */
+
+export { stopWorldWithin, lastShutdownReport, WIRE_STOP_GRACE, listenerPid as listenerPidOf } from '../runner/boot';
+export type { ShutdownReport, TimedStop } from '../runner/boot';
+
+/**
+ * ⭐ Stop the world on the wire port as an operator would: SIGTERM, wait up to
+ * the grace (`WIRE_STOP_GRACE`, default 240 s) for its shutdown save, and kill
+ * only when that runs out — then print how it went. Returns the stop, or
+ * `null` (said) when nothing was listening.
+ */
+export async function stopWorld(opts: { graceMs?: number } = {}): Promise<TimedStop | null> {
+  if (listenerPid() === null) {
+    console.log(`wire: stopWorld — nothing listens on ${WIRE_PORT}`);
+    return null;
+  }
+  const stop = await stopWorldWithin(opts.graceMs ?? WIRE_STOP_GRACE);
+  console.log(describeStop(stop));
+  return stop;
+}
+
+/**
+ * ⭐⭐ The one restart: {@link stopWorld} (when something listens), then boot a
+ * world again on the wire port and point the harness at it. Every persisted
+ * thing must be read back afterwards (review question R4). Returns the stop,
+ * so a drive can assert the save was not cut short (`killed === false`).
+ *
+ * ⛔ A drive never carries its own copy — `lint:wire-content` refuses a test
+ * file that imports the runner's boot or stop, or names the preflight.
+ */
+export async function restartWorld(opts: { graceMs?: number } = {}): Promise<TimedStop | null> {
+  const stop = await stopWorld(opts);
   process.env.WIRE_SERVER_URL = await bootOwnedWorld();
-}
-
-/* ──────────────────────── a timed stop ──────────────────────── */
-
-/** What the world's own shutdown said, parsed from its log. */
-export interface ShutdownReport {
-  captured: number;
-  failed: number | null;
-  ms: number | null;
-}
-
-/** How a stop with a grace went. */
-export interface TimedStop {
-  /** Wall ms from SIGTERM to the process gone. */
-  exitedMs: number;
-  /** True when the grace ran out and the process was SIGKILLed. */
-  killed: boolean;
-  /** The `shutdown captured …` line, or `null` when the world never wrote it. */
-  report: ShutdownReport | null;
-}
-
-/**
- * ⭐ Stop the owned world as an operator with a deadline would (db-performance
- * drive step 6): SIGTERM the listener, wait for it to exit, and SIGKILL
- * **that PID** when `graceMs` runs out. Returns how long it took, whether
- * it was killed, and the shutdown's own report from the log — the save a
- * world makes when it stops is what this measures. The world is left
- * stopped; boot it again with {@link restartWorld} (which finds nothing
- * listening and only boots). `restartWorld`'s own wait and the runner's
- * 15 s are not this.
- */
-export async function stopWorldWithin(graceMs: number): Promise<TimedStop> {
-  const pid = Number(
-    spawnSync('lsof', ['-ti', `tcp:${WIRE_PORT}`, '-sTCP:LISTEN']).stdout?.toString().trim().split('\n')[0] ?? '',
-  );
-  if (!(pid > 0)) throw new Error(`stopWorldWithin: nothing listens on ${WIRE_PORT}`);
-  const alive = (): boolean => {
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  const t0 = Date.now();
-  process.kill(pid, 'SIGTERM');
-  let killed = false;
-  while (alive()) {
-    if (Date.now() - t0 >= graceMs) {
-      process.kill(pid, 'SIGKILL');
-      killed = true;
-      break;
-    }
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  const exitedMs = Date.now() - t0;
-  // Let the log pipe flush, then reap the runner's bookkeeping.
-  await new Promise((r) => setTimeout(r, 500));
-  await stopOwnedWorld();
-  return { exitedMs, killed, report: lastShutdownReport() };
-}
-
-/** The last `shutdown captured …` line in the world's log, parsed. */
-export function lastShutdownReport(): ShutdownReport | null {
-  if (!existsSync(WIRE_LOG)) return null;
-  const all = [
-    ...readFileSync(WIRE_LOG, 'utf8').matchAll(
-      /shutdown captured (\d+) persistable host\(s\)(?: in (\d+) ms)?(?: \((\d+) failed\))?/g,
-    ),
-  ];
-  const m = all[all.length - 1];
-  if (!m) return null;
-  return {
-    captured: Number(m[1]),
-    ms: m[2] !== undefined ? Number(m[2]) : null,
-    failed: m[3] !== undefined ? Number(m[3]) : null,
-  };
+  return stop;
 }
 
 /* ──────────────────────── a long-lived world ──────────────────────── */

@@ -3,6 +3,21 @@
 This document lists coding patterns that should be avoided in the Saxonberg
 codebase, with the correct alternative for each.
 
+## A Wire Drive That Stands in Placeholder Content (or Carries Its Own Restart)
+
+A drive proves a SYSTEM whatever the world holds; the localities are
+placeholder and will be replaced (owner, 2026-11-20).
+
+| Don't | Do |
+|---|---|
+| `Session.open(h, { startLocation: '/world/terminus/…' })`, bank at Terminus's counter, eat a shop's only stock | `standIn(PLAZA, …)` in the test-only scaffold (`/world/testbed`); stage what you consume — `hand`, `fundedAccount`, `standInNpc`, `stage` |
+| Assume how the last drive left a door, a trap, a seat | `stage(CELLAR_DOOR, 'setLocked', true)` before relying on it |
+| Name a fixture by word where several match (`get notebook`) | name your OWN thing by the id `hand` returned — but never across a re-login (a returning body re-mints what it carries) |
+| `spawnSync('…dev-preflight.mjs')` + `bootOwnedWorld()` in a test file | `restartWorld()` — it waits for the shutdown save and returns the `TimedStop` |
+
+Enforced by `lint:wire-content` (a census that only falls; a restart copy is
+at zero). See [testing.md § The scaffold](./testing.md).
+
 ## Thin Api Wrappers over Object Methods
 
 **ANTIPATTERN**: An Api method whose whole job is

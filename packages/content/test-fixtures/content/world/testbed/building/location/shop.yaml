@@ -1,0 +1,34 @@
+# The shop — a lit shopfront (test-world-lifecycle D2; the general store is
+# the exemplar). A stock counter that restocks itself, a consignment shelf
+# and a hearth. The attendant is on the venue's roster around the clock.
+# West to the plaza; south through the yard gate (locked, no key anywhere);
+# down through the cellar door. ⚠ TEST-ONLY.
+class: /platform/location/Hall
+data:
+  shortDescription: testbed shop
+  keywords: [shop, store, testbed]
+  register: definite
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.35 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.02 }
+  longDescription: |
+    A small shop, lit by a lamp, with a counter, a consignment shelf by the door and a hearth in the back wall. The plaza is to the west, a gate leads south to the yard, and a door in the floor leads down to the cellar.
+  coords: { x: 1, y: 0, z: 0 }
+  exits:
+    west:
+      destination: /world/testbed/location/plaza
+    south:
+      destination: /world/testbed/location/yard
+      door: /world/testbed/thing/gate
+    down:
+      destination: /world/testbed/location/cellar
+      door: /world/testbed/thing/cellar-door
+      # Cellar steps: a body walks them (a vertical way with no medium is a
+      # climb, and the first live drive found `go down` refused).
+      media: [ground]
+  props:
+    - /world/testbed/thing/counter
+    - /world/testbed/thing/shelf
+    - /world/testbed/thing/hearth
+    - /world/testbed/thing/lamp
+  cast:
+    - /world/testbed/agent/attendant

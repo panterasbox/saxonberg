@@ -1,0 +1,4 @@
+facts:
+  amount: text
+  balance: text
+says: "That account holds {{ balance }}; the reserve can't retire {{ amount }} from it. Nothing was taken."
