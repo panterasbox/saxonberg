@@ -203,6 +203,24 @@ At 1440×900 (prototype: claude.ai artifact XY8FivnMEARSNiNxkJ5qcK, private):
 - **Open:** who picks the step (the viewer only, or does the layout step down when a card needs
   room); the step sizes at other screen sizes; the single bar vs a bar per terminal.
 
+## 7b. Reuse ledger for the plan — the stream arrival build (2026-11-23)
+
+[stream-arrival-requirements](../../requirements/stream-arrival-requirements.md). Every concept the
+build needs, and what already does it:
+
+| concept | already doing it | this build |
+|---|---|---|
+| playing a carrier's video | `StreamEmbed` (one sandboxed iframe, Twitch · YouTube · Kick) | **reuse** — the same player, mounted outside watch mode so it survives every client phase |
+| what is being watched | `cockpit.watch` (`WatchTarget`), the `watch` verb | **reuse** — entering while watching writes the same state the verb writes |
+| the show's on-air state | `BroadcastMixin` phases, the three transports, `/auth/status` | **reuse** — the page reads live / offline from what ships |
+| the show's channel per carrier | four singleton env vars today (streamer-registry-slate) | **generalize** — settings per carrier for the founder's show; the registry replaces them later |
+| where the visitor came from | `?from=stream` → sessionStorage → `Interactive.arrivedFrom` | **generalize** — the value names a carrier; referrer fallback; last method remembered |
+| sign-in | Passport strategies + `*-link`; callbacks to `?auth=success` | **reuse** the strategies; **new** — the window flow and a return to the asking page |
+| the mode a character enters in | `getCockpitMode` (explicit → legacy → `explore`) | **reuse** — entering while watching sets `watch` the ordinary way |
+| a new character's clothes, bio, prologue | aspiration's `outfit` / `bioSeed` / `claimSeeds` | **replace** — one plain outfit; empty bio; no prologue |
+| the guest's look | a random aspiration's outfit and bio | **replace** — the plain outfit |
+| the front page | `StartScreen`, `PressRoom` | **rebuild** — the client half of front-page-slate § 4 |
+
 ## 8. Open
 
 - The regular's experience mid-session; getting out of watch (the phone pocketed, the video in a

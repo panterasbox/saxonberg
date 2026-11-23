@@ -51,6 +51,11 @@ setting), never what they say; dropping one is a visible act.
 actually signing up for, because the game asks something of you and it's actual work."* And: *"we're
 trying to get people to log in — why bother if they can just watch the stream from the front page?"*
 
+- ⚠ **Superseded 2026-11-23 (the owner, [stream-arrival-requirements](../../requirements/stream-arrival-requirements.md)):**
+  a visitor who **came from a carrier** sees the show **playing** on that carrier, and sign-in opens in
+  its own window so the video never stops; the reason below is answered by the funnel itself — the
+  video keeps playing *into* the game, which a carrier cannot do. An untagged visitor still sees the
+  thumbnail tile.
 - **No playable stream on the page.** The show is a **grid thumbnail** (a Twitch directory tile,
   not the headliner) whose action is *sign in to watch it inside Saxonberg*.
 - **The three chambers are real asks, each with what it is after now** — and moderation is the
