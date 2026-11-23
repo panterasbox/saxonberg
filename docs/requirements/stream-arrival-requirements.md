@@ -109,11 +109,11 @@ reuse ledger the plan must account for is in
 - **An app store**: phones install apps from one store at runtime, like a real phone (owner) — every
   published app, on every phone, existing phones included.
 - **The broadcast app**: in the store; anyone installs it (`apps install broadcast`); with it, the
-  bearer has `stream` and `program`, wherever they are — they can leave the studio mid-stream. A guest
+  bearer has `rodney` and `program`, wherever they are — they can leave the studio mid-stream. A guest
   may install it but cannot create a program (a guest keeps nothing, so a guest's program would hold
   its name forever).
 - **The broadcast desk** in Hallett's front-window booth affords the same verbs to whoever is at it.
-- **The body no longer carries `stream` or `program`**: no app and no desk, no broadcasting verbs.
+- **The body no longer carries `rodney` or `program`**: no app and no desk, no broadcasting verbs.
 - **Hallett's booth** exists as a place — one room, reached from a Terminus street — and its window's
   on-air sign is lit while the program being run from there is live, dark otherwise.
 
@@ -191,12 +191,12 @@ the profile and the guest. No pack, no new content beyond the plain starter outf
 - **The `from=stream` tag** and the ticker's *straight from the stream* line — the tag gains the
   carrier (`from=twitch|youtube|kick`); Rodney's one on-screen link stays `from=stream` and plays
   **Twitch** (owner); the ticker keeps its line for any carrier.
-- **The broadcaster side** — the overlay's chat read, `stream token`, the on-air phases (live state on
+- **The broadcaster side** — the overlay's chat read, `rodney token`, the on-air phases (live state on
   the body today) and the `streamers` group hang off the hardwired founder; they move onto the program
   being run. ⚠ A go-live step: the founder's show is set up as a program, with its feeds attached, on
   the live server before the overlay can read it.
-- **`stream` on every body** — `stream` is afforded by the body today (every Avatar); it moves to the
-  app and the desk. The only current broadcaster (the founder) installs the app at go-live.
+- **`stream` on every body** — `stream` is afforded by the body today (every Avatar); it is renamed
+  **`rodney`** (below) and moves to the app and the desk. The only current broadcaster (the founder) installs the app at go-live.
 - **Hallett's** — designed, unbuilt; this build makes only its front-window booth, with the slate's
   provisional names.
 - **`watch` typed by hand** stays open to any channel (deep-links § 1): only a *link's* target must be
@@ -226,13 +226,24 @@ whatever the setting names. On air → its feed (for a visitor with an origin) o
 **its offline tile** (the glowing `@`, its next show). Other programs never appear on the page.
 
 ### Verbs come from instruments **[owner, 2026-11-23]**
-`stream` (running your broadcast now) and `program` (the program as a record) are afforded by the
+`rodney` (driving your overlay and broadcast now) and `program` (the program as a record) are afforded by the
 **broadcast app** on a phone you carry and by the **broadcast desk** while you are at it — never by the
 body. The app is in the store; anyone installs it (lens 2: any broadcaster gets the same). A device
 that cannot work (dead, packed, powered down by an epoch covenant) keeps its verbs and says why; when
 another source — the desk — can answer, it answers (owner). The desk
 grants nothing the app does not: whose program you may run or edit is decided by its owner's pen, not by
 where you stand. Leaving the booth mid-stream with the phone keeps the broadcast going.
+
+### `stream` becomes `rodney` **[owner, 2026-11-23]**
+*"If any of this is married with a specific implementation in rodney then I almost want the verb to just
+be 'rodney' so its clear thats what you're driving. thats why we gave it a memorable name."* Every one of
+`stream`'s subcommands drives Rodney and OBS — the Starting Soon countdown, putting the desktop on air,
+the standby screen and its reason, the outro, the sidebar's topic and agenda, the overlay and Stream
+Deck tokens — and `stream-rotation` steers Rodney's lower third. So the verb is **`rodney`**: `rodney
+start · live · away · back · end · segment · agenda · next · token · rotation` (the rotation folded in as
+a subcommand: one view, one word). `stream` stops being a verb. **`program`** stays generic and
+Rodney-free — the record any broadcaster has. Whether a program is on air is still read from its run,
+driven today through `rodney`; a broadcaster without Rodney going on air is the broadcasting build's.
 
 ### Hallett's booth **[owner, 2026-11-23; halletts-slate § 2]**
 One room — the front-window booth at Hallett's (names provisional) — reached by a way from an existing
@@ -371,15 +382,15 @@ is client-led, so the drive is a **browser walk** with a wire step for the serve
 
 ### Blocking drive — Stage C (instruments)
 
-13. **No instruments**: a fresh character types `stream` and `program` — neither is a verb they have.
+13. **No instruments**: a fresh character types `rodney` and `program` — neither is a verb they have.
     `instant` `player`
 14. **The app**: `apps install broadcast` on their phone; `program create`, `program feed`, `program
-    run`, `stream live` work; they walk out of the room with the phone and `stream away` still works.
+    run`, `rodney live` work; they walk out of the room with the phone and `rodney away` still works.
     `instant` `player`
 15. **The desk**: a character without the app walks into Hallett's booth (by its way from the street),
-    `look`s at it by day and at night (the booth's light, the sign); at the desk they have `stream` and
+    `look`s at it by day and at night (the booth's light, the sign); at the desk they have `rodney` and
     `program`; running the founder's program from the desk is refused unless they hold its pen; the
-    founder at the desk goes live and **the window's sign is lit**; `stream end` → dark. `short` (the
+    founder at the desk goes live and **the window's sign is lit**; `rodney end` → dark. `short` (the
     night look) `staged` (the founder's program set up)
 16. **Restart**: the app is still installed on the phone; the program and the booth intact; the sign
     matches the program's state. `staged`
@@ -390,7 +401,7 @@ None — every step is `instant`.
 
 ## Acceptance criteria
 
-- A character with no broadcast app and not at the desk has no `stream` or `program`; installing the
+- A character with no broadcast app and not at the desk has no `rodney` or `program`; installing the
   app gives them both, wherever they go; the desk gives them both while they are at it.
 - The window's sign at Hallett's booth is lit exactly while the program run from its desk is live.
 - A player can run a program and attach a feed only for a channel they own, with nobody approving it;
