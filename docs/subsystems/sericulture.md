@@ -56,6 +56,41 @@ as a colony is the hive's ([apiculture.md](apiculture.md)). Nothing mints a
   raised* · *asleep for the moult* · *the sound of rain on leaves* ·
   *wandering* · *spinning*. Never a number.
 
+## ⭐⭐ One worm, three bodies (organism-biology D10)
+
+The tray is still the host and the population its state — but a worm is
+now also a creature you can hold. **The tray is the compression**: while a
+rearing is in a larval age (feeding, wandering) the tray holds ONE
+exemplar `Silkworm` (a pack class on `Creature`, the `Livestock` rung — no
+deliberation beat) as real content, seeded from (tray, `exemplarSeq`).
+`get silkworm from tray` takes it and lowers the count by one (it leaves
+with the tray's degree-days, so a worm off a fifth-age tray reads *a
+fifth-age silkworm*); `put silkworm in tray` folds it back (the egg lot's
+adoption shape). ⛔ **A read never mints**: `refreshExemplar` runs only
+from write paths — a put, a get, the tray's own game-clock wake (at most
+an hour apart while the rearing lives) and the staging setter
+`setDegreeDays` (reached through `testharness stage`).
+
+- **The degree-day law is one** (`lib/LarvalClock.ts`): the tray and a
+  worm off it read the same ages and moults.
+- **Its stage is its clock's**: on a live tray, the tray's (a larva, or a
+  pupa while spinning); off it, its own form — `larva`, `pupa`, `moth`.
+  Larva → `newborn`, pupa → `juvenile`, moth → `adult`; the species'
+  `development` gives each its own plan (`silkworm-larva`,
+  `silkworm-pupa`; the moth on `insect`), and `variants.stage` names it.
+- ⭐ **The cocoon is spun from the worm's own gland**: the shell mass
+  multiplies by the larva's `silk-gland` share over the shipped reference
+  (`GLAND_SHARE_REFERENCE`, 0.25, pinned to the modules) — 1 for the
+  shipped worm (the tray golden holds to the milligram), heavier for a
+  breed with a bigger gland.
+- ⭐ **Emergence is the stack's own wake**, armed at `spunAt + emergeDays`
+  (exact) for a stack never stifled; it pierces the stack, lays the lot and
+  lets ONE moth out where the stack stood. A `look` at a fortnight-old
+  stack integrates its heat and changes nothing else. `setSpunAt` is the
+  staging setter. A lone worm off the tray does not age on its own (its
+  clock is the degree-days it left with) — deferred, with the lone worm
+  that spins a stack of one.
+
 ## The disease nobody can see
 
 `pebrineLoad` is **seeded** on an egg lot (authored on the bought rows:

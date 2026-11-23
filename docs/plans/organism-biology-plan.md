@@ -1893,7 +1893,21 @@ a unit test holds each at its habitat's temperatures and asserts it is
 neither torpid in water it tolerates nor dead.
 **Commit:** `feat(species): W7 castration as an operation, the ox, and phenology`
 
-### W8 — Metamorphosis
+### W8 — Metamorphosis ✅ done
+
+> **Done note.** W8a `a895c36d1` (the frog; breathing from organs), W8b
+> (the silkworm). Breathing derived cleanly: W0's golden held for every
+> shipped plan (fish and crab exactly); only the frog's new plans differ,
+> as D10 says. The tray golden did NOT exist (W0 never wrote one) — W8b
+> pinned it from the code as it stood before the gland factor, then the
+> factor came in at exactly 1 (the shipped larva's gland is 0.25 of a body
+> that sums to 1). Emergence moving to a wake re-pointed the stifling
+> tests from reads to clock advances that fire the wake. ⚠ `@TestOnly`
+> cannot mark an instance setter (lint:test-seams' own rule), so the two
+> staging setters are plain `setDegreeDays` / `setSpunAt`, reached through
+> the `@TestOnly` `testharness stage` (B33). For the drive (W11): the
+> tadpole crossing its change on a standing world, and a staged stack
+> letting out its moth across `clock-advance`.
 
 **Goal:** one creature, several bodies; the frog and the silkworm.
 **Implements:** D10.
@@ -2474,6 +2488,28 @@ Decisions the build made that the plan did not, and what decided each.
 - **B31 (W7) — a severance always goes through `ConditionApi.sever`.**
   `operate`'s severance (amputation included) now mints the part into the
   room, as D7's sever does everywhere. *Decided by:* D7 (one sever).
+
+- **B32 (W8) — an unmodelled body breathes air.** A plan with no parts
+  at all (a test fixture, the sessile plan for plants and yeast) breathes
+  as a person does; a body WITH parts breathes only from its organs, and
+  one with none does not respire. *Decided by:* the taps' tri-state rule
+  (unmodelled is the ordinary case) and zero regressions in the shipped
+  sessile rows.
+- **B33 (W8) — the staging setters are `set*` mutators reached through
+  `testharness stage`.** `@TestOnly` marks Api statics only (an instance
+  method's descriptor cannot be withheld through the call-security Proxy —
+  `lint:test-seams`). *Decided by:* the gate's own rule and the shipped
+  `stage` seam.
+- **B34 (W8) — a lone worm off the tray does not age on its own.** Its
+  clock is the degree-days it left with; ageing off-tray (its own
+  temperature trajectory) and the lone worm spinning a stack of one are
+  deferred to the sericulture slate. *Decided by:* D17 (no read may
+  advance it, and a per-worm wake for an off-tray curiosity is cost
+  without a consumer).
+- **B35 (W8) — the larva's gland share is pinned by a test, not
+  computed at boot.** `GLAND_SHARE_REFERENCE = 0.25`, asserted equal to
+  the real modules' share. *Decided by:* load on use (no boot read) and
+  the golden (the shipped worm spins exactly what it did).
 
 ## Drive record
 

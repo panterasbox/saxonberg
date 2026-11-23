@@ -106,6 +106,7 @@ export default class OperateController extends CommandController<OperateModel> {
         }
         // ⭐ Through the one sever (D7): the part on the ground, as a thing.
         void ConditionApi.sever(body, partKey, op.key).catch((err: unknown) => {
+          // @quiet the part is already off the body (the sever's delta is synchronous); only its thing is missing.
           console.error(`operate: the ${op.label} did not take ${partKey}`, err);
         });
         // ⭐ A part taken from a healthy body leaves a wound where it was

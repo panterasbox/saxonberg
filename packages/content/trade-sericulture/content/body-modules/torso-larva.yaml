@@ -1,0 +1,28 @@
+# torso-larva — a silkworm caterpillar's body (organism-biology D10):
+# soft, segmented, breathing through spiracles — and ⭐ the silk gland,
+# which by the fifth age is a quarter of the worm. The cocoon is spun
+# from it: a tray's shell mass reads this share (`RearingMixin`), so a
+# breed with a bigger gland spins heavier.
+parts:
+- key: ''
+  breathes: [{medium: air, apparatus: tracheae, intake: 1, volumeL: 6}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.58}
+  - {tissue: /stuff/idea/material/tissue/intestine, weight: 0.08}
+- key: heart
+  parent: ''
+  governs: [heartRate, circulation]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.005}
+- key: silk-gland
+  parent: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.25}
+- key: prolegs
+  parent: ''
+  serves: [locomotion]
+  gait: [walk]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.02}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.02, form: skin}

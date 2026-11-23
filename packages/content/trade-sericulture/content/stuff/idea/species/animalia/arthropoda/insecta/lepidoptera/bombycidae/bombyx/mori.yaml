@@ -18,6 +18,18 @@ data:
   binomial: Bombyx mori
   commonNames: ["silkworm", "silkworms", "silk moth"]
   _bodyPlanPath: /stuff/idea/species/BodyPlan/insect
+  # ⭐⭐ One creature, three bodies (organism-biology D10): a larva on the
+  # tray, a pupa in its cocoon, a moth out of it — the moth on the insect
+  # plan, the other two on their own. A worm's stage is its clock's
+  # (`Silkworm`), not an age curve.
+  development:
+    newborn: { plan: /stuff/idea/species/BodyPlan/silkworm-larva }
+    juvenile: { plan: /stuff/idea/species/BodyPlan/silkworm-pupa }
+  variants:
+    stage:
+      newborn: { commonNames: [silkworm, larva, caterpillar] }
+      juvenile: { commonNames: [pupa, chrysalis] }
+      adult: { commonNames: [silk moth, moth] }
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
   lifecycleStates: ["alive", "dead"]

@@ -12,6 +12,8 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RearingTray from '../thing/RearingTray';
 import EggLot from '../thing/EggLot';
+import Silkworm from '../agent/Silkworm';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import Cocoons from '../thing/Cocoons';
 import Strain from '../idea/Strain';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
@@ -30,6 +32,10 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const DAY = 86_400;
+
+class Shelf extends ContainerMixin(Good) {
+  static _mixinName = 'ExemplarTestShelf';
+}
 const BASE = 10_000_000;
 let now = BASE;
 const setNow = (s: number): void => {
@@ -363,3 +369,53 @@ describe('the rearing clock', () => {
     expect(middling!.getLotMeanMg()).toBeLessThan(380 * 0.8);
   });
 });
+
+/**
+ * ⭐⭐ The tray is the compression (organism-biology D10): while the rearing
+ * is in a larval age the tray holds ONE exemplar worm, minted only on a
+ * write path (the staging setter here; a put, a get, the tray's wake in
+ * play) — a look mints nothing. A worm taken off reads its age.
+ */
+describe('the exemplar worm', () => {
+  it('⭐⭐ a look mints nothing; a worm taken off a fifth-age tray is a fifth-age larva', async () => {
+    let clones = 0;
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      clones += 1;
+      const made = path.endsWith('/silkworm') ? makeStuff(() => new Silkworm()) : makeStuff(() => new Good());
+      stampTemplatePathForTest(made as unknown as Stuff, path);
+      if (made instanceof Silkworm) made.setShortDescription('silkworm');
+      return made;
+    }) as never);
+    const t = tray(298);
+    await hatchOn(t, lot(0, 300));
+    for (let h = 1; h <= 40 && t.getRearingState() !== 'feeding'; h++) {
+      setNow((h / 2) * DAY);
+      pin(t as unknown as Stuff, 298);
+      t.reconcileRearing();
+    }
+    expect(t.getRearingState()).toBe('feeding');
+    // Reads alone: nothing minted.
+    t.getShortDescription();
+    t.rearingLine();
+    t.getContents();
+    expect(clones).toBe(0);
+    // The staging setter is a write path: one exemplar.
+    t.setDegreeDays(300);
+    await new Promise((r) => setTimeout(r, 0));
+    const worms = t.getContents().filter((s): s is Silkworm => s instanceof Silkworm);
+    expect(worms).toHaveLength(1);
+    expect(clones).toBe(1);
+    t.getShortDescription();
+    t.rearingLine();
+    expect(clones).toBe(1); // still nothing from a look
+    const before = t.eggCount;
+    const shelf = makeStuff(() => new Shelf());
+    ContainmentApi.move(worms[0]!, shelf);
+    expect(worms[0]!.larvalAge()).toBe(5);
+    expect(worms[0]!.getShortDescription()).toMatch(/fifth-age/);
+    expect(t.eggCount).toBe(before - 1);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(clones).toBe(2); // the tray stands its next exemplar
+  });
+});
+

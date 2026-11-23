@@ -9,8 +9,13 @@
  */
 
 import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import Cocoons from '../thing/Cocoons';
+import Silkworm from '../agent/Silkworm';
+import { EventApi } from '@saxonberg/server/mud/api/event';
+import EventRegistry from '@saxonberg/server/mud/platform/idea/EventRegistry';
+import '@saxonberg/server/mud/platform/idea/EventSubscriptions';
+import { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import EggLot from '../thing/EggLot';
 import Strain from '../idea/Strain';
 import Oven from '@saxonberg/server/mud/platform/thing/Oven';
@@ -30,7 +35,6 @@ import {
   stampTemplatePathForTest,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const MIN = 60;
 const DAY = 86_400;
@@ -39,6 +43,25 @@ let now = BASE;
 const setNow = (s: number): void => {
   now = BASE + s;
 };
+/** Move the clock AND fire every wake the interval holds. */
+const advanceTo = (s: number): void => {
+  const target = BASE + s;
+  if (target > now) WorldClockApi._advanceForTesting(target - now);
+  now = target;
+  WorldClockApi._setNowProviderForTesting(() => now);
+};
+let moths: Silkworm[] = [];
+
+async function standEventRegistry(): Promise<void> {
+  const reg = await StuffApi.create(() => {
+    const r = new EventRegistry();
+    Stuff._stampTemplatePath(r, '/platform/idea/EventRegistry');
+    return r;
+  });
+  StuffApi.unregister(reg);
+  StuffApi.register(reg);
+  EventApi._setRegistryForTesting(reg);
+}
 const STRAIN = '/trade/sericulture/idea/strain/valley-gold';
 const SHELL = '/trade/sericulture/idea/material/cocoon-shell';
 
@@ -156,13 +179,24 @@ describe('stifling', () => {
 });
 
 describe('the deadline and the lay', () => {
+  // ⭐ organism-biology D10: the moths come out on the stack's OWN wake,
+  // never on a read — so these advance the clock and let the wake fire.
+  beforeAll(standEventRegistry);
+
   function shelf(): Shelf {
     return makeStuff(() => new Shelf());
   }
 
   function stubLotClone(): EggLot[] {
     const made: EggLot[] = [];
+    moths = [];
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      if (path.endsWith('/silkworm')) {
+        const m = makeStuff(() => new Silkworm());
+        stampTemplatePathForTest(m as unknown as Stuff, path);
+        moths.push(m);
+        return m;
+      }
       const l = makeStuff(() => new EggLot());
       stampTemplatePathForTest(l as unknown as Stuff, path);
       made.push(l);
@@ -177,10 +211,10 @@ describe('the deadline and the lay', () => {
     const c = stack('heavy', 3);
     ContainmentApi.move(c, s);
     c.isPierced();
-    setNow(9 * DAY);
+    advanceTo(9 * DAY);
     expect(c.isPierced()).toBe(false);
     expect(c.cocoonLine()).toMatch(/moths will come|within the day/);
-    setNow(10 * DAY + MIN);
+    advanceTo(10 * DAY + MIN);
     expect(c.isPierced()).toBe(true);
     expect(c.cocoonLine()).toMatch(/ragged hole/);
     await new Promise((r) => setTimeout(r, 0));
@@ -198,7 +232,7 @@ describe('the deadline and the lay', () => {
     const heavy = stack('heavy', 3);
     ContainmentApi.move(heavy, s);
     heavy.isPierced();
-    setNow(11 * DAY);
+    advanceTo(11 * DAY);
     heavy.isPierced();
     await new Promise((r) => setTimeout(r, 0));
     // 380 + 0.4 × (436 − 380)
@@ -214,7 +248,7 @@ describe('the deadline and the lay', () => {
     ContainmentApi.move(mid, s);
     light.isPierced();
     mid.isPierced();
-    setNow(11 * DAY);
+    advanceTo(11 * DAY);
     light.isPierced();
     mid.isPierced();
     await new Promise((r) => setTimeout(r, 0));
@@ -229,17 +263,40 @@ describe('the deadline and the lay', () => {
     const c = stack('middling', 3, 0.25);
     ContainmentApi.move(c, s);
     c.isPierced();
-    setNow(11 * DAY);
+    advanceTo(11 * DAY);
     c.isPierced();
     await new Promise((r) => setTimeout(r, 0));
     expect(made[0]!.getPebrineLoad()).toBeCloseTo(0.4, 5);
+  });
+
+  it('⛔ a READ never lets the moths out — a look at a fortnight-old stack changes nothing', () => {
+    stubLotClone();
+    const s = shelf();
+    const c = stack('middling', 3);
+    ContainmentApi.move(c, s);
+    setNow(14 * DAY); // the clock moved; no wake fired
+    expect(c.isPierced()).toBe(false);
+    expect(c.cocoonLine()).not.toMatch(/ragged hole/);
+  });
+
+  it('⭐ the wake lets one moth out where the stack stood — the worm on its third body', async () => {
+    stubLotClone();
+    const s = shelf();
+    const c = stack('middling', 3);
+    ContainmentApi.move(c, s);
+    advanceTo(11 * DAY);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(c.isPierced()).toBe(true);
+    expect(moths).toHaveLength(1);
+    expect(s.getContents()).toContain(moths[0]);
+    expect(moths[0]!.getLifeStage()).toBe('adult');
   });
 
   it('a stack in limbo is pierced and lays nothing', async () => {
     const made = stubLotClone();
     const c = stack('middling', 3);
     c.isPierced();
-    setNow(11 * DAY);
+    advanceTo(11 * DAY);
     expect(c.isPierced()).toBe(true);
     await new Promise((r) => setTimeout(r, 0));
     expect(made).toHaveLength(0);

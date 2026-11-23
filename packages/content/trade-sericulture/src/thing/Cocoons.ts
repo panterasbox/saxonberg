@@ -24,7 +24,8 @@ import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { WorldClockApi, type ClockHandle } from '@saxonberg/server/mud/api/worldclock';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -35,6 +36,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { CocoonSeed, CocoonSeedable, HeftBand } from '../lib/Rearing';
 import type Strain from '../idea/Strain';
 import type EggLot from './EggLot';
+import type Silkworm from '../agent/Silkworm';
 import type RawSilk from './RawSilk';
 import type { Tooled } from '@saxonberg/server/mud/lib/craft/Tool';
 import type { WorkLanding, WorkPlan } from '@saxonberg/server/mud/lib/ground/Workable';
@@ -44,6 +46,7 @@ import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/Competence
 
 const SECONDS_PER_GAME_DAY = 86_400;
 const EGG_LOT_ROW = '/trade/sericulture/thing/egg-lot';
+const SILKWORM_ROW = '/trade/sericulture/agent/silkworm';
 const RAW_SILK_ROW = '/trade/sericulture/thing/raw-silk';
 const PUPAE_ROW = '/trade/sericulture/thing/pupae';
 
@@ -229,6 +232,7 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
     this.pierced = false;
     this.setQuantity(Math.max(1, Math.floor(seed.count)));
     if (seed.maker) this.setMaker(seed.maker);
+    this.armEmergence();
     this.setGradeBand(this.heftGrade());
   }
 
@@ -367,6 +371,45 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
 
   private _reconcilingCocoons = false;
   private _laying = false;
+  private _emergeWake: ClockHandle | null = null;
+
+  /**
+   * ⭐⭐ The moths come out on the stack's OWN wake (organism-biology D10):
+   * armed at `spunAt + emergeDays`, exact, for a stack never stifled. ⛔ A
+   * read never lets them out — `look` at a fortnight-old stack integrates
+   * its heat and changes nothing else; the wake does what the read-time
+   * reconcile used to (the pierced flag, the egg lot) and lets the moth
+   * out. No event bus (a unit world): no wake.
+   */
+  private armEmergence(): void {
+    if (this._emergeWake !== null || this.pierced || this.stifled || this.spunAt <= 0) return;
+    if (!StuffApi.findByTemplatePath('/platform/idea/EventRegistry')) return;
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return;
+    const at = this.spunAt + dial('sericulture.emergeDays', EMERGE_DAYS) * SECONDS_PER_GAME_DAY;
+    this._emergeWake = WorldClockApi.at(Quantity.of(at, 's'), () => {
+      this._emergeWake = null;
+      this.reconcileCocoons();
+      const nowS = nowGameSeconds();
+      if (nowS === null || this.pierced || this.stifled) return;
+      if (nowS - this.spunAt >= dial('sericulture.emergeDays', EMERGE_DAYS) * SECONDS_PER_GAME_DAY) {
+        this.emerge(nowS);
+      } else {
+        this.armEmergence();
+      }
+    }, { host: this as unknown as Stuff, tag: 'emergence' });
+  }
+
+  /**
+   * ⭐ Stage when the stack was spun (organism-biology D10) — the staging
+   * setter a drive reaches through `testharness stage` (`@TestOnly`); the
+   * emergence wake re-arms against it. Nothing in play moves a spin date.
+   */
+  public setSpunAt(value: number): void {
+    this.spunAt = Number.isFinite(value) && value > 0 ? value : 0;
+    this._emergeWake?.cancel();
+    this._emergeWake = null;
+    this.armEmergence();
+  }
 
   /**
    * ⭐⭐ Bring the stack current: integrate its own temperature since the
@@ -405,14 +448,15 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
           this.dropGrade(2);
         }
       }
-      if (
-        !this.stifled &&
-        nowS - this.spunAt >= dial('sericulture.emergeDays', EMERGE_DAYS) * SECONDS_PER_GAME_DAY
-      ) {
-        this.emerge(nowS);
-      }
     } finally {
       this._reconcilingCocoons = false;
+    }
+    // A stifled stack's moth is dead; an unstifled one's wake stands.
+    if (this.stifled) {
+      this._emergeWake?.cancel();
+      this._emergeWake = null;
+    } else {
+      this.armEmergence();
     }
   }
 
@@ -446,6 +490,25 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
     void this.lay(holder as unknown as Stuff & Container, facts).finally(() => {
       this._laying = false;
     });
+    // ⭐ …and one moth, the exemplar of the stack's flight (D10): the same
+    // creature as the worm, on its third body.
+    this.letOutMoth(holder as unknown as Stuff & Container).catch((err: unknown) => {
+      // @quiet see letOutMoth: the emergence stands without its exemplar.
+      console.warn(`Cocoons: the moth did not get out: ${String(err)}`);
+    });
+  }
+
+  private async letOutMoth(holder: Stuff & Container): Promise<void> {
+    try {
+      const moth = await StuffApi.clone<Silkworm>(SILKWORM_ROW);
+      moth.becomeMoth(0);
+      if (MixinApi.isContainable(moth as unknown as Stuff) && !holder.isDestroyed()) {
+        ContainmentApi.move(moth as unknown as Stuff & Containable, holder);
+      }
+    } catch (err) {
+      // @quiet the stack is pierced and the lot laid either way; a missing moth is only the exemplar.
+      console.warn(`Cocoons: the moth did not stand up: ${String(err)}`);
+    }
   }
 
   private async lay(
