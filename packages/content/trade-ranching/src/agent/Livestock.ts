@@ -394,7 +394,10 @@ export default class Livestock extends LivestockBase {
       const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
       const herd = await registry.read(this.herdId);
       const female = herd?.femaleFraction ?? DEFAULT_FEMALE_FRACTION;
-      if (herd && herd.tally * (1 - female) >= 1) return null;
+      // ⭐ A steer serves nobody (review): the entire males are the males
+      // less the share cut young.
+      const entire = 1 - (herd?.neuteredFraction ?? 0);
+      if (herd && herd.tally * (1 - female) * entire >= 1) return null;
     }
     return 'no-male';
   }

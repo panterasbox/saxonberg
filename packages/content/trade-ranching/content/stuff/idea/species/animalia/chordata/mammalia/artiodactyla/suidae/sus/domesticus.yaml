@@ -17,7 +17,10 @@ data:
   variants:
     sex:
       female: { commonNames: [sow] }
-      male: { commonNames: [boar] }
+      male: { commonNames: [boar], body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    # ⭐ A boar cut young is a barrow (review: the survey found a boar had
+    # no gonads, so castration refused him); the bull's shape.
+    neutered: { commonNames: [barrow, hog] }
     stage:
       newborn: { commonNames: [piglet] }
   # ⭐⭐ Its OWN plan: a pig is a third fat with twice a sheep's belly, and

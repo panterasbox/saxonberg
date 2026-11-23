@@ -20,7 +20,9 @@ data:
   variants:
     sex:
       female: { commonNames: [hen, pullet], body: { add: [{ module: /trade/ranching/body-modules/oviduct-hen, as: [body.torso.oviduct], at: body.torso }] } }
-      male: { commonNames: [cockerel] }
+      male: { commonNames: [cockerel, cock], body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    # ⭐ A cockerel cut young is a capon (review), fattened for the table.
+    neutered: { commonNames: [capon] }
   # ⚠⚠ This said `BodyPlan/biped` until 2026-10-05 — the HUMAN plan. A hen
   # had `body.arm.left.hand`, a liver, an upper and lower spine, and NO
   # WINGS. Nothing errored, because nothing checked: a body plan is named
@@ -65,7 +67,8 @@ data:
   # ⭐ A hen lays on the long days (organism-biology D9) — the band the
   # oviduct's photoperiod window used to hold — and is in season on her
   # species' breeding band.
-    - { condition: /platform/idea/Condition/reproduction/laying, trigger: { daylightFrom: 0.45, daylightTo: 1, sex: female } }
+    # ⚠ An ADULT hen (review: a week-old chick in long days carried `laying`).
+    - { condition: /platform/idea/Condition/reproduction/laying, trigger: { daylightFrom: 0.45, daylightTo: 1, sex: female, stage: adult } }
     - { condition: /platform/idea/Condition/reproduction/in-season, trigger: { season: breeding, sex: female, stage: adult } }
   longDescription: >-
     A brown hen with a comb flopped over one eye, moving in the short
