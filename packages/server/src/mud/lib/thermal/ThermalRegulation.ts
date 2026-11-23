@@ -458,25 +458,41 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     }
 
     /** Run `elapsed` seconds of slices on a probe seeded from now's state. */
-    private probeFrom(elapsed: number, core: number): { core: number } {
+    private probeFrom(
+      elapsed: number,
+      core: number,
+      stopAt?: (tS: number, coreK: number) => boolean,
+    ): { core: number; tS: number } {
       const D = THERMAL_DEFAULTS;
       this._probe = { core, heatLoadJ: this.heatLoadJ, reserves: {} };
       const guard = this._thermalRegReconciling;
       this._thermalRegReconciling = true;
+      // ⭐ What the body wears is read ONCE per probe, as the reconcile does
+      // (`_reconcileClo`): `bodyInsulation` walks every slot, and per slice
+      // it was most of a world's CPU (the organism-biology drive, 2026-11).
+      const clo = this._reconcileClo;
+      if (clo === null) this._reconcileClo = this.wornClo();
       try {
         let remaining = elapsed;
         let steps = 0;
+        let t = 0;
         while (remaining > 0 && steps < D.REG_MAX_STEPS) {
           const slice = Math.min(D.REG_STEP_SEC, remaining);
           this.integrateThermalSlice(slice);
           remaining -= slice;
+          t += slice;
           steps++;
+          if (stopAt?.(t, this._probe.core)) return { core: this._probe.core, tS: t };
         }
-        if (remaining > 0) this.integrateThermalSlice(remaining);
-        return { core: this._probe.core };
+        if (remaining > 0) {
+          this.integrateThermalSlice(remaining);
+          t += remaining;
+        }
+        return { core: this._probe.core, tS: t };
       } finally {
         this._probe = null;
         this._thermalRegReconciling = guard;
+        this._reconcileClo = clo;
       }
     }
 
@@ -532,10 +548,11 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const side = (k: number): string => lines.map((l) => (k < l ? 0 : 1)).join("");
       const start = this.innerVitalSign("coreTemperature").rawValue();
       const was = side(start);
-      for (let t = D.REG_STEP_SEC; t <= cap; t += D.REG_STEP_SEC * 5) {
-        if (side(this.probeFrom(t, start).core) !== was) return t;
-      }
-      return cap;
+      // ⭐ ONE walk, stopping at the first slice past a line — not a fresh
+      // integration from zero for every candidate time (that was O(n²)
+      // slices per body per wake, found profiling the drive's world).
+      const hit = this.probeFrom(cap, start, (_t, k) => side(k) !== was);
+      return hit.tS < cap || side(hit.core) !== was ? Math.max(D.REG_STEP_SEC, hit.tS) : cap;
     }
 
     /** More cold thresholds the cascade reads — an ectotherm's near cold line (D9). */
