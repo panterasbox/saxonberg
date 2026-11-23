@@ -71,10 +71,15 @@ exactly as written, or where the plan had to choose.
     occupied"*). Nothing records where a program was started — that would be a second state
     (D19). If the owner wants the window to stay lit for a stream started there and carried away,
     that is a stored fact and a different design.
-14. **A phone that already exists keeps the app list it was made with.** `offersApps` is a
-    persisted field, so a phone minted before this build does not offer the broadcast app. No
-    migration (standing rule): dev worlds are dropped; on the live server the founder buys a phone
-    at the general store or uses the desk (the go-live checklist says which).
+14. **There is one app store, not a list on each device** *(the owner, 2026-11-23: "phones need to
+    just install apps from an app store at runtime like a real phone would")*. The persisted
+    per-device `offersApps` is retired (D21), so every phone that exists can install the broadcast
+    app and a newly published app reaches everyone. The store's economics and who may publish are
+    not designed here.
+15. **A guest may not create a program.** With one store a guest's implant can install the
+    broadcast app; a guest's identity is thrown away at disconnect, so a program they created
+    would squat a short name forever under an owner nobody is. `program create` refuses a guest
+    (A1); a guest can still read `program show`.
 
 ## Grounding
 
@@ -202,9 +207,11 @@ Verified by opening the files, 2026-11-23, on `reqs/stream-to-game` at `26d312b5
 - `lib/augmentation/AetherHost.ts:130–200` — `hostApp` / `unhostApp` call
   `CommandApi.applyHostedAppDelta(host, app, 'host' | 'unhost')`; `installedApps` persists and
   `setInstalledApps` re-clones the apps at birth and at restore; `offersApps` is authored and
-  persisted. Every phone row ships `offersApps: [/platform/idea/app/messages]`
-  (`generic-objects/…/gear/hollis-pal.yaml:27`, `aevex-meridian.yaml:23`; also the headset and the
-  implant).
+  persisted — a COPY on every device, read by `availableApps()` and `installByKey(key)`
+  (`AetherHost.ts:237–254`) and by `AppsListController` / `AppsInstallController`. Every device
+  row ships `offersApps: [/platform/idea/app/messages]` (`generic-objects/…/gear/hollis-pal.yaml:27`,
+  `aevex-meridian.yaml:23`, `headset.yaml:21`, `AetherImplant.yaml:13`). The wallet, calendar and
+  forums rows are in the same branch but are installed on the person and never listed by `apps`.
 - `platform/idea/api/CommandLogic.ts:4676–4692` — `applyHostedAppDeltaImpl` **returns at once for
   a host that is not a command giver**; for one that is, it pushes
   `collectBucketDefs(app.constructor, 'self')` onto the host's own stack with the APP as the
@@ -290,7 +297,8 @@ Against watch-slate § 7b (superseded where conflict note 5 says) and the regist
 | # | item | ledger | P9 · P10 · P11 · P12 · P13 · P14 |
 |---|---|---|---|
 | C-1 | **the seam**: a hosted app's `self` verbs reach the bearers of a host that is not itself a command giver, kept exact on every move; a matched verb whose source is an app on a device that refuses to run falls to the verb's other offer, else is refused with the device's reason | **genuinely new**. Searched: `applyHostedAppDeltaImpl` (returns early), `applyContainmentDelta` (pushes a carried thing's `environment` only), `lint:self-contributions`, aether-devices § Deferred seams (which names exactly this). | P9 the verb's def is unchanged; `affordances` shows the app as the source, and the refusal names the device's state and the fix. P10 n/a. P11 no caller asks *is the host a person or a phone* — the delta decides the receiver. P12 not a new bucket: the app's `self` still means *whoever this app serves*. P13 `CommandLogic` owns every push and pop of the recency stack. P14 nothing moves; a device that is off, dead, packed or not yours SAYS so. |
-| C-2 | `BroadcastApp` (`platform/idea/BroadcastApp.ts`, an `App`) + row `/platform/idea/app/broadcast`; the two phone rows' `offersApps` gain it | aether-devices *apps* — reuse; the app itself new | P9 `apps install broadcast` and `look phone` list it. P12 it REPLACES `BroadcastMixin`'s `self` contribution, which is deleted. P13 an app class is where an app's verbs are declared. |
+| C-2 | `BroadcastApp` (`platform/idea/BroadcastApp.ts`, an `App`) + row `/platform/idea/app/broadcast` | aether-devices *apps* — reuse; the app itself new | P9 `apps` lists it in the store; `look phone` lists it installed. P12 it REPLACES `BroadcastMixin`'s `self` contribution, which is deleted. P13 an app class is where an app's verbs are declared. |
+| C-7 | **the app store**: the published app rows, read by their branch when `apps` is typed; `published: true` on an `App` row; `offersApps` deleted from `AetherHostMixin` and from the four device rows | aether-devices `offersApps` — **generalize**, and the specific one is gone | P9 `apps` prints the store and what is installed; `apps install <app>` installs any published app — its help says so. P10 the store IS the rows; no document, no roster, no Idea of its own. P11 no caller asks what kind of device it is. P12 `apps install` is the shipped verb. P13 the read sits behind the Api that already fronts aether hosts. P14 an unpublished row (the person's wallet, calendar, forums) is never listed and never installable on a device. |
 | C-3 | `BroadcastDesk` (`platform/thing/BroadcastDesk.ts`) — a fixed thing affording `stream`, `stream-rotation` and `program` through `peers` | the `JobBoard` precedent — reuse | P12 the same three views as the app; it grants nothing the app does not. P14 standing at a desk decides nothing about whose program you may run — the pen does. |
 | C-4 | `OnAirSign` (`platform/thing/OnAirSign.ts`) — a light whose lit-ness is derived on read: someone in its place is on air | the light subsystem's source — reuse; the derivation new | P10 no state. P14 it reads; nothing pokes it. |
 | C-5 | the booth: rows in the `terminus` pack — the place, its zone / address / title rows as its neighbors have, the way pair with the avenue crossing, a lamp, the desk row, the sign row | halletts-slate § 2 — content | Rows only; a second studio is rows. |
@@ -415,8 +423,9 @@ by the app:
   `environment` defs (`applyContainmentDelta`'s attach and detach, the giver's own `self-moved`
   re-push) and by `applyHostedAppDeltaImpl` for an install or uninstall on a device already borne.
   A phone handed over, dropped, pocketed or stolen moves its apps' verbs with it.
-- **Held, never silent; ownership is the lock.** The verb stays afforded while the device is
-  borne. At the match, a source that is an app whose host answers `conferralRefusal()` (off ·
+- **Held, never silent; ownership is the lock** *(kept by the owner, 2026-11-23: a device must
+  keep its verbs so it can SAY it is powered down — an epoch covenant may require devices off in
+  an old-time district)*. The verb stays afforded while the device is borne. At the match, a source that is an app whose host answers `conferralRefusal()` (off ·
   dead · packed · not yours) is passed over for the verb's other offer (the desk, an app on a
   second device); with no other offer the command is refused with a row naming that state and its
   fix (*switch it on*, *charge it*, *ready it*, *that phone runs only for its owner*) — the rows
@@ -432,10 +441,33 @@ by the app:
 loses its `self` entries (and the `program` entry A1 put beside them). The run's state stays on
 the body — it is state, not affordance: a broadcaster whose phone dies mid-stream is still on air
 and cannot steer until they charge it or reach a desk. The row is `/platform/idea/app/broadcast`
-(`appName: Broadcast`); `hollis-pal.yaml` and `aevex-meridian.yaml` add it to `offersApps` (every
-phone offers it; the guest's implant and the headset do not — a guest can prove no feed). The
-control socket is unchanged: it runs `stream` as the streamer through the ordinary dispatcher, so
-it works exactly when the streamer has an instrument.
+(`appName: Broadcast`, `published: true`). The control socket is unchanged: it runs `stream` as
+the streamer through the ordinary dispatcher, so it works exactly when the streamer has an
+instrument.
+
+**D21 — One app store: the published app rows** *(the owner, 2026-11-23)*.
+
+- **What it is.** The store is every `App` row that says `published: true`, under any root's
+  `…/idea/app/` branch — the platform's and any pack's. `messages` and `broadcast` are published;
+  `wallet`, `calendar` and `forums` are not (they are the person's own, installed at login, and
+  have never been listed).
+- **What changes.** `offersApps` is deleted — the field, its `fieldMeta` row, and the line on all
+  four device rows. `availableApps()` and `installByKey(key)` read the store instead: `apps`
+  lists what is installed and what the store holds; `apps install <app>` installs any published
+  app on the device you name or bear. `installedApps` is untouched — per device, persisted, yours.
+- **Any app-hosting device installs any published app.** No `runsOn` on a row: nothing today
+  needs a device-kind rule, and a field no reader consults is a declaration to delete. The one
+  case that mattered — a guest — is closed where it belongs, at `program create` (conflict
+  note 15), not by hiding an app from an implant.
+- **Load on use.** The store is read when `apps` or `apps install` is typed: one read of template
+  rows by the branch infix, keeping rows whose class extends `App` — the read the material roster
+  already makes (`MaterialApi.all()`), behind the Api that fronts aether hosts. No boot entry, no
+  resident roster, nothing warmed. ⚠ `lint:template-scans` and `lint:world-scan` are ratchets:
+  use the sanctioned read; if either would rise, stop and ask.
+- **A key is a row's leaf**, as today. Two packs publishing the same leaf is an install-time
+  collision the store read reports by naming both paths — never a silent first-wins.
+- **Not here:** paid apps, who may publish, removal from the store, device compatibility — the
+  aether-devices slate's (Deferred seams).
 
 **D18 — The desk is a fixture that affords through `peers`.** `BroadcastDesk` is a fixed thing
 whose static `peers` names the same three views — the `JobBoard` pattern, so *at the desk* is *in
@@ -444,7 +476,8 @@ game; the booth's way to the street is a door, and a shut door stops it. The des
 else: `requiresProgram` and the pen test (D11, D12) decide whose program you may run, wherever you
 stand.
 
-**D19 — The on-air sign derives its light; nothing stores it.** `OnAirSign` is a light source
+**D19 — The on-air sign derives its light; nothing stores it** *(lit by presence — decided by
+the owner, 2026-11-23)*. `OnAirSign` is a light source
 whose *lit* is computed when read: some body in the sign's own place is a broadcast host that
 `isOnAir()`. It follows one reference (the sign → its place → that place's contents) — no world
 scan, no event from `stream`, no flag to drift after a restart. Lit, it adds its light to the
@@ -664,7 +697,8 @@ worn, an empty bio, no claims, the phone pocketed; a guest wears the same three.
 - `api/document.ts` + `DocumentLogic.ts` — `saveProgram(name, data)` with its rails (the
   `saveStreamTokenImpl` shape).
 - `api/stream.ts` + `StreamLogic.ts` — `createProgram(name, { title?, owner? })` (the name
-  pattern; refuse if the path exists; the pen test on `owner`), `amendProgram(name, { title?,
+  pattern; refuse if the path exists; the pen test on `owner`; a guest is refused —
+  conflict note 15), `amendProgram(name, { title?,
   schedule? })`, `attachFeed(name, carrier, stated?)`, `detachFeed(name, carrier)`. The actor is
   read from the execution context. Each write ends with `programs().forget([path])`.
 - Views + controllers (`category: stream`): `program` (bare → the program your body runs, or how
@@ -767,8 +801,14 @@ character's pocket, and leaves when the phone does. Commit:
 ### C2 — The broadcast app; the verbs come off the body (D17)
 
 - `platform/idea/BroadcastApp.ts`; `lib/paths.ts` (its template path, as its siblings);
-  `packages/content/platform/content/platform/idea/app/broadcast.yaml`;
-  `generic-objects/…/gear/hollis-pal.yaml`, `aevex-meridian.yaml` (`offersApps`).
+  `packages/content/platform/content/platform/idea/app/broadcast.yaml` (`published: true`).
+- **The store (D21):** `platform/idea/App.ts` — the authored `published` field (declared, so the
+  applier writes it); `messages.yaml` gains `published: true`; `lib/augmentation/AetherHost.ts` —
+  `offersApps` and its `fieldMeta` row deleted, `availableApps()` / `installByKey()` read the
+  store (async); the store read as one static on the existing Api that fronts aether hosts →
+  its logic singleton; `AppsListController`, `AppsInstallController` and `apps.yaml`'s help
+  follow; the `offersApps:` line removed from `hollis-pal.yaml`, `aevex-meridian.yaml`,
+  `headset.yaml`, `AetherImplant.yaml` (B4: grep `packages/content` for the key).
 - `lib/livestream/Broadcast.ts` — the `self` entries deleted; the header prose (*afforded to every
   played body*) rewritten; `api/mixin.ts:1383`, `lib/shell/Author.ts:128` comments follow.
 - `stream.yaml`, `program.yaml` help — one line each: *you get this verb from the Broadcast app
@@ -778,13 +818,16 @@ character's pocket, and leaves when the phone does. Commit:
   (`StreamLogic` and controller units are handed a model and do not care; the wire and e2e ones
   do) — `broadcast-ready.wire.test.ts`, `broadcast-ready-walk.spec.ts`, Stage A's own wire steps.
 - Tests: a fresh character has neither verb (the dispatcher's *not a verb you have*); `apps`
-  lists Broadcast as offered; after `apps install broadcast` both verbs work, in another place
-  too; `apps uninstall broadcast` while on air leaves the stream on air and the verbs gone; the
-  control socket runs `stream` only while the streamer has an instrument; a guest's implant does
-  not offer the app.
+  lists Broadcast and Messages in the store and not the wallet, calendar or forums; a phone
+  restored from a snapshot written BEFORE this wave (it carries a stale `offersApps`) installs
+  Broadcast; `apps install wallet` on a phone is refused, naming the store; a published row in a
+  second root is listed; two published rows with one leaf are reported, neither installed; after
+  `apps install broadcast` both verbs work, in another place too; `apps uninstall broadcast` while on air leaves the stream on air and the verbs gone; the
+  control socket runs `stream` only while the streamer has an instrument; a guest installs the app
+  on the implant and `program create` refuses them.
 
 Acceptance: drive step 13 and 14 by hand on a dev world. Commit:
-`feat(broadcast): the Broadcast app carries stream and program; the body carries neither`.
+`feat(broadcast): the Broadcast app and the app store; the body carries neither stream nor program`.
 
 ### C3 — Hallett's booth: the desk and the sign (D18, D19, D20)
 
@@ -916,7 +959,8 @@ Commit: `test(stream-arrival): the wire drive and the browser walk`.
 | arriving watching — a player | `play <id> --watch <program> --<carrier>` · `embody confirm --watch …` | both afforded only to a `Login`; Enter and confirm send them | the name and carrier from the tab (as answered by `/api/front`); the channel from the program's feed | `programListing` at `enter` | the program exists, has that feed, is on air — a no is the usual mode with a line. ⚠ the greedy `playerId` swallowing the options would be a silent plain entry — tested in both orders |
 | arriving watching — a guest | none; two words on the socket URL | the guest link | the same | the same, from `Login.enterAsGuest` | the same lists in `WebSocketService`; ⚠ words dropped between the socket and the mint → a silent explore — the wire file reads the guest's first snapshot |
 | an app's verbs (the seam) | whatever the app's class declares in `self` | the app, on a device in the bearer's container chain — ⚠ the three silent failures: a row-level `commandContributions:` (read by nothing — the class static is the record); the early return for a non-giver host (the shipped behavior); a push at install that no MOVE keeps exact. C1 tests install, move, drop, hand-over and restart | `installedApps` on the device (persisted); the app re-cloned at restore | the app's row loads when installed | the device must run: `conferralRefusal()` → the other offer, else a refusal naming the fix |
-| the broadcast app | `apps install broadcast` (shipped verb) → `stream`, `stream-rotation`, `program` | `apps` is afforded by any borne device; the app must be in that device's `offersApps` — ⚠ a phone minted before this build does not list it (conflict note 14) | `/platform/idea/app/broadcast`, `class: /platform/idea/BroadcastApp` | on install | `apps install` refuses an app the device does not offer (shipped) |
+| the app store | `apps` · `apps install <app>` (shipped verbs) | `apps` is afforded by any borne device, as today | every `App` row with `published: true` — ⚠ `published` must be a DECLARED field or the applier drops it silently and the store is empty (the trap aether-devices already hit with `offersApps`); a test reads the real rows | the branch read when the verb is typed; no boot entry | the key must name a published row; an unpublished or unknown one is refused, listing the store |
+| the broadcast app | `apps install broadcast` → `stream`, `stream-rotation`, `program` | the app, through the seam above | `/platform/idea/app/broadcast`, `class: /platform/idea/BroadcastApp`, `published: true` | on install | as the store's |
 | the desk | the same three views | `BroadcastDesk.peers` — whoever is in its place (and one passable exit away) | the desk row, in a place's `props:` — ⚠ a desk row no place props is unreachable (`lint:reachability`) | minted with its place | the pen, as everywhere |
 | the sign | none (`look`) | n/a | derived from the bodies in its place | none | n/a |
 | the plain outfit | none | n/a | `startingOutfit`; the three rows | rows load when worn | W0 asserts all three are WORN |
@@ -981,7 +1025,7 @@ stream.featuredProgram <name>`).
    is watch.
 6. `restartWorld()` → the newcomer's garments, empty bio, mode `explore`.
 7. *(steps 13, 14, 16)* A fresh character: `stream` and `program` are not verbs they have.
-   `apps install broadcast` → `program create`, `program feed`, `program run`, `stream live` work;
+   `apps` lists Broadcast in the store; `apps install broadcast` → `program create`, `program feed`, `program run`, `stream live` work;
    they walk to another testbed place and `stream away` works; they switch the phone off →
    `stream back` is refused with the phone's row, and at the testbed desk it runs. A second
    character with no app, at the testbed desk: has both verbs; `program run <the first's>` →
@@ -1064,7 +1108,9 @@ at code-complete and once at `/finalize`; the walk once at code-complete.
 
 **Decided by the owner, 2026-11-23** (not re-opened by the build): nobody is the streamer — the
 program is the unit; a feed is proven at attach, no queue; one setting features one program;
-links name a program; `from=stream` is the featured program on Twitch; the unmute reload and
+links name a program; one app store, not per-device lists; the on-air sign lit by presence;
+the dispatcher's pass-over kept (a device keeps its verbs so it can say why it will not run);
+`from=stream` is the featured program on Twitch; the unmute reload and
 resuming muted; the env vars retired in this build; the outfit is the three rows untouched; the
 character arrives in watch with no other mode painted.
 
@@ -1072,17 +1118,15 @@ character arrives in watch with no other mode painted.
 
 *Stage C:*
 
-- **The dispatcher passes over an app on a device that will not run** (D16) rather than each view
-  naming a validator. It is the one place this plan puts behavior in the match; the command def
-  does not show it, `affordances` and the refusal do.
-- **The sign is lit by presence** — dark when the broadcaster walks out on air (conflict note 13).
 - **The desk's reach is `peers`**: its place, and through an open door (D18).
 - **The desk and the sign are kernel classes** (`platform/thing/`), the booth is rows — so a second
   studio is rows.
 - **The booth opens off the University Avenue crossing**, by the arrival gate; the Dial is not
   built. Its path is `/world/terminus/halletts/…`.
-- **Only phones offer the app** — not the headset, not a guest's implant.
-- **A phone made before this build does not offer it** (conflict note 14).
+- **`published: true` on an app row** is what puts it in the store; the person's wallet, calendar
+  and forums stay out of it (D21).
+- **Any app-hosting device installs any published app**, a guest's implant included; a guest is
+  stopped at `program create` instead (conflict note 15).
 - **The Stream Deck's control socket works only while the streamer has an instrument.**
 
 *Stages A and B:*
@@ -1114,10 +1158,9 @@ This build deletes `OVERLAY_TWITCH_LOGIN`, `OVERLAY_YOUTUBE_CHANNEL`, `OVERLAY_K
 
 1. The founder's account is signed in with (or linked to) the Twitch and Kick accounts whose
    channels carry the show, and has done *Link YouTube* in settings.
-2. As the founder's character — first get an instrument: `apps install broadcast` on the phone.
-   ⚠ A phone that existed before this deploy does not offer it; buy one at the general store, or
-   do everything below standing at the desk in Hallett's booth (arrival gate → the crossing → the
-   door).
+2. As the founder's character — first get an instrument: `apps install broadcast` on the phone
+   already in the pocket (the store serves every existing phone; no new phone is needed). The
+   desk in Hallett's booth works too.
    ```
    program create <short-name>
    program title <short-name> <the show's title>
@@ -1147,6 +1190,11 @@ all, the overlay is silent and the front page has no show band.
   [halletts-slate](../slates/world/halletts-slate.md); the booth's rows are where it grows.
 - **Other apps bringing verbs** (a map, a camera), and the wallet / calendar / forums as apps on a
   device → aether-devices § Deferred seams; C1's routine is the attach point.
+- **The app store's economics and publishing** — paid apps, who may publish, withdrawal, device
+  compatibility → [aether-devices-slate](../slates/engine/aether-devices-slate.md); `published`
+  and the store read are where they attach.
+- **An app that withdraws its verbs when its device cannot work** (the owner: maybe for some apps,
+  not now) → the same slate; today every app keeps lending its verbs and the device says why not.
 - **Listing someone else's channel, persisted tunes, platform preference, the directory, the
   third-party REST read, `watch <short-name>`** →
   [streamer-registry-slate](../slates/platform/streamer-registry-slate.md) wave 3.

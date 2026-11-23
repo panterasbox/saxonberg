@@ -106,8 +106,12 @@ reuse ledger the plan must account for is in
 ## Goals — Stage C (instruments)
 
 - **An app can bring its verbs** to whoever carries the device it is installed on.
-- **The broadcast app**: every phone offers it; anyone installs it (`apps install broadcast`); with it,
-  the bearer has `stream` and `program`, wherever they are — they can leave the studio mid-stream.
+- **An app store**: phones install apps from one store at runtime, like a real phone (owner) — every
+  published app, on every phone, existing phones included.
+- **The broadcast app**: in the store; anyone installs it (`apps install broadcast`); with it, the
+  bearer has `stream` and `program`, wherever they are — they can leave the studio mid-stream. A guest
+  may install it but cannot create a program (a guest keeps nothing, so a guest's program would hold
+  its name forever).
 - **The broadcast desk** in Hallett's front-window booth affords the same verbs to whoever is at it.
 - **The body no longer carries `stream` or `program`**: no app and no desk, no broadcasting verbs.
 - **Hallett's booth** exists as a place — one room, reached from a Terminus street — and its window's
@@ -224,7 +228,9 @@ whatever the setting names. On air → its feed (for a visitor with an origin) o
 ### Verbs come from instruments **[owner, 2026-11-23]**
 `stream` (running your broadcast now) and `program` (the program as a record) are afforded by the
 **broadcast app** on a phone you carry and by the **broadcast desk** while you are at it — never by the
-body. Every phone offers the app; anyone installs it (lens 2: any broadcaster gets the same). The desk
+body. The app is in the store; anyone installs it (lens 2: any broadcaster gets the same). A device
+that cannot work (dead, packed, powered down by an epoch covenant) keeps its verbs and says why; when
+another source — the desk — can answer, it answers (owner). The desk
 grants nothing the app does not: whose program you may run or edit is decided by its owner's pen, not by
 where you stand. Leaving the booth mid-stream with the phone keeps the broadcast going.
 
