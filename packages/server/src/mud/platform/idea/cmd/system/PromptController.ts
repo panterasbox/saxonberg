@@ -43,14 +43,12 @@ interface PromptModel extends CommandModel {
 }
 
 export default class PromptController extends CommandController<PromptModel> {
-  execute(model: PromptModel, ctx: CommandContext): void {
-    // Subcommand is guaranteed to be `cancel` here: the assembler
-    // rejects unknown subcommands before reaching the controller,
-    // and `requiresHasInteractive` (in prompt.yaml) gates the giver
-    // type. New subcommands land as additional branches.
-    if (model.subcommand.toLowerCase() === 'cancel') {
-      this.handleCancel(ctx);
-    }
+  execute(_model: PromptModel, ctx: CommandContext): void {
+    // `cancel` is the view's one subcommand — the assembler rejects any
+    // other before this runs, and `requiresHasInteractive` (prompt.yaml)
+    // gates the giver. A second subcommand gets its own controller
+    // (lint:multi-act), never a branch here.
+    this.handleCancel(ctx);
   }
 
   /**

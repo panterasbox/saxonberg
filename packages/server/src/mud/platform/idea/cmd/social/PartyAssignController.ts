@@ -10,7 +10,7 @@ export default class PartyAssignController extends PartyControllerBase {
   async execute(model: PartyModel, context: CommandContext): Promise<void> {
     const giver = this.memberOf(context);
     if (!giver) return;
-    const role = (model.name ?? "").trim().toLowerCase();
+    const role = (model.name ?? "").trim();
     if (!role) return this.fail(context, "Assign which role?", "name-required");
     const target = model.target?.stuff;
     if (!target) return this.fail(context, "Assign whom?", "empty-result");

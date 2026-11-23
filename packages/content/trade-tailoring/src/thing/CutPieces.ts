@@ -16,6 +16,7 @@
  * so a working might alter FASTER but never FURTHER.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { WearableMixin } from '@saxonberg/server/mud/lib/slot/Wearable';
@@ -88,7 +89,9 @@ export default class CutPieces extends CutPiecesBase {
    * consumed: a failed mint leaves them in hand.
    */
   public sewPlan(actor: Stuff, pattern: string, instrument: Stuff | null): SewPlan | SewRefusal {
-    const row = PATTERNS.get(pattern);
+    // ⭐ A pattern by the one rule (naming overhaul D-C4) over the patterns.
+    const named = GrammarApi.name(pattern, [...PATTERNS.keys()].map((k) => ({ value: k, keywords: [k, k.replace(/-/g, ' ')], title: k })));
+    const row = named.kind === 'one' ? PATTERNS.get(named.one) : undefined;
     if (!row) return { ok: false, reason: 'unknown-pattern', facts: { pattern } };
     const self = this as unknown as Stuff;
     const rate =

@@ -26,8 +26,8 @@ help: |
   hold and what to `drop` or put away. A shut pouch or a buttoned pocket
   is shut: `open` it first.
 
-  The room is searched first, then what is on you (`scope: [peers,
-  reachable]`). In a fight, getting a thing out costs a beat by where it
+  The room is searched first, then what is on you (`scope: [~peers,
+  ~reachable]`). In a fight, getting a thing out costs a beat by where it
   is (`help fight switch`).
 examples:
   - cmd: get coin

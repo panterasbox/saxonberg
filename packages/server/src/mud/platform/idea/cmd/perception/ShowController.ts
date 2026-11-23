@@ -41,7 +41,7 @@ export default class ShowController extends CommandController<ShowModel> {
     if (!(await screen.mayDrive(giver))) {
       return this.refuse(context, TOPIC, `${screen.getPresentation()} is not yours to work.`, 'may-not-drive');
     }
-    const wanted = (model.what ?? '').trim().toLowerCase();
+    const wanted = (model.what ?? '').trim();
     if (wanted === '') return this.refuse(context, TOPIC, 'Show what?', 'nothing-named');
     const found = await DocumentApi.callUp(giver, wanted);
     if (found === null) {

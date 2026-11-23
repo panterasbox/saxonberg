@@ -1410,11 +1410,10 @@ unique name wins without asking; `call` an animal by name, with an article,
 by a word start.
 *Commit:* `build(naming-overhaul WC6): records and labels by the one rule`.
 
-⚠ **Verification pending (2026-11-21):** the targeted suites passed (device,
-banking, movement, shell, inventory, cockpit terminals, rope, the multi-act and
-hand-matcher gates — 151 + 442), but the broad `test:near` + pack rerun after
-`GrammarApi.name` stopped accepting partials was killed for low memory before
-it reported. It must run before C7 builds on this commit.
+✅ **Verified (2026-11-22):** the broad rerun after `GrammarApi.name` stopped
+accepting partials — `test:near` 10104 green (the one failure, `PackLogic`'s
+pack-install integration, was a 120 s load timeout and passes alone, 11/11)
+and twenty-one pack suites green.
 
 ✅ **Done — the hand census is ZERO.** Through `GrammarApi.name`: `call`
 (the animal's name and keywords — D-C8's test, in the controller as
@@ -1456,6 +1455,29 @@ loads ⇒ an Idea* limb restated in trait terms; `content-packs.md`;
 *Acceptance:* `lint:hand-matchers` and `lint:controller-resolution`'s new
 counts are 0 and hard; `help search harb` is unchanged.
 *Commit:* `build(naming-overhaul WC7): the matcher census is zero and gated`.
+
+✅ **Done.** Both controller counts are **0** and held. ⭐ **Decided — the
+counts measure RE-RESOLUTION in the controller, not mere reads:** a `.raw`
+counts when it is lowered, compared, regex- or substring-tested here (directly
+or through the variable holding it); handing the words to the object's own
+naming method (`groundRefusal(raw)`, `planWork(what)`, `rivePlanFor`,
+`sewPlan`) is D-C4's holder shape and is not counted, nor is an echo or a
+typed-or-not test. A `.via` counts when an UNDECLARED facet is read off a
+bound arg; the whole `.via` handed to the object that reads its own facets
+(`BulkableApi.slotFor`, pour, feed, fill) is the declared shape. Lowered model
+words still count. What remained became view enums (`recall --scope`, `bank
+borrow --for`, `forum vote`, `seal with`), dropped their now-redundant
+lowering (`call`, `prompt cancel`, `show`, `wiki edit` sections, `party
+assign` — roles named by the rule — carve, rive, sew — patterns by the rule —
+and fit's whole by the rule), and `pour`'s `~reachable:` sniff is the
+`defaulted` flag. The reviewed exemption table (both gates): hail and `who
+--country` (the plan's), `contacts remove`'s offline `~list:name` fallback
+(D-B12), and the emote verb keys (C2). The docs pass covered document-store,
+mql, mql-grammar, presentation and quantities (the rest were updated by their
+waves). ⚠ **Found by the docs pass:** `callUp` (`show <words>`) read releases
+ordered on the retired `publishedAt` card key — A3 files the date under `date`
+— so it found no release at all; fixed, with a test that fails on the old key.
+Also respelled `get`'s help scope (`~peers`, `~reachable`).
 
 **Then, in order:** push, open the MR ready, report the number; run
 `pnpm test` once and the blocking drive once, alongside review; the browser

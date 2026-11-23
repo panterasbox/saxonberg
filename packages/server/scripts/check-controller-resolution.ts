@@ -230,7 +230,7 @@ export const SELF_RESOLUTION_CEILING = 75; // aether-devices: −1, the dm/reply
  * resolved the words; reading them again is a second resolution (`buy`'s
  * `counter.raw` sniff). Measured at C0 (2026-11-21).
  */
-export const RAW_REREAD_CEILING = 35;
+export const RAW_REREAD_CEILING = 0;
 
 /**
  * ⭐ Via reads and word work (naming overhaul D-C10, count 4) — a `.via` read
@@ -238,7 +238,7 @@ export const RAW_REREAD_CEILING = 35;
  * `relation`) or through `MqlApi.effectiveTarget`, and a model string
  * lower-cased in a controller. Measured at C0 (2026-11-21).
  */
-export const VIA_AND_WORDS_CEILING = 36; // naming overhaul C6: −9, the vocabularies became enums and the controller leftovers name through the rule. C3: −4, the reading, cast and record words go through the rule.
+export const VIA_AND_WORDS_CEILING = 0; // naming overhaul C6: −9, the vocabularies became enums and the controller leftovers name through the rule. C3: −4, the reading, cast and record words go through the rule.
 
 /** The `via` facets a controller may read (`MqlMatchVia`). */
 const DECLARED_FACETS = new Set(['detailPath', 'bulk', 'region', 'relation']);
@@ -305,6 +305,66 @@ function onlyEchoed(node: ts.Node, sf: ts.SourceFile): boolean {
   return uses.length > 0 && uses.every(benign);
 }
 
+/** Is this node lowered / compared / tested where it stands (one step up its chain)? */
+function workedHere(n: ts.Node): boolean {
+  let x: ts.Node = n;
+  // Climb the `.trim()` / `?? ''` / `String(…)` / parens wrappers.
+  for (;;) {
+    const p = x.parent;
+    if (!p) return false;
+    if (ts.isPropertyAccessExpression(p) && p.expression === x) {
+      const name = p.name.text;
+      if (['toLowerCase', 'toLocaleLowerCase', 'includes', 'startsWith', 'endsWith', 'indexOf', 'match', 'replace', 'split'].includes(name)) return true;
+      x = p;
+      continue;
+    }
+    if (ts.isCallExpression(p) && p.expression === x) { x = p; continue; }
+    if (ts.isParenthesizedExpression(p) || ts.isNonNullExpression(p) || ts.isAsExpression(p)) { x = p; continue; }
+    if (ts.isBinaryExpression(p) && p.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken) { x = p; continue; }
+    if (ts.isCallExpression(p) && ts.isIdentifier(p.expression) && p.expression.text === 'String') { x = p; continue; }
+    if (ts.isBinaryExpression(p) && [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken].includes(p.operatorToken.kind)) {
+      // `x.trim() === ''` asks whether anything was typed — not a resolution.
+      const other = p.left === x ? p.right : p.left;
+      return !((ts.isStringLiteral(other) && other.text === '') || ts.isNumericLiteral(other) || other.kind === ts.SyntaxKind.NullKeyword);
+    }
+    if (ts.isCallExpression(p) && ts.isPropertyAccessExpression(p.expression) && ['test', 'exec'].includes(p.expression.name.text)) return true;
+    return false;
+  }
+}
+
+/** A `.raw` worked on in the controller — directly, or through the variable holding it. */
+function reResolved(node: ts.Node, sf: ts.SourceFile): boolean {
+  if (workedHere(node)) return true;
+  // Follow a variable only when it holds the RAW itself (through `.trim()`,
+  // `?? ''`, `String(…)`), never one holding something computed FROM it.
+  let p: ts.Node = node;
+  for (;;) {
+    const up: ts.Node | undefined = p.parent;
+    if (!up) break;
+    const wraps =
+      (ts.isPropertyAccessExpression(up) && up.expression === p) ||
+      (ts.isCallExpression(up) && (up.expression === p || (ts.isIdentifier(up.expression) && up.expression.text === 'String'))) ||
+      ts.isParenthesizedExpression(up) || ts.isNonNullExpression(up) || ts.isAsExpression(up) ||
+      (ts.isBinaryExpression(up) && [ts.SyntaxKind.QuestionQuestionToken, ts.SyntaxKind.BarBarToken].includes(up.operatorToken.kind));
+    if (!wraps) break;
+    p = up;
+  }
+  const decl = p.parent;
+  if (!decl || !ts.isVariableDeclaration(decl) || !ts.isIdentifier(decl.name)) return false;
+  const name = decl.name.text;
+  let scope: ts.Node | undefined = decl;
+  while (scope && !ts.isFunctionLike(scope) && !ts.isSourceFile(scope)) scope = scope.parent;
+  let hit = false;
+  const walk = (x: ts.Node): void => {
+    if (hit) return;
+    if (ts.isIdentifier(x) && x.text === name && x !== decl.name && !(ts.isPropertyAccessExpression(x.parent) && x.parent.name === x) && workedHere(x)) hit = true;
+    else ts.forEachChild(x, walk);
+  };
+  if (scope) walk(scope);
+  void sf;
+  return hit;
+}
+
 /** Counts 3 and 4 over one controller module. */
 export function bindingRereadsIn(src: string, file = '/x.ts'): { raw: number[]; via: number[] } {
   const sf = parseTs(file, src);
@@ -314,13 +374,19 @@ export function bindingRereadsIn(src: string, file = '/x.ts'): { raw: number[]; 
   const visit = (node: ts.Node): void => {
     if (ts.isPropertyAccessExpression(node)) {
       const prop = node.name.text;
-      if (prop === 'raw' && !inEcho(node) && !isTruthTest(node) && !onlyEchoed(node, sf)) raw.push(lineOf(node));
-      if (prop === 'via') {
+      // ⭐ A `.raw` RE-RESOLVED here — lowered, compared, regex- or
+      // substring-tested in the controller (directly, or through the
+      // variable that holds it). Handing the words to the object's own
+      // naming method (`groundRefusal(raw)`, `planWork(what)`) is the D-C4
+      // holder shape and is not counted; nor is an echo or a typed-or-not test.
+      if (prop === 'raw' && !inEcho(node) && !isTruthTest(node) && reResolved(node, sf)) raw.push(lineOf(node));
+      // ⭐ An UNDECLARED facet read off a bound arg's `.via`
+      // (`model.x.via.weird`). The whole `.via` handed to the object that
+      // reads its own facets (`BulkableApi.slotFor(target, via)`) is fine.
+      if (prop === 'via' && /\bmodel\b/.test(node.expression.getText(sf))) {
         const parent = node.parent;
         const facet = ts.isPropertyAccessExpression(parent) && parent.expression === node ? parent.name.text : null;
-        const throughEffective =
-          ts.isCallExpression(parent) && ts.isPropertyAccessExpression(parent.expression) && parent.expression.name.text === 'effectiveTarget';
-        if (!(facet !== null && DECLARED_FACETS.has(facet)) && !throughEffective) via.push(lineOf(node));
+        if (facet !== null && !DECLARED_FACETS.has(facet)) via.push(lineOf(node));
       }
       // A model string lower-cased: `model.x.toLowerCase()` / `String(model.x).toLowerCase()`.
       if (prop === 'toLowerCase' && /\bmodel\.\w+/.test(node.expression.getText(sf))) via.push(lineOf(node));
@@ -612,12 +678,25 @@ function main(): void {
   const files = controllerFiles();
   const findings: Finding[] = [];
   const selves: string[] = [];
+  // ⭐ The reviewed exemptions (file suffix + why): never an `@internal`.
+  const RAW_EXEMPT: ReadonlyArray<{ file: string; why: string }> = [
+    { file: 'social/ContactsRemoveController.ts', why: 'the offline `~list:name` fallback (D-B12) — a person not in the world binds nothing' },
+    { file: 'social/HailController.ts', why: 'signalling-slate — hail\'s matchers' },
+    { file: 'social/WhoController.ts', why: '`who --country` is a search, not a name' },
+    { file: 'social/SoulControllerBase.ts', why: 'an emote VERB — a command word, normalized as the key it is (C2)' },
+    { file: 'social/SoulDeleteController.ts', why: 'an emote VERB key (C2)' },
+    { file: 'social/SoulEditController.ts', why: 'an emote VERB key (C2)' },
+    { file: 'social/SoulMakeController.ts', why: 'a NEW emote verb key, normalized as it is minted (C2)' },
+    { file: 'social/SoulSearchController.ts', why: '`soul search` is a search, not a name' },
+    { file: 'social/SoulShowController.ts', why: 'an emote VERB key (C2)' },
+  ];
   const raws: string[] = [];
   const vias: string[] = [];
   for (const c of files) {
     const source = readFileSync(c.file, 'utf8');
     findings.push(...instrumentHuntsIn(source, relative(REPO_ROOT, c.file)));
     for (const r of selfResolutionsIn(source)) selves.push(`${c.rel}:${r.line}  ${r.text}`);
+    if (RAW_EXEMPT.some((e) => c.rel.endsWith(e.file))) continue;
     const b = bindingRereadsIn(source, c.file);
     for (const l of b.raw) raws.push(`${c.rel}:${l}  .raw`);
     for (const l of b.via) vias.push(`${c.rel}:${l}  .via / lowered model word`);

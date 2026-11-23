@@ -163,6 +163,18 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
+describe('DocumentApi.callUp — a release by the words of its headline (naming overhaul)', () => {
+  it('⭐ finds a published release by a word of its headline, ordered on the card\'s `date` key', async () => {
+    const author = makeStuffAtPath(() => new TestAuthor(), '/platform/agent/Avatar/p1');
+    await publishAs(author, () => PressApi.publish({ publisher: PUBLISHER, headline: 'Harbor dues rise', body: 'x', kind: 'changelog' }));
+    // ⚠ The release card files its date under `date` (A3); an ordered read on
+    // the retired `publishedAt` key found nothing and `show <words>` failed.
+    const found = await publishAs(author, () => DocumentApi.callUp(author, 'harbor dues'));
+    expect(found?.title).toBe('"Harbor dues rise"');
+    expect(await publishAs(author, () => DocumentApi.callUp(author, 'nothing like it'))).toBeNull();
+  });
+});
+
 describe('PressApi.publish (actor from context)', () => {
   it('derives the author from the execution context, not the request', async () => {
     const author = makeStuffAtPath(

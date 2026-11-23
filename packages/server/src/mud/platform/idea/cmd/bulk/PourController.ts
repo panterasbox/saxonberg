@@ -44,7 +44,8 @@ export default class PourController extends ManualBuildController<PourModel> {
     const target = model.target?.stuff ?? null;
     if (!target) {
       const raw = model.target?.raw ?? '';
-      if (raw.trim() === '' || raw.startsWith('~reachable:')) {
+      // An unnamed vessel is the view's default (a fact the binding carries).
+      if (raw.trim() === '' || model.target?.defaulted === true) {
         this.declineStep(
           context,
           Mml.compose`Pour it into what? Name something that will take it, or stand at a build.`,

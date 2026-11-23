@@ -15,10 +15,11 @@ The same grammar serves three audiences. Each adds reach to the one
 above:
 
 1. **Players.** `look at flower`, `drop the second rose`,
-   `give sword to bob`. Players never type MQL operators they
-   wouldn't recognize from English — comma, quote, parenthesis,
-   period in a sentence. Brackets, sigils, and operators are not
-   part of the player-typed surface.
+   `give sword to bob`. Players type little beyond English — comma,
+   quote, parenthesis — plus **two sigils for reaching at a distance**:
+   `~` for a relation (`dm ~friends:iffy hi`, `notify ~bookclub`) and
+   `@` for a player's address (`dm @abc123 hi`). Brackets and the other
+   operators are not part of the player-typed surface.
 2. **Authors** (everyone, within their own extent). The full surface
    — introspective filters, templates, mixins, glob paths. What you may
    *do* with a match is still the verb's gate, never the query's.
@@ -30,33 +31,43 @@ above:
 ## Quick examples
 
 ```
-flower                    a flower (in the giver's reachable scope)
+flower                    a flower (in the verb's scope — usually what
+                          you could reach)
 the second rose           the 2nd rose match (1-based)
 'lyon's mane'             literal keyword match (whitespace preserved)
-me                        the command-giver
-here                      the place you are in (past a boat, a cart,
+me                        you — the root every query starts from
+~here                     the place you are in (past a boat, a cart,
                           a bed) — `me:e` is what immediately holds you
-peers                     everything in the room except the giver
-inventory                 everything the giver carries, nearest first
+~peers                    what stands where you are, except you
+~inventory                everything you carry, nearest first
                           (hand · ready · packed), never into another body
-person                    everything on your person (you, your implant
+~person                   everything on your person (you, your implant
                           apps, installed gear + its apps, carried
                           items + their apps)
-reachable                 what you could lay hands on now: person ∪
-                          here ∪ peers (your own gear first)
-me:i                      the giver's inventory (immediate contents)
-me:I                      everything reachable through inventory
-                          recursively (apple in pouch in pack…)
-me:i:sword                a sword in the giver's inventory
+~reachable                what you could lay hands on now (your own
+                          gear first, then the room)
+~friends                  the people on your friends list who are in
+                          the world (any list you keep is a relation)
+~friends:iffy             Iffy, if she is on that list and in the world
+~all                      everyone on any of your lists who is in the world
+@abc123                   the player whose id is abc123, wherever they are
+me:~                      list every relation you can ask for
+~                         your home (`/home/<you>`); `~/workroom` under it
+me:i                      your immediate contents
+me:I                      everything inside what you carry, recursively
+                          (apple in pouch in pack…)
+me:i:sword                a sword you carry
 me:E                      the topmost container (zone, world, …)
-here:bookcase             the bookcase detail of the room
-here:bookcase:book        the book detail nested inside the bookcase
+~here:bookcase            the bookcase detail of the room
+~here:bookcase:book       the book detail nested inside the bookcase
 roses:[5]                 the 5th rose
 roses:[1..3]              the first three roses
 roses:[hp > 50]           roses with prop hp > 50
 sword, shield             a sword OR a shield (union)
 swords - broken           swords excluding broken ones
-$$                        the previous query's result
+~last                     what your previous query found
+here · it · him · her ·   default query ALIASES for ~here · ~it · ~him ·
+them                      ~her · ~them (removable — see Query aliases)
 ```
 
 ## Tokens
@@ -75,7 +86,8 @@ character (part of a bareword, path segment, or quoted string).
 | `\` | Escape: the next character is part of the word, whatever it is (`foo\,bar`, `\#5`) |
 | `-` | Set difference (only between expressions; literal inside barewords) |
 | `#` | Identifier prefix: `#5` ordinal, `#abc123` stuff id |
-| `$` | Memory: `$$` last result |
+| `~` | Relation: `~name` (yours), `thing:~name` (what a thing keeps), `thing:~` (list them). At the start of a query only, `~` alone or `~/…` is your home |
+| `@` | Player address: `@abc123` — at the start of a query only |
 | `*` | Glob (only inside template paths) |
 | `/` | Path-segment separator (template paths start with `/`) |
 | `.` | Namespace separator (`prop.X`, `mixin.X`, …) inside `[…]` |
@@ -84,18 +96,28 @@ character (part of a bareword, path segment, or quoted string).
 Whitespace inside a query is **AND-narrow** on barewords — `red rose`
 means "things matching keywords red AND rose."
 
+⚠ `$$` is gone — your last result is `~last` (typing `$$` says so). And
+`::` is not MQL: the command line splits `source::verb` (`watch::wind`,
+`"pocket watch"::wind`) before the source reaches MQL — see
+[command-parsing.md](./subsystems/command-parsing.md).
+
 ## Reserved keywords
 
 These identifiers have reserved meanings and aren't free for use as
 keywords:
 
-- **Pronouns:** `me`, `here`, `it`, `them`, `him`, `her`
-- **Predicates:** `living`, `online`, `mine`, `here`, `visible`, `loose`, `worn`, `carried`, `held`
+- **The root:** `me`. (`here`, `it`, `them`, `him`, `her` are not
+  reserved — they are removable default query aliases, below.)
+- **Seed word:** `world` (refused — see below)
+- **Built-in relation names** after `~`: `here`, `inventory`, `peers`,
+  `reachable`, `person`, `horizon`, `buildings`, `all`, `it`, `them`,
+  `him`, `her`, `last` — a list you name the same is never reached
+- **Predicates:** `living`, `mine`, `here`, `visible`, `loose`, `worn`, `carried`, `held`
 - **Boolean ops** (inside `[…]`): `and`, `or`, `not`
 - **Existence** (inside `[…]`): `has`
 - **Transforms:** `i`, `e` (one-letter chain pivots — inventory,
   environment)
-- **Chain words:** `members`, `exits`, `to`, `from` (flat-map steps —
+- **Chain words:** `exits`, `to`, `from` (flat-map steps —
   see [Places and the ways between them](#places-and-the-ways-between-them));
   an object keyworded with one is reached with `[keyword.to]`
 - **Ordinal hints** (in the natural-language layer): `first`,
@@ -147,28 +169,95 @@ look 'dave\'s bar'          MQL literal with an escaped quote
 look foo\,bar               one keyword containing a comma
 ```
 
-## Seeds
+## Seeds — where a query starts
 
 A seed is the head of a chain — what MQL starts looking at. Every
-seed yields a list of Stuff (possibly empty).
+seed yields a list of things (possibly empty). ⭐ **Every query is
+yours**: there is one root, `me`, and everything at a distance is reached
+through a **relation** — a set you, or a thing, keep.
 
 | Seed | Yields |
 |---|---|
-| `bareword` | keyword search in the field's declared scope (default) |
+| `bareword` | keyword search in the verb's declared scope (default) |
 | `'literal name'` | a keyword that IS the phrase (whitespace preserved) — a name is a keyword |
-| `me` | the command-giver |
-| `here` | the **place** you are in — the first container up your chain that is a place, past a boat, a cart or a bed (`getEnclosingPlace`); what immediately holds you is `me:e` |
-| `peers` | the place's contents minus the giver, one level into open things there, and the vessel you sit in |
-| `person` | everything on your person: you, your own attunement-hosted apps, installed slot occupants (+ their apps), carried items (+ their apps). Never the room's contents |
-| `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first and the giver itself last (you can reach yourself, but a noun names someone else before you) — **what you could lay hands on now**: everything you carry, nearest first (hand · ready · packed — a thing in a shut bag or the pack on your back is in the list, and the verb says why a hand cannot get at it), the room's top level and one level into open things here, never inside a shut thing there. `PerceptionApi.canReach` is membership in the same list (`PerceptionApi.reach`) plus the object's own `reachRefusal` |
-| `inventory` | the giver's whole carried tree, never into another body, nearest first (hand · ready · packed); the giver itself is `me`. A mid-chain `bob:inventory` is read from OUTSIDE — what Bob holds and wears, one level into the open things there |
-| `horizon` | what the giver can see from where they stand that is NOT in their room — structures and craft in view (a fixed pool, like `here`). `horizon:tower` drills to one. A bare `horizon` names the whole set — `query horizon` / `scan horizon` lists it; `look` takes one thing. See [expanse.md § Perception at range](./subsystems/expanse.md) |
-| `online` | every connected command-giver |
-| `it` / `him` / `her` | last single match of matching gender |
-| `them` | last multi-match list |
-| `$$` | result of the previous query |
+| `me` | you |
+| `~name` | one of YOUR relations — shorthand for `me:~name` (below) |
+| `@abc123` | the player whose id is `abc123`, wherever they are in the world (nothing if they are not playing). `who` and a profile card show the id |
+| `~` · `~/workroom` | your home, `/home/<you>`, and a path under it |
 | `/platform/thing/Sword/*` | template path lookup (instances of matching templates) |
 | `#abc123` | direct stuff id lookup |
+
+⚠ The old seed words — `here`, `peers`, `reachable`, `inventory`,
+`person`, `horizon`, `online`, `it`/`him`/`her`/`them`, `$$` — are gone.
+Each is a relation now (`~peers`), `online` is retired (reach a stranger
+by `@id`), and five of them still work bare as **query aliases**.
+
+### ⭐⭐ Relations — `~name`
+
+A relation is a named set somebody or something keeps. `~name` asks
+you; `thing:~name` asks the thing to its left; `thing:~` lists what it
+can be asked for.
+
+**The built-ins** — the same for everyone, checked first, so a list of
+yours with the same name can never hide one:
+
+| Relation | The set |
+|---|---|
+| `~here` | the **place** you are in — the first container up your chain that is a place, past a boat, a cart or a bed. ONE thing (what immediately holds you is `me:e`) |
+| `~peers` | what stands where you are, minus you, one level into open things there, and the vessel you sit in |
+| `~inventory` | everything you carry, never into another body, nearest first (hand · ready · packed); you yourself are `me`. Asked of somebody else (`@abc123:~inventory`) it is read from OUTSIDE — what they hold and wear, one level into the open things there |
+| `~person` | everything on your person: you, your own apps, installed gear (+ its apps), carried items (+ their apps). Never the room's contents |
+| `~reachable` | **what you could lay hands on now**: everything you carry, nearest first (a thing in a shut bag or the pack on your back is in the list, and the verb says why a hand cannot get at it), then the place — its ways and their doors, the buildings on its landing — and what stands here, one level into open things, never inside a shut thing there. Your own gear first; you last (a noun names someone else before you) |
+| `~horizon` | what you can see from where you stand that is NOT in your room — structures and craft in view. `~horizon:tower` drills to one; `query ~horizon` lists it. See [expanse.md § Perception at range](./subsystems/expanse.md) |
+| `~buildings` | (of a place) the buildings whose door is at hand from it — `~here:~buildings` |
+| `~all` | everyone on any of your contact lists who is in the world |
+| `~it` · `~him` · `~her` · `~them` · `~last` | what you last named (see Pronouns) |
+
+Most built-ins answer only about YOU: `@abc123:~peers` is empty. `~here`,
+`~inventory` and `~buildings` answer about anything.
+
+**Relations things keep:**
+
+| Ask | The set |
+|---|---|
+| `~friends`, `~foes`, `~<any list>` | the people on that contact list of yours who are in the world (only you can ask your lists) |
+| `~party` | the members of your active party |
+| `~bookclub`, `~<any group>` | your fellow members of a group you belong to |
+| `<a dorm or holding>:~rooms` | its rooms that are in the world |
+| `<a charter book>:~ships` | the ships that book lets |
+| `<a travel card>:~nodes` | the travel nodes it is registered at |
+| `<a phone or implant>:~apps` | the apps installed and running on it |
+
+```
+me:~                      every relation you can ask for, each with a line
+                          saying what it means (`query me:~` prints it)
+~friends:iffy             Iffy, on your friends list, wherever she is
+dm ~all:iffy hi           the same, through any list you keep
+book:~                    what the charter book can be asked for
+```
+
+⭐ `thing:~` **lists; it never names anything.** Only `query` prints the
+list; give it to any other verb and it says to try `query`.
+
+⚠ **A name two of your sets share** — a list and a group both called
+`bookclub` — asks *which?* (*your list, or the group?*). A script never
+asks; the tie is a refusal.
+
+### Query aliases — the bare words that still work
+
+A **query alias** rewrites the first word of what you type into a
+thing slot, when that word is the whole query or is followed by `:`.
+Five ship by default:
+
+| you type | means |
+|---|---|
+| `here` | `~here` |
+| `it` · `him` · `her` · `them` | `~it` · `~him` · `~her` · `~them` |
+
+Each is yours to remove (`alias unset --query here` makes `here` an
+ordinary word again) or to add to (`alias set --query shop
+~here:counter`). `inventory`, `peers` and `reachable` typed bare are
+ordinary keywords. See [shell-alias.md](./subsystems/shell-alias.md).
 
 ### ⭐ Reach is one rule — the nearest thing you perceive wins
 
@@ -195,10 +284,11 @@ can type must not.
 
 | you want | write |
 |---|---|
-| things you can act on | `reachable` |
-| things on your person | `person` · `inventory` |
-| things in the room | `here` · `peers` |
-| people playing right now | `online` |
+| things you can act on | `~reachable` |
+| things on your person | `~person` · `~inventory` |
+| the room, and what is in it | `~here` · `~peers` |
+| people you keep | `~friends`, `~party`, `~<group>`, `~all` |
+| one player anywhere | `@<their id>` |
 | everything under one branch of content | a `/path` glob — `/world/terminus/**` |
 | one thing you know the identity of | `/its/path` or `#id` |
 
@@ -215,16 +305,16 @@ the office and needs no restart. Even for the holder there
 are **no standing `world:` subscriptions**: a subscription re-runs on
 every change and there is nobody to tell.
 
-`reachable` is the closest analogue to "everything I can act on right
-now." It exists as a single token (rather than the union form
-`here, peers, inventory`) because chain `:` binds tighter than `,` —
+`~reachable` is the closest analogue to "everything I can act on right
+now." It exists as a single relation (rather than the union form
+`~here, ~peers, ~inventory`) because chain `:` binds tighter than `,` —
 you need a single token to compose mid-chain.
 
 ### Direction tokens as seeds
 
 Directions (`north`, `up`, `hesper`) aren't a separate seed kind —
 they're barewords, and an exit is an ordinary candidate. Every exit
-the viewer can see is in the `here` pool (and so in `reachable`) as
+the viewer can see is in `~reachable` (the place's ways) as
 **itself**: its `stuff` IS the way, scored by the one scorer over its
 NAME (its direction) and its KEYWORDS. A verb acts on what came back —
 `look` describes the way, `go` crosses it, and a verb that needs a
@@ -251,13 +341,13 @@ alias `n` is `go n`, the word untouched).
 A hidden exit is in nobody's pool until the viewer perceives it
 (`obviousExitsFor(viewer)`, on both the fast and the slow scope paths).
 A verb that acts only on ways says so in its scope with the grammar —
-the movement verbs declare `scope: ["me:e:exits", …]` (the ways out of what holds you — `here` is the place since controller-liquidity W2, and a coach's way `out` is the coach's), so `go hesper`
+the movement verbs declare `scope: ["me:e:exits", …]` (the ways out of what holds you — `~here` is the place, and a coach's way `out` is the coach's), so `go hesper`
 can only mean the way, whatever else answers to the word.
 
 > **Doors and exits aren't the same thing — yet.** A door is a Stuff
 > with its own keywords (`oak`, `iron`, `door`) hung in an exit; an
 > exit is the way through, named by its direction. Both are candidates
-> from `here`: `oak` matches the door, `north` matches the exit, and a
+> in `~reachable`: `oak` matches the door, `north` matches the exit, and a
 > door-verb on the exit (`open north`) reaches the door by MQL's one
 > rule — the bound thing, else the door on a bound way. The
 > boundary build (2026-11) made the door ONE object whose sides are the
@@ -288,10 +378,12 @@ debugging.
 ### ⭐ A SET or a NAME
 
 Every result says how the query asked (`isSet` on `MqlOne`/`MqlMany`):
-a query that **names a set** — a seed (`horizon`, `peers`, `inventory`),
-`them`, a path, `me:i` — is a set; a query that **searches by keyword**
-anywhere in it (`brass`, `horizon:tower`) names things, and only that can
-be ambiguous. A single referent (`here`, `me`, `it`, `#id`) is one thing.
+a query that **names a set** — a relation (`~horizon`, `~peers`,
+`~inventory`, `~friends`), `~them`, a path, `me:i`, `~here:exits` — is a
+set; a query that **searches by keyword** anywhere in it (`brass`,
+`~horizon:tower`) names things, and only that can be ambiguous. A single
+referent (`~here`, `me`, `~it`, `~him`, `~her`, `@id`, `#id`) is one
+thing.
 A verb asks *which?* only about a name; a set, or your own `all` / count,
 is taken as you said it. See [command-spec.md § Who decides how
 many](./subsystems/command-spec.md).
@@ -305,18 +397,18 @@ the right side **is** determines what happens.
 
 A bareword in chain position **filters the current set by that
 keyword**. The candidate space is auto-extended with detail names at
-the current via depth — that's how `here:bookcase:book` works:
+the current via depth — that's how `~here:bookcase:book` works:
 
 | Step | Result |
 |---|---|
-| `here` | (room, no via). Keyword space = room's keywords + top-level detail names. |
-| `here:bookcase` | (room, via=[bookcase]). Detail name "bookcase" matched. |
-| `here:bookcase:book` | (room, via=[bookcase, book]). Child detail "book" matched. |
+| `~here` | (room, no via). Keyword space = room's keywords + top-level detail names. |
+| `~here:bookcase` | (room, via=[bookcase]). Detail name "bookcase" matched. |
+| `~here:bookcase:book` | (room, via=[bookcase, book]). Child detail "book" matched. |
 
 **Chain `:` narrows; it never broadens.** `bookcase:rose` is empty
 because rose isn't a detail of the bookcase. To re-anchor across
 buckets, the verb's YAML declares a fallback chain — the dispatcher
-falls back from `$focus` to `reachable` automatically when the focus
+falls back from `$focus` to `~reachable` automatically when the focus
 chain stops resolving.
 
 ### `:i` / `:I` and `:e` / `:E` — descend / ascend
@@ -342,10 +434,10 @@ me:i:sword        a sword in inventory
 me:e              what immediately holds the giver (the boat, not the river)
 me:E              the root container (walks giver → location → zone → …
                   to the topmost non-null environment)
-here:bookcase:i   child details of the bookcase
-here:bookcase:I   every detail nested anywhere under the bookcase
-here:bookcase:e   pops back to (room, no via)
-here:bookcase:E   pops the whole detail path (same Stuff, no via)
+~here:bookcase:i  child details of the bookcase
+~here:bookcase:I  every detail nested anywhere under the bookcase
+~here:bookcase:e  pops back to (room, no via)
+~here:bookcase:E  pops the whole detail path (same Stuff, no via)
 ```
 
 ⭐ **MQL names; it never decides possibility, and never what you may
@@ -383,7 +475,7 @@ once.
 
 `:i` between detail steps is **redundant**: `:keyword` already
 auto-extends with child detail names at the current depth, so
-`here:bookcase:i:book` ≡ `here:bookcase:book`.
+`~here:bookcase:i:book` ≡ `~here:bookcase:book`.
 
 ### `:predicate` — predicate filter
 
@@ -392,7 +484,6 @@ A reserved predicate name keeps members where the predicate holds:
 | Predicate | Keeps members where |
 |---|---|
 | `living` | object is a Mobile (or has the appropriate "alive" mixin) |
-| `online` | object is connected |
 | `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
 | `here` | object is (or stands in) the giver's place, or is in the vessel the giver sits in |
 | `visible` | a CLASS word: the object presents to the eye (composes Visible). ⚠ Since 2026-11-11 it does not ask whether the giver perceives it — MQL names the same things for everyone, and the verb that shows the result shows only what you perceive (size-and-carrying D23); the scope says *where* |
@@ -402,74 +493,52 @@ A reserved predicate name keeps members where the predicate holds:
 | `held` | object is in hand: in one of a body's hand slots (since 2026-11-12 nothing sits loose on a body — a thing is held, worn, or placed on something worn). A coupe in a rack is not held |
 
 ```
-peers:living              only Mobile peers
-peers:online              only connected peers
+~peers:living             only Mobile peers
 me:i:visible              visible items in inventory
 me:i:worn                 what you are wearing
 me:i:carried              what is in your hands, your pockets, on your belt
 me:i:held                 what is in your hands
-here:i:visible:loose:[not mixin.AdornmentMixin] - me
+~here:i:visible:loose:[not mixin.AdornmentMixin] - me
                           the room as `look` lists it
 ```
 
 Unknown barewords in chain position fall back to the keyword filter —
 predicates are reserved by name match against the published list.
 
-### Seed-shaped chain elements
+### Relations and seeds in a chain
 
-When a chain element is itself a seed (it names a candidate set),
-how `:` combines it with the prior set depends on whether the seed
-has a per-element interpretation:
-
-- **Element-derivable seeds** (`peers`, `reachable`, `inventory`,
-  and the transforms `:i` / `:I` / `:e` / `:E`) **flat-map** over
-  the prior set: for each element `x`, expand to `seed(x)` and
-  union the results.
-- **Fixed-pool seeds** (`me`, `here`, `online`, paths, stuff ids,
-  `$$`, groups) **intersect** with the prior set.
-
-`peers` and `inventory` additionally exclude the prior set from the
-flat-map result (because they cross-pollinate: bob is in joe's
-peers and joe is in bob's, so without the exclusion `(bob, joe):peers`
-would include both). `reachable` does NOT exclude the prior set,
-because its definition includes the focal — you can reach yourself.
-The transforms `:i` / `:e` likewise don't exclude (they descend /
-ascend per element).
+A relation step **flat-maps**: `x:~name` asks each thing in the set to
+its left for its set called `name`, and unions the answers (each thing
+once). A built-in that answers only about you (`~peers`, `~reachable`,
+`~person`, `~all`, …) gives nothing for anybody else; `~here`,
+`~inventory` and `~buildings` answer for anything:
 
 ```
-(bob, joe):peers          everyone in the rooms with bob or joe,
-                          excluding bob and joe themselves. When they
-                          share a room: the room's other occupants.
-                          When in different rooms: union of both rooms,
-                          minus both bob and joe.
-
-(bob, joe):reachable      everything reachable from bob or joe,
-                          INCLUDING bob and joe themselves (reachable
-                          is self-inclusive — you can reach you).
-
-reachable:online          people in the giver's reachable set who are
-                          also online (online is fixed-pool → intersect)
-
-(bag1, bag2):i            union of each bag's contents (each `:i`
-                          flat-maps; transforms have always worked
-                          this way)
+(bag1, bag2):i            union of each bag's contents (the transforms
+                          `:i` / `:I` / `:e` / `:E` flat-map the same way)
+(bob, joe):~inventory     what bob and joe each hold and wear
+~reachable:[class.CharterBook]:~ships
+                          the ships the charter book here lets
+~here:~buildings          the buildings whose door is on this landing
 ```
 
-The split keeps the common cases reading naturally: `:online`
-filters ("of these, which are online?"); `:peers` /
-`:reachable` / `:i` / `:e` extend ("for each of these, give me
-peers / reachable / contents / container").
+A fixed seed mid-chain — `me`, `world`, a path, an id, a group —
+**intersects**: "of these, which are also that?"
 
-**`:members`** is the flat-map for institutions: each prior element
-that is a **Warren** (a dorm, a lot holder, a holding programme —
-anything managing a member set) expands to its **live** members; a
-non-Warren prior element contributes nothing. Live only, deliberately
+```
+me:i:/platform/thing/Sword/*   what you carry that was cloned from a
+                               sword template (a path intersects)
+```
+
+**`:~rooms`** is how an institution's members are reached: a **Warren**
+(a dorm, a lot holder, a holding programme — anything managing a member
+set) answers `~rooms` with its **live** members. Live only, deliberately
 — a query cannot materialize a dormant holding; walk in (or provision)
 first. The keyed-member locator composes it with the `key` / `address`
 atoms:
 
 ```
-/world/terminus/eternal/duncan-hall/idea/dorm-warren:members:[key = '/world/terminus/eternal/duncan-hall/dorms/f1-r3']
+/world/terminus/eternal/duncan-hall/idea/dorm-warren:~rooms:[key = '/world/terminus/eternal/duncan-hall/dorms/f1-r3']
 /world/terminus/hinkley-hills/**[address = 'terminus/hinkley-hills/lot-1']
 ```
 
@@ -478,17 +547,15 @@ from the **path** instead: an institution's rows live under one branch,
 so the path glob is both narrower and cheaper — and it says which
 building you mean, which the class name never did.
 
-A migration note: an older form like `flower:peers` used to mean
-"flowers among the peer pool" (intersection). Under the new rule
-it means "peers of each flower, excluding the flowers themselves"
-(flat-map). To express the old intent, swap the order:
-`peers:flower` (peer pool, then keyword filter "flower"). The
-keyword direction is the more natural shape anyway.
+A migration note: `x:peers`, `x:reachable`, `x:inventory`, `x:online`
+and `x:members` no longer exist as chain steps. Write the relation
+(`x:~inventory`, `x:~rooms`), or — for "the flowers among my peers" —
+keyword-filter the relation: `~peers:flower`.
 
 ### Places and the ways between them
 
-Three element-derivable steps walk the place graph, flat-mapping like
-`:members` (reserved as chain words):
+Three steps walk the place graph, flat-mapping like a relation
+(reserved as chain words):
 
 | Step | From each prior… | Yields |
 |---|---|---|
@@ -497,15 +564,15 @@ Three element-derivable steps walk the place graph, flat-mapping like
 | `:from` | exit | its source place |
 
 ```
-here:exits                    the ways out of where you stand (a set)
-here:exits:north              the north way, by its keywords (`here:exits:n` too)
-here:exits:north:to           the place it leads to — when it is loaded
-here:exits:north:to:exits     that place's ways
-here:exits:hesper:to          her deck, from the quay (her berth way's far side)
+~here:exits                   the ways out of where you stand (a set)
+~here:exits:north             the north way, by its keywords (`~here:exits:n` too)
+~here:exits:north:to          the place it leads to — when it is loaded
+~here:exits:north:to:exits    that place's ways
+~here:exits:hesper:to         her deck, from the quay (her berth way's far side)
 ```
 
 ⚠ The steps NAME things; they do not grant sight. `look
-here:exits:north:to` describes the far place only where `look` would
+~here:exits:north:to` describes the far place only where `look` would
 see it (perception still gates the verb). There is **no reverse step**
 (`:entrances`): what leads INTO a place is the location graph's
 question (`location-graph.md`), never a scan of every exit.
@@ -563,9 +630,9 @@ authored tag — the same vocabulary recipes match stock on
 `ferrous`, `brittle`, `food`, `flammable`).
 
 ```
-peers:[material.metal]                    what here is metal
-reachable:[material.brittle]              …and what would shatter
-peers:[material.ferrous and not material.brittle]
+~peers:[material.metal]                   what here is metal
+~reachable:[material.brittle]             …and what would shatter
+~peers:[material.ferrous and not material.brittle]
 ```
 
 It spans **every part**, not the bulk default: an axe is oak at the haft
@@ -617,7 +684,7 @@ want.
 > or its negation (`[not keyword.X]`) instead.
 
 > **Bareword vs `[keyword.X]` are not the same.** A bareword chain
-> step (`peers:rose`) runs the scored matcher over KEYWORDS (a keyword
+> step (`~peers:rose`) runs the scored matcher over KEYWORDS (a keyword
 > is the phrase > every word a whole word of one > every word begins one
 > > partial; a name is one of the keywords), so it pulls in `rose`,
 > `rosehip`, `rosie`, etc. `[keyword.X]` is the strict boolean —
@@ -669,26 +736,28 @@ distribution algorithm).
 `-` only counts as set-difference when surrounded by expressions that
 parse on both sides. Inside a bareword (`oak-door`) it's a literal.
 
-`(…)` is for explicit grouping — `(peers, inventory):sword` means
-"swords from peers or inventory."
+`(…)` is for explicit grouping — `(~peers, ~inventory):sword` means
+"swords standing here or carried."
 
 Dedup is automatic at every set boundary. `A, A` yields `A` once.
 
-Set intersection has no dedicated character — it falls out of
-mid-chain seed-shaped tokens (when the right side is a fixed-pool
-seed). For element-derivable seeds (`peers`, `reachable`,
-`inventory`), mid-chain is flat-map per element; see the seed-shaped
-chain elements section above.
+Set intersection has no dedicated character — it falls out of a fixed
+seed mid-chain (`me`, a path, an id, a group). A relation mid-chain
+flat-maps instead; see *Relations and seeds in a chain* above.
 
 ## Pronouns
 
-The dynamic pronouns reference the most recent resolved query:
+The pronoun relations reference the most recent resolved query:
 
-- `it` — last single non-living / non-gendered match
-- `him` — last single masculine living match
-- `her` — last single feminine living match
-- `them` — last multi-match
-- `$$` — the entire previous query result (single or multi)
+- `~it` — last single non-living / non-gendered match
+- `~him` — last single masculine living match
+- `~her` — last single feminine living match
+- `~them` — last multi-match
+- `~last` — the entire previous query result (single or multi); `$$` is
+  gone
+
+`it`, `him`, `her` and `them` typed bare work through the default query
+aliases:
 
 ```
 look bob                  bob (a he/him NPC) → him slot updated
@@ -709,8 +778,8 @@ fails)` then `dm him hello` still hits bob.
 
 A pre-parse pass translates common English phrasing into formal MQL.
 **Bypassed entirely** when the input contains any formal-MQL signal
-character (`:`, `[`, `,`, `'`, `{`) — a query that already uses MQL
-syntax is taken at face value.
+character (`:`, `[`, `,`, `'` at the start of a word, `{`, `~`, `@`) — a
+query that already uses MQL syntax is taken at face value.
 
 ### Article stripping
 
@@ -781,6 +850,26 @@ nothing, so it retries as `'first aid kit'` once.
 
 If both interpretations have hits, the ordinal wins.
 
+### Naming what is not a thing in reach
+
+MQL finds things in the world. Many verbs name something else — a
+spell (`cast glow`), a recipe, a formation (`party adopt the wedge`), a
+ship in a charter book, a quay, a reading channel, a chat channel, an
+app not yet installed. Those are named by **the same rule** (the
+engine's `GrammarApi.name`):
+
+- a leading `the` / `a` / `an` is dropped, and a leading ordinal picks
+  (`charter second schooner`);
+- a word matches where a word of the name or a keyword **begins** —
+  never in the middle (`plant` never finds *implant*); plurals answer
+  (`buy loaves`); case does not matter;
+- a quoted phrase must match a whole keyword;
+- ⚠ every word must match: `reef bend` names no knot rather than the
+  nearest one (MQL, by contrast, keeps a partial as a last resort);
+- two equally good answers ask *which?*, listing them (a number picks);
+  nothing at all says *"There is no knot called 'reef bend'. You could
+  name: …"*.
+
 ## Scope and focus
 
 A query is just a search. **Where** it searches comes from the YAML
@@ -794,44 +883,57 @@ resolve. Drilling deeper:
 
 ```
 > look bookcase
-You see a tall oak bookcase…           focus = "here:bookcase"
+You see a tall oak bookcase…           focus = "~here:bookcase"
 
 > look book
-The leather binding…                   focus = "here:bookcase:book"
+The leather binding…                   focus = "~here:bookcase:book"
 
 > look                                 (bare look)
-The leather binding…                   default: $focus → "here:bookcase:book"
+The leather binding…                   default: $focus → "~here:bookcase:book"
 ```
 
 The `focus` command shows or sets your focus directly:
 
 ```
 > focus
-focus: here
+focus: ~here
 
-> focus reachable
-focus: reachable (5 objects)
+> focus ~reachable
+focus: ~reachable (5 objects)
 
-> focus here:bookcase:book
-focus: here:bookcase:book (1 object)
+> focus ~here:bookcase:book
+focus: ~here:bookcase:book (1 object)
 ```
 
-Movement clears focus to `here` so the auto-look on arrival shows the
+Movement clears focus to `~here` so the auto-look on arrival shows the
 new room cleanly.
 
 Verbs that should ignore drill (`get`, `drop`) declare a non-`$focus`
-scope — `drop` searches `inventory` regardless of where you're
-focused, `get` searches `peers`. Inspection verbs use
-`scope: ['$focus', 'reachable']` for drill-first-then-broad fallback.
+scope — `drop` searches `~inventory` regardless of where you're
+focused, `get` searches `~peers` and then `~reachable`. Inspection verbs
+use `scope: ['$focus', '~reachable']` for drill-first-then-broad
+fallback.
+
+How a scope entry becomes the places searched:
+
+- a bare built-in (`~reachable`, `~peers`) searches that built-in's set;
+- an entry that **ends in a relation** (`~reachable:[class.CharterBook]:~ships`)
+  searches exactly what it finds — the ships, nothing else;
+- any other entry (a drilled focus, a path) searches around what it
+  finds — the thing, its details, its contents and ways;
+- an empty scope searches `~reachable`.
+
+A view's own `scope:` and `default:` are written with the relations; your
+query aliases never rewrite them.
 
 ## Cardinality
 
 A YAML field's `type:` decides the cardinality:
 
 - `type: object` — singular. The dispatcher picks the highest-scored
-  match. If two candidates tie at the top score, the first one wins
-  (stable order by insertion). A future prompt stack will turn ties
-  into disambiguation prompts.
+  match; two candidates tied at the top that you could tell apart ask
+  *which one?* (a script refuses instead). See [command-spec.md § Who
+  decides how many](./subsystems/command-spec.md).
 - `type: objects` — plural. The dispatcher returns the full sorted
   list. Multi-cardinality is the type, not a separate flag.
 
@@ -841,8 +943,8 @@ no-match means for its verb.
 ## No permission tiers
 
 Every operator is open to every giver. **Resolving a query is never a
-permission**: `flower:online` resolves for a guest, and `attack
-online:<name>` is then refused because the target is not *reachable*
+permission**: `@abc123:~inventory:flower` resolves for a guest, and
+`attack @abc123` is then refused because the target is not *reachable*
 — the verb's gate, not the grammar's. Mutating verbs check title over
 the target's extent the same way. (The former public / authoring /
 admin tiers, and the `admin` predicate, were removed in content-packs
@@ -854,19 +956,25 @@ Common patterns:
 
 ```
 # All NPCs in the room
-peers:living
+~peers:living
 
 # All keys in inventory matching "rust"
 me:i:rust
 
 # The third sword anywhere reachable
-reachable:sword:[3]
+~reachable:sword:[3]
 
-# Players online in the same room
-peers:online                            (online is fixed-pool, intersect)
+# A friend, wherever she is in the world
+~friends:iffy                           (a relation you keep)
 
-# The room-mates of bob and joe (excluding bob and joe)
-(bob, joe):peers                        (peers is element-derivable, flat-map)
+# A player you know only by id
+@abc123
+
+# What bob and joe are each holding
+(bob, joe):~inventory                   (a relation step flat-maps)
+
+# Every relation the charter book here answers
+query ~reachable:[class.CharterBook]:~  (lists; binds nothing)
 
 # Burnable items I'm carrying
 me:i:[mixin.Burnable]
@@ -897,8 +1005,8 @@ me:i:[prop.hp > 0]                      (comparison
                                          landing via.detailPath when
                                          a detail name matched)
 
-# Things I had drilled on, but specifically the burnable ones
-$$:[mixin.Burnable]
+# What my last query found, but specifically the burnable ones
+~last:[mixin.Burnable]
 
 # Comma-union of heterogeneous seeds
 flower, sword                           (matches both, query-level via undefined)
@@ -907,7 +1015,7 @@ flower, sword                           (matches both, query-level via undefined
 swords - broken                         (swords excluding "broken" matches)
 
 # Grouping for cross-bucket search
-(peers, inventory):rusty                (rusty things in either bucket)
+(~peers, ~inventory):rusty              (rusty things in either bucket)
 ```
 
 ## Limitations
@@ -919,14 +1027,17 @@ Some things MQL deliberately doesn't do:
 - **No direct field access** (`obj.field`). `.` is namespace-only
   inside `[…]`.
 - **No sort operations** (`:sort.X`).
-- **No named groups** (`@@group`).
+- **No ad-hoc named groups** (`@@group`). A named set is a relation
+  something keeps — `~friends`, `~party`, a group you belong to.
 - **No locale support.** Reserved words are English.
 
 ## Cross-references
 
 - [subsystems/mql.md](./subsystems/mql.md) — internals (lexer,
-  parser, resolver, scope-walk, predicate registry, via
-  augmentation, permissions, online provider seam).
+  parser, resolver, the relation table and `RelatingMixin`, scope-walk,
+  predicate registry, via augmentation, permissions).
+- [subsystems/shell-alias.md](./subsystems/shell-alias.md) — query
+  aliases (`alias set --query`).
 - [subsystems/command-spec.md](./subsystems/command-spec.md) — how
   to write a YAML view that uses MQL fields.
 - [subsystems/command-routing.md](./subsystems/command-routing.md) —

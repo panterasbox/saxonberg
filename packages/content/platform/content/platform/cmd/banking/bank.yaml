@@ -73,7 +73,8 @@ subcommands:
     options:
       for:
         short: f
-        type: string
+        type: enum
+        values: [stock, wages]
         description: "What the loan is for: stock (inventory finance, the default) or wages (working capital)."
   book:
     controller: /platform/idea/cmd/banking/BankBookController

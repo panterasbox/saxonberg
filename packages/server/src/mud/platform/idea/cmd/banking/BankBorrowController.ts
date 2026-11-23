@@ -24,7 +24,8 @@ export default class BankBorrowController extends BankControllerBase {
       context.note({ kind: "controller-rejected", reason: "bad-amount", detail: model.amount ?? "" });
       return;
     }
-    const purpose = (model.for ?? "stock").toLowerCase();
+    // `stock` / `wages` — canonicalized by the view (type: enum).
+    const purpose = model.for ?? "stock";
     if (purpose !== "stock" && purpose !== "wages") {
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`A loan is for \`stock\` or for \`wages\`.`).send();
       context.note({ kind: "controller-rejected", reason: "bad-purpose", detail: purpose });

@@ -340,12 +340,37 @@ which is a guard.
 
 ---
 
+## The article when a name is written down, and naming (naming overhaul)
+
+Rendering asks the phrase for its article; two other places used to strip
+one by hand, each its own way. Both have one home in `GrammarApi` now:
+
+- ⭐ **`GrammarApi.withoutArticle(text)`** is the one place a written name
+  drops its leading article (`The Swift` → `Swift`) — for a name being
+  RECORDED or printed bare: a ship's register entry and slug, a company,
+  a field key, a wreck, a coin plural, the bare-form keyword
+  `NamedMixin.getKeywords` and `DocumentKind.keywordsOf` derive (so *the
+  One Ring* answers to `one ring`). `lint:hand-matchers` counts a hand
+  strip anywhere else, and that count is zero.
+- ⭐ **Matching never calls it.** A player's words name a thing that is
+  not runtime Stuff through **`GrammarApi.name(text, entries)`** — it drops
+  the article itself, reads an ordinal, treats a quoted phrase as
+  phrase-tier only, adds plurals, matches only where a keyword word
+  begins, and names nothing on a partial (some words matching nothing);
+  it answers `one` · `tie` · `none`, and `CommandController.named` turns
+  that into the value, a prompt among the entries' titles, or the
+  `no-such-name` refusal. Runtime Stuff in reach is MQL's, scored by the
+  same tiers — see [mql.md](./mql.md) § Match-quality scoring.
+
+---
+
 ## Where the pieces live
 
 | piece | file |
 |---|---|
 | the value object + both vocabularies | `lib/description/NounPhrase.ts` |
 | **building one** (`phrase` · `properPhrase` · `articleFor`) | `api/grammar.ts` |
+| the recorded name (`withoutArticle`) · naming a non-Stuff entry (`name`) | `api/grammar.ts` |
 | `register` | `lib/description/Visible.ts` |
 | `presentationPhrase` · `handlePhrase` · `describeFor(viewer, form)` | `lib/stuff/Stuff.ts` |
 | form resolution on the wire | `api/mml.ts` |

@@ -614,10 +614,12 @@ async function assignRoleImpl(
   const formationPath = party.getFormationPath();
   if (!formationPath) return { ok: false, reason: "no-formation" };
   const roles = formationRolesAt(formationPath);
-  const wanted = role.trim().toLowerCase();
-  if (!roles.includes(wanted)) {
+  // ⭐ A role of the formation's own vocabulary, by the one rule.
+  const named = GrammarApi.name(role, roles.map((r) => ({ value: r, keywords: [r], title: r })));
+  if (named.kind !== 'one') {
     return { ok: false, reason: "unknown-role" };
   }
+  const wanted = named.one;
   party.assignRole(targetId, wanted);
   await persistParty(party);
   return { ok: true };

@@ -13,7 +13,7 @@ export default class StreamChannelController extends StreamControllerBase {
   async execute(model: StreamModel, context: CommandContext): Promise<void> {
     const giver = this.host(context);
     if (!giver) return;
-    const service = (model.service ?? '').toLowerCase() as BroadcastService;
+    const service = (model.service ?? '') as BroadcastService; // canonicalized by the view (type: enum)
     giver.nameChannel(service, model.handle ?? null);
     const playerId = giver.getPlayerId();
     if (playerId) await StreamApi.refreshOverlayReading(playerId);

@@ -56,7 +56,7 @@ interface CallModel extends CommandModel {
 export default class CallController extends CommandController<CallModel> {
   async execute(model: CallModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const wanted = (model.animalName ?? '').trim().toLowerCase();
+    const wanted = (model.animalName ?? '').trim();
 
     if (!MixinApi.isContainable(actor)) return;
     const here = actor.getContainer();

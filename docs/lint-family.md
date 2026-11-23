@@ -1569,9 +1569,15 @@ hail's matchers (signalling-slate), `help search` and `who --country`
 `@internal`.
 
 `lint:controller-resolution` gained the controller half the same day:
-**raw re-reads** (a bound arg's `.raw` outside a refusal, an echo or a
-was-anything-typed test — 35) and **via reads off the declared facets**
-plus lowered model words (49).
+**raw re-reads** and **via reads off the declared facets** plus lowered model
+words. ⭐ Both measure RE-RESOLUTION in the controller — a `.raw` lowered,
+compared or tested here; an undeclared facet read off a bound arg's `.via` —
+never the words handed to the object's own naming method (D-C4) or a whole
+`.via` handed on. **All six counts reached 0 at C7 (2026-11-22)** and hold
+there; the census is now a hard line. Its exemptions are tables in the two
+scripts, each with its reason: the keyword substrate, parsers, name
+validation, prepositions, the binder, uniqueness indexes, hail, searches,
+emote verb keys, and contacts' offline fallback.
 
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 

@@ -234,7 +234,7 @@ export class DocumentApi {
    * inclusive range, `q.order` to read in the key's order (the index serves
    * it), `q.prefix` to stay under one path, `q.limit` to cap. Not a second
    * identity: the path is the only name a document has; this is how it is
-   * FOUND otherwise (`findByKey('release', 'publishedAt', {order: 'desc',
+   * FOUND otherwise (`findByKey('release', 'date', {order: 'desc',
    * limit: 30})` — the press, newest first).
    */
   static findByKey(

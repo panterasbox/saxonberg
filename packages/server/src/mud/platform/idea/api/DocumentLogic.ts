@@ -986,7 +986,7 @@ async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; 
   // substring: a release answers to its headline and its press; newest
   // first over a bounded page, so a word several share calls up the most
   // recent (a tie in date order).
-  const releases = (await findByKeyImpl(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+  const releases = (await findByKeyImpl(RELEASE_DOCUMENT_KIND, 'date', {
     order: 'desc',
     limit: CALL_UP_RELEASE_WINDOW,
   }))
