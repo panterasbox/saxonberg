@@ -79,7 +79,7 @@ function advance(c: Creature, gameSec: number): void {
   while (remaining > 0) {
     const s = Math.min(600, remaining);
     real += (s / SCALE) * 1000;
-    c.getVitalSign("coreTemperature"); // force the lazy reconcile
+    c.reconcileThermalRegulation(); // the body's own wake (organism-biology D17): a read no longer integrates
     remaining -= s;
   }
 }
