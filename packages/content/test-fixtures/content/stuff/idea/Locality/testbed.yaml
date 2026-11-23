@@ -1,0 +1,8 @@
+# The testbed — the Locality of the wire suite's scaffold (test-world-lifecycle
+# D2). ⚠ TEST-ONLY. It claims `testbed`, which the testbed zone authors as its
+# address. A Locality row lives in the commons roster
+# (`TemplatePathRosters.locality`), the Hollow Mere precedent.
+class: /platform/idea/Locality
+data:
+  name: The Testbed
+  _address: testbed

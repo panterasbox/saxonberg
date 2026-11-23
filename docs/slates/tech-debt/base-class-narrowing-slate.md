@@ -503,7 +503,7 @@ real objection rather than the plausible one.
     refuses the walk pace** — and a player who takes `sneak.yaml`'s own
     advice (`set movement.defaultMode sneak`) is stuck in the lounge,
     which is the exact scenario conferring `walk` was meant to fix. Found
-    by `world-scan.dirty.wire.test.ts` step 8 after the master merge; not
+    by `world-scan.wire.test.ts` step 8 after the master merge; not
     fixed in the reachability sweep, because the exits belong to the
     residence/holding substrate and the edge media to the location-graph
     build. ⭐ The likely fix is one line wherever the Warren mints that

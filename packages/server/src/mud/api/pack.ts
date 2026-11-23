@@ -112,6 +112,13 @@ export interface PackManifest {
   boot: PackBootEntry[];
   /** Who maintains it (wave 3); default `{ group: '<id>-maintainers' }`. */
   maintainers: PackMaintainers;
+  /**
+   * ⭐ A test-only pack (`testOnly: true` in `pack.yaml`; default false): the
+   * test suite's own scaffold, installed only in a test environment and
+   * refused, with a boot line, everywhere else. No live pack may depend on
+   * one. See content-packs.md § The manifest.
+   */
+  testOnly: boolean;
 }
 
 /** What the requires phase did for one pack. */
@@ -264,6 +271,8 @@ export interface PackStatusReport {
   packId: string;
   /** Present in this build's `@saxonberg/content-*` deps. */
   discovered: boolean;
+  /** `test-only` when the pack ships in this build but this is not a test world, so it was refused. */
+  refused: 'test-only' | null;
   /** The manifest version (when discovered). */
   manifestVersion: string | null;
   /** `capability` (ships `src/`) or `data`; `null` when neither discovered nor recorded. */

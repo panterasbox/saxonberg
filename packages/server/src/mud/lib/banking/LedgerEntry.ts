@@ -109,6 +109,8 @@ export type PnlCategory =
   | "window"
   | "perpetual"
   | "override"
+  /** The Governor's recorded retirement — the override's inverse (a drain). */
+  | "retire"
   | "advance"
   | "repayment"
   | "interest"

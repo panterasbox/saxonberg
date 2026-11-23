@@ -6,7 +6,7 @@ import { openWorldAs, runCommand } from './helpers';
  * ⭐⭐ **The failure model's live walk** — the half the wire drive cannot see
  * (review question B3).
  *
- * The wire drive (`packages/wire/tests/failure-model.dirty.wire.test.ts`)
+ * The wire drive (`packages/wire/tests/failure-model.wire.test.ts`)
  * asserts the envelope and the prose. This is a real Chromium against the
  * real client: a refusal's sentence as a person reads it, ONCE; a script's
  * stop line once; a misspelled reason's corrected line as a link that runs

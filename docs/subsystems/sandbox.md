@@ -441,10 +441,15 @@ in two. Its reads (`getHolder`, `getInteractives`, `isConnected`,
 `isLinkdead`, `isParked`) are symmetric — the delivery redirect asks
 questions in both directions. Its **writes** (`setHolder`,
 `add`/`removeInteractive`, `onConnectionAttached`/`Detached`,
-`onLinkdead`, `onLinkRestored`) are exempt only when the context is
+`onLinkdead`, `onLinkRestored`, and `setLeaveIntent` — the close code
+`onLinkdead` consumes) are exempt only when the context is
 FIELD and the receiver is circle-scoped: the engine reaching *into* a
 circle, which the crossing genuinely needs (a socket closes in field
-context while its holder is a vessel).
+context while its holder is a vessel). ⚠ `setLeaveIntent` was missing
+until test-world-lifecycle (2026-11-20): a body that disconnected INSIDE a
+circle threw an uncaught SecurityError out of the socket's close handler
+and exited the server — found by the first drive that could reach a
+circle door from the test scaffold.
 
 The reverse is never needed and was a hole. These are `@hook` methods —
 public and deliberately **ungateable**, since a subclass's

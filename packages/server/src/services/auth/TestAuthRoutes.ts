@@ -325,6 +325,24 @@ export class TestAuthRoutes {
         });
     });
 
+    // ⭐ Purge what wire runs left (test-world-lifecycle D4): the wire
+    // runner calls it when a run starts (a crashed run's leftovers) and
+    // before it stops the world. Inside the world, because a kept world's
+    // caches (bodies, the group cache, balances, the roster) would re-write
+    // a delete made underneath them.
+    app.post('/auth/test-purge', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      TestHooks.purgeLitter()
+        .then((report) => res.json(report))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-purge failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     // ⭐ Stage an outage (failure-model D8): the next N record reads or
     // writes fail as a lost connection would.
     app.post('/auth/test-datastore-fail', (req: Request, res: Response) => {

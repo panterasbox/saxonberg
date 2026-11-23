@@ -1060,7 +1060,7 @@ its boundary's number; a shut vessel drops its synthesized `out` from the
 walks. Review round 1 (owner): the opening and the edge rules are the WAY's
 and hold for every way, and the `track` kind was added for the sparse
 country (67 ways swept to 0). Verified by the blocking drive
-`packages/wire/tests/boundary.dirty.wire.test.ts` (5/5) and the browser walk
+`packages/wire/tests/boundary.wire.test.ts` (5/5) and the browser walk
 `e2e/tests/boundary-walk.spec.ts` (3/3), which found `map` crashing on a
 deferred way (fixed in `Perceiver`). Left: the gangway as a minted boundary
 and the rest of [boundary-slate](../slates/engine/boundary-slate.md).

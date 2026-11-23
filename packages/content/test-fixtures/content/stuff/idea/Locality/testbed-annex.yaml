@@ -1,0 +1,6 @@
+# The testbed annex — the second Locality (test-world-lifecycle D2), nested
+# under the testbed's address. ⚠ TEST-ONLY.
+class: /platform/idea/Locality
+data:
+  name: The Testbed Annex
+  _address: testbed/annex

@@ -1,0 +1,21 @@
+# The testbed greeter — a `host` seat on the venue's roster every day around
+# the clock, stationed on the plaza (test-world-lifecycle D2).
+# ⚠ TEST-ONLY.
+class: /platform/agent/Extra
+data:
+  keywords: [greeter]
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: greeter
+  register: indefinite
+  longDescription: |
+    A person standing by the noticeboard who greets whoever passes.
+  # ⭐ The crowd drives count these: each arriver is greeted once, and
+  # nobody is greeted when nobody arrives. Stationary — no wander or
+  # errand brain (the general store's clerk is the exemplar of the spec).
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Welcome to the testbed."

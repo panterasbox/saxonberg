@@ -1,0 +1,62 @@
+# The testbed venue — the hall's Business, which also keeps the shop
+# (test-world-lifecycle D2; the lounge's Business and the general store's
+# `hand` seat are the exemplars). Three positions carrying the three hiring
+# criteria — none (`host`), completed gigs (`hand`), a competence band
+# (`attendant`) — and each with a spare seat a player can apply for. The
+# host, the attendant and the greeter are rostered every day around the
+# clock so they are always at post. Stands up lazily off
+# `operatingLocations`. ⚠ TEST-ONLY.
+class: /platform/idea/Business
+data:
+  name: "the testbed hall"
+  appointingAuthority:
+    kind: committee
+    parcel: /world/testbed
+  positions:
+    # No criterion: anybody may take the spare seat.
+    - key: host
+      noun: host
+      label: hosting the testbed hall
+      wageRate: 4
+      headcount: 3
+    # Two completed gigs — the newcomer's rung (the general store's `hand`).
+    - key: hand
+      noun: hand
+      label: hauling and shelving for the testbed shop
+      wageRate: 4
+      headcount: 1
+      requires:
+        gigs: 2
+    # A competence band.
+    - key: attendant
+      noun: attendant
+      label: working the testbed shop counter
+      wageRate: 5
+      headcount: 2
+      requires:
+        discipline: retail-sales
+        band: novice
+  rosterSlots:
+    - positionKey: host
+      assignee: /world/testbed/agent/host
+      station: /world/testbed/building/location/hall
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+    - positionKey: host
+      assignee: /world/testbed/agent/greeter
+      station: /world/testbed/location/plaza
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+    - positionKey: attendant
+      assignee: /world/testbed/agent/attendant
+      station: /world/testbed/building/location/shop
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: testbed-bank
+  operatingLocations:
+    # ⚠ Both the counter and the room it stands in (the general store's
+    # precedent): a sale settles at the counter's path, a supplier is found
+    # by its counter's room.
+    - /world/testbed/building/location/hall
+    - /world/testbed/building/location/shop
+    - /world/testbed/thing/counter

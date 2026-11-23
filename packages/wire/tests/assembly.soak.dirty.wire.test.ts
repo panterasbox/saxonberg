@@ -46,11 +46,9 @@ import {
   expectOk,
   advanceWorldClock,
   isOwnedTestWorld,
+  restartWorld,
 } from '../src/harness';
-import { spawnSync } from 'child_process';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { bootOwnedWorld, WIRE_PORT, WIRE_LOG } from '../src/runner/boot';
+import { WIRE_LOG } from '../src/runner/boot';
 import { copyFileSync } from 'fs';
 
 export const DIRTY_REASON =
@@ -689,12 +687,7 @@ suite('⭐⭐⭐ drive 1 — a made, mended thing survives a restart (AC 1)', ()
     } catch {
       /* no log to keep */
     }
-    const serverDir = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'server');
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
 
     const back = await Session.open(handle, { startLocation: SAWMILL });
     try {

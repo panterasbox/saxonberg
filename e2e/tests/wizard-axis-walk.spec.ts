@@ -6,7 +6,7 @@ import { openWorldAs, runCommand } from './helpers';
  * ⭐⭐ **The wizard-axis cleanup's live walk** — the half the wire drive
  * cannot see (review question B3).
  *
- * The wire drive (`packages/wire/tests/wizard-axis.dirty.wire.test.ts`)
+ * The wire drive (`packages/wire/tests/wizard-axis.wire.test.ts`)
  * asserts the envelope. This is a real Chromium against the real client:
  *
  *  - ⭐ a newcomer is moved in by Katie through the choice wheel a person

@@ -250,6 +250,18 @@ export class CompactApi {
   }
 
   /**
+   * TEST-ONLY: clear an office's explicit holder — the same write
+   * `vacateOffice` makes (the seat reverts to the founder default), for the
+   * wire purge (test-world-lifecycle D4), which returns the seats a run's
+   * characters were given with `offices:`. The mirror of
+   * {@link assignOfficeForTest}.
+   */
+  @TestOnly("Vacate a seat with `office vacate <office>` as the founding authority.")
+  public static async vacateOfficeForTest(officeKey: string): Promise<boolean> {
+    return logic().vacateOffice(officeKey);
+  }
+
+  /**
    * HMR seam: drop the cached OfficeRegistry pointer so the next call
    * re-resolves. Registry state itself is unaffected.
    * @internal

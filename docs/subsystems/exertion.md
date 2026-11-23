@@ -266,7 +266,7 @@ own slate at 14.
   gym.yaml`, `trade-smithing/…/barbell.yaml` + `recipes/barbell.yaml`,
   the ten `trade-farming` fruit rows, `trade-baking/…/wholemeal-loaf.
   yaml`, rejection's `winze-ladder` + `winze-foot`
-- the drive: `packages/wire/tests/nutrition-fitness.dirty.wire.test.ts`
+- the drive: `packages/wire/tests/nutrition-fitness.wire.test.ts`
 
 ## History
 

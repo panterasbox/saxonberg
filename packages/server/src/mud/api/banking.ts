@@ -265,6 +265,21 @@ export class BankingApi {
   }
 
   /**
+   * ⭐ The Governor's recorded retirement — the override's inverse: `amount`
+   * from `fromAccountId` back to the reserve (a `drain`, category `retire`,
+   * memo the reason, actor the officer from context), so the money supply
+   * falls by it. Refuses an empty reason; throws `Refusal('retire-over-balance')`
+   * — posting nothing — when the account holds less than `amount`.
+   */
+  public static async retire(
+    fromAccountId: string,
+    amount: Money,
+    reason: string,
+  ): Promise<void> {
+    return logic().retire(fromAccountId, amount, reason);
+  }
+
+  /**
    * The Minister of Finance spends: an `appropriation` leg to `toOwnerKey`'s
    * primary account. The perpetual rule reconciles first; refuses below
    * balance. Returns the transaction id.
