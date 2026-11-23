@@ -258,14 +258,61 @@ them.
   `BehavedMixin` hosts (not a player, a `Livestock` or a bare `Creature`).
   Respiration's crisis drain is a `SchedulerApi` engagement and needs
   `EngagedMixin` (`Respiration.ts:787`), which `Livestock` lacks. The one
-  shipped tick that walks **every** resident object is the residency sweep:
+  shipped pass that walks **every** resident object is the residency sweep
+  (real-time, and presence-scoped — not used; see the wake shape below):
   `ResidencyLogic` (`/platform/idea/api/residency`) runs a
   `ScheduleApi.recurring` pass that refreshes presence
   (`presenceWalkImpl()`) and then walks `StuffApi.getAllObjects()` asking
   each cold-tail object `canEvict` (`docs/subsystems/residency.md` § *One
   sweep*). The subsystem's own title is *object self-maintenance sweeps*.
 - `docs/slates/engine/respiration-slate.md` § 2 records the same defect for
-  air: *a body standing still is never re-checked* (the in-place trigger).
+  air and is **[DECIDED]**: the medium change fans out from the setter
+  (`Atmospheric.setAtmosphere` → every respiring occupant one containment
+  level deep gets a `reassess()`), *"not a scheduler, not a poll"*.
+- ⭐ **The shipped shape for state that advances with nobody reading is a
+  persisted game-clock wake** (crowded-rooms D8; `docs/subsystems/mould.md`
+  § *When a set advances*; `docs/antipatterns.md` § *A read the room makes
+  for everyone that changes the world*): a thing banks at its own changes
+  and arms `wakeAtS` (persistent, `runtimeState`) through
+  `WorldClockApi.at(…, { tag })` for when its next change is due, never more
+  than `MOULD_SET_STEP_S` (one game hour, a constant) away; a restart
+  re-arms and a wake already past fires at once. `MouldMixin.wakeAtS`
+  (`lib/mould/Mould.ts:392-435`) and `ThermalMixin.liquorWakeAtS`
+  (`lib/thermal/Thermal.ts:706-740`) are the two instances. The residency
+  sweep is **not** this: it runs on real time and its presence walk makes
+  the world depend on who is watching.
+- Castration's host act exists: `operate <patient> [for <operation>] [with
+  <kit>]`
+  (`packages/content/trade-medicine/content/trade/medicine/cmd/medical/operate.yaml`).
+  `patient` is `type: object`, `scope: reachable`, `requires: VitalsMixin`,
+  which every `Creature` composes — so the gate already admits livestock
+  and kept animals. Operations are documents in
+  `packages/content/trade-medicine/content/operations/`
+  (`lib/vitals/Operation.ts`); `amputation.yaml` is `resolution: severance`
+  with `addresses: { flag: unsalvageable }`, and `OperateController` (`:146`)
+  severs the matched part. Three things in the shipped path do not fit a
+  healthy animal: `addresses` can only name a wound or the `unsalvageable`
+  flag; the controller requires the patient **lying** (`:83-89`); the kit's
+  default MQL names `capability.surgery`.
+- **Every daylength band authored today** (grep `daylightFrom`): six
+  `Species.breeding` blocks (pig, goat, sheep, cattle, dog, hen); two
+  `photoperiod` tap windows (the ewe's milk 0.46–0.62, the hen's eggs
+  0.45–1); three `weather` tap windows (birch, pine, hevea) and the maple's
+  optional `freeze-thaw` band. Their evaluation is written twice:
+  `Species.breedsAtDaylight` (`Species.ts:1600`) and `Producing`'s `inBand`
+  (`:465-510`).
+- Names: `Species.commonNames` and `Species.maleNames` exist, and
+  `Livestock.answerToSpecies` (`Livestock.ts:397`) **stamps** keywords and
+  the short description onto a head at draft, so a stamped calf can never
+  come to answer to *ox*. `build/naming-overhaul`'s plan does not mention
+  `maleNames`, `commonNames` or a species rung (grep of its plan); its WC5
+  makes holders name their own entries (`HerdRegistry.ts:367`) and stops
+  cloning exemplars to read keywords in `Butcherable.ts:292`.
+- A traverse has no duration to scale (the audit: `crossingRealS` is 0 for
+  a step; `LoadBearing.ts:25` calls pace a non-goal). Its cost is
+  `ExertingMixin.traversePowerW` (`lib/exertion/Exerting.ts:497`).
+- Q10 at a 283 K core already gives about 0.08 of the basal rate
+  (`Metabolic.ts` ~326, ~1990).
 
 ### Persistence, tools, gates
 
@@ -318,11 +365,16 @@ them.
   row's tags.
 - `Creature.getMass` (`lib/creature/Creature.ts:893-960`) seeds its frame
   once; the exact write site D8 changes was not read line by line.
-- What exactly `ResidencyLogic.presenceWalkImpl()` counts as present, and
-  the sweep's period. D17 depends on both; W6b reads them first.
-- The crowded-rooms cost figures. The planner did not find them in
-  `docs/subsystems/`; D17's cost risk is stated without numbers and W6b
-  measures.
+- `WorldClockApi.at`'s exact signature and cancel shape (taken from the
+  mould's use, not read), and that `testharness clock-advance` fires due
+  wakes (the coordinator's statement).
+- The length of a game hour in real time, so D17's per-body wake cost is
+  stated as a count, not a rate; W6b measures.
+- Whether a player can make a handled calf lie down, which decides whether
+  castration's `posture: any` is needed or merely kinder (D8).
+- The `ToolMixin` capability a stockman's knife offers (D8's `instrument`).
+- How `lint:closed-vocabularies` wants a new closed tuple declared.
+- Which rows, if any, author `respires: false`.
 - The exact count of 91 species rows (the planner counted 87 naming
   `class: /platform/idea/species/Species` plus rows under other spellings).
 
@@ -347,21 +399,22 @@ header sentence · P14: nothing moves or decides invisibly).
 | S6 | `BodyPartDelta` gains `lostAtAgeDays`, `sealed`; `VitalsMixin.lostParts` (an authorable instruction field: a row may author a body that arrives already missing a part) | *part states* — generalize the delta | P9 n/a. P13 the delta is *what differs on this instance*. P14 regrowth happens at the body's own reconcile and `look` words it. |
 | S7 | `ConditionApi.sever(body, partKey, cause)` → `ConditionLogic` (sever, mint, place), a `subtree` option on `mintCorpseFrom`, and `Corpse.subtree` | *severed part* — generalize the corpse | P9 n/a. P11 none: the one sever entry for every caller. P12 replaces direct `severPart` calls; `severPart` becomes its participant-gated half. P13 `Corpse` is *a body without agency*; a part of one is the same thing. P14 the part lands in the body's own place by `ContainmentApi.move`, and the room is told. **No new class**, but not free: D7 lists what the mint and the corpse's readers must learn. |
 | S8 | `TissueMixin.comesOffAs` (a tissue material names the rows it leaves a carcass as) | *cut maps* — generalize | P9 n/a. P10 a field on existing material rows. P11 none. P12 replaces `Species.butcheryYield`, deleted. P13 the header is *it came from a living thing*. |
-| S9 | Flaw kinds `pierced`, `slashed`, `scorched`, `nicked` and `Flaw.site` on `FlawedMixin` | *integument as pelt* — generalize hide → pelt | P9 `look` words them. P12 `holed` stays the hull's. P13 the header is *the flaws a body carries*. **No new mixin.** |
-| S10 | **Phenology**: `Species.phenology: [{ condition, trigger }]` (a field) and `VitalsMixin.reconcilePhenology()` (the trigger evaluation, called from the thermal cascade where torpor is decided). Seven new **Condition rows** in the platform pack | *body states* — **generalize** `Condition`: a state is a condition; the new piece is what brings one on and clears it by daylength, core temperature, sex, stage or an event. (The ledger called this genuinely new; grounding found `thermal/torpor.yaml` already is one.) | P9 `look` shows `observableSigns`, `assess` names the condition, `help milk` names lactation. P10 rows of the shipped `Condition` Idea; no new class, kind or catalogue. P11 none. P12 no second state model: every onset and clear is the shipped `afflict` / `relieve`. P13 `VitalsMixin` owns conditions; `Species` owns what a kind of body does on a schedule. P14 a condition comes on only at the body's reconcile or by a named act, and its signs are visible. |
-| S10b | Three read-only **`VitalEffect` kinds**: `metabolism` (a factor on basal drain), `pace` (a factor on traverse time), `temper` (a delta on the handling read) | *body states* — extend the effect channel (`Condition.ts:755`), beside `clearance`, which is already a read-only factor with one reader | P9 n/a. P10 n/a. P11 none. P12 this is the answer to *is it a new name for an existing call*: they are three more members of the one effect union, read the way `clearance`, `sedation` and `analgesia` are, not a parallel mechanism. P13 the union is *what a condition does*. P14 read, never integrated. |
+| S9 | Flaw kinds `slashed`, `burned`, `nicked` and `Flaw.site` on `FlawedMixin`; a puncture is the shipped `holed` | *integument as pelt* — generalize hide → pelt | P9 `look` words them. P12 no `pierced`: a hole is `holed`, with its one leak rule (a holed skin makes a leaking waterskin, for free). P13 the header is *the flaws a body carries*. **No new mixin.** |
+| S10 | **Phenology**: `Species.phenology: [{ condition, trigger }]` (a field), `VitalsMixin.reconcilePhenology()` (the trigger evaluation) with its persisted wake `phenologyWakeAtS`, and eight new **Condition rows** in the platform pack | *body states* — **generalize** `Condition`: a state is a condition; the new piece is what brings one on and clears it by daylength, core temperature, sex, stage or an event | P9 `look` shows `observableSigns`, `assess` names the condition, `help milk` names lactation. P10 rows of the shipped `Condition` Idea; no new class, kind or catalogue. P11 none. P12 no second state model and **no new effect kind**: every onset and clear is the shipped `afflict` / `relieve`, every effect a shipped `VitalEffect`. P13 `VitalsMixin` owns conditions; `Species` owns what a kind of body does on a schedule. P14 a condition comes on only at the body's own wake, its own change, or a named act. |
 | S11 | `Species.variants` (sex, stage, then neutered deltas), `Species.development` (plan and name per stage), `Species.pays` | *sex, age*, *metamorphosis*, *square-cube check* | P9 n/a. P10 fields on existing rows. P13 species facts. Each has a reader outside `Species.ts` in the wave that adds it (`lint:unconsumed-seams`). |
-| S12 | `castrate` verb (view + controller in `trade-ranching`), `HeadOverlay.castratedAtAgeDays`, `Herdbook.neuteredFraction`, an optional `to <book>` on the shipped `return` | *reproductive states, castration* | P9 one view, one word, no options; `help` says what it does and when it refuses; `return … to <book>` is an arg in the def. P11 none. P12 new act. P14 the animal decides (`castratePlan`). |
+| S12 | **Castration as an operation**: `packages/content/trade-medicine/content/operations/castration.yaml`; three optional fields on the operation document (`addresses.part`, `season`, `posture`); `HeadOverlay.lostParts`; `Herdbook.neuteredFraction`; the `herd enter` view | *reproductive states, castration* | P9 `operate <animal> for castration` is the shipped def and its help lists operations by word; `herd enter <animal> in <book>` says what it does. P10 the operation is a document. P11 none. P12 **no `castrate` verb**: a second operation is a file. P13 an operation document is *what an operation is*. P14 the body answers every refusal. |
 | S13 | `Silkworm` (class in `trade-sericulture/src/agent/`, **on `Creature`**, as `Livestock` is — not `Beast`, which is a deliberating `Actor`) and `LarvalClock` (value object in its `lib/`, extracted from `RearingMixin`) | *metamorphosis* — the tray becomes the compression (ranching D19) | P9 `put`/`get` on a tray, as today. P12 none. P13 one clock, two holders. P14 see D10: the exemplar is content you can see, and it is minted only by an act (`put`, `get`), never by a read. |
 | S14 | `lint:scaling` (`packages/server/scripts/check-scaling.ts`) | *square-cube check* — **genuinely new** gate (`lint:anatomy` is structural only) | n/a for P9–P14 beyond P3: it never refuses a creature, it fails a row over a limit with no `pays`. |
-| S15 | `testharness` subcommands `body`, `body-age`, `body-sex`, `body-wound`, `body-sever`, `body-kill`, `body-wet`, `keep-current`, `carcass`, `daylight-pin`, `daylight-unpin` | staging tooling this build owes | P9 test-world only; `help testharness` documents each; hyphen compounds, never a nested subcommand (the `clock-advance` / `weather-pin` shape). P12 the shipped `afflict` stages every condition (its target widened from a named character to any body, and stage `0` relieves); `body-wound` is part-level. There is no state tool. No `isWizard` check (`requiresTestWorld`). |
-| S16 | **`Stuff.keepCurrent()`** — an `@hook` (default no-op) the residency sweep calls on every **present** object, and the sweep's second pass that calls it. Implementers in this build: `ThermalRegulationMixin` (the thermal reconcile, with torpor's cascade and phenology), `RespirationMixin` (the in-place re-check of the medium), `RearingMixin` and `Cocoons` (the exemplar worm and the moth) | *body states* / *metamorphosis* — **generalize** the shipped sweep (`ResidencyLogic`), whose stated job is object self-maintenance and whose one question today is `canEvict` | P9 n/a. P10 n/a. P11 none: the sweep asks every object the same question. P12 not a second scheduler and not a new reconcile: each implementer calls the reconcile it already has. P13 the sweep is *self-maintenance*; eviction was its first use. P14 this is what makes a change visible without a read: it happens on the tick, and the room is told what `afflict` already tells it. Four implementers, so it is a hook and not a method in the wrong place. |
+| S15 | `testharness` subcommands `body`, `body-wound`, `body-sever`, `body-kill`, `body-afflict` (replacing `afflict`), `daylight-pin`, `daylight-unpin` | staging tooling this build owes | P9 test-world only; `help testharness` documents each; hyphen compounds, never nested. P11 `type: object` targets, `enum` words, reason rows. P12 plain setters are **not** subcommands (they go through `/auth/test-stage`); `carcass` is not one (`clone` + a setter + `body-kill`); `afflict`'s name matcher is replaced, not widened. No `isWizard` check. |
+| S16 | **Game-clock wakes**: `ThermalRegulationMixin.thermalWakeAtS`, `VitalsMixin.phenologyWakeAtS`, and (pack) wakes on `RearingMixin` and `Cocoons`; the setter fan-out `Atmospheric.setAtmosphere` → occupants' `reassess()` | *body states* / *metamorphosis* — **reuse** the shipped wake shape (`MouldMixin.wakeAtS`, `Thermal.liquorWakeAtS`) and build respiration-slate § 2 **as decided** | P9 n/a. P10 n/a. P11 none. P12 the third and fourth instances of one shape, not a scheduler, a sweep or a hook. P13 each wake sits beside the state it advances. P14 this is what makes a change happen with nobody reading, on the world's clock, the same whoever is watching. |
+| S17 | **`DaylengthBand`** — one value object (`lib/time/DaylengthBand.ts`): `{ from, to, rising? }`, `holds(fraction, rising)`, `nextBoundaryAfter(t, profile, latitude)` | *part states* (the ledger's *calendar windows*) — **generalize** the two shipped evaluators (`Species.breedsAtDaylight`, `Producing`'s `inBand`), both deleted | P9 n/a. P10 a value class; bands stay authored where they are facts. P12 replaces two copies of one sentence. P13 one concept. P14 pure. |
 
-Explicitly **not** new: **no mixin at all**, no new timer or scheduler
-entry (D17 adds a pass to a shipped sweep), no Api (one static on
-`SpeciesApi`, one on `ConditionApi`), no logic singleton, no collection, no
-hook, no registry, no pelt class, no severed-part class, no integument
-mixin, no body-state model. One document kind (`body-module`).
+Explicitly **not** new: **no mixin at all**, **no hook**, no new verb for
+castration, no new `VitalEffect` kind, no timer or sweep, no Api (one static
+on `SpeciesApi`, one on `ConditionApi`), no logic singleton, no collection,
+no registry, no pelt class, no severed-part class, no integument mixin, no
+body-state model. One document kind (`body-module`), one value object for
+daylength, one new view (`herd`).
 
 P1's second half — *is the specific one gone?* — per generalization:
 `BodyPlan.bodyParts` as an authored field, `sensoryPorts`, `locomotionModes`,
@@ -511,14 +564,19 @@ tissue (it has a weight and is in the sum); `coat` and `under` are optional.
    The bare-skin wording reads the integument's material. `Faced` is **not**
    composed on creatures (tattoos are a non-goal).
 3. **Pelt.** D5.
-4. **Insulation.** `Attired.insulationAt(part)` adds the coat's clo by the
-   garment's own law (`thickness / k_eff / R_CLO`, `k_void` through
-   `material.wetProperty` with the **body's** wetness). The coat's depth is
-   `depthM × cycle factor × standing fraction`, where the standing fraction
-   is `standingIn(key) / capUnits` when the coat is also a producer (the
-   fleece) and 1 otherwise. Skin alone contributes nothing, so persons are
-   unchanged. `ThermalRegulation` needs no edit: it already reads
-   `bodyInsulation()`, and it already runs for every animal.
+4. **Insulation.** The coat is counted **outside `Attired`**, whose header
+   is *a body with clothes on it*. `ThermalRegulationMixin` sums worn clo
+   and integument clo at its three read sites (`:186`, `:214`, `:380`):
+   `bodyInsulation()` as shipped, plus a private `coatInsulation()` that
+   walks the body's exterior parts by surface share — the way natural armor
+   joins the stack in `resolveCoveringStack`, not inside the wearer's walk.
+   The coat's clo follows the garment's own law (`thickness / k_eff /
+   R_CLO`, `k_void` through `material.wetProperty` with the **body's**
+   wetness). Its depth is `depthM × cycle factor × standing fraction`,
+   where the standing fraction is `standingIn(key) / capUnits` when the
+   coat is also a producer (the fleece) and 1 otherwise. Skin alone
+   contributes nothing, so persons are unchanged. `ThermalRegulation`
+   already runs for every animal.
 
    *What makes "the shorn sheep reads colder" observable:* shearing empties
    the fleece's standing, the coat term falls, the low band narrows, and
@@ -598,20 +656,29 @@ do not scale with condition). `maxAgeDays` (the vell) becomes a stage delta:
 the calf's abomasum is a part of the `newborn` variant only. Stage deltas
 exist from W2, so the vell never lacks a home.
 
-**The pelt** is the line whose claim is the integument. `butcher <carcass>
-for pelt` works through the existing `for <word>` match (the hide, feathers,
-scales and carapace rows carry `pelt` as a keyword beside their own word, so
-`for feathers` works too). One pelt comes off, with:
+**The integument is the first line of every carcass.** A bare
+`butcher <carcass>` takes it before any cut. `butcher <carcass> for <word>`
+takes the one line that word names, and each coat answers to **its own
+word**: only the hide row answers to `pelt` (and `hide`, `skin`); the
+feather row answers to `feathers`, the down row to `down`, the scales to
+`scales`, the carapace to `carapace` and `shell` to `shell`. A hen's
+`for feathers` takes the feathers and leaves the down; nothing is tied, so
+nothing prompts. `lint:anatomy` gains a clause: within one body's lines no
+two rows share a word. The word is read off the **row** (naming-overhaul WC5
+removes the exemplar keyword clone at `Butcherable.ts:292`; W5 builds on
+whichever is on master after its merge and adds no second lookup).
 
-- a flaw per wound: every trauma on an exterior part whose mechanism is
-  `edge`, `point`, `heat` or `corrosion` becomes `slashed`, `pierced` or
-  `scorched` with `site` = the part;
+One skin comes off, with:
+
+- a flaw per wound on an exterior part, by mechanism: `point` → the shipped
+  **`holed`**; `edge` → `slashed`; `heat` **and `corrosion`** → `burned`
+  (a caustic burn is a burn to a tanner: the grain is gone either way);
+  `blunt` and the rest mark nothing. Each carries `site` = the part;
 - **the skinner's hand**: skinning is one more line with a difficulty
   (`standard`); a hand below `handFor(difficulty)` adds one `nicked` flaw per
   missing band, on the largest parts first — derived, never rolled;
-- **pelt before cuts**: a cut taken from a part whose integument is still on
-  adds a `slashed` flaw there when the pelt is later taken. A bare
-  `butcher <carcass>` takes the pelt first.
+- **skin before cuts**: a cut taken from a part whose integument is still on
+  adds a `slashed` flaw there when the skin is later taken.
 - the coat's depth at death (D7's cycle, read at `diedAtGameSec`) stamped as
   the pelt's grade, so the winter pelt is the better pelt.
 
@@ -676,7 +743,7 @@ governor or every sustainer missing*). `assess` shows it, as it shows
   (`ConditionLogic.ts` ~784–880) stamps *the body of X*, `ofIdentityPath`,
   the whole mass and the whole body's keywords, and every corpse reader sees
   the whole plan. With `subtree` it must:
-  - word the short and long description from the species' `called` name and
+  - word the short and long description from the body's common name (D8) and
     the part (*a wolf's foreleg*), and stamp keywords for the part, not the
     body;
   - set mass to the subtree's share of the body's mass;
@@ -693,188 +760,233 @@ governor or every sustainer missing*). `assess` shows it, as it shows
   The whole body's own corpse, minted later, already inherits the missing
   foreleg through the Anatomy slice.
 - **A body may arrive already missing a part.** `VitalsMixin.lostParts:
-  [{ part, atAgeDays, sealed? }]` is an authorable instruction field (the
-  applier's phase 2, `applyLostParts`) that calls the delta half. It is how
-  `ox.yaml` authors its castration and how a herd replays one (D8). It never
+  [{ part, atAgeDays, sealed? }]` is an authorable **`seed`** field
+  (`fieldMeta` `seed: true`, the applier's phase 3): it runs **at mint
+  only** and calls the delta half. On a restore the persisted
+  `bodyPartDeltas` are the truth and `lostParts` is not replayed, so a claw
+  that regrew is not severed again by its own row. It is how `ox.yaml`
+  authors its castration and how a herd replays any loss (D8). It never
   mints a part or a wound.
+- **Closed lists.** `sealed` (`heat`, `corrosion`), `fill`, `gait` and the
+  flaw kinds are closed tuples; W3, W5 and W6 declare each the way
+  `lint:closed-vocabularies` requires (read the gate first).
 
-### D8. Variation: sex, castration, age, reproductive states
+### D8. Variation: sex, castration, age, reproductive conditions
 
 - **`Species.variants`** (sex and stage in W2; `neutered` in W7):
-  `sex.<sex>`, `neutered`, and `stage.<stage>`, each
-  a delta (`add` modules, `scale` modules, `massFactor`, `integument`
-  overrides, `temper` deltas on `biddability` and the handling range, and
-  per-variant `called` names: *bull*, *cow*, *steer*, *ox*, *heifer*,
-  *calf*). `species.bodyFor({ stage, sex, neutered })` memoizes one `Body`
-  per key.
-- **Castration is a sever.** The male delta adds a `gonads` part.
-  `castrate <animal>` (trade-ranching) asks `animal.castratePlan(by)`, which
-  refuses a female, an animal with none, an unhandled animal (the existing
-  handling read) and one out of season for it (flies: the daylength band on
-  the species' `neutered` delta), then calls `ConditionApi.sever` on the
-  gonads with a risk the hand sets (a laceration whose severity falls with
-  stockmanship — derived). **`neutered` is derived**: male, gonads missing,
-  and `lostAtAgeDays < matureAt`. No new field on the organism.
-- **The arg gate** is `handle`'s: the `animal` arg requires `HandlingMixin`
-  (per `handle.yaml`). The controller then refuses anything that is not a
-  `Livestock` in its own words, copying `BreedController.ts` ~61, and asks
-  the animal.
-- **The herdbook** records it: `HeadOverlay.castratedAtAgeDays`. ⚠
-  `mintHead` replays it through the **delta half only** (`lostParts` /
-  `severPart`), never `ConditionApi.sever` — the full sever would mint a
-  fresh pair of gonads on the floor and a fresh wound at every draft.
-  `Herdbook.neuteredFraction` (default 0; the ox book authors 1) seeds
-  founding stock through `HeadSeed`, replayed the same way. The herd's
-  composition read gains counts by `called` name (*two oxen*, *one steer*).
-- **How the player's steer reaches the ox register.** Nothing today moves a
-  head between herds. The shipped `return <animal>` gains an optional
-  `to <book>` arg: `Livestock.returnToHerd(book?)` asks
-  `HerdRegistry.refile(fromId, index, toId)`, which refuses a different
-  species or a book the player does not keep, removes the head from the
-  source tally and files it in the destination with its overlay carried
-  (age, flesh, handling, castration). Drive step 9: castrate a drafted
-  calf, age it, `return steer to ox book`, and read the book — it counts
-  one more ox. The calf herd's own read says *steer* before that.
+  `sex.<sex>`, `neutered`, and `stage.<stage>`. A variant **overrides the
+  species' own fields by their own names** and adds body deltas:
+  `commonNames`, `biddability`, `handlingRange`, `adultMass` scaling
+  (`massFactor`), and for the body `add` modules, `scale` modules and
+  `integument`. `species.bodyFor({ stage, sex, neutered })` memoizes one
+  `Body` per key, and the species' getters gain the same key
+  (`getCommonNames(variant)`, `getBiddability(variant)`,
+  `getHandlingRange(variant)`).
+- ⭐ **One naming path, read late.** There is no `called` field. A bull is
+  a bull because `variants.sex.male.commonNames` says so; a steer and an ox
+  by `neutered` and stage. Presentation's shipped handle chain (authored
+  keyword → job → **species**) asks the species for the names of *this*
+  body's variant at the moment a sentence is built. `Species.maleNames`
+  retires, and so does `Livestock.answerToSpecies`' stamp (`:397`): nothing
+  writes species words onto a head at draft, which is what lets a calf come
+  to answer to *ox*. Naming-overhaul does not touch these fields (its plan
+  was grepped); the species rung is the one presentation already has.
+- ⭐ **One temper dial.** `HandlingMixin` reads
+  `species.getHandlingRange(variant)` and `getBiddability(variant)` — the
+  two shipped species dials, overridden by the variant. There is no
+  `temper` field and no temper effect on a condition. The ox is calmer
+  because its `neutered` variant authors a higher `biddability`.
+- **Castration is an operation** (owner, 2026-11-22):
+  `operate <animal> for castration`. The male delta adds a `gonads` part;
+  `packages/content/trade-medicine/content/operations/castration.yaml`
+  (`resolution: severance`, `anaesthesia: none`, `addresses: { part:
+  gonads }`, `posture: any`, `season: { from: 0, to: 0.45 }`) severs it
+  through `ConditionApi.sever` (D7), wound, risk and the part on the floor
+  included. **`neutered` is derived**: male, gonads missing, and
+  `lostAtAgeDays < matureAt`. It works on any male body with the part — a
+  bull calf, a pit pony, a dog.
+- **What `operate` needs to reach an animal.** Its view gate already does
+  (`patient` requires `VitalsMixin`, which every body composes). Three
+  optional fields on the operation document make a healthy part operable,
+  each defaulting to today's behavior:
+  - `addresses.part` — a module part name; the match is the body's present
+    part of that name (`Body.partNamed`), beside the shipped wound and flag
+    matches;
+  - `posture: lying | any` — default `lying`; the controller's posture
+    check reads it;
+  - `season` — a `DaylengthBand`.
+
+  The body answers the new refusals as reason rows (`VitalsMixin.operable(op)`
+  → `{ ok: false, reason }`): `no-such-part` (a female, or already done) and
+  `out-of-season`. There is no class check and no refusal worded in the
+  controller for them. The kit is named (`with knife`); the row's
+  `instrument` is the capability a stockman's knife offers. Nothing is
+  added to `Livestock`.
+- **The herdbook records it, generically.** `HeadOverlay.lostParts`
+  (`[{ part, atAgeDays, sealed? }]`) replaces a castration-only field:
+  `returnToHerd` writes the head's missing subtree roots, and `mintHead`
+  seeds them through the delta half (D7), so a drafted head that lost an
+  eye keeps the loss across `return`, and a steer stays a steer. ⚠ Never
+  `ConditionApi.sever` on replay — that would mint fresh gonads and a fresh
+  wound at every draft. `Herdbook.neuteredFraction` (default 0; the ox book
+  authors 1) seeds founding stock the same way. The herd's composition read
+  counts by the variant's common name (*two oxen*, *one steer*).
+- **Moving a head between registers is its own act: `herd enter <animal>
+  in <book>`.** Nothing today moves a head from one herd to another, and it
+  is not `return` (which gives a head back to its own herd — one verb per
+  act, so `returnToHerd` gains no second meaning). It is an institution's
+  transaction, so it is a subcommand of its noun (`title transfer`,
+  `shelf consign`; `lint:institution-verbs`): a new view `herd` in
+  `trade-ranching` with the one subcommand `enter`. `animal` is `type:
+  object` requiring `HandlingMixin`; `book` is `type: object` with the
+  preposition `in`, requiring the herdbook's own mixin. The **book**
+  answers: `Herdbook.enterPlan(animal)` refuses a different species, a head
+  not drafted, and a book the actor does not keep (reason rows), then calls
+  `HerdRegistry.refile(fromId, index, toId, by)`, which checks
+  `AccessApi.requireActor(by)` (`lint:actor-claims`), removes the head from
+  the source tally and files it in the destination with its overlay
+  carried. Herds are named by the registry's own naming method
+  (naming-overhaul WC5); this view takes objects and names nothing. Drive
+  step 9: operate on a drafted calf, age it, `herd enter steer in ox book`,
+  read the book — one more ox.
 - **The ox** is cattle + male + neutered + mature. `ox.yaml` authors
   `sex: male` and `lostParts: [{ part: body.torso.gonads, atAgeDays: 60 }]`
-  instead of being a bare `Livestock`. It is heavier (`massFactor`) and
-  calmer (`temper`), read by `HandlingMixin` through `getBody()`.
+  instead of being a bare `Livestock`.
 - **Growth (W2).** `Species.massAt(age, variant)` becomes von Bertalanffy
   (`W∞ (1 − b·e^(−kt))³`, `k` derived from `matureAt` so 95 % is reached
   there; no new authored number). `Creature.getMass` stops freezing the
   seeded frame for a body whose `getLifeStage()` is non-null and whose row
   authored no mass: it derives on read. Stage deltas carry proportions (the
-  young's big head and long legs as `scale`), coat and temper.
-- **Reproductive states are conditions** (D9): `in-season`, `rut`,
-  `pregnant`, `lactating`, `with-young`, rows of the shipped `Condition`
-  Idea. The first two come on by the species' phenology (the shipped
-  `Species.breeding` daylength band, sex and maturity); the last three are
-  event conditions.
-  ⭐ **Lactation drives the udder**: the gland authors `activeIn:
-  /platform/idea/Condition/reproduction/lactating`, and
-  `Producing.tapWindow` answers `not-lactating` (a new `TapClosedReason`,
-  with a reason row) when the body does not carry it. The acts that bring it
-  on and take it off are write paths that already exist: `mintHead` afflicts
-  a mature female of a milking species whose overlay is not dried off (the
-  founding seed, and every later draft — the overlay's shipped `driedOffAt`
-  is the whole record, so the herd needs no new field);
-  `Producing.dryOff` relieves it; the end of `restDays` afflicts it again
-  (conflict 7). `pregnant` and `with-young` ship as rows with their effects
-  and are brought on only by staging, because conception is a non-goal.
+  young's big head and long legs as `scale`) and the coat.
+- **Reproductive states are conditions, on one schedule** (D9).
 
 ### D9. Phenology: conditions on a schedule
 
-**A state of the body is a `Condition`.** The first draft of this plan gave
-states their own mixin, document kind and catalogue. That duplicated what
-ships: a `Condition` already has a `signature` of effects, a `resolution`,
-`observableSigns`, a place on every `Creature` through `VitalsMixin`, and
-`assess` to read it. `packages/content/platform/content/platform/idea/Condition/thermal/torpor.yaml`
+**A state of the body is a `Condition`.** A `Condition` already has a
+`signature` of effects, a `resolution`, `observableSigns`, a place on every
+`Creature` through `VitalsMixin`, and `assess` to read it.
+`packages/content/platform/content/platform/idea/Condition/thermal/torpor.yaml`
 is the proof — an ectotherm's cold state, brought on by core temperature and
-cleared by warmth. So nothing new models a state. **What is new is
+cleared by warmth. Nothing new models a state. **What is new is
 phenology**: the timing of a body's seasonal and life events.
 
-**The rows** (platform pack, beside `thermal/`):
+**The rows** (platform pack, beside `thermal/`). Every effect is a shipped
+`VitalEffect`; **no kind is added**:
 
-| row | brought on by | signature | signs |
+| row | brought on by | signature | reader that makes it matter |
 |---|---|---|---|
-| `thermal/sluggish` | the thermal cascade (below) | `pace` | slow, cold to the touch |
-| `dormancy/denning` | phenology: short days and a cold core | `metabolism` 0.1, `sedation` | buried to the eyes in the mud, does not stir |
-| `reproduction/in-season` | phenology: the breeding band, female, mature | `temper` | restless, calling |
-| `reproduction/rut` | phenology: the breeding band, male, mature, entire | `metabolism` 1.2, `temper` | thick-necked, bold |
-| `reproduction/lactating` | the act (D8) | `metabolism` 1.3 | in milk, a full bag |
-| `reproduction/pregnant` | staging only (conception is a non-goal) | `metabolism` 1.15, `pace` | heavy in the flank |
-| `reproduction/with-young` | staging only | `temper` | watchful, will not be driven off |
+| `thermal/sluggish` | the thermal cascade (below) | `expression` 1 | expressed skill, and the traverse's exertion cost |
+| `dormancy/denning` | phenology: short days and a cold core | `sedation` | consciousness; an unconscious body does not eat and its brain's beat is skipped |
+| `reproduction/in-season` | phenology: the species' `breeding` band, female, mature | — | `Livestock.serveBy` (replacing its direct daylength read) |
+| `reproduction/rut` | phenology: the same band, male, mature, entire | `reserve` (a satiation drain: he eats less and burns mass) | `breedRefusal`'s *no male* reads a male in rut |
+| `reproduction/lactating` | phenology: daylength for the ewe and goat; freshening for the cow | — | the udder's `activeIn` |
+| `reproduction/laying` | phenology: the hen's long-day band, female | — | the oviduct's `activeIn` |
+| `reproduction/pregnant` | staging only (conception is a non-goal) | `reserve` (a satiation drain) | `assess`, `look` |
+| `reproduction/with-young` | staging only | — | `assess`, `look`; game law |
 
-**Every effect the first draft named, mapped onto the effect channel** (the
-`VitalEffect` union, `platform/idea/Condition.ts:755`, which has eight kinds
-today: `vital`, `reserve`, `function`, `expression`, `convalescence`,
-`sedation`, `analgesia`, `clearance`):
+Each row authors `observableSigns`, which `look` and `assess` show.
 
-| old effect | now | reader |
-|---|---|---|
-| a basal rate | ⭐ new kind **`metabolism`** `{ factor }` | `Metabolic.basalDrain`, multiplied beside the shipped Q10 `thermalMultiplier()` |
-| `pace` | ⭐ new kind **`pace`** `{ factor }` | the traverse duration in `LocomotionLogic` |
-| `temper` | ⭐ new kind **`temper`** `{ delta }` | `HandlingMixin`'s read |
-| `torpid`, `feeds: false` | the shipped **`sedation`** kind | consciousness already reads it (`Vitals.ts:1760`); an unconscious body does not eat and its brain's beat is already skipped. No new reader. |
-| `produces` | not an effect — the gland's `activeIn` names the condition | `Producing.tapWindow` |
-| `seen` | the shipped **`observableSigns`** | the look augmenter and `assess`, as for every condition |
+**What the first drafts added and this one does not:**
 
-Three kinds are added because three effects have no member in the union: a
-`reserve` drain is an amount per hour and cannot say *a tenth of the usual
-rate*. Each is a read-only factor with one reader, the shape `clearance`
-already has. They live **in the union**, so there is one mechanism (P12).
+- **No `pace` effect.** A traverse has no duration to scale. `sluggish`
+  costs through the shipped `expression` effect, and
+  `ExertingMixin.traversePowerW` (`:497`) multiplies by `1 + bands ×
+  exertion.suppressedPowerPerBand`, reading the body's existing expression
+  suppression: a slow body pays more to cross, which is where slowness
+  lives in this engine.
+- **No `metabolism` effect.** Denning needs none: its trigger includes a
+  cold core, and Q10 at 283 K already gives about 0.08 of the basal rate; a
+  second factor would count the cold twice. The other costs are amounts per
+  hour, which the shipped `reserve` effect says.
+- **No `temper` effect** (D8: one dial).
 
-**Cold-slowed and torpor are two rows of one rule.** The thermal cascade
+**Sluggish and torpor are two rows of one rule.** The thermal cascade
 (`ThermalRegulation.reconcileThermalCascade`, `:794`) already has this shape
 on the hot edge: hyperthermia's row comes on at `setpoint + 2.5 K`, and the
-lethal dwell reads `survivableMax`, *"two facts an author should be able to
-tune independently"*. The cold edge has only the far threshold. So for an
-ectotherm the cascade gains the near one: **`sluggish`** comes on below
-`setpoint − THERMAL_DEFAULTS.SLUGGISH_ONSET_K` and **`torpor`** below
-`survivableMin`, exactly as shipped. They stay two rows rather than one row
-with stages because `requiresConscious` gates on torpor's path, and the
-signature's effects are not stage-indexed (only `sedation` carries
-`atStage`). `sluggish` carries `pace` only: metabolism already falls with
-core temperature through Q10, and a second factor would count the cold
-twice. ⭐ This is the thermal rule's, not phenology's — it is physics, the
-same for every cold-blooded body, and no species schedules it.
+lethal dwell reads `survivableMax`. The cold edge has only the far
+threshold. For an ectotherm the cascade gains the near one: **`sluggish`**
+below `setpoint − THERMAL_DEFAULTS.SLUGGISH_ONSET_K` and **`torpor`** below
+`survivableMin`, exactly as shipped. Two rows, not one with stages, because
+`requiresConscious` gates on torpor's path and signature effects are not
+stage-indexed. This is the thermal rule's, not phenology's.
+
+**One daylength value object.** Every band in the game is a
+`DaylengthBand` (`lib/time/DaylengthBand.ts`): `{ from, to, rising? }`,
+`holds(fraction, rising)` and `nextBoundaryAfter(t, profile, latitude)`.
+`Species.breedsAtDaylight` and `Producing`'s `inBand` are deleted into it.
+Where each band authored today goes:
+
+| authored today | goes to |
+|---|---|
+| six `Species.breeding` blocks | stay on `Species.breeding`, typed as the band. **`in-season` and `rut` read it** (`trigger: { season: breeding }`) and never re-author it |
+| the ewe's milk `window: photoperiod` (0.46–0.62) | a `phenology` entry for `lactating` on the sheep. The tap's `photoperiod` kind **retires** |
+| the hen's eggs `window: photoperiod` (0.45–1) | a `phenology` entry for `laying` on the hen |
+| the cow's and goat's milk `window: event` | `lactating` by freshening (below). The `event` kind **retires** |
+| birch, pine, hevea `weather` windows; the maple's `freeze-thaw` | stay on the gland's `window` (a tree carries no conditions, and the term beside the band is the air's temperature), with the band typed as the value object |
+| *(new)* the coat's `cycle`, castration's `season` | authored as the value object |
 
 **Phenology is declared on the species:**
 
 ```yaml
 phenology:
-  - condition: /platform/idea/Condition/dormancy/denning
-    trigger: { daylightFrom: 0, daylightTo: 0.42, coreBelowK: 283 }
+  - condition: /platform/idea/Condition/reproduction/lactating
+    trigger: { band: { from: 0.46, to: 0.62 }, sex: female, stage: adult }
   - condition: /platform/idea/Condition/reproduction/rut
-    trigger: { daylightFrom: 0.30, daylightTo: 0.46, sex: male, stage: adult, entire: true }
+    trigger: { season: breeding, sex: male, stage: adult, entire: true }
+  - condition: /platform/idea/Condition/dormancy/denning
+    trigger: { band: { from: 0, to: 0.42 }, coreBelowK: 283 }
 ```
 
-A trigger is a conjunction of the terms it authors: a daylength band (with
-`rising`, the `TapWindowSpec` photoperiod shape), `coreBelowK` /
-`coreAboveK`, `sex`, `stage`, `entire` (not neutered). The condition is
-carried while the trigger holds and relieved when it stops. An **event**
-condition (lactating) is not in `phenology`; the act owns it.
-`Species.setPhenology` is async and ensures each condition row
-(`StuffApi.ensureConstituent`), so a schedule naming no row throws at
+A trigger is a conjunction of the terms it authors: a `band` (or `season:
+breeding`, the species' own), `coreBelowK` / `coreAboveK`, `sex`, `stage`,
+`entire`, or `event: true`. The condition is carried while the trigger
+holds and relieved when it stops. `Species.setPhenology` is async and
+ensures each condition row, so a schedule naming no row throws at
 hydration.
 
-**The onset and clear site is torpor's.** `VitalsMixin.reconcilePhenology()`
-walks the species' `phenology`, and for each entry calls the shipped
-`afflict` or `relieve`. It is called from **one place**:
-`ThermalRegulationMixin.reconcileThermalRegulation()` (`:339`), immediately
-after `reconcileThermalCascade(elapsed)` (`:391`) — the moment the core is
-fresh and torpor has just been decided. No class is added: the evaluation is
-a method on the mixin that owns conditions, reading a field on the species.
+⭐ **One lactation schedule.** `lactating` is the only thing that says a
+body is in milk. The udder authors `activeIn:` its path and nothing else;
+`Producing.tapWindow` answers `not-lactating` (a new `TapClosedReason`, with
+a reason row) without it. A winter ewe does not carry it, so she does not
+read *in milk* and does not give. The cow's entry is `event: true`:
+freshening is an act, and the acts that exist are `mintHead` (a mature
+female of the species whose overlay is not dried off — the shipped
+`driedOffAt` is the whole record), `Producing.dryOff` (relieves) and the
+end of `restDays` (afflicts again; the stand-in for calving, conflict 7).
 
-⛔ **No read mints a condition, and after D17 none can.** As shipped, that
-reconcile is entered by a `coreTemperature` read. D17 makes the read pure,
-so the reconcile is entered only by writes: a thermal re-stamp (a move, a
-change of covering or work), `exchangeWithWater`, and the keep-current tick.
-The look augmenter and `assess` read the conditions already on the body.
+**Where onsets and clears happen** (never in a read — D17):
 
-- **Daylength in a drive.** `testharness daylight-pin <fraction>` (D16)
-  pins the daylength the Locality reads, in the one daylength read
-  `CelestialLogic` already answers; `reconcilePhenology`, the breeding band,
-  castration's season and the coat's cycle all read through it. The drive
-  then runs `testharness keep-current` (D16) — the same pass the sweep
-  runs — so the condition comes on with nobody moving and nobody reading.
-- **Consumers**: `denning` (bullfrog), `in-season` and `rut` (cattle, sheep,
-  goat, pig), `lactating` (dairy), `sluggish` (frog, fish, crab — which need
-  their three plans to author `thermalStrategy: ectotherm`, which no row
-  does today).
-- **Medicine sees them**, and that is accepted as honest: `assess` lists a
-  cow in season or in milk, as a vet would. The rows author plain names
-  (`spoilerName: 0` is the shipped default, so the name shows) and
-  `observableSigns` anyone can see; their `signature` and `resolution` keep
-  the shipped spoiler level 1. `resolution` is authored honestly so `treat`
-  refuses in words: nothing dresses a pregnancy.
+- `VitalsMixin.reconcilePhenology()` walks the species' `phenology` and
+  calls the shipped `afflict` / `relieve`. No class is added.
+- It runs from **the body's own phenology wake**: `phenologyWakeAtS`
+  (persistent) is armed at mint and at every firing for the **next
+  boundary** of any band the species schedules and the body's next stage
+  boundary. Daylength is a pure function of time
+  (`DaylengthBand.nextBoundaryAfter`), so the wake is exact, not polled:
+  about four firings a game year per band, per body.
+- It also runs from the thermal reconcile, right after
+  `reconcileThermalCascade` (`:391`), because a trigger with a core term
+  changes when the core does. That reconcile is itself only ever a write
+  (D17).
+- An event trigger is evaluated by its act.
+- **`daylight-pin` is a setter and fans out**: pinning or unpinning calls
+  `reconcilePhenology()` on the bodies in that Locality at once and re-arms
+  their wakes, the way a weather pin is *applied at once*. That is how the
+  drive brings on denning, the season and the rut; castration's season and
+  the coat's cycle are pure reads of the same pinned value.
+
+- **Medicine sees them**, accepted as honest: `assess` lists a cow in
+  season or in milk, as a vet would. The rows author plain names
+  (`spoilerName: 0`, the shipped default) and `observableSigns` anyone can
+  see; `signature` and `resolution` keep the shipped spoiler level 1.
+  `resolution` is authored so `treat` refuses in words.
 - **Persons.** Conditions sit on every `Creature`, so a person species may
-  list phenology the day someone authors it (sleep, a person's pregnancy)
-  with no host to move. None does in this build.
+  list phenology the day someone authors it, with no host to move.
 
 ### D10. Metamorphosis: per-stage plans, one identity
 
-- **`Species.development`**: per `LifeStage`, `{ plan, called, massFactor }`.
+- **`Species.development`**: per `LifeStage`, `{ plan, massFactor }`; the
+  stage's names are `variants.stage.<stage>.commonNames` (D8).
   The stage vocabulary stays `LIFE_STAGES`. The bullfrog: `newborn` →
   `tadpole` (gills, a tail, no legs), `juvenile` → `froglet` (gills and
   lungs), `adult` onward → `frog`. It gains an `ageCurve` (it has none, which
@@ -884,8 +996,12 @@ The look augmenter and `assess` read the conditions already on the body.
   `Body.breathing()` is the per-medium maximum over present, functioning
   organs. `BodyPlan.breathing`, `getBreathableMedia`,
   `Species.breathingByStage`, `breathingFor` retire; `Respiration.breathingNow`
-  and `Metabolic.canIngest` read the body. `respires` and `lungVolumeL` stay
-  declared on the plan.
+  and `Metabolic.canIngest` read the body. **Lung facts get one home**: the
+  respiratory part's `breathes` block carries `volumeL` (at the plan's base
+  mass), and *does this body respire* is derived (it has a respiratory
+  organ). `BodyPlan.respires` and `lungVolumeL` retire with `breathing`; a
+  row authoring `respires: false` (grep in W8) becomes a torso module with
+  no lungs.
 - **The swap.** `getBody()` already answers the new stage's body. What needs
   an event is the instance state keyed to the old plan.
   `VitalsMixin` gains persistent `formStage` and, inside
@@ -910,20 +1026,22 @@ The look augmenter and `assess` read the conditions already on the body.
   `get silkworm from tray` is an ordinary move and lowers the count by one;
   `put silkworm in tray` folds it back and destructs it (the egg lot's
   adoption shape).
-- ⛔ **A read never mints** (the crowded-rooms rule). The exemplar is
-  minted by `RearingTray.refreshExemplar()`, called **only from write
-  paths**: the tray's arrival and departure hooks (every `put`, every
-  `get`), the tray's `keepCurrent()` (D17, when somebody is present), and
-  the `@TestOnly` staging setter.
+- ⛔ **A read never mints.** The exemplar is minted by
+  `RearingTray.refreshExemplar()`, called **only from write paths**: the
+  tray's arrival and departure hooks (every `put`, every `get`), the tray's
+  own game-clock wake (armed for the projected hatch off its degree-day
+  clock, capped at one game hour — the mould's shape, since its temperature
+  drifts), and the `@TestOnly` staging setter.
 - **The cocoon is spun from the worm's own gland**: shell mass =
   larval mass × the `silk-gland` share of the fifth-age body ×
   the satisfaction terms the tray already carries. The share is calibrated
   so `meanShellMg` equals today's; a golden test pins every tray number.
-  Stifle, scorch, the ten-day deadline and `unwind` are **not edited**.
-- **Emergence.** Today's pierced flag and egg lot are unchanged. The
-  exemplar **moth** is minted by `Cocoons.keepCurrent()` (D17) — the tick,
-  when somebody is present — and by the staging setter. It is never minted
-  by `look`.
+  Stifle, scorch, the ten-day deadline and `unwind` keep their rules; the
+  one edit is *when* emergence is applied (the stack's wake, below).
+- **Emergence.** A `Cocoons` stack arms its own wake at `spunAt +
+  emergeDays` (exact). The wake does what the read-time reconcile does
+  today (the pierced flag, the egg lot) and mints the exemplar moth; the
+  reconcile-on-read stops minting. It is never done by `look`.
 - A lone worm that reaches spinning off the tray spins a stack of one
   carrying its seed, and the moth that emerges carries the same seed. *For
   the silkworm, identity is the seed (the herd's rule); for the frog it is
@@ -1023,8 +1141,9 @@ None of these adds a field, a parameter or a branch in this build.
 | missing, sealed, `lostAtAgeDays` | `VitalsMixin.bodyPartDeltas` (already persistent) | the body has a host record: a player, a named kept animal, a draft animal |
 | `formStage` | `VitalsMixin` | the same |
 | stage itself | derived from `bornAt` (already persistent) | the same; a `cast:` animal is re-created at its row's age, by design |
-| castration on a herd animal | `HeadOverlay.castratedAtAgeDays` in the herd document, replayed by the delta half | always |
-| conditions on a schedule | derived: re-evaluated at the body's reconcile from the species' `phenology` | always (nothing to store beyond `VitalsMixin.conditions`) |
+| a herd animal's lost parts (castration, an eye) | `HeadOverlay.lostParts` in the herd document, seeded by the delta half at draft | always |
+| conditions on a schedule | none (the phenology wake) or the act that owns an event condition | — | `Species.phenology` → condition rows in the platform pack | ensured by `Species.setPhenology` | — |
+| wakes | `thermalWakeAtS`, `phenologyWakeAtS` and the pack's two, each persistent `runtimeState`; a restart re-arms and one already past fires at once | the body or thing has a host record; otherwise armed afresh at mint |
 | event conditions (lactating) | `VitalsMixin.conditions` (already persistent); for a herd animal, the shipped `HeadOverlay.driedOffAt` | host record, or the herd document |
 | gland stores | `ProducingMixin.tapState` (already persistent; herd overlay already carries dry-off) | as today |
 | the severed part | a `Corpse` with `subtree` | it lies in a persistent place (`ContainerMixin.captureSlice`, the drive's `PersistentHall`) or is carried — exactly as any other good |
@@ -1038,106 +1157,109 @@ without the new fields reads as *lost before the record began, unsealed*.
 
 ### D16. Staging tools
 
-`testharness` subcommands (test world only), each its own controller over
-`TestHarnessApi`, which calls the same model methods a player act reaches.
-⛔ A command is `verb subcommand target`, never deeper, so each act is a
-**hyphen compound** (the `clock-advance` / `weather-pin` precedent):
+⛔ Three rules, each of which the first drafts broke: a command is `verb
+subcommand target`, never deeper; a plain setter call is not a subcommand;
+a target is an object the binder resolves, never a name a controller
+matches.
 
-| subcommand | does | through |
+**The final `testharness` surface this build adds** (test world only; every
+target `type: object`, every closed word an `enum`, every refusal a reason
+row, no refusal text in a controller):
+
+| subcommand | args | through |
 |---|---|---|
-| `body <target>` | **reads**: stage, sex, called name, conditions, core temperature, capacities, what it perceives of `--of <target>` | getters |
-| `body-age <target> <days>` | sets the age | `setAge` |
-| `body-sex <target> <sex>` | sets the sex | `setSex` |
-| `body-wound <target> <part> <channel> [severity]` | wounds one part | `ConditionApi.inflict` |
-| `body-sever <target> <part> [channel]` | takes a part off | `ConditionApi.sever` (the shipped `severPart` until W6) |
-| `body-kill <target>` | kills into a corpse | `ConditionApi.die` |
-| *(a condition)* | the shipped `afflict <target> <condition path> [stage]` — target widened to any body, stage `0` relieves | `afflict` / `relieve` |
-| `body-wet <target> <0..1>` | wets the body | `wet` |
-| `carcass <species path> [kg] [age days]` | mints a fresh corpse here | `mintCorpseFrom` |
-| `keep-current` | runs the sweep's keep-current pass once, now (the author's seam onto the same pass the timer runs) | `ResidencyApi` |
-| `daylight-pin <fraction>` / `daylight-unpin` | holds the daylength the Locality reads (or `--at`) | `CelestialLogic`; whoever pins, unpins |
+| `body <target> [of <other>]` | `target` object; `other` object, preposition `of` | **reads**: stage, sex, names, conditions, projected core temperature, capacities, and whether it perceives `other` |
+| `body-wound <target> <part> <channel> [severity]` | `channel` enum of `CHANNELS` | `ConditionApi.inflict` |
+| `body-sever <target> <part>` | | `ConditionApi.inflict` with a `tearing` insult at sever severity — **the real avulsion**, so the wound, the sever and (from W6) the part on the floor all happen as in play. Never a woundless severed part. |
+| `body-kill <target>` | | `ConditionApi.die` |
+| `body-afflict <target> <condition> [stage]` | `condition` a path; stage `0` relieves | `afflict` / `relieve`. **Replaces** the shipped `afflict <name> …`, whose string-name matcher is deleted; its drives move to this. |
+| `daylight-pin <fraction>` / `daylight-unpin` | `--at <place>` as `weather-pin` | `CelestialLogic`; fans out (D9); whoever pins, unpins |
 
-The tray and the cocoons are staged through the existing `/auth/test-stage`
-route with the two `@TestOnly` setters D10 names.
+**Through `/auth/test-stage`** (`TestHarnessApi.stage`, runs as the system;
+`docs/testing.md`): `setAge`, `setSex`, `setWetness`, the tray's
+`setDegreeDays` and the stack's `setSpunAt`. A setter that does not exist
+is added `@TestOnly` (`lint:test-seams`).
 
-### D17. Reading is pure; a tick keeps present bodies current
+**Not tools:** a carcass is `clone` + `setAge` + `body-kill`.
+`clock-advance` (shipped) fires every due wake, which is how the drive
+moves a still body through a cold night.
 
-*(Owner, 2026-11-22: fix the read-writes path in this build.)*
+### D17. Reading is pure; a body wakes itself on the game clock
 
-**The read.** `ThermalRegulationMixin.getVitalSign('coreTemperature')` stops
-calling the reconcile. It returns **the core the body would have now**:
-the stored core carried forward over `now − thermalRegStamp` against the
-cached effective ambient (re-read off the room's
-`envelopeTemperatureLast()`, itself a non-integrating read), through the
-same slice arithmetic. It stores nothing, spends no reserve, afflicts and
-relieves nothing, and leaves the stamp alone. To make that one formula and
-not two, `integrateThermalSlice` is split into a **pure step** (core,
-ambient, insulation, reserve levels, slice → next core and what it would
-spend) and the applier that writes the result; the reconcile applies, the
-read discards. The projection reads reserve levels and does not draw them
-down, so over a long gap it is slightly optimistic about a body that is
-running out of fuel; the write path is exact.
+*(Owner, 2026-11-22. The first version of this decision used the residency
+sweep; that was wrong and is withdrawn — it runs on real time, reaches only
+what somebody is present with, and overrode a decided slate.)*
+
+**The read (kept).** `ThermalRegulationMixin.getVitalSign('coreTemperature')`
+stops calling the reconcile. It returns **the core the body would have
+now**: the stored core carried forward over `now − thermalRegStamp` against
+the cached effective ambient (re-read off the room's
+`envelopeTemperatureLast()`, a non-integrating read), through the same
+slice arithmetic. It stores nothing, spends no reserve, afflicts and
+relieves nothing, and leaves the stamp alone. `integrateThermalSlice` is
+split into a **pure step** and the applier that writes its result, so there
+is one formula: the reconcile applies, the read discards. The projection
+reads reserve levels without drawing them down, so over a long gap it is
+slightly optimistic about a body running out of fuel; the write path is
+exact.
 
 **Who relied on the read to advance state, and what each does now:**
 
 | caller | relied on it? | now |
 |---|---|---|
-| `Metabolic.thermalMultiplier()` (`:1993`) | incidentally: every metabolism reconcile also advanced thermal state | reads the projected core; advances nothing. The Q10 factor it computes is the same number. |
-| `VitalsMixin.getConditionBand()` (`:1949`), `assess`, the harness, any vital listing | yes — this was the only thing that updated a body standing still | read the projected core and the conditions **already on the body**; change nothing |
-| `restamp()` (`:719`), `exchangeWithWater` (`:751`) | they are writes | unchanged: they call the reconcile explicitly |
-| the cascade's `readCore()` | no (inner storage) | unchanged |
+| `Metabolic.thermalMultiplier()` (`:1993`) | incidentally | reads the projected core; the Q10 factor is the same number; advances nothing |
+| `VitalsMixin.getConditionBand()` (`:1949`), `assess`, the harness, any vital listing | yes — the only thing that updated a still body | read the projection and the conditions **already on the body**; change nothing |
+| `restamp()` (`:719`), `exchangeWithWater` (`:751`) | they are writes | unchanged |
+| the cascade's `readCore()` | no | unchanged |
 
-**The tick.** Nothing shipped ticks every body (Grounding). The beat
-reaches only `Behaved` hosts and engagements only `Engaged` ones, and a
-player, a cow and a silkworm are neither or not both. The one shipped pass
-over every resident object is the **residency sweep**, and that is what is
-generalized:
+**The wake.** The shipped shape (`MouldMixin.wakeAtS`), a third time:
 
-- `Stuff.keepCurrent()` — an `@hook`, default no-op.
-- After its presence walk, `ResidencyLogic`'s sweep calls `keepCurrent()` on
-  each object that is **present** (somebody connected is with it). Present
-  objects are exactly the ones the eviction half never considers, so the
-  touch a proxied call makes changes no eviction decision, and the cold tail
-  is never woken. The pass runs under `ExecutionContextApi.runRoot` with the
-  logic singleton as principal (the card sweep's lesson: a scheduled
-  callback has no principal and a gated call would be denied silently).
-- `ThermalRegulationMixin.keepCurrent()` calls
-  `reconcileThermalRegulation()`. All its shipped guards stand: nothing
-  below `REG_STEP_SEC`, nothing while the world is held still, a re-stamp
-  only for a linkdead body, and a gap past `MAX_REASONABLE_GAP_SEC` dropped.
-- **It reaches every embodied creature** that can be torpid or carry a
-  scheduled condition, because it asks by what an object *is*, not what it
-  composes besides: players, NPCs, kept and wild animals, a fish in a
-  keepnet or a tank, a silkworm, a head of stock.
-- **Game clock only.** The sweep's timer decides *when* a body is brought
-  current; *how much* is always game-seconds since its stamp.
-- **No boot entry and no new timer.** The sweep is already installed.
+- **What arms.** `ThermalRegulationMixin.thermalWakeAtS` — persistent,
+  `runtimeState`; `setThermalWakeAtS` arms `WorldClockApi.at(…, { tag:
+  'thermal-regulation' })`.
+- **When.** At every re-stamp (a move, a change of covering or work,
+  entering water) and at the end of every reconcile, wake included.
+- **For when.** The projected time of the body's **next threshold
+  crossing**, found with the pure step against the cached ambient: the
+  sluggish onset, `survivableMin`, the hyperthermia onset, `survivableMax`,
+  the end of a lethal dwell, or the clearing side of any of them.
+- **The cap.** Never more than **one game hour** away
+  (`THERMAL_WAKE_STEP_S`, a constant like `MOULD_SET_STEP_S`, not a dial).
+  The cap bounds the error from what the projection holds still: a room
+  whose envelope drifts, the weather, the reserves.
+- **What it does.** `reconcileThermalRegulation()` — the banked integration,
+  the cascade, phenology's core-dependent triggers — then re-arms.
+- **Where it persists.** On the body, with its other runtime state: a
+  restart re-arms it, and a wake already past fires at once.
+- **Who has one.** Every living resident body. `onDestruct` and eviction
+  cancel it; a corpse has none (the cascade already returns for a body that
+  runs no living processes).
 
-**An offline body does not tick.** A logged-off player's body is not
-resident, so the sweep never sees it. A linkdead one is resident and is
-asked, and the reconcile's shipped linkdead branch re-stamps and returns:
-frozen, as metabolism's rule requires. An animal nobody is with is not
-present, is not asked, and costs nothing; when somebody arrives it is
-brought current on the next pass, with a long absence dropped by the
-far-past guard — the shipped rule that a body nobody could have helped is
-not billed for the time.
+**An offline body does not tick.** A logged-off body is not resident and
+has no armed wake; its persisted `thermalWakeAtS` is re-armed when it
+stands up again, and the reconcile's shipped far-past guard drops the gap.
+A linkdead body's wake fires, the reconcile's shipped linkdead branch
+re-stamps and returns, and the wake is **not re-armed** until the body's
+next re-stamp at reconnect: frozen.
+
+**The world no longer depends on who is watching.** A frog in a pond nobody
+visits goes sluggish at the hour the cold reaches it. That is the point,
+and it is also a cost (Risks).
 
 **Torpor is unchanged from the outside**: the same onset
 (`core < survivableMin`), the same clear, the same `requiresConscious`
 gate, the same row. ⚠ **The one difference, stated:** a body **standing
-still** used to change only when something read its core (and then
-changed because it was read). It now changes on the tick, within one
-sweep period plus one `REG_STEP_SEC`, whether or not anything reads it, and
-a read no longer changes it. A **moving** body is unchanged: every move
-re-stamps.
+still** used to change only when something read its core. It now changes on
+its own wake, at the projected crossing and at most one game hour late, and
+a read no longer changes it. A **moving** body is unchanged.
 
-**Respiration's in-place trigger is absorbed.** `RespirationMixin` also
-implements `keepCurrent()` and calls its shipped `reassess()`, so a body
-already standing in a room when the air turns to smoke is re-checked on the
-tick. This is a tick, not the setter fan-out the slate decided (§ 2); it
-costs up to a sweep period of latency and nothing when nobody is present.
-The slate's § 3 (breathers drawing down a room's air reserve) is **not**
-built here and does not share the tick.
+**Respiration's in-place trigger is built as decided**
+(`respiration-slate.md` § 2): `Atmospheric.setAtmosphere` fans out to every
+respiring occupant one containment level deep and calls its shipped
+`reassess()`, fire-and-forget and caught, the `onMoved` shape. No
+scheduler, no poll; the idle case stays zero-cost. § 3 (breathers drawing
+down a room's air reserve, the floor crossing as a second caller of the
+same fan-out) is not built here.
 
 ## ⭐⭐ Host placement
 
@@ -1146,24 +1268,26 @@ built here and does not share the tick.
 | `getBody()` | `OrganismMixin` | Every organism has a body of its own kind and stage. True of a plant (the empty body), a hive (the bee's), a corpse (the body it was). No guard. |
 | part roles, integument, fill, senses, breathing | the **module document** | Nothing about any class. |
 | `sustains` evaluation, delta fields, sealing, regrowth, `formStage`, `reconcileForm` | `VitalsMixin` | Every body with wounds can lose, seal and regrow a part. Regrowth answers yes only where a part authors `regrows`; that is data on the part, not a default on the host. ⚠ New members must reach existing ones through `this.` (`bodyPartDeltas`, `conditions`), or `lint:mixin-clusters` counts a split (43 > 42). |
-| coat clo | `AttiredMixin.insulationAt` | *A body is the only thing that wears anything*; its own coat is its innermost covering. Skin contributes nothing, so a person's read is unchanged. |
+| coat clo | `ThermalRegulationMixin` (a private `coatInsulation()`, summed with worn clo at its three read sites) | Every regulating body may have a coat; a person's skin contributes nothing. `Attired` is not touched: it is *a body with clothes on it*. |
 | integument armor layer | `ConditionLogic.resolveCoveringStack` | Not a host. |
 | `comesOffAs` | `TissueMixin` (a material capability) | Every material that came from a living thing can say what it leaves a body as; wood and leaf legitimately author none today and gain it with foraging. |
 | flaw `site` and the four kinds | `FlawedMixin` | Every article can carry a sited flaw; unsited flaws stay valid. |
 | `Corpse.subtree` | `Corpse` | Every corpse is a whole body or a part of one. `null` on most is *the whole body*, which is an answer, not a "no". |
 | `reconcilePhenology()` | `VitalsMixin` | Every body that carries conditions can carry one on a schedule. A species with no `phenology` (every person today) does nothing, and that is *this kind of body keeps no calendar*, a species fact, not a default on the host. No guard, no narrowing: conditions are already on `Creature`. |
 | `Species.phenology` | `Species` | Absent on most rows means no scheduled condition, the statement an absent `breeding` already makes. |
-| `metabolism`, `pace`, `temper` effects | the `VitalEffect` union | Any condition may carry one; a wound, a fever or a drug can now say *slower* without inventing its own read. |
-| `keepCurrent()` | `Stuff` (an `@hook`, default no-op) | ⚠ A method on the base class claims something of every object, so it claims only what is true of every object: *you may be asked to bring yourself up to date, and most of you have nothing to do*. It is the shape `canEvict` and `onDestruct` already have. The behavior lives on the four implementers, each of which means it for every host it composes on. |
-| the keep-current pass | `ResidencyLogic` | The sweep that already walks every object. |
+| `thermalWakeAtS` | `ThermalRegulationMixin` | Every body that regulates heat has a next moment its state changes. The wake sits beside the stamp it advances. |
+| `phenologyWakeAtS` | `VitalsMixin`, beside `reconcilePhenology` | Armed only when the species has a `phenology`; a species with none arms nothing, which is the species' answer. |
+| the atmosphere fan-out | `AtmosphericMixin.setAtmosphere` | Every place whose air can change tells whoever is breathing it. The slate's decided home. |
 | the pure core read | `ThermalRegulationMixin.getVitalSign` | Same host; it stops writing. |
 | the `sluggish` onset | `ThermalRegulationMixin`'s cascade | Asked only of an ectotherm, in the branch that already asks. |
 | `produces` reading | `ProducingMixin.taps()` | Unchanged composers. |
-| `castratePlan` | `Livestock` | Every head of stock can be asked; the animal answers no for a female. That is a refusal with a reason, the shape `breedRefusal` already has, not a re-narrowing guard: the verb is afforded by `Livestock` and means something for every species of stock. |
-| `castrate` affordance | `Livestock.commandContributions` | A sheepdog (`WorkingAnimal`) does not afford it. |
+| `operable(op)` (the body's answer to an operation) | `VitalsMixin` | Every body with parts can be asked whether an operation can be done on it; the answers that existed (no such wound) stay, two are added. No class check anywhere. |
+| `enterPlan(animal)` | `Herdbook` (pack) | Every register can be asked to take a head. |
+| the `herd` view's affordance | the `Herdbook`'s `environment` contributions, where `draft` already is | A place with no book affords neither. |
+| `DaylengthBand` | a value object | No host. |
 | `Silkworm` | pack class on `Creature` | One species. A body, not a deliberating actor — the rung `Livestock` uses. |
 | `lostParts` | `VitalsMixin` | Every body with parts may be authored missing one; absent on almost every row means *whole*, which is the answer. |
-| `Species.variants`, `development`, `pays` | `Species` | Absent on most rows means *one form, within limits*, which is the same statement an absent `ageCurve` already makes. |
+| `Species.variants`, `development`, `pays` | `Species` | Absent on most rows means *one form, within limits*. A variant overrides the species' own fields by name, so no reader learns a second vocabulary. |
 | watch term, vision profile from the eye | `PerceptionLogic` (logic), `Actor` (the two shipped hooks) | `Livestock` is not an `Actor`; the watch term narrows on `Organism`, not `Sensor`, so a cow is read. |
 
 **Narrowings written down as findings rather than coded:**
@@ -1180,7 +1304,7 @@ built here and does not share the tick.
 Checked at plan time against `CLAUDE.md` and the docs named.
 
 - **`props:` / `cast:`** — no new placement key; staged animals arrive by
-  `clone --here` or `testharness carcass`. `container:` is not authored.
+  `clone --here`. `container:` is not authored.
 - **Locations, not rooms** — no new place.
 - **Path pattern** — modules at `<root>/body-modules/`,
   the kind declared in the platform pack's
@@ -1194,28 +1318,32 @@ Checked at plan time against `CLAUDE.md` and the docs named.
   reached on use.
 - **Import boundary** — `Body` imports types and the two closed tuples only. Packs import
   the kernel by package specifier.
-- **Verbs on objects** — `castratePlan`, `getBody`, `reconcilePhenology` are the
+- **Verbs on objects** — `operable`, `enterPlan`, `getBody`, `reconcilePhenology` are the
   object's; `ConditionApi.sever` is lifecycle orchestration (the
   `ConditionApi.die` shape).
 - **P3 refuse / skip / throw** — a wound at a missing part re-sites and
   seals instead of landing nowhere; an unknown module path throws at
   hydration; a species over a limit fails the lint; `not-lactating`,
-  `not-male`, `already-castrated`, `out-of-season` are reason rows.
+  `no-such-part`, `out-of-season` and the register's refusals are reason
+  rows the object answers with.
 - **P4 no duck typing** — every cross-pack read narrows with `MixinApi.isX`;
   the silkworm depends on no other trade.
 - **P5 the mixin decides** — `ButcherController`, the tap controllers and
-  the new `CastrateController` only bind arguments and word the answer.
+  the new `HerdEnterController` only bind arguments and word the answer;
+  `OperateController` reads three document fields and decides nothing new.
 - **P6 persistence per content** — D15; no class newly persists what it
   hosts.
 - **Reading never writes** — the one shipped violation this build touches
   (the core-temperature read) is removed in W6b, and every mint this build
   adds (a condition, an exemplar worm, a moth, a severed part) is on a write
-  path named in its decision.
+  path named in its decision: the thing's own change, its own game-clock
+  wake, or an act.
 - **P7 load on use** — modules and scheduled conditions are ensured by the row that cites
   them; `comesOffAs` rows are ensured at the act. No boot entry
   (`lint:boot-entries`).
 - **P8 names** — `Body` is what it is; `sustains` sits beside `governs` and
-  `serves`; `castrate` over *geld* (requirements); no class is an adjective.
+  `serves`; castration is the operation's file name, its word; no class is
+  an adjective.
 - **American English** throughout new rows and prose.
 
 **Gates this build must pass** (the build runs `pnpm -C packages/server
@@ -1251,8 +1379,8 @@ until then (D1); a staging tool that calls a new Api arrives with it.
 | `bodyParts` | W0 | W1 |
 | `locomotionModes`, `Species.production`, `TapSpec.sex` | W2 | W3 |
 | `Species.butcheryYield` (incl. `maxAgeDays`) | W4 | W5 |
-| `TapWindowSpec` `event` | W6 | W7 |
-| `breathing`, `breathingByStage` | W7 | W8 |
+| `TapWindowSpec` `event` and `photoperiod`; `breedsAtDaylight`, `inBand`; `Species.maleNames` (W2) | W6 | W7 |
+| `breathing`, `breathingByStage`, `respires`, `lungVolumeL` | W7 | W8 |
 | `sensoryPorts`, `visionProfile.bandShift` | W8 | W9 |
 
 ### W0 — Goldens and staging tools
@@ -1274,16 +1402,20 @@ until then (D1); a staging tool that calls a new Api arrives with it.
   and once for one **standing still**. The standing-still pair is recorded
   as shipped (it changes only when its core is read) and is the one golden
   W6b re-pins, on purpose.
-- The `testharness` subcommands of D16 that call shipped code: `body`,
-  `body-age`, `body-sex`, `body-wound`, `body-sever` (the shipped
-  `severPart`), `body-kill`, `body-wet`, `carcass`, `daylight-pin`,
-  `daylight-unpin`; and the shipped `afflict` widened to any body, with
-  stage `0` relieving.
+- The `testharness` subcommands of D16: `body`, `body-wound`, `body-sever`
+  (a real avulsion through `ConditionApi.inflict`), `body-kill`,
+  `body-afflict` (the shipped `afflict`'s name matcher deleted and its
+  drives moved), `daylight-pin`, `daylight-unpin`. Setters go through
+  `/auth/test-stage`; add `@TestOnly` `setWetness` if none exists.
+- `DaylengthBand` (S17) lands here, with `breedsAtDaylight` and `inBand`
+  reimplemented on it and their behavior pinned first. The authored bands
+  do not move until W7.
 **Gates:** `lint:command-views`, `lint:subcommand-words`, `lint:view-keys`,
 `lint:test-seams`, `lint:wizard-axis`.
 **Acceptance:** goldens green on untouched code; a wire test stages a
 wounded, killed cow and reads the wound on the corpse; a pinned daylength
-closes the sheep's milk window.
+closes the sheep's milk window; `body-sever` leaves an avulsion on the
+body.
 **Commit:** `test(organism-biology): W0 goldens and the body staging tools`
 
 ### W1 — The composed body
@@ -1318,17 +1450,23 @@ a cold world has its tissue materials resident.
 ### W2 — Bodies that vary: sex, stage, growth
 
 **Goal:** the variant machinery every later organ hangs on.
-**Implements:** D8 (variants, `called`, growth; **not** castration).
-- `Species.variants.sex` and `.stage` (`add`, `scale`, `massFactor`,
-  `integument`, `temper`, `called`); `bodyFor({ stage, sex })`; the species'
-  async setters ensure the modules a variant adds.
-- `called` names in presentation (*bull*, *cow*, *calf*, *ewe*, *lamb*);
-  stage proportions for the livestock; `temper` read by `HandlingMixin`.
+**Implements:** D8 (variants, names, the one temper dial, growth; **not**
+castration).
+- `Species.variants.sex` and `.stage`: field overrides by the fields' own
+  names (`commonNames`, `biddability`, `handlingRange`, `massFactor`) and
+  body deltas (`add`, `scale`, `integument`); `bodyFor({ stage, sex })` and
+  the variant-keyed getters; the species' async setters ensure the modules
+  a variant adds.
+- Presentation's species rung reads `getCommonNames(variant)` late
+  (*bull*, *cow*, *calf*, *ewe*, *lamb*). Delete `Species.maleNames` and
+  `Livestock.answerToSpecies`' stamp; re-author the rows that used them.
+  `HandlingMixin` reads the variant-keyed dials.
 - von Bertalanffy `massAt`; `Creature.getMass` derives the frame for an
   aging body with no authored mass.
 **Gates:** `lint:unconsumed-seams` (readers: `OrganismMixin`, `Handling`,
 presentation), `lint:anatomy` (every variant's body), `lint:presentation`.
-**Acceptance:** a calf and a cow of one row read different names,
+**Acceptance:** a head drafted as a calf and aged to adult answers to its
+adult name with no re-draft; a calf and a cow of one row read different names,
 proportions and masses; the `massAt` golden is **re-pinned deliberately**,
 with the old and new figures in the commit body; the yield and tap goldens
 still pass at the reference mass.
@@ -1367,7 +1505,8 @@ fail on a module whose `yieldRow` names no row.
 **Implements:** D3.
 - Integument blocks on every module (materials from W1); the crab is chitin.
 - The armor layer; `primaryTissueMaterial` skips the integument.
-- Coat clo in `insulationAt`; the sheep's coat names the wool tap's key, so
+- `ThermalRegulationMixin.coatInsulation()`, summed with worn clo at its
+  three read sites (`Attired` untouched); the sheep's coat names the wool tap's key, so
   its depth is the fleece's standing; the shiver `look` line.
 **Gates:** `lint:anatomy` (integument clause on), `lint:does-nothing`,
 `lint:perishable`.
@@ -1383,11 +1522,13 @@ once here: animals gain natural armor and the balance benches may move.
 **Goal:** yields derive; the pelt comes off; `butcheryYield` is gone.
 **Implements:** D5.
 - `TissueMixin.comesOffAs`, authored on the tissue rows; `portionKg` on
-  `CutMixin` and the cut rows; pelt, feathers, down, carapace and organ rows
-  (hide and fish-skins exist).
+  `CutMixin` and the cut rows; feathers, down, carapace, shell and organ
+  rows, each answering to its own word (hide and fish-skins exist; only the
+  hide answers to `pelt`).
 - The calf's abomasum as a `newborn` stage-delta part (W2), naming the vell.
 - `Butcherable.dress` and `Species.dressOut` rewritten; the pelt line, its
-  flaws and the skinner's hand; `Flawed` kinds and `site`; the corpse's
+  flaws (`holed`, `slashed`, `burned`) and the skinner's hand (`nicked`);
+  `Flaw.site`; the corpse's
   `look` for a taken pelt (bare skin).
 - Move the wolf, hog and pit pony onto modules with named muscles.
 - Delete `Species.butcheryYield` and all 15 lists; retire `lint:anatomy`
@@ -1399,8 +1540,8 @@ once here: animals gain natural armor and the balance benches may move.
 all 15 species, and the commit body lists the added rows per species and the
 unit-count changes; a vell comes off a calf and not a cow; a cow killed with
 a flank puncture gives a pelt whose `look` names the hole; the same pelt
-after `cure` and `tan` is leather with the flaw (wire); a hen gives feathers
-and down; the crab gives chitin; both gates fail on a tissue whose
+after `cure` and `tan` is leather with the flaw (wire); a hen's bare `butcher` gives feathers and down first, and `for feathers`
+gives feathers alone with no prompt; the crab gives chitin; both gates fail on a tissue whose
 `comesOffAs` names no row.
 **Commit:** `feat(butchery): W5 cut maps derive from the body; the pelt`
 
@@ -1413,7 +1554,7 @@ cycle.
   item D7 lists; `Corpse.subtree`; `missingPartsAugmenter` suppressed for a
   part; the avulsion path; the participant gate on `severPart`;
   `testharness body-sever` moves to `ConditionApi.sever`.
-- Delta fields; `lostParts` and its applier; sealing in `afflict`; regrowth
+- Delta fields; `lostParts` as a `seed` field (mint only); sealing in `afflict`; regrowth
   at reconcile; `moultEveryDays` on the crab.
 - Coat `cycle`; the pelt's grade from the coat at death.
 **Gates:** `lint:mixin-clusters`, `lint:object-verbs`, `lint:field-meta`,
@@ -1422,88 +1563,99 @@ cycle.
 foreleg* (not *the body of*), weighs its share, is carried, butchered for a
 shank and reads its decay stage (wire); the wolf's later corpse lacks that
 shank; a crab aged past a moult has its claw and a burned one does not (unit
-and wire); under a pinned short day a pelt grades above a long-day one.
+and wire); under a pinned short day a pelt grades above a long-day one; a crab row
+authoring `lostParts` whose claw has regrown still has it after a restore
+(unit).
 **Commit:** `feat(harm): W6 the severed part is a thing; regrowth and the coat's year`
 
-### W6b — Reads are pure; the sweep keeps present bodies current
+### W6b — Reads are pure; bodies wake themselves
 
-**Goal:** looking at a body stops changing it, and a body standing still is
-kept current by a tick.
+**Goal:** looking at a body stops changing it; a body standing still is
+brought current by its own game-clock wake; a room that turns to smoke
+tells whoever is in it.
 **Implements:** D17.
-- Read `ResidencyLogic` (`presenceWalkImpl`, the sweep period) first.
 - Split `integrateThermalSlice` into the pure step and the applier;
   `getVitalSign('coreTemperature')` returns the projection.
-- `Stuff.keepCurrent()` (`@hook`); the sweep's second pass over present
-  objects, under `runRoot`; `ThermalRegulationMixin.keepCurrent()` and
-  `RespirationMixin.keepCurrent()`.
-- `testharness keep-current`.
-- `docs/antipatterns.md` gains (or extends) the row for a read that writes,
-  with this as the worked case; `thermal.md`, `residency.md` and
-  `respiration.md` are updated in this wave, not at the sweep, because the
-  doctrine they state changes.
-**Gates:** `lint:unconsumed-seams` (the hook has two overrides here, four by
-W8), `lint:reconcile-chains`, `lint:thin-forwarder`, `lint:gates`,
-`lint:floating-promises`, `lint:test-seams`.
+- `thermalWakeAtS`, `setThermalWakeAtS`, the crossing projection, the
+  one-game-hour cap; armed at every re-stamp and after every reconcile;
+  cancelled at destruct; not re-armed while linkdead.
+- `AtmosphericMixin.setAtmosphere` fans out to respiring occupants one
+  containment level deep (`reassess()`), fire-and-forget and caught.
+- `thermal.md`, `respiration.md` and the antipatterns row are updated in
+  this wave, because the doctrine they state changes here.
+**Gates:** `lint:reconcile-chains`, `lint:field-meta`,
+`lint:floating-promises`, `lint:silent-catch`, `lint:mixin-clusters` (the
+wake must reach the stamp through `this.`).
 **Acceptance:**
 - **unit:** a `coreTemperature` read leaves `conditions`, the stored core,
-  the reserves and `thermalRegStamp` byte-identical, for a body whose
-  projected core is past the torpor line;
+  the reserves, `thermalRegStamp` and `thermalWakeAtS` identical, for a
+  body whose projected core is past the torpor line;
 - **unit:** the projected core equals what the reconcile then stores, for
   the W0 cold cases;
 - the W0 torpor goldens: the **moving** pairs pass unchanged; the
-  **standing-still** pairs are re-pinned to *comes on at the same core,
-  on the tick, with no read* — the difference D17 states, in the commit
-  body;
-- a linkdead body is re-stamped and unchanged by a pass; an object nobody
-  is present with is not called (unit, with a counting stub);
-- a body in a room that turns to smoke is in crisis after one pass, having
-  not moved (unit);
-- the cost of one pass over a full room is measured and recorded in the
-  commit body.
-**Commit:** `fix(thermal): W6b reading a body no longer changes it; the keep-current tick`
+  **standing-still** pairs are re-pinned to *comes on at the same core, on
+  the body's wake, with no read* — the difference D17 states, in the
+  commit body;
+- a body cooled in place and never read is torpid after `clock-advance`
+  crosses its wake (wire); a restart with a wake pending re-arms it, and one
+  already past fires at once (unit);
+- a linkdead body's wake re-stamps, changes nothing and is not re-armed
+  (unit);
+- a body standing in a room whose atmosphere is set to smoke is in crisis
+  without moving (unit); a body in a bath in that room is not;
+- wakes armed per resident body, and reconciles per game hour in a full
+  room, are counted and recorded in the commit body.
+**Commit:** `fix(thermal): W6b reading a body no longer changes it; bodies wake on the game clock`
 
 ### W7 — Castration and phenology
 
-**Goal:** the ox, lactation, the season, the cold-blooded.
-**Implements:** D8 (castration, reproductive conditions), D9.
-- The `gonads` part on the male delta; `variants.neutered`; `castrate`
-  (view, controller, controller row, reasons), `Livestock.castratePlan`;
-  `HeadOverlay.castratedAtAgeDays`, replayed by the delta half;
-  `Herdbook.neuteredFraction`; the composition read; `return … to <book>`
-  and `HerdRegistry.refile`; `ox.yaml` (`sex`, `lostParts`).
-- The three `VitalEffect` kinds and their three readers
-  (`Metabolic.basalDrain`, `LocomotionLogic`, `HandlingMixin`).
-- The seven condition rows; `Species.phenology` and its async setter;
-  `VitalsMixin.reconcilePhenology()` and its one call site in
-  `reconcileThermalRegulation`; phenology authored on the frog and the
-  livestock.
+**Goal:** the ox, lactation on one schedule, the season, the cold-blooded.
+**Implements:** D8 (castration, the register), D9.
+- The `gonads` part on the male delta; `variants.neutered`.
+  `castration.yaml` in `trade-medicine`; `addresses.part`, `posture` and
+  `season` on the operation document; `VitalsMixin.operable(op)` and its two
+  reason rows; `OperateController` reads them (no class check).
+- `HeadOverlay.lostParts` written at `return` and seeded at `mintHead`;
+  `Herdbook.neuteredFraction`; the composition read; the `herd` view with
+  `enter`, `Herdbook.enterPlan`, `HerdRegistry.refile(…, by)` with
+  `requireActor`; `ox.yaml` (`sex`, `lostParts`).
+- The eight condition rows; `Species.phenology` and its async setter;
+  `VitalsMixin.reconcilePhenology()`, `phenologyWakeAtS`, the call after the
+  thermal cascade, the `daylight-pin` fan-out.
+- **Move the bands** (D9's table): the ewe's and the hen's `photoperiod`
+  windows become phenology entries; `in-season` and `rut` read
+  `Species.breeding`; `Livestock.serveBy` reads `in-season`; delete the
+  `event` and `photoperiod` window kinds, `breedsAtDaylight` and `inBand`.
+- `activeIn` on the udder and the oviduct, `not-lactating`, the afflict at
+  `mintHead` and at the end of `restDays`, the relieve at `dryOff`.
 - `THERMAL_DEFAULTS.SLUGGISH_ONSET_K`, the near cold threshold in the
-  cascade, `TemplatePaths.thermalSluggish`; `thermalStrategy: ectotherm` on
-  the fish, crustacean and frog plans.
-- `activeIn` on the udder, `not-lactating`, the afflict at `mintHead` and at
-  the end of `restDays`, the relieve at `dryOff`; delete the `event` window
-  kind.
+  cascade, `TemplatePaths.thermalSluggish`; the suppressed-power term in
+  `traversePowerW`; `thermalStrategy: ectotherm` on the fish, crustacean and
+  frog plans.
 **Gates:** `lint:conditions`, `lint:condition-arms` (phenology adds **no
-arm** to `reconcileConditions`; it calls `afflict` / `relieve`),
-`lint:mixin-clusters` (`reconcilePhenology` reaches `conditions` through
-`this.`), `lint:unconsumed-seams` (each new effect kind and `phenology` has
-a reader outside its file), `lint:arg-kinds`, `lint:one-word`,
-`lint:verb-collisions`, `lint:reason-rows`, `lint:controller-rows`,
-`lint:kept-animals`.
-**Acceptance:** a non-lactating cow refuses with the reason and a lactating
-one gives milk (wire); a castrated calf's herd line reads steer; aged to
-adult it is called an ox, outweighs a bull of the same age and handles
-calmer; `return steer to ox book` raises that book's ox count by one (wire);
-drafting it twice mints no gonads and no wound (unit); under a pinned short
-cold day a frog that has **not moved** carries `denning` after one
-keep-current pass, reads its signs on `look`, and its basal drain falls to a
-tenth (unit and wire); `look` and `assess` at a body whose trigger has just
-come true change nothing on it (unit: the conditions list is identical
-before and after each read); a chilled trout is `sluggish`
-before it is torpid (unit). ⚠ Ectothermy is new behavior for five fish, the
-crab and the frog: a unit test holds each at its habitat's temperatures and
-asserts it is neither torpid in water it tolerates nor dead.
-**Commit:** `feat(species): W7 castration, the ox and phenology`
+arm**; it calls `afflict` / `relieve`), `lint:mixin-clusters`,
+`lint:unconsumed-seams`, `lint:institution-verbs`, `lint:subcommand-words`,
+`lint:verb-collisions` (`herd`), `lint:actor-claims`, `lint:reason-rows`,
+`lint:controller-decisions`, `lint:controller-rows`, `lint:kept-animals`,
+`lint:closed-vocabularies`.
+**Acceptance:** `operate <calf> for castration with knife` takes the gonads
+and leaves the wound; on a cow it is refused by the body (`no-such-part`),
+out of the band by `out-of-season`; it works on a staged pit pony and a dog
+(unit). The calf's herd line reads steer; aged to adult it answers to *ox*,
+outweighs a bull of the same age and handles calmer; `herd enter steer in
+ox book` raises that book's ox count by one (wire); drafting it twice mints
+no gonads and no wound, and a head that lost an eye keeps the loss across
+`return` (unit). A ewe under a pinned winter day carries no `lactating`,
+does not read *in milk* and refuses `milk` with the reason; under a pinned
+spring day she gives; a dried-off cow refuses and a fresh one gives (wire).
+Under a pinned short cold day a frog that has **not moved and is not read**
+carries `sluggish` and then `denning` after `clock-advance` crosses its
+wakes (unit and wire); `look` and `assess` change nothing on it (unit). A
+chilled trout is `sluggish` before it is torpid, and pays more to cross
+(unit). ⚠ Ectothermy is new behavior for five fish, the crab and the frog:
+a unit test holds each at its habitat's temperatures and asserts it is
+neither torpid in water it tolerates nor dead.
+**Commit:** `feat(species): W7 castration as an operation, the ox, and phenology`
 
 ### W8 — Metamorphosis
 
@@ -1511,12 +1663,13 @@ asserts it is neither torpid in water it tolerates nor dead.
 **Implements:** D10.
 - `Species.development`; `breathes` on organs; `Body.breathing()` derives;
   delete `BodyPlan.breathing`, `getBreathableMedia`,
-  `Species.breathingByStage`, `breathingFor` and the proxy.
+  `Species.breathingByStage`, `breathingFor`, `respires`, `lungVolumeL` and
+  the proxy; lung volume and *does it respire* read off the lungs.
 - `formStage`, `reconcileForm`.
 - Tadpole, froglet and frog plans and modules; the frog's `ageCurve`;
   `denning` on the frog.
 - `LarvalClock`, `Silkworm` on `Creature`, `refreshExemplar` on the tray's
-  write paths and its `keepCurrent()`, `Cocoons.keepCurrent()`, the gland-derived shell, the exemplar moth; larva, pupa and
+  write paths and its own wake, the `Cocoons` emergence wake, the gland-derived shell, the exemplar moth; larva, pupa and
   moth plans; the two `@TestOnly` setters.
 **Gates:** `lint:test-seams`, `lint:mixin-clusters`, `lint:anatomy`
 (development clause on), `lint:duck-typing`, `lint:pack-extends`.
@@ -1526,7 +1679,8 @@ breathes air, and a staged wound on its tail has passed to its torso (wire);
 the W0 tray golden passes to the milligram; `look` at a tray mints nothing
 (unit: the content count is unchanged by reads); a worm taken off a
 fifth-age tray reads as a fifth-age larva; an unstifled stack staged to
-emergence leaves a moth and pierced cocoons after one keep-current pass.
+emergence leaves a moth and pierced cocoons once `clock-advance` crosses
+its wake.
 **Commit:** `feat(species): W8 metamorphosis — the frog and the silkworm`
 
 ### W9 — Senses
@@ -1546,7 +1700,7 @@ perceived-band goldens are unchanged; a `bandShift: -1` species perceives
 one band better in a dark place (unit and wire); a staged eye wound lowers a
 wolf's and a player's perceived band, and the player's `look` at themselves
 says so (wire); a cow perceives a `subtle`-hidden player that a wolf does
-not (wire, through `testharness body <observer> --of <player>`).
+not (wire, through `testharness body <observer> of <player>`).
 **Commit:** `feat(senses): W9 sense organs are parts; dark-sight is live`
 
 ### W10 — The honesty check and the whale
@@ -1583,27 +1737,30 @@ cuts, and rendered blubber fills a lamp (wire).
 
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
-| skin a carcass | `butcher <body> for pelt` (shipped view) | shipped (`Corpse` is `Butcherable`) | integument on the module; `comesOffAs` on the skin material; the pelt row carries the keyword `pelt` | the butcher ensures `comesOffAs` rows at the act | `cut` is a string matched to exemplar keywords, as today |
-| pluck, scale, shell | the same verb, `for feathers` etc. | the same | the coat material's `comesOffAs` | the same | the same |
+| skin a carcass | `butcher <body>` (takes the integument first) or `butcher <body> for pelt` (shipped view) | shipped (`Corpse` is `Butcherable`) | integument on the module; `comesOffAs` on the skin material; **only the hide row** answers to `pelt` | the butcher ensures `comesOffAs` rows at the act | `cut` is a string matched to the row's own words |
+| pluck, scale, shell | the same verb: `for feathers`, `for down`, `for scales`, `for carapace`, `for shell` | the same | the coat material's `comesOffAs`; each row its own word, none shared | the same | the same |
 | gland and blubber yields | `butcher` | the same | the organ's tissue row names its thing row | the same | the same |
 | render blubber | the shipped render path (`cook`/recipe) | the pot | `render-blubber` recipe; `whale-oil` material | recipe documents load as today | recipe slot category `blubber` — a tag on the blubber material |
-| milk a lactating cow | `milk` (shipped) | `Livestock` | udder on the female delta with `activeIn:` the `lactating` condition row; the reason row | the gland's condition path is ensured with the module | unchanged |
-| castrate | `castrate <animal>` (new view, `trade-ranching/content/trade/ranching/cmd/ranching/castrate.yaml`, `category: ranching`) | `Livestock.commandContributions` gains the view key | the `gonads` part on the male delta | the controller row `…/idea/cmd/ranching/CastrateController.yaml` | `animal` requires `HandlingMixin` (`handle.yaml`'s gate); the controller refuses a non-`Livestock` (`BreedController` ~61); the animal refuses the rest |
-| file a steer as an ox | `return <animal> to <book>` (shipped view, one new optional arg) | shipped (`Livestock`) | the ox book row | — | `book` requires the herdbook's class, as `draft`'s does |
+| milk an animal in milk | `milk` (shipped) | `Livestock` | udder on the female delta with `activeIn:` the `lactating` condition; the species' `phenology` entry; the reason row | the gland's condition path is ensured with the module | unchanged |
+| castrate | `operate <animal> for castration [with <kit>]` (shipped view) | shipped: whatever affords `operate` today | `castration.yaml` in `trade-medicine/content/operations/`; the `gonads` part on the male delta | operations load as today | `patient` requires `VitalsMixin`, which every body composes; the body refuses the rest by reason row |
+| file a steer as an ox | `herd enter <animal> in <book>` (new view `herd`, one subcommand, `category: ranching`) | the `Herdbook`'s `environment` contributions, beside `draft` | the ox book row | the controller row `…/idea/cmd/ranching/HerdEnterController.yaml` | `animal` object requiring `HandlingMixin`; `book` object, preposition `in`, requiring the herdbook's mixin |
 | pick up a severed part | `get` (shipped) | it is a `Thing` | `/stuff/thing/Corpse` row | cloned at the sever | none |
 | regrow | none (reconcile) | — | `regrows` on the part; `moultEveryDays` on the species | with the body | — |
 | take a worm off a tray | `get <worm> from <tray>` (shipped) | the tray is a container; the exemplar is content | the `Silkworm` agent row; the three stage plans | the tray clones the exemplar on a `put` or `get` | none |
 | conditions on a schedule | none (the body's reconcile) or the act that owns an event condition | — | `Species.phenology` → condition rows in the platform pack | ensured by `Species.setPhenology` | — |
 | an eye wound dims sight; dark-sight | none | — | eye parts on head modules; the species' `visionProfile` | with the body | — |
-| a still body is kept current | none (the tick) | — | — | the residency sweep, already installed; no boot entry | — |
+| a still body changes on time | none (its own wake) | — | — | armed at re-stamp and at mint; persisted; no boot entry | — |
+| smoke reaches whoever is standing in it | none (the setter's fan-out) | — | — | — | — |
 | stage a body | the `testharness` subcommands of D16 | test world only | — | — | `requiresTestWorld` |
 
 ⚠ The four classic silent failures, checked per row above: a view nothing
-affords (`castrate` is added to `Livestock`'s contributions in the same
-wave), a row nothing loads (every new document is ensured by an async setter
-that throws on a miss, and every tissue by `ensureConstituent`), a mixin
-nothing reaches (none is added), a `requires:`
-nothing composes (`castrate` requires a mixin `Livestock` composes).
+affords (`herd` is added to the `Herdbook`'s contributions in the same
+wave; `operate` is already afforded), a row nothing loads (every new
+document is ensured by an async setter that throws on a miss, every tissue
+by `ensureConstituent`, and the operation by the shipped catalogue), a
+mixin nothing reaches (none is added), a `requires:` nothing composes
+(`operate`'s is `VitalsMixin`; `herd enter`'s are mixins `Livestock` and
+`Herdbook` compose).
 
 ## Acceptance-criteria coverage
 
@@ -1632,9 +1789,10 @@ nothing composes (`castrate` requires a mixin `Livestock` composes).
 
 Unmapped: none.
 
-Proved beyond the requirements' list (owner's decision, D17): **reading a
-body never changes it, and a body standing still is kept current** — W6b,
-drive steps 12 and 13.
+Proved beyond the requirements' list (owner's decisions): **reading a body
+never changes it, and a body standing still changes on its own wake** (D17;
+W6b; drive steps 12 and 13), and **a winter ewe is not in milk** (D9; W7;
+drive step 8).
 
 ## Test & gate strategy
 
@@ -1653,19 +1811,19 @@ restart and the words.
 | # | pace | how it is staged |
 |---|---|---|
 | 1 | instant | `clone` a cow, `testharness body-wound <cow> body.torso point 2`, `testharness body-kill <cow>`; then the player's `butcher … for pelt`, `look pelt` |
-| 2 | instant | player verbs on the cow; then `testharness carcass <wolf>` and `<hog>` and the player's `butcher` — named cuts, and no row lost |
+| 2 | instant | player verbs on the cow; then a wolf and a hog (`clone`, `body-kill`) and the player's `butcher` — named cuts, and no row lost |
 | 3 | instant | player verbs: `cure <pelt>` with salt (the `salt-hide` recipe), `tan <pelt> in <pit>`; the pit's liquor clock advanced with `testharness clock-advance` in ≤ 1-day steps |
-| 4 | instant | `testharness carcass <hen>` |
+| 4 | instant | `clone` a hen, `testharness body-kill`; the player's `butcher hen for feathers`, then bare `butcher` for the down |
 | 5 | instant | `clone` a shore crab; `testharness body-kill <crab>` |
-| 6 | short | `testharness body-sever <crab> body.claw.left`, `body-age <crab> <past the next moult>`; second crab: `body-sever`, `body-wound <crab> body.claw.left heat 2`, `body-age` |
-| 7 | instant | `testharness carcass <sperm-whale>`; the player butchers and renders |
-| 8 | instant | draft a cow; `testharness afflict <cow> /platform/idea/Condition/reproduction/lactating 0` (relieve), `milk` refuses; `afflict` it again, `milk` gives |
-| 9 | instant | draft a bull calf; the player's `castrate`; the herd read says steer; `testharness body-age <steer> <adult days>` beside a staged bull of the same age; `handle` both; the player's `return steer to ox book`; read the ox book |
-| 10 | instant | `testharness body-wound <wolf> body.head.eye.left point 2`; a hidden player; `testharness body <wolf> --of <player>` and the same for a cow |
+| 6 | short | `testharness body-sever <crab> body.claw.left`, `/auth/test-stage` `setAge` past the next moult; second crab: `body-sever`, `body-wound <crab> body.claw.left heat 2`, `setAge` |
+| 7 | instant | `clone` a sperm whale on a shore, `testharness body-kill`; the player butchers and renders |
+| 8 | instant | draft a ewe; `testharness daylight-pin 0.35` (winter): she is not in milk and `milk` refuses with the reason; `daylight-pin 0.55`: she gives. Draft a cow; `testharness body-afflict <cow> …/reproduction/lactating 0`, `milk` refuses; afflict again, she gives |
+| 9 | instant | draft a bull calf; the player's `operate calf for castration with knife` (under a pinned in-season day); the herd read says steer; `/auth/test-stage` `setAge` to adult beside a staged bull of the same age; `handle` both; the player's `herd enter steer in ox book`; read the ox book |
+| 10 | instant | `testharness body-wound <wolf> body.head.eye.left point 2`; a hidden player; `testharness body <wolf> of <player>` and the same for a cow |
 | 11 | instant | in Hearts Delight's `PersistentHall`: `clone` a wolf, `testharness body-sever <wolf> body.leg.frontLeft`; the player picks the foreleg up, butchers a second one for a shank, and leaves one lying |
-| 12 | short | two sheep; the player's `shear`; `testharness weather-pin rain`, `clock-advance` a night in steps with `testharness keep-current` after each — **nobody moves and nobody reads**; then `testharness body <sheep>` reads: the shorn one is colder and carries hypothermia first; `assess` it twice and its conditions are the same both times; a wet and a dry wolf by `body-wet` |
-| 13 | short | `clone` a tadpole; `testharness body-age <tadpole> <past the change>`; then `testharness daylight-pin 0.35`, `weather-pin snow`, `clock-advance`, `keep-current`: the frog, which has not moved, carries `sluggish`, then `denning`, and its rate falls |
-| 14 | short | `/auth/test-stage` `setDegreeDays` on a tray; `get silkworm from tray`; the stifling oven; `unwind`; a second stack with `setSpunAt` back-dated past ten days, then `keep-current` |
+| 12 | short | two sheep; the player's `shear`; `testharness weather-pin rain`, `clock-advance` a night in steps — **nobody moves and nobody reads**; then `testharness body <sheep>`: the shorn one is colder and carries hypothermia first; `assess` it twice and its conditions are the same both times; a wet and a dry wolf by `setWetness` |
+| 13 | short | `clone` a tadpole; `/auth/test-stage` `setAge` past the change; then `testharness daylight-pin 0.35`, `weather-pin snow`, `clock-advance`: the frog, which has not moved and has not been read, carries `sluggish`, then `denning` |
+| 14 | short | `/auth/test-stage` `setDegreeDays` on a tray; `get silkworm from tray`; the stifling oven; `unwind`; a second stack with `setSpunAt` back-dated past ten days, then `clock-advance` across its wake |
 | 15 | instant | `testharness body-wound <player> body.head.eye.left point 2`; the player's `look me`; then two unwounded players, a plain human and a `bandShift: -1` species, `look` in the same dark place |
 | 16 | short | restart the wire world; read back the pelt and leather (carried), the ox (the herd document), the foreleg lying in the `PersistentHall`, the lactating cow (returned to its herd before the restart), **the tray's worms at the stage they had reached**, the player's eye |
 
@@ -1700,7 +1858,8 @@ between is `pnpm test:near`, the touched packs' vitest, and `lint:family`.
   `trade-farming`. Adult mass is unchanged by construction; if an adult
   figure moves, the curve is wrong.
 - **`lint:mixin-clusters` is at its ceiling.** `VitalsMixin` gains members
-  in W3, W6, W7 (`reconcilePhenology`) and W8. Each new member shares state
+  in W3, W6, W7 (`reconcilePhenology`, `operable`) and W8;
+  `ThermalRegulationMixin` gains the wake and `coatInsulation`. Each new member shares state
   with existing ones through `this.`.
 - **Medicine now sees seasons and milk.** `assess` and diagnosis list
   `in-season`, `lactating`, `denning` beside wounds and fevers. Accepted as
@@ -1708,24 +1867,41 @@ between is `pnpm test:near`, the touched packs' vitest, and `lint:family`.
   page of conditions, and `treat` must refuse each of these in words rather
   than offer a dressing.
 - ⚠ **Torpor's driver changes (W6b).** The read that used to bring a
-  still body current is gone, and the tick replaces it. Three things can go
-  wrong: a still body nobody is present with is no longer updated by an
-  `assess` from afar (accepted: nobody is there); the projection and the
-  reconcile disagree (the W6b unit test pins them equal); a caller nobody
-  found relied on the read (the W0 goldens for moving bodies and the full
-  suite are the net). Latency is one sweep period plus one step.
-- **The tick costs per present body.** One pass now calls every present
-  object's `keepCurrent()`; most return at once (no-op, or under
-  `REG_STEP_SEC`). The crowded-rooms figures were not found, so W6b
-  measures one pass over a full room and records it. If it is not
-  negligible, the remedy is slicing the pass (residency.md already names
-  budgeted slicing as the escalation), not moving work back onto reads.
-- **Respiration's re-check is now a poll**, where its slate decided a
-  fan-out from the setter. It is correct and late by up to a sweep period;
-  smoke kills a little slower than it would. Say so in `respiration.md`.
-- **Three new effect kinds** touch `Metabolic`, `LocomotionLogic` and
-  `HandlingMixin` for every body. With no condition carrying them the
-  factors are 1 and the delta 0; the persons' goldens guard it.
+  still body current is gone and the body's own wake replaces it. What can
+  go wrong: the projection and the reconcile disagree (a W6b unit test pins
+  them equal); a caller nobody found relied on the read (the W0 goldens for
+  moving bodies and the full suite are the net); a wake is lost across a
+  restart (pinned by a unit test, and the mould's shape is the proof it
+  works).
+- ⚠ **The wake costs per body.** Every living resident body now holds one
+  armed thermal wake and reconciles **at least once a game hour** (the
+  cap), plus one phenology wake at each daylength boundary of its species
+  (about four a game year per band). A reconcile is the work a re-stamp
+  already does. The count scales with resident bodies, not with players or
+  readers, and eviction is what bounds it. The real-time rate depends on
+  the length of a game hour, which the planner did not ground; W6b counts
+  wakes and reconciles in a full room and records them. If it is too much,
+  the lever is the constant (a longer step for a body projected to stay
+  inside its band), never a read.
+- ⚠ **Unwatched bodies now pay for the cold.** A resident animal nobody
+  visits shivers through its reserves on its wakes, where before it paid
+  nothing until read. That is the ruling (the world does not depend on who
+  is watching), and *cold is a cost, not a corpse* still bounds it; but
+  `behavior.md`'s rule that an NPC cannot starve unobserved now has thermal
+  spend acting on the same reserves. W6b adds a unit test: a resident,
+  unread, clothed NPC in a cold room for a game day is cold and not dead.
+- **No effect kind is added**, but `traversePowerW` gains a term read for
+  every body; with no expression suppression it is ×1, and the persons'
+  goldens guard it.
+- **`operate` on an animal** runs a controller written for patients: its
+  posture check, kit default and wording assume a person. D8 lists the
+  three document fields that open it; if the controller needs more than
+  reading them, stop and ask rather than add a class check.
+- **The `herd` word** may collide (`lint:verb-collisions`). If it does,
+  take the collision ladder; do not fall back to overloading `return`.
+- **Retiring the name stamp** changes how every drafted head is addressed.
+  The W2 acceptance drafts each livestock species and addresses it by every
+  word it answered to before.
 - **Two gates go blind if untaught** (`lint:census`,
   `check-reachability.ts`): W3 and W5 each include a deliberately broken row
   that must fail.
@@ -1742,13 +1918,12 @@ between is `pnpm test:near`, the touched packs' vitest, and `lint:family`.
   plan (D10). If the tray's hooks cannot hold a live creature beside leaf
   and frass without the feeding or naming logic counting it, stop and ask
   rather than mint from a read or add a second verb. (The moth's write path
-  is settled by D17.)
+  is the stack's own wake.)
 - **Merge seams with `build/naming-overhaul`:** the kind declarations (D1),
   `SpeciesLogic.ts`, `Vitals.ts`, `lib/mixin.ts`, `api/mixin.ts`.
 - **Stop and ask** if: a ceiling would have to rise; a module needs a field
-  the list in S4 does not have; `castrate` collides in
-  `lint:verb-collisions`; the scaling check flags a person species and the
-  honest payer is unclear; `return … to <book>` needs a new view key.
+  the list in S4 does not have; the scaling check flags a person species and the
+  honest payer is unclear; a wake would have to be armed from a read.
 
 ## Deferred seams
 
@@ -1765,12 +1940,12 @@ plan carries none of it.
   [decomposition-slate](../slates/engine/decomposition-slate.md).
 - Marks, contents, the added part, cryptobiosis →
   [bestiary-slate](../slates/world/bestiary-slate.md).
-- ⭐ **Absorbed, to be cut at the sweep:**
+- ⭐ **Built as decided, to be cut at the sweep:**
   [respiration-slate](../slates/engine/respiration-slate.md) § 2, *the
-  in-place trigger* — built here as `RespirationMixin.keepCurrent()` (D17).
-  `/finalize` cuts § 2 and the header's *Left* line for it. § 3 (the air
-  reserve as a breathable read, breathers drawing it down) stays in the
-  slate; its seam is the same `keepCurrent()`.
+  in-place trigger* — the setter fan-out, in W6b (D17). `/finalize` cuts
+  § 2 and the header's *Left* line for it. § 3 (the air reserve as a
+  breathable read) stays in the slate; its floor crossing is the fan-out's
+  second caller.
 - Conception, gestation, birth →
   [ranching-slate](../slates/trades/ranching-slate.md). Seam: the `pregnant`
   and `with-young` condition rows, and `HeadOverlay.bornAt`.
@@ -1802,8 +1977,10 @@ Read first, in this order:
 8. `packages/server/src/mud/lib/slot/Attired.ts` (`:680-960`),
    `lib/thermal/ThermalRegulation.ts` (`:180-220`, `:262-290` the read,
    `:339-400`, `:700-760`, `:785-860` the cascade, `:900-960`);
-   `platform/idea/api/ResidencyLogic.ts` and `docs/subsystems/residency.md`
-   § *One sweep*; `lib/respiration/Respiration.ts` (`reassess`);
+   `lib/mould/Mould.ts` (`:392-435`, the wake) and `docs/subsystems/mould.md`
+   § *When a set advances*; `lib/thermal/Thermal.ts` (`:706-740`);
+   `lib/respiration/Respiration.ts` (`reassess`) and the `Atmospheric`
+   setter;
    `docs/slates/engine/respiration-slate.md` § 2
 9. `packages/server/src/mud/platform/idea/api/PerceptionLogic.ts`
    (`:630-700`, `:920-1070`), `lib/creature/Actor.ts`
@@ -1819,9 +1996,15 @@ Read first, in this order:
 15. `packages/content/trade-sericulture/src/lib/Rearing.ts`,
     `src/thing/RearingTray.ts`, `src/thing/Cocoons.ts`
 16. `packages/content/trade-tanning/src/lib/Tanning.ts`
-17. `packages/content/platform/content/platform/cmd/system/testharness.yaml`
+17. `packages/content/trade-medicine/content/trade/medicine/cmd/medical/operate.yaml`,
+    `src/idea/cmd/medical/OperateController.ts`,
+    `content/operations/amputation.yaml`,
+    `packages/server/src/mud/lib/vitals/Operation.ts`
+18. `packages/content/platform/content/platform/cmd/system/testharness.yaml`
     and `packages/server/src/mud/api/test-harness.ts`
-18. `docs/review-questions.md`, `docs/lint-family.md` § census-then-ratchet,
+19. `docs/review-questions.md`, `docs/lint-family.md` § census-then-ratchet,
+    `docs/antipatterns.md` § *A read the room makes for everyone that
+    changes the world*,
     `docs/subsystems/ranching.md` §§ D19–D21
 
 ## Drive record
