@@ -1838,3 +1838,16 @@ phone) and are left for the browser walk where a person can reach them. 3b
 CMS (`document-filed`) reaches the CMS caller as the bare code
 (`refused: document-filed`), not the reason row's words — the CMS's error
 path does not word refusals by their rows.
+
+**Browser walk:** `e2e/tests/naming-overhaul-walk.spec.ts`, 2026-11-23 —
+**2 of 2 green** (server on 2016 in test mode with `CLIENT_URL` set to the
+walk's client on 5176). A person types `query me:~`, `look here`, `query
+~here`, `who` (an `@<id>` shown), `notify set ~friends …` and `notify set
+friends …` (refused with the relation spelling), `help search harb`, `party
+form` + `party adopt the vanguard`, `buy loaves` at the bread counter (named,
+not "isn't for sale"), and `rent canoe for soon` / `for 90 minutes` at the
+put-in (each refused in words) — and every form parses.
+
+**Full suite:** `tools/suite` — all 56 packages pass (36 min), 2026-11-23.
+It ran over a tree that moved during the run, so the merge guard did not
+record it; `/finalize` runs it again on the exact source.
