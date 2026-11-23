@@ -7,7 +7,7 @@ scope (line counts at the start of this pass):
 - `docs/slates/society/residence-ladder-design-pack.md` (329)
 - `docs/slates/society/tenancy-design-pack.md` (285)
 - `docs/slates/world/dorm-warren-slate.md` (247)
-- `docs/slates/engine/estate-nesting-slate.md` (101)
+- `docs/slates/engine/persistence-model-slate.md` (101)
 - `docs/slates/world/household-design-pack.md` (425)
 - `docs/slates/world/bathroom-slate.md` (144)
 
@@ -37,7 +37,7 @@ See-also calls the residence-ladder pack *"the rented rungs, and the
 - **`dorm-warren-slate.md` is canonical for ROOM CUSTOMIZATION** (the
   bounded editor, custom prose, themes) — the only file whose subject is
   what a player may write onto a space they hold.
-- `household-design-pack.md`, `estate-nesting-slate.md` and
+- `household-design-pack.md`, `persistence-model-slate.md` and
   `bathroom-slate.md` each keep their own subject (the multi-occupant
   commons · the persistence shape of an estate entry · the bathroom's
   function). None is a stub.
@@ -52,7 +52,7 @@ table against `git show` of the file.
 
 ## What is NOT duplicated (read whole, left alone)
 
-- **`estate-nesting-slate.md`** — cites none of the other five and none
+- **`persistence-model-slate.md`** — cites none of the other five and none
   cites it; its four questions (what an estate entry carries · the 16 MB
   ceiling · container-vs-containable · the migration) appear nowhere else
   in the cluster. The ladder pack's *owner-index cache* seam is the
@@ -208,9 +208,9 @@ multi-occupant case is nobody else's subject.
 - Size: a wave → a wave
 - Links: none re-pointed; nothing retired
 
-## estate-nesting-slate.md — 101 → 101 · untouched
+## persistence-model-slate.md — 101 → 101 · untouched
 
-### Conservation table — every heading of `estate-nesting-slate.md`
+### Conservation table — every heading of `persistence-model-slate.md`
 
 | heading | outcome | note |
 |---|---|---|

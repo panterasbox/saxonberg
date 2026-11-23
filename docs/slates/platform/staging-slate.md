@@ -20,6 +20,8 @@
 > shift as a claim · restaging unobserved or diegetically · staged state across a reboot
 > **Size:** a build
 
+⭐ **[persistence-model](../engine/persistence-model-slate.md) (2026-11-23)** settles the other half: every thing carries two facts — *whose part is it* (this slate; the owner: **the warren IS the stage manager**) and *does its inside keep* — and a stray is lost at restage, nothing rescues it. The restage moment is shared.
+
 Siblings: [stage-and-simulation](../world/stage-and-simulation-slate.md) (§ 5: *staging in place — the
 same zone, NPCs swapped — is the same machinery without the exit*; this slate is that machinery) ·
 [emergency-services](../society/emergency-services-slate.md) (the restaged NPC beside its own corpse) ·
