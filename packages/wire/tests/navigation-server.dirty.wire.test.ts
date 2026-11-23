@@ -125,7 +125,7 @@ suite('navigation-server — the blocking drive', () => {
     record.push(`2: square claims ${JSON.stringify(sq.map((c) => [c.channel, c.at]))}`);
     expect(sq.some((c) => c.channel === 'walked')).toBe(true);
     const at = sq.find((c) => c.at)?.at;
-    expect(at?.zone?.spoiler).toBe(1);
+    expect(at?.zone?.spoiler).toBe(2);
     expect(typeof at?.x).toBe('number');
     expect(typeof at?.level).toBe('number');
   }, 120_000);

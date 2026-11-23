@@ -159,7 +159,9 @@ export class NavClient {
       }
       if (v && typeof v === 'object') {
         const o = v as Record<string, unknown>;
-        const tagged = typeof o.path === 'string' && o.spoiler === 1;
+        // A path rides the spoiler axis at level 2 since the tooltips build
+        // (`TaggedPath`); any spoiler level is a tag — a bare string is not.
+        const tagged = typeof o.path === 'string' && typeof o.spoiler === 'number' && o.spoiler >= 1;
         for (const [k, x] of Object.entries(o)) walk(x, `${at}.${k}`, tagged && k === 'path');
       }
     };
