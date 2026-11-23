@@ -4,13 +4,12 @@
 > restarting the estate-nesting slate from first principles. It covers two
 > facts per thing, one rule for every thing, keepers, legibility, and what it
 > retires.
-> **Left:**
-> - the build cut: persistence alone, or with [staging](../platform/staging-slate.md)
-> - the open questions in § 6
-> - a fresh code survey against the reuse ledger (§ 8)
->
-> **Size:** **a build** — it retires the estate, the promoted tier and the
-> room overlay, and gives every container a keeping rule
+> **Left:** requirements for **persistence + [staging](../platform/staging-slate.md)
+> as ONE design** (owner, 2026-11-23) · the open questions in § 6 ·
+> a fresh code survey against the reuse ledger (§ 8)
+> **Size:** **a build, with staging** — it retires the estate, the promoted
+> tier and the room overlay, gives every container a keeping rule, and
+> builds the stage manager
 
 **Captured 2026-09-16** as *estate nesting*, in review of the pets MR
 (!257): an owner's saved record nests a full copy of every good they own,
@@ -154,15 +153,22 @@ A player learns the rule in three layers:
    contents and all. A kept inside needs keepers all the way up the chain.
    (The locker is different: it is the staging's own part, with a keeping
    inside.)
-2. **What bounds a kept place?** Bodies and containers are bounded by
-   [size](../../subsystems/size.md). A room's floor may not be. Is a kept
-   room's floor bounded by its extent, and what is the refusal?
+2. ✅ **What bounds a kept place — answered (owner, 2026-11-23):** *"floors
+   are boundless but exits aren't and you still have to get the thing into
+   the room if it's big… what's the difference between a floor and a large
+   box?"* None, and [size](../../subsystems/size.md) already says so: an
+   enclosed place's interior is its cube and `no-room` (Σ fill ≤ interior)
+   bounds it exactly as it bounds a box; a big thing still has to come
+   through a way. ⚠ The one unbounded case is an **open** kept place (a
+   yard, a tract, a wood) — size deliberately skips `no-room` where a side is
+   open. Lean: an open place bounds by its **footprint** (things lying on
+   the ground take ground), so every kept inside is bounded by physics.
+   Confirm at requirements.
 3. **The word.** Should the player-facing word be *kept*, *safe*, or
    something else? It appears in the marker and the teaching line.
-4. **When strays are decided.** The restage moment belongs to staging,
-   which is unbuilt. Today a place is effectively restaged only at a reboot
-   and by residency evicting it while cold. Does this build clear strays at
-   those moments only, or does it wait for staging?
+4. ✅ **When strays are decided — answered (owner, 2026-11-23): build it
+   with staging, one design.** Strays are decided at the restage the stage
+   manager runs, not only at a reboot or an eviction.
 5. **A good mid-process in a place that does not keep** (a cask maturing on
    a tavern shelf): lost like anything else. Confirm there is no
    trade-specific exception.
