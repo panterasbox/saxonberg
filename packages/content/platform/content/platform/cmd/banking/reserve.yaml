@@ -73,7 +73,8 @@ subcommands:
         type: string
         required: true
       - name: from
-        type: string
+        type: enum
+        values: [from]
         required: true
       - name: target
         type: string
