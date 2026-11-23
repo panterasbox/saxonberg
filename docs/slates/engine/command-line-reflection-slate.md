@@ -1,147 +1,148 @@
-# Command-line reflection — the shell answers questions about itself
+# Command-line reflection — `which`: what can I type here
 
 > **Status: UNBUILT** — opened 2026-11-23 (owner, in naming-overhaul
-> review, over the `lists: relations` view key: *"this is the command
-> line interface interrogating itself on the player's behalf"*).
-> **Left:** all of it — the four models, the verbs that present them
-> (words unchosen), the card, and what retires.
-> **Size:** a conversation, then a build.
+> review, over the `lists: relations` view key); shape decided in the
+> design conversation the same day (below).
+> **Left:** the requirements — the output's grouping, the `~` words'
+> spelling on request, the "you can't do that here" line for a named verb,
+> the client's manifestation, and what retires.
+> **Size:** a build (server first; the client reads it after).
 
 ## Why this exists
 
-A player meets the game through a command line, and nothing in it answers
-questions about itself. Which verbs do I have right now? Why that one —
-because of my body, the rod in my hand, this room? What does this verb
-take? What can I say to this thing? Why did `buy loaves` pick that loaf?
-The engine knows every answer — it works most of them out on every
-command — and shows a player none of them. Any OS shell has this layer
-(`type`, `which`, `compgen`, `--help`, a dry run); ours has it only for
-authors (`ls`, `cat`, `errors`, `typecheck`).
+MUD interfaces were terrible, and that is where we are coming from. A
+newcomer stares at a prompt with no menu: *what can I type?* MUDs grew
+command-listing commands because a text-only medium could not show it
+any other way. We have hypertext, so not everything must be an explicit
+command — but the server command comes first, and the client reads from
+it whatever it can (owner, 2026-11-23).
 
 ## What this is — and is not (owner, 2026-11-23)
 
-- ⛔ **Not help.** `help` is documentation — sometimes derived, basically
-  static. This is **interrogating the engine to see what it does**: closer
-  to `analyze` and `measure`, an instrument reading the machine, than to a
-  rulebook.
-- ⛔ **Not typeahead.** Typeahead is implicit and client-side; this must
-  work **deliberately**. Every answer is a **server model** first, a
-  player asks for it with a command, and a card shows it. Typeahead is a
-  later consumer that READS those models (pushed over the subscription
-  wire, so the client holds "your commands right now" and never runs a
-  command per keystroke) — a different thing, built on this one.
-- **Think like a person at the line.** The first question is *what verbs
-  do I have* — what typeahead answers implicitly — and everything else
-  is a refinement of the answer: this verb's shape, what goes in this
-  slot, what this thing offers.
-- **The model is the author commands'**, turned to the player's side: the
-  author tools inspect the content tree; these inspect the command line.
+- ⛔ **Not help.** `help` is reference documentation — sometimes derived,
+  basically static: what a verb *is*, its shape, its usage. `which` is the
+  read on what is **changing all the time** — what you can type *here,
+  now*. Where `which` must borrow from help, it does so knowingly and
+  says so; it never reprints a verb's shape (`help fish` owns that).
+- ⛔ **Not typeahead.** Typeahead is implicit and client-side; this is a
+  deliberate **server** command. Typeahead is a later consumer that reads
+  the same model (pushed, never a command per keystroke).
+- **Server first.** Whatever the client holds today (below) is an
+  implementation detail the build may reuse or toss; the server command
+  is the source of truth.
 
-## The four questions, each a model
+## Decided (owner, 2026-11-23)
 
-1. **What can I do right now, and why?** Every verb available to the
-   asker at this moment, each with its SOURCE — your own body, a thing
-   you hold or wear, a peer, the room, a fixture here. The source is
-   already recorded per binding (`RecencyEntry.source`, command-routing
-   § *Affordance attribution — source, not category*); a verb disabled
-   here says the validator's verbatim reason, as the radial already does.
-2. **How do I use this verb?** Its shape, derived from the view: its
-   subcommands, its slots in order, what each slot accepts (`requires:`,
-   a duration's `min`/`granularity`, an enum's values), where each slot
-   searches and in what order (`scope:`), its options. Derived from the
-   definition, never hand-written — so it cannot drift from what the
-   binder does.
-3. **What does this thing offer me?** For any object you can name: the
-   verbs it affords (`thing::verb`, naming-overhaul B0), the sets it
-   keeps with their meanings (`thing:~name`, B1 — `RelatingMixin`), and
-   the names it answers to (its keywords). Asked of yourself it lists your
-   relations — the built-ins that apply (`~here`, `~contacts`, …), your
-   lists, your groups, your party.
-4. **What would this line do?** A dry run: bind the line without acting
-   and report each slot — what it bound, at which keyword tier, through
-   which relation (`via.relation`), whether it took its default
-   (`defaulted`), or the refusal it would give (`BindErr.refusal`, the
-   reason row's words). The binder's own trace made visible; the only
-   honest answer to *why did it pick that one*.
+**One verb, `which`, and one question: what can I type here?**
+
+```
+which            — what you can type here: your verbs, and what gives you each
+which <thing>    — what that thing lets you do
+```
+
+- **Show the why.** Each verb says what gives it to you, by the OBJECT
+  and its place — *fish: the rod in your right hand*, *buy: the counter
+  here*, *dig: you* — never the capability (no mixin names; plain words).
+  The why is the teaching: it is how a player learns that the rod is
+  what lets you fish.
+- **`which <thing>`** is the same answer narrowed to one source: the
+  verbs that thing gives you. It names the thing by its **handle** — the
+  one word you would type (presentation.md: authored keyword → job →
+  species) — plus a way to tell it apart only when the handle is ambiguous
+  in reach. ⛔ Never the keyword list: the one naming rule means a player
+  need not know it.
+- **`~` words on request.** The relations you can type (`~here`,
+  `~friends`, `~contacts`, a book's `~ships`) are things you can type too,
+  so they belong to the same answer — but not in the default listing.
+  They appear when asked for (spelling open, below).
+- **What you have, not what exists.** `which` lists what you can type
+  here. It never lists every verb in the game.
+
+### Cut in the conversation, and why
+
+- **A dry run (`which try <line>`).** The problem it answered — *why did
+  it pick that one?* — is answered already: the binder asks on a tie, and
+  a result says what it acted on. No moment was found when a player would
+  rather ask first than type it.
+- **"How do I use this verb" as its own mode.** That is help's (usage is
+  static). The live part — what each slot would find here — folded into
+  nothing; if wanted later it is a dry run, cut above.
+- **A thing's whole keyword list, and a thing's kept sets listed inline**
+  (`keeps: ~ships — …`). The first is matching data, not player
+  information; the second existed only to replace `query me:~`, and the
+  real question under it is *what `~` words can I type* — answered on
+  request.
 
 ## Rules every answer obeys
 
 - **Perception.** No answer names what the asker cannot perceive — a
-  hidden thing does not appear in a slot's candidates, a concealed
-  fixture's verbs do not appear in question 1. Otherwise the shell is a
-  detector (concealment.md; the binder's `PerceptionApi.perceived` gate).
-- **Honest by construction.** Each model reads the real definitions and
-  the real binder, never a description of them; an answer that could
-  disagree with what the command then does is a defect.
-- **Non-diegetic, bounded.** The shell layer (like the `client-*`
-  verbs): it reports what you can do and why, never a fact you could
-  not otherwise learn — no paths behind the spoiler rule
-  (*paths are spoilers*), no other player's private relations.
+  concealed fixture's verbs do not appear; a hidden thing gives no
+  `which <thing>`. Otherwise the shell is a detector (concealment.md; the
+  binder's `PerceptionApi.perceived` gate).
+- **Honest by construction.** It reads the real command availability and
+  the real views, never a description of them; a verb `which` lists must
+  be one the line accepts, and the reverse.
+- **Bounded.** The shell layer (like the `client-*` verbs): it reports
+  what you can do and why, never a fact you could not otherwise learn —
+  no paths (*paths are spoilers*), no other player's private relations.
 
-## What already exists
+## What already exists (grounded 2026-11-23)
 
-| piece | where | what it does not do |
+| piece | where | note |
 |---|---|---|
-| per-object verb menu + disabled reasons | `CommandApi.resolveAffordances` → `AffordanceEntry` (the radial) | answers one object; nothing lists *all* your verbs, or their sources, as a command |
-| source per binding | `RecencyEntry.source` | never shown to a player |
-| relation listing | `query thing:~` behind the view key `lists: relations` (naming-overhaul D-B4); the `names-relations` refusal elsewhere | a listing is not runtime Stuff — MQL should not return it (*MQL finds runtime Stuff only*) |
-| binder trace pieces | `MqlMany.tiers`, `via.relation`, `MqlOneResult.defaulted`, `BindErr.refusal` | consumed internally; no dry run |
+| ⭐ a per-player **command stack** of available verbs, sliced self · peers · environment, each entry recording the object that afforded it | `CommandApi` — `applyContainmentDelta` / `applyShadowDelta` / `applyHostedAppDelta`; `RecencyEntry.source` | kept current incrementally as things move, shadows attach and apps install — the "what can I type, and why" is already computed |
+| that stack pushed to the client | `emitSchemaDelta` → `shell.control {added, reset}`, `getCommandSchemaPayload` | built for client widgets; nothing shows it to a player. Reuse or toss — the build's call |
+| per-object verb menu + disabled reasons | `CommandApi.resolveAffordances` → `AffordanceEntry` (the radial) | the client's answer to `which <thing>` |
+| relation listing | `query thing:~` behind the view key `lists: relations` (naming-overhaul D-B4); the `names-relations` refusal elsewhere | a listing is not runtime Stuff — MQL should not return it |
+| the handle | presentation.md § the handle chain | the one word `which` names a thing by |
 | typeahead | the phone's suggestion strip (`CommandBar` `suggest`), `HelpCatalogue.typeaheadMatch` | help topics only, client-side |
-| the push wire | subscription sources (subscription.md) | no "your commands" source |
-| a channel-shaped verb | `analyze` / `measure` over `Reading` rows (instrumentation.md) | the precedent for one verb over several channels |
 
 ## What retires
 
 - The **`lists: relations`** view key, the `relations` field on a bound
-  set, and the **`names-relations`** reason row — question 3 answers
-  `thing:~`, and MQL returns only Stuff. `thing:~` then becomes a parse
-  error whose hint names the reflection command.
-- `query me:~` (naming-overhaul's requirements step 10) moves to question
-  3's command. ⚠ Not before question 3 ships: retiring the key first
-  leaves players no way to discover their relations.
+  set, and the **`names-relations`** reason row, once `~` words come from
+  `which`. `thing:~` then becomes a parse error whose hint names `which`.
+- `query me:~` moves to `which`'s `~` words. ⚠ Not before `which` ships
+  them: retiring the key first leaves players no way to discover their
+  relations.
 
 ## Open questions
 
-- **The words.** One verb over four channels (the `analyze` shape) or
-  four verbs? Which words — the owner vets every new command word and
-  MQL reserved word. Under *verb subcommand target*, never nested.
-- **The card.** One card laid out by question, or the inspection card
-  growing a section? How it links: a verb in question 1 opens question 2;
-  a slot in question 2 shows its candidates; a candidate opens question 3.
-- **The dry run's spelling** — a prefix verb taking a whole line, an
-  option on every verb, or something else? It must never act, and must
-  run every gate the real command runs before acting (validators
-  included), so its refusals are the real ones.
-- **Scripts.** Should a script be able to ask (*does `fish` exist here*)
-  and branch on it — the shell's `type -t`?
-- **Cost.** Question 1 for a person in a crowded room walks every source's
-  contributions; is it computed on ask, or kept as the subscription
-  source's state (memory-or-mongo-slate's question, again)?
-- **Typeahead's contract** — which models it reads, and how it stays
-  current, is the follow-on build's; this slate only promises the models
-  are shaped for it.
+- **The `~` words' spelling on request** — `which ~` (type the sigil, get
+  its words), an option (`which --relations`), or `which` on a holder
+  (`which book` adds its `~ships`)? Under *verb subcommand target*, never
+  nested.
+- **The grouping** — by source (what gives it) as the default; do the
+  always-there body verbs (`look`, `say`, `go` …) collapse into one line
+  so the interesting sources stand out?
+- **A verb you name but cannot use here** (`which fish` with no rod) — is
+  that `which`'s at all (one line: *you need something to fish with*, the
+  view's own words), or does it stay with `help fish`?
+- **The client** — the hypertext manifestation (a verbs card, verbs as
+  links, the radial reading the same model), and whether typeahead reads
+  the pushed stack or the `which` model.
+- **Scripts** — may a script ask (*does `fish` exist here*) and branch on
+  it, the shell's `type -t`?
 
 ## Lens pass (first cut)
 
-- **1 pedagogy** — a shell that explains itself is the syllabus of the
-  interface: the player learns *why* a verb is there (the rod gives you
-  `fish`), which is the world's causality made legible.
-- **2 creative expression** — an author's new verb, relation or holder
-  is discoverable with no extra authoring: the models read the views
-  and the protocols.
-- **3a immersion** — the shell layer is non-diegetic by design; the rule
-  that it never reveals the unperceivable is what keeps it from
-  betraying the fiction.
-- **5 continuity** — the answers follow the objects, so a new epoch's
+- **1 pedagogy** — the why is the syllabus of the interface: the player
+  learns that the rod gives `fish`, the counter `buy` — the world's
+  causality made legible.
+- **2 creative expression** — an author's new verb, tool or holder shows
+  up in `which` with no extra authoring; it reads what the content
+  already declares.
+- **3a immersion** — non-diegetic by design; the perception rule keeps it
+  from betraying the fiction.
+- **5 continuity** — the answer follows the objects, so a new epoch's
   tool is discoverable the day it ships.
-- **4 · 6 · 7** — nothing found yet.
+- **4 · 6 · 7** — nothing found.
 
 ## Cross-references
 
-- [command-routing.md](../../subsystems/command-routing.md) — affordances, attribution, resolution
-- [mql.md](../../subsystems/mql.md) — relations, `via`, tiers
-- [instrumentation.md](../../subsystems/instrumentation.md) — the `analyze`/`measure` channel shape
+- [command-routing.md](../../subsystems/command-routing.md) — affordances, attribution, the recency stack
+- [presentation.md](../../subsystems/presentation.md) — the handle
+- [help.md](../../subsystems/help.md) — the reference half `which` must not duplicate
+- [mql.md](../../subsystems/mql.md) — relations
 - [subscription.md](../../subsystems/subscription.md) — the push wire typeahead would read
-- [shell-workspace.md](../../subsystems/shell-workspace.md) · [shell-author.md](../../subsystems/shell-author.md) — the author tools this mirrors
-- [memory-or-mongo-slate](../tech-debt/memory-or-mongo-slate.md) — computed vs kept
-- Memory: *MQL finds runtime Stuff only*; *the command def predicts everything*; *paths are spoilers*
+- Memory: *plain words, not code names*; *paths are spoilers*; *MQL finds runtime Stuff only*
