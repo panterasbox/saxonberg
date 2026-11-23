@@ -38,6 +38,9 @@ args:
     type: object
     required: false
     scope: ["~reachable:[class.CharterBook]:~ships"]
+    # A ship the book keeps is whatever its `~ships` relation yields — the
+    # book decides; the controller reads the hull off the binding.
+    requires: any
   # ⭐ The book the charter is written in — declared, not hunted for: the
   # one in front of you (`lint:controller-resolution`), defaulted so absent
   # means that book (optional only because it follows the optional ship —

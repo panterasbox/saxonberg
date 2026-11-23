@@ -4,7 +4,7 @@ import { openWorldAs, runCommand, tipText } from './helpers';
 /**
  * ⭐⭐ **The navigation-server build's browser walk** — what a person sees.
  *
- * The wire drive (`packages/wire/tests/navigation-server.dirty.wire.test.ts`)
+ * The wire drive (`packages/wire/tests/navigation-server.wire.test.ts`)
  * asserts what reached the socket. This walks a real Chromium against the
  * real client: the navigator card now carries NO payload and reads the
  * where-you-are subscription from the store, so `map` must still show where
@@ -20,8 +20,9 @@ test.describe('navigation server — the navigator reads the subscription', () =
     const { page, close } = await openWorldAs(browser, 'navwalk', { startLocation: BANK });
     try {
       await runCommand(page, 'map');
-      const nav = page.getByTestId('navigator');
+      const nav = page.getByTestId('nav-card');
       await expect(nav).toBeVisible({ timeout: 30_000 });
+      // The trail and the government line are always shown — no section to open.
       await expect(page.getByTestId('nav-crumbs')).toContainText(/Terminus/, { timeout: 30_000 });
       await expect(page.getByTestId('nav-jurisdiction')).toContainText(/Terminus/);
       const before = await nav.innerText();

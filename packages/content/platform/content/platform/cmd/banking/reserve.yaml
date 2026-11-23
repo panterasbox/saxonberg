@@ -25,7 +25,11 @@ help: |
   "<reason>"` is the emergency override: a mint the ledger records as
   YOUR act, with your reason, that the dashboard prints as its own line.
   There is no `reserve mint` and no `reserve issue`: issuance no longer
-  names a destination.
+  names a destination. `reserve retire <amount> from <target> "<reason>"` is
+  its inverse: money withdrawn from that account back to the reserve, so the
+  supply falls by it — your act, your reason, on the record and on the
+  dashboard's own line, and the holder is told. It is refused, and nothing
+  is taken, when the account holds less.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresGovernor
@@ -53,6 +57,23 @@ subcommands:
       - name: to
         type: enum
         values: [to]
+        required: true
+      - name: target
+        type: string
+        required: true
+      - name: reason
+        type: string
+        required: true
+        greedy: true
+  retire:
+    controller: /platform/idea/cmd/banking/ReserveRetireController
+    description: "The recorded retirement: <amount> from <target> \"<reason>\" back to the reserve"
+    args:
+      - name: amount
+        type: string
+        required: true
+      - name: from
+        type: string
         required: true
       - name: target
         type: string

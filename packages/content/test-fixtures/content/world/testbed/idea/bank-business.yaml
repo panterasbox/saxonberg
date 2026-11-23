@@ -1,0 +1,33 @@
+# The testbed bank — a Business whose product is banking
+# (test-world-lifecycle D2; the Goodkin branch is the exemplar). Independent:
+# no corpo, no parent organization. It banks at itself (`testbed-bank`, the
+# key its counter authors) and is chartered, so it may lend and take
+# deposits. Stands up lazily off `operatingLocations`. ⚠ TEST-ONLY.
+class: /platform/idea/Business
+data:
+  name: "the testbed bank"
+  # The testbed committee appoints — a drive seated on it may
+  # `house appoint` here (D2 § Authority without damage).
+  appointingAuthority:
+    kind: committee
+    parcel: /world/testbed
+  positions:
+    - key: teller
+      noun: teller
+      label: working the testbed counter
+      wageRate: 5
+    - key: officer
+      noun: officer
+      label: lending at the testbed bank
+      wageRate: 6
+  rosterSlots:
+    # ⭐ Around the clock, every day: a drive at any game hour finds the
+    # teller at post.
+    - positionKey: teller
+      assignee: /world/testbed/agent/teller
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: testbed-bank
+  charter: [bank]
+  operatingLocations:
+    - /world/testbed/thing/bank-counter

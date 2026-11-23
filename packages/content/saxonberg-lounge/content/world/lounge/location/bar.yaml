@@ -21,10 +21,13 @@ class: /world/lounge/location/Bar
 extends: /trade/hospitality/location/bar
 data:
   # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
-  # an authored row joins a zone. The bar is the lounge grid's origin; the office is one cell north of it, which is what the door has always said.
+  # an authored row joins a zone. The bar is one cell north of the lounge
+  # grid's origin: the lounge room a newcomer arrives in sits at 0,0,0 (the
+  # Warren places its host one cell south of here), and the office is one
+  # cell north, which is what the door has always said.
   coords:
     x: 0
-    y: 0
+    y: 1
     z: 0
   shortDescription: Dave's Bar
   keywords: [bar, "dave's"]

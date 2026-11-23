@@ -60,6 +60,7 @@ subcommands:
         type: object
         required: true
         scope: ["~all"]
+        requires: class:Agent
       - name: label
         type: string
         required: false

@@ -9,8 +9,9 @@
  * workspace at more). A FULL card takes the stage; the terminal drops to
  * a strip at the column's x, and the other cards sit as chips beside it.
  *
- * The window decides how many units fit (`useWidthTier`); the panel
- * collapses first, because it costs two-thirds of a unit. Where each
+ * The window decides how many units fit (`useWidthTier`). The panel stays
+ * open until the player collapses it (navigation card D14); a narrow
+ * window drops it. Where each
  * card sits is the server's (`card-arranged`): the stage renders it.
  *
  * ⚠ The phone is its own design: `PhoneShell` (W6).
@@ -223,10 +224,11 @@ function quoteRef(key: string): string {
 /** Whether the panel is up, given what the player wants and what fits. */
 export function usePanelOpen(): { open: boolean; units: number } {
   const want = useStore((s) => s.modePanelOpen);
-  const { units } = useWidthTier();
-  // ⭐ The panel collapses first: it stays only when a unit still fits
-  // beside it.
-  const open = want && units.withPanel >= 1;
+  const { units, tier } = useWidthTier();
+  // ⭐ The panel stays (navigation card D14): it no longer closes itself
+  // for a card column — the player collapses it. Only a narrow window,
+  // which has no room for it at all, drops it (the phone has its own shell).
+  const open = want && tier !== "narrow" && tier !== "phone";
   return { open, units: open ? units.withPanel : units.withoutPanel };
 }
 

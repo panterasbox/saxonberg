@@ -14,25 +14,18 @@
 import { describe as suite, it, expect, beforeAll, afterAll } from "vitest";
 import { Session, declareFile, uniqueHandle, plain, restartWorld, forceDocument } from "../src/harness";
 import type { CommandResult } from "../src/harness";
-import { expectOk } from "../src/harness/assertions";
+import { standIn, fundedAccount, TESTBED, PLAZA, SHOP, WORKS } from "../src/harness/scaffold";
 
 export const DIRTY_REASON =
-  "charters the Hesper at the Greywater Line's desk, buys loaves off the " +
-  "market bread counter, hires a canoe at the Rejection put-in, and " +
-  "restarts the world";
+  "buys notebooks off the testbed shop counter (the sweep restocks it to " +
+  "par) and restarts the world";
 
 declareFile({
   file: "naming-overhaul.dirty.wire.test.ts",
-  packs: ["world-seed", "terminus", "rejection", "base-library", "transport"],
+  packs: ["platform", "test-fixtures", "base-library", "transport"],
   dirtyReason: DIRTY_REASON,
 });
 
-const SQUARE = "/world/terminus/market/square";
-const BAKERY = "/world/terminus/market/bakery";
-const LINE_DESK = "/world/terminus/harbor/line-desk";
-const PUT_IN = "/world/terminus/rejection/put-in/landing";
-const BANK_HALL = "/world/terminus/counting-houses/banking-hall";
-const TERMINUS = "/world/terminus";
 
 const record: string[] = [];
 const open: Session[] = [];
@@ -40,6 +33,10 @@ const squash = (t: string): string => plain(t).replace(/\s+/g, " ").trim();
 
 async function session(handle: string, start: string, opts: Record<string, unknown> = {}): Promise<Session> {
   const s = await Session.open(handle, { startLocation: start, ...opts });
+  return keep(s);
+}
+
+async function keep(s: Session): Promise<Session> {
   open.push(s);
   await s.drainProse();
   return s;
@@ -59,22 +56,12 @@ const refusedOf = (r: CommandResult): { reason?: string; facts?: Record<string, 
     | undefined;
 
 /** Run one `eval` expression and hand back what it printed (value or error). */
-async function evalSaid(s: Session, expr: string, extent = TERMINUS): Promise<string> {
+async function evalSaid(s: Session, expr: string, extent = TESTBED): Promise<string> {
   const r = await s.cmd(`eval --parcel ${extent} ${expr}`);
   let said = squash(await r.said());
   for (let i = 0; i < 6 && !/: |error/i.test(said); i++) said += ` ${squash(await s.listen(1_000))}`;
   record.push(`${s.handle}: eval ${expr.slice(0, 120)} → ${said.slice(0, 240)}`);
   return said;
-}
-
-/** A funded player: a bank account and `amount` in it (the founder's override). */
-async function fund(handle: string, amount: number): Promise<void> {
-  const s = await session(handle, BANK_HALL);
-  await s.cmd("bank open");
-  const gov = await session("founder", BANK_HALL, { committees: [TERMINUS] });
-  expectOk(await gov.cmd(`reserve override ${amount} to ${handle} "wire: naming overhaul"`));
-  gov.close();
-  s.close();
 }
 
 afterAll(() => {
@@ -85,9 +72,9 @@ afterAll(() => {
 suite("Stage A — documents declare their kinds", () => {
   let wiz: Session;
   beforeAll(async () => {
-    // Title over Terminus, so the write reaches the KIND check (the title
+    // Title over the testbed, so the write reaches the KIND check (the title
     // gate answers first otherwise — "you don't have permission").
-    wiz = await session(uniqueHandle("nowiz"), SQUARE, { wizard: true, committees: [TERMINUS], parcels: [TERMINUS, "/trade/ranching"] });
+    wiz = await keep(await standIn(PLAZA, "nowiz", { wizard: true, committees: [TESTBED], parcels: [TESTBED, "/trade/ranching"] }));
   }, 120_000);
 
   it("3a. [staged] the kinds folder lists the declared kinds by title", async () => {
@@ -129,8 +116,8 @@ suite("Stage B — reaching from the asker", () => {
   let beaId = "";
 
   beforeAll(async () => {
-    ann = await session(uniqueHandle("noann"), SQUARE);
-    bea = await session(uniqueHandle("nobea"), BAKERY);
+    ann = await keep(await standIn(PLAZA, "noann"));
+    bea = await keep(await standIn(SHOP, "nobea"));
     // Her `@<id>` from her own `who` line (B4: `who` prints it).
     const listed = squash(await bea.prose("who"));
     beaId = new RegExp(`${bea.handle} @(\\S+)`).exec(listed)?.[1] ?? "";
@@ -168,11 +155,9 @@ suite("Stage B — reaching from the asker", () => {
     expect(inv).not.toMatch(new RegExp(bea.handle, "i"));
   });
 
-  it("13. [instant · player] at the harbor, `query charter book:~` lists `~ships`", async () => {
-    const sailor = await session(uniqueHandle("nosail"), LINE_DESK);
-    const { w } = await say(sailor, "query book:~");
-    expect(w).toMatch(/~ships/);
-  });
+  // 13 (`query charter book:~` lists `~ships`) needs a harbor; the testbed
+  // has none and a drive may not name a world locality (lint:wire-content).
+  // `HullBook`'s relation is proven by its unit test — recorded, not driven.
 
   it("15. [staged] a notify rule on `~friends` is set and shown in the relation spelling", async () => {
     const set = await say(ann, "notify set ~friends --login show");
@@ -189,7 +174,7 @@ suite("Stage B — reaching from the asker", () => {
   it("16. [staged] RESTART — the contact list and the notify rule come back", async () => {
     for (const s of open.splice(0)) s.close();
     await restartWorld();
-    ann = await session(ann.handle, SQUARE);
+    ann = await session(ann.handle, PLAZA);
     const { w } = await say(ann, "contacts show friends");
     expect(w).toMatch(new RegExp(bea.handle, "i"));
     const rules = await say(ann, "notify show ~friends");
@@ -202,12 +187,13 @@ suite("Stage C — one rule names what a player types", () => {
 
   beforeAll(async () => {
     const handle = uniqueHandle("nobuy");
-    await fund(handle, 400);
-    buyer = await session(handle, BAKERY);
+    await fundedAccount(handle, 400, "wire: naming overhaul");
+    buyer = await session(handle, SHOP);
   }, 300_000);
 
-  it("18. [instant · player] at the bread counter: `buy loaf`, `buy loaves`, `buy a loaf` all name the bread", async () => {
-    for (const words of ["buy loaf", "buy loaves", "buy a loaf"]) {
+  it("18. [instant · player] at the shop counter: `buy notebook`, `buy notebooks`, `buy a notebook` all name it", async () => {
+    // (The -ves plural — `loaves` — is GrammarApi's unit test; the testbed sells no bread.)
+    for (const words of ["buy notebook", "buy notebooks", "buy a notebook"]) {
       const { r, w } = await say(buyer, words);
       expect(w, `${words}: ${w}`).not.toMatch(/isn't for sale here/i);
       expect(refusedOf(r)?.reason ?? "").not.toBe("not-on-shelf");
@@ -223,31 +209,22 @@ suite("Stage C — one rule names what a player types", () => {
     expect(w).toMatch(/smile/i);
   });
 
-  it("23. [instant · player] at the Rejection put-in: `rent canoe for a week`; `for 90 minutes` refuses on granularity; `for soon` and `for a while` give the same line", async () => {
-    const renter = await session(buyer.handle, PUT_IN);
-    const soon = await say(renter, "rent canoe for soon");
-    const awhile = await say(renter, "rent canoe for a while");
+  it("23. [instant · player] at the forge: `fire forge for soon` and `for a while` give the same line; `for 20 seconds` is under the minute", async () => {
+    // The testbed has no hire rack, so the duration slot is driven on `fire`
+    // (min: a minute); rent's whole-days granularity is CommandDefinition's
+    // unit test — recorded, not driven.
+    const smith = await session(buyer.handle, WORKS);
+    const soon = await say(smith, "fire forge for soon");
+    const awhile = await say(smith, "fire forge for a while");
     expect(soon.w).toMatch(/is not a length of time this takes/);
     expect(awhile.w.replace("a while", "soon")).toBe(soon.w);
-    const minutes = await say(renter, "rent canoe for 90 minutes");
-    expect(minutes.w).toMatch(/whole days/);
-    const week = await say(renter, "rent canoe for a week");
-    // (In the put-in's dark the boat reads as "something" — it is still hired.)
-    expect(week.w).toMatch(/You hire .* for 7 days/);
+    const short = await say(smith, "fire forge for 20 seconds");
+    expect(short.w).toMatch(/minute/);
   });
 
-  it("17. [instant · player] at the Greywater Line's desk, `charter hesper` names her; `charter the Hesper` and `charter HESPER` name her too", async () => {
-    const handle = uniqueHandle("nochar");
-    await fund(handle, 400);
-    const c = await session(handle, LINE_DESK);
-    const first = await say(c, "charter HESPER");
-    expect(first.w).not.toMatch(/does not let|no ship called|don't see/i);
-    for (const words of ["charter the Hesper", "charter hesper"]) {
-      const { w } = await say(c, words);
-      // She is named either way — a second charter is refused for HER, never for an unknown name.
-      expect(w, words).not.toMatch(/does not let|no ship called|don't see/i);
-    }
-  }, 300_000);
+  // 17 (`charter hesper` / `the Hesper` / `HESPER`) needs a harbor's charter
+  // book; the testbed has none. `HullBook.hullsNamed` is proven by its unit
+  // test — recorded, not driven.
 
   it("24. [instant · player] `help search harb` still lists the topics containing `harb`", async () => {
     const { w } = await say(buyer, "help search harb");

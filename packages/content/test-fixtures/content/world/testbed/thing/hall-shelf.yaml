@@ -1,0 +1,9 @@
+# The hall's shelf — a fitting things are placed on (test-world-lifecycle
+# D2). Three like notebooks sit on it. ⚠ TEST-ONLY.
+class: /platform/thing/Fitting
+data:
+  shortDescription: shelf
+  keywords: [shelf, shelves]
+  register: definite
+  longDescription: A plain wooden shelf along the wall.
+  mass: 20

@@ -150,6 +150,9 @@ wire:
     when: on_failure
     paths:
       - packages/wire/.wire/
+    # A near-heap-limit snapshot of a world can outgrow the artifact store.
+    exclude:
+      - packages/wire/.wire/heap/**/*
     expire_in: 1 week
 
 build:

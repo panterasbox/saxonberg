@@ -1,0 +1,20 @@
+# The shaft foot — the bottom of the climbable drop (test-world-lifecycle D2).
+# An enclosed chamber, lit by a lamp. The ladder goes back up.
+# ⚠ TEST-ONLY.
+class: /platform/location/Hall
+data:
+  shortDescription: shaft foot
+  keywords: [shaft, foot, "shaft foot", bottom]
+  register: definite
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  roof: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  longDescription: |
+    A small chamber at the foot of the shaft, lit by a lamp on the wall. The ladder goes back up.
+  coords: { x: 2, y: -1, z: -1 }
+  exits:
+    up:
+      destination: /world/testbed/location/shaft-head
+      media: [vertical]
+  props:
+    - /world/testbed/thing/ladder
+    - /world/testbed/thing/lamp

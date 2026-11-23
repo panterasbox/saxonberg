@@ -53,6 +53,7 @@
     "lint:doneness": "tsx scripts/check-doneness.ts",
     "lint:dossiers": "tsx scripts/check-dossiers.ts",
     "lint:drive-scripts": "tsx scripts/check-drive-scripts.ts",
+    "lint:wire-content": "tsx scripts/check-wire-content.ts",
     "lint:family": "tsx scripts/lint-family.ts",
     "lint:biome": "tsx scripts/check-biome.ts",
     "lint:biome-sky": "tsx scripts/check-biome-sky.ts",

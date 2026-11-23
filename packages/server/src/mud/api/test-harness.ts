@@ -27,6 +27,7 @@ import {
   type AfflictReport,
   type SpeciesReport,
   type StandingHistoryReport,
+  type PurgeReport,
 } from '../platform/idea/api/TestHarnessLogic';
 import type { WeatherPinMode } from '../lib/weather/WeatherType';
 import { fileURLToPath } from 'url';
@@ -42,6 +43,7 @@ export type {
   AfflictReport,
   SpeciesReport,
   StandingHistoryReport,
+  PurgeReport,
 };
 
 const LOGIC_PATH = '/platform/idea/api/test-harness';
@@ -244,6 +246,19 @@ export class TestHarnessApi {
    * of the records fail as a lost connection would, so a verb meets the
    * `unavailable` refusal end to end.
    */
+  /**
+   * ⭐ Remove what wire runs left in this world (test-world-lifecycle D4):
+   * every `wire-` test character (and what it held, sat in and was paid),
+   * and the strays in the scaffold. Each owner removes its own; the
+   * append-only ledgers are never touched; money is retired to the reserve
+   * on the record (`reserve retire`, reason `wire purge`). Returns a count per
+   * category. The wire runner calls it at the start and the end of a run.
+   */
+  @TestOnly('In a test world, the wire runner purges its own litter (POST /auth/test-purge).')
+  public static purgeTestLitter(): Promise<PurgeReport> {
+    return logic().purgeTestLitter();
+  }
+
   @TestOnly('In a test world, stage an outage with the wire harness\u2019s failDatastore() (POST /auth/test-datastore-fail).')
   public static failDatastore(calls = 1): { failing: number } {
     PersistApi.failNext(calls);

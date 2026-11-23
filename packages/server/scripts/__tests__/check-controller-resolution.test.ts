@@ -1,5 +1,6 @@
 /** `lint:controller-resolution` seen to FAIL: an instrument hunt and a self-resolution ARE found. */
 
+import "../../src/test-bootstrap";
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";

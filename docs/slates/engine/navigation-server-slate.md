@@ -3,7 +3,7 @@
 **Status:** slated 2026-11-14; ⭐ **first pass BUILT** by the
 navigation-server build (MR !595, 2026-11-17) — see § Left after the first
 pass for what remains. A sub-slate of the navigation build
-([navigation-requirements](../../requirements/navigation-requirements.md)).
+([navigation-card.md](../../subsystems/navigation-card.md)).
 **Size:** a set of light server touches. The owner's plan: *"a first pass
 trying not to touch the server much, then follow up — some light server
 touches are probably fine."* Each item says whether the navigation build

@@ -773,6 +773,46 @@ async function overrideImpl(
 }
 
 /**
+ * ⭐ The Governor's **retirement** — the override's exact inverse
+ * (test-world-lifecycle D10, owner ruling 2026-11-20). A `drain` from a named
+ * account back to the reserve, category `retire`, memo the reason, actor the
+ * officer from context, so the money supply falls by the amount and the
+ * ledger records it as the officer's act. Until it existed the reserve could
+ * only mint by hand; a supply inflated by mistake (or by a test run) can now
+ * be corrected on the record. ⛔ Never partial: an amount the account cannot
+ * cover is REFUSED (`retire-over-balance`) and nothing posts.
+ */
+async function retireImpl(
+  fromAccountId: string,
+  amount: Money,
+  reason: string,
+): Promise<void> {
+  if (amount.minor <= 0) {
+    throw new Refusal("reserve-bad-amount", { amount: String(amount.minor) });
+  }
+  if (!reason.trim()) {
+    throw new Error("BankingLogic.retire: a retirement needs a reason on the record");
+  }
+  const held = balanceMinor(fromAccountId);
+  if (held < amount.minor) {
+    throw new Refusal("retire-over-balance", {
+      amount: amount.render(),
+      balance: Money.of(held, amount.currency).render(),
+    });
+  }
+  await postTransaction("drain", [
+    {
+      currency: amount.currency,
+      from: fromAccountId,
+      to: Account.ISSUANCE,
+      amount: amount.minor,
+      memo: reason.trim(),
+      category: "retire",
+    },
+  ]);
+}
+
+/**
  * **Appropriate** — the Minister of Finance spends from the treasury's
  * account to a named destination (economic bootstrap D9): one
  * `appropriation` leg, treasury → the payee's primary account. The
@@ -1090,6 +1130,8 @@ export interface ReserveDashboard {
   perpetualOutstanding: number;
   windowOutstanding: number;
   overridesOutstanding: number;
+  /** What the Governor has retired to the reserve by hand, on the record (a positive sum). */
+  retiredOnRecord: number;
   treasuryBalance: number;
 }
 
@@ -1113,6 +1155,7 @@ async function reserveDashboardImpl(currency: string): Promise<ReserveDashboard>
     perpetualOutstanding: perpetual.outstanding,
     windowOutstanding: await laneOutstandingImpl(currency, "window"),
     overridesOutstanding: await laneOutstandingImpl(currency, "override"),
+    retiredOnRecord: -(await laneOutstandingImpl(currency, "retire")),
     treasuryBalance: balanceMinor(treasury),
   };
 }
@@ -2649,6 +2692,16 @@ export class BankingLogic extends ApiLogic {
     reason: string,
   ): Promise<void> {
     return overrideImpl(toAccountId, amount, reason);
+  }
+
+  /** See {@link BankingApi.retire}. */
+  @CallSecurity(BankingApiCallers)
+  public async retire(
+    fromAccountId: string,
+    amount: Money,
+    reason: string,
+  ): Promise<void> {
+    return retireImpl(fromAccountId, amount, reason);
   }
 
   /** See {@link BankingApi.appropriate}. */

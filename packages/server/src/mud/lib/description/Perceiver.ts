@@ -345,7 +345,17 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⭐ In a copy, the copy's own zone identity (a house of a lot, a ship
       // of a kind — zone instancing), else the zone's path.
       const id = zone.getIdentityPath() ?? zone.getTemplatePath() ?? null;
-      return { v: 0, ...(id ? { id: { path: id, spoiler: 2 as const } } : {}), ...facts };
+      // ⭐ The zone's own NAME is its label (navigation card review): a zone
+      // has no short description, so its presentation read "something" —
+      // a word that told a player nothing. The frame's label stays the
+      // fallback for a zone that names itself another way (a river reach).
+      const name = zone.getName();
+      return {
+        v: 0,
+        ...(id ? { id: { path: id, spoiler: 2 as const } } : {}),
+        ...facts,
+        ...(name ? { label: name } : {}),
+      };
     }
 
     /**
@@ -499,7 +509,13 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Lazily: a static import of Location from a mixin runs the chain
       // before it is ready (the SandboxLogic precedent).
       const { default: Location } = await import('../location/Location');
-      const at = place instanceof Location ? place.getCoords() : null;
+      // ⭐ A room's own coords, else its cell in the grid — a warren plots
+      // its rooms through the zone (`addLocation`), which sets the grid's
+      // coordinates and not `coords`, so the lounge sent no position at all.
+      const grid = MixinApi.isCartesianCoordinates(place) ? place.getCoordinates() : null;
+      const at =
+        (place instanceof Location ? place.getCoords() : null) ??
+        (grid ? { x: grid[0], y: grid[1], z: grid[2] } : null);
       const sample = MixinApi.isContainer(place)
         ? await WeatherApi.sampleFor(place).catch(() => undefined)
         : undefined;

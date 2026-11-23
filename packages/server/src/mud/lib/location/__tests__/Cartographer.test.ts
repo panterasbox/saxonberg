@@ -392,3 +392,22 @@ describe('⭐ a way the water works out is never written down (river D38 d)', ()
     expect(exit.isMapped()).toBe(true);
   });
 });
+
+describe('⭐ the room you walk INTO is written whatever the room you left (navigation card review)', () => {
+  it('a way out of a place with no durable handle writes no edge — but still the arrival', async () => {
+    const guide = makeStuffAtPath(() => new Guide(), GUIDE_ROW, GUIDE_ID);
+    const arrival = vi
+      .spyOn(Guide.prototype as unknown as { recordArrival: () => Promise<void> }, 'recordArrival')
+      .mockResolvedValue(undefined);
+    // An ephemeral room — a lounge satellite — has no durable handle.
+    const lounge = makeStuff(() => new Hall()) as unknown as Stuff;
+    expect(lounge.getDurableHandle()).toBeNull();
+    const exit = makeStuff(
+      () => new Exit({ direction: 'north', source: lounge as never, destinationPath: '/test/cartoville/bar' }),
+    );
+    guide.onTraversed(exit as never);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(recorded.flatMap((r) => r.claims).some((c) => c.kind === 'edge')).toBe(false);
+    expect(arrival).toHaveBeenCalledTimes(1);
+  });
+});

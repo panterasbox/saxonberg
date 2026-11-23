@@ -83,6 +83,9 @@ importers:
       '@saxonberg/content-terminus':
         specifier: workspace:*
         version: link:packages/content/terminus
+      '@saxonberg/content-test-fixtures':
+        specifier: workspace:*
+        version: link:packages/content/test-fixtures
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:packages/content/tpa
@@ -1170,6 +1173,25 @@ importers:
       yaml:
         specifier: ^2.8.2
         version: 2.9.0
+
+  packages/content/test-fixtures:
+    dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-shopkeeping':
+        specifier: workspace:*
+        version: link:../trade-shopkeeping
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      '@saxonberg/wire':
+        specifier: workspace:*
+        version: link:../../wire
 
   packages/content/tpa:
     dependencies:

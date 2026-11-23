@@ -1,0 +1,14 @@
+# The testbed building — one named building over the bank, the hall and the
+# shop (test-world-lifecycle D2; the chandlery's building is the exemplar).
+# Its members are every place under its extent. ⚠ TEST-ONLY.
+class: /platform/idea/Building
+data:
+  extent: /world/testbed/building
+  entrance: /world/testbed/building/location/hall
+  shortDescription: testbed building
+  register: definite
+  keywords: [building, testbed]
+  longDescription: >-
+    A plain brick building on the north side of the plaza, housing a bank,
+    a hall and a shop.
+  heightM: 7

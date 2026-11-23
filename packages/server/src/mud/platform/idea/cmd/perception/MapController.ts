@@ -55,7 +55,8 @@ interface PlaceView {
 export default class MapController extends CommandController<MapModel> {
   async execute(model: MapModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const viewerKey = giver.getIdentityPath() ?? '';
+    // The map's OWNER key — a guest's map is a session map (navigation card review).
+    const viewerKey = MixinApi.isCartographer(giver) ? giver.mapOwnerKey() : (giver.getIdentityPath() ?? '');
     if (!viewerKey) {
       return this.declineWith(context, 'You have no map.', 'no-identity');
     }

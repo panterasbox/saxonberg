@@ -1,0 +1,20 @@
+# The testbed host — the venue's `host` on its roster every day around the
+# clock, in the hall (test-world-lifecycle D2).
+# ⚠ TEST-ONLY.
+class: /platform/agent/Extra
+data:
+  keywords: [host, venue]
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: host
+  register: indefinite
+  longDescription: |
+    A person in plain clothes who keeps the hall, nodding to whoever comes in.
+  # ⭐ The crowd drives' "somebody who stays put": greets each arrival in
+  # the hall once. Stationary — no wander or errand brain.
+  behaviors:
+    - brain: /lib/behavior/greets
+      trigger: arrival
+      config:
+        lines:
+          - "Welcome to the hall."

@@ -46,6 +46,7 @@ import type {
   SubscriptionErrorEnvelope,
   AffordanceResultEnvelope,
   WikiExcerptResultEnvelope,
+  LocalityFactsResultEnvelope,
   ActivityUpdateEnvelope,
   PromptEnvelope,
   Note,
@@ -317,6 +318,7 @@ export class Session {
     Pending<AffordanceResultEnvelope>
   >();
   private readonly pendingExcerpts = new Map<string, Pending<WikiExcerptResultEnvelope>>();
+  private readonly pendingLocalityFacts = new Map<string, Pending<LocalityFactsResultEnvelope>>();
   private readonly activity: ActivityUpdateEnvelope[] = [];
   private readonly activityWaiters: (() => void)[] = [];
   private readonly prompts: PromptEnvelope[] = [];
@@ -578,6 +580,15 @@ export class Session {
   }
   private readonly observers = new Set<(frame: Record<string, unknown>, bytes: number) => void>();
 
+  /** The last connection frame (`session.link`) this session received. */
+  private established: Record<string, unknown> | null = null;
+
+  /** The client-state snapshot that rode the last connection frame. */
+  connectionClientState(): Record<string, unknown> | null {
+    const payload = this.established?.payload as { clientState?: Record<string, unknown> } | undefined;
+    return payload?.clientState ?? null;
+  }
+
   private receive(raw: string): void {
     this.lastFrameAt = Date.now();
     for (const frame of splitFrames(raw)) {
@@ -651,6 +662,15 @@ export class Session {
         p.resolve(frame as unknown as WikiExcerptResultEnvelope);
         continue;
       }
+      if (type === 'locality-facts-result') {
+        const id = String((frame as { requestId?: unknown }).requestId ?? '');
+        const p = this.pendingLocalityFacts.get(id);
+        if (!p) continue;
+        this.pendingLocalityFacts.delete(id);
+        clearTimeout(p.timer);
+        p.resolve(frame as unknown as LocalityFactsResultEnvelope);
+        continue;
+      }
       if (type === 'affordance-result' || type === 'affordance-error') {
         const id = typeof (frame as { requestId?: unknown }).requestId === 'string' ? (frame as unknown as { requestId: string }).requestId : '';
         const p = this.pendingAffordances.get(id);
@@ -686,6 +706,12 @@ export class Session {
       // as green. Drop only that; `shell.error` and `shell.result` are
       // prose the player reads.
       const topic = typeof frame.topic === 'string' ? frame.topic : '';
+      if (topic === 'session.link') {
+        // ⭐ Kept whole: the connection payload carries the client-state
+        // snapshot the first render reads (your settings, the navigation
+        // card's memory).
+        this.established = frame;
+      }
       if (topic === 'session.identity') {
         this.identity.push(frame);
         this.drain(this.identityWaiters);
@@ -999,6 +1025,23 @@ export class Session {
   }
 
   /**
+   * A Locality's civic facts, as a crumb's tooltip asks for them
+   * (`locality-facts`, navigation card W8). `facts: null` is one answer for
+   * no such place and a place this character's map does not hold.
+   */
+  async localityFacts(address: string): Promise<LocalityFactsResultEnvelope> {
+    const requestId = `wire-${++this.queryCounter}-${Date.now().toString(36)}`;
+    return new Promise<LocalityFactsResultEnvelope>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingLocalityFacts.delete(requestId);
+        reject(new Error(`wire: no locality-facts-result for '${address}' within ${FRAME_TIMEOUT_MS}ms`));
+      }, FRAME_TIMEOUT_MS);
+      this.pendingLocalityFacts.set(requestId, { resolve, reject, timer });
+      this.ws.send(JSON.stringify({ type: 'locality-facts', payload: { type: 'locality-facts', requestId, address } }));
+    });
+  }
+
+  /**
    * What this viewer can do with a thing, right now, and what the thing
    * is composed of: the one-shot frame an inspection card and a radial
    * send (`affordance-resolve`). The card's *answers:* chip and a greyed
@@ -1125,6 +1168,37 @@ export class Session {
         });
       });
     }
+  }
+
+  /** Cancel an open prompt the way the client's dismiss would (`prompt-cancel`). */
+  cancelPrompt(promptId: string): void {
+    this.ws.send(JSON.stringify({ type: 'prompt-cancel', payload: { promptId } }));
+  }
+
+  /**
+   * ⭐ Send a command whose honest answer may be a QUESTION. If the world
+   * asks (a prompt arrives before the response), the prompt is cancelled —
+   * the command then answers — and both come back: a prompt is proof the
+   * verb was understood, which is what a step asking "does this word exist"
+   * wants. Without a prompt it is exactly {@link cmd}.
+   */
+  async cmdOrPrompt(text: string, waitMs = 8_000): Promise<{ result: CommandResult; prompt: PromptEnvelope | null }> {
+    const before = this.prompts.length;
+    const pending = this.cmd(text);
+    const settled = pending.then(
+      () => true,
+      () => true,
+    );
+    const deadline = Date.now() + waitMs;
+    while (Date.now() < deadline) {
+      if (this.prompts.length > before) {
+        const prompt = this.prompts.splice(before, 1)[0]!;
+        this.cancelPrompt(prompt.promptId);
+        return { result: await pending, prompt };
+      }
+      if (await Promise.race([settled, new Promise<false>((r) => setTimeout(() => r(false), 200))])) break;
+    }
+    return { result: await pending, prompt: null };
   }
 
   /** Answer an open prompt the way the client's control would. */

@@ -1,0 +1,8 @@
+# /world/testbed/annex — the annex, a second extent with one place
+# (test-world-lifecycle D2). The one title a drive may take (soak-harness);
+# the purge hands it back. ⚠ TEST-ONLY.
+class: /platform/idea/location/CartesianZone
+data:
+  name: testbed annex
+  address: testbed/annex
+  cellSize: 4.0

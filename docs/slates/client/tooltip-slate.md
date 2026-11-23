@@ -133,7 +133,7 @@ Every concept the build needs, and what already does it (survey
 ## Left after the build (2026-11-19)
 
 - **Map glyph tooltips, breakdowns, action buttons, one block per mixin** —
-  the navigation build ([navigation-requirements](../../requirements/navigation-requirements.md)).
+  the navigation build ([navigation-card.md](../../subsystems/navigation-card.md)).
 - **Facts composed from the knowledge model** (`walked` · `told` sources)
   — the same build's knowledge-model wave.
 - **Interface help reads as engine docs.** An interface's gutter stripe
@@ -152,7 +152,7 @@ Every concept the build needs, and what already does it (survey
 
 ## Cross-references
 
-- [map-slate](./map-slate.md) and [navigation-requirements](../../requirements/navigation-requirements.md)
+- [map-slate](./map-slate.md) and [navigation-card.md](../../subsystems/navigation-card.md)
   — the first consumer
 - [help.md](../../subsystems/help.md) · [wiki.md](../../subsystems/wiki.md) ·
   [client-shell.md](../../subsystems/client-shell.md) ·
