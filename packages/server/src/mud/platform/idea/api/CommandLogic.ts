@@ -4453,6 +4453,8 @@ function applyContainmentDeltaImpl(
         }
       }
     }
+    // …and what a carried device's apps had lent its old bearers (D16).
+    for (const m of moved) lendHostedApps(m, [from, ...ancestorsOf(from)], 'unlend');
     // And the moved subtree drops whatever the old surroundings gave it.
     for (const m of moved) {
       if (!MixinApi.isCommandGiver(m)) continue;
@@ -4506,6 +4508,9 @@ function applyContainmentDeltaImpl(
     return [...inner, ...ancestors];
   };
   for (const m of moved) {
+    // ⭐ A carried device's APPS lend their verbs to the same receivers,
+    // at the same moment, as the device's own `environment` verbs (D16).
+    lendHostedApps(m, receiversFor(m), 'lend');
     const defs = collectBucketDefs(m.constructor, 'environment');
     if (defs.length === 0) continue;
     for (const anc of receiversFor(m)) {
@@ -4673,12 +4678,55 @@ function applyShadowDeltaImpl(
   }
 }
 
+/**
+ * ⭐⭐ **An app's verbs reach whoever bears its device** (stream arrival
+ * D16) — the ONE routine for it, called at every site that pushes or pops
+ * a carried thing's `environment` verbs (a containment delta's attach and
+ * detach, the mover's own `self-moved` re-push) and by an install or
+ * uninstall on a device already borne.
+ *
+ * A host that is itself a command giver (a person's own apps) is served
+ * directly by `applyHostedAppDeltaImpl` and is NOT lent through here. For
+ * any other aether host (a phone, a headset) each hosted app's `self`
+ * verbs are pushed onto every command giver in `receivers` — the host's
+ * container chain — with the APP as the source and `environment` as the
+ * bucket, or popped from them. So a phone handed over, dropped, pocketed
+ * or stolen moves its apps' verbs with it. Whether the device will RUN
+ * when one is typed is asked at the match (`CommandGiver._runChain`'s
+ * pass-over), never here: a device off, dead, packed or not yours still
+ * lends the verb so it can SAY why it will not work.
+ */
+function lendHostedApps(
+  host: Stuff,
+  receivers: readonly Stuff[],
+  op: 'lend' | 'unlend',
+  only?: Stuff,
+): void {
+  if (MixinApi.isCommandGiver(host) || !MixinApi.isAetherHost(host)) return;
+  const apps = only
+    ? [{ source: only, defs: collectBucketDefs(only.constructor, 'self') }]
+    : collectHostedAppDefsImpl(host);
+  for (const { source, defs } of apps) {
+    if (op === 'lend' && defs.length === 0) continue;
+    for (const r of receivers) {
+      if (!MixinApi.isCommandGiver(r)) continue;
+      const cg = r as Stuff & CommandGiver;
+      if (op === 'lend') cg.pushCommandSource(source, 'environment', defs);
+      else cg.popCommandSource(source);
+    }
+  }
+}
+
 function applyHostedAppDeltaImpl(
   host: Stuff,
   update: Stuff,
   op: 'host' | 'unhost'
 ): void {
-  if (!MixinApi.isCommandGiver(host)) return;
+  if (!MixinApi.isCommandGiver(host)) {
+    // A device: lend (or take back) the app's verbs from its bearers (D16).
+    lendHostedApps(host, ancestorsOf(host), op === 'host' ? 'lend' : 'unlend', update);
+    return;
+  }
   const cg = host as Stuff & CommandGiver;
   if (op === 'host') {
     // Keep `'self'` at index 0 — seed the giver's own self entry
