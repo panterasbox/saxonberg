@@ -1851,3 +1851,31 @@ put-in (each refused in words) — and every form parses.
 **Full suite:** `tools/suite` — all 56 packages pass (36 min), 2026-11-23.
 It ran over a tree that moved during the run, so the merge guard did not
 record it; `/finalize` runs it again on the exact source.
+
+### Rerun after the master merge (2026-11-23) — 13 of 13 green
+
+Master brought `lint:wire-content` (a drive may not name `/world/<x>`
+except the testbed), so the drive now stands in the `test-fixtures`
+scaffold: `standIn`/`fundedAccount`, a fresh `saxonberg_build3`.
+
+- **18** is driven at the testbed shop counter: `buy notebook`,
+  `buy notebooks`, `buy a notebook` each buy one. The `-ves` plural
+  (`loaves`) is GrammarApi's unit test — the testbed sells no bread.
+- **23** is driven on `fire forge for …` at the works (the testbed has no
+  hire rack): `for soon` and `for a while` give the same refusal, worded
+  by the row (*"'soon' is not a length of time this takes — write it like
+  90s, 15m, 2 hours or a week"*); `for 20 seconds` refuses *"it is
+  1 minute at the least."* Rent's whole-days granularity stays proven by
+  its unit test and by the browser walk.
+- **13** (`query charter book:~`) and **17** (`charter hesper` /
+  `the Hesper` / `HESPER`) need a harbor the testbed lacks: **not driven**,
+  covered by `HullBook`'s unit tests and the walk's Terminus run.
+- The harness's run-end purge reported `fetch failed` after the world had
+  shut down — the harness's ordering, not a step; nothing in the drive
+  depends on it.
+
+Gates the merge moved: contacts remove's target `requires: class:Agent`,
+charter's ship `requires: any` (the book's `~ships` decides); act-nulls
+and controller-functions re-pinned at their fallen counts; the commons
+ceiling 38 → 40 for WA0/WA1's two catalogues (caller audit in the
+ceiling's comment). Reserve retire's `from` became a view enum.
