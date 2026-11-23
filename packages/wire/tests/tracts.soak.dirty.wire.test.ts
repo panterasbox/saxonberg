@@ -19,6 +19,7 @@ import {
   engagementIdOf,
   isOwnedTestWorld,
   advanceWorldClock,
+  worldClockNow,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -131,7 +132,26 @@ async function goTo(who: string, where: string): Promise<Session> {
   return s;
 }
 
-/** Jump the clock ten game days at a step, the body logged out. */
+/**
+ * Make it daylight — on to 10 o'clock when it is not — with every body
+ * logged out (an offline body is frozen). Under a day: a short step. (The
+ * blocking twin's helper.)
+ */
+async function daylight(): Promise<void> {
+  const now = await worldClockNow();
+  const into = ((now % DAY) + DAY) % DAY;
+  const hour = into / 3_600;
+  if (hour >= 8 && hour <= 16) return;
+  const wait = into < 10 * 3_600 ? 10 * 3_600 - into : DAY - into + 10 * 3_600;
+  await advanceWorldClock(`${Math.max(1, Math.round(wait / 60))} minutes`);
+}
+
+/**
+ * Jump the clock ten game days at a step, the body logged out — and on to
+ * daylight, so the farmer comes back to a field she can see. ⚠ (soak repair
+ * 2026-11-16) In the dark a look reads "Shapes and edges, no more" and the
+ * wheat is not named.
+ */
 async function season(days: number): Promise<void> {
   p?.close();
   let left = days * DAY;
@@ -141,6 +161,7 @@ async function season(days: number): Promise<void> {
     expect(after - before, 'world-time did not move').toBeGreaterThan(step * 0.9);
     left -= step;
   }
+  await daylight();
 }
 
 async function toTheBench(): Promise<void> {
@@ -191,7 +212,7 @@ suite.skipIf(!isOwnedTestWorld())('a marked field through a season', () => {
     for (let i = 0; i < 12 && !cut; i++) {
       const { r, said } = await act(p, 'harvest wheat --at "the wheat field"');
       cut = refusedFor(r) === null && /cut|reap|sheaf|grain/i.test(said);
-      if (refusedFor(r) === 'not-ready') await season(10).then(toTheBench);
+      if (refusedFor(r) === 'not-mature') await season(10).then(toTheBench);
     }
     expect(cut, 'the wheat on the marked field was cut').toBe(true);
   }, 3_600_000);

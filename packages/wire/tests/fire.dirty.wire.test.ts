@@ -104,20 +104,50 @@ async function say(s: Session, text: string): Promise<CommandResult> {
   return s.cmd(text);
 }
 
-/** The `controller-rejected` reason on a result, or null. */
+/**
+ * The refusal reason on a result, or null — the controller's, or a
+ * validator's. ⚠ (soak repair 2026-11-17) Was `controller-rejected` only,
+ * so a line a validator stopped before the controller ever ran read as
+ * *not refused*, and every `toBeNull()` on it passed on the wrong thing.
+ */
 function refusedFor(r: { notes: readonly unknown[] }): string | null {
   const note = (r.notes as Array<{ kind?: string; reason?: string }>).find(
-    (n) => n.kind === 'controller-rejected',
+    (n) => n.kind === 'controller-rejected' || n.kind === 'validator-failed',
   );
-  return note?.reason ?? null;
+  return note ? (note.reason ?? note.kind ?? 'refused') : null;
 }
 
-/** Did the binder or the dispatcher refuse to UNDERSTAND the line? */
+/**
+ * Did the binder, a validator or the dispatcher refuse to UNDERSTAND the
+ * line? ⚠ (soak repair 2026-11-17) `validator-failed` counts: `put
+ * cordwood in retort` with the cordwood still on the ground failed
+ * `mustBeInInventory` and passed `understood` — the controller never ran.
+ */
 function misunderstood(r: { notes: readonly unknown[] }): string | null {
   const note = (r.notes as Array<{ kind?: string; reason?: string }>).find(
-    (n) => n.kind === 'command-rejected' || n.kind === 'controller-error',
+    (n) =>
+      n.kind === 'command-rejected' ||
+      n.kind === 'controller-error' ||
+      n.kind === 'validator-failed',
   );
-  return note?.reason ?? null;
+  return note ? (note.reason ?? note.kind ?? 'refused') : null;
+}
+
+/**
+ * ⭐ The condenser stands ON the retort — read off `look retort`'s own
+ * `On it:` heading (the Placement row's), never assumed. ⚠ (soak repair
+ * 2026-11-17) The drive used to `put condenser on retort`, which can
+ * never work: the condenser is a 90 kg yard prop and `put` takes only
+ * what you carry, so the line failed a validator and passed. The
+ * condenser has to be AUTHORED standing on the retort.
+ */
+async function condenserStandsOnRetort(s: Session): Promise<void> {
+  const retort = (await s.prose('look retort')).replace(/<[^>]*>/g, '');
+  expect(
+    retort,
+    'the condenser does not stand on the retort — the fuel yard lists it ' +
+      'loose in `props:`, and a 90 kg prop cannot be `put` from the ground',
+  ).toMatch(/On it:[\s\S]*condenser/i);
 }
 
 /**
@@ -300,18 +330,19 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     const lit = await say(f, 'light retort');
     understood(lit, 'light retort');
 
-    // ⚠ The reachability link the plan flagged as most likely to die
-    // silently: a Placement member naming no row makes `place` refuse in
-    // the vocabulary's own phrase. `on` is a shipped row.
-    const placed = await say(f, 'put condenser on retort');
-    understood(placed, 'put condenser on retort');
-    expect(refusedFor(placed), 'the condenser will not stand on the retort')
-      .toBeNull();
-
     // ⭐ Load it with the yard's own cordwood — the SAME charge the
-    // clamp takes, which is the point.
+    // clamp takes, which is the point. ⚠ (soak repair 2026-11-17) Picked
+    // up first: `put` takes only what you carry (`mustBeInInventory`).
+    // ⚠ ONE length (size and carrying, MR !576): a count-less `get` takes
+    // the whole set, and the yard's eight lengths are more than two hands —
+    // refused `nowhere-to-carry` (run 2026-11-18).
+    const got = await say(f, 'get 1 cordwood');
+    understood(got, 'get 1 cordwood');
+    expect(refusedFor(got), 'no cordwood to pick up in the yard').toBeNull();
     const put = await say(f, 'put cordwood in retort');
     understood(put, 'put cordwood in retort');
+    expect(refusedFor(put), 'the retort would not take the cordwood')
+      .toBeNull();
     // ⚠ `fire IN retort`, with the preposition — the `kiln` arg is
     // prepositional, and bare `fire retort` answered `mql-error[kiln]`.
     // ⭐ Held three hours: the length has to come up to heat (its own
@@ -319,6 +350,10 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     const fired = await say(f, 'fire in retort for 3 hours');
     understood(fired, 'fire in retort for 3 hours');
     expect(refusedFor(fired), 'the retort would not fire').toBeNull();
+    // ⚠ The reachability link the plan flagged as most likely to die
+    // silently: what leaves the charge goes to whatever stands ON the
+    // head, so with no condenser there the tar is in the air.
+    await condenserStandsOnRetort(f);
     await advanceWorldClock('3 hours');
     await settle(f, fired);
     const condenser = (await f.prose('look condenser')).replace(/<[^>]*>/g, '');
@@ -361,12 +396,15 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   it('⭐ drive 13 — tar boils to pitch through the shipped arrow', async () => {
     // Zero code: `purifiedByBoiling` is the arrow between two authored
     // materials, and the phase engine fires it once the tar has been held
-    // at its boil. ⭐ There is no `boil` (controllers-are-io D8c): `heat`
-    // sets the vessel on the fire and the pot holds at the boil; this line
-    // proves the verb routes (the swap itself is Thermal.purify.test.ts's
-    // claim).
-    const boiled = await say(f, 'heat condenser');
-    understood(boiled, 'heat condenser');
+    // at its boil. ⭐ There is no `boil` (controllers-are-io D8c), and a
+    // vessel is not `heat`ed in the hands either (controller liquidity
+    // W7c): it is SET ON the fire, `put … on`, and the pot holds at the
+    // boil there; this line proves the verb routes (the swap itself is
+    // Thermal.purify.test.ts's claim). ⚠ (soak repair 2026-11-17) The
+    // vessel that holds the tar is the condenser, and it is on the fire
+    // only if it stands on the retort — `put condenser on retort` was a
+    // false pass (a 90 kg prop is never in hand), so READ where it stands.
+    await condenserStandsOnRetort(f);
   }, 180_000);
 });
 

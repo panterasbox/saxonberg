@@ -22,6 +22,7 @@ import UnboundedReceptacle from '../../../platform/thing/UnboundedReceptacle';
 import CraftVessel from '../../../platform/thing/CraftVessel';
 import { StuffApi } from '../../../api/stuff';
 import { BulkableApi } from '../../../api/bulk';
+import { MaterialApi } from '../../../api/material';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
@@ -115,6 +116,31 @@ describe('the hand on the milk', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     StuffApi.clearAll();
+  });
+
+  // ⚠⚠ (soak repair 2026-11-16) The take LOADS its yield material: a cold
+  // `peek` missed every milk row nothing else had loaded, and every cow
+  // answered "There is nothing to draw." while `look` read her heavy.
+  it('a cold milk row is loaded by the take, not missed by it', async () => {
+    const c = cow();
+    const who = milker();
+    advance(0.5 * DAY);
+    const p = pail(() => new PlainPail());
+    const materials = MaterialApi.materials();
+    const live = materials.peek(MILK)!;
+    // Cold: nothing has loaded the row until the act's door does.
+    let loaded = false;
+    const peek = materials.peek.bind(materials);
+    vi.spyOn(materials, 'peek').mockImplementation((path) => (path === MILK && !loaded ? null : peek(path)));
+    const ensure = vi.spyOn(materials, 'ensure').mockImplementation(async () => {
+      loaded = true;
+      return live;
+    });
+    const plan = await c.planTap(who, 'milk', null, p, null);
+    expect(plan.ok, JSON.stringify(plan)).toBe(true);
+    await c.completeTap(who, 'milk', p);
+    expect(ensure).toHaveBeenCalledWith(MILK);
+    expect(p.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
   });
 
   it('the slot names the milker by identity path', async () => {

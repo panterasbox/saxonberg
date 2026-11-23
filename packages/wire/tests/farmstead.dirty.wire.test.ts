@@ -15,7 +15,14 @@
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
-import { Session, declareFile, uniqueHandle, expectOk } from '../src/harness';
+import {
+  Session,
+  declareFile,
+  uniqueHandle,
+  expectOk,
+  worldClockNow,
+  advanceWorldClock,
+} from '../src/harness';
 
 /**
  * ⭐⭐ **Why this file cannot run twice — and the original spec says it
@@ -54,8 +61,16 @@ async function carried(): Promise<string> {
 }
 
 beforeAll(async () => {
+  // ⚠ (soak repair 2026-11-17) A morning, by the clock: a fresh world boots
+  // at 00:35, and the light check below is about the yard, not the hour —
+  // by night an open yard is dark and honestly says so.
+  const into = (((await worldClockNow()) % 86_400) + 86_400) % 86_400;
+  if (into < 8 * 3_600 || into > 15 * 3_600) {
+    const wait = into < 10 * 3_600 ? 10 * 3_600 - into : 86_400 - into + 10 * 3_600;
+    await advanceWorldClock(`${Math.ceil(wait / 60)} minutes`);
+  }
   p = await Session.open(uniqueHandle('farm'), { startLocation: YARD });
-}, 120_000);
+}, 300_000);
 
 afterAll(() => p?.close());
 
@@ -147,9 +162,12 @@ suite('the ley and the furrow', () => {
   it('⭐⭐ hay and grazing are the SAME draw on the same grass', async () => {
     // ⚠ On day one it refuses, correctly: the ley is short and even,
     // and there is nothing on it worth a scythe yet.
-    expect(await p.prose('mow at the "far side"')).toMatch(
-      /nothing on it worth a scythe|first swathe/i
-    );
+    const mown = await p.prose('mow at the "far side"');
+    expect(mown).toMatch(/nothing on it worth a scythe|first swathe/i);
+    // ⚠ (soak repair 2026-11-17) A mow that STARTS holds the hands until it
+    // ends, and the plough after it was refused "Your hands are busy with
+    // something else." The point here is the draw, not the hay: put it down.
+    if (/first swathe/i.test(mown)) await p.cmd('cancel');
   }, 60_000);
 
   it('⭐ a man-drawn share goes in about half as far as a beast’s', async () => {
@@ -166,6 +184,13 @@ suite('the ley and the furrow', () => {
 suite('the herdbook — you file, you do not hold the pen', () => {
   beforeAll(async () => {
     expectOk(await p.cmd('go yard'));
+    // ⚠ (soak repair 2026-11-16) Only a keeper drafts (controller
+    // liquidity D9): a hand on shift for the farm that works the herd's
+    // ground. Refused, `draft 3` answers "the college herd is not yours to
+    // draft from" — which the alternation below would have passed on. So
+    // the labourer's seat, and clock on (the cover drive's shape).
+    expectOk(await p.cmd('job apply for labourer'));
+    expectOk(await p.cmd('clock on'));
     await p.drainProse();
   }, 60_000);
 

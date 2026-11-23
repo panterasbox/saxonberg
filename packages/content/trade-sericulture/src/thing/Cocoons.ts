@@ -261,7 +261,7 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
       return { ok: false, reason: 'not-stifled' };
     }
     const charge = dial('sericulture.reel.charge', REEL_CHARGE);
-    if (this.reelPool().reduce((n, c) => n + c.getQuantity(), 0) < charge) {
+    if (this.reelPool(by).reduce((n, c) => n + c.getQuantity(), 0) < charge) {
       // ⭐ The refusal says what lifts it (the browser walk bought ten and
       // was told only "not enough").
       return { ok: false, reason: 'too-few' };
@@ -297,15 +297,29 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
    * titled stack never merges (the chattel rule), so forty bought cocoons
    * are forty stacks; a reel that counted only the stack named would
    * refuse every one of them (found by the drive).
+   *
+   * ⚠⚠ And they are not all in one place (#151): since size and carrying a
+   * bought cocoon lands in a hand, in a pocket, or at the buyer's feet, so
+   * the stack named shares its container with only some of the rest. The
+   * pool is everything the REELER carries, at any depth, plus whatever
+   * lies beside the stack named (a crib, the floor) — the read the
+   * reeler's own brain already counted with, so the two now agree.
    */
-  private reelPool(): Cocoons[] {
-    const holder = MixinApi.isContainable(this) ? this.getContainer() : null;
+  private reelPool(by: Stuff | null): Cocoons[] {
     const pool: Cocoons[] = [this];
-    if (!holder || !MixinApi.isContainer(holder)) return pool;
-    for (const s of holder.getContents() as Stuff[]) {
-      if (!(s instanceof Cocoons) || (s as unknown) === (this as unknown)) continue;
-      if (s.isStifled() && !s.isPierced() && s.getStrainPath() === this._strainPath) pool.push(s);
-    }
+    const seen = new Set<string>([this.stuffId]);
+    const consider = (items: readonly Stuff[]): void => {
+      for (const s of items) {
+        if (!(s instanceof Cocoons) || seen.has(s.stuffId)) continue;
+        if (s.isStifled() && !s.isPierced() && s.getStrainPath() === this._strainPath) {
+          seen.add(s.stuffId);
+          pool.push(s);
+        }
+      }
+    };
+    if (by && MixinApi.isContainer(by)) consider(by.getCarriedContents() as Stuff[]);
+    const holder = MixinApi.isContainable(this) ? this.getContainer() : null;
+    if (holder && MixinApi.isContainer(holder)) consider(holder.getContents() as Stuff[]);
     return pool;
   }
 
@@ -331,7 +345,7 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
           0.04 * Math.max(0, 8 - count),
       ),
     );
-    const pool = this.reelPool();
+    const pool = this.reelPool(by);
     const cocoonBand = pool.reduce((b, c) => lowerBand(b, c.getGradeBand()), this.getGradeBand());
     const skein = await mint<RawSilk>(RAW_SILK_ROW, by);
     if (skein) {

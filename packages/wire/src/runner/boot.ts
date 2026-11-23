@@ -224,8 +224,13 @@ export async function bootOwnedWorld(): Promise<string> {
       env: serverEnv(),
       stdio: ['ignore', 'pipe', 'pipe'],
     });
-    child.stdout?.pipe(log);
-    child.stderr?.pipe(log);
+    // ⚠ Two sources into one stream: `pipe` ends the stream when EITHER
+    // source ends, and the other then writes after end — an unhandled
+    // error that cost sugar's restart run its whole result (2026-11-15).
+    // The stream ends once, when the child has closed both.
+    child.stdout?.pipe(log, { end: false });
+    child.stderr?.pipe(log, { end: false });
+    child.on('close', () => log.end());
   }
   child.on('exit', (code) => {
     if (code !== 0 && code !== null) {

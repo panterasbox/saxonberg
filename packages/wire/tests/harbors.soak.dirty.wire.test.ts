@@ -21,8 +21,10 @@
  *   Blocking twin: step 21 (the bilge staged near the line).
  *
  * ⚠⚠ `.dirty.`: it charters the Hesper, pays dues and days from a funded
- * player and moves her across the sea, and buys three smacks into the
- * register — none of it produced again.
+ * player and moves her across the sea, and buys both smacks on the yard's
+ * stocks into the register — none of it produced again. ⚠ The hull book
+ * has two slots and nothing restocks: S1's smack is the one S2 leaves at
+ * anchor, so one owner holds both.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -40,8 +42,8 @@ import {
 
 export const DIRTY_REASON =
   'charters the Hesper, pays her dues and days from a funded player and ' +
-  'sails her to Waponi Woo and home, and buys three smacks into the ' +
-  'register — none of it produced again';
+  'sails her to Waponi Woo and home, and buys both smacks on the yard\'s ' +
+  'stocks into the register — none of it produced again';
 
 declareFile({
   file: 'harbors.soak.dirty.wire.test.ts',
@@ -210,6 +212,14 @@ async function buySmack(s: Session, name: string): Promise<string> {
   return squash(await (await pending).said());
 }
 
+/**
+ * ⚠ The yard's hull book has two hulls and nothing restocks (its row,
+ * `harbor/yard/thing/hull-book.yaml`): one owner buys both. S1's smack is
+ * the one S2 leaves at anchor; S2 buys the second as her pumped twin.
+ */
+let smackOwner: string | undefined;
+let firstSmack: string | undefined;
+
 /** Advance the world `days` game days, a day a jump (soak mode lets a span through). */
 async function absent(days: number): Promise<void> {
   for (let d = 0; d < days; d++) await advanceWorldClock('1 day');
@@ -219,12 +229,15 @@ suite('S1 — the hull clock at her berth', () => {
   it('S1. (span · player) a smack left asleep at the yard quay weathers from sound to worn at the house’s rate, and is found settled there, not vanished', async () => {
     const handle = uniqueHandle('hs1');
     const name = `Skua${tag()}`;
-    await fundedOwner(handle, 6_000);
+    // Funded for both hulls on the stocks: S2 buys the second.
+    await fundedOwner(handle, 12_000);
+    smackOwner = handle;
     await toHour(8);
     const s = await Session.open(handle, { startLocation: SHED });
     open.push(s);
     const bought = await buySmack(s, name);
     expect(bought, bought).toMatch(new RegExp(`as the ${name}`));
+    firstSmack = name;
     expectOk(await s.cmd('go north'));
     expectOk(await s.cmd(`go ${name.toLowerCase()}`));
     expect(await say(s, 'analyze rooms')).toMatch(/fabric of the place is sound/);
@@ -239,21 +252,26 @@ suite('S1 — the hull clock at her berth', () => {
     expectOk(await back.cmd(`go ${name.toLowerCase()}`));
     const survey = await say(back, 'analyze rooms');
     expect(survey, survey).toMatch(/fabric of the place is (worn|badly worn)/);
-    const held = await say(back, 'course roads');
+    // ⚠ (sync with the blocking step 16, 2026-11-03) `course bar`, not
+    // `course roads`: on the river a course is up, down, or a landing on it,
+    // and the roads are a node of the sea (river W4).
+    const held = await say(back, 'course bar');
     expect(held, held).toMatch(/settled onto the mud/);
   }, 7_200_000);
 });
 
 suite('S2 — at anchor in deep water', () => {
   it('S2. (span · player) a worn smack left at anchor in the roads goes down over the absence and lies on the bottom, still hers; her pumped twin does not sink', async () => {
-    const handle = uniqueHandle('hs2');
-    const left = `Gannet${tag()}`;
+    // ⭐ The one left is S1's smack, her owner's still (the book holds two
+    // hulls); only if S1 never bought her does this owner buy both.
+    const handle = smackOwner ?? uniqueHandle('hs2');
+    const left = firstSmack ?? `Gannet${tag()}`;
     const kept = `Shag${tag()}`;
-    await fundedOwner(handle, 12_000);
+    if (smackOwner === undefined) await fundedOwner(handle, 12_000);
     await toHour(8);
     const s = await Session.open(handle, { startLocation: SHED });
     open.push(s);
-    expect(await buySmack(s, left)).toMatch(new RegExp(`as the ${left}`));
+    if (firstSmack === undefined) expect(await buySmack(s, left)).toMatch(new RegExp(`as the ${left}`));
     expect(await buySmack(s, kept)).toMatch(new RegExp(`as the ${kept}`));
     // (staged) Both at the anchorage: the one left, empty and worn; the twin
     // weathered, her owner aboard. Sailing them there is step 14's.
@@ -262,14 +280,30 @@ suite('S2 — at anchor in deep water', () => {
     expectOk(await s.cmd(`go ${kept.toLowerCase()}`));
     await stageShip(kept, { at: { node: ROADS }, hull: 'weathered', bilgeL: 0 });
     // Twenty days: every day her owner sounds the well and pumps her dry.
+    // ⚠ (soak repair, 2026-11-17) Once her hull crosses into worn (~day 4)
+    // she makes ~3,100 L a day, each stroke costs ~22 real seconds, and the
+    // leather packing wears out in ~15 (blocking step 16): the unbounded
+    // loop ran five hours into the timeout. So the loop is held to a
+    // real-time budget and every day's sounding is logged — and NOTHING is
+    // staged: whether a diligent owner with a hand pump can keep a worn
+    // hull afloat is exactly the question, and if she cannot, the assertion
+    // below says so and the log shows the day it turned.
+    const pumpDeadline = Date.now() + 2 * 3_600_000;
     for (let d = 0; d < 20; d++) {
       await advanceWorldClock('1 day');
-      for (let stroke = 0; stroke < 60; stroke++) {
-        const read = await say(s, 'measure bilge');
+      let read = await say(s, 'measure bilge');
+      console.log(`bilge day ${d + 1} (before): ${read.slice(0, 160)}`);
+      for (let stroke = 0; stroke < 40 && Date.now() < pumpDeadline; stroke++) {
         if (/well is dry|little water sloshing/.test(read)) break;
-        await say(s, 'pump well');
+        const pumped = await say(s, 'pump well');
         await s.listen(22_000);
+        read = await say(s, 'measure bilge');
+        if (/packing|will not draw|won't draw/i.test(pumped)) {
+          console.log(`bilge day ${d + 1}: the pump gave out — ${pumped.slice(0, 160)}`);
+          break;
+        }
       }
+      console.log(`bilge day ${d + 1} (after): ${read.slice(0, 160)}`);
     }
     // The twin floats; her sister has gone down.
     const twin = await say(s, 'measure bilge');

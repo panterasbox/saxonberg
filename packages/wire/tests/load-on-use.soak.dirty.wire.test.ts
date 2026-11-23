@@ -40,7 +40,15 @@ suite('load on use, on the clock', () => {
       interiorAmount: 10,
     });
     await say(s, `pour #${bucket} into #${vat}`);
-    expect(await say(s, `look #${vat}`)).toMatch(/A first few beads track up through it/);
+    // ⚠ (soak repair 2026-11-16) A freshly pitched vat is WORKING: its first
+    // line ("a first few beads") holds only while not a gram has converted,
+    // and the clock runs between the pour and the look, so either working
+    // line is the fresh vat. Not sweet and idle, and not done.
+    const fresh = await say(s, `look #${vat}`);
+    expect(fresh, fresh).toMatch(
+      /A first few beads track up through it|It bubbles steadily, a yeasty breath rising off it/
+    );
+    expect(fresh, fresh).not.toMatch(/the work is done|nothing is working it yet/);
     const handle = s.handle;
     s.close(); // an offline body is frozen: no feeding across the jump
 
