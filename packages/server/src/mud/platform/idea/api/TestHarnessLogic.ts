@@ -802,7 +802,7 @@ export class TestHarnessLogic extends ApiLogic {
     for (const { user, pid, key } of all) {
       const body = PlayerApi.findAvatarByPlayerId(pid) ?? (await PlayerApi.loadAvatarsForUser(user)).find((a) => a.getIdentityPath() === key);
       if (body) {
-        report.appointments += (await EmploymentApi.vacate(body as unknown as Stuff)).length;
+        report.appointments += (await EmploymentApi.vacate(body)).length;
         if (MixinApi.isContainer(body)) {
           for (const thing of [...body.getContents()]) {
             if (thing.isDestroyed()) continue;
@@ -810,7 +810,7 @@ export class TestHarnessLogic extends ApiLogic {
             report.things++;
           }
         }
-        await StuffApi.destruct(body as unknown as Stuff);
+        await StuffApi.destruct(body);
       }
       await this.retireAccountsOf(key, report);
     }

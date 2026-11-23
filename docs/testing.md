@@ -1026,10 +1026,26 @@ platform drive:
   a migrated drive uses `standIn`, and the char-gen / re-login steps that
   land by default on purpose assert nothing about where.
 
-A pass, per migrated file, is **fresh · the same world again · after the
-whole suite · with Terminus and its dependents absent** —
-`tools/wire-indifference` runs all four (and the purge's own checks);
-`--refusal` boots an ordinary world and shows it refusing the pack.
+A pass, per migrated file, is **fresh · the same world again (dirtied by
+the other drives) · with Terminus and its dependents absent** —
+`tools/wire-indifference` runs them (and the purge's own checks: `clean`
+reads the money supply and the test characters before and after a run;
+`crash` kills a run and reads the next two starts' purges); `--refusal`
+boots an ordinary world and shows it refusing the pack; `--set "f g"`
+narrows a leg to some files (the purge checks need only a few). ⚠ Its
+`suite` leg — the WHOLE wire suite run first to dirty the world — is
+opt-in: it took 6.5 h once and its own results do not count (owner,
+2026-11-21).
+
+⭐ **A step whose honest answer may be a question** — a bare verb with no
+target, which the binder answers with a "Lock what?" prompt — uses
+`Session.cmdOrPrompt(text)`: it cancels the prompt and returns it beside
+the result, so the step can say the verb was understood without leaving the
+session hanging (`cmd` waits out its timeout on an open prompt). And the
+harness's `hand` returns once a fresh good is TITLED to its holder (custody
+is derived after a move, so an act at once — `shelf consign` — read "isn't
+yours" under load). ⚠ An id does not survive a re-login: a returning body
+is fresh and what it carries comes back with new ids.
 
 ⭐ **A run cleans up after itself.** The runner purges once the world
 answers (what a crashed run left) and again before it stops it

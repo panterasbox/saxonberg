@@ -1,18 +1,16 @@
 # Test-world lifecycle — fresh state without a cold boot
 
-> **Status: UNBUILT** — raised by the owner 2026-11-08 during the
-> controllers-are-io build (MR !527): *"do we need to have a conversation later
-> about rethinking these complete mongo wipes and be more selective about
-> database operations needed for development? … if it's becoming a problem
-> for test stability or even just wasting time we can reclaim."* Not designed;
-> this records the evidence for that conversation.
-> **Left:** in requirements 2026-11-20 (build 1 of 2) →
-> [test-world-lifecycle-requirements.md](../../requirements/test-world-lifecycle-requirements.md):
-> a test-only fixture pack (the scaffold) · runtime staging for what a drive
-> consumes · run cleanup · one restart path · the no-placeholder-content rule
-> as a gate · the 36 kernel/platform drives migrated. **Build 2** (§ Build 2):
-> the 62 pack drives into their packs, building their own sites · the 22
-> sweeps made content-agnostic · the 7 locality flows moved
+> **Status: BUILD 1 SHIPPED** (MR !638, 2026-11-21) — the test-only
+> `test-fixtures` pack at `/world/testbed` (the scaffold), runtime staging
+> (`standIn` · `fundedAccount` · `standInNpc`), the run's purge (with
+> `reserve retire` as the money sink), one restart path (grace · budget ·
+> heap flag), drives found in packs, and `lint:wire-content` (120 → 110 →
+> 112). 19 kernel/platform drives migrated whole and 11 split (13 content
+> halves). How it works now: [testing.md § The scaffold](../../testing.md).
+> **Left:** **Build 2** (§ Build 2): the 62 pack drives into their packs,
+> building their own sites · the 22 sweeps made content-agnostic · the 7
+> locality flows moved · the 6 content drives and 13 content halves · the
+> census to zero · plus the kernel findings build 1 left for their owners.
 > **Size:** two builds
 
 ## What it costs today
