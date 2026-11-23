@@ -34,6 +34,9 @@ import {
 import { TestActor } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 
 const BASE = 10_000_000;
 let now = BASE;
@@ -62,6 +65,11 @@ function fixtures(): void {
       return s;
     }, STRAIN);
   }
+}
+
+/** A pocket: something carried that holds things (size and carrying). */
+class Pocket extends ContainerMixin(ContainableMixin(Idea)) {
+  static _mixinName = 'UnwindTestPocket';
 }
 
 function stack(count: number, opts: { stifled?: boolean; pierced?: boolean } = {}): Cocoons {
@@ -255,5 +263,32 @@ describe('reeling silk', () => {
     if (!plan.ok) return;
     await plan.onComplete();
     expect(total()).toBe(before - 40);
+  });
+
+  // ⚠⚠ (#151) Since size and carrying a bought cocoon lands in a hand, a
+  // pocket or at the buyer's feet, so the stack named shares its container
+  // with only some of the rest — and every reel answered `too-few`.
+  it('⭐ the pool is everything the reeler carries — hand and pocket together', async () => {
+    lightAFire();
+    stubMints();
+    band('competent');
+    const pocket = makeStuff(() => new Pocket());
+    ContainmentApi.move(pocket as never, reeler as never);
+    // Twenty in the pocket, twenty-one in hand: neither place holds forty
+    // alone. (A fixture stack carries no title, so like stacks MERGE — each
+    // place ends with one stack, which is the case that matters.)
+    const pocketed = stack(20);
+    ContainmentApi.move(pocketed as never, pocket as never);
+    const inHand = stack(21);
+    const all = () =>
+      (reeler.getCarriedContents() as unknown as Stuff[]).filter((s) => s instanceof Cocoons) as unknown as Cocoons[];
+    const total = () => all().reduce((n, c) => n + c.getQuantity(), 0);
+    expect(total()).toBe(41);
+    expect(inHand.getQuantity()).toBeLessThan(40);
+    const plan = await inHand.planUnwind(reeler, reel(1), 8);
+    expect(plan.ok, JSON.stringify(plan)).toBe(true);
+    if (!plan.ok) return;
+    await plan.onComplete();
+    expect(total()).toBe(1);
   });
 });

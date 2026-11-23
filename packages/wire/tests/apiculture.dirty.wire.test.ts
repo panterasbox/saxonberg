@@ -147,16 +147,16 @@ async function say(s: Session, text: string): Promise<CommandResult> {
   } catch (err) {
     if (!/raised a PROMPT/.test(String(err))) throw err;
     const pending = await s.awaitPrompt(5_000);
-    const payload = (
-      pending as unknown as {
-        payload?: {
+    // ⚠ The prompt frame carries `promptId` and `outcome` at the TOP level
+    // (the cleanliness lesson); an older shape nested them in `payload`.
+    type PromptFrame = {
           promptId?: string;
           outcome?: {
             notes?: Array<{ matches?: Array<{ stuffId?: string }> }>;
           };
         };
-      }
-    ).payload;
+    const frame = pending as unknown as PromptFrame & { payload?: PromptFrame };
+    const payload = frame.payload?.promptId ? frame.payload : frame;
     const id = payload?.promptId;
     // ⚠⚠ **An `mqlObject` prompt wants the stuffId, not an index.**
     // `PromptLogic.handleResponse` does `StuffApi.findById(response)`, so
@@ -196,11 +196,82 @@ function refusedFor(r: { notes: readonly unknown[] }): string | null {
   return note?.reason ?? null;
 }
 
+/**
+ * Everything on the body — held, worn, AND in a pocket.
+ *
+ * ⚠ `me:I`, not `me:i`: since size and carrying (MR !576) a body has two
+ * hands and its garments' pockets, and a pocketed thing is the garment's
+ * contents — `me:i` sees only what is directly on you.
+ */
 async function carried(s: Session): Promise<string> {
-  const rows = await s.query('me:i', { fields: ['displayName'] });
+  const rows = await s.query('me:I', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
+}
+
+/**
+ * ⭐ Where a purchase can have put a good: in a hand, in a pocket, or —
+ * when neither takes it — on the floor at the buyer's feet
+ * (`Carrying.arrivalFor`, the shop's hand-over). All three are the sale
+ * going through.
+ */
+async function onYouOrAtYourFeet(s: Session): Promise<string> {
+  return `${await carried(s)} | ${await hereHolds(s)}`;
+}
+
+/**
+ * ⭐⭐ **Back to town for the next load.** A session reopened at the
+ * store is the file's own shape (see `beforeAll`): the Avatar's
+ * inventory persists across the socket. The return leg is the outbound
+ * walk run backwards, which proves nothing the outbound has not.
+ */
+async function backToTown(): Promise<void> {
+  k.close();
+  k = await Session.open(handle, { startLocation: STORE });
+  await k.drainProse();
+}
+
+/**
+ * ⭐⭐ **Two hands and two pockets, and the kit is more than that.**
+ *
+ * Carry what the body will take of `things` off the store floor (or
+ * already on you), walk it to the close and set it down there; walk again
+ * for the rest. `alsoSetDown` names something carried on the FIRST trip
+ * that is left at the close too (the lit torch — see the walk checkpoint).
+ *
+ * ⚠ `here:i:<thing>`, not a bare noun: the store's own stock is in reach,
+ * and a bare `get super` can bind a shelf good rather than the one that
+ * was set down at your feet.
+ */
+async function ferry(
+  things: readonly string[],
+  alsoSetDown: readonly string[] = [],
+): Promise<void> {
+  let pending = [...things];
+  let setDown = [...alsoSetDown];
+  while (pending.length > 0) {
+    const load: string[] = [];
+    for (const thing of pending) {
+      if ((await k.query(`me:I:${thing}`, { fields: ['displayName'] })).length === 0) {
+        await say(k, `get here:i:${thing}`);
+      }
+      if ((await k.query(`me:I:${thing}`, { fields: ['displayName'] })).length > 0) {
+        load.push(thing);
+      }
+    }
+    expect(
+      load.length,
+      `nothing of ${pending.join(', ')} could be carried — on you: ${await carried(k)}`,
+    ).toBeGreaterThan(0);
+    await walk(k, TO_THE_CLOSE);
+    for (const thing of [...load, ...setDown]) {
+      expectOk(await say(k, `drop ${thing}`));
+    }
+    setDown = [];
+    pending = pending.filter((t) => !load.includes(t));
+    await backToTown();
+  }
 }
 
 async function hereHolds(s: Session): Promise<string> {
@@ -255,18 +326,25 @@ suite('⭐⭐ the kit comes from town, because the valley has no supplier', () =
   it('⚠⚠ the keeper buys a LIGHT first, because the world has nights', async () => {
     // The shop floor and the valley both read *"it is pitch dark"* at the
     // wrong hour, and the tell of an unlit place is every object reading
-    // "something". A player walking ten miles after dark buys a lantern;
+    // "something". A player walking ten miles after dark buys a light;
     // so does this one, and the store sells them, which is the whole
     // reason that line is on the counter.
+    //
+    // ⚠ (soak repair 2026-11-17) A TORCH, not the lantern: the fire build
+    // made a lamp need fuel, the store sells its lantern dry and sells no
+    // oil, so `light lantern` answers `no-fuel` and the whole valley was
+    // walked in the dark (the cherries and the super read "something").
+    // A torch IS its fuel — its bed ships charged — and burns for a couple
+    // of game hours, far longer than this file runs.
     //
     // ⚠ The balance is NOT read here: `bank` is not afforded on a shop
     // floor (*"I don't understand 'bank'"*) — the account lives at the
     // banking hall, which is where the funding happened. What proves the
     // money arrived is that the purchases below go through.
-    const lamp = await say(k, 'buy lantern');
+    const lamp = await say(k, 'buy torch');
     expect(refusedFor(lamp)).toBeNull();
-    expectOk(await say(k, 'light lantern'));
-    expect(await carried(k)).toMatch(/lantern/i);
+    expectOk(await say(k, 'light torch'));
+    expect(await carried(k)).toMatch(/torch/i);
   }, 300_000);
 
   it('⭐⭐ the general store sells the whole kit — and PRICES it', async () => {
@@ -281,8 +359,12 @@ suite('⭐⭐ the kit comes from town, because the valley has no supplier', () =
       const out = await say(k, `buy "${line}"`);
       expect(refusedFor(out), `buy "${line}"`).toBeNull();
     }
-    const kit = await carried(k);
-    expect(kit).toMatch(/hive/i);
+    // ⭐ Size and carrying (MR !576): the torch has one hand, the hive is
+    // fourteen kilos and wants TWO, so it is set down at the buyer's feet
+    // — the sale went through all the same. What a hand or a pocket did
+    // not take is on the floor, and the walk below carries it.
+    const kit = await onYouOrAtYourFeet(k);
+    expect(kit, `the kit is: ${kit}`).toMatch(/hive/i);
     expect(kit).toMatch(/smoker/i);
     expect(kit).toMatch(/veil/i);
     expect(kit).toMatch(/gloves/i);
@@ -294,7 +376,7 @@ suite('⭐⭐ the kit comes from town, because the valley has no supplier', () =
     // why it is in a shop rather than on a farm.
     const out = await say(k, 'buy nucleus');
     expect(refusedFor(out)).toBeNull();
-    expect(await carried(k)).toMatch(/nucleus|bees/i);
+    expect(await onYouOrAtYourFeet(k)).toMatch(/nucleus|bees/i);
   }, 300_000);
 });
 
@@ -310,10 +392,26 @@ suite('⭐ the close — a clover ley under three cherry trees', () => {
     // the BROWSER walk's to read, by daylight. What this proves — and it
     // is the thing D18 rests on — is that the thirteen hops exist and a
     // person carrying a hive can walk them.
+    //
+    // ⭐⭐ **And it is walked more than once** (size and carrying, MR
+    // !576): two hands and two pockets do not hold a hive, a super, a
+    // smoker, a nucleus and the clothes. So the small kit goes first with
+    // the torch — and the lit torch is LEFT at the close, which is what
+    // lights it (the same fire, in the same place, as a torch in hand) —
+    // and the hive, which takes both hands, comes last. *A beekeeper who
+    // wants a second hive walks this again* (D18) is now literally true
+    // of the first one.
+    await ferry(['super', 'nucleus', 'smoker', 'veil', 'gloves'], ['torch']);
+    const hive = await say(k, 'get here:i:hive');
+    expectOk(hive);
+    expect(await carried(k), 'the hive is in both hands').toMatch(/hive/i);
     await walk(k, TO_THE_CLOSE);
     const here = await k.queryOne('here', ['displayName']);
     expect(here, 'the close resolved').toBeTruthy();
-  }, 300_000);
+    expect(await hereHolds(k), 'the torch is lighting the close').toMatch(
+      /torch/i,
+    );
+  }, 900_000);
 
   it('⭐⭐ three beds and three CHERRIES are seated in the close', async () => {
     // ⭐ Keyword binding works in the dark even when presentation does
@@ -322,7 +420,9 @@ suite('⭐ the close — a clover ley under three cherry trees', () => {
     // prose, and this is the checkpoint that proves
     // `Cultivable.applyProps` seated an authored plant into a bed's slot
     // with no code at all.
-    const trees = await k.query('here:i:cherry', { fields: ['displayName'] });
+    // ⚠ `here:I`: a tree is seated in its BED's slot, so it is the bed's
+    // contents, one level below the close's own.
+    const trees = await k.query('here:I:cherry', { fields: ['displayName'] });
     expect(trees.length, 'three cherries in three beds').toBeGreaterThanOrEqual(3);
     const beds = await k.query('here:i:bed', { fields: ['displayName'] });
     expect(beds.length).toBeGreaterThanOrEqual(3);
@@ -364,6 +464,9 @@ suite('⭐⭐ a hive is a box until you put bees in it', () => {
     // you cannot put bees into a closed box. A hive ships with its lid
     // weighted down, `put … in` a shut Sealable refuses `shut`, and the
     // refusal is the object telling you what to do first.
+    // The nucleus came out on the first trip and was set down here; `put`
+    // takes what you carry, so it is picked up first.
+    expectOk(await say(k, 'get here:i:nucleus'));
     const shut = await say(k, 'put nucleus in hive');
     expect(refusedFor(shut)).toBe('shut');
   }, 120_000);
@@ -412,9 +515,13 @@ suite('⭐⭐ the covering decides the sting, and the reading has no number', ()
     // the second garment answers `busy` until the first is on — which is
     // the activity framework working, and a thing a drive has to wait
     // for rather than a defect to report.
+    // ⚠ Both came out on an earlier trip and lie on the close; `wear`
+    // takes what you carry, so each is picked up first.
+    expectOk(await say(k, 'get here:i:veil'));
     const veil = await say(k, 'wear veil');
     expectOk(veil);
     await settle(k, veil);
+    expectOk(await say(k, 'get here:i:gloves'));
     const gloves = await say(k, 'wear gloves');
     expectOk(gloves);
     await settle(k, gloves);
@@ -430,6 +537,7 @@ suite('⭐⭐ the covering decides the sting, and the reading has no number', ()
     // The smoker is lit with the platform's `light` and held in a hand,
     // because the colony reads the ACTOR's hands — a smoker in your pack
     // is a smoker you did not use.
+    expectOk(await say(k, 'get here:i:smoker'));
     const lit = await say(k, 'light smoker');
     expect(refusedFor(lit)).not.toBe('unknown-verb');
     await say(k, 'wield smoker');
@@ -468,6 +576,9 @@ suite('⭐ the acts are all the platform’s, except one', () => {
   }, 120_000);
 
   it('⭐⭐ 10. `put super in hive` is the supering act, and there is no verb for it', async () => {
+    // The super lies on the close since the first trip; one hand holds
+    // the smoker and the other is free for it.
+    expectOk(await say(k, 'get here:i:super'));
     const out = await say(k, 'put super in hive');
     expect(refusedFor(out)).toBeNull();
     const inside = await read(k, 'look in first hive');
@@ -476,20 +587,24 @@ suite('⭐ the acts are all the platform’s, except one', () => {
 
   it('⚠ a hive is not a cupboard — it refuses what does not belong in it', async () => {
     // The refusal is where the object says what it is for. ⚠ The gloves
-    // are WORN by now, so the lantern is the honest probe: something
-     // carried, ordinary, and no business being in a beehive.
-    await say(k, 'put lantern in hive');
+    // are WORN by now, so the torch is the honest probe: something
+    // carried, ordinary, and no business being in a beehive.
+    // ⚠ It has lit the close from the ground since the first trip; the
+    // smoker has done its work, so it is set down and the torch taken up.
+    expectOk(await say(k, 'drop smoker'));
+    expectOk(await say(k, 'get here:i:torch'));
+    await say(k, 'put torch in hive');
     // ⚠⚠ Asserted on the WORLD, not on the note. `canAddContainable`'s
     // veto throws a `ContainmentError` inside the chokepoint and `put`
     // turns it into an envelope this helper does not read — the unit
     // suite proves the veto fires; what only a live world can say is
-    // whether the lantern ended up in the hive. *What is solid is the
+    // whether the torch ended up in the hive. *What is solid is the
     // WORLD* — the extraction drive's own lesson.
-    const inside = await k.query('here:i:hive:i:lantern', {
+    const inside = await k.query('here:i:hive:i:torch', {
       fields: ['displayName'],
     });
-    expect(inside.length, 'a hive took a lantern').toBe(0);
-    expect(await carried(k), 'the lantern is still in hand').toMatch(/lantern/i);
+    expect(inside.length, 'a hive took a torch').toBe(0);
+    expect(await carried(k), 'the torch is still in hand').toMatch(/torch/i);
   }, 120_000);
 
   it('⭐⭐ 12. `rob` is the trade’s ONE verb, and out of the flow the refusal is the SEASON’s', async () => {
@@ -504,7 +619,25 @@ suite('⭐ the acts are all the platform’s, except one', () => {
     expect(reason, `rob answered '${reason}'`).not.toBe('unknown-verb');
     expect(reason).not.toBe('not-producing');
     expect(reason).not.toBe('no-such-tap');
-    if (reason === null) expect(await carried(k)).toMatch(/comb/i);
+    if (reason !== null) return;
+    // ⚠ (soak repair 2026-11-17) No rejection note is NOT a take. A shut
+    // SEASON is information, not a refusal: `TapActController` says it in
+    // the inform voice with no `controller-rejected` note, so `reason` is
+    // null for a take AND for a closed season. Tell them apart by what was
+    // SAID — the take lifts frames, the season says so — and a take must
+    // leave comb in hand.
+    const said = (await out.said()).replace(/<[^>]*>/g, '');
+    const took = /frame/i.test(said);
+    const closed =
+      /season|out of the flow|in bloom|nothing out there|too cold|too warm|nothing left to give/i.test(
+        said,
+      );
+    expect(took || closed, `rob said neither a take nor a season: ${said}`)
+      .toBe(true);
+    if (took) {
+      await settle(k, out);
+      expect(await carried(k), 'a take leaves comb in hand').toMatch(/comb/i);
+    }
   }, 120_000);
 
   it('⭐ `split` rides the platform’s verb with no registration, and refuses honestly', async () => {
@@ -642,9 +775,9 @@ suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
       await chandler.drainProse();
       // ⚠⚠ A QUERY, not prose — and the master merge taught it. The fire
       // build made a lamp need fuel and sells the general store's lantern
-      // DRY, so this file's own "buy a LIGHT first" checkpoint is red on
-      // master (`light lantern` → `no-fuel`) and every session after it
-      // walks in the dark. A prose read then returns *"it is pitch dark.
+      // DRY, so this file's own "buy a LIGHT first" checkpoint went red
+      // (`light lantern` → `no-fuel`; it buys a torch now) and every
+      // session after it walked in the dark. A prose read then returns *"it is pitch dark.
       // You can make out no…"*, which tests the light and not the world.
       //
       // ⚠ And the query is not light-proof either — `here:i` is
@@ -666,7 +799,11 @@ suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
         'the chandlery floor is standing',
       ).toMatch(/dip|pot|wick|candle|vat/);
 
-      for (const word of ['melt', 'dip']) {
+      // ⚠ (soak repair 2026-11-16) `dip` alone: one view, one word —
+      // melting is the first step of the dip, not a second verb (the
+      // view's own header), and `melt` was deleted. The carcass chain's
+      // step 16 made the same move.
+      for (const word of ['dip']) {
         const out = await say(chandler, word);
         const said = (await out.said()).toLowerCase();
         expect(

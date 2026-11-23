@@ -90,14 +90,29 @@ async function moved(s: Session, from: string, seconds = 120): Promise<boolean> 
 async function morning(): Promise<void> {
   // ⭐ Late spring (days 60–100 of the 360-day year): the snowmelt is in the
   // river and the pools are open — the drive swims and steams in it.
-  for (let i = 0; i < 40; i++) {
-    const day = Math.floor((await worldClockNow()) / 86_400) % 360;
-    if (day >= 60 && day <= 100) break;
-    await advanceWorldClock('5 days');
-    await advanceWorldClock('5 days');
-  }
+  // ⚠ Few, large jumps to the season's first morning (soak run cc6de0972):
+  // climbed in 5-day steps, a fresh world took 10–38 s to settle each, the
+  // step overran its budget and the abandoned climb kept jumping into the
+  // steps after it. A jump past a game day is a span — this is a soak file, and
+  // the harness sends the soak flag under `pnpm wire:soak`. The drive's
+  // first call comes before any drive body is made, so nobody lives
+  // through the gap unfed.
   const DAY = 86_400;
-  const t = (await worldClockNow()) % DAY;
+  const now = await worldClockNow();
+  const day = Math.floor(now / DAY) % 360;
+  if (day < 60 || day > 100) {
+    const toDay = (60 - day + 360) % 360;
+    // ⚠ In fortnights, not one jump: a jump of a month or more blocks the
+    // world's event loop and never returns (#137); a fortnight did.
+    let left = Math.ceil(toDay * DAY + 8 * 3600 - (now % DAY));
+    while (left > 0) {
+      const step = Math.min(left, 14 * DAY);
+      await advanceWorldClock(`${step} seconds`);
+      left -= step;
+    }
+    return;
+  }
+  const t = now % DAY;
   if (t >= 8 * 3600 && t <= 13 * 3600) return;
   const hours = Math.ceil(((8 * 3600 - t + DAY) % DAY) / 3600);
   for (let h = hours; h > 0; h -= 5) await advanceWorldClock(`${Math.min(5, h)} hours`);
@@ -131,9 +146,10 @@ suite('stage B — bodies in moving water', () => {
     // ford read "running briskly, shallow enough to wade" in every season).
     // The swept branch is unit-tested (`Ford.test.ts`); the Delight never
     // flooding is a content finding recorded on the MR.
+    // The season first: nobody of the drive's is made until it has turned.
+    await morning();
     const handle = uniqueHandle('rbf');
     const s = await session(handle, FORD);
-    await morning();
     // Read before trying: the water in words.
     const read = squash(await s.prose('look channel'));
     expect(read, read).toMatch(/This is the Delight/);
@@ -147,7 +163,7 @@ suite('stage B — bodies in moving water', () => {
     expect(await moved(s, at, 10)).toBe(true);
     const there = await look(s);
     expect(there, there).toMatch(/milestone/i);
-  }, 600_000);
+  }, 1_200_000); // the season climb (morning) runs in this step
 
   it('8. floating in moving water is feet first; standing in a fast riffle jams a foot', async () => {
     // ⭐ At the put-in: snowmelt over rock, fast enough to take a foot. The
@@ -192,6 +208,7 @@ suite('stage B — bodies in moving water', () => {
     // The name the rescuer now knows them by — their character's, not the login.
     const met = squash(await r.listen(4_000));
     const known = met.match(/introduces themselves as ([^.]+)\./)?.[1]?.trim() ?? swimmer.handle;
+    console.log(`met: ${met.slice(0, 200)} | known as: ${known}`);
     expectOk(await r.cmd('introduce'));
     expectOk(await swimmer.cmd('west'));
     await morning();
@@ -204,15 +221,23 @@ suite('stage B — bodies in moving water', () => {
     expect(await moved(swimmer, at, 180)).toBe(true);
 
     // 11: the watch tells when somebody in the water comes into view.
+    // ⚠ (soak repair, 2026-11-17) Only the watch's ARRIVAL line counts —
+    // "You make out <them>" (HorizonWatch) — not any line that names them:
+    // their `introduce` and `west` on the towpath carry the same name, and
+    // matched it before they were ever in the water.
+    const first = known.split(' ')[0]!;
     const seen = squash(await r.listen(120_000));
-    expect(seen, seen).toMatch(new RegExp(known.split(' ')[0]!, 'i'));
+    console.log(`seen: ${seen.slice(0, 400)} | swimmer at: ${(await here(swimmer)).slice(0, 200)}`);
+    expect(seen, seen).toMatch(new RegExp(`You make out [^.]*\\b${first}\\b`, 'i'));
 
     // …and within hail the bank has a way to the water: throw, haul.
     let thrown = false;
     for (let i = 0; i < 30 && !thrown; i++) {
-      const out = await r.cmd(`throw line to ${known.split(' ')[0]!.toLowerCase()}`);
+      const out = await r.cmd(`throw line to ${first.toLowerCase()}`);
       thrown = out.status === 'ok';
       if (i % 5 === 0) console.log(`throw try ${i}: ${out.status} ${squash(await out.said()).slice(0, 200)}`);
+      // ⚠ (soak repair, 2026-11-17) 11–13 undetermined: where the swimmer is at every wait.
+      if (!thrown) console.log(`throw try ${i}: swimmer at ${(await here(swimmer)).slice(0, 200)}`);
       if (!thrown) await r.listen(5_000);
     }
     expect(thrown, 'the swimmer never came within reach of the bank').toBe(true);

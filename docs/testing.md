@@ -86,15 +86,24 @@ drive and a soak drive. The finding behind it, the enforcement and the lane →
   `serverUrl`, `serverLog`, start/finish/wall, and per file `state`, `durationMs`, `dirtyReason`,
   `proseReads`, `packs` and `tests[]` in file order — `{name, state, durationMs, errors[]}`, which
   IS the drive record. The registry's declarations sit beside it in `.wire/declarations.json`.
-- **The runner, `tools/soak`** (`--once` · `--watch` · `--dry-run`; the `soak` window's second pane
-  runs `--watch`). Per first-parent commit on `origin/master` after `.soak/state`, it runs the soak
-  files that commit added or changed — and the canary whenever the soak tooling changed — in the
-  soak worktree on :2020 against `saxonberg_soak`, dropped first. It takes the **same lock as
-  `tools/suite`** (`tools/lib/suite-lock.sh`) and waits for memory: the 4 GB reserve plus a
-  world's 3 GB, the world alone in quiet hours (02:00–06:00). A failing file is a GitLab issue
-  labeled `soak` (file, merge, MR, failing steps, the drive record, the server log's tail); a
-  repeat comments on the open one. State, log and results live in the soak worktree's `.soak/`
-  (gitignored). Every threshold and path is an env override (`tools/soak --help`).
+- **The runner, `tools/soak`** (`--once` · `--watch` · `--dry-run` · `--status`; the `soak`
+  window's second pane runs `--watch`). Per first-parent commit on `origin/master` after
+  `.soak/state`, it runs the soak files that commit added or changed — and the canary whenever the
+  soak tooling changed — in the soak worktree on :2020 against `saxonberg_soak`. ⭐ **One world per
+  dirty file**, the database dropped before each; the clean files share one. A dirty file declares
+  by its name that it leaves the world changed, so the next file in the same world reads that
+  change as a defect — the first full run (2026-11-14) put every soak file in one world and 25 of
+  26 failed, most of them on what an earlier file had used up. Each world takes the **same lock as
+  `tools/suite`** (`tools/lib/suite-lock.sh`), so a build's suite can run between two soak worlds,
+  and waits for memory: the 4 GB reserve plus a world's 3 GB, the world alone in quiet hours
+  (02:00–06:00). A failing file is a GitLab issue labeled `soak` (file, merge, MR, failing steps,
+  the drive record, the server log's tail); a repeat comments on the open one. A world that leaves
+  no record of its files (it never booted) is ONE issue, `soak: no result for <sha>` — the lane,
+  not a build. ⚠ **The watcher is the lane**: it records itself in `.soak/watch.pid`, refuses a
+  second copy, and waits (rather than moving the worktree) while the soak worktree is on a branch —
+  a lane repair is built there, on the lane's own world. `--status` says whether it is running;
+  it died unnoticed once (10-31 → 11-14). State, log and results live in the soak worktree's
+  `.soak/` (gitignored). Every threshold and path is an env override (`tools/soak --help`).
 
 ### A finished session signs out
 
