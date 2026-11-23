@@ -240,8 +240,8 @@ be 'rodney' so its clear thats what you're driving. thats why we gave it a memor
 `stream`'s subcommands drives Rodney and OBS — the Starting Soon countdown, putting the desktop on air,
 the standby screen and its reason, the outro, the sidebar's topic and agenda, the overlay and Stream
 Deck tokens — and `stream-rotation` steers Rodney's lower third. So the verb is **`rodney`**: `rodney
-start · live · away · back · end · segment · agenda · next · token · rotation` (the rotation folded in as
-a subcommand: one view, one word). `stream` stops being a verb. **`program`** stays generic and
+start · live · away · back · end · off · segment · agenda · next · token · pin · skip · unpin` — the
+lower third's rotation as three flat subcommands (`rodney pin <panel>`), never three deep (owner). `stream` stops being a verb. **`program`** stays generic and
 Rodney-free — the record any broadcaster has. Whether a program is on air is still read from its run,
 driven today through `rodney`; a broadcaster without Rodney going on air is the broadcasting build's.
 
