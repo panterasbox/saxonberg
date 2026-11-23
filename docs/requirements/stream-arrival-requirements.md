@@ -5,10 +5,10 @@
 removal); the client leads.
 
 A viewer watching the show on Twitch, YouTube or Kick clicks our link and **never has to stop
-watching** to become a player. The front page plays the show on the carrier they came from; sign-in
-opens in its own window so the page and the video stay; the video docks in a corner through
-character select and character creation; and they enter the lounge in watch mode, on their own
-phone, the same video still playing. Along the way: the new front page (its client half), sign-in
+watching** to become a player. The front page plays the show on the carrier they came from; signing
+in costs the video a second or two (the provider's page and back), and it resumes by itself on the
+same stream; the video docks in a corner through character select and character creation; and they
+enter the lounge in watch mode, on their own phone, the same video still playing. Along the way: the new front page (its client half), sign-in
 retouched for this path, and **aspiration removed from character creation entirely** (lineage will
 bring real origins later). Seeding slates: [watch-slate](../slates/client/watch-slate.md) § 3–4
 (the funnel), [front-page-slate](../slates/client/front-page-slate.md) § 4, 4a, 4d, 5 (the page),
@@ -40,8 +40,8 @@ the Twitch launch after New Year).
 - **The show's state:** the founder's on-air phases, the three transports, the live count.
 
 Therefore what is genuinely new here is: **the origin with a carrier**, **a video that lives outside
-watch mode and survives every step of the funnel**, **sign-in that does not leave the page**, **a
-return to what the visitor meant**, **entering in watch when you were watching**, **the front page's
+watch mode and survives every step of the funnel**, **a return to what the visitor meant after
+sign-in, the video resuming by itself**, **entering in watch when you were watching**, **the front page's
 client rebuild over the sources that exist**, and **character creation without aspiration**. The
 reuse ledger the plan must account for is in
 [watch-slate § Reuse ledger for the plan](../slates/client/watch-slate.md).
@@ -50,8 +50,8 @@ reuse ledger the plan must account for is in
 
 - A visitor who arrives from a carrier sees the show **playing** on the front page, on that carrier,
   the moment the page loads — or, when the show is offline, its offline tile.
-- Signing in never stops the video: it opens in a separate window over the page; when it finishes,
-  the page is signed in and the video has not restarted.
+- Signing in costs the video only the trip to the provider and back: when the visitor returns,
+  signed in, the same stream on the same carrier is already playing again, with no click.
 - The video stays playing, docked in a corner, through character select and character creation.
 - Entering the game while the video plays puts the character in the lounge **in watch mode**,
   watching the same stream on the same carrier on their phone, **without the video restarting**.
@@ -86,7 +86,7 @@ reuse ledger the plan must account for is in
 ## Placement
 
 The **client** owns almost all of it: the front page, the player that survives the funnel, the
-sign-in window, the docked video, character select, character creation's page. The **platform**
+resume after sign-in, the docked video, character select, character creation's page. The **platform**
 owns a thin slice: which channels are the show on each carrier (settings), the follow-up that a
 character entering while watching enters in watch, sign-in's return to the page that asked for it,
 and aspiration's removal from character creation, the profile and the guest. No pack, no new
@@ -101,7 +101,8 @@ content beyond the plain starter outfit. A second streamer needs the registry, n
   tile. Record it in that slate.
 - **The deep-links slate § 2** (the guest as an advertised choice) — already superseded by
   watch-slate § 4; the page's guest entry is a plain small link.
-- **The watch slate § 3 step 5** (*the video never stops*, LEAN) — decided here.
+- **The watch slate § 3 step 5** (*the video never stops*, LEAN) — decided here, with one honest
+  gap: the sign-in trip to the provider, after which it resumes by itself.
 - **The start screen and character select** — rebuilt or retouched; their honest-state rules stay
   (co-equal providers with no origin, the live count as a number, a real zero or nothing, the press
   room never awaited by sign-in).
@@ -130,12 +131,13 @@ offline tile (the glowing `@`, the next show). It starts **muted** (browsers ref
 click) with a plain unmute; the first click anywhere on the page may carry sound. Which channel is
 the show on each carrier is a setting per carrier.
 
-### Sign-in in its own window **[owner, 2026-11-23]**
-The provider's sign-in opens in a separate window over the page; the page, and the video, stay.
-When it finishes the window closes and the page is signed in. **If the window cannot open** (a
-blocker, a phone that turns it into a tab), sign-in falls back to today's way — the page leaves and
-returns — and the video starts again by itself, already on the same stream (owner). Either way the
-visitor returns to what they were doing, never to a bare page.
+### Sign-in, and the video resuming **[owner, 2026-11-23]**
+Sign-in works as it does today: the tab goes to the provider's page and comes back (a second or two
+when the visitor is already signed in there and has approved us before). The video stops for that
+trip and **starts again by itself** when they return, on the same stream and carrier, docked — no
+click. The visitor returns to what they were doing, never to a bare front page. A separate sign-in
+window that kept the page alive was considered and **rejected** (owner): a second window is worse
+than losing the video for two seconds.
 
 ### The docked video **[watch-slate § 3]**
 After sign-in the video moves to a corner and keeps playing through character select and character
@@ -178,7 +180,7 @@ arrives in **one plain everyday outfit**; the bio starts **empty** (the player w
    Participation: the viewer becomes a character without a gap in what they came for.
 4. **Values** — no command in a link; nobody else's session read; the origin orders the buttons by
    the visitor's choice, not ours; guests supported, not promoted; the video muted until they ask.
-5. **Continuity** — the same origin and window path serve the web today and a desktop client later.
+5. **Continuity** — the same origin and resume-after-sign-in serve the web today and a desktop client later.
 6. **Economy** — the funnel is the platform's acquisition; it produces signed-in, platform-linked
    players (the owner's ask: *tied to whatever platform they're watching me on*).
 7. **Governance** — none; no person is judged.
@@ -197,26 +199,24 @@ is client-led, so the drive is a **browser walk** with a wire step for the serve
 3. **An untagged visitor** (no `from`, no referrer) sees the show tile as a thumbnail, no video, the
    providers in the neutral order, and the guest as a plain small link. `instant`
 4. **Offline** (`staged`): the tagged visitor sees the offline tile, no video. `instant`
-5. **Sign in with Twitch** in its own window (`staged`: the test sign-in standing in for the
-   provider): the page never leaves; the video's playback position keeps advancing across the
-   sign-in; the page is signed in when the window closes. `instant`
-6. **Sign-in blocked** (`staged`: the window refused): sign-in goes the old way and comes back; the
-   video starts again by itself on the same stream. `instant`
-7. **Character creation**, video docked in a corner and still advancing: species, sex where offered,
+5. **Sign in with Twitch** (`staged`: the test sign-in standing in for the provider): the visitor
+   comes back signed in, and the show is already playing again — docked, on Twitch, the same
+   channel — with no click. `instant`
+6. **Character creation**, video docked in a corner and still advancing: species, sex where offered,
    pronouns, name — **no aspiration anywhere on the page**; confirm. `instant`
-8. **The lounge** — the new character arrives **in watch mode**, the same stream on the same carrier,
+7. **The lounge** — the new character arrives **in watch mode**, the same stream on the same carrier,
    the video not restarted; their phone is in their pocket; they are dressed in the plain outfit;
    `profile` shows no aspiration; their chronicle has no prologue. `look` in the lounge in its own
    light. `instant`
-9. **Close the video**, sign out, sign back in with the video closed: the returning character enters
+8. **Close the video**, sign out, sign back in with the video closed: the returning character enters
    in its usual mode, not watch. `instant`
-10. **A returning player from a stream** (`from=youtube`): the YouTube player plays; *sign in with
+9. **A returning player from a stream** (`from=youtube`): the YouTube player plays; *sign in with
     the Google account you watch on*; character select keeps the video docked; *Enter* → watch mode,
     YouTube, not restarted. `instant`
-11. **A guest** through the small link arrives dressed in the plain outfit, with no aspiration. `instant`
-12. **Restart** the world: the character from step 8 comes back with its outfit, empty bio and no
+10. **A guest** through the small link arrives dressed in the plain outfit, with no aspiration. `instant`
+11. **Restart** the world: the character from step 7 comes back with its outfit, empty bio and no
     aspiration; entering with no video lands in its last mode. `staged`
-13. **A phone-width screen**: the page orders sign-in, the show, the chambers, Latest; the docked
+12. **A phone-width screen**: the page orders sign-in, the show, the chambers, Latest; the docked
     video stays visible through creation. `instant`
 
 ### Soak drive
@@ -228,8 +228,8 @@ None — every step is `instant`.
 - A visitor arriving from Twitch, YouTube or Kick sees the show playing on that carrier on the front
   page while it is live, and its offline tile when it is not.
 - A visitor with no origin sees no playing video and the providers in the neutral order.
-- Signing in does not stop or restart the video when the sign-in window can open; when it cannot,
-  sign-in still works and the video resumes on the same stream by itself.
+- After signing in, the visitor is back where they were and the same stream is playing again on the
+  same carrier, without a click.
 - The video plays in a corner through character select and character creation.
 - A character entered while the video plays is in the lounge in watch mode on the same stream and
   carrier, and the video did not restart; one entered without it is in its usual mode.
