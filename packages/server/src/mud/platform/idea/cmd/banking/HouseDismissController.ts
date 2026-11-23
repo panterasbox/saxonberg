@@ -29,6 +29,7 @@
  * the employment ledger already holds.
  */
 
+import { EmploymentApi } from '../../../../api/employment';
 import { HouseControllerBase } from './HouseControllerBase';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -60,16 +61,16 @@ export default class HouseDismissController extends HouseControllerBase<DismissM
     const organization =
       asked.length === 0
         ? await this.houseIRun(context)
-        : // C33 — the same resolution `house appoint` uses: a relation
-          // resolved at the act stands the named organization up; a
-          // registry read missed every house not resident right now.
-          await StuffApi.singleton(asked).catch(() => null);
+        : asked.startsWith('/')
+          ? await StuffApi.singleton(asked).catch(() => null)
+          : // ⭐ By the house's name, through the one rule (D-C5 rule 6).
+            EmploymentApi.findOrganization(asked);
     if (!organization || !MixinApi.isOrganization(organization)) {
       return this.fail(
         context,
         asked.length === 0
           ? 'You run no house here to take anybody off the books of.'
-          : `There is no organization at ${asked}.`,
+          : `There is no house called ${asked}.`,
         asked.length === 0 ? 'no-house-of-your-own' : 'no-such-organization',
       );
     }

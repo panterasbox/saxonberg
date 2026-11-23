@@ -48,11 +48,11 @@ export default class BuyController extends CommandController<BuyModel> {
       context.note({ kind: "empty-result", field: "thing", query: model.thing });
       return;
     }
-    // ⭐ No seller NAMED, and the one the default bound does not offer the
-    // word: ask the others standing here. (A seller bound by the view's
-    // DEFAULT carries the default's query as its raw text, or none —
-    // either way, not one the player named.)
-    const named = !!model.counter?.raw && !/^reachable:/.test(model.counter.raw);
+    // ⭐ No seller NAMED (the slot took its default — a fact the binding
+    // carries, naming overhaul D-C7), and the one the default bound does not
+    // offer the word: ask the others standing here. A NAMED seller is asked
+    // alone, and its refusal names it (`buy rope at <first>`).
+    const named = model.counter?.defaulted !== true;
     const seller = named ? bound : bound.sellerFor(model.thing);
     // ⭐ The command's own Interactive: a script never prompts (D23).
     const interactive = context.interactive;

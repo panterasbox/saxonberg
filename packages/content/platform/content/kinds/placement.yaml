@@ -1,0 +1,5 @@
+title: Placement
+traits:
+  shipped: { dir: placements }
+  catalogued: { by: /platform/idea/PlacementCatalogue, load: boot }
+  keyworded: { keywords: prepositions }

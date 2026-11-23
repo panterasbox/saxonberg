@@ -154,7 +154,7 @@ describe('the binder binds what the giver perceives (D23)', () => {
     // MQL names both — for everyone. ⭐ The pocketed one is her COAT's
     // contents (W9), so it is named from outside one level down, as the
     // room's crate is: `ruth:inventory` reaches into the open coat.
-    const named = MqlApi.resolveMany('knife', { commandGiver: world.giver, scope: 'ruth:inventory' }).stuff;
+    const named = MqlApi.resolveMany('knife', { commandGiver: world.giver, scope: 'ruth:~inventory' }).stuff;
     expect(named.filter((s) => s instanceof Knife)).toHaveLength(2);
     expect(await run(def, 'grab knife')).toBe(held);
     expect(kinds().some((k) => k.startsWith('validator-failed:cardinality'))).toBe(false);
@@ -184,10 +184,10 @@ describe('the binder binds what the giver perceives (D23)', () => {
     trap.setKeywords(['snare']);
     trap.setConcealment('hidden');
     ContainmentApi.move(trap, world.location as never);
-    expect(MqlApi.resolveMany('snare', { commandGiver: world.giver, scope: 'reachable' }).stuff).toContain(trap);
+    expect(MqlApi.resolveMany('snare', { commandGiver: world.giver, scope: '~reachable' }).stuff).toContain(trap);
     // The controller gets the empty binding it gets for a word nothing
     // answers to — the trap is never handed over.
-    expect(await run(await view('reachable'), 'grab snare')).toBeNull();
+    expect(await run(await view('~reachable'), 'grab snare')).toBeNull();
     expect(models.every((m) => (m.target as MqlOneResult | undefined)?.stuff == null)).toBe(true);
   });
 });

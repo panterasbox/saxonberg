@@ -71,7 +71,7 @@ describe('ShellApi.expandVariables', () => {
   });
 
   it('expands $focus to the giver focus', async () => {
-    expect(ShellApi.expandVariables('$focus', giver)).toBe('here');
+    expect(ShellApi.expandVariables('$focus', giver)).toBe('~here');
     giver.setFocus('inventory, here');
     expect(ShellApi.expandVariables('look $focus', giver)).toBe(
       'look inventory, here',
@@ -98,11 +98,11 @@ describe('ShellApi.expandVariables', () => {
   });
 
   it('synthetic wins over a colliding stored var', async () => {
-    giver.setFocus('here');
+    giver.setFocus('~here');
     giver.setVar('focus', 'foo');
     // `var set focus foo` does not shadow the synthetic $focus —
     // documented names are stable.
-    expect(ShellApi.expandVariables('$focus', giver)).toBe('here');
+    expect(ShellApi.expandVariables('$focus', giver)).toBe('~here');
   });
 
   it('substitutes empty for unknown stored vars', async () => {
@@ -151,7 +151,7 @@ describe('CommandApi.assemble — variable expansion through matcher', () => {
         '  - name: target',
         '    type: object',
         '    required: false',
-        '    scope: "inventory, here"',
+        '    scope: "~inventory, here"',
         '    prepositions: [at]',
       ].join('\n'),
       '<test>',
@@ -243,7 +243,7 @@ describe('CommandApi.assemble — defaults', () => {
         '  - name: target',
         '    type: object',
         '    required: false',
-        '    scope: "inventory, here"',
+        '    scope: "~inventory, here"',
         '    prepositions: [at]',
         '    default: "$focus"',
       ].join('\n'),
@@ -282,14 +282,14 @@ describe('CommandApi.assemble — defaults', () => {
   });
 
   it('fills bare `look` from default: $focus, expands the default', async () => {
-    giver.setFocus('here');
+    giver.setFocus('~here');
     const parsed = CommandLineApi.parsePipeline('look').commands[0]!;
     const built = CommandApi.assemble(parsed, lookWithDefault(), {
       commandGiver: giver as never,
       location: location as never,
     });
     if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
-    expect(built.model.target).toBe('here');
+    expect(built.model.target).toBe('~here');
   });
 
   it('skips later-preposition tokens via lookahead and defaults the gap', async () => {
@@ -302,7 +302,7 @@ describe('CommandApi.assemble — defaults', () => {
       location: location as never,
     });
     if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
-    expect(built.model.gift).toBe('here');
+    expect(built.model.gift).toBe('~here');
     expect(built.model.recipient).toBe('bob');
   });
 
@@ -313,7 +313,7 @@ describe('CommandApi.assemble — defaults', () => {
       location: location as never,
     });
     if ('error' in built) throw new Error('assemble failed: ' + JSON.stringify(built));
-    expect(built.model.gift).toBe('here');
+    expect(built.model.gift).toBe('~here');
     expect(built.model.recipient).toBe('me');
   });
 });
@@ -338,11 +338,11 @@ describe('CommandApi.resolveAndValidate — YAML scope[] fallback', () => {
         '  - name: target',
         '    type: object',
         '    required: false',
-        '    scope: ["$focus", "inventory, here"]',
+        '    scope: ["$focus", "~inventory, here"]',
       ].join('\n'),
       '<test>',
     );
-    expect(arrayForm.args[0]!.scope).toEqual(['$focus', 'inventory, here']);
+    expect(arrayForm.args[0]!.scope).toEqual(['$focus', '~inventory, here']);
 
     // Bare-string YAML is normalised to a singleton array at
     // CommandDefinition construction so downstream code doesn't
@@ -356,11 +356,11 @@ describe('CommandApi.resolveAndValidate — YAML scope[] fallback', () => {
         '  - name: target',
         '    type: object',
         '    required: false',
-        '    scope: "inventory, here"',
+        '    scope: "~inventory, here"',
       ].join('\n'),
       '<test>',
     );
-    expect(stringForm.args[0]!.scope).toEqual(['inventory, here']);
+    expect(stringForm.args[0]!.scope).toEqual(['~inventory, here']);
   });
 });
 

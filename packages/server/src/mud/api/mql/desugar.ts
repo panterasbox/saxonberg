@@ -87,7 +87,7 @@ export function looksFormal(input: string): boolean {
       i += 1;
       continue;
     }
-    if (ch === ':' || ch === '[' || ch === ',' || ch === '{') return true;
+    if (ch === ':' || ch === '[' || ch === ',' || ch === '{' || ch === '~' || ch === '@') return true;
     // ⚠ Only a quote that STARTS a token opens a literal (the lexer's
     // rule): `dave's` is a word, and treating it as formal skipped the
     // article strip, so `the dave's slab` kept its `the`.

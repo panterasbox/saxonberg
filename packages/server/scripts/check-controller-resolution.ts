@@ -95,7 +95,8 @@
 import { readFileSync } from 'fs';
 import { relative, resolve, dirname } from 'path';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { controllerFiles, ratchet } from './pack-roots';
+import ts from 'typescript';
+import { controllerFiles, parseTs, ratchet } from './pack-roots';
 
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
@@ -222,6 +223,179 @@ export const BESPOKE_RESOLUTION_CEILING = 0; // size-and-carrying finalize: the 
 // OUT of the model into MQL. No controller surface the gate protects grew.
 // 108 → 105 (green after W2/W4/W6): sites W2 and W6 moved onto the model.
 export const SELF_RESOLUTION_CEILING = 74; // soak repair (#150): −1, drop filters against the carried set, not its own getContents(). // aether-devices: −1, the dm/reply MQL search for a comms app is gone (comms is the person's). // size-and-carrying finalize run 16: −3 (shoot, feed and the two-leg pool read the carried tree where it sits). // load-on-use W3: −1 (the dye act no longer stands its dyestuff catalogue up by hand). // controller-liquidity W13: −12 (pinned to the measured floor with every lane's tree in), the stalls fixture is a bound arg; the warrens let themselves. // controller-liquidity W11: −1 (the print view binds what it prints). // controller-liquidity W12: −4 (the pilot, the hole, the gather bound by their views). // controller-liquidity W10: −7 (draft, return, breed, plow, mill). // controller-liquidity W7: −1.
+
+/**
+ * ⭐ Raw re-reads (naming overhaul D-C10, count 3) — a bound argument's
+ * `.raw` read anywhere but a refusal's facts or an echo. The binder already
+ * resolved the words; reading them again is a second resolution (`buy`'s
+ * `counter.raw` sniff). Measured at C0 (2026-11-21).
+ */
+export const RAW_REREAD_CEILING = 0;
+
+/**
+ * ⭐ Via reads and word work (naming overhaul D-C10, count 4) — a `.via` read
+ * of anything but a declared facet (`detailPath`, `bulk`, `region`,
+ * `relation`) or through `MqlApi.effectiveTarget`, and a model string
+ * lower-cased in a controller. Measured at C0 (2026-11-21).
+ */
+export const VIA_AND_WORDS_CEILING = 0; // naming overhaul C6: −9, the vocabularies became enums and the controller leftovers name through the rule. C3: −4, the reading, cast and record words go through the rule.
+
+/** The `via` facets a controller may read (`MqlMatchVia`). */
+const DECLARED_FACETS = new Set(['detailPath', 'bulk', 'region', 'relation']);
+
+/** The calls a `.raw` read may sit inside: a refusal's facts, an echo. */
+const ECHO_CALLS = new Set(['refuse', 'fail', 'reject', 'notFound', 'note', 'send', 'toSelf', 'compose', 'fromMarkup', 'escape']);
+
+/** A truthiness test — `if (x.raw)`, `a && x.raw`, `!x.raw` — asks whether anything was typed. */
+function isTruthTest(node: ts.Node): boolean {
+  const p = node.parent;
+  if (!p) return false;
+  if (ts.isPrefixUnaryExpression(p) && p.operator === ts.SyntaxKind.ExclamationToken) return true;
+  if (ts.isIfStatement(p) && p.expression === node) return true;
+  if (ts.isConditionalExpression(p) && p.condition === node) return true;
+  if (ts.isBinaryExpression(p) && [ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken].includes(p.operatorToken.kind)) {
+    return isTruthTest(p) || ts.isIfStatement(p.parent) || ts.isConditionalExpression(p.parent);
+  }
+  return false;
+}
+
+function inEcho(node: ts.Node): boolean {
+  for (let p: ts.Node | undefined = node.parent; p; p = p.parent) {
+    if (ts.isNewExpression(p) && ts.isIdentifier(p.expression) && p.expression.text === 'Refusal') return true;
+    if (ts.isTaggedTemplateExpression(p) || ts.isTemplateExpression(p)) return true;
+    if (ts.isCallExpression(p)) {
+      const callee = p.expression;
+      const name = ts.isPropertyAccessExpression(callee) ? callee.name.text : ts.isIdentifier(callee) ? callee.text : '';
+      if (ECHO_CALLS.has(name)) return true;
+    }
+    if (ts.isStatement(p) || ts.isFunctionLike(p)) return false;
+  }
+  return false;
+}
+
+/**
+ * A `.raw` held in a variable (`const raw = model.x?.raw ?? ''`) whose
+ * every later use is an echo or a refusal's facts — quoting the player,
+ * not re-resolving their words.
+ */
+function onlyEchoed(node: ts.Node, sf: ts.SourceFile): boolean {
+  let p: ts.Node = node;
+  while (p.parent && !ts.isVariableDeclaration(p.parent) && !ts.isStatement(p.parent)) p = p.parent;
+  const decl = p.parent;
+  if (!decl || !ts.isVariableDeclaration(decl) || !ts.isIdentifier(decl.name)) return false;
+  const name = decl.name.text;
+  let scope: ts.Node | undefined = decl;
+  while (scope && !ts.isFunctionLike(scope) && !ts.isSourceFile(scope)) scope = scope.parent;
+  if (!scope) return false;
+  const uses: ts.Identifier[] = [];
+  const walk = (x: ts.Node): void => {
+    if (
+      ts.isIdentifier(x) && x.text === name && x !== decl.name &&
+      !(ts.isPropertyAccessExpression(x.parent) && x.parent.name === x)
+    ) {
+      uses.push(x);
+    }
+    ts.forEachChild(x, walk);
+  };
+  walk(scope);
+  // Uses that only test whether anything was typed (`if (!raw)`) are not
+  // a resolution either.
+  const benign = (u: ts.Identifier): boolean => inEcho(u) || isTruthTest(u);
+  void sf;
+  return uses.length > 0 && uses.every(benign);
+}
+
+/** Is this node lowered / compared / tested where it stands (one step up its chain)? */
+function workedHere(n: ts.Node): boolean {
+  let x: ts.Node = n;
+  // Climb the `.trim()` / `?? ''` / `String(…)` / parens wrappers.
+  for (;;) {
+    const p = x.parent;
+    if (!p) return false;
+    if (ts.isPropertyAccessExpression(p) && p.expression === x) {
+      const name = p.name.text;
+      if (['toLowerCase', 'toLocaleLowerCase', 'includes', 'startsWith', 'endsWith', 'indexOf', 'match', 'replace', 'split'].includes(name)) return true;
+      x = p;
+      continue;
+    }
+    if (ts.isCallExpression(p) && p.expression === x) { x = p; continue; }
+    if (ts.isParenthesizedExpression(p) || ts.isNonNullExpression(p) || ts.isAsExpression(p)) { x = p; continue; }
+    if (ts.isBinaryExpression(p) && p.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken) { x = p; continue; }
+    if (ts.isCallExpression(p) && ts.isIdentifier(p.expression) && p.expression.text === 'String') { x = p; continue; }
+    if (ts.isBinaryExpression(p) && [ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken].includes(p.operatorToken.kind)) {
+      // `x.trim() === ''` asks whether anything was typed — not a resolution.
+      const other = p.left === x ? p.right : p.left;
+      return !((ts.isStringLiteral(other) && other.text === '') || ts.isNumericLiteral(other) || other.kind === ts.SyntaxKind.NullKeyword);
+    }
+    if (ts.isCallExpression(p) && ts.isPropertyAccessExpression(p.expression) && ['test', 'exec'].includes(p.expression.name.text)) return true;
+    return false;
+  }
+}
+
+/** A `.raw` worked on in the controller — directly, or through the variable holding it. */
+function reResolved(node: ts.Node, sf: ts.SourceFile): boolean {
+  if (workedHere(node)) return true;
+  // Follow a variable only when it holds the RAW itself (through `.trim()`,
+  // `?? ''`, `String(…)`), never one holding something computed FROM it.
+  let p: ts.Node = node;
+  for (;;) {
+    const up: ts.Node | undefined = p.parent;
+    if (!up) break;
+    const wraps =
+      (ts.isPropertyAccessExpression(up) && up.expression === p) ||
+      (ts.isCallExpression(up) && (up.expression === p || (ts.isIdentifier(up.expression) && up.expression.text === 'String'))) ||
+      ts.isParenthesizedExpression(up) || ts.isNonNullExpression(up) || ts.isAsExpression(up) ||
+      (ts.isBinaryExpression(up) && [ts.SyntaxKind.QuestionQuestionToken, ts.SyntaxKind.BarBarToken].includes(up.operatorToken.kind));
+    if (!wraps) break;
+    p = up;
+  }
+  const decl = p.parent;
+  if (!decl || !ts.isVariableDeclaration(decl) || !ts.isIdentifier(decl.name)) return false;
+  const name = decl.name.text;
+  let scope: ts.Node | undefined = decl;
+  while (scope && !ts.isFunctionLike(scope) && !ts.isSourceFile(scope)) scope = scope.parent;
+  let hit = false;
+  const walk = (x: ts.Node): void => {
+    if (hit) return;
+    if (ts.isIdentifier(x) && x.text === name && x !== decl.name && !(ts.isPropertyAccessExpression(x.parent) && x.parent.name === x) && workedHere(x)) hit = true;
+    else ts.forEachChild(x, walk);
+  };
+  if (scope) walk(scope);
+  void sf;
+  return hit;
+}
+
+/** Counts 3 and 4 over one controller module. */
+export function bindingRereadsIn(src: string, file = '/x.ts'): { raw: number[]; via: number[] } {
+  const sf = parseTs(file, src);
+  const raw: number[] = [];
+  const via: number[] = [];
+  const lineOf = (n: ts.Node): number => sf.getLineAndCharacterOfPosition(n.getStart(sf)).line + 1;
+  const visit = (node: ts.Node): void => {
+    if (ts.isPropertyAccessExpression(node)) {
+      const prop = node.name.text;
+      // ⭐ A `.raw` RE-RESOLVED here — lowered, compared, regex- or
+      // substring-tested in the controller (directly, or through the
+      // variable that holds it). Handing the words to the object's own
+      // naming method (`groundRefusal(raw)`, `planWork(what)`) is the D-C4
+      // holder shape and is not counted; nor is an echo or a typed-or-not test.
+      if (prop === 'raw' && !inEcho(node) && !isTruthTest(node) && reResolved(node, sf)) raw.push(lineOf(node));
+      // ⭐ An UNDECLARED facet read off a bound arg's `.via`
+      // (`model.x.via.weird`). The whole `.via` handed to the object that
+      // reads its own facets (`BulkableApi.slotFor(target, via)`) is fine.
+      if (prop === 'via' && /\bmodel\b/.test(node.expression.getText(sf))) {
+        const parent = node.parent;
+        const facet = ts.isPropertyAccessExpression(parent) && parent.expression === node ? parent.name.text : null;
+        if (facet !== null && !DECLARED_FACETS.has(facet)) via.push(lineOf(node));
+      }
+      // A model string lower-cased: `model.x.toLowerCase()` / `String(model.x).toLowerCase()`.
+      if (prop === 'toLowerCase' && /\bmodel\.\w+/.test(node.expression.getText(sf))) via.push(lineOf(node));
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sf);
+  return { raw: [...new Set(raw)], via: [...new Set(via)] };
+}
 
 /** A controller resolving its own target: the MQL facade, a store find, a contents walk. */
 const SELF_RESOLUTION =
@@ -504,10 +678,28 @@ function main(): void {
   const files = controllerFiles();
   const findings: Finding[] = [];
   const selves: string[] = [];
+  // ⭐ The reviewed exemptions (file suffix + why): never an `@internal`.
+  const RAW_EXEMPT: ReadonlyArray<{ file: string; why: string }> = [
+    { file: 'social/ContactsRemoveController.ts', why: 'the offline `~list:name` fallback (D-B12) — a person not in the world binds nothing' },
+    { file: 'social/HailController.ts', why: 'signalling-slate — hail\'s matchers' },
+    { file: 'social/WhoController.ts', why: '`who --country` is a search, not a name' },
+    { file: 'social/SoulControllerBase.ts', why: 'an emote VERB — a command word, normalized as the key it is (C2)' },
+    { file: 'social/SoulDeleteController.ts', why: 'an emote VERB key (C2)' },
+    { file: 'social/SoulEditController.ts', why: 'an emote VERB key (C2)' },
+    { file: 'social/SoulMakeController.ts', why: 'a NEW emote verb key, normalized as it is minted (C2)' },
+    { file: 'social/SoulSearchController.ts', why: '`soul search` is a search, not a name' },
+    { file: 'social/SoulShowController.ts', why: 'an emote VERB key (C2)' },
+  ];
+  const raws: string[] = [];
+  const vias: string[] = [];
   for (const c of files) {
     const source = readFileSync(c.file, 'utf8');
     findings.push(...instrumentHuntsIn(source, relative(REPO_ROOT, c.file)));
     for (const r of selfResolutionsIn(source)) selves.push(`${c.rel}:${r.line}  ${r.text}`);
+    if (RAW_EXEMPT.some((e) => c.rel.endsWith(e.file))) continue;
+    const b = bindingRereadsIn(source, c.file);
+    for (const l of b.raw) raws.push(`${c.rel}:${l}  .raw`);
+    for (const l of b.via) vias.push(`${c.rel}:${l}  .via / lowered model word`);
   }
 
   console.log(
@@ -553,7 +745,26 @@ function main(): void {
     '⭐ Declare the target on the VIEW (an object arg with a default) and read\n' +
       '  it off the bound args; resolution belongs to the binder.',
   );
-  if (!ok) process.exit(1);
+  const okRaw = ratchet(
+    'check-controller-resolution',
+    'raw re-reads (a bound arg\'s .raw outside a refusal or an echo)',
+    raws.length,
+    RAW_REREAD_CEILING,
+    raws,
+    '⭐ The binder resolved the words; read the bound result, and quote `.raw`\n' +
+      '  only to echo the player or in a refusal\'s facts.',
+  );
+  const okVia = ratchet(
+    'check-controller-resolution',
+    'via reads off the declared facets, and lowered model words',
+    vias.length,
+    VIA_AND_WORDS_CEILING,
+    vias,
+    '⭐ Read a declared facet (`detailPath`, `bulk`, `region`, `relation`) or\n' +
+      '  `MqlApi.effectiveTarget`; name a non-Stuff entry through the holder\'s\n' +
+      '  `…Named(text)` (GrammarApi.nameAmong), never by lower-casing the model.',
+  );
+  if (!ok || !okRaw || !okVia) process.exit(1);
   console.log('check-controller-resolution: ✔');
 }
 

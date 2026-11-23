@@ -53,7 +53,7 @@ function singleObjectCmd(): CommandDefinition {
       '  - name: target',
       '    type: object',
       '    required: false',
-      '    scope: "reachable"',
+      '    scope: "~reachable"',
       '    updates_focus: extend',
     ].join('\n'),
     '<test>'

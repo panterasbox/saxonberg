@@ -350,7 +350,7 @@ async function run(
   const ctx = ctxFor(giver, loc);
   const ctrl = makeStuff(() => controllerFor(m.subcommand));
   // A controller test skips the binder and hands the desk in the binder's
-  // shape: the view's default is `reachable:[class.DeedDesk]`.
+  // shape: the view's default is `~reachable:[class.DeedDesk]`.
   const desk = (loc as unknown as Container).getContents().find((c) => c instanceof DeedDesk);
   const bound = desk ? { ...m, desk: { stuff: desk } } : m;
   await withRootContext(null, 'test', async () => {

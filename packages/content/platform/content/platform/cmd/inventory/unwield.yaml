@@ -22,7 +22,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "inventory"
+    scope: "~inventory"
     requires: SlottableMixin
     validators:
       - /lib/command/validators/mustBeInInventory

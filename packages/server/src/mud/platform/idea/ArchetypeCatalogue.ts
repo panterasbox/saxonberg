@@ -51,6 +51,16 @@ export default class ArchetypeCatalogue extends ArchetypeCatalogueBase {
     await this.warm();
   }
 
+  /** ⭐ The archetype kind's service: an edit goes live by a re-warm (a sync read surface). */
+  public async forget(_paths?: readonly string[]): Promise<void> {
+    await this.warm();
+  }
+
+  /** An archetype document's meaning, checked at install and at every save. */
+  public parse(data: Record<string, unknown>, path: string): Archetype {
+    return Archetype.fromData(data, path);
+  }
+
   /** (Re)build the cache from `documents {kind: archetype}`. */
   public async warm(): Promise<void> {
     const docs = await DocumentApi.listOfKind('archetype');

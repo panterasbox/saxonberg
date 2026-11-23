@@ -101,7 +101,7 @@ subcommands:
       - name: person
         type: object
         required: false
-        scope: "online"
+        scope: ["~peers", "~contacts"]
         requires: class:Agent
   provision:
     controller: /platform/idea/cmd/author/PackProvisionController

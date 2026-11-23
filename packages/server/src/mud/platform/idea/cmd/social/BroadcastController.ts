@@ -25,12 +25,12 @@ import type {
   CommandModel,
 } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
-import { MqlApi } from '../../../../api/mql';
 import { MixinApi } from '../../../../api/mixin';
 import { AccessApi } from '../../../../api/access';
 import { ParcelApi } from '../../../../api/parcel';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
+import { PlayerApi } from '../../../../api/player';
 
 interface BroadcastModel extends CommandModel {
   message: string;
@@ -86,7 +86,8 @@ export default class BroadcastController extends CommandController<BroadcastMode
     // The audience: every online Sensor standing under the extent.
     // System mode: the audience is everyone online under the extent, a
     // roster nobody is shown (it is not a perceiving surface — D23).
-    const online = MqlApi.resolveMany('online', { commandGiver: null, scope: 'online' }).stuff;
+    // The connected players (naming overhaul D-B10: `online` left MQL).
+    const online: Stuff[] = PlayerApi.connectedAvatars();
     const audience = online.filter((a) => MixinApi.isSensor(a) && standsUnder(a, extent));
 
     const parsed = Mml.markdownToMml(body, Mml.perceiverMentionResolver(speaker));

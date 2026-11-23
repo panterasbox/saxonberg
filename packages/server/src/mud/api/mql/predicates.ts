@@ -1,6 +1,6 @@
 /**
  * MQL predicate registry — bareword filters that can appear in chain
- * position (`:living`, `:online`, `:mine`, `:here`, `:visible`,
+ * position (`:living`, `:mine`, `:here`, `:visible`,
  * `:loose`, `:worn`, `:carried`).
  *
  * ⭐ A predicate DELEGATES; it never owns an algorithm (architecture.md §
@@ -18,14 +18,10 @@
 
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { CommandGiver } from '../../lib/command/CommandGiver';
-// `ConnectionApi` is reached through the resolver's online-holders
-// provider (set by `mql/online-wire.ts`); pulling `ConnectionApi`
-// directly here would resurrect the load-time cycle this file's
-// position on the `command.ts → MqlApi` chain creates with
-// `ConnectionManager → Interactive → Idea`.
+// ⭐ There is no `:online` (naming overhaul D-B10): who is online is
+// players' business — they keep lists, and a list is a relation.
 import { MixinApi } from '../mixin';
 import { ParcelApi } from '../parcel';
-import { getOnlineHolders } from './online-provider';
 import type { MqlContext } from './types';
 
 export interface MqlPredicate {
@@ -43,12 +39,6 @@ function isLiving(target: Stuff): boolean {
   return MixinApi.isMobile(target);
 }
 
-function isOnline(target: Stuff): boolean {
-  for (const holder of getOnlineHolders()) {
-    if (holder.stuffId === target.stuffId) return true;
-  }
-  return false;
-}
 
 /**
  * ⭐⭐ **`:mine` is the explicit stamp, plus title over an extent.**
@@ -206,7 +196,6 @@ function isHeld(target: Stuff): boolean {
  */
 export const MQL_PREDICATES: Readonly<Record<string, MqlPredicate>> = {
   living: { check: isLiving },
-  online: { check: isOnline },
   mine: { check: isMine },
   here: { check: isHere },
   visible: { check: isVisible },

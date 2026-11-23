@@ -21,6 +21,7 @@
  * without a restart.
  */
 
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import Reading from '../../lib/instrument/Reading';
 import { StuffApi } from '../../api/stuff';
@@ -72,6 +73,24 @@ export default class ReadingCatalogue extends ReadingCatalogueBase {
     if (key === '') return null;
     if (!this.warmedOnce) await this.warm();
     return this.byChannel.get(key) ?? null;
+  }
+
+  /**
+   * ⭐⭐ The readings a player's words name (naming overhaul D-C5 rule 4):
+   * a channel answers to its token (and its words), by the one rule —
+   * article, plural, word start; a shared word is a tie the verb asks
+   * between. Warms the roster first.
+   */
+  public async readingNamed(text: string): Promise<NameAnswer<Reading>> {
+    const all = await this.allWarmed();
+    return GrammarApi.nameAmong(
+      text,
+      all.map((r) => ({
+        value: r,
+        keywords: [r.getChannel(), r.getChannel().replace(/-/g, ' ')],
+        title: r.getChannel(),
+      })),
+    );
   }
 
   /** Every channel installed, warming first. Alphabetical by token. */

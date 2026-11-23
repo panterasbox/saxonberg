@@ -34,14 +34,14 @@ args:
   - name: sheet
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: MarkedMixin
   - name: whole
     prepositionRequired: true
     type: object
     required: true
     prepositions: [on, onto, to]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: FacedMixin
   # The pot the glue is in.
   - name: pot
@@ -49,5 +49,5 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: BulkableMixin

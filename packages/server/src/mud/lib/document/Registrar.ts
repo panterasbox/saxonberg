@@ -61,7 +61,7 @@ export interface Registrar {
    * book and nobody else's.
    */
   getRegisterOwner(): string;
-  /** The single `DocumentKinds` entry this register may write. */
+  /** The single document kind this register may write (a declared kind, `filed: register`). */
   getRegisterKind(): string;
 }
 

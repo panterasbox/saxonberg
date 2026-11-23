@@ -21,7 +21,7 @@ args:
   - name: patient
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     requires: VitalsMixin
   # Bare, the binder hands over every reachable vessel and the controller
   # takes the first holding water — a question about the CONTENTS, which
@@ -33,6 +33,6 @@ args:
     type: objects
     required: false
     prepositions: [in, under, with, at]
-    default: "reachable:[mixin.WaterDrawableMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.WaterDrawableMixin]"
+    scope: ["~reachable"]
     requires: any

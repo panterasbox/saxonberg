@@ -39,6 +39,7 @@
  * to reach methods the kernel already exposed.
  */
 
+import { EmploymentApi } from '../../../../api/employment';
 import { HouseControllerBase } from './HouseControllerBase';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -87,15 +88,16 @@ export default class HouseAppointController extends HouseControllerBase<AppointM
     const organization =
       asked.length === 0
         ? await this.houseIRun(context)
-        : // ⭐ A relation resolved at the act (the scan sweep): appointing
-          // into a named organization stands it up — nothing is booted.
-          await StuffApi.singleton(asked).catch(() => null);
+        : asked.startsWith('/')
+          ? await StuffApi.singleton(asked).catch(() => null)
+          : // ⭐ By the house's name, through the one rule (D-C5 rule 6).
+            EmploymentApi.findOrganization(asked);
     if (!organization || !MixinApi.isOrganization(organization)) {
       return this.fail(
         context,
         asked.length === 0
           ? 'You run no house here to put anybody on the books of.'
-          : `There is no organization at ${asked}.`,
+          : `There is no house called ${asked}.`,
         asked.length === 0 ? 'no-house-of-your-own' : 'no-such-organization',
       );
     }

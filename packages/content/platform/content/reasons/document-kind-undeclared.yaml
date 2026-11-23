@@ -1,0 +1,7 @@
+# A write of a document kind nobody declares (naming overhaul A1): refused,
+# never written and wiped at the next reset.
+facts:
+  path: text
+  kind: text
+says: "{{ path }} was not saved — nobody declares the document kind '{{ kind }}'. Declare it at <your root>/kinds/{{ kind }} first."
+topic: shell.error

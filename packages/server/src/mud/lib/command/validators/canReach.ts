@@ -9,7 +9,7 @@
  * **Why the validator exists.** MQL's `scope:` declaration is a
  * search hint, not a security gate, and MQL names the same things for
  * everybody (D23): a query like `drop online:bob:i:sword` resolves to bob's
- * sword regardless of the YAML's `scope: "inventory"`. Validators on
+ * sword regardless of the YAML's `scope: "~inventory"`. Validators on
  * `type: object` / `type: objects` fields enforce world-state constraints
  * the resolver can't — "this thing must actually be in arm's reach" is the
  * canonical example.
@@ -73,7 +73,7 @@ function keywordOf(x: Stuff): string {
 /** `x` as the giver names it — *your belt pouch* when it is on them, else as they perceive it. */
 function holderWords(giver: Stuff, x: Stuff): string {
   const onYou = MixinApi.isCarrying(giver) && giver.tierOf(x) !== 'elsewhere';
-  const bare = x.presentationPhrase().bare().replace(/^(a|an|the) /i, '');
+  const bare = GrammarApi.withoutArticle(x.presentationPhrase().bare());
   return onYou ? `Your ${bare}` : GrammarApi.cap(x.describeFor(giver));
 }
 

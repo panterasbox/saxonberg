@@ -13,11 +13,11 @@ args:
   - name: glass
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: CraftedMixin
   - name: garnish
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     prepositions: [with]
     requires: any

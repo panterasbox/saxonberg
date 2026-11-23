@@ -45,7 +45,11 @@ fullest match wins: `look hesper` finds the ship, not her deck.
 
 A name of one word goes in bare: `buy loaf`, `get flower`. A name with a
 space in it goes in quotes: `buy "dog loaf"`, `look "brass lantern"`. A
-leading *the* or *a* is fine either way (`eat the apple`). If you leave
+leading *the* or *a* is fine either way (`eat the apple`), and so is the
+plural (`buy loaves`). A name is whole words or the start of one: `buy
+lo` finds the loaf, but a word from the middle of a name finds nothing.
+When two things answer the same word equally well, you are asked which
+one you mean. If you leave
 the quotes off, the reply says there were too many words and shows you
 the quoted form. Words you are *saying* or *writing* — `say`, `dm`, a
 post — never need quotes.
@@ -57,14 +61,38 @@ list.
 `here` is the place you are in, even when you are sitting in a boat or
 lying in a bed: `look here` on the river describes the river.
 
-## Saying which one: `verb@source` {#verb-at-source}
+## People and the sets you keep {#relations}
+
+A word with `~` in front names something kept *for you*: `~here` is the
+place you are in, `~inventory` what you carry, `~peers` who and what is
+in the room with you. Your contact lists are kept the same way —
+`~friends` is everyone on your friends list who is in the world, and
+`~friends:iffy` is Iffy, through that list, wherever she is. A group you
+belong to answers by its name (`~bookclub`), and `~contacts` is everyone
+you keep — every list and every group at once. So `dm ~friends:iffy
+hello` reaches her from anywhere.
+
+`who` shows each player's `@` address (`@abc123`); `dm @abc123 hello`
+reaches that one player even before they are on any list of yours.
+`query me:~` lists every `~` word you can use, each with a line saying
+what it means — and `query book:~` asks a thing what it keeps (a charter
+book answers with its `~ships`).
+
+## How long {#durations}
+
+A slot that takes a length of time reads it the way you would say it:
+`a week`, `2 hours`, `90 minutes`, `1h30m`. The time is the game's
+clock, not yours. If a verb wants whole days, or at least a minute, it
+says so when you give it something shorter.
+
+## Saying which one: `source::verb` {#verb-at-source}
 
 When two things nearby both offer the same verb, put the one you mean
-after an `@` on the verb: `wind@me:i:watch` winds the watch you are
-carrying, `harvest@here:i:wheat` the wheat where you stand. What comes
-after the `@` is a query, the same language `query` uses: `me` is you,
+first, joined to the verb by `::` — `me:i:watch::wind` winds the watch you
+are carrying, `here:i:wheat::harvest` the wheat where you stand. What comes
+before the `::` is a query, the same language `query` uses: `me` is you,
 `here` is where you stand, and `:i` is what is in it. Quote a name of more
-than one word: `wind@"pocket watch"`.
+than one word: `"pocket watch"::wind`.
 
 If the thing you reached for refuses, but something else nearby would
 have done it, the reply says so and gives you the exact form to type.

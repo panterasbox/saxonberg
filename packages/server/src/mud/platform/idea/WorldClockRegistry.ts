@@ -28,6 +28,7 @@
  */
 
 import { SecurityApi } from '../../api/security';
+import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
@@ -87,12 +88,6 @@ const FIRE_EPSILON_S = 1e-9;
 /** Game-seconds in a game day — for the advance log line's game-day read. */
 const SECONDS_PER_GAME_DAY_LOG = 86_400;
 
-const DURATION_UNITS: Record<string, number> = {
-  second: 1,
-  minute: 60,
-  hour: 3600,
-  day: 86_400,
-};
 
 interface Schedule {
   id: string;
@@ -745,19 +740,15 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
   @CallSecurity(WorldClockApiCallers)
   public durationSeconds(d: Quantity<'s'> | string): number {
     if (typeof d !== 'string') return d.rawValue();
-    const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day)s?\s*$/.exec(d);
-    if (!m) {
+    // ⭐ The one duration grammar (naming overhaul D-C6).
+    const seconds = GrammarApi.parseDuration(d);
+    if (seconds === null) {
       throw new Error(
         `WorldClockApi: cannot parse duration '${d}' ` +
-          `(expected e.g. '5 minutes', '3 days')`,
+          `(expected e.g. '5 minutes', '3 days', '2h')`,
       );
     }
-    const value = Number(m[1]);
-    const unit = DURATION_UNITS[m[2] as string];
-    if (unit === undefined) {
-      throw new Error(`WorldClockApi: unknown duration unit in '${d}'`);
-    }
-    return value * unit;
+    return seconds;
   }
 
   private sameHost(a: Stuff | null, b: Stuff | null): boolean {

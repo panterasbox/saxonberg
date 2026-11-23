@@ -57,6 +57,7 @@
  * See [docs/subsystems/ship.md].
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import { RegistrarMixin, type Registrar } from '../../lib/document/Registrar';
 import { DocumentApi } from '../../api/document';
@@ -67,7 +68,7 @@ import type { Stuff, EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import type { FieldMeta } from '../../lib/mixin';
 
-/** The document kind a ship register writes (`DocumentKinds.ship`). */
+/** The document kind a ship register writes (declared at `/platform/kinds/ship`). */
 export const SHIP_ENTRY_KIND = 'ship';
 
 /**
@@ -129,10 +130,8 @@ export default class ShipRegister extends RegistrarMixin(Idea) {
 
   /** ⭐ The slug a name is filed under — what makes it unique here. `''` for a name with no letters. */
   public slugOf(name: string): string {
-    return String(name ?? '')
-      .trim()
+    return GrammarApi.withoutArticle(String(name ?? ''))
       .toLowerCase()
-      .replace(/^the\s+/, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
   }

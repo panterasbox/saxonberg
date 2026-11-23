@@ -28,13 +28,13 @@ args:
   - name: item
     type: object
     required: true
-    scope: "inventory"
+    scope: "~inventory"
     requires: ContainableMixin
     validators:
       - /lib/command/validators/mustBeInInventory
   - name: recipient
     type: object
     required: true
-    scope: "peers"
+    scope: "~peers"
     prepositions: [to]
     requires: [VisibleMixin, class:Agent]

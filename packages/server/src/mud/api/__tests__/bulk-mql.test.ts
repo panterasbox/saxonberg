@@ -97,7 +97,7 @@ describe('MQL — bulk scope resolution', () => {
     world = makeWorld();
     ctx = {
       commandGiver: world.giver,
-      scope: 'reachable',
+      scope: '~reachable',
     };
   });
 

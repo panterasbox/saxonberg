@@ -31,7 +31,7 @@ args: &turnable
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["~peers", "~person"]
     requires: TurnableMixin
     validators:
       - /lib/command/validators/canReach
@@ -39,5 +39,6 @@ subcommands:
   # ⭐ A closed word after the verb is a subcommand (the `draught.yaml`
   # lesson): a bare word would be swallowed by the object arg.
   back:
+    controller: /platform/idea/cmd/device/TurnBackController
     description: "Slacken it right off"
     args: *turnable

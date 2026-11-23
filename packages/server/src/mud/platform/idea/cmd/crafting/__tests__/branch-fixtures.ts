@@ -108,7 +108,7 @@ export function ref(stuff: Stuff | null, raw: string): MqlOneResult {
  * `default:` resolved these, in its order (held gear first).
  *
  * ⚠ Controller tests SKIP the binder, so an instrument the view now
- * declares (`default: "reachable:[capability.anvil]"`) has to be handed
+ * declares (`default: "~reachable:[capability.anvil]"`) has to be handed
  * in here the way the binder would — the test that forgets gets the
  * "no anvil" decline, which reads exactly like a controller defect.
  */

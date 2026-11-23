@@ -185,6 +185,6 @@ export class PronounMemory {
  * intent isn't "treat me as the pronoun" but "drill into it."
  */
 export function isDynamicPronounFragment(fragment: string): boolean {
-  const s = fragment.trim().toLowerCase();
-  return s === 'it' || s === 'him' || s === 'her' || s === 'them' || s === '$$';
+  const s = fragment.trim().toLowerCase().replace(/^~/, '');
+  return s === 'it' || s === 'him' || s === 'her' || s === 'them' || s === 'last';
 }

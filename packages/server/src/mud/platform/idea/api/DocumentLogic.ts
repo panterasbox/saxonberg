@@ -1,7 +1,12 @@
 // DocumentLogic — the hot-reloadable logic singleton behind DocumentApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { GrammarApi, type NameAnswer } from '../../../api/grammar';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
+import { WorldClockApi } from "../../../api/worldclock";
+import { ProseApi } from "../../../api/prose";
+import { DefaultCalendar } from "../../../lib/time/DefaultCalendar";
+import { Quantity } from "../../../lib/quantity";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { AccessApi } from "../../../api/access";
@@ -21,11 +26,8 @@ import { RELEASE_DOCUMENT_KIND } from "../../../lib/press/Release";
 import { CommandApi } from "../../../api/command";
 import type { Registrar } from '../../../lib/document/Registrar';
 import type { Berthed } from '../BerthExit';
-import {
-  DECLARED_DOCUMENT_KINDS,
-  DOCUMENT_KINDS,
-  type DeclaredDocumentKind,
-} from '../../../lib/document/DocumentKinds';
+import { DocumentKind, type FilingTransport } from '../../../lib/document/DocumentKind';
+import DocumentKindCatalogue from '../DocumentKindCatalogue';
 import { createHash } from 'node:crypto';
 import { Release } from '../../../lib/press/Release';
 import {
@@ -122,8 +124,12 @@ async function documentsUnder(prefix: string): Promise<StoredDocument[]> {
   });
 }
 
+/**
+ * Every document under `prefix` — except a `secret` kind's, which is never
+ * listed (a stream token is read by its exact path only).
+ */
 async function listImpl(prefix: string): Promise<StoredDocument[]> {
-  return documentsUnder(prefix);
+  return (await documentsUnder(prefix)).filter((d) => kindNamed(d.getKind())?.isSecret() !== true);
 }
 
 async function listOfKindImpl(kind: string): Promise<StoredDocument[]> {
@@ -186,6 +192,197 @@ async function findByKeyImpl(
  * The authorization that the caller may publish as this publisher is
  * `mayPublishAs`, in front of this — see `PressLogic`.
  */
+/* ───────────────────────── the write funnel ───────────────────────── */
+
+/** Where the kind declarations are served. */
+const KIND_CATALOGUE = '/platform/idea/DocumentKindCatalogue';
+
+/** The kind catalogue (resident — `DocumentApi`'s need stands it at boot). */
+function kinds(): DocumentKindCatalogue {
+  return StuffApi.singletonSync(KIND_CATALOGUE, () => new DocumentKindCatalogue());
+}
+
+/** The declared kind named `name`, or null. */
+function kindNamed(name: string): DocumentKind | null {
+  return kinds().byName(name);
+}
+
+/** The resident service that reads `kind`, or null (nothing to forget). */
+function residentService(kind: DocumentKind): ServesDocuments | null {
+  const by = kind.servedBy();
+  if (by === null) return null;
+  if (by === KIND_CATALOGUE) return kinds();
+  return (StuffApi.findByTemplatePath(by) as unknown as ServesDocuments | undefined) ?? null;
+}
+
+/**
+ * ⭐ Check one document's MEANING with the service that reads its kind —
+ * the resident service, else its class's `parse` read without standing it
+ * up (a catalogue that warms in `onCreate` would read the store mid-install;
+ * every `parse` reads only its arguments). A logic singleton's service path
+ * names the feature (`/platform/idea/api/command`) and its class the logic
+ * (`CommandLogic`). Throws the service's error; a kind with no service, or
+ * a service with no `parse`, passes.
+ */
+async function checkMeaningImpl(kind: DocumentKind, data: Record<string, unknown>, path: string): Promise<void> {
+  const by = kind.servedBy();
+  if (by === null) return;
+  let service = residentService(kind);
+  if (service === null) {
+    let Cls = (await StuffApi.resolveExport(by, 'default')) as { prototype: ServesDocuments } | null;
+    if (Cls === null && by.includes('/idea/api/')) {
+      const leaf = by.slice(by.lastIndexOf('/') + 1);
+      const logic = `${leaf.charAt(0).toUpperCase()}${leaf.slice(1)}Logic`;
+      Cls = (await StuffApi.resolveExport(`${by.slice(0, by.lastIndexOf('/'))}/${logic}`, logic)) as {
+        prototype: ServesDocuments;
+      } | null;
+    }
+    if (Cls === null) throw new Error(`document kind '${kind.getName()}': its service ${by} resolves to no class`);
+    service = Cls.prototype;
+  }
+  if (service.parse) service.parse(data, path);
+}
+
+/**
+ * ⭐ A declaration edit the existing documents do not satisfy is refused,
+ * naming them (D-A8): every document of the kind must still fit the new
+ * `fields:`; a newly `unique` kind must have no word two documents share;
+ * and a kind's filing may not change while any document of it exists —
+ * they were written by some other path, by definition.
+ */
+async function vetDeclarationEdit(path: string, data: Record<string, unknown>): Promise<void> {
+  const name = path.slice(path.lastIndexOf('/') + 1);
+  const next = new DocumentKind(name, data);
+  const before = kindNamed(name);
+  const docs = await StoredDocument.findByKind(name);
+  if (docs.length === 0) return;
+  if ((before?.filedBy() ?? null) !== next.filedBy()) {
+    throw new Refusal('kind-in-use', {
+      kind: name,
+      why: `its filing cannot change while ${docs.length} ${name} document(s) exist`,
+    });
+  }
+  const misfits = docs.filter((d) => next.fieldFailures(d.getData()).length > 0).map((d) => d.getPath());
+  if (misfits.length > 0) {
+    throw new Refusal('kind-in-use', {
+      kind: name,
+      why: `these documents would not fit it: ${misfits.slice(0, 5).join(', ')}${misfits.length > 5 ? ' …' : ''}`,
+    });
+  }
+  if (next.isUnique()) {
+    const seen = new Map<string, string>();
+    for (const d of docs) {
+      for (const w of next.keywordsOf(d.getPath(), d.getData())) {
+        const first = seen.get(w);
+        if (first !== undefined && first !== d.getPath()) {
+          throw new Refusal('kind-in-use', {
+            kind: name,
+            why: `'${w}' would name two documents — ${first} and ${d.getPath()}`,
+          });
+        }
+        seen.set(w, d.getPath());
+      }
+    }
+  }
+}
+
+/**
+ * ⭐ A declaration may not be removed while documents of its kind that no
+ * pack shipped exist (filed world state nobody could then write or keep
+ * correctly). Shipped documents leave with their pack.
+ */
+async function vetDeclarationDelete(path: string): Promise<void> {
+  const name = path.slice(path.lastIndexOf('/') + 1);
+  const filed = await StoredDocument.find<StoredDocument>({ kind: name, sourcePack: { $in: [null] } });
+  if (filed.length > 0) {
+    throw new Refusal('kind-in-use', {
+      kind: name,
+      why: `${filed.length} ${name} document(s) no pack shipped still exist (${filed[0]!.getPath()}…)`,
+    });
+  }
+}
+
+/** Who writes: the plain save, or one of the filing transports. */
+type WriteBy = 'save' | FilingTransport;
+
+/**
+ * ⭐⭐ **The one write.** Every transport keeps its own authority check and
+ * path scheme and then calls this — the only code that constructs or saves
+ * a `StoredDocument`. In order: the kind is declared (else
+ * `document-kind-undeclared`) → the data fits the kind's `fields:` → the
+ * kind's service checks its meaning (`parse`) → the card is derived →
+ * saved → the service forgets the path (the edit is live on the next read).
+ */
+async function writeDocument(req: {
+  kind: string;
+  path: string;
+  owner: string;
+  data: Record<string, unknown>;
+  by: WriteBy;
+  /** The stored row, when the transport already read it. */
+  existing?: StoredDocument | null;
+}): Promise<void> {
+  const { path, data } = req;
+  const kind = kindNamed(req.kind);
+  if (kind === null) throw new Refusal('document-kind-undeclared', { path, kind: req.kind });
+  // ⭐ A filed kind is written by its transport and only by it — the plain
+  // save refuses (title on the path is not enough to write somebody's herd
+  // record); a transport writing a kind it does not file is a defect.
+  const filedBy = kind.filedBy();
+  if (req.by === 'save') {
+    if (filedBy !== null) {
+      throw new Refusal('document-filed', { path, kind: kind.getName(), transport: filedBy });
+    }
+  } else if (filedBy !== req.by) {
+    throw new Error(
+      `DocumentApi: the ${req.by} transport cannot write a ${kind.getName()} ` +
+        `(${filedBy === null ? 'it is not filed' : `it is filed by ${filedBy}`})`,
+    );
+  }
+  const shape = kind.fieldFailures(data);
+  if (shape.length > 0) {
+    const why = shape.join('; ');
+    throw new Refusal('invalid-document', { path, why }, { message: why });
+  }
+  {
+    try {
+      await checkMeaningImpl(kind, data, path);
+    } catch (err) {
+      const why = err instanceof Error ? err.message : String(err);
+      throw new Refusal('invalid-document', { path, why }, { message: why, cause: err });
+    }
+  }
+  const existing = req.existing !== undefined ? req.existing : await StoredDocument.findByPath(path);
+  // ⭐ A ledger only grows (the constitution's A2): an immutable kind is
+  // written once; a growing field keeps every earlier entry.
+  const altered = kind.ledgerFailures(existing?.getKind() === kind.getName() ? existing.getData() : null, data);
+  if (altered.length > 0) throw new Refusal('ledger-altered', { path, why: altered.join('; ') });
+  if (kind.getName() === DocumentKind.BOOTSTRAP_NAME) await vetDeclarationEdit(path, data);
+  // ⭐ A `unique` kind's word means one document (an emote, a formation):
+  // a second claimant is refused here as at install.
+  if (kind.isUnique()) {
+    for (const word of kind.keywordsOf(path, data)) {
+      const other = (await findByKeyImpl(kind.getName(), 'word', { eq: word, limit: 2 })).find(
+        (d) => d.getPath() !== path,
+      );
+      if (other) {
+        const why = `the ${kind.getName()} word '${word}' already names ${other.getPath()}`;
+        throw new Refusal('invalid-document', { path, why }, { message: why });
+      }
+    }
+  }
+  const doc = existing ?? new StoredDocument();
+  doc.path = path;
+  doc.owner = req.owner;
+  doc.kind = kind.getName();
+  doc.data = data;
+  doc.keys = kind.cardOf(path, data);
+  await doc.save();
+  await residentService(kind)?.forget([path]);
+  // A declaration is read back at once — every later write asks it.
+  if (kind.getName() === DocumentKind.BOOTSTRAP_NAME) await kinds().ensure(path);
+}
+
 async function saveReleaseImpl(
   publisher: Stuff & Publisher,
   path: string,
@@ -210,12 +407,7 @@ async function saveReleaseImpl(
     );
   }
 
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = RELEASE_DOCUMENT_KIND;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: RELEASE_DOCUMENT_KIND, path, owner: owner, data: data, by: 'release' });
 
   // Authorship is still the acting author's, keyed on the path — the
   // publisher owns the document, a person wrote it. DocumentLogic is an
@@ -224,17 +416,6 @@ async function saveReleaseImpl(
   await ProvenanceApi.recordAuthoring({ path });
 }
 
-/**
- * The kinds {@link saveAsBusinessImpl} may write. **Closed, and the whole
- * containment argument.** A business-owned write is an ownership bypass;
- * pinning the kind is what stops it being a general forgery tool — it can
- * never write a `command-view`, a `recipe` or a `release`.
- */
-const BUSINESS_DOCUMENT_KINDS: readonly string[] = [
-  'bill-of-lading',
-  'warehouse-receipt',
-  'rate-card',
-];
 
 /**
  * Write a document **owned by a Business** rather than by the acting
@@ -256,7 +437,7 @@ const BUSINESS_DOCUMENT_KINDS: readonly string[] = [
  *      cannot stamp its ownership anywhere else in the tree — and this is
  *      also what makes a depot's records cover *exactly* what it handled,
  *      read by prefix (logistics D12/AC17).
- *   3. **The `kind` is checked against {@link BUSINESS_DOCUMENT_KINDS}.**
+ *   3. **The `kind` must be declared `filed: business`.**
  *
  * ⚠ Deliberately **no caller-module allowlist**, unlike `saveRelease`.
  * The callers are pack registries — the haulage trade's today, a second
@@ -288,19 +469,11 @@ async function saveAsBusinessImpl(
       `DocumentApi.saveAsBusiness: ${path} is not under ${owner}'s own branch`,
     );
   }
-  if (!BUSINESS_DOCUMENT_KINDS.includes(kind)) {
-    throw new Error(
-      `DocumentApi.saveAsBusiness: '${kind}' is not a business-filed kind ` +
-        `(${BUSINESS_DOCUMENT_KINDS.join(', ')})`,
-    );
+  if (kindNamed(kind)?.filedBy() !== 'business') {
+    throw new Error(`DocumentApi.saveAsBusiness: '${kind}' is not a business-filed kind (filed: business)`);
   }
 
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = kind;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: kind, path, owner: owner, data: data, by: 'business' });
 
   // Authorship is the acting author's, keyed on the path — the carrier
   // owns the paper, a person (or an NPC clerk) wrote it. Same split as
@@ -363,12 +536,7 @@ async function saveInstrumentImpl(
       `DocumentApi.saveInstrument: ${path} is not under ${owner}/${PAPERS_DIR}/`,
     );
   }
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = 'instrument';
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: 'instrument', path, owner: owner, data: data, by: 'instrument' });
 }
 
 /** The directory a player's maps live under, inside their own home. */
@@ -409,12 +577,7 @@ async function saveMapImpl(
     throw new Error('DocumentApi.saveMap: no locality to file under');
   }
   const path = `${owner}/${MAPS_DIR}/${locality}`;
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = 'map';
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: 'map', path, owner: owner, data: data, by: 'map' });
 }
 
 /** The branch every stream token lives under (the platform pack's root
@@ -448,12 +611,7 @@ async function saveStreamTokenImpl(
   const path = streamTokenPath(hash);
   if (!path) throw new Error('DocumentApi.saveStreamToken: not a sha256 hex');
   if (record.playerId.length === 0) throw new Error('DocumentApi.saveStreamToken: no player');
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = STREAM_TOKENS_BRANCH;
-  doc.kind = STREAM_TOKEN_KIND;
-  doc.data = { playerId: record.playerId, scope: record.scope, issuedAt: record.issuedAt };
-  await doc.save();
+  await writeDocument({ kind: STREAM_TOKEN_KIND, path, owner: STREAM_TOKENS_BRANCH, data: { playerId: record.playerId, scope: record.scope, issuedAt: record.issuedAt }, by: 'stream-token' });
 }
 
 /** Revoke a token by its hash. Returns whether a record existed. */
@@ -513,12 +671,14 @@ async function saveBerthImpl(ship: Stuff & Berthed, landingPath: string): Promis
     const has = was.includes(handle);
     if (has === lies) return;
     if (doc === null && !lies) return;
-    const row = doc ?? new StoredDocument();
-    row.path = path;
-    row.owner = landing;
-    row.kind = BERTH_ROLL_KIND;
-    row.data = { lying: lies ? [...was, handle] : was.filter((h) => h !== handle) };
-    await row.save();
+    await writeDocument({
+      kind: BERTH_ROLL_KIND,
+      path,
+      owner: landing,
+      data: { lying: lies ? [...was, handle] : was.filter((h) => h !== handle) },
+      by: 'berth',
+      existing: doc,
+    });
   };
   const prior = berthWrites.get(path) ?? Promise.resolve();
   const mine = prior.catch(() => undefined).then(write);
@@ -637,16 +797,11 @@ async function saveToRegisterImpl(
   }
   // ⚠ The kind is pinned to the register's one kind, and must be a kind
   // the platform knows — a register cannot invent a vocabulary.
-  if (!DECLARED_DOCUMENT_KINDS.includes(kind as DeclaredDocumentKind)) {
-    throw new Error(`DocumentApi.saveToRegister: ${kind} is not a document kind`);
+  if (kindNamed(kind)?.filedBy() !== 'register') {
+    throw new Error(`DocumentApi.saveToRegister: ${kind} is not a register-filed kind (filed: register)`);
   }
 
-  const doc = (await StoredDocument.findByPath(path)) ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = kind;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: kind, path, owner: owner, data: data, by: 'register' });
 }
 
 async function saveImpl(
@@ -657,72 +812,34 @@ async function saveImpl(
   const actor = actingAuthor();
   const denial = await gateMutation(actor, path);
   if (denial !== null) throw new Refusal("document-access-denied", { path }, { message: denial });
-  // ⭐ The installer's own validator (failure-model D6): a row a pack could
-  // not ship is not stored by a save either. A dynamic import, as the
-  // catalogues reach the store, to keep the pack hub out of this cycle.
-  // The author saving it is told why — a refusal, not a defect.
-  try {
-    (await import("../../../api/pack")).PackApi.validateDocument(kind, data, path);
-  } catch (err) {
-    const why = err instanceof Error ? err.message : String(err);
-    throw new Refusal("invalid-document", { path, why }, { message: why, cause: err });
-  }
-
+  // ⭐ The funnel refuses an undeclared kind, a shape the kind's `fields:`
+  // refuses, and a meaning its service's `parse` refuses — the installer's
+  // own check, so a row a pack could not ship is not stored by a save
+  // either. ⛔ A command view that NAMES code (its `controller:`) is content
+  // (wizard-axis D5): title over the path decided it above.
   const existing = await StoredDocument.findByPath(path);
 
-  if (kind === COMMAND_VIEW_KIND) {
-    // ⛔ A view that NAMES code — its `controller:`, its validators — is
-    // content (wizard-axis D5): title over the path decided it above, and
-    // nothing here asks for the wizard axis.
-    // A malformed view is refused at the chokepoint, never stored.
-    const trail = CommandApi.validateCommandView(data);
-    if (trail !== null) {
-      throw new Error(`command view ${path} does not conform:\n${trail}`);
-    }
-  }
-
   // Persist (find-or-create). Owner = the acting author's durable path.
-  const doc = existing ?? new StoredDocument();
-  doc.path = path;
-  doc.owner = actor?.getIdentityPath() ?? "";
-  doc.kind = kind;
-  doc.data = data;
-  await doc.save();
+  await writeDocument({ kind: kind, path, owner: actor?.getIdentityPath() ?? "", data: data, by: 'save', existing });
 
   // Authorship — append a provenance row keyed on the path (author from
   // context, never a param). DocumentLogic is an admitted authoring
   // transport (the `recordAuthoring` gate names `/platform/idea/api/document`).
   await ProvenanceApi.recordAuthoring({ path });
-
-  // Go-live: a command view reaches the dispatcher without a restart.
-  if (kind === COMMAND_VIEW_KIND) await CommandApi.reload(path);
-  forgetEdited(kind, path);
 }
 
 /**
- * The catalogue serving `kind` — the one map from a document kind to the
- * singleton that serves it (documents W5d). A kind read by path alone has
- * none.
+ * The catalogue serving `kind` — its declaration's `catalogued.by`, when
+ * that service is resident. A catalogue nothing has stood up holds nothing
+ * to forget; a kind read by path alone has none.
  */
 function catalogueForImpl(kind: string): ServesDocuments | null {
-  // By the kind's declared path, never by importing every domain Api into
-  // the document store (a hub every module reaches would cycle). A
-  // catalogue nothing has stood up holds nothing to forget.
-  const path = (DOCUMENT_KINDS as Record<string, { catalogue?: string }>)[kind]?.catalogue;
-  return path ? (StuffApi.findByTemplatePath(path) as unknown as ServesDocuments | null) : null;
+  const declared = kindNamed(kind);
+  if (declared === null) return null;
+  const by = declared.servedBy();
+  if (by === KIND_CATALOGUE) return kinds();
+  return by ? ((StuffApi.findByTemplatePath(by) as unknown as ServesDocuments | undefined) ?? null) : null;
 }
-
-/**
- * ⭐ The CMS edit reaches the cache (documents D16): the value class's
- * memory of the edited path is dropped, so the next use re-reads it — the
- * installer's go-live, for one path. A topic re-warms its vocabulary.
- */
-function forgetEdited(kind: string, path: string): void {
-  catalogueForImpl(kind)?.forget([path]);
-}
-
-/** The document kind a command view is stored under. */
-const COMMAND_VIEW_KIND = "command-view";
 
 async function deleteImpl(path: string): Promise<boolean> {
   const actor = actingAuthor();
@@ -731,134 +848,86 @@ async function deleteImpl(path: string): Promise<boolean> {
   const doc = await StoredDocument.findByPath(path);
   if (!doc) return false;
   const kind = doc.kind;
+  if (kind === DocumentKind.BOOTSTRAP_NAME) await vetDeclarationDelete(path);
   await doc.delete();
-  forgetEdited(kind, path);
+  await catalogueForImpl(kind)?.forget([path]);
   return true;
 }
 
 /* ─────────────────────────── paper ─────────────────────────── */
 
-/** One line of a record a register lists — the summary its book prints. */
-function summaryLine(doc: StoredDocument): string {
-  const data = doc.getData();
-  const name = [data.name, data.title, data.what, data.headline, data.key]
-    .find((v): v is string => typeof v === 'string' && v.trim() !== '');
-  const leaf = doc.getPath().split('/').filter(Boolean).pop() ?? doc.getPath();
-  return name ? `${name} (${leaf})` : leaf;
+/**
+ * A document's date in words — the world's calendar for a game-time kind,
+ * the real calendar for an out-of-character one — or '' when undated.
+ */
+function dateWords(kind: DocumentKind, data: Record<string, unknown>): string {
+  const at = kind.dateOf(data);
+  if (at === null) return '';
+  if (kind.dated()?.unit === 'real-ms') return new Date(at).toISOString().slice(0, 10);
+  return DefaultCalendar.singleton().formatDate(Quantity.of(at, 's'));
 }
 
-/** A warehouse receipt's terms, in words. */
-function receiptText(data: Record<string, unknown>): string {
-  const what = typeof data.what === 'string' ? data.what : 'goods';
-  const kg = Number(data.originalAmountKg ?? data.amountKg ?? 0);
-  const terms = (data.terms ?? {}) as Record<string, unknown>;
-  const bearer = terms.bearer === true;
-  const allowance = Number(terms.allowancePct ?? 0);
-  const fee = Number(terms.feeMinorPerKg ?? 0);
-  const store = typeof data.store === 'string' ? data.store.split('/').filter(Boolean).pop() : 'the store';
-  const lines = [
-    `RECEIVED into ${store}: ${what}, ${kg.toFixed(1)} kg.`,
-    bearer
-      ? 'To be delivered to the BEARER of this receipt, on presentation.'
-      : 'To be delivered to the depositor named in the book.',
-    `Allowance for shrinkage ${allowance}%; storage ${fee} per kg.`,
-    `Receipt ${String(data.receiptId ?? '')}.`,
-  ];
-  if (typeof data.settledAtS === 'number') lines.push('SETTLED.');
-  return lines.join('\n');
+/** One line of a record a register lists — its title, and its date when dated. */
+function summaryLine(doc: StoredDocument): string {
+  const kind = kindNamed(doc.getKind());
+  const title = kind ? kind.titleOf(doc.getPath(), doc.getData()) : doc.getPath().split('/').pop() ?? '';
+  const when = kind ? dateWords(kind, doc.getData()) : '';
+  return when ? `${title} — ${when}` : title;
 }
+
+/** The five entities a prose render escapes, decoded: a page is plain text. */
+function plainText(markup: string): string {
+  return markup
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+/** A page break inside a paper template's output. */
+const PAGE_BREAK = /<page\/>/;
 
 /**
- * ⭐ Render a stored document as pages — **exhaustive over the closed
- * kind table**, so a new kind is a compile error here rather than a list a
- * pack must remember. `null` = *that is not something that reads as a page*
- * (a script, a command view, a map): the verb says so in words.
+ * ⭐ Render a stored document as pages, from its kind's declaration: a
+ * `secret` kind is never paper (`null`); a kind with a `paper.template`
+ * renders it (Liquid, over the document's data plus `title`, `date`,
+ * `path`, `owner` and `owner_leaf`; `<page/>` breaks a page); anything else
+ * prints its summary line — title and date. A document carrying `teaches`
+ * (an edition) or a `recipeId` (a recipe) teaches it when read.
  */
 async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
   const doc = await StoredDocument.findByPath(path);
   if (doc === null) return null;
+  const kind = kindNamed(doc.getKind());
+  if (kind === null || kind.isSecret()) return null;
   const data = doc.getData();
-  const kind = doc.getKind() as DeclaredDocumentKind;
-  const str = (v: unknown): string => (typeof v === 'string' ? v : '');
-  const pagesFrom = (v: unknown): string[] =>
-    Array.isArray(v) ? v.map((p) => (typeof p === 'string' ? p : '')) : [];
-  switch (kind) {
-    case 'release': {
-      const r = Release.fromDocument(doc).serialize();
-      const house = doc.getOwner().split('/').filter(Boolean).pop() ?? '';
-      const masthead = house.length > 0 ? house.replace(/-/g, ' ').toUpperCase() : 'NOTICE';
-      return { title: r.headline, pages: [`${masthead}\n\n${r.headline}\n\n${r.body}`.trim()] };
-    }
-    case 'warehouse-receipt':
-      return { title: `receipt ${str(data.receiptId)}`, pages: [receiptText(data)] };
-    case 'recipe': {
-      const id = str(data.recipeId);
-      const name = str(data.name) || id;
-      const slots = Array.isArray(data.inputSlots) ? (data.inputSlots as Array<Record<string, unknown>>) : [];
-      const inputs = slots.map((s) => `${str(s.slot) || str(s.category)}${Number(s.count ?? 1) > 1 ? ` ×${Number(s.count)}` : ''}`);
-      const tools = Array.isArray(data.toolCapabilities) ? (data.toolCapabilities as string[]) : [];
-      const body = [
-        name.toUpperCase(),
-        inputs.length > 0 ? `Take: ${inputs.join(', ')}.` : '',
-        tools.length > 0 ? `With: ${tools.join(', ')}.` : '',
-        str(data.discipline) ? `The ${str(data.discipline)} trade's work.` : '',
-      ].filter((l) => l !== '');
-      const teaches: EditionTeaching[] = id ? [{ recipeId: id, name }] : [];
-      return { title: name, pages: [body.join('\n')], teaches };
-    }
-    case 'edition': {
-      const pages = pagesFrom(data.pages);
-      if (pages.length === 0) return null;
-      const teaches = Array.isArray(data.teaches) ? (data.teaches as EditionTeaching[]) : undefined;
-      return { title: str(data.title) || 'a book', pages, ...(teaches ? { teaches } : {}) };
-    }
-    case 'instrument':
-      return str(data.text) ? { title: str(data.title) || 'a paper', pages: [str(data.text)] } : null;
-    case 'rate-card':
-    case 'bill-of-lading':
-    case 'water-right':
-    case 'herd':
-    case 'fishery':
-    case 'body':
-    case 'bore':
-    case 'ship':
-      return { title: summaryLine(doc), pages: [summaryLine(doc)] };
-    case 'msh':
-    case 'emote':
-    case 'name-bank':
-    case 'blueprint':
-    case 'command-view':
-    case 'archetype':
-    case 'map':
-    case 'berth-roll':
-    case 'berth-book':
-    case 'aroma':
-    case 'pump-mechanism':
-    case 'form':
-    case 'joint':
-    case 'dirt':
-    case 'cleanser':
-    case 'fabric':
-    case 'dyestuff':
-    case 'maturation-profile':
-    case 'fraction-schedule':
-    case 'operation':
-    case 'help-concept':
-    case 'formation':
-    case 'placement':
-    case 'shape':
-    case 'reason':
-    case 'topic':
-    case 'standby-reason':
-    case 'lower-third-panel':
-    case 'stream-token': // ⛔ a credential is never paper
-      return null;
-    default: {
-      const unreachable: never = kind;
-      void unreachable;
-      return null;
-    }
+  const title = kind.titleOf(path, data);
+  const template = kind.paperTemplate();
+  let pages: string[];
+  if (template !== null) {
+    const owner = doc.getOwner();
+    const rendered = plainText(
+      ProseApi.renderCompiled(ProseApi.compile(template), {
+        ...data,
+        title,
+        date: dateWords(kind, data),
+        path,
+        owner,
+        owner_leaf: owner.split('/').filter(Boolean).pop() ?? '',
+      }),
+    );
+    pages = rendered.split(PAGE_BREAK).map((p) => p.trim()).filter((p) => p !== '');
+  } else {
+    pages = [summaryLine(doc)];
   }
+  if (pages.length === 0) return null;
+  const teaches = Array.isArray(data.teaches)
+    ? (data.teaches as EditionTeaching[])
+    : typeof data.recipeId === 'string' && data.recipeId !== ''
+      ? [{ recipeId: data.recipeId, name: title }]
+      : undefined;
+  return { title, pages, ...(teaches ? { teaches } : {}) };
 }
 
 /**
@@ -893,16 +962,11 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
     hash,
     title: req.title ?? source.split('/').filter(Boolean).pop() ?? 'a paper',
     pages: [...req.pages],
-    frozenAtMs: Date.now(),
+    frozenAtS: WorldClockApi.getNow().rawValue(),
     ...(req.teaches && req.teaches.length > 0 ? { teaches: req.teaches } : {}),
     ...(req.validUntilS !== undefined ? { validUntilS: req.validUntilS } : {}),
   };
-  const doc = new StoredDocument();
-  doc.path = path;
-  doc.owner = owner;
-  doc.kind = 'edition';
-  doc.data = data as unknown as Record<string, unknown>;
-  await doc.save();
+  await writeDocument({ kind: 'edition', path, owner: owner, data: data as unknown as Record<string, unknown>, by: 'edition' });
   return path;
 }
 
@@ -917,27 +981,38 @@ async function freezeEditionImpl(req: EditionRequest): Promise<string> {
 const CALL_UP_RELEASE_WINDOW = 200;
 
 async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; title: string } | null> {
-  const w = word.trim().toLowerCase();
-  if (w === '') return null;
-  // Newest first by the release card's `publishedAt`, over a bounded page
-  // — the word picks the most recent match, never a scan of every release.
-  const releases = (await findByKeyImpl(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+  if (word.trim() === '') return null;
+  // ⭐ Named by the one rule (naming overhaul D-C5 rule 3), never a
+  // substring: a release answers to its headline and its press; newest
+  // first over a bounded page, so a word several share calls up the most
+  // recent (a tie in date order).
+  const releases = (await findByKeyImpl(RELEASE_DOCUMENT_KIND, 'date', {
     order: 'desc',
     limit: CALL_UP_RELEASE_WINDOW,
   }))
     .map((d) => Release.fromDocument(d))
     .filter((r) => !r.isRetracted() && Release.publishedByOwner(r))
-    .filter((r) => r.getHeadline().toLowerCase().includes(w) || r.owner.toLowerCase().includes(w))
     .sort((a, b) => b.getPublishedAt() - a.getPublishedAt());
-  const release = releases[0];
-  if (release !== undefined) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
+  const firstOf = <T>(a: NameAnswer<T>): T | null => (a.kind === 'one' ? a.one : a.kind === 'tie' ? a.tie[0]! : null);
+  const release = firstOf(
+    GrammarApi.nameAmong(
+      word,
+      releases.map((r) => ({
+        value: r,
+        keywords: [r.getHeadline().toLowerCase(), r.owner.toLowerCase()],
+        title: r.getHeadline(),
+      })),
+    ),
+  );
+  if (release !== null) return { path: release.getPath(), title: `"${release.getHeadline()}"` };
   const key = (reader.getIdentityPath() ?? '').split('/').filter(Boolean).pop() ?? '';
   if (key === '') return null;
+  const mine: Array<{ path: string; title: string }> = [];
   for (const d of await documentsUnder(`/home/${key}/`)) {
     const pages = await pagesOfImpl(d.getPath());
-    if (pages !== null && pages.title.toLowerCase().includes(w)) return { path: d.getPath(), title: pages.title };
+    if (pages !== null) mine.push({ path: d.getPath(), title: pages.title });
   }
-  return null;
+  return firstOf(GrammarApi.nameAmong(word, mine.map((m) => ({ value: m, keywords: [m.title.toLowerCase()], title: m.title }))));
 }
 
 /**
@@ -954,6 +1029,12 @@ async function callUpImpl(reader: Stuff, word: string): Promise<{ path: string; 
  */
 @Unshadowable
 export class DocumentLogic extends ApiLogic {
+  /** See {@link DocumentApi.checkMeaning}. */
+  @CallSecurity(DocumentApiCallers)
+  public checkMeaning(kind: DocumentKind, data: Record<string, unknown>, path: string): Promise<void> {
+    return checkMeaningImpl(kind, data, path);
+  }
+
   /** See {@link DocumentApi.read}. */
   @CallSecurity(DocumentApiCallers)
   public async read(path: string): Promise<StoredDocument | null> {

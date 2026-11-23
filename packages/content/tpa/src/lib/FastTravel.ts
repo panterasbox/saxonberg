@@ -604,9 +604,9 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       // reachable travel holder satisfies it (a carried card OR the born-with
       // implant), so onboarding and the un-implanted are never stranded.
       const instrument =
-        MqlApi.resolveMany("reachable", {
+        MqlApi.resolveMany("~reachable", {
           commandGiver: traveller as Stuff & CommandGiver,
-          scope: "reachable",
+          scope: "~reachable",
         }).stuff.find(
           (s): s is Stuff & CredentialWallet =>
             MixinApi.isCredentialWallet(s) && !!s.getCredential("travel"),

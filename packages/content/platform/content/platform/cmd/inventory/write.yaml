@@ -48,7 +48,7 @@ args:
     type: object
     required: true
     prepositions: [on, onto, in]
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: [MarkedMixin]
   # ⭐ A page of a book: `write … on notebook page 3`. Its
   # preposition stops the greedy surface's lookahead, as `with` does.
@@ -64,5 +64,5 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: [BulkableMixin]

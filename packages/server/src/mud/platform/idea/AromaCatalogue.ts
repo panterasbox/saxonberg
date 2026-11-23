@@ -17,6 +17,7 @@ import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import type { VetoResult } from '../../lib/errors';
 import { StuffApi } from '../../api/stuff';
+import { DocumentApi } from '../../api/document';
 import { AROMA_PATH_SHAPE, Aroma, type AromaData, type OdorTag } from '../../lib/perception/Aroma';
 
 /** How deep a parent chain may run before a cycle is assumed. */
@@ -93,8 +94,8 @@ export default class AromaCatalogue extends Idea {
    * ANOTHER pack only; `lint:aromas` refuses one the folder already says.
    */
   public folderParentOf(path: string): string | null {
-    const up = path.slice(0, path.lastIndexOf('/'));
-    return up.endsWith('/aromas') ? null : up;
+    // The aroma kind's `tree` trait answers (its folder rule, its root dir).
+    return DocumentApi.kinds().byName('aroma')?.parentOf(path, {}) ?? null;
   }
 
   /**

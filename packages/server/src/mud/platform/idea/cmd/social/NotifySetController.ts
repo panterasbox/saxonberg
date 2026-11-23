@@ -27,7 +27,8 @@ export default class NotifySetController extends NotifyControllerBase {
         "field-required",
       );
     }
-    const ref = NotifySetController.normalizeRef(me.vid, rawRef);
+    const ref = this.refOrFail(context, rawRef);
+    if (ref === null) return;
     const parsed = NotifySetController.buildPatch(model);
     if (typeof parsed === "string") {
       return this.fail(context, parsed, "bad-option");
@@ -48,7 +49,7 @@ export default class NotifySetController extends NotifyControllerBase {
     const verb = result.created ? "Set" : "Updated";
     this.send(
       context,
-      Mml.fromMarkup(`\n${verb} rule for ${ref}.\n  ${NotifySetController.renderRuleLine(result.rule)}\n`),
+      Mml.fromMarkup(`\n${verb} rule for ${rawRef}.\n  ${NotifySetController.renderRuleLine(host, result.rule)}\n`),
     );
     this.pushProjection(host);
   }

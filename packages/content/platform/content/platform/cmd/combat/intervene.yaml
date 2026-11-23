@@ -19,6 +19,6 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     updates_focus: extend
     requires: VisibleMixin

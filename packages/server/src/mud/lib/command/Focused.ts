@@ -50,6 +50,7 @@ import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { PronounMemory } from '../../api/mql';
 import type { CommandContributions } from '../../api/command';
+import type { DefaultAliasEntry } from '../shell/Alias';
 import type { SyntheticVarEntry } from '../../api/shell';
 import {
   SubscriptionApi,
@@ -82,6 +83,17 @@ export interface Focused {
 export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class FocusedMixin extends Base {
     static _mixinName = 'FocusedMixin';
+
+    /**
+     * ⭐ The pronouns, as removable query aliases (naming overhaul D-B7):
+     * the memory is this mixin's, so are the words for it.
+     */
+    static defaultAliases: DefaultAliasEntry[] = [
+      { name: 'it', body: '~it', at: 'query', description: 'The thing you last named' },
+      { name: 'them', body: '~them', at: 'query', description: 'The things you last named' },
+      { name: 'him', body: '~him', at: 'query', description: 'The man you last named' },
+      { name: 'her', body: '~her', at: 'query', description: 'The woman you last named' },
+    ];
 
     /**
      * Self-bucket commands every Focused giver picks up. The
@@ -134,13 +146,12 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
      * Inspection-shaped commands update this via the dispatcher's
      * `updates_focus` path; the `focus` command sets it explicitly.
      */
-    private _focus: string = 'here';
+    private _focus: string = '~here';
 
     /**
      * Per-giver pronoun stash. Transient — populated post-resolve
      * by the dispatcher (`CommandApi.resolveAndValidate`) and read
-     * by the resolver when a query's seed is `it`/`him`/`her`/
-     * `them`/`$$`.
+     * by the resolver for `~it`/`~him`/`~her`/`~them`/`~last`.
      */
     private _pronounMemory: PronounMemory = new PronounMemory();
 
@@ -150,7 +161,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
 
     setFocus(fragment: string): void {
       const trimmed = fragment.trim();
-      const next = trimmed.length > 0 ? trimmed : 'here';
+      const next = trimmed.length > 0 ? trimmed : '~here';
       this._focus = SubscriptionApi.fireFieldChange(
         this,
         'focus',
@@ -164,7 +175,7 @@ export function FocusedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
         this,
         'focus',
         this._focus,
-        'here',
+        '~here',
       );
     }
 

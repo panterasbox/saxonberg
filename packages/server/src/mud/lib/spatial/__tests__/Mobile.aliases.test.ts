@@ -35,7 +35,8 @@ describe('MobileMixin default aliases', () => {
 
   it('declares one entry per canonical cardinal (long + short)', () => {
     // 10 cardinals × 2 forms = 20 entries.
-    expect(defaults).toHaveLength(20);
+    // 20 direction verbs, and the `here` query alias (naming overhaul D-B7).
+    expect(defaults.filter((d) => (d as { at?: string }).at !== 'query')).toHaveLength(20);
   });
 
   it.each(NavigationApi.cardinalDirections())(

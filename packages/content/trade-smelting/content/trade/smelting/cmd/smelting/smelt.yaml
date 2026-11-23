@@ -30,8 +30,8 @@ args:
     type: object
     required: false
     prepositions: [at, in]
-    default: "reachable:[mixin.BurnerMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BurnerMixin]"
+    scope: ["~peers", "~person"]
     requires: [BurnerMixin, affords]
 validators:
   - /lib/command/validators/requiresAnimate

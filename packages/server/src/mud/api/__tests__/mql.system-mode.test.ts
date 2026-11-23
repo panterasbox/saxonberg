@@ -11,7 +11,7 @@
  *     what this build did. Reading the registry is its own permission,
  *     carried by the two gated entries on `MqlApi`;
  *   - giver-anchored seeds (`me`/`here`/`peers`/`reachable`/
- *     `inventory`) and bareword predicates throw a clear resolver
+ *     `~inventory`) and bareword predicates throw a clear resolver
  *     error — nothing guesses a viewer;
  *   - namespace filters (`mixin.` / `class.`) work (permission absent
  *     → permits, the server-internal-caller rule).
@@ -48,29 +48,28 @@ describe('MQL system mode (null giver)', () => {
 
   it('giver-anchored seeds throw a clear error', () => {
     makeWorld();
-    for (const q of ['me', 'reachable', 'peers', 'inventory']) {
+    for (const q of ['me', '~reachable', '~peers', '~inventory']) {
       expect(() => resolve(q, systemCtx())).toThrow(/requires a viewer/);
     }
   });
 
   it('here (the pronoun form) throws under a null giver', () => {
     makeWorld();
-    expect(() => resolve('here', systemCtx())).toThrow(/requires a viewer/);
+    expect(() => resolve('~here', systemCtx())).toThrow(/requires a viewer/);
   });
 
   it('bareword predicates throw under a null giver', () => {
     makeWorld();
-    // ⚠ Anchored on `online:` rather than `world:` — `world` now throws
-    // its own refusal FIRST, which would make this test pass for the
-    // wrong reason.
-    expect(() => resolve('online:living', systemCtx())).toThrow(
+    // ⚠ Anchored on a path rather than `world:` — `world` throws its own
+    // refusal FIRST, which would make this test pass for the wrong reason.
+    expect(() => resolve('/platform/**:living', systemCtx())).toThrow(
       /requires a viewer/,
     );
   });
 
-  it('pronoun-stash pronouns resolve empty (no stash, no viewer)', () => {
+  it('the pronoun relations need a viewer — `~it` is `me:~it`', () => {
     makeWorld();
-    expect(resolve('it', systemCtx())).toEqual([]);
+    expect(() => resolve('~it', systemCtx())).toThrow(/requires a viewer/);
   });
 });
 
@@ -98,7 +97,6 @@ describe('a player giver resolves exactly what system mode does (D23)', () => {
       `${loc}:i:[class.TestThing]`, `${loc}:I:[mixin.ContainableMixin]`,
       `${loc}:i:[1]`, `${loc}:i:[-1]`, `${loc}:i:[1..2]`,
       `${loc}:i:flower`, `${loc}:i:'rose'`,
-      'online',
     ];
     for (const q of queries) {
       const a = MqlApi.resolveMany(q, player).stuff.map((s) => s.stuffId);
@@ -111,7 +109,7 @@ describe('a player giver resolves exactly what system mode does (D23)', () => {
     const w = makeWorld();
     const loc = `#${w.location.stuffId}`;
     const player = MqlApi.resolveMany(`${loc}:i:flower`, { commandGiver: w.giver, scope: '' });
-    const second = MqlApi.resolveMany('second flower', { commandGiver: w.giver, scope: 'peers' });
+    const second = MqlApi.resolveMany('second flower', { commandGiver: w.giver, scope: '~peers' });
     expect(second.ordinal).toBe(2);
     expect(second.stuff.map((s) => s.stuffId).sort()).toEqual(player.stuff.map((s) => s.stuffId).sort());
   });

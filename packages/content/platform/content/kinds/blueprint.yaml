@@ -1,0 +1,5 @@
+title: Blueprint
+traits:
+  catalogued: { by: /platform/idea/BlueprintCatalogue, load: whole }
+  shipped: { dir: blueprints }
+  titled: { field: name }

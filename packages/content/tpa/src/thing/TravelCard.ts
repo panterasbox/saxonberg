@@ -17,9 +17,36 @@
 
 import Good from "@saxonberg/server/mud/lib/stuff/Good";
 import { CredentialWalletMixin } from "@saxonberg/server/mud/lib/credential/CredentialWallet";
-import type { CredentialKind } from "@saxonberg/server/mud/lib/credential/Credential";
+import { TravelCredential, type CredentialKind } from "@saxonberg/server/mud/lib/credential/Credential";
+import { RelatingMixin, type HeldRelation, type RelatedSet } from "@saxonberg/server/mud/lib/relation/Relating";
+import { StuffApi } from "@saxonberg/server/mud/api/stuff";
+import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 
-export default class TravelCard extends CredentialWalletMixin(Good) {
+export default class TravelCard extends RelatingMixin(CredentialWalletMixin(Good)) {
   /** Born holding one travel credential record (registered set + floor). */
   static defaultCredentialKinds: readonly CredentialKind[] = ["travel"];
+
+  /** The nodes this card is registered at that are in the world. */
+  private registeredNodes(): Stuff[] {
+    const out: Stuff[] = [];
+    for (const c of this.getCredentials()) {
+      if (!(c instanceof TravelCredential)) continue;
+      for (const path of c.getRegistered()) {
+        const node = StuffApi.findByTemplatePath<Stuff>(path);
+        if (node !== undefined && !out.includes(node)) out.push(node);
+      }
+    }
+    return out;
+  }
+
+  /** ⭐ `card:~nodes` — the nodes it is registered at (naming overhaul D-B5); anyone may ask. */
+  public relationsFor(asker: Stuff | null): HeldRelation[] {
+    return [{ name: "nodes", meaning: "the travel nodes this card is registered at" }, ...super.relationsFor(asker)];
+  }
+
+  public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
+    const below = super.relatedBy(name, asker);
+    if (name !== "nodes") return below;
+    return [{ name, meaning: "the travel nodes this card is registered at", members: this.registeredNodes() }, ...below];
+  }
 }

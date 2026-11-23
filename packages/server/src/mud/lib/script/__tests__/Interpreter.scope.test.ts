@@ -1,5 +1,5 @@
 /**
- * ⭐ `verb@source` in a SCRIPT (controllers-are-io D2, D23): the script
+ * ⭐ `source::verb` in a SCRIPT (controllers-are-io D2, D23): the script
  * binder shares the dispatcher's matcher, so a scoped line binds from
  * its source; a plural scope dispatches once per source; and a NAME
  * matching several — a question a script cannot answer — fails closed
@@ -24,7 +24,7 @@ const line = (word: string): Script => ({
   statements: [{ kind: 'pipeline', commands: [{ kind: 'command', word, args: [] }] }],
 });
 
-describe('verb@source in a script', () => {
+describe('source::verb in a script', () => {
   let world: MqlWorld;
   let wind: CommandDefinition;
   let sources: (Stuff | undefined)[];
@@ -61,17 +61,17 @@ args:
     new Interpreter(world.giver, LIMITS).drive(line(word), new Scope(), dispatch, async () => {});
 
   it('binds from the one source it names', async () => {
-    await run('windish@daisy');
+    await run('daisy::windish');
     expect(sources).toEqual([world.daisy]);
   });
 
   it('a plural scope dispatches once per source', async () => {
-    await run('windish@"all flower"');
+    await run('"all flower"::windish');
     expect(new Set(sources)).toEqual(new Set([world.rose, world.daisy]));
   });
 
   it('⭐⭐ a NAME matching several fails closed and names its input', async () => {
-    const result = await run('windish@flower');
+    const result = await run('flower::windish');
     expect(sources).toEqual([]);
     // The script stops there; the line's notes ride with the stop (failure-model D5).
     expect(result.stopped?.refusal?.reason).toBe('needs-input');
@@ -83,7 +83,7 @@ args:
   });
 
   it('a scope naming nothing → source-not-found', async () => {
-    const result = await run('windish@teapot');
+    const result = await run('teapot::windish');
     expect(sources).toEqual([]);
     expect(result.stopped?.notes.some((n) => (n as { reason?: string }).reason === 'source-not-found')).toBe(true);
   });

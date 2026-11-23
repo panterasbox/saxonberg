@@ -39,7 +39,7 @@ function bind(text: string): Record<string, unknown> {
   return r.model as Record<string, unknown>;
 }
 
-const EDGE = 'reachable:[capability.cutting]';
+const EDGE = '~reachable:[capability.cutting]';
 
 describe('carve — the view binds what a woodworker says', () => {
   it('`carve haft` binds the part and defaults the edge', () => {

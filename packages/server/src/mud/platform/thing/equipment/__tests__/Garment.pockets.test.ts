@@ -95,7 +95,7 @@ describe('Garment — pockets as regions (D26)', () => {
     const { me, plan } = makeBody();
     ContainmentApi.move(me, makeStuff(() => new Location()));
     const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
-    const r = MqlApi.resolveOne('inner pocket', { commandGiver: me as never, scope: 'inventory' });
+    const r = MqlApi.resolveOne('inner pocket', { commandGiver: me as never, scope: '~inventory' });
     expect(r.stuff).toBe(coat);
     expect(r.via?.region).toBe('inner pocket');
   });

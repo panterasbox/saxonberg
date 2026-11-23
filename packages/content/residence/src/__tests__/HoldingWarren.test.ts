@@ -692,7 +692,7 @@ describe('the maintenance act (D4/D5)', () => {
       '/system/residence/idea/cmd/crafting/MaintainController',
     );
     // ⚠ Stand in for the BINDER: `maintain`'s `kit` is a declared arg
-    // defaulting to `reachable:[capability.upkeep]`, so the binder finds
+    // defaulting to `~reachable:[capability.upkeep]`, so the binder finds
     // the kit and the controller reads it. A hand-built model skips the
     // binder and must carry what the view would have put there.
     const held =

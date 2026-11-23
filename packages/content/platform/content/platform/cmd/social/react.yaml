@@ -33,7 +33,7 @@ options:
   to:
     short: t
     type: object
-    scope: online
+    scope: ["~peers"]
     field: toPerson
     description: "React to this person's most-recent reactable act."
     requires: any

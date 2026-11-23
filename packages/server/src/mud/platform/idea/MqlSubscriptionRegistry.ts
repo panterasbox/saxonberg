@@ -737,7 +737,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
         // describes only what `look` could reach — its own `reachable`
         // scope — whatever query arrived. Outside it: nothing.
         const reach = new Set(
-          MqlApi.resolveMany('reachable', { commandGiver: giver, scope: 'reachable' }).stuff,
+          MqlApi.resolveMany('~reachable', { commandGiver: giver, scope: '~reachable' }).stuff,
         );
         const near = many.stuff.filter((s) => reach.has(s));
         const seen = PerceptionApi.perceived(giver, near, many.ordinal);

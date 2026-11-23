@@ -16,6 +16,7 @@ import type {
 } from '../../../lib/social/GroupProvider';
 import type { GroupRole, GroupOwner } from '../../../lib/social/Group';
 import type GroupRegistry from '../GroupRegistry';
+import { MixinApi } from '../../../api/mixin';
 
 const REGISTRY_PATH = TemplatePaths.groupRegistry;
 
@@ -148,6 +149,11 @@ export class GroupLogic extends ApiLogic {
     if (!group.addMember(memberKey, role)) return false;
     await group.save();
     reg.managed().fireChange(id);
+    // ⭐ The new member's resident groups (naming overhaul D-B11), when
+    // their body is in the world — they were not listening to this group.
+    for (const body of StuffApi.findByIdentityPath(memberKey)) {
+      if (MixinApi.isContacts(body)) await body.refreshGroups();
+    }
     return true;
   }
 

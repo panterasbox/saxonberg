@@ -43,10 +43,15 @@ subcommands:
     examples:
       - cmd: alias set --session k kill
         note: Set an alias for this session only
+      - cmd: alias set --query room ~here
+        note: A query alias — `room` typed where a thing is named means ~here
     options:
       session:
         type: boolean
         description: "Write to the session store instead of persistent"
+      query:
+        type: boolean
+        description: "A query alias — respells the first word of a query you type (here → ~here)"
     args:
       - name: name
         type: string
@@ -65,6 +70,12 @@ subcommands:
     examples:
       - cmd: alias unset gg
         note: Suppress a built-in default by its name
+      - cmd: alias unset --query here
+        note: Make `here` an ordinary word again
+    options:
+      query:
+        type: boolean
+        description: "Drop a query alias rather than a verb alias"
     args:
       - name: name
         type: string

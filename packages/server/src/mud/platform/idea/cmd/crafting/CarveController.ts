@@ -80,7 +80,8 @@ interface CarveModel extends CommandModel {
 export default class CarveController extends ManualBuildController<CarveModel> {
   async execute(model: CarveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const word = (model.thing?.raw ?? '').trim().toLowerCase();
+    // The words handed to the thing's own plan (D-C4) — it names by the rule.
+    const word = (model.thing?.raw ?? '').trim();
 
     // The object args, each told when it names nothing here.
     for (const field of ['target', 'stock', 'of'] as const) {
@@ -105,7 +106,7 @@ export default class CarveController extends ManualBuildController<CarveModel> {
       word,
       knife: model.knife?.stuff ?? null,
       ...(model.of ? { of: model.of.stuff ?? null } : {}),
-      forWord: (model.for ?? '').trim().toLowerCase(),
+      forWord: (model.for ?? '').trim(),
       stock: model.stock?.stuff ?? target,
     };
     let plan = named !== null && MixinApi.isCarvable(named) ? await named.carvePlanFor(req) : null;

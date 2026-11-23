@@ -13,7 +13,6 @@ import { PlayerApi } from "../../../api/player";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { EmploymentApi } from "../../../api/employment";
 import { MixinApi } from "../../../api/mixin";
-import { MqlApi } from "../../../api/mql";
 import type { Organization } from "../../../lib/employment/Organization";
 
 type OrganizationStuff = Stuff & Organization;
@@ -200,10 +199,8 @@ export class CompactLogic extends ApiLogic {
     if (committee.kind === "organization") {
       const org = organizationOf(committee);
       if (!org) return [];
-      const online = MqlApi.resolveMany("online", {
-        commandGiver: null,
-        scope: "online",
-      }).stuff;
+      // The connected players (naming overhaul D-B10: `online` left MQL).
+      const online: Stuff[] = PlayerApi.connectedAvatars();
       const out: Stuff[] = [];
       for (const who of online) {
         if (

@@ -11,6 +11,7 @@
  * is the first non-combat advancement consumer.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { EngagedActController } from '../../../../lib/command/EngagedActController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
@@ -124,7 +125,7 @@ export default class TreatController extends EngagedActController<TreatModel> {
   private static awayLine(why: TreatmentRefusal['facts']['away']): string {
     if (!why) return 'What it wants is put away where you cannot reach it.';
     const by = why.facts.by;
-    const bare = by.presentationPhrase().bare().replace(/^(a|an|the) /i, '');
+    const bare = GrammarApi.withoutArticle(by.presentationPhrase().bare());
     const kw = (MixinApi.isPerceptible(by) ? by.getPrimaryKeyword() : undefined) ?? bare;
     const word = kw.includes(' ') ? `"${kw}"` : kw;
     if (why.reason === 'packed') return `Your ${bare} is on your back — take it off first (\`remove ${word}\`).`;

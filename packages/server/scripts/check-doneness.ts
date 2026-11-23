@@ -36,7 +36,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'fs';
 import { join, relative, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
-import { packSources, classFileOf,
+import { shippedDirOf, packSources, classFileOf,
   effectiveDoc,
   inheritanceIndex,
   type InheritanceIndex,
@@ -134,7 +134,7 @@ function recipeRows(): { file: string; data: Record<string, unknown> }[] {
   const out: { file: string; data: Record<string, unknown> }[] = [];
   if (!existsSync(CONTENT)) return out;
   for (const pack of readdirSync(CONTENT)) {
-    const dir = join(CONTENT, pack, 'content', 'recipes');
+    const dir = join(CONTENT, pack, 'content', shippedDirOf('recipe'));
     if (!existsSync(dir)) continue;
     for (const file of walk(dir, '.yaml')) {
       let parsed: unknown;

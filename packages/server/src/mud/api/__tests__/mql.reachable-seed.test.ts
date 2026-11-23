@@ -31,9 +31,9 @@ class TargetThing extends SlottableMixin(ContainableMixin(Idea)) {}
  *  real CommandGiver — the cast satisfies the seed's giver anchor (the
  *  seed only reads the actor's containment/slot/attunement surfaces). */
 function reachableFrom(actor: Stuff): Stuff[] {
-  return MqlApi.resolveMany('reachable', {
+  return MqlApi.resolveMany('~reachable', {
     commandGiver: actor as unknown as Stuff & CommandGiver,
-    scope: 'reachable',
+    scope: '~reachable',
   }).stuff;
 }
 
@@ -47,9 +47,9 @@ function findIn(pool: Stuff[], ...ids: string[]): Stuff | null {
  *  no location leg; see credential `presentsKey`). Same cast rationale
  *  as {@link reachableFrom}. */
 function personOf(actor: Stuff): Stuff[] {
-  return MqlApi.resolveMany('person', {
+  return MqlApi.resolveMany('~person', {
     commandGiver: actor as unknown as Stuff & CommandGiver,
-    scope: 'person',
+    scope: '~person',
   }).stuff;
 }
 

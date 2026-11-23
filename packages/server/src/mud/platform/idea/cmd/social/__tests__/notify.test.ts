@@ -24,6 +24,7 @@ import { Mml } from "../../../../../api/mml";
 import { Idea } from "../../../../../lib/stuff/Idea";
 import { StuffApi } from "../../../../../api/stuff";
 import { NotifyPolicyMixin } from "../../../../../lib/social/NotifyPolicy";
+import { ContactsMixin } from "../../../../../lib/social/Contacts";
 import { HasInteractiveMixin } from "../../../../../lib/connection/HasInteractive";
 import { ClientStateMixin } from "../../../../../lib/connection/ClientState";
 import { makeStuff } from "../../../../../lib/security/__tests__/test-setup";
@@ -31,7 +32,7 @@ import type { CommandContext, CommandModel } from "../../../../../api/command";
 import type { SocialRulesState } from "@saxonberg/types";
 import { TestHarnessApi } from "../../../../../api/test-harness";
 
-class NotifyHost extends NotifyPolicyMixin(Idea) {
+class NotifyHost extends ContactsMixin(NotifyPolicyMixin(Idea)) {
   getPlayerId(): string {
     return "me";
   }
@@ -44,7 +45,7 @@ class NotifyHost extends NotifyPolicyMixin(Idea) {
  * is needed (the `StyleController` precedent).
  */
 class ConnectedNotifyHost extends ClientStateMixin(
-  HasInteractiveMixin(NotifyPolicyMixin(Idea)),
+  HasInteractiveMixin(ContactsMixin(NotifyPolicyMixin(Idea))),
 ) {
   getPlayerId(): string {
     return "me";
@@ -128,20 +129,21 @@ describe("the notify controllers", () => {
 
   it("`notify show <ref>` shows a single rule", async () => {
     const g = makeGiver();
-    await run(g, { subcommand: "show", ref: "friends" });
+    await run(g, { subcommand: "show", ref: "~friends" });
     const body = captured!.toString();
-    expect(body).toContain(FRIENDS_REF);
+    expect(body).toContain("~friends");
+    expect(body).not.toContain(FRIENDS_REF);
     // A pure show must not materialize a stored row.
     expect(
       g.notifyRules().some((r) => r.groupRef === FRIENDS_REF),
     ).toBe(false);
   });
 
-  it("sets multiple fields via typed options and normalizes a bare label", async () => {
+  it("sets multiple fields via typed options and resolves ~friends to the contacts list", async () => {
     const g = makeGiver();
     await run(g, {
       subcommand: "set",
-      ref: "friends",
+      ref: "~friends",
       color: "amber",
       boost: true,
       message: "full",
@@ -154,19 +156,19 @@ describe("the notify controllers", () => {
       boostInDense: true,
       onMessage: "full",
     });
-    expect(captured!.toString()).toContain(FRIENDS_REF);
+    expect(captured!.toString()).toContain("~friends");
   });
 
   it("sets boostInDense=false via --no-boost", async () => {
     const g = makeGiver();
-    await run(g, { subcommand: "set", ref: "friends", noBoost: true });
+    await run(g, { subcommand: "set", ref: "~friends", noBoost: true });
     const stored = g.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF);
     expect(stored?.boostInDense).toBe(false);
   });
 
   it("rejects an invalid field-option value with a friendly note", async () => {
     const g = makeGiver();
-    await run(g, { subcommand: "set", ref: "friends", color: "fuchsia" });
+    await run(g, { subcommand: "set", ref: "~friends", color: "fuchsia" });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected", reason: "bad-option" }),
     );
@@ -178,7 +180,7 @@ describe("the notify controllers", () => {
 
   it("`notify set <ref>` with no field asks which, and writes nothing", async () => {
     const g = makeGiver();
-    await run(g, { subcommand: "set", ref: "friends" });
+    await run(g, { subcommand: "set", ref: "~friends" });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected", reason: "field-required" }),
     );
@@ -187,18 +189,21 @@ describe("the notify controllers", () => {
 
   it("`notify move` reorders with --above", async () => {
     const g = makeGiver();
-    g.setNotifyRule("managed:a", {});
-    g.setNotifyRule("managed:b", {});
-    await run(g, { subcommand: "move", ref: "managed:b", above: "managed:a" });
+    g.addContact({ kind: "avatar", playerId: "p-a", label: "a", source: "self", addedAt: 0 });
+    g.addContact({ kind: "avatar", playerId: "p-b", label: "b", source: "self", addedAt: 0 });
+    g.setNotifyRule("contacts:me:a", {});
+    g.setNotifyRule("contacts:me:b", {});
+    await run(g, { subcommand: "move", ref: "~b", above: "~a" });
     const stored = g.notifyRules().map((r) => r.groupRef);
-    expect(stored).toEqual(["managed:b", "managed:a"]);
+    expect(stored).toEqual(["contacts:me:b", "contacts:me:a"]);
   });
 
   it("`notify remove <ref>` drops a rule", async () => {
     const g = makeGiver();
-    g.setNotifyRule("managed:c", {});
-    await run(g, { subcommand: "remove", ref: "managed:c" });
-    expect(g.notifyRules().some((r) => r.groupRef === "managed:c")).toBe(false);
+    g.addContact({ kind: "avatar", playerId: "p-c", label: "c", source: "self", addedAt: 0 });
+    g.setNotifyRule("contacts:me:c", {});
+    await run(g, { subcommand: "remove", ref: "~c" });
+    expect(g.notifyRules().some((r) => r.groupRef === "contacts:me:c")).toBe(false);
   });
 
   it("pushes the social.rules projection on a mutation", async () => {
@@ -209,7 +214,7 @@ describe("the notify controllers", () => {
       .mockImplementation(() => {});
 
     const ctrl = makeStuff(() => new NotifySetController());
-    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ subcommand: "set", ref: "friends", color: "teal", boost: true } as CommandModel, ctx$)))(ctxFor(g));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ subcommand: "set", ref: "~friends", color: "teal", boost: true } as CommandModel, ctx$)))(ctxFor(g));
 
     expect(pushSpy).toHaveBeenCalledWith("social.rules", expect.any(Object));
     const [, state] = pushSpy.mock.calls.at(-1)!;
@@ -231,7 +236,7 @@ describe("the notify controllers", () => {
   it("does not push when the giver has no connected Interactive", async () => {
     const g = makeGiver(); // plain NotifyHost — no HasInteractive
     // No push method exists to spy on; the mutation must still succeed.
-    await run(g, { subcommand: "set", ref: "friends", color: "amber" });
+    await run(g, { subcommand: "set", ref: "~friends", color: "amber" });
     expect(
       g.effectiveNotifyRules().find((r) => r.groupRef === FRIENDS_REF)?.color,
     ).toBe("amber");
@@ -240,14 +245,53 @@ describe("the notify controllers", () => {
   it("enforces the 50-rule soft cap with a rejection", async () => {
     const g = makeGiver();
     for (let i = 0; i < 50; i++) g.setNotifyRule(`managed:g${i}`, {});
+    g.addContact({ kind: "avatar", playerId: "p-o", label: "over", source: "self", addedAt: 0 });
     expect(g.notifyRules()).toHaveLength(50);
 
-    await run(g, { subcommand: "set", ref: "managed:over", color: "teal" });
+    await run(g, { subcommand: "set", ref: "~over", color: "teal" });
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "controller-rejected", reason: "rule-cap" }),
     );
     // The 51st new rule was not stored.
     expect(g.notifyRules()).toHaveLength(50);
     expect(captured!.toString()).toContain("50 notify rules");
+  });
+
+  it("⭐ a typed private ref is refused with the relation spelling (D-B9)", async () => {
+    const g = makeGiver();
+    for (const raw of ["contacts:me:friends", "managed:guild", "mql:x", "party:p"]) {
+      await run(g, { subcommand: "set", ref: raw, color: "teal" });
+      expect(note).toHaveBeenCalled();
+      expect(captured?.toString() ?? "").not.toContain("Set rule");
+    }
+    expect(g.notifyRules()).toHaveLength(0);
+  });
+
+  it("⭐ a bare word is refused, pointing at ~word", async () => {
+    const g = makeGiver();
+    await run(g, { subcommand: "set", ref: "friends", color: "teal" });
+    expect(g.notifyRules()).toHaveLength(0);
+  });
+
+  it("⭐ a relation you do not keep is refused, and stores nothing", async () => {
+    const g = makeGiver();
+    await run(g, { subcommand: "set", ref: "~bookclub", color: "teal" });
+    expect(g.notifyRules()).toHaveLength(0);
+  });
+
+  it("⭐ the projection carries the typed subject, and a rule line shows it", async () => {
+    const g = makeStuff(() => new ConnectedNotifyHost());
+    vi.spyOn(PlayerApi, "isAvatarStuff").mockImplementation((o: unknown) => o === g);
+    g.addContact({ kind: "avatar", playerId: "p-k", label: "bookclub", source: "self", addedAt: 0 });
+    const pushSpy = vi.spyOn(g, "pushClientStateUpdate").mockImplementation(() => {});
+    const ctrl = makeStuff(() => new NotifySetController());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ subcommand: "set", ref: "~bookclub", color: "teal" } as CommandModel, ctx$)))(ctxFor(g));
+    expect(captured!.toString()).toContain("~bookclub");
+    expect(captured!.toString()).not.toContain("contacts:me:bookclub");
+    const [, state] = pushSpy.mock.calls.at(-1)!;
+    const rules = (state as SocialRulesState).rules;
+    expect(rules.find((r) => r.groupRef === "contacts:me:bookclub")?.subject).toBe("~bookclub");
+    expect(rules.find((r) => r.groupRef === FRIENDS_REF)?.subject).toBe("~friends");
+    expect(rules.find((r) => r.groupRef === "everyone-else")?.subject).toBe("everyone-else");
   });
 });

@@ -8,6 +8,7 @@
 // intra-singleton self-call (which it would deny).
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
+import { WorldClockApi } from '../../../api/worldclock';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
@@ -225,8 +226,8 @@ async function publishImpl(req: PublishRequest): Promise<Release> {
     headline: req.headline,
     body: req.body ?? '',
     author,
-    publishedAt: Date.now(),
-    expiresAt: req.expiresAt ?? 0,
+    publishedAtS: WorldClockApi.getNow().rawValue(),
+    expiresAtS: req.expiresAt ?? 0,
     pinned: req.pinned ?? false,
     retracted: false,
     visibility: req.visibility ?? null,
@@ -260,7 +261,7 @@ async function editImpl(
     ...(patch.body !== undefined ? { body: patch.body } : {}),
     ...(patch.kind !== undefined ? { kind: patch.kind } : {}),
     ...(patch.pinned !== undefined ? { pinned: patch.pinned } : {}),
-    ...(patch.expiresAt !== undefined ? { expiresAt: patch.expiresAt } : {}),
+    ...(patch.expiresAt !== undefined ? { expiresAtS: patch.expiresAt } : {}),
     ...(patch.visibility !== undefined ? { visibility: patch.visibility } : {}),
     ...(patch.source !== undefined ? { source: patch.source } : {}),
   });
@@ -269,7 +270,7 @@ async function editImpl(
   // If the edit pushed the row out of the live window (e.g. `--expires` set
   // to the past), fan a `remove` so clients — which don't filter on expiry —
   // drop it; otherwise fan the updated row. Mirrors `recentWindow`'s liveness.
-  const live = !updated.isRetracted() && !updated.isExpiredAt(Date.now());
+  const live = !updated.isRetracted() && !updated.isExpiredAt(WorldClockApi.getNow().rawValue());
   fanFeedImpl(
     live
       ? { kind: 'release', action: 'upsert', row: PressApi.toRow(updated) }
@@ -301,7 +302,7 @@ function recentImpl(limit?: number): Release[] {
 
 /**
  * ⭐ The paged archive, **newest first, by key** — one ordered read over
- * the release card's `publishedAt` (the `{kind, keys.$**}` index serves the
+ * the release card's `date` (`dated: indexed` — the `{kind, keys.$**}` index serves the
  * order), bounded above by the `before` cursor. Realm, kind and retraction
  * are filtered over the page (realm derives from the live publisher and
  * cannot be a key), so the read over-fetches a bounded multiple of the
@@ -312,7 +313,7 @@ async function archiveImpl(query: ArchiveQuery): Promise<Release[]> {
     typeof query.limit === 'number' && query.limit > 0
       ? Math.min(Math.floor(query.limit), ARCHIVE_MAX_LIMIT)
       : ARCHIVE_DEFAULT_LIMIT;
-  const docs = await DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+  const docs = await DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'date', {
     ...(typeof query.before === 'number' ? { max: query.before - 1 } : {}),
     order: 'desc',
     limit: limit * ARCHIVE_OVERFETCH,
@@ -406,6 +407,7 @@ async function pressRoomImpl(limit?: number): Promise<PublicReleaseRow[]> {
       headline: release.getHeadline(),
       body: release.getBody(),
       publishedAt: release.getPublishedAt(),
+      publishedOn: release.getPublishedOn(),
       pinned: release.isPinned(),
     });
     if (out.length >= size) break;

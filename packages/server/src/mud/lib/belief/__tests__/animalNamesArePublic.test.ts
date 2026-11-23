@@ -24,7 +24,10 @@ import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
-import { candidateFor, scoreCandidate, TIER_PHRASE, TIER_WORDS } from '../../../api/mql/scope-walk';
+import { candidateFor, scoreCandidate } from '../../../api/mql/scope-walk';
+import { GrammarApi } from '../../../api/grammar';
+
+const { TIER_PHRASE, TIER_WORDS } = GrammarApi;
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 class Stranger extends BeliefStoreMixin(

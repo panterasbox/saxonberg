@@ -51,10 +51,10 @@ function coupe(): Coupe {
   return c;
 }
 function ctx(viewer: Viewer): MqlContext {
-  return { commandGiver: viewer as never, scope: 'peers' };
+  return { commandGiver: viewer as never, scope: '~peers' };
 }
 const found = (viewer: Viewer): string[] =>
-  MqlApi.resolveMany('peers:coupe', ctx(viewer)).stuff.map((s) => s.stuffId);
+  MqlApi.resolveMany('~peers:coupe', ctx(viewer)).stuff.map((s) => s.stuffId);
 
 describe('MQL peers — one level into an open container', () => {
   it('sees a coupe in an open rack standing in the room', () => {

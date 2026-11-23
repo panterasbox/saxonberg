@@ -31,14 +31,14 @@ args:
   - name: hole
     type: object
     required: false
-    default: "reachable:[mixin.GroundPointMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.GroundPointMixin]"
+    scope: ["~peers", "~person"]
     requires: [GroundPointMixin]
   - name: rig
     prepositionRequired: true
     type: object
     required: false
     prepositions: [at, with, using]
-    default: "reachable:[capability.derrick]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[capability.derrick]"
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]

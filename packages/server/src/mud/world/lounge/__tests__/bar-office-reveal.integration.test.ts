@@ -155,7 +155,7 @@ function ctx(actor: Patron, location: Place, verb: string): CommandContext {
 function resolveTarget(giver: Patron, raw: string): MqlOneResult {
   const r = MqlApi.resolveOne(raw, {
     commandGiver: giver as never,
-    scope: 'reachable',
+    scope: '~reachable',
   });
   const bound: MqlOneResult = { stuff: r.stuff, raw };
   if (r.via) bound.via = r.via;

@@ -31,8 +31,10 @@ export default class OrderWordedController extends ManualBuildController<OrderMo
       if (!voice.ok) return OrderWordedController.say(context, voice.reason);
     }
     const phrase = (model.cocktail ?? '').trim();
-    const key = (phrase.split(/\s+/)[0] ?? '').toLowerCase();
-    const taking = (model.counter?.stuff ?? []).filter((b) => MixinApi.isPricedOffer(b) && b.offersOrder(key));
+    // The board names what the words ask for (naming overhaul D-C7); the
+    // head word rides along for a board that reads it.
+    const key = phrase.split(/\s+/)[0] ?? '';
+    const taking = (model.counter?.stuff ?? []).filter((b) => MixinApi.isPricedOffer(b) && b.offersOrder(phrase));
     const picked = await CommandApi.applyCardinalityPolicy(
       { type: 'object', onExcess: 'prompt' },
       taking,

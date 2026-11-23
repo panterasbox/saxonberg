@@ -951,7 +951,7 @@ export default abstract class Reading extends ReadingBase {
     try {
       candidates = MqlApi.resolveMany(raw, {
         commandGiver: giver,
-        scope: 'reachable',
+        scope: '~reachable',
       }).stuff;
     } catch {
       // A raw word MQL cannot parse is an ordinary miss, not an error.

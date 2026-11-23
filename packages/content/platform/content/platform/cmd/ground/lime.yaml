@@ -34,8 +34,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "person:[material.liming]"
-    scope: ["reachable"]
+    default: "~person:[material.liming]"
+    scope: ["~reachable"]
     requires: [TangibleMixin]
     validators:
       - /lib/command/validators/canReach

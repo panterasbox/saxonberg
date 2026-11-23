@@ -157,6 +157,19 @@ export class ShellApi {
   }
 
   /**
+   * ⭐ Respell a query's HEAD WORD through the giver's query aliases
+   * (naming overhaul D-B7): `here` → `~here`, `it:i` → `~it:i`. Only when
+   * the whole query is that word or the word is followed by `:` — never a
+   * word inside a name. The binder calls it for every object slot the
+   * player typed and for a `source::verb` source; an authored `scope:` or
+   * `default:` is never respelled. A giver with no alias table, or a word
+   * with no alias, comes back unchanged.
+   */
+  static expandQueryAliases(text: string, giver: Stuff): string {
+    return logic().expandQueryAliases(text, giver);
+  }
+
+  /**
    * Cross-host setting resolution, with the optional per-form-factor
    * rung.
    *

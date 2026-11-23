@@ -102,9 +102,9 @@ export default class JourneyController extends JourneyControllerBase {
     const isVehicle = (s: Stuff): boolean => MixinApi.isActive(s, VEHICULAR_MIXIN);
     const source = context.commandSource;
     if (source && isVehicle(source)) return source as Stuff & Vehicular;
-    const reachable = MqlApi.resolveMany('reachable', {
+    const reachable = MqlApi.resolveMany('~reachable', {
       commandGiver: context.commandGiver,
-      scope: 'reachable',
+      scope: '~reachable',
     }).stuff;
     return (reachable.find((s) => isVehicle(s)) as Stuff & Vehicular) ?? null;
   }
@@ -116,7 +116,7 @@ export default class JourneyController extends JourneyControllerBase {
    */
   private reachableNamed(named: string, context: CommandContext): string | null {
     if (named === '') return null;
-    const hit = MqlApi.resolveMany(named, { commandGiver: context.commandGiver, scope: 'reachable' }).stuff[0];
+    const hit = MqlApi.resolveMany(named, { commandGiver: context.commandGiver, scope: '~reachable' }).stuff[0];
     const path = hit?.getTemplatePath() ?? '';
     return path.length > 0 ? path : null;
   }

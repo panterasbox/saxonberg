@@ -1,0 +1,4 @@
+title: Eighty-sixed list
+traits: {}
+fields:
+  subjects: { type: list, required: true }

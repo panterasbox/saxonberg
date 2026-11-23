@@ -734,7 +734,7 @@ Three load-time invariants enforced by `CommandDefinition.validate`:
 | `string` | the raw token text | no coercion; an open word (a key, a name, prose when `greedy`) |
 | `enum` | one of the slot's `values:`, in its canonical spelling | ⭐ a closed word list — see below; `values:` is REQUIRED here and REFUSED on every other type |
 | `number` | `Number(token)` | coerced for options AND positionals (since controller-liquidity W1); a required one refuses a non-number at bind, an optional one leaves the word for the next slot |
-| `duration` | milliseconds | ⭐ written `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours`; a bare number is NOT a duration (seconds or minutes? the view refuses to guess) |
+| `duration` | game seconds | ⭐ written `90s` · `15m` · `2h` · `1h30m` · `3d` · `90 seconds` · `2 hours`; a bare number is NOT a duration (seconds or minutes? the view refuses to guess) |
 | `boolean` | `true` / `false` | usually used on options, not positionals |
 | `object` | an `MqlOneResult` wrapper around a single Stuff | runs `MqlApi.resolveOne` |
 | `objects` | an `MqlManyResult` wrapper around a Stuff list | runs `MqlApi.resolveMany` |
@@ -750,6 +750,27 @@ means in its domain (see the example controllers).
 `multiple: true` is for non-MQL fields where repeated occurrences
 should accumulate. Don't combine it with `type: objects` — the
 plurality is the type.
+
+### ⭐ `type: duration` — one reading, game seconds (naming overhaul D-C6)
+
+A duration slot binds **game seconds**, read by `GrammarApi.parseDuration`
+— the same reading the script `wait`/`every` and the world clock take, so
+a length of time is written one way everywhere (`90s`, `1h30m`, `2 hours`,
+`a week`, `two days`). The view states what it will take:
+
+```yaml
+- name: span
+  type: duration
+  granularity: day     # minute · hour · day
+  min: "1 day"         # min: / max: are written durations
+```
+
+Words that are no duration, a value off the granularity, or one out of
+bounds is the one refusal row `bad-duration`. The slot works as a
+positional (`rent canoe for a week`) and may be two words wide (`--for 2
+hours`). A controller never parses time words — `lint:hand-matchers`
+counts one that does. ⚠ The stream verbs are the named exemption: they are
+out of character and on the wall clock, and keep `StreamApi.parseDuration`.
 
 ### ⭐ `type: enum` — a closed word list (controller-liquidity D1)
 
@@ -1066,6 +1087,13 @@ list whole — the author's pool is not the player's word — and the
 controller narrows it (`PerceptionApi.reachableAmong`), so a packed spare
 in `reachable:[mixin.ToolMixin]` never refuses `measure`.
 
+⭐ **The same fact rides a single result** (naming overhaul): an `object`
+slot bound from its `default:` carries `defaulted: true` on its
+`MqlOneResult`. A controller that must know whether the player NAMED the
+thing asks the result; it never reads the typed text to guess (`buy` once
+sniffed `counter.raw` for exactly this, and `lint:controller-resolution`
+holds `.raw` re-reads at zero).
+
 If `default:` resolution fails (MQL no-match, validator veto, etc.),
 the field's standard failure surface fires; the framework does NOT
 silently treat a failed default as "no input." Authors who need
@@ -1101,12 +1129,21 @@ means. Until W2 the first try with any admissible match won at any tier.
 Patterns:
 
 ```yaml
-scope: "inventory"           # surgical — drop, don't drill
-scope: "peers"               # surgical — get, don't pick up the room
-scope: "reachable"           # in-hand act — person first: eat, drop, wield, give
-scope: ["here", "peers", "person"]   # WORLD act — room first: cut, dig, fell, paint
-scope: ["$focus", "reachable"]   # drill-first-then-broad — look, examine
+scope: "~inventory"          # surgical — drop, don't drill
+scope: "~peers"              # surgical — get, don't pick up the room
+scope: "~reachable"          # in-hand act — person first: eat, drop, wield, give
+scope: ["~here", "~peers", "~person"]   # WORLD act — room first: cut, dig, fell, paint
+scope: ["$focus", "~reachable"]  # drill-first-then-broad — look, examine
+scope: ["~peers", "~contacts"]   # a PERSON — in the room, else anyone you keep: dm, contacts add
+scope: ["~reachable:[class.CharterBook]:~ships"]   # through a HOLDER — the ships a book in reach keeps
 ```
+
+⭐ **Every entry is a relation** (naming overhaul B3): `~here`, `~peers`,
+`~reachable`, … are the asker's built-in relations, and a holder's own
+sets are reached through it (`thing:~name` — a contact list, a party, a
+book's ships). The `online` seed is gone — a verb that wants "a player
+not in the room" says whose: `~contacts` (everyone you keep), a list,
+`@<id>`. The full table is [mql.md](./mql.md) § Relations.
 
 ⭐ **The scope list's ORDER is the dial for where a verb looks first** —
 no new seed, no flag. `reachable` is person-first (on a tie your own

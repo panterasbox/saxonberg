@@ -62,7 +62,7 @@ args:
   - name: thing
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
   # ⭐ WHAT TO CARVE IT ON — a thing that plans its own carving (a
   # leather-hard pot, a sand mould, a board's pattern).
@@ -71,7 +71,7 @@ args:
     type: object
     required: false
     prepositions: [on, into]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: CarvableMixin
   # The piece to carve it from, when you want a particular one.
   - name: stock
@@ -79,15 +79,15 @@ args:
     type: object
     required: false
     prepositions: [from, out]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: TangibleMixin
 options:
   # ⭐ WHICH EDGE — declared, not hunted for (`lint:controller-resolution`).
   with:
     type: object
     field: knife
-    default: "reachable:[capability.cutting]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.cutting]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     description: "The edge to carve with"
   # ⭐ (ceramics D23) WHAT A PATTERN IS OF — `--of sword`: the board plans a
@@ -95,7 +95,7 @@ options:
   # be copied.
   of:
     type: object
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
     description: "What a pattern is a copy of"
   # …and the METAL it is cut for — a word (`--for bronze`): the pattern is cut

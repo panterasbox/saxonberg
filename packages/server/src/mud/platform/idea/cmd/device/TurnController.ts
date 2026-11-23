@@ -45,8 +45,7 @@ export default class TurnController extends CommandController<TurnModel> {
       this.declineTurn(context, Mml.compose`There is nothing to turn on ${Mml.thing(target)}.`, 'not-turnable');
       return;
     }
-    const back = (model.subcommand ?? '').trim().toLowerCase() === 'back';
-    const out = await target.turnBy(giver, back);
+    const out = await target.turnBy(giver, this.turnsBack());
     if (!out.ok) {
       this.declineTurn(context, this.refusalWords(out, target), out.reason);
       return;
@@ -54,6 +53,14 @@ export default class TurnController extends CommandController<TurnModel> {
     const scene = MessageApi.scene(giver).topic(TOPIC).toSelf(this.doneWords(out.facts, target));
     scene.toPeers(this.peerWords(out.facts, giver, target));
     scene.send();
+  }
+
+  /**
+   * @hook Whether this turn slackens (`turn back`) — the subcommand's own
+   * controller says so (`TurnBackController`), never a word test here.
+   */
+  protected turnsBack(): boolean {
+    return false;
   }
 
   /** What the room sees of a turn. */

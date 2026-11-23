@@ -41,6 +41,6 @@ args:
     # `with the photometer`: the binder folds the article into the name
     # (controller-liquidity D3); a two-word name is quoted.
     prepositions: [with, using]
-    default: "reachable:[mixin.ToolMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.ToolMixin]"
+    scope: ["~reachable"]
     requires: [ToolMixin]

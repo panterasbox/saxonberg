@@ -148,9 +148,9 @@ describe('teleport — the anchored resolver (D10, AC16/AC17)', () => {
     // The three scope anchors, plus one path-glob per held extent.
     expect(scopes).toEqual([
       '/studio/lounge/**',
-      'here',
-      'peers',
-      'reachable',
+      '~here',
+      '~peers',
+      '~reachable',
     ]);
   });
 

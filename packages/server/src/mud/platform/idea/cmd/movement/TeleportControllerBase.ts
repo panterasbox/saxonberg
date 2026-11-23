@@ -38,9 +38,9 @@ export abstract class TeleportControllerBase extends CommandController<TeleportM
    */
   protected nodeHere(context: CommandContext): (Stuff & TravelNode) | null {
     return (
-      MqlApi.resolveMany('reachable', {
+      MqlApi.resolveMany('~reachable', {
         commandGiver: context.commandGiver,
-        scope: 'reachable',
+        scope: '~reachable',
       })
         .stuff.map((s) => (MixinApi.isTravelNode(s) ? s : null))
         .find((n) => n !== null) ?? null

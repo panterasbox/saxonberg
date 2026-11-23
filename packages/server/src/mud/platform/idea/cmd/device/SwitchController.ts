@@ -72,7 +72,8 @@ export default class SwitchController extends CommandController<SwitchModel> {
     }
 
     // Resolve the requested state: explicit on/off, else toggle.
-    const raw = (model.state ?? '').trim().toLowerCase();
+    // `on` / `off` — a closed vocabulary the view canonicalizes (type: enum).
+    const raw = model.state ?? '';
     let next: boolean;
     if (raw === 'on') {
       next = true;

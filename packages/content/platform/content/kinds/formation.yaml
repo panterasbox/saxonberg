@@ -1,0 +1,6 @@
+title: Formation
+traits:
+  shipped: { dir: formations }
+  catalogued: { by: /platform/idea/FormationCatalogue, load: per-path }
+  keyworded: { unique: true }
+  titled: { field: name }

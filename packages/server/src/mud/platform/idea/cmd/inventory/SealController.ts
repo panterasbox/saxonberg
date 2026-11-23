@@ -26,7 +26,8 @@ export default class SealController extends CommandController<SealModel> {
     if (!MixinApi.isSealable(thing)) {
       return this.refuse(context, 'act.deed', `${thing.getPresentation()} has nothing to seal.`, 'not-sealable');
     }
-    const kind = (model.seal ?? '').trim().toLowerCase() || 'gum';
+    // `gum` / `wax` — canonicalized by the view (type: enum).
+    const kind = model.seal ?? 'gum';
     const out = thing.sealWith(kind, giver);
     if (!out.ok) return this.refuse(context, 'act.deed', out.line, out.reason);
     MessageApi.scene(giver)

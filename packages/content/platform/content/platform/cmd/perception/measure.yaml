@@ -76,7 +76,7 @@ args:
     # ⭐ `horizon` last (maritime R8): a thing in view beyond your room —
     # the light you take a bearing on — is a subject too, after anything
     # within reach of the same name.
-    scope: ["$focus", "reachable", "horizon"]
+    scope: ["$focus", "~reachable", "~horizon"]
     requires: any
   # ⭐ Every tool in reach, plural with a default — the sanctioned shape
   # when one view cannot carry a per-channel `[capability.X]` filter. The
@@ -92,8 +92,8 @@ args:
     # `with the photometer`: the binder folds the article into the name
     # (controller-liquidity D3); a two-word name is quoted.
     prepositions: [with, using]
-    default: "reachable:[mixin.ToolMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.ToolMixin]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

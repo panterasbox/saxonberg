@@ -52,6 +52,7 @@ export interface EditionRequest {
 export interface EditionData extends DocumentPages {
   source: string;
   hash: string;
-  frozenAtMs: number;
+  /** When it was printed, in game seconds. */
+  frozenAtS: number;
   validUntilS?: number;
 }

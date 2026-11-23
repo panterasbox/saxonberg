@@ -51,8 +51,8 @@ function payload(fields: Partial<ReleaseData>): ReleaseData {
     headline: '',
     body: '',
     author: '',
-    publishedAt: 0,
-    expiresAt: 0,
+    publishedAtS: 0,
+    expiresAtS: 0,
     pinned: false,
     retracted: false,
     visibility: null,
@@ -130,8 +130,8 @@ afterEach(() => {
 
 describe('PressBoard', () => {
   it('warms the window from the release documents in the tree', async () => {
-    seed({ releaseId: 'a', headline: 'a', publishedAt: 10 });
-    seed({ releaseId: 'b', headline: 'b', publishedAt: 20 });
+    seed({ releaseId: 'a', headline: 'a', publishedAtS: 10 });
+    seed({ releaseId: 'b', headline: 'b', publishedAtS: 20 });
     const board = await warmBoard();
     expect(board.recentWindow().map((x) => x.getReleaseId()).sort()).toEqual([
       'a',
@@ -140,9 +140,9 @@ describe('PressBoard', () => {
   });
 
   it('orders pins first, then the rest by recency', async () => {
-    seed({ releaseId: 'old', headline: 'old', publishedAt: 10 });
-    seed({ releaseId: 'new', headline: 'new', publishedAt: 30 });
-    seed({ releaseId: 'pin', headline: 'pin', publishedAt: 20, pinned: true });
+    seed({ releaseId: 'old', headline: 'old', publishedAtS: 10 });
+    seed({ releaseId: 'new', headline: 'new', publishedAtS: 30 });
+    seed({ releaseId: 'pin', headline: 'pin', publishedAtS: 20, pinned: true });
     const board = await warmBoard();
     expect(board.recentWindow().map((x) => x.getReleaseId())).toEqual([
       'pin', // pinned first despite being older than `new`
@@ -152,9 +152,9 @@ describe('PressBoard', () => {
   });
 
   it('caps the pin block at press.maxPins', async () => {
-    seed({ releaseId: 'p1', headline: 'p1', publishedAt: 10, pinned: true });
-    seed({ releaseId: 'p2', headline: 'p2', publishedAt: 20, pinned: true });
-    seed({ releaseId: 'p3', headline: 'p3', publishedAt: 30, pinned: true });
+    seed({ releaseId: 'p1', headline: 'p1', publishedAtS: 10, pinned: true });
+    seed({ releaseId: 'p2', headline: 'p2', publishedAtS: 20, pinned: true });
+    seed({ releaseId: 'p3', headline: 'p3', publishedAtS: 30, pinned: true });
     const board = await warmBoard();
     const ids = board.recentWindow().map((x) => x.getReleaseId());
     // maxPins = 2: only the two most-recent pins survive; p1 is dropped.
@@ -163,12 +163,12 @@ describe('PressBoard', () => {
   });
 
   it('excludes expired releases from the window', async () => {
-    seed({ releaseId: 'live', headline: 'live', publishedAt: 10 });
+    seed({ releaseId: 'live', headline: 'live', publishedAtS: 10 });
     seed({
       releaseId: 'gone',
       headline: 'gone',
-      publishedAt: 20,
-      expiresAt: 1, // expired long ago
+      publishedAtS: 20,
+      expiresAtS: 1, // expired long ago
     });
     const board = await warmBoard();
     expect(board.recentWindow().map((x) => x.getReleaseId())).toEqual([
@@ -177,8 +177,8 @@ describe('PressBoard', () => {
   });
 
   it('soft-retract: the row stays cached but leaves the window', async () => {
-    seed({ releaseId: 'r', headline: 'r', publishedAt: 10, retracted: true });
-    seed({ releaseId: 'k', headline: 'k', publishedAt: 20 });
+    seed({ releaseId: 'r', headline: 'r', publishedAtS: 10, retracted: true });
+    seed({ releaseId: 'k', headline: 'k', publishedAtS: 20 });
     const board = await warmBoard();
     // Excluded from the window...
     expect(board.recentWindow().map((x) => x.getReleaseId())).toEqual(['k']);
@@ -188,7 +188,7 @@ describe('PressBoard', () => {
 
   it('caps the whole window at press.tickerWindow', async () => {
     for (let i = 0; i < 5; i++) {
-      seed({ releaseId: `n${i}`, headline: `n${i}`, publishedAt: i * 10 });
+      seed({ releaseId: `n${i}`, headline: `n${i}`, publishedAtS: i * 10 });
     }
     const board = await warmBoard();
     const ids = board.recentWindow().map((x) => x.getReleaseId());
@@ -199,12 +199,12 @@ describe('PressBoard', () => {
   it('upsert inserts and replaces by id', async () => {
     const board = await warmBoard();
     board.upsert(
-      release({ releaseId: 'u', headline: 'first', publishedAt: 10 }),
+      release({ releaseId: 'u', headline: 'first', publishedAtS: 10 }),
     );
     expect(board.getRelease('u')?.getHeadline()).toBe('first');
 
     board.upsert(
-      release({ releaseId: 'u', headline: 'second', publishedAt: 20 }),
+      release({ releaseId: 'u', headline: 'second', publishedAtS: 20 }),
     );
     expect(board.getRelease('u')?.getHeadline()).toBe('second');
     expect(board.recentWindow()).toHaveLength(1);

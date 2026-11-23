@@ -47,7 +47,19 @@ export default class ClockController extends CommandController<ClockModel> {
     if (!MixinApi.isEmployed(giver)) {
       return this.fail(context, "You don't hold a job anywhere.", 'not-employed-here');
     }
-    const where = (model.organization ?? '').trim();
+    const typed = (model.organization ?? '').trim();
+    // ⭐ The house, named among the ones you work for (naming overhaul D-C5).
+    let where = '';
+    if (typed) {
+      const path = await this.named(
+        context,
+        EmploymentApi.organizationNamed(typed, giver.getActiveEmployments().map((e) => e.organizationPath)),
+        'house',
+        typed,
+      );
+      if (path === null) return;
+      where = path;
+    }
     const result =
       sub === 'on' ? await giver.clockOn(where) : await giver.clockOff(where);
     if (!result.ok) {

@@ -31,6 +31,7 @@
  * business with two counters prices them differently.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import Thing from '../../lib/stuff/Thing';
 import {
   PricedOfferMixin,
@@ -386,9 +387,23 @@ export default class Tariff extends TariffBase {
     return this.quoteFor(lines);
   }
 
-  /** See {@link PricedOffer.offersOrder}: a key this board does as a service. */
-  public override offersOrder(key: string): boolean {
-    return this.serviceFor(key) !== null;
+  /** See {@link PricedOffer.offersOrder}: words that name a service this board does. */
+  public override offersOrder(phrase: string): boolean {
+    return this.serviceNamed(phrase) !== null;
+  }
+
+  /**
+   * ⭐ The service key a customer's words name (`order a revive`), by the
+   * one rule (naming overhaul D-C7) over the keys this board prices as a
+   * service; null when none does. A tie takes the first.
+   */
+  private serviceNamed(phrase: string): string | null {
+    const keys = Object.keys(this.services).filter((k) => this.serviceFor(k) !== null);
+    const answer = GrammarApi.nameAmong(
+      phrase,
+      keys.map((k) => ({ value: k, keywords: [k, k.replace(/-/g, ' ')], title: k })),
+    );
+    return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
   }
 
   /**
@@ -406,7 +421,7 @@ export default class Tariff extends TariffBase {
    * priced clinic.
    */
   public override async orderPlanFor(req: OrderRequest): Promise<OrderAnswer> {
-    const kind = this.serviceFor(req.key);
+    const kind = this.serviceFor(this.serviceNamed(req.phrase) ?? req.key);
     if (!kind) return { ok: false, reason: 'not-offered', facts: { phrase: req.phrase } };
     // Stand the operator up first — the same lazy standup a drink does, so a
     // cold venue's first customer finds a roster rather than a decline.

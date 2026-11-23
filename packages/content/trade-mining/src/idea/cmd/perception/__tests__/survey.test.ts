@@ -127,7 +127,7 @@ async function run(
   ContainmentApi.move(who as unknown as Stuff & Containable, where as unknown as Stuff & Container);
   const ctx = makeContext(who as unknown as Stuff, where, text);
   // ⚠ Stand in for the BINDER: `measure strike` / `measure dip` declare
-  // a `tool` arg defaulting to `reachable:[capability.surveying]`, so
+  // a `tool` arg defaulting to `~reachable:[capability.surveying]`, so
   // the binder finds the instrument and the controller reads it. A
   // hand-built model skips the binder.
   const held =

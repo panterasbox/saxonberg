@@ -10,6 +10,7 @@
  * (`ConsignmentShelfMixin`, `./ConsignmentShelf`).
  */
 
+import { GrammarApi } from '../../api/grammar';
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
@@ -217,18 +218,20 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public resolveHeld(keyword: string): (Stuff & Containable) | null {
-      const contents = (this as unknown as Stuff & Container).getContents();
-      for (const item of contents) {
-        if (
-          MixinApi.isPerceptible(item) &&
-          item.hasKeyword(keyword) &&
-          MixinApi.isChattel(item) &&
-          this.holdingFor(item.getChattelId())
-        ) {
-          return item;
-        }
-      }
-      return null;
+      // ⭐ Among the goods this fixture HOLDS for somebody, by the one rule
+      // (naming overhaul D-C7) — keywords, article, plural, word start.
+      const held = ((this as unknown as Stuff & Container).getContents() as Array<Stuff & Containable>).filter(
+        (item) => MixinApi.isPerceptible(item) && MixinApi.isChattel(item) && this.holdingFor(item.getChattelId()),
+      );
+      const answer = GrammarApi.nameAmong(
+        keyword,
+        held.map((item) => ({
+          value: item,
+          keywords: MixinApi.isPerceptible(item) ? [...item.getKeywords()].map((k) => k.toLowerCase()) : [],
+          title: item.getPresentation(),
+        })),
+      );
+      return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
     }
   }
   return HeldGoodsMixin;

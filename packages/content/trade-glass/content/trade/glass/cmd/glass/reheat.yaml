@@ -18,14 +18,14 @@ args:
     type: objects
     required: false
     prepositions: [at, in]
-    default: "reachable:[mixin.BurnerMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BurnerMixin]"
+    scope: ["~peers", "~person"]
     requires: [BurnerMixin]
   # ⭐ WHICH PIPE — the one carrying a gather.
   - name: pipe
     type: objects
     required: false
     prepositions: [with, using]
-    default: "reachable:[capability.blowpipe]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.blowpipe]"
+    scope: ["~reachable"]
     requires: [ToolMixin]

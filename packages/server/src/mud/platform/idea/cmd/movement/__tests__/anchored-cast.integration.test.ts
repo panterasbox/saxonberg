@@ -162,7 +162,7 @@ describe('the anchored front door — off the network entirely', () => {
     ContainmentApi.move(c as never, here as never);
     vi.spyOn(MqlApi, 'resolveMany').mockImplementation(
       (raw: string, o: { scope: string }) =>
-        (o.scope === 'reachable' && raw === 'summit'
+        (o.scope === '~reachable' && raw === 'summit'
           ? { stuff: [there], raw }
           : { stuff: [], raw }) as never,
     );
@@ -188,7 +188,7 @@ describe('the anchored front door — off the network entirely', () => {
     ContainmentApi.move(c as never, here as never);
     vi.spyOn(MqlApi, 'resolveMany').mockImplementation(
       (raw: string, o: { scope: string }) =>
-        (o.scope === 'reachable' && raw === 'summit'
+        (o.scope === '~reachable' && raw === 'summit'
           ? { stuff: [summit], raw }
           : { stuff: [], raw }) as never,
     );
@@ -223,7 +223,7 @@ describe('the anchored front door — off the network entirely', () => {
     ContainmentApi.move(mundane as never, here as never);
     vi.spyOn(MqlApi, 'resolveMany').mockImplementation(
       (raw: string, o: { scope: string }) =>
-        (o.scope === 'reachable' && raw === 'summit'
+        (o.scope === '~reachable' && raw === 'summit'
           ? { stuff: [there], raw }
           : { stuff: [], raw }) as never,
     );

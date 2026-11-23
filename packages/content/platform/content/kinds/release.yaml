@@ -1,0 +1,16 @@
+title: Press release
+traits:
+  paper:
+    template: |-
+      {{ owner_leaf | replace: "-", " " | upcase }}
+
+      {{ headline }}
+
+      {{ body }}
+  dated: { field: publishedAtS, indexed: true }
+  filed: release
+  shipped: { dir: releases }
+  titled: { field: headline }
+fields:
+  pinned: { type: boolean, index: pinned, default: false }
+  releaseId: { type: string, index: releaseId }

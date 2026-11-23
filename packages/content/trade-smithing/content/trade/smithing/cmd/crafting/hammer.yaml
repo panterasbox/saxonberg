@@ -28,11 +28,11 @@ args:
   - name: target
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     # ⭐ Bare `hammer` works the piece you are at — DECLARED, so the binder
     # resolves it instead of the controller walking for it
     # (`lint:controller-resolution`).
-    default: "reachable:[mixin.HammerableMixin]"
+    default: "~reachable:[mixin.HammerableMixin]"
     # (⚠ Both branches found the `DurableMixin` gate the same week: one
     # by driving it in a browser, one by declaring this default — the
     # walk it replaces was the only reason the verb ever ran.)
@@ -48,8 +48,8 @@ args:
     type: objects
     required: false
     prepositions: [with, using]
-    default: "reachable:[capability.striking]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.striking]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
   # ⭐ WHICH ANVIL — DECLARED, not hunted for (`lint:controller-resolution`).
   # Bare, the binder hands over every reachable thing offering
@@ -59,6 +59,6 @@ args:
     type: objects
     required: false
     prepositions: [on, at, against]
-    default: "reachable:[capability.anvil]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[capability.anvil]"
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]

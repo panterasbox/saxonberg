@@ -35,8 +35,9 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
   - name: sense
-    type: string
+    type: enum
+    values: [up, down]
     required: false

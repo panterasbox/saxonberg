@@ -17,17 +17,21 @@ help: |
   `look` tells you what ONE thing is like. `query` lists a SET: whatever
   the query names, each thing as it stands to you.
 
-    query horizon      what you can see from here, beyond your room —
+    query ~horizon      what you can see from here, beyond your room —
                        landmarks first, then a handful of the tallest
                        things in view, each with a rough direction
                        (a compass point and rough miles), or "close
                        by" when it stands in your own place; by night
                        only what shows a light. `measure bearing`
                        takes the exact bearing.
-    query peers        who and what is here with you
+    query ~peers        who and what is here with you
     query all brass    every brass thing in reach
     query bob:i        what Bob wears and holds (never his pockets)
     query me:i         everything you have
+    query me:~         what you can ask yourself for — the built-in
+                       relations (~here, ~peers, ~contacts …), your contact
+                       lists, your groups — each with what it means
+    query book:~       what a book (or any holder) keeps that you can ask for
 
   Options change how the list is SHOWN, never what is in it:
 
@@ -59,7 +63,7 @@ examples:
     note: Only what you wear
   - cmd: i --weight
     note: The weight and bulk of each thing
-  - cmd: query horizon
+  - cmd: query ~horizon
     note: What is in view beyond your room
   - cmd: query all brass
     note: Every brass thing in reach, listed
@@ -74,8 +78,11 @@ args:
   - name: set
     type: objects
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
+    # ⭐ `query thing:~` lists what you can ask that thing for (naming
+    # overhaul D-B4) — this is the one slot a listing binds.
+    lists: relations
 options:
   ledger:
     type: boolean

@@ -280,7 +280,8 @@ subcommands:
         type: string
         required: true
       - name: level
-        type: string
+        type: enum
+        values: [anyone, editors, moderators, none]
         required: true
   preview:
     controller: /platform/idea/cmd/system/WikiPreviewController

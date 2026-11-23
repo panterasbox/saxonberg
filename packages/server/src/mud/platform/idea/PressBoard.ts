@@ -21,6 +21,7 @@
  */
 
 import { Idea } from '../../lib/stuff/Idea';
+import { WorldClockApi } from '../../api/worldclock';
 import { Release, RELEASE_DOCUMENT_KIND } from '../../lib/press/Release';
 import { DocumentApi } from '../../api/document';
 import { AppApi } from '../../api/app';
@@ -84,7 +85,7 @@ export default class PressBoard extends PressBoardBase {
    */
   public recentWindow(): Release[] {
     this.ensureCache();
-    const now = Date.now();
+    const now = WorldClockApi.getNow().rawValue();
     const live = [...this.cache!.values()].filter(
       (b) => !b.isRetracted() && !b.isExpiredAt(now)
     );
@@ -141,7 +142,7 @@ export default class PressBoard extends PressBoardBase {
         eq: true,
         limit: maxPins * WARM_OVERFETCH,
       }),
-      DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'publishedAt', {
+      DocumentApi.findByKey(RELEASE_DOCUMENT_KIND, 'date', {
         order: 'desc',
         limit: window * WARM_OVERFETCH,
       }),

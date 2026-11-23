@@ -19,5 +19,5 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     requires: [VisibleMixin]

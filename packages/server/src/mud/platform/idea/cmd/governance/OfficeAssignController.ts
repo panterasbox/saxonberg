@@ -9,7 +9,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import { CompactApi } from '../../../../api/compact';
 import { PlayerApi } from '../../../../api/player';
-import { Office } from '../../../../lib/governance/Office';
 import { OfficeControllerBase, type OfficeModel } from './OfficeControllerBase';
 
 export default class OfficeAssignController extends OfficeControllerBase {
@@ -35,14 +34,8 @@ export default class OfficeAssignController extends OfficeControllerBase {
         'no-player-id',
       );
     }
-    const office = Office.byKey((model.office ?? '').trim());
-    if (!office) {
-      return this.fail(
-        context,
-        `No such office: ${model.office ?? '(none)'}.`,
-        'unknown-office',
-      );
-    }
+    const office = await this.officeNamed(context, model.office ?? '');
+    if (!office) return;
 
     const result = await CompactApi.assignOffice(playerId, office.getKey());
     if (!result.ok) {

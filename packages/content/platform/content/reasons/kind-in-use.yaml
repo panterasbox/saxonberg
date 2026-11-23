@@ -1,0 +1,7 @@
+# A kind's declaration may not be removed (or narrowed) while documents of
+# that kind would no longer stand.
+facts:
+  kind: text
+  why: text
+says: "The {{ kind }} declaration stays — {{ why }}."
+topic: shell.error

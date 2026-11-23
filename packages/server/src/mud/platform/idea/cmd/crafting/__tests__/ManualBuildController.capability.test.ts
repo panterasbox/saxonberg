@@ -18,7 +18,7 @@
  * about which object should afford `cut`.
  *
  * ⭐⭐ The helper no longer WALKS. The view declares the instrument
- * (`default: "reachable:[capability.spinning]"`, `type: objects`) and
+ * (`default: "~reachable:[capability.spinning]"`, `type: objects`) and
  * the binder resolves every reachable thing offering the kind, held
  * gear first; what is tested here is the one thing left to the
  * controller — which of those is best. So the fixture is a bound list

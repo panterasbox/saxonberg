@@ -39,10 +39,10 @@ describe('a word naming several chambers of one host (D-W10-6)', () => {
     const { me, plan } = makeBody();
     ContainmentApi.move(me, makeStuff(() => new Location()));
     const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
-    const r = MqlApi.resolveOne('pocket', { commandGiver: me as never, scope: 'inventory' });
+    const r = MqlApi.resolveOne('pocket', { commandGiver: me as never, scope: '~inventory' });
     expect(r.stuff).toBe(coat);
     expect(r.via?.region).toBeUndefined();
-    const inner = MqlApi.resolveOne('inner pocket', { commandGiver: me as never, scope: 'inventory' });
+    const inner = MqlApi.resolveOne('inner pocket', { commandGiver: me as never, scope: '~inventory' });
     expect(inner.stuff).toBe(coat);
     expect(inner.via?.region).toBe('inner pocket');
   });
@@ -52,7 +52,7 @@ describe('a word naming several chambers of one host (D-W10-6)', () => {
     ContainmentApi.move(me, makeStuff(() => new Location()));
     const coat = await wornGarment(me, plan, 'coat', 'torso', COAT);
     const trousers = await wornGarment(me, plan, 'trousers', 'legs', ALIKE);
-    const r = MqlApi.resolveMany('pocket', { commandGiver: me as never, scope: 'inventory' });
+    const r = MqlApi.resolveMany('pocket', { commandGiver: me as never, scope: '~inventory' });
     expect(r.stuff).toEqual(expect.arrayContaining([coat, trousers]));
   });
 });

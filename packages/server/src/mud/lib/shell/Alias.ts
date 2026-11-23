@@ -53,6 +53,12 @@ export interface AliasEntry {
   name: string;
   body: string;
   source: 'default' | 'persistent' | 'session';
+  /**
+   * ⭐ Where the alias applies (naming overhaul D-B7): `verb` (absent) —
+   * the first word of a line; `query` — the head word of a query typed
+   * into an object slot (`here` → `~here`).
+   */
+  at?: 'verb' | 'query';
   description?: string;
   /** For a default declared on a view: the verb whose view declares it. */
   view?: string;
@@ -79,6 +85,8 @@ export interface AliasOverridesSnapshot {
 export interface DefaultAliasEntry {
   name: string;
   body: string;
+  /** `query` for a query-position default (`it` → `~it`); absent = a verb alias. */
+  at?: 'query';
   description?: string;
   /** The verb whose view declares this default; absent for a mixin static. */
   view?: string;
@@ -107,6 +115,7 @@ export interface Alias {
       lifetime?: 'persistent' | 'session';
       description?: string;
       actor: Stuff;
+      at?: 'verb' | 'query';
     },
   ): void;
 
@@ -114,7 +123,7 @@ export interface Alias {
    * Resolve a name through the lookup chain. Returns undefined when
    * the name is unknown OR has a tombstone-suppressed default.
    */
-  getAlias(name: string): AliasEntry | undefined;
+  getAlias(name: string, at?: 'verb' | 'query'): AliasEntry | undefined;
 
   /**
    * Drop an alias. Returns true iff something was effectively removed
@@ -122,7 +131,7 @@ export interface Alias {
    * Tombstones the persistent tier when removing a name that has a
    * default; otherwise just deletes the override.
    */
-  removeAlias(name: string, actor: Stuff): boolean;
+  removeAlias(name: string, actor: Stuff, at?: 'verb' | 'query'): boolean;
 
   /** True iff `getAlias(name)` would return a defined entry. */
   hasAlias(name: string): boolean;
@@ -177,7 +186,7 @@ function collectDefaultAliases(host: object): DefaultAliasEntry[] {
     if (!Array.isArray(entries)) continue;
     const sourceMixin = layer._mixinName ?? layer.name ?? '<anonymous>';
     for (const entry of entries) {
-      const prev = seen.get(entry.name);
+      const prev = seen.get(keyOf(entry.name, entry.at ?? 'verb'));
       if (prev) {
         throw new Error(
           `AliasMixin: default alias '${entry.name}' is declared on ` +
@@ -185,7 +194,7 @@ function collectDefaultAliases(host: object): DefaultAliasEntry[] {
             `only be declared once across the host's mixin chain.`,
         );
       }
-      seen.set(entry.name, sourceMixin);
+      seen.set(keyOf(entry.name, entry.at ?? 'verb'), sourceMixin);
       out.push(entry);
     }
   }
@@ -221,8 +230,14 @@ function collectDefaultAliases(host: object): DefaultAliasEntry[] {
 function findDefaultAlias(
   host: object,
   name: string,
+  at: 'verb' | 'query' = 'verb',
 ): DefaultAliasEntry | undefined {
-  return collectDefaultAliases(host).find((d) => d.name === name);
+  return collectDefaultAliases(host).find((d) => d.name === name && (d.at ?? 'verb') === at);
+}
+
+/** The table key an alias is stored under: a query alias is `?<name>`, apart from verbs. */
+function keyOf(name: string, at: 'verb' | 'query'): string {
+  return at === 'query' ? `?${name}` : name;
 }
 
 /** Match the alias name shape: identifier-like, allows hyphen/underscore. */
@@ -285,25 +300,28 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Transient. Not in persistentFields. */
     aliasesSession: Record<string, string> = {};
 
-    getAlias(name: string): AliasEntry | undefined {
+    getAlias(name: string, at: 'verb' | 'query' = 'verb'): AliasEntry | undefined {
+      const key = keyOf(name, at);
+      const where = at === 'query' ? { at } : {};
       // 1. Session.
-      if (Object.prototype.hasOwnProperty.call(this.aliasesSession, name)) {
+      if (Object.prototype.hasOwnProperty.call(this.aliasesSession, key)) {
         return {
           name,
-          body: this.aliasesSession[name]!,
+          body: this.aliasesSession[key]!,
           source: 'session',
+          ...where,
         };
       }
       // 2. Persistent (with tombstone semantics).
-      if (this.aliases && Object.prototype.hasOwnProperty.call(this.aliases, name)) {
-        const v = this.aliases[name];
+      if (this.aliases && Object.prototype.hasOwnProperty.call(this.aliases, key)) {
+        const v = this.aliases[key];
         if (v === null) return undefined; // tombstone — default suppressed
-        return { name, body: v as string, source: 'persistent' };
+        return { name, body: v as string, source: 'persistent', ...where };
       }
       // 3. Defaults via mixin walk.
-      const def = findDefaultAlias(this, name);
+      const def = findDefaultAlias(this, name, at);
       if (def) {
-        const out: AliasEntry = { name: def.name, body: def.body, source: 'default' };
+        const out: AliasEntry = { name: def.name, body: def.body, source: 'default', ...where };
         if (def.description !== undefined) out.description = def.description;
         if (def.view !== undefined) out.view = def.view;
         return out;
@@ -317,27 +335,26 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     getAliases(): ReadonlyMap<string, AliasEntry> {
       const out = new Map<string, AliasEntry>();
+      // Keyed by table key: a query alias is `?<name>` (its `at` says so).
+      const entryOf = (k: string, body: string, source: AliasEntry['source']): AliasEntry =>
+        k.startsWith('?') ? { name: k.slice(1), body, source, at: 'query' } : { name: k, body, source };
       for (const def of collectDefaultAliases(this)) {
-        const entry: AliasEntry = {
-          name: def.name,
-          body: def.body,
-          source: 'default',
-        };
+        const entry = entryOf(keyOf(def.name, def.at ?? 'verb'), def.body, 'default');
         if (def.description !== undefined) entry.description = def.description;
         if (def.view !== undefined) entry.view = def.view;
-        out.set(def.name, entry);
+        out.set(keyOf(def.name, def.at ?? 'verb'), entry);
       }
       if (this.aliases) {
         for (const [k, v] of Object.entries(this.aliases)) {
           if (v === null) {
             out.delete(k); // tombstone removes default
           } else {
-            out.set(k, { name: k, body: v, source: 'persistent' });
+            out.set(k, entryOf(k, v, 'persistent'));
           }
         }
       }
       for (const [k, v] of Object.entries(this.aliasesSession)) {
-        out.set(k, { name: k, body: v, source: 'session' });
+        out.set(k, entryOf(k, v, 'session'));
       }
       return out;
     }
@@ -357,6 +374,8 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
         lifetime?: 'persistent' | 'session';
         description?: string;
         actor: Stuff;
+        /** `query` — a query-position alias (`alias set --query here ~here`). */
+        at?: 'verb' | 'query';
       },
     ): void {
       if (!NAME_RE.test(name)) {
@@ -364,6 +383,17 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
           `AliasMixin: invalid alias name '${name}' (must match ` +
             `[A-Za-z_][A-Za-z0-9_-]*)`,
         );
+      }
+      if (opts.at === 'query') {
+        // A query alias respells a query's head word; its body is the query.
+        if (body.trim() === '') throw new Error(`AliasMixin: a query alias needs a body`);
+        const key = keyOf(name, 'query');
+        if ((opts.lifetime ?? 'persistent') === 'session') this.aliasesSession[key] = body.trim();
+        else {
+          if (!this.aliases) this.aliases = {};
+          this.aliases[key] = body.trim();
+        }
+        return;
       }
 
       let pipeline;
@@ -424,25 +454,26 @@ export function AliasMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     @Unshadowable
-    removeAlias(name: string, actor: Stuff): boolean {
+    removeAlias(name: string, actor: Stuff, at: 'verb' | 'query' = 'verb'): boolean {
       void actor;
+      const key = keyOf(name, at);
       // Session first.
-      if (Object.prototype.hasOwnProperty.call(this.aliasesSession, name)) {
-        delete this.aliasesSession[name];
+      if (Object.prototype.hasOwnProperty.call(this.aliasesSession, key)) {
+        delete this.aliasesSession[key];
         return true;
       }
       // Persistent override.
-      if (this.aliases && Object.prototype.hasOwnProperty.call(this.aliases, name)) {
-        delete this.aliases[name];
-        if (findDefaultAlias(this, name)) {
-          this.aliases[name] = null; // tombstone
+      if (this.aliases && Object.prototype.hasOwnProperty.call(this.aliases, key)) {
+        delete this.aliases[key];
+        if (findDefaultAlias(this, name, at)) {
+          this.aliases[key] = null; // tombstone
         }
         return true;
       }
       // Default-only: write a tombstone.
-      if (findDefaultAlias(this, name)) {
+      if (findDefaultAlias(this, name, at)) {
         if (!this.aliases) this.aliases = {};
-        this.aliases[name] = null;
+        this.aliases[key] = null;
         return true;
       }
       return false;

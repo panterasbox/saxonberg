@@ -115,13 +115,18 @@ function proseForFrameworkNote(note: Note): string | Mml | null {
       // `reason` is enum; pair with `detail` when present.
       const tail = note.detail ? `: ${note.detail}` : '';
       switch (note.reason) {
-        case 'unknown-verb':
+        case 'unknown-verb': {
+          // ⭐ The old `source::verb` spelling is told the new one, once
+          // (naming overhaul D-B8 — `@` is a player address now).
+          const old = /^([^@\s]+)@(.+)$/.exec(note.detail ?? '');
+          if (old) return `I don't understand '${note.detail}' — a source comes first now: ${old[2]}::${old[1]}.`;
           return `I don't understand '${note.detail ?? '?'}'.`;
+        }
         case 'shape-fall-through':
           return `That doesn't match any known command shape${tail}.`;
         case 'missing-subcommand':
           return `Missing subcommand${tail}.`;
-        // ⭐ `verb@source` and the fail-closed script: the detail is
+        // ⭐ `source::verb` and the fail-closed script: the detail is
         // already the sentence.
         case 'source-not-found':
         case 'source-affords-nothing':
@@ -276,7 +281,7 @@ function isWithin(thing: Stuff, holder: Stuff): boolean {
   return false;
 }
 
-/** `parsed` without its `verb@source` scope (a batch's per-source re-run). */
+/** `parsed` without its `source::verb` scope (a batch's per-source re-run). */
 function unscoped(parsed: ParsedCommand): ParsedCommand {
   const { scope: _scope, ...rest } = parsed;
   return rest;
@@ -469,12 +474,12 @@ export interface Affordance {
  * Public shape provided by CommandGiverMixin.
  */
 /**
- * ⭐ What a `verb@source` named, after the scope filter: every resolved
+ * ⭐ What a `source::verb` named, after the scope filter: every resolved
  * candidate that affords the verb, in resolver order, and how the scope
  * named them (a set, a count, a name) — the cardinality `how`.
  */
 export interface ScopedSources {
-  /** The scope as typed after the `@`. */
+  /** The scope as typed before the `::`. */
   raw: string;
   sources: Stuff[];
   how: CardinalityHow;
@@ -488,7 +493,7 @@ export interface ScopedSources {
  * (unfiltered by source; the caller keeps those {@link ScopedSources}
  * afford), `usage` every matching view's `getUsage()` joined `' · '` (the
  * all-shapes-failed answer), `scope` present when the line was
- * `verb@source`. `ok: false` — the scope refused the line; `note` says
+ * `source::verb`. `ok: false` — the scope refused the line; `note` says
  * why (`source-not-found`, `source-affords-nothing`, or an `mql-error`).
  */
 export type AffordanceMatch =
@@ -500,7 +505,7 @@ export interface CommandGiver {
   getAffordances(): Affordance[];
   /**
    * Match a parsed line against the giver's affordances — the verb
-   * filter and the `verb@source` scope filter (D2). Synchronous.
+   * filter and the `source::verb` scope filter (D2). Synchronous.
    */
   matchAffordances(parsed: ParsedCommand): AffordanceMatch;
   executeCommand(
@@ -733,7 +738,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     }
 
     /**
-     * ⭐ The verb filter, then the `verb@source` scope filter (D2). The
+     * ⭐ The verb filter, then the `source::verb` scope filter (D2). The
      * scope resolves as MQL with the binder's own context (`reachable`,
      * so `me` / `here` / `#id` anchor and a bare name searches what the
      * giver can reach). Nothing resolved → `source-not-found`; resolved
@@ -751,7 +756,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       }
       let resolved;
       try {
-        resolved = MqlApi.resolveMany(parsed.scope, { commandGiver: giver, scope: 'reachable' });
+        resolved = MqlApi.resolveMany(ShellApi.expandQueryAliases(parsed.scope, giver), { commandGiver: giver, scope: '~reachable' });
       } catch (err) {
         return {
           ok: false,
@@ -1448,7 +1453,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       outer: CommandContext,
       scopeSource?: Stuff
     ): Promise<CommandContext> {
-      // ── ① The scope filter (`verb@source`, D2) — FIRST, so the chain
+      // ── ① The scope filter (`source::verb`, D2) — FIRST, so the chain
       // below sees only what the named source affords. An unscoped line
       // passes straight through: `matches` is today's verb filter.
       // Match against affordances (not bare defs) so each matched
@@ -1627,6 +1632,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
               reason: 'unknown-subcommand',
               detail: `unknown subcommand '${built.subcommand}'; valid: ${list}`,
             });
+          } else if (built.refusal !== undefined) {
+            // ⭐ A slot whose value will not do refuses with its own row
+            // (`bad-duration`, naming overhaul D-C6), worded at emit.
+            outer.refuse(new Refusal(built.refusal.reason, built.refusal.facts));
           } else {
             outer.note({
               kind: 'command-rejected',
@@ -1845,7 +1854,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      * as `scopeSource`, a speculative `resolveModel` with no Interactive,
      * preloads, validators. The controller is never run, and nothing
      * prompts. The first that passes becomes an `other-offer` note on the
-     * settled ctx, with the `@` form that names it. Returns `settled`.
+     * settled ctx, with the `source::verb` form that names it. Returns `settled`.
      *
      * ⚠ The giver's own `self` verbs are not probed: an offer is another
      * object here answering the verb, and the giver binding itself as the
@@ -1946,8 +1955,8 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     }
 
     /**
-     * The `@` form that names `source` for this giver, by one rule —
-     * `me` · `me:i:<handle>` · `here` · `here:i:<handle>` · `<handle>`,
+     * The source form (`<source>::verb`) that names `source` for this giver, by one rule —
+     * `me` · `me:i:<handle>` · `me:e` · `me:e:i:<handle>` · `<handle>`,
      * with MQL's index (`here:i:wheat:[2]`) when the handle alone is
      * ambiguous — PROVED by resolving it once. `#<id>` when no worded
      * form proves out.
@@ -1961,7 +1970,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       const giver = this as unknown as Stuff & CommandGiver;
       if (source === giver) return 'me';
       const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-      if (source === here) return 'here';
+      // ⭐ What immediately holds you is `me:e` (naming overhaul D-B3: `~here`
+      // is the enclosing PLACE, which may lie past a boat or a bed).
+      if (source === here) return 'me:e';
       const byId = `#${source.stuffId}`;
       const handle = MixinApi.isPerceptible(source) ? source.getPrimaryKeyword() : null;
       if (!handle) return byId;
@@ -1969,10 +1980,10 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // ⚠ The `:[n]` below indexes MQL's UNIVERSAL list (D23), so the proof
       // resolves unfiltered — the index means the same for everyone.
       if (!PerceptionApi.perceives(giver, source)) return byId;
-      const base = isWithin(source, giver) ? 'me:i:' : here && isWithin(source, here) ? 'here:i:' : '';
+      const base = isWithin(source, giver) ? 'me:i:' : here && isWithin(source, here) ? 'me:e:i:' : '';
       const resolve = (form: string): Stuff[] => {
         try {
-          return MqlApi.resolveMany(form, { commandGiver: giver, scope: 'reachable' }).stuff;
+          return MqlApi.resolveMany(form, { commandGiver: giver, scope: '~reachable' }).stuff;
         } catch {
           return [];
         }
@@ -2096,7 +2107,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         commandId: SecurityApi.uuid(),
         verb: command.getPrimaryVerb(),
         command,
-        // ⭐ A scripted `verb@source` names its source; otherwise the giver.
+        // ⭐ A scripted `source::verb` names its source; otherwise the giver.
         commandSource: source ?? giver,
       });
       const resolved = await CommandApi.resolveModel(model, ctx, prep);

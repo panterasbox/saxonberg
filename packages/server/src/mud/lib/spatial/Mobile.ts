@@ -327,6 +327,9 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       { name: 'up', body: 'go up' },
       { name: 'd', body: 'go d' },
       { name: 'down', body: 'go down' },
+      // ⭐ A query alias (naming overhaul D-B7): `here` typed into a slot
+      // is `~here`, the place you stand in. Removable: `alias unset --query here`.
+      { name: 'here', body: '~here', at: 'query', description: 'The place you stand in' },
     ];
 
     /**

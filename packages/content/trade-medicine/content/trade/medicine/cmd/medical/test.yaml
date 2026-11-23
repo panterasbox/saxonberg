@@ -15,14 +15,14 @@ args:
   - name: patient
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     requires: VitalsMixin
   - name: with
     type: object
     required: false
     prepositions: [with, using]
-    default: "person:[capability.phlebotomy]"
-    scope: ["reachable"]
+    default: "~person:[capability.phlebotomy]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

@@ -15,6 +15,7 @@
  * forge one, and why this row is a pointer rather than a database.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
@@ -183,13 +184,15 @@ export default class ClaimsRegister extends Thing {
   }
 
   public surfaceWorkingFor(word: string): string | null {
-    const want = word.trim().toLowerCase();
-    if (want === '') return null;
-    for (const entry of this.surfaceWorkings) {
-      for (const kw of entry.keywords ?? []) {
-        if (typeof kw === 'string' && kw.toLowerCase() === want) return entry.path;
-      }
-    }
-    return null;
+    // ⭐ By the one rule (naming overhaul D-C4) over each working's keywords.
+    const answer = GrammarApi.nameAmong(
+      word,
+      this.surfaceWorkings.map((e) => ({
+        value: e.path,
+        keywords: (e.keywords ?? []).filter((k): k is string => typeof k === 'string').map((k) => k.toLowerCase()),
+        title: e.path.split('/').pop() ?? e.path,
+      })),
+    );
+    return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
   }
 }

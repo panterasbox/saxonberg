@@ -107,7 +107,7 @@ export default class RiveController extends ManualBuildController<RiveModel> {
     const out = await target.rivePlanFor({
       actor: giver,
       froe,
-      into: (model.into ?? '').trim().toLowerCase(),
+      into: (model.into ?? '').trim(),
     });
     if (!out.ok) {
       this.refuseRive(context, out, target);

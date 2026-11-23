@@ -57,7 +57,7 @@ args:
     required: false
     greedy: true
     prepositions: [with, using]
-    default: "reachable:[mixin.ToolMixin]"
+    default: "~reachable:[mixin.ToolMixin]"
 `;
 
 function bind(text: string): Record<string, unknown> {
@@ -79,13 +79,13 @@ describe('a greedy optional does not eat the args after it', () => {
     expect(model['channel']).toBe('light');
     expect(model['subject']).toBeUndefined();
     // The whole defect: this was absent.
-    expect(model['tool']).toBe('reachable:[mixin.ToolMixin]');
+    expect(model['tool']).toBe('~reachable:[mixin.ToolMixin]');
   });
 
   it('the fed form always worked, and still does', () => {
     const model = bind('probe temperature the kettle');
     expect(model['subject']).toBe('the kettle');
-    expect(model['tool']).toBe('reachable:[mixin.ToolMixin]');
+    expect(model['tool']).toBe('~reachable:[mixin.ToolMixin]');
   });
 
   it('an explicit preposition overrides the default, bare or fed', () => {
