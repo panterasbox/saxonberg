@@ -34,9 +34,6 @@
  */
 
 import { describe as suite, it, expect, beforeAll } from 'vitest';
-import { spawnSync } from 'child_process';
-import { fileURLToPath } from 'url';
-import { join } from 'path';
 import {
   Session,
   declareFile,
@@ -50,8 +47,8 @@ import {
   hand,
   pinWeather,
   unpinWeather,
+  restartWorld,
 } from '../src/harness';
-import { bootOwnedWorld, WIRE_PORT } from '../src/runner/boot';
 import { afterAll } from 'vitest';
 
 declareFile({
@@ -305,13 +302,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
   });
 
   it.skipIf(!isOwnedTestWorld())('14 · restart: Hinkley Hills reads the same, from the rows', async () => {
-    const serverDir = fileURLToPath(new URL('../../server', import.meta.url));
-    spawnSync('node', [join(serverDir, 'scripts', 'dev-preflight.mjs'), String(WIRE_PORT), 'server'], {
-      cwd: serverDir,
-      stdio: 'ignore',
-      env: { ...process.env, PREFLIGHT_GRACE_MS: '300000' },
-    });
-    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    await restartWorld();
     const after = await horizonAt(HINKLEY);
     note('14', after);
     // Night still (step 7 left the clock there): the lit light, by the rows.

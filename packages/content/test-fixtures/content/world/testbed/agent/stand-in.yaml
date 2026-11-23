@@ -1,0 +1,16 @@
+# The stand-in — UNROSTERED and placed nowhere: a drive clones it (`clone
+# /world/testbed/agent/stand-in --here`) to have an NPC to hand coin to or
+# harm, so the rostered NPCs are never killed (test-world-lifecycle D2, D3).
+# ⚠ TEST-ONLY.
+class: /platform/agent/Extra
+data:
+  keywords: [stand-in, extra, person]
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  # ⭐ It answers to the venue (lint:identity — a sentient Extra must answer
+  # to someone, and an unrostered one names its institution outright).
+  institution: /world/testbed/idea/venue
+  shortDescription: stand-in
+  register: indefinite
+  longDescription: |
+    An ordinary person with nothing in particular to do.

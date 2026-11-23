@@ -1,0 +1,12 @@
+# The plaza's noticeboard (test-world-lifecycle D2; the terminal's job board
+# is the exemplar). ⚠ TEST-ONLY.
+class: /platform/thing/JobBoard
+data:
+  shortDescription: public noticeboard
+  keywords: [noticeboard, notice-board, notices, jobs, job-board, public]
+  register: indefinite
+  longDescription: >
+    A public noticeboard on a post, pinned with slips of work wanted and
+    work offered.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 15

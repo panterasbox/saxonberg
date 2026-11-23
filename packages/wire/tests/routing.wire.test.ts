@@ -55,19 +55,26 @@
  *
  * ⭐ **Clean** — every act is a plan, a read or a refusal. `route`
  * starts nothing and spends nothing, so the world after a run is the
- * world before it. ⚠ The file is `.dirty.` anyway, because step 1
- * departs a journey and moves a body.
+ * world before it.
+ *
+ * Stands in the scaffold (test-world-lifecycle D8): the testbed plaza, its
+ * shop next door, the yard two ways off and the passage behind the locked
+ * cellar door. Steps 1, 1b, 10 and 13 ask a moored barge, a locality's
+ * map and a TPA terminal, which are content:
+ * `routing-content.dirty.wire.test.ts`.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import {
   Session,
   declareFile,
-  uniqueHandle,
   plain,
   expectOk,
   expectRefused,
   expectNote,
+  standIn,
+  PLAZA,
+  EXITS,
 } from '../src/harness';
 
 declareFile({
@@ -78,38 +85,21 @@ declareFile({
   // guard while named `.dirty.` and declaring clean. Three files
   // already use the url form; it is the one that cannot drift.
   file: import.meta.url,
-  packs: [
-    'saxonberg-lounge',
-    'terminus',
-    'world-seed',
-    'rejection',
-    'transport',
-    'generic-objects',
-    'ground',
-  ],
+  packs: ['platform', 'test-fixtures'],
 });
 
 /*
- * ⭐ The places the drive names. **Wharfside bank** is the one that
- * matters: it is where `spine` (wheeled) and `estuary` (sailed) BOTH
- * seed, which is what makes step 1 a real test of *planned by the
- * conveyance* rather than by whichever lane came first in compile
- * order. The four shipped lanes have four distinct modes, so an
- * induced lane is by construction its mode's whole component — which
- * is why AC1 asks for *"never a sailed wagon"* and not for *"two lanes
- * of the same mode"*, a thing the realm does not contain.
+ * ⭐ The places the drive names: the plaza, the shop on its east side (lit,
+ * one way off — the market bakery's part), the yard two ways off by the
+ * approach, and the passage behind the locked cellar door (somewhere the
+ * realm has and a new character has not found).
  */
-const BANK = '/world/terminus/wharfside/bank';
-const SQUARE = '/world/terminus/market/square';
-const BAKERY = '/world/terminus/market/bakery';
-const YARD = '/world/terminus/goods-yards/yard';
+const SQUARE = PLAZA;
 
 const open: Session[] = [];
 
 async function at(where: string, tag: string): Promise<Session> {
-  const s = await Session.open(uniqueHandle(`routing-${tag}`), {
-    startLocation: where,
-  });
+  const s = await standIn(where, `routing-${tag}`);
   open.push(s);
   return s;
 }
@@ -159,51 +149,7 @@ afterAll(async () => {
 });
 
 suite('routing — the drive', () => {
-  /* ── 1 · planned by the conveyance, not by a named way ───────────── */
-
-  it('1 · ⭐⭐ a SAILED vehicle is not routed over roads, and says so', async () => {
-    // ⭐⭐ AC1 from the other side, and the live content gave a better
-    // test than the one this step was written with. What affords
-    // `journey` at Wharfside bank is a **moored barge** — and a barge
-    // asked for the market square answers *no road from here goes to
-    // 'the market square'*, which is exactly right: the mode is the
-    // VEHICLE's now, so a sailed hull is never planned over a wheeled
-    // way.
-    //
-    // ⚠ Before this build the Journey's mode came from `lane.mode`, so
-    // the same command with a wagon hitched and `via estuary` made the
-    // WAGON SAIL and it died at the first leg. That direction of the
-    // property needs a hitched rig at a two-way place, which over a
-    // socket means the haulage flow and a funded session;
-    // `JourneyController.test.ts` and `Vehicular.test.ts` pin it
-    // directly, and this step pins the half the shipped content can
-    // actually reach.
-    const s = await at(BANK, 'bank');
-    const res = await s.cmd('journey to the market square');
-    const out = plain(await res.said());
-    // ⚠ Understood, and refused in words. "I don't understand" would
-    // mean nothing afforded the verb — the silent-failure class.
-    expect(out).not.toMatch(/don't understand/i);
-    expect(out.length).toBeGreaterThan(0);
-    expect(out).toMatch(/no road from here|no way you can take|does not join/i);
-    // ⛔ And it must NOT have departed: a barge setting off along a
-    // road is the defect this build removed.
-    expect(out).not.toMatch(/set off along/i);
-  });
-
-  it('1b · ⚠ the way it names is the SAME on two runs', async () => {
-    // The label is the lanes a plan crosses, sorted by key. A label
-    // that varied with compile order would be a different answer to
-    // the same question — which is the defect `laneFor`'s old
-    // `candidates.find(...)` had.
-    const a = await at(BANK, 'label-a');
-    const b = await at(BANK, 'label-b');
-    const first = await say(a, 'journey to the market square');
-    const second = await say(b, 'journey to the market square');
-    const nameOf = (t: string): string =>
-      (/set off along ([^—.]+)/i.exec(t)?.[1] ?? '').trim();
-    expect(nameOf(first)).toBe(nameOf(second));
-  });
+  /* ── 1, 1b · a sailed vehicle (a moored barge) — content ──────── */
 
   /* ── 3 · ask without committing ──────────────────────────────────── */
 
@@ -211,7 +157,7 @@ suite('routing — the drive', () => {
     const s = await at(SQUARE, 'ask');
     // Look first, so the map has the square and its ways in it.
     await s.cmd('look');
-    const out = await say(s, 'route to the market square');
+    const out = await say(s, 'route to the testbed plaza');
     expect(out.length).toBeGreaterThan(0);
     // Either a plan, or one of the verb's own sentences — never silence.
     expect(out).toMatch(
@@ -224,7 +170,7 @@ suite('routing — the drive', () => {
     // path in this output is a DRIVE FAILURE, not a cosmetic one.
     const s = await at(SQUARE, 'names');
     await s.cmd('look');
-    const out = await say(s, 'route to the bakery');
+    const out = await say(s, 'route to the testbed shop');
     expect(out).not.toMatch(/\/world\//);
     expect(out).not.toMatch(/\/platform\//);
   });
@@ -232,12 +178,13 @@ suite('routing — the drive', () => {
   /* ── 4 · somewhere you have never been ───────────────────────────── */
 
   it('4 · ⭐⭐⭐ refuses a place the realm HAS and you have not found', async () => {
-    // The firewall, from the player's side. Terminus has a bank; a
-    // brand-new character has not been to it, and the honest answer is
-    // *you do not know the way* — not a route arriving from nowhere.
+    // The firewall, from the player's side. The testbed has a passage
+    // behind the shop's locked cellar door; a brand-new character has not
+    // been to it, and the honest answer is *you do not know the way* — not
+    // a route arriving from nowhere.
     const s = await at(SQUARE, 'unknown');
     await s.cmd('look');
-    const res = await s.cmd('route to the counting houses banking hall');
+    const res = await s.cmd('route to the testbed passage');
     expectRefused(res);
     const out = plain(await res.said());
     expect(out).toMatch(/do not know the way|no map/i);
@@ -252,24 +199,23 @@ suite('routing — the drive', () => {
     // been: the answer gets better because you went.
     const s = await at(SQUARE, 'earn');
     await s.cmd('look');
-    const before = await s.cmd('route to the bakery');
+    const before = await s.cmd('route to the testbed yard');
 
-    // Walk there and back, which writes `walked` claims both ways.
-    const dirs = ['southwest', 'west', 'north', 'east', 'northeast', 'south'];
-    let arrived = false;
-    for (const d of dirs) {
+    // Walk there (plaza → approach → yard), which writes `walked` claims.
+    let arrived = true;
+    for (const d of [EXITS.plaza.approach, EXITS.approach.yard]) {
       const res = await s.cmd(`go ${d}`);
-      if (res.status === 'ok') {
-        await s.cmd('look');
-        arrived = true;
+      if (res.status !== 'ok') {
+        arrived = false;
         break;
       }
+      await s.cmd('look');
     }
 
-    const after = await s.cmd('route to the bakery');
+    const after = await s.cmd('route to the testbed yard');
     // ⚠ The claim is about the PAIR, not about either run: if the
     // first refused and the second did not, walking taught something.
-    // If the room's own `look` already named the bakery, both may
+    // If the room's own `look` already named the yard, both may
     // answer — which is also correct, and then this step proves only
     // that the verb is reachable. Said out loud rather than asserted
     // away: the unit test `NavigationLogic.map-routing.test.ts`
@@ -298,7 +244,7 @@ suite('routing — the drive', () => {
     // sentences, including the ford caveat and the channel).
     const s = await at(SQUARE, 'assume');
     await s.cmd('look');
-    const res = await s.cmd('route to the bakery');
+    const res = await s.cmd('route to the testbed shop');
     const out = plain(await res.said());
     expect(out).not.toMatch(/don't understand/i);
     expect(out).toMatch(/The way to|do not know the way|no map|already there|⚠/i);
@@ -314,7 +260,7 @@ suite('routing — the drive', () => {
     // honest answer names the verb that DOES know.
     const s = await at(SQUARE, 'break');
     await s.cmd('look');
-    const res = await s.cmd('route to the bakery by wagon');
+    const res = await s.cmd('route to the testbed shop by wagon');
     expectRefused(res);
     const out = plain(await res.said());
     expect(out).toMatch(/journey/i);
@@ -354,40 +300,17 @@ suite('routing — the drive', () => {
     const res = await s.cmd('config navigation.attendedSearchBudget 999999');
     expectRefused(res);
     const out = plain(await res.said());
-    expect(out).toMatch(/permission/i);
+    expect(out).toMatch(/permission|must hold the prime minister/i);
   });
 
-  /* ── 10 · the firewall, from the map verb's side ─────────────────── */
-
-  it('10 · ⭐⭐⭐ `map` still shows only what YOU know', async () => {
-    const s = await at(YARD, 'map');
-    await s.cmd('look');
-    const out = await say(s, 'map terminus');
-    // It must not have grown the whole realm. The yard's own
-    // neighbourhood, and nothing from the far side of the pass.
-    expect(out).not.toMatch(/kestrel|ferrow|hush-mouth/i);
-  });
-
-  /* ── 13 · the terminal still works ──────────────────────────────── */
-
-  it('13 · ⚠ a TPA terminal is a DESTINATION, never a routed leg', async () => {
-    // A node's `travel` block is not an edge for the search: a plan
-    // ends at the terminal, and taking the service is a separate act.
-    // So the board must still read and the network must still carry.
-    const s = await at(SQUARE, 'tpa');
-    const out = await say(s, 'route to the terminal hall');
-    // Whatever it answers, it must not have planned THROUGH a
-    // timetable — a routed plan to a place only the TPA reaches would
-    // be the search treating a service as a doorway.
-    expect(out).toMatch(/do not know the way|The way to|no map|already there/i);
-  });
+  /* ── 10, 13 · a locality's map; a TPA terminal — content ───────── */
 
   /* ── 14 · the matrix, typed ──────────────────────────────────────── */
 
   it('14 · ⭐⭐ `route between <a> and <b>` answers a pair and no order', async () => {
     const s = await at(SQUARE, 'pair');
     await s.cmd('look');
-    const res = await s.cmd('route between the market square and the bakery');
+    const res = await s.cmd('route between the testbed plaza and the testbed shop');
     const out = plain(await res.said());
     expect(out.length).toBeGreaterThan(0);
     // ⛔ No order offered, ever. Deciding which stop to make first is

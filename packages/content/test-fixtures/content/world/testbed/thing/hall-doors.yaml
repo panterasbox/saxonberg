@@ -1,0 +1,11 @@
+# The hall's double doors, standing open (test-world-lifecycle D2; Duncan
+# Hall's front doors are the exemplar). ⚠ TEST-ONLY.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
+data:
+  shortDescription: double doors
+  keywords: [doors, double, "double doors"]
+  register: definite
+  longDescription: >
+    A pair of tall wooden doors, propped open.
+  open: true

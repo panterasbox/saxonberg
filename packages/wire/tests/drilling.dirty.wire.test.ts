@@ -31,18 +31,12 @@
  * a verb nothing affords reads as a clean pass. Every checkpoint here
  * either reads prose or reads state back.
  *
- * ## ⚠⚠ A fresh DB needs a bigger boot budget than the harness's default
+ * ## A fresh DB boots slowly
  *
- * `bootOwnedWorld`'s budget is `WIRE_BOOT_TIMEOUT ?? 420_000`, and a
- * **fresh** database does not make it: installing fifty-seven packs from
- * the checkout took this drive past seven minutes, and the harness gave
- * up with *the owned server did not answer within 420s* while the log's
- * last line was `AppBootstrap: world open — the cast may act`. The world
- * was fine; the probe had stopped asking.
- *
- * ⭐ So a run after a `reset:db` wants `WIRE_BOOT_TIMEOUT=900000`, and a
- * run on a warm DB does not. Worth knowing before concluding anything
- * about a boot that "hangs".
+ * Installing every pack from the checkout takes a fresh database past seven
+ * minutes; the harness's boot budget (`WIRE_BOOT_TIMEOUT`, 900 s by default
+ * since test-world-lifecycle W0) covers it. Before then the default was 420 s
+ * and this drive was the one that found it short.
  *
  * Run: `WIRE_BOOT=1 WIRE_PORT=2013 WIRE_BOOT_TIMEOUT=900000
  * WIRE_FRAME_TIMEOUT=45000 npx vitest run

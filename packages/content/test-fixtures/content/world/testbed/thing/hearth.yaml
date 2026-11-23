@@ -1,0 +1,20 @@
+# The shop's hearth (test-world-lifecycle D2; the commons hearth is the
+# exemplar). Laid and unlit. ⚠ TEST-ONLY.
+class: /platform/thing/Hearth
+data:
+  shortDescription: hearth
+  keywords: [hearth, fire, fireplace, grate]
+  register: definite
+  longDescription: >
+    A stone hearth in the back wall with an iron grate, a fire laid in it
+    and not lit.
+  lit: false
+  heatOutputW: 1500
+  emittedIntensity: 150
+  emittedColorTemperature: 1900
+  maxBurnPowerW: 6000
+  fuelCapacityKg: 20
+  fuelBed:
+    /stuff/idea/material/wood/oak: 6
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 600

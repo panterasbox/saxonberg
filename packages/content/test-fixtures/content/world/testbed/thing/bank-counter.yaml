@@ -1,0 +1,23 @@
+# The testbed teller counter — a branch of the independent testbed bank
+# (test-world-lifecycle D2; the Goodkin counter is the exemplar). No corpo:
+# `bank: testbed-bank` is the independent-bank key (`BankMixin.bank`). The
+# banking verbs come off this fixture. The bank Business resolves from the
+# counter's path via its `operatingLocations`. ⚠ TEST-ONLY.
+class: /platform/thing/BankCounter
+data:
+  shortDescription: teller counter
+  keywords: [counter, teller, till, window]
+  register: definite
+  longDescription: |
+    A plain wooden counter with a till behind it and a ledger pad on the customer's side.
+  bank: testbed-bank
+  terms:
+    minBalance: 0
+    openingFee: 0
+    transactionFee: 0
+    wireFee: 0
+    cardReissueFee: 0
+    loanRatePerGameYear: 0.05
+    repaymentShare: 0.25
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 120

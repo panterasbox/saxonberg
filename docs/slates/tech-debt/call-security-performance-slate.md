@@ -143,7 +143,7 @@ message) moved to
 ## The measurements (2026-11-17 and -18)
 
 The world profile is the instrument (`scripts/profile-layer.ts` over a
-`WIRE_CPU_PROF` profile of `call-security-performance.dirty.wire.test.ts`
+`WIRE_CPU_PROF` profile of `call-security-performance.wire.test.ts`
 on the quiet box). In a thirty-body crowd the layer was 54.8% of busy
 (40.6 s) before the second pass and 45.2% (20.3 s) after, over the same
 acts; `say` p95 75 → 53 ms, freeze samples over 100 ms 33/195 → 3/162.

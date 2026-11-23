@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# wire-indifference — does a migrated drive pass whatever the world holds?
+#
+# The test-world-lifecycle drive's runner steps (plan D9) — the three a wire
+# file cannot be, because each is a RUN of the runner:
+#
+#   (default)     steps 3, 4 and 5 —
+#     3  indifferent to state: the migrated set on a FRESH world, again on
+#        the same world with no drop, then a third time on a world other
+#        drives have dirtied; three green readings of .wire/result.json.
+#        ⚠ The `suite` leg (the WHOLE wire suite, to dirty the world) is
+#        OPT-IN (`--legs …,suite,…`): it took 6.5 h on 2026-11-21 and its own
+#        results do not count — a reused world any drive has run in is
+#        dirty enough (owner, the same day);
+#     4  no placeholder content: a world booted with Terminus — and every
+#        pack that depends on it — left out, and the migrated set again;
+#     5  clean after itself: the money supply and the test-character count
+#        read off the database before and after a migrated run (equal, and
+#        zero characters); then a run killed partway, whose litter the next
+#        run's start purges (non-empty), and the start after that (empty).
+#   --refusal     step 2 — only in a test world: drop the database, boot an
+#                 ORDINARY world (no SAXONBERG_TEST_WORLD) on the wire port,
+#                 expect the REFUSED line and zero test-fixtures rows, stop.
+#   --legs a,b,…  run only some legs: fresh, reuse, suite, again, absent,
+#                 clean, crash (default: all but `suite`, in that order).
+#   --set "f g …" the files a leg runs, instead of the migrated set (vitest
+#                 filters). `clean` and `crash` test the PURGE, not the
+#                 drives, so a few money- and character-making files do.
+#
+# The MIGRATED SET is every drive `lint:wire-content` does not list (a file
+# at zero), minus soak files: the files this build is accountable for.
+#
+# ⚠ Heavy: each fresh boot is 10–13 minutes on this box and the whole-suite
+# leg is an hour. It takes the cross-worktree suite lock (tools/lib), honors
+# WIRE_PORT (build-1 is 2014), and refuses saxonberg_demo. Prefix node with
+# nothing: it clears NODE_OPTIONS itself (a debugger bootloader hangs it).
+# Results land in packages/wire/.wire/indifference/.
+
+set -u
+SCRIPT_DIR=$(cd -- "$(dirname -- "$0")" && pwd)
+WORKTREE=$(cd -- "$SCRIPT_DIR/.." && pwd)
+ROOT=$(cd -- "$WORKTREE/.." && pwd)
+WIRE="$WORKTREE/packages/wire"
+SERVER="$WORKTREE/packages/server"
+OUT="$WIRE/.wire/indifference"
+export NODE_OPTIONS= VSCODE_INSPECTOR_OPTIONS=
+export WIRE_PORT=${WIRE_PORT:-2012}
+WAIT=1
+TAG=wire-indifference
+MODE=runs
+LEGS=fresh,reuse,again,absent,clean,crash
+SET_OVERRIDE=
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --refusal) MODE=refusal ;;
+    --legs) LEGS=$2; shift ;;
+    --set) SET_OVERRIDE=$2; shift ;;
+    --no-wait) WAIT=0 ;;
+    -h|--help) sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) echo "$TAG: unknown option '$1' (try --help)" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+db=$(sed -n 's/^MONGODB_DATABASE=//p' "$SERVER/.env" 2>/dev/null | tr -d '"'"'")
+if [ "${MONGODB_DATABASE:-$db}" = saxonberg_demo ]; then
+  echo "$TAG: refusing — the database is saxonberg_demo, the live box's." >&2
+  exit 1
+fi
+
+. "$SCRIPT_DIR/lib/suite-lock.sh"
+trap 'drop_lock; exit 130' INT TERM
+trap 'drop_lock' EXIT
+take_lock
+mkdir -p "$OUT"
+
+say() { echo "$TAG: $*" | tee -a "$OUT/record.txt"; }
+census() { (cd "$SERVER" && npx tsx scripts/wire-world-census.ts); }
+stop_kept() {
+  kept="$WIRE/.wire/kept-world.json"
+  [ -f "$kept" ] || return 0
+  # ⚠ SIGTERM the LISTENER — the node process that saves — never the
+  # process group: the group signal takes the pnpm/tsx wrappers down with it
+  # and the world dies before its shutdown capture (measured: 2 s, no report).
+  pid=$(lsof -ti "tcp:$WIRE_PORT" -sTCP:LISTEN | head -1)
+  if [ -n "$pid" ]; then
+    kill -TERM "$pid" 2>/dev/null
+    for _ in $(seq 1 "${WIRE_STOP_GRACE_S:-240}"); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+    grep 'shutdown captured' "$WIRE/.wire/server.log" | tail -1 | sed "s/^/$TAG:   /"
+  fi
+  rm -f "$kept"
+}
+migrated() {
+  # Drives at zero in the census, as vitest filters (basenames), soak excluded.
+  listed=$(cd "$SERVER" && npx tsx scripts/check-wire-content.ts 2>/dev/null | sed -n 's/^    \(packages\/[^ ]*\)$/\1/p')
+  (cd "$WORKTREE" && ls packages/wire/tests/*.wire.test.ts packages/content/*/wire/*.wire.test.ts 2>/dev/null) |
+    grep -v '\.soak\.' | while read -r f; do
+      printf '%s\n' "$listed" | grep -qxF "$f" || basename "$f"
+    done
+}
+# Run the wire runner; $1 = leg name, rest = vitest args. Records result.json.
+run_leg() {
+  leg=$1; shift
+  say "── leg '$leg': pnpm wire $*"
+  (cd "$WIRE" && pnpm -s wire "$@") > "$OUT/$leg.log" 2>&1
+  code=$?
+  cp "$WIRE/.wire/result.json" "$OUT/$leg.result.json" 2>/dev/null
+  grep -E '^wire: purged' "$OUT/$leg.log" | sed "s/^/$TAG:   /" | tee -a "$OUT/record.txt"
+  say "leg '$leg' exit $code ($(grep -cE '✓' "$OUT/$leg.log") passed, $(grep -cE '×' "$OUT/$leg.log") failed)"
+  return $code
+}
+
+if [ "$MODE" = refusal ]; then
+  say "step 2 — an ordinary world refuses the fixture pack"
+  (cd "$SERVER" && pnpm -s reset:db) | tee -a "$OUT/record.txt"
+  log="$OUT/refusal-server.log"
+  # An ORDINARY world: no SAXONBERG_TEST_WORLD, no NODE_ENV=test, no VITEST.
+  (cd "$SERVER" && env -u SAXONBERG_TEST_WORLD -u VITEST -u NODE_ENV PORT="$WIRE_PORT" \
+    pnpm exec tsx src/preload.js > "$log" 2>&1) &
+  for _ in $(seq 1 900); do
+    curl -sf "http://localhost:$WIRE_PORT/healthz" >/dev/null && break
+    sleep 1
+  done
+  line=$(grep -m1 "'test-fixtures' REFUSED" "$log")
+  installed=$(grep -c "'test-fixtures' installed" "$log")
+  rows=$(census | sed -n 's/^fixture-rows //p')
+  pid=$(lsof -ti "tcp:$WIRE_PORT" -sTCP:LISTEN | head -1)
+  [ -n "$pid" ] && kill -TERM "$pid" && for _ in $(seq 1 240); do kill -0 "$pid" 2>/dev/null || break; sleep 1; done
+  say "refused line: ${line:-NONE}"
+  say "installed lines: $installed; fixture rows in the database: ${rows:-?}"
+  if [ -n "$line" ] && [ "$installed" = 0 ] && [ "${rows:-1}" = 0 ]; then say "step 2 PASS"; exit 0; fi
+  say "step 2 FAIL"; exit 1
+fi
+
+if [ -n "${SET_OVERRIDE:-}" ]; then set -- $SET_OVERRIDE; else set -- $(migrated); fi
+SET="$*"
+say "migrated set ($#): $SET"
+fail=0
+has() { case ",$LEGS," in *",$1,"*) return 0 ;; esac; return 1; }
+
+if has fresh; then
+  stop_kept
+  (cd "$SERVER" && pnpm -s reset:db) >/dev/null
+  WIRE_BOOT=1 WIRE_KEEP_WORLD=1 run_leg fresh $SET || fail=1
+fi
+if has reuse; then WIRE_REUSE=1 run_leg reuse $SET || fail=1; fi
+if has suite; then WIRE_REUSE=1 run_leg suite || say "(the whole suite's own red is not this tool's reading)"; fi
+if has again; then WIRE_REUSE=1 run_leg again $SET || fail=1; fi
+if has absent; then
+  stop_kept
+  # Every discovered pack minus terminus and everything that depends on it, from package.json files.
+  packs=$(cd "$WORKTREE" && node -e '
+    const fs = require("fs"); const path = require("path");
+    const root = JSON.parse(fs.readFileSync("package.json", "utf8"));
+    const ids = Object.keys(root.dependencies || {}).filter((n) => n.startsWith("@saxonberg/content-")).map((n) => n.slice(19));
+    const deps = {};
+    for (const id of ids) {
+      const p = path.join("packages/content", id, "package.json");
+      const pj = fs.existsSync(p) ? JSON.parse(fs.readFileSync(p, "utf8")) : {};
+      deps[id] = Object.keys(pj.dependencies || {}).filter((n) => n.startsWith("@saxonberg/content-")).map((n) => n.slice(19));
+    }
+    const out = new Set(["terminus"]);
+    for (let grew = true; grew; ) { grew = false; for (const id of ids) if (!out.has(id) && deps[id].some((d) => out.has(d))) { out.add(id); grew = true; } }
+    process.stderr.write("left out: " + [...out].sort().join(",") + "\n");
+    process.stdout.write(ids.filter((id) => !out.has(id)).join(","));
+  ' 2>>"$OUT/record.txt")
+  SAXONBERG_PACKS=$packs WIRE_PACKS=$packs WIRE_BOOT=1 WIRE_KEEP_WORLD=1 run_leg absent $SET || fail=1
+  stop_kept
+fi
+if has clean; then
+  [ -f "$WIRE/.wire/kept-world.json" ] || WIRE_BOOT=1 WIRE_KEEP_WORLD=1 run_leg clean-boot test-world-lifecycle >/dev/null
+  before=$(census)
+  WIRE_REUSE=1 run_leg clean $SET || fail=1
+  after=$(census)
+  say "before: $(echo $before)"
+  say "after:  $(echo $after)"
+  b=$(printf '%s\n' "$before" | grep '^supply'); a=$(printf '%s\n' "$after" | grep '^supply')
+  chars=$(printf '%s\n' "$after" | sed -n 's/^test-characters //p')
+  if [ "$a" = "$b" ] && [ "$chars" = 0 ]; then say "step 5 (clean): PASS"; else say "step 5 (clean): FAIL"; fail=1; fi
+fi
+if has crash; then
+  say "── leg 'crash': a run killed partway"
+  (cd "$WIRE" && WIRE_REUSE=1 pnpm -s wire $SET > "$OUT/crash.log" 2>&1) &
+  runner=$!
+  # Let it get into its files, then kill the runner (the world stays).
+  for _ in $(seq 1 600); do grep -q '✓' "$OUT/crash.log" 2>/dev/null && break; sleep 1; done
+  sleep 20
+  pkill -TERM -P "$runner" 2>/dev/null; kill -TERM "$runner" 2>/dev/null; wait "$runner" 2>/dev/null
+  WIRE_REUSE=1 run_leg crash-next test-world-lifecycle || true
+  WIRE_REUSE=1 run_leg crash-after test-world-lifecycle || true
+  first=$(grep -m1 -oE 'purged [0-9]+ test character' "$OUT/crash-next.log" | grep -oE '[0-9]+')
+  second=$(grep -m1 -oE 'purged [0-9]+ test character' "$OUT/crash-after.log" | grep -oE '[0-9]+')
+  say "the start after a killed run purged ${first:-?}; the start after that purged ${second:-?}"
+  if [ "${first:-0}" -gt 0 ] && [ "${second:-1}" = 0 ]; then say "step 5 (crash): PASS"; else say "step 5 (crash): FAIL"; fail=1; fi
+fi
+
+[ "$fail" = 0 ] && say "ALL LEGS GREEN" || say "SOME LEG FAILED — see $OUT/"
+exit "$fail"

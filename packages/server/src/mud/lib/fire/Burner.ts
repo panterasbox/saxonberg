@@ -61,6 +61,7 @@ import type { Container } from '../spatial/Container';
 import type { Atmospheric } from '../biome/Atmospheric';
 import type { BulkSlot } from '../bulk/Bulkable';
 import type Material from '../material/Material';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { Quantity } from '../quantity';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
@@ -1559,6 +1560,13 @@ export function BurnerMixin<TBase extends NestingConstructor<Stuff>>(
     }
 
     public reconcileBurnerFuel(): void {
+      // ⭐ A read never writes (crowded-rooms): inside a walk that holds the
+      // world still — the light walk asks every source for its flux — the
+      // fuel is read as it stands and the burn is left to the next ordinary
+      // read, which catches up from the unchanged stamp. Without this a lit
+      // lamp turned every light read into a `bulkAmount` write (found by the
+      // test-world-lifecycle drive: `douse lamp` / `analyze light`).
+      if (ExecutionContextApi.worldHeldStill) return;
       const now = burnerNowSeconds();
       if (now === null) return;
       if (this.burnerFuelClockStamp === UNSTAMPED) {

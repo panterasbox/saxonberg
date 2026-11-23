@@ -1,16 +1,17 @@
 # Test-world lifecycle — fresh state without a cold boot
 
-> **Status: UNBUILT** — raised by the owner 2026-11-08 during the
-> controllers-are-io build (MR !527): *"do we need to have a conversation later
-> about rethinking these complete mongo wipes and be more selective about
-> database operations needed for development? … if it's becoming a problem
-> for test stability or even just wasting time we can reclaim."* Not designed;
-> this records the evidence for that conversation.
-> **Left:** the conversation · a seeded-snapshot restore instead of drop + cold
-> boot · dirty wire files that stage their own consumables · the harness's
-> restart path (shutdown save, the heap flag) · the wire runner's world reuse
-> rules
-> **Size:** a build (probably infra), sequenced after the conversation
+> **Status: BUILD 1 SHIPPED** (MR !638, 2026-11-21) — the test-only
+> `test-fixtures` pack at `/world/testbed` (the scaffold), runtime staging
+> (`standIn` · `fundedAccount` · `standInNpc`), the run's purge (with
+> `reserve retire` as the money sink), one restart path (grace · budget ·
+> heap flag), drives found in packs, and `lint:wire-content` (120 → 110 →
+> 112). 19 kernel/platform drives migrated whole and 11 split (13 content
+> halves). How it works now: [testing.md § The scaffold](../../testing.md).
+> **Left:** **Build 2** (§ Build 2): the 62 pack drives into their packs,
+> building their own sites · the 22 sweeps made content-agnostic · the 7
+> locality flows moved · the 6 content drives and 13 content halves · the
+> census to zero · plus the kernel findings build 1 left for their owners.
+> **Size:** two builds
 
 ## What it costs today
 
@@ -50,6 +51,116 @@
 4. **Selective resets** instead of whole wipes: reset only the collections a
    run dirties (the `RESET_DISPOSITIONS` table already classifies them per
    collection: [record-layer.md](../../subsystems/record-layer.md)).
+
+## The conversation, held 2026-11-20
+
+The first answer — snapshot a seeded world and restore it before every run —
+was wrong, and the owner said why: *"if you're relying on staging a whole world
+just to consume a handful of things and then restaging it all again that's
+just stupid … why can't tests just use that stuff to stage whatever state they
+need regardless of whatever state the world's already in? … at some point all
+this placeholder content is going away for the real thing and we're still
+gonna need tests."* So: **a drive proves a system whatever the world's state,
+and names no placeholder content.** Rulings: a **test-only fixture pack**
+holds the scaffold nothing consumes; drives stage what they consume at
+runtime; content-specific drives live with their pack; two builds.
+
+## Build 2 (after build 1)
+
+- **The 62 infrastructure and trade pack drives** move into their packs and
+  stand up their own sites at runtime from their own rows (a clay pit, a wood,
+  a well, a ship on a sea) in the scaffold — none of the 45 trade or 5
+  infrastructure packs owns a place today, so every one borrows Terminus's.
+  Open: does each pack ship test-only fixtures of its own, or build its site
+  at runtime into the fixture pack's ground?
+- **Two drives that arrived after the census**, from the master merge of
+  2026-11-21: `matter-model-overlaps.dirty` and its soak twin (the Hesper,
+  the sugar house, the creamery, the brickfield) — pack-mechanism drives,
+  written while the gate was not on master; `lint:wire-content`'s ceiling
+  took them (110 → 112).
+- **The 22 sweeps** (every controller, every row loads, …) enumerate what is
+  installed and never name it.
+- **The 7 locality flows** (farming, farmstead, crafting, cooking, textiles,
+  pets, pets-offer) move to their locality's pack unchanged.
+- **The 6 content-specific drives build 1 did not migrate** (owner ruling
+  2026-11-20): agent-coordination, identity, consequence, economic-bootstrap,
+  zone-instancing, aether-devices — each to the pack whose content it tests.
+- **The 11 content halves** build 1 split out (`<name>-content.dirty`) of
+  failure-model, call-security-pass, navigation-server, routing,
+  location-graph, placement, envelope, injury, wizard-axis,
+  nutrition-fitness, trades-and-labor — each to its pack. ⭐ Build 1 split
+  **13**, not 11: client-surface and recovery each had one content step too
+  (a NAMED NPC's corpse keeps her name private — the testbed ships only
+  unnamed Extras, so a named `Cast` to kill is a scaffold piece build 2 may
+  want; the infirmary ward's furnishings).
+- **What build 1 found that build 2 inherits:** a pack with fixtures of its
+  own needs only `testOnly: true` on a second pack — the gate, the purge and
+  the runner's second include root all work unchanged; a pack drive imports
+  `@saxonberg/wire/harness`. The scaffold has no lit room on the free side of
+  a locked door, no carryable lamp (envelope hands trade-mining's safety
+  lamp), and an unfuelled forge — stage what a drive needs, or add the piece
+  to the fixture pack when two drives want it.
+- **Kernel findings build 1's drive surfaced and did NOT fix** (each worked
+  around in the drive, said at the site; each wants its owner's build):
+  - **A death that fires inside a governed eval leaves no corpse.** The dying
+    clock reconciles on READ, so the death runs in whatever context read
+    the expired window; under `eval --parcel <x>`'s jurisdiction bound the
+    corpse — unplaced at mint — is outside the bound and its applier is
+    refused (`setConditionAtDeath`), so the NPC dies and leaves nothing.
+    Mortality / call-security: a death is the world's act, not the
+    reader's, or an unplaced mint by in-jurisdiction work is in it.
+  - **A fresh good's title is derived fire-and-forget after a move**
+    (ContainmentLogic's custody step), so an act on it at once — `shelf
+    consign` — can read "isn't yours to sell" while the world is busy. The
+    harness's `hand` now waits for the title; a player who picks a fresh good
+    up and sells it in the same breath could still meet it. Chattel.
+    (First recorded here as "a handed Book is not titled" — wrong: it was
+    this race.)
+  - **`tend` / `lock` with nothing in reach ask "Tend what?" / "Lock
+    what?" with an empty list** — a prompt a player cannot usefully answer.
+    The binder.
+  - **An unknown option is silently ignored** (`reload --strict`, renamed
+    `--force`, swapped broken code in). The command def predicts everything;
+    an option it does not declare should refuse. The binder.
+  - **An overcast sky does not dim moonlight** — an open lane under a
+    waxing moon reads "enough to work by" with the weather pinned overcast.
+    Light / weather.
+  - **A bar lifted from the floor (`lift`), then picked up, does not come
+    home with its carrier through a logout** — a never-lifted bar does. The
+    load device / custody.
+  - **`wallet beneficiary <name>` only resolves a member who is present** —
+    naming an absent heir answers `no-such-member`. Estate.
+- **Stale paths in other builds' retained plans** (`envelope-plan`,
+  `location-graph-plan`, `client-surface-plan`, `sandbox-overlay-plan`) still
+  name the drives' old `.dirty.` filenames; they are history and were left.
+- The placeholder-content count reaches zero; the soak lane's per-dirty-world
+  drops go with the last dirty file.
+
+## Reuse ledger for the plan (2026-11-20)
+
+Surveyed on master `ace3d9b0a`. Every row is one the plan must account for.
+
+| concept | what already does it | reuse or new |
+|---|---|---|
+| owning / attaching / keeping a world | `packages/wire/src/runner/boot.ts` (`bootOwnedWorld`, `stopOwnedWorld`, `WIRE_KEEP_WORLD`, `WIRE_REUSE`, `kept-world.json`), `global-setup.ts` | **reuse** — a long-lived kept world becomes the normal case |
+| a timed stop that reads the shutdown save | `harness/world.ts` `stopWorldWithin`, `lastShutdownReport` (db-performance) | **reuse** — the one restart path is built on it |
+| restart | `harness/world.ts` `restartWorld` + **18 files with their own copy** (preflight + `bootOwnedWorld`, most with the 2 s preflight kill) | **generalize** — one harness path; the copies deleted |
+| the kill graces | `stopOwnedWorld`'s 15 s; `dev-preflight.mjs` `PREFLIGHT_GRACE_MS` (2 s default; six files pass 60–300 s) | **generalize** |
+| the heap flag | nothing: `boot.ts` strips `NODE_OPTIONS` on every owned boot | **new** (a flag kept on the spawned world) |
+| the boot budget | `WIRE_BOOT_TIMEOUT` default 420 s; soak passes none; testing.md says use 900 s after `reset:db` | **generalize** |
+| dropping the worktree DB | `packages/server/scripts/reset-db.ts` (refuses `saxonberg_demo`) | **kept** for a deliberate cold boot; no longer the way to a fresh run |
+| a per-collection reset classification | `RESET_DISPOSITIONS` (generated), `RecordLogic.wipe` | **not reused** — built for a running world (keeps the clock, wipes snapshots under live hosts); the restore replaces the whole DB |
+| a database dump / restore | nothing | **rejected** (the conversation) — a world drives cannot dirty needs no reset |
+| a test-only pack | nothing: only command views can be test-only (`testOnly` + `requiresTestWorld`); discovery reads the deployment manifest's `@saxonberg/content-*` deps | **genuinely new** — a pack flag discovery honors only in a test world |
+| the scaffold | nothing: no `/test/` rows in any world; `/world/saxonberg` is an empty executive-held parcel; `Archetype.materialize()` (derived test venue, unit tests only) | **new** (the fixture pack's rows); `Archetype` a candidate for the venue |
+| creating what a drive consumes | `hand` (test-hand), `stage` (test-stage), `arrive`, `house appoint`, `reserve override`, `testharness` | **reuse**; new only where a gap is proven (a funded account at the scaffold bank, an NPC in a role) |
+| cleanup of a run's litter | `purge-test-characters.ts` (e2e handles only); nothing for wire | **generalize** to wire handles, clones, seats, money |
+| drives living in a pack | nothing: the vitest include, `global-setup`'s readdir, the `wire:dirty` glob and `tools/soak` all read `packages/wire/tests` | **generalize** the discovery |
+| the no-content rule | `lint:test-content` (kernel unit tests; skips wire) | **generalize** to wire drives (census, then ratchet) |
+| boot timing by phase | only global-setup's "world up in Xs"; server log has no timestamps; `/stats.db` counts ops | **new** (phase marks), reusing `/stats.db` for attribution |
+| the soak lane's world per dirty file | `build/soak-repair` (in flight): `tools/soak` `worlds_of`/`run_world`, `reset:db` before each world | **unchanged** in build 1; its drops go when build 2 empties the dirty list |
+| a file staging its own stock | `hand` / `stage` / `arrive` / `stageShip` (`TestAuthRoutes`), `DIRTY_REASON` | **out of scope** — census for wire-suite-growth |
+| the CI wire job | `.gitlab-ci.yml` `wire:` on `node:22`, its own `saxonberg_wire` | **touch** — its test world installs the fixture pack |
 
 ## See also
 

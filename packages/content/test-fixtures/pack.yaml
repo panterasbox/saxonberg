@@ -1,0 +1,28 @@
+id: test-fixtures
+version: 0.1.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
+root: /world/testbed
+description: >-
+  The test suite's own scaffold (test-world-lifecycle D2): the testbed, a
+  small locality at /world/testbed that wire drives stand in instead of
+  placeholder content. Two outdoor places, a building of three lit rooms
+  (a bank, a venue hall, a shop), a sealed unlit cellar and the unlit
+  passage behind it, a yard with a gate nobody has a key to, a hut lit
+  through a window, a forge room behind a low door, a climbable shaft,
+  and a one-place annex for the drive that must take a title. Every row
+  is over a kernel or shopkeeping class. ⚠ TEST-ONLY: refused outside a
+  test world (SAXONBERG_TEST_WORLD=1).
+testOnly: true
+# The testbed group maintains the testbed. A drive that stages asks for a
+# member row on it (`committees: ['/world/testbed']`).
+maintainers: testbed
+requires:
+  groups:
+    - name: testbed
+      purpose: the wire suite's staging committee over the testbed
+    - name: testbed-annex
+      purpose: the holder of the annex, the one extent a drive may take title to and the purge hands back
+  title:
+    # ⭐ The works' basin draws on the testbed's own cistern (the lounge
+    # precedent) — a premises with no citation reads unplumbed for ever.
+    - { extent: /world/testbed, holder: { group: testbed }, waterSource: /world/testbed/thing/cistern }
+    - { extent: /world/testbed/annex, holder: { group: testbed-annex } }

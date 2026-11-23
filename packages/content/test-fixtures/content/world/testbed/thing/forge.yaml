@@ -1,0 +1,19 @@
+# The works' forge (test-world-lifecycle D2; the commons forge is the
+# exemplar). Cold until somebody lights it. ⚠ TEST-ONLY.
+class: /platform/thing/Forge
+data:
+  shortDescription: stone forge
+  keywords: [stone, forge, hearth, furnace, bellows]
+  register: indefinite
+  longDescription: >
+    A squat stone forge with a deep charcoal bed and a leather bellows at
+    its side.
+  burnTemperatureK: 1300
+  bellowsMultiplier: 1.6
+  lit: false
+  emittedIntensity: 150
+  emittedColorTemperature: 2200
+  maxBurnPowerW: 20000
+  fuelCapacityKg: 30
+  _materialPath: /stuff/idea/material/rock/granite
+  mass: 800
