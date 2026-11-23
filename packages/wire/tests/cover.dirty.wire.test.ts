@@ -232,10 +232,10 @@ async function drink(): Promise<void> {
 /** Where the hand last stood (set by {@link goTo}). */
 let here = '';
 
-async function goTo(where: string): Promise<void> {
+async function goTo(where: string, committees?: string[]): Promise<void> {
   here = where;
   p?.close();
-  p = await Session.open(handle, { startLocation: where });
+  p = await Session.open(handle, { startLocation: where, ...(committees ? { committees } : {}) });
   await p.drainProse();
 }
 
@@ -311,6 +311,10 @@ function bandOf(said: string): number {
  */
 async function collegeHead(index: number): Promise<number> {
   await goTo(YARD);
+  // ⭐ Only a keeper drafts (controller liquidity D9): a hand on shift for
+  // the farm that works the herd's ground. A body leaving the world ends
+  // its shift, and every `goTo` is a fresh login — so clock on in the yard.
+  await doing(p, 'clock on');
   const said = await doing(p, `draft ${index}`);
   await doing(p, 'return cow');
   const band = bandOf(said);
@@ -370,15 +374,21 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await doing(p, 'buy sickle');
     await doing(p, 'buy "seed wheat"');
     await doing(p, 'buy "seed wheat"');
-    expect(await read(p, 'inventory')).toMatch(/sickle.*sack of seed wheat.*sack of seed wheat/i);
+    // ⚠ `s`: the inventory prints what is in hand and what is in a pocket on
+    // lines of their own (size and carrying) — the sacks go in a pocket.
+    expect(await read(p, 'inventory')).toMatch(/sickle.*sack of seed wheat.*sack of seed wheat/is);
   }, 600_000);
 
   it('13a. the college herd is on the home field, and is moved by a keeper only', async () => {
     await goTo(YARD);
     expect(await read(p, 'look herdbook')).toMatch(/grazing the (far side of the )?home field/i);
-    // A stranger is refused — the herd, and the field.
-    await refused(p, 'move college herd to back paddock', 'not-keeper');
+    // A stranger is refused — the herd, and the field. ⚠ Asked from the
+    // home field: `move` finds the field among the ways from where the
+    // keeper stands, and the back paddock is reached only through the home
+    // field — from the yard it is `no-such-field`, which is asked BEFORE
+    // the keeper (controller liquidity W3).
     await doing(p, 'go field');
+    await refused(p, 'move college herd to back paddock', 'not-keeper');
     await refused(p, 'plant wheat', 'not-held');
     await doing(p, 'go yard');
     // Hired: the labourer's seat.
@@ -472,8 +482,14 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await goTo(YARD);
     await act(p, 'get scythe');
     await goTo(HOME_FIELD);
-    mown = /cut it down to the residual/i.test((await act(p, 'mow at the "far side"')).said);
+    // ⚠ Through `work`: after the ploughing and sowing the body is too
+    // tired to mow (fresh-world run, 2026-11-18) — rest, and go again.
+    mown = /cut it down to the residual/i.test((await work(p, 'mow at the "far side"')).said);
     expect(mown, 'the long grass was mown for hay').toBe(true);
+    // ⭐ Two hands (size and carrying): the scythe is put down where the
+    // mowing finished. Held through step 9 with the sickle, it left every
+    // sheaf "lying in the row; you cannot carry more".
+    await doing(p, 'drop scythe');
   }, 1_800_000);
 
   it('9. [staged] the bench’s ripe wheat is the farm’s when a stranger cuts it; sowing there is refused', async () => {
@@ -490,7 +506,13 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     await refused(p, 'plant seed', 'not-held');
     // Put the seed down: what is in hand next is the cut, and the cut is
     // the farm's — the sack of seed is the stranger's own.
-    await act(p, 'drop seed');
+    // ⚠ A bought sack goes in a pocket (size and carrying), and `drop seed`
+    // on a sack in a pocket answers "Nothing dropped." with no reason (the
+    // validator accepts anything carried, the controller drops only what is
+    // in hand — fresh-world run, 2026-11-18). Take it out first, then put it
+    // down: refused, it would stay in the pocket unseen.
+    await act(p, 'get seed from "breast pocket"');
+    await doing(p, 'drop seed');
     // ⭐ The bench is three fields: the cut names one (field population R2).
     for (let i = 0; i < 10 && (await p.query('me:i:wheat')).length === 0; i++) {
       await work(p, 'harvest wheat --at "the lane end"');
@@ -547,6 +569,11 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     // The stubble line reads the grass under it: mown in step 6, it may
     // already be coming back.
     expect(looked).toMatch(/cut down to the stubble|coming back over the stubble/i);
+    // ⭐ Done with the sickle: put it down, and the last sack with it, in
+    // the field (size and carrying). Carried on, two full hands refused step
+    // 18's `get 1 pail` ("Your hands are full").
+    await doing(p, 'drop sickle');
+    await act(p, 'drop all wheat');
   }, 1_800_000);
 
   it('8. [staged] stubble to fallow: a season on, the grass comes back over the stubble', async () => {
@@ -583,20 +610,28 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     try {
       // The Okafors' spade and plough are at the piece. A bundle off the
       // old stools first, by hand — what the new planting is laid from.
-      await act(gov, 'get spade');
+      // ⭐ Empty-handed (size and carrying): a 30 kg bundle takes both hands,
+      // so with the spade already in one every bundle was set down in the
+      // row (fresh-world run, 2026-11-18). Cut first, then set the bundle
+      // down to dig, and take it up again to plant.
+      await read(gov, 'inventory');
       for (let i = 0; i < 6 && (await gov.query('me:i:bundle')).length === 0; i++) {
         await work(gov, 'harvest cane');
       }
       expect((await gov.query('me:i:bundle')).length, 'a bundle of cut cane in hand').toBeGreaterThan(0);
+      await doing(gov, 'drop bundle');
+      await doing(gov, 'get spade');
       const grubbed = await act(gov, 'grub');
       expect(refusedFor(grubbed.r)).toBeNull();
       expect(await read(gov, 'look')).not.toMatch(/stand of sugar cane grows/i);
+      await doing(gov, 'drop spade');
       let ploughed = '';
       for (let i = 0; i < 4 && !/ploughed for the season/i.test(ploughed); i++) {
         await work(gov, 'plow');
         ploughed = await read(gov, 'look');
       }
       expect(ploughed).toMatch(/ploughed for the season/i);
+      await doing(gov, 'get 1 bundle');
       await doing(gov, 'plant cane');
       expect(await read(gov, 'look')).toMatch(/stand of sugar cane grows over a strip of it, just emerging/i);
     } finally {
@@ -635,7 +670,12 @@ suite.skipIf(!isOwnedTestWorld())('Stage A — arable', () => {
     expect(await read(p, 'look')).toMatch(/head of the Delight flock are grazing it/i);
     // ⭐ And she milks: the pasture and the rick behind it kept her in
     // condition, and milk follows condition.
-    await goTo(BYRE);
+    // ⭐ Seated on the Delight's committee: only a keeper drafts (controller
+    // liquidity D9) — whoever holds the herd's home ground, or a hand on
+    // shift for the business that works it — and the dairy's one seat is
+    // the dairy lad's. Seated only now: step 9 needs the hand a stranger
+    // on the Delight's bench.
+    await goTo(BYRE, ['/world/terminus/hearts-delight']);
     await act(p, 'get 1 pail');
     const cow = await doing(p, 'draft 1 from dairy');
     expect(bandOf(cow), 'the pasture and the rick kept her in flesh').toBeGreaterThanOrEqual(2);

@@ -76,7 +76,7 @@ trying to get people to log in — why bother if they can just watch the stream 
 | | **Latest** — three one-line items, each labelled with its publisher | `pressRoom` |
 | **right · Sign in** | the three providers (co-equal, seal red with white rims) · *Look around as a guest* · *A guest keeps nothing, and nobody can find them.* · the live count | shipped; count per § 6 |
 | **right · the show** | a 16:9 grid thumbnail: live = the stream's still, **LIVE** and viewers; offline = the glowing `@` on black and the next show · the founder's avatar (red ring when live), the show title, *Bobalu Smallberries*, *Acting Prime Minister* · *Sign in to watch it inside Saxonberg.* | the show block |
-| **below · Notices and news** | the full feed, each item under its own masthead (an office's seal; the Post's nameplate on paper) | `pressRoom` |
+| **below · Latest + Coming up** | one band: the feed's headlines (left; *All notices and news* links to the archive) and the calendar (right) — the full feed was dropped as a duplicate (§ 4d) | `pressRoom`; the calendar's sources (§ 4c) |
 | **footer** | panterasbox.com · the show on Twitch · YouTube · Kick · Source (AGPL) · Discord · the public record · Privacy | static |
 
 **Phone:** the right column (sign-in, then the show) comes first; then the chambers and Latest.
@@ -89,6 +89,25 @@ The Compact stands up before content ([separation-of-powers-slate § 7q](../soci
 only capital standing is minted, the vote on anything is the early-adopter incentive, and capital
 demand becomes labor demand. Two lines change:
 
+- ⭐ **Make → *Now hiring: three offices to stand up, and the moderators they lead*** (2026-11-20,
+  [separation-of-powers-slate § 7r](../society/separation-of-powers-slate.md)) — the owner: *"it's a
+  lot more to explain but it also has a little bit of something for everyone and hopefully that would
+  increase engagement."* Four rows, each derived:
+
+  | row | line | source |
+  |---|---|---|
+  | **Sergeant at Arms** | keeps order on the floor of the Compact · open | the floor office's opening |
+  | **High Constable** | keeps the peace between players · open | the Constabulary's opening |
+  | **Editor in Chief** | runs the Saxonberg Post · open | the Post's opening |
+  | **Moderators** | join the pool all three hire from · *start here* · *n* in the pool | **the moderator pool** |
+
+  and one line beneath: *Three separate authorities, each with its own rules. Most moderators will serve
+  more than one.* A filled seat shows its holder's name instead of *open*.
+  - ⭐ **The moderator pool** is a submitted section of the Post's directory
+    ([directory-slate](../society/directory-slate.md) § 3) — you join with `profile submit`, your
+    profile is your application, and **each of the three offices appoints its moderators from the same
+    pool** (appointment-mode openings, § 6). One pool, three authorities: a candidate applies once.
+  - The earlier rows below (the jobs report's headline) become the full report behind this block.
 - **Make → the monthly jobs report's headline.** The Compact's press office publishes it monthly,
   generated from the record: openings per institution with the load beside each (open cases per
   moderator, bills per clerk, cases awaiting a panel). The Make line shows the open seats ranked by
@@ -100,6 +119,79 @@ demand becomes labor demand. Two lines change:
   members, x standing.*), **open** (*Voting now — N candidates — closes on a date*), **closed** (*Speaker
   of the Capital House: name*). An open spending proposal from the books (§ 6, 3a) sits beside it.
   Before capital standing exists (the legal gate), the election line does not render.
+
+## 4c. Fund's goals, and a calendar **[DECIDED — the owner, 2026-11-20]**
+
+### Fund shows plain goals and progress **[DECIDED — the owner]**
+
+The owner first asked for the budget totals back (*"we actually have real numbers … I'm also keen to
+let the game start paying for itself ASAP"*), then, seeing a books panel with figures, line items and a
+Twitch button: *"way too much … it looks like Times Square now. Just some plainly worded goals and our
+progress to meeting those goals. They can't even donate until they're inside and authenticated, so
+you're not selling anyone on the front page. Just get them to sign in and let the game do the rest."*
+
+- ⭐ **Goals, in plain words, each with its progress** — read from the books (budget-slate § The first
+  books):
+  - **Pay for itself** — *$0 of $244 a month* (support from players against last month's cost to run),
+    a thin bar beneath;
+  - **Then: a bigger server** — *+$40 a month* (the first open proposal).
+- **No line items, no headline figures, no support button.** Support happens inside, after sign-in;
+  the front page's only job is getting people in. October's real basis: Claude $200.00, AWS $15.31,
+  Descript and email estimated until their invoices.
+
+### A calendar — *Coming up*
+
+The owner: *"the front page also needs a calendar widget where our upcoming elections are featured,
+currently both as TBD … we should probably have something on it with an actual date so people know
+what the fuck it is. Maybe the next livestream."* Under the show tile, in the right column:
+
+| date | item | source |
+|---|---|---|
+| **Tue, Dec 1** | *The Compact's books open* — every dollar in and out, in public | the journal's first entry (real) |
+| **Sat, Jan 2** *(sample)* | *The show returns* — 10 a.m. [time zone] — Twitch, YouTube, Kick | `show.schedule` |
+| **TBD** | *Election · Speaker of the Capital House* — opens at N members and X standing; now n and x | the election record (§ 7q) |
+| **TBD** | *Election · Clerk of the Court* — every citizen votes, one person one vote; called by the founder | the election record (§ 7r) |
+
+- **The calendar's source is three existing things:** dated **`event` releases** from the stocked
+  publishers (the release kind already ships), the **election records** (each a trigger or dates), and
+  `show.schedule`. No calendar collection — the page merges them by date; undated items (*TBD*) sort
+  last with their trigger shown.
+- **At least one item always has a real date** — the next show, or the next dated event — so a visitor
+  can tell what a calendar is for. An election moves from *TBD* to its dates the moment its trigger is
+  met.
+
+## 4d. One news block, and the layout rebalanced **[DECIDED — 2026-11-20]**
+
+The owner: *"it's a little out of balance between the content on the left and right … I'm also a
+little confused about the two different news areas. Do we need both? And what determines what goes in
+where?"*
+
+- ⭐ **One voice: the Office of the Prime Minister** **[DECIDED — the owner]**. *"I don't want like a
+  million people posting to the front page and no one's gonna know the difference between one source
+  and the other if they've never stepped foot in the game. Really it's all coming from the Office of
+  the Prime Minister but they can be reposting other stuff if they want."* So **`press.frontPage`
+  stocks one publisher, `/compact/executive`** (made public — build list item 4), the block is headed
+  *From the Office of the Prime Minister*, and items carry **only a date and a headline** — no
+  per-item publisher labels.
+  - **Reposts already ship** — `repost` is a `ReleaseKind`, and a release's `source` is *"a repost's
+    provenance line"* (press.md). A reposted item shows one line: *— from the Speaker of the Capital
+    House*. No new design.
+  - **Who writes next** (the owner asked): for a long while, every item is the founder's. The next
+    author is **the Speaker of the Capital House** — the first office anyone else will hold, and the
+    first with a reason to address the public (the election result, the house's position on a bill, a
+    call for members) — reposted by the Office of the Prime Minister. Then the **Editor in Chief**, once
+    the Post publishes. Neither exists yet.
+  - This supersedes § 2's *two lanes* and the stocked Saxonberg Post on the front page: the Post is
+    reached inside the game, or through a repost.
+- **One news block.** *Latest* (headlines) and *Notices and news* (the full items) read **the same
+  feed** — `pressRoom()` over `press.frontPage`, newest first with pins on top (`press.maxPins`) — so
+  the page showed it twice. **The full feed is gone; *Latest* keeps the headlines, each labelled with
+  its publisher, and links to *All notices and news*** (the press room's archive). What goes in is
+  decided by the publishers and their pins, never by the page.
+- **The layout:** the above-the-fold band is **the chambers (left) beside sign-in and the show tile
+  (right)** — about equal heights. Beneath it, one full-width band holds **Latest (left) and Coming up
+  (right)**: the two *what's happening* blocks side by side. On a phone the order is sign-in, the show,
+  the chambers, then Latest and Coming up.
 
 ## 4a. Where you came from **[DECIDED — the owner]**
 

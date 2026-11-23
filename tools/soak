@@ -16,14 +16,20 @@
 #     whenever the commit touches the soak tooling itself);
 #   2 waits for the gate: the suite lock free AND enough memory for a
 #     world on top of the reserve (in quiet hours, the world alone);
-#   3 takes the lock tools/suite takes, checks the commit out detached,
-#     installs, drops the soak database, and runs the files with
-#     `pnpm wire:soak` on SOAK_PORT — the run boots its own world and
-#     tears it down;
-#   4 reads packages/wire/.wire/result.json, keeps a copy, logs a line per
-#     file, files (or comments on) a `soak` issue per failing file;
-#   5 advances the state file to the commit — pass or fail — and drops
-#     the lock. On exit the worktree goes back to detached origin/master.
+#   3 checks the commit out detached and installs, then runs it in
+#     WORLDS: ⭐ every dirty file gets a world of its own (a dirty file
+#     says, by its name, that it leaves the world changed — the next file
+#     in the same world reads that change as a defect), and the clean
+#     files share one. Per world: take the lock tools/suite takes, drop
+#     the soak database, run `pnpm wire:soak` on SOAK_PORT (it boots its
+#     own world and tears it down), drop the lock — so a build's suite
+#     can run between two soak worlds;
+#   4 reads packages/wire/.wire/result.json after each world, keeps a
+#     copy, logs a line per file, files (or comments on) a `soak` issue
+#     per failing file — or ONE `no result` issue when the world left no
+#     record of its files (it never booted: the lane, not a build);
+#   5 advances the state file to the commit — pass or fail. On exit the
+#     worktree goes back to detached origin/master.
 #
 # Three bounds it inherits from tools/suite (tools/lib/suite-lock.sh):
 # the same cross-worktree lock, the same memory reserve, one at a time.
@@ -31,12 +37,23 @@
 #   tools/soak --once       # one pass over what is waiting, then exit
 #   tools/soak --watch      # pass, sleep SOAK_POLL_S, forever (the window's second pane)
 #   tools/soak --dry-run    # list what would run; run and file nothing
+#   tools/soak --status     # is a watcher running, what is queued, what is open
+#
+# ⚠ The watcher is the lane: if it is not running, nothing soaks, and on
+# 2026-10-31 it died with its tmux pane and nobody noticed for two weeks.
+# `--watch` records itself in .soak/watch.pid and refuses a second copy;
+# `--status` is the one-line check the soak session starts with. While the
+# worktree is on a branch (a lane repair) or has local changes, a watcher
+# waits instead of moving it.
 #
 # State lives in the soak worktree (gitignored):
 #   .soak/state              the last soaked SHA — seed it: echo <sha> > .soak/state
 #   .soak/log                <time> <sha> <file> pass|fail|skipped <reason>
-#   .soak/results/<sha>.json that run's result.json
-#   .soak/server-<sha>.log   the world's log, on a failure
+#   .soak/results/<sha>/<world>.json   each world's result.json (<world> is
+#                            the dirty file's name, or `clean`)
+#   .soak/server-<sha>-<world>.log     that world's log, on a failure
+#   .soak/run-<sha>-<world>.out        the runner's output for that world
+#   .soak/watch.pid          the running watcher
 #
 # Env (every threshold, path and external is overridable):
 #   SOAK_WORKTREE    the worktree it moves         (default: $ROOT/soak)
@@ -74,7 +91,8 @@ main() {
       --once)    MODE=once; shift ;;
       --watch)   MODE=watch; shift ;;
       --dry-run) DRY=1; shift ;;
-      -h|--help) sed -n '2,52p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+      --status)  MODE=status; shift ;;
+      -h|--help) sed -n '2,70p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
       *) echo "soak: unknown option '$1' (try --help)" >&2; exit 2 ;;
     esac
   done
@@ -102,9 +120,18 @@ main() {
     exit 2
   fi
   mkdir -p "$SOAK_DIR/results"
+  WATCH_PID="$SOAK_DIR/watch.pid"
 
-  trap 'drop_lock; go_home; exit 130' INT TERM
-  trap 'drop_lock; go_home' EXIT
+  if [ "$MODE" = status ]; then status; exit 0; fi
+  if [ "$MODE" = watch ] && [ "$DRY" = 0 ]; then
+    if w=$(watcher); then
+      echo "soak: a watcher is already running (pid $w). One at a time." >&2; exit 3
+    fi
+    echo "$$" > "$WATCH_PID"
+  fi
+
+  trap 'drop_lock; go_home; forget_watch; exit 130' INT TERM
+  trap 'drop_lock; go_home; forget_watch' EXIT
 
   while :; do
     [ "$DRY" = 1 ] || git -C "$SOAK_WORKTREE" fetch -q origin 2>/dev/null
@@ -158,6 +185,10 @@ pass() {
       log_line "$c" '-' skipped nothing-to-soak
       echo "$c" > "$SOAK_STATE"
       continue
+    fi
+    if [ "$DRY" = 0 ] && ! movable; then
+      [ "$MODE" = watch ] && return 0   # wait for the repair to finish; said once
+      exit 4
     fi
     echo "soak: $short $mr — $(echo $files | tr ' ' ',') — $subj"
     [ "$DRY" = 1 ] && continue
@@ -213,43 +244,80 @@ reap_port() {
   done
 }
 
+# The worktree may be moved only when it is detached and clean: a branch
+# here is a lane repair in progress. Says why not, once per reason.
+movable() {
+  why=''
+  if git -C "$SOAK_WORKTREE" symbolic-ref -q HEAD >/dev/null; then
+    why="is on branch $(git -C "$SOAK_WORKTREE" symbolic-ref --short HEAD) — a lane repair; waiting"
+  elif [ -n "$(git -C "$SOAK_WORKTREE" status --porcelain --untracked-files=no)" ]; then
+    why='has local changes; waiting'
+  fi
+  [ -z "$why" ] && { MOVABLE_SAID=''; return 0; }
+  [ "${MOVABLE_SAID:-}" = "$why" ] || echo "soak: $SOAK_WORKTREE $why." >&2
+  MOVABLE_SAID=$why
+  return 1
+}
+
+# The worlds a commit's files run in, one per line: each dirty file alone,
+# then every clean file together.
+worlds_of() {
+  printf '%s\n' $1 | grep '\.dirty\.' || true
+  clean=$(printf '%s\n' $1 | grep -v '\.dirty\.' | tr '\n' ' ' | sed 's/ $//')
+  [ -n "$clean" ] && printf '%s\n' "$clean"
+  return 0
+}
+
 run() {
   c=$1; files=$2; mr=$3; subj=$4
   short=$(echo "$c" | cut -c1-9)
-  gate
-  take_lock
-  if [ -n "$(git -C "$SOAK_WORKTREE" status --porcelain --untracked-files=no)" ]; then
-    echo "soak: $SOAK_WORKTREE has local changes — refusing to move it." >&2; exit 4
-  fi
-  if git -C "$SOAK_WORKTREE" symbolic-ref -q HEAD >/dev/null; then
-    echo "soak: $SOAK_WORKTREE is on a branch — the soak worktree stays detached. Refusing." >&2; exit 4
-  fi
   MOVED=1
   git -C "$SOAK_WORKTREE" checkout -q --detach "$c" || { echo "soak: checkout of $short failed" >&2; exit 4; }
-  out="$SOAK_DIR/run-$short.out"
+  mkdir -p "$SOAK_DIR/results/$c"
+  if ! ( cd "$SOAK_WORKTREE" && pnpm install --frozen-lockfile --prefer-offline ) > "$SOAK_DIR/install-$short.out" 2>&1; then
+    log_line "$c" '-' fail install
+    file_issue "soak: no result for $short" "no result for $short" \
+      "$(no_result_body "$c" "$mr" "$subj" "$SOAK_DIR/install-$short.out")"
+    return 0
+  fi
+  worlds_of "$files" | while IFS= read -r batch; do
+    run_world "$c" "$batch" "$mr" "$subj"
+  done
+}
+
+# One world: a dropped database, one boot, the batch's files, its verdicts.
+run_world() {
+  c=$1; batch=$2; mr=$3; subj=$4
+  short=$(echo "$c" | cut -c1-9)
+  case "$batch" in *' '*) world=clean ;; *) world=${batch%%.*} ;; esac
+  gate
+  take_lock
+  out="$SOAK_DIR/run-$short-$world.out"
   started=$(date +%s)
   {
-    ( cd "$SOAK_WORKTREE" && pnpm install --frozen-lockfile --prefer-offline ) &&
     ( cd "$SOAK_WORKTREE" && pnpm -C packages/server reset:db ) &&
     rm -f "$RESULT" &&
-    ( cd "$SOAK_WORKTREE" && sh -c "$SOAK_RUN_CMD $(echo $files)" )
+    ( cd "$SOAK_WORKTREE" && sh -c "$SOAK_RUN_CMD $batch" )
   } > "$out" 2>&1
   rc=$?
   reap_port
   wall=$(( $(date +%s) - started ))
-  echo "soak: $short ran in $((wall / 60))m$((wall % 60))s (rc=$rc)."
+  echo "soak: $short $world ran in $((wall / 60))m$((wall % 60))s (rc=$rc)."
 
-  if ! jq -e . "$RESULT" >/dev/null 2>&1; then
-    log_line "$c" '-' fail no-result
-    cp "$SERVER_LOG" "$SOAK_DIR/server-$short.log" 2>/dev/null
-    file_issue "soak: no result for $short" "no result" \
+  # ⚠ A world that never booted still leaves a result.json — with no
+  # files in it. Read as per-file verdicts it filed seventeen "missing"
+  # failures for one boot that timed out (#109–#125, 2026-10-31).
+  if ! jq -e '(.files | length) > 0' "$RESULT" >/dev/null 2>&1; then
+    for f in $batch; do log_line "$c" "$f" fail no-result; done
+    cp "$SERVER_LOG" "$SOAK_DIR/server-$short-$world.log" 2>/dev/null
+    file_issue "soak: no result for $short" "no result for $short" \
       "$(no_result_body "$c" "$mr" "$subj" "$out")"
     drop_lock
     return 0
   fi
-  cp "$RESULT" "$SOAK_DIR/results/$c.json"
+  cp "$RESULT" "$SOAK_DIR/results/$c/$world.json"
   failed=0
-  for f in $files; do
+  for f in $batch; do
     state=$(jq -r --arg f "$f" '([.files[] | select(.file == $f)][0].state) // "missing"' "$RESULT")
     case "$state" in
       pass) log_line "$c" "$f" pass ;;
@@ -261,8 +329,36 @@ run() {
         ;;
     esac
   done
-  [ "$failed" = 1 ] && cp "$SERVER_LOG" "$SOAK_DIR/server-$short.log" 2>/dev/null
+  [ "$failed" = 1 ] && cp "$SERVER_LOG" "$SOAK_DIR/server-$short-$world.log" 2>/dev/null
   drop_lock
+}
+
+# ---- the watcher --------------------------------------------------------
+
+# The live watcher's pid, or nothing (a stale pid file is cleared).
+watcher() {
+  w=$(cat "$WATCH_PID" 2>/dev/null) || return 1
+  if [ -n "$w" ] && [ "$w" != "$$" ] && [ -d "/proc/$w" ] &&
+     tr '\0' ' ' < "/proc/$w/cmdline" 2>/dev/null | grep -q 'soak.*--watch'; then
+    echo "$w"; return 0
+  fi
+  rm -f "$WATCH_PID"
+  return 1
+}
+
+forget_watch() { [ "$(cat "$WATCH_PID" 2>/dev/null)" = "$$" ] && rm -f "$WATCH_PID"; return 0; }
+
+status() {
+  if w=$(watcher); then echo "soak: watcher running (pid $w)."
+  else echo "soak: ⚠ NO WATCHER — nothing soaks. Start it: tools/soak --watch"
+  fi
+  movable >/dev/null 2>&1 || echo "soak: the worktree $MOVABLE_SAID."
+  base=$(cat "$SOAK_STATE")
+  n=$(git -C "$SOAK_WORKTREE" log --first-parent --format=%H "$base..$SOAK_REF" 2>/dev/null | wc -l)
+  echo "soak: soaked through $(echo "$base" | cut -c1-9); $n commit(s) on $SOAK_REF after it."
+  tail -1 "$SOAK_DIR/log" 2>/dev/null | sed 's/^/soak: last: /'
+  o=$(cd "$SOAK_WORKTREE" && $SOAK_GLAB issue list -l soak -F ids 2>/dev/null | wc -l)
+  echo "soak: $o open soak issue(s)."
 }
 
 # ---- the issue ----------------------------------------------------------

@@ -61,7 +61,12 @@ export default class DropController extends CommandController<DropModel> {
     // `giver` is narrowed to `Stuff & Container` from here on — the
     // narrowing has to survive across the two paths because each
     // wants the inventory snapshot.
-    const inventory = giver.getContents();
+    // ⚠ Everything CARRIED, at any depth — the same set `mustBeInInventory`
+    // binds against (size and carrying). Direct contents alone let a thing
+    // in a pocket pass the validator and then be skipped here, so `drop`
+    // answered "Nothing dropped." with no reason (#150). Dropping it from a
+    // pocket is what the player meant.
+    const inventory = giver.getCarriedContents();
 
     if (!quantity) {
       return this.executeWholeSet(stuff, inventory, raw, context);

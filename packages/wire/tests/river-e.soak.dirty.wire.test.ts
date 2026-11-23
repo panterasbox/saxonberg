@@ -91,17 +91,47 @@ async function look(s: Session): Promise<string> {
 async function morning(): Promise<void> {
   // ⭐ Late spring (days 60–100 of the 360-day year): the snowmelt is in the
   // river and the pools are open — the drive swims and steams in it.
-  for (let i = 0; i < 40; i++) {
-    const day = Math.floor((await worldClockNow()) / 86_400) % 360;
-    if (day >= 60 && day <= 100) break;
-    await advanceWorldClock('5 days');
-    await advanceWorldClock('5 days');
-  }
+  // ⚠ Few, large jumps to the season's first morning (soak run cc6de0972):
+  // climbed in 5-day steps, a fresh world took 10–38 s to settle each, the
+  // step overran its budget and the abandoned climb kept jumping into the
+  // steps after it. A jump past a game day is a span — this is a soak file, and
+  // the harness sends the soak flag under `pnpm wire:soak`. The drive's
+  // first call comes before any drive body is made, so nobody lives
+  // through the gap unfed.
   const DAY = 86_400;
-  const t = (await worldClockNow()) % DAY;
+  const now = await worldClockNow();
+  const day = Math.floor(now / DAY) % 360;
+  if (day < 60 || day > 100) {
+    const toDay = (60 - day + 360) % 360;
+    // ⚠ In fortnights, not one jump: a jump of a month or more blocks the
+    // world's event loop and never returns (#137); a fortnight did.
+    let left = Math.ceil(toDay * DAY + 8 * 3600 - (now % DAY));
+    while (left > 0) {
+      const step = Math.min(left, 14 * DAY);
+      await advanceWorldClock(`${step} seconds`);
+      left -= step;
+    }
+    return;
+  }
+  const t = now % DAY;
   if (t >= 8 * 3600 && t <= 13 * 3600) return;
   const hours = Math.ceil(((8 * 3600 - t + DAY) % DAY) / 3600);
   for (let h = hours; h > 0; h -= 5) await advanceWorldClock(`${Math.min(5, h)} hours`);
+}
+
+/**
+ * Jump the clock to the absolute game second `target`, in chunks of five
+ * hours at most. ⚠ (soak repair, 2026-11-17) Each chunk overshoots by the
+ * minutes the world takes to settle it (~2 min a jump), so the clock is
+ * read again before every chunk and the last one lands on the target —
+ * "06:40" had become 06:47, and "+15 minutes" past the 07:00 boat.
+ */
+async function jumpTo(target: number): Promise<void> {
+  for (let i = 0; i < 20; i++) {
+    const left = target - (await worldClockNow());
+    if (left <= 0) return;
+    await advanceWorldClock(`${Math.min(left, 5 * 3600)} seconds`);
+  }
 }
 
 async function funded(handle: string): Promise<void> {
@@ -124,9 +154,10 @@ suite('stage E — the ferry, and the sea', () => {
   const RIDER = uniqueHandle('ref');
 
   it('32. the ferryman poles across with her bow held upstream, and lands at the far landing', async () => {
+    // The season first: nobody of the drive's is made until it has turned.
+    await morning();
     await funded(RIDER);
     const s = await session(RIDER, TOWPATH);
-    await morning();
     const here = await look(s);
     expect(here, here).toMatch(/ferry/i);
     const r = await s.cmd('go across');
@@ -140,7 +171,7 @@ suite('stage E — the ferry, and the sea', () => {
       if (/Nesbit's landing/i.test(await roomName(s))) break;
     }
     expect(there, there).toMatch(/Nesbit's landing|hard of packed gravel/i);
-  }, 300_000);
+  }, 1_200_000); // the season climb (morning) runs in this step
 
   it('33. from the far bank the ferry is across; ring the bell, and the ferryman brings her over', async () => {
     // The rider goes back across with him, and a second person on the
@@ -180,8 +211,8 @@ suite('stage E — the ferry, and the sea', () => {
     // To 06:40 — tomorrow's, if the morning is past it.
     const now = await worldClockNow();
     const t = now % DAY;
-    const toMin = Math.ceil(((6 * 3600 + 40 * 60 - t + DAY) % DAY) / 60);
-    for (let left = toMin; left > 0; left -= 300) await advanceWorldClock(`${Math.min(300, left)} minutes`);
+    const at0640 = now + ((6 * 3600 + 40 * 60 - t + DAY) % DAY);
+    await jumpTo(at0640);
     const between = await rider.cmd('go across');
     const no = squash(await between.said());
     console.log(`06:40 go across: ${between.status} ${no}`);
@@ -189,7 +220,7 @@ suite('stage E — the ferry, and the sea', () => {
     expect(no, no).toMatch(/next boat from here leaves at 07:00/);
     // Boarding for the seven o'clock: at 06:55 you go — once the ferryman
     // has her over, if the six o'clock left her across.
-    await advanceWorldClock('15 minutes');
+    await jumpTo(at0640 + 15 * 60);
     let went = false;
     let last = '';
     for (let i = 0; i < 12 && !went; i++) {
@@ -215,9 +246,16 @@ suite('stage E — the ferry, and the sea', () => {
     // ⭐ Only her master takes the helm: the founder, who holds
     // the office that appoints her company, puts this player in command —
     // and dismisses them after, so the seat is free for the next drive.
+    // ⚠ (soak run cc6de0972) The appointee is named by what the founder
+    // KNOWS them as: a stranger is "a human", and `house appoint` found
+    // no such person. They meet on her deck first.
     const me = await master.query('me', { fields: ['displayName'] });
-    const name = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
-    const gov = await Session.open('founder', { startLocation: BANK_HALL });
+    const self = String((me[0] as { displayName?: unknown } | undefined)?.displayName ?? '');
+    const gov = await Session.open('founder', { startLocation: DECK });
+    await gov.drainProse();
+    expectOk(await master.cmd('introduce'));
+    const met = squash(await gov.listen(4_000));
+    const name = met.match(/introduces themselves as ([^.]+)\./)?.[1]?.trim() ?? self;
     expectOk(await gov.cmd(`house appoint "${name}" to master at /world/terminus/hesper/idea/outfit`));
     await look(master);
     expectOk(await master.cmd('go dinghy'));
@@ -233,7 +271,10 @@ suite('stage E — the ferry, and the sea', () => {
     const over = await hand.cmd('go side');
     expect(over.status, squash(await over.said())).toBe('ok');
     expect(await look(hand)).toMatch(/In the sea|open sea/i);
-    const waits = await say(master, 'course gannet');
+    // ⚠ (soak repair, 2026-11-17) She lies in the bar, a confined linear
+    // passage: only its two ends are a course (`course gannet` was refused
+    // "only runs two ways"). The roads are its other end.
+    const waits = await say(master, 'course roads');
     expect(waits, waits).toMatch(/people in the water/);
     const up = await hand.cmd('go hesper');
     expect(up.status, squash(await up.said())).toBe('ok');

@@ -186,8 +186,6 @@ export abstract class TapActController<
         return Mml.compose`There is nothing to take just now.`;
       case 'no-vessel':
         return Mml.compose`You have nothing to catch it in.`;
-      case 'no-material':
-        return Mml.compose`There is nothing to draw.`;
       case 'material-mismatch':
         return Mml.compose`There is ${out.facts.held} in ${out.facts.vessel.getPresentation()} already.`;
       case 'empty':
