@@ -222,6 +222,21 @@ export type Consciousness = 'conscious' | 'unconscious' | 'dead';
 export interface BodyPartDelta {
   /** Severed / absent → disables the part's coupled slots. */
   missing?: boolean;
+  /**
+   * ⭐ The body's AGE, in game-days, when it was lost (organism-biology D7)
+   * — an age, not a clock time, so a staged age advance crosses a moult
+   * honestly. Absent = lost before the record began.
+   */
+  lostAtAgeDays?: number;
+  /** ⭐ The stump was sealed by heat or a caustic (D7): it never regrows. */
+  sealed?: 'heat' | 'corrosion';
+}
+
+/** ⭐ A loss a row authors, or a herd replays (D7): which part, at what age, sealed or not. */
+export interface LostPart {
+  part: string;
+  atAgeDays: number;
+  sealed?: 'heat' | 'corrosion';
 }
 
 /** A BodyPlan part merged with this body's instance delta. */
@@ -917,7 +932,17 @@ export interface Vitals {
    * **every descendant** missing (sever the arm and the hand goes with it),
    * then releases whatever was held or worn on the slots that part carried.
    */
-  severPart(key: string): void;
+  severPart(key: string, opts?: { lostAtAgeDays?: number; sealed?: 'heat' | 'corrosion' }): void;
+  /** The subtree roots this body has lost, as a herd records them (D8). */
+  getLostParts(): LostPart[];
+  /** ⭐ The part this body IS, when it is only one part of a body (a severed foreleg); null = a whole body (D7). */
+  getSubtree(): string | null;
+  /**
+   * ⭐ Become only the part `key` and what hangs from it (D7): every other
+   * part missing, every wound elsewhere gone — so every reader of parts
+   * sees just what is there, and none learns the word *subtree*.
+   */
+  restrictToSubtree(key: string): void;
   /** Is this severable part past saving (function lost, or advanced
    * wound-sepsis) — the amputation trigger (D7). */
   isPartUnsalvageable(key: string): boolean;
@@ -1184,6 +1209,8 @@ function missingPartsAugmenter(
   _viewer: Stuff,
 ): string {
   if (!MixinApi.isVitals(host)) return text;
+  // A severed part is not *missing the torso* (D7): it is a foreleg.
+  if (host.getSubtree() !== null) return text;
   const missing = host.getMissingParts();
   if (missing.length === 0) return text;
   const topmost = missing.filter(
@@ -1275,6 +1302,11 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       _bloodVolume: { persistent: true, marshaller: QuantityMarshaller.pathFor('L'), runtimeState: true },
       causeOfDeath: { persistent: true, runtimeState: true },
       bodyPartDeltas: { persistent: true, runtimeState: true },
+      // ⭐ A loss a row authors (organism-biology D7): applied AT MINT only
+      // (a seed), through the delta half — so a claw that regrew is never
+      // severed again by its own row on a restore.
+      lostParts: { authorable: true, seed: true },
+      subtree: { persistent: true, runtimeState: true },
       conditions: { persistent: true, runtimeState: true },
       scars: { persistent: true, runtimeState: true },
       // ⭐ Blood build D2. The genotype PIN — authored on an NPC whose
@@ -1331,6 +1363,41 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public causeOfDeath: string | null = null;
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
+
+    /** The losses a row authors (D7) — read once, at mint, by {@link seedLostParts}. */
+    public lostParts: LostPart[] | null = null;
+
+    /** The part this body IS, when it is a severed part (D7); null = whole. */
+    public subtree: string | null = null;
+
+    public getSubtree(): string | null {
+      return this.subtree;
+    }
+
+    public restrictToSubtree(key: string): void {
+      const self = this as unknown as Stuff;
+      const body = MixinApi.isOrganism(self) ? self.getBody() : null;
+      if (!body) return;
+      const keep = new Set([key]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const p of body.getParts()) {
+          if (!keep.has(p.key) && p.parent !== null && keep.has(p.parent)) {
+            keep.add(p.key);
+            grew = true;
+          }
+        }
+      }
+      const deltas: Record<string, BodyPartDelta> = {};
+      for (const p of body.getParts()) {
+        if (!keep.has(p.key)) deltas[p.key] = { missing: true };
+        else if (this.bodyPartDeltas[p.key]) deltas[p.key] = this.bodyPartDeltas[p.key]!;
+      }
+      this.bodyPartDeltas = deltas;
+      this.conditions = this.conditions.filter((c) => c.kind !== 'trauma' || keep.has(c.site));
+      this.subtree = key;
+    }
     public conditions: ActiveCondition[] = [];
     /** ⭐ Healed-over scars the body keeps (D14) — never a penalty, read by
      * `assess` and `look`. Written at the clear sweep from a wound's `peak`. */
@@ -2638,6 +2705,81 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getParts().find((p) => p.key === key) ?? null;
     }
 
+    /** Re-site a wound aimed at a missing part to its nearest present ancestor; seal on heat/corrosion. */
+    private siteOnPresent(t: Trauma): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const body = self.getBody();
+      if (!body || this.bodyPartDeltas[t.site]?.missing !== true) return;
+      let key: string | null = t.site;
+      let stump: string | null = null;
+      while (key !== null && this.bodyPartDeltas[key]?.missing === true) {
+        stump = key;
+        key = body.getPart(key)?.parent ?? null;
+      }
+      if (stump && (t.mechanism === 'heat' || t.mechanism === 'corrosion')) {
+        this.bodyPartDeltas = { ...this.bodyPartDeltas, [stump]: { ...this.bodyPartDeltas[stump], sealed: t.mechanism } };
+      }
+      if (key !== null) t.site = key;
+    }
+
+    /** See {@link Vitals.getLostParts}: the topmost missing part of each severed subtree. */
+    public getLostParts(): LostPart[] {
+      const missing = this.getMissingParts();
+      const keys = new Set(missing.map((p) => p.key));
+      return missing
+        .filter((p) => p.parent === null || !keys.has(p.parent))
+        .map((p) => {
+          const d = this.bodyPartDeltas[p.key] ?? {};
+          return { part: p.key, atAgeDays: d.lostAtAgeDays ?? 0, ...(d.sealed ? { sealed: d.sealed } : {}) };
+        });
+    }
+
+    /** ⭐ The authored losses (D7), at mint only: the delta half, never a wound or a mint. */
+    public seedLostParts(value: LostPart[] | null): void {
+      for (const l of value ?? []) {
+        if (!l || typeof l.part !== 'string') continue;
+        this.severPart(l.part, { lostAtAgeDays: Number(l.atAgeDays) || 0, ...(l.sealed ? { sealed: l.sealed } : {}) });
+      }
+    }
+
+    /**
+     * ⭐⭐ **A part that regrows comes back at the moult** (organism-biology
+     * D7): a missing, unsealed subtree root whose part authors `regrows`,
+     * lost before the body's latest moult boundary
+     * (`floor(age / moultEveryDays) × moultEveryDays`), is restored with
+     * its subtree. A crab's claw comes back; a burned stump never does.
+     */
+    private reconcileRegrowth(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const every = self.getSpecies()?.getMoultEveryDays() ?? 0;
+      if (!(every > 0)) return;
+      const age = self.getAgeDays();
+      const lastMoult = Math.floor(age / every) * every;
+      const body = self.getBody();
+      if (!body) return;
+      for (const lost of this.getLostParts()) {
+        if (lost.sealed) continue;
+        if (!body.getPart(lost.part)?.regrows) continue;
+        if (!(lost.atAgeDays < lastMoult)) continue;
+        const subtree = new Set([lost.part]);
+        let grew = true;
+        while (grew) {
+          grew = false;
+          for (const p of body.getParts()) {
+            if (!subtree.has(p.key) && p.parent !== null && subtree.has(p.parent)) {
+              subtree.add(p.key);
+              grew = true;
+            }
+          }
+        }
+        const next = { ...this.bodyPartDeltas };
+        for (const k of subtree) delete next[k];
+        this.bodyPartDeltas = next;
+      }
+    }
+
     public getMissingParts(): ResolvedBodyPart[] {
       return this.getParts().filter((p) => p.missing);
     }
@@ -2691,7 +2833,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Idempotent: severing an already-missing part is a no-op. Unknown keys
      * are ignored — a body plan that does not have the part cannot lose it.
      */
-    public severPart(key: string): void {
+    public severPart(key: string, opts: { lostAtAgeDays?: number; sealed?: 'heat' | 'corrosion' } = {}): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
       const plan = self.getSpecies()?.getBodyPlan();
@@ -2714,9 +2856,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
         }
       }
+      const age = opts.lostAtAgeDays ?? (MixinApi.isOrganism(self) ? self.getAgeDays() : undefined);
       for (const k of severed) {
         const delta = this.bodyPartDeltas[k] ?? {};
         delta.missing = true;
+        if (k === key) {
+          if (age !== undefined && age > 0) delta.lostAtAgeDays = age;
+          if (opts.sealed) delta.sealed = opts.sealed;
+        }
         this.bodyPartDeltas[k] = delta;
       }
 
@@ -3200,6 +3347,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.seedFromSpecies();
       // A corpse doesn't bleed — nothing left to progress.
       if (self.getLifecycleState() === 'dead') return;
+      this.reconcileRegrowth();
 
       // ⭐⭐ **The burden law runs FIRST, above the clock guard, because
       // it needs no clock.**
@@ -3906,6 +4054,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (condition.kind === 'trauma' || condition.kind === 'shock') {
         this._lastHarmedAt = WorldClockApi.getNow().rawValue();
       }
+      // ⭐ A burn or a caustic aimed at a part the body no longer has
+      // (organism-biology D7) SEALS the stump and lands on the nearest part
+      // it does have — it no longer lands nowhere, silently (P3).
+      if (condition.kind === 'trauma') this.siteOnPresent(condition);
       // ⭐⭐ **Stamp who did this, at the door every driver already uses.**
       //
       // A wound has always recorded its inflicter; an affliction never

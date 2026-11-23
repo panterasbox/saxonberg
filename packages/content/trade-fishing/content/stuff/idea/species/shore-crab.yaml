@@ -7,6 +7,8 @@ data:
   smells: [{ aroma: /base-library/aromas/flesh/fish, strength: 30 }]
   binomial: Carcinus maenas
   commonNames: ["shore crab", "crab"]
+  # ⭐ A crab moults (organism-biology D7): a lost claw comes back at the next one.
+  moultEveryDays: 60
   _bodyPlanPath: /stuff/idea/species/BodyPlan/crustacean
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/food/fish-flesh

@@ -333,6 +333,17 @@ export class ConditionApi {
    * Death is **not destruction**: the body persists as a corpse. See
    * `docs/subsystems/mortality.md`.
    */
+  /**
+   * ⭐⭐ **Take a part off a body, and lay it in the world** (organism-
+   * biology D7): the body is missing it at once (the delta), and the part
+   * is minted as a corpse of its subtree where the body stands — *a wolf's
+   * foreleg*, to carry, butcher or leave to rot. `null` if the body has no
+   * such part, or has lost it already.
+   */
+  public static sever(body: Stuff, partKey: string, cause: string): Promise<Stuff | null> {
+    return logic().sever(body, partKey, cause);
+  }
+
   public static die(
     host: Stuff,
     cause: string,

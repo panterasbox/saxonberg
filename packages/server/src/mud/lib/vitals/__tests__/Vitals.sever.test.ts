@@ -31,10 +31,12 @@ import {
 } from '../../../platform/idea/Condition';
 import {
   makeStuff,
+  makeStuffAtPath,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installCorpseMintStub } from '../../mortality/__tests__/corpse-mint-test-helpers';
+import { ConditionApi } from '../../../api/condition';
 
 const SlottableThingBase = SlottableMixin(Good);
 class SlottableThing extends SlottableThingBase {}
@@ -226,10 +228,11 @@ describe('AVULSION_BEHAVIOR — the sever gate', () => {
   });
   afterEach(() => StuffApi.clearAll());
 
-  it('severs at or above SEVER_SEVERITY on a severable part', () => {
+  it('severs at or above SEVER_SEVERITY on a severable part — once the wound LANDS (D7)', () => {
+    // organism-biology W6: the sever is `inflict`'s, after `afflict` accepts
+    // the wound — the onset no longer takes the part itself.
     const creature = armedCreature();
-    const t = avulsionAt('body.arm.left.hand', HARM_DEFAULTS.SEVER_SEVERITY);
-    AVULSION_BEHAVIOR.onset(creature, t);
+    ConditionApi.inflict(creature, { mechanism: 'tearing', site: 'body.arm.left.hand', energy: HARM_DEFAULTS.SEVER_SEVERITY });
     expect(creature.getPart('body.arm.left.hand')?.missing).toBe(true);
   });
 
@@ -273,9 +276,7 @@ describe('AVULSION_BEHAVIOR — the sever gate', () => {
 
   it('⭐ severs when maiming IS authorized (a cull, a hazard, a lethal fight)', () => {
     const creature = armedCreature();
-    const t = avulsionAt('body.arm.left.hand', HARM_DEFAULTS.SEVER_SEVERITY);
-    t.maimAllowed = true;
-    AVULSION_BEHAVIOR.onset(creature, t);
+    ConditionApi.inflict(creature, { mechanism: 'tearing', site: 'body.arm.left.hand', energy: HARM_DEFAULTS.SEVER_SEVERITY, maim: true });
     expect(creature.getPart('body.arm.left.hand')?.missing).toBe(true);
   });
 
@@ -283,9 +284,7 @@ describe('AVULSION_BEHAVIOR — the sever gate', () => {
     // A fall onto spikes, a mine cave-in: nature does not ask consent.
     // Only combat sets the flag; everything else leaves it unset.
     const creature = armedCreature();
-    const t = avulsionAt('body.arm.left.hand', HARM_DEFAULTS.SEVER_SEVERITY);
-    expect(t.maimAllowed).toBeUndefined();
-    AVULSION_BEHAVIOR.onset(creature, t);
+    ConditionApi.inflict(creature, { mechanism: 'tearing', site: 'body.arm.left.hand', energy: HARM_DEFAULTS.SEVER_SEVERITY });
     expect(creature.getPart('body.arm.left.hand')?.missing).toBe(true);
   });
 });
@@ -293,7 +292,8 @@ describe('AVULSION_BEHAVIOR — the sever gate', () => {
 /* ─────────── the anatomy death floor (a severed head is lethal) ─────────── */
 
 import { WorldClockApi } from '../../../api/worldclock';
-import '../../../platform/idea/WorldClockRegistry';
+import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { TemplatePaths } from '../../paths';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
 import { setFlatParts } from '../../species/__tests__/flat-body';
 
@@ -356,6 +356,10 @@ describe('the anatomy death floor', () => {
     WorldClockApi._resetForTesting();
     real = 100000;
     WorldClockApi._setNowProviderForTesting(() => real);
+    // ⚠ Stand the registry if an earlier describe's `clearAll` took it.
+    if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
+      makeStuffAtPath(() => new WorldClockRegistry(), TemplatePaths.worldClockRegistry);
+    }
   });
   afterEach(() => {
     // ⚠ NOT `StuffApi.clearAll()` — that wipes the WorldClockRegistry

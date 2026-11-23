@@ -22,8 +22,10 @@
  */
 
 import type { BodyModule, ModulePart } from './BodyModule';
+import { DaylengthBand } from '../time/DaylengthBand';
 import type {
   BodyFill,
+  IntegumentLayer,
   Integument,
   BodyPart,
   BreathingSpec,
@@ -226,6 +228,7 @@ export class Body {
     if (mp.governs) part.governs = [...mp.governs];
     if (mp.serves) part.serves = [...mp.serves];
     if (mp.severable) part.severable = true;
+    if (mp.regrows) part.regrows = mp.regrows;
     const inner = (mp.innervatedBy ?? []).map((k) => Body.absolute(as, k));
     const supply = (mp.suppliedBy ?? []).map((k) => Body.absolute(as, k));
     if (isRoot) {
@@ -424,6 +427,15 @@ export class Body {
       if (t.tissuePath === tissuePath && (!present || present(t.partKey))) sum += t.share;
     }
     return sum;
+  }
+
+  /**
+   * ⭐ How deep a coat layer stands at this daylength (D7): `cycle.thick`
+   * inside its band (a winter coat), 1 outside it or with no cycle. Pure.
+   */
+  public coatFactor(layer: IntegumentLayer, dayFraction: number | null): number {
+    if (!layer.cycle || dayFraction === null) return 1;
+    return new DaylengthBand(layer.cycle).contains(dayFraction) ? layer.cycle.thick : 1;
   }
 
   /** ⭐ A part's outside (D3), or null for an interior or bare part. */

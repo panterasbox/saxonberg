@@ -13,7 +13,11 @@ parts:
   gait: [walk, swim]
 integument:
   skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.004, form: hide}
-  coat: {material: /stuff/idea/material/tissue/fur, depthM: 0.015, loft: 0.85}
+  coat:
+    material: /stuff/idea/material/tissue/fur
+    depthM: 0.015
+    loft: 0.85
+    cycle: {daylightFrom: 0, daylightTo: 0.45, thick: 1.6}
 comesOffAs:
 - {tissue: /stuff/idea/material/tissue/bone, cut: /trade/ranching/thing/bone}
 - {tissue: /stuff/idea/material/tissue/muscles/shoulder, cut: /trade/cooking/thing/cut-shoulder}

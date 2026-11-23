@@ -773,6 +773,13 @@ export default class Species extends SingletonMixin(
    */
   protected body: BodyDelta | null = null;
 
+  /**
+   * ⭐ How often a body of this species moults, game-days (organism-biology
+   * D7) — a crab sheds its shell and a lost claw comes back at the next
+   * one. `0` = it does not moult.
+   */
+  protected moultEveryDays: number = 0;
+
   /** When and how it breeds (D26), or `null` for a species that does not. */
   protected breeding: BreedingSpec | null = null;
 
@@ -1061,6 +1068,7 @@ export default class Species extends SingletonMixin(
     adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
     body: { persistent: true },
+    moultEveryDays: { persistent: true, authorable: true },
     breeding: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
@@ -1536,6 +1544,12 @@ export default class Species extends SingletonMixin(
   public getReproductiveMode(): string { return this.reproductiveMode; }
   public setReproductiveMode(value: string): void {
     this.reproductiveMode = value;
+  }
+
+  /** How often a body of this species moults, game-days; 0 = never (D7). */
+  public getMoultEveryDays(): number { return this.moultEveryDays; }
+  public setMoultEveryDays(value: number): void {
+    this.moultEveryDays = Number.isFinite(value) && value > 0 ? value : 0;
   }
 
   /** How this species' body differs from its plan (D1), or `null`. */

@@ -151,6 +151,12 @@ export interface IntegumentLayer {
   loft?: number;
   /** Coat: the tap whose standing is this coat's growth (the sheep's `wool`). */
   tap?: string;
+  /**
+   * ⭐ Coat: the year it keeps (D7) — under this daylength band it is
+   * `thick` times as deep (a winter coat). Derived on read at the body's
+   * place: nothing to store.
+   */
+  cycle?: { daylightFrom: number; daylightTo: number; rising?: boolean; thick: number };
 }
 
 /** ⭐ A part's outside, outermost last: skin, then under, then coat (D3). */
@@ -256,6 +262,8 @@ export interface BodyPart {
   fill?: BodyFill;
   /** ⭐ Its outside (D3) — set on EXTERIOR parts only: an organ has no skin. */
   integument?: Integument;
+  /** ⭐ It grows back (D7): `moult` — at the species' moult; a burned stump never does. */
+  regrows?: 'moult';
   /** ⭐ What its tissues and outside leave a carcass as (D5): the module's own map. */
   comesOffAs?: readonly ComesOff[];
 }

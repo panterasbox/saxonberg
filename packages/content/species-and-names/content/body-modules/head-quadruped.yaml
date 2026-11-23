@@ -14,7 +14,11 @@ parts:
   - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.003}
 integument:
   skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.006, form: hide}
-  coat: {material: /stuff/idea/material/tissue/fur, depthM: 0.015, loft: 0.85}
+  coat:
+    material: /stuff/idea/material/tissue/fur
+    depthM: 0.015
+    loft: 0.85
+    cycle: {daylightFrom: 0, daylightTo: 0.45, thick: 1.6}
 comesOffAs:
 - {tissue: /stuff/idea/material/tissue/bone, cut: /trade/ranching/thing/bone}
 - {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}

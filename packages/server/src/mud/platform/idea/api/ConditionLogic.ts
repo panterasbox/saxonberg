@@ -253,9 +253,46 @@ export class ConditionLogic extends ApiLogic {
         spec.corrosiveTo,
       );
     }
-    return Channels.isChannel(spec.mechanism)
+    const out = Channels.isChannel(spec.mechanism)
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
+    this.severIfTaken(target, out);
+    return out;
+  }
+
+  /**
+   * ⭐⭐ An avulsion past the sever line, on a part that comes off, that
+   * LANDED (organism-biology D7): the part is taken — the delta at once,
+   * so the body is missing it when `inflict` returns, and the part itself
+   * minted into the place a moment later (an async mint, caught and said).
+   */
+  private severIfTaken(target: Stuff, out: InflictOutcome): void {
+    const t = out.trauma;
+    if (!out.afflicted || t.type !== 'avulsion' || t.severity < HARM_DEFAULTS.SEVER_SEVERITY) return;
+    if (t.maimAllowed === false || !MixinApi.isVitals(target)) return;
+    const part = target.getPart(t.site);
+    if (!part?.severable || part.missing) return;
+    const sealed = t.mechanism === 'heat' || t.mechanism === 'corrosion' ? t.mechanism : undefined;
+    target.severPart(t.site, sealed ? { sealed } : {});
+    void this.mintSevered(target, t.site, 'severed').catch((err: unknown) => {
+      console.error(`ConditionApi: the severed ${t.site} did not stand up`, err);
+    });
+  }
+
+  /** See {@link ConditionApi.sever}. */
+  @CallSecurity(ConditionApiCallers)
+  public async sever(body: Stuff, partKey: string, cause: string): Promise<Stuff | null> {
+    if (!MixinApi.isVitals(body)) return null;
+    const part = body.getPart(partKey);
+    if (!part || part.missing) return null;
+    body.severPart(partKey);
+    return this.mintSevered(body, partKey, cause);
+  }
+
+  /** The part, as a thing: a corpse of its subtree, laid where the body is. */
+  private async mintSevered(body: Stuff, partKey: string, cause: string): Promise<Stuff | null> {
+    const nowS = conditionNowSeconds() ?? 0;
+    return mintCorpseFrom(body, materialSlicesOf(body), cause, nowS, { subtree: partKey });
   }
 
   /** See {@link ConditionApi.treatWorstResolvable}. */
@@ -789,7 +826,9 @@ async function mintCorpseFrom(
   material: Record<string, unknown>,
   cause: string,
   nowS: number,
+  opts: { subtree?: string } = {},
 ): Promise<Stuff & Vitals> {
+  if (opts.subtree) return mintPartFrom(body, material, cause, nowS, opts.subtree);
   // Everything ORDINARY about this corpse arrives through hydration.
   //
   // `dataOverlay` merges per-instance data over the template's authored
@@ -964,6 +1003,66 @@ async function mintCorpseFrom(
   }
 
   // Lay it where the body fell.
+  if (MixinApi.isContainable(body) && MixinApi.isContainable(corpse)) {
+    const at = body.getContainer();
+    if (at && MixinApi.isContainer(at)) ContainmentApi.move(corpse, at);
+  }
+  return corpse;
+}
+
+/**
+ * ⭐⭐ **A severed part is a corpse of its subtree** (organism-biology D7):
+ * *a wolf's foreleg*, weighing its share of the body, carrying the wounds
+ * on its own parts, decaying on the corpse's clock, butchered like any
+ * carcass for what is on it. No new class: the corpse marks the rest of the
+ * body MISSING, so slots, butchery, surface and insulation read only what is
+ * there. Whose body it was is not stamped (a part is not anybody's body of
+ * record); the loadout stays on the body.
+ */
+async function mintPartFrom(
+  body: Stuff,
+  material: Record<string, unknown>,
+  cause: string,
+  nowS: number,
+  partKey: string,
+): Promise<Stuff & Vitals> {
+  const organism = MixinApi.isOrganism(body) ? body : null;
+  const anatomy = organism?.getBody() ?? null;
+  const common = organism?.getCommonNames()[0] ?? 'creature';
+  const words = partKey.replace(/^body\./, '').split('.').flatMap((w) => w.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase().split(' '));
+  const phrase = [...words].reverse().join(' ');
+  // Its share of the body's mass: the subtree's tissues.
+  const subtree = new Set([partKey]);
+  let grew = true;
+  while (grew && anatomy) {
+    grew = false;
+    for (const p of anatomy.getParts()) {
+      if (!subtree.has(p.key) && p.parent !== null && subtree.has(p.parent)) {
+        subtree.add(p.key);
+        grew = true;
+      }
+    }
+  }
+  const share = (anatomy?.resolvedTissues() ?? []).filter((t) => subtree.has(t.partKey)).reduce((a, t) => a + t.share, 0);
+  const bodyKg = MixinApi.isTangible(body) ? body.getMass()?.rawValue() : undefined;
+  const corpse = await StuffApi.clone(TemplatePaths.mortalityCorpse, undefined, {
+    dataOverlay: {
+      shortDescription: `${common}'s ${phrase}`,
+      register: 'indefinite',
+      ofIdentityPath: '',
+      _speciesPath: organism?.getSpecies()?.getTemplatePath() ?? null,
+      causeOfDeath: cause,
+      diedAtGameSec: nowS,
+      keywords: [...new Set([...words, 'part', common.toLowerCase()])],
+      ...(bodyKg !== undefined && share > 0 ? { mass: bodyKg * share } : {}),
+      ...(organism ? { bornAt: organism.getBornAt() } : {}),
+    },
+  });
+  if (!MixinApi.isVitals(corpse)) {
+    throw new Error(`ConditionApi.sever: the corpse template did not produce a body with vitals`);
+  }
+  corpse.adoptMaterialState(material);
+  corpse.restrictToSubtree(partKey);
   if (MixinApi.isContainable(body) && MixinApi.isContainable(corpse)) {
     const at = body.getContainer();
     if (at && MixinApi.isContainer(at)) ContainmentApi.move(corpse, at);

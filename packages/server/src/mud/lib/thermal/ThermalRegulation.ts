@@ -42,6 +42,9 @@ import type { AfflictionRecord } from "../../platform/idea/Condition";
 import { Evaporation } from '../material/Evaporation';
 import { Quantity, M2K_PER_W_PER_CLO } from "../quantity";
 import { MaterialApi } from "../../api/material";
+import { CelestialApi } from "../../api/celestial";
+import { EARTH_LIKE } from "../time/CelestialProfile";
+import { DEFAULT_CLIMATE_SITE } from "../weather/WeatherType";
 import { K_AIR, K_WATER } from "../slot/Wearable";
 import type { IntegumentLayer } from "../../platform/idea/species/BodyPlan";
 import type { Unit } from "../quantity";
@@ -250,6 +253,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const body = MixinApi.isOrganism(host) ? host.getBody() : null;
       if (!body) return 0;
       const wetness = MixinApi.isWet(host) ? host.getWetness() : 0;
+      const day = this.dayFractionHere();
       let clo = 0;
       for (const part of body.getParts()) {
         const outside = part.integument;
@@ -258,10 +262,24 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         if (!(share > 0)) continue;
         for (const layer of [outside.under, outside.coat]) {
           if (!layer?.depthM) continue;
-          clo += share * this.layerClo(layer, wetness);
+          clo += share * this.layerClo(layer, wetness) * body.coatFactor(layer, day);
         }
       }
       return clo;
+    }
+
+    /** The length of the day where this body stands, as a fraction — the coat's year (D7). */
+    private dayFractionHere(): number | null {
+      const host = this.regHost;
+      const now = this.regNowSeconds();
+      if (now === null) return null;
+      let cursor: Stuff | null = host;
+      for (let i = 0; cursor !== null && i < 16; i++) {
+        if (MixinApi.isAtmospheric(cursor)) break;
+        cursor = MixinApi.isContainable(cursor) ? (cursor.getContainer() as Stuff | null) : null;
+      }
+      const lat = (cursor && MixinApi.isAtmospheric(cursor) ? cursor.climateSite() : DEFAULT_CLIMATE_SITE).latitudeDeg;
+      return CelestialApi.daylightSecondsFor(EARTH_LIKE, lat, now) / EARTH_LIKE.dayLengthSeconds;
     }
 
     /** One coat layer's clo — the garment's law, the body's wetness. */

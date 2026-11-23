@@ -62,6 +62,8 @@ export interface ModulePart {
   fill?: BodyFill;
   /** As `BodyPart.integument` — overrides the module's own for this part. */
   integument?: Integument;
+  /** As `BodyPart.regrows`. */
+  regrows?: 'moult';
 }
 
 export class BodyModule {
@@ -118,6 +120,7 @@ export class BodyModule {
         if (Array.isArray(v) && v.length > 0) part[f] = v.map(String);
       }
       if (raw.severable === true) part.severable = true;
+      if (raw.regrows === 'moult') part.regrows = 'moult';
       if (raw.fill !== undefined) part.fill = BodyModule.fillOf(raw.fill, path, key);
       if (raw.integument !== undefined) part.integument = BodyModule.integumentOf(raw.integument, path, key);
       if (Array.isArray(raw.produces) && raw.produces.length > 0) {
@@ -178,6 +181,12 @@ export class BodyModule {
       }
       if (typeof raw.form === 'string') l.form = raw.form;
       if (typeof raw.tap === 'string') l.tap = raw.tap;
+      const cyc = raw.cycle as Record<string, unknown> | undefined;
+      if (cyc) {
+        const thick = Number(cyc.thick);
+        if (!Number.isFinite(thick) || thick <= 0) throw new Error(`body-module '${path}' part '${key}': integument ${layer}.cycle.thick must be > 0`);
+        l.cycle = { daylightFrom: Number(cyc.daylightFrom), daylightTo: Number(cyc.daylightTo), thick, ...(typeof cyc.rising === 'boolean' ? { rising: cyc.rising } : {}) };
+      }
       out[layer] = l;
     }
     return out;

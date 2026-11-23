@@ -38,6 +38,10 @@ import { StuffApi } from '../../api/stuff';
 import { SpeciesApi } from '../../api/species';
 import { ContainmentApi } from '../../api/containment';
 import { MaterialApi } from '../../api/material';
+import { CelestialApi } from '../../api/celestial';
+import { WorldClockApi } from '../../api/worldclock';
+import { EARTH_LIKE } from '../time/CelestialProfile';
+import { DEFAULT_CLIMATE_SITE } from '../weather/WeatherType';
 import type Species from '../../platform/idea/species/Species';
 import type { DressLine } from '../../platform/idea/species/Species';
 import type { Body, YieldLine } from '../species/Body';
@@ -436,6 +440,24 @@ function woundedAt(body: Stuff, tissues: readonly string[], anatomy: Body | null
   return false;
 }
 
+/** The length of the day at a body's place, as a fraction (the coat's year, D7). */
+function dayFractionAt(body: Stuff): number | null {
+  let now: number;
+  try {
+    now = WorldClockApi.getNow().rawValue();
+  } catch {
+    // @quiet a unit world has no clock: the coat's year is unknown.
+    return null;
+  }
+  let cursor: Stuff | null = body;
+  for (let i = 0; cursor !== null && i < 16; i++) {
+    if (MixinApi.isAtmospheric(cursor)) break;
+    cursor = MixinApi.isContainable(cursor) ? (cursor.getContainer() as Stuff | null) : null;
+  }
+  const lat = (cursor && MixinApi.isAtmospheric(cursor) ? cursor.climateSite() : DEFAULT_CLIMATE_SITE).latitudeDeg;
+  return CelestialApi.daylightSecondsFor(EARTH_LIKE, lat, now) / EARTH_LIKE.dayLengthSeconds;
+}
+
 /** A material's density, kg/m³, or 0 when it is not resident. */
 function densityOf(path: string): number {
   return MaterialApi.materials().peek(path)?.getDensity().rawValue() ?? 0;
@@ -489,6 +511,16 @@ function flawThePelt(
   for (const other of all) {
     if (other.integument || carcass.stillOn({ cut: other.row, tissues: other.tissues })) continue;
     for (const k of other.parts) if (skinned.includes(k)) pelt.addFlaw('slashed', true, undefined, k);
+  }
+  // ⭐ The winter pelt is the better pelt (D7): a coat in its thick season
+  // at the kill grades the skin up.
+  if (MixinApi.isGraded(pelt)) {
+    const cycled = skinned.map((k) => anatomy.integumentAt(k)?.coat).filter((c) => !!c?.cycle);
+    if (cycled.length > 0) {
+      const day = dayFractionAt(body);
+      const winter = cycled.some((c) => anatomy.coatFactor(c!, day) > 1);
+      pelt.setGradeBand(winter ? 'fine' : 'fair');
+    }
   }
   const short = handFor('standard') - CompetenceBand.rank(band);
   const largest = [...skinned].sort((a, b) => anatomy.partArea(b) - anatomy.partArea(a));

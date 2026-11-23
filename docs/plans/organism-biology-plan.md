@@ -1739,6 +1739,24 @@ authoring `lostParts` whose claw has regrown still has it after a restore
 (unit).
 **Commit:** `feat(harm): W6 the severed part is a thing; regrowth and the coat's year`
 
+> ✅ **W6 done.** `ConditionApi.sever` (delta + mint); `inflict` severs
+> after an avulsion past the line LANDS (the delta at once, the part's mint
+> detached and caught), and `AVULSION_BEHAVIOR.onset` no longer severs.
+> The mint is `mintCorpseFrom(…, { subtree })` → *a wolf's foreleg*,
+> weighing its share, laid in the body's place; the corpse calls
+> `restrictToSubtree`, which marks the rest missing and keeps only the
+> part's wounds. `BodyPartDelta` gained `lostAtAgeDays` and `sealed`; a
+> burn or caustic aimed at a stump seals it and re-sites to the nearest
+> present part; `regrows: moult` + `Species.moultEveryDays` restore an
+> unsealed loss at the moult; `lostParts` is a seed field (mint only);
+> `getLostParts()` lists subtree roots. A coat may `cycle` (a daylength
+> band × `thick`), read at the body's place for insulation and at the kill
+> for the pelt's grade (`fine` in the thick season, else `fair`). Content:
+> the crab's claws regrow every 60 days; quadruped and canid fur is 1.6×
+> deep below a 0.45 day. Decisions B21–B22. The severed part's mint needs
+> the corpse template from the store, so it is proved by the drive (W11),
+> as the plan's own acceptance says (*wire*).
+
 ### W6b — Reads are pure; bodies wake themselves
 
 **Goal:** looking at a body stops changing it; a body standing still is
@@ -2361,6 +2379,19 @@ Decisions the build made that the plan did not, and what decided each.
   (the commit body lists them per species); masses re-derive from shares.
   *Decided by:* lens 1 (a hide is one skin; a small animal's meat is
   small, not absent).
+
+- **B21 (W6) — `subtree` lives on `VitalsMixin`, not `Corpse`.** The
+  missing-parts line is `VitalsMixin`'s, and it must stay silent for a
+  part; reading a `Corpse` field from there is a downward import or a duck
+  type. *The body is only this part of one* is a fact about a body's
+  parts, so `getSubtree()`/`restrictToSubtree()` sit with
+  `bodyPartDeltas`, and every other reader sees only the missing deltas.
+  *Decided by:* the host-placement test (the reader's own host).
+- **B22 (W6) — the sever's mint is detached from `inflict`.** `inflict` is
+  synchronous and every caller reads its outcome at once; the delta lands
+  synchronously (the body is missing the part when it returns) and the
+  part's async mint follows, its failure logged. *Decided by:* the nearest
+  pattern (`inflict`'s shape is shipped).
 
 ## Drive record
 
