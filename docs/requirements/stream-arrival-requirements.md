@@ -59,6 +59,8 @@ reuse ledger the plan must account for is in
   visitor's origin; every band without a source is absent.
 - Character creation asks for species, sex (where the species has one), pronouns and name — nothing
   else — and every new character arrives dressed in one plain everyday outfit.
+- The whole path — front page, sign-in, character select, character creation — reads as **one
+  thing**: the same visual language as the new front page.
 
 ## Non-goals
 
@@ -159,6 +161,13 @@ tile, the founder's avatar, the show title, *Bobalu Smallberries*), Latest (the 
 headlines), the footer. **Coming up** shows the next show from its setting; elections join it with
 the front-page build. Phone order: sign-in, the show, the chambers, Latest.
 
+### One visual language, front page to lounge **[owner, 2026-11-23]**
+Character select and character creation are restyled into the new front page's design language —
+its type, colors, bands and layout grammar ([docs/design/front-page/](../design/front-page/front-page.dc.html),
+[docs/design/brand/](../design/brand/README.md)) — so the path from the page to the lounge looks like
+one thing. Their behavior is unchanged beyond what this document says (the docked video, no
+aspiration).
+
 ### The guest **[watch-slate § 4; owner]**
 Supported, never promoted: a plain small link under the sign-in buttons — *Look around as a guest* —
 and the line *A guest keeps nothing, and nobody can find them.* Never in the show tile.
@@ -233,6 +242,8 @@ None — every step is `instant`.
 - The video plays in a corner through character select and character creation.
 - A character entered while the video plays is in the lounge in watch mode on the same stream and
   carrier, and the video did not restart; one entered without it is in its usual mode.
+- Character select and character creation look like the front page — the same type, colors and
+  layout grammar.
 - Nowhere in character creation, a character's profile, help or the wiki does *aspiration* appear;
   every new character and every guest is dressed in the plain outfit.
 - The front page shows only bands with real content; none says *coming soon*.
