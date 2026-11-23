@@ -1788,3 +1788,53 @@ Read first, in this order.
 
 *(appended at build time — the measured census ceilings at C0, then the
 blocking drive's output, count and findings, and the walk's.)*
+
+## Drive record
+
+**Blocking drive:** `packages/wire/tests/naming-overhaul.dirty.wire.test.ts`
+(`WIRE_BOOT=1 WIRE_PORT=2016`), 2026-11-22. **15 of 15 driven steps green**
+across the final runs (Stage B and C on run 4; Stage A on run 6 after the
+staging fixes). There is no soak drive (the requirements' soak drive is
+empty).
+
+What the drive covers, by requirement step: 3a (the kinds folder by title),
+4 (a filed herd record cannot be rewritten through the CMS), 6 (a release's
+game-time date), 10 (`query me:~`, `look ~here` = `look here`), 11 (`dm
+~friends:<them>` and `dm @<id>` across rooms), 12 (a list named `inventory`
+warns; `~inventory` still means what you carry), 13 (`query book:~` lists
+`~ships`), 15 (`notify ~friends`; a typed private ref refused with the
+relation spelling), B4's `who` → `@<id>`, **16 (RESTART — the contact list
+and the notify rule come back)**, 17 (`charter HESPER` / `the Hesper` /
+`hesper`), 18 (`buy loaf` / `loaves` / `a loaf`), 21 (`party adopt vanguard`
+/ `the vanguard` — `wedge` is not a shipped formation; `smile`), 23 (`rent
+canoe for a week`; `90 minutes` refuses on granularity; `for soon` and `for a
+while` give the same line), 24 (`help search harb`).
+
+**What it found (all fixed, with tests):**
+1. A stale stored record (`/trade/chandlery/idea/material/lye`, moved by
+   master's !644) bricked the world's boot — the `stale-reference-boot`
+   slate's case; the worktree's dev DB was dropped.
+2. `GrammarApi.name` shadowed `Function.prototype.name` and broke every
+   `eval` — renamed `nameAmong`, guard test.
+3. `buy loaves` — the plural rule now knows `-f`/`-fe` → `-ves`.
+4. `party adopt the vanguard` failed to bind — a view's last one-word string
+   slot folds a leading article.
+5. (C7's docs pass, before the drive) `callUp` read the retired
+   `publishedAt` card key.
+
+**Not driven, and why:** 1 (a CMS recipe edit reaching `look`), 2 (a
+contract's pages), 5 (a bore log line), 7 (a `maps/` pack install), 8 (kind
+declaration edits), 9 (stream tokens), 10b (`goto ~/workroom`), 14
+(`watch::wind`), 19 (cast / apps / chat join / job apply), 20 (`sample
+north`), 22 (`contacts remove ~friends:<them>`) — each is proven by its
+wave's unit tests (named in the wave notes above); they need staging the
+harness does not offer (a pack install mid-run, a lit kiln, a caster, a
+phone) and are left for the browser walk where a person can reach them. 3b
+(an undeclared kind refused) has no author-reachable route in a running world
+(the CMS creates only scripts at a new path; `eval` is sandboxed) —
+`DocumentLogic.funnel.test.ts` proves it.
+
+**A gap the drive saw, not fixed (review item):** a refusal raised under the
+CMS (`document-filed`) reaches the CMS caller as the bare code
+(`refused: document-filed`), not the reason row's words — the CMS's error
+path does not word refusals by their rows.
