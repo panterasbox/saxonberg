@@ -3,9 +3,10 @@
 > **Status: UNBUILT** — opened 2026-11-23 (owner, in naming-overhaul
 > review, over the `lists: relations` view key); shape decided in the
 > design conversation the same day (below).
-> **Left:** the requirements — the output's grouping, the `~` words'
-> spelling on request, the "you can't do that here" line for a named verb,
-> the client's manifestation, and what retires.
+> **Left:** the client's manifestation (a verbs card, verbs as links, the
+> radial and typeahead reading the answer) · scripts asking whether a verb
+> exists.
+> **In requirements (2026-11-23):** [which](../../requirements/which-requirements.md) — the server command.
 > **Size:** a build (server first; the client reads it after).
 
 ## Why this exists
@@ -106,18 +107,25 @@ which <thing>    — what that thing lets you do
   them: retiring the key first leaves players no way to discover their
   relations.
 
+## Reuse ledger for the plan
+
+| concept | what already does it | reuse / generalize |
+|---|---|---|
+| the verbs a player can use now, and what gave each | the per-player command stack (self · peers · environment slices; `RecencyEntry.source`), kept by `applyContainmentDelta` / `applyShadowDelta` / `applyHostedAppDelta` | reuse — `which` reads it; whether its client push (`emitSchemaDelta`, `shell.control`) stays is the plan's call |
+| one thing's verbs, with the reason a verb is unavailable | `CommandApi.resolveAffordances` → `AffordanceEntry` (the radial) | reuse for `which <thing>` and the one-line refusal |
+| naming a source in plain words (*the rod in your right hand*) | the presentation layer's forms (`getPresentation`, the handle chain) + the carrying tiers' slot words (carrying.md: hand · ready · packed) | reuse; the slot phrase may be new wording, not new substrate |
+| the one word to type for a thing; telling two apart | the handle; the binder's tie prompt / the distinguishing form | reuse |
+| never naming the unperceived | `PerceptionApi.perceived` (the binder's gate) | reuse — the same gate, not a second one |
+| the `~` words and their meanings | the built-in relation table + `RelatingMixin.relationsFor` (naming-overhaul B1) | reuse; the listing moves from `query` (the `lists: relations` key, the `relations` bound field and `names-relations` retire) |
+| the refusal words for an unusable verb | the verb's own validators and reason rows | reuse — the same words, never a paraphrase |
+| a shell verb in the platform pack | `client-*` / `settings` / `alias` (shell category views) | the shape to follow |
+
 ## Open questions
 
-- **The `~` words' spelling on request** — `which ~` (type the sigil, get
-  its words), an option (`which --relations`), or `which` on a holder
-  (`which book` adds its `~ships`)? Under *verb subcommand target*, never
-  nested.
-- **The grouping** — by source (what gives it) as the default; do the
-  always-there body verbs (`look`, `say`, `go` …) collapse into one line
-  so the interesting sources stand out?
-- **A verb you name but cannot use here** (`which fish` with no rod) — is
-  that `which`'s at all (one line: *you need something to fish with*, the
-  view's own words), or does it stay with `help fish`?
+- *(Decided in requirements, 2026-11-23: `which ~` / `which <thing> ~`;
+  grouped by source with the usual body verbs on one line; a verb you
+  cannot use here gets one line in its own refusal words. See
+  [which-requirements](../../requirements/which-requirements.md).)*
 - **The client** — the hypertext manifestation (a verbs card, verbs as
   links, the radial reading the same model), and whether typeahead reads
   the pushed stack or the `which` model.
