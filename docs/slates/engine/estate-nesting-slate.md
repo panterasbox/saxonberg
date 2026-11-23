@@ -1,12 +1,10 @@
 # Estate nesting slate — an owner's record grows with everything they own
 
-> **Status: UNBUILT** — the nesting is shipped and unbounded; one
-> mitigation landed in the pets build (a keyed good rides as a reference).
-> **Left:** ⭐⭐ decide what an estate entry should CARRY — a reference, a
-> copy, or a copy under a cap · the 16 MB document ceiling and what
-> happens at it · whether a good's state belongs in the owner's record at
-> all now that `EstateEntry.key` proves it need not · the migration for
-> entries already written
+> **Status: REQUIREMENTS** — agreed 2026-11-22 in
+> [estate-nesting-requirements](../../requirements/estate-nesting-requirements.md):
+> every owned good keeps itself and the estate is an index; failed saves
+> are loud, isolated and told to operator and player.
+> **Left:** the plan, then the build
 > **Size:** **a build** — it changes the shape of every estate record and
 > touches capture, restore and the room overlay
 
@@ -99,3 +97,28 @@ Whether a saucer deserves a row is exactly the trade.
   identity lookups that are ~all of its traffic.
 - **The pets build's `EstateEntry.key`.** It ships, it is the mitigation,
   and it is the worked example this slate generalises from.
+
+---
+
+## Reuse ledger for the plan
+
+Verified in code 2026-11-22 (`be83f63ce`). Every row is one the plan must
+account for.
+
+| concept the build needs | what already does it | reuse / generalize |
+|---|---|---|
+| a good that saves itself, referenced from the estate | `EstateEntry.key` + `state: {}`; `Estate.captureSlice` reference branch (`lib/chattel/Estate.ts:243-255`); `Bonded` promotion of a named `KeptAnimal` (`Bonded.ts:696-706`) | **generalize** — the reference becomes the default for every owned good, not a promotion |
+| standing a keyed good back up on restore | `standUpKeyed` in `Estate.hydrateSlice` (`Estate.ts:311-387`) | reuse |
+| putting an owner's goods back in a room that loads | `overlayOwnedGoods` (`PersistableLogic.ts:1466-1544`), `putBackWithin` (`:1555-1599`) | reuse; its keyless branch (`restoreDetached`) likely retires |
+| where a good was last placed | the `chattel` row's `place` + `pin`, `ChattelLogic.pinOf`; `HostPlacement` in `record.place` | reuse — closes the public-room gap for owned goods |
+| a non-host good captured without a record | `captureDetached` / `restoreDetached` (`api/persistable.ts:186-210`), only caller `ChattelLogic.syncEstate` | **retire or narrow** — the counter-argument the slate states; decide in the plan |
+| per-record identity | `holder_snapshots` `(scope, owner)` unique index; `owner` holds the key (`PersistableLogic.ts:1331,1389-1393`) | reuse; ⚠ `persistence.md:672-677` misdescribes `owner` — fix the doc |
+| a container nesting its contents | `ContainerSlice` / `captureItem` (`Container.ts:733-813`, `PersistableLogic.ts:814-837`); owned goods already skipped via `noteOwnedGood` | reuse unchanged — physics bounds it |
+| batched record writes | `PersistenceManager.saveMany` (`bulkWrite`, `ordered: false`, `:807-863`) | **generalize** — per-record failure isolation |
+| surfacing a failure to an author | `DiagnosticApi` store + `errors` verb ([diagnostics.md](../../subsystems/diagnostics.md)) | reuse — a new producer, not a new store |
+| telling the player | the ordinary message to the body | reuse |
+| a signed-out body's retirement | `retireSignedOutBody` (`Avatar.ts:1802-1816`) | fix — always completes |
+| updating a signed-out owner's estate | `patchStoredEstate` (`PersistableLogic.ts:663-678`) — drops `escheatedAt`/`beneficiary`, writes outside `serialRecordWrite` | fix (requirements: folded in) |
+| a keyed good's estate entry written unloaded | `ChattelLogic.syncEstate` (`:520-541`) writes a full copy with no `key` | fix (folded in) |
+| removing a destroyed good's record | `cleanupOnDestruct` (`Persistable.ts:456-467`) | reuse; verify it runs for every owned good |
+| measuring record sizes | nothing (`SAXONBERG_QUERY_TRACE` counts ops, not bytes) | **genuinely new** — operator reading |
