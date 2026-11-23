@@ -15,6 +15,13 @@ data:
   smells: [{ aroma: /base-library/aromas/animal/horse, strength: 15 }]
   binomial: Equus caballus pumilus
   commonNames: ["pit pony", "pony", "horse"]
+  # ⭐ Most pit ponies were geldings (D8, W7): a stallion carries the part
+  # castration takes, and one cut young is a gelding — derived, not authored.
+  variants:
+    sex:
+      female: { commonNames: [mare] }
+      male: { commonNames: [stallion], body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    neutered: { commonNames: [gelding] }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   # ⭐ Its height (size and carrying W6): a pit pony, twelve hands — low
   # enough for a drift, and measured at every way (D19).

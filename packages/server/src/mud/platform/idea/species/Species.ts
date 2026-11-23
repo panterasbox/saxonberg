@@ -599,6 +599,11 @@ export type LifeStage = (typeof LIFE_STAGES)[number];
 export interface BodyVariant {
   sex?: string | null;
   stage?: LifeStage | null;
+  /**
+   * ⭐ Castrated before maturity (D8, W7) — derived on the body (male, its
+   * gonads lost before `matureAt`), never authored: a steer, an ox.
+   */
+  neutered?: boolean;
 }
 
 /**
@@ -619,9 +624,19 @@ export interface VariantSpec {
   body?: BodyDelta;
 }
 
-/** A species' forms: by sex, and by life stage. */
+/**
+ * The neutered form (D8, W7): a male's form overridden once more, its own
+ * words by life stage (a steer grows into an ox), its sex form's words
+ * replaced rather than added to (an ox is not a bull).
+ */
+export interface NeuteredSpec extends VariantSpec {
+  stage?: Partial<Record<LifeStage, VariantSpec>>;
+}
+
+/** A species' forms: by sex, castration, and life stage. */
 export interface SpeciesVariants {
   sex?: Record<string, VariantSpec>;
+  neutered?: NeuteredSpec;
   stage?: Partial<Record<LifeStage, VariantSpec>>;
 }
 
@@ -1160,6 +1175,13 @@ export default class Species extends SingletonMixin(
     const forms = this.formsOf(variant).reverse();
     const words = [...forms.flatMap((f) => f.commonNames ?? []), ...this.commonNames];
     const others = new Set<string>();
+    // ⭐ A neutered body is not called what an entire one is (an ox is not
+    // a bull): its sex form's own words go, unless the neutered form says them.
+    const neutered = variant.neutered && variant.sex ? this.variants.neutered : undefined;
+    if (neutered) {
+      const kept = new Set([...(neutered.commonNames ?? []), ...Object.values(neutered.stage ?? {}).flatMap((f) => f?.commonNames ?? [])]);
+      for (const w of this.variants.sex?.[variant.sex!]?.commonNames ?? []) if (!kept.has(w)) others.add(w);
+    }
     // A body of no recorded sex excludes nothing (as the stamp never did).
     if (variant.sex) {
       for (const [sex, spec] of Object.entries(this.variants.sex ?? {})) {
@@ -1186,7 +1208,11 @@ export default class Species extends SingletonMixin(
    */
   public async setVariants(value: SpeciesVariants | null): Promise<void> {
     const v = value ?? {};
-    const forms = [...Object.values(v.sex ?? {}), ...Object.values(v.stage ?? {})] as VariantSpec[];
+    const forms = [
+      ...Object.values(v.sex ?? {}),
+      ...(v.neutered ? [v.neutered, ...Object.values(v.neutered.stage ?? {})] : []),
+      ...Object.values(v.stage ?? {}),
+    ] as VariantSpec[];
     await this.ensureDeltas(forms.map((f) => f.body));
     this.applyVariants(v);
   }
@@ -1223,16 +1249,24 @@ export default class Species extends SingletonMixin(
     this.bodies = { of: null, byKey: new Map() };
   }
 
-  /** The forms that apply to `variant`, least specific first (sex, then stage). */
+  /**
+   * The forms that apply to `variant`, least specific first: sex, the
+   * neutered form (only on a body with a sex), the stage, then the neutered
+   * form's own stage (a steer's adult is an ox).
+   */
   private formsOf(variant: BodyVariant | undefined): VariantSpec[] {
     const out: VariantSpec[] = [];
     if (variant?.sex) {
       const s = this.variants.sex?.[variant.sex];
       if (s) out.push(s);
     }
+    const neutered = variant?.neutered && variant.sex ? this.variants.neutered : undefined;
+    if (neutered) out.push(neutered);
     if (variant?.stage) {
       const st = this.variants.stage?.[variant.stage];
       if (st) out.push(st);
+      const ns = neutered?.stage?.[variant.stage];
+      if (ns) out.push(ns);
     }
     return out;
   }
@@ -1261,7 +1295,7 @@ export default class Species extends SingletonMixin(
     const deltas = [this.body, ...this.formsOf(variant).map((f) => f.body)].filter((d): d is BodyDelta => !!d);
     if (deltas.length === 0) return base;
     if (this.bodies.of !== base) this.bodies = { of: base, byKey: new Map() };
-    const key = `${variant?.sex ?? ''}|${variant?.stage ?? ''}`;
+    const key = `${variant?.sex ?? ''}|${variant?.stage ?? ''}|${variant?.neutered && variant.sex ? 'n' : ''}`;
     let body = this.bodies.byKey.get(key);
     if (!body) {
       body = plan.bodyWith(deltas);

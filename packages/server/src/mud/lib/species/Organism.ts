@@ -56,6 +56,9 @@ import { ConditionApi } from '../../api/condition';
 import { SpeciesApi } from '../../api/species';
 import { AccessApi } from '../../api/access';
 
+/** The part whose loss before maturity makes a male neutered (D8). */
+const NEUTERING_PART = 'gonads';
+
 const SECONDS_PER_GAME_DAY = 86_400;
 
 export interface Organism {
@@ -292,7 +295,24 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     public getVariant(): BodyVariant {
-      return { sex: this.getSex(), stage: this.getLifeStage() };
+      const sex = this.getSex();
+      const stage = this.getLifeStage();
+      return this.isNeutered(sex) ? { sex, stage, neutered: true } : { sex, stage };
+    }
+
+    /**
+     * ⭐ Neutered is DERIVED (D8): a male whose gonads came off before he
+     * was mature — a steer, an ox. Castration is an operation that takes a
+     * part; nothing writes a flag. A bull cut late stays a bull in his ways.
+     */
+    private isNeutered(sex: string | null): boolean {
+      if (sex !== 'male') return false;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isVitals(self)) return false;
+      const at = self.partLostAt(NEUTERING_PART);
+      if (at === null) return false;
+      const mature = this.getSpecies()?.getAgeCurve()?.matureAt;
+      return !(typeof mature === 'number' && mature > 0) || at < mature;
     }
 
     public getCommonNames(): readonly string[] {

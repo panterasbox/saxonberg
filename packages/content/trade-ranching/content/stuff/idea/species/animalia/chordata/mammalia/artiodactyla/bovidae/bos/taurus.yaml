@@ -22,7 +22,19 @@ data:
   variants:
     sex:
       female: { commonNames: [cow, heifer], body: { add: [{ module: /trade/ranching/body-modules/udder-cattle, as: [body.torso.udder], at: body.torso }] } }
-      male: { commonNames: [bull, ox] }
+      male: { commonNames: [bull], handlingRange: { floor: 0.05, ceiling: 0.8 }, body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    # ⭐ A male cut young (D8, W7) — derived from the lost part, never
+    # authored: a steer, and grown, an ox. Heavier than a bull of his age
+    # and steadier in hand, which is why oxen pulled the plough.
+    neutered:
+      commonNames: [steer, bullock]
+      massFactor: 1.15
+      biddability: 0.6
+      handlingRange: { floor: 0.3, ceiling: 1 }
+      stage:
+        adult: { commonNames: [ox, oxen] }
+        aged: { commonNames: [ox, oxen] }
+        senescent: { commonNames: [ox, oxen] }
     stage:
       # ⭐ A calf is not a small cow: a big head and long legs on a short
       # body, scaled on the same modules (renormalized, so the shares

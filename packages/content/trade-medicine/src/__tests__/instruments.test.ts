@@ -37,6 +37,7 @@ class Medic extends AdvancementMixin(Creature) {
 }
 
 let note: ReturnType<typeof vi.fn>;
+let refuse: ReturnType<typeof vi.fn>;
 
 function silence(): void {
   vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
@@ -50,7 +51,7 @@ function silence(): void {
 }
 
 const ctxFor = (actor: unknown): CommandContext =>
-  ({ commandGiver: actor, location: null, note } as unknown as CommandContext);
+  ({ commandGiver: actor, location: null, note, refuse } as unknown as CommandContext);
 
 const tool = (): MqlOneResult =>
   ({ stuff: makeStuff(() => new Good()), raw: 'it' } as unknown as MqlOneResult);
@@ -94,6 +95,7 @@ const OPS: OperationDescriptor[] = [
     baseDurationS: 300,
     anaesthesia: 'required',
     resolution: 'surgery',
+    posture: 'lying',
     difficulty: 'formidable',
   },
 ];
@@ -117,6 +119,7 @@ const kit = (): MqlOneResult =>
 beforeEach(() => {
   installV1QuantityMarshallers();
   note = vi.fn();
+  refuse = vi.fn();
   silence();
 });
 afterEach(() => {
@@ -162,8 +165,9 @@ describe('operate — a surgeon\'s kit', () => {
     const patient = makeStuff(() => new Creature());
     patient.setPosture(Postures.Lie);
     await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'nothing-to-operate' }),
+    // ⭐ The body refuses, and the reason row words it (organism-biology W7).
+    expect(refuse).toHaveBeenCalledWith(
+      expect.objectContaining({ ok: false, reason: 'nothing-to-operate' }),
     );
   });
 
@@ -175,8 +179,9 @@ describe('operate — a surgeon\'s kit', () => {
     patient.setPosture(Postures.Lie);
     ruptureOn(patient);
     await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'unskilled' }),
+    // ⭐ The body refuses, and the reason row words it (organism-biology W7).
+    expect(refuse).toHaveBeenCalledWith(
+      expect.objectContaining({ ok: false, reason: 'unskilled' }),
     );
   });
 
@@ -187,8 +192,9 @@ describe('operate — a surgeon\'s kit', () => {
     patient.setPosture(Postures.Stand);
     ruptureOn(patient);
     await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'not-lying' }),
+    // ⭐ The body refuses, and the reason row words it (organism-biology W7).
+    expect(refuse).toHaveBeenCalledWith(
+      expect.objectContaining({ ok: false, reason: 'not-lying' }),
     );
   });
 
@@ -199,8 +205,9 @@ describe('operate — a surgeon\'s kit', () => {
     patient.setPosture(Postures.Lie);
     ruptureOn(patient);
     await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new OperateController()).execute({ patient: { stuff: patient, raw: 'them' } as unknown as MqlOneResult, kit: kit() }, ctx$)))(ctxFor(surgeon));
-    expect(note).toHaveBeenCalledWith(
-      expect.objectContaining({ reason: 'needs-anaesthesia' }),
+    // ⭐ The body refuses, and the reason row words it (organism-biology W7).
+    expect(refuse).toHaveBeenCalledWith(
+      expect.objectContaining({ ok: false, reason: 'needs-anaesthesia' }),
     );
   });
 });

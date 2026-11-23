@@ -25,7 +25,8 @@ data:
   variants:
     sex:
       female: { commonNames: [ewe], body: { add: [{ module: /trade/ranching/body-modules/udder-sheep, as: [body.torso.udder], at: body.torso }] } }
-      male: { commonNames: [ram] }
+      male: { commonNames: [ram], body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    neutered: { commonNames: [wether], handlingRange: { floor: 0.3, ceiling: 1 } }
     stage:
       # ⭐ A young one has a fourth stomach worth taking: the vell (D5).
       newborn: { commonNames: [lamb], body: { add: [{ module: /trade/ranching/body-modules/abomasum, as: [body.torso.abomasum], at: body.torso }] } }

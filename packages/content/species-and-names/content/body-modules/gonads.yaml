@@ -1,0 +1,12 @@
+# gonads — a body module (organism-biology D8, W7): the male's, added by a
+# species' `variants.sex.male` delta. Castration is the operation that takes
+# it (`operate <animal> for castration`); a male who lost it before he was
+# mature is `neutered` — derived, never authored. Severable: it comes off as
+# a part, and what comes off is offal.
+parts:
+- key: ''
+  severable: true
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/gonad, weight: 0.002}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/gonad, cut: /stuff/thing/items/offal}

@@ -41,7 +41,17 @@ export interface OperationAddresses {
    * (amputation); `foreign-body` is a convenience for the embedded trauma.
    */
   flag?: "foreign-body" | "unsalvageable";
+  /**
+   * ⭐ A healthy PART of this name the operation takes (D8, W7): the body's
+   * present part whose key ends in it (`gonads`). ⛔ An operation naming a
+   * part matches ONLY when it is named with `for` — a bare `operate` never
+   * castrates.
+   */
+  part?: string;
 }
+
+/** Whether the patient must be lying still, or may stand (a calf held by a stockman). */
+export type OperationPosture = "lying" | "any";
 
 /** The runtime descriptor the catalogue caches. */
 export interface OperationDescriptor {
@@ -55,6 +65,8 @@ export interface OperationDescriptor {
   baseDurationS: number;
   anaesthesia: AnaesthesiaNeed;
   resolution: OperationResolution;
+  /** `lying` (the default) or `any` (D8). */
+  posture: OperationPosture;
   /** A `Difficulty` token graded at completion (e.g. `formidable`). */
   difficulty: string;
 }

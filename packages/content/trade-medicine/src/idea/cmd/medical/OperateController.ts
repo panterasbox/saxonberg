@@ -20,10 +20,8 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
-import { Postures } from '@saxonberg/server/mud/lib/slot/Postured';
 import { HARM_DEFAULTS } from '@saxonberg/server/mud/platform/idea/Condition';
 import { OperationEngagement } from '@saxonberg/server/mud/lib/vitals/OperationEngagement';
-import { type OperationDescriptor } from '@saxonberg/server/mud/lib/vitals/Operation';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -31,6 +29,7 @@ import type { Vitals } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import type { Trauma } from '@saxonberg/server/mud/platform/idea/Condition';
 import type { Engaged } from '@saxonberg/server/mud/lib/activity/Engaged';
 import { ConditionApi } from '@saxonberg/server/mud/api/condition';
+import type { Difficulty } from '@saxonberg/server/mud/lib/advancement/ActSignature';
 
 const TOPIC = 'act.deed';
 
@@ -40,13 +39,6 @@ interface OperateModel extends CommandModel {
   kit?: MqlOneResult;
 }
 
-/** The wound (or part, for amputation) an operation targets on a body. */
-interface Match {
-  op: OperationDescriptor;
-  wound?: Trauma;
-  partKey?: string;
-}
-
 export default class OperateController extends CommandController<OperateModel> {
   async execute(model: OperateModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -54,66 +46,27 @@ export default class OperateController extends CommandController<OperateModel> {
     const target: Stuff = named ?? (giver as unknown as Stuff);
     const self = named === undefined;
 
-    if (!MixinApi.isVitals(target)) {
-      return this.fail(context, 'There is nothing there to operate on.', 'no-body');
-    }
-    if (!model.kit?.stuff) {
-      return this.fail(context, "You need a surgeon's kit to operate.", 'no-kit');
-    }
+    if (!MixinApi.isVitals(target)) return this.refuse(context, { ok: false, reason: '/trade/medicine/reasons/no-body' });
+    if (!model.kit?.stuff) return this.refuse(context, { ok: false, reason: '/trade/medicine/reasons/no-kit' });
     // ⭐ The operation dictionary loads on first use (scan-sweep ruling 1):
     // one indexed read of the kind — nothing boots it.
     const ops = await ConditionApi.operations().all();
     const body = target as Stuff & Vitals;
-
-    // Pick the operation: named, else the most urgent applicable.
-    const wanted = (model.for ?? '').trim();
-    const matches = this.matchesFor(body, ops).filter(
-      (m) => !wanted || m.op.key === wanted,
-    );
-    if (wanted && !ops.some((o) => o.key === wanted)) {
-      return this.fail(context, `There is no such operation as "${wanted}".`, 'no-such-op');
-    }
-    const match = matches[0];
-    if (!match) {
-      const who = self ? 'You have' : 'They have';
-      return this.fail(context, `${who} nothing that operation would help.`, 'nothing-to-operate');
-    }
-    const op = match.op;
-
-    // Posture — the patient must be lying still.
-    if (
-      !MixinApi.isPosed(target) ||
-      (target as unknown as { getPosture(): string }).getPosture() !== Postures.Lie
-    ) {
-      const who = self ? 'You are' : `${target.getPresentation()} is`;
-      return this.fail(context, `${who} not lying still.`, 'not-lying');
-    }
-    // Competence.
+    const kit = model.kit.stuff as Stuff;
     const band = MixinApi.isAdvancing(giver)
       ? await giver.competenceBandFor('medicine')
       : CompetenceBand.FLOOR;
-    if (!CompetenceBand.atOrAbove(band, op.competence.band)) {
-      return this.fail(
-        context,
-        `You do not have the skill for ${op.label} — it wants ${op.competence.band} medicine.`,
-        'unskilled',
-      );
-    }
-    // The kit must offer the operation's capability.
-    const kit = model.kit.stuff as Stuff;
-    const caps = MixinApi.isTool(kit) ? kit.getCapabilities() : [];
-    if (!caps.includes(op.instrument)) {
-      return this.fail(context, `That kit cannot perform ${op.label}.`, 'wrong-kit');
-    }
-    // Anaesthesia.
+    // ⭐⭐ The body decides (organism-biology D8, W7): which operation, on
+    // which wound or part, and every refusal — this controller words none.
+    const answer = body.operable(model.for ?? null, ops, {
+      band,
+      capabilities: MixinApi.isTool(kit) ? kit.getCapabilities() : [],
+      self,
+    });
+    if (!answer.ok) return this.refuse(context, answer);
+    const match = answer;
+    const op = match.op;
     const conscious = body.getConsciousness() === 'conscious';
-    if (op.anaesthesia === 'required' && conscious) {
-      return this.fail(
-        context,
-        'Not without anaesthesia — they would not lie still for that.',
-        'needs-anaesthesia',
-      );
-    }
 
     // Compute the durative act.
     const rank = CompetenceBand.rank(band);
@@ -144,13 +97,26 @@ export default class OperateController extends CommandController<OperateModel> {
       if (MixinApi.isOrganism(target) && target.getLifecycleState() === 'dead') return;
       debitRest();
       if (op.resolution === 'severance' && match.partKey) {
+        const partKey = match.partKey;
         // Take the part; relieve the wounds seated on the severed subtree.
         for (const c of [...body.getConditions()]) {
-          if (c.kind === 'trauma' && c.site.startsWith(match.partKey)) {
+          if (c.kind === 'trauma' && c.site.startsWith(partKey)) {
             body.relieve(c);
           }
         }
-        body.severPart(match.partKey);
+        // ⭐ Through the one sever (D7): the part on the ground, as a thing.
+        void ConditionApi.sever(body, partKey, op.key).catch((err: unknown) => {
+          console.error(`operate: the ${op.label} did not take ${partKey}`, err);
+        });
+        // ⭐ A part taken from a healthy body leaves a wound where it was
+        // (D8): a castration is an open cut, with what an open cut costs.
+        if (op.addresses.part) {
+          const stump = partKey.includes('.') ? partKey.slice(0, partKey.lastIndexOf('.')) : partKey;
+          const cut: Trauma = { kind: 'trauma', type: 'laceration', site: stump, severity: 1, bleeding: true };
+          const by = (giver as unknown as Stuff).getIdentityPath();
+          if (by) cut.inflictedBy = by;
+          body.afflict(cut);
+        }
       } else if (match.wound) {
         // ⭐ The kit's clean tier (cleanliness D14): held in a flame it is
         // sterile; only washed, it seeds the wound.
@@ -176,7 +142,7 @@ export default class OperateController extends CommandController<OperateModel> {
         }
       }
       if (MixinApi.isAdvancing(giver)) {
-        void giver.creditDeed({ discipline: 'medicine', difficulty: 'formidable', outcome: 'success' });
+        void giver.creditDeed({ discipline: 'medicine', difficulty: op.difficulty as Difficulty, outcome: 'success' });
       }
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -227,46 +193,5 @@ export default class OperateController extends CommandController<OperateModel> {
       .toSelf(Mml.compose`Your hands are busy just now.`)
       .send();
     context.note({ kind: 'controller-rejected', reason: 'engagement-conflict', detail: 'busy' });
-  }
-
-  /** Every operation applicable to this body, most-urgent (worst wound) first. */
-  private matchesFor(body: Stuff & Vitals, ops: OperationDescriptor[]): Match[] {
-    const traumas = body
-      .getConditions()
-      .filter((c): c is Trauma => c.kind === 'trauma' && c.severity > 0);
-    const out: Match[] = [];
-    for (const op of ops) {
-      const a = op.addresses;
-      if (a.flag === 'unsalvageable') {
-        // Scan severable parts with an active wound.
-        const parts = new Set(traumas.map((t) => t.site));
-        for (const site of parts) {
-          if (body.isPartUnsalvageable(site)) {
-            out.push({ op, partKey: site });
-          }
-        }
-        continue;
-      }
-      for (const t of traumas) {
-        if (a.flag === 'foreign-body' && t.type !== 'foreign-body') continue;
-        if (a.traumaTypes && !a.traumaTypes.includes(t.type)) continue;
-        if (a.minSeverity !== undefined && t.severity < a.minSeverity) continue;
-        if (a.bleeding === true && t.bleeding !== true) continue;
-        if (t.dressed === true && t.type !== 'foreign-body') continue;
-        out.push({ op, wound: t });
-      }
-    }
-    // Most urgent first — by the target wound's severity.
-    return out.sort(
-      (x, y) => (y.wound?.severity ?? 5) - (x.wound?.severity ?? 5),
-    );
-  }
-
-  private fail(context: CommandContext, line: string, reason: string): void {
-    MessageApi.scene(context.commandGiver)
-      .topic(TOPIC)
-      .toSelf(Mml.fromMarkup(Mml.escape(line)))
-      .send();
-    context.note({ kind: 'controller-rejected', reason, detail: line });
   }
 }

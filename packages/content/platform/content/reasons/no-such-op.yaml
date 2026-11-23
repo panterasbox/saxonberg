@@ -1,0 +1,5 @@
+# `operate … for <word>` naming no operation in the catalogue (W7).
+facts:
+  word: text
+says: "There is no such operation as \"{{ word }}\"."
+topic: act.deed

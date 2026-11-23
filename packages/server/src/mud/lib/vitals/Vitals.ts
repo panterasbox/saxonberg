@@ -77,6 +77,7 @@ import { MqlApi } from '../../api/mql';
 import { PerceptionApi } from '../../api/perception';
 import type { Containable } from '../spatial/Containable';
 import { CompetenceBand } from '../advancement/CompetenceBand';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { Difficulty, Outcome } from '../advancement/ActSignature';
 import type { ActPlan, ActOutcome, ActRefusal, ActChoices } from '../craft/ActPlan';
 import { AccountabilityApi } from '../../api/accountability';
@@ -93,6 +94,39 @@ export type BloodDrawRefusal = ActRefusal<
   'no-tool' | 'no-blood' | 'not-conscious' | 'too-low' | 'wan'
 >;
 import type { Dressing } from './Dressing';
+import type { OperationDescriptor } from './Operation';
+import { Postures } from '../slot/Postured';
+
+/**
+ * Why a body will not take the operation asked of it, in the order it asks
+ * (organism-biology D8, W7) — each a reason row in the trade that ships
+ * `operate`. One place refuses; the controller passes the answer on.
+ */
+export type OperableRefusal = {
+  ok: false;
+  reason:
+    | 'no-such-op'
+    | 'nothing-to-operate'
+    | 'no-such-part'
+    | 'not-lying'
+    | 'unskilled'
+    | 'wrong-kit'
+    | 'needs-anaesthesia';
+  facts: Record<string, unknown>;
+};
+
+/** What the hand brings to an operation: its medicine band and its kit's capabilities. */
+export interface OperatingHand {
+  band: CompetenceBandName;
+  capabilities: readonly string[];
+  /** The patient is the one operating (the reason rows say "you"). */
+  self: boolean;
+}
+
+/** The operation a body will take, and what on it the operation is for. */
+export type OperableAnswer =
+  | { ok: true; op: OperationDescriptor; wound?: Trauma; partKey?: string }
+  | OperableRefusal;
 import { MagicGrid } from '../magic/Grid';
 import { MaterialApi } from '../../api/material';
 import { MagicApi } from '../../api/magic';
@@ -935,6 +969,12 @@ export interface Vitals {
   severPart(key: string, opts?: { lostAtAgeDays?: number; sealed?: 'heat' | 'corrosion' }): void;
   /** The subtree roots this body has lost, as a herd records them (D8). */
   getLostParts(): LostPart[];
+  /**
+   * ⭐ The age (days) at which a part of this NAME (its key's last segment)
+   * was lost, or `null` while it is on the body (D8, W7). Reads the delta
+   * alone — never the body — so the variant it decides can be read first.
+   */
+  partLostAt(name: string): number | null;
   /** ⭐ The part this body IS, when it is only one part of a body (a severed foreleg); null = a whole body (D7). */
   getSubtree(): string | null;
   /**
@@ -946,6 +986,15 @@ export interface Vitals {
   /** Is this severable part past saving (function lost, or advanced
    * wound-sepsis) — the amputation trigger (D7). */
   isPartUnsalvageable(key: string): boolean;
+  /**
+   * ⭐⭐ **Which operation this body will take, or why not** (organism-
+   * biology D8, W7) — the one place `operate` is decided: the named
+   * operation, else the most urgent the body's wounds call for; the part an
+   * operation takes, matched ⛔ only when NAMED (a bare `operate` never
+   * castrates); then the posture, the hand's band, its kit and the
+   * anaesthesia, in that order.
+   */
+  operable(named: string | null, ops: readonly OperationDescriptor[], hand: OperatingHand): OperableAnswer;
   /**
    * ⭐⭐ **How well one part still works** — the axis a wound costs you.
    *
@@ -2723,6 +2772,14 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (key !== null) t.site = key;
     }
 
+    /** See {@link Vitals.partLostAt}. */
+    public partLostAt(name: string): number | null {
+      for (const [key, d] of Object.entries(this.bodyPartDeltas)) {
+        if (d?.missing === true && (key === name || key.endsWith(`.${name}`))) return d.lostAtAgeDays ?? 0;
+      }
+      return null;
+    }
+
     /** See {@link Vitals.getLostParts}: the topmost missing part of each severed subtree. */
     public getLostParts(): LostPart[] {
       const missing = this.getMissingParts();
@@ -2782,6 +2839,63 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getMissingParts(): ResolvedBodyPart[] {
       return this.getParts().filter((p) => p.missing);
+    }
+
+    /** See {@link Vitals.operable}. */
+    public operable(named: string | null, ops: readonly OperationDescriptor[], hand: OperatingHand): OperableAnswer {
+      const self = this as unknown as Stuff;
+      const who = { ...(hand.self ? { self: 'yes' } : {}), patient: self };
+      const no = (reason: OperableRefusal['reason'], facts: Record<string, unknown> = {}): OperableRefusal =>
+        ({ ok: false, reason, facts });
+      const wanted = named?.trim() || null;
+      if (wanted && !ops.some((o) => o.key === wanted)) return no('no-such-op', { word: wanted });
+      // ⛔ An operation that takes a healthy part is matched only when named.
+      const pool = wanted ? ops.filter((o) => o.key === wanted) : ops.filter((o) => !o.addresses.part);
+      const match = this.operationMatches(pool)[0];
+      if (!match) {
+        const op = pool[0];
+        return op?.addresses.part ? no('no-such-part', { ...who, label: op.label }) : no('nothing-to-operate', who);
+      }
+      const op = match.op;
+      if (op.posture !== 'any' && !(MixinApi.isPosed(self) && self.getPosture() === Postures.Lie)) {
+        return no('not-lying', who);
+      }
+      if (!CompetenceBand.atOrAbove(hand.band, op.competence.band)) {
+        return no('unskilled', { label: op.label, band: op.competence.band });
+      }
+      if (!hand.capabilities.includes(op.instrument)) return no('wrong-kit', { label: op.label });
+      if (op.anaesthesia === 'required' && this.getConsciousness() === 'conscious') return no('needs-anaesthesia');
+      return { ok: true, ...match };
+    }
+
+    /** Every operation in `ops` this body's state calls for, most urgent (worst wound) first. */
+    private operationMatches(ops: readonly OperationDescriptor[]): { op: OperationDescriptor; wound?: Trauma; partKey?: string }[] {
+      const traumas = this.conditions.filter((c): c is Trauma => c.kind === 'trauma' && c.severity > 0);
+      const out: { op: OperationDescriptor; wound?: Trauma; partKey?: string }[] = [];
+      for (const op of ops) {
+        const a = op.addresses;
+        if (a.part) {
+          const name = a.part;
+          const part = this.getParts().find((p) => !p.missing && (p.key === name || p.key.endsWith(`.${name}`)));
+          if (part) out.push({ op, partKey: part.key });
+          continue;
+        }
+        if (a.flag === 'unsalvageable') {
+          for (const site of new Set(traumas.map((t) => t.site))) {
+            if (this.isPartUnsalvageable(site)) out.push({ op, partKey: site });
+          }
+          continue;
+        }
+        for (const t of traumas) {
+          if (a.flag === 'foreign-body' && t.type !== 'foreign-body') continue;
+          if (a.traumaTypes && !a.traumaTypes.includes(t.type)) continue;
+          if (a.minSeverity !== undefined && t.severity < a.minSeverity) continue;
+          if (a.bleeding === true && t.bleeding !== true) continue;
+          if (t.dressed === true && t.type !== 'foreign-body') continue;
+          out.push({ op, wound: t });
+        }
+      }
+      return out.sort((x, y) => (y.wound?.severity ?? 5) - (x.wound?.severity ?? 5));
     }
 
     /**

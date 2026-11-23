@@ -46,6 +46,7 @@ function buildAddresses(value: unknown): OperationAddresses {
     interior?: unknown;
     bleeding?: unknown;
     flag?: unknown;
+    part?: unknown;
   };
   const out: OperationAddresses = {};
   if (Array.isArray(a.traumaTypes)) out.traumaTypes = stringArray(a.traumaTypes);
@@ -54,6 +55,7 @@ function buildAddresses(value: unknown): OperationAddresses {
   if (typeof a.bleeding === "boolean") out.bleeding = a.bleeding;
   if (a.flag === "foreign-body" || a.flag === "unsalvageable")
     out.flag = a.flag;
+  if (typeof a.part === "string" && a.part.length > 0) out.part = a.part;
   return out;
 }
 
@@ -83,6 +85,7 @@ function buildDescriptor(d: Record<string, unknown>, key: string): OperationDesc
     baseDurationS: typeof d.baseDurationS === "number" ? d.baseDurationS : 120,
     anaesthesia,
     resolution,
+    posture: d.posture === "any" ? "any" : "lying",
     difficulty:
       typeof d.difficulty === "string" ? d.difficulty : "formidable",
   };
