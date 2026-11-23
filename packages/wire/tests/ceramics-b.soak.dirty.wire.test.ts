@@ -365,6 +365,9 @@ suite('⭐ 10 — make firebrick', () => {
     const day = await act('shape clay into firebrick', '9 hours');
     expect(day.said, `the firebricks: ${day.said}`).toMatch(/brick/i);
     expect(await examine('here:i:firebrick')).toMatch(/green|thumbprint/i);
+    // ⚠ The shaping leaves the lump of clay in both hands; set it down, or
+    // the bricks have nowhere to go (size and carrying).
+    await say('drop clay');
     await say('get firebricks');
     // ⚠ Dried in the potter's shop, warm from the kiln, where the pottery
     // dries its own ware: on the open hacks a late frost burst them wet
