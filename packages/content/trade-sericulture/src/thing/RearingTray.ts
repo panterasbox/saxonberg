@@ -107,7 +107,8 @@ export default class RearingTray extends RearingMixin(ThermalMixin(ContainerMixi
    */
   private armRearingWake(): void {
     if (this._rearingWake !== null || !this.hasLiveRearing()) return;
-    if (!StuffApi.findByTemplatePath('/platform/idea/EventRegistry')) return;
+    // A presence check that never throws: a test world may stand several.
+    if (StuffApi.findAllByTemplatePath('/platform/idea/EventRegistry').length === 0) return;
     if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return;
     const at = WorldClockApi.getNow().rawValue() + REARING_WAKE_S;
     this._rearingWake = WorldClockApi.at(Quantity.of(at, 's'), () => {

@@ -383,7 +383,8 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
    */
   private armEmergence(): void {
     if (this._emergeWake !== null || this.pierced || this.stifled || this.spunAt <= 0) return;
-    if (!StuffApi.findByTemplatePath('/platform/idea/EventRegistry')) return;
+    // A presence check that never throws: a test world may stand several.
+    if (StuffApi.findAllByTemplatePath('/platform/idea/EventRegistry').length === 0) return;
     if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) return;
     const at = this.spunAt + dial('sericulture.emergeDays', EMERGE_DAYS) * SECONDS_PER_GAME_DAY;
     this._emergeWake = WorldClockApi.at(Quantity.of(at, 's'), () => {

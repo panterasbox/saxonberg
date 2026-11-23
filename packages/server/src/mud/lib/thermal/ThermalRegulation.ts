@@ -513,9 +513,10 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       if (nowS === null) return;
       // A world with a clock but no event bus (a unit world) cannot hold a
       // host-bound wake: idle, as the reconcile idles with no clock.
-      if (!StuffApi.findByTemplatePath('/platform/idea/EventRegistry')) return;
+      // A presence check that never throws: a test world may stand several.
+      if (StuffApi.findAllByTemplatePath('/platform/idea/EventRegistry').length === 0) return;
       const frozen = MixinApi.isHasInteractive(self) && self.isLinkdead();
-if (frozen || !self.isLivingBody()) {
+      if (frozen || !self.isLivingBody()) {
         if (this.thermalWakeAtS !== 0) this.setThermalWakeAtS(0);
         return;
       }
