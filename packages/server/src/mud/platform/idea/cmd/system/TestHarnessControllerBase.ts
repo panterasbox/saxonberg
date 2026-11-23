@@ -52,8 +52,12 @@ export interface TestHarnessModel extends CommandModel {
   cite?: string;
   /** The body a `body*` / `afflict` subcommand acts on (organism-biology D16). */
   target?: MqlOneResult;
-  /** `body … perceiving <other>`: the body whose perception of `other` is read. */
-  other?: MqlOneResult;
+  /**
+   * `body … perceiving <other>`: the body whose perception of `other` is
+   * read — a handle (`#id`, a path, a name), never an MQL bind, because
+   * the point is often a body the wizard cannot see (a concealed hider).
+   */
+  other?: string;
   /** A part key (`body.head.eye.left`). */
   part?: string;
   /** A mechanism channel (`body-wound`'s enum slot). */
@@ -125,8 +129,8 @@ export abstract class TestHarnessControllerBase extends CommandController<TestHa
    * The bound body of a `body*` subcommand, as the harness's handle
    * (`#<stuffId>`): the binder resolved the object, the Api names it by id.
    */
-  protected static bodyOf(model: TestHarnessModel, which: 'target' | 'other' = 'target'): string {
-    const stuff = model[which]?.stuff as Stuff | undefined;
+  protected static bodyOf(model: TestHarnessModel): string {
+    const stuff = model.target?.stuff as Stuff | undefined;
     if (stuff === undefined) throw new Error('testharness: name a body');
     return `#${stuff.stuffId}`;
   }

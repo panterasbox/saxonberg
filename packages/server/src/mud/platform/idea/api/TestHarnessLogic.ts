@@ -6,6 +6,7 @@
 // the face is `@TestOnly`, so outside a test world none of this is
 // reachable at all. See docs/testing.md § The soak lane.
 
+import { Mixins } from '../../../lib/mixin';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -617,7 +618,7 @@ export class TestHarnessLogic extends ApiLogic {
     // current and reads its seasons under the new day — the den, the rut,
     // the milk — with no clock advanced and nobody looking.
     let bodies = 0;
-    for (const o of StuffApi.getAllObjects()) {
+    for (const o of StuffApi.findByMixin(Mixins.Vitals)) {
       if (!MixinApi.isVitals(o) || !MixinApi.isOrganism(o) || !o.isLivingBody()) continue;
       if (MixinApi.isThermalRegulation(o)) o.reconcileThermalRegulation();
       o.reconcilePhenology();
@@ -644,7 +645,7 @@ export class TestHarnessLogic extends ApiLogic {
    */
   @CallSecurity(TestHarnessApiCallers)
   public async setSpecies(handle: string, speciesPath: string): Promise<SpeciesReport> {
-    const body = this.residentCharacter(handle, 'species');
+    const body = await this.bodyByHandle(handle, 'species');
     const species = await StuffApi.singleton<Stuff>(speciesPath).catch(() => null);
     if (!(species instanceof Species)) throw new Error(`testharness species: '${speciesPath}' is not a species`);
     if (!MixinApi.isOrganism(body) || !MixinApi.isTangible(body)) {

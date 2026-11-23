@@ -65,8 +65,13 @@ export interface ButcherCarcass {
   fleshPct: number | null;
   /** Is this line still on the body? */
   stillOn(line: CarcassLine): boolean;
-  /** Mark this line taken off the body. */
-  take(line: CarcassLine): void;
+  /**
+   * ⭐ Mark this line taken off the body, and the `kg` that came off with
+   * it: the carcass weighs that much less (organism-biology drive, B39).
+   */
+  take(line: CarcassLine, kg: number): void;
+  /** What has already come off it, kg — so its whole stays the yield's denominator. */
+  takenKg: number;
 }
 
 /** Every line of the species' yield is off the body — it goes. */
@@ -251,7 +256,15 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       // ⭐⭐ D15 — the clock started at the kill.
       const agedS = MixinApi.isPostmortem(body) ? (body.sinceDeath() ?? 0) : 0;
       const carcassK = Contamination.hostTemperatureK(body);
-      const liveKg = MixinApi.isTangible(body) ? body.getMass().rawValue() : 0;
+      // ⭐⭐ The carcass's own ledger: the condition it died in, which lines
+      // are still on it, what has come off. Asked FIRST, because the body's
+      // shares are of the WHOLE animal: what it weighs now plus what is
+      // already off it. (`ledgerLines` fills below; the plan reads it only
+      // at completion.)
+      const ledgerLines: CarcassLine[] = [];
+      const ledger = await body.butcherPlanFor(actor, ledgerLines);
+      const carcass = ledger.facts;
+      const liveKg = (MixinApi.isTangible(body) ? body.getMass().rawValue() : 0) + carcass.takenKg;
 
       // ⭐⭐⭐ What comes off DERIVES from the body (organism-biology D5):
       // its present parts' materials, each naming the rows it leaves a
@@ -287,18 +300,12 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
             ? line.tissues.reduce((a, m) => a + anatomy.coatMassKg(m, liveKg, densityOf, present), 0)
             : 0,
         });
+        ledgerLines.push({ cut: line.row, tissues: claimed });
       }
       const discard = async (): Promise<void> => {
         for (const [path, ex] of exemplarFor) if (!spent.has(path)) await StuffApi.destruct(ex);
       };
 
-      // ⭐⭐ The carcass's own ledger: the condition it died in, which lines
-      // are still on it, the take.
-      const ledger = await body.butcherPlanFor(
-        actor,
-        bodyLines.map((l) => ({ cut: l.row, tissues: claims.get(l.row) ?? [] })),
-      );
-      const carcass = ledger.facts;
       const fleshPct = carcass.fleshPct ?? UNREMARKABLE_FLESH;
       const dressed = anatomy
         ? species.dressOut({ liveKg, fleshPct, lines: dressLines, body: anatomy, present })
@@ -381,7 +388,10 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
           }
           cuts.push(cut);
         }
-        carcass.take({ cut: line.cut, tissues: line.tissues });
+        const tookKg = cuts
+          .slice(cuts.length - units)
+          .reduce((a, c) => a + (MixinApi.isTangible(c) ? c.getMass().rawValue() : 0), 0);
+        carcass.take({ cut: line.cut, tissues: line.tissues }, tookKg);
       }
       await discard();
 
@@ -410,7 +420,7 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         ok: true,
         durationMs: 0,
         effortW: 0,
-        facts: { fleshPct: null, stillOn: () => true, take: () => undefined },
+        facts: { fleshPct: null, stillOn: () => true, take: () => undefined, takenKg: 0 },
         onComplete: () => ({ ok: true, facts: { spent: true } }),
       };
     }

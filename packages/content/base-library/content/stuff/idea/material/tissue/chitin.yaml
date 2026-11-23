@@ -5,7 +5,7 @@ data:
   smells: [{ aroma: /base-library/aromas/flesh, strength: 40 }]
   name: chitin
   keywords: [chitin, carapace, cuticle, shell]
-  appearance: a stiff, lacquered shell, mottled green and rust
+  appearance: a stiff, lacquered shell, green and rust
   density: 1400
   specificHeat: 1500
   thermalConductivity: 0.25

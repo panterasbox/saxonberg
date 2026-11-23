@@ -953,7 +953,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
   private meanAgeOf(herd: HerdRecord, index: number): number {
     const nowS = this.nowSeconds() ?? 0;
     const bornAt = herd.overlay[String(index)]?.bornAt;
-    if (typeof bornAt === 'number' && bornAt > 0) {
+    if (typeof bornAt === 'number' && bornAt !== 0) {
       return Math.max(0, (nowS - bornAt) / SECONDS_PER_GAME_DAY);
     }
     return herd.foundingMeanAgeDays + Math.max(0, (nowS - herd.founded) / SECONDS_PER_GAME_DAY);

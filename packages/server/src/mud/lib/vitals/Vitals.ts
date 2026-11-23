@@ -2949,7 +2949,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const now = self.getCommonNames()[0];
       if (before && now && before !== now && MixinApi.isContainable(self) && self.getContainer()) {
         MessageApi.scene(self)
-          .topic('sense.sight')
+          .topic('sense.surroundings')
           .toPeers(Mml.compose`The ${before} is a ${now} now.`)
           .send();
       }

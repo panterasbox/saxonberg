@@ -4,7 +4,7 @@ class: /platform/idea/material/Stone
 data:
   name: shell
   keywords: [shell]
-  appearance: a ridged, chalky shell
+  appearance: a chalky shell, rough to the touch
   density: 2700
   specificHeat: 880
   thermalConductivity: 0.5

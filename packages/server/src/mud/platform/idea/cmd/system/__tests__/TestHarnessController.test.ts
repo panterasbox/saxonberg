@@ -240,9 +240,10 @@ describe('testharness controllers', () => {
 
     it('⭐ the body subcommands forward the BOUND body (organism-biology D16)', async () => {
       const cow = { name: 'a cow', stuffId: 'c1' };
-      const wolf = { name: 'a wolf', stuffId: 'w1' };
+      // ⭐ `perceiving` is a HANDLE, not a bind: the body read is often one
+      // the wizard cannot see (a concealed hider).
       const rep = vi.spyOn(TestHarnessApi, 'bodyReport').mockResolvedValue({ body: 'a cow' } as never);
-      await run({ subcommand: 'body', target: { stuff: cow }, other: { stuff: wolf } });
+      await run({ subcommand: 'body', target: { stuff: cow }, other: '#w1' });
       expect(rep).toHaveBeenCalledWith('#c1', '#w1');
       expect(said.join('\n')).toMatch(/Body of a cow/);
       const wound = { body: 'a cow', site: 'body.torso', type: 'puncture', severity: 2, afflicted: true, missing: [] };

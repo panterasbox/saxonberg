@@ -5,7 +5,7 @@ data:
   smells: [{ aroma: /base-library/aromas/hide, strength: 20 }]
   name: keratin
   keywords: [keratin, hoof, claw, beak]
-  appearance: hard grey-brown keratin, ridged with growth lines
+  appearance: hard grey-brown keratin, with growth lines across it
   density: 1300
   specificHeat: 1700
   thermalConductivity: 0.2

@@ -69,6 +69,14 @@ class Shelf extends ContainerMixin(Good) {
   static _mixinName = 'StiflingTestShelf';
 }
 
+/** A tray's rule, alone: it takes no eggs while it holds cocoons. */
+class EggRefusingShelf extends Shelf {
+  static _mixinName = 'StiflingTestEggRefusingShelf';
+  public override canAddContainable(thing: Stuff): { ok: true } | { ok: false; reason: string } {
+    return thing instanceof EggLot ? { ok: false, reason: 'Clear the cocoons off it first.' } : { ok: true };
+  }
+}
+
 function fixtures(): void {
   if (!StuffApi.findByTemplatePath(SHELL)) {
     makeStuffAtPath(() => {
@@ -290,6 +298,23 @@ describe('the deadline and the lay', () => {
     expect(moths).toHaveLength(1);
     expect(s.getContents()).toContain(moths[0]);
     expect(moths[0]!.getLifeStage()).toBe('adult');
+  });
+
+  it('⚠ a tray that refuses the eggs: the card lands where the tray stands, and nothing throws', async () => {
+    // Found by the drive: the vetoed move threw inside the un-awaited lay,
+    // and the unhandled rejection took the world down at boot.
+    const made = stubLotClone();
+    const floor = shelf();
+    const tray = makeStuff(() => new EggRefusingShelf());
+    ContainmentApi.move(tray, floor);
+    const c = stack('middling', 3);
+    ContainmentApi.move(c, tray);
+    advanceTo(11 * DAY);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(c.isPierced()).toBe(true);
+    expect(made).toHaveLength(1);
+    expect(floor.getContents()).toContain(made[0]);
+    expect(tray.getContents()).not.toContain(made[0]);
   });
 
   it('a stack in limbo is pierced and lays nothing', async () => {

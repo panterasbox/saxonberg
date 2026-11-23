@@ -405,6 +405,34 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       return clamp01((flesh - 12) / 43);
     }
 
+    /**
+     * ⭐ Stage how much a tap holds (organism-biology B33) — the staging
+     * setter a drive reaches through `testharness stage` (which is
+     * `@TestOnly`): a fleece of a year's growth without the year. The
+     * production clock is reconciled first and restamped to now; a coat
+     * that reads this tap re-banks its fill. Nothing in play sets a
+     * standing — it grows or it is taken.
+     */
+    public setTapStanding(key: string, units: number): void {
+      this.reconcileProduction();
+      const prior = this.tapState[key];
+      const standing = Number.isFinite(units) && units > 0 ? units : 0;
+      this.tapState = {
+        ...this.tapState,
+        [key]: {
+          lastTaken: 0,
+          driedOff: false,
+          worst: 1,
+          brooding: false,
+          fullSince: 0,
+          ...prior,
+          standing,
+        },
+      };
+      const self = this as unknown as Stuff;
+      if (MixinApi.isThermalRegulation(self)) self.reconcileThermalRegulation();
+    }
+
     public standingIn(key: string): number {
       this.reconcileProduction();
       return this.tapState[key]?.standing ?? 0;

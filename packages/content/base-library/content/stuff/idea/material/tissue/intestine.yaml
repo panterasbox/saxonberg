@@ -5,7 +5,7 @@ data:
   smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 80 }]
   name: intestine
   keywords: [intestine, gut, organ]
-  appearance: a coiled grey length of gut
+  appearance: a grey length of gut, lying in loops
   density: 1040
   specificHeat: 3600
   thermalConductivity: 0.5

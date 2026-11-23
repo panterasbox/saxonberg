@@ -181,7 +181,7 @@ export default class OperateController extends CommandController<OperateModel> {
         .topic(TOPIC)
         .toSelf(
           conscious
-            ? Mml.compose`You begin the ${op.label}. Awake, ${self ? Mml.compose`you` : Mml.thing(target)} flinch at the cut.`
+            ? Mml.compose`You begin the ${op.label}. Awake, ${self ? Mml.compose`you flinch` : Mml.compose`${Mml.thing(target)} flinches`} at the cut.`
             : Mml.compose`You begin the ${op.label}.`,
         )
         .toPeers(Mml.compose`${Mml.actor(giver)} begins an operation.`)

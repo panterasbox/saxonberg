@@ -339,7 +339,10 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getBornAt(): number { return this.bornAt; }
     public setBornAt(value: number): void {
-      this.bornAt = Number.isFinite(value) && value > 0 ? value : 0;
+      // ⚠ Zero alone is "no birthday": a body may be born BEFORE the world's
+      // clock began (a negative stamp) — a three-year-old ox in a world a
+      // week old.
+      this.bornAt = Number.isFinite(value) ? value : 0;
     }
 
     public getDiedAt(): number { return this.diedAt; }
@@ -355,7 +358,7 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
      * is a real answer.
      */
     public getAgeDays(): number {
-      if (this.bornAt <= 0) return 0;
+      if (this.bornAt === 0) return 0;
       const end = this.diedAt > 0 ? this.diedAt : nowSeconds();
       if (end <= 0) return 0;
       return Math.max(0, (end - this.bornAt) / SECONDS_PER_GAME_DAY);
@@ -372,7 +375,8 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     public setAge(value: number): void {
       const now = nowSeconds();
       if (now <= 0) return;
-      this.bornAt = Math.max(1, now - Math.max(0, value) * SECONDS_PER_GAME_DAY);
+      const at = now - Math.max(0, value) * SECONDS_PER_GAME_DAY;
+      this.bornAt = at === 0 ? -1 : at;
     }
 
     /**

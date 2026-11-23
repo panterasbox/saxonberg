@@ -2542,6 +2542,52 @@ Decisions the build made that the plan did not, and what decided each.
   `capacityAsStands` (no reconcile) is what sight gates, the nose and the
   watched share read. *Decided by:* crowded-rooms D14 (a room's reading
   never integrates the viewer).
+- **B38 (drive) — a whale comes off at flensing scale.** At 40 kg a strip
+  a grown sperm whale made ~1,000 objects and stalled the world for over a
+  minute. Blubber is a ton-sized *blanket piece*, meat 500 kg, spermaceti
+  a 100 kg tub — rows only, so D13's "no `.ts` for the whale" holds.
+  *Decided by:* the nearest pattern (the shipped `portionKg`) and lens 1
+  (it is how whalers cut). ⚠ Finding, not fixed: `render-blubber` makes one
+  litre from one piece whatever it weighs — already wrong at 40 kg; a
+  try-pot yield that scales with the piece is a recipe-substrate question.
+- **B39 (drive) — the carcass shrinks as cuts come off.** The ledger's
+  `take(line, kg)` lowers the corpse's mass and keeps `takenKg`, so the
+  next butchering's shares are still of the whole animal. *Decided by:*
+  requirements drive step 2 (the carcass shrinks as they do).
+- **B40 (drive) — staging fixes the drive needed.** `testharness species`
+  takes a body by `#id` (it took only a player's name); `body … perceiving`
+  takes a handle, not an MQL bind (a concealed hider cannot be named by
+  MQL, so the cow-vs-wolf read silently vanished); a birth date may precede
+  the world clock (`bornAt` 0 alone means unset — a fresh world's clock
+  starts at 0, so every staged animal read as newborn); `Producing`
+  gains the `setTapStanding` staging setter (B33's shape). A plucked or
+  fleeced carcass says its bare skin shows (drive step 4).
+- **B41 (drive) — castration is afforded by the surgeon's kit, as the
+  plan wired it.** A stockman's knife alone does not afford `operate`;
+  the drive holds a kit and names the knife. ⚠ Finding for review: a
+  stockman with only his knife cannot castrate — an affordance gap the
+  plan accepted ("whatever affords `operate` today").
+- **B42 (drive) — the restart reads back what persists in the testbed.**
+  The testbed yard is a plain `Locale`, so a thing lying loose in it is
+  not kept — correct for that place. Step 16 carries the flawed pelt and
+  the severed foreleg across the restart and reads them back with the
+  player's wounded eye. ⚠ Not read back: the ox, the lactating cow and
+  the tray's worms standing in the yard — that wants a persistent pen in
+  `test-fixtures` (a tool the test world owes, not this build's place).
+  The sheep's cold wet night is eight hours (four left both at 310 K);
+  the player stays logged in across it (B43).
+- **B43 (drive) — finding, not this build's: a re-login on one boot 500s.**
+  A player who logs out and back in without a restart, carrying a
+  surgeon's kit and a knife, gets `/auth/test-login` 500: the restore's
+  nested owner frame calls `Creature.admitWhile`, whose gate
+  (`SelfOnly | FromModule(PersistableLogic)`) denies it. A re-login after
+  a RESTART works. The kernel's persistence spine, untouched here —
+  filed for its own fix; the drive keeps the player on across the jump.
+- **B44 (drive) — moths in a tray lay beside it, and a lay never throws.**
+  Cocoons emerging in a tray laid their card into the tray, which takes
+  no eggs while it holds cocoons; the vetoed move threw inside the
+  un-awaited lay and the unhandled rejection killed the world at boot.
+  The card now lands where the tray stands (else the eggs are lost).
 
 ## Drive record
 

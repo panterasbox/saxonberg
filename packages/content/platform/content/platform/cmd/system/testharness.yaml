@@ -61,8 +61,8 @@ help: |
   `testharness vanish #<id>` takes a thing out of the world wherever it
   is — a wizard reaching into a character's shut pack.
 
-  `testharness species <name> <species path>` stages a resident character
-  as a body of another species, its mass re-seeded from it.
+  `testharness species <name or #id> <species path>` stages a resident
+  character, or one body by id, as a body of another species, its mass re-seeded from it.
 
   `testharness standing-history <count>` stages that many past players —
   nobody's body — each with a week of participation, renown and producer
@@ -177,11 +177,10 @@ subcommands:
         scope: ["reachable", "online"]
         requires: OrganismMixin
       - name: other
-        type: object
+        type: string
         required: false
         prepositions: [perceiving]
         prepositionRequired: true
-        scope: ["reachable", "online"]
   body-wound:
     controller: /platform/idea/cmd/system/TestHarnessBodyWoundController
     description: "Wound one part through its channel's fold: `body-wound <body> <part> <channel> [magnitude]`"

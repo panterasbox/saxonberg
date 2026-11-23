@@ -574,7 +574,7 @@ export default class Livestock extends LivestockBase {
       ...this.bookTraits(),
       handling: Math.round(this.getHandling() * 100) / 100,
       ...(flesh !== undefined ? { flesh: Math.round(flesh * 10) / 10 } : {}),
-      ...(bornAt > 0 ? { bornAt } : {}),
+      ...(bornAt !== 0 ? { bornAt } : {}),
     });
     if (answer.ok) this.bindToHerd(toId, answer.index);
     return answer;

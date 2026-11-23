@@ -16,7 +16,7 @@ import {
 export default class TestHarnessBodyController extends TestHarnessControllerBase {
   async execute(model: TestHarnessModel, context: CommandContext): Promise<void> {
     return this.staged(context, async () => {
-      const other = model.other?.stuff ? TestHarnessControllerBase.bodyOf(model, 'other') : null;
+      const other = model.other ? model.other : null;
       const r = await TestHarnessApi.bodyReport(TestHarnessControllerBase.bodyOf(model), other);
       TestHarnessControllerBase.say(context, `Body of ${r.body}: ${JSON.stringify(r)}`);
     });

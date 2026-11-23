@@ -532,9 +532,27 @@ export default class Cocoons extends CocoonsBase implements CocoonSeedable {
     lot.setLaidAt(facts.laidAt);
     lot.setLaidWhere(facts.where);
     lot.setWintered(false);
-    if (MixinApi.isContainable(lot as unknown as Stuff) && !holder.isDestroyed()) {
-      ContainmentApi.move(lot as unknown as Stuff & Containable, holder);
+    const card = lot as unknown as Stuff & Containable;
+    // ⭐ The moths lay where the stack stands — unless that is a tray still
+    // holding its cocoons, which takes no eggs (a rearing's own rule); then
+    // the card lands where the tray stands. ⚠ Found by the drive: the
+    // vetoed move threw inside this un-awaited lay, and the unhandled
+    // rejection took the world down at boot.
+    const outer = MixinApi.isContainable(holder) ? holder.getContainer() : null;
+    const places = [holder, outer].filter(
+      (p): p is Stuff & Container => p !== null && MixinApi.isContainer(p) && !p.isDestroyed(),
+    );
+    for (const place of places) {
+      try {
+        ContainmentApi.move(card, place);
+        return;
+      } catch (err) {
+        // @quiet a place that will not take the card hands it on to the next; nowhere at all loses the eggs, below.
+        console.warn(`Cocoons: the lay did not land in ${place.getPresentation()}: ${String(err)}`);
+      }
     }
+    // Nowhere would take it: the moths' eggs are lost, as eggs laid on nothing are.
+    await StuffApi.destruct(lot as unknown as Stuff);
   }
 
   private dropGrade(bands: number): void {
