@@ -100,6 +100,7 @@
     "lint:lib-statics": "tsx scripts/check-lib-statics.ts --lint",
     "lint:reconcile-chains": "tsx scripts/check-reconcile-chains.ts --lint",
     "lint:reason-rows": "tsx scripts/check-reason-rows.ts --lint",
+    "lint:scaling": "tsx scripts/check-scaling.ts --lint",
     "lint:content-refs": "tsx scripts/check-content-refs.ts --lint",
     "lint:silent-catch": "tsx scripts/check-silent-catch.ts --lint",
     "lint:floating-promises": "tsx scripts/check-floating-promises.ts --lint",

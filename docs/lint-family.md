@@ -1880,6 +1880,15 @@ configured**.
   rots — which is right, and is not spoilage: a LIVING thing's tissue is
   not yet dead matter, so a class composing `GrowingMixin` is exempt by
   rule, not by list. The clock starts at the harvest, which is a `Crop`.
+- **`lint:scaling`** — ⭐ **the square-cube honesty check**
+  (organism-biology D12, 2026-11). Every species with a tissue-bearing
+  body is read against four limits its own rows decide — bone (mass³ over
+  bone share, exempt in water), diffusion (air only through tracheae or
+  skin), flight (a `fly` gait over 15 kg) and heat (an endotherm under 2 g)
+  — and a species over one must say what pays for it (`pays: [{ limit, by
+  }]`, shown on the dossier). It counts **species over a limit with no
+  payer**; ceiling **0**, met by the retrofit: its first run found the
+  insect plan had never been marked an ectotherm. Never a runtime refusal.
 - **`lint:anatomy`** — ⭐ **a body plan's tissue shares must sum to the
   whole body, and every share must name something real** (the butchery
   build, 2026-10-05). A `TissueComposition` states the **share of the

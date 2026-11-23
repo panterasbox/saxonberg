@@ -105,7 +105,7 @@ function moduleDocs(): Map<string, Record<string, unknown>> {
  * module path nobody ships, two instances on one key, an instance hung from
  * a missing part, a malformed module — is a finding here, not a boot error.
  */
-function bodyPlanRows(): { file: string; path: string; body: Body | null; modules?: ModuleRef[]; error?: string; authorsBodyParts: boolean }[] {
+export function bodyPlanRows(): { file: string; path: string; body: Body | null; modules?: ModuleRef[]; error?: string; authorsBodyParts: boolean }[] {
   const docs = moduleDocs();
   const parsed = new Map<string, BodyModule>();
   const resolveModule = (path: string): BodyModule => {
@@ -143,7 +143,7 @@ function bodyPlanRows(): { file: string; path: string; body: Body | null; module
 }
 
 /** Every shipped row's `data` block, with the file it came from. */
-function allRows(): AnyRow[] {
+export function allRows(): AnyRow[] {
   if (rowCache) return rowCache;
   const out: AnyRow[] = [];
   if (existsSync(CONTENT)) {
@@ -175,7 +175,7 @@ interface AnyRow { file: string; doc: unknown; cls?: string; ext?: string }
  * becomes `/<root>/<rest>` without the extension, which is the path a
  * `_bodyPlanPath` names.
  */
-function rowPathOf(file: string): string | null {
+export function rowPathOf(file: string): string | null {
   const m = /content\/[^/]+\/content\/(.+)\.yaml$/.exec(file);
   return m ? `/${m[1]}` : null;
 }

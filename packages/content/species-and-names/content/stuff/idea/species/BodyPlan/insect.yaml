@@ -6,6 +6,9 @@
 class: /platform/idea/species/BodyPlan
 data:
   name: insect
+  # ⭐ An ectotherm (organism-biology W10 — the square-cube check found it):
+  # an insect is too small to keep its own heat, and does not try.
+  thermalStrategy: ectotherm
   slots: []
   defaultLocomotionMode: walk
   modules:

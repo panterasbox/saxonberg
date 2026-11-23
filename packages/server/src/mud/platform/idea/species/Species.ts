@@ -846,6 +846,14 @@ export default class Species extends SingletonMixin(
   /** When and how it breeds (D26), or `null` for a species that does not. */
   protected breeding: BreedingSpec | null = null;
 
+  /**
+   * ⭐ What holds this body up where the square-cube law would not
+   * (organism-biology D12): `[{ limit, by }]` — a whale's water, a dragon's
+   * magic. Read by `lint:scaling` (a species over a limit must say) and the
+   * dossier; never a runtime refusal.
+   */
+  protected pays: { limit: string; by: string }[] = [];
+
   /** ⭐ This species' schedule of conditions (D9) — the season, the rut, the milk, the den. */
   protected phenology: PhenologyEntry[] = [];
 
@@ -1131,6 +1139,7 @@ export default class Species extends SingletonMixin(
     moultEveryDays: { persistent: true, authorable: true },
     breeding: { persistent: true, authorable: true },
     phenology: { persistent: true, authorable: true },
+    pays: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
     visionProfile: { persistent: true },
@@ -1658,6 +1667,12 @@ export default class Species extends SingletonMixin(
   }
 
   public getBreeding(): BreedingSpec | null { return this.breeding; }
+
+  /** What pays for this body past the square-cube limits (D12). */
+  public getPays(): readonly { limit: string; by: string }[] { return this.pays; }
+  public setPays(value: { limit: string; by: string }[] | null): void {
+    this.pays = (value ?? []).filter((p) => p && typeof p.limit === 'string' && typeof p.by === 'string');
+  }
 
   /** The species' schedule of conditions (D9). */
   public getPhenology(): readonly PhenologyEntry[] { return this.phenology; }

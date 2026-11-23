@@ -180,6 +180,9 @@ export class SpeciesLogic extends ApiLogic {
           value: [...counts.entries()].map(([m, n]) => `${n} ${organNoun(m, n)}`).join(' · '),
         });
       }
+      // ⭐ What holds it up past the square-cube limits (D12).
+      const pays = species.getPays();
+      if (pays.length) anat.push({ label: 'Held up by', value: pays.map((p) => `${p.by} (${p.limit})`).join(' · ') });
       const moves = bodyPlan.getBody().gaits();
       if (moves.length) anat.push({ label: 'Locomotion', value: moves.join(' · ') });
       const slots = bodyPlan.getSlots();
