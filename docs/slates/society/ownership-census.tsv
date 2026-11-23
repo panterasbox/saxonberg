@@ -1,0 +1,921 @@
+content/arcana/src/lib/ManaPowered.ts	armingFloorTau	ManaPoweredMixin	THING-NATURE		Floor below which the device's working lapses; a device-kind fact.
+content/arcana/src/lib/ManaPowered.ts	drawMode	ManaPoweredMixin	THING-NATURE		Which supply shape (impulse/binding) the device needs.
+content/arcana/src/lib/ManaPowered.ts	mainsRef	ManaPoweredMixin	LINK		Template path of the mains line the device is wired to.
+content/arcana/src/lib/ManaPowered.ts	standbyWatts	ManaPoweredMixin	THING-NATURE		Real standby power draw in watts.
+content/ground/src/idea/Deposit.ts	depletion	Deposit	PLACE-FACT		Authored depletion leans over the ground's computed grade.
+content/ground/src/idea/Deposit.ts	features	Deposit	PLACE-FACT		Authored geological pins and seeded pocket rules of the ground.
+content/ground/src/idea/Deposit.ts	fluids	Deposit	PLACE-FACT		Fluid bodies (brine/oil traps) the ground column holds.
+content/ground/src/idea/Deposit.ts	gas	Deposit	PLACE-FACT		Gas the deposit's measures give off below a depth; the venue's geology.
+content/ground/src/idea/Deposit.ts	lode	Deposit	PLACE-FACT		The orebody's plane in the ground.
+content/ground/src/idea/Deposit.ts	name	Deposit	EXPRESSION		Display name of the deposit ('ferrow').
+content/ground/src/idea/Deposit.ts	stratigraphy	Deposit	PLACE-FACT		Country rock by depth.
+content/ground/src/idea/Deposit.ts	waterTable	Deposit	PLACE-FACT		Depth of the saturated ground.
+content/ground/src/idea/Deposit.ts	zones	Deposit	PLACE-FACT	AMBIGUOUS: mineralization grade by depth is geology but also the yield the world imposes on every miner (a lever).	Ore grade bands by depth.
+content/tpa/src/lib/FastTravel.ts	advanceMode	FastTravelMixin	INSTITUTION-POLICY		Terminal's advance policy (manual/scheduled/cycle); operator configuration.
+content/tpa/src/lib/FastTravel.ts	boardLabel	FastTravelMixin	EXPRESSION		Name other terminals' boards show for this node; authored prose.
+content/tpa/src/lib/FastTravel.ts	cycleInterval	FastTravelMixin	INSTITUTION-POLICY		Interval of the cycle advance; operator scheduling choice.
+content/tpa/src/lib/FastTravel.ts	directionality	FastTravelMixin	INSTITUTION-POLICY		Whether the terminal permits arrivals, departures or both; operator choice.
+content/tpa/src/lib/FastTravel.ts	routes	FastTravelMixin	LINK	AMBIGUOUS: a route is a link to a destination node but carries its fee and timetable (the operator's prices/hours).	Directed routes to other nodes (destination path + timetable + fee).
+content/tpa/src/lib/FastTravel.ts	surcharge	FastTravelMixin	INSTITUTION-POLICY	AMBIGUOUS: a price collected by the arrival-room's operating Business, but the TPA is a self-governing Authority; if no player participates it is a governance price lever.	Arrival surcharge this terminal imposes, collected by the destination operator.
+content/trade-dairying/src/thing/Churn.ts	churnsTo	Churn	THING-NATURE		What cream becomes in this churn (process output).
+content/trade-diving/src/thing/Bell.ts	airM3	Bell	THING-NATURE		Air the diving bell holds, m3.
+content/trade-diving/src/thing/TideAlmanac.ts	of	TideAlmanac	LINK		The sea (WaterExpanse path) whose tide the almanac prints.
+content/trade-farming/src/location/Tract.ts	fieldName	Tract	EXPRESSION		Holder's name for the tract ('the top meadow').
+content/trade-farming/src/location/Tract.ts	fields	Tract	PLACE-FACT		Division of the tract into parts (fields) that tile it.
+content/trade-farming/src/location/Tract.ts	groundSpotX	Tract	PLACE-FACT		Soil-field sample point stamped at plot time; decides the ground's soil.
+content/trade-farming/src/location/Tract.ts	groundSpotY	Tract	PLACE-FACT		Soil-field sample point (Y) stamped at plot time.
+content/trade-farming/src/location/Tract.ts	legumeFraction	Tract	PLACE-FACT		Initial clover share of the tract's sward.
+content/trade-farming/src/location/Tract.ts	share	Tract	PLACE-FACT		Tract's share of its holding's open ground (sizing).
+content/trade-forestry/src/thing/Bole.ts	lengthsLeft	Bole	THING-NATURE		Cross-cut lengths of timber left in the bole (instance state).
+content/trade-glass/src/thing/Sheet.ts	form	Sheet	THING-NATURE		Glass sheet's form: cylinder or opened pane.
+content/trade-ice/src/thing/IceMarker.ts	draught	IceMarker	THING-NATURE		Whether the ice marker is hand- or horse-drawn.
+content/trade-ice/src/thing/IceMarker.ts	gridM	IceMarker	THING-NATURE		Grid spacing the ice marker cuts.
+content/trade-mining/src/lib/Working.ts	airPhrases	WorkingMixin	EXPRESSION		How the air reads at each band; prose.
+content/trade-mining/src/lib/Working.ts	backPhrases	WorkingMixin	EXPRESSION		How the back reads; prose phrases.
+content/trade-mining/src/lib/Working.ts	groundPhrases	WorkingMixin	EXPRESSION		How the ground reads at each state; prose.
+content/trade-mining/src/lib/Working.ts	oreRow	WorkingMixin	PLACE-FACT	AMBIGUOUS: a template ref (LINK) that is really the locality's claim about what its ground yields.	Ore row a cut from this working mints; locality content.
+content/trade-mining/src/lib/Working.ts	seamPhrases	WorkingMixin	EXPRESSION		How a seam reads when cut; prose.
+content/trade-papermaking/src/thing/Stamper.ts	powerFrom	Stamper	LINK		Path of the race that drives the stamper's shaft.
+content/trade-quarrying/src/lib/OpenWorking.ts	faceRunM	OpenWorkingMixin	PLACE-FACT		How far the pit may retreat a face inside its claim.
+content/trade-quarrying/src/lib/OpenWorking.ts	floorDepthM	OpenWorkingMixin	PLACE-FACT		Metres the quarry floor has been taken below the collar.
+content/trade-quarrying/src/lib/OpenWorking.ts	spoilTo	OpenWorkingMixin	LINK		Where the pit's spoil goes (a heap/place path).
+content/trade-quarrying/src/lib/OpenWorking.ts	wonByBand	OpenWorkingMixin	PLACE-FACT		Units won out of each band; the excavation state of the ground.
+content/trade-sericulture/src/thing/Cocoons.ts	_strainPath	Cocoons	THING-NATURE		The silkworm strain lineage of the cocoon lot.
+content/trade-sericulture/src/thing/Cocoons.ts	heftBand	Cocoons	THING-NATURE		Heft band of the cocoon stack.
+content/trade-sericulture/src/thing/Cocoons.ts	lotGeneticMg	Cocoons	THING-NATURE		Genetic mean shell weight of the lot.
+content/trade-sericulture/src/thing/Cocoons.ts	lotMeanMg	Cocoons	THING-NATURE		Tray mean the stack was sorted from (selection baseline).
+content/trade-sericulture/src/thing/Cocoons.ts	meanShellMg	Cocoons	THING-NATURE		Stack's mean shell weight (phenotype).
+content/trade-sericulture/src/thing/Cocoons.ts	pebrineLoad	Cocoons	THING-NATURE		Pebrine disease load carried from the tray.
+content/trade-sericulture/src/thing/Cocoons.ts	pierced	Cocoons	THING-NATURE		Moths have broken out; thread cut (instance state).
+content/trade-sericulture/src/thing/Cocoons.ts	scorched	Cocoons	THING-NATURE		Cocoons scorched in stifling (instance state).
+content/trade-sericulture/src/thing/Cocoons.ts	spunAt	Cocoons	THING-NATURE		Game time the worms finished spinning.
+content/trade-sericulture/src/thing/Cocoons.ts	stifled	Cocoons	THING-NATURE		Cocoons stifled (instance state).
+content/trade-tailoring/src/thing/MeasureBook.ts	entries	MeasureBook	INSTITUTION-POLICY		The tailor's book of everyone measured there; shop records.
+content/trade-tanning/src/thing/Tanpit.ts	barkKg	Tanpit	THING-NATURE		Kilograms of bark in the pit's liquor (initial charge).
+content/transport/src/idea/FerryService.ts	crossingM	FerryService	PLACE-FACT		Width of the river crossing to the far landing.
+content/transport/src/idea/FerryService.ts	landings	FerryService	LINK		The two landings (place paths) the ferry runs between.
+content/transport/src/idea/FerryService.ts	timetable	FerryService	INSTITUTION-POLICY		Ferry service's timetable (its hours and season).
+content/transport/src/idea/Lane.ts	edges	Lane	LINK		Authored lane edges between places.
+content/transport/src/idea/Lane.ts	key	Lane	SYSTEM		Durable key of the lane independent of path.
+content/transport/src/idea/Lane.ts	mode	Lane	PLACE-FACT		Locomotion mode whose admittance induces the lane's edges.
+content/transport/src/idea/Lane.ts	name	Lane	EXPRESSION		Display name of the lane.
+content/transport/src/idea/Lane.ts	operator	Lane	LINK		Who runs the lane (templatePath/GroupRef) or null for public highway.
+content/transport/src/idea/Lane.ts	seeds	Lane	LINK		Room paths where the lane's induced walk starts.
+content/transport/src/idea/Lane.ts	stops	Lane	INSTITUTION-POLICY	AMBIGUOUS: board/alight points are the operator's service choice but on a public highway (operator null) they are governance's.	Where travellers may board or alight; empty = every node.
+content/transport/src/thing/Propulsion.ts	crewPowered	Propulsion	THING-NATURE		Whether the boat is crew-powered.
+content/transport/src/thing/Propulsion.ts	efficiency	Propulsion	THING-NATURE		Fraction of paddler effort that becomes way.
+content/transport/src/thing/Propulsion.ts	needs	Propulsion	THING-NATURE		What the propulsion pushes against.
+content/transport/src/thing/Propulsion.ts	propulsionKind	Propulsion	THING-NATURE		Kind of propulsion (paddle/oar/pole/sail).
+content/transport/src/thing/Propulsion.ts	reachM	Propulsion	THING-NATURE		How deep a pole reaches.
+content/water/src/idea/exits/SeaPatchExit.ts	way	SeaPatchExit	PLACE-FACT		Which way a sea-patch exit goes.
+content/water/src/lib/AirPocket.ts	airM3	AirPocketMixin	THING-NATURE		Air the pocket holds at the surface.
+content/water/src/lib/RiverWater.ts	current	RiverWaterMixin	PLACE-FACT		The author's word on the river's current here.
+content/water/src/lib/RiverWater.ts	river	RiverWaterMixin	PLACE-FACT		Where on the river line this water place is.
+content/water/src/thing/Conduit.ts	at	Conduit	PLACE-FACT		Conduit's position on the river line.
+content/water/src/thing/Conduit.ts	capacityM3S	Conduit	PLACE-FACT		Physical carrying capacity of the conduit, m3/s.
+content/water/src/thing/Conduit.ts	conduitKey	Conduit	SYSTEM		Durable identity key of the conduit.
+content/water/src/thing/Conduit.ts	demandM3S	Conduit	LEVER	AMBIGUOUS: an authored district draw rate (world-imposed demand on a shared supply) vs a physical fact of the served district.	Authored household draw rate of the district, never a sum of taps.
+content/water/src/thing/Conduit.ts	demandSplit	Conduit	LEVER		Fraction of demand each rank (civic/trades/residential) draws under shortage rationing.
+content/water/src/thing/Conduit.ts	direction	Conduit	PLACE-FACT		Supply or disposal direction of the conduit.
+content/water/src/thing/Conduit.ts	dischargeKind	Conduit	PLACE-FACT		Kind of contaminant it discharges into its reach.
+content/water/src/thing/Conduit.ts	dischargeLoadPerSecond	Conduit	PLACE-FACT	AMBIGUOUS: physical outfall load, but it is an externality imposed on everyone downstream (a lever).	Contaminant load per second put into the reach.
+content/water/src/thing/Conduit.ts	extent	Conduit	LINK		Land end: template-path prefix of the served extent.
+content/water/src/thing/Conduit.ts	extents	Conduit	LINK	AMBIGUOUS: references to prefixes, but choosing which districts a main serves allocates a scarce supply (governance lever).	Served area as a list of prefixes.
+content/water/src/thing/Conduit.ts	ownerRef	Conduit	LINK		Who holds the conduit (group/business/office ref).
+content/water/src/thing/Conduit.ts	reachRef	Conduit	LINK		River end reach citation.
+content/water/src/thing/Conduit.ts	shares	Conduit	LEVER	AMBIGUOUS: rationing rule could be the utility owner's policy, but it imposes the shortage order on every premises.	How a shortage is shared: priority or proportion.
+content/water/src/thing/Conduit.ts	treatmentFactor	Conduit	PLACE-FACT		Fraction of contaminant the conduit removes; town infrastructure investment.
+server/src/mud/lib/behavior/Behaved.ts	behaviors	BehavedMixin	THING-NATURE	AMBIGUOUS: NPC behavior specs are the agent's nature, but economic brains (restocks, buys) are NPC demand, a lever.	Behavior specs (brains) the host runs.
+server/src/mud/lib/behavior/Behaved.ts	dispositions	BehavedMixin	THING-NATURE		Authored host's established character as trait claim seeds.
+server/src/mud/lib/biome/Biome.ts	_enclosureMaterial	Biome	PLACE-FACT		Default wall material a place falls back to.
+server/src/mud/lib/biome/Biome.ts	_planetRadiusM	Biome	PLACE-FACT		The planet's radius (root biome).
+server/src/mud/lib/boundary/Exit.ts	opening	Exit	PLACE-FACT		Size of the gap the way passes through.
+server/src/mud/lib/boundary/Exit.ts	spansGround	Exit	PLACE-FACT		Whether the way spans open ground (no face).
+server/src/mud/lib/boundary/Exit.ts	turn	Exit	PLACE-FACT		Longest rigid length that swings round the way's bend.
+server/src/mud/lib/bulk/Cutlery.ts	utensilKind	CutleryMixin	THING-NATURE		Utensil kind (spoon/fork/knife).
+server/src/mud/lib/bulk/VesselKind.ts	category	VesselKindMixin	THING-NATURE		Vessel kind category (coupe, keg...).
+server/src/mud/lib/butchery/Cut.ts	cutting	CutMixin	THING-NATURE		How deep tools must reach to take the cut.
+server/src/mud/lib/butchery/Cut.ts	difficulty	CutMixin	THING-NATURE		Hand it takes to get the joint.
+server/src/mud/lib/butchery/Cut.ts	tissues	CutMixin	THING-NATURE		Tissue materials the cut takes off the carcass.
+server/src/mud/lib/character/Posed.ts	posture	PosedMixin	THING-NATURE		Actor's posture state (authored initial pose).
+server/src/mud/lib/combat/Combatant.ts	naturalAttackChannel	CombatantMixin	THING-NATURE		Innate attack channel of the creature.
+server/src/mud/lib/combat/Combatant.ts	standingLethality	CombatantMixin	THING-NATURE		NPC's authored standing combat lethality posture.
+server/src/mud/lib/combat/Combatant.ts	standingStopCondition	CombatantMixin	THING-NATURE		NPC's authored combat stop condition.
+server/src/mud/lib/corpo/Branded.ts	brand	BrandedMixin	LINK		Durable brand key resolved to its Brand/Corpo.
+server/src/mud/lib/craft/Assembled.ts	bill	AssembledMixin	THING-NATURE		Bill of parts of an assembled kind.
+server/src/mud/lib/craft/Graded.ts	gradeBand	GradedMixin	THING-NATURE		Grade band of the item.
+server/src/mud/lib/craft/Tool.ts	capabilities	ToolMixin	THING-NATURE		Capabilities the tool offers.
+server/src/mud/lib/craft/Tool.ts	discipline	ToolMixin	THING-NATURE		Craft discipline the tool's finer use draws on.
+server/src/mud/lib/craft/Tool.ts	epoch	ToolMixin	THING-NATURE		Epoch stamp of the tool.
+server/src/mud/lib/craft/Tool.ts	seedFactor	ToolMixin	THING-NATURE		Share of broadcast seed rate the tool sows at.
+server/src/mud/lib/craft/Tool.ts	swathM2	ToolMixin	THING-NATURE		Area one act of the tool works.
+server/src/mud/lib/description/Perceptible.ts	keywords	PerceptibleMixin	EXPRESSION		Keywords by which the object is identified/named.
+server/src/mud/lib/description/Perceptible.ts	primaryKeyword	PerceptibleMixin	EXPRESSION		Authored primary keyword (the name a renderer uses).
+server/src/mud/lib/display/Display.ts	pairing	DisplayMixin	INSTITUTION-POLICY		Pairing policy: who may drive the screen (the holder/business's config).
+server/src/mud/lib/display/Display.ts	principal	DisplayMixin	LINK		Business path the staff pairing checks.
+server/src/mud/lib/display/Display.ts	remote	DisplayMixin	LINK		Paired remote's template path.
+server/src/mud/lib/display/Display.ts	shows	DisplayMixin	THING-NATURE		Which display kinds the screen admits (a departures board shows prose).
+server/src/mud/lib/electricity/Energized.ts	voltage	EnergizedMixin	THING-NATURE		Voltage a source is held at.
+server/src/mud/lib/employment/Employed.ts	institution	EmployedMixin	LINK		The NPC's employing institution (identity path).
+server/src/mud/lib/expanse/Charted.ts	entries	ChartedMixin	EXPRESSION		The marks/entries on a chart; authored information content.
+server/src/mud/lib/expanse/Charted.ts	of	ChartedMixin	LINK		The expanse row this is a chart of.
+server/src/mud/lib/expanse/Positioned.ts	expanse	PositionedMixin	LINK		Expanse row this position is in.
+server/src/mud/lib/expanse/Positioned.ts	expansePosition	PositionedMixin	PLACE-FACT		Lat/lon position in the expanse.
+server/src/mud/lib/expanse/Positioned.ts	line	PositionedMixin	LINK		River line row this position is on.
+server/src/mud/lib/expanse/Positioned.ts	linePosition	PositionedMixin	PLACE-FACT		Position on the river (km from mouth, m from bank).
+server/src/mud/lib/ground/Improvable.ts	improvementWork	ImprovableMixin	PLACE-FACT	AMBIGUOUS: labor banked into ground stays with the land, but it was the tenant's work (compensation-for-improvements question).	Improvement labor banked per job on the ground.
+server/src/mud/lib/husbandry/Bonded.ts	home	BondedMixin	LINK		Where a kept animal returns to (place id).
+server/src/mud/lib/husbandry/Cultivable.ts	fixedGround	CultivableMixin	THING-NATURE		Whether the cultivable is fixed ground or a container of soil.
+server/src/mud/lib/husbandry/Cultivable.ts	landRequirementM2	CultivableMixin	LEVER	AMBIGUOUS: authored on the productive kind (thing-nature) but explicitly the number that makes production scarce (a lever).	Square metres of land a productive object draws from its parcel.
+server/src/mud/lib/husbandry/Growing.ts	_cycleCount	GrowingMixin	THING-NATURE		Ratoon cycles cut and regrown (instance state).
+server/src/mud/lib/husbandry/Growing.ts	discipline	GrowingMixin	THING-NATURE		Discipline the plant's keeping exercises.
+server/src/mud/lib/husbandry/Growing.ts	groundPart	GrowingMixin	LINK		Key of the ground part the plant stands in.
+server/src/mud/lib/husbandry/Growing.ts	harvestTemplatePath	GrowingMixin	THING-NATURE		Template a harvest mints (recipe output).
+server/src/mud/lib/husbandry/Growing.ts	harvestTool	GrowingMixin	THING-NATURE		Capability the harvest cut needs.
+server/src/mud/lib/husbandry/Growing.ts	nutrientDraw	GrowingMixin	THING-NATURE		Nitrogen a harvest exports from the bed.
+server/src/mud/lib/husbandry/Growing.ts	sownAreaM2	GrowingMixin	THING-NATURE		Area sown.
+server/src/mud/lib/husbandry/Growing.ts	specimenNoun	GrowingMixin	EXPRESSION		What a specimen of the plant is called.
+server/src/mud/lib/location/Location.ts	coords	Location	PLACE-FACT		Room coordinates.
+server/src/mud/lib/location/Location.ts	extent	Location	PLACE-FACT		Room's physical extent.
+server/src/mud/lib/location/ZoneMinting.ts	joins	ZoneMintingMixin	LINK		Where a warren's minted copies join the world.
+server/src/mud/lib/location/ZoneMinting.ts	zoneNaming	ZoneMintingMixin	SYSTEM		How a warren names its zone copies.
+server/src/mud/lib/locomotion/Flyable.ts	axes	FlyableMixin	PLACE-FACT		Axes of flight the place's airspace allows.
+server/src/mud/lib/locomotion/Flyable.ts	difficulty	FlyableMixin	PLACE-FACT		Difficulty of flying in this place.
+server/src/mud/lib/magic/Charged.ts	alwaysOn	ChargedMixin	THING-NATURE		Whether the charged item holds its effect continuously.
+server/src/mud/lib/magic/Charged.ts	capacityTau	ChargedMixin	THING-NATURE		Shell capacity of the charged item, tau.
+server/src/mud/lib/magic/Consumable.ts	residueTemplatePath	ConsumableMixin	THING-NATURE		What a consumed item leaves behind.
+server/src/mud/lib/magic/Consumable.ts	usesRemaining	ConsumableMixin	THING-NATURE		Uses remaining in the consumable.
+server/src/mud/lib/material/Composition.ts	makeup	CompositionMixin	THING-NATURE		Composition of the pool by mass fraction.
+server/src/mud/lib/material/Dyed.ts	dyeStack	DyedMixin	THING-NATURE		Dye applications on the item.
+server/src/mud/lib/material/Dyed.ts	fastness	DyedMixin	THING-NATURE		How well the dye is bound.
+server/src/mud/lib/material/Integrity.ts	flaws	IntegrityMixin	THING-NATURE		Material flaws of the item.
+server/src/mud/lib/material/Material.ts	cleanser	Material	THING-NATURE		The cleanser document this material is.
+server/src/mud/lib/material/Material.ts	tensileStrengthMPa	Material	THING-NATURE		Tensile strength of the material.
+server/src/mud/lib/material/Radioactivity.ts	_decayProductPath	RadioactiveMetal	THING-NATURE		Daughter material of radioactive decay.
+server/src/mud/lib/material/Radioactivity.ts	decayMode	RadioactiveMetal	THING-NATURE		Decay mode.
+server/src/mud/lib/material/Radioactivity.ts	halfLife	RadioactiveMetal	THING-NATURE		Half-life in years.
+server/src/mud/lib/material/Toxicity.ts	leaches	ToxicityMixin	THING-NATURE		Toxin a material's face leaches into contents.
+server/src/mud/lib/maturation/Maturing.ts	charLevel	MaturingMixin	THING-NATURE		Whether the cask's inside is charred.
+server/src/mud/lib/maturation/Maturing.ts	charredImparts	MaturingMixin	THING-NATURE		What a charred inside imparts to contents.
+server/src/mud/lib/maturation/Maturing.ts	imparts	MaturingMixin	THING-NATURE		What the vessel imparts to its contents over a batch.
+server/src/mud/lib/perception/AmbientLit.ts	ambientColorTemperature	AmbientLitMixin	PLACE-FACT		Ambient light color temperature of the scope.
+server/src/mud/lib/perception/AmbientLit.ts	ambientIntensity	AmbientLitMixin	PLACE-FACT		Noon calibration of the scope's ambient light.
+server/src/mud/lib/perception/AmbientLit.ts	ambientOpening	AmbientLitMixin	PLACE-FACT		The opening through which sky light reaches the room.
+server/src/mud/lib/perception/AmbientLit.ts	ambientSource	AmbientLitMixin	PLACE-FACT		Whether the scope's light follows the sun.
+server/src/mud/lib/pump/PumpMechanism.ts	description	PumpMechanism	EXPRESSION		Prose description of the pump mechanism.
+server/src/mud/lib/pump/PumpMechanism.ts	name	PumpMechanism	EXPRESSION		Name of the pump mechanism.
+server/src/mud/lib/pump/PumpMechanism.ts	pulls	PumpMechanism	THING-NATURE		Whether the mechanism pulls (the suction-ceiling law).
+server/src/mud/lib/residency/Circulating.ts	censusKey	CirculatingMixin	LEVER		Which regional stock bucket the item counts in for distribution census.
+server/src/mud/lib/residency/Circulating.ts	materialTags	CirculatingMixin	THING-NATURE	AMBIGUOUS: what the item is made of (nature), but used only to weigh place affinity in world distribution (a lever).	Material tags weighing place affinity in distribution.
+server/src/mud/lib/residency/Circulating.ts	regionTarget	CirculatingMixin	LEVER		Item's baseline regional stock target (supply faucet).
+server/src/mud/lib/slot/Mountable.ts	mountSlot	MountableMixin	THING-NATURE		Slot the mount occupies.
+server/src/mud/lib/slot/Slotted.ts	staticSlots	SlottedMixin	THING-NATURE		Static slot specs of the host.
+server/src/mud/lib/slot/Wearable.ts	cutToBodyPlan	WearableMixin	THING-NATURE		Body plan the garment was cut for.
+server/src/mud/lib/slot/Wearable.ts	cutToGirth	WearableMixin	THING-NATURE		Girth the garment was cut to.
+server/src/mud/lib/slot/Wearable.ts	cutToStature	WearableMixin	THING-NATURE		Stature the garment was cut to.
+server/src/mud/lib/slot/Wearable.ts	seamAllowance	WearableMixin	THING-NATURE		Cloth folded into the seams.
+server/src/mud/lib/slot/Wearable.ts	slotClaims	WearableMixin	THING-NATURE		Per-body-plan slot claims of the wearable.
+server/src/mud/lib/status/Status.ts	authoredStatus	StatusMixin	EXPRESSION		Authored default activity-status line for the NPC.
+server/src/mud/lib/structure/Building.ts	position	Building	PLACE-FACT		Where the building stands on the chart.
+server/src/mud/lib/stuff/Fixture.ts	seatIn	FixtureMixin	LINK		Target the fixture seats itself into.
+server/src/mud/lib/stuff/Props.ts	props	PropsMixin	LINK	AMBIGUOUS: born-with things are template refs; for a tenant-authored room they are the author's set dressing (expression/chattel), for a holder's room the place's fixtures.	Things the host is born with.
+server/src/mud/lib/stuff/Stackable.ts	quantity	StackableMixin	THING-NATURE		Stack size (initial quantity).
+server/src/mud/lib/stuff/Staged.ts	cast	StagedMixin	INSTITUTION-POLICY	AMBIGUOUS: the cast is often a business's staff (institution) but authored on the place's row as its population; a tenant's NPCs vs the holder's.	NPCs the host is born with.
+server/src/mud/lib/stuff/Staged.ts	props	StagedMixin	LINK	AMBIGUOUS: same as PropsMixin.props - template refs vs author's set dressing vs the place's fixtures.	Things the host's set is laid out with.
+server/src/mud/lib/supply/Plumbed.ts	plumbing	PlumbedMixin	PLACE-FACT		Plumbing declared for the room.
+server/src/mud/lib/thermal/SpaceHeating.ts	heatOutputW	SpaceHeatingMixin	THING-NATURE		Heat output of the fire in watts.
+server/src/mud/lib/thermal/ThermalRegulation.ts	setpointK	ThermalRegulationMixin	THING-NATURE		Body temperature setpoint.
+server/src/mud/lib/vitals/Vitals.ts	bloodGenotype	VitalsMixin	THING-NATURE		Blood genotype pin of an NPC.
+server/src/mud/platform/idea/Business.ts	banksAt	BusinessMixin	INSTITUTION-POLICY		Bank branch custodying the business's operating account.
+server/src/mud/platform/idea/Business.ts	charter	BusinessMixin	LEVER	AMBIGUOUS: sits on the business's own record but is a license (lend, take deposits, reserve window) only governance should grant.	Charters the business holds (bank).
+server/src/mud/platform/idea/Business.ts	offstage	BusinessMixin	INSTITUTION-POLICY		Where the house parks off-shift cast.
+server/src/mud/platform/idea/Business.ts	operatingLocations	BusinessMixin	LINK	AMBIGUOUS: institution's records, but each entry points at a place another party holds; it is the exact seam that dangles when a business moves.	Locations the business operates in.
+server/src/mud/platform/idea/Business.ts	parLines	BusinessMixin	INSTITUTION-POLICY	AMBIGUOUS: the owner's stocking policy, but on an NPC-only business it is NPC demand (a lever).	Par manifest: goods levels kept and suppliers bought from.
+server/src/mud/platform/idea/KeptDoor.ts	keptBy	KeptDoor	LINK		Business whose doorman keeps this door.
+server/src/mud/platform/idea/Locality.ts	_catchmentKm2	Locality	PLACE-FACT		Catchment area draining to the locality's reach.
+server/src/mud/platform/idea/Locality.ts	_learnable	Locality	EXPRESSION		What a first visit teaches (government, kind); disclosure choice.
+server/src/mud/platform/idea/Locality.ts	_position	Locality	PLACE-FACT		Locality's chart position.
+server/src/mud/platform/idea/Locality.ts	_precipitationIntensity	Locality	PLACE-FACT		Precipitation intensity of the locality.
+server/src/mud/platform/idea/Locality.ts	_publicLighting	Locality	LEVER		Town street-lighting service: fuel bill and supplier paid (civic money flow).
+server/src/mud/platform/idea/Locality.ts	_radiusM	Locality	PLACE-FACT		Radius within which the locality counts as one place.
+server/src/mud/platform/idea/Locality.ts	_reach	Locality	PLACE-FACT		The reach the locality drains to (hydrology).
+server/src/mud/platform/idea/ShipRegister.ts	government	ShipRegister	LINK		The polity whose ship register this is.
+server/src/mud/platform/idea/WikiNamespaceZone.ts	protection	WikiNamespaceZone	LEVER		Who may edit within the wiki namespace (write access = power).
+server/src/mud/platform/idea/location/MintedZone.ts	mintedBy	MintedZone	LINK		The warren row whose instances mint this zone's copies.
+server/src/mud/platform/location/Compartment.ts	floorM	Compartment	PLACE-FACT		Height of the ship room's floor above the keel.
+server/src/mud/platform/location/PersistentLocation.ts	postedAs	PersistentLocation	EXPRESSION	AMBIGUOUS: free-text sign never enforced (expression), but functionally a posted house rule of whoever runs the room (holder or tenant).	What the sign on the door says.
+server/src/mud/platform/thing/Book.ts	edition	Book	LINK		The edition (text) a book row names.
+server/src/mud/platform/thing/Book.ts	pageCount	Book	THING-NATURE		Leaves the book was bound with.
+server/src/mud/platform/thing/Book.ts	roomPerPage	Book	THING-NATURE		Characters a leaf takes.
+server/src/mud/platform/thing/Book.ts	sizedLeaves	Book	THING-NATURE		Whether the leaves were sized.
+server/src/mud/platform/thing/Cloth.ts	absorbency	Cloth	THING-NATURE		Water a cloth absorbs per kg.
+server/src/mud/platform/thing/Copper.ts	copperLit	Copper	THING-NATURE		Whether the copper's fire is in (state).
+server/src/mud/platform/thing/Copper.ts	heatsToK	Copper	THING-NATURE		Heat the copper holds its water at.
+server/src/mud/platform/thing/IceBlock.ts	iceQuality	IceBlock	THING-NATURE		Ice block quality.
+server/src/mud/platform/thing/PipeRun.ts	carries	PipeRun	PLACE-FACT		Material a room's pipe run carries.
+server/src/mud/platform/thing/PipeRun.ts	connectsTo	PipeRun	LINK		The street main a service run connects to.
+server/src/mud/platform/thing/PipeRun.ts	lengthM	PipeRun	PLACE-FACT		Length of the pipe run.
+server/src/mud/platform/thing/PipeRun.ts	runKind	PipeRun	PLACE-FACT		Room pipe vs service connection.
+server/src/mud/platform/thing/PipeRun.ts	unlaid	PipeRun	PLACE-FACT		Run starts unlaid, for a plumber to lay.
+server/src/mud/platform/thing/ScrewPress.ts	maxTurns	ScrewPress	THING-NATURE		Maximum screw turns.
+server/src/mud/platform/thing/ScrewPress.ts	newtonsPerTurn	ScrewPress	THING-NATURE		Force per turn of the screw.
+server/src/mud/platform/thing/Sprinkler.ts	maxThrowM	Sprinkler	THING-NATURE		Furthest the sprinkler throws.
+server/src/mud/platform/thing/Sprinkler.ts	nozzleMm	Sprinkler	THING-NATURE		Sprinkler nozzle bore.
+server/src/mud/platform/thing/TrapKit.ts	trapTemplate	TrapKit	THING-NATURE		Trap template the kit deploys.
+server/src/mud/platform/thing/WaterFixture.ts	continuous	WaterFixture	PLACE-FACT		Fixture draws its share continuously (counted in supply demand).
+server/src/mud/platform/thing/WaterFixture.ts	hardnessDgh	WaterFixture	PLACE-FACT		Hardness of the fixture's own-source water.
+server/src/mud/platform/thing/WaterFixture.ts	natural	WaterFixture	PLACE-FACT	AMBIGUOUS: a physical fact of a spring/leat, but an author declaring an endless free source is a faucet the supply market must take as given.	Fixture is its own endless water source.
+server/src/mud/platform/thing/WaterFixture.ts	suppliedBy	WaterFixture	LINK		Named supply this fixture is plumbed to.
+server/src/mud/world/lounge/Lounge.ts	warren	LoungeMixin	LINK		Warren this lounge room self-registers into.
+content/arcana/src/thing/ManaLamp.ts	drawPerHourTau	ManaLamp	THING-NATURE		mana cost per hour of the lamp kind
+content/arcana/src/thing/ManaLamp.ts	litFlux	ManaLamp	THING-NATURE		lumens of the lamp kind
+content/energy/src/idea/Feeder.ts	branchesFrom	Feeder	LINK		reference to the parent feeder node a spur branches from
+content/energy/src/idea/Feeder.ts	key	Feeder	SYSTEM		durable feeder key
+content/energy/src/idea/Feeder.ts	nodes	Feeder	PLACE-FACT		the line's physical nodes down the grid
+content/energy/src/idea/Feeder.ts	source	Feeder	LINK		template path of the generator feeding the line
+content/residence/src/idea/HoldingWarren.ts	addressBase	HoldingWarren	PLACE-FACT		address stem the holding's rooms stamp
+content/residence/src/idea/HoldingWarren.ts	upkeepTerm	HoldingWarren	LEVER	AMBIGUOUS	who owes upkeep: a tenure term the occupant takes as given (governance) vs the landlord's own terms (institution)
+content/residence/src/idea/PlatWarren.ts	programmePath	PlatWarren	LINK		ref to the HoldingWarren row a sold lot's house instances
+content/residence/src/idea/PlatWarren.ts	roadTemplate	PlatWarren	LINK		ref to the road-segment row minted reaches clone
+content/residence/src/thing/DeedDesk.ts	books	DeedDesk	LINK		refs to the plat books this desk fronts
+content/terminus/src/market/thing/MarketStalls.ts	pitches	MarketStalls	PLACE-FACT		how many pitches the square physically has to let
+content/terminus/src/market/thing/MarketStalls.ts	rentMinor	MarketStalls	LEVER	AMBIGUOUS	stall rent on a public square: a civic price players take as given vs the market house's own price list
+content/tpa/src/thing/TpaTerminal.ts	bornWithCell	TpaTerminal	LEVER	AMBIGUOUS	mints a mana cell into the gate once from nothing (faucet) vs a plain template ref
+content/trade-apiculture/src/lib/Colony.ts	hasQueen	Colony	THING-NATURE		authored biological state of the colony
+content/trade-apiculture/src/lib/Colony.ts	pollenKg	Colony	THING-NATURE		stored pollen, colony biology
+content/trade-apiculture/src/lib/Colony.ts	strength	Colony	THING-NATURE		colony population fraction
+content/trade-carpentry/src/thing/Pattern.ts	heldImpression	Pattern	THING-NATURE		the impression (kind, maker, allowance) the pattern physically carries
+content/trade-carpentry/src/thing/Sawmill.ts	kerfM	Sawmill	THING-NATURE		blade cut width
+content/trade-carpentry/src/thing/Sawmill.ts	kgPerHourPerKw	Sawmill	THING-NATURE		machine throughput per power
+content/trade-carpentry/src/thing/Sawmill.ts	maxThroughputKgPerHour	Sawmill	THING-NATURE		frame's throughput ceiling
+content/trade-carpentry/src/thing/Sawmill.ts	throughputKgPerHour	Sawmill	THING-NATURE		hand-driven throughput
+content/trade-farming/src/thing/Field.ts	fieldKey	Field	SYSTEM		stable binding key set by the tract
+content/trade-farming/src/thing/Field.ts	lean	Field	PLACE-FACT		nudge to the tract's soil sample for this part of the ground
+content/trade-fishing/src/thing/Bait.ts	baitKind	Bait	THING-NATURE		what kind of bait it is
+content/trade-fishing/src/thing/Trap.ts	capacity	Trap	THING-NATURE		how many fish the trap holds
+content/trade-fishing/src/thing/Trap.ts	drawPerHour	Trap	THING-NATURE		catch rate of the trap kind at a full reach
+content/trade-fishing/src/thing/Trap.ts	takesRoles	Trap	THING-NATURE		which food-web roles the trap takes
+content/trade-fuel/src/thing/Ash.ts	gradedByStrength	Ash	THING-NATURE		whether the heap's grade follows alkali share (row data)
+content/trade-haulage/src/lib/haulage/ShipmentDesk.ts	carrierPath	ShipmentDeskMixin	LINK		the carrier whose paper the desk files
+content/trade-haulage/src/lib/haulage/ShipmentDesk.ts	holdPath	ShipmentDeskMixin	LINK		where accepted goods wait
+content/trade-milling/src/thing/GristMill.ts	powerFrom	GristMill	LINK		path to the race that drives the stones
+content/trade-mining/src/thing/ClaimsRegister.ts	surfaceWorkings	ClaimsRegister	LEVER	AMBIGUOUS	which surface land is open to claim (governance of title) vs a list of refs to rooms
+content/trade-mining/src/thing/ClaimsRegister.ts	warrenPath	ClaimsRegister	LINK		the diggings this register records
+content/trade-mining/src/thing/Ore.ts	gangueMaterialPath	Ore	THING-NATURE		waste material that comes with the ore
+content/trade-mining/src/thing/Ore.ts	grade	Ore	THING-NATURE		ore fraction by mass
+content/trade-painting/src/thing/PaintPot.ts	makeup	PaintPot	THING-NATURE		binder and pigment makeup of a ready-mixed pot
+content/trade-printing/src/thing/Forme.ts	casePath	Forme	LINK		the type case the forme is set from
+content/trade-quarrying/src/location/Turbary.ts	subsidenceM	Turbary	PLACE-FACT		peat oxidized away from the bank
+content/trade-quarrying/src/thing/Clay.ts	weatheredDays	Clay	THING-NATURE		freeze-thaw days this clay has weathered
+content/trade-sericulture/src/lib/Rearing.ts	_strainPath	RearingMixin	THING-NATURE		constituent ref to the worms' strain (their nature)
+content/trade-sericulture/src/lib/Rearing.ts	degreeDays	RearingMixin	THING-NATURE		development clock of the lot
+content/trade-sericulture/src/lib/Rearing.ts	eggCount	RearingMixin	THING-NATURE		size of the lot
+content/trade-sericulture/src/lib/Rearing.ts	fifthAgeSat	RearingMixin	THING-NATURE		fifth-age feeding satisfaction
+content/trade-sericulture/src/lib/Rearing.ts	lotGeneticMg	RearingMixin	THING-NATURE		genetic mean shell weight
+content/trade-sericulture/src/lib/Rearing.ts	pebrineLoad	RearingMixin	THING-NATURE		seeded disease load
+content/trade-sericulture/src/lib/Rearing.ts	rearingState	RearingMixin	THING-NATURE		stage of the rearing
+content/trade-sericulture/src/lib/Rearing.ts	spinStartS	RearingMixin	THING-NATURE		when spinning began
+content/trade-sericulture/src/thing/RawSilk.ts	evenness	RawSilk	THING-NATURE		thread evenness
+content/trade-sericulture/src/thing/RawSilk.ts	filamentCount	RawSilk	THING-NATURE		cocoons reeled per thread
+content/trade-smelting/src/thing/Die.ts	strikes	Die	THING-NATURE		the row a struck blank becomes: the die's shape
+content/trade-sugar/src/thing/SugarLoaf.ts	clayDays	SugarLoaf	THING-NATURE		claying process duration
+content/trade-sugar/src/thing/SugarLoaf.ts	clayWaterL	SugarLoaf	THING-NATURE		water given up by the clay
+content/trade-sugar/src/thing/SugarLoaf.ts	drainsTo	SugarLoaf	THING-NATURE		what the clayed loaf drains as
+content/transport/src/idea/FordExit.ts	crossesAt	FordExit	PLACE-FACT		where on the river the ford crosses
+content/transport/src/idea/IceCrossingExit.ts	_bearsMarginKg	IceCrossingExit	PLACE-FACT		load margin of the ice crossing
+content/transport/src/idea/IceCrossingExit.ts	_crossesReach	IceCrossingExit	LINK		the reach the crossing is over
+content/transport/src/idea/ServiceRoute.ts	key	ServiceRoute	SYSTEM		durable route key
+content/transport/src/idea/ServiceRoute.ts	laneKey	ServiceRoute	LINK		the lane the service runs over
+content/transport/src/idea/ServiceRoute.ts	name	ServiceRoute	EXPRESSION		the route's name
+content/transport/src/idea/ServiceRoute.ts	nodes	ServiceRoute	INSTITUTION-POLICY	AMBIGUOUS	a service's run: the operator's timetable vs a commons fact about the realm's valley
+content/transport/src/idea/ServiceRoute.ts	stops	ServiceRoute	INSTITUTION-POLICY	AMBIGUOUS	where a service stops: the operator's choice vs a commons fact about the realm
+content/transport/src/thing/Boat.ts	eyeHeightM	Boat	THING-NATURE		eye height in the boat kind
+content/transport/src/thing/Boat.ts	heightM	Boat	THING-NATURE		target height of the boat kind
+content/transport/src/thing/Boat.ts	hull	Boat	THING-NATURE		hull numbers
+content/water/src/agent/Pilot.ts	fee	Pilot	LEVER		price charged by an NPC pilot nobody participates in
+content/water/src/idea/WaterExpanse.ts	bottom	WaterExpanse	PLACE-FACT		sea bottom material
+content/water/src/idea/WaterExpanse.ts	clarityM	WaterExpanse	PLACE-FACT		light penetration depth
+content/water/src/idea/WaterExpanse.ts	depthM	WaterExpanse	PLACE-FACT		default depth
+content/water/src/idea/WaterExpanse.ts	fetchKm	WaterExpanse	PLACE-FACT		default fetch
+content/water/src/idea/WaterExpanse.ts	salinityPpt	WaterExpanse	PLACE-FACT		salinity
+content/water/src/idea/WaterExpanse.ts	stock	WaterExpanse	PLACE-FACT	AMBIGUOUS	fish abundance is ecology of the sea but also a yield the world imposes on the fishing economy
+content/water/src/idea/WaterExpanse.ts	tidal	WaterExpanse	PLACE-FACT		tide range and lag
+content/water/src/idea/WaterExpanse.ts	waterTemperatureK	WaterExpanse	PLACE-FACT		water temperature
+content/water/src/thing/Gate.ts	capacityM3S	Gate	PLACE-FACT		what the fixed gate passes fully open
+content/water/src/thing/Gate.ts	turnOf	Gate	LINK	AMBIGUOUS	ref to a business position's roster, but also allocates water rights (governance lever)
+content/water/src/thing/IceSheet.ts	patchFootprintM2	IceSheet	THING-NATURE		ice patch that breaks under a body
+content/water/src/thing/ObservationWell.ts	aquifer	ObservationWell	LINK		the aquifer row it reads
+content/water/src/thing/ObservationWell.ts	collarM	ObservationWell	PLACE-FACT		collar elevation
+content/water/src/thing/RiverHazard.ts	hazardKind	RiverHazard	PLACE-FACT		which river hazard this is
+content/water/src/thing/RiverHazard.ts	holdFactor	RiverHazard	PLACE-FACT		how long the hazard holds a body
+content/water/src/thing/RiverHazard.ts	side	RiverHazard	PLACE-FACT		the bank it lies against
+content/water/src/thing/StorageNode.ts	capacityM3	StorageNode	PLACE-FACT		reservoir volume when full
+content/water/src/thing/StorageNode.ts	drawM3S	StorageNode	LEVER		authored district household demand on the water, not a sum of taps
+content/water/src/thing/StorageNode.ts	elevationM	StorageNode	PLACE-FACT		water surface elevation
+content/water/src/thing/StorageNode.ts	fillRateM3S	StorageNode	PLACE-FACT		fill rate
+content/water/src/thing/StorageNode.ts	fillsFrom	StorageNode	LINK		the main it fills from
+content/water/src/thing/StorageNode.ts	initialLevelM3	StorageNode	PLACE-FACT		starting level
+content/water/src/thing/StorageNode.ts	schedule	StorageNode	INSTITUTION-POLICY	AMBIGUOUS	the turncock's fill hours (operator's schedule) vs a rationing rule the district takes as given
+content/water/src/thing/StorageNode.ts	servesExtent	StorageNode	LINK		prefix of the extent it supplies
+content/water/src/thing/StorageNode.ts	shares	StorageNode	LEVER	AMBIGUOUS	how a shortage is shared is a values/governance rule vs the water operator's own policy
+content/water/src/thing/StorageNode.ts	storageKind	StorageNode	EXPRESSION		presentation-only kind word
+server/src/mud/lib/boundary/Exitable.ts	exits	ExitableMixin	PLACE-FACT	AMBIGUOUS	exits are physical ways of the place but carry destination refs that dangle on separation
+server/src/mud/lib/boundary/Lockable.ts	keyway	LockableMixin	PLACE-FACT	AMBIGUOUS	the lock's keyway is a fact of the door but a tenant rekeying is a holder-side act; also links doors to keys
+server/src/mud/lib/boundary/Lockable.ts	lockTechnology	LockableMixin	THING-NATURE		type of lock mechanism
+server/src/mud/lib/boundary/Lockable.ts	locked	LockableMixin	PLACE-FACT		whether the door's bolt is thrown
+server/src/mud/lib/butchery/Muscle.ts	work	Muscle	THING-NATURE		how hard a muscle works (anatomy)
+server/src/mud/lib/character/Gendered.ts	pronouns	GenderedMixin	EXPRESSION		the character's pronouns
+server/src/mud/lib/character/Persona.ts	aspiration	PersonaMixin	EXPRESSION		closed-choice origin/aspiration key
+server/src/mud/lib/character/Persona.ts	bio	PersonaMixin	EXPRESSION		character bio text
+server/src/mud/lib/combat/Launcher.ts	energySource	LauncherMixin	THING-NATURE		where the shot's energy is stored
+server/src/mud/lib/combat/Launcher.ts	muzzleSpeed	LauncherMixin	THING-NATURE		projectile speed
+server/src/mud/lib/combat/Launcher.ts	projectileTemplate	LauncherMixin	THING-NATURE		ammunition the launcher kind takes
+server/src/mud/lib/combat/Launcher.ts	readySeconds	LauncherMixin	THING-NATURE		reload time
+server/src/mud/lib/combat/Launcher.ts	worksUnderwater	LauncherMixin	THING-NATURE		whether it works underwater
+server/src/mud/lib/craft/Steepable.ts	steepsInto	SteepableMixin	THING-NATURE		extract material it steeps into
+server/src/mud/lib/description/Detailed.ts	details	DetailedMixin	EXPRESSION		nested descriptive details
+server/src/mud/lib/description/Marked.ts	markDevice	MarkedMixin	LINK		identity path of whose device the marks bear
+server/src/mud/lib/description/Marked.ts	markForm	MarkedMixin	THING-NATURE		inked or embossed
+server/src/mud/lib/description/Marked.ts	markScript	MarkedMixin	EXPRESSION		script the marks are written in
+server/src/mud/lib/description/Marked.ts	markText	MarkedMixin	EXPRESSION		what the marks say
+server/src/mud/lib/description/Marked.ts	writingRoom	MarkedMixin	THING-NATURE		characters the surface still takes
+server/src/mud/lib/description/Visible.ts	illustration	VisibleMixin	EXPRESSION		illustration media key
+server/src/mud/lib/description/Visible.ts	illustrationShape	VisibleMixin	EXPRESSION		illustration shape
+server/src/mud/lib/description/Visible.ts	longDescription	VisibleMixin	EXPRESSION		examine text
+server/src/mud/lib/description/Visible.ts	register	VisibleMixin	EXPRESSION		article register of the description
+server/src/mud/lib/description/Visible.ts	shortDescription	VisibleMixin	EXPRESSION		description stem
+server/src/mud/lib/employment/CapTable.ts	capTable	CapTableMixin	INSTITUTION-POLICY		the company's share table
+server/src/mud/lib/employment/OnCall.ts	call	OnCallMixin	INSTITUTION-POLICY		rule for which able staff are called
+server/src/mud/lib/expanse/Expanse.ts	origin	Expanse	PLACE-FACT		where the expanse sits on the chart
+server/src/mud/lib/expanse/Expanse.ts	prevailingDeg	Expanse	PLACE-FACT		prevailing wind
+server/src/mud/lib/expanse/Expanse.ts	trafficDefault	Expanse	PLACE-FACT		seeded traffic density
+server/src/mud/lib/fire/Burner.ts	bellowsMultiplier	BurnerMixin	THING-NATURE		bellows temperature multiplier
+server/src/mud/lib/fire/Burner.ts	burnTemperatureK	BurnerMixin	THING-NATURE		vessel temperature ceiling
+server/src/mud/lib/fire/Burner.ts	draught	BurnerMixin	THING-NATURE		air control setting
+server/src/mud/lib/fire/Burner.ts	flameEnclosed	BurnerMixin	THING-NATURE		construction fact of the lamp
+server/src/mud/lib/fire/Burner.ts	fuelBed	BurnerMixin	THING-NATURE	AMBIGUOUS	seeded starting fuel charge is instance state but also mints fuel from nothing (small faucet)
+server/src/mud/lib/fire/Burner.ts	fuelCapacityKg	BurnerMixin	THING-NATURE		fuel bed capacity
+server/src/mud/lib/fire/Burner.ts	heatTransferFraction	BurnerMixin	THING-NATURE		share of power reaching contents
+server/src/mud/lib/fire/Burner.ts	maxBurnPowerW	BurnerMixin	THING-NATURE		vessel's max power
+server/src/mud/lib/husbandry/Handling.ts	handling	HandlingMixin	THING-NATURE		animal temperament
+server/src/mud/lib/husbandry/Soil.ts	inlets	SoilMixin	PLACE-FACT		how water is let onto this ground (gate path, method, capacity, salt)
+server/src/mud/lib/instrument/Reading.ts	bench	Reading	THING-NATURE		capability of a bench that reads the channel
+server/src/mud/lib/instrument/Reading.ts	channel	Reading	SYSTEM		token a player types for the channel
+server/src/mud/lib/instrument/Reading.ts	discipline	Reading	LINK		Discipline the channel bands by
+server/src/mud/lib/instrument/Reading.ts	eyeCeiling	Reading	THING-NATURE		best band the naked eye realizes
+server/src/mud/lib/instrument/Reading.ts	handTool	Reading	THING-NATURE		capability lifting the eye's ceiling
+server/src/mud/lib/instrument/Reading.ts	improves	Reading	EXPRESSION		authored clause on what knowing this lets you decide
+server/src/mud/lib/instrument/Reading.ts	instrument	Reading	THING-NATURE		tool capability the measure rung needs
+server/src/mud/lib/instrument/Reading.ts	instrumentNoun	Reading	EXPRESSION		what to call the instrument in refusals
+server/src/mud/lib/instrument/Reading.ts	kind	Reading	SYSTEM		fact/preview/record
+server/src/mud/lib/instrument/Reading.ts	scope	Reading	SYSTEM		what subject means
+server/src/mud/lib/instrument/Reading.ts	stakes	Reading	EXPRESSION		authored clause on the cost of not knowing
+server/src/mud/lib/instrument/Reading.ts	subjectRequires	Reading	SYSTEM		mixins the subject must compose
+server/src/mud/lib/magic/Conduit.ts	couplingEfficiency	ConduitMixin	THING-NATURE		coupling efficiency of the conduit
+server/src/mud/lib/magic/Potable.ts	dose	PotableMixin	THING-NATURE		dose curve
+server/src/mud/lib/magic/Potable.ts	route	PotableMixin	THING-NATURE		route of administration
+server/src/mud/lib/material/Compounding.ts	productMaterial	CompoundingMixin	THING-NATURE		material the vessel's compounding yields
+server/src/mud/lib/material/Compounding.ts	productTemplate	CompoundingMixin	THING-NATURE		template the product takes
+server/src/mud/lib/material/Faced.ts	coats	FacedMixin	THING-NATURE	AMBIGUOUS	paint/glaze coats are physical layers (on a building, a place fact the holder keeps) but a chosen color is the painter's expression
+server/src/mud/lib/material/Kinetic.ts	drainSetting	KineticMixin	THING-NATURE		material's drain setting
+server/src/mud/lib/material/Kinetic.ts	formTemplates	KineticMixin	THING-NATURE		row a shaped piece is minted as
+server/src/mud/lib/material/Kinetic.ts	kinetics	KineticMixin	THING-NATURE		material kinetics
+server/src/mud/lib/material/Seasoning.ts	seasonedFraction	SeasoningMixin	THING-NATURE		how seasoned the wood is
+server/src/mud/lib/material/Solution.ts	boilingPointElevation	SolutionMixin	THING-NATURE		solution chemistry
+server/src/mud/lib/material/Solution.ts	concentratesTo	SolutionMixin	THING-NATURE		solution chemistry
+server/src/mud/lib/material/Solution.ts	crystallizesTo	SolutionMixin	THING-NATURE		solution chemistry
+server/src/mud/lib/material/Solution.ts	filteredTo	SolutionMixin	THING-NATURE		solution chemistry
+server/src/mud/lib/material/Solution.ts	purifiedByBoiling	SolutionMixin	THING-NATURE		solution chemistry
+server/src/mud/lib/material/Solution.ts	solidsKgPerL	SolutionMixin	THING-NATURE		solution chemistry
+server/src/mud/lib/material/Solution.ts	solubility	SolutionMixin	THING-NATURE		solution chemistry
+server/src/mud/lib/perception/LightSource.ts	emittedColorTemperature	LightSourceMixin	THING-NATURE		emitted light color temperature
+server/src/mud/lib/perception/LightSource.ts	emittedIntensity	LightSourceMixin	THING-NATURE		emitted lumens
+server/src/mud/lib/press/Publisher.ts	feedPath	PublisherMixin	LINK		document-tree branch its releases live under
+server/src/mud/lib/press/Publisher.ts	label	PublisherMixin	EXPRESSION		masthead a reader sees
+server/src/mud/lib/press/Publisher.ts	publishingPositions	PublisherMixin	INSTITUTION-POLICY		which positions may publish
+server/src/mud/lib/press/Publisher.ts	realm	PublisherMixin	INSTITUTION-POLICY		ooc vs world realm the publisher declares
+server/src/mud/lib/press/Publisher.ts	visibility	PublisherMixin	INSTITUTION-POLICY		default reach of its releases
+server/src/mud/lib/retail/ConsignmentShelf.ts	listingCapOverride	ConsignmentShelfMixin	INSTITUTION-POLICY	AMBIGUOUS	shelf's own listing cap vs an override of the global dial (governance lever)
+server/src/mud/lib/slot/Drivable.ts	_vehicularModePath	DrivableMixin	THING-NATURE		locomotion mode of the vehicle kind
+server/src/mud/lib/slot/Drivable.ts	controllerSlot	DrivableMixin	THING-NATURE		driver slot name
+server/src/mud/lib/slot/Drivable.ts	driveHands	DrivableMixin	THING-NATURE		hands driving takes
+server/src/mud/lib/slot/Wieldable.ts	slotClaims	WieldableMixin	THING-NATURE		body slots the item claims
+server/src/mud/lib/spatial/Containable.ts	fixedInPlace	ContainableMixin	THING-NATURE	AMBIGUOUS	bolted down: per-instance fact that makes it a fixture of the place (stays) vs chattel (leaves with owner)
+server/src/mud/lib/spatial/Placing.ts	airExposure	PlacingMixin	THING-NATURE		air exposure of the placement region
+server/src/mud/lib/spatial/Placing.ts	placements	PlacingMixin	THING-NATURE		offered placement regions
+server/src/mud/lib/spatial/Placing.ts	userFacingDetail	PlacingMixin	EXPRESSION		user-facing placement detail text
+server/src/mud/lib/storage/Store.ts	acceptsLiveGoods	StoreMixin	INSTITUTION-POLICY		whether the store takes unique goods
+server/src/mud/lib/storage/Store.ts	acceptsPoolKeys	StoreMixin	INSTITUTION-POLICY		which pools the store takes
+server/src/mud/lib/storage/Store.ts	businessPath	StoreMixin	LINK		the business that keeps the store
+server/src/mud/lib/storage/Store.ts	capacityKg	StoreMixin	THING-NATURE		how much the store holds
+server/src/mud/lib/storage/Store.ts	drainage	StoreMixin	THING-NATURE		meltwater runoff share
+server/src/mud/lib/storage/Store.ts	initialLines	StoreMixin	LEVER		seeds the ledger with goods from nothing (faucet)
+server/src/mud/lib/storage/Store.ts	keeperPositions	StoreMixin	INSTITUTION-POLICY		positions that may take a deposit
+server/src/mud/lib/storage/Store.ts	receiptPaper	StoreMixin	LINK		sheet row bearer receipts are written on
+server/src/mud/lib/storage/Store.ts	stackShapeFactor	StoreMixin	THING-NATURE		exposed stack faces
+server/src/mud/lib/storage/Store.ts	terms	StoreMixin	INSTITUTION-POLICY		terms printed on receipts
+server/src/mud/lib/zone/SpatialZone.ts	address	SpatialZone	PLACE-FACT		the region's address
+server/src/mud/lib/zone/SpatialZone.ts	admitsEpochThrough	SpatialZone	LEVER	AMBIGUOUS	epoch covenant restricts what instruments may be used: a governance rule vs a fact of the place's character
+server/src/mud/lib/zone/SpatialZone.ts	blessingOdds	SpatialZone	LEVER		BUC weights override item generation zone-wide
+server/src/mud/lib/zone/SpatialZone.ts	celestialProfile	SpatialZone	PLACE-FACT		region's celestial profile
+server/src/mud/lib/zone/SpatialZone.ts	climateOffsetK	SpatialZone	PLACE-FACT		climate anomaly
+server/src/mud/lib/zone/SpatialZone.ts	continentality	SpatialZone	PLACE-FACT		continentality
+server/src/mud/lib/zone/SpatialZone.ts	deposit	SpatialZone	PLACE-FACT	AMBIGUOUS	the orebody under the land is geology but sets the mining yield the economy takes as given
+server/src/mud/lib/zone/SpatialZone.ts	elevation	SpatialZone	PLACE-FACT		elevation
+server/src/mud/lib/zone/SpatialZone.ts	favours	SpatialZone	LEVER		spawn-table multiplier by material tag
+server/src/mud/lib/zone/SpatialZone.ts	groundCharacter	SpatialZone	PLACE-FACT		soil character of the land
+server/src/mud/lib/zone/SpatialZone.ts	horizon	SpatialZone	PLACE-FACT	AMBIGUOUS	what may/must be seen from here: a sightline fact vs an author's presentational choice
+server/src/mud/lib/zone/SpatialZone.ts	latitude	SpatialZone	PLACE-FACT		latitude
+server/src/mud/lib/zone/SpatialZone.ts	stocks	SpatialZone	LEVER		census target counts the spawn sweep stands up (faucet)
+server/src/mud/lib/zone/SpatialZone.ts	suppressesMagic	SpatialZone	PLACE-FACT	AMBIGUOUS	region anti-magic field is a fact of the place but switches off a capability (power lever)
+server/src/mud/platform/idea/Steamer.ts	bunker	Steamer	LINK		the prop her fire is fed from
+server/src/mud/platform/idea/Steamer.ts	fuel	Steamer	THING-NATURE		what her fire burns
+server/src/mud/platform/idea/species/Species.ts	adultMass	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	affordedGambits	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	ageCurve	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	baseMass	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	biddability	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	bloodGroups	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	breathingByStage	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	breeding	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	butcheryYield	Species	THING-NATURE		what butchering the species yields
+server/src/mud/platform/idea/species/Species.ts	feedingStyle	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	habitat	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	habitatByStage	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	handlingRange	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	lifespanMax	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	lifespanMin	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	naturalAttacks	Species	THING-NATURE		species biology
+server/src/mud/platform/idea/species/Species.ts	production	Species	THING-NATURE		what the species yields while kept
+server/src/mud/platform/idea/species/Species.ts	stature	Species	THING-NATURE		species biology
+server/src/mud/platform/thing/Tariff.ts	labourIndexed	Tariff	INSTITUTION-POLICY		the house's pricing rule
+server/src/mud/platform/thing/Tariff.ts	serviceDisciplines	Tariff	INSTITUTION-POLICY		which trade a service's hand must hold
+server/src/mud/platform/thing/Tariff.ts	services	Tariff	INSTITUTION-POLICY		offer key to service mapping
+server/src/mud/platform/thing/WaterHose.ts	lengthM	WaterHose	THING-NATURE		hose length
+server/src/mud/platform/thing/WaterStore.ts	catchmentM2	WaterStore	THING-NATURE		roof area draining into it
+server/src/mud/platform/thing/WaterStore.ts	fillRateLps	WaterStore	THING-NATURE		fill rate
+server/src/mud/platform/thing/WaterStore.ts	fillsFrom	WaterStore	LINK		rain or a supply path that fills it
+server/src/mud/platform/thing/WaterStore.ts	hardnessDgh	WaterStore	THING-NATURE		water hardness
+server/src/mud/platform/thing/WaterStore.ts	initialLevelL	WaterStore	THING-NATURE		starting level
+server/src/mud/platform/thing/WaterStore.ts	standsM	WaterStore	THING-NATURE		height above room floor
+content/arcana/src/thing/ManaMain.ts	closed	ManaMain	PLACE-FACT	AMBIGUOUS	deliberately shut utility main; initial valve state is the utility operator's decision as much as a physical fact
+content/arcana/src/thing/ManaMain.ts	severed	ManaMain	PLACE-FACT		physically broken infrastructure in place
+content/energy/src/thing/ColdStore.ts	interiorVolumeM3	ColdStore	THING-NATURE		interior volume of the cold store kind, drives its envelope physics
+content/energy/src/thing/ColdStore.ts	wallMaterial	ColdStore	THING-NATURE		panel material of the store's walls
+content/ground/src/idea/GroundCharacter.ts	bands	GroundCharacter	PLACE-FACT		authored ground-character leans over rectangles
+content/ground/src/idea/GroundCharacter.ts	name	GroundCharacter	EXPRESSION		what a holder calls this ground, prose name
+content/ground/src/idea/GroundCharacter.ts	pins	GroundCharacter	PLACE-FACT		spot overrides of ground character
+content/residence/src/idea/PlatBook.ts	areaM2	PlatBook	PLACE-FACT		declared area of one lot
+content/residence/src/idea/PlatBook.ts	holderPath	PlatBook	LINK		ref to the PlatWarren template a sold lot stands up
+content/residence/src/idea/PlatBook.ts	label	PlatBook	EXPRESSION		the subdivision's name ("Hinkley Hills")
+content/residence/src/idea/PlatBook.ts	landUse	PlatBook	LEVER	AMBIGUOUS	land use stamped on every sold lot is zoning (governance) but also a subdivider's plat decision about the place
+content/residence/src/idea/PlatBook.ts	lotBranch	PlatBook	SYSTEM		path-layout branch the lots hang off
+content/residence/src/idea/PlatBook.ts	lotPrefix	PlatBook	SYSTEM		slot-leaf naming prefix for lot paths
+content/residence/src/idea/PlatBook.ts	lotWaterSource	PlatBook	LINK		citation of the supply a sold lot takes water from
+content/residence/src/idea/PlatBook.ts	parentExtent	PlatBook	LINK		the district extent lots are subdivided out of
+content/residence/src/idea/PlatBook.ts	priceMinor	PlatBook	LEVER	AMBIGUOUS	world-set land price is a money sink when the realm sells; if a player holds the parent extent it is their own asking price (institution)
+content/trade-apiculture/src/thing/HiveBox.ts	combCapacityKg	HiveBox	THING-NATURE		comb a box's frames hold
+content/trade-apiculture/src/thing/HiveBox.ts	volumeM3	HiveBox	THING-NATURE		interior volume a box adds to a hive
+content/trade-ceramics/src/thing/TemperPit.ts	discipline	TemperPit	THING-NATURE		the Discipline a knead at this pit exercises (process definition)
+content/trade-dairying/src/thing/Wheel.ts	wedgesPerWheel	Wheel	THING-NATURE		how many wedges a cheese wheel cuts into
+content/trade-diving/src/thing/Hoist.ts	bell	Hoist	LINK		row of the diving bell this hoist carries
+content/trade-drilling/src/thing/Wellhead.ts	bodyKey	Wellhead	PLACE-FACT		the subsurface body an authored hole already stands in (venue history of the ground)
+content/trade-drilling/src/thing/Wellhead.ts	claimPath	Wellhead	LINK		the claim the hole was sited on
+content/trade-drilling/src/thing/Wellhead.ts	depthM	Wellhead	PLACE-FACT		metres sunk, the hole's physical fact in the ground
+content/trade-drilling/src/thing/Wellhead.ts	linedToM	Wellhead	PLACE-FACT		metres of casing in the hole
+content/trade-drilling/src/thing/Wellhead.ts	outfitPath	Wellhead	LINK		the outfit whose payroll is sinking the hole
+content/trade-forestry/src/lib/Stand.ts	mix	StandMixin	PLACE-FACT		the tree species that stand in a wood
+content/trade-forestry/src/location/Wood.ts	areaM2	Wood	PLACE-FACT		square metres of ground, rain catchment
+content/trade-forestry/src/location/Wood.ts	woodName	Wood	EXPRESSION		what the wood is called, for prose
+content/trade-haulage/src/thing/RateBoard.ts	carrierPath	RateBoard	LINK		whose tariff the board shows
+content/trade-ice/src/thing/Scraper.ts	sweepM2	Scraper	THING-NATURE		area one pass of the tool clears
+content/trade-mining/src/idea/MineWarren.ts	aditPath	MineWarren	LINK		the authored adit where arrivals land
+content/trade-mining/src/idea/MineWarren.ts	claimBlocks	MineWarren	PLACE-FACT		declared cell-to-claim mapping of the workings
+content/trade-mining/src/idea/MineWarren.ts	mineExtent	MineWarren	LINK		parcel extent claims subdivide beneath
+content/trade-mining/src/idea/MineWarren.ts	typeRows	MineWarren	LINK		the locality's four procedural room-type rows the warren mints from
+content/trade-mining/src/idea/MineWarren.ts	zonePath	MineWarren	LINK		the workings' CartesianZone row
+content/trade-papermaking/src/thing/PulpVat.ts	reachRef	PulpVat	LINK		the river reach the vat fills from
+content/trade-papermaking/src/thing/PulpVat.ts	sheetTemplate	PulpVat	LINK		the row a lifted sheet becomes
+content/trade-papermaking/src/thing/PulpVat.ts	stamper	PulpVat	LINK		the stamper that beats into this vat
+content/trade-ranching/src/thing/Herdbook.ts	femaleFraction	Herdbook	THING-NATURE		share of head that are female, a fact of the (chattel) herd
+content/trade-ranching/src/thing/Herdbook.ts	foundingMeanAgeDays	Herdbook	THING-NATURE		founding herd's mean age, the herd's own history
+content/trade-ranching/src/thing/Herdbook.ts	grazing	Herdbook	LINK		the field the herd starts on
+content/trade-ranching/src/thing/Herdbook.ts	grazingField	Herdbook	LINK		which field of the tract the herd starts on
+content/trade-ranching/src/thing/Herdbook.ts	herdId	Herdbook	SYSTEM		register key and seed for every head
+content/trade-ranching/src/thing/Herdbook.ts	herdName	Herdbook	EXPRESSION		what the keeper calls the herd
+content/trade-ranching/src/thing/Herdbook.ts	holderRef	Herdbook	LINK	AMBIGUOUS	owner principal of the herd: a title record (who owns the chattel), not a link the source side owns
+content/trade-ranching/src/thing/Herdbook.ts	homeExtent	Herdbook	LINK		ground the herd claims as home (jurisdictional anchor)
+content/trade-ranching/src/thing/Herdbook.ts	speciesPath	Herdbook	LINK		species every head belongs to
+content/trade-ranching/src/thing/Herdbook.ts	tally	Herdbook	THING-NATURE	AMBIGUOUS	founding head count is a herd fact but authoring it mints livestock wealth (a faucet/lever)
+content/trade-smelting/src/thing/Bloom.ts	slagFraction	Bloom	THING-NATURE		slag share of a bloom's mass, stamped by the smelt
+content/trade-sugar/src/thing/Copper.ts	boilsTo	Copper	THING-NATURE		the liquor a charge boils into (process output)
+content/trade-sugar/src/thing/Copper.ts	skimsTo	Copper	THING-NATURE		what the scum skims off as (process output)
+content/trade-tanning/src/lib/Tanning.ts	_tannage	TanningMixin	THING-NATURE		tannage state of a skin
+content/trade-textiles/src/thing/TextileStock.ts	yarnCount	TextileStock	THING-NATURE		yarn fineness in hanks per pound
+content/transport/src/idea/Harbor.ts	book	Harbor	LINK		the berth book keeping the harbor's record
+content/transport/src/idea/Harbor.ts	exempt	Harbor	LEVER	AMBIGUOUS	city craft exempt from the hail/dues: a privilege the governing committee posts, yet also the harbor institution's own criteria
+content/transport/src/idea/Harbor.ts	office	Harbor	LINK		the harbor office row
+content/transport/src/idea/Harbor.ts	quays	Harbor	PLACE-FACT	AMBIGUOUS	quay lengths/depths are physical, but maxDraftM per quay is harbormaster policy (grain)
+content/transport/src/idea/Harbor.ts	rates	Harbor	LEVER	AMBIGUOUS	posted dues per metre per day: money the world imposes on ships, posted by the works committee; also reads as the harbor institution's own price
+content/transport/src/idea/Harbor.ts	roads	Harbor	LINK		the roadstead ships are sent to
+content/transport/src/idea/Harbor.ts	seat	Harbor	INSTITUTION-POLICY		which business position keeps the harbor (office hours = its roster)
+content/transport/src/location/HarborOffice.ts	harbor	HarborOffice	LINK		the port this is the office of
+content/transport/src/thing/FerryCable.ts	angleDeg	FerryCable	THING-NATURE		angle the hull is held to the current
+content/transport/src/thing/HaulageRig.ts	requiredBand	HaulageRig	THING-NATURE		competence band the rig demands of its hauler
+content/transport/src/thing/HaulageRig.ts	requiredDiscipline	HaulageRig	THING-NATURE		discipline the rig demands (teamstering); the vehicle's nature
+content/water/src/idea/Aquifer.ts	areaKm2	Aquifer	PLACE-FACT		recharge catchment area
+content/water/src/idea/Aquifer.ts	bottomM	Aquifer	PLACE-FACT		elevation the aquifer gives out
+content/water/src/idea/Aquifer.ts	capacityM3	Aquifer	PLACE-FACT		volume it holds full
+content/water/src/idea/Aquifer.ts	localityPath	Aquifer	LINK		the locality over it (whose rain)
+content/water/src/idea/Aquifer.ts	rechargeFraction	Aquifer	PLACE-FACT		share of rain reaching it
+content/water/src/idea/Aquifer.ts	tableM	Aquifer	PLACE-FACT		water table elevation when full
+content/water/src/location/Band.ts	band	Band	PLACE-FACT		which band of the water column this place is
+content/water/src/location/Band.ts	surface	Band	LINK		the surface place this band lies under
+content/water/src/thing/ControlStructure.ts	at	ControlStructure	PLACE-FACT		position on the river line
+content/water/src/thing/ControlStructure.ts	controlKind	ControlStructure	EXPRESSION		presentation only (weir/gate/dam word)
+content/water/src/thing/ControlStructure.ts	divertsTo	ControlStructure	LINK		the reach the withheld share is sent to
+content/water/src/thing/ControlStructure.ts	generates	ControlStructure	PLACE-FACT		whether a turbine is fitted to the works
+content/water/src/thing/ControlStructure.ts	headM	ControlStructure	PLACE-FACT		metres of fall the structure commands
+content/water/src/thing/ControlStructure.ts	ownerRef	ControlStructure	LINK	AMBIGUOUS	who holds the works: a title record rather than a link owned by the source side
+content/water/src/thing/ControlStructure.ts	passFraction	ControlStructure	INSTITUTION-POLICY	AMBIGUOUS	gate setting is the operator's, but it allocates water downstream users depend on (a lever with a stake)
+content/water/src/thing/ControlStructure.ts	reachRef	ControlStructure	LINK		the reach it sits on
+content/water/src/thing/StaffGauge.ts	reachRef	StaffGauge	LINK		the reach the gauge stands in
+server/src/mud/lib/address/Addressable.ts	_address	AddressableMixin	PLACE-FACT	AMBIGUOUS	declared civic address of a place: locative, but an address is a name assigned by the locality (governance/expression), not physics
+server/src/mud/lib/attendant/Attendant.ts	attendDurationMs	AttendantMixin	INSTITUTION-POLICY		how long a counter attends a customer
+server/src/mud/lib/attendant/Attendant.ts	businessPath	AttendantMixin	LINK		the business this counter serves for
+server/src/mud/lib/attendant/Attendant.ts	discipline	AttendantMixin	INSTITUTION-POLICY		service queue discipline (line, take-a-number, reception)
+server/src/mud/lib/attendant/Attendant.ts	serverPositionKeys	AttendantMixin	INSTITUTION-POLICY		which business positions staff the counter
+server/src/mud/lib/attendant/Attendant.ts	skin	AttendantMixin	EXPRESSION		the counter's spoken lines (poke, nudge, closed)
+server/src/mud/lib/attendant/Attendant.ts	staffingPolicy	AttendantMixin	INSTITUTION-POLICY		close or self-service when unstaffed
+server/src/mud/lib/boundary/Adornable.ts	adornments	AdornableMixin	PLACE-FACT	AMBIGUOUS	fixtures attached to a way (knockers, signs) are part of the place but largely decorative/signage expression
+server/src/mud/lib/boundary/Boundary.ts	channels	Boundary	PLACE-FACT		the way's channel table (what passes through)
+server/src/mud/lib/boundary/Boundary.ts	opening	Boundary	PLACE-FACT		the way's aperture
+server/src/mud/lib/boundary/ExitableVessel.ts	interiorVolume	ExitableVessel	THING-NATURE		interior volume of an enterable vessel kind
+server/src/mud/lib/bulk/Bulkable.ts	closure	BulkSlot	THING-NATURE		liquid-retention level of a vessel
+server/src/mud/lib/bulk/Bulkable.ts	interiorBulk	BulkSlot	THING-NATURE		whether the host has an interior bulk slot
+server/src/mud/lib/bulk/Bulkable.ts	interiorCapacity	BulkSlot	THING-NATURE		interior bulk capacity
+server/src/mud/lib/bulk/Bulkable.ts	interiorMaterial	BulkSlot	THING-NATURE	AMBIGUOUS	authored initial contents: a vessel fact, but writing it mints free matter (a faucet)
+server/src/mud/lib/bulk/Bulkable.ts	surfaceBulk	BulkSlot	THING-NATURE		whether the host has a surface bulk slot
+server/src/mud/lib/bulk/Bulkable.ts	surfaceCapacity	BulkSlot	THING-NATURE		surface bulk capacity
+server/src/mud/lib/bulk/Bulkable.ts	surfaceMaterial	BulkSlot	THING-NATURE	AMBIGUOUS	authored initial surface contents: a fact, but mints free matter (a faucet)
+server/src/mud/lib/commerce/DonationBank.ts	_lotSystem	DonationBankMixin	INSTITUTION-POLICY		which blood system the bank window serves
+server/src/mud/lib/commerce/DonationBank.ts	_vaultPaths	DonationBankMixin	LINK		the cold-store containers the bank reads
+server/src/mud/lib/concealment/Concealable.ts	concealment	ConcealableMixin	PLACE-FACT		concealment band of a hidden thing in its place
+server/src/mud/lib/concealment/Concealable.ts	concealmentHint	ConcealableMixin	EXPRESSION		authored tell surfaced to a near-perceiver
+server/src/mud/lib/craft/Comminuting.ts	dustMaterial	ComminutingMixin	THING-NATURE		gas a feed grind throws into an enclosed room
+server/src/mud/lib/craft/Comminuting.ts	extractionDefault	ComminutingMixin	THING-NATURE		default bolting extraction of the instrument
+server/src/mud/lib/craft/Comminuting.ts	extractionMax	ComminutingMixin	THING-NATURE		widest extraction the instrument bolts to
+server/src/mud/lib/craft/Comminuting.ts	extractionMin	ComminutingMixin	THING-NATURE		narrowest extraction the instrument bolts to
+server/src/mud/lib/craft/Comminuting.ts	feedTags	ComminutingMixin	THING-NATURE		material tags that make a charge a feed
+server/src/mud/lib/craft/Comminuting.ts	kgPerMinPerKw	ComminutingMixin	THING-NATURE		throughput per kilowatt
+server/src/mud/lib/craft/Comminuting.ts	maxThroughputKgPerMin	ComminutingMixin	THING-NATURE		throughput ceiling
+server/src/mud/lib/craft/Comminuting.ts	productMaterial	ComminutingMixin	THING-NATURE		material of the grind's product (process output)
+server/src/mud/lib/craft/Comminuting.ts	productVessel	ComminutingMixin	THING-NATURE		vessel the product lands in (process output)
+server/src/mud/lib/craft/Comminuting.ts	products	ComminutingMixin	THING-NATURE		feed-to-product table
+server/src/mud/lib/craft/Comminuting.ts	residueFraction	ComminutingMixin	THING-NATURE		the screen's bolting fraction
+server/src/mud/lib/craft/Comminuting.ts	residueMaterial	ComminutingMixin	THING-NATURE		material of the residue (process output)
+server/src/mud/lib/craft/Comminuting.ts	residueVessel	ComminutingMixin	THING-NATURE		vessel the residue lands in
+server/src/mud/lib/craft/Comminuting.ts	throughputKgPerMin	ComminutingMixin	THING-NATURE		unpowered hand throughput
+server/src/mud/lib/craft/Comminuting.ts	tollBinPath	ComminutingMixin	LINK		where the multure goes
+server/src/mud/lib/craft/Comminuting.ts	tollFraction	ComminutingMixin	INSTITUTION-POLICY	AMBIGUOUS	multure is the miller's charge in kind, but on an NPC mill nobody runs it is a world-imposed sink (lever)
+server/src/mud/lib/expanse/FrameSited.ts	frameSite	FrameSitedMixin	PLACE-FACT		where a place sits on its frame
+server/src/mud/lib/expanse/Voyaging.ts	speedKn	VoyagingMixin	THING-NATURE		a craft's way through the water
+server/src/mud/lib/fire/Combustible.ts	charMaterialPath	CombustibleMixin	THING-NATURE		what it becomes when burnt out
+server/src/mud/lib/fire/Combustible.ts	structural	CombustibleMixin	THING-NATURE		destructs on burn-through rather than charring
+server/src/mud/lib/ground/Floor.ts	onGrade	FloorMixin	PLACE-FACT		whether the floor sits on grade
+server/src/mud/lib/ground/Floor.ts	stalls	FloorMixin	LINK		the herd book whose head foul this byre floor
+server/src/mud/lib/ground/Floor.ts	sweepsInto	FloorMixin	PLACE-FACT		what a sweep of this floor heaps up
+server/src/mud/lib/ground/Floor.ts	worked	FloorMixin	PLACE-FACT		floor dressed, laid or rammed
+server/src/mud/lib/husbandry/Feeder.ts	feederKind	FeederMixin	THING-NATURE		kind of feeder (bowl, trough)
+server/src/mud/lib/husbandry/Feeder.ts	suppliedBy	FeederMixin	LINK		store the feeder is kept from
+server/src/mud/lib/husbandry/Plantable.ts	growsIntoPath	PlantableMixin	THING-NATURE		plant template a seed mints (kind's definition)
+server/src/mud/lib/identification/Identifiable.ts	descriptorClass	IdentifiableMixin	EXPRESSION		descriptor bank for the unidentified look
+server/src/mud/lib/identification/Identifiable.ts	identifiedName	IdentifiableMixin	EXPRESSION		true name revealed on identification
+server/src/mud/lib/identification/Identifiable.ts	selfIdentifying	IdentifiableMixin	THING-NATURE		whether use teaches what it is
+server/src/mud/lib/location/FloorplanWarren.ts	buildings	FloorplanWarren	PLACE-FACT		the plan's buildings (structural composition of the holding)
+server/src/mud/lib/location/FloorplanWarren.ts	entrance	FloorplanWarren	LINK		the plan's room you come in by
+server/src/mud/lib/location/FloorplanWarren.ts	extent	FloorplanWarren	LINK		template-path prefix whose rows are the plan's rooms
+server/src/mud/lib/location/FloorplanWarren.ts	footprintM2	FloorplanWarren	PLACE-FACT		ground the buildings stand on
+server/src/mud/lib/location/SphericalCoordinates.ts	coordinates	SphericalCoordinatesMixin	PLACE-FACT		spherical coordinates
+server/src/mud/lib/location/SphericalCoordinates.ts	radius	SphericalCoordinatesMixin	PLACE-FACT		sphere radius
+server/src/mud/lib/locomotion/Climbable.ts	axes	ClimbableMixin	PLACE-FACT		the directions a cliff/ladder can be climbed
+server/src/mud/lib/locomotion/Climbable.ts	difficulty	ClimbableMixin	PLACE-FACT		climb difficulty of the host
+server/src/mud/lib/magic/Arcane.ts	carriedSpellPath	ArcaneMixin	LINK		the spell whose grid address the item inherits
+server/src/mud/lib/magic/Arcane.ts	declaredAddresses	ArcaneMixin	THING-NATURE		bespoke arcane grid footprint
+server/src/mud/lib/magic/Arcane.ts	deliveryEfficiency	ArcaneMixin	THING-NATURE		efficiency fixed at manufacture
+server/src/mud/lib/magic/Arcane.ts	makerId	ArcaneMixin	LINK	AMBIGUOUS	specifier's durable id is a provenance/credit record (whose expression), not a link the holder owns
+server/src/mud/lib/material/Coating.ts	adhesive	CoatingMixin	THING-NATURE		material's glue properties
+server/src/mud/lib/material/Coating.ts	coatWord	CoatingMixin	EXPRESSION		the word a look uses for a coat of this
+server/src/mud/lib/material/Coating.ts	laysCoat	CoatingMixin	THING-NATURE		a bath of this lays a coat
+server/src/mud/lib/material/Coating.ts	pigment	CoatingMixin	THING-NATURE		material's pigment properties
+server/src/mud/lib/material/Coating.ts	weatheringMPerGameYear	CoatingMixin	THING-NATURE		how fast a set coat weathers
+server/src/mud/lib/material/Moisture.ts	dryness	Moisture	THING-NATURE		seeded initial moisture state of a minted object
+server/src/mud/lib/material/Odor.ts	smells	OdorMixin	THING-NATURE		odor tags the material emits (source physics of smell)
+server/src/mud/lib/material/Solidity.ts	brokenTemplate	SolidityMixin	THING-NATURE		what a broken piece becomes
+server/src/mud/lib/material/Solidity.ts	thermalExpansion	SolidityMixin	THING-NATURE		linear thermal expansion
+server/src/mud/lib/material/Tempered.ts	temper	TemperedMixin	THING-NATURE		metal's temper state
+server/src/mud/lib/material/Volatility.ts	vaporizesAboveK	VolatilityMixin	THING-NATURE		vaporization temperature
+server/src/mud/lib/mould/Mould.ts	absorbent	MouldMixin	THING-NATURE		mould drinks water
+server/src/mud/lib/mould/Mould.ts	breaksTo	MouldMixin	THING-NATURE		what a consumed mould leaves
+server/src/mud/lib/mould/Mould.ts	castTemplate	MouldMixin	THING-NATURE		the shape a pool set in this mould becomes
+server/src/mud/lib/mould/Mould.ts	closedCavity	MouldMixin	THING-NATURE		cavity shut all round
+server/src/mud/lib/mould/Mould.ts	discipline	MouldMixin	THING-NATURE		the Discipline a pour exercises
+server/src/mud/lib/mould/Mould.ts	impressible	MouldMixin	THING-NATURE		soft medium a pattern can be pressed into
+server/src/mud/lib/mould/Mould.ts	impression	MouldMixin	THING-NATURE		impression the cavity holds (instance state)
+server/src/mud/lib/mould/Mould.ts	pourDurationS	MouldMixin	THING-NATURE		seconds a pour takes
+server/src/mud/lib/mould/Mould.ts	pressKind	MouldMixin	THING-NATURE		press behavior of the mould
+server/src/mud/lib/mould/Mould.ts	reusable	MouldMixin	THING-NATURE		reusable vs consumed mould
+server/src/mud/lib/mould/Mould.ts	riser	MouldMixin	THING-NATURE		has a riser feeding the freeze
+server/src/mud/lib/mould/Mould.ts	wearPerCast	MouldMixin	THING-NATURE		condition lost per cast
+server/src/mud/lib/slot/Haulable.ts	draftFactor	HaulableMixin	THING-NATURE		rolling-resistance coupling of a cart
+server/src/mud/lib/slot/Haulable.ts	handedness	HaulableMixin	THING-NATURE		hands a cart takes to haul
+server/src/mud/lib/slot/Haulable.ts	passageMode	HaulableMixin	THING-NATURE		locomotion mode the cart's passage needs
+server/src/mud/lib/spatial/Chambered.ts	chambers	ChamberedMixin	THING-NATURE		compartments a host declares and mints
+server/src/mud/lib/spatial/Container.ts	mouth	ContainerMixin	THING-NATURE		the container's way in
+server/src/mud/lib/spatial/Container.ts	shapedTo	ContainerMixin	THING-NATURE		the one kind of thing it admits
+server/src/mud/lib/spatial/Shaped.ts	dimensions	ShapedMixin	THING-NATURE		a thing's dimensions
+server/src/mud/lib/spatial/Shaped.ts	shape	ShapedMixin	THING-NATURE		a thing's shape document
+server/src/mud/lib/storage/StoreBook.ts	storePath	StoreBookMixin	LINK		the store this book keeps
+server/src/mud/lib/structure/Structure.ts	entrance	Structure	LINK		the member room you enter by
+server/src/mud/lib/structure/Structure.ts	extent	Structure	LINK		template-path prefix of member rooms
+server/src/mud/lib/structure/Structure.ts	heightM	Structure	PLACE-FACT		height of the structure
+server/src/mud/lib/structure/Structure.ts	landmark	Structure	EXPRESSION		opt-in horizon emphasis, presentation not visibility
+server/src/mud/lib/structure/Structure.ts	showsLight	Structure	PLACE-FACT		shows a light by night
+server/src/mud/lib/structure/Structure.ts	storeys	Structure	PLACE-FACT		which places stand on which
+server/src/mud/lib/thermal/ClimateControl.ts	coolingCapacityW	ClimateControlMixin	THING-NATURE		cooling capacity of the unit
+server/src/mud/lib/thermal/ClimateControl.ts	setpointK	ClimateControlMixin	THING-NATURE		thermostat setpoint of the unit
+server/src/mud/lib/time/MechanicalMovement.ts	rate	MechanicalMovementMixin	THING-NATURE		clock drift multiplier
+server/src/mud/lib/time/MechanicalMovement.ts	setAt	MechanicalMovementMixin	THING-NATURE		game-time the movement was last set (initial state)
+server/src/mud/lib/time/MechanicalMovement.ts	setTo	MechanicalMovementMixin	THING-NATURE		face minute it was last set to (initial state)
+server/src/mud/platform/idea/Condition.ts	prescriptionOnly	Condition	LEVER	AMBIGUOUS	controlled-substance rule gates who may administer: a polity law, but baked into the condition's definition
+server/src/mud/platform/idea/ExpanseNode.ts	along	ExpanseNode	LINK		what the node lies along
+server/src/mud/platform/idea/ExpanseNode.ts	destination	ExpanseNode	LINK		the place a destination node leads to
+server/src/mud/platform/idea/ExpanseNode.ts	focus	ExpanseNode	PLACE-FACT		node's focus coordinates
+server/src/mud/platform/idea/ExpanseNode.ts	hail	ExpanseNode	LINK		the station a ship at this node hails
+server/src/mud/platform/idea/ExpanseNode.ts	kind	ExpanseNode	PLACE-FACT		node kind (passage/destination)
+server/src/mud/platform/idea/ExpanseNode.ts	passage	ExpanseNode	PLACE-FACT		passage kind of the node
+server/src/mud/platform/idea/ExpanseNode.ts	river	ExpanseNode	LINK		the river that comes out here
+server/src/mud/platform/idea/Party.ts	captainId	Party	INSTITUTION-POLICY		party leadership
+server/src/mud/platform/idea/Party.ts	channelRef	Party	LINK		the party's chat channel
+server/src/mud/platform/idea/Party.ts	combatSide	Party	INSTITUTION-POLICY		alignment key members resolve to
+server/src/mud/platform/idea/Party.ts	formationPath	Party	INSTITUTION-POLICY		the formation the party chooses
+server/src/mud/platform/idea/Party.ts	founderId	Party	INSTITUTION-POLICY		who founded the party
+server/src/mud/platform/idea/Party.ts	memberIds	Party	INSTITUTION-POLICY		party membership roster
+server/src/mud/platform/idea/Party.ts	name	Party	INSTITUTION-POLICY	AMBIGUOUS	a name is expression, but here it is the institution's own identity record
+server/src/mud/platform/idea/Party.ts	roleAssignments	Party	INSTITUTION-POLICY		members' role assignments
+server/src/mud/platform/location/Tombstone.ts	takenDownBy	Tombstone	SYSTEM		moderation tombstone overlay, non-persistent
+server/src/mud/platform/location/Tombstone.ts	takenDownExtent	Tombstone	SYSTEM		extent whose content was taken down, non-persistent overlay
+server/src/mud/platform/thing/Boundary.ts	fixed	Boundary	PLACE-FACT		a boundary fixed open (grating)
+server/src/mud/platform/thing/CharterBook.ts	payTo	CharterBook	LINK		venue the charter's days are paid to
+server/src/mud/platform/thing/CharterBook.ts	ratePerDay	CharterBook	INSTITUTION-POLICY		the charterer's posted day rate
+server/src/mud/platform/thing/CharterBook.ts	rates	CharterBook	INSTITUTION-POLICY		per-ship day rates
+server/src/mud/platform/thing/CharterBook.ts	ships	CharterBook	INSTITUTION-POLICY		the ships the book lets
+server/src/mud/platform/thing/Door.ts	closesBehind	Door	PLACE-FACT		door swings shut behind you
+server/src/mud/platform/thing/Door.ts	freeFrom	Door	PLACE-FACT		side of the door that opens with no key
+server/src/mud/platform/thing/Plant.ts	seedTemplatePath	Plant	THING-NATURE		seed template a flowering mints
+server/src/mud/platform/thing/Plant.ts	standardMaterialPath	Plant	THING-NATURE		wood a felled standard is made of
+server/src/mud/platform/thing/PlantPot.ts	drained	PlantPot	THING-NATURE		pot has a drainage hole
+server/src/mud/platform/thing/RegisterBook.ts	registerPrefix	RegisterBook	LINK		document branch the book is the page of
+server/src/mud/platform/thing/RegisterBook.ts	registerTitle	RegisterBook	EXPRESSION		the book's title in words
+server/src/mud/platform/thing/Seed.ts	_speciesPath	Seed	THING-NATURE		species the seed belongs to
+server/src/mud/platform/thing/Sheet.ts	boundTo	Sheet	LINK		edition this sheet is a printed page of
+server/src/mud/platform/thing/Sheet.ts	cockled	Sheet	THING-NATURE		sheet dried unpressed and cockled
+server/src/mud/platform/thing/Sheet.ts	color	Sheet	THING-NATURE		paper color from the vat water
+server/src/mud/platform/thing/Sheet.ts	page	Sheet	THING-NATURE		which page of the edition
+server/src/mud/platform/thing/Sheet.ts	sized	Sheet	THING-NATURE		sheet is sized
+server/src/mud/platform/thing/WaterSurface.ts	areaM2	WaterSurface	PLACE-FACT		water surface area
+server/src/mud/platform/thing/equipment/Projectile.ts	calibre	Projectile	THING-NATURE		diameter of the striking face
+server/src/mud/platform/thing/equipment/Weapon.ts	balanceFactor	Weapon	THING-NATURE		inert reserved balance override
+server/src/mud/platform/thing/equipment/Weapon.ts	exercises	Weapon	THING-NATURE		disciplines the weapon trains
+server/src/mud/platform/thing/equipment/Weapon.ts	length	Weapon	THING-NATURE		weapon length
+content/arcana/src/thing/Spellbook.ts	comprehensionBand	Spellbook	THING-NATURE		the book's reading difficulty, a fact of the volume's kind
+content/arcana/src/thing/Spellbook.ts	teachesSpellPath	Spellbook	LINK		ref to the spell working the volume sets out
+content/energy/src/thing/LineAccess.ts	buried	LineAccess	PLACE-FACT		manhole vs pole: physical form of grid infrastructure in place
+content/energy/src/thing/LineAccess.ts	nodeRef	LineAccess	LINK		ref to the feeder node the access point sits on
+content/hearthworks/src/location/SealedCellar.ts	wallMaterial	SealedCellar	PLACE-FACT		the rock the cellar is cut in
+content/residence/src/idea/BuildingWarren.ts	agencyPath	BuildingWarren	LINK		ref to the Organization that lets the units
+content/residence/src/idea/BuildingWarren.ts	corridorTemplate	BuildingWarren	LINK		ref to the corridor row floors clone from
+content/residence/src/idea/BuildingWarren.ts	domicile	BuildingWarren	PLACE-FACT		the building's address stamped on tenants
+content/residence/src/idea/BuildingWarren.ts	lobbyPath	BuildingWarren	LINK		ref to the authored ground-floor landing
+content/residence/src/idea/BuildingWarren.ts	programmePath	BuildingWarren	LINK		ref to the unit programme row leased units instance
+content/residence/src/idea/BuildingWarren.ts	unitsBranch	BuildingWarren	SYSTEM		branch key unit leaves hang off
+content/terminus/src/realty/agent/Realtor.ts	books	Realtor	LINK		refs to the plat books this agent fronts
+content/terminus/src/university-avenue/thing/CrossingLog.ts	marks	CrossingLog	SYSTEM	AMBIGUOUS	accumulated runtime record of crossings, yet authorable/seedable as world history (could be EXPRESSION)
+content/terminus/src/university-avenue/thing/CrossingLog.ts	startingCount	CrossingLog	EXPRESSION	AMBIGUOUS	pre-history count shown as flavor ("1,247 souls"), but it is a numeric fact of the log, not prose
+content/trade-apiculture/src/thing/Hive.ts	broodCombKg	Hive	THING-NATURE		physical size of the brood box comb
+content/trade-apiculture/src/thing/Hive.ts	broodVolumeM3	Hive	THING-NATURE		physical volume of the brood box
+content/trade-apiculture/src/thing/Hive.ts	combDrawn	Hive	THING-NATURE		instance comb state
+content/trade-apiculture/src/thing/Hive.ts	superCapacityKg	Hive	THING-NATURE		box size bounding one rob
+content/trade-chandlery/src/thing/SoapKettle.ts	slakesTo	SoapKettle	THING-NATURE		chemistry: what quicklime slakes to
+content/trade-diving/src/thing/AirPump.ts	litresPerSpell	AirPump	THING-NATURE		pump's physical output per spell
+content/trade-diving/src/thing/AirPump.ts	spellSeconds	AirPump	THING-NATURE		duration of one spell at the handles
+content/trade-farming/src/lib/CharacteredSoil.ts	areaM2	CharacteredSoilMixin	PLACE-FACT		ground area of the plot
+content/trade-farming/src/thing/HayBale.ts	baledMoistureFraction	HayBale	THING-NATURE		moisture stamped at baling
+content/trade-farming/src/thing/ToolRack.ts	toolRows	ToolRack	INSTITUTION-POLICY	AMBIGUOUS	the institution's owned tool set, but the rack re-mints a destroyed tool (a bounded faucet = LEVER)
+content/trade-fishing/src/thing/Rod.ts	breakStrain	Rod	THING-NATURE		tackle's breaking strain
+content/trade-fishing/src/thing/Rod.ts	hookGapeM	Rod	THING-NATURE		hook gape size
+content/trade-fishing/src/thing/Rod.ts	presentsAt	Rod	THING-NATURE		rig depth layer
+content/trade-fishing/src/thing/Rod.ts	showing	Rod	THING-NATURE		tackle factor on the bite
+content/trade-glass/src/thing/Gather.ts	form	Gather	THING-NATURE		instance working state of the glass gather
+content/trade-haulage/src/thing/Warehouse.ts	baileePath	Warehouse	LINK		ref to the business owing the duty of care
+content/trade-medicine/src/thing/BloodUnit.ts	bloodSystem	BloodUnit	THING-NATURE		blood system compatibility is judged on
+content/trade-medicine/src/thing/BloodUnit.ts	bloodType	BloodUnit	THING-NATURE		true ABO phenotype of the unit
+content/trade-medicine/src/thing/BloodUnit.ts	donorKey	BloodUnit	LINK	AMBIGUOUS	ref to the donor, but it gates player gift credit (standing = LEVER)
+content/trade-medicine/src/thing/BloodUnit.ts	labelled	BloodUnit	THING-NATURE		whether the unit is tested/labelled
+content/trade-mining/src/thing/instrument/AssayBench.ts	fee	AssayBench	INSTITUTION-POLICY	AMBIGUOUS	the house's own price, but on an NPC assay house nobody participates in it is a LEVER
+content/trade-mining/src/thing/instrument/AssayBench.ts	perSampleS	AssayBench	THING-NATURE		process time per sample
+content/trade-mining/src/thing/instrument/AssayBench.ts	setupS	AssayBench	THING-NATURE		muffle heat-up time
+content/trade-printing/src/thing/TypeCase.ts	font	TypeCase	THING-NATURE		sorts held in the case by glyph
+content/trade-quarrying/src/thing/Block.ts	piecesLeft	Block	THING-NATURE		pieces remaining in the block
+content/trade-sericulture/src/idea/Strain.ts	broods	Strain	THING-NATURE		biology: broods a year
+content/trade-sericulture/src/idea/Strain.ts	colour	Strain	THING-NATURE		cocoon colour of the race
+content/trade-sericulture/src/idea/Strain.ts	heritability	Strain	THING-NATURE		genetics h²
+content/trade-sericulture/src/idea/Strain.ts	key	Strain	SYSTEM		stable key
+content/trade-sericulture/src/idea/Strain.ts	label	Strain	EXPRESSION		what a keeper calls it
+content/trade-sericulture/src/idea/Strain.ts	meanShellMg	Strain	THING-NATURE		race mean shell weight
+content/trade-sericulture/src/idea/Strain.ts	sdShellMg	Strain	THING-NATURE		shell weight spread
+content/trade-sericulture/src/thing/EggLot.ts	_strainPath	EggLot	LINK		ref to the Strain row
+content/trade-sericulture/src/thing/EggLot.ts	eggCount	EggLot	THING-NATURE		count of eggs in the lot
+content/trade-sericulture/src/thing/EggLot.ts	laidAt	EggLot	THING-NATURE		instance laying time
+content/trade-sericulture/src/thing/EggLot.ts	laidWhere	EggLot	EXPRESSION		provenance in words for the reader
+content/trade-sericulture/src/thing/EggLot.ts	meanShellMg	EggLot	THING-NATURE		lot's genetic mean
+content/trade-sericulture/src/thing/EggLot.ts	pebrineLoad	EggLot	THING-NATURE		seeded disease load
+content/trade-sericulture/src/thing/EggLot.ts	wintered	EggLot	THING-NATURE		instance wintering state
+content/transport/src/idea/FerryExit.ts	crossesAt	FerryExit	PLACE-FACT		where on the watercourse the ferry crosses
+content/transport/src/idea/FerryExit.ts	fareMinor	FerryExit	INSTITUTION-POLICY	AMBIGUOUS	the ferry house's fare, but authored on the exit (place) and an NPC fare is a LEVER
+content/transport/src/idea/FerryExit.ts	ferry	FerryExit	LINK		ref to the ferry boat kind row
+content/transport/src/idea/FerryExit.ts	house	FerryExit	LINK		ref to the Business that runs the crossing
+content/transport/src/idea/FerryExit.ts	service	FerryExit	LINK		ref to the timetabled service row
+content/transport/src/idea/FerryExit.ts	tethered	FerryExit	LINK		ref to the cable row a cable ferry rides
+content/transport/src/idea/SnowboundExit.ts	_closesAboveM	SnowboundExit	PLACE-FACT		snow depth closing the way
+content/transport/src/lib/Vehicular.ts	travelMode	VehicularMixin	THING-NATURE		how the vehicle kind travels
+content/transport/src/location/HarborQuay.ts	harbor	HarborQuay	LINK		ref to the port whose book the quay is in
+content/transport/src/thing/HarborBook.ts	harbor	HarborBook	LINK		ref to the port whose book this is
+content/transport/src/thing/HullBook.ts	hulls	HullBook	INSTITUTION-POLICY	AMBIGUOUS	the yard's offer sheet with prices, but it is a finite authored mint of ships priced by row (LEVER if the yard is NPC)
+content/transport/src/thing/HullBook.ts	quay	HullBook	LINK		ref to the landing hulls are brought to
+content/water/src/idea/WaterBand.ts	bottom	WaterBand	PLACE-FACT		seabed material
+content/water/src/idea/WaterBand.ts	depthM	WaterBand	PLACE-FACT		water depth
+content/water/src/idea/WaterBand.ts	fetchKm	WaterBand	PLACE-FACT		wind fetch over water
+content/water/src/idea/Watercourse.ts	banks	Watercourse	PLACE-FACT		bank character of the river
+content/water/src/idea/Watercourse.ts	basin	Watercourse	PLACE-FACT		the drainage basin it belongs to
+content/water/src/idea/Watercourse.ts	bed	Watercourse	PLACE-FACT		river bed descriptor
+content/water/src/idea/Watercourse.ts	bends	Watercourse	PLACE-FACT	AMBIGUOUS	bend positions are geography but each carries an authored name (EXPRESSION)
+content/water/src/idea/Watercourse.ts	branchesFrom	Watercourse	LINK		ref to the parent watercourse
+content/water/src/idea/Watercourse.ts	clarityM	Watercourse	PLACE-FACT		light depth in the water
+content/water/src/idea/Watercourse.ts	hazards	Watercourse	PLACE-FACT		physical hazards on the river
+content/water/src/idea/Watercourse.ts	key	Watercourse	SYSTEM		stable key
+content/water/src/idea/Watercourse.ts	lining	Watercourse	PLACE-FACT		artificial channel lining
+content/water/src/idea/Watercourse.ts	meander	Watercourse	PLACE-FACT		seeded meander geometry
+content/water/src/idea/Watercourse.ts	mouth	Watercourse	PLACE-FACT		where the river ends
+content/water/src/idea/Watercourse.ts	nodes	Watercourse	PLACE-FACT		authored river topology
+content/water/src/idea/Watercourse.ts	places	Watercourse	LINK		refs to the places the river runs through
+content/water/src/idea/Watercourse.ts	site	Watercourse	PLACE-FACT		the river's siting
+content/water/src/idea/Watercourse.ts	source	Watercourse	PLACE-FACT		where the river rises
+content/water/src/idea/Watercourse.ts	stretches	Watercourse	PLACE-FACT		per-stretch physical overrides
+content/water/src/idea/Watercourse.ts	water	Watercourse	PLACE-FACT		the water's character
+server/src/mud/lib/banking/Bank.ts	bank	BankMixin	LINK		key of the bank institution this counter is a branch of
+server/src/mud/lib/banking/Bank.ts	corpoKey	BankMixin	LINK		corpo affiliation key
+server/src/mud/lib/banking/Bank.ts	terms	BankMixin	INSTITUTION-POLICY	AMBIGUOUS	the bank's own fee/minimum schedule, but corpo banks are NPC institutions whose terms players must take (LEVER)
+server/src/mud/lib/biome/Atmospheric.ts	_atmosphere	AtmosphericMixin	PLACE-FACT		room atmosphere override
+server/src/mud/lib/biome/Atmospheric.ts	_biomePath	AtmosphericMixin	PLACE-FACT		the place's biome/climate (an identity ref)
+server/src/mud/lib/biome/Atmospheric.ts	_detailAtmospheres	AtmosphericMixin	PLACE-FACT		per-detail atmosphere
+server/src/mud/lib/biome/Atmospheric.ts	_detailGravities	AtmosphericMixin	PLACE-FACT		per-detail gravity
+server/src/mud/lib/biome/Atmospheric.ts	_detailHumidities	AtmosphericMixin	PLACE-FACT		per-detail humidity
+server/src/mud/lib/biome/Atmospheric.ts	_detailPressures	AtmosphericMixin	PLACE-FACT		per-detail pressure
+server/src/mud/lib/biome/Atmospheric.ts	_detailTemperatures	AtmosphericMixin	PLACE-FACT		per-detail temperature
+server/src/mud/lib/biome/Atmospheric.ts	_detailWinds	AtmosphericMixin	PLACE-FACT		per-detail wind
+server/src/mud/lib/biome/Atmospheric.ts	_gravity	AtmosphericMixin	PLACE-FACT		room gravity
+server/src/mud/lib/biome/Atmospheric.ts	_humidity	AtmosphericMixin	PLACE-FACT		room humidity
+server/src/mud/lib/biome/Atmospheric.ts	_pressure	AtmosphericMixin	PLACE-FACT		room pressure
+server/src/mud/lib/biome/Atmospheric.ts	_temperature	AtmosphericMixin	PLACE-FACT		room temperature
+server/src/mud/lib/biome/Atmospheric.ts	_weatherPin	AtmosphericMixin	PLACE-FACT	AMBIGUOUS	a weather pin overrides the climate, but is often authored as mood (EXPRESSION)
+server/src/mud/lib/biome/Atmospheric.ts	_wind	AtmosphericMixin	PLACE-FACT		room wind
+server/src/mud/lib/biome/Atmospheric.ts	enclosure	AtmosphericMixin	PLACE-FACT		construction layers around the place
+server/src/mud/lib/biome/Atmospheric.ts	roof	AtmosphericMixin	PLACE-FACT		what is over the place
+server/src/mud/lib/craft/Forming.ts	formTemplates	FormingMixin	THING-NATURE		fallback products the instrument makes
+server/src/mud/lib/craft/Forming.ts	forms	FormingMixin	THING-NATURE		the forms this instrument makes
+server/src/mud/lib/description/Labelled.ts	label	LabelledMixin	EXPRESSION		the player's own name for the thing
+server/src/mud/lib/description/Named.ts	alternateNames	NamedMixin	EXPRESSION		nicknames/titles
+server/src/mud/lib/description/Named.ts	honorific	NamedMixin	EXPRESSION		formal address prefix
+server/src/mud/lib/description/Named.ts	name	NamedMixin	EXPRESSION		proper name
+server/src/mud/lib/description/Named.ts	nameSuffix	NamedMixin	EXPRESSION		post-nominal suffix
+server/src/mud/lib/description/Named.ts	surname	NamedMixin	EXPRESSION		family name
+server/src/mud/lib/disguise/DisguiseBearing.ts	appearsAs	DisguiseBearingMixin	EXPRESSION		masked presentation text
+server/src/mud/lib/disguise/DisguiseBearing.ts	covers	DisguiseBearingMixin	THING-NATURE		body regions the garment covers
+server/src/mud/lib/disguise/DisguiseBearing.ts	masksIdentity	DisguiseBearingMixin	THING-NATURE		whether the garment masks identity
+server/src/mud/lib/document/Registrar.ts	registerKind	RegistrarMixin	SYSTEM		the document kind the register writes
+server/src/mud/lib/document/Registrar.ts	registerOwner	RegistrarMixin	SYSTEM		structural owner prefix the kernel checks
+server/src/mud/lib/document/Registrar.ts	registerPrefix	RegistrarMixin	SYSTEM		branch the register files under
+server/src/mud/lib/employment/Organization.ts	appointingAuthority	OrganizationMixin	INSTITUTION-POLICY	AMBIGUOUS	the institution's own chart, but who fills an office's seats is power (governance/LEVER for offices)
+server/src/mud/lib/employment/Organization.ts	name	OrganizationMixin	EXPRESSION		how the organization is called in prose
+server/src/mud/lib/employment/Organization.ts	parentOrganization	OrganizationMixin	LINK		ref to the enclosing organization
+server/src/mud/lib/employment/Organization.ts	positions	OrganizationMixin	INSTITUTION-POLICY		its positions (and wages)
+server/src/mud/lib/employment/Organization.ts	proprietorPath	OrganizationMixin	INSTITUTION-POLICY		legacy appointing authority
+server/src/mud/lib/employment/Organization.ts	rosterSlots	OrganizationMixin	INSTITUTION-POLICY		roster assignments
+server/src/mud/lib/employment/Organization.ts	startsShiftOnHire	OrganizationMixin	INSTITUTION-POLICY		the house's hiring rule
+server/src/mud/lib/hazard/Hazard.ts	delivery	HazardMixin	THING-NATURE		what/how hard the trap inflicts
+server/src/mud/lib/hazard/Hazard.ts	dropDestination	HazardMixin	LINK		ref to the location the mover falls into
+server/src/mud/lib/hazard/Hazard.ts	groundTriggered	HazardMixin	THING-NATURE		which media trigger it
+server/src/mud/lib/hazard/Hazard.ts	hazardState	HazardMixin	THING-NATURE		armed/sprung/disarmed state
+server/src/mud/lib/hazard/Hazard.ts	placedBy	HazardMixin	LINK		durable id of the placer for accountability
+server/src/mud/lib/hazard/Hazard.ts	springMessage	HazardMixin	EXPRESSION		flavor line on spring
+server/src/mud/lib/hazard/Hazard.ts	traverseConsequence	HazardMixin	THING-NATURE		movement veto/redirect
+server/src/mud/lib/hazard/Hazard.ts	trigger	HazardMixin	THING-NATURE		trigger axis
+server/src/mud/lib/location/CirculationWarren.ts	capacityKey	CirculationWarren	SYSTEM		AppSettings key for the capacity dial
+server/src/mud/lib/location/CirculationWarren.ts	defaultCapacity	CirculationWarren	LEVER	AMBIGUOUS	lot count of a subdivision: a structural capacity of the place, but an operator dial on land supply
+server/src/mud/lib/location/CirculationWarren.ts	parentExtent	CirculationWarren	LINK		parcel extent holdings subdivide under
+server/src/mud/lib/location/CirculationWarren.ts	plan	CirculationWarren	PLACE-FACT		plat plan geometry
+server/src/mud/lib/location/Shore.ts	waters	ShoreMixin	LINK		feature → cited water refs
+server/src/mud/lib/location/WaterPlace.ts	column	WaterPlaceMixin	PLACE-FACT		water column spec
+server/src/mud/lib/location/WaterPlace.ts	tide	WaterPlaceMixin	PLACE-FACT		tide strandline
+server/src/mud/lib/location/WaterPlace.ts	water	WaterPlaceMixin	PLACE-FACT		the water the place is and its depth
+server/src/mud/lib/locomotion/Swimmable.ts	axes	SwimmableMixin	THING-NATURE		swimming enablement axes
+server/src/mud/lib/magic/Blessable.ts	blessingBand	BlessableMixin	THING-NATURE		instance blessed/cursed state
+server/src/mud/lib/magic/Blessable.ts	blessingBucket	BlessableMixin	THING-NATURE		what the world knows of its blessing
+server/src/mud/lib/magic/Blessable.ts	blessingOdds	BlessableMixin	THING-NATURE	AMBIGUOUS	kind's mint-time curse/bless odds, overriding a zone/dial: shapes item value (LEVER)
+server/src/mud/lib/material/Acidity.ts	ph	AcidityMixin	THING-NATURE		material pH
+server/src/mud/lib/material/Combustion.ts	burning	CombustionMixin	THING-NATURE		what burning it gives the air
+server/src/mud/lib/material/Constructed.ts	constructionForm	ConstructedMixin	THING-NATURE		construction form word
+server/src/mud/lib/material/Edibility.ts	servingKg	EdibilityMixin	THING-NATURE		one serving's mass
+server/src/mud/lib/material/Fusion.ts	castTemplate	FusionMixin	THING-NATURE		what a frozen pool mints
+server/src/mud/lib/material/Fusion.ts	chillsTo	FusionMixin	THING-NATURE		what it sets as against a mould
+server/src/mud/lib/material/Fusion.ts	ruinedByFreezing	FusionMixin	THING-NATURE		freezing ruins it
+server/src/mud/lib/material/Porosity.ts	soddenTemplate	PorosityMixin	THING-NATURE		what a soaked good leaves
+server/src/mud/lib/material/Porosity.ts	wetStrength	PorosityMixin	THING-NATURE		strength retained when wet
+server/src/mud/lib/material/Tangible.ts	_detailMaterialPaths	TangibleMixin	THING-NATURE		per-detail materials
+server/src/mud/lib/material/Tangible.ts	_materialPath	TangibleMixin	THING-NATURE		bulk material
+server/src/mud/lib/material/Tangible.ts	mass	TangibleMixin	THING-NATURE		mass
+server/src/mud/lib/npc/Cast.ts	archetype	CastMixin	LINK		provenance ref to the minting archetype
+server/src/mud/lib/npc/Cast.ts	competence	CastMixin	THING-NATURE		the character's asserted skills
+server/src/mud/lib/npc/Cast.ts	prologue	CastMixin	EXPRESSION		founding history lines
+server/src/mud/lib/npc/Cast.ts	renown	CastMixin	EXPRESSION	AMBIGUOUS	authored reputation lines, but renown is standing (a grant = LEVER)
+server/src/mud/lib/perception/PublicLighting.ts	publicLighting	PublicLightingMixin	PLACE-FACT	AMBIGUOUS	street lamps are place infrastructure, but the town runs and pays for them (civic bill = LEVER/INSTITUTION)
+server/src/mud/lib/perception/SoundSource.ts	character	SoundSourceMixin	EXPRESSION		sound character word
+server/src/mud/lib/perception/SoundSource.ts	emittedAmplitude	SoundSourceMixin	THING-NATURE		emitted dB
+server/src/mud/lib/pump/Pumping.ts	liftM	PumpingMixin	THING-NATURE		max head
+server/src/mud/lib/pump/Pumping.ts	mechanism	PumpingMixin	THING-NATURE		pump mechanism document
+server/src/mud/lib/pump/Pumping.ts	strokeS	PumpingMixin	THING-NATURE		stroke duration
+server/src/mud/lib/pump/Pumping.ts	throughputLps	PumpingMixin	THING-NATURE		flow rate
+server/src/mud/lib/retail/Stock.ts	purchasing	Stock	INSTITUTION-POLICY		counter's consignment-vs-terms policy
+server/src/mud/lib/retail/Stock.ts	stockLines	Stock	INSTITUTION-POLICY	AMBIGUOUS	what the store carries, but an import line clones goods from nothing at par (a faucet = LEVER)
+server/src/mud/lib/slot/Postured.ts	convalescence	PosturedMixin	THING-NATURE		wound recovery multiplier of the furniture
+server/src/mud/lib/slot/Postured.ts	restQuality	PosturedMixin	THING-NATURE		rest multiplier
+server/src/mud/lib/slot/Postured.ts	warmth	PosturedMixin	THING-NATURE		warming bonus
+server/src/mud/lib/spatial/Line.ts	lengthM	Line	THING-NATURE		line length
+server/src/mud/lib/spatial/Sealable.ts	seal	SealableMixin	THING-NATURE		what it is sealed with
+server/src/mud/lib/species/Organism.ts	_speciesPath	OrganismMixin	THING-NATURE		species of the organism
+server/src/mud/lib/species/Organism.ts	bornAt	OrganismMixin	THING-NATURE		birth date
+server/src/mud/lib/species/Organism.ts	sex	OrganismMixin	THING-NATURE		biological sex
+server/src/mud/lib/stuff/Costumed.ts	costume	CostumedMixin	EXPRESSION	AMBIGUOUS	dresses a cast member (presentation), but clones real garments into the world (LINK refs + minted chattel)
+server/src/mud/lib/stuff/Place.ts	featured	Place	EXPRESSION		author's emphasis on the horizon
+server/src/mud/lib/stuff/Place.ts	floor	Place	PLACE-FACT		floor spec
+server/src/mud/lib/stuff/Place.ts	horizon	Place	PLACE-FACT		horizon block/reach
+server/src/mud/lib/stuff/Place.ts	noDefaultFloor	Place	PLACE-FACT		whether the place has ground
+server/src/mud/lib/stuff/Place.ts	suppressesMagic	Place	PLACE-FACT	AMBIGUOUS	an anti-magic field is a property of the place, but it is a rule restricting what players may do (LEVER)
+server/src/mud/lib/thermal/Coolbox.ts	insulationR	CoolboxMixin	THING-NATURE		insulation
+server/src/mud/lib/thermal/Thermal.ts	barrier	ThermalMixin	THING-NATURE		barrier medium
+server/src/mud/lib/thermal/Thermal.ts	stampedTemperatureK	ThermalMixin	THING-NATURE		stamped temperature
+server/src/mud/platform/idea/Band.ts	confined	Band	PLACE-FACT		confined corridor
+server/src/mud/platform/idea/Band.ts	cost	Band	PLACE-FACT		crossing cost
+server/src/mud/platform/idea/Band.ts	direction	Band	PLACE-FACT		set direction
+server/src/mud/platform/idea/Band.ts	endpoints	Band	LINK		refs to the band's endpoint nodes
+server/src/mud/platform/idea/Band.ts	extent	Band	PLACE-FACT		band extent
+server/src/mud/platform/idea/Band.ts	gearHardness	Band	PLACE-FACT		wear on gear
+server/src/mud/platform/idea/Band.ts	hazards	Band	LINK		refs to hazards placed in the band
+server/src/mud/platform/idea/Band.ts	lean	Band	PLACE-FACT		wind lean
+server/src/mud/platform/idea/Band.ts	setKn	Band	PLACE-FACT		current speed
+server/src/mud/platform/idea/Band.ts	stock	Band	PLACE-FACT	AMBIGUOUS	what lives in the water is ecology, but abundance is a yield the world imposes on fishers (LEVER)
+server/src/mud/platform/idea/Band.ts	traffic	Band	PLACE-FACT		seeded traffic weight
+server/src/mud/platform/idea/Band.ts	weatherLean	Band	PLACE-FACT		weather lean
+server/src/mud/platform/idea/Ship.ts	berth	Ship	LINK		ref to the landing she is made fast at
+server/src/mud/platform/idea/Ship.ts	deckHeightM	Ship	THING-NATURE		eye height on deck
+server/src/mud/platform/idea/Ship.ts	gangwayKeyway	Ship	THING-NATURE		lock keyway of her gangway
+server/src/mud/platform/idea/Ship.ts	gangwayLocked	Ship	THING-NATURE		gangway bolt state
+server/src/mud/platform/idea/Ship.ts	house	Ship	LINK		ref to the Business whose roster mans her
+server/src/mud/platform/idea/Ship.ts	hull	Ship	THING-NATURE		hull numbers
+server/src/mud/platform/idea/Ship.ts	mastheadHeightM	Ship	THING-NATURE		masthead height
+server/src/mud/platform/idea/Ship.ts	moored	Ship	THING-NATURE		mooring state
+server/src/mud/platform/idea/Ship.ts	registeredName	Ship	EXPRESSION		the name she is entered under
+server/src/mud/platform/idea/Ship.ts	serial	Ship	SYSTEM		zone-copy/warren key
+server/src/mud/platform/idea/Ship.ts	shipRegister	Ship	LINK		ref to her register row
+server/src/mud/platform/idea/Ship.ts	warren	Ship	LINK		ref to the ShipWarren row
+server/src/mud/platform/thing/Corpse.ts	conditionAtDeath	Corpse	THING-NATURE		stamped flesh reserve at death
+server/src/mud/platform/thing/HireBook.ts	rates	HireBook	INSTITUTION-POLICY	AMBIGUOUS	the hirer's day rates, but an NPC hire book's prices are a LEVER
+server/src/mud/platform/thing/LoadDevice.ts	loadMaxKg	LoadDevice	THING-NATURE		max load
+server/src/mud/platform/thing/LoadDevice.ts	loadMinKg	LoadDevice	THING-NATURE		min load
+server/src/mud/platform/thing/LoadDevice.ts	setDurationS	LoadDevice	THING-NATURE		set duration
+server/src/mud/platform/thing/LoadDevice.ts	wattsPerKg	LoadDevice	THING-NATURE		metabolic cost per kg
+server/src/mud/platform/thing/Rope.ts	coiledDown	Rope	THING-NATURE		coil state
+server/src/mud/platform/thing/Rope.ts	diameterMm	Rope	THING-NATURE		thickness
+server/src/mud/platform/thing/Rope.ts	layEvenness	Rope	THING-NATURE		craft quality of the lay
+server/src/mud/platform/thing/Rope.ts	marks	Rope	THING-NATURE		rogue's yarn laid in the heart
+server/src/mud/platform/thing/Rope.ts	stage	Rope	THING-NATURE		strand vs rope
+server/src/mud/platform/thing/Timber.ts	constructionForm	Timber	THING-NATURE		riven vs sawn
+server/src/mud/platform/thing/Timber.ts	quarterSawn	Timber	THING-NATURE		cut orientation
+server/src/mud/platform/thing/Timber.ts	wideFace	Timber	THING-NATURE		face orientation
+server/src/mud/platform/thing/Well.ts	aquifer	Well	LINK		ref to the aquifer row
+server/src/mud/platform/thing/Well.ts	bodyM3	Well	PLACE-FACT		lone well's water body
+server/src/mud/platform/thing/Well.ts	collarM	Well	PLACE-FACT		collar elevation
+server/src/mud/platform/thing/Well.ts	depthM	Well	PLACE-FACT		depth to water
+server/src/mud/platform/thing/Well.ts	rechargeM3PerDay	Well	PLACE-FACT		recharge rate
+server/src/mud/platform/thing/Well.ts	standing	Well	PLACE-FACT		material standing in the shaft
