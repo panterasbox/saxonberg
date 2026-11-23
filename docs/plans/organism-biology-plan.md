@@ -1821,7 +1821,22 @@ wake must reach the stamp through `this.`).
   room, are counted and recorded in the commit body.
 **Commit:** `fix(thermal): W6b reading a body no longer changes it; bodies wake on the game clock`
 
-### W7 — Castration and phenology
+### W7 — Castration and phenology ✅ done
+
+> **Done note.** Landed in four commits: W7a `d3aa2e20c` (castration and
+> `operable`), W7b `293e03acc` (the herdbook keeps the cut, `herd enter`,
+> the ox), W7c `d1c48eda9` (phenology — ⚠ its commit message repeats
+> W7b's by mistake; the content is phenology), W7d `ebb749e6f` (sluggish,
+> ectotherms). Surprises: pack reason codes must be PATHS (a bare code is
+> the platform's), so the body's seven `operable` rows went to the
+> platform pack; Organism's daylight reads split into their own
+> `lint:mixin-clusters` cluster, so they became `CelestialApi.daylightHere`
+> (B27); the bullfrog had borrowed the furred quadruped plan, so it got
+> its own `anuran` plan now (B30) rather than waiting for W8. Not done
+> here, for the drive (W11): the full draft→operate→age→`herd enter`→
+> redraft chain and the frog denning after `clock-advance` on a standing
+> world — each half is unit-tested. `mintHead`'s loss replay is unit-
+> covered only through `seedLostParts` (a real mint needs the row).
 
 **Goal:** the ox, lactation on one schedule, the season, the cold-blooded.
 **Implements:** D8 (castration, the register), D9.
@@ -2421,6 +2436,44 @@ Decisions the build made that the plan did not, and what decided each.
   reconcile. Cost: a shearing shows in the core at the next reconcile or
   wake, never more than a game hour on. *Decided by:* D17 (a read never
   writes) over the nearest pattern; no new member on `Producing`.
+
+- **B24 (W7) — the neutered form has its own stage words, and replaces
+  the sex form's.** `variants.neutered` is a `VariantSpec` with an
+  optional `stage` map (a steer grows into an ox); a neutered body drops
+  its sex form's words unless the neutered form says them (an ox is not a
+  bull). *Decided by:* lens 1 (a player who knows cattle knows a steer is
+  not called a bull) over a flat word list.
+- **B25 (W7) — `herd enter` goes through `Livestock.enterHerd`.** The
+  register decides (`HerdRegistry.refile`, which takes the traits it is
+  to write); the head carries its own traits and rebinds itself, so the
+  controller words only success. *Decided by:* the mixin decides, the
+  controller is dumb (the nearest pattern: `returnToHerd`).
+- **B26 (W7) — reason codes: the body's are the platform's, the pack's
+  are paths.** `operable`'s seven rows live in the platform pack (the
+  kernel body speaks them); `no-body`/`no-kit` and ranching's six are
+  `/trade/<x>/reasons/<code>`. *Decided by:* `ReasonCatalogue.pathOf`'s
+  rule (a bare code is the platform's).
+- **B27 (W7) — `CelestialApi.daylightHere(stuff, offsetS)`.** A sync
+  daylength at a thing's place (the climate site up its containment, the
+  pin honored), used by phenology and the coat. Putting it on
+  `OrganismMixin` split the mixin into a second co-use cluster
+  (`lint:mixin-clusters` 43 > 42). *Decided by:* the gate.
+- **B28 (W7) — phenology's terms.** An unmodelled term HOLDS (the taps'
+  tri-state rule); `stage` means at-or-past (an aged cow still milks); a
+  dead body carries no season. *Decided by:* the nearest pattern
+  (`tapWindow`) and lens 1.
+- **B29 (W7) — the hen is in season too.** She authors `breeding`, and
+  `breed` now reads `in-season`, so the hen's schedule carries it beside
+  `laying`. *Decided by:* consistency — every species that breeds in
+  keeping reads one condition.
+- **B30 (W7) — the bullfrog gets the `anuran` plan in W7.** It borrowed
+  the quadruped (fur, a hide, cut-loin); an ectotherm needs its own plan
+  for W7's acceptance, and W8 adds the tadpole's and froglet's beside it.
+  *Decided by:* the acceptance (a frog that is not ectotherm cannot be
+  sluggish) and lens 1.
+- **B31 (W7) — a severance always goes through `ConditionApi.sever`.**
+  `operate`'s severance (amputation included) now mints the part into the
+  room, as D7's sever does everywhere. *Decided by:* D7 (one sever).
 
 ## Drive record
 

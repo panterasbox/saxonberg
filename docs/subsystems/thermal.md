@@ -574,6 +574,22 @@ or **torpor** (ectotherm — alive but immobile, read by
 `survivableMax`. Lethal dwell → `setCauseOfDeath` + `setLifecycleState
 ('dead')`. Seeds: `seeds/lib/thermal/conditions/`.
 
+⭐ **The cold edge has a near line too, for an ectotherm** (organism-
+biology D9): `sluggish` below `setpoint − SLUGGISH_ONSET_K` (6 K) and
+above the floor, torpor past it (which relieves sluggish — one band, not
+two) — the hot edge's shape, an onset and then the far line. A slow body
+pays more to cross: `traversePowerW` multiplies by `1 + bands ×
+exertion.suppressedPowerPerBand`. The fish, the crustacean and the frog's
+own `anuran` plan are ectotherms; `trade-fishing`'s ectotherm test holds
+each at the edges of the water its row tolerates.
+
+⭐⭐ **A body's seasons ride this reconcile** (D9): after the cascade it
+calls `VitalsMixin.reconcilePhenology()`, which carries or relieves each
+condition on the species' `phenology` schedule (the den, the rut, in
+season, in milk, in lay). The hourly wake (D17) is why phenology needs no
+wake of its own; `testharness daylight-pin` fans out to every living body
+at once.
+
 ### Q10 (the metabolism edit)
 
 `MetabolicMixin.thermalMultiplier()` (previously inert) reads the driven
