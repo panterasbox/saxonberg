@@ -285,7 +285,10 @@ review — read from `build/navigation`): the built card is, top to bottom, **th
 areas then the room — *the trail is an address*), the map and its lens row, **the ground line**
 (whose ground, who keeps it), the ways, then the sections **horizon · structure · here (the place)
 · you** — *every row in every place, always* (a newcomer has no baseline). Mapping the depths onto
-it, with no change to !640:
+it, with no change to !640 — **the owner's priority: *"being able to work with whatever build-2 is
+finalizing without redesigning everything"***. Every decision in this slate layers on top of !640
+or lands in a different build (the prompt, chat, watch, the top steps); none reopens it. The 292px
+left for cards at 1440 is set aside, to revisit only if it bites in use.
 
 - **The trail is the spine** shared by every depth (it replaces the prototype's *you are here*
   plus crumbs). The depth switch sits above it — a follow-on build after !640 merges.
