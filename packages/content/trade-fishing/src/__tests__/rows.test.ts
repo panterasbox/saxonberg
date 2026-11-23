@@ -49,8 +49,14 @@ function rowsUnder(dir: string): Array<{ file: string; row: { class: string; dat
 }
 
 const SPECIES_DIR = join(CONTENT, 'stuff', 'idea', 'species');
+/**
+ * The FISHERY's species — what a water holds and a line takes: the gilled
+ * ones. ⭐ The pack also ships the sperm whale (organism-biology D13),
+ * which breathes air and is no fishery's; it is checked on its own below.
+ */
+const GILLED = new Set(['/stuff/idea/species/BodyPlan/fish', '/stuff/idea/species/BodyPlan/crustacean']);
 const species = () =>
-  rowsUnder(SPECIES_DIR).filter((r) => r.row.class === '/platform/idea/species/Species');
+  rowsUnder(SPECIES_DIR).filter((r) => r.row.class === '/platform/idea/species/Species' && GILLED.has(r.row.data._bodyPlanPath as string));
 
 describe('the species rows', () => {
   it('ships six, in the commons, each naming a body plan, a material and cuts that exist', () => {
@@ -114,7 +120,7 @@ describe('the body plans', () => {
 
 describe('the agent rows', () => {
   it('six Fish rows, one per species, each naming its species and no walking brain', () => {
-    const agents = rowsUnder(join(CONTENT, 'trade', 'fishing', 'agent'));
+    const agents = rowsUnder(join(CONTENT, 'trade', 'fishing', 'agent')).filter((a) => a.row.class !== '/platform/agent/Beast');
     expect(agents).toHaveLength(6);
     const named = new Set<string>();
     for (const { file, row } of agents) {
@@ -128,6 +134,19 @@ describe('the agent rows', () => {
       expect(brains).toContain('/lib/behavior/feeds');
     }
     expect(named.size).toBe(6);
+  });
+});
+
+describe('the whale (organism-biology D13)', () => {
+  it('⭐ the sperm whale is rows: its own plan, a Beast that surfaces to breathe, and the render recipe', () => {
+    const whale = rowsUnder(SPECIES_DIR).find((r) => r.file.endsWith('sperm-whale.yaml'))!;
+    expect(whale.row.data._bodyPlanPath).toBe('/stuff/idea/species/BodyPlan/cetacean');
+    expect(rowExists(whale.row.data._bodyPlanPath as string)).toBe(true);
+    const agent = YAML.parse(readFileSync(join(CONTENT, 'trade', 'fishing', 'agent', 'sperm-whale.yaml'), 'utf8'));
+    expect(agent.class).toBe('/platform/agent/Beast');
+    expect((agent.data.behaviors as Array<{ brain: string }>).map((b) => b.brain)).toContain('/lib/behavior/surfaces');
+    const recipe = YAML.parse(readFileSync(join(CONTENT, 'recipes', 'render-blubber.yaml'), 'utf8'));
+    expect(recipe.outputMaterial).toBe('/trade/fishing/idea/material/whale-oil');
   });
 });
 
