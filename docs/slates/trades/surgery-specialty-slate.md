@@ -6,7 +6,7 @@
 > anaesthesia, with the biology in `applyTreatment`/`severPart`. A second
 > operation is a ROW, so the extensible spine is done. This slate is the
 > RICHNESS the trunk was deliberately kept thin of.
-> **Left:** the operations-demand audit (which ops, and is there demand) ·
+> **Left:** ⚠ **`operate` writes no accountability event** (a go-live item, § 3 below) · the operations-demand audit (which ops, and is there demand) ·
 > the harm-profile / violent-engagement gap check · the theatre (a room
 > that matters) · the surgical team (anaesthetist + assistant) · asepsis
 > as a system · instrument grade (the `gradeConditionScale(kit)` hook left
@@ -43,6 +43,31 @@ build:
    without surgery. Is that right, or is there (e.g.) a debridement op a
    deep burn should want? This is where the harm model and the surgery
    model are reconciled — a gap in one is a gap in the other.
+
+3. ⚠ **`operate` writes nothing to the harm-consent ledger.** Found
+   2026-11-22 by the organism-biology plan audit. An operation on a person
+   (amputation today; castration once organism biology ships it as an
+   operation file) cuts a body and records **no `AccountabilityEvent`**:
+   nothing says who cut whom, on what terms, or whether the patient
+   consented. The only consent mechanism is the patient hold in
+   `OperationEngagement.ts`, where a conscious patient can end the
+   operation. An unconscious or restrained patient has no such voice, and
+   [accountability.md](../../subsystems/accountability.md) exists to answer
+   exactly *"who harmed whom, on what terms, and did the victim consent?"*.
+   ⚠ This matters before strangers are on a live instance that no longer
+   wipes nightly. Decide:
+   - which operations are harms (an amputation is; a bleed control is
+     arguably care);
+   - what consent looks like for an operation (the patient's own act, a
+     guardian, the implied consent of the dying);
+   - that the event is written by the operation's resolution, from the
+     operator to the patient's identity, like every other producer
+     ("producers, not a chokepoint");
+   - whether `crime`/`blame` should read an unconsented operation the way
+     it reads an unconsented blow.
+
+   No special case for animals or people: the same rule for every body,
+   with the ledger's consumers deciding what matters.
 
 ## The specialty richness (each its own leg)
 
