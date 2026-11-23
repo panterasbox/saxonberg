@@ -1808,7 +1808,15 @@ export default abstract class Avatar extends AvatarBase {
       // A shift ends with the sign-out, before the save: the record must say so,
       // or the return reads on-shift and `clock off` pays the whole absence.
       if (MixinApi.isEmployed(this)) await this.leaveShifts();
-      await this.save();
+      // ⭐ A refused save never keeps the body (persistence-model D10): the
+      // refusal is reported where it is written, the last good record
+      // stands, and the body leaves anyway.
+      try {
+        await this.save();
+      } catch (err) {
+        // @quiet reported by the save itself (a diagnostic, and the player told).
+        console.warn(`Avatar: signing out playerId=${this.playerId}: the save was refused; the body leaves on its last good record`, err);
+      }
       if (retirement !== this.signOutRetirement) return;
       if (this.isDestroyed() || this.hasLiveSession()) return;
       if (this.signOutHold() !== null) {

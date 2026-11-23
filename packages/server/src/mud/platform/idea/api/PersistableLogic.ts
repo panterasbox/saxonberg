@@ -21,6 +21,9 @@ import { Mixins } from "../../../lib/mixin";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
 import { PersistApi } from "../../../api/persist";
+import { DiagnosticApi } from "../../../api/diagnostics";
+import { MessageApi } from "../../../api/message";
+import { Mml } from "../../../api/mml";
 import type { Persistable } from "../../../lib/persistence/Persistable";
 import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
@@ -757,10 +760,7 @@ async function captureAtShutdownImpl(): Promise<ShutdownCaptureReport> {
       writeBatch(batch).then((r) => {
         captured += r.captured;
         failed += r.failed;
-        for (const f of r.failures) {
-          // @quiet the report counts it (`failed`) and this line names the record.
-          console.error(`PersistableLogic.captureAtShutdown: '${f.scope}' (${f.owner}) was refused:`, f.error);
-        }
+        for (const f of r.failures) reportSaveFailure(f.scope, f.owner, f.error);
       }),
     );
   };
@@ -1219,7 +1219,15 @@ const RECORD_KEY = ['scope', 'owner'] as const;
 async function captureImpl(host: Stuff, key?: string): Promise<void> {
   const prepared = await prepareCapture(host, key);
   if (!prepared) return;
-  await serialRecordWrite(prepared.id, () => writeRecords([prepared]));
+  try {
+    await serialRecordWrite(prepared.id, () => writeRecords([prepared]));
+    savedAgain(prepared.record.scope);
+  } catch (err) {
+    // ⭐ A refused save is TOLD (persistence-model D10): a diagnostic, and the
+    // first of a streak to whoever it concerns — then rethrown to the caller.
+    reportSaveFailure(prepared.record.scope, prepared.record.owner, err);
+    throw err;
+  }
   // ⭐ The records this host owns follow it (tracts build D26): a tract's
   // fields are written with the tract, each under its own key. Each goes
   // through its own record's write queue.
@@ -1340,6 +1348,53 @@ interface SaveFailure {
   scope: string;
   owner: string;
   error: unknown;
+}
+
+/** Runtime: the scopes whose last save was refused — a streak is told once. */
+const failingScopes = new Set<string>();
+
+/** A save of `scope` landed: its streak (if any) is over. */
+function savedAgain(scope: string): void {
+  failingScopes.delete(scope);
+}
+
+/**
+ * ⭐⭐ **A refused save is reported where it is written** (persistence-model
+ * D10). Every failure is a diagnostic on the `persistence` channel (the
+ * `errors` verb lists it); the FIRST failure of a streak is also one line
+ * to whoever it concerns — the host when it is a connected body, else each
+ * connected body standing in the kept place. A second failure is not told
+ * again until a save lands. Never thrown from here.
+ */
+function reportSaveFailure(scope: string, owner: string, error: unknown): void {
+  const why = error instanceof Error ? error.message : String(error);
+  void DiagnosticApi.record({
+    path: scope,
+    severity: 'error',
+    channel: 'persistence',
+    message: `a save of ${scope} (${owner}) was refused: ${why}`,
+  }).catch((err: unknown) => console.error('PersistableLogic: recording a refused save failed:', err));
+  console.error(`PersistableLogic: a save of '${scope}' (${owner}) was refused:`, error);
+  if (failingScopes.has(scope)) return;
+  failingScopes.add(scope);
+  const live = StuffApi.findByIdentityPath<Stuff>(scope)[0] ?? StuffApi.findByTemplatePath<Stuff>(scope) ?? null;
+  if (live === null) return;
+  const told: Stuff[] = MixinApi.isHasInteractive(live)
+    ? [live]
+    : MixinApi.isContainer(live)
+      ? live.getContents().filter((c) => MixinApi.isHasInteractive(c))
+      : [];
+  const line = MixinApi.isHasInteractive(live)
+    ? Mml.compose`Something went wrong saving you just now — what you carry since your last save may not be kept. The operators have been told.`
+    : Mml.compose`Something went wrong saving this place just now — what changed here may not be kept. The operators have been told.`;
+  for (const body of told) {
+    try {
+      MessageApi.scene(body).toSelf(line).send();
+    } catch (err) {
+      // @quiet a body that cannot be told now is told by the diagnostic above.
+      console.warn('PersistableLogic: telling a body of a refused save failed:', err);
+    }
+  }
 }
 
 /** How many hosts the shutdown sweep prepares at once. */
@@ -1608,6 +1663,7 @@ export class PersistableLogic extends ApiLogic {
       if (p) prepared.push(p);
     }
     const r = await writeBatch(prepared);
+    for (const f of r.failures) reportSaveFailure(f.scope, f.owner, f.error);
     return { captured: r.captured, failed: r.failed, ms: Date.now() - t0, refused: r.failures.map((f) => f.scope) };
   }
 
