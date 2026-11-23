@@ -2,10 +2,11 @@
  * Copper — ⭐ a vessel you boil CLOTH in.
  *
  * A wide copper pan on a fire, the dyer's and the laundress's oldest
- * tool: fill it with water, set it on the fire (`heat copper`), put the
- * piece in, and keep it at the simmer until the cloth is done. Raw silk
- * degums in one (the profile is the sericulture pack's), and the recorded
- * next consumers are scouring wool and piece-bleaching linen.
+ * tool: fill it with water, set it on the fire (`put copper on <the
+ * fire>`), put the piece in, and keep it at the simmer until the cloth is
+ * done. Raw silk degums in one (the profile is the sericulture pack's),
+ * and the recorded next consumers are scouring wool and piece-bleaching
+ * linen.
  *
  * It is a `Container` (the cloth goes IN it) and `Bulkable` (it holds the
  * water), and `Thermal` — so the kernel's immersion rung makes a bolt in

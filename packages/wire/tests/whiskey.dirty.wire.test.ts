@@ -89,7 +89,9 @@ declareFile({
 });
 
 const FLOOR = '/world/terminus/goods-yards/crowsfoot/location/floor';
+const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
+const STORE = '/world/terminus/general-store/shop-floor';
 
 let k: Session;
 let handle = '';
@@ -137,14 +139,14 @@ async function say(s: Session, text: string): Promise<CommandResult> {
     }
     if (!/raised a PROMPT/.test(String(err))) throw err;
     const pending = await s.awaitPrompt(5_000);
-    const payload = (
-      pending as unknown as {
-        payload?: {
+    // ⚠ The prompt frame carries `promptId` and `outcome` at the TOP level
+    // (the cleanliness lesson); an older shape nested them in `payload`.
+    type PromptFrame = {
           promptId?: string;
           outcome?: { notes?: Array<{ matches?: Array<{ stuffId?: string }> }> };
         };
-      }
-    ).payload;
+    const frame = pending as unknown as PromptFrame & { payload?: PromptFrame };
+    const payload = frame.payload?.promptId ? frame.payload : frame;
     const id = payload?.promptId;
     const first = payload?.outcome?.notes
       ?.map((n) => n.matches?.[0]?.stuffId)
@@ -173,8 +175,13 @@ function refusedFor(r: { notes: readonly unknown[] }): string | null {
   return note?.reason ?? null;
 }
 
+/**
+ * What the session carries, as one line. ⚠ `me:I`, not `me:i` (size and
+ * carrying W9): a thing in a pocket is its garment's contents, so a good
+ * that lands in a pocket is carried without being a top-level content.
+ */
 async function carried(s: Session): Promise<string> {
-  const rows = await s.query('me:i', { fields: ['displayName'] });
+  const rows = await s.query('me:I', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
@@ -231,6 +238,133 @@ async function waitForDaylight(s: Session): Promise<void> {
     'wire: the still-house floor stayed dark across a whole game day — ' +
       'the spill-lighting walk from the yard is not reaching it',
   );
+}
+
+/**
+ * ⚠⚠ **The still by its id, never by the word.** `still` is a keyword of
+ * the copper pot still AND of the still book that hangs beside it (#138),
+ * so a bare `look still` asks "which one?" and every command after it
+ * queues behind a prompt nobody answers. The pot still is found once by
+ * its own name and addressed as `#<id>` from then on.
+ */
+let stillId = '';
+async function stillRef(s: Session): Promise<string> {
+  if (!stillId) {
+    const rows = (await s.query('here:i:[keyword.still]', {
+      fields: ['displayName'],
+    })) as Array<{ stuffId?: string; displayName?: string }>;
+    const pot = rows.find((r) => /pot still/i.test(String(r.displayName ?? '')));
+    expect(
+      pot?.stuffId,
+      `no pot still on the floor: ${rows.map((r) => r.displayName).join(' | ')}`,
+    ).toBeTruthy();
+    stillId = pot!.stuffId!;
+  }
+  return `#${stillId}`;
+}
+
+/**
+ * ⭐ Rest the way a person would: eat, sit out some clock, stand, and wait
+ * for the light the still-house borrows from the yard.
+ */
+async function rest(duration: string): Promise<void> {
+  await say(k, 'eat rations');
+  await say(k, 'sit');
+  await advance(duration);
+  await say(k, 'stand');
+  await waitForDaylight(k);
+}
+
+/**
+ * ⭐⭐ **The distiller mills her own grist — a portion at a time.** A whole
+ * 15 kg sack is an hour on the handle and a body is refused it up front
+ * (#144: a long act is checked for its whole cost), and `mill` grinds
+ * whatever the named holder carries, all of it. So she does what a person
+ * at a hand quern does: measures a portion into the maltings' empty sack
+ * (2.5 L of malt, about 1.5 kg — six minutes of cranking), grinds that,
+ * eats and rests, and goes again. Three portions make ~6 L of grist; the
+ * wash-mash wants 4 L of it in ONE holder, so the sacks are tipped
+ * together at the end.
+ */
+const MALT_PORTION_L = 2.5;
+const MALT_PORTIONS = 3;
+
+async function millGristInPortions(): Promise<void> {
+  // The rations first — a working body eats, and the store is the
+  // general store's.
+  // ⚠ (soak repair 2026-11-18, size and carrying) Two at a time, set down
+  // on the still-house floor. A ration pack is a discrete thing (not a
+  // stack), so five of them fill both hands and the rest are set down at
+  // the STORE's counter — and a 15 kg sack of malt takes BOTH hands, so
+  // bought with the hands full it was set down at the cash-and-carry and
+  // never reached the quern. A distiller keeps her food by the quern and
+  // fetches the malt with her hands free; `eat` reaches the floor.
+  const RATIONS = MALT_PORTIONS + 2;
+  for (let bought = 0; bought < RATIONS; bought += 2) {
+    k.close();
+    k = await Session.open(handle, { startLocation: STORE });
+    for (let i = bought; i < Math.min(bought + 2, RATIONS); i++) {
+      await say(k, 'buy rations');
+    }
+    k.close();
+    k = await Session.open(handle, { startLocation: FLOOR });
+    await say(k, 'drop rations');
+  }
+  k.close();
+  k = await Session.open(handle, { startLocation: CASH_AND_CARRY });
+  // ⚠ `"malt sack"`, not `malt`: the grist sack answers to `malt` too.
+  let bought = await say(k, 'buy "malt sack"');
+  for (let i = 0; i < 6 && bought.status !== 'ok'; i++) {
+    await advance('1 hour');
+    bought = await say(k, 'buy "malt sack"');
+  }
+  expectOk(bought);
+  k.close();
+  k = await Session.open(handle, { startLocation: FLOOR });
+  await waitForDaylight(k);
+  // `me:I`: carried anywhere on the body (a hand, a pocket), not only at
+  // the top level.
+  const sacks = await k.query('me:I:[keyword.malt]', { fields: ['displayName'] });
+  const sack = (sacks as Array<{ stuffId?: string }>)[0]?.stuffId;
+  expect(sack, `no malt carried: ${await carried(k)}`).toBeTruthy();
+  const empties = (await k.query('here:i:[keyword.empty]', {
+    fields: ['displayName'],
+  })) as Array<{ stuffId?: string; displayName?: string }>;
+  const hopper = empties.find((r) =>
+    /malt sack/i.test(String(r.displayName ?? '')),
+  )?.stuffId;
+  expect(
+    hopper,
+    `the maltings' empty malt sack is not on the floor: ` +
+      empties.map((r) => r.displayName).join(' | '),
+  ).toBeTruthy();
+
+  for (let i = 0; i < MALT_PORTIONS; i++) {
+    if (i > 0) await rest('1 hour');
+    expectOk(
+      await say(k, `pour #${sack} into #${hopper} --amount ${MALT_PORTION_L}L`),
+    );
+    let milling = await say(k, `mill #${hopper} at quern`);
+    if (refusedFor(milling) === 'too-tired') {
+      await rest('8 hours');
+      milling = await say(k, `mill #${hopper} at quern`);
+    }
+    const id = engagementIdOf(milling);
+    // A quern grinds a quarter-kilo a game-minute: a portion is six
+    // minutes of cranking, carried by the clock.
+    await advance('15 minutes');
+    if (id) await k.awaitActivity(id, 120_000);
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  // Each grind lands its own sack on the floor; the mash takes its grist
+  // from one holder, so tip them into the first.
+  const grist = (await k.query('here:i:[keyword.grist]', {
+    fields: ['displayName'],
+  })) as Array<{ stuffId?: string }>;
+  expect(grist.length, `no grist after the grind: ${await carried(k)}`).toBeGreaterThan(0);
+  const [into, ...others] = grist.map((g) => g.stuffId).filter((x): x is string => !!x);
+  for (const from of others) expectOk(await say(k, `pour #${from} into #${into}`));
 }
 
 beforeAll(async () => {
@@ -329,7 +463,7 @@ suite.skipIf(!isOwnedTestWorld())(
 
 suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
   it('⭐⭐ an unstoked still refuses by NAME, and the name is the act', async () => {
-    const cold = await say(k, 'light still');
+    const cold = await say(k, `light ${await stillRef(k)}`);
     // ⭐ `no-fuel`, not `not-flammable`. The distinction is the whole
     // progression UI: a still with an empty firebox is a fire waiting for
     // somebody to stoke it, and the refusal has to say which or the
@@ -344,7 +478,7 @@ suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
   it('⭐⭐ `stoke still` lifts it, and then it lights', async () => {
     // ⚠ The still's firebox is NOT its interior — a still's interior is
     // the WASH. `stoke` goes to the bed; `fill` goes to the charge.
-    const fed = await say(k, 'stoke log into still');
+    const fed = await say(k, `stoke log into ${await stillRef(k)}`);
     // ⚠ The verb has to be UNDERSTOOD, which is a different claim from
     // the act succeeding: a verb with no view, no controller row or no
     // affording class answers "I don't understand" — closed, silent, and
@@ -356,7 +490,7 @@ suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
       ),
       '`stoke` was not understood at the still',
     ).toBeUndefined();
-    const lit = await say(k, 'light still');
+    const lit = await say(k, `light ${await stillRef(k)}`);
     expect(
       refusedFor(lit),
       'a stoked still lights: this is the assertion the whole build rests on',
@@ -368,7 +502,7 @@ suite('⛔⛔ 1. the still can be LIT — the defect under everything', () => {
 
 suite('⭐⭐ 2. the still holds a charge', () => {
   it('`look still` reports a pot that can be charged, and it is cold', async () => {
-    const still = await read(k, 'look still');
+    const still = await read(k, `look ${await stillRef(k)}`);
     expect(still.length).toBeGreaterThan(20);
     // ⭐ No digit in the state line: a glance says what phase it is in and
     // never where in a run it is.
@@ -383,8 +517,9 @@ suite('⭐⭐ 2. the still holds a charge', () => {
     // BulkableMixin, so `pour`'s `mustHaveBulkSlot` validator failed
     // CLOSED and the verb answered "you can't pour anything into the
     // still" — for every player, for the life of the pack.
-    const poured = await say(k, 'pour vat into still');
-    const reason = refusedFor(poured);
+    const poured = await say(k, `pour vat into ${await stillRef(k)}`);
+    // `null` is not refused — the pass (an object to `toMatch`, which threw).
+    const reason = refusedFor(poured) ?? '';
     expect(
       reason,
       'the still has no bulk slot: `pour` fails at the binder, which no ' +
@@ -434,19 +569,32 @@ suite.skipIf(!isOwnedTestWorld())(
 /* ───────────────── 4. the run — charge, heat, smell, cut ───────────────── */
 
 suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
+  it('the distiller mills her own grist: malt bought, ground at the quern', async () => {
+    // ⚠ (soak repair 2026-11-16) The mash wants GRIST since the grain
+    // chain (whole malt does not mash), and the floor's own malt sack is
+    // the maltings' empty one. So the distiller does what a player would:
+    // buys a sack of malt at the cash-and-carry and grinds it at the
+    // floor's quern, both hands on the handle — her own grist, not the
+    // counter's dearer sack of it. (The whiskey.soak twin's step.)
+    await millGristInPortions();
+  }, 1_800_000);
+
   it('⭐ the wash is mashed and the vat reads', async () => {
     // Mash first. The vat is the still-house's own. ⛔ The six-day
     // ferment is a SPAN step and lives in whiskey.soak.dirty (the
     // soak-harness census); what blocks is that the mash runs and the
     // vat reads.
+    // ⚠ (soak repair 2026-11-16) The order is ASSERTED: a mash refused
+    // for want of grist used to pass on whatever the vat already read.
     const mashed = await say(k, 'order wash-mash');
+    expectOk(mashed);
     await settle(k, mashed);
     const vat = await read(k, 'look vat');
     expect(vat.length).toBeGreaterThan(20);
   }, 600_000);
 
   it('⭐⭐ `smell still` reads a CHARACTER with no digit in it', async () => {
-    const smelled = await read(k, 'smell still');
+    const smelled = await read(k, `smell ${await stillRef(k)}`);
     // ⚠ The read is prose or it is nothing. `lint:authored-prose` gates
     // the rows; this asserts the rendered sentence reaches a player
     // through the real `smell` controller's filter — which is the link no
@@ -469,15 +617,15 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
     // identical. A message at a boundary would turn a judgement into a
     // prompt, and the whole design rests on the player noticing rather
     // than being told.
-    const first = await say(k, 'pour still into slop bucket --amount 0.2 L');
-    const second = await say(k, 'pour still into slop bucket --amount 0.2 L');
+    const first = await say(k, `pour ${await stillRef(k)} into slop bucket --amount 0.2L`);
+    const second = await say(k, `pour ${await stillRef(k)} into slop bucket --amount 0.2L`);
     const kinds = (r: CommandResult) =>
       (r.notes as Array<{ kind?: string }>).map((n) => n.kind).sort();
     expect(kinds(second)).toEqual(kinds(first));
   }, 300_000);
 
   it('⭐⭐⭐ the bottle names the MAKER and a band, and nothing about safety', async () => {
-    const bottled = await say(k, 'fill bottle from still');
+    const bottled = await say(k, `fill bottle from ${await stillRef(k)}`);
     void bottled;
     const inv = await carried(k);
     expect(inv.length).toBeGreaterThan(0);

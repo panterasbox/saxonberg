@@ -173,6 +173,13 @@ declareFile({
 
 const YARD = '/world/terminus/hearts-delight/location/farmstead-yard';
 /**
+ * ⚠ (soak repair 2026-11-16) The knacker keeps the flock: only a keeper
+ * drafts, culls or serves (controller liquidity D9) — whoever holds the
+ * herd's home extent (the flock book's `homeExtent`, the Delight) or a
+ * hand on shift for a business that works it. Seated on its committee.
+ */
+const KEEPER = { startLocation: YARD, committees: ['/world/terminus/hearts-delight'] };
+/**
  * ⚠ Kept as a comment rather than a constant: the general store is where
  * runs 3 and 5 went for a knife, and the finding is that a COLD WORLD'S
  * SHOPS ARE EMPTY — a `Stock`'s `par` is topped up by its keeper's own
@@ -357,6 +364,18 @@ async function sustain(s: Session): Promise<void> {
  * that one room.** A cascade is not diagnostic.
  */
 async function ensureDaylight(s: Session): Promise<void> {
+  // ⚠⚠ (soak repair 2026-11-17) The DAY first, by the clock. A room that is
+  // merely not pitch dark is not daylight: a fresh world boots at 00:35, the
+  // yard by night reads "Shapes and edges, no more" (dim, so the room check
+  // passed), and a lamplit street at night passed it too — then the walk
+  // went indoors, to a tannery and a chandlery nothing lights after dark.
+  // The harness's clock is not a game verb, so it has none of `analyze
+  // sky`'s failures (below). Then the room check, for what is still dark.
+  const into = (((await worldClockNow()) % 86_400) + 86_400) % 86_400;
+  if (into < 8 * 3_600 || into > 15 * 3_600) {
+    const wait = into < 10 * 3_600 ? 10 * 3_600 - into : 86_400 - into + 10 * 3_600;
+    await advance(`${Math.ceil(wait / 3_600)} hours`, s);
+  }
   let room = '';
   for (let i = 0; i < 6; i += 1) {
     room = (await (await s.cmd('look')).said()).toLowerCase();
@@ -505,7 +524,7 @@ beforeAll(async () => {
   // ⚠ Which also removes the drive's dependence on a shop it is not
   // about. What it still has to do is keep a body fed across 145 game
   // days, and the thing to eat is what it butchered.
-  k = await Session.open(handle, { startLocation: YARD });
+  k = await Session.open(handle, KEEPER);
   await ensureDaylight(k);
   await k.drainProse();
 }, 300_000);
@@ -957,6 +976,7 @@ suite('⭐⭐ 11–12. tan the hide against the pit it stands in', () => {
     k = await Session.open(handle, {
       startLocation: WHARFSIDE,
     });
+    await ensureDaylight(k);
     await k.drainProse();
     // ⭐ ONE exit off the bank, and the three chain from the knacker.
     await walk(k, ['down']);
@@ -1461,7 +1481,7 @@ suite('⭐⭐⭐ AC15 — a kill mid-anything leaves a body and no wreckage', ()
     // reachable. The engine half is not in doubt: `ConditionLogic.die`
     // mints the one `Corpse` whatever the driver, and that is unit-proven.
     k.close();
-    k = await Session.open(handle, { startLocation: YARD });
+    k = await Session.open(handle, KEEPER);
     await ensureDaylight(k);
     await k.drainProse();
     const drafted = await say(k, 'draft 5');
