@@ -33,6 +33,7 @@ import {
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 import { ExecutionContextApi } from './execution-context';
+import { TestOnly } from '../lib/security/decorators';
 import type {
   MixinSlice,
   EstateEntry,
@@ -94,6 +95,25 @@ export class PersistableApi {
    */
   static captureAtShutdown(): Promise<ShutdownCaptureReport> {
     return logic().captureAtShutdown();
+  }
+
+  /**
+   * ⭐ Refuse every write of the records scoped `scope` (`on`), or stop
+   * refusing — the staged twin of a save the database turned down
+   * (persistence-model D10).
+   */
+  @TestOnly('Nothing in the game makes the records refuse a save.')
+  static refuseSavesOf(scope: string, on: boolean): void {
+    logic().refuseSavesOf(scope, on);
+  }
+
+  /**
+   * ⭐ Capture `hosts` and write them as ONE batch, as the shutdown sweep
+   * does — so a drive sees a refused record fail alone in its batch.
+   */
+  @TestOnly('The shutdown sweep batches its writes; nothing else asks for a batch.')
+  static captureBatch(hosts: readonly Stuff[]): Promise<ShutdownCaptureReport & { refused: string[] }> {
+    return logic().captureBatch(hosts);
   }
 
   /**

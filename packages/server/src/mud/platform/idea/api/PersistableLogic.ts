@@ -764,21 +764,14 @@ async function captureAtShutdownImpl(): Promise<ShutdownCaptureReport> {
     const batch = chunk;
     chunk = [];
     writes.push(
-      (async () => {
-        try {
-          const rows = await Promise.all(batch.map((c) => c.record.toBatchWrite({ key: RECORD_KEY })));
-          await PersistApi.saveMany(PersistedRecord.collectionName, rows);
-          captured += batch.length;
-        } catch (err) {
-          // @quiet the report counts it (`failed`) and the line names the records.
-          failed += batch.length;
-          console.error(
-            `PersistableLogic.captureAtShutdown: a batch of ${batch.length} record(s) failed ` +
-              `(${batch.map((c) => c.id.replace('\u0000', ' ')).slice(0, 5).join(', ')}…):`,
-            err,
-          );
+      writeBatch(batch).then((r) => {
+        captured += r.captured;
+        failed += r.failed;
+        for (const f of r.failures) {
+          // @quiet the report counts it (`failed`) and this line names the record.
+          console.error(`PersistableLogic.captureAtShutdown: '${f.scope}' (${f.owner}) was refused:`, f.error);
         }
-      })(),
+      }),
     );
   };
   const worker = async (): Promise<void> => {
@@ -1300,10 +1293,7 @@ const RECORD_KEY = ['scope', 'owner'] as const;
 async function captureImpl(host: Stuff, key?: string): Promise<void> {
   const prepared = await prepareCapture(host, key);
   if (!prepared) return;
-  const write = await prepared.record.toBatchWrite({ key: RECORD_KEY });
-  await serialRecordWrite(prepared.id, async () => {
-    await PersistApi.saveMany(PersistedRecord.collectionName, [write]);
-  });
+  await serialRecordWrite(prepared.id, () => writeRecords([prepared]));
   // ⭐ The records this host owns follow it (tracts build D26): a tract's
   // fields are written with the tract, each under its own key. Each goes
   // through its own record's write queue.
@@ -1393,6 +1383,64 @@ async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCaptur
   record.place = place;
   record.writtenAt = Date.now();
   return { id: `${scope}\u0000${owner}`, record, dependents };
+}
+
+/**
+ * Runtime, test world only: the record scopes whose writes are refused
+ * ({@link PersistableApi.refuseSavesOf}) — the staged twin of a save the
+ * database turned down.
+ */
+const refusedScopes = new Set<string>();
+
+/** Write `batch` as one `saveMany`; a refused scope throws as the database would. */
+async function writeRecords(batch: readonly PreparedCapture[]): Promise<void> {
+  const refused = batch.find((c) => refusedScopes.has(c.record.scope));
+  if (refused) {
+    throw new Error(`the records refused '${refused.record.scope}' (a staged refusal)`);
+  }
+  const rows = await Promise.all(batch.map((c) => c.record.toBatchWrite({ key: RECORD_KEY })));
+  await PersistApi.saveMany(PersistedRecord.collectionName, rows);
+}
+
+/**
+ * ⭐ Write a batch of prepared records (persistence-model D10). One
+ * `saveMany`; when it throws, the batch is written again ONE record at a
+ * time, so a refused record fails alone and every batch-mate is saved.
+ * Each failure is named.
+ */
+async function writeBatch(
+  batch: readonly PreparedCapture[],
+): Promise<{ captured: number; failed: number; failures: SaveFailure[] }> {
+  try {
+    await writeRecords(batch);
+    return { captured: batch.length, failed: 0, failures: [] };
+  } catch (err) {
+    // @quiet not swallowed: a lone record's failure is RETURNED (named), and a
+    // larger batch is retried one record at a time just below.
+    if (batch.length === 1) {
+      const only = batch[0]!;
+      return { captured: 0, failed: 1, failures: [{ scope: only.record.scope, owner: only.record.owner, error: err }] };
+    }
+  }
+  let captured = 0;
+  const failures: SaveFailure[] = [];
+  for (const one of batch) {
+    try {
+      await writeRecords([one]);
+      captured += 1;
+    } catch (err) {
+      // @quiet not swallowed: the failure is RETURNED, named, for the caller to report.
+      failures.push({ scope: one.record.scope, owner: one.record.owner, error: err });
+    }
+  }
+  return { captured, failed: failures.length, failures };
+}
+
+/** A record a write refused. */
+interface SaveFailure {
+  scope: string;
+  owner: string;
+  error: unknown;
 }
 
 /** How many hosts the shutdown sweep prepares at once. */
@@ -1809,6 +1857,26 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async captureAtShutdown(): Promise<ShutdownCaptureReport> {
     return captureAtShutdownImpl();
+  }
+
+  /** See {@link PersistableApi.refuseSavesOf}. */
+  @CallSecurity(PersistableApiCallers)
+  public refuseSavesOf(scope: string, on: boolean): void {
+    if (on) refusedScopes.add(scope);
+    else refusedScopes.delete(scope);
+  }
+
+  /** See {@link PersistableApi.captureBatch}. */
+  @CallSecurity(PersistableApiCallers)
+  public async captureBatch(hosts: readonly Stuff[]): Promise<ShutdownCaptureReport & { refused: string[] }> {
+    const t0 = Date.now();
+    const prepared: PreparedCapture[] = [];
+    for (const host of hosts) {
+      const p = await prepareCapture(host);
+      if (p) prepared.push(p);
+    }
+    const r = await writeBatch(prepared);
+    return { captured: r.captured, failed: r.failed, ms: Date.now() - t0, refused: r.failures.map((f) => f.scope) };
   }
 
   /** See {@link PersistableApi.materialize}. */

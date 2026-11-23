@@ -32,7 +32,7 @@ data:
       noun: attendant
       label: working the testbed shop counter
       wageRate: 5
-      headcount: 2
+      headcount: 3
       requires:
         discipline: retail-sales
         band: novice
@@ -52,6 +52,13 @@ data:
       station: /world/testbed/building/location/shop
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+    # The day clerk (persistence-model W0): a shift that ends, so a drive
+    # can see a hand leave and come back.
+    - positionKey: attendant
+      assignee: /world/testbed/agent/clerk
+      station: /world/testbed/building/location/shop
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
   banksAt: testbed-bank
   operatingLocations:
     # ⚠ Both the counter and the room it stands in (the general store's

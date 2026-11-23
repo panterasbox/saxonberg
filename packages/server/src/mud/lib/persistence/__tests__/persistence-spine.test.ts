@@ -634,6 +634,8 @@ describe("security (AC #8)", () => {
         "materialize",
         "restoreOrSeed",
         "standUpKeyed",
+        "refuseSavesOf",
+        "captureBatch",
         "forkRuntimeState",
         "mergeRuntimeState",
         "storedField",
