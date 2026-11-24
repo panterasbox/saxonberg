@@ -42,7 +42,14 @@
 
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { withDoor, arrival, providerOrder, lastProvider } from "../services/arrival";
+import {
+  withDoor,
+  arrival,
+  providerOrder,
+  lastProvider,
+  arrivalWatching,
+  withGuestWatch,
+} from "../services/arrival";
 import { ShowTile, carrierLinkOf } from "./front/ShowTile";
 import type { FrontResponse } from "@saxonberg/types";
 import { SERVER_URL, WS_URL } from "../config";
@@ -343,6 +350,7 @@ export const StartScreen: React.FC = () => {
   const show = useStore((s) => s.front?.show ?? null);
   const cameFrom = cameFromLine();
   const order = providerOrder(arrival().carrier, lastProvider());
+  const guestWatches = arrivalWatching(show, useStore((s) => s.playerClosed)) !== null;
 
   const playAsGuest = async () => {
     if (guestBusy) return;
@@ -359,7 +367,12 @@ export const StartScreen: React.FC = () => {
       // terminal — the guest never passes through the character-select
       // phase (no roster flash). On failure the connection state machine
       // drives the phase back here.
-      websocketClient.connect(withDoor(WS_URL));
+      // ⭐ A guest runs no command, so the two words ride the socket URL,
+      // built NOW (stream arrival D4) — the guest arrives watching.
+      const st = useStore.getState();
+      websocketClient.connect(
+        withGuestWatch(withDoor(WS_URL), arrivalWatching(st.front?.show ?? null, st.playerClosed)),
+      );
     } catch {
       setGuestBusy(false);
     }
@@ -473,7 +486,7 @@ export const StartScreen: React.FC = () => {
           </GuestLink>
           <PanelNote data-testid="guest-warning">
             A guest keeps nothing: nothing you make is kept, and nobody can
-            find them.
+            find them.{guestWatches ? " You will arrive watching the show." : ""}
           </PanelNote>
 
           {import.meta.env.DEV && <DevLogin />}

@@ -136,6 +136,34 @@ export function StreamPlayer(): JSX.Element | null {
     if (key !== null) lastSrcTarget.current = key;
   }, [key, phase, setMuted]);
 
+  // ⭐ `watch off` in the world (the server clearing a PERSONAL
+  // `cockpit.watch` the player was on — never a shared display's marker)
+  // closes the video for the visit (D3).
+  const personal = useStore((s) => {
+    const w = s.clientState["cockpit.watch"] as WatchTarget | null | undefined;
+    return w ? (w.display ? "display" : "personal") : "none";
+  });
+  const closePlayer = useStore((s) => s.closePlayer);
+  const wasPersonal = useRef(false);
+  useEffect(() => {
+    if (phase !== "in-world") return;
+    if (wasPersonal.current && personal === "none") closePlayer();
+    wasPersonal.current = personal === "personal";
+  }, [personal, phase, closePlayer]);
+
+  // ⭐ Docked before the world, the page keeps the dock's height free at its
+  // foot, so the video never covers the last control (`chargen-confirm`).
+  const docked = target !== null && slot === null && mayDock && phase !== "in-world";
+  useEffect(() => {
+    if (!docked) return;
+    const prev = document.body.style.paddingBottom;
+    const w = Math.min(DOCK_WIDTH, window.innerWidth - 2 * DOCK_GAP);
+    document.body.style.paddingBottom = `${Math.round((w * 9) / 16) + 2 * DOCK_GAP}px`;
+    return () => {
+      document.body.style.paddingBottom = prev;
+    };
+  }, [docked]);
+
   if (!target) return null;
   if (!slot && !mayDock) return null;
 

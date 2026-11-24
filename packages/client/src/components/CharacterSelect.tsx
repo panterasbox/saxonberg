@@ -36,6 +36,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import type { CharGenRosterEntry } from "@saxonberg/types";
 import { useStore } from "../store/index";
+import { arrivalWatching, watchSuffix } from "../services/arrival";
 import { signOut } from "../services/auth";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { mediaUrl } from "../config";
@@ -647,7 +648,11 @@ function CharacterDetail({
   onSendCommand: (text: string) => void;
   onBack?: () => void;
 }) {
-  const enterCmd = `play ${entry.playerId}`;
+  // ⭐ While the arrival video plays, Enter arrives WATCHING it (stream
+  // arrival D4) — the one builder makes the preview and the send alike.
+  const listing = useStore((s) => s.front?.show ?? null);
+  const closed = useStore((s) => s.playerClosed);
+  const enterCmd = `play ${entry.playerId}${watchSuffix(arrivalWatching(listing, closed))}`;
   return (
     <Panel data-testid="roster-detail">
       {onBack ? (

@@ -162,3 +162,32 @@ export function targetOfListing(
     ? { platform: "youtube", channelId: channel }
     : { platform: carrier, channel };
 }
+
+/**
+ * ⭐ What an entry asks to arrive watching (stream arrival D4) — the ONE
+ * place the words are built, for the control's preview and its send alike:
+ * the program's NAME (as the front page's answer gave it) and the carrier,
+ * only while the arrival video is actually playing (live, a feed on that
+ * carrier, not closed). Never a channel. Null when nothing is playing.
+ */
+export function arrivalWatching(
+  listing: ProgramListing | null | undefined,
+  closed: boolean,
+  a: Arrival = arrival(),
+): { program: string; carrier: ProgramCarrier } | null {
+  if (closed || !listing?.live || !a.carrier) return null;
+  if (!targetOfListing(listing, a.carrier)) return null;
+  return { program: listing.name, carrier: a.carrier };
+}
+
+/** ` --watch <program> --<carrier>` for a command line, or "" (D4). */
+export function watchSuffix(w: { program: string; carrier: ProgramCarrier } | null): string {
+  return w ? ` --watch ${w.program} --${w.carrier}` : "";
+}
+
+/** A guest's socket URL with the two words on it (D4) — a guest runs no command. */
+export function withGuestWatch(url: string, w: { program: string; carrier: ProgramCarrier } | null): string {
+  if (!w) return url;
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}watch=${encodeURIComponent(w.program)}&carrier=${w.carrier}`;
+}

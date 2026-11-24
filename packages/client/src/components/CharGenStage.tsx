@@ -34,6 +34,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import type { CharGenFieldState, DossierRow } from "@saxonberg/types";
 import { useStore } from "../store/index";
+import { arrivalWatching, watchSuffix } from "../services/arrival";
 import { signOut } from "../services/auth";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
@@ -585,6 +586,11 @@ export function CharGenStage({
   onCommandPreview,
 }: CharGenStageProps) {
   const charGenState = useStore((s) => s.charGenState);
+  // ⭐ While the arrival video plays, confirm arrives WATCHING it (stream
+  // arrival D4); the control shows exactly what it sends.
+  const arrivalListing = useStore((s) => s.front?.show ?? null);
+  const playerClosed = useStore((s) => s.playerClosed);
+  const confirmCmd = `embody confirm${watchSuffix(arrivalWatching(arrivalListing, playerClosed))}`;
   /**
    * What the plate column is showing. ⚠ Keyed by FIELD as well as
    * value: the plate follows whichever illustrated field you are
@@ -1015,11 +1021,11 @@ export function CharGenStage({
               $primary
               data-testid="chargen-confirm"
               disabled={!canConfirm}
-              onClick={() => onSendCommand("embody confirm")}
-              onMouseEnter={() => onCommandPreview("embody confirm")}
+              onClick={() => onSendCommand(confirmCmd)}
+              onMouseEnter={() => onCommandPreview(confirmCmd)}
               onMouseLeave={() => onCommandPreview(null)}
             >
-              embody confirm ⏎
+              {confirmCmd} ⏎
             </StageButton>
           </LogColumn>
         </StageInner>
