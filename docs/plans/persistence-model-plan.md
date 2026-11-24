@@ -982,7 +982,12 @@ What it found (each fixed and re-run):
   `HeldGoods.resolveHeld` answers a keyword tie with the FIRST held good,
   whoever it is held for, so `rack reclaim notebook` with two people's
   notebooks in one locker refuses the second person ("isn't yours to
-  take"). Recorded, not fixed here (an issue is filed).
+  take"). ⭐ **Fixed after the walk hit it too** (#155): a shared kept locker is
+  this build's own content, so the bug is this build's to close.
+  `HeldGoods.resolveHeldFor(actor, keyword)` names among the goods the
+  reclaimer may dispose of first, else any held good (a stranger's is
+  still named and refused); `CheckRack.test` has the two-owner case, red on
+  the old resolve.
 - Checkpoint proof (B2): steps 6, 9 and 4/11 each went red on a real defect
   or a wrong setup before going green; 1 and 2 were not deliberately
   broken.
@@ -992,3 +997,31 @@ water ledger across a restart, a share sale, the lounge regular's window,
 the size reading) are covered by unit suites this build added; their live
 twins are owed in the content drives (`zone-instancing.dirty`, the water
 and lounge drives) — not run in this cycle. No soak drive (no span step).
+
+### The full suite (code-complete)
+
+`tools/suite`, one run, 38 min: **55 of 56 packages green**; `server` had 2
+failures, both stale tests of rules this build changed — the sign-out test
+asserted the retired "a failed save keeps the body" (D10), and the
+composition-field snapshot predated `offShift`, `EstateMixin`'s two fields,
+`PersistedRecord.pinned` and the chattel `place`/`pin` cut. Both fixed in
+`994858c2c`; the two files re-run green. (The second full run is /finalize's.)
+
+### The browser walk
+
+`e2e/tests/persistence-model-walk.spec.ts`, against a test world on 2014 +
+vite on 5174: **green** (run 3). It walks the hall's Explore-card place row
+(*not kept*, tooltip), `look`'s *Not kept* line, the teaching line once and
+never twice, `look in lockers`' *Kept* line, and `rack check`/`rack reclaim`
+at the lockers.
+
+What it found:
+- ⭐ **#155 live**: the lockers held earlier walkers' notebooks, and
+  `rack reclaim notebook` refused this walker — fixed (above); run 3 reclaimed
+  its own with three strangers' notebooks in the lockers.
+- The check line said *"at the rack"* at a bank of lockers — it names the
+  fixture now (*"at a bank of lockers"*).
+- Not fixed (wording, shared with the shelf, not this build's question):
+  the reclaim line says *"back off the rack"* at the lockers.
+- The walk's first cut matched on the echoed command; its replies are read
+  with the echo stripped now (B2: it went red on #155 once it was).

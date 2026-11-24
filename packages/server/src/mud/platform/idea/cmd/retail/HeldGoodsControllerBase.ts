@@ -63,7 +63,7 @@ export abstract class HeldGoodsControllerBase<
       return;
     }
 
-    const item = shelf.resolveHeld(thing);
+    const item = await shelf.resolveHeldFor(giver, thing);
     if (!item) {
       this.reject(giver, context, Mml.compose`There's no "${thing}" of yours ${words.on}.`, {
         kind: "controller-rejected",

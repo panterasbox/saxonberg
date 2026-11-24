@@ -73,6 +73,13 @@ export interface HeldGoodsShelf {
   /** A held good on this fixture, matched by keyword. */
   resolveHeld(keyword: string): (Stuff & Containable) | null;
   /**
+   * ⭐ The held good `actor` means by `keyword`: among the goods `actor` may
+   * dispose of first (a shared locker holds many people's notebooks —
+   * persistence-model, #155), else any held good, so a stranger's is still
+   * named and refused rather than reported missing.
+   */
+  resolveHeldFor(actor: Stuff, keyword: string): Promise<(Stuff & Containable) | null>;
+  /**
    * The Business `actor` acts as right now — the one whose operating
    * account is active in the wallet AND that `actor` buys for — or `null`
    * (acting personally). The principal a consign or reclaim is made as.
@@ -225,11 +232,25 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public resolveHeld(keyword: string): (Stuff & Containable) | null {
-      // ⭐ Among the goods this fixture HOLDS for somebody, by the one rule
-      // (naming overhaul D-C7) — keywords, article, plural, word start.
-      const held = ((this as unknown as Stuff & Container).getContents() as Array<Stuff & Containable>).filter(
+      return this.nameAmongHeld(keyword, this.goodsHeldHere());
+    }
+
+    public async resolveHeldFor(actor: Stuff, keyword: string): Promise<(Stuff & Containable) | null> {
+      const held = this.goodsHeldHere();
+      const mine: Array<Stuff & Containable> = [];
+      for (const item of held) if (await this.mayDisposeOf(actor, item)) mine.push(item);
+      return this.nameAmongHeld(keyword, mine) ?? this.nameAmongHeld(keyword, held);
+    }
+
+    /** The goods this fixture HOLDS for somebody. */
+    private goodsHeldHere(): Array<Stuff & Containable> {
+      return ((this as unknown as Stuff & Container).getContents() as Array<Stuff & Containable>).filter(
         (item) => MixinApi.isPerceptible(item) && MixinApi.isChattel(item) && this.holdingFor(item.getChattelId()),
       );
+    }
+
+    /** ⭐ By the one rule (naming overhaul D-C7) — keywords, article, plural, word start. */
+    private nameAmongHeld(keyword: string, held: Array<Stuff & Containable>): (Stuff & Containable) | null {
       const answer = GrammarApi.nameAmong(
         keyword,
         held.map((item) => ({

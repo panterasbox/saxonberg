@@ -96,9 +96,9 @@ export default class RackCheckController extends HeldGoodsControllerBase<CheckMo
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You check ${Mml.thing(item)} at the rack and pocket the ticket.`,
+        Mml.compose`You check ${Mml.thing(item)} at ${Mml.thing(rack)} and pocket the ticket.`,
       )
-      .toPeers(Mml.compose`${Mml.actor(giver)} checks ${Mml.thing(item)} at the rack.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} checks ${Mml.thing(item)} at ${Mml.thing(rack)}.`)
       .send();
   }
 }
