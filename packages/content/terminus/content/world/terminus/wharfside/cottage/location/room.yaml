@@ -1,5 +1,7 @@
 # The cottage's one room (paint D20) — brick under a slate roof.
-class: /platform/location/Hall
+# ⭐ A kept place (persistence-model D4): this building can be sold, so it is
+# authored with a kept room — the building's coats and condition ride it.
+class: /platform/location/PersistentHall
 data:
   coords: { x: 0, y: 0, z: 0 }
   shortDescription: "cottage"

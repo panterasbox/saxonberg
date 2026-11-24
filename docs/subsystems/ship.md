@@ -144,9 +144,10 @@ going down. Her deck and cabin come up from their rows each wake.
 - `Hold.standsUpAlone()` is `false`: her warren stands her rooms up with
   her, never one room by its key (`PersistableApi.standUpKeyed` routes the
   key through the warren).
-- Saving her saves her hold: `Ship.dependentPersistables()` = her warren
-  (and her minted company), and the warren's = its rooms that keep a
-  record.
+- Saving her saves her hold: `Ship.dependentPersistables()` = her warren,
+  and the warren's = its rooms that keep a record. (Her minted company was
+  a dependent until 2026-11-24; it keeps no record now — its cap table is
+  a filed paper.)
 
 ## Sleep, wake and the restart
 
@@ -178,7 +179,7 @@ going down. Her deck and cabin come up from their rows each wake.
 
 A ship is sold as **title**, never as a good off a shelf. The yard's
 **hull book** (`/system/transport/thing/HullBook` =
-`Persistable(ForSale(Good))`, transport pack) lists a **finite, authored**
+`ForSale(Good)`, transport pack) lists a **finite, authored**
 set of hulls, `hulls: [{slot, kind, priceMinor}]`, plus the `quay:` she is
 delivered to. It affords `buy` through the kernel offer protocol
 (`ForSaleMixin`, see [retail.md § The offer protocol](./retail.md)), and
@@ -203,7 +204,11 @@ stocks`):
    hears: *"She is entered in the register of the City of Terminus as the
    Petrel, all sixty-four shares in your name, and you are her master. Her
    gangway is locked; the key is yours."*;
-6. the sale is kept in the book's own record (`sold`). Nothing restocks.
+6. the sale is history, filed as the yard house's `hull-sale` paper
+   (`<house>/hull-sales/<book leaf>`, `DocumentApi.saveAsBusiness`) and
+   read back as the book stands up (its hydration source), so a sold-out
+   yard stays sold out across a restart. ⭐ It cannot derive: the register
+   records no hull slot (persistence-model D7). Nothing restocks.
 
 The book's page reads *On the stocks: a smack on the near stocks (5000)*,
 *Sold off the near stocks: the smack Petrel.*, *Every hull in it is
@@ -269,15 +274,17 @@ alone. A stateless ship at sea is under nobody's law.
 ## Owners, the managing owner, the master
 
 ⭐ **Her company owns her** (review 1, `362ec52aa`). Owners are a **cap
-table**: `CapTableMixin` on a `PersistentBusiness` (`Persistable(
-CapTable(Business))`), whose appointing authority is `{kind: owners}`.
+table**: `CapTableMixin` on a `Company` (`CapTable(Business)`; it was
+`PersistentBusiness` until persistence-model), whose appointing authority
+is `{kind: owners}`. The table is history, filed as the company's
+`cap-table` paper after every sale, gift or transfer.
 That is the institutions slate's primitive, and ships are its first
 consumer ([employment.md § The owners authority](./employment.md)).
 
 - A smack's company is minted at commissioning from her kind's `house:`
   seed (`/stuff/idea/Business/ship-company`, `capTable: {units: 64, rows:
-  []}`) at `<seed>/<serial>`, with the buyer as the whole row. It is kept
-  `(seed, serial)` and listed among her dependents. An authored ship's
+  []}`) at `<seed>/<serial>`, with the buyer as the whole row, and files
+  its first `cap-table` paper at its founding. An authored ship's
   company is her `house:` row (the Hesper's outfit, the regulars' companies
   and the Greywater Line's office at 64/64; the Ostrander's held by
   `/world/terminus/budget`).
@@ -594,7 +601,7 @@ file's header.
 
 ## Files
 
-- Kernel (`packages/server/src/mud/`): `platform/idea/{Ship,ShipWarren,ShipRegister,BerthExit,AshoreExit,PersistentBusiness}.ts`;
+- Kernel (`packages/server/src/mud/`): `platform/idea/{Ship,ShipWarren,ShipRegister,BerthExit,AshoreExit,Company}.ts`;
   `platform/location/{Compartment,Hold,PersistentShore}.ts`;
   `platform/thing/{Bollard,BilgeWell,CharterBook,HireBook,Flag,Flagstaff,RegisterBook}.ts`;
   `platform/idea/reading/BilgeReading.ts`; `lib/expanse/{Voyaging,Bilge,Hailable,Berthing,FrameSited}.ts`;
@@ -680,3 +687,12 @@ still lists `ashore` among its exits.
   (else `no-hull-material`). Boats are Durable and tarred, their seams wear
   bare, and `Boat.enterReach` holes one at a choked snag; `maintain` and the
   mend ladder ask `MaintainableMixin`.
+
+## History — the company and the hull book file papers (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654):
+`PersistentBusiness` → `Company`, whose cap table is a `cap-table` paper
+(D6); the hull book's `sold` is a `hull-sale` paper (D7). Neither keeps a
+`holder_snapshots` record. Both kinds are rows in the platform pack's
+`content/kinds/`. A ship is still a body that keeps itself
+(`lint:instanceable` invariant 15's roster).

@@ -1,0 +1,13 @@
+# The hall's lockers (persistence-model W1) — a kept container standing in a
+# plain room: the hall restages, what is in the lockers keeps. `rack check`
+# a thing in, `rack reclaim` it out. ⚠ TEST-ONLY.
+class: /platform/thing/Locker
+data:
+  shortDescription: bank of lockers
+  register: indefinite
+  primaryKeyword: lockers
+  keywords: [lockers, locker, bank]
+  longDescription: |
+    A bank of tin lockers against the wall, each with a numbered key.
+  fixedInPlace: true
+  mass: 60

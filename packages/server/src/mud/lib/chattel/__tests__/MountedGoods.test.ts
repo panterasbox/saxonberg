@@ -43,7 +43,6 @@ import { Document } from "../../persistence/Document";
 import { PersistenceManager } from "../../../../backend/PersistenceManager";
 import { makeStuffAtPath } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
-import { ESTATE_INVENTORY } from "../../persistence/PersistenceSlice";
 import type { Stuff } from "../../stuff/Stuff";
 import type { Container } from "../../spatial/Container";
 import type { Containable } from "../../spatial/Containable";
@@ -156,16 +155,12 @@ async function hang(item: Sconce, host: Room, slot: string): Promise<void> {
   await (item as unknown as Stuff & Chattel).followCustody();
 }
 
-function estateEntries(scope: string): Array<{
-  chattelId: string;
-  place: string;
-  mounted?: { slot: string };
-}> {
+/** The hung goods a room's record carries, by slot (persistence-model D9). */
+function hungIn(scope: string): Record<string, unknown> {
   const rec = col("holder_snapshots").find((d) => d.scope === scope);
-  const state = rec?.state as
-    | Record<string, { entries?: Array<{ chattelId: string; place: string; mounted?: { slot: string } }> }>
-    | undefined;
-  return state?.EstateMixin?.entries ?? [];
+  const state = rec?.state as Record<string, { hung?: Record<string, unknown> }> | undefined;
+  for (const slice of Object.values(state ?? {})) if (slice?.hung) return slice.hung;
+  return {};
 }
 
 beforeEach(async () => {
@@ -178,7 +173,7 @@ afterEach(() => {
 });
 
 describe("a hung good", () => {
-  it("persists owner-side with its mount slot, and the room's record carries nothing of it", async () => {
+  it("⭐ rides the ROOM's record in its slot, whoever holds title (persistence-model D9)", async () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const lamp = sconce();
@@ -187,17 +182,13 @@ describe("a hung good", () => {
     const id = lamp.getChattelId();
 
     await PersistableApi.capture(r);
-    await PersistableApi.capture(alice);
+    void id;
 
-    // The room forgot furniture it never owned — including off the wall.
+    // On the wall, not in the contents — and in the room's record.
     const roomState = col("holder_snapshots").find((d) => d.scope === ROOM_PATH)
       ?.state as Record<string, { contents?: unknown[] }>;
     expect(roomState.ContainerMixin?.contents?.length).toBe(0);
-
-    // Alice's record names the room AND the wall.
-    const entry = estateEntries(ALICE_PATH).find((e) => e.chattelId === id);
-    expect(entry?.place).toBe(ROOM_PATH);
-    expect(entry?.mounted?.slot).toBe("mounted:one");
+    expect(Object.keys(hungIn(ROOM_PATH))).toEqual(["mounted:one"]);
   });
 
   it("comes back ON THE WALL after a restart, not on the floor", async () => {
@@ -209,7 +200,6 @@ describe("a hung good", () => {
     const id = lamp.getChattelId();
 
     await PersistableApi.capture(r);
-    await PersistableApi.capture(alice);
     StuffApi.clearAll();
     await boot();
 
@@ -233,35 +223,7 @@ describe("a hung good", () => {
     });
   });
 
-  it("is captured by its owner even when the owner is OFFLINE when the room sleeps", async () => {
-    const alice = person(ALICE_PATH);
-    const r = room();
-    const lamp = sconce();
-    await (lamp as unknown as Stuff & Chattel).stampChattel(alice);
-    // Alice has a record, and in it the lamp is still in her hands.
-    await PersistableApi.capture(alice);
-    await hang(lamp, r, "mounted:one");
-    const id = lamp.getChattelId();
-
-    // …and then she logs out. Her stored record is the only copy of her
-    // estate now, and it does not know about the wall.
-    const live = StuffApi.findByTemplatePath.bind(StuffApi);
-    vi.spyOn(StuffApi, "findByTemplatePath").mockImplementation(((
-      path: string,
-    ) => (path === ALICE_PATH ? null : live(path))) as unknown as
-      typeof StuffApi.findByTemplatePath);
-
-    // The room sleeps with nobody live to notice the lamp. THIS is the
-    // only path by which it is captured by anybody at all.
-    await PersistableApi.capture(r);
-
-    const entry = estateEntries(ALICE_PATH).find((e) => e.chattelId === id);
-    expect(entry).toBeDefined();
-    expect(entry?.place).toBe(ROOM_PATH);
-    expect(entry?.mounted?.slot).toBe("mounted:one");
-  });
-
-  it("comes down into your hands — custody follows, and the marker clears", async () => {
+  it("comes down into your hands — and off the room's record", async () => {
     const alice = person(ALICE_PATH);
     const r = room();
     const lamp = sconce();
@@ -279,22 +241,9 @@ describe("a hung good", () => {
     );
     await (lamp as unknown as Stuff & Chattel).followCustody();
 
-    await PersistableApi.capture(alice);
-    const entry = estateEntries(ALICE_PATH).find((e) => e.chattelId === id);
-    expect(entry?.place).toBe(ESTATE_INVENTORY);
-    expect(entry?.mounted).toBeUndefined();
-  });
-
-  it("⭐ a lone good that stacks is in your hands like any other (a carved peg)", async () => {
-    const alice = person(ALICE_PATH);
-    const peg = makeStuffAtPath(() => new Peg(), "/stuff/thing/peg");
-    await (peg as unknown as Stuff & Chattel).stampChattel(alice);
-    ContainmentApi.move(
-      peg as unknown as Stuff & Containable,
-      alice as unknown as Stuff & Container,
-    );
-    await (peg as unknown as Stuff & Chattel).followCustody();
-    expect((peg as unknown as Stuff & Chattel).getPlace()).toBe(ESTATE_INVENTORY);
+    void id;
+    await PersistableApi.capture(r);
+    expect(hungIn(ROOM_PATH)).toEqual({});
   });
 
   it("a wall takes as many as you can afford — capacity is read, never enforced", async () => {

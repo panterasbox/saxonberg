@@ -26,14 +26,9 @@ import { ParcelApi } from "../../../api/parcel";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistableApi } from "../../../api/persistable";
 import { TemplatePaths } from "../../../lib/paths";
-import {
-  ESTATE_INVENTORY,
-  ESTATE_STORAGE,
-  ESTATE_LOOSE,
-} from "../../../lib/persistence/PersistenceSlice";
+import { Mml } from "../../../api/mml";
 import type {
   ChattelOwner,
-  ChattelPin,
 } from "../../../lib/chattel/ChattelRecord";
 import type { Chattel } from "../../../lib/chattel/Chattel";
 import type { Adornment } from "../../../lib/boundary/Adornment";
@@ -186,20 +181,6 @@ export class ChattelLogic extends ApiLogic {
     return authorPath ? { kind: "player", templatePath: authorPath } : null;
   }
 
-  /**
-   * See {@link ChattelApi.setPlace}. **The single write path** for where an
-   * owner keeps a good: it sets the good's own `_place` field (what
-   * round-trips with the good) AND the `chattel` row's indexed `place`
-   * (what lets a materializing room find what belongs in it) in one call.
-   * Writing both here is the whole reason the index cannot drift.
-   *
-   * Also keeps the owner's **estate** current when the owner is live, so a
-   * placement survives the owner's next capture without a store round-trip.
-   */
-  @CallSecurity(ChattelCallers)
-  public async setPlace(item: Stuff, place: string): Promise<void> {
-    return this.applyPlace(item, place);
-  }
 
   /**
    * See {@link ChattelApi.followCustody}. Re-derive where the owner keeps a
@@ -257,30 +238,30 @@ export class ChattelLogic extends ApiLogic {
         if (reg) await reg.stamp(this.ensureId(good, reg), owner);
       }
     }
-    // ⚠ A STACK has no place; a lone good that happens to stack (a carved peg)
-    // was stamped above and does: left at the default `storage`, its owner's
-    // capture skipped it and the next restore put it in a store, not the hand
-    // (found by the drive, step 17).
-    if (isFungibleStack(item)) return;
-    if (!good.getChattelId()) return; // unstamped: nothing owns it
-    const owner = await this.resolveOwner(item);
-    if (owner?.kind !== "player") return;
-    const host = this.nearestHost(item);
-    // ⭐ Transient space (river D33): `loose` — never left as `inventory`,
-    // which made the owner's next restore mint a second copy.
-    if (!host) {
-      if (good.getPlace() !== ESTATE_LOOSE) await this.applyPlace(item, ESTATE_LOOSE);
-      return;
-    }
-    const place =
-      host.getIdentityPath() === owner.templatePath
-        ? ESTATE_INVENTORY
-        : PersistableApi.placeIdOf(host);
-    // Every move asks now (the primitive calls this), including the
-    // restore that put the good back where its record said: an unchanged
-    // place is no write.
-    if (good.getPlace() === place) return;
-    await this.applyPlace(item, place);
+    // ⭐ Title only (persistence-model D9): where a good is kept is its
+    // container's to say, never its owner's.
+    await this.teachKept(good);
+  }
+
+  /**
+   * ⭐ The teaching line (persistence-model D12): the person who owns this
+   * good, setting it down themselves somewhere that does not keep it, is
+   * told what "kept" means — at most twice, then never (`Avatar.teachOnce`).
+   * Nothing is said for a good carried, or left where it keeps.
+   */
+  private async teachKept(good: Stuff & Chattel): Promise<void> {
+    if (!MixinApi.isContainable(good)) return;
+    const at = good.getContainer();
+    if (at === null || at.isAgent() || !MixinApi.isContainer(at) || at.isKept()) return;
+    const owner = good.stampedOwner();
+    const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
+    if (owner?.kind !== "player" || !actor || owner.templatePath !== actor.getIdentityPath()) return;
+    const { default: Avatar } = await import("../../../lib/character/Avatar");
+    if (!(actor instanceof Avatar) || !actor.hasLiveSession()) return;
+    actor.teachOnce(
+      "kept",
+      Mml.compose`Not kept: ${Mml.thing(good)} lies somewhere that does not keep what is left in it — it will be gone at the next restage. A kept place, a kept locker or your own hands keep things.`,
+    );
   }
 
   /**
@@ -377,174 +358,6 @@ export class ChattelLogic extends ApiLogic {
     return agreed.owner();
   }
 
-  /**
-   * The three writes, ungated so a gated sibling can reach them (the
-   * `ChattelRegistry` ungated-privates pattern): the good's own field, the
-   * `chattel` row's by-room index, and a live owner's estate.
-   */
-  private async applyPlace(item: Stuff, place: string): Promise<void> {
-    if (isFungibleStack(item)) return; // a fungible stack has no place
-    if (!MixinApi.isChattel(item)) return;
-    const good = item as Stuff & Chattel;
-    good._setPlace(place);
-    const id = good.getChattelId();
-    if (!id) return; // unstamped: nothing owns it, so nothing keeps it
-    const reg = lookupRegistry();
-    if (reg) await reg.setPlace(id, place, this.pinOf(good, place));
-    await this.syncEstate(good, place);
-    // ⭐ A good that persists ITSELF writes its record on the same act. Its
-    // record is otherwise captured only at naming, at the shutdown sweep
-    // and at eviction — and the pin roll trusts the record's placement, so
-    // a crash between `drop` and any of those would stand it up one room
-    // stale while the index said otherwise. One write per custody act on
-    // a pinned good; there are few of them, and this is what makes the
-    // index and the record one fact.
-    if (MixinApi.isPersistable(good) && good.isPersistenceKeyExplicit()) {
-      await PersistableApi.capture(good as Stuff);
-    }
-  }
-
-  /**
-   * The residency pin for a good, or null: how to stand it up at boot
-   * without anybody asking. Three things have to be true — the class opts
-   * in, the good persists itself, and it has an explicit key to be stood
-   * up by — and a good that is kept in `storage` or `inventory` is not
-   * standing anywhere, so it has no pin either.
-   */
-  private pinOf(good: Stuff & Chattel, place: string): ChattelPin | null {
-    if (place === ESTATE_STORAGE || place === ESTATE_INVENTORY || place === ESTATE_LOOSE) return null;
-    if (!MixinApi.isPersistable(good)) return null;
-    if (!good.pinsResidency() || !good.isPersistenceKeyExplicit()) return null;
-    // ⚠ The scope must be the one the RECORD was written under, which
-    // `captureImpl` takes from `getIdentityPath()`. Reading the template
-    // path here made the pin roll look where no record is as soon as a
-    // pinned class became identity-stamped — latent today (no pinned
-    // class is stamped), and silent when it fires.
-    const scope = good.getIdentityPath();
-    const key = good.getPersistenceKey();
-    return scope && key ? { scope, key } : null;
-  }
-
-  /**
-   * The nearest persistence host at or outward of `item` — the thing whose
-   * record a placement is expressed against. Hop-capped against a
-   * containment cycle, the `captureHostOf` precedent.
-   */
-  private nearestHost(item: Stuff): Stuff | null {
-    // A HUNG good is in no container at all — it rides its host's fixture
-    // map (the same uncontained shape an attached door has). Start the
-    // outward walk at what it adorns, so `hang` is an ordinary custody
-    // change like every other one and needs no bespoke placement call.
-    let cur: Stuff | null =
-      MixinApi.isAdornment(item) && item.getAdornedTo()
-        ? (item.getAdornedTo() as unknown as Stuff)
-        : item;
-    for (let hops = 0; cur && hops < 32; hops++) {
-      if (cur !== item && MixinApi.isPersistable(cur)) return cur;
-      cur = MixinApi.isContainable(cur) ? cur.getContainer() : null;
-    }
-    return null;
-  }
-
-  /**
-   * See {@link ChattelApi.evictToStorage}. Ending a lease forces every
-   * owned good placed under `placePrefix` back to `storage` — **intact,
-   * titled, recoverable** — before the shell reverts (D9).
-   *
-   * Never destructs: a good that is titled to somebody survives the end of
-   * their tenancy, which is what makes "move house" re-placing from storage
-   * rather than starting over. Returns how many were evicted.
-   */
-  @CallSecurity(ChattelApiCallers)
-  public async evictToStorage(placePrefix: string): Promise<number> {
-    const reg = lookupRegistry();
-    if (!reg) return 0;
-    const rows = await reg.placedUnder(placePrefix);
-    for (const row of rows) {
-      const id = row.getChattelId();
-      await reg.setPlace(id, ESTATE_STORAGE);
-      // Update the live good and its owner's estate too, when either is
-      // loaded — otherwise the next capture would write the old placement
-      // straight back over the eviction.
-      const owner = row.getOwner();
-      if (owner?.kind !== "player") continue;
-      const host = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
-      if (!host || !MixinApi.isEstate(host)) continue;
-      const entry = host.getEstateEntry(id);
-      const live = host.getEstateLive(id);
-      if (live && MixinApi.isChattel(live)) live._setPlace(ESTATE_STORAGE);
-      if (entry) {
-        host._putEstateEntry({ ...entry, place: ESTATE_STORAGE }, null);
-      }
-    }
-    return rows.length;
-  }
-
-  /** See {@link ChattelApi.pinned}. */
-  @CallSecurity(ChattelApiCallers)
-  public async pinned(): Promise<Array<{ pin: ChattelPin; place: string }>> {
-    const reg = lookupRegistry();
-    if (!reg) return [];
-    const rows = await reg.pinned();
-    const out: Array<{ pin: ChattelPin; place: string }> = [];
-    for (const r of rows) {
-      const pin = r.getPin();
-      if (pin) out.push({ pin, place: r.getPlace() });
-    }
-    return out;
-  }
-
-  /** See {@link ChattelApi.placedIn}. */
-  @CallSecurity(ChattelApiCallers)
-  public async placedIn(
-    place: string,
-  ): Promise<Array<{ chattelId: string; owner: ChattelOwner | null }>> {
-    const reg = lookupRegistry();
-    if (!reg) return [];
-    const rows = await reg.placedIn(place);
-    return rows.map((r) => ({ chattelId: r.getChattelId(), owner: r.getOwner() }));
-  }
-
-  /**
-   * Upsert the good into its owner's estate, when that owner is a live
-   * player. The estate is the durable home of a good whose `place` is not
-   * its owner's own container, so it has to learn about the placement at
-   * the moment it happens — otherwise the owner's next capture would carry
-   * a stale entry (or none at all) forward.
-   *
-   * Silent when the owner is offline: the good is still live in a room, and
-   * the room's capture pass reports it to `PersistableLogic`, which flushes
-   * it to the stored estate then.
-   */
-  private async syncEstate(good: Stuff & Chattel, place: string): Promise<void> {
-    const owner = await this.resolveOwner(good as Stuff);
-    if (owner?.kind !== "player") return;
-    const host = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
-    if (!host || !MixinApi.isEstate(host)) return;
-    // A hung good records WHERE it hangs, so the overlay puts it back on
-    // the wall and not on the floor (residences D11). Derived from the
-    // good's own live attachment rather than passed in, so the marker can
-    // never disagree with the fixture map.
-    const mountSlot = MixinApi.isAdornment(good as Stuff)
-      ? (good as unknown as Adornment).getMountSlot()
-      : null;
-    const placed = good as Stuff;
-    const rests = MixinApi.isContainable(placed) ? placed.getRestingPlace() : null;
-    const within = MixinApi.isContainable(placed) ? placed.getKeptWithin() : null;
-    host._putEstateEntry(
-      {
-        chattelId: good.getChattelId(),
-        templatePath: good.getTemplatePath() ?? "",
-        state: PersistableApi.captureDetached(good as Stuff),
-        place,
-        ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
-        ...(rests ? { rests } : {}),
-        ...(within ? { within } : {}),
-      },
-      good as Stuff,
-    );
-  }
-
   /** See {@link ChattelApi.stamp}. */
   @CallSecurity(ChattelCallers)
   public async stamp(
@@ -587,58 +400,15 @@ export class ChattelLogic extends ApiLogic {
   }
 
   /**
-   * See {@link ChattelApi.release}.
-   *
-   * Releasing a title has **two** halves, and shipping only the first one
-   * made destroyed goods come back. The registry half GCs the durable row
-   * and the index entry. The estate half drops the owner's entry for that
-   * good — and without it the owner's `_estate` map keeps an entry whose
-   * good no longer exists, `Estate.captureSlice` finds it not-live and
-   * carries it into the durable slice **verbatim**, and `hydrateSlice`
-   * re-mints it on next load. Because `_chattelId` is persistent, the
-   * resurrected good even came back carrying the id of a title row that
-   * had been deleted. Eat a carrot, log out, log back in, carrot's there.
-   *
-   * `Estate._dropEstateEntry` existed for exactly this and had **zero
-   * callers** anywhere in the tree. This is the call it was waiting for.
-   *
-   * Order matters: read the owner off the index BEFORE `reg.release`
-   * deletes it, or there is nothing left to attribute the drop to.
+   * See {@link ChattelApi.release} — the registry GCs the durable row and
+   * its index entry. (The estate half retired with the estate, persistence-model D9.)
    */
   @CallSecurity(ChattelApiCallers)
   public async release(chattelId: string): Promise<void> {
     if (!chattelId) return;
     const reg = lookupRegistry();
     if (!reg) return;
-    const owner = reg.ownerOf(chattelId);
     await reg.release(chattelId);
-    this.dropFromOwnerEstate(owner, chattelId);
-  }
-
-  /**
-   * Drop a released good from its owner's live estate.
-   *
-   * **Only reaches a LOADED owner**, and that is a real limit rather than
-   * an oversight: an offline owner's estate lives in `holder_snapshots`,
-   * not in memory, so there is no map here to edit. A good destroyed while
-   * its owner is offline still resurrects on their next login.
-   *
-   * The obvious total fix — have `Estate.hydrateSlice` skip any entry
-   * whose title row is gone — was deliberately NOT taken here. It cannot
-   * distinguish "no title, the good was released" from "the registry has
-   * not rebuilt its index yet", and getting that wrong at restore time
-   * deletes every possession a player owns. A duplicated carrot is a far
-   * cheaper bug than an emptied inventory, so the backstop belongs in a
-   * change that can prove the registry is warm before restore runs, not
-   * in an isolated fix.
-   */
-  private dropFromOwnerEstate(
-    owner: ChattelOwner | null,
-    chattelId: string,
-  ): void {
-    if (owner?.kind !== "player") return;
-    const host = StuffApi.findByTemplatePath(owner.templatePath);
-    if (host && MixinApi.isEstate(host)) host._dropEstateEntry(chattelId);
   }
 
   /** Mint-on-first-stamp: reuse an existing id, else mint + server-write it. */

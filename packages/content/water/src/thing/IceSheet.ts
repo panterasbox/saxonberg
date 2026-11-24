@@ -26,16 +26,17 @@
  *    collapses to one field patch, every occupant goes in, and what was
  *    left on the ice floats or sinks (sinkers to the pool's bottom).
  *
- * ## Its own record
+ * ## Kept by its pool
  *
- * A floor is a fixture with no container, so the persistence spine cannot
- * reach it through its room. It keeps its own `(scope, key)` record keyed
- * by its POOL (restored in `resolveUnderfoot`, captured after every act).
+ * ⭐ The patch log is a THING's state (persistence-model D3): the sheet is
+ * a floor fixture hung on its pool, and the log rides the pool's record
+ * in its fixtures slice — kept when the pool is a kept place, healed at a
+ * restage when it is not. The thickness is DERIVED and never kept.
  */
 
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import WaterSurface, { GROUND_SLOT } from '@saxonberg/server/mud/platform/thing/WaterSurface';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import type { Adornment } from '@saxonberg/server/mud/lib/boundary/Adornment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -118,7 +119,7 @@ export type ScrapeRefusal =
   | ActRefusal<'open'>
   | ActRefusal<'nothing-left'>;
 
-const IceSheetBase = CuttableMixin(PersistableMixin(WaterSurface));
+const IceSheetBase = CuttableMixin(WaterSurface);
 
 export default class IceSheet extends IceSheetBase implements Cuttable {
   static fieldMeta: FieldMeta = {
@@ -526,13 +527,9 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
         /* the sync read falls back to the plain surface */
       }
     }
-    if (this.getTemplatePath() !== null && this.poolKey) {
-      try {
-        await PersistableApi.restoreOrSeed(this as unknown as Stuff, this.poolKey);
-      } catch {
-        /* no store reachable (tests): the log seeds on first read */
-      }
-    }
+    // ⭐ A sheet hung after its pool restored takes what the pool's record
+    // held for it (persistence-model D3).
+    if (MixinApi.isAdornable(room)) await room.adoptRestoredState(this as unknown as Stuff & Adornment);
     this.ensureLog();
   }
 
@@ -659,12 +656,13 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     return room.getContents().some((c) => MixinApi.isHauling(c) && this.supports(c));
   }
 
+  /** Capture the pool that keeps this sheet's log (a no-op when it is a plain place). */
   private async captureSelf(): Promise<void> {
-    if (this.getTemplatePath() === null || !this.poolKey) return;
     try {
-      await PersistableApi.capture(this as unknown as Stuff, this.poolKey);
-    } catch {
-      /* no store reachable */
+      await PersistableApi.captureHostOf(this as unknown as Stuff);
+    } catch (err) {
+      // @quiet a capture after an ice act is best-effort; the next sweep writes it.
+      console.warn('IceSheet: capturing the pool failed:', err);
     }
   }
 }

@@ -37,4 +37,5 @@ data:
   operatingLocations:
     - /world/terminus/mayfield-row/cobbler/location/shop
     - /world/terminus/mayfield-row/cobbler/thing/slate
-  offstage: /world/terminus/mayfield-row/cobbler/location/offstage
+  # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
+  offShift: out

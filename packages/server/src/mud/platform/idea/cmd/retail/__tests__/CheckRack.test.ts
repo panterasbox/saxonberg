@@ -232,6 +232,26 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     });
   });
 
+  it("⭐ two people's like goods on one rack: each reclaim takes the reclaimer's own (#155)", async () => {
+    const { loc, rack, patron } = scene();
+    const other = makeStuffAtPath(() => new TestGiver(), "/platform/agent/Avatar/other");
+    ContainmentApi.move(other as never, loc as never);
+    const check = (who: TestGiver, knife: unknown) =>
+      asOwner(who, () =>
+        ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RackCheckController()).execute({ thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } }, ctx$)))(ctx(who, loc, rack, "check")),
+      );
+    // The OTHER person's knife goes on first — the one a bare tie would pick.
+    const theirs = weapon(other);
+    await check(other, theirs);
+    const mine = weapon(patron);
+    await check(patron, mine);
+    await asOwner(patron, () =>
+      ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new RackReclaimController()).execute({ thing: "knife", rack: { stuff: rack as never, raw: "rack" } }, ctx$)))(ctx(patron, loc, rack, "rack reclaim")),
+    );
+    expect(mine.getContainer()).toBe(patron);
+    expect(theirs.getContainer()).toBe(rack);
+  });
+
   it("a shield is armor, not a weapon — check refuses it", async () => {
     const { loc, rack, patron } = scene();
     const shield = makeStuff(() => new Shield());

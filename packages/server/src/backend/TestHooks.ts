@@ -598,6 +598,18 @@ export class TestHooks {
     return TestHarnessApi.failDatastore(calls);
   }
 
+  /** TEST-ONLY: refuse a character's saves (persistence-model D10). */
+  public static async failSavesOf(handle: string, on: boolean): Promise<{ scope: string; refusing: boolean }> {
+    TestHooks.#assertTestMode('failSavesOf');
+    return TestHarnessApi.failSavesOf(handle, on);
+  }
+
+  /** TEST-ONLY: save characters' records as one batch (persistence-model D10). */
+  public static async saveBatch(handles: string[]): Promise<{ captured: number; failed: number; refused: string[] }> {
+    TestHooks.#assertTestMode('saveBatch');
+    return TestHarnessApi.captureBatch(handles);
+  }
+
   /** TEST-ONLY: write a document past its validator (failure-model D6). */
   public static async forceDocument(
     path: string,

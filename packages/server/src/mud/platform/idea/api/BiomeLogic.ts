@@ -1770,7 +1770,7 @@ function biomeDial(key: string, fallback: number): number {
  * VOLUME is the medium you are in. That is the same discriminator
  * `addAtmosphereContent` uses to decide where litres may go, so contents
  * can only ever be read from a scope they could have been put into.
- * A scope with no volume (a plain `Location`, `Offstage`) is not a place
+ * A scope with no volume (a plain `Location`) is not a place
  * and passes through; nothing in the chain means `[]`, the plain air of a
  * world with nothing in it.
  */

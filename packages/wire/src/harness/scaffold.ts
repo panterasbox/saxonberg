@@ -127,6 +127,8 @@ export const ROPE = "/platform/thing/rope";
 export const CHAIR = "/world/testbed/thing/chair";
 /** The hall's staff tablet. */
 export const TABLET = "/world/testbed/thing/tablet";
+/** The hall's bank of lockers — a kept container in a plain room (persistence-model W1). */
+export const LOCKERS = "/world/testbed/thing/lockers";
 /** The plaza's noticeboard. */
 export const JOB_BOARD = "/world/testbed/thing/job-board";
 /** The lamp every lit interior props. */
@@ -154,6 +156,10 @@ export const ATTENDANT = "/world/testbed/agent/attendant";
 export const GREETER = "/world/testbed/agent/greeter";
 /** Unrostered and placed nowhere: clone it to have an NPC to harm. */
 export const STAND_IN = "/world/testbed/agent/stand-in";
+/** The venue's day clerk at the shop counter, on shift 08:00–18:00 (persistence-model W0). */
+export const CLERK = "/world/testbed/agent/clerk";
+/** A stray cat in the plaza — a kept animal once it has followed somebody (persistence-model W0). */
+export const CAT = "/world/testbed/agent/cat";
 
 // ── staging (W4, plan D3) ──────────────────────────────────────────────────
 //

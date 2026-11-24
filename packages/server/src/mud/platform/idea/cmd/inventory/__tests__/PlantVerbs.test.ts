@@ -368,7 +368,6 @@ describe('plant / repot', () => {
       vigor: p.getVigor(),
       stage: p.getGrowthStage(),
       stamp: p.growthClockStamp,
-      key: p.getPersistenceKey(),
     };
 
     const ctrl = makeStuff(() => new RepotController());
@@ -383,7 +382,6 @@ describe('plant / repot', () => {
     expect(p.getVigor()).toBeCloseTo(before.vigor, 6);
     expect(p.getGrowthStage()).toBe(before.stage);
     expect(p.growthClockStamp).toBe(before.stamp);
-    expect(p.getPersistenceKey()).toBe(before.key);
     expect(captured).toContain(p);
 
     // ⭐ Moisture is NOT in that list any more, and its absence is the

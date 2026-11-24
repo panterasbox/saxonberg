@@ -14,7 +14,7 @@
 # `analyze water the intake` will tell you the kilowatts.
 # ⭐ LIVE (water-supply D30): a cut or a switch-off is somebody's act on the
 # city's works, so the main keeps its own record across an unload.
-class: /system/water/thing/PersistentConduit
+class: /system/water/thing/Conduit
 data:
   shortDescription: city intake
   keywords: [intake, mouth, screen, pillar, waterworks, city]

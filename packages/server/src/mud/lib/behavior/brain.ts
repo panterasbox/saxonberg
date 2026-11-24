@@ -147,6 +147,14 @@ export interface BrainContext {
 export interface BrainStatics {
   /** Display label (CMS palette; cancel/engagement type tag). */
   readonly label: string;
+  /**
+   * ⭐ Where this brain's host is CALLED at `nowS`, if anywhere — a pure read
+   * of its declared hours (persistence-model D15; `frequents`: its place
+   * while a visit window is open). The roster tick asks it of a hand off
+   * shift, so a visit and a shift enter the narrative the same way. Reading
+   * a brain's hours is not running it.
+   */
+  readonly callsAt?: (config: Record<string, unknown>, nowS: number) => string | null;
   /** Engagement slots this brain occupies while acting. */
   readonly claims?: readonly EngagementSlot[];
   /** Slots that must be free for this brain to proceed / hold. */

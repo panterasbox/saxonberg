@@ -208,9 +208,14 @@ primitive. `lib/employment/CapTable.ts` (`CapTableMixin`, `Mixins.CapTable`,
 `capTable: {units, transfer, rows: [{holder: {kind, path, name?}, units}]}`
 — a holder is a player or an organization by identity path; the rows come
 to `units` or to nothing (a seed nobody holds yet). The concrete host is
-`platform/idea/PersistentBusiness` = `Persistable(CapTable(Business))`:
-**a table that changes hands must be KEPT**, so a move on a host with no
-record throws.
+`platform/idea/Company` = `CapTable(Business)` (renamed from
+`PersistentBusiness`, 2026-11-24): **a table that changes hands is
+HISTORY**, so every sale, gift or transfer files it as the business's
+`cap-table` paper (`fileCapTable` → `DocumentApi.saveAsBusiness` at
+`<identity path>/cap-table`), and the company reads it back as its
+hydration source when it stands up. The authored `capTable:` is the table
+until a paper exists. A company keeps no `holder_snapshots` record — a
+business is not a container.
 
 - **Control derives from the table.** `{kind: owners}` is *whoever holds
   MORE than half the units appoints* — a player by identity (a sole owner
@@ -770,18 +775,23 @@ retired.
 - **The move** — `tickBusiness` teleports an assignee on each transition:
   off→on to the seat's **`station`** (a new optional field on a
   `rosterSlot`), defaulting to the house's first `operatingLocations`
-  entry; on→off to the house's **`offstage`** (a new `BusinessMixin`
-  field). A house that authors no `offstage` moves nobody off, which is
-  exactly what every house without the old brain did.
+  entry. Off shift is the house's **`offShift`** (`BusinessMixin`;
+  `out` or nothing — persistence-model D15): in an `out` house a hand off
+  shift goes where its own hours call it (`Behaved.calledToAt` over a
+  brain's `callsAt` — a `frequents` visit window open), else **leaves the
+  narrative** — `ContainmentApi.move(hand, null)` with a departure line,
+  never a room meaning "nowhere" (`placeOffShift` in `EmploymentLogic`).
+  It runs every tick for an `out` house, so a visit window opening on the
+  hour brings a regular in by the same entrance a shift uses, and its
+  closing takes them out. A house that says nothing moves nobody off.
   ⭐ `station` exists because a house may operate two rooms: the
   Hearthworks default is the smithy, so the **cook's seat** says
   `station: …/cookhouse`. A cook sent to the forge is the silent wrongness
   the field prevents.
   ⚠ It is a field on the **employer**, not config on each person's row. It
   used to be the same two paths repeated in every cast member's `shifts`
-  config — four rows all saying `offstage: /world/lounge/location/offstage`
-  — which is the shape that lets one of them say something different by
-  accident.
+  config — four rows all saying the same off-shift path — which is the
+  shape that lets one of them say something different by accident.
 - ⭐⭐ **A ROUND is roster slots** (repair D13, 2026-10-17). One assignee
   holding one seat on several slots is ONE shift: `tickBusiness` groups
   the slots by assignee + seat, is on while any slot's window is (the
@@ -806,19 +816,14 @@ retired.
   load-on-use from the observer's side, never a load for a stop nobody
   stands in (potash, 2026-10-21: the ash-man was evicted from home and
   his round ran with nobody on it).
-- **`Offstage`** — the off-shift parking role (content packs wave 4b,
-  graduated out of the lounge): `OffstageMixin` in `lib/employment/`
-  (a marker + the one invariant — never `Exitable`; `Mixins.Offstage`,
-  `MixinApi.isOffstage`) and the clonable `platform/location/Offstage`
-  (singleton per template path, Visible/Detailed for the operator who
-  teleports in) that every venue's `offstage` row names —
-  `/world/lounge/location/offstage`,
-  `/world/terminus/hearthworks/location/offstage`,
-  `/world/terminus/market/offstage`.
-  The world conserves identity: an off-duty NPC is relocated, never
-  destroyed and respawned, so each venue with a scheduled cast needs
-  somewhere for that cast to *be*. Materialized on demand
-  (`StuffApi.singletonOrClone`).
+- ⛔ **`Offstage` is retired** (persistence-model D15, 2026-11-24). It was
+  an off-shift parking ROOM (`OffstageMixin`, `platform/location/Offstage`,
+  one row per venue) — a place meaning "nowhere". Nowhere is null: the
+  world still conserves identity (an off-duty hand is never destroyed and
+  respawned), it simply has no environment until it is called back. The
+  nine venue rows and the lounge's are deleted, each house says
+  `offShift: out`, and the ice company's hands walk to the shed on a
+  `frequents` spec instead.
 - **Cover, on demand** — `reconcileCover` runs at the **end** of
   `tickBusiness`, which means it also runs on `ensureOperatorAt`: ⭐⭐ **the
   proprietor steps behind an empty bar when somebody orders**, not up to a
@@ -853,9 +858,9 @@ retired.
   only smith SHUTS outside her hours. Cover is for the proprietor who is
   not on the roster (the bar's owner stepping behind an empty bar).
   Tests: `platform/idea/api/__tests__/EmploymentLogic.shiftMove.test.ts`
-  (the move, the station, the missing `offstage`, cover both ways), plus
-  one content test per venue beside its rows
-  (`world/<venue>/__tests__/offstage.test.ts`).
+  (the move, the station, off shift, cover both ways), plus one content
+  test per venue (`world/<venue>/__tests__/offstage.test.ts` — the file
+  name is historical; it asserts `offShift: out` and no parking room).
 - **`restocks`** (libations) — the keeper reads the par sheet and buys
   the shortfall; **`consigns`** — a producer's floor hand carries stock
   to a distributor's counter and consigns it as the business. A floor that
@@ -1363,7 +1368,7 @@ wants the same word, widen it then — one consumer is not a pattern.
 
 ⚠⚠ **A hired hand must be SENT to the work.** `DrillingOutfit.startCrew`
 moves them to `station ?? operatingLocations[0]`, which is
-`moveForShift`'s own rule re-stated because the facade does not expose
+the shift move's own rule re-stated because the facade does not expose
 it and a hire is not a shift flip. The first version did not, on the
 reasoning that *you hire the person standing in front of you* — true of a
 player and **false of every NPC in the realm**, because a brainless hand
@@ -1389,3 +1394,13 @@ HAND's deed. See [cleanliness.md](./cleanliness.md) and [retail.md](./retail.md)
   (`season:` on a `ShiftEntry`, read off the house's local sky);
   `isOnShiftFor`; and a proprietor rostered on her own house never
   covers (`reconcileCover`).
+
+## History — off shift is null; the company files its table (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654). D15: the
+`Offstage` mixin, class and rows retired for `Business.offShift: out` and
+`placeOffShift` (a hand off shift is where its own hours call it, else out
+of the narrative); `Behaved.calledToAt` + the optional brain static
+`callsAt` let the roster tick bring a `frequents` regular in on the hour.
+D6: `PersistentBusiness` → `Company`, whose cap table is a filed
+`cap-table` paper instead of a record.

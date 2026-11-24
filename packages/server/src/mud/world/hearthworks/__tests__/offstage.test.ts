@@ -21,7 +21,6 @@ const VENUE = fileURLToPath(
     import.meta.url,
   ),
 );
-const OFFSTAGE = '/world/terminus/hearthworks/location/offstage';
 const SMITHY = '/world/terminus/hearthworks/location/smithy';
 const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
 
@@ -32,7 +31,6 @@ interface Row {
   class: string;
   data: {
     behaviors?: Spec[];
-    offstage?: string;
     operatingLocations?: string[];
     rosterSlots?: { positionKey: string; station?: string }[];
   };
@@ -44,15 +42,9 @@ const cast = (): readonly (readonly [string, Row])[] =>
     .filter((f) => f.endsWith('.yaml'))
     .map((f) => [f, load(`agent/${f}`)] as const);
 
-describe('the hearthworks parks its cast through Offstage', () => {
-  it("the venue's offstage row is a platform Offstage", () => {
-    expect(load('location/offstage.yaml').class).toBe(
-      '/platform/location/Offstage',
-    );
-  });
-
-  it('the HOUSE names it, once', () => {
-    expect(load('idea/business.yaml').data.offstage).toBe(OFFSTAGE);
+describe('the hearthworks: off shift, its cast is out of the narrative', () => {
+  it('⭐ the HOUSE says its hands leave the narrative off shift (persistence-model D15) — no room means "nowhere"', () => {
+    expect((load('idea/business.yaml').data as { offShift?: string }).offShift).toBe('out');
   });
 
   it('⭐⭐ two rooms, so the COOK’s seat names its station and the smith’s rides the default', () => {

@@ -57,8 +57,8 @@ the same derived climate, so the winter reaches indoors (an
 indoor-biomed room used to drift toward 295 K the year round).
 
 So `universe._defaultTemperature` is now the temperature of a place
-that is **neither under the sky nor authored** (an unbiomed interior,
-`Offstage`), and step 6 still requires it. An authored temperature still
+that is **neither under the sky nor authored** (an unbiomed interior),
+and step 6 still requires it. An authored temperature still
 wins and takes only the weather TYPE's deviation; the honest tool for
 *this place is warm for its latitude* is the zone's `climateOffsetK`.
 
@@ -277,9 +277,9 @@ transparent — skipped by the chain walk.
 >
 > ⚠ **Only a scope with a VOLUME accumulates.** `resolveContentsFor`
 > answers from the innermost `Atmospheric` ancestor **that has one** —
-> never a sum across ancestors — so a plain `Location` and `Offstage`
-> accumulate nothing, which is right: an off-stage parking room is not a
-> place, and the geometry already says so.
+> never a sum across ancestors — so a plain `Location` accumulates
+> nothing, which is right: the geometry already says so. (The off-stage
+> parking room this once named retired 2026-11-24.)
 >
 > ⚠ **The stamp sentinel is `-1`, not `0`.** `_atmosphereContentsStamp`
 > starts `UNSTAMPED = -1` because game-time **zero is a legal instant**

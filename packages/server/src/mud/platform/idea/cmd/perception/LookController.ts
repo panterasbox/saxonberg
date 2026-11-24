@@ -112,6 +112,18 @@ export default class LookController extends CommandController<LookModel> {
       ? Mml.compose`${Mml.actor(thing)} is shut.`
       : Mml.compose`There is nothing inside ${Mml.thing(thing)}.`);
     MessageApi.scene(viewer).topic('sense.survey').toSelf(line).send();
+    // ⭐ Whether its inside keeps (persistence-model D13) — the chain read: a
+    // chest in a kept room is kept, the same chest in a plain room is not.
+    if (MixinApi.isContainer(thing)) {
+      MessageApi.scene(viewer).topic('sense.survey').toSelf(LookController.keptLine(thing.isKept(), 'its inside')).send();
+    }
+  }
+
+  /** The kept line (persistence-model D13): plain words, the same for a place and an inside. */
+  private static keptLine(kept: boolean, what: string): Mml {
+    return kept
+      ? Mml.compose`Kept: what is left in ${what} stays as it was left.`
+      : Mml.compose`Not kept: what is left in ${what} is gone at the next restage.`;
   }
 
   /**
@@ -503,6 +515,12 @@ export default class LookController extends CommandController<LookModel> {
       // when the place is light enough to describe at all.
       if (tintLine) {
         MessageApi.scene(actor).topic('sense.survey').toSelf(tintLine).send();
+      }
+
+      // ⭐ Kept or not (persistence-model D13): its own uncarded scene, like
+      // the light — the card never renders handed prose.
+      if (MixinApi.isContainer(location)) {
+        MessageApi.scene(actor).topic('sense.survey').toSelf(LookController.keptLine(location.isKept(), 'this place')).send();
       }
 
       const scene = MessageApi.scene(actor).topic('sense.survey');

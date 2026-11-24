@@ -154,7 +154,7 @@ export interface Atmospheric {
   /**
    * Put `litres` of a substance into this scope's medium. Returns the
    * litres actually accepted — zero for a scope with no derivable
-   * volume (a plain `Location`, `Offstage`) and zero when open to the
+   * volume (a plain `Location`) and zero when open to the
    * sky, because the sky is where it goes.
    */
   addAtmosphereContent(materialPath: string, litres: number): number;
@@ -323,7 +323,7 @@ export interface Atmospheric {
    * True when it has a volume to hold air in, it authors no own
    * `_temperature` (an authored override is the bespoke case and wins
    * outright), and it is not open to the sky (a yard IS the outside).
-   * Inert everywhere else with no guard needed: `Offstage` and a plain
+   * Inert everywhere else with no guard needed: a plain
    * `Location` have no volume, so the geometry answers.
    */
   /** What this scope's row says it is built of — raw, or `null`. */
@@ -1024,7 +1024,7 @@ export function AtmosphericMixin<
     /**
      * ⭐ The volume this scope's medium occupies, in litres, or `null`
      * when it has none. The SAME discriminator the envelope uses
-     * (`getVolume()`): a plain `Location` and `Offstage` derive no
+     * (`getVolume()`): a plain `Location` derives no
      * volume, so nothing accumulates in them — an off-stage parking
      * room is not a place, and the geometry already says so.
      */
@@ -1249,11 +1249,9 @@ export function AtmosphericMixin<
      * Three conditions, and every one of them is the geometry or the
      * author answering rather than a guard:
      *
-     *  - **It has a volume.** `Offstage` extends `Location` directly and
-     *    a plain `Location` derives nothing, so both return `null` and
-     *    get no envelope. An off-stage parking room is not a place, and
-     *    the geometry already says so — there is deliberately no
-     *    `if (room is Offstage)` anywhere.
+     *  - **It has a volume.** A plain `Location` derives nothing, so it
+     *    returns `null` and gets no envelope — the geometry says so, with
+     *    no special case anywhere.
      *  - **It authors no own `_temperature`.** That is the EXCEPTION
      *    mechanism (a cellar, a cave — somewhere the same all year) and
      *    it wins outright. `lint:envelope` keeps a curated list of every

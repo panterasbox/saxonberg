@@ -4,12 +4,10 @@
  *
  * ## ⭐⭐ Why `Staged` and not `Populates`
  *
- * Renamed at review (2026-09-25), and the motif was already here waiting
- * for it: `platform/location/Offstage` is a real clonable room and
- * `lib/employment/OffstageMixin` is the role, so **off-shift cast are
- * already parked offstage**. A host that has laid out its set and filled
- * it with people is therefore *staged*, and the two words are each
- * other's counterpart rather than two metaphors sharing a codebase.
+ * Renamed at review (2026-09-25): a host that has laid out its set and
+ * filled it with people is *staged* — the theatre's word for it. (The
+ * `Offstage` room that once parked off-shift cast was axed by the
+ * persistence model, D15: out of the narrative is null, never a room.)
  *
  * `Populates` said only that something got filled in, which is true of
  * any write; it named the mechanism's effect rather than the concept, and

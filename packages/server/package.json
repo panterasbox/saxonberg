@@ -148,6 +148,7 @@
     "lint:whole-table": "tsx scripts/check-whole-table.ts",
     "lint:wizard-axis": "tsx scripts/check-wizard-axis.ts --lint",
     "lint:world-scan": "tsx scripts/check-world-scan.ts",
+    "records:sizes": "tsx scripts/record-sizes.ts",
     "reset:db": "tsx scripts/reset-db.ts",
     "start": "tsx src/preload.js",
     "test": "vitest run",

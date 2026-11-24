@@ -90,7 +90,7 @@ paint cottage` and `paint cottage` bind from the lane with no new MQL seed.
 |---|---|
 | `lib/structure/Structure` | *these places are one thing* — membership, entrance, height, storeys, the landing, whether it is sold (`isTitleSold`) |
 | `lib/structure/Building` (only inherited) | a structure with an OUTSIDE: a face painted from its landing, a `Durable` condition the weather wears once the coat is gone |
-| `platform/idea/Building` | what a building row names (a `Singleton` per row); persists once sold |
+| `platform/idea/Building` | what a building row names (a `Singleton` per row); keeps no record — its coats and condition ride its entrance's record when that room is kept (persistence-model D4) |
 | `HoldingBuilding` (`residence`) | a holding's building, minted per building row its programme names (`buildings:`, main first, on the programme row beside the plan's `extent` and `entrance`); its rooms are the plan's under that row's `extent` — authored, never grouped by how rooms connect |
 | `platform/idea/Structure` | a bare structure row — a thing with no outside; today only the peak of Waponi Woo, until the mountain slate |
 | `Ship` (`platform/idea/Ship`, `Durable(Faced(lib/structure/Structure))`) | a structure that moves; her hull takes coats wherever she is, and her seams are a `Durable` fabric under them (harbors) — worn, she leaks. A ship of a kind's members are her warren's, never a path (`Structure.memberExtent()` `@hook` answers `''`; every smack shares her kind's room rows). See [ship.md](./ship.md) |

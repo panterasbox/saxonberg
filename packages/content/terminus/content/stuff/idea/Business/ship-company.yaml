@@ -11,7 +11,7 @@
 # master (`kind: owners`). Her register entry names the minted company as
 # her owner. The seed itself is held by nobody (`rows: []`), and so nobody
 # appoints at it: it is a shape, not a company.
-class: /platform/idea/PersistentBusiness
+class: /platform/idea/Company
 data:
   name: "a ship's company"
   appointingAuthority:
