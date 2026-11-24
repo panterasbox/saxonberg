@@ -25,7 +25,6 @@ const VENUE = fileURLToPath(
     import.meta.url,
   ),
 );
-const OFFSTAGE = '/world/lounge/location/offstage';
 
 interface Spec {
   brain: string;
@@ -36,7 +35,6 @@ interface Row {
   data: {
     name?: string;
     behaviors?: Spec[];
-    offstage?: string;
     operatingLocations?: string[];
     rosterSlots?: { positionKey: string; station?: string }[];
   };
@@ -48,15 +46,10 @@ const cast = (): readonly (readonly [string, Row])[] =>
     .filter((f) => f.endsWith('.yaml'))
     .map((f) => [f, load(`agent/${f}`)] as const);
 
-describe('the lounge parks its cast through Offstage', () => {
-  it("the venue's offstage row is a platform Offstage", () => {
-    expect(load('location/offstage.yaml').class).toBe(
-      '/platform/location/Offstage',
-    );
-  });
-
-  it('⭐ the HOUSE names it, once, where four cast rows used to each name it', () => {
-    expect(load('idea/business.yaml').data.offstage).toBe(OFFSTAGE);
+describe('the lounge: off shift, its cast is out of the narrative', () => {
+  it('⭐ the HOUSE says its hands leave the narrative off shift (persistence-model D15) — no room means "nowhere"', () => {
+    expect((load('idea/business.yaml').data as { offShift?: string }).offShift).toBe('out');
+    expect(() => load('location/offstage.yaml')).toThrow();
   });
 
   it('⚠ and no cast row names a retired brain', () => {

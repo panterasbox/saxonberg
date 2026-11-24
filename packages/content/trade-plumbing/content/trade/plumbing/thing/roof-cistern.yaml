@@ -1,9 +1,10 @@
 # The roof cistern (water-supply W5, D5/D25) — a lead-lined tank for the
 # roof space: the house's water between the main's hours. It fills from
 # what is poured into it (a cask carried up, AC 22), it stands high so the
-# taps fed from it run with head, and its water is the house's — LIVE
-# (D30): what was poured in and drawn out is kept.
-class: /platform/thing/PersistentWaterStore
+# taps fed from it run with head. ⭐ Its water is a thing in the house
+# (persistence-model D3): kept when it stands in a kept room, as authored
+# when it stands in a plain one.
+class: /platform/thing/WaterStore
 data:
   shortDescription: roof cistern
   keywords: [cistern, tank, "roof cistern", "water tank"]

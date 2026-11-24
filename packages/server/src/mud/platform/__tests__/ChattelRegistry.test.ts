@@ -233,18 +233,6 @@ describe("chattel possession core", () => {
     expect(rows[0]!.owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
   });
 
-  it("⭐ a good placed where it already stands is not written again (db-performance H4)", async () => {
-    const torch = makeTorch();
-    await torch.stampChattel(makeOwner("alice"));
-    const many = vi.spyOn(PersistApi, "saveMany");
-    await torch.setChattelPlace("/test/place/a");
-    await torch.setChattelPlace("/test/place/a");
-    await torch.setChattelPlace("/test/place/b");
-    expect(many.mock.calls.filter(([c]) => c === "chattel")).toHaveLength(2);
-    const [row] = await ChattelRecord.find<ChattelRecord>({ chattelId: torch.getChattelId() });
-    expect(row!.place).toBe("/test/place/b");
-  });
-
   /**
    * ⭐ The size-and-carrying drive (run 12, step 21's second restart): the
    * steading mule's restore re-minted its tack INTO it, and "the hands it
@@ -285,50 +273,6 @@ describe("chattel possession core", () => {
     );
 
     const owner = await torch.chattelOwner();
-    expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
-  });
-
-  it("ownership survives a persistence round-trip — now OWNER-side", async () => {
-    // D2 changed which record carries a stamped good: a foreign container
-    // (this vault) no longer persists it, because someone else holds title.
-    // It rides that owner's ESTATE instead, and the identity + title that
-    // this test has always guarded survive the round-trip unchanged — which
-    // is the criterion, independent of which scope stores it.
-    const torch = makeTorch();
-    const alice = makeStuffAtPath(() => new EstateHolder(), "/platform/agent/Avatar/alice");
-    const vault = makeStuffAtPath(() => new Vault(), "/obj/test/vault");
-
-    await torch.stampChattel(alice);
-    const id = torch.getChattelId();
-    ContainmentApi.move(
-      torch as unknown as Stuff & Containable,
-      vault as unknown as Stuff & Container,
-    );
-    // The move records custody asynchronously (derived in the primitive);
-    // let that record land before overriding the place, or it lands after.
-    await torch.followCustody();
-    await torch.setChattelPlace("inventory");
-
-    // The vault captures WITHOUT the torch (the skip rule), and the flush
-    // hands it to Alice; then Alice round-trips, carrying it.
-    await PersistableApi.capture(vault);
-    await PersistableApi.capture(alice);
-    for (const item of (vault as unknown as Stuff & Container).getDeepContents())
-      StuffApi.unregister(item);
-    StuffApi.unregister(vault);
-    StuffApi.unregister(alice);
-
-    const reborn = makeStuffAtPath(() => new EstateHolder(), "/platform/agent/Avatar/alice");
-    await PersistableApi.materialize(reborn);
-
-    const contents = (reborn as unknown as Stuff & Container).getContents();
-    const restored = contents.find((s) => MixinApi.isChattel(s)) as
-      | (Stuff & { getChattelId(): string })
-      | undefined;
-    expect(restored).toBeDefined();
-    expect(restored!.getChattelId()).toBe(id);
-
-    const owner = await (restored as unknown as Stuff & Chattel).chattelOwner();
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
   });
 
@@ -464,10 +408,9 @@ describe("chattel possession core", () => {
     expect(col("chattel").some((d) => d.chattelId === id)).toBe(true);
 
     StuffApi.destruct(torch);
-    // onDestruct fires a fire-and-forget async release; let it settle.
-    await new Promise((r) => setImmediate(r));
-
-    expect(col("chattel").some((d) => d.chattelId === id)).toBe(false);
+    // onDestruct fires a fire-and-forget async release (behind a dynamic
+    // import); let it settle.
+    await vi.waitFor(() => expect(col("chattel").some((d) => d.chattelId === id)).toBe(false));
     const events = await ChattelEvent.findByChattelId(id);
     expect(events.at(-1)?.event).toBe("released");
 

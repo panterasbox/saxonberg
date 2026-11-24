@@ -128,7 +128,7 @@ describe('the market', () => {
     expect(square.cast).toContain('/world/terminus/market/agent/fishmonger');
   });
 
-  it('⚠ the market names an Offstage that EXISTS, and a station for the square — the undertaker\'s defect, not repeated', () => {
+  it('⚠ the market sends its hands out of the narrative off shift, and names a station for the square that EXISTS', () => {
     // ⭐ This used to read the fishmonger's `shifts` config. The brain is
     // retired: presence is a consequence of employment state, so the
     // off-shift room is the HOUSE's field and the on-shift room is the
@@ -136,11 +136,11 @@ describe('the market', () => {
     // resolve to rows, because a path that resolves to nothing moves
     // nobody and says nothing.
     const biz = data('/world/terminus/market/business') as {
-      offstage?: string;
+      offShift?: string;
       rosterSlots: Array<{ positionKey: string; station?: string }>;
     };
-    expect(rowExists(biz.offstage!)).toBe(true);
-    expect(rowAt(biz.offstage!).class).toBe('/platform/location/Offstage');
+    // ⭐ persistence-model D15: out of the narrative is null, never a room.
+    expect(biz.offShift).toBe('out');
     const monger = biz.rosterSlots.find((s) => s.positionKey === 'monger')!;
     expect(rowExists(monger.station!)).toBe(true);
 

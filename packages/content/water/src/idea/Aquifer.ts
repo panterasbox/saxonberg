@@ -11,10 +11,10 @@
  * A system's class, the realm's instances (the `Watercourse` rule): rows live
  * in the commons at `/stuff/idea/Aquifer/<key>`.
  *
- * ⭐ Staged or live is the row's (D30): this plain class reverts to full
- * when it unloads — Rejection's shallow till, which nothing in the realm
- * draws hard; a valley whose draws are the commons' history names
- * {@link PersistentAquifer}.
+ * ⭐ Its draws are HISTORY (persistence-model D5): every aquifer files them
+ * on the water ledger ({@link WaterLedger}) after every draw and reads them
+ * back as it stands up, so a restage never refills a valley a junior
+ * pumped dry. (The `PersistentAquifer` twin retired.)
  *
  * Not ground's `BodyRegister` (recharge-free by design; a document per
  * draw): an aquifer is ONE level, reconciled.
@@ -29,11 +29,15 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
 import type Locality from '@saxonberg/server/mud/platform/idea/Locality';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import WaterLedger, { type Ledgered } from './WaterLedger';
+import type { HydrationSource, HydrateOutcome } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
+
 
 /** The longest unwatched gap a recharge is integrated over (a year). */
 const MAX_GAP_S = 365 * 86_400;
 
-export default class Aquifer extends NamedMixin(SingletonMixin(Idea)) {
+export default class Aquifer extends NamedMixin(SingletonMixin(Idea)) implements Ledgered {
   static fieldMeta: FieldMeta = {
     areaKm2: { persistent: true, authorable: true },
     capacityM3: { persistent: true, authorable: true },
@@ -63,6 +67,44 @@ export default class Aquifer extends NamedMixin(SingletonMixin(Idea)) {
   protected aquiferStamp: number | null = null;
 
   private _locality: Locality | null = null;
+
+  /**
+   * ⭐ What the commons remembers of this aquifer: its history on the water
+   * ledger (persistence-model D5), read as it stands up. `required: false`
+   * — an unreachable store (early boot, every unit test) is a recorded
+   * skip, and the row's authored state stands.
+   */
+  static hydrationSource: HydrationSource = { name: 'documents (water-ledger)', required: false };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    if (!(host instanceof Aquifer)) return { status: 'skipped', reason: 'not-its-kind' };
+    try {
+      const data = await (await WaterLedger.get()).read(host);
+      if (data) host.takeLedger(data);
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built aquifer.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+
+  /** File this aquifer's history on the water ledger (fire-and-forget; a failure is a diagnostic). */
+  private fileLedger(): void {
+    void WaterLedger.get()
+      .then((ledger) => ledger.file(this as unknown as Stuff & Ledgered))
+      .catch((err: unknown) => console.warn('Aquifer: filing on the water ledger failed:', err));
+  }
+
+  /** See {@link Ledgered.ledgerRecord}: how far below full it stands, and when that was so. */
+  public ledgerRecord(): Record<string, unknown> {
+    return { drawnM3: this.drawnM3, aquiferStamp: this.aquiferStamp };
+  }
+
+  /** See {@link Ledgered.takeLedger}. */
+  public takeLedger(data: Record<string, unknown>): void {
+    if (typeof data.drawnM3 === 'number' && Number.isFinite(data.drawnM3)) this.drawnM3 = Math.max(0, data.drawnM3);
+    if (typeof data.aquiferStamp === 'number' && Number.isFinite(data.aquiferStamp)) this.aquiferStamp = data.aquiferStamp;
+  }
 
   /** A shared commons record is never culled while a well reads it. */
   public canEvict(): VetoResult {
@@ -153,16 +195,19 @@ export default class Aquifer extends NamedMixin(SingletonMixin(Idea)) {
     const m3 = Math.max(0, litres) / 1000;
     const given = Math.min(m3, Math.max(0, this.capacityM3 - this.drawnM3));
     this.drawnM3 += given;
+    this.fileLedger();
     return given * 1000;
   }
 
   /** Water that percolated down past a field's roots — it comes back (D15). */
   public creditPercolation(litres: number): void {
     this.drawnM3 = Math.max(0, this.drawnM3 - Math.max(0, litres) / 1000);
+    this.fileLedger();
   }
 
   /** Stand it `m3` below full — the setter a drive stages a dry year with (founder `eval`), as a tank's `setLevelM3` is. */
   public setDrawnM3(m3: number): void {
     this.drawnM3 = Math.max(0, Math.min(this.capacityM3, Number.isFinite(m3) ? m3 : 0));
+    this.fileLedger();
   }
 }

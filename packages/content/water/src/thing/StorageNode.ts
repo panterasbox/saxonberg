@@ -25,9 +25,10 @@
  * Everything else here derives: flow from the weather, direction from
  * elevation, contamination from distance. A **level cannot**, because
  * outflow depends on what players drew, and no function of time knows
- * that. So it is state plus a stamp on a `Persistable` host — and it is
- * the one place in this build where a restart could lose something, so
- * it is the one place that persists.
+ * that. So it is state plus a stamp — ⭐ and it is a THING's state
+ * (persistence-model D3): water standing somewhere, kept by the place the
+ * tank stands in. A tank in a kept place is as it was left; a tank in a
+ * plain place (Hinkley Hills' lane) comes back as authored at a restage.
  *
  * Roof-catchment harvesting falls out with no new machinery: catchment
  * area × precipitation, which is {@link CultivableMixin}'s expression
@@ -37,7 +38,6 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
@@ -75,14 +75,10 @@ export interface StorageMovement {
   levelM3: number;
 }
 
-// PersistableMixin OUTERMOST — the documented host rule.
-//
 // ⭐ Singleton since the water-supply build: a premises cites the tank by
 // its row path and a tap loads it on use; the lane that props it adopts the
 // same instance.
-const StorageNodeBase = PersistableMixin(
-  SwitchableMixin(SingletonMixin(Thing)),
-);
+const StorageNodeBase = SwitchableMixin(SingletonMixin(Thing));
 
 export default class StorageNode extends StorageNodeBase implements WaterSupply {
   static fieldMeta: FieldMeta = {

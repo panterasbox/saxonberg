@@ -135,9 +135,10 @@ export type NameRefusalReason =
   | 'name-taken';
 export type NameRefusal = ActRefusal<NameRefusalReason>;
 /**
- * A name taken. `promoted`: the naming was also the thing's PROMOTION — it
- * is titled, keyed and captured now (an animal: identity and durability
- * together).
+ * A name taken. `promoted`: the naming was an animal's — it is titled to
+ * its namer and named among the witnesses (the line says so). ⭐ Naming
+ * confers no persistence (persistence-model D8): a kept animal keeps itself
+ * because it chose somebody.
  */
 export type NameTaken = ActOutcome<{ promoted: boolean }>;
 

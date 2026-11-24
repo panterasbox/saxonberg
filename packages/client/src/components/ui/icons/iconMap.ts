@@ -16,6 +16,7 @@
  */
 
 import {
+  Archive,
   CloudSun,
   Clock,
   Flashlight,
@@ -162,6 +163,8 @@ export const ICONS = {
   "place.water": Droplets,
   "place.crowd": Users,
   "place.elevation": Mountain,
+  /** Is what you leave here kept (persistence-model D13)? */
+  "place.kept": Archive,
   "section.horizon": Binoculars,
   "section.structure": Building2,
   "section.ship": Ship,

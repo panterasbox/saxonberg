@@ -4,7 +4,7 @@
 # (D30): a junior pumping through a dry year lowers every well in the
 # valley, and that history is the commons'. Its level is HIDDEN — the
 # observation well at the headgate is the one thing that reads it.
-class: /system/water/idea/PersistentAquifer
+class: /system/water/idea/Aquifer
 data:
   name: the Delight valley gravels
   areaKm2: 6

@@ -47,7 +47,6 @@ data:
       config:
         place: /world/lounge/location/bar
         sit: stool
-        home: /world/lounge/location/offstage
         visits:
           - { days: [5], hours: [19, 22] }
     # Intrinsic auto-introduce: name themselves to newcomers so patrons

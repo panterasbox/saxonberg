@@ -88,13 +88,10 @@ describe('⭐ the estate holds its own succession state', () => {
     StuffApi.clearAll();
   });
 
-  it('⚠⚠ they are NOT declared fields — a slice-bearing layer never contributes its own', () => {
-    // The thing that looks right and is wrong. If someone "fixes" this
-    // by adding them to `EstateMixin.fieldMeta`, they stop persisting
-    // and nothing else fails.
+  it('⭐ they are declared fields now the estate carries no slice (persistence-model D9)', () => {
     const fields = MixinApi.getAllPersistentFields(EstateHost);
-    expect(fields).not.toContain('escheatedAt');
-    expect(fields).not.toContain('beneficiary');
+    expect(fields).toContain('escheatedAt');
+    expect(fields).toContain('beneficiary');
   });
 
   it('both fields survive capture → holder_snapshots → materialize', async () => {
@@ -128,11 +125,11 @@ describe('⭐ the estate holds its own succession state', () => {
     expect(host.getBeneficiary()).toBe('/platform/agent/Avatar/heir-2');
   });
 
-  it('a never-escheated host records its defaults and no entries', async () => {
+  it('a never-escheated host records its defaults and no goods', async () => {
     const key = '/platform/agent/Avatar/estate-3';
     const host = makeStuffAtPath(() => new EstateHost(), key);
     await PersistableApi.capture(host, key);
-    expect(JSON.stringify(snapshots)).toContain('"entries":[]');
+    expect(JSON.stringify(snapshots)).not.toContain('"entries"');
     expect(JSON.stringify(snapshots)).toContain('"beneficiary":""');
   });
 });

@@ -40,4 +40,5 @@ data:
     - /world/terminus/market/stalls
     - /world/terminus/market/thing/fish-stall
     - /world/terminus/market/thing/potters-stall
-  offstage: /world/terminus/market/offstage
+  # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
+  offShift: out

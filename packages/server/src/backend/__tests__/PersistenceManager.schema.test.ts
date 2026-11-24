@@ -217,7 +217,9 @@ describe('plannedIndexes', () => {
     // makes the first test mean something.
     pm.loadSchemaDocs(SCHEMA_DIR);
     const plan = pm.plannedIndexes();
-    const chattel = plan.filter((i) => i.collection === Collections.Chattel);
-    expect(chattel.map((i) => i.keys)).toContainEqual({ place: 1 });
+    // (`chattel`'s `place` index went with the estate, persistence-model D9;
+    // the residency pin's index is on `holder_snapshots` now.)
+    const snaps = plan.filter((i) => i.collection === Collections.HolderSnapshots);
+    expect(snaps.map((i) => i.keys)).toContainEqual({ pinned: 1 });
   });
 });

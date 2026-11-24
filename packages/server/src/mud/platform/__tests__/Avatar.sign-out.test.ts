@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ A signed-out body leaves the world; a linkdead one stays where it stands
  * (owner, controllers-are-io D30). Save, then destruct, and every way that
- * order can go wrong: a failed save, a login racing it, a body something is
+ * order can go wrong: a refused save (it never keeps the body), a login racing it, a body something is
  * still holding here, several tabs, and the goods it carried.
  */
 
@@ -82,18 +82,13 @@ describe("signing out", () => {
     expect(a.hasLiveSession()).toBe(true);
   });
 
-  it("⚠ a failed save leaves the body standing, and tries again", async () => {
-    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  it("⭐ a refused save never keeps the body — the last good record stands, the body leaves (persistence-model D10)", async () => {
     const a = body("so-fail");
     const save = vi.spyOn(a, "save").mockRejectedValueOnce(new Error("mongo down"));
     const destruct = vi.spyOn(StuffApi, "destruct").mockImplementation(() => undefined);
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     await signOut(a);
-    expect(destruct).not.toHaveBeenCalled();
-    expect(a.isDestroyed()).toBe(false);
-    await vi.advanceTimersByTimeAsync(Avatar.SIGN_OUT_RECHECK_MS + 1);
-    await settle();
-    expect(save).toHaveBeenCalledTimes(2);
+    expect(save).toHaveBeenCalledTimes(1);
     expect(destruct).toHaveBeenCalledTimes(1);
   });
 

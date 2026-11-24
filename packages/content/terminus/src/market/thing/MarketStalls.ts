@@ -32,7 +32,11 @@
  * fire on it at all (the scan's needle was the host's own identity —
  * see persistence.md).
  *
- * ⚠⚠ **The fixture establishes its OWN record, and has to.** It is
+ * ⭐ **The fixture's record is keyed by its part name** (persistence-model
+ * D2): the staging walk restores it where it is minted. The paragraphs
+ * below are the history of why.
+ *
+ * ⚠⚠ **The fixture established its OWN record, and had to.** It was
  * cloned fresh from the square's `props:` on every boot, and a
  * `props:` fixture on a non-`Persistable` `Street` is established by
  * nobody: `Stock.onCreate` never restores, and `capturesAtShutdown()`
@@ -60,10 +64,6 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { EmploymentApi, type Business } from '@saxonberg/server/mud/api/employment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import type {
-  HydrationSource,
-  HydrateOutcome,
-} from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -114,47 +114,6 @@ export default class MarketStalls extends Stock {
     // says how many pitches the square has; who is on them is play.
     lets: { persistent: true },
   };
-
-  /**
-   * What the world remembered about this square: the book of lets.
-   *
-   * `required: false` — an unreachable store is a recorded skip, not a
-   * refusal to exist. Early boot and every test run are that case (no
-   * Mongo), and a market square that cannot read its book should still
-   * stand; it simply has no lets yet, which is also what a fresh square
-   * looks like.
-   */
-  static hydrationSource: HydrationSource = {
-    name: 'holder_snapshots',
-    required: false,
-  };
-
-  /**
-   * Restore the fixture's own `(scope, key)` record.
-   *
-   * Keyless on purpose — one fixture per row, so the owner derives from
-   * the scope, which is the degenerate singleton case of the spine's
-   * `(scope, key)` pair. A missing record is a clean no-op (an unrented
-   * square has nothing to remember).
-   *
-   * ⭐ Side effect worth naming: this also restores whatever was
-   * CONSIGNED on the square's own stall, which nothing restored before
-   * — the fixture was established by nobody, so the market's produce
-   * vanished at every boot. That is a fix, not a regression, and it is
-   * the reason the record is the whole host's rather than the book's
-   * alone.
-   */
-  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    try {
-      await PersistableApi.materialize(host);
-      return { status: 'hydrated' };
-    } catch (err) {
-      // ⚠ Never throw from here: a throw unregisters the half-built
-      // object, so a store hiccup would take the market square out of
-      // the world rather than leaving it bookless.
-      return { status: 'unreachable', reason: String(err) };
-    }
-  }
 
   /** What a stall on this square costs to rent, in minor units (0 = free). */
   public rentMinor = 0;

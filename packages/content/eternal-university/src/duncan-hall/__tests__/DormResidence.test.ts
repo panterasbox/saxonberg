@@ -33,7 +33,7 @@ import {
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
 import { HasInteractiveMixin } from '@saxonberg/server/mud/lib/connection/HasInteractive';
-import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { ContainableMixin, type Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
@@ -99,7 +99,11 @@ function seedDomain(): void {
   add('/world/terminus/eternal/duncan-hall/thing/dorm-door', '/platform/thing/Door', { shortDescription: 'dorm-room door', keywords: ['door'], locked: true, closesBehind: true });
   add('/stuff/idea/exits/stair', '/platform/idea/Exit');
 
-  add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren');
+  // ⭐ The lobby is the letting office: its storeroom cage is where a
+  // former tenant's things are boxed (persistence-model D11).
+  add(DormWarren.WARREN_PATH, '/world/terminus/eternal/duncan-hall/idea/DormWarren', {
+    storeroom: DormWarren.LOBBY_PATH,
+  });
   // ⭐ The theme catalogue is a SINGLETON Idea now, not a class of statics
   // — so the test world has to seed its row like any other singleton.
   add(DormThemes.CATALOGUE_PATH, '/world/terminus/eternal/duncan-hall/idea/DormThemes');
@@ -138,7 +142,10 @@ function seedDomain(): void {
   });
   add(DormWarren.LOBBY_PATH, '/world/terminus/eternal/duncan-hall/location/Corridor', {
     shortDescription: 'the lobby',
+    props: [{ template: STOREROOM, as: 'storeroom' }],
   });
+  add(STOREROOM, '/platform/thing/Locker', { shortDescription: 'storeroom cage' });
+  add(CUP, '/platform/thing/Good', { shortDescription: 'tin cup', keywords: ['cup'] });
   add(FIXTURES[0]!, '/world/terminus/eternal/duncan-hall/thing/Bed', {
     shortDescription: 'a narrow bed',
   });
@@ -150,6 +157,9 @@ function seedDomain(): void {
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
 }
+
+const STOREROOM = '/world/terminus/eternal/duncan-hall/thing/storeroom';
+const CUP = '/test/cup';
 
 function seedUnit(floor: number, pos: number): string {
   const extent = `${DORMS}/f${floor}-r${pos}`;
@@ -509,6 +519,9 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     const iris = makeAvatar('iris');
     const room = await w.admit(k1);
     ContainmentApi.move(iris, room);
+    // ⭐ persistence-model D11: a thing the tenant left in the room.
+    const cup = await StuffApi.clone<Stuff & Containable>(CUP);
+    ContainmentApi.move(cup, room);
 
     // Personalize (seal a style), then move iris out so the unit is vacant.
     await (await themes()).applyTo(room, 'medic');
@@ -523,9 +536,9 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     // delete record + retire slot.
     const op = makeAvatar('op');
     const ctx = ctxFor(op, 'unprovision');
-    // ⭐ C4 (controller-liquidity W13): the tenant's goods go to storage
-    // BEFORE the room is dropped — the dorm's end-let used to skip it.
-    const evict = vi.spyOn(ChattelApi, 'evictToStorage');
+    // ⭐ persistence-model D11: what the tenant left in the room is boxed
+    // into the lobby's storeroom BEFORE the room is dropped; a room's own
+    // fixtures are its shell and stay.
     await run(
       makeStuff(() => new UnprovisionController()),
       op,
@@ -533,7 +546,11 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
       ctx,
     );
     expect(rejectionReason(ctx)).toBeNull();
-    expect(evict).toHaveBeenCalledWith(`${DormRoom.SCOPE}#${k1}/room`);
+    const lobby = await StuffApi.singleton<Stuff & Container>(DormWarren.LOBBY_PATH);
+    const store = lobby.getContents().find((c) => c.getTemplatePath() === STOREROOM) as (Stuff & Container) | undefined;
+    expect(store?.getContents().map((c) => c.getTemplatePath())).toEqual([CUP]);
+    // (The room slept and woke meanwhile — the boxed cup is the one its
+    // record restored, so it is matched by its row, not by instance.)
     expect(snapshots().filter((s) => s.owner === k1)).toHaveLength(0); // record cleared
     expect(await ParcelApi.hasUseGrant(k1, '/platform/agent/Avatar/iris')).toBe(false);
     expect(await ParcelRecordFor(k1)).toBeNull(); // slot freed

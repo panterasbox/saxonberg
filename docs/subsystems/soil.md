@@ -306,10 +306,12 @@ word for a part of a soil stays *part* (`soilParts`, `groundPart`,
   (ranching.md); a trough on the tract feeds any field's herd. A tract
   with no field marked reads *"Nobody has marked a field on it. It is
   rough ground."*, and nothing is sown on it.
-- **A field keeps its own record**, keyed `<tract key>/<field key>`
-  (`PersistableMixin` on the fixture); the tract's capture writes its
-  fields (`Persistable.dependentPersistables`) and an unmarking deletes
-  the record.
+- **A field rides its tract's record** (persistence-model D3,
+  2026-11-24): it is a fixture on the tract, so its state nests in the
+  tract's `Adornable` fixtures slice; a field marked after the tract
+  restored takes its slot's state through `Adornable.adoptRestoredState`.
+  (It kept its own record, keyed `<tract key>/<field key>`, as one of the
+  tract's `dependentPersistables`, until then.)
 - **A tract is read from where it is reached** — `look upper bench`
   from the farmyard lists its fields (`Place.isSeenAcrossExit`); working
   a field still means standing in its tract.

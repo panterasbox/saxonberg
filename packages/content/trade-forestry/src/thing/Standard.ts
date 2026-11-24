@@ -21,6 +21,8 @@
  */
 
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
+import { SecurityApi } from '@saxonberg/server/mud/api/security';
+import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -49,6 +51,25 @@ const FELLED_TREE_PATH = '/trade/forestry/thing/felled-tree';
 const StandardBase = FellableMixin(Plant);
 
 export default class Standard extends StandardBase {
+  static fieldMeta: FieldMeta = {
+    ...Plant.fieldMeta,
+    plantingKey: { persistent: true },
+  };
+
+  /**
+   * ⭐ This tree's durable name for the planting deed (persistence-model
+   * D3): a tree has no record of its own, so its key is a field minted on
+   * first demand, which rides the tree's state in the record of the wood
+   * it stands in.
+   */
+  public plantingKey: string = '';
+
+  /** This tree's planting key, minted if absent. */
+  public getPlantingKey(): string {
+    if (!this.plantingKey) this.plantingKey = SecurityApi.uuid();
+    return this.plantingKey;
+  }
+
   public override async fellPlanFor(
     actor: Stuff,
     axe: Stuff,
@@ -86,7 +107,7 @@ export default class Standard extends StandardBase {
     const entry = stand ? (stand.getMix().find((sp) => sp.speciesPath === speciesPath) ?? null) : null;
     const woodPath = entry?.woodMaterialPath ?? this.getStandardMaterialPath() ?? '';
     const seedPath = entry?.seedPath ?? this.getSeedTemplatePath();
-    const plantKey = MixinApi.isPersistable(self) ? self.getPersistenceKey() : null;
+    const plantKey = this.plantingKey || null;
     const mature = stage === 'mature';
 
     // ⭐ The endurance is spent HERE, when the tree comes down (C12).

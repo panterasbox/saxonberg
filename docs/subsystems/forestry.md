@@ -341,7 +341,10 @@ and promised nowhere** (450 real days; nothing can observe it yet).
 does: when a standard arrives in the plant slot inside somebody's command
 frame (`ExecutionContextApi.getActingAuthor()` — a restore at boot has
 none), the panel asks its container. A Wood records the planting on its
-stand (idempotent on the tree's key, because a persistence restore
+stand (idempotent on the tree's key — `Standard.plantingKey`, a field
+minted on first demand that rides the tree's state in its wood's record,
+since a plant keeps no record of its own after persistence-model D3 —
+because a persistence restore
 inside a `go` frame — the room `singleton()`s on first arrival — re-seats
 the same tree) and captures; the planter's chronicle takes one deed keyed
 on the tree (`recordChronicleOnce('forestry:planting:<key>')` — *planted

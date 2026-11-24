@@ -1,0 +1,15 @@
+# The dorm's storeroom — a cage of shelves behind Katie's counter where a
+# former tenant's things are boxed when their let ends (persistence-model
+# D11). A `Locker`: what is held here keeps, and the tenant takes each thing
+# back with `rack reclaim`. Sized generously — a thing too big for it is
+# lost with the room.
+class: /platform/thing/Locker
+data:
+  shortDescription: storeroom cage
+  register: definite
+  primaryKeyword: storeroom
+  keywords: [storeroom, cage, store, lockers]
+  longDescription: |
+    A wire cage behind the counter, its shelves stacked with labeled boxes — the things of tenants who have moved out, waiting to be collected.
+  fixedInPlace: true
+  mass: 120

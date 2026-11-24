@@ -27,7 +27,6 @@ import Locale from '../../location/Locale';
 import SphericalLocation from '../../../platform/location/SphericalLocation';
 import SphericalLocale from '../../../platform/location/SphericalLocale';
 import PersistentLocation from '../../../platform/location/PersistentLocation';
-import Offstage from '../../../platform/location/Offstage';
 import Void from '../../../platform/location/Void';
 import Crossing from '../../../platform/location/Crossing';
 import CircleFloor from '../../../platform/location/sandbox/CircleFloor';
@@ -426,7 +425,6 @@ describe('⭐ the roster — every concrete kernel Place class', () => {
     ['SphericalLocation', () => new SphericalLocation()],
     ['SphericalLocale', () => new SphericalLocale()],
     ['PersistentLocation', () => new PersistentLocation()],
-    ['Offstage', () => new Offstage()],
     ['Crossing', () => new Crossing()],
     ['CircleFloor', () => new CircleFloor()],
     // ⚠ The two lounge classes (`Lounge`, `Bar`) are on the

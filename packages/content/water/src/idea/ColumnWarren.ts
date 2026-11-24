@@ -28,7 +28,6 @@
 import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
 import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { WaterColumnMixin, type ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
 import type { WaterPlace } from '@saxonberg/server/mud/lib/location/WaterPlace';
 import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
@@ -56,7 +55,9 @@ const UNDERWATER_EXIT_KIND = '/system/water/idea/exits/underwater';
 /** The exit kind a column's ways are cloned from. */
 const COLUMN_EXIT_KIND = '/system/water/idea/exits/column';
 
-const ColumnWarrenBase = WaterColumnMixin(SingletonMixin(PersistableMixin(RoomWarren)));
+// ⭐ No record of its own (persistence-model): its bands are kept places
+// that capture themselves.
+const ColumnWarrenBase = WaterColumnMixin(SingletonMixin(RoomWarren));
 
 export default class ColumnWarren extends ColumnWarrenBase {
   /** Where the singleton lives (`TemplatePaths.waterColumn`). */

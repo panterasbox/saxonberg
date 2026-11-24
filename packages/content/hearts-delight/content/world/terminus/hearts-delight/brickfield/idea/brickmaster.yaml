@@ -55,7 +55,8 @@ data:
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
   banksAt: goodkin
-  offstage: /world/terminus/hearts-delight/brickfield/location/offstage
+  # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
+  offShift: out
   operatingLocations:
     # ⚠ Room FIRST, then the counter (the sawmill's lesson: a sale settles
     # to the house found at the COUNTER's path, and a supplier is found by

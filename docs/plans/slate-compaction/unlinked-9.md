@@ -201,7 +201,7 @@ No cuts.
 
 ---
 
-## docs/slates/engine/estate-nesting-slate.md — 106 → 101 · Status UNBUILT → UNBUILT
+## docs/slates/engine/persistence-model-slate.md — 106 → 101 · Status UNBUILT → UNBUILT
 
 Still exactly the shape the slate describes. `lib/chattel/Estate.ts:185-205`
 pushes `state: ctx.captureState(live)` for every owned good whose

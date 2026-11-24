@@ -51,15 +51,26 @@ export default class UnleaseController extends CommandController<UnleaseModel> {
       const detail =
         answer.reason === 'not-authorized'
           ? NOT_AUTHORIZED
-          : answer.reason === 'not-housed'
+          : answer.reason === 'no-storeroom'
+            ? "There's nowhere to box the tenant's things — the house has no store."
+            : answer.reason === 'not-housed'
             ? `${who} doesn't hold a flat here.`
             : 'End whose lease?';
       return UnleaseController.fail(context, detail, answer.reason);
     }
+    const lostNote = answer.lost.length > 0 ? ` (${answer.lost.length} too big for the store, lost with it)` : '';
     MessageApi.scene(actor)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`\nEnded the lease on ${answer.unitExtent}; the tenant's goods are in storage, the flat reverts, and its slot is free.\n`,
+        Mml.compose`\nEnded the lease on ${answer.unitExtent}; ${String(answer.boxed.length)} of the tenant's things are boxed in the house's store${lostNote}, the flat reverts, and its slot is free.\n`,
+      )
+      .send();
+    // ⭐ The tenant is told what was boxed and what did not fit (persistence-model D11).
+    const lostLine = answer.lost.length > 0 ? ` ${answer.lost.join(', ')} would not fit the store and ${answer.lost.length === 1 ? 'is' : 'are'} gone.` : '';
+    MessageApi.scene(target)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.compose`\nYour lease has ended. What you left is boxed in the house's store — reclaim each thing there with "rack reclaim" and its name.${lostLine}\n`,
       )
       .send();
   }

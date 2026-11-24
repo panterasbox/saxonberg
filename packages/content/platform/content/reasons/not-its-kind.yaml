@@ -1,0 +1,5 @@
+# A hydration source asked of a host of another class (persistence-model):
+# it restores nothing onto it. Never reaches a player — said in the boot log.
+facts: {}
+says: "This source does not restore that kind of thing."
+topic: system

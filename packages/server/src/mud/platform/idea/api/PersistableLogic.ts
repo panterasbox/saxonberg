@@ -21,6 +21,9 @@ import { Mixins } from "../../../lib/mixin";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistedRecord } from "../../../lib/persistence/PersistedRecord";
 import { PersistApi } from "../../../api/persist";
+import { DiagnosticApi } from "../../../api/diagnostics";
+import { MessageApi } from "../../../api/message";
+import { Mml } from "../../../api/mml";
 import type { Persistable } from "../../../lib/persistence/Persistable";
 import { Template } from "../../../lib/stuff/Template";
 import { Document } from "../../../lib/persistence/Document";
@@ -37,9 +40,7 @@ import type {
   HostPlacement,
   CaptureContext,
   HydrateContext,
-  EstateEntry,
 } from "../../../lib/persistence/PersistenceSlice";
-import { ESTATE_INVENTORY } from "../../../lib/persistence/PersistenceSlice";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
@@ -152,7 +153,7 @@ function optedOutOfPersistence(host: Stuff): boolean {
  *
  * ⚠ **`scope` here is a ROW** (a template path) — every caller passes a
  * stored scope that is one: `cloneHost` a captured `{ref}` (written as
- * `good.getTemplatePath()`), `overlayOwnedGoods` `keyed.templatePath`.
+ * `good.getTemplatePath()`).
  */
 function liveKeyed(scope: string, key: string): Stuff | null {
   return KeyedHosts.find(scope, key);
@@ -202,16 +203,15 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   // holds its `{ref, key}` entry), so its own `place` would fight that
   // (and could phantom-clone a stale container template on restore).
   // ⚠ The exemption is exactly the container slice's own SKIP LIST
-  // (`ContainerMixin.captureSlice`): a HasInteractive host (an avatar) and
-  // an owner-persisted chattel (a named animal — it persists with its
-  // owner's estate, never in the room's slice) are filtered out of every
-  // ancestor's slice, so nothing refers to them and their own `place` is
-  // the only record of where they stand. Before the chattel arm, a pinned
-  // cat in a bedroom captured NO placement and the pin roll stood it up
-  // nowhere (found by `ResidencyPin.test`, not live).
+  // (`ContainerMixin.captureSlice`): a HasInteractive host (an avatar) and a
+  // Behaved one (a kept animal — a body that keeps itself) are filtered out
+  // of every ancestor's slice, so nothing refers to them and their own
+  // `place` is the only record of where they stand. (A pinned cat in a
+  // bedroom that captured NO placement was stood up nowhere by the pin roll
+  // — found by `ResidencyPin.test`.)
   const referredByAncestor =
     !MixinApi.isHasInteractive(host) &&
-    !(MixinApi.isChattel(host) && host.isOwnerPersisted()) &&
+    !MixinApi.isBehaved(host) &&
     nearestPersistableHost(env) !== null;
   if (referredByAncestor) return null;
   // ⭐ Anchor on the nearest ancestor with an ADDRESS, and remember the
@@ -465,9 +465,86 @@ function nearestPersistableHost(stuff: Stuff): Stuff | null {
     // ⭐ A fixture is not contained — it is HUNG on its host (a room's
     // floor, a sconce). Its host is the next hop (cleanliness D31b: an
     // act that soils the floor captures the room that keeps it).
-    cur = held ?? (MixinApi.isAdornment(cur) ? cur.getAdornedTo() : null);
+    // ⭐ A rider (persistence-model D4 — a building) is kept by the host it
+    // rides: that host is the next hop.
+    cur = held ?? (MixinApi.isAdornment(cur) ? cur.getAdornedTo() : null) ?? riderHost.get(cur) ?? null;
   }
   return null;
+}
+
+/* ─────────────────────────── riders (persistence-model D4) ──────────── */
+
+/**
+ * ⭐ The state slot a host's riders take in its record. A RIDER is a thing
+ * with no record of its own that a kept host carries by name — a holding's
+ * buildings, a building on its first kept room. Not a mixin slice: it is
+ * stripped before the host's own slices restore.
+ */
+const RIDERS_KEY = "@riders";
+
+/** Runtime: each host's riders by name. */
+const ridersOf = new WeakMap<Stuff, Map<string, Stuff>>();
+/** Runtime: the host each rider rides. */
+const riderHost = new WeakMap<Stuff, Stuff>();
+/** Runtime: a restored rider state whose rider was not standing yet, with the principal it restores as. */
+const pendingRiders = new WeakMap<Stuff, Map<string, { state: Record<string, MixinSlice>; principal: Stuff }>>();
+
+/** `state` with the host's live riders' states added under {@link RIDERS_KEY}. */
+function withRiders(host: Stuff, state: Record<string, MixinSlice>): Record<string, MixinSlice> {
+  const riders = ridersOf.get(host);
+  if (!riders || riders.size === 0) return state;
+  const out: Record<string, Record<string, MixinSlice>> = {};
+  for (const [name, rider] of riders) {
+    if (rider.isDestroyed()) continue;
+    out[name] = captureState(rider);
+  }
+  return { ...state, [RIDERS_KEY]: { fields: {}, riders: out } as unknown as MixinSlice };
+}
+
+/** Split a record's state into the host's own slices and its riders'. */
+function splitRiders(
+  state: Record<string, MixinSlice>,
+): { own: Record<string, MixinSlice>; riders: Record<string, Record<string, MixinSlice>> } {
+  const { [RIDERS_KEY]: slot, ...own } = state;
+  const riders = ((slot as unknown as { riders?: Record<string, Record<string, MixinSlice>> } | undefined)?.riders) ?? {};
+  return { own, riders };
+}
+
+/** Restore each rider standing on `host`; keep the rest for {@link adoptRiderImpl}. */
+async function restoreRiders(
+  host: Stuff,
+  riders: Record<string, Record<string, MixinSlice>>,
+  principal: Stuff,
+): Promise<void> {
+  const live = ridersOf.get(host);
+  for (const [name, state] of Object.entries(riders)) {
+    const rider = live?.get(name);
+    if (rider && !rider.isDestroyed()) {
+      await restoreState(rider, state, principal);
+      continue;
+    }
+    let pending = pendingRiders.get(host);
+    if (!pending) pendingRiders.set(host, (pending = new Map()));
+    pending.set(name, { state, principal });
+  }
+}
+
+/** See {@link PersistableApi.adoptRider}. */
+async function adoptRiderImpl(host: Stuff, name: string, rider: Stuff): Promise<void> {
+  if (!MixinApi.isPersistable(host)) {
+    throw new TypeError(`PersistableLogic.adoptRider: '${host.getTemplatePath()}' keeps no record to ride`);
+  }
+  let riders = ridersOf.get(host);
+  if (!riders) ridersOf.set(host, (riders = new Map()));
+  riders.set(name, rider);
+  riderHost.set(rider, host);
+  const pending = pendingRiders.get(host)?.get(name);
+  if (!pending) return;
+  pendingRiders.get(host)!.delete(name);
+  await ExecutionContextApi.run(rider, pending.principal, "persistenceRestore", undefined, async () => {
+    ExecutionContextApi.tagActingAuthor(pending.principal);
+    await restoreState(rider, pending.state, pending.principal);
+  });
 }
 
 /**
@@ -593,89 +670,6 @@ function captureFields(
  * container-order index both `Container` and `Slotted` reference is built
  * once per host and passed on the `CaptureContext`.
  */
-/**
- * Goods a host **skipped** during the current synchronous capture because
- * someone is stamped as owning them (the D2 skip rule). Capture cannot
- * await, so the skipped goods land here and `captureImpl` flushes them into
- * their owners' estates immediately afterwards.
- *
- * Module-scope because the capture walk is a recursive sync function and the
- * flush is its caller — the same shape the shared content-order index has.
- * Cleared at the start of every capture, so a throw mid-walk cannot leak
- * entries into the next one.
- */
-const skippedOwnedGoods = new Set<Stuff>();
-
-/**
- * Push each skipped good's fresh state into its owner's estate — the ONLY
- * path by which a good standing in a room that goes dormant, whose owner is
- * offline, is captured by anybody at all. Without it a skipped good would be
- * captured by nobody and destroyed with the room.
- *
- * A live owner is patched in memory (their own next capture then carries
- * it); an offline owner's stored record is read-modify-written, because
- * there is no instance to hold the entry.
- */
-async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
-  for (const good of goods) {
-    if (good.isDestroyed() || !MixinApi.isChattel(good)) continue;
-    const chattelId = good.getChattelId();
-    if (!chattelId) continue;
-    const owner = await good.chattelOwner();
-    if (owner?.kind !== "player") continue;
-    // A hung good keeps its wall: the mount slot rides the entry so the
-    // room's next overlay re-attaches it as a fixture (residences D11).
-    const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
-    const rests = MixinApi.isContainable(good) ? good.getRestingPlace() : null;
-    const within = MixinApi.isContainable(good) ? good.getKeptWithin() : null;
-    // ⭐ A good that persists ITSELF rides as a reference: its own record
-    // is authoritative, and copying its state here would make a second
-    // copy of a live creature that is still writing the first.
-    const ownKey =
-      MixinApi.isPersistable(good) && good.isPersistenceKeyExplicit()
-        ? (good.getPersistenceKey() ?? undefined)
-        : undefined;
-    const entry: EstateEntry = {
-      chattelId,
-      templatePath: good.getTemplatePath() ?? "",
-      state: ownKey ? {} : captureState(good),
-      place: good.getPlace(),
-      ...(ownKey ? { key: ownKey } : {}),
-      ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
-      ...(rests ? { rests } : {}),
-      ...(within ? { within } : {}),
-    };
-    const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
-    if (live && MixinApi.isEstate(live)) {
-      live._putEstateEntry(entry, good);
-      continue;
-    }
-    await patchStoredEstate(owner.templatePath, entry);
-  }
-}
-
-/**
- * Read-modify-write one estate entry into an offline owner's stored record.
- * Scoped to the owner's own `(scope, owner)` record — the same row their
- * next materialize reads — so an offline owner learns about a good that
- * moved while they were away.
- */
-async function patchStoredEstate(
-  ownerPath: string,
-  entry: EstateEntry,
-): Promise<void> {
-  const rec = (await PersistedRecord.findByScope(ownerPath))[0];
-  if (!rec) return; // no record yet — the owner has never been captured
-  const key = Mixins.Estate;
-  const existing = rec.state[key];
-  const entries =
-    existing && "entries" in existing ? [...existing.entries] : [];
-  const at = entries.findIndex((e) => e.chattelId === entry.chattelId);
-  if (at >= 0) entries[at] = entry;
-  else entries.push(entry);
-  rec.state = { ...rec.state, [key]: { entries } };
-  await rec.save();
-}
 
 function captureState(host: Stuff): Record<string, MixinSlice> {
   const contributors = MixinApi.getPersistenceContributors(
@@ -693,7 +687,7 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
         .filter(
           (item) =>
             !MixinApi.isHasInteractive(item) &&
-            !(MixinApi.isChattel(item) && item.isOwnerPersisted()),
+            !MixinApi.isBehaved(item),
         )
     : [];
   const indexMap = new Map<Stuff, number>();
@@ -704,7 +698,6 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
       captureItem(item as Stuff, placement),
     captureState: (item) => captureState(item as Stuff),
     indexOf: (item) => indexMap.get(item as Stuff) ?? -1,
-    noteOwnedGood: (item) => skippedOwnedGoods.add(item as Stuff),
   };
 
   const state: Record<string, MixinSlice> = {};
@@ -764,21 +757,11 @@ async function captureAtShutdownImpl(): Promise<ShutdownCaptureReport> {
     const batch = chunk;
     chunk = [];
     writes.push(
-      (async () => {
-        try {
-          const rows = await Promise.all(batch.map((c) => c.record.toBatchWrite({ key: RECORD_KEY })));
-          await PersistApi.saveMany(PersistedRecord.collectionName, rows);
-          captured += batch.length;
-        } catch (err) {
-          // @quiet the report counts it (`failed`) and the line names the records.
-          failed += batch.length;
-          console.error(
-            `PersistableLogic.captureAtShutdown: a batch of ${batch.length} record(s) failed ` +
-              `(${batch.map((c) => c.id.replace('\u0000', ' ')).slice(0, 5).join(', ')}…):`,
-            err,
-          );
-        }
-      })(),
+      writeBatch(batch).then((r) => {
+        captured += r.captured;
+        failed += r.failed;
+        for (const f of r.failures) reportSaveFailure(f.scope, f.owner, f.error);
+      }),
     );
   };
   const worker = async (): Promise<void> => {
@@ -822,8 +805,8 @@ function captureItem(item: Stuff, placement: ContentPlacement): ContentEntry {
     // OMITTED (not null) in that case — keyless records stay
     // byte-identical to the pre-key shape.
     // Read the key BEFORE the provenance flag: a host that mints its key
-    // lazily (a cultivated Plant) does so in `getPersistenceKey`, and that
-    // mint is what makes it explicit.
+    // lazily does so in `getPersistenceKey`, and that mint is what makes it
+    // explicit.
     const stashed = item.getPersistenceKey();
     const key =
       stashed !== null && item.isPersistenceKeyExplicit()
@@ -952,8 +935,9 @@ async function restoreState(
   // (4) Any layer carrying its OWN async restore hook. `Container` and
   // `Slotted` are handled by the explicit passes above (their ordering
   // against each other is load-bearing and cannot be a generic loop); this
-  // dispatches the rest — today, `EstateMixin`. Runs last, so an estate's
-  // `inventory` goods land in a container that has already been restored.
+  // dispatches the rest — the fixtures slice (`Adornable`, which re-hangs
+  // what somebody hung). Runs last, so it lands in a container that has
+  // already been restored.
   const ctx: HydrateContext = {
     restoreItem: (entry, host) =>
       restoreItem(entry as ContentEntry, host as Stuff, principal),
@@ -986,71 +970,6 @@ async function restoreState(
         `PersistableLogic: skipped an unclaimed '${key}' slice restoring ` +
           `${target.getTemplatePath() ?? target.stuffId} — no layer restores it.`,
       );
-    }
-  }
-
-  // (5) ⭐⭐ Worn goods the host OWNS — re-worn only now, because they are
-  // the estate's to restore (4) and have no content index for (3). Before
-  // this pass every bought garment came back carried after a restart, and
-  // the implant (a minted good too) lost its slot, so the loadout's
-  // empty-cranial guard cloned a second one on every boot. Found by
-  // driving the rubber build in a browser across a server restart.
-  if (
-    slottedSlice?.wornOwned &&
-    MixinApi.isSlotted(target) &&
-    MixinApi.isEstate(target)
-  ) {
-    for (const { chattelId, slots } of slottedSlice.wornOwned) {
-      const item = target.getEstateLive(chattelId);
-      if (item && MixinApi.isSlottable(item)) {
-        // Re-seated, not put on: a part wounded since cannot refuse what
-        // it already held (`restoring` skips the body-state gate).
-        (target as Stuff & Slotted).occupyAll(
-          item as Stuff & Slottable,
-          slots,
-          { restoring: true },
-        );
-      }
-    }
-  }
-
-  // (6) ⭐ Placements that name an OWNED good (size and carrying W7, closing
-  // D26-h's gap) — a pouch hung from a bought belt, a bought key in a
-  // pocket. Neither end of such a pair has a content index the (3b) pass
-  // could resolve, so they wait for the estate (4) and the owned goods'
-  // re-wearing (5), then re-place exactly as (3b) does.
-  const pairs: { item: Stuff | null; at: ContentPlacement }[] = [];
-  if (containerSlice) {
-    for (const [i, entry] of containerSlice.contents.entries()) {
-      if (entry.placement.hostChattelId !== undefined) pairs.push({ item: restored[i] ?? null, at: entry.placement });
-    }
-  }
-  if (MixinApi.isEstate(target)) {
-    for (const entry of target.getEstateEntries()) {
-      if (entry.placedOn !== undefined) pairs.push({ item: target.getEstateLive(entry.chattelId), at: entry.placedOn });
-    }
-  }
-  for (const { item, at } of pairs) {
-    const host =
-      at.hostIndex !== undefined
-        ? (restored[at.hostIndex] ?? null)
-        : at.hostChattelId !== undefined && MixinApi.isEstate(target)
-          ? target.getEstateLive(at.hostChattelId)
-          : null;
-    if (!item || !host || !MixinApi.isPlacing(host) || !MixinApi.isContainable(item)) continue;
-    const placement = at.placement ?? Placements.ON;
-    await ContainmentApi.placements().ensure(host.getPlacementEntry(placement)?.member ?? placement);
-    ContainmentApi.move(item as Stuff & Containable, host as Stuff & Placing, placement);
-  }
-
-  // (7) ⭐ Owned goods kept INSIDE a container on this host (a ration in a
-  // satchel its owner carries — finalize, run 15): back into it, now that
-  // the containers are restored, re-worn and re-hung.
-  if (MixinApi.isEstate(target)) {
-    for (const entry of target.getEstateEntries()) {
-      if (entry.within === undefined || entry.place !== ESTATE_INVENTORY) continue;
-      const item = target.getEstateLive(entry.chattelId);
-      if (item) putBackWithin(item, entry, target, target);
     }
   }
 }
@@ -1145,7 +1064,7 @@ async function restoreItem(
 async function selfRegionOf(entry: ContentEntry, host: Stuff): Promise<string | null> {
   if (entry.placement === undefined) return null;
   const at = entry.placement;
-  if (at.placement === undefined || at.hostIndex !== undefined || at.hostChattelId !== undefined) return null;
+  if (at.placement === undefined || at.hostIndex !== undefined) return null;
   const offered =
     MixinApi.isPlacing(host) && host.getPlacements().includes(at.placement)
       ? host.getPlacementEntry(at.placement)
@@ -1300,10 +1219,15 @@ const RECORD_KEY = ['scope', 'owner'] as const;
 async function captureImpl(host: Stuff, key?: string): Promise<void> {
   const prepared = await prepareCapture(host, key);
   if (!prepared) return;
-  const write = await prepared.record.toBatchWrite({ key: RECORD_KEY });
-  await serialRecordWrite(prepared.id, async () => {
-    await PersistApi.saveMany(PersistedRecord.collectionName, [write]);
-  });
+  try {
+    await serialRecordWrite(prepared.id, () => writeRecords([prepared]));
+    savedAgain(prepared.record.scope);
+  } catch (err) {
+    // ⭐ A refused save is TOLD (persistence-model D10): a diagnostic, and the
+    // first of a streak to whoever it concerns — then rethrown to the caller.
+    reportSaveFailure(prepared.record.scope, prepared.record.owner, err);
+    throw err;
+  }
   // ⭐ The records this host owns follow it (tracts build D26): a tract's
   // fields are written with the tract, each under its own key. Each goes
   // through its own record's write queue.
@@ -1319,6 +1243,13 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
  * destructed during the awaits).
  */
 async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCapture | null> {
+  // ⭐ Only a host keeps a record (persistence-model D1): a thing is kept by
+  // its container, and a capture of one is a caller that has not caught up.
+  if (!MixinApi.isPersistable(host)) {
+    throw new TypeError(
+      `PersistableLogic.capture: '${host.getTemplatePath() ?? host.stuffId}' keeps no record of its own — capture its host (captureHostOf)`,
+    );
+  }
   if (optedOutOfPersistence(host)) return null; // guest / opted-out host
   const scope = host.getIdentityPath();
   if (!scope) {
@@ -1339,48 +1270,12 @@ async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCaptur
   // during the awaits above has evacuated the host, and a snapshot of an
   // inert shell would overwrite the last good record with nothing.
   if (host.isDestroyed()) return null;
-  skippedOwnedGoods.clear();
   // The records this host owns, read while it stands: the write below
   // awaits, and a host destructed meanwhile (a warren put to sleep) is
   // inert — but what it owned must still be written.
   const dependents = MixinApi.isPersistable(host) ? host.dependentPersistables() : [];
-  let state = captureState(host);
-  let place = capturePlacement(host);
-  // The skip rule's other half: goods this host does not persist because
-  // someone else holds title go to their owners' estates, now, before the
-  // host's record is written and long before the host destructs.
-  const skipped = [...skippedOwnedGoods];
-  skippedOwnedGoods.clear();
-  if (skipped.length > 0) {
-    // ⭐⭐ A good the host ITSELF owns, skipped from its contents but not yet
-    // in its estate: custody is recorded after a move, asynchronously (the
-    // title is stamped, then the place, then the estate), so a capture can
-    // land between the stamp and the estate. The snapshot above then has the
-    // good in neither slice, and a body destructed on that record (a
-    // sign-out, D30) lost what it was holding — found by the crowd file under
-    // load. Its custody record is awaited, which puts it in this estate with
-    // the place derived from where it is, and the host is snapshotted again.
-    const own = skipped.filter((g) => {
-      if (!MixinApi.isChattel(g) || !MixinApi.isEstate(host)) return false;
-      const owner = g.stampedOwner();
-      return (
-        owner?.kind === "player" &&
-        owner.templatePath === host.getIdentityPath() &&
-        host.getEstateLive(g.getChattelId()) === null
-      );
-    });
-    await flushSkippedOwnedGoods(skipped.filter((g) => !own.includes(g)));
-    if (own.length > 0) {
-      for (const good of own) {
-        if (!good.isDestroyed() && MixinApi.isChattel(good)) await good.followCustody();
-      }
-      if (!host.isDestroyed()) {
-        state = captureState(host);
-        place = capturePlacement(host);
-      }
-      skippedOwnedGoods.clear();
-    }
-  }
+  const state = withRiders(host, captureState(host));
+  const place = capturePlacement(host);
   // The snapshot above is taken synchronously; the write is the caller's
   // — one keyed upsert, so two captures of a host with no record yet can
   // no longer both INSERT and die on the unique index (a ship's first
@@ -1392,7 +1287,114 @@ async function prepareCapture(host: Stuff, key?: string): Promise<PreparedCaptur
   record.state = state;
   record.place = place;
   record.writtenAt = Date.now();
+  // ⭐ The residency pin rides the record (persistence-model N8).
+  record.pinned = MixinApi.isPersistable(host) && host.pinsResidency() && host.isPersistenceKeyExplicit();
   return { id: `${scope}\u0000${owner}`, record, dependents };
+}
+
+/**
+ * Runtime, test world only: the record scopes whose writes are refused
+ * ({@link PersistableApi.refuseSavesOf}) — the staged twin of a save the
+ * database turned down.
+ */
+const refusedScopes = new Set<string>();
+
+/** Write `batch` as one `saveMany`; a refused scope throws as the database would. */
+async function writeRecords(batch: readonly PreparedCapture[]): Promise<void> {
+  const refused = batch.find((c) => refusedScopes.has(c.record.scope));
+  if (refused) {
+    throw new Error(`the records refused '${refused.record.scope}' (a staged refusal)`);
+  }
+  const rows = await Promise.all(batch.map((c) => c.record.toBatchWrite({ key: RECORD_KEY })));
+  await PersistApi.saveMany(PersistedRecord.collectionName, rows);
+}
+
+/**
+ * ⭐ Write a batch of prepared records (persistence-model D10). One
+ * `saveMany`; when it throws, the batch is written again ONE record at a
+ * time, so a refused record fails alone and every batch-mate is saved.
+ * Each failure is named.
+ */
+async function writeBatch(
+  batch: readonly PreparedCapture[],
+): Promise<{ captured: number; failed: number; failures: SaveFailure[] }> {
+  try {
+    await writeRecords(batch);
+    return { captured: batch.length, failed: 0, failures: [] };
+  } catch (err) {
+    // @quiet not swallowed: a lone record's failure is RETURNED (named), and a
+    // larger batch is retried one record at a time just below.
+    if (batch.length === 1) {
+      const only = batch[0]!;
+      return { captured: 0, failed: 1, failures: [{ scope: only.record.scope, owner: only.record.owner, error: err }] };
+    }
+  }
+  let captured = 0;
+  const failures: SaveFailure[] = [];
+  for (const one of batch) {
+    try {
+      await writeRecords([one]);
+      captured += 1;
+    } catch (err) {
+      // @quiet not swallowed: the failure is RETURNED, named, for the caller to report.
+      failures.push({ scope: one.record.scope, owner: one.record.owner, error: err });
+    }
+  }
+  return { captured, failed: failures.length, failures };
+}
+
+/** A record a write refused. */
+interface SaveFailure {
+  scope: string;
+  owner: string;
+  error: unknown;
+}
+
+/** Runtime: the scopes whose last save was refused — a streak is told once. */
+const failingScopes = new Set<string>();
+
+/** A save of `scope` landed: its streak (if any) is over. */
+function savedAgain(scope: string): void {
+  failingScopes.delete(scope);
+}
+
+/**
+ * ⭐⭐ **A refused save is reported where it is written** (persistence-model
+ * D10). Every failure is a diagnostic on the `persistence` channel (the
+ * `errors` verb lists it); the FIRST failure of a streak is also one line
+ * to whoever it concerns — the host when it is a connected body, else each
+ * connected body standing in the kept place. A second failure is not told
+ * again until a save lands. Never thrown from here.
+ */
+function reportSaveFailure(scope: string, owner: string, error: unknown): void {
+  const why = error instanceof Error ? error.message : String(error);
+  void DiagnosticApi.record({
+    path: scope,
+    severity: 'error',
+    channel: 'persistence',
+    message: `a save of ${scope} (${owner}) was refused: ${why}`,
+  }).catch((err: unknown) => console.error('PersistableLogic: recording a refused save failed:', err));
+  console.error(`PersistableLogic: a save of '${scope}' (${owner}) was refused:`, error);
+  if (failingScopes.has(scope)) return;
+  failingScopes.add(scope);
+  const live = StuffApi.findByIdentityPath<Stuff>(scope)[0] ?? StuffApi.findByTemplatePath<Stuff>(scope) ?? null;
+  if (live === null) return;
+  const told: Stuff[] = MixinApi.isHasInteractive(live)
+    ? [live]
+    : MixinApi.isContainer(live)
+      ? live.getContents().filter((c) => MixinApi.isHasInteractive(c))
+      : [];
+  const line = MixinApi.isHasInteractive(live)
+    ? Mml.compose`Something went wrong saving you just now — what you carry since your last save may not be kept. The operators have been told.`
+    : Mml.compose`Something went wrong saving this place just now — what changed here may not be kept. The operators have been told.`;
+  for (const body of told) {
+    try {
+      MessageApi.scene(body).topic('shell.error').toSelf(line).send();
+    } catch (err) {
+      // @quiet a body that cannot be told now is told by the diagnostic above.
+      console.warn('PersistableLogic: telling a body of a refused save failed:', err);
+    }
+  }
 }
 
 /** How many hosts the shutdown sweep prepares at once. */
@@ -1441,191 +1443,13 @@ async function materializeImpl(host: Stuff, key?: string): Promise<void> {
 
 /** Restore one record onto `host` under its owning principal (shared by the
  * keyed and keyless materialize paths). */
+
 /**
- * The **room identity** an owned good's `place` names — a host's persistence
- * scope, plus its per-instance key when it has one (many leased units share
- * one `DormRoom` template, so the scope alone would collapse them).
- *
- * ⭐ This is the spine's name for {@link Stuff.getDurableHandle} — the
- * handle was here first, unnamed, and the rungs on `Stuff` /
- * `PersistableMixin` / `SingletonMixin` are that formula given a home
- * every object can be asked for. The `#` joiner and the
- * `isPersistenceKeyExplicit()` provenance test are both this function's,
- * kept verbatim.
- *
- * Byte-identical to its pre-handle form for every host in the world
- * except one: a host that is BOTH identity-stamped AND explicitly keyed
- * now reads `<row>#<key>` where it used to read `<identity>#<key>`. The
- * market stall counter is the only such host, and its records are
- * re-keyed by this build anyway.
+ * A place's durable name — the id a pet's home and a bonded animal's
+ * return are recorded by: its durable handle, else its identity path.
  */
 function placeIdOf(host: Stuff): string {
   return host.getDurableHandle() ?? host.getIdentityPath() ?? "";
-}
-
-/**
- * The **room overlay** (D4): after a host has restored its own record —
- * its fixtures — lay down the owned goods whose `place` names it.
- *
- * Order is load-bearing and is the whole decision: fixtures first, so a
- * placed good can rest on a surface that exists. The host captures nothing
- * owner-side on the way down; the owner's record is authoritative for
- * chattel, and a host going dormant simply forgets furniture it never
- * owned.
- *
- * Each good is cloned **as its owner**, not as the host — so provenance and
- * every principal-based gate resolve to the person whose good it is, in a
- * room that may belong to somebody else entirely.
- */
-async function overlayOwnedGoods(host: Stuff): Promise<void> {
-  if (!MixinApi.isContainer(host)) return;
-  const placeId = placeIdOf(host);
-  if (!placeId) return;
-  const placed = await ChattelApi.placedIn(placeId);
-  // Goods kept inside a container here — put back once every good is down,
-  // so a container somebody owns (overlaid too) is there to take them.
-  const inside: { good: Stuff; entry: EstateEntry; owner: Stuff | null }[] = [];
-  for (const { chattelId, owner } of placed) {
-    if (owner?.kind !== "player") continue;
-    const ownerHost = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
-    let entry: EstateEntry | null = null;
-    if (ownerHost && MixinApi.isEstate(ownerHost)) {
-      entry = ownerHost.getEstateEntry(chattelId);
-    }
-    if (!entry) entry = await storedEstateEntry(owner.templatePath, chattelId);
-    if (!entry || entry.place !== placeId) continue;
-    const principal = ownerHost ?? host;
-    const keyed = entry;
-    const good = await ExecutionContextApi.run(
-      host,
-      principal,
-      "chattelOverlay",
-      undefined,
-      async () => {
-        ExecutionContextApi.tagActingAuthor(principal);
-        // ⭐⭐ A good that persists itself is RESOLVED, not rebuilt: if it
-        // is already standing here (the registry warmed it at boot, or it
-        // simply never left) that instance IS the animal, and minting a
-        // second one from the same record would put two identical cats on
-        // the lane sharing one key. `cloneHost` is a resolve-or-mint.
-        if (keyed.key) {
-          const live = liveKeyed(keyed.templatePath, keyed.key);
-          if (live) return live;
-          return cloneHost(keyed.templatePath, keyed.key);
-        }
-        return PersistableLogicRestoreDetached(entry, host, principal);
-      },
-    );
-    // A MOUNTED good goes back on the wall, not on the floor: out of the
-    // host's contents (the not-portable invariant forbids being in both)
-    // and into its fixture slot. Slot names for owned goods are minted
-    // `mounted:<chattelId>` by `hang`, so they can never collide with the
-    // synthetic `fixture:<n>` counter the authored adornments use.
-    if (good && entry.mounted && MixinApi.isAdornable(host)) {
-      if (MixinApi.isContainable(good)) ContainmentApi.move(good, null);
-      host.addFixture(good as Stuff & Adornment, entry.mounted.slot);
-    } else if (good && entry.within) {
-      inside.push({ good, entry, owner: ownerHost ?? null });
-    } else if (good && entry.rests && MixinApi.isContainable(good)) {
-      // ⭐ A good left ON something goes back on it: the room's fixtures
-      // are already restored, so the surface is here — or it is gone, or
-      // will not take it, and the good stands in the room (a skip).
-      const { on, placement } = entry.rests;
-      const surface = host.getContents().find((c) => c.getTemplatePath() === on);
-      if (surface && MixinApi.isPlacing(surface) && surface.canPlace(good, placement).ok) {
-        ContainmentApi.move(good, surface, placement);
-      }
-    }
-    if (good && ownerHost && MixinApi.isEstate(ownerHost)) {
-      ownerHost._putEstateEntry(entry, good);
-    }
-  }
-  for (const { good, entry, owner } of inside) putBackWithin(good, entry, host, owner);
-}
-
-/**
- * ⭐ Put a restored good back inside the container its estate entry names
- * (`within` — size and carrying, finalize run 15, step 21): the steps from
- * `place` inward, an untitled container by its row and ordinal (the
- * place's own record restored them in order), an owned one from its
- * owner's estate. A step that names nothing here, or a container that will
- * not take it, is said and the good is left where the restore put it — on
- * a body, that is R1's loud diagnostic; nothing guesses another container.
- */
-function putBackWithin(good: Stuff, entry: EstateEntry, place: Stuff, owner: Stuff | null): void {
-  const steps = entry.within;
-  if (!steps || steps.length === 0 || !MixinApi.isContainable(good)) return;
-  let cur: Stuff = place;
-  for (const step of steps) {
-    if (!MixinApi.isContainer(cur)) break;
-    const holder: Stuff & Container = cur;
-    let next: Stuff | null = null;
-    if (step.chattelId !== undefined) {
-      const live = owner && MixinApi.isEstate(owner) ? owner.getEstateLive(step.chattelId) : null;
-      next = live && MixinApi.isContainable(live) && live.getContainer() === holder ? live : null;
-    } else {
-      next =
-        holder
-          .getContents()
-          .filter((c) => c.getTemplatePath() === step.in && !(MixinApi.isChattel(c) && c.isOwnerPersisted()))[
-          step.nth
-        ] ?? null;
-    }
-    if (next === null) {
-      console.warn(
-        `PersistableLogic: ${entry.templatePath} (${entry.chattelId}) was kept inside ` +
-          `${step.chattelId ?? `${step.in} #${step.nth}`} in ` +
-          `${place.getTemplatePath() ?? place.stuffId}, which is not there — left where it was restored.`,
-      );
-      return;
-    }
-    cur = next;
-  }
-  if (!MixinApi.isContainer(cur) || good.getContainer() === cur) return;
-  const rests = entry.rests;
-  if (rests && rests.on === cur.getTemplatePath() && MixinApi.isPlacing(cur) && cur.canPlace(good, rests.placement).ok) {
-    ContainmentApi.move(good, cur, rests.placement);
-    return;
-  }
-  const veto = cur.canAddContainable ? cur.canAddContainable(good) : { ok: true as const };
-  if (!veto.ok) {
-    console.warn(
-      `PersistableLogic: ${entry.templatePath} (${entry.chattelId}) no longer goes in ` +
-        `${cur.getTemplatePath() ?? cur.stuffId} — left where it was restored.`,
-    );
-    return;
-  }
-  ContainmentApi.move(good, cur);
-}
-
-/** Read one estate entry out of an offline owner's stored record. */
-async function storedEstateEntry(
-  ownerPath: string,
-  chattelId: string,
-): Promise<EstateEntry | null> {
-  // By SCOPE, not `(scope, owner)`: a host's record key is scope-DERIVED
-  // unless it was given an explicit one, so the owner column is not
-  // reliably the principal's own path.
-  for (const rec of await PersistedRecord.findByScope(ownerPath)) {
-    const slice = rec.getState()[Mixins.Estate];
-    if (!slice || !("entries" in slice)) continue;
-    const hit = slice.entries.find((e) => e.chattelId === chattelId);
-    if (hit) return hit;
-  }
-  return null;
-}
-
-/** `restoreDetached`'s body, reachable from module scope. */
-async function PersistableLogicRestoreDetached(
-  entry: EstateEntry,
-  container: Stuff,
-  principal: Stuff,
-): Promise<Stuff | null> {
-  return restoreItem(
-    { templatePath: entry.templatePath, state: entry.state, placement: {} },
-    container,
-    principal,
-  );
 }
 
 async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void> {
@@ -1642,15 +1466,14 @@ async function restoreRecord(host: Stuff, record: PersistedRecord): Promise<void
     undefined,
     async () => {
       ExecutionContextApi.tagActingAuthor(principal);
-      await restoreState(host, record.getState(), principal);
+      const { own, riders } = splitRiders(record.getState());
+      await restoreState(host, own, principal);
+      await restoreRiders(host, riders, principal);
       // A Containable top-level host re-places itself at its captured
       // location (overriding the clone-time template spawn).
       await restorePlacement(host, record.getPlace());
     },
   );
-  // Fixtures first, THEN the owned goods placed here (D4). Outside the
-  // principal frame above, because each good is cloned as ITS OWN owner.
-  await overlayOwnedGoods(host);
   // ...and last, put a resting body back on the thing it was resting on.
   reoccupyRestingHost(host);
   // The host re-arms what ran on its fields (a craft re-starts its voyage).
@@ -1811,6 +1634,39 @@ export class PersistableLogic extends ApiLogic {
     return captureAtShutdownImpl();
   }
 
+  /** See {@link PersistableApi.pinned}. */
+  @CallSecurity(PersistableApiCallers)
+  public async pinned(): Promise<Array<{ scope: string; key: string }>> {
+    return (await PersistedRecord.findPinned()).map((r) => ({ scope: r.getScope(), key: r.getOwner() }));
+  }
+
+  /** See {@link PersistableApi.adoptRider}. */
+  @CallSecurity(PersistableApiCallers)
+  public async adoptRider(host: Stuff, name: string, rider: Stuff): Promise<void> {
+    return adoptRiderImpl(host, name, rider);
+  }
+
+  /** See {@link PersistableApi.refuseSavesOf}. */
+  @CallSecurity(PersistableApiCallers)
+  public refuseSavesOf(scope: string, on: boolean): void {
+    if (on) refusedScopes.add(scope);
+    else refusedScopes.delete(scope);
+  }
+
+  /** See {@link PersistableApi.captureBatch}. */
+  @CallSecurity(PersistableApiCallers)
+  public async captureBatch(hosts: readonly Stuff[]): Promise<ShutdownCaptureReport & { refused: string[] }> {
+    const t0 = Date.now();
+    const prepared: PreparedCapture[] = [];
+    for (const host of hosts) {
+      const p = await prepareCapture(host);
+      if (p) prepared.push(p);
+    }
+    const r = await writeBatch(prepared);
+    for (const f of r.failures) reportSaveFailure(f.scope, f.owner, f.error);
+    return { captured: r.captured, failed: r.failed, ms: Date.now() - t0, refused: r.failures.map((f) => f.scope) };
+  }
+
   /** See {@link PersistableApi.materialize}. */
   @CallSecurity(PersistableApiCallers)
   public async materialize(host: Stuff, key?: string): Promise<void> {
@@ -1843,22 +1699,6 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public placeIdOf(host: Stuff): string {
     return placeIdOf(host);
-  }
-
-  /** See {@link PersistableApi.captureDetached}. */
-  @CallSecurity(PersistableApiCallers)
-  public captureDetached(item: Stuff): Record<string, MixinSlice> {
-    return captureState(item);
-  }
-
-  /** See {@link PersistableApi.restoreDetached}. */
-  @CallSecurity(PersistableApiCallers)
-  public async restoreDetached(
-    entry: EstateEntry,
-    container: Stuff,
-    principal: Stuff,
-  ): Promise<Stuff | null> {
-    return PersistableLogicRestoreDetached(entry, container, principal);
   }
 
   /** See {@link PersistableApi.storedField}. */

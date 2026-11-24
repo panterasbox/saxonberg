@@ -521,6 +521,25 @@ export async function failDatastore(calls = 1): Promise<void> {
 }
 
 /**
+ * ⭐ Refuse every save of `name`'s record (`on`), or stop refusing
+ * (persistence-model D10) — the staged twin of a refused save.
+ */
+export async function failSavesOf(name: string, on = true): Promise<void> {
+  const res = await postTestRoute('/auth/test-save-fail', { name, on });
+  if (!res.ok) throw new Error(`failSavesOf('${name}') failed (${res.status}): ${await res.text()}`);
+}
+
+/**
+ * ⭐ Save characters' records as ONE batch, as the shutdown sweep does
+ * (persistence-model D10). Returns what was saved and which scopes refused.
+ */
+export async function saveBatch(names: string[]): Promise<{ captured: number; failed: number; refused: string[] }> {
+  const res = await postTestRoute('/auth/test-save', { names });
+  if (!res.ok) throw new Error(`saveBatch(${names.join(', ')}) failed (${res.status}): ${await res.text()}`);
+  return (await res.json()) as { captured: number; failed: number; refused: string[] };
+}
+
+/**
  * ⭐ Write a document past its validator (failure-model D6) — a bad row
  * forced through, the staged twin a content error needs.
  */

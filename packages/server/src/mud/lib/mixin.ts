@@ -589,8 +589,6 @@ export const Mixins = {
   // A warren that makes copies of a zone (zone-instancing D3).
   ZoneMinting: 'ZoneMintingMixin',
   Lounge: 'LoungeMixin',
-  // The off-shift parking room a venue's cast is relocated to.
-  Offstage: 'OffstageMixin',
   Fixture: 'FixtureMixin',
   // A screen: shows one source (a stream or a card) to everyone who can
   // see it. Pairing decides who drives it. See docs/subsystems/display.md.

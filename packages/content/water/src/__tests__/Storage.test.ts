@@ -27,7 +27,7 @@ import '@saxonberg/server/test-bootstrap';
 import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
-import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
@@ -321,23 +321,11 @@ describe('⭐ the buffer size IS the outage tolerance', () => {
   });
 });
 
-describe('the level is STATE, and it is the only state in the build', () => {
-  it('⭐ a level SURVIVES A RESTART — the persistence spine round trip', async () => {
+describe('the level is STATE — a thing\'s, kept by its place (persistence-model D3)', () => {
+  it('⭐ a tank keeps no record of its own: it rides the place it stands in', () => {
     installWorld();
     const tower = makeTower({ capacity: 500, level: 275 });
-    expect(tower.getLevelM3()).toBe(275);
-
-    // Capture through the universal self-persistence spine, exactly as
-    // a shutdown or an autosave would.
-    await PersistableApi.capture(tower);
-
-    // Now lose it the way a process restart loses it: the live value is
-    // wrong, and only the record knows better.
-    tower.setLevelM3(0);
-    expect(tower.getLevelM3()).toBe(0);
-
-    await PersistableApi.materialize(tower);
-    expect(tower.getLevelM3()).toBe(275);
+    expect(MixinApi.isPersistable(tower)).toBe(false);
   });
 
   it('the level is declared persistent — the field a restart must not lose', () => {

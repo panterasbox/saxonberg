@@ -53,7 +53,6 @@ data:
       config:
         place: /world/lounge/location/bar
         sit: stool
-        home: /world/lounge/location/offstage
         visits:
           - { days: [0, 3], hours: [19, 22] }
           - { days: [5], hours: [20, 22] }

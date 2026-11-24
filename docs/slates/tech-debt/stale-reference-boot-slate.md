@@ -53,4 +53,4 @@ author diagnostics (`errors`), naming the record, the missing path and the reaso
 
 [persistence.md](../../subsystems/persistence.md) · [record-layer.md](../../subsystems/record-layer.md) ·
 [content-packs.md](../../subsystems/content-packs.md) (the boot that a failed pack does not break) ·
-[diagnostics.md](../../subsystems/diagnostics.md) · [estate-nesting-slate](../engine/estate-nesting-slate.md)
+[diagnostics.md](../../subsystems/diagnostics.md) · [estate-nesting-slate](../engine/persistence-model-slate.md)

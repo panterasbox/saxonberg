@@ -50,6 +50,8 @@ export {
   unpinWeather,
   stage,
   failDatastore,
+  failSavesOf,
+  saveBatch,
   forceDocument,
   stageShip,
   restartWorld,

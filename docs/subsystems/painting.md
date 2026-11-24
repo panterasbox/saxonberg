@@ -122,12 +122,20 @@ a brush's work"*).
 
 ### Staged and owned
 
-A building persists only once it is **sold** — a PERSON holds the covering
-parcel (`isTitleSold`). A staged building writes no record and comes back as
-its row authored it whenever the world restages (today: every boot). A ship
+⭐ **A building rides what it stands on** (persistence-model D4,
+2026-11-24). It is a thing, not a container, so it keeps no record of its
+own: its coats and condition ride the record of its **entrance** when that
+room is a kept place (`PersistableApi.adoptRider(entrance, 'structure',
+building)`, read back as its hydration source). A building whose entrance
+is a plain room is staged and comes back as its row authored it whenever
+the world restages. A building that can be sold is authored with kept
+rooms (the Wharfside cottage, the Hollow Mere small house, Seznick House's
+lobby), so nothing changes at the sale. (Until then a building kept a
+record of its own once its title was sold — `isTitleSold`.) A ship
 keeps her hull with her record, coats and seams both (she keeps a record
-whoever holds her — harbors; `Faced.persistsCoats` is `true` on her). A holding's house persists
-always (a holding exists because somebody holds it).
+whoever holds her — harbors; `Faced.persistsCoats` is `true` on her). A holding's house is kept
+always — it rides its holding's record (a holding exists because somebody
+holds it).
 
 ## 3. Paint is a mixture
 
@@ -250,3 +258,10 @@ build plan's, retired at the sweep; read them with
 `git show a0183ceb2:docs/plans/paint-plan.md` (its drive record and
 deferred seams too — the seams went to the respiration, decor,
 construction, visual-arts and decomposition slates).
+
+## History — a building rides its entrance (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): the kernel
+`Building` and `HoldingBuilding` lost `PersistableMixin`; a building's face
+and condition ride its kept entrance (or its holding), and the three
+sellable dwellings' rooms became kept rooms.

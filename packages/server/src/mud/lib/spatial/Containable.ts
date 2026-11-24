@@ -56,7 +56,6 @@ import {
   type SubscribableFieldDescriptor,
 } from '../../api/subscription';
 import { Placement } from './Placement';
-import type { KeptWithinStep } from '../persistence/PersistenceSlice';
 import { Placements } from './Placement';
 
 /**
@@ -126,15 +125,6 @@ export interface Containable {
    */
   getRestingPlace(): { on: string; placement: string } | null;
 
-  /**
-   * ⭐ The containers this sits inside short of the place that keeps its
-   * record (the nearest persisting holder — a room, a body), outermost
-   * first, as a record can keep them — or `null` when it sits in that place
-   * directly, or the way in cannot be named (a body that keeps no record
-   * between). An owner's estate carries it so a restore puts rations back
-   * in the pannier they were left in, not loose on the mule.
-   */
-  getKeptWithin(): KeptWithinStep[] | null;
 
   /**
    * Privileged setter — only `ContainmentApi.move` may call. Runtime-rejected by the
@@ -578,33 +568,6 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       return placed && on ? { on, placement: placed.name } : null;
     }
 
-    /** See the interface docstring. */
-    getKeptWithin(): KeptWithinStep[] | null {
-      // The one chain read (A4), cut at the first holder that keeps its own
-      // record — the chain ends there.
-      const chain = this.getContainerChain();
-      const at = chain.findIndex((c) => MixinApi.isPersistable(c));
-      if (at <= 0) return null;
-      const steps: KeptWithinStep[] = [];
-      for (let i = at - 1; i >= 0; i--) {
-        const cur = chain[i]!;
-        const holder = chain[i + 1]!;
-        // A body between that keeps no record, or a holder of no contents:
-        // no name a record could keep.
-        if (cur.isAgent() || !MixinApi.isContainer(holder)) return null;
-        if (MixinApi.isChattel(cur) && cur.isOwnerPersisted()) {
-          steps.push({ chattelId: cur.getChattelId() });
-          continue;
-        }
-        const row = cur.getTemplatePath();
-        if (!row) return null;
-        const alike = holder
-          .getContents()
-          .filter((c) => c.getTemplatePath() === row && !(MixinApi.isChattel(c) && c.isOwnerPersisted()));
-        steps.push({ in: row, nth: alike.findIndex((c) => c.stuffId === cur.stuffId) });
-      }
-      return steps;
-    }
 
     /**
      * See the interface docstring. Whether a member encloses is the

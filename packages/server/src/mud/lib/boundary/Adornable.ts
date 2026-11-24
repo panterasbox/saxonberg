@@ -53,6 +53,7 @@ import { SlottedMixin } from '../slot/Slotted';
 
 import type {
   CaptureContext,
+  ContentEntry,
   FixturesSlice,
   HydrateContext,
   MixinSlice,
@@ -87,6 +88,13 @@ export interface Adornable {
   hasFixture(f: Stuff & Adornment): boolean;
   /** The slot name `f` occupies on this host, or null when unattached. */
   slotOfFixture(f: Stuff & Adornment): string | null;
+  /**
+   * ⭐ Give a fixture minted AFTER this host's record restored what its slot
+   * held in that record (persistence-model D3): a tract's runtime-marked
+   * field is minted when the tract has restored, and it rides the tract's
+   * record. A no-op when the slot held nothing.
+   */
+  adoptRestoredState(f: Stuff & Adornment): Promise<void>;
   getFixtures(): readonly (Stuff & Adornment)[];
   /**
    * ⭐ **The one read for "what is the ground here".** Returns the first
@@ -147,24 +155,23 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
      *
      * Fixtures are runtime-only: an authored sconce is rebuilt from the
      * host's `adornments` field on every hydrate, so a host's record has
-     * no business carrying them. But a good a PLAYER hung on the wall is
-     * not authored — it is chattel, and it persists owner-side (D2's
-     * skip rule, one collection over). Without this pass a room going
-     * dormant while its owner is offline would take the lamp with it: the
-     * container slice never sees a fixture, so nobody reports it and
-     * nobody captures it.
-     *
-     * So: report every stamped fixture to `ctx.noteOwnedGood`, which
-     * flushes it into its owner's estate (mount slot and all), and emit
-     * an empty field slice. Exactly the Container-slice rule, applied to
-     * the fixtures map.
+     * no business carrying them. ⭐ But a good a PLAYER hung on the wall is
+     * not authored — it is chattel, and it is kept by this host like any
+     * good in it (persistence-model D9): captured whole under `hung`, by
+     * slot, and re-hung at the restore.
      */
     static captureSlice(host: Stuff, ctx: CaptureContext): FixturesSlice {
       const adornable = host as Stuff & Adornable;
       const fixtures: Record<string, Record<string, unknown>> = {};
+      const hung: Record<string, ContentEntry> = {};
+      const applied = (host as unknown as { _appliedFixtures?: Set<Stuff> })._appliedFixtures;
       for (const f of adornable.getFixtures()) {
-        if (MixinApi.isChattel(f) && f.isOwnerPersisted()) {
-          ctx.noteOwnedGood(f);
+        // ⭐ A fixture somebody HUNG (stamped, not laid down by the row) is a
+        // good kept by this host, whoever holds title (persistence-model D9):
+        // captured whole, re-hung at the restore.
+        if (MixinApi.isChattel(f) && f.isStamped() && !applied?.has(f)) {
+          const slot = adornable.slotOfFixture(f);
+          if (slot) hung[slot] = ctx.captureItem(f, {});
           continue;
         }
         // ⭐ (cleanliness D31b) What an act did to an AUTHORED fixture —
@@ -188,9 +195,10 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
         const fields = runtimeFields(boundary, ctx);
         if (Object.keys(fields).length > 0) fixtures[key] = fields;
       }
-      return Object.keys(fixtures).length > 0
-        ? { fields: {}, fixtures }
-        : { fields: {} };
+      const out: FixturesSlice = { fields: {} };
+      if (Object.keys(fixtures).length > 0) out.fixtures = fixtures;
+      if (Object.keys(hung).length > 0) out.hung = hung;
+      return out;
     }
 
     /** Give each re-minted fixture back what its slot's record held. */
@@ -199,14 +207,28 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
       slice: MixinSlice,
       ctx: HydrateContext,
     ): Promise<void> {
+      const adornable0 = host as Stuff & Adornable;
+      // ⭐ Re-hang what somebody hung (persistence-model D9).
+      for (const [slot, entry] of Object.entries((slice as FixturesSlice).hung ?? {})) {
+        const live = (await ctx.restoreItem(entry, null)) as Stuff | null;
+        if (live && MixinApi.isAdornment(live)) adornable0.addFixture(live, slot);
+      }
       const fixtures = (slice as FixturesSlice).fixtures;
       if (!fixtures) return;
-      const adornable = host as Stuff & Adornable;
+      const adornable = host as Stuff & Adornable & { _pendingFixtureState: Map<string, (f: Stuff & Adornment) => Promise<void>> };
+      const standing = new Set<string>();
       for (const f of adornable.getFixtures()) {
         const slot = adornable.slotOfFixture(f);
+        if (slot) standing.add(slot);
         const fields = slot ? fixtures[slot] : undefined;
         if (!fields || MixinApi.isPersistable(f)) continue;
         await ctx.applyFields(f, fields);
+      }
+      // ⭐ A slot whose fixture the host mints later (a tract's marked field)
+      // keeps its restore until that fixture is adopted (persistence-model D3).
+      for (const [slot, fields] of Object.entries(fixtures)) {
+        if (standing.has(slot) || slot.startsWith('way:')) continue;
+        adornable._pendingFixtureState.set(slot, (f) => ctx.applyFields(f, fields));
       }
       for (const [key, boundary] of waysOf(host)) {
         const fields = fixtures[key];
@@ -329,6 +351,22 @@ export function AdornableMixin<TBase extends MixinConstructor<Stuff & Container>
         if (v === f) return k;
       }
       return null;
+    }
+
+    /**
+     * Runtime-only: the restore of a slot whose fixture was not standing
+     * when the record was read — kept until that fixture is minted. Not in
+     * `fieldMeta`.
+     */
+    public _pendingFixtureState: Map<string, (f: Stuff & Adornment) => Promise<void>> = new Map();
+
+    /** See {@link Adornable.adoptRestoredState}. */
+    async adoptRestoredState(f: Stuff & Adornment): Promise<void> {
+      const slot = this.slotOfFixture(f);
+      const apply = slot ? this._pendingFixtureState.get(slot) : undefined;
+      if (!slot || !apply) return;
+      this._pendingFixtureState.delete(slot);
+      await apply(f);
     }
 
     getFixtures(): readonly (Stuff & Adornment)[] {

@@ -1,0 +1,5 @@
+title: Cap table
+# ⭐ A business's owners (persistence-model D6), filed by the business after
+# every sale, gift or transfer.
+traits:
+  filed: business

@@ -1,0 +1,14 @@
+# Seznick House's storeroom — the agency's boxroom under the stair, where a
+# former tenant's things are boxed when their lease ends (persistence-model
+# D11). A `Locker`: what is held here keeps, and the tenant takes each thing
+# back with `rack reclaim`.
+class: /platform/thing/Locker
+data:
+  shortDescription: boxroom
+  register: definite
+  primaryKeyword: boxroom
+  keywords: [boxroom, storeroom, store, lockers]
+  longDescription: |
+    A low boxroom under the stair, its shelves stacked with labeled cartons — the things of tenants who have moved out, waiting to be collected.
+  fixedInPlace: true
+  mass: 120
