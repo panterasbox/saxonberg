@@ -140,6 +140,11 @@ test.describe('stream arrival, in a browser', () => {
       // The lounge: watch mode, the player in the stage's slot.
       await expect.poll(() => v.getByTestId('stream-player').getAttribute('data-player-place'), { timeout: 60_000 }).toBe('slot');
       expect(await playerSrc(v)).toContain(`channel=${TWITCH}`);
+      // ⚠ In the slot is not ON SCREEN: the watch stage's slot once had no
+      // height, and the player sat there 0×0 (the owner's demo, 11-24).
+      await expect
+        .poll(async () => (await v.getByTestId('stream-player').boundingBox())?.height ?? 0, { timeout: 10_000 })
+        .toBeGreaterThan(150);
       await visitorCtx.close();
 
       // ── 4: off air ──
