@@ -725,16 +725,15 @@ describe("throw — the affordance actually reaches a player (the binder gap)", 
    * can type. antipatterns.md documents four defects that lived in
    * exactly this gap.
    */
-  it("the THING WITH MASS confers `throw` on whoever holds it", async () => {
+  it("a BODY with mass throws — `throw` is on Tangible's `self` bucket (the which audit)", async () => {
     const { TangibleMixin } = await import("../../../../lib/material/Tangible");
-    // `environment` = grants OUTWARD to my container chain. A rock in
-    // your hand — or in a bag in your pack — hands you `throw`.
+    // `self` is read only off a command giver: every body types `throw`,
+    // and a rock or a room offers nothing.
     const composed = TangibleMixin(Idea) as unknown as {
-      commandContributions: { environment: string[] };
+      commandContributions: { self: string[]; environment?: string[]; peers?: string[] };
     };
-    expect(composed.commandContributions.environment).toContain(
-      "platform/cmd/inventory/throw.yaml",
-    );
+    expect(composed.commandContributions.self).toContain("platform/cmd/inventory/throw.yaml");
+    expect(composed.commandContributions.peers ?? []).toEqual([]);
   });
 
   it("Container does NOT confer it — a room is a Container", async () => {
