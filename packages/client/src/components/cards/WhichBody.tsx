@@ -44,6 +44,16 @@ const VerbButton = styled.button<{ $off?: boolean }>`
   text-decoration: underline dotted;
 `;
 
+const HelpLink = styled.button`
+  background: none;
+  border: none;
+  padding: 0 0 0 2px;
+  cursor: pointer;
+  font-size: 0.8em;
+  vertical-align: super;
+  color: ${tokens.color.fgMuted};
+`;
+
 const SourceButton = styled.button`
   background: none;
   border: none;
@@ -88,15 +98,47 @@ function sourceWord(s: WhichSource): string {
   return s.handle.split(",")[0]!.trim();
 }
 
+/**
+ * ⭐ Every verb is TWO links (owner, review): the verb itself — typed onto
+ * your command line, never sent — and `?`, which runs `help <verb>`.
+ */
+function VerbLinks({
+  verb,
+  clicks,
+  off,
+  title,
+}: {
+  verb: string;
+  clicks: Clicks;
+  off?: boolean;
+  title?: string;
+}): React.ReactElement {
+  return (
+    <>
+      <VerbButton
+        type="button"
+        $off={off}
+        title={title}
+        data-testid={`which-verb-${verb}`}
+        onClick={() => clicks.type(verb)}
+        {...clicks.hover(`${verb} `)}
+      >
+        {verb}
+      </VerbButton>
+      <HelpLink type="button" data-testid={`which-help-${verb}`} onClick={() => clicks.send(`help ${verb}`)} {...clicks.hover(`help ${verb}`)}>
+        ?
+      </HelpLink>
+    </>
+  );
+}
+
 function VerbChips({ verbs, clicks }: { verbs: readonly string[]; clicks: Clicks }): React.ReactElement {
   return (
     <>
       {verbs.map((v, i) => (
         <React.Fragment key={v}>
           {i > 0 ? ", " : null}
-          <VerbButton type="button" data-testid={`which-verb-${v}`} onClick={() => clicks.type(v)} {...clicks.hover(`${v} `)}>
-            {v}
-          </VerbButton>
+          <VerbLinks verb={v} clicks={clicks} />
         </React.Fragment>
       ))}
     </>
@@ -117,16 +159,7 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
         {g.verbs.map((v, i) => (
           <React.Fragment key={v.verb}>
             {i > 0 ? ", " : null}
-            <VerbButton
-              type="button"
-              $off={v.state === "disabled"}
-              title={v.description}
-              data-testid={`which-verb-${v.verb}`}
-              onClick={() => clicks.type(v.verb)}
-              {...clicks.hover(`${v.verb} `)}
-            >
-              {v.verb}
-            </VerbButton>
+            <VerbLinks verb={v.verb} clicks={clicks} off={v.state === "disabled"} title={v.description} />
           </React.Fragment>
         ))}
         {wide
@@ -144,11 +177,8 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
           ? g.verbs.map((v) => (
               <div key={`d:${v.verb}`}>
                 <Muted>
-                  {v.verb} — {v.description}{" "}
+                  {v.verb} — {v.description}
                 </Muted>
-                <SourceButton type="button" data-testid={`which-help-${v.verb}`} onClick={() => clicks.send(`help ${v.verb}`)} {...clicks.hover(`help ${v.verb}`)}>
-                  <Muted>(help)</Muted>
-                </SourceButton>
               </div>
             ))
           : null}
@@ -170,7 +200,9 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
 /** Words that mean two commands here, and the scope that picks each meaning. */
 function Collisions({ answer, clicks }: { answer: WhichAnswer; clicks: Clicks }): React.ReactElement | null {
   const list = answer.collisions ?? [];
-  if (list.length === 0) return null;
+  if (list.length === 0) {
+    return answer.ask.mode === "clashes" ? <Muted data-testid="which-no-clashes">No word here means two different commands.</Muted> : null;
+  }
   return (
     <Details data-testid="which-collisions" open>
       <summary>one word, two commands ({list.length})</summary>
@@ -262,12 +294,6 @@ export function WhichBody({
         </Details>
       ) : null}
       <Collisions answer={answer} clicks={clicks} />
-      {answer.actsOn && answer.actsOn.length > 0 ? (
-        <Details data-testid="which-acts-on" open>
-          <summary>what you can do to it</summary>
-          <VerbChips verbs={answer.actsOn} clicks={clicks} />
-        </Details>
-      ) : null}
       {answer.usual && answer.usual.verbs.length > 0 ? (
         <Details data-testid="which-usual" open={narrowed}>
           <summary>the usual ({answer.usual.verbs.length}) — you</summary>

@@ -466,14 +466,13 @@ export type ModelData = Record<string, FieldValue | undefined>;
  * What `which` was asked (owner, review: each kind of question is its own
  * typed slot, and nothing extra is volunteered). `thing` — the bound object
  * (`which counter`); `verb` — a verb word (`which --verb buy`); `clashes` —
- * also the words that mean more than one command here; `to` — with a
- * thing, also what you can do to it. Neither thing nor verb: everything.
+ * the words that mean more than one command here. Neither thing nor verb:
+ * everything.
  */
 export interface WhichAsking {
   thing?: Stuff;
   verb?: string;
   clashes?: boolean;
-  to?: boolean;
 }
 
 export type WhichResult =

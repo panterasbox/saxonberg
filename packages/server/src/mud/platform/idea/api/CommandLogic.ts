@@ -2967,39 +2967,22 @@ function collisionsOf(verbs: string[], givers: Givers, viewer: Stuff): WhichColl
 }
 
 /** See {@link CommandApi.which}. */
-/**
- * ⭐ Verbs of yours that ask something SPECIFIC of `target` — their object
- * slot requires a mixin a plain thing does not have (owner, review: the
- * radial's list of everything that does not refuse it is mostly `go` and
- * `walk`). `which <thing> --to`.
- */
-async function actsOnOf(target: Stuff, viewer: Stuff & CommandGiver): Promise<string[]> {
-  // ⚠ Loaded at use: `Thing` is on the chain this module is part of.
-  const { default: Thing } = await import('../../../lib/stuff/Thing');
-  const plain = (name: string): boolean => MixinApi.hasMixin(Thing as never, name as never);
-  const radial = await CommandApi.resolveAffordances(target, viewer);
-  const out: string[] = [];
-  for (const v of radial?.verbs ?? []) {
-    if (v.source !== 'actor' || v.state === 'disabled') continue;
-    const def = [...commands.values()].find((d) => d.getPrimaryVerb() === v.verb);
-    const slot = def?.args.find((a) => a.type === 'object' || a.type === 'objects');
-    const raw = slot?.requires;
-    const names = (raw === undefined ? [] : Array.isArray(raw) ? raw : [raw])
-      .flatMap((x) => String(x).split('|'))
-      .map((x) => x.trim())
-      .filter((x) => x !== '' && x !== 'any' && x !== 'affords');
-    if (names.some((n) => !plain(n))) out.push(v.verb);
-  }
-  return out;
-}
-
 /** See {@link CommandApi.which}. */
 async function whichImpl(viewer: Stuff & CommandGiver, opts: WhichAsking = {}): Promise<WhichResult> {
   const { usual, sources, givers } = whichSources(viewer);
   // The flags as typed, so the answer's command re-asks exactly this.
-  const flags = `${opts.clashes ? ' --clashes' : ''}${opts.to ? ' --to' : ''}`;
+  const flags = opts.clashes ? ' --clashes' : '';
   const thing = opts.thing;
   const word = opts.verb?.trim() ?? '';
+
+  // ⭐ `which --clashes` alone answers ITS question and nothing else (owner,
+  // review): the words that mean two commands here — usually none.
+  if (thing === undefined && word === '' && opts.clashes) {
+    return {
+      ok: true,
+      facts: { ask: { mode: 'clashes', command: 'which --clashes' }, groups: [], collisions: collisionsOf([...givers.keys()], givers, viewer) },
+    };
+  }
 
   if (thing === undefined && word === '') {
     const common = await commonVerbs();
@@ -3019,10 +3002,6 @@ async function whichImpl(viewer: Stuff & CommandGiver, opts: WhichAsking = {}): 
       usual: { verbs: usual },
     };
     if (commonSeen.length > 0) answer.common = { verbs: commonSeen, sources: commonSources };
-    // Verbs more than one thing gives — the ones a bare line could mean twice.
-    // (The common line's verbs are on every article by design; not listed.)
-    // Asked for, never volunteered (owner: `which` does not decide for you).
-    if (opts.clashes) answer.collisions = collisionsOf([...givers.keys()], givers, viewer);
     return { ok: true, facts: answer };
   }
 
@@ -3043,10 +3022,10 @@ async function whichImpl(viewer: Stuff & CommandGiver, opts: WhichAsking = {}): 
       return { ok: false, reason: 'gives-nothing', facts: { thing: whichSourceOf(thing, viewer).name } };
     }
     const answer: WhichAnswer = { ask, groups: await whichGroups(entries, viewer) };
-    // ⭐ Related, each asked for (owner, review): its words that mean another
-    // command here too (`--clashes`), and what you can do TO it (`--to`).
+    // Asked for (owner, review): its words that mean another command here too.
+    // ⛔ No "what can I do TO it" — a verb's objects play roles (from, into,
+    // with) no answer can guess; designed in command-line-reflection-slate.
     if (opts.clashes) answer.collisions = collisionsOf([...new Set(entries.flatMap((e) => e.verbs))], givers, viewer);
-    if (opts.to) answer.actsOn = await actsOnOf(thing, viewer);
     return { ok: true, facts: answer };
   }
 

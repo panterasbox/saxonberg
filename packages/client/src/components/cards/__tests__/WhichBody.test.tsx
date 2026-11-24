@@ -34,14 +34,16 @@ describe("WhichBody", () => {
     expect(screen.getAllByTestId("which-row")).toHaveLength(1);
     expect(screen.getAllByTestId("which-source")[0]!.textContent).toBe("counter");
     expect(screen.queryByText("You have nothing to sell.")).toBeNull();
-    expect(screen.queryByTestId("which-help-buy")).toBeNull();
+    // ⭐ Two links per verb at every width: the verb, and `?` for its help.
+    expect(screen.getByTestId("which-help-buy")).toBeTruthy();
   });
 
   it("across the terminal: the place and the greyed reason", () => {
     render(<WhichBody answer={answer} size="medium" onSendCommand={() => undefined} />);
     expect(screen.getAllByTestId("which-source")[0]!.textContent).toBe("the counter here");
     expect(screen.getByText(/You have nothing to sell\./)).toBeTruthy();
-    expect(screen.queryByTestId("which-help-buy")).toBeNull();
+    // help's one line is the stage's alone; the `?` link is on every width.
+    expect(screen.queryByText(/Buy something/)).toBeNull();
   });
 
   it("the stage: help's own line and a link to help", () => {

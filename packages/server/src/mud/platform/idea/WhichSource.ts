@@ -122,7 +122,6 @@ export default class WhichSource extends SubscriptionSourceMixin(Idea) {
     const thing = p.thingId ? StuffApi.findById(p.thingId) : null;
     const r = await CommandApi.which(holder, {
       clashes: p.clashes === true,
-      to: p.to === true,
       ...(thing ? { thing } : {}),
       ...(p.verb ? { verb: p.verb } : {}),
     });

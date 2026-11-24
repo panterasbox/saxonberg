@@ -712,6 +712,19 @@ take the line up first and ring a `Ringable` bell.
 11. `packages/wire/src/harness/scaffold.ts`; `docs/testing.md`
 12. `docs/subsystems/card-surface.md`, `subscription.md`, `command-routing.md`, `command-spec.md`
 
+## Review decisions (owner, 2026-11-24)
+
+- `which <thing>` is an `object` arg; `which --verb <verb>` a string option
+  (D6's guess reversed — antipatterns.md § A string slot that names things).
+- Nothing extra is volunteered; `which --clashes` answers only the words that
+  mean two commands here — two VIEWS, not two givers.
+- The card: one row per source; every verb two links (the verb, typed; `?`,
+  its help); every link previews its command; titled by what was typed.
+- ⛔ `--to` (what you can do to a thing) was built and **pulled**: it guessed
+  at object roles. Designed in command-line-reflection-slate § What can I do
+  with this.
+- Goods for sale give nothing; next door, only an agent gives `peers`.
+
 ## Drive record
 
 *2026-11-23, build-3, a fresh `saxonberg_build3`, the world on `WIRE_PORT=2016`.*

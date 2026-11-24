@@ -18,7 +18,6 @@ interface WhichModel extends CommandModel {
   thing?: MqlOneResult;
   verb?: string;
   clashes?: boolean;
-  to?: boolean;
 }
 
 export default class WhichController extends CommandController<WhichModel> {
@@ -70,7 +69,10 @@ export default class WhichController extends CommandController<WhichModel> {
       );
     }
     const clashes = WhichController.collisionLines(a);
-    if (clashes.length > 0) {
+    if (mode === 'clashes' && clashes.length === 0) lines.push('No word here means two different commands.');
+    if (mode === 'clashes' && clashes.length > 0) lines.push('One word, two commands (pick one with `thing::verb`):');
+    if (mode === 'clashes') lines.push(...clashes);
+    if (mode !== 'clashes' && clashes.length > 0) {
       // ⭐ Where a verb comes from when more than one thing gives it, and the
       // scope that picks one — a bare line tries each in turn.
       lines.push(
@@ -80,13 +82,12 @@ export default class WhichController extends CommandController<WhichModel> {
       );
       lines.push(...clashes);
     }
-    if (a.actsOn && a.actsOn.length > 0) lines.push(`What you can do to it: ${a.actsOn.join(', ')}`);
     if (mode === 'verb' && a.ask.what) lines.push(`(\`help ${a.ask.what}\` has its shape.)`);
     return lines;
   }
 
   async execute(model: WhichModel, context: CommandContext): Promise<void> {
-    const opts = { clashes: model.clashes === true, to: model.to === true };
+    const opts = { clashes: model.clashes === true };
     const thing = model.thing?.stuff ?? undefined;
     const answer = await CommandApi.which(context.commandGiver, {
       ...opts,
@@ -103,7 +104,6 @@ export default class WhichController extends CommandController<WhichModel> {
     const title = [
       'which',
       opts.clashes ? '--clashes' : '',
-      opts.to ? '--to' : '',
       model.verb ? `--verb ${model.verb}` : '',
       answer.facts.ask.mode === 'thing' ? (answer.facts.ask.what ?? '') : '',
     ]

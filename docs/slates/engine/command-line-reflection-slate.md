@@ -3,7 +3,8 @@
 > **Status: UNBUILT** — opened 2026-11-23 (owner, in naming-overhaul
 > review, over the `lists: relations` view key); shape decided in the
 > design conversation the same day (below).
-> **Left:** typeahead and the radial reading the answer · scripts asking
+> **Left:** what can I do with this — an object's role in a verb ·
+> typeahead and the radial reading the answer · scripts asking
 > whether a verb exists. (The `which` card is in the requirements.)
 > **In requirements (2026-11-23):** [which](../../requirements/which-requirements.md) — the server command.
 > **Size:** a build (server first; the client reads it after).
@@ -118,6 +119,43 @@ which <thing>    — what that thing lets you do
 | the `~` words and their meanings | the built-in relation table + `RelatingMixin.relationsFor` (naming-overhaul B1) | reuse; the listing moves from `query` (the `lists: relations` key, the `relations` bound field and `names-relations` retire) |
 | the refusal words for an unusable verb | the verb's own validators and reason rows | reuse — the same words, never a paraphrase |
 | a shell verb in the platform pack | `client-*` / `settings` / `alias` (shell category views) | the shape to follow |
+
+## What can I do with this — an object's role in a verb (owner, which review, 2026-11-24)
+
+The `which` build tried `which <thing> --to`: *your verbs you can use on
+this thing*. It guessed: it took the radial's list (every one of your verbs
+whose first object slot does not refuse the thing) and kept the ones whose
+slot `requires:` a mixin a plain thing lacks. Shown live, it was mostly
+noise (`go`, `walk`, `stoke` on a counter), and the narrowed form kept
+nothing. It was **pulled** before merge. The owner: *"commands can take
+multiple objects as args, they can take objects as args to options, and
+all of this in any configuration. so doing something 'to' something isnt
+a simple proposition. if we want it answerable we should probably make it
+explicit in the command def than try to figure it out and be wrong."*
+
+**Why the question has no single answer:** a verb relates to its objects in
+ROLES, and one thing can play different roles:
+- two objects, two roles — `put notebook in crate`, `pour jug into cup`,
+  `give rope to Bea`;
+- an instrument, often an option's object — `cut rope --with knife`;
+- the giver is not the object — the counter gives `buy`, the notebook is
+  bought; the hearth gives `heat`, the thing you hold is heated;
+- one thing, either role — a jug is poured FROM or INTO.
+
+**The direction (not decided):** the command definition says what each
+object slot MEANS — a small closed vocabulary of roles (what it acts on, its
+destination, its source, its instrument…), declared per slot, options
+included, so *what can I do with this jug* answers *pour (from it) · pour
+(into it)*. Every view would need one; a census-then-ratchet counts the
+undeclared, and an undeclared verb is simply not listed (never guessed).
+
+**Who else reads it:** the radial menu (`CommandApi.resolveAffordances`)
+and the inspection card's action row answer the same question today, by
+the same guess — so whatever is designed here fixes all three at once.
+
+**Open:** the role vocabulary and who vets it (it is grammar, like the
+reserved `~` words); whether a role is per slot or per verb shape; how
+`which` shows it; what an undeclared verb's radial shows meanwhile.
 
 ## Open questions
 

@@ -21,11 +21,9 @@ help: |
   shape). When one word means two different commands here, it shows each
   and the `thing::verb` that picks it.
 
-  It says only what you asked. Two options ask for more:
-
-    which --clashes        the words that mean more than one command here
-    which counter --to     what you can do TO the counter (your verbs that
-                           ask something of it)
+  It says only what you asked. `which --clashes` asks for something else:
+  only the words that mean more than one command here (usually none), each
+  meaning with who gives it and the `thing::verb` that picks it.
 
   `which ~` lists the `~` words you can type — `~here`, `~inventory`,
   your contact lists and groups — each with what it means. `which ~
@@ -43,8 +41,6 @@ examples:
     note: What gives you `fish` here
   - cmd: which --clashes
     note: Words that mean two commands here
-  - cmd: which counter --to
-    note: What you can do to the counter
   - cmd: which ~
     note: The ~ words you can type
 fallthrough: true
@@ -54,10 +50,7 @@ options:
     description: "Where this verb comes from here — every thing that gives it"
   clashes:
     type: boolean
-    description: "Also list the words that mean more than one command here, and how to pick each"
-  to:
-    type: boolean
-    description: "With a thing: also list what you can do to it"
+    description: "Only the words that mean more than one command here, and how to pick each"
 args:
   # `which counter` — a thing, bound like any object a verb names (owner:
   # each kind of question is its own typed slot; a verb is `--verb`).

@@ -2294,7 +2294,7 @@ export interface WhichRelation {
 
 /** What was asked — and the command that asks it again (a card's refresh). */
 export interface WhichAsk {
-  mode: 'all' | 'thing' | 'verb' | 'relations';
+  mode: 'all' | 'thing' | 'verb' | 'relations' | 'clashes';
   command: string;
   /** The word typed after `which`, when there was one. */
   what?: string;
@@ -2319,8 +2319,6 @@ export interface WhichAnswer {
   keeper?: WhichSource;
   /** Words that mean more than one command here, with the scope that picks each. */
   collisions?: WhichCollision[];
-  /** For `which <thing>`: what you can do TO it (the radial's usable verbs). */
-  actsOn?: string[];
 }
 
 /**
@@ -3008,9 +3006,8 @@ export interface WhichSubscriptionParams {
   thingId?: string;
   /** `which --verb <verb>`. */
   verb?: string;
-  /** The options the card was asked with (`which --clashes`, `which counter --to`). */
+  /** `which --clashes`. */
   clashes?: boolean;
-  to?: boolean;
 }
 
 // ============================================================================
