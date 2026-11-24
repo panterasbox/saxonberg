@@ -3,7 +3,7 @@
  * (naming overhaul D-B5; mql-anchors §§ 4, 7–8).
  *
  * MQL's `holder:~name` asks the Stuff to its left for the set it keeps
- * under `name`, and `holder:~` for the names it answers. A contact list
+ * under `name`, and the names it answers (`which ~ <holder>`). A contact list
  * keeps your friends, a party its members, a book its ships, a travel
  * card its nodes, a warren its rooms — each holder decides which names it
  * answers and to whom (contacts are owner-only; a published list answers
@@ -13,7 +13,7 @@
  * ⭐ Only keepers compose it: the contributing mixins (contacts, party
  * membership, resident groups) and the holder classes (a warren, a book, a
  * card, an aether host) pull it in beneath them. It is not on `Stuff`,
- * `Thing` or `Idea` — a loaf keeps no sets, and `loaf:~` lists only the
+ * `Thing` or `Idea` — a loaf keeps no sets, and `which ~ loaf` lists only the
  * built-ins that apply to it.
  *
  * Contributors CHAIN: each answers its own names and passes the rest to
@@ -42,7 +42,7 @@ export interface RelatedSet extends HeldRelation {
 }
 
 export interface Relating {
-  /** The relations this holder answers to `asker` (`holder:~`). */
+  /** The relations this holder answers to `asker` (`which ~ <holder>`). */
   relationsFor(asker: Stuff | null): HeldRelation[];
   /**
    * The sets this holder keeps under `name` for `asker`: empty when it

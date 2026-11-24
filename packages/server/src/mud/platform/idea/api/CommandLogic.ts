@@ -1772,31 +1772,6 @@ export class CommandLogic extends ApiLogic {
       // default never carries one.
       const raw = ShellApi.expandQueryAliases(typedRaw, giver);
 
-      // ⭐ `thing:~` lists relations and binds nothing (D-B4): the slot
-      // that lists (`lists: relations` — `query`'s) is handed the listing;
-      // any other refuses, pointing at `query`.
-      if (/:~\s*$/.test(raw)) {
-        if (def.lists !== 'relations') {
-          context.refuse({ reason: 'names-relations', facts: { query: raw } });
-          return { result: 'failed' };
-        }
-        let listing: MqlMany;
-        try {
-          listing = MqlApi.resolveMany(raw, { commandGiver: giver, scope: '~reachable' });
-        } catch (err) {
-          // @quiet not silent: reported as the slot's `mql-error` note, as every resolve failure is.
-          context.note({
-            kind: 'mql-error',
-            field: fname,
-            stage: 'resolve',
-            detail: err instanceof Error ? err.message : String(err),
-          });
-          return { result: 'failed' };
-        }
-        const bound: MqlManyResult = { stuff: [], raw, relations: listing.relations ?? [] };
-        resolved[fname] = bound;
-        continue;
-      }
 
 
       // Build the scope try-list. The YAML's `scope:` is authoritative
@@ -2071,11 +2046,6 @@ export class CommandLogic extends ApiLogic {
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof typedRaw !== 'string' || typedRaw.length === 0) continue;
       const raw = ShellApi.expandQueryAliases(typedRaw, giver);
-      // `thing:~` binds nothing (D-B4) — an option never lists.
-      if (/:~\s*$/.test(raw)) {
-        context.refuse({ reason: 'names-relations', facts: { query: raw } });
-        return { result: 'failed' };
-      }
 
       const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
       const tries: string[] = scopeTries(yamlScopes, giver);
@@ -2990,7 +2960,8 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
     };
   }
 
-  const verb = word.toLowerCase();
+  // ⭐ The word as typed — the view's own `hasVerb` is the matcher.
+  const verb = word;
   const entries = sources
     .filter((e) => [...e.defs.values()].some((d) => d.hasVerb(verb)))
     .map((entry) => ({ entry, verbs: [...entry.defs.entries()].filter(([, d]) => d.hasVerb(verb)).map(([v]) => v) }));

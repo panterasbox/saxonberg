@@ -2,7 +2,7 @@
  * Naming overhaul B1 — relations in the grammar: one root (`me`), the
  * built-in relations, the listing, player addresses and home paths.
  *
- *   `~here` is the place (one face); a bare `~x` is `me:~x`; `me:~` lists
+ *   `~here` is the place (one face); a bare `~x` is `me:~x`; `which ~` lists
  *   every built-in with its meaning; `@<id>` binds a loaded avatar and
  *   nothing for an unknown id; `~/x` and a bare `~` are home paths, valid
  *   only at the head; several holders union and dedupe; a `self` built-in
@@ -64,22 +64,9 @@ describe('MQL relations (B1)', () => {
     expect(resolve('square:~it', ctx)).toEqual([]);
   });
 
-  it('me:~ binds nothing and lists every built-in with its meaning', () => {
-    const r = resolveWithQuantity('me:~', ctx);
-    expect(r.matches).toEqual([]);
-    const names = (r.relations ?? []).map((x) => x.name);
-    for (const n of ['here', 'inventory', 'peers', 'reachable', 'person', 'horizon', 'contacts', 'it', 'last']) {
-      expect(names).toContain(n);
-    }
-    expect((r.relations ?? []).every((x) => x.meaning.length > 0)).toBe(true);
-    // MqlApi carries the fact onto the result.
-    expect(MqlApi.resolveMany('me:~', ctx).relations?.length).toBe(r.relations?.length);
-  });
-
-  it('a thing that keeps nothing lists only the built-ins that apply to anyone', () => {
-    const names = (resolveWithQuantity('square:~', ctx).relations ?? []).map((x) => x.name);
-    expect(names).toContain('here');
-    expect(names).not.toContain('peers');
+  it('⭐ a bare ~ lists nothing — `which ~` has the listing (the which build)', () => {
+    expect(() => resolveWithQuantity('me:~', ctx)).toThrow(/which ~/);
+    expect(() => resolveWithQuantity('square:~', ctx)).toThrow(/which ~/);
   });
 
   it('@<id> binds a loaded avatar; an unknown id binds nothing', () => {

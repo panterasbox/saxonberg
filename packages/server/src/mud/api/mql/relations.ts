@@ -1,6 +1,6 @@
 /**
  * MQL's built-in relations — the one table that says what every built-in
- * `~name` means (naming overhaul D-B2). `me:~` prints it, so the grammar
+ * `~name` means (naming overhaul D-B2). `which ~` prints it, so the grammar
  * documents itself; a view's `scope:` and a typed query read the same
  * entries, so a seed and a scope can no longer mean two things.
  *

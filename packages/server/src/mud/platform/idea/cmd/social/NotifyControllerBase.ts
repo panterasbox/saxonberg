@@ -139,7 +139,7 @@ export abstract class NotifyControllerBase extends CommandController<NotifyModel
     const name = typed.slice(1);
     const ref = MixinApi.isRelating(giver) ? giver.groupRefOf(name, giver) : null;
     if (ref === null) {
-      return { ok: false, why: `~${name} is not a list or group you keep (\`query me:~\` lists them).` };
+      return { ok: false, why: `~${name} is not a list or group you keep (\`which ~\` lists them).` };
     }
     return { ok: true, ref };
   }

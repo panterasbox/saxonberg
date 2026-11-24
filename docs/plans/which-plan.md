@@ -523,8 +523,8 @@ before W1.
   own rule**; client body tests per width.
 - Acceptance: steps 12–16 by hand. Commit `feat(which): the card`.
 
-**W5 — the listing leaves MQL.** (requirements § The `~` listing leaves
-`query`)
+**W5 — the listing leaves MQL.** ✅ *(done before W4 — server-only and independent)* (requirements § The `~` listing leaves
+`query`) — a bare head `~` stays the home path (`/home/<you>`), so only `thing:~` is the refusal; `ContactsAddController`'s built-in warning now reads `BUILTIN_RELATION_WORDS` (it had resolved `me:~` to get them); the wiki guide and `notify`'s help point at `which ~`; `lint:data-ideas`' ceiling fell 13 → 11 and is re-pinned.
 - `api/mql/parser.ts`: `:~` with no name is an `MqlParseError` —
   *`~` with no name lists nothing — `which ~` lists the ~ words you can
   type*; the head-of-query `~` error names `which ~` too. Remove the

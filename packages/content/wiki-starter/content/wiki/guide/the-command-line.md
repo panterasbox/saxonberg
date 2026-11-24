@@ -74,9 +74,10 @@ hello` reaches her from anywhere.
 
 `who` shows each player's `@` address (`@abc123`); `dm @abc123 hello`
 reaches that one player even before they are on any list of yours.
-`query me:~` lists every `~` word you can use, each with a line saying
-what it means — and `query book:~` asks a thing what it keeps (a charter
-book answers with its `~ships`).
+`which ~` lists every `~` word you can use, each with a line saying
+what it means — and `which ~ book` asks a thing what it keeps (a charter
+book answers with its `~ships`). Plain `which` lists every verb you can
+type where you stand, and what gives you each one.
 
 ## How long {#durations}
 

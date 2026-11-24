@@ -371,12 +371,6 @@
             "error"
           ],
           "description": "Policy when a match was discarded for failing this slot's `requires:`. Default 'take' (silent, today's behaviour). See command-spec.md."
-        },
-        "lists": {
-          "enum": [
-            "relations"
-          ],
-          "description": "The slot accepts a relation listing (`thing:~`) and is handed it as `relations` on the bound set; any other slot refuses one (`names-relations`)."
         }
       }
     },

@@ -11,7 +11,7 @@ help: |
   people in a group render when you look at a room. A rule is keyed on
   a list or group of yours, named as a relation — a contacts list
   (`~friends`), a group you belong to (`~fighter-guild`), your party
-  (`~party`); `query me:~` lists them — and your rules are an
+  (`~party`); `which ~` lists them — and your rules are an
   ordered list: when someone matches several, the FIRST rule down the
   list wins. Order is precedence, so placing a rule higher makes it
   authoritative.

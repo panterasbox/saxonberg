@@ -61,12 +61,11 @@ import type {
   MqlMatchVia,
   PronounNode,
   QueryNode,
-  RelationInfo,
   RelationTie,
   SublistNode,
   ValueNode,
 } from './types';
-import { BUILTIN_RELATIONS, avatarOfPlayer, builtinRelations } from './relations';
+import { BUILTIN_RELATIONS, avatarOfPlayer } from './relations';
 // Loads the `detailPath` augmentation onto `MqlMatchVia`.
 import './via-augment';
 
@@ -131,7 +130,6 @@ export function resolveWithQuantity(
   scan?: RegistryScan;
   isSet?: true;
   ordinal?: number;
-  relations?: RelationInfo[];
   relationTie?: RelationTie;
 } {
   // ⭐ `registryScan` is a COST RECORD, not a permission — what this run
@@ -140,16 +138,13 @@ export function resolveWithQuantity(
   // because a predicate can re-enter `MqlApi.resolveMany` and the outer
   // run's record must survive the nested one.
   const outerScan = registryScan;
-  const outerListing = relationListing;
   const outerTie = relationTie;
   registryScan = null;
-  relationListing = null;
   relationTie = null;
   try {
     return resolveInner(query, ctx);
   } finally {
     registryScan = outerScan;
-    relationListing = outerListing;
     relationTie = outerTie;
   }
 }
@@ -163,7 +158,6 @@ function resolveInner(
   scan?: RegistryScan;
   isSet?: true;
   ordinal?: number;
-  relations?: RelationInfo[];
   relationTie?: RelationTie;
 } {
   const desugared = desugar(query);
@@ -182,10 +176,8 @@ function resolveInner(
     scan?: RegistryScan;
     isSet?: true;
     ordinal?: number;
-    relations?: RelationInfo[];
     relationTie?: RelationTie;
   } = { matches: finalized };
-  if (relationListing) out.relations = relationListing;
   if (relationTie) out.relationTie = relationTie;
   if (quantity) out.quantity = quantity;
   if (desugared.ordinal !== undefined) out.ordinal = desugared.ordinal;
@@ -382,11 +374,10 @@ function mayReadWorld(): boolean {
 let registryScan: RegistryScan | null = null;
 
 /**
- * ⭐ The relation facts one synchronous run gathered — `thing:~`'s listing
- * and a name two of one holder's sets share — like `registryScan`, saved
+ * ⭐ The relation fact one synchronous run gathered — a name two of one
+ * holder's sets share — like `registryScan`, saved
  * and restored around a run so a nested resolve keeps the outer's.
  */
-let relationListing: RelationInfo[] | null = null;
 let relationTie: RelationTie | null = null;
 
 /**
@@ -467,7 +458,6 @@ function resolveSeed(node: ChainElement, ctx: MqlContext): MqlMatch[] {
       return resolveSeed({ kind: 'path', pattern: `/home/${key}${node.rest}` }, ctx);
     }
     case 'relation':
-    case 'relations':
       throw new MqlResolveError(`'~' at the head of a query names one of YOUR relations — write it '~name'`);
     case 'transform':
     case 'ordinal':
@@ -842,9 +832,6 @@ function applyColon(
       return filterByLiteral(input, el.value);
     case 'relation':
       return flatMapRelation(input, el.name, ctx);
-    case 'relations':
-      listRelations(input, ctx);
-      return [];
     case 'player':
     case 'homePath':
       throw new MqlResolveError(`'${describeKind(el.kind)}' is only valid at the start of a query`);
@@ -950,29 +937,6 @@ function flatMapRelation(input: MqlMatch[], name: string, ctx: MqlContext): MqlM
     for (const set of sets) for (const s of set.members) push(s, m.score, m.stuff, set.meaning);
   }
   return out;
-}
-
-/**
- * `:~` — record what each prior element answers to the asker (the
- * built-ins that apply, then its own sets) for `query` to print. Binds
- * nothing.
- */
-function listRelations(input: MqlMatch[], ctx: MqlContext): void {
-  const asker = ctx.commandGiver;
-  const listing: RelationInfo[] = relationListing ?? [];
-  for (const m of input) {
-    const holder = nameOf(m.stuff);
-    for (const b of builtinRelations()) {
-      if (b.whose === 'self' && m.stuff !== asker) continue;
-      listing.push({ holder, name: b.name, meaning: b.meaning, builtin: true });
-    }
-    if (MixinApi.isRelating(m.stuff)) {
-      for (const r of m.stuff.relationsFor(asker)) {
-        listing.push({ holder, name: r.name, meaning: r.meaning, builtin: false });
-      }
-    }
-  }
-  relationListing = listing;
 }
 
 /**

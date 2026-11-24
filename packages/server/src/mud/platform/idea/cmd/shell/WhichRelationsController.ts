@@ -18,21 +18,24 @@ interface WhichRelationsModel extends CommandModel {
   thing?: MqlOneResult;
 }
 
-/** The terminal reply for a `which ~` answer. */
-function relationLines(a: WhichAnswer): string[] {
-  const head = a.keeper ? `What ${WhichController.sourcePhrase(a.keeper)} keeps:` : 'The ~ words you can type:';
-  const lines = [head];
-  for (const r of a.relations ?? []) {
-    const count = r.count === undefined ? '' : ` (${r.count} in the world)`;
-    lines.push(`  ~${r.name} — ${r.meaning}${count}`);
-  }
-  return lines;
-}
-
 export default class WhichRelationsController extends CommandController<WhichRelationsModel> {
+  /** The terminal reply for a `which ~` answer. */
+  private static lines(a: WhichAnswer): string[] {
+    const head = a.keeper ? `What ${WhichController.sourcePhrase(a.keeper)} keeps:` : 'The ~ words you can type:';
+    const lines = [head];
+    for (const r of a.relations ?? []) {
+      const count = r.count === undefined ? '' : ` (${r.count} in the world)`;
+      lines.push(`  ~${r.name} — ${r.meaning}${count}`);
+    }
+    return lines;
+  }
+
   execute(model: WhichRelationsModel, context: CommandContext): void {
     const answer = CommandApi.whichRelations(context.commandGiver, model.thing?.stuff ?? undefined);
     if (!answer.ok) return this.refuse(context, answer);
-    MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(Mml.fromMarkup(`\n${relationLines(answer.facts).join('\n')}\n`)).send();
+    MessageApi.scene(context.commandGiver)
+      .topic('shell.result')
+      .toSelf(Mml.fromMarkup(`\n${WhichRelationsController.lines(answer.facts).join('\n')}\n`))
+      .send();
   }
 }
