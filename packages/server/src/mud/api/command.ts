@@ -25,6 +25,7 @@ import type {
   AffordanceState,
   CompositionEntry,
 } from '@saxonberg/types';
+import type { WhichAnswer } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ShadowApi } from './shadow';
@@ -456,6 +457,16 @@ export type ModelData = Record<string, FieldValue | undefined>;
  * the client's own types, spoken here unchanged so the two surfaces
  * cannot drift.
  */
+/**
+ * What {@link CommandApi.which} answers: the `which` read, or the refusal
+ * whose row words it — `gives-nothing` (a thing that gives you no verbs),
+ * `nothing-gives-verb` (a verb nothing here gives), `no-such-verb`.
+ */
+export type WhichResult =
+  | { ok: true; facts: WhichAnswer }
+  | { ok: false; reason: 'gives-nothing'; facts: { thing: string } }
+  | { ok: false; reason: 'nothing-gives-verb' | 'no-such-verb'; facts: { verb: string } };
+
 export interface AffordanceResolution {
   verbs: AffordanceEntry[];
   composition: CompositionEntry[];
@@ -2261,6 +2272,21 @@ export class CommandApi {
     value: unknown,
   ): string | null {
     return logic().validateAgainstJsonSchema(schema, value);
+  }
+
+  /**
+   * ⭐ **What can this viewer type here, and what gives each verb?** — the
+   * `which` read (the which build). The dispatcher's own list of the
+   * viewer's affordances behind the radial's gates (perceived, identified),
+   * grouped by source in the viewer's words, each verb's state as the
+   * radial reports it. `what`, when given, narrows it: a perceived thing in
+   * reach wins, and a word naming nothing in reach is read as a verb.
+   *
+   * ⚠ Like `resolveAffordances` it is a read, never a gate: every verb it
+   * lists is one the line accepts now, and the line re-checks everything.
+   */
+  static which(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
+    return logic().which(viewer, what);
   }
 
   /**

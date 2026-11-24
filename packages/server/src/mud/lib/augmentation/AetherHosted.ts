@@ -31,6 +31,7 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { AetherHost } from "./AetherHost";
+import { MixinApi } from "../../api/mixin";
 
 /** Public shape provided by AetherHostedMixin. */
 export interface AetherHosted {
@@ -49,6 +50,12 @@ export interface AetherHosted {
   isAetherHosted(): boolean;
   /** The name a player reads (`Messages`); the row's key when none is authored. */
   getAppName(): string;
+  /**
+   * ⭐ Where this app is, in `viewer`'s words (the `which` build): `''`
+   * when it is the viewer's own (*your calendar*), *on your phone* when a
+   * device the viewer carries hosts it, *on the phone here* otherwise.
+   */
+  whereFor(viewer: Stuff): string;
 }
 
 export function AetherHostedMixin<TBase extends MixinConstructor<Stuff>>(
@@ -88,6 +95,15 @@ export function AetherHostedMixin<TBase extends MixinConstructor<Stuff>>(
       if (this.appName) return this.appName;
       const path = (this as unknown as Stuff).getTemplatePath() ?? "";
       return path.slice(path.lastIndexOf("/") + 1);
+    }
+
+    whereFor(viewer: Stuff): string {
+      const host = this._host;
+      if (host === null || host.stuffId === viewer.stuffId) return "";
+      const device = host.describeFor(viewer, "handle");
+      const where = MixinApi.isContainable(host) ? host.whereFor(viewer) : "";
+      if (where === "you're carrying" || where.startsWith("in your ")) return `on your ${device}`;
+      return where ? `on the ${device} ${where}` : `on the ${device}`;
     }
 
     /**

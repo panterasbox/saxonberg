@@ -2238,6 +2238,71 @@ export interface AffordanceEntry {
   source?: 'subject' | 'actor';
 }
 
+/* ─────────────── `which` — what can I type here (the which build) ─────────────── */
+
+/**
+ * ⭐ One thing that gives verbs, in the asker's words. `handle` is the one
+ * word to type for it; `name` the definite phrase (*the rod*, *your
+ * calendar*, *you*); `place` where it is (*in your right hand*, *here*) —
+ * empty for the asker and for what is theirs.
+ */
+export interface WhichSource {
+  id: string;
+  handle: string;
+  name: string;
+  place: string;
+}
+
+/**
+ * The verbs one source gives, with each verb's state as the radial
+ * reports it (the validator's own words when greyed). Alike sources — the
+ * same handle, place and verbs — are one group with a `count`.
+ */
+export interface WhichGroup {
+  /** Stable across re-reads while the same things give the same verbs. */
+  key: string;
+  source: WhichSource;
+  count: number;
+  /** Every alike source's id (the first is `source.id`). */
+  ids: string[];
+  verbs: AffordanceEntry[];
+}
+
+/** One `~` word: what it means, whose it is, and how many it holds now. */
+export interface WhichRelation {
+  name: string;
+  meaning: string;
+  /** Members resident now, when the word is kept by something (a list, a book). */
+  count?: number;
+}
+
+/** What was asked — and the command that asks it again (a card's refresh). */
+export interface WhichAsk {
+  mode: 'all' | 'thing' | 'verb' | 'relations';
+  command: string;
+  /** The word typed after `which`, when there was one. */
+  what?: string;
+  /** For `thing`: the things the word named. */
+  subjectIds?: string[];
+}
+
+/**
+ * ⭐ The `which` answer: what the asker can type here, grouped by what
+ * gives it. `common` is the closing line of verbs every carried article
+ * gives (*and anything you're carrying: throw, ring*); `usual` the body's
+ * own verbs (*and the usual: look, say, go, … (you)*).
+ */
+export interface WhichAnswer {
+  ask: WhichAsk;
+  groups: WhichGroup[];
+  common?: { verbs: string[]; sources: WhichSource[] };
+  usual?: { verbs: string[] };
+  /** `which ~` / `which ~ <thing>`. */
+  relations?: WhichRelation[];
+  /** For `which ~ <thing>`: whose words these are. */
+  keeper?: WhichSource;
+}
+
 /**
  * Inbound response to a server-pushed prompt. The substrate looks
  * up the resolver by `promptId`, decodes `response` per the prompt

@@ -33,6 +33,7 @@ import type { StoredDocument } from '../../../lib/document/StoredDocument';
 import { SecurityApi } from '../../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { CARD_IDS } from '@saxonberg/types';
+import type { WhichAnswer, WhichGroup, WhichSource } from '@saxonberg/types';
 import { SourceTreeApi } from '../../../api/source-tree';
 import type {
   MessageFrame,
@@ -101,7 +102,7 @@ import {
   type AssembleOptions,
   type ResolveModelOptions,
 } from '../../../api/command';
-import type { OnFilteredPolicy } from '../../../api/command';
+import type { OnFilteredPolicy, WhichResult } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
 import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
@@ -2459,6 +2460,12 @@ export class CommandLogic extends ApiLogic {
   ): Promise<AffordanceResolution | null> {
     return resolveAffordancesImpl(target, viewer);
   }
+
+  /** See {@link CommandApi.which}. */
+  @CallSecurity(CommandApiCallers)
+  public which(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
+    return whichImpl(viewer, what);
+  }
 }
 
 /* ─────────────────── Affordance resolution ─────────────────── */
@@ -2770,6 +2777,228 @@ async function evaluateAffordance(
     state: 'enabled',
     category: cmd.category,
   };
+}
+
+/* ─────────────────── `which` — what can I type here ─────────────────── */
+
+/**
+ * The verbs a thing gives by being an article at all — what the `Good`
+ * rung itself contributes. They collapse into the closing *anything you're
+ * carrying* line rather than repeating under every good (which D3).
+ */
+async function commonVerbs(): Promise<Set<string>> {
+  // ⚠ Loaded at use: `Good` sits on the Thing/Place chain this module is
+  // part of, and a static import closes a cycle (Place's mixins undefined).
+  const { default: Good } = await import('../../../lib/stuff/Good');
+  const out = new Set<string>();
+  for (const bucket of ['environment', 'peers'] as const) {
+    for (const def of collectBucketDefs(Good, bucket)) out.add(def.getPrimaryVerb());
+  }
+  return out;
+}
+
+/** Is `thing` on `viewer`, at any depth? */
+function carriedBy(thing: Stuff, viewer: Stuff): boolean {
+  let up: Stuff | null = MixinApi.isContainable(thing) ? thing.getContainer() : null;
+  for (let i = 0; up !== null && i < CONTAINMENT_WALK_CAP; i++) {
+    if (up.stuffId === viewer.stuffId) return true;
+    up = MixinApi.isContainable(up) ? up.getContainer() : null;
+  }
+  return false;
+}
+
+/**
+ * ⭐ The two gates the radial applies, for one source of `viewer`'s verbs:
+ * what is the viewer's own (its body, its apps, what it carries) always
+ * passes; anything else must be perceived, and must be identified for its
+ * own verbs to show (an unidentified wand offers no `recharge`).
+ */
+function sourceShown(source: Stuff, viewer: Stuff): boolean {
+  if (source.stuffId === viewer.stuffId) return true;
+  if (MixinApi.isAetherHosted(source)) {
+    const host = source.getHost();
+    if (host === null) return false;
+    return host.stuffId === viewer.stuffId || sourceShown(host, viewer);
+  }
+  if (!carriedBy(source, viewer) && !PerceptionApi.perceives(viewer, source)) return false;
+  return (
+    !MixinApi.isIdentifiable(source) ||
+    (MixinApi.isBeliefStore(viewer) && viewer.knowsTrueTypeOf(source))
+  );
+}
+
+/** A source in `viewer`'s words (which D5). */
+function whichSourceOf(source: Stuff, viewer: Stuff, count = 1): WhichSource {
+  const id = source.stuffId;
+  if (id === viewer.stuffId) return { id, handle: 'me', name: 'you', place: '' };
+  if (MixinApi.isAetherHosted(source)) {
+    const app = source.getAppName();
+    const place = source.whereFor(viewer);
+    return { id, handle: app.toLowerCase(), name: place === '' ? `your ${app}` : `the ${app} app`, place };
+  }
+  const phrase = source.handlePhrase();
+  const handle = phrase.bare();
+  const name = count > 1 ? phrase.withCount(count).render() : phrase.definite();
+  const here = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+  const place =
+    here !== null && here.stuffId === id
+      ? 'where you are'
+      : MixinApi.isContainable(source)
+        ? source.whereFor(viewer)
+        : '';
+  return { id, handle, name, place };
+}
+
+/** One source's verbs, deduped by primary verb, in stack order. */
+interface SourceVerbs {
+  source: Stuff;
+  defs: Map<string, CommandDefinition>;
+}
+
+/**
+ * ⭐ Every verb `viewer` can type, by what gives it — the dispatcher's own
+ * list (`getAffordances()`, which D1) behind the radial's gates. The body's
+ * own verbs come back as `usual`; the rest per source.
+ */
+function whichSources(viewer: Stuff & CommandGiver): { usual: string[]; sources: SourceVerbs[] } {
+  const usual: string[] = [];
+  const bySource = new Map<string, SourceVerbs>();
+  const shown = new Map<string, boolean>();
+  for (const a of viewer.getAffordances()) {
+    const verb = a.command.getPrimaryVerb();
+    if (!verb) continue;
+    if (a.source.stuffId === viewer.stuffId) {
+      if (!usual.includes(verb)) usual.push(verb);
+      continue;
+    }
+    const id = a.source.stuffId;
+    if (!shown.has(id)) shown.set(id, sourceShown(a.source, viewer));
+    if (!shown.get(id)) continue;
+    let entry = bySource.get(id);
+    if (!entry) {
+      entry = { source: a.source, defs: new Map() };
+      bySource.set(id, entry);
+    }
+    if (!entry.defs.has(verb)) entry.defs.set(verb, a.command);
+  }
+  // A verb the body has is never repeated under another source (which D4).
+  const sources: SourceVerbs[] = [];
+  for (const entry of bySource.values()) {
+    for (const verb of usual) entry.defs.delete(verb);
+    if (entry.defs.size > 0) sources.push(entry);
+  }
+  return { usual, sources };
+}
+
+/** Evaluate one source's verbs as the radial does (which D2). */
+async function evaluateGroup(entry: SourceVerbs, viewer: Stuff & CommandGiver, verbs: string[]): Promise<AffordanceEntry[]> {
+  const out: AffordanceEntry[] = [];
+  const binds = !MixinApi.isAetherHosted(entry.source);
+  for (const verb of verbs) {
+    const cmd = entry.defs.get(verb)!;
+    out.push(await evaluateAffordance(cmd, verb, entry.source, viewer, binds ? objectFields(cmd) : []));
+  }
+  return out;
+}
+
+/**
+ * Build the groups for `entries`, merging alike sources (the same words
+ * and verbs) and ordering by the rarest verb first (which D3).
+ */
+async function whichGroups(
+  entries: { entry: SourceVerbs; verbs: string[] }[],
+  viewer: Stuff & CommandGiver,
+): Promise<WhichGroup[]> {
+  const merged = new Map<string, { entry: SourceVerbs; verbs: string[]; ids: string[] }>();
+  for (const e of entries) {
+    const words = whichSourceOf(e.entry.source, viewer);
+    const key = `${words.handle}|${words.place}|${e.verbs.join(',')}`;
+    const had = merged.get(key);
+    if (had) had.ids.push(e.entry.source.stuffId);
+    else merged.set(key, { entry: e.entry, verbs: e.verbs, ids: [e.entry.source.stuffId] });
+  }
+  const givers = new Map<string, number>();
+  for (const m of merged.values()) for (const v of m.verbs) givers.set(v, (givers.get(v) ?? 0) + m.ids.length);
+  const rarity = (verbs: string[]): number => Math.min(...verbs.map((v) => givers.get(v) ?? 0));
+  const ordered = [...merged.entries()].sort((a, b) => rarity(a[1].verbs) - rarity(b[1].verbs));
+  const groups: WhichGroup[] = [];
+  for (const [key, m] of ordered) {
+    groups.push({
+      key,
+      source: whichSourceOf(m.entry.source, viewer, m.ids.length),
+      count: m.ids.length,
+      ids: m.ids,
+      verbs: await evaluateGroup(m.entry, viewer, m.verbs),
+    });
+  }
+  return groups;
+}
+
+/** See {@link CommandApi.which}. */
+async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
+  const { usual, sources } = whichSources(viewer);
+  const word = what?.trim() ?? '';
+
+  if (word === '') {
+    const common = await commonVerbs();
+    const commonSources: WhichSource[] = [];
+    const commonSeen: string[] = [];
+    const entries: { entry: SourceVerbs; verbs: string[] }[] = [];
+    for (const entry of sources) {
+      const own = [...entry.defs.keys()].filter((v) => !common.has(v));
+      const shared = [...entry.defs.keys()].filter((v) => common.has(v));
+      for (const v of shared) if (!commonSeen.includes(v)) commonSeen.push(v);
+      if (shared.length > 0) commonSources.push(whichSourceOf(entry.source, viewer));
+      if (own.length > 0) entries.push({ entry, verbs: own });
+    }
+    const answer: WhichAnswer = {
+      ask: { mode: 'all', command: 'which' },
+      groups: await whichGroups(entries, viewer),
+      usual: { verbs: usual },
+    };
+    if (commonSeen.length > 0) answer.common = { verbs: commonSeen, sources: commonSources };
+    return { ok: true, facts: answer };
+  }
+
+  // ⭐ A perceived thing in reach wins; a word naming nothing is a verb (which D6).
+  const found = viewer.namedSources(word);
+  if (found.ok) {
+    const named = found.named;
+    const subjectIds = named.map((s) => s.stuffId);
+    const command = named.length === 1 ? `which #${named[0]!.stuffId}` : `which ${word}`;
+    if (named.length === 1 && named[0]!.stuffId === viewer.stuffId) {
+      return { ok: true, facts: { ask: { mode: 'thing', command, what: word, subjectIds }, groups: [], usual: { verbs: usual } } };
+    }
+    const entries = sources
+      .filter((e) => subjectIds.includes(e.source.stuffId))
+      .map((entry) => ({ entry, verbs: [...entry.defs.keys()] }));
+    if (entries.length === 0) {
+      const thing = named.length === 1 ? whichSourceOf(named[0]!, viewer).name : `'${word}'`;
+      return { ok: false, reason: 'gives-nothing', facts: { thing } };
+    }
+    return {
+      ok: true,
+      facts: { ask: { mode: 'thing', command, what: word, subjectIds }, groups: await whichGroups(entries, viewer) },
+    };
+  }
+
+  const verb = word.toLowerCase();
+  const entries = sources
+    .filter((e) => [...e.defs.values()].some((d) => d.hasVerb(verb)))
+    .map((entry) => ({ entry, verbs: [...entry.defs.entries()].filter(([, d]) => d.hasVerb(verb)).map(([v]) => v) }));
+  const own = usual.filter((v) => v === verb);
+  if (entries.length > 0 || own.length > 0) {
+    const answer: WhichAnswer = {
+      ask: { mode: 'verb', command: `which ${verb}`, what: word },
+      groups: await whichGroups(entries, viewer),
+    };
+    if (own.length > 0) answer.usual = { verbs: own };
+    return { ok: true, facts: answer };
+  }
+  if ([...commands.values()].some((d) => d.hasVerb(verb))) {
+    return { ok: false, reason: 'nothing-gives-verb', facts: { verb } };
+  }
+  return { ok: false, reason: 'no-such-verb', facts: { verb: word } };
 }
 
 /* ─────────────────── Matcher helpers ─────────────────── */

@@ -412,7 +412,7 @@ re-plan, not a number change.
 
 ## Waves
 
-**W0 — probe.** No commit. In a standing test world: (a) list the verbs
+**W0 — probe.** ✅ *(done 2026-11-23)* No commit. Found: a bare `~` is a plain word token; the biped's hands are `hand:left`/`hand:right` (`slotWord` → *left hand*); `fish` is trade-fishing's; ⭐ of every wide rung's contributions only `TangibleMixin` (`throw`) and `IntegrityMixin` (`ring`) put verbs in `environment`/`peers` — every other base-rung mixin contributes `self` only; places already compose neither; people do not compose `Integrity`. W2's job is therefore those two. In a standing test world: (a) list the verbs
 a carried `/platform/thing/book` gives its carrier and a fresh avatar's
 `self` verbs (a unit test over `getAffordances()` — keep it as W1's
 fixture); (b) confirm a bare `~` tokenizes as a word and is a legal
@@ -423,7 +423,7 @@ answers for a hosted app; (e) confirm `fish.yaml` is in the test world's
 catalogue. Any answer that contradicts this plan is re-planned in place
 before W1.
 
-**W1 — the read and the words.** (D1–D6, D11)
+**W1 — the read and the words.** ✅ *(done)* (D1–D6, D11) — ⚠ `Good` is loaded at use in `commonVerbs` (a static import from `CommandLogic` closed a cycle through `Place`). `namedSources` lifted onto `CommandGiver`; `matchAffordances` uses it. `move` onto a body lands a thing in a free hand, so a carried article reads *in your left hand*.
 - `packages/types/src/index.ts`: `WhichAnswer` (`ask` with its
   `command`, `groups`, `usual`, `common`, `relations`), `WhichGroup`,
   `WhichSource`, `WhichAsk`.
