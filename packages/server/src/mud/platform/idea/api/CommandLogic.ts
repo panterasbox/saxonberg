@@ -2586,8 +2586,16 @@ async function evaluateAffordance(
   target: Stuff,
   viewer: Stuff & CommandGiver,
   fields: string[],
+  /**
+   * ⭐ Bind `target` as the verb's first object (the radial: *what can I do
+   * with THIS*). `which` passes false — the source GIVES the verb and is not
+   * its object (a hearth gives `heat`; the hearth is not what is heated), so
+   * an object slot is an operand still to choose, and only verb-level
+   * refusals grey a verb (the which drive found the hearth refusing itself).
+   */
+  bindTarget = true,
 ): Promise<AffordanceEntry> {
-  const bound = fields[0];
+  const bound = bindTarget ? fields[0] : undefined;
   const context = CommandApi.createCommandContext({
     commandGiver: viewer,
     location: MixinApi.isContainable(viewer) ? viewer.getContainer() : null,
@@ -2819,10 +2827,17 @@ function whichSources(viewer: Stuff & CommandGiver): { usual: string[]; sources:
 /** Evaluate one source's verbs as the radial does (which D2). */
 async function evaluateGroup(entry: SourceVerbs, viewer: Stuff & CommandGiver, verbs: string[]): Promise<AffordanceEntry[]> {
   const out: AffordanceEntry[] = [];
-  const binds = !MixinApi.isAetherHosted(entry.source);
   for (const verb of verbs) {
     const cmd = entry.defs.get(verb)!;
-    out.push(await evaluateAffordance(cmd, verb, entry.source, viewer, binds ? objectFields(cmd) : []));
+    const e = await evaluateAffordance(cmd, verb, entry.source, viewer, objectFields(cmd), false);
+    // An operand still to choose is not a state `which` reports: typed, the
+    // verb asks for it.
+    if (e.state !== 'pending-operand') {
+      out.push(e);
+      continue;
+    }
+    const { operand: _operand, ...open } = e;
+    out.push({ ...open, state: 'enabled' });
   }
   return out;
 }

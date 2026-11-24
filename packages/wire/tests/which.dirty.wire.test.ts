@@ -137,7 +137,7 @@ suite("the read — what you can type here", () => {
     const counter = await say(ann, "which counter");
     expect(verbsIn(counter.lines)).not.toContain("throw");
     expect(verbsIn(counter.lines)).not.toContain("ring");
-    const bea = open.find((s) => s.handle.startsWith("whbea"))!;
+    const bea = open.find((s) => s.handle.includes("whbea"))!;
     const person = await say(ann, `which ${bea.handle}`);
     expect(verbsIn(person.lines)).not.toContain("throw");
     const thrown = await say(ann, "which throw");
@@ -164,8 +164,9 @@ suite("what you carry", () => {
     const down = await say(buyer, "which");
     note(buyer, down.lines);
     if (put.status === "ok") expect(down.w).toMatch(/the notebook on the shelf|the notebook here/);
-    // Set down, it no longer gives the article's verbs (the audit).
-    expect(down.w).not.toMatch(/and anything you're carrying/);
+    // Set down, it is no longer a source of the article's verbs (the audit):
+    // nothing names it as carried.
+    expect(down.w).not.toMatch(/the notebook (in your|you're carrying)/);
   });
 
   it("5. [instant · player] two notebooks: `which notebook` tells them apart by place — never a keyword list", async () => {
@@ -214,9 +215,13 @@ suite("listed ⇒ accepted", () => {
     for (const [s, verbs] of listed) {
       for (const verb of [...verbs].sort()) {
         if (SKIP.has(verb) || verb.startsWith("~")) continue;
-        const r = await say(s, verb);
+        await s.drainProse();
+        const { result, prompt } = await s.cmdOrPrompt(verb);
+        // A bare verb may ask for its object ("Arm what?") — asked, it was ACCEPTED.
+        const w = squash(await result.said());
+        record.push(`${s.handle}: ${verb} → ${prompt ? "prompt" : result.status} · ${w.slice(0, 160)}`);
         typed.push(verb);
-        expect(r.w, `${verb}: ${r.w}`).not.toMatch(/I don't understand/);
+        expect(w, `${verb}: ${w}`).not.toMatch(/I don't understand/);
       }
     }
     record.push(`step 11 typed ${typed.length}: ${typed.join(" ")}`);
