@@ -1265,7 +1265,7 @@ This build deletes `OVERLAY_TWITCH_LOGIN`, `OVERLAY_YOUTUBE_CHANNEL`, `OVERLAY_K
    rodney token            # paste into Rodney's browser source — the env token is gone
    rodney token --control  # if the Stream Deck used the env door
    ```
-3. As the Prime Minister: `config set stream.featuredProgram <short-name>`.
+3. As the Prime Minister: `config stream.featuredProgram <short-name>`.
 4. Remove the five names from SSM / `.env`.
 5. Check: `curl https://<host>/api/front` names the program and its three feeds; `rodney live`
    turns `"live": true`; the overlay shows chat.

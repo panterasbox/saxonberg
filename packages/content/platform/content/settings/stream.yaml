@@ -15,6 +15,6 @@ settings:
   # ⭐ The program the front page features (stream arrival D14): a program's
   # short name. Shipped EMPTY — nothing is featured by default, and the page
   # then has no show band. The Prime Minister sets it:
-  # `config set stream.featuredProgram <name>`.
+  # `config stream.featuredProgram <name>`.
   - key: stream.featuredProgram
     value: ""

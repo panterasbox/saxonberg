@@ -100,7 +100,7 @@ suite('stream arrival — the program, the arrival, the instruments', () => {
   }, 180_000);
 
   afterAll(async () => {
-    await pm?.cmd(`config set stream.featuredProgram ""`).catch(() => undefined);
+    await pm?.cmd(`config stream.featuredProgram ""`).catch(() => undefined);
   });
 
   it('step 0 — a program filed, its feeds proven, featured, on air and off', async () => {
@@ -123,7 +123,7 @@ suite('stream arrival — the program, the arrival, the instruments', () => {
     expectOk(await bo.cmd(`program channel ${P1} kick`));
     expectOk(await bo.cmd(`program create ${P2}`));
 
-    expectOk(await pm.cmd(`config set stream.featuredProgram ${P0}`));
+    expectOk(await pm.cmd(`config stream.featuredProgram ${P0}`));
     let page = await front();
     expect(page.show?.name).toBe(P0);
     expect(page.show?.live).toBe(false);
@@ -230,7 +230,9 @@ suite('stream arrival — the program, the arrival, the instruments', () => {
     expect(await hasVerb(cal, 'stream'), 'stream is no verb for anyone').toBe(false);
     const store = await (await cal.cmd('apps')).said();
     expect(store).toMatch(/broadcast/i);
-    expectOk(await cal.cmd('apps install broadcast'));
+    // On the PHONE, named: a body is also born with an implant that runs apps,
+    // and switching the phone off must be what stops the verb.
+    expectOk(await cal.cmd('apps install broadcast on phone'));
     expectOk(await cal.cmd(`program create ${PC}`));
     expectOk(await cal.cmd(`program channel ${PC} twitch`));
     expectOk(await cal.cmd(`program run ${PC}`));
@@ -242,7 +244,7 @@ suite('stream arrival — the program, the arrival, the instruments', () => {
     // The phone off: the verb stays, typing it says why.
     expectOk(await cal.cmd('switch phone off'));
     const off = await cal.cmd('rodney back');
-    expect(reasonOf(off)).toBe('aether-off');
+    expect(reasonOf(off), JSON.stringify(off.notes)).toBe('aether-off');
     // At the desk (the hut), it runs — the other offer.
     expectOk(await cal.cmd(`go ${EXITS.approach.hut}`));
     expectOk(await cal.cmd('rodney back'));

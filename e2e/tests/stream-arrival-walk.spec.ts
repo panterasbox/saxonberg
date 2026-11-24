@@ -69,7 +69,7 @@ test.describe('stream arrival, in a browser', () => {
         await runCommand(caster.page, line);
         await caster.page.waitForTimeout(600);
       }
-      await runCommand(founder.page, `config set stream.featuredProgram ${PROGRAM}`);
+      await runCommand(founder.page, `config stream.featuredProgram ${PROGRAM}`);
       await expect
         .poll(async () => ((await (await fetch(`${SERVER_URL}/api/front`)).json()) as { show?: { live: boolean } }).show?.live, {
           timeout: 30_000,
@@ -156,7 +156,7 @@ test.describe('stream arrival, in a browser', () => {
       expect(sideways, 'no sideways scroll at phone width').toBe(false);
       await phoneCtx.close();
     } finally {
-      await runCommand(founder.page, `config set stream.featuredProgram ""`).catch(() => undefined);
+      await runCommand(founder.page, `config stream.featuredProgram ""`).catch(() => undefined);
       await caster.close();
       await founder.close();
     }
