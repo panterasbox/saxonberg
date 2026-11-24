@@ -915,7 +915,7 @@ async function holdsPen(actor: Avatar, owner: string, name: string): Promise<boo
   if (!owner.startsWith('/')) return false;
   // The ordinary save's own gate (your home, else the title), asked of a
   // path inside the owner's branch — one rule for whose pen it is.
-  return DocumentApi.mayWrite(actor as unknown as Stuff, `${owner}/programs/${name}`);
+  return DocumentApi.mayWrite(actor, `${owner}/programs/${name}`);
 }
 
 /**

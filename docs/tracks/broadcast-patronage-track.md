@@ -52,9 +52,10 @@ The track inherits a real head start:
 - **Broadcasting at all (server half).** `StreamState` singleton (since
   broadcast-ready: per-streamer `BroadcastMixin`),
   `BroadcastFeed` service, the read-only `?broadcast=<token>` principal
-  (gated by `BROADCAST_TOKEN`), the `streamers` access axis
-  (`AccessApi.isStreamer` / `requiresStreamer`, seeded from
-  `STREAMER_PLAYER_IDS`), and the `stream away`/`back` verb. The OBS-side
+  (per-streamer tokens), the **program** document a stream runs (owned by
+  the pen, feeds proven from linked accounts — stream arrival replaced the
+  `streamers` axis and the env vars), and the `rodney` verb (`away`/`back`
+  …). The OBS-side
   overlay is **Rodney**, `packages/rodney` (the sibling `pbox-stream` repo until 2026-10-17). See
   [livestream.md](../subsystems/livestream.md).
 - **Realtime engagement.** Channels + acoustic/implant comms

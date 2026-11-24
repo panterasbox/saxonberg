@@ -10,9 +10,11 @@
 > [livestream.md](../../subsystems/livestream.md),
 > [streaming.md](../../subsystems/streaming.md), Rodney's README
 > (`packages/rodney`) and `packages/rodney/docs/obs-setup.md`.
-> **Left:** the deferred seams (§ below — the registry, the money and
-> community cards, the wiki article of the day, `stream start <show>`,
-> Kick on the show, alerts in the lower third, pop-out across
+> **Shipped since by stream arrival (MR !655, 2026-11-24):** the registry
+> as the **program** document and `program run` (what `stream start
+> <show>` asked for); `stream` became `rodney`.
+> **Left:** the deferred seams (§ below — the money and
+> community cards, the wiki article of the day, Kick on the show, alerts in the lower third, pop-out across
 > connections, the deep-link page) · the owner's rehearsal items · the
 > crawl's in-world news (press, chronicle — only welcomes ride it today)
 > · the `saxonberg.gg` domain · the rotation rules the owner may tilt · ⭐ (2026-11-18, § *The page boundary*)

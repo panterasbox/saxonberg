@@ -65,7 +65,7 @@ block, never this file. Back to [all slates](../README.md).
 
 | slate | size | status | left |
 |---|---|---|---|
-| [aether-devices](./aether-devices-slate.md) | ? | PARTLY | `help ask` and the social promise (§ 1 → guarantees-of-play-slate, customer service) · the screen cleanup (§ 6 → display-manifestation-slate) · calls designed, not built (§ 7) · the *power it down* law and the town's node (§ 9 → the epoch build, content-declaration-slate § 3.0) … |
+| [aether-devices](./aether-devices-slate.md) | build | PARTLY | `help ask` and the social promise (§ 1 → guarantees-of-play-slate, customer service) · the screen cleanup (§ 6 → display-manifestation-slate) · calls designed, not built (§ 7) · the *power it down* law and the town's node (§ 9 → the epoch build, content-declaration-slate § 3.0) … |
 | [affordance-verb](./affordance-verb-slate.md) | tail | PARTIAL | extra `put` prepositions (Q2) · the `Receiving` mixin (NPC consent for `give`) · the radial's own build (below) · a singleton-claimed-once gate (an open question, below) |
 | [agent-coordination](./agent-coordination-slate.md) | build | PARTIAL | the whole of Stage 2 — § *What we mean by INTELLIGENCE*, the declared faculty profile and its three axes (no code was written for any of it) · the LLM arbiter behind `_deliberate`'s one `_arbitrate` seam · a brain-specific break-off sentence (`breaksOff?` on `BrainStatics`; the kernel's generic one serves until a brain wants its own) · a Cast earning a chronicle deed by acting (the formidable rung for NPCs) … |
 | [antecedents](./antecedents-slate.md) | build | PARTIAL | the `background:` effort→prior function (kind × years × at) + the Phase A open questions (decay · Catalog edges · `conditioning` · in-world readability) … |

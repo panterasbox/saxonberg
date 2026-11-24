@@ -43,6 +43,13 @@ What a phone does is what it runs. `apps` lists them; `apps install` and
 `apps uninstall` change them. **Messages** is the one that carries `dm` —
 uninstall it and your messages are held until you put it back.
 
+Some apps bring **commands** with them. While you carry the phone they are
+yours to type; leave it in a pack, switch it off or let it die, and the
+command tells you why it will not go — the same as a message would.
+**Broadcast** (`apps install broadcast on phone`) is one: it gives you
+`program`, to file a show of your own, and `rodney`, to run it on the air.
+A broadcast desk gives you the same two while you sit at it.
+
 ## Charging {#charging}
 
 A phone draws a little all the time it is on and in somebody's hands, and a
@@ -61,4 +68,4 @@ given away. One you buy is yours to pass on: `title transfer <phone> to
 
 ## See also {#see-also}
 
-`help dm`, `help apps`, `help switch`, `help title`.
+`help dm`, `help apps`, `help program`, `help rodney`, `help switch`, `help title`.

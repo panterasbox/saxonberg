@@ -19,8 +19,8 @@ gets a reference but `SecurityError` thrown on any method call.
 
 `lookupRegistry()` returns null before `/platform/idea/AccessRegistry` is
 registered — during early boot, and in any test that does not stand one
-up. Five predicates (`can`, `canMutateZone`, `isWizard`, `isStreamer`,
-`isArchwizard`) used to answer **`true`** in that window, undocumented.
+up. Five predicates (`can`, `canMutateZone`, `isWizard`, `isStreamer` —
+since retired — `isArchwizard`) used to answer **`true`** in that window, undocumented.
 
 **A missing authority is not a grant.** `isWizard` is the axis for
 authoring TypeScript — it gates `eval` and writing a code file into the
@@ -45,9 +45,11 @@ extent** — never a tier. There is no author tier (content-packs wave 3
 deleted `AccessApi.isAuthor`, the `requiresAuthor` validator and the MQL
 permission snapshot): an *author* is anybody, and what they may do is
 answered per resource by the title that covers it. Beside title stand
-two **account axes** that are not about content at all — authoring
-TypeScript (`wizards`, conferred by `archwizards`) and the livestream
-control plane (`streamers`).
+one **account axis** that is not about content at all — authoring
+TypeScript (`wizards`, conferred by `archwizards`). (The livestream's
+`streamers` axis retired with stream arrival, 2026-11-24: who may run a
+stream is now the PEN on a program document — see
+[livestream.md](./livestream.md).)
 
 The substrate ships these predicates:
 
@@ -131,11 +133,9 @@ The substrate ships these predicates:
    than an invented quota, and **the titleholder the author of record**
    for whatever is generated under them. See
    [content-generation-slate](../slates/platform/content-generation-slate.md).
-5. **`AccessApi.isStreamer(subject)`** — orthogonal streamer axis.
-   True iff `subject` is in `'streamers'`. Gates the livestream
-   control plane (the `stream` verb; later scene / lower-third /
-   afk). Distinct from the wizard axis — a streamer drives the
-   broadcast overlay without holding TS-escape capability. See
+5. *(retired)* `AccessApi.isStreamer` — the streamer axis is gone
+   (stream arrival, 2026-11-24). `rodney` is gated by `requiresProgram`:
+   the giver's stream runs a program whose pen they hold. See
    [livestream.md](./livestream.md).
 6. **`AccessApi.isArchwizard(subject)`** — orthogonal archwizard
    axis, the **wizard-conferral capability**. True iff `subject` is
@@ -181,12 +181,11 @@ Plus one helper for slice-aware workspace verbs:
 The Registry is an `Idea + onCreate` singleton at
 `/platform/idea/AccessRegistry`. Instance state:
 
-- `cachedWizardsRef` / `cachedStreamersRef` / `cachedArchwizardsRef` —
-  resolved `GroupRef`s for the three bootstrap-seeded axis groups.
-- `cachedWizardPlayerIds` / `cachedStreamerPlayerIds` /
-  `cachedArchwizardPlayerIds` — Sets of the **member keys** in `'wizards'` /
-  `'streamers'` / `'archwizards'`; warmed lazily on first
-  `isWizard` / `isStreamer` / `isArchwizard` call, invalidated via
+- `cachedWizardsRef` / `cachedArchwizardsRef` —
+  resolved `GroupRef`s for the two bootstrap-seeded axis groups.
+- `cachedWizardPlayerIds` / `cachedArchwizardPlayerIds` — Sets of the
+  **member keys** in `'wizards'` / `'archwizards'`; warmed lazily on first
+  `isWizard` / `isArchwizard` call, invalidated via
   the managed provider's `onChange` callback.
 
 **Group membership keys on the member's `templatePath`, uniformly** — a player
@@ -202,8 +201,7 @@ exhibit the avatar-vs-NPC mix.
 - `reportedUnresolvedOrganizations` — the paths already warned about
   (one `access.organization-owner` diagnostic per non-resident
   organization holder, not a flood).
-- `wizardCacheCancel` / `streamerCacheCancel` /
-  `archwizardCacheCancel` — onChange cancellation handles, cleared
+- `wizardCacheCancel` / `archwizardCacheCancel` — onChange cancellation handles, cleared
   on destruct.
 
 `onCreate` runs idempotent bootstrap seeding of the **tag-like** groups
@@ -216,11 +214,7 @@ executive.
    tag-like group whose only role is gating the `isWizard`
    axis — authoring TypeScript), then add any playerIds from the
    `WIZARD_PLAYER_IDS` env var (additive + idempotent).
-2. Mint `'streamers'` Group if absent (no FolderZone stamp —
-   tag-like, gates the `isStreamer` axis), then add any playerIds
-   from the `STREAMER_PLAYER_IDS` env var (comma-separated,
-   additive + idempotent — never removes).
-3. Mint `'archwizards'` Group if absent (no FolderZone stamp —
+2. Mint `'archwizards'` Group if absent (no FolderZone stamp —
    tag-like, gates the `isArchwizard` conferral axis), then add any
    playerIds from the `ARCHWIZARD_PLAYER_IDS` env var (additive +
    idempotent).
@@ -438,13 +432,14 @@ cases:
   carried by `eval` (typing code) and, until a later wave moves it,
   `config`. `reload`, `typecheck`, `git`, `cms`, `studio`, `practice`,
   the letting views and the banking operator verbs no longer carry it.
-- **`requiresStreamer`** — `isStreamer(giver)`. Used by `stream`.
+- *(retired)* `requiresStreamer` — replaced by `requiresProgram` (the
+  program's pen, not a role; see [livestream.md](./livestream.md)).
 - **`requiresArchwizard`** — `isArchwizard(giver)`. Used by
   `wizard grant/revoke`.
 
 All follow the typed-preload pattern documented on
 `CommandValidator<T>`: the async preload returns the boolean
-decision (`AccessApi.can(...)` / `isWizard(...)` / `isStreamer(...)`); the
+decision (`AccessApi.can(...)` / `isWizard(...)`); the
 dispatcher captures it in a per-dispatch `ValidatorPreloads` map and
 passes it back to the sync validator body as its second argument
 (`preloaded`). No module-level state, no manual cleanup.
@@ -470,7 +465,8 @@ tree mode, etc.) we revisit.
 | `BroadcastController` | `canAtPath(giver, 'broadcast', extent)` for `--at <extent>`; a non-holder's refusal lists `heldExtents(giver)`. |
 | the `pack` controllers | `requiresPackInstaller` (validator) — `canAtPath(giver, 'install', '/compact/executive')`. |
 | `EvalController` | `requiresWizard` (validator) — `isWizard(giver)`; no slice (typing code is authoring TypeScript — one of the two places the axis is asked). |
-| `StreamController` + its subcommand controllers (`StreamControllerBase`) | `requiresStreamer` (validator) — `isStreamer(giver)`; no slice (livestream control plane). |
+| `RodneyController` + its subcommand controllers | `requiresProgram` (validator) — the giver's stream runs a program and the giver holds its pen (`StreamApi.programGate` → `DocumentApi.mayWrite`). |
+| the `program` controllers | the program's pen, asked in `StreamLogic` (`DocumentApi.mayWrite` on `<owner>/programs/<name>`); a feed is proven from the attacher's own linked account. |
 | `WizardGrantController` / `WizardRevokeController` | `requiresArchwizard` (validator) — `isArchwizard(giver)`; calls the narrow-entry `setWizardMembership` (wizard grant/revoke). |
 | `CloneController` | `canAtPath(giver, 'clone', path)` — the KIND's own title, by longest prefix. Untitled fails closed. ⚠⚠ It used to walk a live REPRESENTATIVE's zone (whichever copy came first), so whether you could clone a flask depended on where some flask was standing — the first copy a town's props minted put the kind under that town's title for everybody, by load order (the ceramics drives, 2026-10-21; the assembly drive had dodged it). The row-with-no-instance hole (`zoneOf(null)` refused everybody; `/system/transport/thing/coach`) is closed by the same question. |
 | `ReloadController` / `TypecheckController` | `canAtPath(giver, 'reload', path)` over the target's class/template path — the question `clone` asks; refusal `access-denied` listing `heldExtents(giver)`. |
@@ -552,13 +548,12 @@ still needs it in reach). See [mql.md](./mql.md).
 
 ## The bootstrap-seeded groups
 
-`onCreate` mints three **tag-like** groups (membership from env vars, not
+`onCreate` mints two **tag-like** groups (membership from env vars, not
 zone ownership):
 
 | Group | Owner | Purpose |
 |---|---|---|
 | `'wizards'` | `'system'` | Authoring TypeScript, and nothing else. Members can `eval` and write a code file into the source tree (`sourceWriteRefusal`, with title). Every archwizard is a wizard by derivation. Env-seeded from `WIZARD_PLAYER_IDS`. |
-| `'streamers'` | `'system'` | Livestream control plane. Members can run the `stream` verb. Seeded from `STREAMER_PLAYER_IDS`. See [livestream.md](./livestream.md). |
 | `'archwizards'` | `'system'` | Wizard-conferral capability (the `wizard grant/revoke` verb). Seeded from `ARCHWIZARD_PLAYER_IDS`. |
 
 All start empty (bar any env seeds) — with no members, every gated path

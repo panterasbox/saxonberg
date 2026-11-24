@@ -10,7 +10,7 @@ Related: [lint-family.md](../../lint-family.md) (§ census then ratchet; ratchet
 `packages/server/scripts/check-template-scans.ts` (the allowlist and its reasons);
 [document-store.md](../../subsystems/document-store.md) (kinds, `words:`, catalogues);
 [content-packs.md](../../subsystems/content-packs.md) (what a pack declares at install);
-[stream-arrival plan](../../plans/stream-arrival-plan.md) (the app store, the case that started this).
+the stream-arrival build, MR !655 (the app store, the case that started this; now aether-devices.md).
 
 ---
 

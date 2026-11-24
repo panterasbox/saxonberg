@@ -49,7 +49,7 @@ An unknown trait or parameter is an error, never ignored:
 | `keyworded` | what words find one: `{ keywords?: <field>, leaf?: bool, unique?: bool }` — `unique` means a word names one document across every pack (`emote`, `formation`, `topic`, `kind`) |
 | `titled` | what one is called: `{ field }` (no title → the leaf) |
 | `dated` | when: `{ field, unit?: game-s \| real-ms, indexed?: bool }` |
-| `filed` | written only by its transport — `register`, `business`, `release`, `instrument`, `map`, `stream-token`, `berth`, `edition` (closed: each is a security path) |
+| `filed` | written only by its transport — `register`, `business`, `release`, `instrument`, `map`, `stream-token`, `program`, `berth`, `edition` (closed: each is a security path) |
 | `paper` | how it prints: `{ template }`, Liquid |
 | `ledger` | writes may add, never alter: `immutable`, or `{ grows: [field…] }` |
 | `tree` | `{ parent: folder \| <field> }` — `DocumentKind.parentOf` |
@@ -129,6 +129,7 @@ concepts have no value class):
 | `maturation-profile` | `maturation-profiles` | `lib/maturation/MaturationProfile.ts` | a vessel's charge by tag; the vessel keeps the path ([maturation.md](./maturation.md)) | — |
 | `fraction-schedule` | `fraction-schedules` | `lib/fractionation/FractionSchedule.ts` | a still's charge by tag; the still keeps the path ([fractionation.md](./fractionation.md)) | — |
 | `dyestuff` | `dyestuffs` | trade-dyeing's `src/lib/Dyestuff.ts` | the card key `material` (the dye bath's material) | — |
+| `app-listing` | `apps` | none — `AppStore` (`TemplateApi.appStore()`) reads `app:` | `apps install <word>`: a pack PUBLISHES an app by shipping `content/apps/<key>.yaml` naming its `App` row ([aether-devices.md](./aether-devices.md)) | leaf, `unique` — a clash is refused at install |
 
 `emote` (`unique`), `recipe` and `archetype` are `keyworded` too; a
 `blueprint` is named by its leaf. ⭐ None of the four carries a key
@@ -647,8 +648,15 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
   landing's `berth-roll`, truth read off her; `DocumentApi.berthRollOf`
   reads the roll. See *`berth-roll`* above.
 - The other filing transports — `saveAsBusiness`, `saveInstrument`,
-  `saveMap`, `saveStreamToken`, `freezeEdition` — each the one writer of
-  the kinds declared `filed:` by its name.
+  `saveMap`, `saveStreamToken`, `saveProgram`, `freezeEdition` — each the
+  one writer of the kinds declared `filed:` by its name. `saveProgram`
+  (`/platform/programs/<name>`, kind `program`, catalogued per-path by
+  `ProgramCatalogue`) is `StreamLogic`'s alone, writing `by: 'program'`
+  ([livestream.md](./livestream.md)).
+- `DocumentApi.mayWrite(actor, path)` — **the gate below, asked without a
+  write**: would `save` let this actor write here? (stream arrival: a
+  program's pen is `mayWrite` on `<owner>/programs/<name>`, so a player's
+  own home counts — `AccessApi.canAtPath` alone refused it.)
 
 The acting **owner is always derived from `ExecutionContextApi`** (the
 in-world command-frame giver, or a transport's `tagActingAuthor` stamp),

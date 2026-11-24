@@ -7,6 +7,8 @@
 > tuner ([aether-devices-slate](../engine/aether-devices-slate.md)), the grid's power
 > ([energy.md](../../subsystems/energy.md)), the epoch covenants
 > ([content-declaration-slate](../platform/content-declaration-slate.md) § 3).
+> Stream arrival (MR !655, 2026-11-24) shipped § 7's **program** as a document (owned through the pen,
+> feeds proven at attach) and a booth's desk → [livestream.md](../../subsystems/livestream.md).
 > **Left:** ⭐ the broadcasting build — a full lens conversation and broadcasting economics over the program
 > (§ 7, 2026-11-23) · stations and receivers · propagation as the light model at another frequency · the station as a
 > business · spectrum law as Tier C · the radio-engineering hardware · ⭐ (§ 7) the two carriers — the aether
@@ -225,7 +227,7 @@ assumed. It's all still broadcasting."*
 - **The unit is the program**, by this section's definition: a title, a short name, an owner (a person, or an
   organization or office), a schedule, an agenda, an audience — and **optional video feeds** on the carriers,
   proven when attached. A program with no feed is still a program.
-- **The stream arrival build** ([stream-arrival-requirements](../../requirements/stream-arrival-requirements.md))
+- **The stream arrival build** (the stream-arrival build, MR !655)
   builds only that minimum — the program, its proven feeds, the featured program on the front page — to start
   the founder's livestream. The owner: *"this all needs a specific build just for broadcasting economics which
   this has none of … it was a full lens conversation."*

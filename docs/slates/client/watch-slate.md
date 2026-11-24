@@ -7,8 +7,12 @@
 > ([display.md](../../subsystems/display.md)), the stream phases (`away`, `back`, `segment`,
 > `agenda` — [livestream.md](../../subsystems/livestream.md)), the anonymous guest, sign-in with
 > Twitch and Kick.
-> **Left:** the funnel's server half (the intent link, the follow-up through sign-in, the origin
-> vocabulary, the streamer record) · the video that never stops · the show's own chat and the
+> **Shipped by stream arrival (MR !655, 2026-11-24):** the funnel — the origin words
+> (`?from=twitch|youtube|kick|stream`), the follow-up through sign-in (`via=`), the program as the
+> streamer record, arriving in watch mode for the visit (`--watch`, `cockpit.sessionMode`) — and the
+> video that never stops (one `StreamPlayer`, docked in each page's layout) →
+> [client-shell.md](../../subsystems/client-shell.md), [connection.md](../../subsystems/connection.md)
+> **Left:** the show's own chat and the
 > unaffiliated-stream chat · the agenda state machine · the standby summary · our chat on the
 > overlay (**before the first show**) · the regular's experience
 > **Size:** a build, client-led, with a server half; the funnel first
@@ -205,7 +209,7 @@ At 1440×900 (prototype: claude.ai artifact XY8FivnMEARSNiNxkJ5qcK, private):
 
 ## 7b. Reuse ledger for the plan — the stream arrival build (2026-11-23)
 
-[stream-arrival-requirements](../../requirements/stream-arrival-requirements.md). Every concept the
+the stream-arrival build, MR !655. Every concept the
 build needs, and what already does it:
 
 | concept | already doing it | this build |
