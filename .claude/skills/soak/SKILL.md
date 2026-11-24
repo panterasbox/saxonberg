@@ -81,10 +81,21 @@ weeks.
   so it never shares one; the clean files do. Running every file in one
   world (2026-11-14) failed 25 of 26, mostly on contamination.
 - **The runner itself runs in this window's second pane**:
-  `tools/soak --watch`. It waits for the suite lock (the one
-  `tools/suite` takes) and for memory (a 4 GB reserve plus a 3 GB
-  world; the world alone 02:00–06:00), and says which it is waiting on.
-  If it is not running, nothing soaks — start it.
+  `tools/soak --watch`. ⭐⭐ **It never stands in front of a build**: it
+  takes no lock. A world starts only after a few quiet polls (nobody
+  holding the suite lock, load under 3, memory for a world on the 4 GB
+  reserve — the world alone 02:00–06:00), and it says what it waits on.
+  While a world runs it **yields** — stops its own world, records it as
+  *yielded* (no issue, state not advanced, it runs again later) — when
+  free memory drops under 2 GB or `.soak/pause` appears. If it is not
+  running, nothing soaks — start it.
+- ⭐ **Builds come first, and they can ask.** At most four build sessions
+  run at once (`build-1`..`build-4`, ListAgents/SendMessage by name).
+  When one asks for the box, `touch .soak/pause` (the running world
+  yields within seconds) and `rm .soak/pause` when it says done. To
+  plan a long verification, ask them when they are heavy rather than
+  polling. To stop the watcher entirely, Ctrl-C / TERM it: its world
+  stops with it and nothing is recorded as a failure.
 
 ## What an issue carries
 
