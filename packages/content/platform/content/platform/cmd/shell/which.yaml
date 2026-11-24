@@ -57,3 +57,5 @@ subcommands:
         type: object
         required: false
         scope: ["~reachable"]
+        # Any thing may be asked what it keeps; one that keeps nothing says so.
+        requires: any

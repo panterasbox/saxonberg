@@ -178,9 +178,8 @@ export default class WhichSource extends SubscriptionSourceMixin(Idea) {
   private arm(): void {
     if (this.flushing) return;
     this.flushing = true;
-    ScheduleApi.schedule(0, () => {
-      void this.flush();
-    });
+    // `flush` catches everything it does, so the promise it returns never rejects.
+    ScheduleApi.schedule(0, () => this.flush());
   }
 
   private async flush(): Promise<void> {

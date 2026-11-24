@@ -1231,7 +1231,7 @@ export default class CardRegistry extends CardRegistryBase {
     if (opened === null) return false;
     state.live = true;
     delete state.takenAt;
-    void Promise.resolve(opened).then((answer) => {
+    Promise.resolve(opened).then((answer) => {
       const holder = this.viewerOf(state.interactive);
       if (!holder || !state.live) return;
       if (answer === null) {
@@ -1243,6 +1243,11 @@ export default class CardRegistry extends CardRegistryBase {
       const producer = (CARDS[state.cardId].source as { producer?: string }).producer;
       state.payload = { kind: producer, answer } as CardPayload;
       holder.onEnvelope({ type: 'card-touched', instanceId: state.instanceId, key: state.key, live: true, payload: state.payload });
+    }, (err: unknown) => {
+      // The source failed to open: the card stays the snapshot it was born.
+      state.live = false;
+      state.takenAt = Date.now();
+      console.warn(`CardRegistry: card '${state.cardId}' could not subscribe: ${(err as Error).message}`);
     });
     return true;
   }
