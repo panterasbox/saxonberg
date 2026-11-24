@@ -1025,3 +1025,26 @@ What it found:
   the reclaim line says *"back off the rack"* at the lockers.
 - The walk's first cut matched on the echoed command; its replies are read
   with the echo stripped now (B2: it went red on #155 once it was).
+
+### /finalize — the second drive run (2026-11-24)
+
+On `4526c08c2`, master not ahead (left 0), fresh worktree DB:
+- **The blocking drive** (`persistence-model.dirty`): **5 of 5 green.**
+- **Sibling restart drives.** Each red file was re-run **alone** on a fresh
+  DB, on the branch and on `origin/master` (`bb43d6cd0`, a temporary
+  detached checkout with its own database). Each gave the same red steps on
+  both, so none is this build's:
+
+  | drive | branch | master |
+  |---|---|---|
+  | `db-performance` (shutdown speed) | green | — |
+  | `harbors.dirty` + `zone-instancing.dirty` | 13 of 34 red | the same 13 |
+  | `reachability.dirty` | 9 of 22 red | the same (MQL `here` is `[]` over the wire) |
+  | `pets` + `cold-storage.dirty` + `trades-and-labor-content.dirty` | 6 of 26 red | the same 6 |
+
+  ⭐ harbors step 15 (*she keeps across a restart*) and zone-instancing's
+  dorm steps are **green** alone; they failed only in the first, shared-world
+  batch, where an earlier file's clock jumps and purchases leaked in. Filed
+  as #161.
+- **The browser walk**: green at code-complete. Since then the only changes
+  under it are `resolveHeldFor`'s actor check and comments.
