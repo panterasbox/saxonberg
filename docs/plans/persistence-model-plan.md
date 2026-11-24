@@ -590,6 +590,34 @@ the gates it moves by name, and the whole family runs at code-complete.
   ENTRANCE only (sugar-house's entrance is already kept). Forestry's
   planting deed keys on a new `Standard.plantingKey`. PersistentConduit /
   PersistentGate's physical fields move with their classes in W4.
+- **W4 ✅ `a64e5beec`** (`99876c908` carried only the deletions — a bad
+  pathspec killed the add). WaterLedger, three kinds + `onReset: 'wipe'`
+  (`RESET_KEPT_DOCUMENT_KINDS`), Company + the cap-table paper, the
+  hull-sale paper (⭐ D7 decided: the register records no hull slot, so the
+  sale does not derive). ⭐ Decided: a Gate files on a HAND's setting only —
+  the rota's turns re-derive from the filed `turnStamp` on read (reading
+  never writes). ReachWarren's `stops` went to the ledger; ColumnWarren
+  held nothing.
+- **W5 ✅ `5b740586b`.** Invariant 15, proved red on StorageNode.
+- **W6 ✅ `580751bbc`.** As planned, plus: a fixture somebody HUNG rides its
+  host's fixtures slice whole (`hung`) and re-hangs at the restore (the
+  estate used to carry it); `Containable.getKeptWithin` retired (its two
+  users were the estate). The `promoted` flag on a naming survives as the
+  WORDING switch (an animal is named, a thing labelled) — no persistence.
+  Six estate/overlay suites retired; one new suite.
+- **W7 ✅ `7580e1c66`.** As planned.
+- **W8 ✅ `d80b31cf2`.** The card's `kept` row (a tooltip, every row
+  always) and `look`'s line as their own uncarded scenes (the card never
+  renders handed prose); `look in <thing>` says its inside. Teach-once on
+  the game clock.
+- **W9 ✅ `a38a97e0c`.** ⭐ Re-planned in place: no new EmployedMixin
+  methods — the entrance/exit is `placeOffShift` in EmploymentLogic (one
+  caller) and the hours are `Behaved.calledToAt` over `BrainStatics.callsAt`.
+  An `out` house's off-shift hands are placed EVERY tick (a visit opening
+  on the hour), which retires "parked once" for those houses.
+- **Code-complete `c2e33b356`** — lint:family green. ⚠ For review:
+  `lint:counters` rose 4 → 5 (Locker, a stated rise); three reason rows
+  added for hydration-source outcome codes.
 
 ### W0 — tools and scaffold
 
