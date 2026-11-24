@@ -2,7 +2,7 @@
  * ⭐ The `which` card (the which build, W4): a payload card a SOURCE keeps
  * current. Born a snapshot (unpinned); pinned, it subscribes to
  * `WhichSource` with the params the open carried; `which counter` after
- * `which` retargets the ONE card (R5); a change to the command stack
+ * `which` retargets the ONE card (owner); a change to the command stack
  * pushes the new answer under the key `answer`.
  */
 import '../../../test-bootstrap';

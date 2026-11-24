@@ -2718,7 +2718,7 @@ async function evaluateAffordance(
 /**
  * The verbs a thing gives by being an article at all — what the `Good`
  * rung itself contributes. They collapse into the closing *anything you're
- * carrying* line rather than repeating under every good (which D3).
+ * carrying* line rather than repeating under every good.
  */
 async function commonVerbs(): Promise<Set<string>> {
   // ⚠ Loaded at use: `Good` sits on the Thing/Place chain this module is
@@ -2761,7 +2761,7 @@ function sourceShown(source: Stuff, viewer: Stuff): boolean {
   );
 }
 
-/** A source in `viewer`'s words (which D5). */
+/** A source in `viewer`'s words. */
 function whichSourceOf(source: Stuff, viewer: Stuff, count = 1): WhichSource {
   const id = source.stuffId;
   if (id === viewer.stuffId) return { id, handle: 'me', name: 'you', place: '' };
@@ -2794,7 +2794,7 @@ interface SourceVerbs {
 
 /**
  * ⭐ Every verb `viewer` can type, by what gives it — the dispatcher's own
- * list (`getAffordances()`, which D1) behind the radial's gates. The body's
+ * list (`getAffordances()`) behind the radial's gates. The body's
  * own verbs come back as `usual`; the rest per source.
  */
 function whichSources(viewer: Stuff & CommandGiver): {
@@ -2843,7 +2843,7 @@ function whichSources(viewer: Stuff & CommandGiver): {
       entry.buckets.set(verb, a.bucket);
     }
   }
-  // A verb the body has is never repeated under another source (which D4).
+  // A verb the body has is never repeated under another source.
   const sources: SourceVerbs[] = [];
   for (const entry of bySource.values()) {
     for (const verb of usual) entry.defs.delete(verb);
@@ -2877,7 +2877,7 @@ function viewWord(cmd: CommandDefinition): string {
   return m ? m[1]! : cmd.getPrimaryVerb();
 }
 
-/** Evaluate one source's verbs as the radial does (which D2), with where each came from. */
+/** Evaluate one source's verbs as the radial does, with where each came from. */
 async function evaluateGroup(entry: SourceVerbs, viewer: Stuff & CommandGiver, verbs: string[]): Promise<WhichVerb[]> {
   const out: WhichVerb[] = [];
   const yours = MixinApi.isAetherHosted(entry.source);
@@ -3109,7 +3109,7 @@ function whichRelationsImpl(viewer: Stuff & CommandGiver, thing?: Stuff): WhichR
       facts: { ask: { mode: 'relations', command: `which ~ #${thing.stuffId}`, subjectIds: [thing.stuffId] }, groups: [], relations, keeper },
     };
   }
-  // ⭐ Every built-in applies to the asker; then the sets they keep (which D8).
+  // ⭐ Every built-in applies to the asker; then the sets they keep.
   const relations: WhichRelation[] = BUILTIN_RELATION_WORDS.map((w) => ({ name: w.name, meaning: w.meaning }));
   if (MixinApi.isRelating(viewer)) {
     for (const r of viewer.relationsFor(viewer)) {

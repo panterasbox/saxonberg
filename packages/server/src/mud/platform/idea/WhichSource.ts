@@ -5,7 +5,7 @@
  * when something it depends on moves, and pushes the whole answer under
  * one key, `answer`, when it changed — never on a beat where it did not.
  *
- * ⭐ It wakes on two things (which D10):
+ * ⭐ It wakes on two things:
  *   - **the command stack** — the three sealed stack methods on
  *     `CommandGiverMixin` poke it (a move, a pick-up, an app installed, a
  *     shadow attached): every verb the line accepts changes there;
@@ -208,6 +208,8 @@ export default class WhichSource extends SubscriptionSourceMixin(Idea) {
         this.rewatch(holder);
       }
     } catch (err) {
+      // @quiet a background push has no caller to refuse to: the warning is
+      // the record, the card keeps its last answer, and the next poke re-reads.
       console.warn(`WhichSource: a flush failed: ${(err as Error).message}`);
     } finally {
       this.flushing = false;

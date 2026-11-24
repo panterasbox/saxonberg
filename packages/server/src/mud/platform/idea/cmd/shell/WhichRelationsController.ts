@@ -37,7 +37,7 @@ export default class WhichRelationsController extends CommandController<WhichRel
     const prose = Mml.fromMarkup(WhichRelationsController.lines(answer.facts).join('\n'));
     MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(prose).send();
     // The same one card, on the ~ words — a snapshot (no params): a friend
-    // arriving is nothing this source hears (which D9).
+    // arriving is nothing this source hears.
     CardApi.open(context, 'which', {
       key: 'which',
       title: answer.facts.keeper ? `which ~ ${answer.facts.keeper.handle}` : 'which ~',

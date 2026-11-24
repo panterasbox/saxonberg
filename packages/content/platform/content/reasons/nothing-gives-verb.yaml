@@ -1,4 +1,4 @@
-# `which fish` with nothing to fish with — never what WOULD give it (owner, R1).
+# `which fish` with nothing to fish with — never what WOULD give it (owner).
 facts:
   verb: text
 says: "Nothing here gives you `{{ verb }}`. (`help {{ verb }}` has its shape.)"

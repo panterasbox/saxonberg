@@ -396,6 +396,15 @@ does for the room card — and, unlike a live MQL card's touch, carries the new
 body. The answer carries the command that re-asks it (`ask.command`); a
 refresh re-sends that, never the key.
 
+The `which` card's body (`WhichBody.tsx`) is one row per source, led by an
+icon for how it reaches you (held · here · next door · yours); every verb is
+two links — the verb, typed onto the primary bar (`primarySeed`), never sent,
+and a help icon that runs `help <verb>` — each with its own tooltip (the
+verb's: what gives it, how it reaches you, its view, its category, why it is
+greyed — each fact led by its icon, `TooltipFact.icon`). Every link previews
+its command in the status bar, and no tooltip says what a click does. Titled
+by what was typed, never an id.
+
 ## ⭐ One sweep, and exactly one clock
 
 Lifetime is a **relevance window since last touched**, evicted by ONE

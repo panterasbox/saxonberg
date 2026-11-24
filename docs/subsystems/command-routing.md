@@ -693,14 +693,19 @@ that source contributed to.
 ### ⭐ `which` — the stack, read back to the player (the which build)
 
 The recency stack is what the line accepts; `which` is that list shown to the
-person who types. `CommandApi.which(viewer, what?)` reads
+person who types. `CommandApi.which(viewer, { thing?, verb?, clashes? })` reads
 `viewer.getAffordances()` — the dispatcher's own list, not a description of it
 — behind the radial's two gates (the source is the viewer's own, carried, or
 perceived; an Identifiable thing must be identified for its own verbs to show).
 It groups by source, each source worded by the thing itself
 (`Containable.whereFor(viewer)` — *in your right hand*, *you're carrying*, *on
 the shelf*, *here*, *nearby*; `AetherHosted.whereFor`; `Slotted.slotWord`),
-merges alike sources into one counted group, and orders by the rarest verb.
+merges sources giving the same verbs from the same place into one group (*the
+shoes, the trousers and the shirt you're wearing*), and orders by the rarest
+verb. Each verb also carries where it came from — `from`, the class or mixin
+whose OWN `commandContributions` lists it (a walk up the source's prototype
+chain, own property only), `reach` (held · beside · yours) and its `view` —
+which the card's tooltip shows.
 The body's own verbs (the `'self'` entry) are the *usual* line; what the `Good`
 rung itself contributes is the *anything you're carrying* line. Each verb's
 state is `evaluateAffordance`'s, the same validator words the radial shows.
@@ -711,9 +716,9 @@ names things): `which <thing>` is an `object` arg the binder names, and
 `thing::verb` when one word is two commands (two different VIEWS; the same
 view from many things is one command), or `nothing-gives-verb` (never what
 WOULD give it), or `no-such-verb`. Nothing else is volunteered:
-`--clashes` asks for every word that is two commands here, and
-`which <thing> --to` for what you can do to it (your verbs whose object slot
-requires something a plain thing lacks).
+`which --clashes` answers ONLY the words that are two commands here (usually
+none). ⛔ *What can I do with this* was built as `--to` and pulled — a verb's
+objects play roles no answer can guess (command-line-reflection-slate).
 `CommandApi.whichRelations` lists the `~` words (`lib/relation/BuiltinRelations.ts`
 + `relationsFor`). It is a read, never a gate: every verb it lists is one the
 line accepts (`command-which.test.ts`, *listed ⇒ accepted*).
@@ -746,6 +751,12 @@ only an **agent** contributes `peers`, either way round (the containment and
 the shadow paths alike); in your own room everything does. And a `self` entry
 that is not an app — a caster's `cast`, pushed with the spell catalogue as its
 source — is the body's own, so `which` puts it on the usual line.
+
+⭐ **A seller's stock gives nothing** (found live in review): the `peers` walk
+goes one level into open things in the room, and the shop counter's goods
+for sale offered `tie`, `coil`, `read` to everyone. It no longer reaches into
+a `ForSale` holder (in either direction): goods on a counter are the house's
+until bought.
 
 ## Stage 1 — Ingress
 

@@ -1486,7 +1486,7 @@ export default class CardRegistry extends CardRegistryBase {
 
     /*
      * ⭐ A payload card a source keeps current is RETARGETED by a touch
-     * (the which build, R5): `which counter` after `which` is the same card
+     * (the which build, owner): `which counter` after `which` is the same card
      * asking a new question — the new answer, the new params, and its
      * subscription cancelled and reopened under the same id (as `rebind`).
      */

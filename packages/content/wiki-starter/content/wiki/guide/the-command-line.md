@@ -86,6 +86,23 @@ A slot that takes a length of time reads it the way you would say it:
 clock, not yours. If a verb wants whole days, or at least a minute, it
 says so when you give it something shorter.
 
+## What can I type here: `which` {#which}
+
+`which` lists the verbs you can type where you stand, each with what gives
+it to you — *buy — the counter here*, *fish — the rod in your right hand*.
+Verbs come from things: pick up a rod and `fish` appears; walk away from the
+counter and `buy` goes. Your own body's verbs are counted on the last line
+(`which me` lists them).
+
+- `which counter` — what one thing lets you do.
+- `which --verb fish` — where a verb comes from here, or that nothing does.
+- `which --clashes` — the words that mean two different commands here,
+  and how to pick each (below).
+- `which ~` — the `~` words you can type.
+
+`which` only reads. Typed, it also puts up a card that stays current while
+you keep it; hover a verb on it to see what gives it.
+
 ## Saying which one: `source::verb` {#verb-at-source}
 
 When two things nearby both offer the same verb, put the one you mean
