@@ -9,8 +9,10 @@
 > **Left:** `help ask` and the social promise (§ 1 → guarantees-of-play-slate, customer service) ·
 > the screen cleanup (§ 6 → display-manifestation-slate) · calls designed, not built (§ 7) · the
 > *power it down* law and the town's node (§ 9 → the epoch build, content-declaration-slate § 3.0) ·
-> the original question: instruments driven by mind (§ 10)
-> **Size:** design (§§ 7, 10); the rest rides other slates
+> the original question: instruments driven by mind (§ 10) · ⭐⭐⭐ **the Exchange** (§ 12, designed
+> 2026-11-24): apps on your line, never on a person or a device; one app store and identity
+> authority, TPA-shaped; corpos make hardware only; how an app's verbs show
+> **Size:** design (§§ 7, 10); a build (§ 12); the rest rides other slates
 
 ## 0. The asks
 
@@ -50,7 +52,7 @@ Consequences, each a reversal of something proposed earlier in the same conversa
 - **Messages are addressed to people, never to devices or lines**, and the true sender is the person.
   (*The Wire*'s burner phones are unmakeable over the aether, deliberately; a burner, if anyone
   ever wants one, is some other, non-aether thing.)
-- **Apps are not installed on the device.** Attunement is a state of the person, and comms, forums,
+- ⚠ **Superseded by § 12.1 (2026-11-24) — apps are on your line, not the person.** ~~**Apps are not installed on the device.**~~ Attunement is a state of the person, and comms, forums,
   the wallet and the calendar are hosted on the person. The shipped architecture was right.
 
 ### ⭐⭐⭐ Reframed the same day: two promises, and a `dm` carries neither alone **[DECIDED — the owner, 2026-11-18]**
@@ -256,7 +258,7 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 - **Getting an implant** waits for *"a cool process"* and the surgery slate.
 - **The starter phone is a value leak** like today's starter clothes →
   [money-integrity-slate](../tech-debt/money-integrity-slate.md).
-- ⭐ **Apps run on the device, from day one** (the owner, reversing § 1's *apps are not installed on
+- ⚠ **Superseded by § 12.1** — software is on your line and runs at the Exchange. ⭐ **Apps run on the device, from day one** (the owner, reversing § 1's *apps are not installed on
   the device* for new apps): *"I do want to make sure we design and build the concept of an app
   running on the phone now … a clear concept of what's built into the phone and what's installed on
   it."* Built in: the tuner, power, battery, screen. Installed: **Messages** (DMs, chat, remote
@@ -281,7 +283,7 @@ object, a device, an organ — or by a kind of creature born attuned"*):
 - **The phone is also a held screen** — a `Tablet`-shaped display in your hand, so it shows your
   apps' cards and casts to a room's screen the way driving by mind does today
   ([display.md](../../subsystems/display.md) § the implicit-screen ladder).
-- **One kind of app.** Two exist today and do not know about each other: a **hosted update** that
+- ⚠ **§ 12.6 replaces the *app as a row with verbs* half of this bullet** — an app's verbs are its class's; a row app is a card. **One kind of app.** Two exist today and do not know about each other: a **hosted update** that
   contributes verbs (`calendar`, `dm`, the wallet) and a **card on a display** (the house tablet's
   `stock` sheet). An app is the first, and on a carrier with a screen it may also show the second.
   ⭐ **Lens 2:** an ordinary app should be a **row** — a card (a live MQL query) and the verbs it
@@ -440,3 +442,247 @@ exit you can find without help).
 | the charger | `put` with a placement; the energy pack's `GridPowered` and the premises meter | a charger row on the grid |
 | held messages | the person-targeting slate's *held until they return* | the plan decides whether it exists in code |
 | a phone's modes and sensors | `LightSource` (the flashlight), the `Reading` rows (instrumentation), the per-player map document, `ChargedMixin` (the battery) | reuse — each feature an app row over what exists |
+
+## 12. ⭐⭐⭐ The Exchange — your line, the app store, and how an app's verbs show **[2026-11-24]**
+
+The owner's ask: *"the rest of the cellphone build and the app store and whatever needs to get
+converted to apps. plus we need to figure out verb affordances via app … does the phone afford the
+verb or does the app? the answer is both and we need to figure out the presentational language for
+all that."*
+
+⚠ **This section supersedes** § 1's *apps are not installed on the device … hosted on the person*,
+§ 5's *apps run on the device* and *activated to its owner* as the home of software, and § 6's *an
+ordinary app is a row … and the verbs it contributes*. Where they disagree, this section wins.
+
+### 12.1 Nothing is on the person, and nothing is on the device **[DECIDED — the owner]**
+
+> *"nothing should be on the person and we shouldn't need to distinguish anything … the device can
+> change with epoch (implant, needle, whatever) and whatever the device you're using needs to
+> interoperate with the app store and your app store account has whatever apps installed …
+> information is information and software should work everywhere. but a needle can't compute it can
+> only report."*
+
+- **Your apps belong to your account — your line at the Exchange (§ 12.2) — never to a body and
+  never to a device.** A new phone, a lost one, an implant, a needle at an epoch edge: the same
+  apps, with nothing to keep per device and nothing to migrate.
+- **The software runs at the Exchange, not on the device** (§ 12.4). A device is a window onto your
+  line: it shows what it can and takes in what it can.
+
+| device (its kind, "the mold") | shows | takes in |
+|---|---|---|
+| implant | anything — *known* | thought |
+| phone | a screen, sound, vibration | touch, voice |
+| radio | sound the room hears | voice |
+| needle | a few letters, slowly | very little |
+| the telegraph office (a place) | tape | the key, at the counter |
+
+- **An app needs information** — text, a card, a picture, input — and **degrades or declines
+  honestly** on a device that cannot carry it (*the needle can't show a picture*). It never
+  silently disappears.
+- **The aether never cares what device you use** **[DECIDED]**: *"a phone and an implant shouldn't
+  change a person's CLI and 'with implant' or 'with phone' has no meaningful distinction."* No verb
+  takes a device option; there is no `dm --with`.
+- **Kind and brand are two concerns** **[DECIDED]**: *"manufacturer and the mold a device fits into
+  aren't the same concern."* The **kind** (phone, implant, needle) decides how a message manifests
+  (§ 4) and what slot it takes; the **brand** (Hollis, Aevex, Vionne) decides the hardware's quality
+  — how much it shows, its battery, its price. Neither changes what you can type.
+- **Two devices borne: both at once** **[DECIDED]**. A message goes to your line, so every carrier
+  you bear shows it together, each in its own manifestation — two lit screens, twice the
+  shoulder-surfing, an honest cost of carrying two. Sending is from your line too; the device you
+  typed on matters to the fiction (whose screen was lit, whether you dictated aloud), never to the
+  command.
+- **Hardware is the device's own, not an app** **[LEAN]** — a lamp, a lens, a compass are not
+  information; the device has them or does not (*a flashlight is a lamp, not software*). Their verbs
+  are the device's.
+
+### 12.2 The Exchange — one store, a single authority, shaped like the TPA **[DECIDED — the owner]**
+
+> *"we probably dont want or need to accomodate more than one app store in the game. multiple
+> messaging apps maybe, if someone thinks they can improve on the basic dm. so the store needs a
+> single authority … The TPA sounds like the closest relative here, infrastructure with a real
+> narrative placement in the game and staffed by the compact but otherwise operating
+> independently."*
+
+- **The Exchange** — the name puns twice: a telephone exchange (it switches your traffic) and a
+  market (it is the store). In plain words it is **the app store**; the UI says *app store*.
+- **Its shape is the TPA's** ([fasttravel.md](../../subsystems/fasttravel.md) § the transit-fare
+  economy): a `/system/` pack; a public utility that is **not the state**, banking commercially;
+  self-governing — appointed by a committee over its own extent that names no realm, the group owned
+  by the Prime Minister's office; no staff until a position arrives with a reason. The kernel keeps
+  the shapes (what a device shows and takes in, the `apps` verb); the pack keeps the store, the
+  lines and the works, meeting over a protocol the way `teleport` meets `TravelNode`.
+- **Vocabulary** **[DECIDED]** — *your line* (your account: *you have a line at the Exchange*),
+  *your line is cut* (suspended), *operators* (its staff). The verbs stay plain (`apps`, `apps
+  install`); the puns live in the prose and the fiction. ⚠ § 1's *messages are addressed to people,
+  never to devices or lines* still holds — a line here is the person's account, never an address.
+- **Its first positions, when they come** **[LEAN]**: app review (someone judges what is listed)
+  and line support — where `help ask` (§ 1) lands.
+- **Its place** **[LEAN]**: the Exchange building in Saxonberg City — a window onto a live system,
+  like every building there; in earlier epochs its storefront is the telegraph office and its clerk.
+- **Corpos make hardware only** **[DECIDED]**: *"hardware only, corpos just make the devices."*
+  Nothing stands between you and the Exchange. A corpo decides what its device can show and take
+  in, and may publish apps on the Exchange like anyone; it never curates or blocks. A walled-garden
+  device (a prison phone, a pager) exists only as one bespoke authored row, for a story **[LEAN]**.
+- **Apps are free for now** **[DECIDED]**; **a payment framework is still owed** — who publishes,
+  what an app costs, and the Exchange's cut (the TPA's flat-base-plus-percentage network fee is the
+  starting shape).
+
+### 12.3 The Exchange is the one identity and issuing authority **[DECIDED — the owner]**
+
+> *"the TPA shouldn't be handling accounts, it should all be through the app store and your TPA
+> credential is just an app on your phone."* And, choosing the single authority over the issuer as
+> the source of truth: *"is there a single issuing authority or isnt there, we shouldn't be trying
+> to have it both ways."*
+
+- **Every institution's standing on you is a credential on your line.** The TPA decides to clear you
+  (`register` at a terminal), the Exchange issues the credential, and the line is the only record.
+  The TPA keeps no accounts.
+- **One wallet** **[DECIDED]** holds every credential on your line — a new kind is data, so a guild,
+  a club or a landlord issues with no code. An institution may also publish a **service app** (the
+  TPA's departures board in your pocket) that reads the wallet and never keeps a copy **[LEAN]**.
+- **Banks keep the money; the line keeps the link.** `bank_ledger` stays the bank's; the payment
+  credential that links you to an account is on your line.
+- **Forgery becomes fraud against a line** — breaking into someone's account at the Exchange.
+- **Possession is not identity — physical credentials are not the Exchange's** **[DECIDED]**: *"we
+  still want to have other forms of credential in the game. the entire locksmithing build is about
+  just that … the Exchange … has no authority over a key on your keyring, only your phones
+  capabilities and maybe a watch too or something if we want to have other app carriers."*
+  - **One authority per credential, decided by the lock's technology** — the shipped key entry
+    already carries `technology` (*a brass key can't turn a keycard reader*). An **aether** lock
+    trusts your line (any carrier shows it; revoked per person at the Exchange); a **brass or
+    keycard** lock trusts the key you hold (the cutter's; possession is access; revoked by
+    re-keying). A lock may take either, or demand both.
+  - The building's owner chooses by the trade-off — clean revocation that depends on the Exchange,
+    or a key that works in any epoch and is copied out of its sight. For aether locks, the line is
+    the [lock-slate](./lock-slate.md) § 2 record of who holds access, for free. ⛔ The locksmithing
+    build stays whole; it needs only an `aether` technology to exist.
+  - The shipped wallet keychain splits on the same line: its entries become aether credentials; the
+    physical `Key` stays a bearer key. The shipped `TravelCard` stands in for identity today, so it
+    becomes a cheap device that shows your line (tap to ride), or it goes.
+
+### 12.4 What does the computing — the Exchange's works, on the grid **[DECIDED — the owner]**
+
+The owner: *"compute does not run on mana, I want to try and keep mana and aether kinda separate
+unless there's some specific physics overlapping the two systems … if that needs a power source to
+explain itself then I'd rather it be magic that can run on any epoch."* It needs no magic:
+
+- **The second postulate already answers it** ([arcane-science.md](../../arcane-science.md)): the
+  aether is not magic and carries **information and nothing else**. Computing costs energy in our
+  own physics (Landauer: erasing a bit has a floor of heat), so the field carries for free and
+  cannot think for free. **The thinking happens in real machines in one real place — the
+  Exchange's works, on the grid** — and the aether carries your input in and the result out.
+- **Epochs stop mattering for compute.** A needle in a period town reaches a modern machine room the
+  way a telegraph reaches the city; a realm that rejects magic has nothing to reject, and a realm
+  that rejects the aether already powers devices down at its edge (§ 9).
+- **The economy** (lens 6): the Exchange is the grid's largest customer — operators, cooling,
+  outages as content.
+
+### 12.5 A `dm` is always an app — and the floor still holds **[DECIDED — the owner]**
+
+- **`dm`, channels and remote emotes are the Messages app's**, on your line like every app. Others
+  may publish a better messenger above it (*"multiple messaging apps maybe, if someone thinks they
+  can improve on the basic dm"*).
+- **The floor:** arcane-science rule 6 says no authority may refuse the field or leave a person
+  with no way to talk. So **Messages rides the field's own routing** (rule 5: *it routes by
+  address*) and needs none of the works' compute — it keeps working through an outage of the works
+  and through a cut line. Every other app is the Exchange's to run, and to lose.
+
+### 12.6 How it shows **[DECIDED — the owner, except where marked]**
+
+- **The app gives the verb; the carrier reaches it.** That is the "both". It is **not** the same
+  relation as a thing's place, and the two are **not unified** **[DECIDED]**: *"the link between a
+  rod and your hand is not the same as a phone and its apps, don't try too hard to unify them."*
+  - **"in"** — where a thing is: *fish — the rod in your right hand*, *program — the desk here*.
+    `which`'s naming, unchanged.
+  - **"through"** — how your line reaches you. Messages is not *in* the phone.
+- **`which`** gives apps their own section, the carrier named once in its heading:
+
+  ```
+  Your line, through your Hollis Pal
+    Messages   dm, reply, chat
+    Calendar   calendar
+    Wallet     pay, wallet
+  ```
+
+  A carrier that cannot reach is marked in the heading with its fix (*dead — charge it*) and the
+  section's verbs grey out beneath it — still listed, because the command line still accepts them
+  and declines. The phone's own verbs are a thing's, with the other things: *switch — your Hollis
+  Pal, in your pocket*. `which dm` answers both relations: *dm — Messages, on your line, through
+  your Hollis Pal*; two carriers: *…through your Hollis Pal and your implant*. `which phone` answers
+  what it is (`switch`) and what it carries (*your line: Messages, Calendar, Wallet*) as two parts.
+- **A declined app verb names the link that broke**: *Messages can't reach your line: your Hollis
+  Pal is dead. Charge it.* — the held-never-silent rows, reused.
+- **Chatting never shows the plumbing** **[DECIDED]**: *"none of this should matter for chatting
+  with people except maybe as tooltip data on the message frame."* At most the frame's tooltip
+  carries *arrived through your Hollis Pal*.
+- **Apps and cards are separate concepts** **[DECIDED]**: *"not all cards are apps and not all apps
+  are cards."* An app is software on your line that gives verbs; it may push no card at all (a
+  credential and `register`). A card is a client surface a command pushes; most come from no app
+  (`which`, `here`, the navigation card). Where they meet, a card pushed by an app's verb carries
+  *app · through carrier* in its header and goes dark — greyed with the reason, never vanishing —
+  when the carrier does **[LEAN]**.
+- **An app's verbs are declared by its class**, the one record of affordances
+  ([command-routing.md](../../subsystems/command-routing.md) § *There is ONE record*). A row-only
+  app is a card — a live query whose controls send verbs you already have **[LEAN]**. This replaces
+  § 6's *an ordinary app is a row … and the verbs it contributes*, which would revive the retired
+  second record.
+- **The radial is out of scope** **[DECIDED]** — it is broken and undecided; nothing here adds to it.
+- **Unread and mention counts** (open in the [modes-slate](../client/modes-slate.md), required by
+  the mobile client) get their server source from Messages **[LEAN]**.
+- **Two "phones"** — the in-game device is called by its name (*Hollis Pal*; *carrier* in docs); the
+  real phone running the client is *mobile*.
+- **Scoped to a device — dropped.** `phone::dm bob` implying a device was floated and falls with
+  *the aether never cares what device you use*; the "through" attribution `which` needs is a runtime
+  record for the plan, not a new way to declare an affordance.
+
+### 12.7 The lens pass
+
+1. **Pedagogy** — real computing: the work happens elsewhere and the device is a terminal; what a
+   device can show follows from what it physically is; Landauer prices the works. ⚠ **Gap:** no
+   computing or signals Discipline exists to exercise.
+2. **Expression** — a new device row declares what it shows and takes in and every app works on
+   it; a new card app works on every device; neither needs code. Named works: *Cloverfield* (the
+   lamp and lens are hardware), the Victorian telegraph-office drama (the office is the device) pass;
+   a corpo walled garden passes only as one bespoke row.
+3. **Immersion** — a lost phone replaced with your apps intact is how real phones work. **Participation**
+   — the clerk, the operator, the repairer, the app maker, the screen-reading spy; NPC and player at
+   the same seats.
+4. **Values** — the forced choice is which device to carry: private but surgical, cheap but
+   overheard, period-true but slow. ⚠ *Everything follows you everywhere* is the attention device —
+   do-not-disturb and subscriptions are per line *(grain)*.
+5. **Continuity** — the strongest: one line, every carrier, the same verbs — the test passes by
+   construction. Who holds the obsolete half: the needle-maker, the telegraph office and its clerk.
+6. **Economy** — hardware carries it (made, sold, repaired, charged, stolen); software is free to
+   copy and free for now; the works are a real power load. The demand for paid apps is not there
+   yet.
+7. **Governance** — ⚠ **cutting a line or delisting an app judges a person**: the Exchange owes a
+   posted criterion and an appeal (the Compact courts), and an entrenchment tier — open. The floor
+   (§ 12.5) means a cut line never strands anyone.
+
+### 12.8 What this changes elsewhere — owed, not done here
+
+- **[arcane-science.md](../../arcane-science.md)** — rule 5 (*it does not vouch for things: it opens
+  no door*) still holds and wants one line: the **Exchange** vouches and opens an aether lock, as an
+  institution using the field; the field itself never does.
+- **The Eternal University lore (§ 8, *the aether is identity-blind*) and
+  [credential.md](../../subsystems/credential.md)'s *a credential is a presentation, the issuer is
+  the truth*** — retired by § 12.3; the deferred issuer-authorization ledger is dropped, not built.
+- **The shipped code is debt against § 12.1** — the wallet, calendar and forums apps hosted on the
+  person; the TPA's clearance read from the person's hosted wallet (`getHostedApps()`); per-device
+  `installedApps`.
+- ⚠ **stream-arrival (build-2, in review)** — its D16 (an app's verbs reach whoever bears its
+  device, declined with the device's reason) is the mechanism this needs and stands; its D21 (one
+  store: the published app rows) agrees with § 12.2. Its **per-device installed list** is the one
+  piece § 12.1 moves to the line — a follow-up after it merges, not a reason to reopen it.
+
+### 12.9 Still open
+
+- **The payment framework** (§ 12.2).
+- **The Exchange's criterion, appeal and entrenchment tier** for cutting a line or delisting an app
+  (§ 12.7).
+- **The Exchange's privacy duty** — it runs your software, so who may read what it runs →
+  [privacy-slate](../platform/privacy-slate.md).
+- **What converts to apps beyond the four shipped** — candidates: a watch app (`tune`, `tune-follow`,
+  `tune-post`), a news app (`press`, `press-read`), `notify` and contacts inside Messages, the map
+  (your own map document only, never the index).
+- **A computing / signals Discipline** (§ 12.7, lens 1).
