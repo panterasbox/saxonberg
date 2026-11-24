@@ -2,8 +2,8 @@
 
 > **Status: DESIGNED IN CONVERSATION, UNBUILT** (2026-11-24) — the owner: *"I actually really like
 > where all this is going let's start writing it up."*
-> **Left:** the beat vocabulary and who holds its pen (§ 3a) · each beat's detection over the engine's
-> primitives · the primitives at their chokepoints, grouped into acts · the trope definition (cast ·
+> **Left:** the beat vocabulary and who holds its pen (§ 3a) · each beat's detection over acts · the
+> act list fired at its chokepoints behind a call-security gate, and *no work starts anonymous* (§ 3b) · the trope definition (cast ·
 > plot of beats · writes) · the detector · the first roster (§ 6) · the author surfaces —
 > *could fire here*, *has fired here*, the gap report · the escalation to a quest · moving today's
 > hard-coded writers onto tropes · activity credit onto the rows the acts load
@@ -214,10 +214,74 @@ through about a dozen places — each written once, generically:
   template authors who may add beats.
 - **The chokepoint table is unverified** — each must be checked to cover every path (consent recorded
   everywhere it is needed?).
-- **The execution context must attribute the right actor to every primitive**, scheduled ticks and NPC
-  beats included; everything rests on it.
+- ~~The execution context must attribute the right actor~~ → settled in § 3b (no work starts anonymous).
 - **Cost** — build a primitive only for the kinds some beat is listening to; act bundles are small.
 - **Lies and intent stay outside detection** — only asserted beats reach them.
+
+## 3b. ⭐⭐⭐ The act — who did it, and what changed **[DECIDED — the owner, 2026-11-24]**
+
+The owner: *"is there a generic way to solve the execution context problem so async doesnt matter it
+just works"* — and, of the act: *"I dont see any way to do this that isn't just
+'WhateverApi.fireAct('foo')' instrumented whereever it needs to go. the problem is creating an act
+vocabulary where that kind of instrumentation is honest and contained so not every code review needs
+to take an inventory of acts and it's not constantly changing or being reevaluated."* All four rulings
+below: *"yes to all four."*
+
+⚠ This settles § 3a's *primitives* into **acts**: the same records, now fired explicitly and gated.
+
+### Who is acting — no work starts anonymous **[DECIDED]**
+
+- **The resolver is `ExecutionContextApi.getActor()`** — *who is acting* — not `getActingAuthor()`,
+  which answers *who authored this* for provenance and fails closed on a forced or cross-actor chain.
+  `getActor` holds through a forced chain (an NPC's forced command is the NPC acting).
+- **Most of it already works.** Node's AsyncLocalStorage carries the context across every `await`;
+  the places that start work fresh already capture the actor and restore it (`captureActor` /
+  `runAsCaptured`): `ScheduleApi`, the engagement scheduler, the world clock, the sandbox. NPC brains
+  act as themselves (`Behaved` runs a brain's act inside `runAsSelf`).
+- ⭐ **The rule, made structural:** *no work starts without an actor or a named system.* `runRoot`
+  requires a captured actor or a named system and refuses otherwise — about nine call sites, raw timers
+  already banned — so "it just works" is a guarantee, not a convention.
+- **To verify first:** prompt resume (a doc comment says the command frame is gone after a resume;
+  `getActor` reads a different frame and may survive — unchecked), a reaction triggered by a message,
+  and the REST/CMS boundary.
+
+### Acts — fired at the chokepoints, and only there **[DECIDED]**
+
+- **`ActApi.fire(kind, payload)`, called only by the engine's chokepoints** — the single primitive
+  each state change already goes through: `ContainmentApi.move`, the chattel transfer, `postTransaction`,
+  `ConditionApi.inflict`, `ConditionApi.die`, `traverse`, the engagement end, the message composer,
+  `StuffApi.clone` / `destruct`, the contract outcome. New feature code keeps calling `move` as it
+  always has, and the act fires — **a code review never inventories acts, because feature code never
+  fires them.**
+- ⭐ **Contained by call security, not by discipline:** `ActApi.fire` is gated
+  `@CallSecurity(FromModule([…the chokepoint modules]))`; a call from anywhere else throws. Adding an
+  act means adding a chokepoint — a rare change already scrutinized as architecture.
+- ⭐ **An act records what CHANGED, never what it MEANT.** *Money moved from X to Y* is as true next
+  year as today, so the list is never re-evaluated when tropes or beats change — every
+  reinterpretation happens above it. Closer to physics than to plot; that is what keeps it stable.
+- **A closed list, in one kernel file, each kind with a fixed payload** — who acted · the
+  counterparty or recipient · the thing · the amount · consent · the place. It grows only with
+  chokepoints.
+
+| act | fired by |
+|---|---|
+| moved | `ContainmentApi.move` |
+| title changed | the chattel transfer |
+| money moved | `postTransaction` |
+| harmed | `ConditionApi.inflict` |
+| died | `ConditionApi.die` |
+| crossed | `traverse` |
+| engagement ended (completed, or why abandoned) | the engagement scheduler |
+| spoke / emoted | the message composer |
+| created / destroyed | `StuffApi.clone` / `destruct` |
+| contract outcome | the contract's settle and breach |
+
+- **One root's acts belong together** — a command, a captured continuation, an NPC's beat. The group
+  needs no name of its own: *the acts of one root* (the owner accepted). That grouping is what lets a
+  beat read *money one way, title the other, in one go*.
+- **Asserted beats are not acts.** A dialogue node's `beat:` arrives through the dialogue's own
+  effect applier, a separate content path; acts stay purely the engine's record of what changed.
+- In memory only, handed to the beat detectors as the root ends — nothing persisted for them (§ 3a).
 
 ## 4. What a trope declares **[LEAN]**
 
@@ -365,6 +429,26 @@ refused automated fetches, so its pages were not read directly) found:
 - Whether NPCs' acts write trait evidence too.
 - How a player learns a trope fired — [narration-slate](./narration-slate.md) (salience, *acts never
   axes*).
+
+## 9. The path to a first build **[LEAN — proposed 2026-11-24, not ruled]**
+
+The owner: *"I actually wanna build this sooner than later especially if we have things that are
+already doing shit 'the wrong way'."* The wrong-way writers are the first consumer — the blood gift's
+constant, combat's −20/+2 regard, the contract breach's −15, the bad-feeding penalty, dialogue's raw
+`regard:` numbers — so moving them onto tropes proves the design and deletes the wrong way in one
+build, with today's behavior as the regression check.
+
+| wave | what | proves |
+|---|---|---|
+| 1 | *no work starts anonymous*; the act list fired at ~6 chokepoints the first roster needs | acts carry the right actor and group by root |
+| 2 | the first dozen beat detectors — **kernel code** for now (*give · exchange · take · return · harm · kill · yield · spare · promise · keep · break · confess*) | beats read correctly from one root's acts |
+| 3 | trope rows and the matcher, **one-root tropes only**; writes tagged with their trope; repetition diminishing | tropes write traits, regard and renown |
+| 4 | the wrong-way writers moved onto tropes, their hand-written writes deleted; dialogue `regard:` → `beat:` | the fair fight, murder in plain sight, the broken promise, the word kept, the gift, the bad meal, a confession |
+
+**Second build:** the author surfaces (could fire · has fired · the gap report), sequences and
+absences across roots on game-clock windows, the helping and deception families, the narration a
+player sees. **Neither:** rope's `ropework` literal onto knot rows (a small sweep), the transfusion's
+unreachable revival deed (a defect fix).
 
 ## Cross-references
 
