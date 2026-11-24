@@ -119,12 +119,16 @@ test.describe('stream arrival, in a browser', () => {
         }),
       );
       await v.getByTestId('provider-twitch').click();
-      // A real navigation away and back: the dock plays the same video.
-      await expect.poll(() => v.getByTestId('stream-player').getAttribute('data-player-place'), { timeout: 60_000 }).toBe('dock');
-      expect(await playerSrc(v)).toContain(`channel=${TWITCH}`);
-      // Creation: no aspiration, and confirm says what it sends.
+      // A real navigation away and back. ⚠ The front page's show is a dock
+      // too (review 11-24), so wait for CREATION before reading the dock —
+      // reading it first passes on the page being left.
       const confirm = v.getByTestId('chargen-confirm');
       await expect(confirm).toBeVisible({ timeout: 60_000 });
+      // Creation's dock plays the same video, on screen, covering nothing.
+      await expect.poll(() => v.getByTestId('stream-player').getAttribute('data-player-place'), { timeout: 60_000 }).toBe('dock');
+      await expect.poll(() => playerSrc(v), { timeout: 30_000 }).toContain(`channel=${TWITCH}`);
+      expect((await v.getByTestId('player-dock').boundingBox())?.height ?? 0).toBeGreaterThan(100);
+      // Creation: no aspiration, and confirm says what it sends.
       expect(await v.locator('body').innerText()).not.toMatch(/aspir/i);
       await expect(confirm).toContainText(`embody confirm --watch ${PROGRAM} --twitch`);
       // Fill what is missing, through the controls the stage offers.
