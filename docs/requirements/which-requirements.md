@@ -56,12 +56,17 @@ naming of each source**, and **the `~` words moving from `query` to
   phone*), never as code.
 - A player can ask **what one thing lets them do** (`which counter`).
 - A player can ask **which `~` words they can type** (`which ~`), and
-  which a thing keeps (`which book ~`), each with what it means.
-- A player who names a verb they **cannot use here** is told why, in the
-  same words the verb itself would refuse with.
+  which a thing keeps (`which ~ book`), each with what it means.
+- A player who names a verb nothing here gives is told so in one line.
 - The answer is **honest**: every verb `which` lists is one the command
-  line accepts right now, and every one it accepts is listed; nothing a
-  player cannot perceive appears.
+  line accepts right now, and nothing a player cannot perceive is put in
+  front of them.
+- **The stupid affordances are fixed.** `which` is the first thing that
+  shows a player every verb and where it comes from, so this build uses it
+  to inventory the verbs things afford that make no sense and fix them
+  (owner, 2026-11-23). The first two to judge: `ring` (tap it and listen)
+  is on every good and vessel, a rope and a loaf included; `throw` is on
+  every thing and every body.
 - The `~` words have **one** home: `query`'s relation listing retires.
 - The answer is also a **card** that stays current as the player plays,
   shows more as it gets wider, and lets them put a verb on the command
@@ -118,8 +123,9 @@ day its content ships.
 ### One verb, `which`, and one question
 
 `which` — what you can type here. `which <thing>` — what that thing
-lets you do. `which ~` — your `~` words; `which <thing> ~` — that
-thing's. Under *verb target*, never nested. (Design conversation; the
+lets you do. `which ~` — your `~` words; `which ~ <thing>` — that
+thing's. Under *verb subcommand target*, never nested — the spelling is
+whatever the command definitions imply (owner). (Design conversation; the
 dry run, a usage mode and inline kept sets were cut there, with reasons
 in the slate.)
 
@@ -133,9 +139,11 @@ learns that the rod is what lets them fish (lens 1).
 ### Grouped by source; the usual verbs on one line
 
 The listing groups verbs by what gives them, the interesting sources
-first; the verbs your own body always has collapse into one closing
-line — *and the usual: look, say, go, … (you)* — so twenty body verbs
-never bury *fish — the rod in your right hand*.
+first. Two kinds of verb collapse into closing lines so they never bury
+*fish — the rod in your right hand*: the verbs your own body always has
+— *and the usual: look, say, go, … (you)* — and any verb nearly every
+thing here gives — *and anything here: throw, …* (lens 1: interesting
+sources first).
 
 ### A thing is named by its handle
 
@@ -148,23 +156,37 @@ Never the keyword list.
 
 `which ~` lists the `~` words you can type — the built-ins that apply
 (`~here`, `~inventory`, `~peers`, `~contacts` …), your lists, your
-groups, your party — each with a line saying what it means. `which
-<thing> ~` lists what that thing keeps (`~ships` for a charter book). Not
+groups, your party — each with a line saying what it means. `which ~
+<thing>` lists what that thing keeps (`~ships` for a charter book). Not
 in the default listing. The spelling is chosen because it teaches itself:
 see a `~`, ask `which ~` (lens 1).
 
-### A verb you cannot use here gets one line
+### A verb nothing here gives gets one line
 
-`which fish` with nothing to fish with: one line in the verb's own
-refusal words (*you need something to fish with*), and a pointer to
-`help fish` for the shape. A word that is no verb at all says so. This is
-the live part — here, now — so it is `which`'s; the shape stays help's.
+`which fish` with nothing to fish with: *Nothing here gives you `fish`*,
+with a pointer to `help fish`. ⛔ It never tries to say **what** would
+give it — that would reach into every piece of content in the game
+(owner). A word that is no verb at all says so.
 
-### It never reveals what you cannot perceive
+### It never puts in front of you what you cannot perceive
 
 A concealed or unseen thing's verbs are not listed and the thing gives
 no `which <thing>`; a thing in the dark is as unnamed to `which` as it is
-to `look`. Otherwise `which` would be a detector.
+to `look`. ⚠ This is about not throwing information at a player, not
+about plugging every leak in the game: the command line itself is not
+changed, and the spoiler system is where knowing is governed (owner).
+
+### The stupid affordances are inventoried and fixed
+
+The build walks the testbed with `which` and takes a census of every
+verb every kind of thing affords, and records each verb × the kinds of
+thing that give it with a verdict. The wrong ones — a verb on the wrong
+kind of thing (a person who rings like a pot, a place you can throw, a
+fixture bolted down that you can throw) — are fixed in this build by
+moving the verb to the things it belongs to. The inventory ships in the
+plan's record. ⚠ The verdicts are the audit's to make, against the
+command definitions — `ring` on a rope or a loaf, `throw` on a person or
+a bolted-down fixture are where it starts, not conclusions.
 
 ### The `which` card
 
@@ -246,10 +268,10 @@ so there is no light step. There is no soak drive.
 6. **[instant · player]** `which ~` lists the `~` words they can type,
    each with its meaning (`~here`, `~inventory`, `~peers`, `~contacts` …).
    They add a second player to a list (`contacts add @<id> friends`);
-   `which ~` now also shows `~friends`. `which counter ~` says the
+   `which ~` now also shows `~friends`. `which ~ counter` says the
    counter keeps nothing to ask for.
-7. **[instant · player]** `which fish` (nothing to fish with) gives one
-   line in `fish`'s own refusal words and points to `help fish`.
+7. **[instant · player]** `which fish` (nothing to fish with) says
+   *Nothing here gives you `fish`* and points to `help fish`.
    `which flurb` says there is no such verb.
 8. **[instant · player]** In the unlit cellar, `which` lists nothing the
    dark hides, and `which <a thing down there they cannot see>` names
@@ -263,8 +285,11 @@ so there is no light step. There is no soak drive.
     and the booth's desk's verbs from the desk.)
 11. **[instant · player]** For every verb `which` listed in steps 1–10,
     typing it is accepted by the command line (it may then refuse on its
-    own terms, never as unknown); a verb `which` did not list is not
-    available there.
+    own terms, never as unknown).
+11a. **[instant · player]** The stupid affordances are gone: for each
+    verb the inventory moved, `which <a thing it was wrong on>` lists
+    no such verb — each fix the inventory made is checked once here, on
+    the testbed things it named.
 
 ### The card — the browser walk
 
@@ -299,14 +324,16 @@ None — no step depends on the clock.
 - `which <thing>` lists only that thing's verbs and names it by the word
   a player would type, telling two alike things apart when both are in
   reach.
-- `which ~` and `which <thing> ~` list the `~` words with their meanings;
+- `which ~` and `which ~ <thing>` list the `~` words with their meanings;
   a new contact list appears there once made.
-- A verb named but unusable here gets one line in its own refusal words
-  and a pointer to `help`; a non-verb is called one.
+- A verb nothing here gives gets one line saying so and a pointer to
+  `help`; a non-verb is called one.
 - Nothing hidden from the player — in the dark, concealed — appears in
   any `which` answer.
 - Every verb `which` lists is accepted by the command line where it was
-  listed, and none it omits is.
+  listed.
+- Every wrong affordance the inventory found is gone: the things it named
+  no longer offer the verb, and the things it belongs on still do.
 - `query me:~` no longer lists relations; it points to `which ~`.
 - In a browser, `which` shows a card whose table matches the reply; it
   shows more columns as it widens; pinned, it changes as the player moves

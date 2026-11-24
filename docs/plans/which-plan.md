@@ -9,9 +9,11 @@ each verb* — its terminal reply, its live card, and the retirement of
 kernel; no content is added to any world. Paths below are relative to
 `packages/server/src/mud/` unless they start `packages/` or `docs/`.
 
-⚠ **Four places where planning found the requirements wrong or
-underspecified are in § Risks & opens (O1–O4).** The plan picks a default
-for each so the build can run; the owner should read them before `/build`.
+⭐ **Owner rulings, 2026-11-23** (on the first draft's four opens) are
+recorded in § Owner rulings and are binding: R1 an unafforded verb gets
+one plain line · R2 the build audits and fixes wrong verb affordances ·
+R3 no dispatcher change · R4 `which ~ <thing>`, one view · R5 a source
+click narrows the same card.
 
 ## Grounding
 
@@ -41,7 +43,7 @@ Verified by opening the files, 2026-11-23, on `design/2026-11-23-reflection`.
   contributes `throw` (three shapes) and `lib/material/Integrity.ts:201`
   contributes `ring`, both in `environment` and `peers` — so every good
   and every body in the room affords them. A source-per-group listing
-  names every object present (O2).
+  names every object present (R2).
 - **`source::verb` already names a source**: `matchAffordances`
   resolves the scope with `MqlApi.resolveMany(…, { scope: '~reachable' })`
   then `PerceptionApi.perceived(giver, stuff, ordinal)` (`:771–780`),
@@ -61,7 +63,7 @@ Verified by opening the files, 2026-11-23, on `design/2026-11-23-reflection`.
   (docs/subsystems/help.md:72).
 - **A verb nothing affords has no words of its own.** The doc comment at
   `api/command.ts:1355–1368` (*the parser floor*) describes a view field
-  that does not exist; `fish` with no rod is `unknown-verb` (O1).
+  that does not exist; `fish` with no rod is `unknown-verb` (R1).
   `CommandApi.allDefinitions()` (`api/command.ts:1594`) is the loaded
   catalogue.
 
@@ -185,14 +187,15 @@ Verified by opening the files, 2026-11-23, on `design/2026-11-23-reflection`.
 | N5 | `lib/relation/BuiltinRelations.ts` — the built-in `~` words' `name · meaning · whose`, moved out of `api/mql/relations.ts` | row 6 — the same table, moved so something outside the sealed MQL directory can read it; MQL keeps `members`, typed against it |
 | N6 | `WhichSource` (`platform/idea/WhichSource.ts`, a `SubscriptionSourceMixin(Idea)` + its row + `SUBSCRIPTION_SOURCES.which`) | subscription.md: *a new kind of state is a new SOURCE*. Genuinely new instance of a shipped pattern |
 | N7 | card id `which`; `CardPayload` kind `which`; `subscription?:` on the `payload` card source; `params?` on `CardOpenOptions` | generalizes `CardRegistry.wantsLive`/`subscribe` from MQL-only to any source — the one registry, no second path |
-| N8 | views `which.yaml`, `which-of.yaml`; `WhichController`, `WhichRelationsController` | row 8 — the shell-view shape |
-| N9 | reason rows `no-such-verb`, `nothing-gives-verb`, `gives-nothing`, `keeps-nothing` | row 7's mechanism (reason rows); the four sentences are new |
+| N8 | one view `which.yaml` (`fallthrough`, a `~` subcommand); `WhichController`, `WhichRelationsController` | row 8 — the shell-view shape; `help.yaml` is the exemplar |
+| N9 | reason rows `no-such-verb`, `nothing-gives-verb`, `gives-nothing`, `keeps-nothing` | row 7's mechanism (reason rows); four plain sentences (R1) |
+| N11 | the affordance audit's moves (W2) — contributions re-homed to the mixin or class that means them | no new substrate by intent: a move, never a guard. Any mixin the audit needs to split is added to this table with its P1 line before it is written (B1) |
 | N10 | client `WhichBody.tsx` | client convention: a body with its own interaction gets its own file |
 
 **Retired in the same build:** `emitSchemaDelta` / `getCommandSchemaPayload` /
 `_commandSchemaSubscribed` / `CommandSchemaPayload` (D10); the `:~`
 grammar element, `listRelations`, `RelationInfo`, `relations` on both MQL
-results, the `lists:` view key, `names-relations` (W4).
+results, the `lists:` view key, `names-relations` (W5).
 
 **No new** mixin, Api, logic singleton, hook, registry, document kind,
 collection or module category.
@@ -208,7 +211,8 @@ identification gate `resolveAffordancesImpl` already applies). No second
 list exists to drift. Not the recency stack read raw (it has no states
 and no gate); not `resolveAffordances` per source (it re-evaluates every
 actor verb per source). *Lens 1: the answer is true or it teaches a
-falsehood.* The residue is O3.
+falsehood.* Tested one way only (R3): every verb listed is accepted by
+the line. The dispatcher is not touched.
 
 **D2 — States come from `evaluateAffordance`, unchanged.** Each listed
 `(verb, group)` is evaluated once, against the group's first-named
@@ -217,14 +221,19 @@ positional); a source that is the viewer binds nothing. The reason is the
 validator's own sentence. `resolveAffordancesImpl`'s two gates are lifted
 into one module-private function both reads call.
 
-**D3 — Groups are keyed by verb set** (closes Q3 and O2). Sources that
-give the same set of verbs are one group, named together; alike sources
-(same handle, same place words) are counted (*3 notebooks on the shelf*).
-Groups are ordered by their rarest verb — fewest sources in this answer
-first — so *buy, sell, shelf — the counter here* leads and *throw, ring —
-the shelf, the hearth, the lamp, …* trails. No hand list, no threshold.
-The terminal reply names at most four sources per group and counts the
-rest; the card shows all. *Lens 1 chose: the rare cause is the lesson.*
+**D3 — Grouped by source; two closing lines** (R2). One group per
+source, alike sources counted (*3 notebooks on the shelf* — same handle,
+same place words, same verbs). Groups are ordered by their rarest verb —
+fewest sources in this answer first. After the audit (W2) a verb that
+still comes from (nearly) every good is **common**, and collapses into a
+second closing line beside the usual one: *and anything here: throw, …*.
+Common is derived, never listed by hand: a verb is common when the
+`Good` rung itself contributes it (`collectBucketDefs` over
+`lib/stuff/Good`'s own chain — what a thing gives by being a good at
+all). A group left with no other verb is not printed; the card's
+collapsed *anything here* row opens to name the things. *Lens 1 chose:
+interesting sources first.* ⚠ If the audit leaves nothing on the `Good`
+rung, the second line simply never prints.
 
 **D4 — "The usual" is the `'self'` entry.** The verbs whose source is
 the giver itself with bucket `self` — what the body's own class and
@@ -258,8 +267,8 @@ form is `handle` alone.
 
 **D6 — One view takes a word; the model decides thing-or-verb.**
 `which.yaml`: `fallthrough: true`, `args: [{ name: what, type: string,
-required: false }]`, `subcommands: { "~": {} }`. `which` · `which
-counter` · `which fish` · `which ~`. `CommandApi.which` reads `what`
+required: false }]`, and the `~` subcommand of D7. `which` · `which
+counter` · `which fish`. `CommandApi.which` reads `what`
 exactly as `source::verb` reads its scope (the resolve + `perceived`
 lines of `matchAffordances`, lifted into one private method both use):
 **a perceived thing in reach wins; a word that names nothing in reach is
@@ -268,20 +277,20 @@ shape-per-kind is impossible (Grounding § Shapes). Every thing the word
 names is answered, each told apart by its place words — no prompt, no
 keyword list.
 
-**D7 — `which <thing> ~` is a second shape.** `which-of.yaml`: `args:
-[{ name: thing, type: object, required: true, scope: ["~reachable"] },
-{ name: relations, type: enum, values: ["~"], required: true }]`,
-contributed **before** `which.yaml`. `which counter` is a shape error
-there (a missing second word) and falls to `which.yaml`; `which ~` the
-same. The requirements' spelling is kept (O4 records the alternative).
+**D7 — `which ~` and `which ~ <thing>`: one view, a `~` subcommand**
+(R4 — the syntax law is `verb subcommand target`). In `which.yaml`:
+`subcommands: { "~": { controller: …/WhichRelationsController, args:
+[{ name: thing, type: object, required: false, scope: ["~reachable"] }] } }`.
+The binder resolves `thing`, so its perception gate and tie prompt are
+the binder's own. There is no second view.
 
 **D8 — The `~` listing is the model's, and counts only kept sets.**
 `which ~` = every word in `BuiltinRelations` (all apply to the asker) +
-`me.relationsFor(me)`; `which <thing> ~` = `thing.relationsFor(me)`
+`me.relationsFor(me)`; `which ~ <thing>` = `thing.relationsFor(me)`
 only (a counter *keeps nothing*). The count (*3 in the world*) is
 `relatedBy(name, me)` members — resident ones, the holder's own gate. A
 built-in shows its meaning and no count: its members are MQL's, and
-`MqlApi` gains no third function. (Narrowing recorded in O4.)
+`MqlApi` gains no third function.
 
 **D9 — The live card is a payload card with a subscription.** Card
 `which`: `{ source: { kind: 'payload', producer: 'which', subscription:
@@ -292,10 +301,15 @@ the answer can be kept current. `wantsLive` becomes *the kind is live,
 the source can subscribe (MQL, or a payload with `subscription` and
 `params`), and the player placed, pinned or roled it* — so a card that
 flows past is a snapshot with a `takenAt`, and pinning it subscribes.
-Key = the normalized command, so `which`, `which counter` and `which ~`
-are three cards, each reused when re-asked. `which ~` passes no `params`
-and is always a snapshot (a friend arriving is not something this source
-hears). Not the `here` role (that is a place card rebinding); not a
+**There is one `which` card** (R5): the row is a singleton and both
+controllers open it under the catalogue key `which`, so `which counter`
+and `which ~` retarget the card that is up — `touchState` replaces its
+payload, title and `params` and re-syncs liveness (a cancel-and-reopen
+of its subscription, as `rebind` does). The answer carries the command
+that reproduces it (`ask.command`: `which`, `which #<id>`, `which ~`),
+which is what the card's refresh re-sends. The `~` view passes no
+`params` and is a snapshot while it shows (a friend arriving is not
+something this source hears). Not the `here` role (that is a place card rebinding); not a
 client-opened subscription (the client never decides liveness).
 
 **D10 — `WhichSource` wakes on the stack and on what the answer named;
@@ -311,16 +325,19 @@ carry the subject ids and re-check perception every flush.
 `emitSchemaDelta`, `getCommandSchemaPayload` and their test are deleted:
 the owner's call was *reuse it or toss it*, and nothing reads it.
 
-**D11 — A verb you cannot use here.** `which <verb>`, three cases, in
-order: afforded here → its group(s), with the state and the validator's
-own reason, then *`help <verb>` has its shape*; in the catalogue
-(`CommandApi.allDefinitions()`) but afforded by nothing perceived →
-`nothing-gives-verb`; not a verb → `no-such-verb`. See O1.
+**D11 — A verb you cannot use here** (R1). `which <verb>`, three cases,
+in order: afforded here → its source(s), with the state and the
+validator's own reason, then *`help <verb>` has its shape*; in the
+catalogue (`CommandApi.allDefinitions()`) but given by nothing perceived
+→ `nothing-gives-verb`: *Nothing here gives you `fish`. (`help fish`)*;
+not a verb → `no-such-verb`. ⛔ Nothing says what WOULD give it: no
+refusal-words field, no reverse search, no view key.
 
 **D12 — Clicks.** A verb cell calls the store's `setDraft` on the
 primary terminal's bar with `<verb> ` and focuses it — nothing is sent. A
 source cell sends the command `which #<id>` (a typed, visible command;
-`which` never acts), which opens that key's card. The `help` link sends
+`which` never acts), which **narrows the same card** (D9, R5); the
+narrowed card shows a *everything* control that sends bare `which`. The `help` link sends
 `help <verb>`.
 
 **D13 — `which` is afforded by `Avatar.self`,** beside `help`
@@ -346,7 +363,7 @@ persists.
 Checked 2026-11-23 against CLAUDE.md and the docs named.
 
 - `props:`/`cast:`, places-not-rooms, the five axes: the build adds no
-  place and no world row. The testbed gains one `props:` entry (W5).
+  place and no world row. The testbed gains one unplaced row (W6).
 - Paths: views at `platform/cmd/shell/`, controllers at
   `/platform/idea/cmd/shell/`, the source at `/platform/idea/WhichSource`
   with its row, reason rows at `packages/content/platform/content/reasons/`.
@@ -354,8 +371,8 @@ Checked 2026-11-23 against CLAUDE.md and the docs named.
   not import `api/mql/**`; the move in N5 runs the other way.
 - Verbs on objects: `whereFor`, `slotWord` are methods; `CommandApi.which`
   orchestrates the validator chain, as `resolveAffordances` does.
-- One view, one word: two views, one word `which`, no alias;
-  `verb target` (`which counter`) and `verb subcommand` (`which ~`).
+- One view, one word: one view, one word `which`, no alias;
+  `verb target` (`which counter`) and `verb subcommand target` (`which ~ book`).
 - **P3** — empty answers are refusals with rows (N9); an unresolvable
   source is skipped; a card payload of the wrong kind throws (shipped).
 - **P4** — no `?.()`; `whereFor` is reached through `MixinApi.isContainable`
@@ -377,9 +394,10 @@ Checked 2026-11-23 against CLAUDE.md and the docs named.
 | N5 `BuiltinRelations` | `which ~` prints it | reserved grammar words, each bound to code and owner-vetted — not a row a pack could add | n/a | the same table, moved | lib/relation | n/a |
 | N6 `WhichSource` | the card says what changed it (ChangeMark) | n/a | n/a | a source, per subscription.md | n/a | pushes only what it recomputed |
 | N7 card + `subscription` | pin = live, as every card | n/a | `subscribe` branches on the SOURCE kind it owns, in one place | one registry | Cards.ts | liveness only by the player's act |
-| N8 views | the views ARE the def; no new view key | n/a | n/a | no synonym word | shell | never acts |
+| N8 view | the view IS the def; no new view key | n/a | n/a | no synonym word | shell | never acts |
 | N9 reason rows | worded in rows | rows | n/a | n/a | n/a | n/a |
 | N10 `WhichBody` | a click types, never runs | n/a | n/a | n/a | n/a | sends only visible commands |
+| N11 audit moves | a verb appears where the thing means it | n/a | a move, never a guard | n/a | each contribution on the mixin whose sentence it fits — the wave's whole test | changes which verbs a host affords; every change is a row in § The affordance audit |
 
 **Gates this build must pass:** `lint:view-keys` (the `lists` pin
 removed), `lint:one-word`, `lint:verb-collisions`, `lint:command-views`,
@@ -399,75 +417,113 @@ a carried `/platform/thing/book` gives its carrier and a fresh avatar's
 `self` verbs (a unit test over `getAffordances()` — keep it as W1's
 fixture); (b) confirm a bare `~` tokenizes as a word and is a legal
 subcommand key (`CommandLineApi`; if not, fix the tokenizer in W1 and say
-so); (c) read the biped body plan's hand slot names; (d) confirm
-`PerceptionApi.perceives(viewer, viewer)` and what it answers for a
-hosted app; (e) confirm `fish.yaml` is in the test world's catalogue. Any
-answer that contradicts this plan is re-planned in place before W1.
+so — R4: *make it work*); (c) read the biped body plan's hand slot
+names; (d) confirm `PerceptionApi.perceives(viewer, viewer)` and what it
+answers for a hosted app; (e) confirm `fish.yaml` is in the test world's
+catalogue. Any answer that contradicts this plan is re-planned in place
+before W1.
 
 **W1 — the read and the words.** (D1–D6, D11)
-- `packages/types/src/index.ts`: `WhichAnswer`, `WhichGroup`,
+- `packages/types/src/index.ts`: `WhichAnswer` (`ask` with its
+  `command`, `groups`, `usual`, `common`, `relations`), `WhichGroup`,
   `WhichSource`, `WhichAsk`.
 - `lib/slot/Slotted.ts` `slotWord`; `lib/spatial/Containable.ts`
   `whereFor`; `lib/augmentation/AetherHosted.ts` `whereFor`.
 - `lib/command/CommandGiver.ts`: lift the scope's resolve-and-perceive
-  into a private method used by `matchAffordances` and exposed for the
-  read (`@internal`-free: a public `namedSources(raw)` returning the
-  perceived things or the note).
+  into one method used by `matchAffordances` and by the read
+  (`namedSources(raw)` — the perceived things, or the note).
 - `platform/idea/api/CommandLogic.ts`: the shared gate function;
   `which(viewer, ask)`; `api/command.ts`: the static.
-- Tests (`__tests__` beside each): the equality test — the verbs of
-  `which` with every source perceived equal the verbs
-  `matchAffordances` accepts; a hidden source's verbs absent; an
-  unidentified thing's verbs absent; grouping, order and counting; every
-  row of D5's table; thing-first then verb; the three D11 cases.
+- Tests (`__tests__` beside each): **every verb `which` lists is accepted
+  by `matchAffordances`** (one direction — R3); a hidden source's verbs
+  absent; an unidentified thing's verbs absent; grouping, order,
+  counting, the usual line and the common line; every row of D5's table;
+  thing-first then verb; the three D11 cases.
 - Acceptance: `pnpm test:near` green. Commit `feat(which): the read —
   what you can type and what gives it`.
 
-**W2 — the verb.** (D6, D7, D8, D13)
+**W2 — the affordance audit.** (R2, D3; § The affordance audit)
+- **Census.** A script-free read: a vitest under
+  `platform/idea/api/__tests__/` that walks every kernel and pack class
+  and mixin with a `static commandContributions` (the `pack-roots`
+  reader the lints use), and for each verb × bucket lists the hosts that
+  end up composing it. Its output fills the table in § The affordance
+  audit — every verb, not a sample.
+- **Instrument.** Run the W1 read as a fresh player in each testbed
+  place (plaza, shop, hall, bank, works, yard) and holding each testbed
+  good; anything a person would call stupid is a row.
+- **Verdict per row:** *right* · *wrong host* (the contribution sits on
+  a rung wider than the things that mean it) · *wrong slice* (right
+  host, wrong bucket — e.g. `peers` where only a holder should get it).
+- **Fix every wrong row in this wave, by placement.** Move the
+  contribution to the mixin or class whose header sentence it fits; where
+  none exists, the row names the narrower existing mixin, or — only if
+  there is none — a new one, added to § New substrate with its P1 line
+  first. ⛔ Never a guard, a validator that re-narrows, or an
+  `isFixedInPlace()` check inside a view. The owner's three named cases
+  are the floor: **a person does not ring; a place is not throwable; a
+  fixed-in-place fixture is not throwable.**
+- B4: every moved view is grepped across `packages/content` and every
+  pack's `src/` for hosts that relied on the old reach
+  (`lint:reachability`, `lint:self-contributions`, `lint:contribution-keys`).
+- Tests: the census test pins the table (a host gaining a verb it should
+  not have fails it); each move has a test on the host that lost the
+  verb and one on a host that keeps it.
+- Acceptance: the W1 read in the testbed shop shows no wrong row; the
+  touched packs' own vitest green. Commit `fix(affordances): the audit —
+  verbs on the hosts that mean them` (split per verb family if large).
+
+**W3 — the verb.** (D6, D7, D8, D13)
 - `lib/relation/BuiltinRelations.ts`; `api/mql/relations.ts` reads it
   (`Record<BuiltinRelationName, members>` — a missing word is a compile
   error).
-- `packages/content/platform/content/platform/cmd/shell/which.yaml`,
-  `which-of.yaml` (each `category: shell`, `opens_card: which`, help
-  text stating D3's order and D6's rule); rows N9.
+- `packages/content/platform/content/platform/cmd/shell/which.yaml`
+  (`category: shell`, `opens_card: which`, `fallthrough: true`, the `~`
+  subcommand; help text stating D3's order, the two closing lines and
+  D6's rule); rows N9.
 - `platform/idea/cmd/shell/WhichController.ts`,
   `WhichRelationsController.ts` + their template rows
   (`packages/content/platform/content/platform/idea/cmd/shell/`).
-  `which.yaml`'s `~` subcommand and `which-of.yaml` both name
-  `WhichRelationsController`.
-- `lib/character/Avatar.ts` `self`: the two views, `which-of` first.
+- `lib/character/Avatar.ts` `self`: the one view.
 - The reply: one line per group — *buy, sell, shelf — the counter here*
-  — a greyed verb followed by its reason on its own line; the usual line
-  last; `which ~` one line per word, *~friends — <meaning> (3 in the
+  — a greyed verb followed by its reason on its own line; then *and
+  anything here: throw, …*; then *and the usual: look, say, go, …
+  (you)*. `which ~`: one line per word, *~friends — <meaning> (3 in the
   world)*.
 - Tests: controller tests over a staged body; `help which` renders.
 - Acceptance: typed in a dev world, steps 1–7 read right. Commit
   `feat(which): the verb, and the ~ words`.
 
-**W3 — the card.** (D9, D10, D12)
+**W4 — the card.** (D9, D10, D12)
 - `packages/types`: `CardId` + `CARD_IDS` `which`; `CardPayload` kind;
   `SUBSCRIPTION_SOURCES.which`; the source's params/snapshot/change
   types in `SubscriptionSources`.
 - `lib/connection/Cards.ts`: `subscription?` on the payload source; the
   row. `platform/idea/CardRegistry.ts`: `params` on `CardOpenOptions`
-  and `CardState`; `wantsLive`, `subscribe`, `syncLive`, `teardown` and
-  the `card-touched` body for a payload card.
+  and `CardState`; `wantsLive`, `subscribe`, `syncLive`, `teardown`;
+  `touchState` replacing a payload card's payload and `params` and
+  re-syncing its subscription (the retarget, R5); the `card-touched`
+  body for a payload card.
 - `platform/idea/WhichSource.ts` + its row; the poke in
   `CommandGiver`'s three methods; delete the schema push (D10) and
   `api/__tests__/command-schema-delivery.test.ts`.
-- Controllers call `CardApi.open(context, 'which', { payload, params })`.
+- Controllers call `CardApi.open(context, 'which', { key: 'which',
+  payload, params })`.
 - Client: `components/cards/WhichBody.tsx`, registered in
   `CardBodies.tsx`; `useCardFeed.ts` applies a result/delta to a `which`
   payload by group key; the widths — `unit`: verb · handle; `medium`:
   verb · name + place · state and reason; `full`: + description and the
-  `help` link; the usual row collapsed; the `~` layout.
+  `help` link; the *anything here* and *usual* rows collapsed; the `~`
+  layout; the narrowed card's *everything* control; refresh sends
+  `ask.command`.
 - Tests: `card-birth-path.test.ts` gains the mint site; a registry test
-  that pin subscribes and unpin stamps `takenAt`; a source test that a
-  move, a pick-up and a lamp lit each produce the right group changes
-  **applied by the wire's own rule**; client body tests per width.
+  that pin subscribes, unpin stamps `takenAt`, and `which counter` then
+  `which` leave ONE card; a source test that a move, a pick-up and a
+  lamp lit each produce the right group changes **applied by the wire's
+  own rule**; client body tests per width.
 - Acceptance: steps 12–16 by hand. Commit `feat(which): the card`.
 
-**W4 — the listing leaves MQL.** (requirements § The `~` listing leaves
+**W5 — the listing leaves MQL.** (requirements § The `~` listing leaves
 `query`)
 - `api/mql/parser.ts`: `:~` with no name is an `MqlParseError` —
   *`~` with no name lists nothing — `which ~` lists the ~ words you can
@@ -484,27 +540,41 @@ answer that contradicts this plan is re-planned in place before W1.
 - Acceptance: `query me:~` and `look me:~` both answer with the hint.
   Commit `refactor(mql): the relation listing retires — which ~ has it`.
 
-**W5 — drive, walk, docs.**
+**W6 — drive, walk, docs.**
 - Testbed: `packages/content/test-fixtures/content/world/testbed/thing/phone.yaml`
   (class `/platform/thing/Phone`), not placed anywhere — the drive stages
   it; `scaffold.ts` gains its constant.
 - `packages/wire/tests/which.wire.test.ts` (steps 1–11),
   `e2e/tests/which-walk.spec.ts` (12–16). Each checkpoint failed once on
   purpose (B2).
-- `docs/subsystems/command-routing.md` (the `which` read; the schema
-  push retired), `card-surface.md` (the row; payload liveness),
-  `subscription.md` (the source), `presentation.md` (`whereFor`),
-  `help.md` (the borrowed line). Index lines are the sweep's.
+- `docs/subsystems/command-routing.md` (the `which` read; the audit's
+  moves; the schema push retired), `card-surface.md` (the row; payload
+  liveness; the retarget), `subscription.md` (the source),
+  `presentation.md` (`whereFor`), `help.md` (the borrowed line), and the
+  subsystem doc of every mixin the audit moved a verb off. Index lines
+  are the sweep's.
 - Full suite once, beside the MR. Commit `test(which): the drive and the
   walk`; the drive record appended below.
+
+## The affordance audit
+
+*(seeded at plan time from two known cases; W2's census fills every
+row and records each fix's commit)*
+
+| verb (view) | declared on | bucket(s) | hosts that end up with it | verdict | fix |
+|---|---|---|---|---|---|
+| `ring` | `IntegrityMixin` (`lib/material/Integrity.ts:201`) | environment · peers | every `Good` (`lib/stuff/Good.ts:80`) and `Vessel` (`lib/stuff/Vessel.ts:84`); W2 confirms which bodies and places compose it | **wrong host** — a made article rings; a person does not, and most goods are not what anyone taps | W2: to the rung that means *an article you can tap and hear* (ceramics M5's intent) — named in the row once the census shows the composers |
+| `throw` · `throw-to` · `throw-at` | `TangibleMixin` (`lib/material/Tangible.ts:211`) | environment · peers | every `Thing` (`lib/stuff/Thing.ts:103`) and every `Agent` (`lib/stuff/Agent.ts:24`) — so fixtures, and whatever places descend from `Thing` | **wrong host** for places and fixed-in-place fixtures; **wrong slice** to check for bodies (`peers` makes a person a thing you throw) | W2: to the rung of things a hand can pick up; a fixture and a place never compose it |
+| *(every other verb)* | | | | | |
 
 ## Reachability wiring
 
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
-| `which` / `which <word>` / `which ~` | `which.yaml` | `Avatar.self` | the stack (live) | view installed with the platform pack | `what`: string; `~`: a subcommand |
-| `which <thing> ~` | `which-of.yaml` | `Avatar.self`, listed first | `relationsFor` | same | `thing`: object, `~reachable`; `relations`: enum `[~]` |
-| the card | `opens_card: which` on both views | `CardApi.open` in both controllers | the payload | `CARDS.which` | `card-birth-path.test.ts` |
+| `which` / `which <word>` | `which.yaml` | `Avatar.self` | the stack (live) | view installed with the platform pack | `what`: string |
+| `which ~` / `which ~ <thing>` | `which.yaml`'s `~` subcommand | same | `BuiltinRelations` + `relationsFor` | same | `thing`: object, optional, `~reachable` |
+| a verb the audit moved | its own view, unchanged | the new host's `commandContributions` | — | — | the census test + `lint:reachability` |
+| the card | `opens_card: which` on the view | `CardApi.open` in both controllers | the payload | `CARDS.which` | `card-birth-path.test.ts` |
 | liveness | pin / place | `wantsLive` | `WhichSource` | the source's row; stood on first subscribe | `SubscriptionSourceMixin` check in the registry |
 | the wake | — | the three stack methods + the watch set | `FieldChangedEvent` | — | `_hasSession` |
 | the four sentences | — | `this.refuse` | the reason rows | `ReasonCatalogue.find` on use | `lint:reason-rows` |
@@ -513,29 +583,31 @@ answer that contradicts this plan is re-planned in place before W1.
 
 | AC | wave |
 |---|---|
-| every verb, its source in plain words, the usual on one line | W1, W2 |
-| changes as they move and carry | W1 (a read of live state), W3 (pinned) |
-| `which <thing>`, named by handle, two told apart | W1, W2 |
-| `which ~`, `which <thing> ~`, a new list appears | W2 |
-| unusable verb: one line + `help`; a non-verb is called one | W1, W2 — ⚠ O1 |
+| every verb, its source in plain words, the usual on one line | W1, W3 (and W2: the sources are the right ones) |
+| changes as they move and carry | W1 (a read of live state), W4 (pinned) |
+| `which <thing>`, named by handle, two told apart | W1, W3 |
+| `which ~`, `which ~ <thing>`, a new list appears | W3 |
+| a verb nothing here gives: one plain line; a non-verb is called one | W1, W3 (R1) |
 | nothing hidden appears | W1 |
-| listed ⇔ accepted | W1's equality test — ⚠ O3 for the one-directional residue |
-| `query me:~` points to `which ~` | W4 |
-| the card: matches the reply, widens, follows when pinned, click types | W3, W5 |
+| every verb listed is accepted by the line | W1's test (R3 — one direction) |
+| `query me:~` points to `which ~` | W5 |
+| the card: matches the reply, widens, follows when pinned, click types, a source narrows the same card | W4, W6 |
 
 ## Test & gate strategy
 
-- **Unit**: W1–W4 as listed. The equality test (D1) is the build's
-  load-bearing test.
+- **Unit**: W1–W5 as listed. Load-bearing: W1's *listed ⇒ accepted*
+  test and W2's census test.
 - **Drive** — all `instant`; no span step, so no staged twin and no soak
   drive. Blocking drive = steps 1–11 (wire) + 12–16 (walk).
 
 | step | pace | note |
 |---|---|---|
-| 1–3, 5–7, 9, 11 | instant · player | as written |
-| 4 | instant · player | asserts the W0 list of the notebook's verbs under *the notebook you're carrying* / *in your … hand*; on the shelf it joins the shelf's neighbors' group |
-| 8 | instant · **staged** | the cellar and the trap are behind a locked door: the player is staged into the CELLAR, then the PASSAGE. Unlit: `which` names nothing there. Staged a lit lamp: the trap is still not named among the sources of `throw`; after `search` finds it, it is. (The requirements say *the yard*; the trap is in the passage.) |
-| 10 | instant · staged | the testbed phone staged into the player's hand: `apps — the phone in your right hand`; and the player's own app: `calendar — your calendar`. The *app on your device* wording is unit-tested (W1); its end-to-end is stream-arrival's to check when the two meet |
+| 1–3, 5, 7, 9 | instant · player | as the requirements now read (R1: step 7's line is *Nothing here gives you `fish`.*) |
+| 6 | instant · player | `which ~`; `which ~ counter` says the counter keeps nothing |
+| 11 | instant · player | every verb listed in 1–10 is accepted when typed (one direction, R3) |
+| 4 | instant · player | asserts the W0 list of the notebook's verbs under *the notebook you're carrying* / *in your … hand*; set down, it is named where it now is, or its verbs are only in the *anything here* line |
+| 8 | instant · **staged** | the cellar and the trap are behind a locked door: the player is staged into the CELLAR, then the PASSAGE. Unlit: `which` names nothing there. Staged a lit lamp: the trap is not named by `which` or by `which trap`; after `search` finds it, `which trap` answers. (The requirements say *the yard*; the trap is in the passage.) |
+| 10 | instant · staged | the testbed phone staged into the player's hand: `apps — the phone in your right hand` (W0(c) fixes the hand's word); and the player's own app: `calendar — your calendar`. The *app on your device* wording is unit-tested (W1); its end-to-end is stream-arrival's to check when the two meet |
 | 12–16 | instant · player | Playwright, at three widths |
 
 - **Staging tools**: the harness's existing teleport/stage and clone
@@ -543,30 +615,37 @@ answer that contradicts this plan is re-planned in place before W1.
 - `pnpm test` at code-complete and at `/finalize` only; between,
   `test:near` + the gates above.
 
+## Owner rulings (2026-11-23)
+
+- **R1** (was O1) — a verb nothing here gives gets one line, *Nothing
+  here gives you `fish`.*, with a `help` pointer. Nothing answers what
+  would give it. → D11.
+- **R2** (was O2) — *"wtf is everything afford ring? … Places shouldn't
+  be throwable. This build needs to also be an inventory of stupid verb
+  affordances to fix now that we have a command to reveal them."* → W2,
+  § The affordance audit; grouping per D3 (per source, plus *and
+  anything here*).
+- **R3** (was O3) — no leak-plugging. `which` lists nothing the asker
+  cannot perceive; the *none it omits is accepted* half is dropped from
+  the requirements; the dispatcher is untouched; no slate. → D1.
+- **R4** (was O4) — *"just make it work and do whatever the command
+  definitions imply"*: `which ~` and `which ~ <thing>`, one view. → D7.
+- **R5** — a source click narrows the same card. → D9, D12.
+
 ## Risks & opens
 
-- **O1 — a verb nothing here gives has no refusal words of its own.**
-  The requirements' *you need something to fish with* does not exist:
-  `fish` without a rod is `unknown-verb`, and the *parser floor* doc
-  comment (`api/command.ts:1355`) describes a field that was never
-  built. The plan answers *Nothing you have or can reach here lets you
-  `fish` — `help fish` says what it is.* Saying **what** would give it
-  needs either a new authored view key on every capability verb or a
-  reverse search over classes (P7) — a requirements decision.
-- **O2 — "grouped by source" meets `throw` and `ring` on everything.**
-  D3 (groups keyed by verb set) is the plan's default. The owner may
-  prefer a second closing line or hiding the commons.
-- **O3 — the line accepts a verb whose only source is hidden.** The
-  stack is not perception-gated, so `which` (gated) omits a verb the
-  dispatcher still parses, and the dispatcher's different answer is
-  itself a detector. AC 6 and AC 7's second half conflict there; the
-  plan sides with AC 6. Gating the dispatcher changes what works in the
-  dark for every verb in the game — a build of its own. The testbed
-  cannot show the gap (the trap gives nothing distinctive).
-- **O4 — `which <thing> ~` and the counts.** The spelling is kept (D7);
-  the owner's syntax law reads `verb subcommand target` (`which ~
-  book`), which one view could bind. Counts are shown for kept sets
-  only (D8).
+- **The audit's size is unknown until its census runs.** ~70 classes and
+  mixins declare contributions. The wave fixes every wrong row; if a fix
+  needs a new mixin, it gets its § New substrate line first (B1). A move
+  that changes what a trade pack's content can do is found by that
+  pack's own vitest and the drive — run every touched pack's.
+- **Moving `throw` off a rung may strand a verb that only worked by
+  accident** (the assembly build's lesson: a `self`/`peers` verb that
+  worked because something else in the room afforded it). The census
+  test and `lint:reachability` are the check.
+- **The one-card retarget** (R5) keys the card on `which`, so its refresh
+  must send `ask.command`, not the key — card-surface.md warns that a
+  relative key refreshes to the wrong thing. Tested in W4.
 - **State is evaluated against one source per group** (D2), bound as the
   radial binds — a merged group can grey a verb one of its members would
   allow, and a verb whose first object slot is not what the source is
@@ -579,9 +658,8 @@ answer that contradicts this plan is re-planned in place before W1.
   costs nothing unshown (`subscription-pause`). Measure in the walk with
   the hall's three chairs and three notebooks; a room of fifty is the
   soak lane's to notice.
-- **Stop and ask** if W0(b) shows `~` cannot be a subcommand key without
-  a grammar change, or if W1's equality test cannot be made to pass
-  without touching the dispatcher.
+- **Do not stop** on W0(b): if `~` cannot be a subcommand key as the
+  tokenizer stands, make it one (R4) and record the change here.
 
 ## Deferred seams
 
@@ -589,9 +667,6 @@ answer that contradicts this plan is re-planned in place before W1.
   command-line-reflection-slate § Left.
 - Scripts asking whether a verb exists → scripting-hand-economy-slate.
 - Card sizes beyond the three widths → card-sizes-slate.
-- What would give an unafforded verb (O1), and gating the dispatcher by
-  perception (O3) → new lines in command-line-reflection-slate at the
-  sweep.
 - One wording for body sites (the three private copies) → not this
   build; `slotWord` is where they could meet.
 

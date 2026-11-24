@@ -121,9 +121,10 @@ which <thing>    — what that thing lets you do
 
 ## Open questions
 
-- *(Decided in requirements, 2026-11-23: `which ~` / `which <thing> ~`;
-  grouped by source with the usual body verbs on one line; a verb you
-  cannot use here gets one line in its own refusal words. See
+- *(Decided in requirements, 2026-11-23: `which ~` / `which ~ <thing>`;
+  grouped by source with two closing lines — the usual body verbs, and
+  verbs nearly every thing gives; a verb nothing here gives is one line
+  saying so, never what would give it. See
   [which-requirements](../../requirements/which-requirements.md).)*
 - **The client** — the hypertext manifestation (a verbs card, verbs as
   links, the radial reading the same model), and whether typeahead reads
