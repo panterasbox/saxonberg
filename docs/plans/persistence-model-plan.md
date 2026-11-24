@@ -615,6 +615,12 @@ the gates it moves by name, and the whole family runs at code-complete.
   caller) and the hours are `Behaved.calledToAt` over `BrainStatics.callsAt`.
   An `out` house's off-shift hands are placed EVERY tick (a visit opening
   on the hour), which retires "parked once" for those houses.
+- **Master merge `bfee8bbe0`** — the naming overhaul made document kinds
+  ROWS (`content/kinds/<name>.yaml`) and the `documents` collection
+  keep-all. ⭐ So D5's per-kind `onReset: 'wipe'` is DROPPED with the kernel
+  table: `water-ledger` (water pack), `cap-table` and `hull-sale` (platform)
+  are kind rows, and the ledgers survive the nightly reset like every other
+  declared document — a deviation from D5, flagged for review.
 - **Code-complete `c2e33b356`** — lint:family green. ⚠ For review:
   `lint:counters` rose 4 → 5 (Locker, a stated rise); three reason rows
   added for hydration-source outcome codes.
