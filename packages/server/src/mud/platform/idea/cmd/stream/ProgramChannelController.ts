@@ -13,7 +13,8 @@ import { ProgramControllerBase, type ProgramModel } from './ProgramControllerBas
 export default class ProgramChannelController extends ProgramControllerBase {
   async execute(model: ProgramModel, context: CommandContext): Promise<void> {
     const name = this.nameOf(model);
-    const carrier = (model.carrier ?? '').toLowerCase() as BroadcastService;
+    // The view's `values:` list — already one of the three words.
+    const carrier = (model.carrier ?? '') as BroadcastService;
     const label = this.carrierLabel(carrier);
     if (model.clear) {
       const cleared = await StreamApi.detachFeed(name, carrier);

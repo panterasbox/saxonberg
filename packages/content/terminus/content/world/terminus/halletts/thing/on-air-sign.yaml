@@ -11,3 +11,4 @@ data:
     face so the street can read it.
   emittedIntensity: 400
   emittedColorTemperature: 1800
+  mass: 4

@@ -34,9 +34,9 @@ const CARRIER_LABELS: Readonly<Record<string, string>> = {
 };
 
 export abstract class ProgramControllerBase extends CommandController<ProgramModel> {
-  /** The short name as typed, lower-cased (a name is lower-case by rule). */
+  /** The short name as typed (a name that is not one is refused by its row). */
   protected nameOf(model: ProgramModel): string {
-    return (model.name ?? '').trim().toLowerCase();
+    return (model.name ?? '').trim();
   }
 
   protected tell(context: CommandContext, text: string): void {
