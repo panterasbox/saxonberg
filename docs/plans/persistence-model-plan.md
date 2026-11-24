@@ -961,4 +961,34 @@ at W10 and at `/finalize` only.
 
 ## Drive record
 
-*(appended at build time)*
+`packages/wire/tests/persistence-model.dirty.wire.test.ts` on the testbed,
+`WIRE_BOOT=1 WIRE_PORT=2014`, run 4 (fresh worktree DB): **5 of 5 green**.
+
+| step | result |
+|---|---|
+| 1 the hall says *not kept*; the first notebook set down teaches the line, the second says nothing | ✓ |
+| 2 a notebook checked into the hall's lockers; *Kept* for the lockers' inside | ✓ |
+| 6 one save refused: it alone fails in its batch, the batch-mate saved, the player told | ✓ |
+| 9 the day clerk out of the narrative after 18:00, at the counter after 08:00 | ✓ |
+| 4/11 restart (`killed === false`): the hall restaged, the lockers kept — `rack reclaim` returns it | ✓ |
+
+What it found (each fixed and re-run):
+- ⭐ **The refused-save line threw** — `Scene.send()` requires a topic, and
+  the unit test's mock had none, so nobody was ever told. Fixed; the mock
+  now insists on a topic (`f2…`, see log).
+- The drive's own clock jumps landed inside the shift (aimed at real hours
+  now), and the restart needs ~7 min to boot this world (timeout 15 min).
+- ⚠ **Pre-existing, found by the lockers keeping across drive runs:**
+  `HeldGoods.resolveHeld` answers a keyword tie with the FIRST held good,
+  whoever it is held for, so `rack reclaim notebook` with two people's
+  notebooks in one locker refuses the second person ("isn't yours to
+  take"). Recorded, not fixed here (an issue is filed).
+- Checkpoint proof (B2): steps 6, 9 and 4/11 each went red on a real defect
+  or a wrong setup before going green; 1 and 2 were not deliberately
+  broken.
+
+Steps the testbed cannot stand (the dorm's lease end, the ship's stow, the
+water ledger across a restart, a share sale, the lounge regular's window,
+the size reading) are covered by unit suites this build added; their live
+twins are owed in the content drives (`zone-instancing.dirty`, the water
+and lounge drives) — not run in this cycle. No soak drive (no span step).
