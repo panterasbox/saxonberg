@@ -6,7 +6,8 @@
 > the self-view showing acts not positions · the valence-scale
 > denominator · species/culture personality by seeding tier (emergent from
 > affordances · the upbringing · a distribution never a value; the
-> non-sapient carve-out) before full-surface wiring
+> non-sapient carve-out) before full-surface wiring · ⭐⭐ **how content expresses change** (PARKED
+> 2026-11-24 — the instrumentation question; no wizard code per situation)
 > **Size:** a wave
 
 > Also settles how species and culture may express personality — the
@@ -277,6 +278,36 @@ Worth noting because it shows up twice and should be one idea:
 Same function, two surfaces. Neither should print absolutes.
 
 ---
+
+## ⭐⭐ How content expresses change — PARKED **[2026-11-24]**
+
+> The owner: *"right now my solution to 'what do I do if I want to change a trait or discipline on a
+> player' is 'you get a wizard to write some code that does it' but that's not gonna scale and it
+> doesn't lead to good design anyway we need to actually figure out how this is expressed in content
+> so we dont need to write new code for every 'situation'."*
+
+Parked, not designed — this is § *The gap*'s problem 4 (*wiring is deferred and unbounded*) and
+advancement's twin of it. Raised by the lineage demo, which needs a trait lean per workplace and
+uses a labeled prior instead ([lineage-slate](../society/lineage-slate.md) § *What the workplace
+stands for*). What the conversation established, so nobody re-derives it:
+
+- **Today nothing exercises a trait.** Nothing outside the trait module writes `disposition_events`;
+  char-gen is the only place a player can see traits exist.
+- ⛔ **Not the command layer.** A verb is a handle; a command definition is a view onto a model and a
+  controller; the controller is IO. None of them may say what an act exercises (MVC).
+- ⛔ **Not brains.** A brain is whatever an NPC does after it is cloned — arbitrary — and not all of
+  it informs other systems the same way.
+- ⛔ **Not a wizard's code per situation** — the thing to escape.
+- **The direction that survived (unvalidated):** a model operation that performs the work records
+  what happened as a fact; the measuring systems (the trait system, advancement) interpret those
+  facts; the interpretation is theirs and can change without touching the model.
+- **The open question at the center:** what *situational* content means here. An authored
+  annotation on a row (*this court tests composure*) is **not** a design — nobody knows what it
+  would mean in this architecture. One lead to test: many such situations may be **sequences of
+  events** (provoked, then did or did not retaliate) that the trait system could read without any
+  annotation, so authoring is needed only where the world does not model the situation yet.
+- **And the statistic:** *"farming takes patience"* is then something measured across everyone doing
+  the work (a content projection, for performance), never a fact anyone authors.
 
 ## Open questions
 

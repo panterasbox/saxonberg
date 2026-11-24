@@ -1280,7 +1280,8 @@ expensive half; let the cheap half measure the appetite first.
 ## ⭐⭐⭐ The demo — a father, a mother, and you **[DECIDED — the owner, 2026-11-24, except where marked]**
 
 Prototype: [Lineage Roller](https://claude.ai/artifact/961xuH6mxRRgxEDxrbAKmk) (private artifact; real
-name banks, the 58 shipped businesses with their place prose, the 19 trait axes).
+name banks, the 58 shipped businesses with their place prose, the 19 trait axes; v2 has the columns,
+the *drawn to* line and the story-only commit).
 
 ### Why it exists
 
@@ -1315,8 +1316,9 @@ content until a playtest says otherwise.
 
 ### The screen — Oxygen Not Included's starting crew
 
-- **Three fathers, three mothers, and you.** Selecting a father and a mother is free; **you**
-  re-resolve live from the pair. Many random options, fast.
+- **Three fathers, three mothers, and you** — fathers and mothers in **side-by-side columns**, you
+  between them. Selecting a father and a mother is free; **you** re-resolve live from the pair. Many
+  random options, fast.
 - **Species and sex offer *Random*** in the declared fields. Declared, the species is fixed and both
   sides are drawn as it **[LEAN — free to declare]**; random, it is one rolled cell **above both
   sides**, pinnable, and rerolling it redraws both.
@@ -1326,11 +1328,18 @@ content until a playtest says otherwise.
   not ship.
 - **A parent profile is facts only:** a name, a species and age, a past workplace, two or three
   pronounced traits, a look, and genes behind a click.
-- **You:** your pronounced traits, each marked with the parent it leans from; your looks; blood type
-  *untested*; your genes behind a click.
-- **Commit** seeds your traits as claims, stores your genes, records your parents in your chronicle,
-  and leaves the rest of the budget as your starting money. What you carry, you find out when you
-  arrive.
+- **You:** a couple of standout traits (only the pronounced ones — the owner did not want a
+  character's starting traits on show, and accepts a few standouts), each marked with the parent it
+  leans from; what you are **drawn to** (below); your looks; your genes behind a click.
+- **Blood type is known** **[DECIDED]**. You enter at maturity with a history, and finding out your
+  blood type is part of most histories; *"actually not knowing it says something entirely different
+  about your character."* (Everyone enters at 18 today; that may change — § *The age band*.)
+- ⭐⭐ **The screen tells the story; the world shows the mechanics** **[DECIDED]**: *"we're rendering a
+  summary of something that's actually a bunch of different things. maybe some trait weights, some
+  starting gear, whatever else. but I dont want to ruin discovery for the player so logging in and
+  seeing what you started with should be part of the experience."* Commit says who you are, whose
+  child, how people will find you, what you are drawn to, and your starting money — never a list of
+  what was seeded or what you carry.
 
 ### Rerolls, pins and the budget
 
@@ -1395,13 +1404,41 @@ to say 'hey this guy worked as a field hand on Smallberries Farms for 20 years'.
 - **The vocation reaches you through traits** — it shapes your parent's, and you inherit those. A
   Discipline learned from them is phase 2 (it needs the seeding surface).
 
+### ⭐⭐ What the workplace stands for — Disciplines, and a direction **[2026-11-24]**
+
+- **A workplace is a stand-in for what the work involves — its Disciplines.** The Discipline is the
+  thing the game can reason about (*"we do have specific disciplines that we can reason about their
+  relationship to specific traits"*); "farming" is not a thing anywhere, and nothing should make it
+  one.
+- **A seat states its duties, in Disciplines, as an authored claim** **[LEAN]** — the job
+  description, readable in the world (a help-wanted notice lists duties). What the work really
+  involves is a separate, later measurement (below); the two may disagree, and are never merged.
+  Lineage reads the claim.
+- ⭐ **You come out *drawn to* something — aspiration returns, as a direction, never a job**
+  **[DECIDED in shape]**: *"we dont want it to be 'working the exact same job as my father or mother
+  for my whole life' like it needs to be something dynamic."* The draw favors your parents'
+  Disciplines and can land on one neither of them had (curiosity widens it). The plain-words fields
+  the prototype shows (*how things react*, *water and the sea*) are a display grouping over the
+  Disciplines' field-of-education codes. What the direction does is discovered in play — the first
+  consumer is the university, the next content after the bar and the lounge. Whether the player may
+  choose among what they are drawn to is **[OPEN]**.
+- **The trait lean from a workplace is a PRIOR that lineage owns** **[DECIDED]** — keyed by
+  Discipline, labeled as lineage's own guess about what kind of people end up in what kind of work.
+  It claims nothing about how the game's systems behave. It is replaced when the game can measure the
+  relationship, and lineage then changes only its source.
+- ⛔ **What this does NOT claim.** Nothing today exercises a trait (nothing outside the trait module
+  writes trait evidence), and how the game will ever measure *"farming takes patience"* is the
+  instrumentation question — **parked** in [trait-slate](../engine/trait-slate.md) § *How content
+  expresses change*. No mechanism is proposed here.
+
 ### Open
 
 - Declaring a species: free, or a priced pin as § *Controls* had it.
 - Sibling cost and the no-odds rule (leans above).
-- The backend: a catalog of businesses and positions to draw from without loading the content —
-  the same need as the location graph's projection; the shared content-projection model is open
-  (raised by the owner 2026-11-24).
+- The backend: drawing businesses and positions needs a query over all the content, so it is a
+  **content projection** ([scan-sweep-slate](../tech-debt/scan-sweep-slate.md) § *Content
+  projections*). The species list is not — a handful of rows, loaded and kept in memory.
+- Whether the player chooses an aspiration among what they are drawn to.
 
 ---
 

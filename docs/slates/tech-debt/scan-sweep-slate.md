@@ -354,6 +354,41 @@ Every row is one the plan must account for.
 | the material roster's own warm | `MaterialCatalogue.warm()` (template-path infix, class extends `Material`) | generalize to warm-on-reach; the infix rule stays the membership test |
 | the address index | `AddressRegistry` + `PathTrie.longestPrefix` | reuse — built on first use instead of at `postRegister` |
 
+## ⭐⭐ Content projections — one model, for performance **[2026-11-24]**
+
+> The owner: *"for me the projections are mostly a performance thing. like any question can and
+> should be answerable by loading its content into memory and inspecting its state. but at scale for
+> certain game elements that's expensive … mapping is the obvious case … what I dont want is a
+> million different indexes on the content collection, it should stay uniform and content agnostic.
+> in a some sense, they're all maps of a type just not neceessraily all equally concerned with
+> organizing by place."*
+
+- **A projection is a cache, never the source of truth.** Its answer must equal loading the content
+  and inspecting it — which makes correctness testable: on a fixture world, every projection query
+  matches the load-and-inspect answer.
+- **The bar:** a question that must look across ALL the content of a type, at a size where loading it
+  all is too costly. A small fixed set never clears it — *"for something like species that actually
+  feels like that yaml file should just be a simple list of species records that we load and keep in
+  mem for char gen to query because its such a small set."*
+- **The content collection stays uniform and content-agnostic** — no projection adds an index to it.
+  **[LEAN]** All projections share one collection and one record shape (which projection · the row it
+  came from · generation · the record · a list of generic string keys), with one multikey index on
+  the keys — so a new projection costs no new index, and under the no-new-collections rule
+  `location_graph` becomes that collection.
+- **They are all maps of a type** — one record per row, kept fresh at the one write chokepoint
+  (`DomainHook`), rebuilt by the generation sweep, warmed lazily, and a failed projection never fails
+  an author's save: the location graph's machinery, lifted.
+- **[LEAN]** A record is a function of one row plus its `extends` chain, never a join of two rows
+  (store the path; read the other row when it is needed).
+- **[LEAN]** A projection declares who may read it — the location graph stays engine-only (its
+  evidence firewall); a business projection for char-gen is player-visible.
+- **Members:** the location graph (by place); **business positions** for the lineage demo (by
+  Business — drawing a random position is a query over all the content); later the app store's
+  published apps, and whichever `*Catalogue` warms by scanning — judged one by one, since some should
+  flip their reference instead (§ *The finding*).
+- **Open:** migrate the location graph into the shared collection now, or later with businesses as
+  the first new member.
+
 ## Open questions
 
 - **Could a place's locality be DERIVED from its address with no index?**
