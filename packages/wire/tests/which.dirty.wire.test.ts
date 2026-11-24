@@ -48,7 +48,8 @@ function verbsIn(lines: string[]): string[] {
   const out = new Set<string>();
   for (const line of lines) {
     const group = /^([a-z~][\w~-]*(?:, [a-z~][\w~-]*)*) — /.exec(line);
-    const closing = /^(?:and the usual|and anything you're carrying|you): (.+?)(?: \(you\))?$/.exec(line);
+    // The usual line is a COUNT (`which me` lists them); `you:` is that list.
+    const closing = /^(?:and anything you're carrying|you): (.+?)$/.exec(line);
     const list = group?.[1] ?? closing?.[1];
     if (!list) continue;
     for (const v of list.split(", ")) out.add(v.trim());
@@ -79,8 +80,11 @@ suite("the read — what you can type here", () => {
     const { lines, w } = await say(ann, "which");
     note(ann, lines);
     expect(w).toMatch(/What you can type here/);
-    expect(w).toMatch(/and the usual: .*\(you\)/);
-    expect(w).toMatch(/\blook\b/);
+    expect(w).toMatch(/and the usual: \d+ verbs of your own/);
+    // The body's own verbs are counted there and listed by `which me`.
+    const mine = await say(ann, "which me");
+    note(ann, mine.lines);
+    expect(mine.w).toMatch(/you: .*\blook\b/);
     expect(verbsIn(lines)).not.toContain("buy");
   });
 
@@ -170,18 +174,18 @@ suite("what you carry", () => {
     expect(down.w).not.toMatch(/the notebook (in your|you're carrying)/);
   });
 
-  it("5. [instant · player] two notebooks: `which notebook` asks which one, as every verb does — never a keyword list", async () => {
+  it("5. [instant · player] two notebooks: `which notebook` answers for ONE — the nearest, as the binder always picks — and says where it is", async () => {
     await say(buyer, "get notebook");
     const second = await say(buyer, "buy notebook");
     expect(second.status, second.w).toBe("ok");
-    // `which <thing>` is a typed object slot: two in reach is the binder's
-    // own question, telling them apart the way it always does.
-    await buyer.drainProse();
-    const { prompt } = await buyer.cmdOrPrompt("which notebook");
-    const asked = JSON.stringify(prompt?.outcome ?? {});
-    record.push(`${buyer.handle}: which notebook → ${prompt ? "prompt" : "no prompt"} · ${asked.slice(0, 300)}`);
-    expect(prompt, "two notebooks in reach ask which one").not.toBeNull();
-    expect(asked).not.toMatch(/keywords/i);
+    // `which <thing>` is a typed object slot: the binder's one rule (the
+    // nearest perceived wins) names it, as for every verb.
+    const one = await say(buyer, "which notebook");
+    note(buyer, one.lines);
+    const named = one.lines.filter((l) => /— the notebook /.test(l));
+    expect(named.length, one.w).toBe(1);
+    expect(one.w).toMatch(/the notebook (in your (left|right) hand|you're carrying|here)/);
+    expect(one.w).not.toMatch(/keywords?/i);
   });
 
   it("10. [instant · staged] a phone in the hand: its verbs come from the phone you carry", async () => {

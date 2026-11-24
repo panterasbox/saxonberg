@@ -57,15 +57,22 @@ export function useFloat(anchor: Element | null, opts: FloatOptions = {}): Float
     // placement would hide the overflow `flip` exists to see.
     floating.style.maxHeight = "";
     let cancelled = false;
+    // ⚠ The floating box is FIXED and portaled to the body, so the room it
+    // has is the VIEWPORT — never the anchor's scroll container. Measuring
+    // against the container (floating-ui's default) made a tooltip on a verb
+    // inside a short card flip right and then shift back left ONTO its own
+    // anchor, so the click landed on the tooltip (the which walk, 2026-11-24).
+    const boundary = anchor.ownerDocument.documentElement;
     void computePosition(anchor, floating, {
       strategy: "fixed",
       placement,
       middleware: [
         offset(6),
-        flip({ padding: 8, fallbackPlacements: ["top-start", "right-start", "left-start"] }),
-        shift({ padding: 8 }),
+        flip({ padding: 8, boundary, fallbackPlacements: ["top-start", "right-start", "left-start"] }),
+        shift({ padding: 8, boundary }),
         size({
           padding: 8,
+          boundary,
           apply({ availableHeight, elements }) {
             elements.floating.style.maxHeight = `${Math.max(120, Math.min(maxHeight, availableHeight))}px`;
           },

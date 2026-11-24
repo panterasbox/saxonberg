@@ -97,6 +97,10 @@ test.describe('the which build, in a browser', () => {
 
     // 15 — a verb click types it and sends nothing; a source click narrows.
     const before = await transcript(page);
+    // ⭐ Hover first, as a person does: the verb's tooltip opens, and the
+    // click must still land on the verb, not on its own tooltip.
+    await page.getByTestId('which-verb-buy').last().hover();
+    await page.waitForTimeout(600);
     await page.getByTestId('which-verb-buy').last().click();
     await expect(commandInput(page)).toHaveValue('buy ');
     expect((await transcript(page)).length).toBe(before.length);
