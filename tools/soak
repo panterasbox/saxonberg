@@ -20,19 +20,37 @@
 #     WORLDS: ⭐ every dirty file gets a world of its own (a dirty file
 #     says, by its name, that it leaves the world changed — the next file
 #     in the same world reads that change as a defect), and the clean
-#     files share one. Per world: take the lock tools/suite takes, drop
-#     the soak database, run `pnpm wire:soak` on SOAK_PORT (it boots its
-#     own world and tears it down), drop the lock — so a build's suite
-#     can run between two soak worlds;
+#     files share one. Per world: wait for the box to be QUIET (below),
+#     drop the soak database, run `pnpm wire:soak` on SOAK_PORT (it boots
+#     its own world and tears it down) in its own process group, and
+#     YIELD while it runs (below);
 #   4 reads packages/wire/.wire/result.json after each world, keeps a
 #     copy, logs a line per file, files (or comments on) a `soak` issue
 #     per failing file — or ONE `no result` issue when the world left no
 #     record of its files (it never booted: the lane, not a build);
-#   5 advances the state file to the commit — pass or fail. On exit the
-#     worktree goes back to detached origin/master.
+#   5 advances the state file to the commit — pass or fail — once every
+#     world has run. On exit the worktree goes back to detached
+#     origin/master.
 #
-# Three bounds it inherits from tools/suite (tools/lib/suite-lock.sh):
-# the same cross-worktree lock, the same memory reserve, one at a time.
+# ⭐⭐ THE LANE NEVER STANDS IN FRONT OF A BUILD (2026-11-23). It does NOT
+# take the suite lock tools/suite takes: a soak world runs for hours, and
+# holding the lock for one kept a build's 15-minute suite waiting over an
+# hour. Instead:
+#   QUIET  a world starts only after SOAK_QUIET_N consecutive polls with
+#          nobody holding the suite lock, load < SOAK_MAX_LOAD, and room
+#          for a world on top of the reserve (the world alone in quiet
+#          hours) — and not paused;
+#   YIELD  while it runs, if free memory falls under SOAK_YIELD_MB or the
+#          lane is paused, it stops its OWN world (the process group), and
+#          the world is recorded as YIELDED, not failed: no issue, state
+#          not advanced, the world runs again at the next quiet window.
+#          Worlds a commit already finished are remembered
+#          (.soak/done/<sha>), so a yield never re-runs them;
+#   PAUSE  `touch .soak/pause` holds the lane and yields a running world;
+#          `rm .soak/pause` resumes. A build that needs the box asks, and
+#          this is the switch.
+# Stopping the watcher (Ctrl-C / TERM) also stops its running world, so a
+# killed run can never be read back as a failure.
 #
 #   tools/soak --once       # one pass over what is waiting, then exit
 #   tools/soak --watch      # pass, sleep SOAK_POLL_S, forever (the window's second pane)
@@ -54,6 +72,9 @@
 #   .soak/server-<sha>-<world>.log     that world's log, on a failure
 #   .soak/run-<sha>-<world>.out        the runner's output for that world
 #   .soak/watch.pid          the running watcher
+#   .soak/pause              present ⇒ the lane holds (and yields a world)
+#   .soak/done/<sha>         the worlds a commit has finished (cleared when
+#                            the commit is done)
 #
 # Env (every threshold, path and external is overridable):
 #   SOAK_WORKTREE    the worktree it moves         (default: $ROOT/soak)
@@ -64,10 +85,15 @@
 #   SOAK_WORLD_MB    what a world needs            (3072)
 #   SOAK_QUIET_HOURS when the reserve is waived    (2-6, local hours [from,to))
 #   SOAK_POLL_S      poll interval                 (60)
+#   SOAK_QUIET_N     quiet polls before a world    (3)
+#   SOAK_MAX_LOAD    load that is not quiet        (3)
+#   SOAK_YIELD_MB    free memory a world yields at (2048)
 #   SOAK_GLAB        the GitLab CLI                (glab)
+#   SOAK_INSTALL_CMD the install before a commit   (pnpm install --frozen-lockfile --prefer-offline)
+#   SOAK_RESET_CMD   the reset before a world      (pnpm -C packages/server reset:db)
 #   SOAK_RUN_CMD     the run; the files are appended
 #                    (WIRE_BOOT=1 WIRE_PORT=$SOAK_PORT pnpm -C packages/wire wire:soak)
-#   SUITE_LOCK, SUITE_RESERVE_GB   — tools/lib/suite-lock.sh
+#   SUITE_LOCK, SUITE_RESERVE_GB   — tools/lib/suite-lock.sh (read, never taken)
 
 set -u
 
@@ -92,7 +118,7 @@ main() {
       --watch)   MODE=watch; shift ;;
       --dry-run) DRY=1; shift ;;
       --status)  MODE=status; shift ;;
-      -h|--help) sed -n '2,70p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+      -h|--help) sed -n '2,/^set -u/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
       *) echo "soak: unknown option '$1' (try --help)" >&2; exit 2 ;;
     esac
   done
@@ -105,7 +131,12 @@ main() {
   SOAK_WORLD_MB=${SOAK_WORLD_MB:-3072}
   SOAK_QUIET_HOURS=${SOAK_QUIET_HOURS:-2-6}
   SOAK_POLL_S=${SOAK_POLL_S:-60}
+  SOAK_QUIET_N=${SOAK_QUIET_N:-3}
+  SOAK_MAX_LOAD=${SOAK_MAX_LOAD:-3}
+  SOAK_YIELD_MB=${SOAK_YIELD_MB:-2048}
   SOAK_GLAB=${SOAK_GLAB:-glab}
+  SOAK_INSTALL_CMD=${SOAK_INSTALL_CMD:-pnpm install --frozen-lockfile --prefer-offline}
+  SOAK_RESET_CMD=${SOAK_RESET_CMD:-pnpm -C packages/server reset:db}
   SOAK_RUN_CMD=${SOAK_RUN_CMD:-"WIRE_BOOT=1 WIRE_PORT=$SOAK_PORT pnpm -C packages/wire wire:soak"}
   SOAK_DIR="$SOAK_WORKTREE/.soak"
   RESULT="$SOAK_WORKTREE/packages/wire/.wire/result.json"
@@ -121,6 +152,7 @@ main() {
   fi
   mkdir -p "$SOAK_DIR/results"
   WATCH_PID="$SOAK_DIR/watch.pid"
+  PAUSE="$SOAK_DIR/pause"
 
   if [ "$MODE" = status ]; then status; exit 0; fi
   if [ "$MODE" = watch ] && [ "$DRY" = 0 ]; then
@@ -130,16 +162,41 @@ main() {
     echo "$$" > "$WATCH_PID"
   fi
 
-  trap 'drop_lock; go_home; forget_watch; exit 130' INT TERM
-  trap 'drop_lock; go_home; forget_watch' EXIT
+  mkdir -p "$SOAK_DIR/done"
+  STOPPING="$SOAK_DIR/stopping"
+  rm -f "$STOPPING"
+  PASS_PID=''
+  # ⚠ A pass runs in the background and the watcher WAITS on it: a shell
+  # runs a trap only when its foreground command returns, and a foreground
+  # pass is a soak world (hours) — so TERM did nothing until the world
+  # ended, and a world killed from outside was then read back as a failure
+  # (#154). `wait` is interruptible; the trap flags the stop, stops the
+  # world, and waits for the pass to notice and leave WITHOUT a verdict.
+  trap 'on_stop; exit 130' INT TERM
+  trap 'forget_watch' EXIT
 
   while :; do
     [ "$DRY" = 1 ] || git -C "$SOAK_WORKTREE" fetch -q origin 2>/dev/null
-    pass
+    ( pass; go_home ) &
+    PASS_PID=$!
+    wait "$PASS_PID"
+    PASS_PID=''
     [ "$MODE" = watch ] || break
     sleep "$SOAK_POLL_S"
   done
 }
+
+# Stop asked for (INT/TERM): no verdict for the world that was running.
+on_stop() {
+  touch "$STOPPING"
+  stop_run
+  [ -n "$PASS_PID" ] && wait "$PASS_PID" 2>/dev/null
+  rm -f "$STOPPING"
+  MOVED=1; movable >/dev/null 2>&1 && go_home
+  forget_watch
+}
+
+stopping() { [ -e "$STOPPING" ]; }
 
 # ---- what is waiting ----------------------------------------------------
 
@@ -175,6 +232,7 @@ pass() {
     return 0
   fi
   for c in $commits; do
+    stopping && return 0
     short=$(echo "$c" | cut -c1-9)
     subj=$(git -C "$SOAK_WORKTREE" log -1 --format=%s "$c")
     mr=$(mr_of "$c"); [ -n "$mr" ] || mr='(no MR)'
@@ -192,8 +250,16 @@ pass() {
     fi
     echo "soak: $short $mr — $(echo $files | tr ' ' ',') — $subj"
     [ "$DRY" = 1 ] && continue
+    rm -f "$SOAK_DIR/yielded"
     run "$c" "$files" "$mr" "$subj"
+    # A world that yielded is not a verdict: leave the commit where it is,
+    # and the next quiet window runs what is left of it.
+    if [ -e "$SOAK_DIR/yielded" ]; then
+      echo "soak: $short yielded — it resumes at the next quiet window."
+      return 0
+    fi
     echo "$c" > "$SOAK_STATE"
+    rm -f "$SOAK_DIR/done/$c"
   done
 }
 
@@ -204,25 +270,37 @@ quiet_now() {
   [ "${h:-0}" -ge "$from" ] && [ "${h:-0}" -lt "$to" ]
 }
 
-# Block until a world fits and the lock is free, saying which it waits on.
+paused() { [ -e "$PAUSE" ]; }
+
+# Why the box is not quiet now, or nothing when it is.
+not_quiet() {
+  paused && { echo "paused (.soak/pause)"; return; }
+  h=$(lock_holder)
+  [ -n "$h" ] && { echo "the suite lock is held (${h#* }, pid ${h%% *})"; return; }
+  l=$(cut -d' ' -f1 /proc/loadavg)
+  awk -v l="$l" -v m="$SOAK_MAX_LOAD" 'BEGIN { exit !(l >= m) }' && { echo "load $l"; return; }
+  need=$SOAK_WORLD_MB
+  quiet_now || need=$((need + RESERVE_GB * 1024))
+  free=$(avail_mb)
+  [ "$free" -lt "$need" ] &&
+    awk -v f="$free" -v n="$need" 'BEGIN { printf "memory (%.1f GB free, need %.1f GB)", f/1024, n/1024 }'
+}
+
+# Block until the box has been quiet for SOAK_QUIET_N polls in a row,
+# saying (once per reason) what it waits on. ⚠ It takes no lock.
 gate() {
-  last=''
-  while :; do
-    need=$SOAK_WORLD_MB
-    quiet_now || need=$((need + RESERVE_GB * 1024))
-    free=$(avail_mb)
-    h=$(lock_holder)
-    if [ -n "$h" ]; then
-      msg="soak: waiting for the lock (${h#* }, pid ${h%% *})"
-    elif [ "$free" -lt "$need" ]; then
-      msg=$(awk -v f="$free" -v n="$need" 'BEGIN { printf "soak: waiting for memory (%.1f GB free, need %.1f GB)", f/1024, n/1024 }')
-    else
-      return 0
+  last=''; n=0
+  while [ "$n" -lt "$SOAK_QUIET_N" ]; do
+    stopping && return 1
+    why=$(not_quiet)
+    if [ -z "$why" ]; then n=$((n + 1)); else
+      n=0
+      [ "$why" = "$last" ] || echo "soak: waiting — $why"
+      last=$why
     fi
-    [ "$msg" = "$last" ] || echo "$msg"
-    last=$msg
-    sleep "$SOAK_POLL_S"
+    [ "$n" -lt "$SOAK_QUIET_N" ] && sleep "$SOAK_POLL_S"
   done
+  return 0
 }
 
 # ---- the run ------------------------------------------------------------
@@ -274,15 +352,31 @@ run() {
   MOVED=1
   git -C "$SOAK_WORKTREE" checkout -q --detach "$c" || { echo "soak: checkout of $short failed" >&2; exit 4; }
   mkdir -p "$SOAK_DIR/results/$c"
-  if ! ( cd "$SOAK_WORKTREE" && pnpm install --frozen-lockfile --prefer-offline ) > "$SOAK_DIR/install-$short.out" 2>&1; then
+  if ! ( cd "$SOAK_WORKTREE" && sh -c "$SOAK_INSTALL_CMD" ) > "$SOAK_DIR/install-$short.out" 2>&1; then
     log_line "$c" '-' fail install
     file_issue "soak: no result for $short" "no result for $short" \
       "$(no_result_body "$c" "$mr" "$subj" "$SOAK_DIR/install-$short.out")"
     return 0
   fi
   worlds_of "$files" | while IFS= read -r batch; do
+    [ -e "$SOAK_DIR/yielded" ] && break
+    grep -qxF "$batch" "$SOAK_DIR/done/$c" 2>/dev/null && continue
     run_world "$c" "$batch" "$mr" "$subj"
   done
+}
+
+# Stop the running world, if any: its whole process group, then whatever
+# still holds the port. By PID, never by pattern.
+stop_run() {
+  g=$(cat "$SOAK_DIR/run.pgid" 2>/dev/null) || return 0
+  # ⚠ `kill -TERM -<pgid>`, never `kill -- -<pgid>`: dash's kill refuses
+  # `--` ("Illegal number"), and the group lived on (found by this
+  # script's own test, 2026-11-24).
+  [ -n "$g" ] && kill -TERM "-$g" 2>/dev/null
+  sleep 5
+  [ -n "$g" ] && kill -KILL "-$g" 2>/dev/null
+  rm -f "$SOAK_DIR/run.pgid"
+  reap_port
 }
 
 # One world: a dropped database, one boot, the batch's files, its verdicts.
@@ -290,16 +384,37 @@ run_world() {
   c=$1; batch=$2; mr=$3; subj=$4
   short=$(echo "$c" | cut -c1-9)
   case "$batch" in *' '*) world=clean ;; *) world=${batch%%.*} ;; esac
-  gate
-  take_lock
+  if ! gate; then touch "$SOAK_DIR/yielded"; return 0; fi
   out="$SOAK_DIR/run-$short-$world.out"
   started=$(date +%s)
-  {
-    ( cd "$SOAK_WORKTREE" && pnpm -C packages/server reset:db ) &&
-    rm -f "$RESULT" &&
-    ( cd "$SOAK_WORKTREE" && sh -c "$SOAK_RUN_CMD $batch" )
-  } > "$out" 2>&1
-  rc=$?
+  rm -f "$RESULT"
+  # Its own process group (setsid), so a yield or a stop takes the whole
+  # world — pnpm, vitest and the server it boots — and nothing else.
+  # ⚠ `setsid` is the background job itself (no subshell around it), so
+  # `$!` is the new group's leader and `kill -- -$!` reaches all of it.
+  setsid sh -c "cd '$SOAK_WORKTREE' && $SOAK_RESET_CMD && $SOAK_RUN_CMD $batch" > "$out" 2>&1 &
+  pid=$!
+  echo "$pid" > "$SOAK_DIR/run.pgid"
+  while kill -0 "$pid" 2>/dev/null; do
+    if stopping || paused || [ "$(avail_mb)" -lt "$SOAK_YIELD_MB" ]; then
+      why=$(stopping && echo stopped || { paused && echo paused; } || echo "$(avail_mb) MB free")
+      echo "soak: $short $world YIELDS ($why) — stopping its world; it runs again later."
+      stop_run
+      log_line "$c" "$world" yielded "$why"
+      touch "$SOAK_DIR/yielded"
+      return 0
+    fi
+    sleep 5
+  done
+  wait "$pid"; rc=$?
+  # Ended because it was stopped from outside: not a verdict.
+  if stopping; then
+    log_line "$c" "$world" yielded stopped
+    touch "$SOAK_DIR/yielded"
+    rm -f "$SOAK_DIR/run.pgid"
+    return 0
+  fi
+  rm -f "$SOAK_DIR/run.pgid"
   reap_port
   wall=$(( $(date +%s) - started ))
   echo "soak: $short $world ran in $((wall / 60))m$((wall % 60))s (rc=$rc)."
@@ -312,7 +427,7 @@ run_world() {
     cp "$SERVER_LOG" "$SOAK_DIR/server-$short-$world.log" 2>/dev/null
     file_issue "soak: no result for $short" "no result for $short" \
       "$(no_result_body "$c" "$mr" "$subj" "$out")"
-    drop_lock
+    echo "$batch" >> "$SOAK_DIR/done/$c"
     return 0
   fi
   cp "$RESULT" "$SOAK_DIR/results/$c/$world.json"
@@ -330,7 +445,7 @@ run_world() {
     esac
   done
   [ "$failed" = 1 ] && cp "$SERVER_LOG" "$SOAK_DIR/server-$short-$world.log" 2>/dev/null
-  drop_lock
+  echo "$batch" >> "$SOAK_DIR/done/$c"
 }
 
 # ---- the watcher --------------------------------------------------------
@@ -352,6 +467,7 @@ status() {
   if w=$(watcher); then echo "soak: watcher running (pid $w)."
   else echo "soak: ⚠ NO WATCHER — nothing soaks. Start it: tools/soak --watch"
   fi
+  paused && echo "soak: ⏸ PAUSED (.soak/pause) — rm it to resume."
   movable >/dev/null 2>&1 || echo "soak: the worktree $MOVABLE_SAID."
   base=$(cat "$SOAK_STATE")
   n=$(git -C "$SOAK_WORKTREE" log --first-parent --format=%H "$base..$SOAK_REF" 2>/dev/null | wc -l)
