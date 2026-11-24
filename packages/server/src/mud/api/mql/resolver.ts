@@ -210,7 +210,6 @@ function namesASet(ast: QueryNode): boolean {
     // A relation names a set — except the ones with one referent
     // (`~here` is the room, `~it` one thing).
     if (el.kind === 'relation') return !SINGLE_RELATIONS.has(el.name);
-    if (el.kind === 'relations') return true;
     if (el.kind !== 'keywords') return true;
     if (el.words.length !== 1) return false;
     const w = el.words[0]!.toLowerCase();

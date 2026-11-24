@@ -123,7 +123,7 @@ export default class WhichSource extends SubscriptionSourceMixin(Idea) {
   }
 
   private onFieldChanged(payload: FieldChangedPayload): void {
-    const holders = this.watch.get((payload.target as Stuff).stuffId);
+    const holders = this.watch.get(payload.target);
     if (!holders) return;
     for (const h of holders) this.mark(h);
   }

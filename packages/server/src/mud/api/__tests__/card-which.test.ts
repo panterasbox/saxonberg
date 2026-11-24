@@ -71,10 +71,22 @@ describe('the which card — a payload a source keeps current', () => {
     expect(change.key).toBe('answer');
     expect(change.fields.groups[0]!.verbs.map((v) => v.verb)).toEqual(['switch', 'pull']);
 
+    // ⭐ A field changing on the body wakes it too (a lamp lit, a purse filled).
+    current = answerOf('which', ['switch', 'pull', 'shove']);
+    SubscriptionApi.fireFieldChange(h.avatar, 'status', 'a', 'b');
+    await vi.waitFor(() =>
+      expect(h.ofType('subscription-delta').filter((e) => e.subscriptionId === id).length).toBe(2),
+    );
+    current = answerOf('which', ['switch', 'pull']);
+    SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, h.avatar as never);
+    await vi.waitFor(() =>
+      expect(h.ofType('subscription-delta').filter((e) => e.subscriptionId === id).length).toBe(3),
+    );
+
     // Nothing changed: nothing sent.
     SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, h.avatar as never);
     await tick();
-    expect(h.ofType('subscription-delta').filter((e) => e.subscriptionId === id).length).toBe(1);
+    expect(h.ofType('subscription-delta').filter((e) => e.subscriptionId === id).length).toBe(3);
 
     // ⭐ R5: `which lever` retargets the one card that is up.
     const narrowed = answerOf('which #l1', ['switch']);
