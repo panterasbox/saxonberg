@@ -122,7 +122,9 @@ class Lever extends VisibleMixin(
     self: [],
     inventory: [],
     environment: ['platform/cmd/inventory/drop.yaml'],
-    peers: [],
+    // A verb of its own beside it in the room — it once rode `TangibleMixin`'s
+    // room-wide `throw`, which the which audit retired.
+    peers: ['platform/cmd/device/switch.yaml'],
   };
 }
 

@@ -67,6 +67,7 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   settings: "your settings",
   map: "where you are",
   stream: "the stream controls",
+  which: "what you can type here",
 };
 
 /**
