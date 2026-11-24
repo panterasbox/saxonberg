@@ -4,8 +4,11 @@
  * ⭐ Mounted once, above the phase switch (a sibling of `App`'s screen), and
  * its parent never changes — so no phase, layout or slot change reloads the
  * video. It is a `position: fixed` box that takes its rectangle from the slot
- * a `PlayerSlot` registered (the front page's show tile, watch mode's stage,
- * the phone's video box), or, with none, the DOCK in the bottom-right corner.
+ * a `PlayerSlot` registered: the DOCK each pre-world screen lays out at its
+ * top right (`PlayerDock`), watch mode's stage, or the phone's video box.
+ * ⭐ With no slot there is no video — it never floats over a page's content
+ * (the owner, review 11-24: docked means the same place on every page, and
+ * the page makes room for it).
  * The iframe is keyed by its `src`, and `src` is one function of (target,
  * muted): only a different video or our sound control ever reloads it.
  *
@@ -14,24 +17,19 @@
  *   front page's program's feed on it, only while the program is live and
  *   the visitor has not closed it;
  * - **in the world** — `cockpit.watch`, and only where there is somewhere
- *   to show it: a registered slot, or watch mode with no slot yet (the
- *   frames before the stage's slot registers). There is no dock while
- *   exploring (watch-slate § 8 is the open question).
+ *   to show it: a registered slot. There is no dock while exploring
+ *   (watch-slate § 8 is the open question).
  */
 
 import React, { useEffect, useRef } from "react";
 import styled from "styled-components";
 import type { WatchTarget } from "@saxonberg/types";
 import { useStore } from "../../store";
-import { arrival, targetOfListing } from "../../services/arrival";
 import { tokens } from "../ui";
+import { useArrivalTarget } from "./PlayerDock";
 
 const IFRAME_SANDBOX =
   "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
-
-/** The dock's width on a desktop; a phone gets what its screen allows. */
-const DOCK_WIDTH = 400;
-const DOCK_GAP = 16;
 
 /**
  * ⭐ The embed URL — one function of (target, muted). Twitch and YouTube
@@ -64,8 +62,6 @@ const Box = styled.div`
   position: fixed;
   z-index: 40;
   background: ${tokens.color.surfaceSunken};
-  box-shadow: 0 4px 18px ${tokens.color.shadow};
-  border-radius: 6px;
   overflow: hidden;
 
   > iframe {
@@ -75,9 +71,8 @@ const Box = styled.div`
     height: 100%;
     border: 0;
   }
-  &[data-player-place="slot"] {
-    border-radius: 0;
-    box-shadow: none;
+  &[data-player-place="dock"] {
+    border-radius: 6px;
   }
 `;
 
@@ -101,23 +96,17 @@ const Control = styled.button`
   cursor: pointer;
 `;
 
-/** What the player plays right now, and whether it may sit in the dock. */
-function useWhat(): { target: WatchTarget | null; mayDock: boolean } {
+/** What the player plays right now: in the world `cockpit.watch`, before it
+ * the arrival's target. */
+function useTarget(): WatchTarget | null {
   const phase = useStore((s) => s.connectionPhase);
-  const front = useStore((s) => s.front);
-  const closed = useStore((s) => s.playerClosed);
+  const arriving = useArrivalTarget();
   const watch = useStore((s) => (s.clientState["cockpit.watch"] as WatchTarget | null | undefined) ?? null);
-  const mode = useStore((s) => s.clientState["cockpit.mode"] as string | null | undefined);
-  if (phase === "in-world") {
-    return { target: watch, mayDock: mode === "watch" };
-  }
-  const show = front?.show;
-  if (closed || !show?.live) return { target: null, mayDock: false };
-  return { target: targetOfListing(show, arrival().carrier), mayDock: true };
+  return phase === "in-world" ? watch : arriving;
 }
 
 export function StreamPlayer(): JSX.Element | null {
-  const { target, mayDock } = useWhat();
+  const target = useTarget();
   const slot = useStore((s) => s.playerSlot);
   const muted = useStore((s) => s.playerMuted);
   const setMuted = useStore((s) => s.setPlayerMuted);
@@ -151,34 +140,13 @@ export function StreamPlayer(): JSX.Element | null {
     wasPersonal.current = personal === "personal";
   }, [personal, phase, closePlayer]);
 
-  // ⭐ Docked before the world, the page keeps the dock's height free at its
-  // foot, so the video never covers the last control (`chargen-confirm`).
-  const docked = target !== null && slot === null && mayDock && phase !== "in-world";
-  useEffect(() => {
-    if (!docked) return;
-    const prev = document.body.style.paddingBottom;
-    const w = Math.min(DOCK_WIDTH, window.innerWidth - 2 * DOCK_GAP);
-    document.body.style.paddingBottom = `${Math.round((w * 9) / 16) + 2 * DOCK_GAP}px`;
-    return () => {
-      document.body.style.paddingBottom = prev;
-    };
-  }, [docked]);
-
-  if (!target) return null;
-  if (!slot && !mayDock) return null;
-
-  const width = Math.min(DOCK_WIDTH, window.innerWidth - 2 * DOCK_GAP);
-  const rect = slot ?? {
-    width,
-    height: Math.round((width * 9) / 16),
-    left: window.innerWidth - width - DOCK_GAP,
-    top: window.innerHeight - Math.round((width * 9) / 16) - DOCK_GAP,
-  };
+  if (!target || !slot) return null;
+  const rect = slot;
   const src = srcFor(target, muted);
   return (
     <Box
       data-testid="stream-player"
-      data-player-place={slot ? "slot" : "dock"}
+      data-player-place={slot.place ?? "slot"}
       style={{ left: rect.left, top: rect.top, width: rect.width, height: rect.height }}
     >
       <iframe

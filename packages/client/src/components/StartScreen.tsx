@@ -57,32 +57,35 @@ import { websocketClient } from "../services/websocket";
 import { useStore } from "../store/index";
 import { tokens } from "./ui";
 import {
-  Screen,
-  Band,
-  HeroBand,
-  ChambersBand,
-  BandInner,
-  Inner,
-  Masthead,
-  SealWrap,
-  WordMark,
-  Tagline,
-  Headline,
-  Lede,
-  SectionLabel,
-  Chambers,
-  Chamber,
-  ChamberOrdinal,
-  ChamberName,
-  ChamberNote,
-  CHAMBERS,
-  Panel,
-  PanelHeading,
-  PanelNote,
   Action,
-  Divider,
-  Facts,
-  Fact,
+  FrontPage,
+  FrontInner,
+  HostBar,
+  HostName,
+  IdentityBand,
+  FoldBand,
+  FoldLeft,
+  FoldRight,
+  FrontHeading,
+  ChamberList,
+  ChamberRow,
+  ChamberMark,
+  ChamberText,
+  FRONT_CHAMBERS,
+  SignInPanel,
+  SmallNote,
+  MuteNote,
+  GuestRow,
+  PresenceRule,
+  NewsBand,
+  NewsMain,
+  NewsSide,
+  RuledList,
+  CalendarRow,
+  CalendarBox,
+  CalendarTitle,
+  CalendarNote,
+  FrontFooter,
 } from "./front/Bands";
 import { Latest } from "./front/Latest";
 import { Seal } from "./frame/Seal";
@@ -388,200 +391,186 @@ export const StartScreen: React.FC = () => {
 
   const facts = useStore((s) => s.serverFacts);
 
+  const feeds = show ? (["twitch", "youtube", "kick"] as const).filter((c) => show.feeds[c]) : [];
+
   return (
-    <Screen data-testid="start-screen">
-      <HeroBand>
-        <BandInner>
-          <Masthead>
-            <SealWrap>
-              <Seal size={56} id="sx-seal-door" label="Saxonberg" />
-            </SealWrap>
-            <div>
-              <WordMark>SAXONBERG</WordMark>
-              <Tagline>
-                a multiplayer text world · governed by the people in it
-              </Tagline>
-            </div>
-          </Masthead>
-          <Headline>A world your community actually runs.</Headline>
-          <Lede>
-            Real units and real math underneath, with no fudge in the
-            substrate. A written Compact on top, where standing is earned by
-            what you do and every decision lands in a record anyone can read.
-          </Lede>
-        </BandInner>
-      </HeroBand>
+    <FrontPage data-testid="start-screen">
+      {/* 1 · the host bar */}
+      <HostBar>
+        <FrontInner>
+          <PanterasBoxMark />
+          <a href="https://www.panterasbox.com">
+            A <HostName>Pantera&apos;s Box</HostName> community <span aria-hidden="true">↗</span>
+          </a>
+        </FrontInner>
+      </HostBar>
 
-      <ChambersBand>
-        <BandInner>
-          <SectionLabel>Standing is earned in three chambers</SectionLabel>
-          <Chambers>
-            {CHAMBERS.map((c) => (
-              <Chamber key={c.name}>
-                <ChamberOrdinal>
-                  {c.n} — <ChamberName as="span">{c.name}</ChamberName>
-                </ChamberOrdinal>
-                <ChamberNote>{c.note}</ChamberNote>
-              </Chamber>
-            ))}
-          </Chambers>
-        </BandInner>
-      </ChambersBand>
+      {/* 2 · identity */}
+      <IdentityBand>
+        <FrontInner>
+          <Seal size={44} id="sx-seal-door" label="Saxonberg" />
+          <div style={{ minWidth: 0 }}>
+            <h1>Saxonberg</h1>
+            <p>
+              The platform the Pantera&apos;s Box community is building
+              together, run under a written Compact. It isn&apos;t finished —
+              you&apos;d be joining before 1.0.
+            </p>
+          </div>
+        </FrontInner>
+      </IdentityBand>
 
-      <Inner>
-        <Panel>
-          <PanelHeading>Sign in</PanelHeading>
-          {/*
-            ⚠⚠ **This sentence used to promise persistence, and the
-            promise became false the day the reset job shipped.**
+      {/* 3 · above the fold: the chambers; sign-in, then the show */}
+      <FoldBand>
+        <FrontInner>
+          <FoldLeft>
+            <section aria-labelledby="fp-asks">
+              <FrontHeading id="fp-asks">What you&apos;re signing up for</FrontHeading>
+              {/* ⚠ The sentences only: each chamber's WANTED · FUNDING NOW ·
+                  NEEDS block has no source yet, so it is absent, never a
+                  sample (requirements § The front page). */}
+              <ChamberList data-testid="chambers">
+                {FRONT_CHAMBERS.map((c) => (
+                  <ChamberRow key={c.n}>
+                    <ChamberMark>
+                      <div>{c.n}</div>
+                      <div>{c.name}</div>
+                    </ChamberMark>
+                    <ChamberText>
+                      <strong>{c.lead}</strong>
+                      {c.rest}
+                    </ChamberText>
+                  </ChamberRow>
+                ))}
+              </ChamberList>
+            </section>
+          </FoldLeft>
 
-            It read: *"Your character, your record, and everything you
-            build persist to an account."* Under a nightly total wipe
-            that is the same class of defect as *"Sign in to save"* —
-            copy the player ACTS ON, believing their work is banked.
-
-            What is left is what remains true on every server: an
-            account is how you are the same person twice. Whether that
-            person's work survives the night is the RESET NOTICE's job,
-            in the right-hand column, and it says nothing at all unless
-            the server states a policy.
-          */}
-          <PanelNote>
-            An account is how the world knows you are the same person
-            twice — your name, your characters, your standing. One click,
-            no password to make.
-          </PanelNote>
-
-          {cameFrom ? <PanelNote data-testid="came-from">{cameFrom}</PanelNote> : null}
-
-          {[...PROVIDERS]
-            .sort((a, b) => order.indexOf(a.key as never) - order.indexOf(b.key as never))
-            .map((p) =>
-            p.enabled && p.href && serverEnabled(p.key) ? (
-              <Action key={p.key} as="a" href={`${SERVER_URL}${p.href}`} data-testid={`provider-${p.key}`}>
-                <ProviderMark provider={p.key} />
-                {p.label}
-              </Action>
-            ) : (
-              <Tip key={p.key} tip={hoverDoc(p.enabled ? "Not configured on this server" : "Coming soon")}><Action
-                disabled
-                data-testid={`provider-${p.key}`}
-              >
-                <ProviderMark provider={p.key} />
-                {p.label}
-              </Action></Tip>
-            ),
-          )}
-
-          <Divider>or</Divider>
-
-          {/* ⭐ The guest is a small link (stream arrival W5), not a peer of
-              the sign-in buttons: it is a look, not a way to play. */}
-          <GuestLink
-            type="button"
-            onClick={playAsGuest}
-            disabled={guestBusy}
-            data-testid="guest-button"
-          >
-            {guestBusy ? "Connecting…" : "Look around as a guest"}
-          </GuestLink>
-          <PanelNote data-testid="guest-warning">
-            A guest keeps nothing: nothing you make is kept, and nobody can
-            find them.{guestWatches ? " You will arrive watching the show." : ""}
-          </PanelNote>
-
-          {import.meta.env.DEV && <DevLogin />}
-        </Panel>
-
-        {/*
-          The right column: what the world can be read without an
-          account, and the two facts about the server underneath it.
-        */}
-        <div>
-          {show ? <ShowTile /> : null}
-          <Latest />
-          {show?.nextShow ? (
-            <Fact data-testid="coming-up">
-              <SectionLabel as="div">Coming up</SectionLabel>
-              <div>
-                {show.title} — {show.nextShow}
-              </div>
-            </Fact>
-          ) : null}
-          <Facts>
-            {facts.online !== undefined ? (
-              <Fact>
-                <SectionLabel as="div">Who is on</SectionLabel>
-                <PresenceLine online={facts.online} />
-              </Fact>
-            ) : null}
-            {/*
-              ⚠ Rendered ONLY when the server states a policy. There is
-              no fallback string here and there must never be one — see
-              the file header.
-            */}
-            {facts.resetPolicy ? (
-              <Fact>
-                <SectionLabel as="div">The world resets</SectionLabel>
-                {/*
-                  ⚠ The notice APPEARS with no client change — that is
-                  the mechanism Arrival shipped and it is untouched. What
-                  changed is the sentence: "Nothing survives to tomorrow
-                  yet" was written when nothing did, and the reset job
-                  ships with exactly one survivor. Naming it is the
-                  difference between a policy and a shrug.
-                */}
-                <div data-testid="reset-notice">
+          <FoldRight>
+            <SignInPanel aria-labelledby="fp-signin">
+              <h2 id="fp-signin">Sign in</h2>
+              {cameFrom ? <SmallNote data-testid="came-from">{cameFrom}</SmallNote> : null}
+              {[...PROVIDERS]
+                .sort((a, b) => order.indexOf(a.key as never) - order.indexOf(b.key as never))
+                .map((p) =>
+                  p.enabled && p.href && serverEnabled(p.key) ? (
+                    <Action key={p.key} as="a" href={`${SERVER_URL}${p.href}`} data-testid={`provider-${p.key}`}>
+                      <ProviderMark provider={p.key} />
+                      {p.label}
+                    </Action>
+                  ) : (
+                    <Tip key={p.key} tip={hoverDoc(p.enabled ? "Not configured on this server" : "Coming soon")}>
+                      <Action disabled data-testid={`provider-${p.key}`}>
+                        <ProviderMark provider={p.key} />
+                        {p.label}
+                      </Action>
+                    </Tip>
+                  ),
+                )}
+              {/* ⭐ The guest is supported, never promoted: a plain row
+                  under the providers, never in the show tile. */}
+              <GuestRow type="button" onClick={playAsGuest} disabled={guestBusy} data-testid="guest-button">
+                {guestBusy ? "Connecting…" : "Look around as a guest"}
+              </GuestRow>
+              <MuteNote data-testid="guest-warning">
+                A guest keeps nothing, and nobody can find them.
+                {guestWatches ? " You will arrive watching the show." : ""}
+              </MuteNote>
+              {facts.online !== undefined ? (
+                <PresenceRule>
+                  <PresenceLine online={facts.online} />
+                </PresenceRule>
+              ) : null}
+              {/*
+                ⚠ Rendered ONLY when the server states a policy. There is
+                no fallback string here and there must never be one — see
+                the file header.
+              */}
+              {facts.resetPolicy ? (
+                <PresenceRule data-testid="reset-notice">
                   {facts.resetPolicy}. Published news survives; everything
                   else — characters, standing, what you built — starts over.
                   It means you can try anything.
-                </div>
-              </Fact>
-            ) : null}
-          </Facts>
-        </div>
-      </Inner>
-      {/* The footer: links with real destinations only — the featured
-          program on each carrier it is on. */}
-      {show && Object.keys(show.feeds).length > 0 ? (
-        <Footer data-testid="front-footer">
-          {(["twitch", "youtube", "kick"] as const)
-            .filter((c) => show.feeds[c])
-            .map((c) => (
-              <a key={c} href={carrierLinkOf(c, show.feeds[c]!)} target="_blank" rel="noreferrer">
-                the show on {c === "youtube" ? "YouTube" : c === "kick" ? "Kick" : "Twitch"}
-              </a>
-            ))}
-        </Footer>
-      ) : null}
-    </Screen>
+                </PresenceRule>
+              ) : null}
+              {import.meta.env.DEV && <DevLogin />}
+            </SignInPanel>
+
+            {/* The show: a small thumbnail, present, not the headliner —
+                and the DOCK, the video's one place before the world. */}
+            {show ? <ShowTile /> : null}
+          </FoldRight>
+        </FrontInner>
+      </FoldBand>
+
+      {/* 4 · Latest and the calendar */}
+      <NewsBand id="fp-news">
+        <FrontInner>
+          <NewsMain>
+            <Latest />
+          </NewsMain>
+          {show?.nextShow ? (
+            <NewsSide>
+              <section aria-labelledby="fp-cal" data-testid="coming-up">
+                <FrontHeading id="fp-cal">Coming up</FrontHeading>
+                <RuledList>
+                  <CalendarRow>
+                    <CalendarBox>Next</CalendarBox>
+                    <div style={{ minWidth: 0 }}>
+                      <CalendarTitle>{show.title}</CalendarTitle>
+                      <CalendarNote>
+                        {show.nextShow}
+                        {feeds.length > 0
+                          ? ` · ${feeds.map((c) => CARRIER_LABEL[c]).join(", ")}`
+                          : ""}
+                      </CalendarNote>
+                    </div>
+                  </CalendarRow>
+                </RuledList>
+              </section>
+            </NewsSide>
+          ) : null}
+        </FrontInner>
+      </NewsBand>
+
+      {/* 5 · the footer: links with real destinations only. */}
+      <FrontFooter data-testid="front-footer">
+        <FrontInner>
+          <a href="https://www.panterasbox.com">panterasbox.com</a>
+          {show
+            ? feeds.map((c) => (
+                <a key={c} href={carrierLinkOf(c, show.feeds[c]!)} target="_blank" rel="noreferrer">
+                  the show on {CARRIER_LABEL[c]}
+                </a>
+              ))
+            : null}
+          <a href="https://gitlab.com/panterasbox/saxonberg" target="_blank" rel="noreferrer">
+            Source (AGPL)
+          </a>
+        </FrontInner>
+      </FrontFooter>
+    </FrontPage>
   );
 };
 
-const GuestLink = styled.button`
-  background: none;
-  border: 0;
-  padding: 0;
-  margin-top: ${tokens.space.sm};
-  color: ${tokens.color.fgMuted};
-  font: inherit;
-  font-size: ${tokens.font.small};
-  text-decoration: underline;
-  cursor: pointer;
-  align-self: flex-start;
-  &:disabled {
-    cursor: default;
-    opacity: 0.6;
-  }
-`;
+const CARRIER_LABEL = { twitch: "Twitch", youtube: "YouTube", kick: "Kick" } as const;
 
-const Footer = styled.footer`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${tokens.space.md};
-  padding: ${tokens.space.lg} ${tokens.space.xl};
-  font-size: ${tokens.font.small};
-  a {
-    color: ${tokens.color.fgMuted};
-  }
-`;
+/** The host's hex mark (the host bar), as the design draws it. */
+function PanterasBoxMark(): JSX.Element {
+  return (
+    <svg width="20" height="20" viewBox="0 0 100 100" aria-hidden="true">
+      <path d="M50 1 L92.435 25.5 L92.435 74.5 L50 99 L7.565 74.5 L7.565 25.5 Z" fill={tokens.color.seal} />
+      <path
+        d="M50 4.5 L89.404 27.25 L89.404 72.75 L50 95.5 L10.596 72.75 L10.596 27.25 Z"
+        fill="none"
+        stroke={tokens.color.sealInk}
+        strokeWidth="3"
+      />
+      <g transform="translate(50 50) scale(0.72) translate(-50 -50)" fill={tokens.color.sealInk}>
+        <path d="M50 50 L17.09 31 L50 12 L82.91 31 Z" transform="translate(50 31) scale(0.895) translate(-50 -31)" />
+        <path d="M50 50 L82.91 31 L82.91 69 L50 88 Z" transform="translate(66.46 59.5) scale(0.895) translate(-66.46 -59.5)" />
+        <path d="M50 50 L50 88 L17.09 69 L17.09 31 Z" transform="translate(33.55 59.5) scale(0.895) translate(-33.55 -59.5)" />
+      </g>
+    </svg>
+  );
+}

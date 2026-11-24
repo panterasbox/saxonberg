@@ -54,6 +54,20 @@ export const BandInner = styled.div`
   margin: 0 auto;
 `;
 
+/** The hero: the words on the left, the dock (the show) on the right. */
+export const HeroInner = styled(BandInner)`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: ${tokens.space.xl};
+
+  > :first-child {
+    flex: 1 1 24rem;
+    min-width: 0;
+  }
+`;
+
 export const Inner = styled.div`
   box-sizing: border-box;
   width: 100%;
@@ -334,3 +348,346 @@ export const Fact = styled.div`
  * here is the real one, so switching it back to full colour later is a
  * fill change rather than a redraw.
  */
+
+/* ══ The front page, as designed (docs/design/front-page/front-page.dc.html) ══
+ *
+ * ⭐ Review 11-24 (the owner): the front page is the DESIGN's layout, not
+ * the old bands with new content. Five full-width bands, each with a
+ * 1180px inner: the host bar · identity · above the fold (the chambers on
+ * the left; sign-in then the show on the right — `wrap-reverse`, so on a
+ * phone sign-in and the show come first) · Latest beside Coming up · the
+ * footer. The show is a small thumbnail under sign-in: present, not the
+ * headliner — and the DOCK, the video's one place before the world.
+ */
+
+const PAD_X = "clamp(16px, 4vw, 32px)";
+
+export const FrontPage = styled.div`
+  min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  background: ${tokens.color.surfaceSunken};
+  color: ${tokens.color.fg};
+  font-family: ${tokens.font.family};
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-x: hidden;
+`;
+
+const FrontBand = styled.div`
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: ${PAD_X};
+  padding-right: ${PAD_X};
+`;
+
+export const FrontInner = styled.div`
+  max-width: 1180px;
+  margin: 0 auto;
+`;
+
+export const HostBar = styled(FrontBand)`
+  background: ${tokens.color.surfaceMuted};
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+  padding-top: 4px;
+  padding-bottom: 4px;
+
+  ${FrontInner} {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  a {
+    color: ${tokens.color.fgDim};
+    text-decoration: none;
+    font-size: 12.5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 36px;
+  }
+`;
+
+export const HostName = styled.span`
+  font-family: ${tokens.font.engraved};
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: ${tokens.color.fg};
+`;
+
+export const IdentityBand = styled(FrontBand)`
+  background: ${tokens.color.surface};
+  border-bottom: 1px solid ${tokens.color.border};
+  padding-top: 14px;
+  padding-bottom: 14px;
+
+  ${FrontInner} {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  h1 {
+    margin: 0;
+    font-family: ${tokens.font.engraved};
+    font-weight: 500;
+    font-size: 24px;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+  p {
+    margin: 2px 0 0;
+    font-size: 13.5px;
+    color: ${tokens.color.fgDim};
+    max-width: 70ch;
+  }
+`;
+
+export const FoldBand = styled(FrontBand)`
+  padding-top: clamp(16px, 3vw, 24px);
+  padding-bottom: clamp(16px, 3vw, 24px);
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+
+  ${FrontInner} {
+    display: flex;
+    flex-wrap: wrap-reverse;
+    gap: 22px;
+    align-items: flex-end;
+  }
+`;
+
+export const FoldLeft = styled.div`
+  flex: 999 1 520px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+`;
+
+export const FoldRight = styled.div`
+  flex: 1 1 300px;
+  max-width: 360px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+`;
+
+/** A section's engraved gold heading. */
+export const FrontHeading = styled.h2`
+  margin: 0 0 9px;
+  font-family: ${tokens.font.engraved};
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+  color: ${tokens.color.fgEmphasis};
+`;
+
+export const ChamberList = styled.ol`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid ${tokens.color.borderMuted};
+`;
+
+export const ChamberRow = styled.li`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+`;
+
+export const ChamberMark = styled.div`
+  flex: none;
+  width: 84px;
+
+  > div:first-child {
+    font-family: ${tokens.font.mono};
+    font-size: 11px;
+    color: ${tokens.color.fgMuted};
+  }
+  > div:last-child {
+    font-family: ${tokens.font.engraved};
+    font-size: 19px;
+    letter-spacing: 0.06em;
+  }
+`;
+
+export const ChamberText = styled.p`
+  flex: 1 1 280px;
+  min-width: 0;
+  margin: 0 0 6px;
+  color: ${tokens.color.fgDim};
+
+  strong {
+    color: ${tokens.color.fg};
+    font-weight: 600;
+  }
+`;
+
+/** The three chambers' sentences, as the design words them. */
+export const FRONT_CHAMBERS: ReadonlyArray<{ n: string; name: string; lead: string; rest: string }> = [
+  {
+    n: "01",
+    name: "Make",
+    lead: "Build it with us",
+    rest: " — places, things, trades, code, and the institutions that run them. Real work, opt-in, and it earns you a say.",
+  },
+  {
+    n: "02",
+    name: "Fund",
+    lead: "Pay for it.",
+    rest: " Real money keeps it running and earns a say in its own chamber, and buys nothing else.",
+  },
+  {
+    n: "03",
+    name: "Play",
+    lead: "Live here.",
+    rest: " Show up and take part. Your say grows from what you actually do, never from what you pay.",
+  },
+];
+
+export const SignInPanel = styled.section`
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  background: ${tokens.color.surface};
+  border: 1px solid ${tokens.color.border};
+  border-radius: 3px;
+
+  h2 {
+    margin: 0;
+    font-family: ${tokens.font.engraved};
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.19em;
+    text-transform: uppercase;
+  }
+`;
+
+export const SmallNote = styled.p`
+  margin: 0;
+  font-size: 12.5px;
+  color: ${tokens.color.fgDim};
+`;
+
+export const MuteNote = styled.p`
+  margin: 0;
+  font-size: 12px;
+  color: ${tokens.color.fgMuted};
+`;
+
+/** The guest: a plain bordered row, not a red provider button. */
+export const GuestRow = styled.button`
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 9px 14px;
+  border-radius: 3px;
+  border: 1px solid ${tokens.color.border};
+  background: transparent;
+  color: ${tokens.color.fg};
+  font: inherit;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.6;
+  }
+`;
+
+export const PresenceRule = styled.div`
+  padding-top: 8px;
+  border-top: 1px solid ${tokens.color.borderMuted};
+  font-size: 12.5px;
+  color: ${tokens.color.fgDim};
+`;
+
+export const NewsBand = styled(FrontBand)`
+  padding-top: clamp(18px, 3vw, 28px);
+  padding-bottom: clamp(18px, 3vw, 28px);
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+
+  ${FrontInner} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 22px 40px;
+    align-items: flex-start;
+  }
+`;
+
+export const NewsMain = styled.div`
+  flex: 3 1 420px;
+  min-width: 0;
+`;
+
+export const NewsSide = styled.div`
+  flex: 2 1 300px;
+  min-width: 0;
+`;
+
+export const RuledList = styled.ol`
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid ${tokens.color.borderMuted};
+`;
+
+export const CalendarRow = styled.li`
+  display: flex;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid ${tokens.color.borderMuted};
+`;
+
+export const CalendarBox = styled.div`
+  flex: none;
+  width: 46px;
+  text-align: center;
+  border: 1px dashed ${tokens.color.border};
+  border-radius: 3px;
+  padding: 6px 0;
+  font-family: ${tokens.font.mono};
+  font-size: 11px;
+  color: ${tokens.color.fgMuted};
+  text-transform: uppercase;
+`;
+
+export const CalendarTitle = styled.div`
+  font-size: 13.5px;
+  font-weight: 600;
+`;
+
+export const CalendarNote = styled.div`
+  font-size: 12px;
+  color: ${tokens.color.fgDim};
+`;
+
+export const FrontFooter = styled.footer`
+  width: 100%;
+  box-sizing: border-box;
+  padding: 18px ${PAD_X} 28px;
+
+  ${FrontInner} {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 22px;
+    align-items: center;
+    font-size: 12.5px;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: ${tokens.color.fgEmphasis};
+  }
+  a:hover {
+    color: ${tokens.color.fg};
+  }
+`;

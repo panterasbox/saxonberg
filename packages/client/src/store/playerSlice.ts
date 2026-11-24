@@ -6,8 +6,8 @@
  * This slice holds what decides where it sits and what it plays:
  *
  * - `playerSlot` — the rectangle a `PlayerSlot` registered (the front page's
- *   show tile, watch mode's stage, the phone's video box), or null → the
- *   dock in the corner.
+ *   dock each pre-world screen lays out, watch mode's stage, the phone's
+ *   video box), or null → no video on this screen.
  * - `playerMuted` — starts true on every document load; our control flips it
  *   (which reloads the embed once — owner-accepted).
  * - `playerClosed` — the visitor's ✕, for the visit (`sessionStorage`).
@@ -23,6 +23,8 @@ export interface PlayerRect {
   top: number;
   width: number;
   height: number;
+  /** The dock every pre-world screen lays out, or a stage's own slot. */
+  place?: "slot" | "dock";
 }
 
 export interface PlayerSlice {
@@ -63,7 +65,8 @@ export const createPlayerSlice = (
         a.left === rect.left &&
         a.top === rect.top &&
         a.width === rect.width &&
-        a.height === rect.height
+        a.height === rect.height &&
+        a.place === rect.place
       ) {
         return {};
       }

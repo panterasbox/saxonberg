@@ -35,6 +35,7 @@ import styled from "styled-components";
 import type { CharGenFieldState, DossierRow } from "@saxonberg/types";
 import { useStore } from "../store/index";
 import { arrivalWatching, watchSuffix } from "../services/arrival";
+import { PlayerDock } from "./embed/PlayerDock";
 import { signOut } from "../services/auth";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
@@ -991,6 +992,9 @@ export function CharGenStage({
           </PlateColumn>
 
           <LogColumn>
+            {/* ⭐ The dock: the video's one place on every screen before
+                the world, top right (review 11-24) — the page makes room. */}
+            <PlayerDock />
             <LogHeader>
               what you are typing
               <LogCount data-testid="chargen-log-count">{sentCount}</LogCount>

@@ -40,34 +40,28 @@ import { controlDoc } from "../doc/docs";
 const Panel = styled.section`
   display: flex;
   flex-direction: column;
-  gap: ${tokens.space.sm};
-  width: 380px;
-  max-width: 100%;
-  max-height: 70vh;
-  overflow-y: auto;
-  padding: ${tokens.space.lg};
-  background: ${tokens.color.surface};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.md};
+  width: 100%;
   color: ${tokens.color.fg};
   font-family: ${tokens.font.family};
 `;
 
+/* ⭐ The design's section heading and ruled list (review 11-24). */
 const Title = styled.h2`
-  margin: 0 0 ${tokens.space.sm} 0;
-  font-size: ${tokens.font.body};
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  margin: 0 0 4px 0;
+  font-family: ${tokens.font.engraved};
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.19em;
   text-transform: uppercase;
-  color: ${tokens.color.fgMuted};
+  color: ${tokens.color.fgEmphasis};
 `;
 
 const Item = styled.article`
-  padding: ${tokens.space.md} 0;
+  padding: 7px 0;
   border-top: 1px solid ${tokens.color.borderMuted};
 
-  &:first-of-type {
-    border-top: none;
+  &:last-of-type {
+    border-bottom: 1px solid ${tokens.color.borderMuted};
   }
 `;
 
@@ -75,9 +69,10 @@ const Byline = styled.div`
   display: flex;
   align-items: baseline;
   gap: ${tokens.space.sm};
-  font-size: ${tokens.font.micro};
+  font-family: ${tokens.font.mono};
+  font-size: 11.5px;
   color: ${tokens.color.fgMuted};
-  margin-bottom: ${tokens.space.xs};
+  margin-bottom: 2px;
 `;
 
 /**
@@ -108,8 +103,9 @@ const Headline = styled.button<{ $interactive: boolean }>`
   padding: 0;
   margin: 0;
   font: inherit;
-  font-weight: 600;
-  color: ${tokens.color.fgEmphasis};
+  font-size: 13.5px;
+  font-weight: 400;
+  color: ${tokens.color.fg};
   cursor: ${(p) => (p.$interactive ? "pointer" : "default")};
 
   &:hover {

@@ -1402,6 +1402,24 @@ all, the overlay is silent and the front page has no show band.
   onto `components/front/` (D6).** Their behavior (the `--watch` sends, the
   dock's reserve) is in; their look is today's. Recorded for review.
 
+- **Review 11-24 (the owner's demo) — W5 re-planned in place.** W5 had kept the old front page's
+  bands and swapped their content; the requirements said *rebuilt to the new design*. The front page
+  is now the design's layout (`docs/design/front-page/front-page.dc.html`): host bar · identity ·
+  the chambers' sentences on the left, sign-in then the show as a small thumbnail on the right
+  (`wrap-reverse`, so a phone gets sign-in and the show first) · Latest beside Coming up · the
+  footer (panterasbox.com, each feed, the source). The chambers' WANTED · FUNDING · NEEDS blocks and
+  the mock's Acting-PM line stay absent (no source). The account sentence went with the old panel;
+  the design says it in the identity band.
+- **Review 11-24 — the DOCK is a place in each page's layout, never a box over content.** The
+  owner: *"docked just means it's on the same place on every page, but you still have to do a
+  content pass to make room for it."* `PlayerDock` is a 16:9 slot (≤ 22rem) each pre-world screen
+  lays out: the front page's show thumbnail, the roster header's right, creation's right column. The
+  floating bottom-right corner and its body padding are deleted; with no slot the player renders
+  nothing. A slot says which it is (`place: "dock" | "slot"`).
+- **Review 11-24 — watch mode's stage had no height.** The focal slot sized to content and the
+  screen sized from its parent, so the player sat in its slot 0×0. The video focal claims a 16:9
+  height; the walk now asserts the player is on screen, not just placed.
+
 ## Drive record
 
 **The wire drive** (`packages/wire/tests/stream-arrival.wire.test.ts`, `WIRE_BOOT=1 WIRE_PORT=2013`,

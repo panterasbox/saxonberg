@@ -71,20 +71,24 @@ describe("StreamPlayer — the one iframe", () => {
     useStore.setState({
       connectionPhase: "in-world",
       clientState: { "cockpit.mode": "watch", "cockpit.watch": { platform: "twitch", channel: "shroud" } },
-      playerSlot: null,
+      playerSlot: { left: 0, top: 0, width: 640, height: 360 },
       playerMuted: true,
       playerClosed: false,
       front: null,
     });
   });
 
-  it("in watch with a target and no slot yet: mounted, docked", () => {
+  it("a target and no slot: nothing — the video never floats over a page (review 11-24)", () => {
+    useStore.setState({ playerSlot: null });
     render(<StreamPlayer />);
-    expect(screen.getByTestId("stream-player").getAttribute("data-player-place")).toBe("dock");
+    expect(screen.queryByTestId("stream-player")).toBeNull();
   });
 
   it("in-world, not in watch, no slot: nothing", () => {
-    useStore.setState({ clientState: { "cockpit.mode": "explore", "cockpit.watch": { platform: "twitch", channel: "shroud" } } });
+    useStore.setState({
+      playerSlot: null,
+      clientState: { "cockpit.mode": "explore", "cockpit.watch": { platform: "twitch", channel: "shroud" } },
+    });
     render(<StreamPlayer />);
     expect(screen.queryByTestId("stream-player")).toBeNull();
   });
@@ -94,7 +98,8 @@ describe("StreamPlayer — the one iframe", () => {
     const first = container.querySelector("iframe");
     act(() => useStore.getState().setPlayerSlot({ left: 10, top: 10, width: 320, height: 180 }));
     expect(screen.getByTestId("stream-player").getAttribute("data-player-place")).toBe("slot");
-    act(() => useStore.getState().setPlayerSlot(null));
+    act(() => useStore.getState().setPlayerSlot({ left: 900, top: 300, width: 352, height: 198, place: "dock" }));
+    expect(screen.getByTestId("stream-player").getAttribute("data-player-place")).toBe("dock");
     act(() => useStore.getState().setPlayerSlot({ left: 0, top: 0, width: 640, height: 360 }));
     rerender(<StreamPlayer />);
     expect(container.querySelector("iframe")).toBe(first);

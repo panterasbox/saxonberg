@@ -1,108 +1,168 @@
 /**
- * ShowTile — the front page's show band (stream arrival D14, D3).
+ * ShowTile — the front page's show, in the DOCK (stream arrival D14, D3;
+ * reworked in review 11-24: *"the video screen on the homepage is supposed
+ * to be small"*).
  *
  * Reads the anonymous `/api/front` answer (the store's `front`). ⭐ Only a
  * program somebody filed and the Compact featured — or the one a link
- * named — is ever here, and only its PROVEN feeds:
+ * named — is ever here, and only its PROVEN feeds. It sits at the hero's
+ * top right, at the dock's size — the same place the video holds on the
+ * roster and in creation:
  *
- * - **live, and the visitor came from a carrier it is on** → the one
- *   player's slot (`PlayerSlot`): the video plays right here, and follows
- *   them into select and creation docked;
- * - **live, otherwise** → the tile, and *Sign in to watch it inside
+ * - **live, and the visitor came from a carrier it is on** → the video;
+ * - **live, otherwise** → the `@` tile and *Sign in to watch it inside
  *   Saxonberg.*;
- * - **off air** → the offline tile: the brand's `@` and the next show, or
- *   *Offline* alone.
+ * - **off air** → the `@` tile and the next show, or *Offline* alone.
  *
- * The whole band is absent when the answer carries no `show`.
+ * The whole tile is absent when the answer carries no `show`.
  */
 
 import React from "react";
 import styled from "styled-components";
 import { useStore } from "../../store";
-import { arrival, targetOfListing } from "../../services/arrival";
-import { PlayerSlot } from "../embed/PlayerSlot";
+import { arrival } from "../../services/arrival";
+import { PlayerDock } from "../embed/PlayerDock";
 import { tokens } from "../ui";
-import { SectionLabel } from "./Bands";
 
-const Tile = styled.div`
-  position: relative;
-  aspect-ratio: 16 / 9;
+const Section = styled.section`
   width: 100%;
-  background: ${tokens.color.surfaceSunken};
-  border-radius: 6px;
-  overflow: hidden;
+`;
+
+/** The thumbnail when the video is not playing here: black, as the design. */
+const Thumb = styled.div`
+  position: absolute;
+  inset: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  text-align: center;
-`;
-
-const At = styled.div`
-  font-family: ${tokens.font.engraved};
-  font-size: 64px;
-  line-height: 1;
-  color: ${tokens.color.accent};
-  text-shadow: 0 0 18px ${tokens.color.accent};
-`;
-
-const TileNote = styled.div`
-  color: ${tokens.color.fgMuted};
+  gap: 6px;
+  background: ${tokens.color.terminal};
+  border: 1px solid ${tokens.color.border};
+  border-radius: 3px;
+  color: ${tokens.color.terminalFg};
   font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.small};
-  margin-top: ${tokens.space.sm};
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  padding: 12px;
+`;
+
+const LiveBadge = styled.span`
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 1px 6px;
+  background: ${tokens.color.seal};
+  color: ${tokens.color.sealInk};
+  border: 1px solid ${tokens.color.sealInk};
+  border-radius: 3px;
+  font-family: ${tokens.font.family};
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+`;
+
+const Byline = styled.div`
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  padding-top: 9px;
 `;
 
 const Title = styled.div`
-  font-family: ${tokens.font.engraved};
-  font-size: 1.25rem;
-  margin-top: ${tokens.space.sm};
+  font-weight: 600;
+  font-size: 13.5px;
+  line-height: 1.3;
 `;
 
 const Owner = styled.div`
-  color: ${tokens.color.fgMuted};
-  font-size: ${tokens.font.small};
+  font-size: 12.5px;
+  color: ${tokens.color.fgDim};
 `;
 
-const Live = styled.span`
-  color: ${tokens.color.accent};
-  font-family: ${tokens.font.mono};
-  font-size: ${tokens.font.small};
-  margin-left: ${tokens.space.sm};
+const TileAction = styled.p`
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: ${tokens.color.fgMuted};
 `;
+
+/** The `@` in phosphor pixels — the design's off-air glyph and avatar. */
+function PixelAt({ size, glow = false }: { size: number; glow?: boolean }): JSX.Element {
+  const rows: Array<[number, number, number]> = [
+    [9.5, 5.925, 5], [8.5, 7.275, 2], [13.5, 7.275, 2], [8.5, 8.625, 2], [13.5, 8.625, 2],
+    [8.5, 9.975, 2], [11.5, 9.975, 4], [8.5, 11.325, 2], [11.5, 11.325, 4], [8.5, 12.675, 2],
+    [11.5, 12.675, 4], [8.5, 14.025, 2], [11.5, 14.025, 3], [8.5, 15.375, 2], [9.5, 16.725, 5],
+  ];
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" shapeRendering="crispEdges">
+      {glow ? (
+        <defs>
+          <filter id="fp-phosphor" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.35" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+      ) : null}
+      <g fill={tokens.color.terminalFg} filter={glow ? "url(#fp-phosphor)" : undefined}>
+        {rows.map(([x, y, w]) => (
+          <rect key={`${x}-${y}`} x={x} y={y} width={w} height={1.35} />
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+const Avatar = styled.span<{ $live: boolean }>`
+  flex: none;
+  display: inline-flex;
+  border-radius: 50%;
+  background: ${tokens.color.terminal};
+  border: 2px solid ${(p) => (p.$live ? tokens.color.seal : tokens.color.border)};
+  overflow: hidden;
+`;
+
+const VIA = { twitch: "Twitch", youtube: "Google", kick: "Kick" } as const;
 
 export function ShowTile(): JSX.Element | null {
   const show = useStore((s) => s.front?.show ?? null);
-  const closed = useStore((s) => s.playerClosed);
   if (!show) return null;
-  const playing = show.live && !closed && targetOfListing(show, arrival().carrier) !== null;
+  const carrier = arrival().carrier;
+  const thumb = show.live ? (
+    <Thumb data-testid="show-tile">
+      <LiveBadge>Live</LiveBadge>
+      <PixelAt size={56} glow />
+      <span>On the air now</span>
+    </Thumb>
+  ) : (
+    <Thumb data-testid="show-offline">
+      <PixelAt size={72} glow />
+      <span>{show.nextShow ? `Offline · next show ${show.nextShow}` : "Offline"}</span>
+    </Thumb>
+  );
   return (
-    <div>
-      <SectionLabel>The show</SectionLabel>
-      {playing ? (
-        <Tile data-testid="show-tile" data-show-playing="true">
-          <PlayerSlot />
-        </Tile>
-      ) : show.live ? (
-        <Tile data-testid="show-tile">
-          <div>
-            <At aria-hidden="true">@</At>
-            <TileNote>On the air now. Sign in to watch it inside Saxonberg.</TileNote>
-          </div>
-        </Tile>
-      ) : (
-        <Tile data-testid="show-offline">
-          <div>
-            <At aria-hidden="true">@</At>
-            <TileNote>{show.nextShow ? `Next: ${show.nextShow}` : "Offline"}</TileNote>
-          </div>
-        </Tile>
-      )}
-      <Title>
-        {show.title}
-        {show.live ? <Live>● on the air</Live> : null}
-      </Title>
-      {show.ownerName ? <Owner>{show.ownerName}</Owner> : null}
-    </div>
+    <Section aria-labelledby="fp-show" data-testid="show-band">
+      <PlayerDock fallback={thumb} />
+      <Byline>
+        <Avatar $live={show.live}>
+          <PixelAt size={28} />
+        </Avatar>
+        <div style={{ minWidth: 0 }}>
+          <Title id="fp-show">{show.title}</Title>
+          {show.ownerName ? <Owner>{show.ownerName}</Owner> : null}
+        </div>
+      </Byline>
+      <TileAction>
+        {carrier
+          ? `Sign in with ${VIA[carrier]} and keep watching inside Saxonberg.`
+          : "Sign in to watch it inside Saxonberg."}
+      </TileAction>
+    </Section>
   );
 }
 

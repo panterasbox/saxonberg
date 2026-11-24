@@ -32,6 +32,7 @@
  * zero is a measurement; "never taken out" is the truth.
  */
 
+import { PlayerDock } from "./embed/PlayerDock";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import type { CharGenRosterEntry } from "@saxonberg/types";
@@ -911,6 +912,9 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
           </Meters>
 
           <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
+          {/* ⭐ The dock: the video's one place on every screen before the
+              world, top right (review 11-24) — the page makes room. */}
+          <PlayerDock />
         </HeaderInner>
       </HeaderBand>
 

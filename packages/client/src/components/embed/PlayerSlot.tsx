@@ -18,7 +18,9 @@ const Spot = styled.div`
   inset: 0;
 `;
 
-export function PlayerSlot(): JSX.Element {
+/** `place` says which it is: the DOCK every pre-world screen lays out, or a
+ * stage's own slot (watch mode, the phone). */
+export function PlayerSlot({ place = "slot" }: { place?: "slot" | "dock" }): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null);
   const setSlot = useStore((s) => s.setPlayerSlot);
   useLayoutEffect(() => {
@@ -27,7 +29,7 @@ export function PlayerSlot(): JSX.Element {
       const el = ref.current;
       if (!el) return;
       const r = el.getBoundingClientRect();
-      setSlot({ left: r.left, top: r.top, width: r.width, height: r.height });
+      setSlot({ left: r.left, top: r.top, width: r.width, height: r.height, place });
     };
     const tick = (): void => {
       measure();
@@ -46,6 +48,6 @@ export function PlayerSlot(): JSX.Element {
       window.removeEventListener("scroll", measure, true);
       setSlot(null);
     };
-  }, [setSlot]);
+  }, [setSlot, place]);
   return <Spot ref={ref} data-testid="player-slot" />;
 }

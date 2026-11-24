@@ -49,7 +49,7 @@ describe("the front page", () => {
   it("from Twitch, on air: the slot plays, Twitch first, *You came from Twitch.*", () => {
     load("?from=twitch", LIVE);
     render(<StartScreen />);
-    expect(screen.getByTestId("show-tile").getAttribute("data-show-playing")).toBe("true");
+    expect(screen.getByTestId("player-dock").getAttribute("data-show-playing")).toBe("true");
     expect(screen.getByTestId("player-slot")).toBeTruthy();
     expect(screen.getByTestId("came-from").textContent).toBe("You came from Twitch.");
     expect(order()[0]).toBe("twitch");
@@ -92,21 +92,24 @@ describe("the front page", () => {
     expect(screen.queryByTestId("show-tile")).toBeNull();
     expect(screen.queryByTestId("show-offline")).toBeNull();
     expect(screen.queryByTestId("coming-up")).toBeNull();
-    expect(screen.queryByTestId("front-footer")).toBeNull();
+    // The footer stays (the host, the source); it links no show.
+    expect(screen.getByTestId("front-footer").textContent).not.toMatch(/the show on/);
   });
 
   it("the footer links only the carriers the program is on", () => {
     load("", LIVE);
     render(<StartScreen />);
-    const links = [...screen.getByTestId("front-footer").querySelectorAll("a")].map((a) => a.textContent);
+    const links = [...screen.getByTestId("front-footer").querySelectorAll("a")]
+      .map((a) => a.textContent)
+      .filter((t) => t?.startsWith("the show on"));
     expect(links).toEqual(["the show on Twitch", "the show on Kick"]);
   });
 
-  it("the guest is a small link outside the show tile", () => {
+  it("the guest is a plain row outside the show", () => {
     load("?from=twitch", LIVE);
     render(<StartScreen />);
     const guest = screen.getByTestId("guest-button");
-    expect(screen.getByTestId("show-tile").contains(guest)).toBe(false);
+    expect(screen.getByTestId("show-band").contains(guest)).toBe(false);
     expect(screen.getByTestId("guest-warning").textContent).toMatch(/keeps nothing/);
   });
 });
