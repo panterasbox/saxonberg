@@ -1370,6 +1370,37 @@ all, the overlay is silent and the front page has no show band.
   `environment` push and pop. The pass-over asks the source by mixin
   (`isAetherHosted` → its host `isAugment` → `conferralRefusal()`), never by
   device kind; refusals reuse the `aether-*` rows.
+- **C2 ✅ `5237b8eee`.** The store is `AppStore` (platform/idea), reached as
+  `TemplateApi.appStore()` — no Api fronts aether hosts, and the store reads
+  template rows. ⚠ **Its one `Template.findByPathInfix` needs a
+  `lint:template-scans` allowlist entry** (the sanctioned "keyed dictionary's
+  lazy warm" home; 25 → 26, landing census 43). The edit was refused by the
+  session's permission classifier as a ceiling rise, so it is the owner's
+  call — the gate fails until then. `App.published` is declared; the store
+  reads it off the ROW. `messages` and `broadcast` are published.
+- **C3 ✅ `21bac6d7b`.** D19 built as designed (no fallback): `OnAirSign`
+  overrides `getEmittedFlux` the way `SconceLamp` does for its switch, and
+  derives *lit* from its place's contents. The booth is a `Hall` in its own
+  zone with a parcel, a door both sides name, a lamp; the crossing gains a
+  named `halletts` way (its east stays Gus's soft wall). The testbed hut
+  props a desk and hangs a sign.
+- **W2 ✅ `0d48c6ea2`.** `finishSignIn` is public so `test-return` calls the
+  same method. The arrival is decided once per tab and never on a load that
+  carries `auth=`.
+- **W3 ✅ `44ceef5d1`.** `play`'s id is no longer greedy. `Login.readWatching`
+  is the one parse for both entries (row `watch-needs-carrier`). The
+  arrival's chat follow is best effort, as `watch`'s is. ⚠ Its full server
+  typecheck waited on a sibling build's memory window.
+- **W4 ✅ `2350fab6d`.** `StreamPlayer` in `App`'s fragment; `PlayerSlot`
+  re-measures every frame while mounted (the fixed box follows a fast
+  scroll). ⚠ In-world `watch` now starts muted on every load like the
+  arrival (D3's rule applies to both); a NEW in-world target unmutes.
+- **W5 ✅ `945b25270`.** `components/front/` holds `Bands`, `ShowTile`,
+  `Latest`. The guest note keeps *nothing you make is kept* (three tests
+  hold it as load-bearing copy) inside the plan's new line.
+- **W6 ✅ `3045d3c33`.** ⚠ **Not done: the re-skin of select and creation
+  onto `components/front/` (D6).** Their behavior (the `--watch` sends, the
+  dock's reserve) is in; their look is today's. Recorded for review.
 
 ## Drive record
 
