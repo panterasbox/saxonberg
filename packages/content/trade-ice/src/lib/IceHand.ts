@@ -58,8 +58,8 @@ export default abstract class IceHand {
 
   /**
    * ⭐ OFF shift and still out on the mere: back to the bank — walking if
-   * the ice holds you, swimming if it does not (or is gone). The roster's
-   * offstage teleport is the ordinary way home; this is the hand who was
+   * the ice holds you, swimming if it does not (or is gone). Its hours at
+   * the shed (`frequents`) are the ordinary way home; this is the hand who was
    * left out there (the drive: the boss still on the summer water). True
    * when it took that step.
    */

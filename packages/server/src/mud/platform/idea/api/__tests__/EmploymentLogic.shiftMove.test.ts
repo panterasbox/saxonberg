@@ -30,7 +30,6 @@ import { BankingApi } from '../../../../api/banking';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { Quantity } from '../../../../lib/quantity';
 import BusinessEntity from '../../Business';
-import Offstage from '../../../location/Offstage';
 import { EmployedMixin } from '../../../../lib/employment/Employed';
 import { StatusMixin } from '../../../../lib/status/Status';
 import { MobileMixin } from '../../../../lib/spatial/Mobile';
@@ -39,6 +38,7 @@ import { ContainerMixin } from '../../../../lib/spatial/Container';
 import { Idea } from '../../../../lib/stuff/Idea';
 import Thing from '../../../../lib/stuff/Thing';
 import { StuffApi } from '../../../../api/stuff';
+import { MixinApi } from '../../../../api/mixin';
 import { ContainmentApi } from '../../../../api/containment';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
@@ -75,7 +75,7 @@ interface World {
 }
 
 function seed(
-  opts: { offstage?: string; station?: string; proprietor?: boolean; onShiftStatus?: string } = {},
+  opts: { out?: boolean; station?: string; proprietor?: boolean; onShiftStatus?: string } = {},
 ): World {
   const b = makeStuffAtPath(() => new BusinessEntity(), BUSINESS);
   b.banksAt = BankingApi.defaultCustodianBank();
@@ -97,7 +97,7 @@ function seed(
     },
   ];
   b.operatingLocations = [BAR];
-  if (opts.offstage !== undefined) b.offstage = opts.offstage;
+  if (opts.out) b.setOffShift('out');
   if (opts.proprietor) {
     b.appointingAuthority = { kind: 'entity', path: DAVE };
   }
@@ -111,10 +111,9 @@ function seed(
   for (const path of [BAR, CELLAR]) {
     rooms.set(path, makeStuffAtPath(() => new Room(), path) as unknown as Stuff);
   }
-  rooms.set(
-    OFFSTAGE,
-    makeStuffAtPath(() => new Offstage(), OFFSTAGE) as unknown as Stuff,
-  );
+  // ⭐ An ordinary room somewhere else — where a hand happens to be (there
+  // is no "offstage" room any more; persistence-model D15).
+  rooms.set(OFFSTAGE, makeStuffAtPath(() => new Room(), OFFSTAGE) as unknown as Stuff);
   vi.spyOn(StuffApi, 'singletonOrClone').mockImplementation(
     async (path: string) => rooms.get(path)!,
   );
@@ -131,7 +130,7 @@ describe('the shift move', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('⭐ off→on puts the assignee at the house’s first operating location', async () => {
-    const { rooms } = seed({ offstage: OFFSTAGE });
+    const { rooms } = seed({ out: true });
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     ContainmentApi.move(mara as never, rooms.get(OFFSTAGE) as never);
 
@@ -143,7 +142,7 @@ describe('the shift move', () => {
   });
 
   it('⭐ a seat with a `station` overrides it — a shift is SOMEWHERE, and the seat says where', async () => {
-    const { rooms } = seed({ offstage: OFFSTAGE, station: CELLAR });
+    const { rooms } = seed({ out: true, station: CELLAR });
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     ContainmentApi.move(mara as never, rooms.get(OFFSTAGE) as never);
 
@@ -154,8 +153,8 @@ describe('the shift move', () => {
     expect(mara.getContainer()?.stuffId).toBe(rooms.get(CELLAR)!.stuffId);
   });
 
-  it('on→off parks them in the house’s offstage', async () => {
-    const { rooms } = seed({ offstage: OFFSTAGE });
+  it('⭐ on→off takes them OUT OF THE NARRATIVE — null, never a room (persistence-model D15)', async () => {
+    const { rooms } = seed({ out: true });
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     ContainmentApi.move(mara as never, rooms.get(BAR) as never);
 
@@ -167,10 +166,10 @@ describe('the shift move', () => {
     atClock(2, 20); // off
     EmploymentApi.tickRoster();
     await settle();
-    expect(mara.getContainer()?.stuffId).toBe(rooms.get(OFFSTAGE)!.stuffId);
+    expect(mara.getContainer()).toBeNull();
   });
 
-  it('⚠ a house that authors no `offstage` moves nobody off — as every house without the old brain did', async () => {
+  it('⚠ a house that says no `offShift` moves nobody off — as every house without the old brain did', async () => {
     const { rooms } = seed({});
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     ContainmentApi.move(mara as never, rooms.get(BAR) as never);
@@ -184,6 +183,37 @@ describe('the shift move', () => {
 
     // Still standing where the world put her. No invented room, no throw.
     expect(mara.getContainer()?.stuffId).toBe(rooms.get(BAR)!.stuffId);
+  });
+});
+
+describe('⭐⭐ a visit enters the narrative the way a shift does (persistence-model D15)', () => {
+  beforeEach(() => StuffApi.clearAll());
+  afterEach(() => vi.restoreAllMocks());
+
+  it('off shift, a hand whose own hours call it to the bar is brought in by the tick — and out when they end', async () => {
+    const { rooms } = seed({ out: true });
+    const mara = makeStuffAtPath(() => new Worker(), MARA);
+    // A behaved hand: its brains declare where its hours call it.
+    let calledTo: string | null = null;
+    vi.spyOn(MixinApi, 'isBehaved').mockImplementation(((x: unknown) => x === mara) as never);
+    (mara as unknown as { calledToAt(n: number): string | null }).calledToAt = () => calledTo;
+
+    atClock(2, 20); // off shift, out of the narrative
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getContainer()).toBeNull();
+
+    calledTo = BAR; // a visit window opens on the hour
+    atClock(2, 21);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getContainer()?.stuffId).toBe(rooms.get(BAR)!.stuffId);
+
+    calledTo = null; // and closes
+    atClock(2, 22);
+    EmploymentApi.tickRoster();
+    await settle();
+    expect(mara.getContainer()).toBeNull();
   });
 });
 
@@ -201,7 +231,7 @@ describe('⭐⭐ a ROUND is roster slots — one shift, a station per hour (repa
   }
 
   it('⭐ begins ONE shift, moves stop to stop as the hour turns, and ends it once', async () => {
-    const world = seed({ offstage: OFFSTAGE });
+    const world = seed({ out: true });
     round(world, [
       { hours: [6, 8], station: BAR },
       { hours: [8, 10], station: CELLAR },
@@ -231,14 +261,14 @@ describe('⭐⭐ a ROUND is roster slots — one shift, a station per hour (repa
     atClock(2, 13);
     EmploymentApi.tickRoster();
     await settle();
-    expect(at()).toBe(world.rooms.get(OFFSTAGE)!.stuffId);
+    expect(mara.getContainer()).toBeNull();
     // ⭐ One shift: a later slot's "off" never ended an earlier slot's "on".
     expect(begin).toHaveBeenCalledTimes(1);
     expect(end).toHaveBeenCalledTimes(1);
   });
 
   it('a stop that is not standing is skipped, and taken on the next pass', async () => {
-    const world = seed({ offstage: OFFSTAGE });
+    const world = seed({ out: true });
     const YARD = '/test/location/yard';
     round(world, [{ hours: [6, 8] }, { hours: [8, 12], station: YARD }]);
     const mara = makeStuffAtPath(() => new Worker(), MARA);
@@ -260,7 +290,7 @@ describe('⭐⭐ a ROUND is roster slots — one shift, a station per hour (repa
   });
 
   it('⭐ a hand who is not resident is fetched to a stop somebody stands in — and to no other (potash drive)', async () => {
-    const world = seed({ offstage: OFFSTAGE });
+    const world = seed({ out: true });
     const YARD = '/test/location/yard';
     round(world, [{ hours: [6, 8], station: YARD }, { hours: [8, 12], station: CELLAR }]);
     // She is evicted: nothing live at her path. Loading her mints her.
@@ -291,7 +321,7 @@ describe('cover, on demand', () => {
   afterEach(() => vi.restoreAllMocks());
 
   it('⭐⭐ nobody rostered is tending, so the proprietor covers — and stands where the work is', async () => {
-    const { rooms } = seed({ offstage: OFFSTAGE, proprietor: true });
+    const { rooms } = seed({ out: true, proprietor: true });
     makeStuffAtPath(() => new Worker(), MARA);
     const dave = makeStuffAtPath(() => new Worker(), DAVE);
     ContainmentApi.move(dave as never, rooms.get(CELLAR) as never);
@@ -311,7 +341,7 @@ describe('cover, on demand', () => {
   });
 
   it('a rostered bartender comes on shift and the cover ends', async () => {
-    const { rooms } = seed({ offstage: OFFSTAGE, proprietor: true });
+    const { rooms } = seed({ out: true, proprietor: true });
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     const dave = makeStuffAtPath(() => new Worker(), DAVE);
     ContainmentApi.move(mara as never, rooms.get(OFFSTAGE) as never);
@@ -331,7 +361,7 @@ describe('cover, on demand', () => {
   });
 
   it('⭐⭐ a proprietor who holds a roster seat is never "stood down" — their shift is not a cover (storage-and-ice drive)', async () => {
-    const { business, rooms } = seed({ offstage: OFFSTAGE, proprietor: true });
+    const { business, rooms } = seed({ out: true, proprietor: true });
     // Dave keeps the book on a seat of his own; Mara tends the bar.
     business.positions = [
       ...business.positions,
@@ -360,7 +390,7 @@ describe('cover, on demand', () => {
   });
 
   it('⚠ a house with no fulfilling seat is never covered — there is nothing to cover', async () => {
-    const { business, rooms } = seed({ offstage: OFFSTAGE, proprietor: true });
+    const { business, rooms } = seed({ out: true, proprietor: true });
     business.positions = [
       { key: 'keeper', label: 'keeping the bar', wageRate: 0, purchases: true },
     ];
@@ -415,7 +445,7 @@ describe('⚠⚠ a FIXTURE in operatingLocations is not a place to stand', () =>
     // synthetic fixtures, and  refuses one that names
     // shipped content. It said so on the first run.
     const COUNTER = '/test/shop/counter';
-    const { rooms } = seed({ offstage: OFFSTAGE });
+    const { rooms } = seed({ out: true });
     const business = StuffApi.findByTemplatePath(BUSINESS)!;
     // The shipped shape: the fixture FIRST, the room second.
     (business as unknown as { operatingLocations: string[] })
@@ -448,7 +478,7 @@ describe('⚠⚠ a FIXTURE in operatingLocations is not a place to stand', () =>
     class StatusWorker extends StatusMixin(EmployedMixin(MobileMixin(ContainableMixin(Idea)))) {
       static _mixinName = 'StatusWorker';
     }
-    const { rooms } = seed({ offstage: OFFSTAGE, onShiftStatus: 'behind the bar' });
+    const { rooms } = seed({ out: true, onShiftStatus: 'behind the bar' });
     const mara = makeStuffAtPath(() => new StatusWorker(), MARA);
     ContainmentApi.move(mara as never, rooms.get(OFFSTAGE) as never);
 
@@ -463,8 +493,8 @@ describe('⚠⚠ a FIXTURE in operatingLocations is not a place to stand', () =>
     expect(mara.getStatus()).toBe('');
   });
 
-  it('⭐ a hand already off shift, standing in the bar after a restart, is parked once', async () => {
-    const { rooms } = seed({ offstage: OFFSTAGE });
+  it('⭐ a hand already off shift, standing in the bar after a restart, leaves the narrative — every tick, unless its hours call it (D15)', async () => {
+    const { rooms } = seed({ out: true });
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     // Where the room's `cast:` spawned her at boot — in the bar, off shift.
     ContainmentApi.move(mara as never, rooms.get(BAR) as never);
@@ -472,14 +502,15 @@ describe('⚠⚠ a FIXTURE in operatingLocations is not a place to stand', () =>
     atClock(2, 18); // Wednesday 18:00 — off shift; nothing transitions
     EmploymentApi.tickRoster();
     await settle();
-    expect(mara.getContainer()?.stuffId).toBe(rooms.get(OFFSTAGE)!.stuffId);
+    expect(mara.getContainer()).toBeNull();
 
-    // …once: walk her back in and the next tick leaves her be.
+    // Put back in by hand with nothing calling her: the next tick takes her
+    // out again — off shift and called nowhere is out of the narrative.
     ContainmentApi.move(mara as never, rooms.get(BAR) as never);
     atClock(2, 19);
     EmploymentApi.tickRoster();
     await settle();
-    expect(mara.getContainer()?.stuffId).toBe(rooms.get(BAR)!.stuffId);
+    expect(mara.getContainer()).toBeNull();
   });
 });
 

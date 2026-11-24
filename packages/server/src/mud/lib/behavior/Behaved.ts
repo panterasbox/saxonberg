@@ -129,6 +129,11 @@ interface BehaviorWiring {
 export interface Behaved {
   getBehaviors(): readonly BehaviorSpec[];
   /**
+   * ⭐ Where one of this host's brains calls it at `nowS` (`BrainStatics.callsAt`
+   * — a visit window open), else `null` (persistence-model D15).
+   */
+  calledToAt(nowS: number): string | null;
+  /**
    * ⭐ Open a conversation with `player` — the NPC's OWN act (call-security
    * pass D10). Picks this host's `engage` spec whose brain exposes `open`
    * and opens it as this NPC (`runAsSelf`), so the conversation's loop and
@@ -245,6 +250,18 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getBehaviors(): readonly BehaviorSpec[] {
       return this.behaviors;
+    }
+
+    /** See {@link Behaved.calledToAt}. */
+    public calledToAt(nowS: number): string | null {
+      for (const spec of this.behaviors) {
+        // `callsAt` is a DECLARED optional static of the brain protocol.
+        const brain = this._resolveBrain(spec.brain);
+        if (brain === null || brain.callsAt === undefined) continue;
+        const at = brain.callsAt(spec.config ?? {}, nowS);
+        if (at) return at;
+      }
+      return null;
     }
 
     /**

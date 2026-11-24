@@ -41,6 +41,8 @@ import { Quantity } from '../../../lib/quantity';
 import { DefaultCalendar } from '../../../lib/time/DefaultCalendar';
 import type { RosterAssignment } from '../../../lib/employment/Roster';
 import type { Container } from '../../../lib/spatial/Container';
+import type { Containable } from '../../../lib/spatial/Containable';
+import { ContainmentApi } from '../../../api/containment';
 import { Mixins } from '../../../lib/mixin';
 import type { Business } from '../Business';
 import type { Organization } from '../../../lib/employment/Organization';
@@ -1010,9 +1012,10 @@ function beginCoverImpl(
  * resolve to a **Location**, so a fixture in the list is skipped rather
  * than stood in; and the lookup for an operating location is **live
  * only**, because a room that is not standing is not a place to send
- * somebody. ⭐ `offstage` KEEPS its clone and that is correct — an
- * offstage room is materialized on demand by design
- * (`lib/employment/Offstage.ts`), and nothing else owns it.
+ * somebody. ⭐ Off shift there is no destination at all (persistence-model
+ * D15): a hand of a house whose hands go `out` leaves the narrative —
+ * null, never a room meaning "nowhere" — unless a visit of its own calls
+ * it somewhere ({@link placeOffShift}).
  */
 async function moveForShift(
   business: BusinessStuff,
@@ -1021,26 +1024,7 @@ async function moveForShift(
   onShift: boolean,
 ): Promise<string | null> {
   if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return null;
-  if (!onShift) {
-    const offstage = business.getOffstage();
-    if (!offstage) return null;
-    try {
-      // ⭐ The one legitimate clone here: an offstage room is
-      // materialized on demand and nothing else owns it.
-      const dest = await StuffApi.singletonOrClone(offstage);
-      if (!MixinApi.isContainer(dest)) return null;
-      const current = actor.getContainer();
-      if (current && current.stuffId === dest.stuffId) return offstage;
-      actor.teleport(dest as Stuff & Container);
-      return offstage;
-    } catch (err) {
-      console.error(
-        `EmploymentLogic: shift move offstage to '${offstage}' failed`,
-        err,
-      );
-    }
-    return null;
-  }
+  if (!onShift) return placeOffShift(business, actor);
 
   /**
    * On shift: the seat's own station if it names one, else the first
@@ -1094,6 +1078,36 @@ async function moveForShift(
     );
   }
   return null;
+}
+
+/**
+ * ⭐⭐ **Off shift, a hand of an `out` house is where its own hours call it,
+ * or out of the narrative** (persistence-model D15). Asked of the hand's
+ * brains (`Behaved.calledToAt` — a `frequents` window open): called
+ * somewhere, it enters there through the place's door, by the same
+ * entrance a shift uses; called nowhere, it leaves — `null`, never a room
+ * meaning "nowhere". A house that says nothing moves nobody. Returns where
+ * it put the hand ('' for out of the narrative), or `null` when it moved
+ * nobody.
+ */
+async function placeOffShift(business: BusinessStuff, actor: Stuff): Promise<string | null> {
+  if (business.getOffShift() !== 'out') return null;
+  if (!MixinApi.isMobile(actor) || !MixinApi.isContainable(actor)) return null;
+  const nowS = WorldClockApi.getNow().rawValue();
+  const called = MixinApi.isBehaved(actor) ? actor.calledToAt(nowS) : null;
+  const here = actor.getContainer();
+  if (called) {
+    if (here?.getTemplatePath() === called) return called;
+    const dest = StuffApi.findByTemplatePath<Stuff>(called) ?? (await StuffApi.singleton<Stuff>(called).catch(() => null));
+    if (!dest || !MixinApi.isContainer(dest) || dest.isThing()) return null;
+    actor.teleport(dest as Stuff & Container);
+    return called;
+  }
+  if (here === null) return '';
+  // ⭐ Out of the narrative: the departure line, then null.
+  MessageApi.scene(actor).topic('act.move').toPeers(Mml.compose`${Mml.actor(actor)} leaves.`).send();
+  ContainmentApi.move(actor as Stuff & Containable, null);
+  return '';
 }
 
 /**
@@ -1860,6 +1874,13 @@ export class EmploymentLogic extends ApiLogic {
         // restart re-moves once (the map starts empty).
         moveTo(onSlot);
         business.showShiftStatus(employed);
+      } else if (desired === 'off-shift' && !currentlyOn && business.getOffShift() === 'out') {
+        // ⭐ Every tick (persistence-model D15): a visit window that opened
+        // this hour brings the regular in; one that closed takes them out.
+        this.parkedOff.add(roundKey);
+        void placeOffShift(business, actor).catch((err) =>
+          console.error('EmploymentLogic: placing an off-shift hand failed', err),
+        );
       } else if (desired === 'off-shift' && !currentlyOn && !this.parkedOff.has(roundKey)) {
         // ⭐ The off-shift twin of the restart re-move: a hand already off
         // shift is parked once per process. Without it a restart left the

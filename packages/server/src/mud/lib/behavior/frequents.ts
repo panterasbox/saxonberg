@@ -48,9 +48,10 @@ export const brain = class {
     'Goes to a place at set hours as a regular, takes a free seat, and leaves when the hours are up.';
   static claims: readonly EngagementSlot[] = ['body'];
   /**
-   * ⚠ Runs unwatched: a regular sets out from where nobody is looking (the
-   * house's offstage, a back office) — gated on an audience, it would only
-   * ever leave a room somebody was already watching, i.e. never come in.
+   * ⚠ Runs unwatched: a regular sets out from where nobody is looking (a
+   * back office, a shed) — gated on an audience, it would only ever leave
+   * a room somebody was already watching, i.e. never come in. (A regular
+   * out of the narrative is brought in by the roster tick — `callsAt`.)
    * The `eats` / `homes` / `restocks` precedent.
    */
   static presenceGated = false;
@@ -67,6 +68,17 @@ export const brain = class {
       default:
         return new Urgency('idle');
     }
+  }
+
+  /**
+   * ⭐ Its place while a visit window is open (persistence-model D15): the
+   * roster tick brings a regular in through the place's door on the hour
+   * the window opens, by the same entrance a shift uses, and out of the
+   * narrative when it closes.
+   */
+  static callsAt(config: Record<string, unknown>, _nowS: number): string | null {
+    const place = typeof config.place === 'string' ? config.place : '';
+    return place && brain.inVisit(config.visits) ? place : null;
   }
 
   static async act(ctx: BrainContext): Promise<void> {

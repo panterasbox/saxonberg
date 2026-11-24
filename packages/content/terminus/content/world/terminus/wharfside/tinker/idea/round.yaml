@@ -59,4 +59,5 @@ data:
     - /world/terminus/hearts-delight/thing/tinkers-slate
     - /world/terminus/rejection/location/smelter
     - /world/terminus/rejection/thing/mending-slate
-  offstage: /world/terminus/wharfside/tinker/location/offstage
+  # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
+  offShift: out

@@ -113,12 +113,9 @@ describe('⭐⭐ the description mixins are on the ROOT', () => {
     }
   });
 
-  it('⚠ but NOT exitable — that is the next rung, and Offstage is the proof', () => {
-    // `Offstage` composes all three description mixins and none of
-    // `Exitable`/`Staged`/coordinates, with the reason in its own
-    // docstring. The root ends at *a place you can see, name and point
-    // at*; being a place you can walk BETWEEN is what `Exitable` adds.
-    // This is the Place branch's `Corpse`.
+  it('⚠ but NOT exitable — that is the next rung', () => {
+    // The root ends at *a place you can see, name and point at*; being a
+    // place you can walk BETWEEN is what `Exitable` adds.
     expect(MixinApi.hasMixin(Place, Mixins.Exitable)).toBe(false);
   });
 });

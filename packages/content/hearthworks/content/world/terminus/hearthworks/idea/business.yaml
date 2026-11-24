@@ -114,4 +114,5 @@ data:
     - /world/terminus/hearthworks/location/cookhouse
   # Where the cast wait off shift — one fact on the house (see
   # docs/subsystems/employment.md). The roster tick moves them.
-  offstage: /world/terminus/hearthworks/location/offstage
+  # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
+  offShift: out

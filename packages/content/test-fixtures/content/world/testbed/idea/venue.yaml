@@ -60,6 +60,9 @@ data:
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
   banksAt: testbed-bank
+  # ⭐ Off shift a hand is out of the narrative (persistence-model D15) —
+  # the day clerk, at 18:00.
+  offShift: out
   operatingLocations:
     # ⚠ Both the counter and the room it stands in (the general store's
     # precedent): a sale settles at the counter's path, a supplier is found
