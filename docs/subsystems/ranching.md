@@ -412,7 +412,11 @@ stated in daylength and the calendar decides when that happens. ⭐ Since
 organism-biology W7 (D9) the season is a condition ON her: the species'
 phenology carries `in-season` while the day sits in its `breeding` band,
 an entire male's `rut` likewise, and `breed` reads the conditions (a
-steer standing by her serves nobody). So
+steer standing by her serves nobody — and a herd's own males on the field
+count only the entire ones, `tally × (1 − female) × (1 − neuteredFraction)`).
+A boar cut young is a barrow and a cockerel a capon; the herd-scale acts
+(cut this year's calves, milk the herd) are
+[population-biology-slate](../slates/engine/population-biology-slate.md)'s. So
 **lambing in spring is a consequence of the calendar** rather than a
 flavour decision. The refusal names the daylength, because *"the days are
 still too long, she will not take"* is something a player can act on.

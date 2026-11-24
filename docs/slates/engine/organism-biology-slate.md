@@ -1,15 +1,24 @@
 # Organism biology slate — capability derives from anatomy
 
-> **Status: UNBUILT** — designed with the owner 2026-11-07 → 11-08, one question at a time, out of the
+> **Status: PARTIAL** — designed with the owner 2026-11-07 → 11-08, one question at a time, out of the
 > bestiary pilot ([pilot](../../bestiary/pilot.md), Part II themes A, B and D are its requirements
-> source). What ships: body plans as flat part lists with tissue shares that sum to 1 (biped,
-> quadruped, sessile, avian); `governs` (min) and `serves` (mean); innervation and supply; the function
-> axis (a wound costs a capacity); the depth ladder; the sever (`missing`, the only instance delta);
-> `sensoryPorts`, `locomotionModes`, `breathableMedia` and `thermalStrategy` on the plan;
-> `Species.production[]` (read by taps); `SexedMixin`; age as a date; the anatomical faculty.
-> **Left:** everything below. Every ruling is decided (§ 12, 2026-11-09), so this is ready for requirements.
-> **Size:** a build, and the substrate of the bestiary catalog, hunting, foraging and the
-> concealment-by-channel build
+> source). ⭐ **The substrate shipped** in the organism-biology build (MR !652): body plans composed from
+> module documents into a `Body`; `governs`/`serves`/`sustains`; `produces` on a gland; the integument
+> (armor, insulation, the pelt); tissue rows; cut maps derived from the body; the sever as a thing,
+> sealing and moult regrowth; coat cycles; sex, stage and castration variants and the growth curve;
+> phenology; per-stage plans; sense organs; fill; `lint:scaling`. See [body.md](../../subsystems/body.md).
+> What remains below is what that build did not take.
+> **Left:** acuity from eye size and the gland's own reserve (venom metering, the dry bite) · tattoos and
+> marks on a body's face · the remaining glands as yields (venom, ink, musk, the mana organ) and the
+> by-product web's trades · function from a mark, contents or charge · regrowth by a binding, the added
+> part, antler and molt cycling (shed hunting, the eclipse molt), fragmentation and fusion, the severed
+> part bargained back · drives and capability by stage, pregnancy and young, game law · giants only where
+> the field pays · skeletons and zombies as bound corpses · the new senses (echolocation,
+> electroreception, the mana sense, vibration, scent on the wind) · the forcing principle for
+> concealment and disguise · hyperphagia, the rut's fear, denning woken, ectotherm speed, cryptobiosis ·
+> diet by stage, the giant caterpillar, the curse · polymorph · the § 12 rulings for the magic half
+> **Size:** no longer one build — waves riding the senses / concealment-by-channel build, the mana
+> economy, the spellbook and the bestiary catalog, plus a small phenology tail
 > ⭐ **The owner on compatibility:** *"you don't necessarily need to try so hard to be backwards compat.
 > If it improves the design I'm willing to invest in the retrofit."* Shipped shapes named below are
 > **retired**, not preserved.
@@ -26,22 +35,11 @@ swimming from buoyancy, strength from muscle share × mass, bite force, acuity f
 production rate, mana capacity); some it never can, and those are declared (temperament and drives,
 habitat and diet, a binding's three answers, lore and culture).
 
-## 1. The grammar — body plans composed from modules **[DECIDED — "if it works for DF it works for me"]**
-
-- **A module is a reusable subtree of parts**, each keeping its tissues, shares and roles: head · neck ·
-  torso · limb pair (fore, hind, arm) · wing pair · tail · tentacle · fin set · shell · **amorphous** (the
-  slime, the cube).
-- **A plan is a list of modules with counts and attachments**: a biped is head + neck + torso + 2 arms +
-  2 legs; the hydra 9 head-neck pairs + torso + 4 legs + tail; the spider a cephalothorax + abdomen + 4
-  leg pairs; the griffin head + torso + 2 forelimbs + 2 hindlimbs + a wing pair + tail.
-- **Modules carry relative weights and the shares renormalize**, so `lint:anatomy`'s *sum to 1* holds by
-  construction. A species can adjust a module (longer arms, a heavier head).
-- The four shipped plans are re-expressed as compositions (retrofit welcome). A new animal is a list of
-  modules.
+## 1. The grammar — modules **[SHIPPED → [body.md § Modules and the `Body`](../../subsystems/body.md)]**
 
 ## 2. Three roles for a part **[DECIDED]**
 
-- **governs** — runs a capacity (shipped).
+- *governs: shipped ([body.md § Modules and the `Body`](../../subsystems/body.md)).*
 - **serves** — is *for* a capacity: limbs, and **sense organs**. A sense is a capacity served by eyes,
   ears, nose, tongue, skin. Wounding the organ costs the sense. **Position gives field of view**
   (forward eyes see depth and miss behind; side eyes see nearly all round — you cannot easily sneak up
@@ -49,9 +47,7 @@ habitat and diet, a binding's three answers, lore and culture).
 - **produces** — a **gland fills a reserve** (the shipped reserve axis): venom, silk, ink, milk, musk,
   sweat, the mana organ. Its share sets rate and capacity; use drains it (venom metering, the dry bite);
   wounding it stops it.
-- ⭐ **Retired:** `sensoryPorts` on the plan (ports move onto organs); **`Species.production[]`** — taps
-  read organs (an udder is a gland, wool grows from integument), and taps' feedback law becomes a fact
-  about the organ.
+- *`sensoryPorts` and `Species.production[]` retired as decided: [senses.md](../../subsystems/senses.md), [taps.md](../../subsystems/taps.md).*
 
 ## 3. Integument and tissues **[DECIDED — the owner: "this is actually great, it'll really expand our economy"]**
 
@@ -65,23 +61,15 @@ carapace — in a real material. One layer, four systems:
 | butchery and tanning | **the pelt**, recording its wounds per part (the perfect pelt as one rule) |
 | thermal | **insulation by textiles' own model** — fur's *clo* by depth; wet fur loses most of it; a winter coat is thicker |
 
-**New tissue materials**, each real with density, toughness, insulation and dielectric: **keratin**
-(horn, claw, hoof, hair, feather, scale) · **chitin** (⚠ fixes the shore crab's carapace authored as
-*bone*) · **cartilage** · **dentine and enamel** (teeth, tusk, ivory — a mana store) · **fat and blubber**
-· **shell** (calcium carbonate). ⚠ Collides with **material decomposition** (build-1), which regroups
-material properties into capabilities; whichever merges second reconciles.
+*The new tissue materials shipped as rows: [race.md § The body's own tissues](../../subsystems/race.md).*
 
 ### 3a. ⭐⭐ Butchery and the supply chain
 
-- **Skinning is its own step**, per part, the pelt carrying its wounds and the skinner's hand adding its
-  own risk (butchery's *the hand on joint versus trim*). What comes off depends on the integument:
-  tanning or fur dressing; plucking; scaling; cracking a shell.
+- *Skinning and the pelt shipped: [butchery.md § What comes off derives from the body](../../subsystems/butchery.md).*
 - **Glands become named yields** — the venom sac, silk glands, the ink sac, ⭐ **musk pods** (castoreum
   from the beaver, musk from the musk deer — real perfumery, tying into the smell build), the whale's
   spermaceti organ, a mana organ.
-- **Modules give every species a cut map for free** — cuts claim muscles, muscles live in modules, so a
-  limb pair yields shank and shoulder on every animal that has one. ⭐ **A generated monster is
-  butcherable on arrival.**
+- *Modules give every species a cut map: shipped ([butchery.md](../../subsystems/butchery.md)).*
 - **The by-product web:**
 
   | tissue | becomes | the trade |
@@ -103,11 +91,7 @@ material properties into capabilities; whichever merges second reconciles.
 
 ## 4. How parts combine, and what can govern **[DECIDED]**
 
-| rule | means | examples |
-|---|---|---|
-| **min** — serial (shipped `governs`) | every one is needed | one brain, one heart, one spine |
-| **mean** — shared (shipped `serves`) | each contributes | two legs, two eyes, eight arms |
-| ⭐ **max** — redundant (new) | any surviving one suffices | two kidneys; ⭐ **the hydra's nine brains** — it fights on as you cut |
+*min · mean · max shipped as `governs` · `serves` · `sustains` ([body.md](../../subsystems/body.md)).*
 
 **A part's function has four sources:** **tissue** (shipped — how wounded) · ⭐ **a mark on its face**
 (the golem: *emet* animates it, erase one letter to *met* and it stops) · ⭐ **its contents** (the kappa's
@@ -124,8 +108,7 @@ bow, drain it* — are properties of parts, so no creature is a special case.
 | ⭐ **added** | an extra part on this instance | the hydra — cut a neck, two grow back |
 | ⭐ **cycling** | grow · harden · cast · regrow on a seasonal clock | antlers; the winter coat; a duck's flight feathers |
 
-- **Regrowth is stopped by the wound's channel** — a burned or dissolved stump has no living tissue to
-  grow from: the troll's torch and the hydra's cautery as one rule, from harm's own record.
+- *Regrowth stopped by the wound's channel: shipped as `sealed` ([body.md § The body's state](../../subsystems/body.md)).*
 - **A severed part becomes a Thing** (the Thing branch, as the corpse did) — tissues and all; butchery,
   decomposition and forensics read it; the kappa's arm can be bargained back. Retires harm's *"a severed
   limb is an absence."*
@@ -136,9 +119,7 @@ bow, drain it* — are properties of parts, so no creature is a special case.
 
 ## 6. Variation inside a species **[DECIDED]**
 
-- **Sex — dimorphism as module deltas**: added modules (antlers, a mane), scaled modules, a mass factor,
-  glands (an udder that produces only when lactating — taps' feedback law gaining its real trigger). ⭐
-  **Castration removes the dimorphism** — a steer becomes the **ox**, calmer, heavier, a draft animal.
+- *Sex as module deltas, the udder in milk, castration and the ox: shipped ([body.md § Variants](../../subsystems/body.md), [harm.md](../../subsystems/harm.md)).*
 - **Age — a growth curve and stage deltas**: size by a real growth curve (von Bertalanffy, as fisheries
   use); proportions by stage (the young have big heads and long legs); integument by stage (a fawn's
   spots); drives by stage (the hider); capabilities from the smaller body by the square-cube law.
@@ -152,9 +133,7 @@ bow, drain it* — are properties of parts, so no creature is a special case.
   impossible creature — it demands it declare what pays**, a binding or a mana organ covering the deficit
   (the bestiary's authoring rule, checked at build). **Giants exist only where the field pays for them** —
   the danger map's second independent reason to follow the field.
-- **A module's fill** — solid, sparse (a ribcage, a skeleton), hollow (a shell). A point attack against a
-  sparse part delivers only the share of its energy that meets tissue — derived, never rolled (A6). Maces
-  beat arrows on skeletons.
+- *A module's fill: shipped ([body.md § The integument and fill](../../subsystems/body.md)).*
 - ⭐ **Skeletons and zombies are not species** (the owner's catch): **a corpse of any species at a stage of
   decay, with a binding driving it.** The corpse keeps its modules and tissues; decay removes tissue share
   by share; the binding's cost scales with the mass it moves (a skeleton's walk about 7 W, a zombie's 45 W,
@@ -210,14 +189,10 @@ habit, trainable (the awareness Discipline), and a culture may differ. → **Its
 
 ## 10. Metamorphosis, and changing shape **[DECIDED — "I can't wait for what it does for scaled-up content like giant caterpillars"]**
 
-- **A species may declare a body plan per stage** (complete, incomplete and amphibian metamorphosis). **One
-  instance, one identity** across the change. **Mass carries; none is created** (A13 — butterflies weigh
-  less than their caterpillars).
+- *A plan per stage, one identity, mass carried: shipped ([body.md § Development](../../subsystems/body.md)).*
 - **Capabilities swap because the organs do** — diet, locomotion, senses, and ⭐ **breathing: a tadpole's
   gills, a frog's lungs — so `breathableMedia` derives from respiratory organs** and the plan field retires.
-- ⭐ **The cocoon is the larva's own silk** — its gland spins a Thing the pupa lies inside; sericulture's
-  reeling and stifling now have an anatomical reason. The trigger is development by **degree-days**
-  (sericulture ships the clock).
+- *The cocoon is the larva's own silk: shipped ([sericulture.md § One worm, three bodies](../../subsystems/sericulture.md)).*
 - **Scaled up:** a giant caterpillar breathes by diffusion, so the square-cube lint makes it declare what
   pays — it lives near nodes; it **defoliates a stand** (forestry's wood is a place); its cocoon is a
   **silk windfall**; its adult looks nothing like it.
@@ -279,33 +254,7 @@ Still open, and not this build's: the remaining pilot items (how lycanthropy is 
 living-culture calls, the realm-lore suggestions, the goblin pick). They belong to the
 [bestiary slate](../world/bestiary-slate.md) and to the realm authors.
 
-## Reuse ledger for the plan **[2026-11-21, at requirements]**
-
-Every concept the build needs, what already does it on master, and whether the build reuses or
-generalizes it. Requirements: [organism-biology-requirements](../../requirements/organism-biology-requirements.md).
-
-| concept | already doing it | verdict |
-|---|---|---|
-| module composition | `BodyPlan.bodyParts[]` (flat, dotted keys, `parent`); swine `extends:` quadruped; `lint:anatomy` (sum-to-1, tissue resolves, plan carries claimed tissue) | **generalize** — modules expand into the same part list; the lint keeps its checks, sum-to-1 by construction |
-| governs / serves | `governs[]` min, `serves[]` mean, `functionAt`, `capacity(k)`, six `BodyCapacity` keys | **reuse**; add the third rule (max) beside them |
-| produces (glands → stores) | `Species.production[]` (`TapSpec`), one reader `husbandry/Producing.ts`; the reserve axis (`ReservedMixin`) | **generalize** — taps read the organ; the feedback law moves onto it; `production[]` retires |
-| sense organs as parts | `BodyPlan.sensoryPorts` → `PerceptionLogic.sensorium`; `Species.visionProfile` / `olfactoryProfile.acuity` | **retire ports** into organ parts; acuity and the watched share derive from the eye; site-conditions-slate's organ half absorbed |
-| breathing from organs | `BodyPlan.breathing[]`, `getBreathableMedia()`, `Species.breathingFor()` + `breathingByStage` | **generalize** — derive from respiratory organs per stage; plan field retires |
-| locomotion, thermal strategy | `locomotionModes` (Exit, LocomotionLogic, SpeciesLogic), `thermalStrategy` (ThermalRegulation) | **derive where physics can** (limbs, fins, wings); declared where it cannot |
-| integument as armor | the covering stack + materials-response grids, the depth ladder | **reuse** — the integument is the innermost covering |
-| integument as face | `SoilableMixin` deposits; `faces.md` coats | **reuse** on animals; tattoos deferred |
-| integument as pelt | `trade/ranching/thing/hide` on 4 species; `Trauma.site` per part; `salt-hide`/`tan` | **generalize** hide → pelt recording per-part wounds |
-| integument as insulation | textiles' derived per-part `clo` + wet model → `thermal.md` worn insulation | **reuse** — the coat is one more layer in the same sum |
-| tissue materials | horn (Horn, keratin tag), leather, rawhide, wool, down, bone (HideHorn), fat kinds, tallow, eggshell; the capability/kind split + `lint:material-kinds` | **reuse kinds**; new rows (keratin, chitin, cartilage, dentine, enamel, ivory, blubber, shell, feather, fur, scale); crab's bone → chitin |
-| cut maps | `CutMixin.tissues[]` claims muscles; 15 hand-written `butcheryYield` lists; `butcher <body> [for <cut>]` | **generalize** — cuts derive from modules; the lists retire; skinning is a `for pelt` line on the same verb |
-| severed part | `VitalsMixin.severPart` → `BodyPartDelta.missing` (absence); the corpse on the Thing branch | **generalize** — the subtree mints a Thing like the corpse does; harm's absence sentence retires |
-| part states (regrowing, cycling) | `bodyPartDeltas`; calendar windows (`TapWindowSpec` photoperiod/biome); harm's channel record | **generalize** the delta; cycling on the shipped windows; regrowth stopped by the recorded channel |
-| sex, age | sex on `OrganismMixin` (SexedMixin retired); `bornAt`, `ageCurve`, `getLifeStage()` | **reuse**; add per-sex module deltas and stage deltas |
-| reproductive states, castration | milk's `window: event` (freshen/dry off); `breed` writes served; `WorkingAnimal` ox role; herdbook `femaleFraction` | **generalize** — states on the body; lactation drives the udder; `castrate` in trade-ranching; herdbook records it |
-| body states | `Condition` rows (signature · resolution · observableSigns); the shipped `torpor` row, spawned by the thermal cascade | **generalize** (plan review 2026-11-22, owner) — the states are Condition rows; the new piece is **phenology**, a species-declared schedule of triggers evaluated where torpor's cascade runs; no new mixin |
-| metamorphosis, the swap | `breathingByStage` (frog); sericulture's degree-day clock on the tray | **generalize** — per-stage plans, one identity; the tray becomes the compression of individual worms (ranching D19) |
-| square-cube check | `lint:anatomy` (structural only) | **genuinely new** gate (a census over species rows; never refuses — requires a declared payer) |
-| module fill | materials-response delivery by construction | **genuinely new** field on the module; read by the same delivery |
+## Reuse ledger for the plan — consumed by the build; see [body.md](../../subsystems/body.md).
 
 ## Cross-references
 

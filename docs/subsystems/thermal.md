@@ -547,6 +547,22 @@ wetness, and it scales the wind-chill term down by
 oiled thing simply is one*. A jumper under an open coat does not break a
 wind, and a soaked shell stops working.
 
+### ⭐ A body's own coat (organism-biology D3)
+
+A body's integument `coat` and `under` layers (fur, feather, down, the
+fleece) insulate by the **same law as a garment** — `thickness / k_eff /
+R_CLO`, the void filled through `material.wetProperty` with the **body's**
+wetness, so wet fur loses most of its worth for the same reason wet wool
+does. `ThermalRegulationMixin.coatInsulation()` sums each exterior part's
+coat by its share of the skin and adds it to `bodyInsulation()` at the
+reconcile's one clo read. It is counted **beside** what the body wears,
+never inside `Attired` (whose concept is *a body with clothes on it*). A
+coat's depth follows its `cycle` (a daylength band and a thickness factor
+— the winter coat, derived on read, nothing persisted) and, for a coat that
+is also a tap (the sheep's fleece), how full that tap stands: shear her and
+the term falls to nothing, and she reads colder. Bare skin is worth 0, so
+no person's numbers moved.
+
 ### ⭐⭐ Immersion — the place says who is in its water
 
 "In the water" is derived from **support**, never a flag

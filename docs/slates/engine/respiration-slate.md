@@ -1,18 +1,18 @@
 # Respiration slate — the sealed room, and where the oxygen isn't
 
-> **Status: TAIL** — drafted 2026-09-21 out of the fishing build's
+> **Status: PARTIAL** — drafted 2026-09-21 out of the fishing build's
 > immersion work (MR !268), after reading what `RespirationMixin` and the
 > fire driver actually do. Respiration shipped its crisis engine, the
 > water-breather inversion, the air tank and the contaminant channel; the
 > original slate was absorbed and retired. This is what is left once the
 > [underwater slate](./underwater-slate.md) has taken depth,
-> pressure, the bends, buoyancy, the snorkel and the tidal node.
-> **Left:** ⚠ **the in-place trigger** (a body standing still is never
-> re-checked — fire's smoke is a live consumer today) · **the air reserve
-> as a breathable read** (rooms already carry one; nobody breathes it) ·
-> a BOD term on the reach's oxygen (watershed's line) · three named
-> non-goals with destinations
-> **Size:** a tail — one small kernel build plus one watershed line
+> pressure, the bends, buoyancy, the snorkel and the tidal node. § 2 (the
+> in-place trigger) shipped with organism-biology (D17, MR !652).
+> **Left:** **the air reserve as a breathable read** (rooms already carry
+> one; nobody breathes it) · a BOD term on the reach's oxygen (watershed's
+> line) · the named non-goals with destinations (§ 5) · continuous
+> evaporation of an open volatile
+> **Size:** a tail — one small kernel item plus one watershed line
 
 **Sits on:** [respiration.md](../../subsystems/respiration.md) (the
 crisis engine, `breathableMedia`, the immersion read, `AirTank`) ·
@@ -46,9 +46,6 @@ Markers: **[DECIDED]** with the user · **[LEAN]** · **[OPEN]**.
   known-medium exemption — a liquid is a liquid.
 - **Amphibians ship**: the shore crab's plan is `breathableMedia: [water,
   air]`. No clock on either — a crab in air is fine forever.
-- **The reassess triggers are exactly three**: `onTraversed`, `onMoved`
-  (fishing), and the drain's own tick *while a drain is already running*.
-  Nothing else in the tree calls `reassess()`.
 - **Enclosed rooms author an `air` reserve** (`reserves: { air: … }` in
   %, the brewing cold-store and the vintner floor do). The **fire driver**
   consumes it per burning object, a ventilated boundary refills it, and
@@ -66,27 +63,7 @@ Markers: **[DECIDED]** with the user · **[LEAN]** · **[OPEN]**.
   (species ∪ media granted by active conferred mixins — gills, implants, a
   potion); the `'channel'` cause (strangulation — combat's).
 
-## 2. ⚠ The defect: a body standing still is never re-checked **[DECIDED]**
-
-`fire.md` says the smoke "asphyxiates for free — the existing respiration
-medium crisis". It does, **for anyone who walks into the room.** Anyone
-already standing in it when the fire starves keeps breathing until they
-leave and come back, because `setAtmosphere('smoke')` tells nobody. The
-same wall is waiting for the underwater slate (medium derived from the
-reach's level — a shore node going under on the flood) and for the tidal
-cave that becomes a ceiling.
-
-> **The medium change fans out to the scope's occupants.** When a scope's
-> atmosphere changes — `Atmospheric.setAtmosphere`, and the air reserve
-> crossing its floor (§ 3) — every respiring occupant, one containment
-> level deep (a body in a bath in the room is immersed and unaffected;
-> a body in an open crate is not), gets a `reassess()`. Fire-and-forget,
-> caught, the `onMoved` shape.
-
-Not a scheduler, not a poll: the idle case stays provably zero-cost.
-The trigger lives with the *setter* (the biome/atmospheric side), not
-with fire — fire is the first caller, the tide the second, a wizard's
-`config` the third.
+## 2. The in-place trigger — shipped: [respiration.md § The reassess triggers](../../subsystems/respiration.md) (5, *the air changes*)
 
 ## 3. The air reserve as a breathable read **[DECIDED]**
 
@@ -166,10 +143,7 @@ test.
    vault is the story.
 2. **Does the reserve draw scale by body mass now or later?** Lean later
    — one dial, the fidelity is a line when physiology lands stature.
-3. **The fan-out depth.** One containment level (lean) or the full
-   reachable set. One level covers a crate and a bath; a body in a
-   closed wardrobe in a smoky room is *in the wardrobe's air*, which is
-   an honest answer.
+3. *The fan-out depth — resolved: one containment level ([respiration.md § The reassess triggers](../../subsystems/respiration.md)).*
 
 *(Retire when: the in-place trigger and the reserve read ship with fire as
 the driven consumer, and the BOD term has a home in the water pack or has

@@ -31,10 +31,27 @@ chop, a skin as a hide, a feather coat as feathers and down), and
 share of the parts still on it × the live weight × the finish (condition)
 — or no finish for what is the size the animal IS (the hide, the bones).
 A `Cut` row's `portionKg` says how big one piece is, so a whale comes off
-in strips and slabs, not one ten-tonne lot; anything else is one lot. The
+in pieces, not one ten-tonne lot; anything else is one lot. ⚠ Size the
+piece at the trade's own scale: a whale is flensed in ton-sized *blanket
+pieces* — at 40 kg a strip a grown sperm whale made ~1,000 objects and
+stalled the world (organism-biology B38). The
 pelt records the holes it was killed through (`holed · slashed · burned ·
 nicked`, each with its site). A severed part (a foreleg on the ground) is
 a body of its own subtree and butchers like one. See [body.md](./body.md).
+
+**The skin is the first line of every carcass.** A bare `butcher` takes
+it before any cut; `butcher <carcass> for <word>` takes the one line that
+word names, and each coat answers to its own word (the hide to `pelt`,
+`hide`, `skin`; `feathers`, `down`, `scales`, `carapace`, `shell`), so a
+hen's `for feathers` leaves the down and nothing prompts. The pelt's
+flaws are all derived, never rolled: one per wound on an exterior part by
+mechanism (`point` → `holed`, `edge` → `slashed`, `heat` and `corrosion` →
+`burned` — to a tanner the grain is gone either way); a `slashed` wherever
+a cut was taken before the skin; and **the skinner's hand** — one `nicked`
+per competence band short of `standard`, on the largest parts first. A
+coat in its thick season at the kill grades the pelt `fine` (*the winter
+pelt is the better pelt*). Only the skin's line carries flaws; feathers
+and down do not.
 
 ## The share model
 
@@ -145,6 +162,11 @@ the cut row's keywords.
 ⭐⭐⭐ **The carcass REDUCES.** `Corpse.takenTissues` / `takenLines` mean
 what you took is gone and what you left is still there, so a side can be
 worked **to order** — lift the loin to sell and come back for the rest.
+⭐ **And it weighs less as it goes** (organism-biology B39): the ledger's
+`take(line, kg)` lowers the corpse's mass by what came off and keeps
+`takenKg`, so the next butchering's shares are still of the WHOLE animal
+(`liveKg = mass + takenKg`). A skin or coat taken leaves the carcass
+saying so — *skinned*, or *its coat is off; the bare skin shows*.
 The body is destructed only when every line is off it. That gives partial
 breakdown and trimming with **no second verb**, and makes the lens-4
 choice real: prime to the inn, or keep it. ⚠ Not durable: `Corpse`

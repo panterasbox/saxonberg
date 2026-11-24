@@ -85,7 +85,10 @@ an hour apart while the rearing lives) and the staging setter
   breed with a bigger gland.
 - ⭐ **Emergence is the stack's own wake**, armed at `spunAt + emergeDays`
   (exact) for a stack never stifled; it pierces the stack, lays the lot and
-  lets ONE moth out where the stack stood. A `look` at a fortnight-old
+  lets ONE moth out where the stack stood. ⚠ A stack on a tray lays BESIDE
+  the tray (a tray holding cocoons takes no eggs), else the eggs are lost
+  — and a lay never throws (organism-biology B44: a vetoed lay once killed
+  the world at boot). A `look` at a fortnight-old
   stack integrates its heat and changes nothing else. `setSpunAt` is the
   staging setter. A lone worm off the tray does not age on its own (its
   clock is the degree-days it left with) — deferred, with the lone worm

@@ -143,6 +143,17 @@ with player verbs.
   <place>`, `--alive`) — the same rules in-world, in a test world only. The compound subcommand
   words are the non-diegetic rule (a command is never deeper than `verb subcommand target`;
   controller-liquidity W16 — they were nested `clock advance` / `weather pin`).
+- **Bodies** (organism-biology): `testharness body <body> [perceiving <handle>]` (the
+  report — stage, sex, capacities, core, lost parts; `perceiving` takes a handle so a
+  concealed body can be named), `body-wound <body> <part> <channel> [n]`, `body-sever
+  <body> <part> [heat|corrosion]` (the third word seals the stump), `body-kill`,
+  `species <name|#id> <species path>`, `daylight-pin <fraction>`. A body subcommand
+  whose target binds no thing falls back to the typed handle (`#id`, path, a resident's
+  name).
+- ⚠ **A dirty drive run many times bloats its own world.** The purge removes test
+  characters, not the animals and things a drive clones; thirty organism-biology runs
+  left a database every boot restored and reconciled, until a boot passed 40 minutes.
+  `pnpm --filter @saxonberg/server reset:db` between dirty runs (organism-biology B48).
 
 ## How often to run it
 

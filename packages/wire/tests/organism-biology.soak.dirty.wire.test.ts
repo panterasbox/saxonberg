@@ -56,7 +56,7 @@ afterAll(() => {
 });
 
 async function idsHere(): Promise<Set<string>> {
-  const rows = await wiz.query('peers', { fields: 'ref' });
+  const rows = await wiz.query('~peers', { fields: 'ref' });
   return new Set(rows.map((r) => String((r as { stuffId?: string }).stuffId ?? '')).filter(Boolean));
 }
 

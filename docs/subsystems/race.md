@@ -1142,6 +1142,22 @@ have had to guard on a tag. ⚠ Not a reuse of `toughness`, which is the
 blunt channel's MJ·m⁻³ — reusing it would make a shank harder to *bruise*
 than a loin in a fight. See [butchery.md](./butchery.md).
 
+## ⭐ The body's own tissues (organism-biology D4)
+
+The integument, the teeth and the named organs needed real materials, and
+they are **rows under existing kinds — no new kind class**. In
+`base-library`'s `/stuff/idea/material/tissue/`: `keratin` (`Horn` — hoof,
+claw, beak); `chitin`, `cartilage`, `dentine`, `enamel`, `ivory`, `fur`,
+`feather`, `scale` (`HideHorn`); `skin` (`Hide`); `shell` (`Stone`,
+eggshell's kind); and `kidney`, `eye`, `udder`, `gonad`, `swim-bladder`
+(each `extends:` the `organ` row) — named organ tissues, so each can name what it comes off as
+([butchery.md](./butchery.md)). Pack rows: `blubber`, `spermaceti`,
+`whale-oil` (`trade-fishing`; whale oil carries lamp oil's kind and tags,
+so a lamp burns it with no code) and `silk-gland` (`trade-sericulture`).
+Each authors every field its kind's capabilities expect. ⚠ The shore crab's
+carapace, once authored as `bone`, is `chitin` with a `plate` integument.
+No tissue row carries a dielectric yet — that is the mana economy's seam.
+
 
 ## History
 

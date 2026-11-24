@@ -48,8 +48,24 @@ requirements:
 
 ## The vocabulary
 
-`TapSpec` on `Species.production[]` (kernel, authorable). A tap is a
-species fact, which is already the engine's belief about animals.
+`TapSpec` on a gland part's `produces` (kernel, authorable on a body
+module — organism-biology D2; `Species.production[]` retired). A tap is a
+fact about the organ, which is already the engine's belief about animals.
+
+⭐ **The gland is a part** (organism-biology D2). `ProducingMixin.taps()`
+reads `organism.getBody()?.producers()`, so the udder exists only on the
+body whose sex delta adds it (a bull has no milk tap at all, and `TapSpec`
+lost its `sex` field), the fleece is the sheep's coat, sap and latex sit on
+a tree's `sapwood` part and honey on the bee's `crop`. The feedback law
+(`behaviour`, `windowDays`, `broodAfterDays`, …) is authored on the gland.
+**A wounded gland makes less**: the fill is multiplied by the part's
+function band — full 1, impaired ½, failing or lost 0 (`glandFactor`); a
+hive and a tree take no wounds and fill at 1. ⚠ The store stays
+`ProducingMixin.tapState`, **not** a `Reserve`: a tap also holds
+`driedOff`, `brooding`, `fullSince` and `worst` — the feedback law's whole
+state — so moving the standing alone would leave two records per gland,
+and a `Hive` is not a `Creature`. The tap key is unchanged, so `tapState`
+restores by it.
 
 | field | what it decides |
 |---|---|

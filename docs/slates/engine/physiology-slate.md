@@ -17,7 +17,7 @@
 > this file: **BMI, its bands and body density shipped** with it — see
 > [exertion.md](../../subsystems/exertion.md). Nothing else in `Left`
 > moved.
-> **Left:** per-individual stature (BMI itself shipped; stature is still
+> **Left:** what seals a stump (§ The sealed stump) · per-individual stature (BMI itself shipped; stature is still
 > a **species** figure, so two bodies of one species cannot differ in
 > height — § Anthropometrics) ·
 > pain as a derived reader · the alarm-clock optimization over
@@ -1980,3 +1980,16 @@ gameplay.** Without it, this slate can build `restorePart` and the
 prosthetic and the stump-economy, but the *loss* stays decapitation-and-
 hazard only — half a system. Sequence: combat's called shot first, then
 this.
+
+## The sealed stump has no way to happen (from organism-biology, 2026-11-24)
+
+Organism biology D7 shipped regrowth at the moult: a lost part that
+`regrows` comes back unless the stump was **sealed by heat or a caustic**.
+In play, though, a stump is sealed only when an **avulsion** is inflicted
+by the `heat` or `corrosion` mechanism (`ConditionLogic.severIfTaken`),
+and a heat wound is a *burn*, never an avulsion. No shipped delivery was
+found that seals one; only `testharness body-sever <body> <part> heat`
+stages it. The open design: what seals a stump — cautery as a medical act,
+a heated blade, fire taking a limb — and whether a sealed stump is the
+burn's own outcome or a second act. It belongs beside § 7h (reattachment),
+since a sealed stump is also one nothing can be reattached to.

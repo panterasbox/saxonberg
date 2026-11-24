@@ -80,7 +80,6 @@ const PAIL = '/stuff/thing/vessel/pail';
 const SALT_SACK = '/trade/cooking/thing/salt-sack';
 const SALTING_TROUGH = '/trade/cooking/thing/salting-trough';
 const TANPIT = '/trade/tanning/thing/tanpit';
-const FRAME_PACK = '/trade/tanning/thing/frame-pack';
 // The ranching animal row, staged as a bullfrog (a drive stands in the scaffold; its name follows its species).
 const BULLFROG = '/stuff/idea/species/animalia/chordata/amphibia/anura/ranidae/lithobates/catesbeianus';
 
@@ -99,7 +98,6 @@ let wiz: Session;
 let boningKnife = '';
 let surgeonsKit = '';
 let stockKnife = '';
-let pack = '';
 let player: Session;
 
 async function login(handle: string, opts: Parameters<typeof Session.open>[1] = {}): Promise<Session> {
@@ -111,7 +109,7 @@ async function login(handle: string, opts: Parameters<typeof Session.open>[1] = 
 
 /** Every stuffId standing in the yard (`peers`: the place's contents). */
 async function idsHere(s: Session): Promise<Set<string>> {
-  const rows = await s.query('peers', { fields: 'ref' });
+  const rows = await s.query('~peers', { fields: 'ref' });
   return new Set(rows.map((r) => String((r as { stuffId?: string }).stuffId ?? '')).filter(Boolean));
 }
 
@@ -129,7 +127,7 @@ async function clone(path: string): Promise<string> {
 async function leftBy(s: Session, text: string): Promise<{ out: string; left: string[] }> {
   const before = await idsHere(wiz);
   const { out } = await say(s, text);
-  const rows = await wiz.query('peers', { fields: 'detail' });
+  const rows = await wiz.query('~peers', { fields: 'detail' });
   const left = rows
     .filter((r) => !before.has(String((r as { stuffId?: string }).stuffId ?? '')))
     .map((r) => JSON.stringify(r));
@@ -190,11 +188,6 @@ suite.skipIf(!isOwnedTestWorld())('organism biology — the blocking drive', () 
     lap(`daylight pinned: ${pin.out.slice(0, 120)}`);
     // The butcher's block and knife stand in the yard for every carcass.
     await clone(BLOCK);
-    // A frame pack on the player's back: what the drive makes and keeps
-    // rides in it to the restart (B46).
-    pack = await clone(FRAME_PACK);
-    expectOk(await player.cmd(`get ${pack}`));
-    expectOk(await player.cmd(`wear ${pack}`));
     boningKnife = await clone(BONING_KNIFE);
     expectOk(await player.cmd(`get ${boningKnife}`));
   }, 900_000);
@@ -242,6 +235,8 @@ suite.skipIf(!isOwnedTestWorld())('organism biology — the blocking drive', () 
     const fell = skin.left.find((r) => /pelt|skin|fleece|hide/i.test(r));
     expect(fell, `a sheepskin came off: ${skin.out.slice(0, 160)} | ${names(skin.left)}`).toBeDefined();
     leather = `#${String((JSON.parse(fell!) as { stuffId?: string }).stuffId)}`;
+    // A green hide takes both hands: the knife goes down while it is worked.
+    expectOk(await player.cmd(`drop ${boningKnife}`));
     expectOk(await player.cmd(`get ${leather}`));
     // ⚠ `cure` refuses every hide ("isn't enough rawhide") — pre-existing on
     // master (B45); a green hide goes straight into the pit, as it may
@@ -263,10 +258,10 @@ suite.skipIf(!isOwnedTestWorld())('organism biology — the blocking drive', () 
     note(`3 look leather: ${look.out.slice(0, 260)}`);
     expect(look.out).toMatch(/tanned through/i);
     expect(look.out).toMatch(/hole|holed|pierced|torn/i);
-    // ⭐ It is carried from here on, in a pack on the player's back, so the
-    // restart (16) reads back the very skin (B46: a hide left lying through
-    // the drive's long jumps was refused `nowhere-to-carry` on re-pickup).
-    expectOk(await player.cmd(`put ${leather} in ${pack}`));
+    // Set down, and the knife taken back up for the butchering ahead (a
+    // worn pack would keep it, but `wear` leaves a pack in the hand — #160).
+    expectOk(await player.cmd(`drop ${leather}`));
+    expectOk(await player.cmd(`get ${boningKnife}`));
   });
 
   it('4 · a hen gives feathers and down, and the plucked bird is bare-skinned', async () => {
@@ -410,16 +405,19 @@ suite.skipIf(!isOwnedTestWorld())('organism biology — the blocking drive', () 
     leg = `#${String((JSON.parse(left.find((r) => /leg/i.test(r))!) as { stuffId?: string }).stuffId)}`;
     const body = await bodyOf(sheep);
     expect(JSON.stringify(body.missing)).toMatch(/leg\.frontLeft/);
-    expectOk(await player.cmd(`get ${leg}`));
-    expectOk(await player.cmd(`put ${leg} in ${pack}`));
   });
 
   it('12 · a shorn sheep reads colder than one in its fleece', async () => {
     const shorn = await beast(SHEEP, 'female', 900);
     const fleeced = await beast(SHEEP, 'female', 900);
+    // ⚠ Both staged: a 900-day ewe has grown 900 days of fleece (her birth
+    // precedes the world clock, B40), so "shorn" must be SAID, not assumed.
+    await stage(shorn, 'setTapStanding', 'wool', 0);
     await stage(fleeced, 'setTapStanding', 'wool', 4);
     // A cold wet night (requirements drive 12).
-    expectOk(await wiz.cmd('testharness weather-pin storm'));
+    // Snow at night: a freshly reset world's spring storm proved too mild
+    // to part them (both held 310 K); snow drives a frog torpid (13).
+    expectOk(await wiz.cmd('testharness weather-pin snow'));
     expectOk(await wiz.cmd('testharness daylight-pin 0'));
     // ⚠ Eight hours of storm kills a shorn sheep; a clothed student lives
     // through it (the probe's founder lived through sixteen). The player
@@ -487,6 +485,18 @@ suite.skipIf(!isOwnedTestWorld())('organism biology — the blocking drive', () 
     const { out } = await say(player, 'look me');
     note(`15 look me: ${out.slice(0, 300)}`);
     expect(out).toMatch(/sight is blurred|barely see|cannot see/i);
+  });
+
+  it('17 · losing one kidney leaves a body standing', async () => {
+    const ewe = await beast(SHEEP, 'female', 900);
+    const before = await bodyOf(ewe);
+    expectOk(await wiz.cmd(`testharness body-wound ${ewe} body.torso.kidney.left point 60`));
+    const after = await bodyOf(ewe);
+    const filtration = (b: Record<string, unknown>): string => String((b.capacities as Record<string, string> | undefined)?.filtration);
+    note(`17 one kidney wounded: alive ${String(after.alive)} · filtration ${filtration(before)} → ${filtration(after)} · traumas ${JSON.stringify(after.traumas).slice(0, 120)}`);
+    expect(JSON.stringify(after.traumas), 'the kidney took the wound').toMatch(/kidney\.left/);
+    expect(after.alive).toBe(true);
+    expect(filtration(after)).toBe('full');
   });
 
   it('16 · a restart keeps the wounded eye (the carried leather and foreleg: B47)', async () => {

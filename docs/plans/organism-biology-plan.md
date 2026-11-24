@@ -2645,6 +2645,21 @@ a loaded machine — the restart's boot alone ~25.
 | 15 | a player's wounded eye is told to them | ✓ "Your sight is blurred" |
 | 16 | a restart keeps the eye | ✓ the eye; carried leather and foreleg not found (B47, note) |
 
+**Finalize run (2026-11-24, after the master merge, a dropped database, a
+fresh world):** **17 of 17** — sixteen in one run, step 12 rerun alone
+after its fix. Driving the merged tree found three things the drive itself
+assumed: master's naming overhaul made the MQL seed `peers` a relation
+(`~peers`) — the drive's own lookups had to be respelled (master's
+`cooking`, `consequence` and `logistics` drives still say `peers`); the
+worn frame pack is #160, so the drive no longer uses one (the knife goes
+down while the two-handed hide is worked); and a 900-day ewe has grown 900
+days of fleece once her birth may precede the world clock (B40), so step 12
+stages the shorn sheep's wool to zero as well as the fleeced one's, and the
+night is snow. Step 17 (one kidney wounded: alive, filtration full) is new.
+Findings filed: #158 (one-boot re-login 500), #159 (`cure` refuses every
+hide; tanned hide keeps its green name), #160 (carrying: the pack, the
+two-handed hide, the restart).
+
 **B2 — each checkpoint seen red for a real reason before it went green:**
 2 (mass did not fall), 4 (no bare-skin line), 5 (0 pieces off a hatchling),
 6 (heat never severs), 9 (unskilled; read before the cut finished),

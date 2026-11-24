@@ -29,6 +29,10 @@ Related: [race.md](./race.md) (materials, clades, species), [vitals.md](./vitals
   plan and checks it), so one plan serves a canary and an ox.
 - Every anatomy question is asked of the body: `Organism.getBody()` →
   `Species.bodyFor(variant)`.
+- A species adjusts its plan without re-authoring it: a top-level `body:`
+  delta on the species row (`scale` a module by its `as` key, `add` module
+  entries, override an `integument`) — the same delta shape a variant
+  uses, applied first. Scaling renormalizes, so the sum stays 1.
 
 ## Variants: sex, castration, stage — and development
 
@@ -49,6 +53,14 @@ Related: [race.md](./race.md) (materials, clades, species), [vitals.md](./vitals
   deltas on parts the new body lacks go with them, a wound on one passes
   to its nearest kept ancestor, a slot the new plan lacks lets go, the room
   is told. Same object, same identity.
+- **Growth** (D8): `Species.massAt(ageDays, variant)` walks the adult
+  mass (× the form's `massFactor`, × a stage's own `massFactor`) back down
+  a von Bertalanffy curve, `W∞(1 − b·e^(−kt))³` — the curve of a body that
+  builds tissue by its surface and burns it by its mass, so a half-grown
+  animal is heavier than a straight line says and the last stretch is
+  slow. Nothing new is authored: `b` puts birth at 7 % of adult mass for
+  every species and `k` comes from `matureAt`; an adult weighs what its
+  row says, and a species with no `ageCurve` does not age.
 
 ## The body's state: the delta
 
@@ -59,6 +71,14 @@ lets go of what its slots held, and mints the part as a thing (a corpse of
 its subtree). A part that `regrows: moult` comes back at the species'
 moult unless sealed. A row may author `lostParts` (an ox) — seeded through
 the delta half, never a sever.
+
+⭐ **Why a stump seals.** A part lost to heat or corrosion — or a missing
+part a later burn or caustic wound is aimed at — is stamped `sealed`, and a
+sealed part never regrows: a burned or dissolved stump has no living
+tissue to grow from. That is the troll's torch and the hydra's cautery as
+one rule read off harm's own record, not a per-creature exception. The
+wound aimed at a missing part re-sites to its nearest present ancestor
+instead of landing on a part the body does not have.
 
 ## What the parts give
 
@@ -73,6 +93,25 @@ the delta half, never a sever.
 
 ⚠ An **unmodelled** body (a plan with no parts) breathes air as a person
 does; a body with parts breathes only from its organs.
+
+## The integument and fill
+
+- **The integument is the innermost covering, always present.** When a
+  part's `skin` authors a covering `form` (a hide is `hide`, a carapace or
+  a shell `plate`), `inflictThroughStack` attenuates the blow through it
+  by the same material-response grids as worn plate — natural armor is not
+  a separate model. Bare skin authors no form, so no person's combat
+  numbers moved. The crab's carapace is `chitin` with a `plate` form.
+- **The coat is insulation by the garment's own law** — counted beside
+  what the body wears, never inside `Attired` (see
+  [thermal.md](./thermal.md)).
+- **Fill** (`solid · sparse · hollow`, D12): a `point` insult's residual
+  energy is scaled before it meets tissue (`response.fill.sparse` 0.4,
+  `response.fill.hollow` 0.2) — a thrust through a wing or a fin mostly
+  finds air, through a swim bladder more so. Derived from the part, never
+  rolled; a mace (blunt) is not scaled, so it beats an arrow on a sparse
+  body. Wings and fin sets are `sparse`, the swim bladder `hollow`,
+  everything else `solid`, so persons are unchanged.
 
 ## Seasons: phenology
 
