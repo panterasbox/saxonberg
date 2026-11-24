@@ -1422,14 +1422,39 @@ to say 'hey this guy worked as a field hand on Smallberries Farms for 20 years'.
   Disciplines' field-of-education codes. What the direction does is discovered in play — the first
   consumer is the university, the next content after the bar and the lounge. Whether the player may
   choose among what they are drawn to is **[OPEN]**.
-- **The trait lean from a workplace is a PRIOR that lineage owns** **[DECIDED]** — keyed by
-  Discipline, labeled as lineage's own guess about what kind of people end up in what kind of work.
-  It claims nothing about how the game's systems behave. It is replaced when the game can measure the
-  relationship, and lineage then changes only its source.
-- ⛔ **What this does NOT claim.** Nothing today exercises a trait (nothing outside the trait module
-  writes trait evidence), and how the game will ever measure *"farming takes patience"* is the
-  instrumentation question — **parked** in [trait-slate](../engine/trait-slate.md) § *How content
-  expresses change*. No mechanism is proposed here.
+- **The trait lean from a workplace is a PRIOR that lineage owns** **[DECIDED]**, labeled as
+  lineage's own guess about what kind of people end up in what kind of work. It claims nothing about
+  how the game's systems behave, and is replaced when the game can measure the relationship — lineage
+  then changes only its source. ⚠ **Re-keyed 2026-11-24 (below): by the TROPES the work tends to
+  play, not by Discipline.**
+- ~~*What this does NOT claim … parked*~~ → instrumentation is designed now: [tropes-slate](../engine/tropes-slate.md).
+
+### ⭐⭐ What tropes change here **[2026-11-24 — the owner: "write it up in the lineage slate"]**
+
+The tropes design ([tropes-slate](../engine/tropes-slate.md)) — traits are written only by tropes,
+over beats, over acts — lands on the demo in four places.
+
+1. **The workplace prior is replaced by something the tropes build already ships.** The measured
+   version of *"farming takes patience"* is not a new statistic: it is the author surface **"has fired
+   here"** — which tropes happen at a business's places and what they write is exactly what kind of
+   person that work makes. Lineage reads that projection when it exists, and builds nothing of its
+   own. ⚠ **This corrects the keying above:** Disciplines stay activity credit (what the work IS);
+   traits come only from tropes, so the lean is keyed by **the tropes the work tends to play** (a
+   hand: *the word kept*, work carried through), never by its Disciplines.
+2. ⭐ **A parent's standout traits carry the trope that earned them.** Not *Generous* but *Generous —
+   gave blood every shortage*; not *Stubborn* but *kept his word at the counting house twenty years*.
+   That is the game's whole loop — what you do becomes who you are — on the first screen, before any
+   of it can be played: the strongest answer yet to *"what kind of game is this?"*, and a new player's
+   first look at the trope catalog. ⛔ It stays inside the rulings: a profile fact about the parent's
+   past (like the workplace — nothing minted, no NPC), and **never an open obligation** — a parent's
+   *broken promise* is never a debt you inherit (§ *What it is NOT*: no inherited relationships).
+3. **"Drawn to" becomes your first quest hook.** With quests as compounds of tropes, the direction
+   is **which quest the world offers you first** — drawn to *water and the sea*, the first thing cast
+   with you in it is sea-shaped. Dynamic in the owner's sense: it changes what happens to you, not
+   what you are labeled. The university stays its first consumer.
+4. **Inherited traits are seeded tagged with their cause** — *from your mother*, *from your
+   father* — because every trait write carries what caused it (tropes-slate § 3), so a later
+   narration can say *"your mother's patience."* Nearly free; it serves discovery at login.
 
 ### Open
 
@@ -1439,6 +1464,8 @@ to say 'hey this guy worked as a field hand on Smallberries Farms for 20 years'.
   **content projection** ([scan-sweep-slate](../tech-debt/scan-sweep-slate.md) § *Content
   projections*). The species list is not — a handful of rows, loaded and kept in memory.
 - Whether the player chooses an aspiration among what they are drawn to.
+- How a parent's signature tropes are drawn — from the trope catalog, weighted by the workplace's
+  typical tropes and the parent's pronounced traits, so the profile reads as one person.
 
 ---
 
