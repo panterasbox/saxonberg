@@ -14,6 +14,10 @@ the shape it does, and what an author actually builds. It is engine-
 and content-spanning — the template primitive is engine; the genre
 library and the cast bindings are content.
 
+> ⭐ **2026-11-24:** [tropes-slate](../engine/tropes-slate.md) — the smallest narrative unit is a
+> **trope**, this slate's § 2 "happening" beat standing alone; tropes and quest templates are **one
+> catalog at two sizes**, and several tropes sharing a cast is a quest.
+
 ## Load-bearing decisions (the spine)
 
 1. **The engine serves narrative, not the reverse.** Quests are an

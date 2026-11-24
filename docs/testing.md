@@ -93,10 +93,17 @@ drive and a soak drive. The finding behind it, the enforcement and the lane →
   dirty file**, the database dropped before each; the clean files share one. A dirty file declares
   by its name that it leaves the world changed, so the next file in the same world reads that
   change as a defect — the first full run (2026-11-14) put every soak file in one world and 25 of
-  26 failed, most of them on what an earlier file had used up. Each world takes the **same lock as
-  `tools/suite`** (`tools/lib/suite-lock.sh`), so a build's suite can run between two soak worlds,
-  and waits for memory: the 4 GB reserve plus a world's 3 GB, the world alone in quiet hours
-  (02:00–06:00). A failing file is a GitLab issue labeled `soak` (file, merge, MR, failing steps,
+  26 failed, most of them on what an earlier file had used up. ⭐⭐ **The lane never stands in
+  front of a build** (2026-11-24): it takes NO lock. A world starts only after the box has been
+  **quiet** for a few polls — nobody holding the suite lock `tools/suite` takes, load under 3, and
+  memory for a world on top of the 4 GB reserve (the world alone in quiet hours, 02:00–06:00).
+  While it runs it **yields**: if free memory falls under 2 GB, or `.soak/pause` appears, it stops
+  its own world (its process group) and records it as *yielded* — no issue, the state not
+  advanced, the world runs again at the next quiet window (worlds a merge already finished are
+  remembered in `.soak/done/<sha>`). `touch .soak/pause` is the switch a build that needs the box
+  asks for. Stopping the watcher stops its world too, with no verdict. (Before this the lane held
+  the suite lock for a whole world — hours — and a build's 15-minute suite waited behind it; and
+  a world killed from outside was filed as a failure, #154.) A failing file is a GitLab issue labeled `soak` (file, merge, MR, failing steps,
   the drive record, the server log's tail); a repeat comments on the open one. A world that leaves
   no record of its files (it never booted) is ONE issue, `soak: no result for <sha>` — the lane,
   not a build. ⚠ **The watcher is the lane**: it records itself in `.soak/watch.pid`, refuses a
