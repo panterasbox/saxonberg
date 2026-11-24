@@ -74,6 +74,7 @@ export const ALLOWLIST: AllowEntry[] = [
   { file: "packages/server/src/mud/platform/idea/CorpoCatalogue.ts", count: 2, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/GovernmentCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/AddressRegistry.ts", count: 1, reason: LAZY_DICT },
+  { file: "packages/server/src/mud/platform/idea/AppStore.ts", count: 1, reason: "the app store — the rows that publish themselves (`published: true`) whose class is an App, keyed by the app's own name; " + LAZY_DICT + " (stream arrival D21; the owner approved the scan, 2026-11-23)" },
   { file: "packages/server/src/mud/platform/idea/MaterialCatalogue.ts", count: 1, reason: "a dictionary's own warm — booted under the scan sweep's reader rule (read synchronously; no async seam before the read)" },
   { file: "packages/server/src/mud/platform/idea/ConditionCatalogue.ts", count: 1, reason: "the roster warm a body awaits in onCreate (load-on-use W6) — every condition read on a body is sync" },
   // ── systems compiling their own index ──

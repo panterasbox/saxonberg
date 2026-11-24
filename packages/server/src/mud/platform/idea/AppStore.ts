@@ -2,22 +2,24 @@
  * AppStore — the one app store (stream arrival D21), reached as
  * `TemplateApi.appStore()`.
  *
- * ⭐ **The store IS the rows.** Every `App` row any pack ships under a
- * root's `…/idea/app/` branch that says `published: true` is in it; nothing
- * else is — no document, no roster to keep, no list on each device. A phone
+ * ⭐ **The store IS the rows, and an app publishes ITSELF.** Two facts make
+ * a row a published app, and neither is where it is filed: its class is an
+ * `App` (or extends one), and its row says `published: true`. Every such row
+ * any pack ships is in the store, wherever its path; nothing else is — no
+ * document, no roster to keep, no list on each device. A phone
  * installs from it at runtime like a real phone would (the owner), so every
  * phone that exists can install a newly published app. The person's own
  * wallet, calendar and forums are unpublished rows: never listed, never
  * installable on a device.
  *
  * ⭐ **A keyed dictionary's own lazy warm** (`lint:template-scans`'s
- * sanctioned home): one read of the template table by the branch infix,
- * the first time `apps` or `apps install` is typed — never at boot.
+ * sanctioned home): one read of the rows that state `published`, the first
+ * time `apps` or `apps install` is typed — never at boot.
  *
- * A key is a row's leaf (`…/app/broadcast` → `broadcast`), as `apps
- * install <key>` types it. ⚠ Two packs publishing one leaf is a collision
- * the store REPORTS, naming both paths, and installs neither — never a
- * silent first-wins.
+ * A key is the app's own NAME (`appName: Broadcast` → `broadcast`), as
+ * `apps install <key>` types it. ⚠ Two packs publishing one name is a
+ * collision the store REPORTS, naming both rows, and installs neither —
+ * never a silent first-wins.
  */
 
 import { Idea } from "../../lib/stuff/Idea";
@@ -28,12 +30,9 @@ import type { EvictionContext } from "../../lib/stuff/Stuff";
 import type { BoundaryRole } from "../../lib/security/BoundaryRole";
 import App from "./App";
 
-/** The branch every root's app rows live under. */
-const APP_INFIX = "/idea/app/";
-
 /** One published app in the store. */
 export interface StoreApp {
-  /** What `apps install <key>` types — the row's leaf. */
+  /** What `apps install <key>` types — the app's own name, lower-cased. */
   key: string;
   /** The row path an install clones. */
   path: string;
@@ -94,9 +93,16 @@ export default class AppStore extends Idea {
   }
 }
 
-/** One read of the app rows by their branch (D21). */
+/** The key an app is installed by: its own name, lower-cased, spaces as hyphens. */
+function keyOf(row: { path: string; data?: Record<string, unknown> }): string {
+  const name = typeof row.data?.appName === "string" ? row.data.appName.trim() : "";
+  const word = name.length > 0 ? name : row.path.slice(row.path.lastIndexOf("/") + 1);
+  return word.toLowerCase().replace(/\s+/g, "-");
+}
+
+/** One read of the rows that publish themselves (D21). */
 async function readIndex(): Promise<StoreIndex> {
-  const rows = await Template.findByPathInfix(APP_INFIX);
+  const rows = await Template.findWhereDataHas("published");
   const byKey = new Map<string, string[]>();
   const isApp = new Map<string, boolean>();
   for (const row of rows) {
@@ -104,7 +110,7 @@ async function readIndex(): Promise<StoreIndex> {
     if (data.published !== true) continue;
     if (!isApp.has(row.class)) isApp.set(row.class, await isAppClass(row.class));
     if (!isApp.get(row.class)) continue;
-    const key = row.path.slice(row.path.lastIndexOf("/") + 1).toLowerCase();
+    const key = keyOf(row);
     byKey.set(key, [...(byKey.get(key) ?? []), row.path]);
   }
   const index: StoreIndex = { apps: new Map(), collisions: new Map() };

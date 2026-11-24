@@ -244,14 +244,16 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     async installByKey(key: string): Promise<AppInstallResult> {
       const k = key.trim().toLowerCase();
-      const installed = this.installedApps.find((p) => appKeyOf(p) === k);
-      if (installed !== undefined) {
-        return { ok: true, app: await this.installApp(installed), already: true };
-      }
       const { TemplateApi } = await import('../../api/template');
       const found = await TemplateApi.appStore().lookup(k);
       if ('found' in found) {
-        return { ok: true, app: await this.installApp(found.found.path), already: false };
+        const already = this.installedApps.includes(found.found.path);
+        return { ok: true, app: await this.installApp(found.found.path), already };
+      }
+      // Something this host already runs that the store does not list.
+      const installed = this.installedApps.find((p) => appKeyOf(p) === k);
+      if (installed !== undefined) {
+        return { ok: true, app: await this.installApp(installed), already: true };
       }
       const offered = (await this.availableApps()).map(appKeyOf);
       return 'collision' in found

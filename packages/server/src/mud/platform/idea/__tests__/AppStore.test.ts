@@ -1,8 +1,9 @@
 /**
- * AppStore — the one app store (stream arrival D21): the published `App`
- * rows of every root, by their leaf. Unpublished rows (the person's own
- * wallet, calendar, forums) are never in it; a published row in a second
- * root is; two published rows with one leaf are reported and neither is
+ * AppStore — the one app store (stream arrival D21): every row that
+ * publishes itself (`published: true`) and whose class is an `App`, by its
+ * own name — WHEREVER it is filed. Unpublished rows (the person's own
+ * wallet, calendar, forums) are never in it; an app filed under no `app/`
+ * branch is; two published apps with one name are reported and neither is
  * installable; a row whose class is not an app is not an app.
  */
 
@@ -28,14 +29,16 @@ const CLASSES: Record<string, unknown> = {
 beforeEach(() => {
   TemplateApi.appStore().forget();
   rows = [
-    { path: '/platform/idea/app/messages', class: '/platform/idea/App', data: { published: true } },
-    { path: '/platform/idea/app/broadcast', class: '/platform/idea/BroadcastApp', data: { published: true } },
-    { path: '/platform/idea/app/forums', class: '/platform/idea/ForumsApp', data: {} },
-    { path: '/platform/idea/app/wallet', class: '/platform/idea/App', data: { published: false } },
-    { path: '/trade/games/idea/app/chess', class: '/platform/idea/App', data: { published: true } },
+    { path: '/platform/idea/app/messages', class: '/platform/idea/App', data: { appName: 'Messages', published: true } },
+    { path: '/platform/idea/app/broadcast', class: '/platform/idea/BroadcastApp', data: { appName: 'Broadcast', published: true } },
+    { path: '/platform/idea/app/wallet', class: '/platform/idea/App', data: { appName: 'Wallet', published: false } },
+    // ⭐ Filed nowhere near an `app/` branch: still an app, still published.
+    { path: '/trade/games/thing/board-game-kit', class: '/platform/idea/App', data: { appName: 'Chess', published: true } },
+    // Says published, but its class is no app.
     { path: '/stuff/idea/app/weather', class: '/platform/idea/Biome', data: { published: true } },
   ];
-  vi.spyOn(Template, 'findByPathInfix').mockImplementation((async () => rows) as never);
+  vi.spyOn(Template, 'findWhereDataHas').mockImplementation((async (field: string) =>
+    rows.filter((r) => field in r.data)) as never);
   vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation((async (p: string) => CLASSES[p]) as never);
 });
 
@@ -45,20 +48,20 @@ afterEach(() => {
 });
 
 describe('the app store', () => {
-  it('lists the published app rows of every root — and nothing unpublished or not an app', async () => {
+  it('lists the apps that publish themselves, wherever filed — and nothing unpublished or not an app', async () => {
     const keys = (await TemplateApi.appStore().published()).map((a) => a.key);
     expect(keys).toEqual(['broadcast', 'chess', 'messages']);
   });
 
-  it('looks a key up by its leaf', async () => {
+  it('looks a key up by the app\'s own name', async () => {
     expect(await TemplateApi.appStore().lookup('Broadcast')).toEqual({
       found: { key: 'broadcast', path: '/platform/idea/app/broadcast' },
     });
     expect(await TemplateApi.appStore().lookup('wallet')).toEqual({ missing: true });
   });
 
-  it('two published rows with one leaf: reported by both paths, neither installable', async () => {
-    rows.push({ path: '/trade/games/idea/app/messages', class: '/platform/idea/App', data: { published: true } });
+  it('two published apps with one name: reported by both rows, neither installable', async () => {
+    rows.push({ path: '/trade/games/idea/app/messages', class: '/platform/idea/App', data: { appName: 'Messages', published: true } });
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     expect(await TemplateApi.appStore().lookup('messages')).toEqual({
       collision: ['/platform/idea/app/messages', '/trade/games/idea/app/messages'],
@@ -70,6 +73,6 @@ describe('the app store', () => {
   it('reads the table once, lazily', async () => {
     await TemplateApi.appStore().published();
     await TemplateApi.appStore().lookup('chess');
-    expect(Template.findByPathInfix).toHaveBeenCalledTimes(1);
+    expect(Template.findWhereDataHas).toHaveBeenCalledTimes(1);
   });
 });
