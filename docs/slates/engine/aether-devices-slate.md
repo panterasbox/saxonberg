@@ -521,11 +521,48 @@ ordinary app is a row … and the verbs it contributes*. Where they disagree, th
   like every building there; in earlier epochs its storefront is the telegraph office and its clerk.
 - **Corpos make hardware only** **[DECIDED]**: *"hardware only, corpos just make the devices."*
   Nothing stands between you and the Exchange. A corpo decides what its device can show and take
-  in, and may publish apps on the Exchange like anyone; it never curates or blocks. A walled-garden
+  in; it never curates or blocks, and ⛔ **corpos do not publish apps** **[DECIDED]** — a corpo earns
+  by its devices and the maker's royalty (§ 12.2a), and no corpo is ever the toll on `dm`. A walled-garden
   device (a prison phone, a pager) exists only as one bespoke authored row, for a story **[LEAN]**.
-- **Apps are free for now** **[DECIDED]**; **a payment framework is still owed** — who publishes,
-  what an app costs, and the Exchange's cut (the TPA's flat-base-plus-percentage network fee is the
-  starting shape).
+- **Apps are free for now** **[DECIDED]**; the payment framework they will run on is § 12.2a.
+
+### 12.2a Paying for apps **[DECIDED — the owner, 2026-11-24, except where marked]**
+
+Scope: paying **for** apps, and nothing else — an app that takes payment for something else (remote
+ordering, a tip jar, person-to-person transfers beyond `pay`) is its own design, because ordering
+at a distance meets logistics.
+
+- **A sale is a license — a credential on your line.** Copying software costs nothing, so a sale
+  moves the right to run it, issued by the Exchange like every credential (§ 12.3). Three kinds,
+  all data: **free** (no license), **owned** (one payment, kept), **subscription** (a license with
+  a term that renews). Uninstalling keeps the license; reinstalling is free. A lapsed subscription
+  leaves the app installed and declined (*"your Calendar Plus subscription lapsed — renew it"*).
+- **`apps install` is the purchase**, settled before anything installs, the way the TPA settles a
+  fare before the ride: confirm the price, settle, issue the license, install. Every refusal comes
+  before any money moves. No second verb.
+- **Zorkmids, on the ledger.** You pay from the account your wallet's payment credential links;
+  coin cannot cross the aether (you could pay coin at the Exchange's counter). Every leg is a
+  conserved transfer — no new faucet.
+- **Anyone may publish and set a price** — a player, a business. The publisher is the one named on
+  the app's row (the authorship ledger already records who wrote it).
+- **The split** (one paid install):
+
+  | leg | to | why |
+  |---|---|---|
+  | price − the Exchange's cut | the publisher | they made it |
+  | the Exchange's cut − the royalty | the Exchange | its works and operators — the fee exists because computing costs power (§ 12.4) |
+  | the royalty | the **makers of the carriers that reached the sale, split equally** | the hardware that reached your line |
+
+  The Exchange's cut takes the TPA's network-fee shape (a flat base plus a percentage) as Terms its
+  committee posts; the maker's royalty is banking's corpo-royalty-off-the-top shape (a bank's
+  Terms). A subscription pays the royalty at each renewal, to the makers of the carriers then.
+  Free apps carry no royalty. Taxes are the polity's to levy, as on any sale.
+- **Fixed for everyone — invariants, not grain:**
+  - no ads, no in-app purchases, no paid randomness — an app is free, owned or subscribed;
+  - zorkmids only — real money never enters the app store (the founding offering is the only
+    real-money door);
+  - Messages and the Wallet are free forever — they are the floor;
+  - a license outlives its app's delisting — what you bought stays yours.
 
 ### 12.3 The Exchange is the one identity and issuing authority **[DECIDED — the owner]**
 
@@ -677,7 +714,6 @@ explain itself then I'd rather it be magic that can run on any epoch."* It needs
 
 ### 12.9 Still open
 
-- **The payment framework** (§ 12.2).
 - **The Exchange's criterion, appeal and entrenchment tier** for cutting a line or delisting an app
   (§ 12.7).
 - **The Exchange's privacy duty** — it runs your software, so who may read what it runs →
