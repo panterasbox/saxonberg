@@ -1,7 +1,6 @@
 /**
  * ⭐⭐ **Organism biology, driven** — the build's exit criterion
- * (the requirements' blocking drive — the doc retired at the sweep, in git
- * history; the subject lives in docs/subsystems/body.md),
+ * (docs/requirements/organism-biology-requirements.md § Blocking drive),
  * run against the real socket, standing in the test-fixtures testbed.
  *
  * A body is its modules, and what a body CAN do follows from what it
