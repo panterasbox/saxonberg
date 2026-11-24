@@ -120,9 +120,9 @@ suite("the read — what you can type here", () => {
   });
 
   it("7. [instant · player] a verb nothing here gives is one line; a non-verb is called one", async () => {
-    const fish = await say(ann, "which fish");
+    const fish = await say(ann, "which --verb fish");
     expect(fish.w).toMatch(/Nothing here gives you `?fish`?\. \(`?help fish`? has its shape\.\)/);
-    const flurb = await say(ann, "which flurb");
+    const flurb = await say(ann, "which --verb flurb");
     expect(flurb.w).toMatch(/no verb 'flurb'/);
   });
 
@@ -140,7 +140,7 @@ suite("the read — what you can type here", () => {
     const bea = open.find((s) => s.handle.includes("whbea"))!;
     const person = await say(ann, `which ${bea.handle}`);
     expect(verbsIn(person.lines)).not.toContain("throw");
-    const thrown = await say(ann, "which throw");
+    const thrown = await say(ann, "which --verb throw");
     expect(thrown.w).toMatch(/you: throw/);
   });
 });
@@ -170,16 +170,18 @@ suite("what you carry", () => {
     expect(down.w).not.toMatch(/the notebook (in your|you're carrying)/);
   });
 
-  it("5. [instant · player] two notebooks: `which notebook` tells them apart by place — never a keyword list", async () => {
+  it("5. [instant · player] two notebooks: `which notebook` asks which one, as every verb does — never a keyword list", async () => {
     await say(buyer, "get notebook");
     const second = await say(buyer, "buy notebook");
     expect(second.status, second.w).toBe("ok");
-    const both = await say(buyer, "which notebook");
-    note(buyer, both.lines);
-    const named = both.lines.filter((l) => /— (the notebook|2 notebooks)/.test(l));
-    expect(named.length, both.w).toBeGreaterThanOrEqual(1);
-    if (named.length > 1) expect(new Set(named).size).toBe(named.length);
-    expect(both.w).not.toMatch(/keywords?/i);
+    // `which <thing>` is a typed object slot: two in reach is the binder's
+    // own question, telling them apart the way it always does.
+    await buyer.drainProse();
+    const { prompt } = await buyer.cmdOrPrompt("which notebook");
+    const asked = JSON.stringify(prompt?.outcome ?? {});
+    record.push(`${buyer.handle}: which notebook → ${prompt ? "prompt" : "no prompt"} · ${asked.slice(0, 300)}`);
+    expect(prompt, "two notebooks in reach ask which one").not.toBeNull();
+    expect(asked).not.toMatch(/keywords/i);
   });
 
   it("10. [instant · staged] a phone in the hand: its verbs come from the phone you carry", async () => {

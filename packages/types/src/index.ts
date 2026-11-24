@@ -3004,7 +3004,10 @@ export interface SubscriptionSources {
  * keeps the counter's answer), or nothing for the whole answer.
  */
 export interface WhichSubscriptionParams {
-  what?: string;
+  /** `which <thing>` — the thing the binder named, by id. */
+  thingId?: string;
+  /** `which --verb <verb>`. */
+  verb?: string;
   /** The options the card was asked with (`which --clashes`, `which counter --to`). */
   clashes?: boolean;
   to?: boolean;

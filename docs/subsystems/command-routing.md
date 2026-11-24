@@ -704,9 +704,16 @@ merges alike sources into one counted group, and orders by the rarest verb.
 The body's own verbs (the `'self'` entry) are the *usual* line; what the `Good`
 rung itself contributes is the *anything you're carrying* line. Each verb's
 state is `evaluateAffordance`'s, the same validator words the radial shows.
-`which <word>`: a perceived thing in reach wins (the `source::verb` scope read,
-`CommandGiver.namedSources`); a word naming nothing is a verb — who gives it,
-or `nothing-gives-verb` (never what WOULD give it), or `no-such-verb`.
+Each kind of question is its own typed slot (owner, review — a string slot
+that resolves things is an antipattern, antipatterns.md § A string slot that
+names things): `which <thing>` is an `object` arg the binder names, and
+`which --verb <verb>` a string option — who gives it, each meaning and its
+`thing::verb` when one word is two commands (two different VIEWS; the same
+view from many things is one command), or `nothing-gives-verb` (never what
+WOULD give it), or `no-such-verb`. Nothing else is volunteered:
+`--clashes` asks for every word that is two commands here, and
+`which <thing> --to` for what you can do to it (your verbs whose object slot
+requires something a plain thing lacks).
 `CommandApi.whichRelations` lists the `~` words (`lib/relation/BuiltinRelations.ts`
 + `relationsFor`). It is a read, never a gate: every verb it lists is one the
 line accepts (`command-which.test.ts`, *listed ⇒ accepted*).

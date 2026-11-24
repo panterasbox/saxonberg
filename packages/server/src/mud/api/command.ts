@@ -463,11 +463,15 @@ export type ModelData = Record<string, FieldValue | undefined>;
  * `nothing-gives-verb` (a verb nothing here gives), `no-such-verb`.
  */
 /**
- * What `which` was asked for beyond its answer (owner, review: nothing
- * extra is volunteered). `clashes` — the words that mean more than one
- * command here; `to` — for `which <thing>`, what you can do to it.
+ * What `which` was asked (owner, review: each kind of question is its own
+ * typed slot, and nothing extra is volunteered). `thing` — the bound object
+ * (`which counter`); `verb` — a verb word (`which --verb buy`); `clashes` —
+ * also the words that mean more than one command here; `to` — with a
+ * thing, also what you can do to it. Neither thing nor verb: everything.
  */
-export interface WhichOptions {
+export interface WhichAsking {
+  thing?: Stuff;
+  verb?: string;
   clashes?: boolean;
   to?: boolean;
 }
@@ -2239,14 +2243,14 @@ export class CommandApi {
    * `which` read (the which build). The dispatcher's own list of the
    * viewer's affordances behind the radial's gates (perceived, identified),
    * grouped by source in the viewer's words, each verb's state as the
-   * radial reports it. `what`, when given, narrows it: a perceived thing in
-   * reach wins, and a word naming nothing in reach is read as a verb.
+   * radial reports it. `opts.thing` narrows it to one bound thing;
+   * `opts.verb` to where one verb comes from.
    *
    * ⚠ Like `resolveAffordances` it is a read, never a gate: every verb it
    * lists is one the line accepts now, and the line re-checks everything.
    */
-  static which(viewer: Stuff & CommandGiver, what?: string, opts?: WhichOptions): Promise<WhichResult> {
-    return logic().which(viewer, what, opts);
+  static which(viewer: Stuff & CommandGiver, opts?: WhichAsking): Promise<WhichResult> {
+    return logic().which(viewer, opts);
   }
 
   /**

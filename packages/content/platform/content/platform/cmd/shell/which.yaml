@@ -8,40 +8,38 @@ help: |
   gives you each one — *fish — the rod in your right hand*, *buy — the
   counter here*. The most unusual sources come first. Two closing lines
   gather the rest: *and anything you're carrying* (what every article you
-  hold lets you do — throw it, tap it) and *and the usual* (what your own
-  body can always do). A verb you cannot use right now is listed with the
-  reason, in the words the verb itself would refuse you with.
+  hold lets you do) and *and the usual* (how many verbs your own body
+  always has — `which me` lists them). A verb you cannot use right now is
+  listed with the reason, in the words the verb itself would refuse you
+  with.
 
-  `which <thing>` lists what that one thing lets you do. `which <verb>`
-  says what gives you that verb here — or, in one line, that nothing does
-  (`help <verb>` has its shape). ⭐ A word that names something within
-  reach is read as that thing; a word that names nothing here is read as
-  a verb.
+  `which <thing>` lists what that one thing lets you do — it names a thing
+  the way every other verb does (`which counter`, `which 2.notebook`).
+
+  `which --verb <verb>` says where that verb comes from here — every thing
+  that gives it — or, in one line, that nothing does (`help <verb>` has its
+  shape). When one word means two different commands here, it shows each
+  and the `thing::verb` that picks it.
 
   It says only what you asked. Two options ask for more:
 
     which --clashes        the words that mean more than one command here
-                           — each meaning, who gives it, and the
-                           `thing::verb` that picks it
     which counter --to     what you can do TO the counter (your verbs that
                            ask something of it)
-
-  `which <verb>` always says where that verb comes from, and when one word
-  means two commands here, how to pick each.
 
   `which ~` lists the `~` words you can type — `~here`, `~inventory`,
   your contact lists and groups — each with what it means. `which ~
   <thing>` lists the ones a thing keeps (a charter book's `~ships`).
 
   `which` only reads; it never does anything. Typed, it also puts up a
-  card that stays current while you play; click a verb on it to put the
+  card that stays current while you keep it; click a verb on it to put the
   verb on your command line.
 examples:
   - cmd: which
     note: Everything you can type here
   - cmd: which counter
     note: What the counter lets you do
-  - cmd: which fish
+  - cmd: which --verb fish
     note: What gives you `fish` here
   - cmd: which --clashes
     note: Words that mean two commands here
@@ -51,6 +49,9 @@ examples:
     note: The ~ words you can type
 fallthrough: true
 options:
+  verb:
+    type: string
+    description: "Where this verb comes from here — every thing that gives it"
   clashes:
     type: boolean
     description: "Also list the words that mean more than one command here, and how to pick each"
@@ -58,11 +59,13 @@ options:
     type: boolean
     description: "With a thing: also list what you can do to it"
 args:
-  # `which counter` / `which fish` — one word, read as a thing first (the
-  # model decides; a thing and a verb cannot be two shapes, which D6).
-  - name: what
-    type: string
+  # `which counter` — a thing, bound like any object a verb names (owner:
+  # each kind of question is its own typed slot; a verb is `--verb`).
+  - name: thing
+    type: object
     required: false
+    scope: ["~reachable"]
+    requires: any
 subcommands:
   "~":
     controller: /platform/idea/cmd/shell/WhichRelationsController

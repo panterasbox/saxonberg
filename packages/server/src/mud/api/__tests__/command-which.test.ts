@@ -29,6 +29,7 @@ import Good from '../../platform/thing/Good';
 import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { WhichAnswer } from '@saxonberg/types';
+import type { Stuff } from '../../lib/stuff/Stuff';
 
 const PLAN = '/stuff/idea/species/BodyPlan/which-biped';
 class Person extends CommandGiverMixin(CarryingMixin(Creature)) {}
@@ -91,8 +92,10 @@ describe('which — what can I type here (W1)', () => {
     n.setKeywords(['note']);
     return n;
   };
-  const ask = async (what?: string): Promise<WhichAnswer> => {
-    const r = await CommandApi.which(me as never, what);
+  /** Ask `which`: nothing, a bound thing, or `{ verb }`. */
+  const ask = async (q?: Stuff | { verb: string }): Promise<WhichAnswer> => {
+    const opts = q === undefined ? {} : 'verb' in q && typeof q.verb === 'string' ? { verb: q.verb } : { thing: q as Stuff };
+    const r = await CommandApi.which(me as never, opts);
     if (!r.ok) throw new Error(`refused: ${r.reason}`);
     return r.facts;
   };
@@ -183,7 +186,7 @@ describe('which — what can I type here (W1)', () => {
     const l = lever();
     const n = note();
     ContainmentApi.move(n, me);
-    const a = await ask('lever');
+    const a = await ask(l);
     expect(a.ask.mode).toBe('thing');
     expect(a.ask.command).toBe(`which #${l.stuffId}`);
     expect(a.groups.every((g) => g.ids.includes(l.stuffId))).toBe(true);
@@ -192,12 +195,12 @@ describe('which — what can I type here (W1)', () => {
 
   it('a word naming nothing is a verb: who gives it, or one line saying nothing does', async () => {
     const l = lever();
-    const a = await ask('switch');
+    const a = await ask({ verb: 'switch' });
     expect(a.ask.mode).toBe('verb');
     expect(a.groups.map((g) => g.ids[0])).toEqual([l.stuffId]);
-    const none = await CommandApi.which(me as never, 'bail');
+    const none = await CommandApi.which(me as never, { verb: 'bail' });
     expect(none).toMatchObject({ ok: false, reason: 'nothing-gives-verb', facts: { verb: 'bail' } });
-    const junk = await CommandApi.which(me as never, 'flurb');
+    const junk = await CommandApi.which(me as never, { verb: 'flurb' });
     expect(junk).toMatchObject({ ok: false, reason: 'no-such-verb' });
   });
 
@@ -275,10 +278,10 @@ describe('which — what can I type here (W1)', () => {
       p.setShortDescription('a pull');
       p.setKeywords(['pull']);
       ContainmentApi.move(p, room);
-      const a = await ask('switch');
+      const a = await ask({ verb: 'switch' });
       expect(a.collisions ?? []).toEqual([]);
       // …and throw's three shapes from one body are one command too.
-      const t = await ask('throw');
+      const t = await ask({ verb: 'throw' });
       expect(t.collisions ?? []).toEqual([]);
     });
 
@@ -298,12 +301,12 @@ describe('which — what can I type here (W1)', () => {
       v.setShortDescription('a vent');
       v.setKeywords(['vent']);
       ContainmentApi.move(v, room);
-      const a = await ask('draught');
+      const a = await ask({ verb: 'draught' });
       const c = a.collisions?.find((x) => x.verb === 'draught');
       expect(c?.meanings.map((m) => m.scope).sort()).toEqual(['dial::draught', 'vent::draught']);
       // Bare `which` volunteers nothing; `--clashes` asks.
       expect((await ask()).collisions).toBeUndefined();
-      const asked = await CommandApi.which(me as never, undefined, { clashes: true });
+      const asked = await CommandApi.which(me as never, { clashes: true });
       expect(asked.ok && asked.facts.collisions?.some((x) => x.verb === 'draught')).toBe(true);
     });
 
@@ -316,9 +319,9 @@ describe('which — what can I type here (W1)', () => {
         ],
         composition: [],
       } as never);
-      lever();
-      expect((await ask('lever')).actsOn).toBeUndefined();
-      const r = await CommandApi.which(me as never, 'lever', { to: true });
+      const l = lever();
+      expect((await ask(l)).actsOn).toBeUndefined();
+      const r = await CommandApi.which(me as never, { thing: l, to: true });
       if (!r.ok) throw new Error(r.reason);
       expect(r.facts.actsOn).toContain('switch');
       expect(r.facts.actsOn).not.toContain('look');

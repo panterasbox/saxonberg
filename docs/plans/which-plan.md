@@ -265,6 +265,12 @@ A shadow names its host's words. `Containable.whereFor` asks the viewer
 `slotWord`); it never reads another mixin's fields. The card's one-column
 form is `handle` alone.
 
+⛔ **D6 REVERSED in review (owner, 2026-11-24):** the guess went around the
+type system — a string slot that takes MQL is invisible to the player, and a
+thing in reach hid the verb. Now `which <thing>` is an `object` arg and
+`which --verb <verb>` a string option; the antipattern and its census are in
+antipatterns.md § A string slot that names things. The original text:
+
 **D6 — One view takes a word; the model decides thing-or-verb.**
 `which.yaml`: `fallthrough: true`, `args: [{ name: what, type: string,
 required: false }]`, and the `~` subcommand of D7. `which` · `which

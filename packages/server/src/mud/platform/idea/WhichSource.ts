@@ -28,7 +28,8 @@ import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
 import { MixinApi } from '../../api/mixin';
 import { ScheduleApi } from '../../api/schedule';
-import { CommandApi, type WhichOptions } from '../../api/command';
+import { CommandApi } from '../../api/command';
+import { StuffApi } from '../../api/stuff';
 import { EventApi, type Subscription as BusSubscription } from '../../api/event';
 import { FieldChangedEvent, type FieldChangedPayload } from '../../lib/events/FieldChangedEvent';
 import {
@@ -42,8 +43,7 @@ const SubscriptionSourceCallers = SecurityPolicies.FromModule('/platform/idea/Su
 
 /** One subscription's own state: what it asked, and the JSON it last sent. */
 interface SentState {
-  what?: string;
-  opts: WhichOptions;
+  params: WhichSubscriptionParams;
   json: string;
 }
 
@@ -74,11 +74,9 @@ export default class WhichSource extends SubscriptionSourceMixin(Idea) {
       return { refused: true, reason: 'permission', detail: 'the session drives no body that types' };
     }
     const p = (params as WhichSubscriptionParams | undefined) ?? {};
-    const what = p.what;
-    const opts: WhichOptions = { clashes: p.clashes === true, to: p.to === true };
-    const state: SentState = { json: '', opts, ...(what !== undefined ? { what } : {}) };
+    const state: SentState = { json: '', params: p };
     sub.state = state;
-    const answer = await this.read(holder, what, opts);
+    const answer = await this.read(holder, p);
     if (!sub.isOpen()) return { refused: true, reason: 'closed', detail: 'unsubscribed while opening' };
     state.json = JSON.stringify(answer);
     let set = this.byHolder.get(holder);
@@ -119,10 +117,17 @@ export default class WhichSource extends SubscriptionSourceMixin(Idea) {
    * closing the card: the card says what it was asked and that nothing
    * answers now.
    */
-  private async read(holder: Stuff & CommandGiver, what?: string, opts: WhichOptions = {}): Promise<WhichAnswer> {
-    const r = await CommandApi.which(holder, what, opts);
+  private async read(holder: Stuff & CommandGiver, p: WhichSubscriptionParams): Promise<WhichAnswer> {
+    // The thing by id (the binder named it once); the read re-asks the gates.
+    const thing = p.thingId ? StuffApi.findById(p.thingId) : null;
+    const r = await CommandApi.which(holder, {
+      clashes: p.clashes === true,
+      to: p.to === true,
+      ...(thing ? { thing } : {}),
+      ...(p.verb ? { verb: p.verb } : {}),
+    });
     if (r.ok) return r.facts;
-    return { ask: { mode: 'thing', command: what ? `which ${what}` : 'which', ...(what ? { what } : {}) }, groups: [] };
+    return { ask: { mode: p.verb ? 'verb' : 'thing', command: 'which' }, groups: [] };
   }
 
   private onFieldChanged(payload: FieldChangedPayload): void {
@@ -195,7 +200,7 @@ export default class WhichSource extends SubscriptionSourceMixin(Idea) {
         for (const sub of subs) {
           if (!sub.isOpen()) continue;
           const state = sub.state as SentState;
-          const answer = await this.read(holder, state.what, state.opts);
+          const answer = await this.read(holder, state.params);
           const json = JSON.stringify(answer);
           if (json === state.json) continue;
           state.json = json;

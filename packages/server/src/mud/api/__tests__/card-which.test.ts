@@ -90,7 +90,7 @@ describe('the which card — a payload a source keeps current', () => {
 
     // ⭐ R5: `which lever` retargets the one card that is up.
     const narrowed = answerOf('which #l1', ['switch']);
-    const again = CardApi.open(ctx, 'which', { key: 'which', payload: { kind: 'which', answer: narrowed }, params: { what: '#l1' } });
+    const again = CardApi.open(ctx, 'which', { key: 'which', payload: { kind: 'which', answer: narrowed }, params: { thingId: 'l1' } });
     expect(again).toBe(id);
     expect(h.interactive.listCards().filter((c) => c.cardId === 'which').length).toBe(1);
     const touched = h.ofType('card-touched').at(-1)!;

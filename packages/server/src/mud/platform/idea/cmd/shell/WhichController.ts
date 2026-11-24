@@ -7,6 +7,7 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
 import { CommandApi } from '../../../../api/command';
 import { Mml } from '../../../../api/mml';
 import { MessageApi } from '../../../../api/message';
@@ -14,7 +15,8 @@ import { CardApi } from '../../../../api/card';
 import type { WhichAnswer, WhichGroup, WhichSource } from '@saxonberg/types';
 
 interface WhichModel extends CommandModel {
-  what?: string;
+  thing?: MqlOneResult;
+  verb?: string;
   clashes?: boolean;
   to?: boolean;
 }
@@ -85,7 +87,12 @@ export default class WhichController extends CommandController<WhichModel> {
 
   async execute(model: WhichModel, context: CommandContext): Promise<void> {
     const opts = { clashes: model.clashes === true, to: model.to === true };
-    const answer = await CommandApi.which(context.commandGiver, model.what, opts);
+    const thing = model.thing?.stuff ?? undefined;
+    const answer = await CommandApi.which(context.commandGiver, {
+      ...opts,
+      ...(thing ? { thing } : {}),
+      ...(model.verb ? { verb: model.verb } : {}),
+    });
     if (!answer.ok) return this.refuse(context, answer);
     const prose = Mml.fromMarkup(WhichController.lines(answer.facts).join('\n'));
     MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(prose).send();
@@ -93,16 +100,25 @@ export default class WhichController extends CommandController<WhichModel> {
     // word the answer's own command re-asks (`#<id>` for one thing).
     // The card is titled by what the player TYPED (never an id); its
     // subscription re-asks the answer's own command (`#id` for one thing).
-    const typed = ['which', opts.clashes ? '--clashes' : '', opts.to ? '--to' : '', model.what ?? '']
+    const title = [
+      'which',
+      opts.clashes ? '--clashes' : '',
+      opts.to ? '--to' : '',
+      model.verb ? `--verb ${model.verb}` : '',
+      answer.facts.ask.mode === 'thing' ? (answer.facts.ask.what ?? '') : '',
+    ]
       .filter((x) => x !== '')
       .join(' ');
-    const what = answer.facts.ask.subjectIds?.length === 1 ? `#${answer.facts.ask.subjectIds[0]}` : model.what;
     CardApi.open(context, 'which', {
       key: 'which',
-      title: typed,
+      title,
       prose,
       payload: { kind: 'which', answer: answer.facts },
-      params: { ...(what ? { what } : {}), ...opts },
+      params: {
+        ...opts,
+        ...(thing ? { thingId: thing.stuffId } : {}),
+        ...(model.verb ? { verb: model.verb } : {}),
+      },
     });
   }
 }

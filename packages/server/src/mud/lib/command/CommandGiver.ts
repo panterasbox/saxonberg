@@ -494,11 +494,6 @@ export interface ScopedSources {
  * `source::verb`. `ok: false` — the scope refused the line; `note` says
  * why (`source-not-found`, `source-affords-nothing`, or an `mql-error`).
  */
-/** What {@link CommandGiver.namedSources} found: the perceived things, or why none. */
-export type NamedSources =
-  | { ok: true; named: Stuff[]; resolved: ReturnType<typeof MqlApi.resolveMany> }
-  | { ok: false; note: Note };
-
 export type AffordanceMatch =
   | { ok: true; matches: Affordance[]; usage: string; scope?: ScopedSources }
   | { ok: false; note: Note };
@@ -511,8 +506,6 @@ export interface CommandGiver {
    * filter and the `source::verb` scope filter (D2). Synchronous.
    */
   matchAffordances(parsed: ParsedCommand): AffordanceMatch;
-  /** What a word names among the perceived things in reach (the scope read). */
-  namedSources(raw: string): NamedSources;
   executeCommand(
     commandText: string,
     opts?: ExecuteCommandOpts
@@ -752,9 +745,32 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (parsed.scope === undefined || matches.length === 0) {
         return { ok: true, matches, usage };
       }
-      const found = this.namedSources(parsed.scope);
-      if (!found.ok) return found;
-      const { named, resolved } = found;
+      let resolved;
+      try {
+        resolved = MqlApi.resolveMany(ShellApi.expandQueryAliases(parsed.scope, giver), { commandGiver: giver, scope: '~reachable' });
+      } catch (err) {
+        return {
+          ok: false,
+          note: {
+            kind: 'mql-error',
+            field: 'source',
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          },
+        };
+      }
+      // ⭐ Only what the giver perceives can be the source they named (D23).
+      const named = [...new Set(PerceptionApi.perceived(giver, resolved.stuff, resolved.ordinal))];
+      if (named.length === 0) {
+        return {
+          ok: false,
+          note: {
+            kind: 'command-rejected',
+            reason: 'source-not-found',
+            detail: `nothing you can reach answers to '${parsed.scope}'`,
+          },
+        };
+      }
       const sources = named.filter((s) => matches.some((a) => affordsFrom(a, s, giver)));
       if (sources.length === 0) {
         const what = named.length === 1 ? named[0]!.getPresentation() : `'${parsed.scope}'`;
@@ -771,43 +787,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       if (resolved.isSet) how.isSet = true;
       if (resolved.quantity) how.quantity = resolved.quantity;
       return { ok: true, matches, usage, scope: { raw: parsed.scope, sources, how } };
-    }
-
-    /**
-     * ⭐ What a word names among the things this giver perceives in reach
-     * — the scope read `source::verb` makes, and `which <thing>` makes the
-     * same way: the word resolves as MQL from where the giver stands, then
-     * only what the giver perceives is kept (D23). Nothing kept →
-     * `source-not-found`.
-     */
-    namedSources(raw: string): NamedSources {
-      const giver = this as unknown as Stuff & CommandGiver;
-      let resolved;
-      try {
-        resolved = MqlApi.resolveMany(ShellApi.expandQueryAliases(raw, giver), { commandGiver: giver, scope: '~reachable' });
-      } catch (err) {
-        return {
-          ok: false,
-          note: {
-            kind: 'mql-error',
-            field: 'source',
-            stage: 'resolve',
-            detail: err instanceof Error ? err.message : String(err),
-          },
-        };
-      }
-      const named = [...new Set(PerceptionApi.perceived(giver, resolved.stuff, resolved.ordinal))];
-      if (named.length === 0) {
-        return {
-          ok: false,
-          note: {
-            kind: 'command-rejected',
-            reason: 'source-not-found',
-            detail: `nothing you can reach answers to '${raw}'`,
-          },
-        };
-      }
-      return { ok: true, named, resolved };
     }
 
     /**

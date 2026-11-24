@@ -103,7 +103,7 @@ import {
   type AssembleOptions,
   type ResolveModelOptions,
 } from '../../../api/command';
-import type { OnFilteredPolicy, WhichOptions, WhichResult, WhichRelationsResult } from '../../../api/command';
+import type { OnFilteredPolicy, WhichAsking, WhichResult, WhichRelationsResult } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
 import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
@@ -2383,8 +2383,8 @@ export class CommandLogic extends ApiLogic {
 
   /** See {@link CommandApi.which}. */
   @CallSecurity(CommandApiCallers)
-  public which(viewer: Stuff & CommandGiver, what?: string, opts?: WhichOptions): Promise<WhichResult> {
-    return whichImpl(viewer, what, opts);
+  public which(viewer: Stuff & CommandGiver, opts?: WhichAsking): Promise<WhichResult> {
+    return whichImpl(viewer, opts);
   }
 
   /** See {@link CommandApi.whichRelations}. */
@@ -2994,13 +2994,14 @@ async function actsOnOf(target: Stuff, viewer: Stuff & CommandGiver): Promise<st
 }
 
 /** See {@link CommandApi.which}. */
-async function whichImpl(viewer: Stuff & CommandGiver, what?: string, opts: WhichOptions = {}): Promise<WhichResult> {
+async function whichImpl(viewer: Stuff & CommandGiver, opts: WhichAsking = {}): Promise<WhichResult> {
   const { usual, sources, givers } = whichSources(viewer);
-  const word = what?.trim() ?? '';
   // The flags as typed, so the answer's command re-asks exactly this.
   const flags = `${opts.clashes ? ' --clashes' : ''}${opts.to ? ' --to' : ''}`;
+  const thing = opts.thing;
+  const word = opts.verb?.trim() ?? '';
 
-  if (word === '') {
+  if (thing === undefined && word === '') {
     const common = await commonVerbs();
     const commonSources: WhichSource[] = [];
     const commonSeen: string[] = [];
@@ -3025,30 +3026,27 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string, opts: Whic
     return { ok: true, facts: answer };
   }
 
-  // ⭐ A perceived thing in reach wins; a word naming nothing is a verb (which D6).
-  const found = viewer.namedSources(word);
-  if (found.ok) {
-    const named = found.named;
-    const subjectIds = named.map((s) => s.stuffId);
-    const command = named.length === 1 ? `which${flags} #${named[0]!.stuffId}` : `which${flags} ${word}`;
-    if (named.length === 1 && named[0]!.stuffId === viewer.stuffId) {
-      return { ok: true, facts: { ask: { mode: 'thing', command, what: word, subjectIds }, groups: [], usual: { verbs: usual } } };
+  // ⭐ A THING, bound by the binder (its perception gate, its tie prompt) —
+  // never a word guessed at (owner, review: a string slot that resolves
+  // things goes around the type system). Read again by a live card by id,
+  // so the radial's gates are asked here too.
+  if (thing !== undefined) {
+    const handle = whichSourceOf(thing, viewer).handle;
+    const ask = { mode: 'thing' as const, command: `which${flags} #${thing.stuffId}`, what: handle, subjectIds: [thing.stuffId] };
+    if (thing.stuffId === viewer.stuffId) {
+      return { ok: true, facts: { ask, groups: [], usual: { verbs: usual } } };
     }
-    const entries = sources
-      .filter((e) => subjectIds.includes(e.source.stuffId))
-      .map((entry) => ({ entry, verbs: [...entry.defs.keys()] }));
+    const entries = sourceShown(thing, viewer)
+      ? sources.filter((e) => e.source.stuffId === thing.stuffId).map((entry) => ({ entry, verbs: [...entry.defs.keys()] }))
+      : [];
     if (entries.length === 0) {
-      const thing = named.length === 1 ? whichSourceOf(named[0]!, viewer).name : `'${word}'`;
-      return { ok: false, reason: 'gives-nothing', facts: { thing } };
+      return { ok: false, reason: 'gives-nothing', facts: { thing: whichSourceOf(thing, viewer).name } };
     }
-    const answer: WhichAnswer = {
-      ask: { mode: 'thing', command, what: word, subjectIds },
-      groups: await whichGroups(entries, viewer),
-    };
+    const answer: WhichAnswer = { ask, groups: await whichGroups(entries, viewer) };
     // ⭐ Related, each asked for (owner, review): its words that mean another
     // command here too (`--clashes`), and what you can do TO it (`--to`).
     if (opts.clashes) answer.collisions = collisionsOf([...new Set(entries.flatMap((e) => e.verbs))], givers, viewer);
-    if (opts.to && named.length === 1) answer.actsOn = await actsOnOf(named[0]!, viewer);
+    if (opts.to) answer.actsOn = await actsOnOf(thing, viewer);
     return { ok: true, facts: answer };
   }
 
@@ -3060,7 +3058,7 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string, opts: Whic
   const own = usual.filter((v) => v === verb);
   if (entries.length > 0 || own.length > 0) {
     const answer: WhichAnswer = {
-      ask: { mode: 'verb', command: `which${flags} ${verb}`, what: word },
+      ask: { mode: 'verb', command: `which${flags} --verb ${verb}`, what: word },
       groups: await whichGroups(entries, viewer),
     };
     if (own.length > 0) answer.usual = { verbs: own };
