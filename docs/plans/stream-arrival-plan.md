@@ -1404,6 +1404,22 @@ all, the overlay is silent and the front page has no show band.
 
 ## Drive record
 
-*(appended at build time)* — the blocking drive's run (the wire file's result and the walk's
-steps, each with the failure it was shown to catch), the hand check of the three real carrier
-embeds, and what the drive found. There is no soak drive.
+**The wire drive** (`packages/wire/tests/stream-arrival.wire.test.ts`, `WIRE_BOOT=1 WIRE_PORT=2013`,
+a dropped `saxonberg_build2` each run): **9 / 9 green on the sixth run** (2026-11-23), both restarts
+included. Six runs, and what each found — every checkpoint below has been red at least once:
+
+| run | result | what it found | fixed in |
+|---|---|---|---|
+| 1 | 1 / 9 | ⚠ **real defect:** `program create` refused every player's own home (`program-owner-refused`). The pen asked `AccessApi.canAtPath` alone; the store's own gate grants `/home/<self>/` BEFORE the title, and a parcel over `/home` answers otherwise. Exposed as `DocumentApi.mayWrite`, the one rule | the pen fix |
+| 2 | 1 / 9 | the drive typed `config set …`; the verb is `config <key> <value>` (also wrong in the go-live checklist, `.env.example`, the settings comment — fixed); `apps install broadcast` chose the born-with implant — the drive names `on phone` | the config fix |
+| 3 | 2 / 9 | the drive's refusal reader missed a validator's note; the phone-off check stood next to the desk, whose `peers` reach the approach — the design working | the drive |
+| 4 | 2 / 9 | ⚠ **real defect:** `look sign` never said LIT — `OnAirSign` overrode `getLongDescription`, `look` reads `getLong` | the sign fix |
+| 5 | 8 / 9 | ⚠ **real defect:** `play … --watch nonsense --twitch` entered as usual; an unknown program must refuse at the roster (D4) | `readWatching` asks the program exists |
+| 6 | **9 / 9** | — | — |
+
+Every step is `instant` except the two restarts (`staged`). **There is no soak drive.**
+
+**The browser walk** — `e2e/tests/stream-arrival-walk.spec.ts`; result below when it lands.
+
+**The three real carrier embeds by hand** — not yet done (they need a live channel on each
+carrier); owed before go-live, with the founder's own channels.
