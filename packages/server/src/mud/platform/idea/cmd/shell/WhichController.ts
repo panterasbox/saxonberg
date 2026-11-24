@@ -10,6 +10,7 @@ import type { CommandContext, CommandModel } from '../../../../api/command';
 import { CommandApi } from '../../../../api/command';
 import { Mml } from '../../../../api/mml';
 import { MessageApi } from '../../../../api/message';
+import { CardApi } from '../../../../api/card';
 import type { WhichAnswer, WhichGroup, WhichSource } from '@saxonberg/types';
 
 interface WhichModel extends CommandModel {
@@ -49,9 +50,17 @@ export default class WhichController extends CommandController<WhichModel> {
   async execute(model: WhichModel, context: CommandContext): Promise<void> {
     const answer = await CommandApi.which(context.commandGiver, model.what);
     if (!answer.ok) return this.refuse(context, answer);
-    MessageApi.scene(context.commandGiver)
-      .topic('shell.result')
-      .toSelf(Mml.fromMarkup(`\n${WhichController.lines(answer.facts).join('\n')}\n`))
-      .send();
+    const prose = Mml.fromMarkup(`\n${WhichController.lines(answer.facts).join('\n')}\n`);
+    MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(prose).send();
+    // ⭐ The one `which` card, kept current while kept: the params are the
+    // word the answer's own command re-asks (`#<id>` for one thing).
+    const what = answer.facts.ask.command.replace(/^which\s*/, '');
+    CardApi.open(context, 'which', {
+      key: 'which',
+      title: answer.facts.ask.command,
+      prose,
+      payload: { kind: 'which', answer: answer.facts },
+      params: what === '' ? {} : { what },
+    });
   }
 }

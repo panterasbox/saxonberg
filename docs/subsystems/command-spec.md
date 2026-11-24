@@ -2525,8 +2525,8 @@ reloaded definition. For most dev workflows, "edit YAML →
 `CommandApi.invalidate(...)` → move yourself in/out of the affected
 container" is the round-trip.
 
-Wiring full HMR for command YAMLs (file-watcher → invalidate →
-broadcast `shell.control` (`schema:reset`)) is a future task.
+Wiring full HMR for command YAMLs (file-watcher → invalidate → re-poke
+the stack) is a future task.
 
 ## Testing
 

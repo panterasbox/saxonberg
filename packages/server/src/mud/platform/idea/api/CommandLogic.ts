@@ -98,7 +98,6 @@ import {
   type PositionalDefinition,
   type SubcommandDefinition,
   type OptionDefinition,
-  type CommandSchemaPayload,
   type AssembleSuccess,
   type AssembleResult,
   type AssembleOptions,
@@ -2340,57 +2339,6 @@ export class CommandLogic extends ApiLogic {
     const validated = this.runValidators(resolved.resolved, context, preloads);
     if (validated.result !== undefined) return validated;
     return resolved;
-  }
-
-  /** See {@link CommandApi.emitSchemaDelta}. */
-  @CallSecurity(CommandApiCallers)
-  public emitSchemaDelta(
-    recipient: Stuff,
-    kind: 'reset',
-    payload: CommandSchemaPayload[]
-  ): void {
-    if (!MixinApi.isSensor(recipient)) return;
-    const meta: MessageFrame['meta'] = { timestamp: Date.now() };
-    const ctx = ExecutionContextApi.getCurrentCommandContext();
-    if (ctx?.commandId) meta.commandId = ctx.commandId;
-    const causing = ExecutionContextApi.getCurrentCausingCommandId();
-    if (causing) meta.causingCommandId = causing;
-
-    // ⭐ `shell.control` carries every "server changes your interface"
-    // frame — schema deltas, `clear`, layout, mode, style. They are one
-    // subject, so they are one topic; WHICH control it is rides a tag,
-    // the way a log line's level does. This used to be three topics
-    // (`system.commands.{added,removed,reset}`), which put the
-    // discriminator in the tree and minted three keys nobody authored.
-    const frame: MessageFrame = {
-      id: SecurityApi.uuid(),
-      topic: 'shell.control',
-      tags: ['control:schema', `schema:${kind}`],
-      body: '',
-      meta,
-      payload,
-    };
-    (recipient as Stuff & Sensor).onMessage(frame);
-  }
-
-  /** See {@link CommandApi.getCommandSchemaPayload}. */
-  @CallSecurity(CommandApiCallers)
-  public getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {
-    const out: CommandSchemaPayload = {
-      verbs: cmd.verbs,
-      // Report the RESOLVED `/`-rooted path dispatch actually clones (the
-      // controller-path refactor), not the raw relative/authored value.
-      controller: cmd.resolvedController ?? cmd.controller,
-      description: cmd.description,
-    };
-    if (cmd.help) out.help = cmd.help;
-    if (cmd.examples && cmd.examples.length > 0) out.examples = cmd.examples;
-    if (cmd.args.length > 0) out.args = cmd.args;
-    if (Object.keys(cmd.subcommands).length > 0) out.subcommands = cmd.subcommands;
-    if (Object.keys(cmd.verbOptions).length > 0) out.options = cmd.verbOptions;
-    if (Object.keys(cmd.payload).length > 0) out.payload = cmd.payload;
-    if (cmd.fallthrough) out.fallthrough = true;
-    return out;
   }
 
   /** See {@link CommandApi.validateCommandView}. */

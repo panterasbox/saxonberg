@@ -494,7 +494,7 @@ before W1.
 - Acceptance: typed in a dev world, steps 1–7 read right. Commit
   `feat(which): the verb, and the ~ words`.
 
-**W4 — the card.** (D9, D10, D12)
+**W4 — the card.** ✅ *(done)* (D9, D10, D12) — decided: the source pushes the WHOLE answer under one key `answer` (not a replace per group — group order and the closing lines move together, and the answer is small); a payload card's source answers asynchronously, so `subscribePayload` marks it live at once and sends the fresh answer on a `card-touched` when it lands; no `_hasSession` guard — `SubscriptionApi.poke` stands nothing up when nobody subscribed, so the three stack mutators poke unconditionally; a verb click seeds the PRIMARY bar through a new store field `primarySeed` (`setDraft` is the prompt-slot draft, not the base bar's); `throw` moved again in this wave, to `Tangible.self` (see § The affordance audit).
 - `packages/types`: `CardId` + `CARD_IDS` `which`; `CardPayload` kind;
   `SUBSCRIPTION_SOURCES.which`; the source's params/snapshot/change
   types in `SubscriptionSources`.
@@ -540,7 +540,7 @@ before W1.
 - Acceptance: `query me:~` and `look me:~` both answer with the hint.
   Commit `refactor(mql): the relation listing retires — which ~ has it`.
 
-**W6 — drive, walk, docs.**
+**W6 — drive, walk, docs.** *(docs written; the drive is `packages/wire/tests/which.dirty.wire.test.ts` — `.dirty` because step 4 buys notebooks off the counter; no testbed `phone.yaml` — step 10 clones the generic-objects Hollis Pal if the starting kit has none)*
 - Testbed: `packages/content/test-fixtures/content/world/testbed/thing/phone.yaml`
   (class `/platform/thing/Phone`), not placed anywhere — the drive stages
   it; `scaffold.ts` gains its constant.
@@ -573,14 +573,14 @@ read/write, `Behaved`'s `talk`), and were judged **right**.
 
 | verb (view) | declared on | bucket(s) before | hosts that ended up with it | verdict | fix (commit W2) |
 |---|---|---|---|---|---|
-| `throw` · `throw-to` · `throw-at` | `TangibleMixin` | environment · peers | via `peers`: every thing in the room — a fixed counter, a hearth — and **every body** (a person was a thing you could throw) | **wrong slice** | `peers` dropped; `environment` kept: you throw what you hold, and pick the floor rock up first. A place never composed it |
+| `throw` · `throw-to` · `throw-at` | `TangibleMixin` | environment · peers | via `peers`: every thing in the room — a fixed counter, a hearth — and **every body** (a person was a thing you could throw) | **wrong slice** | moved to `self`: **a body throws** (every `Agent` composes Tangible; `self` is read only off a giver, so no rock or room gives it). ⚠ First cut kept `environment`, and an empty-handed player then got *I don't understand 'throw'* instead of ranged.md's *pick up the rock first* — lens 1 chose `self`. A place never composed it |
 | `ring` | `IntegrityMixin` | environment · peers | via `peers`: every good and vessel in the room — a rope, a loaf, a sack | **wrong slice** | `peers` dropped; `environment` kept (tap the article you hold — a held rope gives *a dead thud*, which is true and is how a player learns what rings); `peers` `ring` moved to `RingableMixin` — a bell is struck where it hangs (`Bell`, `SignalBell`) |
 | `ring` on a person | — | — | none: `Creature` does not compose `Integrity` (the requirements' first example was wrong; corrected before the plan) | right | — |
 | every other contribution | (243 files) | | each on the class or narrow mixin whose header sentence it fits | right | — |
 
 Consequence for D3: the *common* line (what the `Good` rung gives) is now
-`throw · ring` from what you **carry**, so it reads *and anything you're
-carrying: throw, ring*. Pinned by `command-which.test.ts` § the affordance
+`ring` from what you **carry** — *and anything you're carrying: ring* — and
+`throw` is on the usual line. Pinned by `command-which.test.ts` § the affordance
 audit (a floor good, a fixture and a person give neither; a held article
 gives both; `Good`'s `peers` has neither; a `Ringable` good keeps `ring`).
 Checked: the two soak drives that `throw`/`ring` (river-b, underwater)

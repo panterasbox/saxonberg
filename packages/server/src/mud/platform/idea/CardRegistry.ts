@@ -164,6 +164,11 @@ export interface CardState {
    * only) while on air. Its frames carry their own privacy tag.
    */
   private?: boolean;
+  /**
+   * ⭐ What a payload card's source keeps current (the which build) — the
+   * params its subscription opens with. Absent: the card is a snapshot.
+   */
+  params?: unknown;
 }
 
 /** One open card as `client-card list` and `client-layout save` see it. */
@@ -199,6 +204,12 @@ export type CardArrangeAction =
 export interface CardOpenOptions {
   /** The normalized command. Falls back to the definition's own. */
   key?: string;
+  /**
+   * ⭐ For a payload row with a `subscription`: the params that keep this
+   * answer current (the which build). Omitted, the card stays a snapshot
+   * even when kept — the answer is not one its source can re-read.
+   */
+  params?: unknown;
   subjectId?: string;
   promptId?: string;
   /**
@@ -476,8 +487,11 @@ export default class CardRegistry extends CardRegistryBase {
       minimized: opts.minimized ?? false,
       ...(opts.placed ? { placed: { ...opts.placed } } : {}),
       ...(role ? { role } : {}),
+      ...(opts.params !== undefined ? { params: opts.params } : {}),
     };
 
+    // A payload body is the controller's answer, live or not.
+    if (def.source.kind === 'payload') this.resolveInto(def, state, holder, opts);
     if (this.wantsLive(state)) {
       if (!this.subscribe(state)) return null;
     } else {
@@ -1196,8 +1210,41 @@ export default class CardRegistry extends CardRegistryBase {
    */
   private wantsLive(state: CardState): boolean {
     const def = CARDS[state.cardId];
-    if (!def.live || def.source.kind !== 'mql') return false;
+    if (!def.live) return false;
+    // ⭐ An MQL row can always re-answer; a payload row only through its
+    // source, and only for an answer the open said it can re-read.
+    const subscribable =
+      def.source.kind === 'mql' ||
+      (def.source.kind === 'payload' && def.source.subscription !== undefined && state.params !== undefined);
+    if (!subscribable) return false;
     return state.placed !== undefined || state.role !== undefined || state.pinned;
+  }
+
+  /**
+   * ⭐ A payload card's subscription (the which build). Its source answers
+   * asynchronously, so the card is live from the open and its fresh answer
+   * rides a `card-touched` when it lands; the open carried the controller's
+   * answer meanwhile. Refused later: back to a snapshot, stamped then.
+   */
+  private subscribePayload(state: CardState, source: string): boolean {
+    const opened = state.interactive.subscribe(state.instanceId, source, state.params, { silent: true });
+    if (opened === null) return false;
+    state.live = true;
+    delete state.takenAt;
+    void Promise.resolve(opened).then((answer) => {
+      const holder = this.viewerOf(state.interactive);
+      if (!holder || !state.live) return;
+      if (answer === null) {
+        state.live = false;
+        state.takenAt = Date.now();
+        holder.onEnvelope({ type: 'card-touched', instanceId: state.instanceId, key: state.key, live: false, takenAt: state.takenAt });
+        return;
+      }
+      const producer = (CARDS[state.cardId].source as { producer?: string }).producer;
+      state.payload = { kind: producer, answer } as CardPayload;
+      holder.onEnvelope({ type: 'card-touched', instanceId: state.instanceId, key: state.key, live: true, payload: state.payload });
+    });
+    return true;
   }
 
   /**
@@ -1206,6 +1253,9 @@ export default class CardRegistry extends CardRegistryBase {
    */
   private subscribe(state: CardState): boolean {
     const def = CARDS[state.cardId];
+    if (def.source.kind === 'payload' && def.source.subscription !== undefined) {
+      return this.subscribePayload(state, def.source.subscription);
+    }
     if (def.source.kind !== 'mql') return false;
     /*
      * ⭐⭐ A `needsSubject` card subscribes to THAT SUBJECT, not to a
@@ -1429,7 +1479,23 @@ export default class CardRegistry extends CardRegistryBase {
     }
     if (opts.segments) state.segments = opts.segments;
 
-    if (!state.live && holder) {
+    /*
+     * ⭐ A payload card a source keeps current is RETARGETED by a touch
+     * (the which build, R5): `which counter` after `which` is the same card
+     * asking a new question — the new answer, the new params, and its
+     * subscription cancelled and reopened under the same id (as `rebind`).
+     */
+    const retargets = def.source.kind === 'payload' && def.source.subscription !== undefined;
+    if (retargets) {
+      if (opts.params !== undefined) state.params = opts.params;
+      else delete state.params;
+      if (state.live) {
+        state.interactive.cancelSubscription(state.instanceId);
+        state.live = false;
+      }
+      if (holder) this.resolveInto(def, state, holder, opts);
+      if (!this.wantsLive(state) || !this.subscribe(state)) state.takenAt = state.lastTouchedAt;
+    } else if (!state.live && holder) {
       this.resolveInto(def, state, holder, opts);
       state.takenAt = state.lastTouchedAt;
     }
@@ -1448,11 +1514,12 @@ export default class CardRegistry extends CardRegistryBase {
      * touch; a live card's body belongs to its subscription, and touch
      * is only about the card's PLACE in the feed.
      */
-    const carriesBody = !state.live;
+    const carriesBody = !state.live || retargets;
     const template: Omit<CardTouchedEnvelope, 'frameId'> = {
       type: 'card-touched',
       instanceId: state.instanceId,
       key: state.key,
+      ...(retargets ? { live: state.live } : {}),
       ...(state.takenAt !== undefined ? { takenAt: state.takenAt } : {}),
       ...(state.title !== undefined ? { title: state.title } : {}),
       ...(state.prose ? { prose: state.prose } : {}),

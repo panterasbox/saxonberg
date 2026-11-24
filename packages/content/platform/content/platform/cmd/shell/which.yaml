@@ -1,5 +1,6 @@
 verbs: [which]
 category: shell
+opens_card: which
 controller: /platform/idea/cmd/shell/WhichController
 description: "What you can type here, and what gives you each verb"
 help: |

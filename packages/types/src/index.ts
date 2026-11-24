@@ -1136,7 +1136,9 @@ export type CardId =
   /** ⭐ Where you are, at zone level — the navigator (map slate, wave-1 stub). */
   | "map"
   /** ⭐ The stream controls (broadcast-ready D10) — opened by bare `stream`. */
-  | "stream";
+  | "stream"
+  /** ⭐ What you can type here, and what gives each verb (the which build). */
+  | "which";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -1155,6 +1157,7 @@ export const CARD_IDS: readonly CardId[] = [
   "settings",
   "map",
   "stream",
+  "which",
 ];
 
 /**
@@ -1353,7 +1356,9 @@ export type CardPayload =
   | { kind: 'wikiPage'; page: WikiPageFrame }
   | { kind: 'helpTopic'; topic: HelpTopic }
   | { kind: 'survey'; survey: SurveyFrame }
-  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean };
+  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean }
+  /** ⭐ The `which` answer (the which build); kept current by `WhichSource` while live. */
+  | { kind: 'which'; answer: WhichAnswer };
 
 /**
  * ⭐ A way's whole state, in one word (boundary build, 2026-11): `open` —
@@ -2825,6 +2830,8 @@ export const SUBSCRIPTION_SOURCES = {
   mapCopy: '/platform/idea/MapCopySource',
   /** ⭐ What you perceive from here, now — a change per section. */
   whereabouts: '/platform/idea/WhereaboutsSource',
+  /** ⭐ What you can type here — the `which` answer, one change (key `answer`). */
+  which: '/platform/idea/WhichSource',
 } as const;
 
 /**
@@ -2969,6 +2976,20 @@ export interface SubscriptionSources {
     snapshot: WhereaboutsSnapshot;
     fields: NavSections[NavSectionName];
   };
+  /** Change key: `answer`, always `replace` — the whole answer re-read. */
+  '/platform/idea/WhichSource': {
+    params: WhichSubscriptionParams;
+    snapshot: WhichAnswer;
+    fields: WhichAnswer;
+  };
+}
+
+/**
+ * What a live `which` card keeps current: the word asked (`which counter`
+ * keeps the counter's answer), or nothing for the whole answer.
+ */
+export interface WhichSubscriptionParams {
+  what?: string;
 }
 
 // ============================================================================

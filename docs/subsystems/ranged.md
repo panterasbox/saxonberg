@@ -292,9 +292,13 @@ effect would refuse across the gap it had just crossed.
 Three views of one word, each with its controller over `ThrowControllerBase`:
 `cmd/inventory/throw.yaml` (`ThrowController`), `throw-to.yaml`
 (`ThrowToController`, `Tossable.tossTo`), `throw-at.yaml` (`ThrowAtController`,
-`mayDeliverTo`, `initiateCombat`, `Combatant.deliverThrown`). All three are afforded by **`TangibleMixin`** — the thing with **mass** confers the
-verb, outward on whoever holds it (`environment`) and sideways on
-whoever stands where it lies (`peers`).
+`mayDeliverTo`, `initiateCombat`, `Combatant.deliverThrown`). All three are afforded by **`TangibleMixin`** on its
+`self` bucket — **a body with mass throws** (every `Agent` composes it), and
+the item argument does the rest. ⛔ Until the which build (2026-11-23) the
+*thing* with mass conferred it, outward to whoever held it (`environment`) and
+sideways to whoever stood where it lay (`peers`) — which made every body and
+every bolted-down fixture in a room a thing on offer to throw, and made `throw`
+unknown to an empty-handed player, losing the *pick it up first* lesson below.
 
 Not `ContainerMixin`, which was the first cut and was wrong twice over:
 "I can hold things" is the right home for `drop`/`give` and says nothing

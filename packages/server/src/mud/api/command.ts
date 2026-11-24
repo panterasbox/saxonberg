@@ -1453,30 +1453,6 @@ export interface CommandView {
   opens_card?: string | string[];
 }
 
-/**
- * Schema-delivery payload for shell.control. Mirrors
- * the YAML view minus runtime-only bits.
- */
-export interface CommandSchemaPayload {
-  verbs: string[];
-  controller?: string;
-  description: string;
-  /** Authored help prose (see `CommandView.help`). */
-  help?: string;
-  /** Worked invocations (see `CommandView.examples`). */
-  examples?: ExampleDefinition[];
-  args?: PositionalDefinition[];
-  subcommands?: Record<string, SubcommandDefinition>;
-  options?: Record<string, OptionDefinition>;
-  /**
-   * Structured-form-only fields. Surfaces to widget / editor
-   * clients so they know which keys to attach to their structured
-   * payloads.
-   */
-  payload?: Record<string, OptionDefinition>;
-  fallthrough?: boolean;
-}
-
 /** `assemble` success arm. `prep` carries any prepositions consumed
  *  per positional field — keyed by field name, lowercased value.
  *  Absent (or empty) when no field declared `prepositions:`. */
@@ -2210,31 +2186,6 @@ export class CommandApi {
     prep: Record<string, string> = {}
   ): Promise<{ resolved: CommandModel; result?: undefined } | { result: 'failed' }> {
     return logic().resolveAndValidate(model, context, prep);
-  }
-
-  /**
-   * Emit a `shell.control` frame to a
-   * recipient. Stamps `commandId` / `causingCommandId` from the
-   * ambient ExecutionContext when present (so a recency-stack
-   * mutation triggered inside a command is auto-attributed). Skips
-   * silently when the recipient isn't a Sensor — schema delivery is
-   * best-effort.
-   */
-  static emitSchemaDelta(
-    recipient: Stuff,
-    kind: 'reset',
-    payload: CommandSchemaPayload[]
-  ): void {
-    logic().emitSchemaDelta(recipient, kind, payload);
-  }
-
-  /**
-   * Project a `CommandDefinition` to a wire-safe schema payload for
-   * client-side widget rendering. Used by `shell.control ({added,
-   * reset}`.
-   */
-  static getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {
-    return logic().getCommandSchemaPayload(cmd);
   }
 
   /**

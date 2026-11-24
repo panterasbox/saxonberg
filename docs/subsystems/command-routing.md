@@ -690,19 +690,46 @@ The detach delta is the symmetric pop: a single `popCommandSource(item)`
 on the source-side giver and on each sibling sweeps every bucket
 that source contributed to.
 
-### Schema delivery to the client
+### ⭐ `which` — the stack, read back to the player (the which build)
 
-Schema delivery is gated by `_commandSchemaSubscribed`, which flips on the first
-`onConnectionAttached`, and emits one `shell.control` (`schema:reset`) carrying
-the full deduped payload.
+The recency stack is what the line accepts; `which` is that list shown to the
+person who types. `CommandApi.which(viewer, what?)` reads
+`viewer.getAffordances()` — the dispatcher's own list, not a description of it
+— behind the radial's two gates (the source is the viewer's own, carried, or
+perceived; an Identifiable thing must be identified for its own verbs to show).
+It groups by source, each source worded by the thing itself
+(`Containable.whereFor(viewer)` — *in your right hand*, *you're carrying*, *on
+the shelf*, *here*, *nearby*; `AetherHosted.whereFor`; `Slotted.slotWord`),
+merges alike sources into one counted group, and orders by the rarest verb.
+The body's own verbs (the `'self'` entry) are the *usual* line; what the `Good`
+rung itself contributes is the *anything you're carrying* line. Each verb's
+state is `evaluateAffordance`'s, the same validator words the radial shows.
+`which <word>`: a perceived thing in reach wins (the `source::verb` scope read,
+`CommandGiver.namedSources`); a word naming nothing is a verb — who gives it,
+or `nothing-gives-verb` (never what WOULD give it), or `no-such-verb`.
+`CommandApi.whichRelations` lists the `~` words (`lib/relation/BuiltinRelations.ts`
++ `relationsFor`). It is a read, never a gate: every verb it lists is one the
+line accepts (`command-which.test.ts`, *listed ⇒ accepted*).
 
-⭐ **Pushes and pops send nothing.** They used to send a frame per verb
-(`schema:added`, `schema:removed`), so one body walking into a room of thirty
-sent thirty people a frame per verb it and its goods afford, and sent the walker
-one per verb of everything there. No client read them: the client's
-`shell.control` handler keeps only `control:clear`. It was half of a crowd's cost
-on the profile (controllers-are-io D27). A client that wants a live verb list
-asks for affordances.
+⭐ **The stack pokes `WhichSource`.** The three sealed mutators each
+`SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, giver)`; a source nobody
+subscribed to is not standing, so the poke costs nothing. The `shell.control`
+schema push (`emitSchemaDelta`, `getCommandSchemaPayload`) is **retired**: its
+one `schema:reset` on first connection went to a client whose handler keeps
+only `control:clear`.
+
+### ⭐ The affordance audit (the which build, 2026-11-23)
+
+`which` was the first thing to show a player every verb and where it comes
+from, so the build took a census of every `commandContributions` (243 files).
+Only two wide-rung mixins put verbs outside `self`, both in `peers`:
+`TangibleMixin` (`throw`, on every `Thing` and `Agent`) made every body and
+every bolted-down fixture in a room throwable, and `IntegrityMixin` (`ring`, on
+every `Good`/`Vessel`) made every rope and loaf ring. Both lost `peers`: you
+throw, or tap, what you hold. A bell is struck where it hangs —
+`RingableMixin` carries the `peers` `ring`. The rule the audit leaves: **a thing
+in your hand gives you the verbs for handling it; a thing in the room gives
+only what it does where it stands.**
 
 ## Stage 1 — Ingress
 
@@ -1601,8 +1628,7 @@ Live recency-stack entries that already hold a reference to the old
 reloaded definition. For most dev workflows, "edit YAML →
 invalidate → move yourself in/out of the affected container" is a
 two-line console sequence. Wiring full HMR for command YAMLs (file-
-watcher → invalidate → broadcast `shell.control` (`schema:reset`)) is a
-future task.
+watcher → invalidate → re-poke the stack) is a future task.
 
 ## Frame attribution
 

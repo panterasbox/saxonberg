@@ -877,6 +877,13 @@ interface StoreState
   primaryDraftCarry: string;
   setPrimaryDraftCarry: (text: string) => void;
   /**
+   * ⭐ Text a click put on the PRIMARY bar's command line (the which build:
+   * a verb clicked on the `which` card is typed, never sent). A new
+   * `nonce` re-seeds the same text.
+   */
+  primarySeed: { text: string; nonce: number } | null;
+  seedPrimaryDraft: (text: string) => void;
+  /**
    * Which slot the CommandBar input is currently bound to. Either
    * `BASE_SLOT` or a `promptId` from `prompts`. Set to a new
    * arrival iff `foreground` is true; preserved otherwise.
@@ -1617,6 +1624,7 @@ export const useStore = create<StoreState>((set, get) => ({
   prompts: [],
   promptDrafts: { [BASE_SLOT]: "" },
   primaryDraftCarry: "",
+  primarySeed: null,
   activeSlot: BASE_SLOT,
   activeSlotByBar: {},
   primaryBarId: null,
@@ -1723,6 +1731,9 @@ export const useStore = create<StoreState>((set, get) => ({
     }),
 
   setPrimaryDraftCarry: (text) => set(() => ({ primaryDraftCarry: text })),
+
+  seedPrimaryDraft: (text) =>
+    set((state) => ({ primarySeed: { text, nonce: (state.primarySeed?.nonce ?? 0) + 1 } })),
 
   setDraft: (slot, text) =>
     set((state) => {

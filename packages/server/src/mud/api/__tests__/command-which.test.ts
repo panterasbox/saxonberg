@@ -134,8 +134,10 @@ describe('which — what can I type here (W1)', () => {
     // `move` onto a body lands it in a free hand (carrying.md).
     expect(g?.source.place).toMatch(/^in your (left|right) hand$/);
     expect(g?.verbs.map((v) => v.verb)).toContain('read');
-    expect(g?.verbs.map((v) => v.verb)).not.toContain('throw');
-    expect(a.common?.verbs).toContain('throw');
+    expect(g?.verbs.map((v) => v.verb)).not.toContain('ring');
+    expect(a.common?.verbs).toContain('ring');
+    // A body throws (the audit): `throw` is on the usual line.
+    expect(a.usual?.verbs).toContain('throw');
   });
 
   it('a held thing is named by the hand that holds it', async () => {
@@ -203,13 +205,14 @@ describe('which — what can I type here (W1)', () => {
         expect(verbs).not.toContain('ring');
       }
       expect(a.common).toBeUndefined();
+      expect(a.usual?.verbs).toContain('throw');
     });
 
-    it('what you hold still gives both', async () => {
+    it('what you hold gives ring; your body throws', async () => {
       const n = note();
       ContainmentApi.move(n, me);
       const a = await ask();
-      expect(a.common?.verbs).toEqual(expect.arrayContaining(['throw', 'ring']));
+      expect(a.common?.verbs).toEqual(['ring']);
     });
 
     it('the census: who contributes throw and ring, and to whom', () => {
@@ -217,8 +220,9 @@ describe('which — what can I type here (W1)', () => {
         CommandApi.collectContributions(ctor, b).map((d) => d.getPrimaryVerb());
       expect(of(Good, 'peers')).not.toContain('throw');
       expect(of(Good, 'peers')).not.toContain('ring');
-      expect(of(Good, 'environment')).toEqual(expect.arrayContaining(['throw', 'ring']));
+      expect(of(Good, 'environment')).toEqual(['ring']);
       expect(of(Person, 'peers')).not.toContain('throw');
+      expect(CommandApi.collectSelfDefs(Person).map((d) => d.getPrimaryVerb())).toContain('throw');
       expect(of(Location, 'environment')).not.toContain('throw');
       class Bell extends RingableMixin(Good) {}
       expect(of(Bell, 'peers')).toContain('ring');

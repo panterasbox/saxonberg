@@ -92,6 +92,13 @@ export type CardSource =
        * adds no new read Apis.
        */
       readonly producer: CardPayloadKind;
+      /**
+       * ⭐ A payload a SOURCE can keep current (the which build): the
+       * subscription source's path. A live row with one subscribes while
+       * the player keeps it (pinned, placed, a role) and the open carried
+       * `params`; otherwise it is a snapshot like any payload card.
+       */
+      readonly subscription?: string;
     }
   | {
       /**
@@ -114,7 +121,8 @@ export type CardPayloadKind =
   | 'wikiPage'
   | 'helpTopic'
   | 'survey'
-  | 'terminal';
+  | 'terminal'
+  | 'which';
 
 /** Everything the server needs to open one named card. */
 export interface CardDefinition {
@@ -446,6 +454,17 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     pinnedByDefault: true,
     live: false,
     command: 'analyze ground',
+    singleton: true,
+  },
+
+  which: {
+    label: 'what you can type here',
+    // ⭐ A table the answer keeps current while kept (the which build): one
+    // card — `which counter` and `which ~` retarget the one that is up.
+    source: { kind: 'payload', producer: 'which', subscription: '/platform/idea/WhichSource' },
+    pinnedByDefault: false,
+    live: true,
+    command: 'which',
     singleton: true,
   },
 };

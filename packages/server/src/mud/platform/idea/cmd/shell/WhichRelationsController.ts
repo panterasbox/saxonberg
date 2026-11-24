@@ -11,6 +11,7 @@ import { CommandApi } from '../../../../api/command';
 import type { MqlOneResult } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import { MessageApi } from '../../../../api/message';
+import { CardApi } from '../../../../api/card';
 import type { WhichAnswer } from '@saxonberg/types';
 import WhichController from './WhichController';
 
@@ -33,9 +34,15 @@ export default class WhichRelationsController extends CommandController<WhichRel
   execute(model: WhichRelationsModel, context: CommandContext): void {
     const answer = CommandApi.whichRelations(context.commandGiver, model.thing?.stuff ?? undefined);
     if (!answer.ok) return this.refuse(context, answer);
-    MessageApi.scene(context.commandGiver)
-      .topic('shell.result')
-      .toSelf(Mml.fromMarkup(`\n${WhichRelationsController.lines(answer.facts).join('\n')}\n`))
-      .send();
+    const prose = Mml.fromMarkup(`\n${WhichRelationsController.lines(answer.facts).join('\n')}\n`);
+    MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(prose).send();
+    // The same one card, on the ~ words — a snapshot (no params): a friend
+    // arriving is nothing this source hears (which D9).
+    CardApi.open(context, 'which', {
+      key: 'which',
+      title: answer.facts.ask.command,
+      prose,
+      payload: { kind: 'which', answer: answer.facts },
+    });
   }
 }
