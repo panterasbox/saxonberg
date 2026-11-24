@@ -377,21 +377,27 @@ export default class Login extends LoginBase {
   /**
    * ⭐ Read `--watch <program>` and its carrier flag (stream arrival D4) —
    * the one parse `play` and `embody confirm` share. Nothing asked → null;
-   * a name with no carrier, two carriers, or a name that is not a short
-   * name → a refusal (the client never sends those; a typist is told).
-   * Whether the program exists and is on the air is the entry's to decide.
+   * a name with no carrier, two carriers, a name that is not a short name,
+   * or a program nobody filed → a refusal, and the player stays at the
+   * roster (the client never sends those; a typist is told). Whether the
+   * program is ON THE AIR is the entry's to decide — off air, you arrive as
+   * usual and are told why.
    */
-  public readWatching(opts: {
+  public async readWatching(opts: {
     watch?: string;
     twitch?: boolean;
     youtube?: boolean;
     kick?: boolean;
-  }): ArrivalWatching | null | Refusal {
+  }): Promise<ArrivalWatching | null | Refusal> {
     const program = (opts.watch ?? '').trim().toLowerCase();
     const carriers = (['twitch', 'youtube', 'kick'] as const).filter((c) => opts[c] === true);
     if (program === '' && carriers.length === 0) return null;
     if (program === '' || carriers.length !== 1) return new Refusal('watch-needs-carrier', {});
     if (!/^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])$/.test(program)) {
+      return new Refusal('no-such-program', { name: program });
+    }
+    const { StreamApi } = await import('../../api/stream');
+    if ((await StreamApi.programListing(program)) === null) {
       return new Refusal('no-such-program', { name: program });
     }
     return { program, carrier: carriers[0]! };

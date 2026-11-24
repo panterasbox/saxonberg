@@ -11,7 +11,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Login from '../Login';
 import Avatar from '../../../lib/character/Avatar';
 import { Refusal } from '../../../lib/errors';
@@ -22,21 +22,29 @@ import type { ProgramListing } from '@saxonberg/types';
 const login = Object.create(Login.prototype) as Login;
 
 describe('Login.readWatching', () => {
-  it('nothing asked → null', () => {
-    expect(login.readWatching({})).toBeNull();
+  beforeEach(() => {
+    vi.spyOn(StreamApi, 'programListing').mockImplementation((async (n: string) =>
+      n === 'cafe-hour' ? ({ name: n, title: 'x', live: false, feeds: {} } as ProgramListing) : null) as never);
   });
-  it('a name and one carrier → the words, lower-cased', () => {
-    expect(login.readWatching({ watch: 'Cafe-Hour', kick: true })).toEqual({ program: 'cafe-hour', carrier: 'kick' });
+  afterEach(() => vi.restoreAllMocks());
+  it('a program nobody filed → no-such-program, still at the roster', async () => {
+    expect(((await login.readWatching({ watch: 'nonsense', twitch: true })) as Refusal).reason).toBe('no-such-program');
   });
-  it('no carrier, two carriers, or a carrier alone → watch-needs-carrier', () => {
+  it('nothing asked → null', async () => {
+    expect(await login.readWatching({})).toBeNull();
+  });
+  it('a name and one carrier → the words, lower-cased', async () => {
+    expect(await login.readWatching({ watch: 'Cafe-Hour', kick: true })).toEqual({ program: 'cafe-hour', carrier: 'kick' });
+  });
+  it('no carrier, two carriers, or a carrier alone → watch-needs-carrier', async () => {
     for (const o of [{ watch: 'cafe-hour' }, { watch: 'cafe-hour', twitch: true, kick: true }, { youtube: true }]) {
-      const r = login.readWatching(o);
+      const r = await login.readWatching(o);
       expect(r).toBeInstanceOf(Refusal);
       expect((r as Refusal).reason).toBe('watch-needs-carrier');
     }
   });
-  it('a malformed name → no-such-program', () => {
-    expect((login.readWatching({ watch: 'not a name', twitch: true }) as Refusal).reason).toBe('no-such-program');
+  it('a malformed name → no-such-program', async () => {
+    expect(((await login.readWatching({ watch: 'not a name', twitch: true })) as Refusal).reason).toBe('no-such-program');
   });
 });
 

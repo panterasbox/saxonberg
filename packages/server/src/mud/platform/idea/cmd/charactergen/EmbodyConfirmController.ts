@@ -19,7 +19,7 @@ export default class EmbodyConfirmController extends EmbodyController {
     const { login, draft, cfg } = await this.prepare(context);
     // `--watch <program> --<carrier>` (stream arrival D4) — refused before
     // anything is committed.
-    const watching = login.readWatching(model as Parameters<typeof login.readWatching>[0]);
+    const watching = await login.readWatching(model as Parameters<typeof login.readWatching>[0]);
     if (watching instanceof Refusal) return this.refuse(context, watching);
     const missing = this.missingOf(draft, cfg);
     if (missing.length) {

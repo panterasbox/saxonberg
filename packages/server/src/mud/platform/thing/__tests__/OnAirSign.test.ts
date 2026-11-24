@@ -55,7 +55,7 @@ describe('OnAirSign — lit by presence, derived', () => {
     ContainmentApi.move(b, booth);
     expect(sign.isLit()).toBe(false);
     expect(sign.getEmittedFlux().value).toBe(0);
-    expect(sign.getLongDescription()).toMatch(/dark/);
+    expect(sign.getLong()).toMatch(/dark/);
   });
 
   it('lit while a body in the booth is on the air — its light and its words', () => {
@@ -64,7 +64,7 @@ describe('OnAirSign — lit by presence, derived', () => {
     b.onAir = true;
     expect(sign.isLit()).toBe(true);
     expect(sign.getEmittedFlux().value).toBe(400);
-    expect(sign.getLongDescription()).toMatch(/LIT/);
+    expect(sign.getLong()).toMatch(/LIT/);
   });
 
   it('dark again when they go off the air, and when they walk out still on it', () => {

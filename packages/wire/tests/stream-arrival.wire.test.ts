@@ -70,8 +70,14 @@ async function front(query = ''): Promise<{ show?: Listing }> {
 /** The refusal reason a dispatch carried, if any. */
 function reasonOf(r: { notes: unknown[] }): string | null {
   for (const n of r.notes as Array<{ kind?: string; reason?: string }>) {
-    if (n.kind === 'refused' || n.kind === 'command-rejected' || n.kind === 'controller-rejected') {
-      return n.reason ?? null;
+    if (
+      n.kind === 'refused' ||
+      n.kind === 'command-rejected' ||
+      n.kind === 'controller-rejected' ||
+      n.kind === 'validator-failed'
+    ) {
+      // A validator's note carries no reason code: its kind is the answer.
+      return n.reason ?? n.kind ?? null;
     }
   }
   return null;
@@ -238,16 +244,20 @@ suite('stream arrival — the program, the arrival, the instruments', () => {
     expectOk(await cal.cmd(`program run ${PC}`));
     expectOk(await cal.cmd('rodney start'));
     expectOk(await cal.cmd('rodney live'));
-    // Anywhere: walk to the approach.
-    expectOk(await cal.cmd(`go ${EXITS.plaza.approach}`));
+    // Anywhere: walk to the bank — beyond the desk's reach (the hut's
+    // `peers` reach one PASSABLE exit, so the approach next door has the desk).
+    expectOk(await cal.cmd(`go ${EXITS.plaza.bank}`));
     expectOk(await cal.cmd('rodney away 5m'));
     // The phone off: the verb stays, typing it says why.
     expectOk(await cal.cmd('switch phone off'));
     const off = await cal.cmd('rodney back');
     expect(reasonOf(off), JSON.stringify(off.notes)).toBe('aether-off');
-    // At the desk (the hut), it runs — the other offer.
-    expectOk(await cal.cmd(`go ${EXITS.approach.hut}`));
+    // Next to the desk (the approach, one open doorway from the hut), it
+    // runs — the other offer.
+    expectOk(await cal.cmd(`go ${EXITS.bank.plaza}`));
+    expectOk(await cal.cmd(`go ${EXITS.plaza.approach}`));
     expectOk(await cal.cmd('rodney back'));
+    expectOk(await cal.cmd(`go ${EXITS.approach.hut}`));
     const lit = await (await cal.cmd('look sign')).said();
     expect(lit).toMatch(/LIT/);
 

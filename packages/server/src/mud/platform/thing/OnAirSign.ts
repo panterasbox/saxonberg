@@ -41,9 +41,9 @@ export default class OnAirSign extends OnAirSignBase {
     return this.isLit() ? super.getEmittedFlux() : Quantity.of(0, 'lumen');
   }
 
-  /** The authored description, and whether it is lit — read now. */
-  override getLongDescription(): string {
-    const base = super.getLongDescription();
+  /** The authored description, and whether it is lit — read now (what `look` reads). */
+  override getLong(): string {
+    const base = super.getLong();
     const state = this.isLit()
       ? 'It is LIT — somebody in here is on the air.'
       : 'It is dark — nobody in here is on the air.';

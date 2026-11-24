@@ -34,7 +34,7 @@ export default class PlayController extends CommandController<PlayModel> {
     }
     // `--watch <program> --<carrier>` (stream arrival D4): refused here,
     // before the hand-off, so the player stays at the roster.
-    const watching = login.readWatching(model);
+    const watching = await login.readWatching(model);
     if (watching instanceof Refusal) return this.refuse(context, watching);
     const ok = await login.playCharacter(playerId, { watching });
     if (!ok) {
