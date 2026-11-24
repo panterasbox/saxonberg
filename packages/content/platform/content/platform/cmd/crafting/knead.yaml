@@ -34,11 +34,11 @@ args:
   - name: vessel
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["~reachable"]
     # ⭐ Bare `knead` works the trough or tub you are at — DECLARED, so the
     # binder resolves it (`lint:controller-resolution`). A union of the two
     # shipped kinds of knead vessel (a build vessel, a compounding one).
-    default: "reachable:[mixin.ManualBuildMixin],reachable:[mixin.CompoundingMixin]"
+    default: "~reachable:[mixin.ManualBuildMixin],~reachable:[mixin.CompoundingMixin]"
     # ⚠ `any`, narrowed by the controller: a knead vessel
     # (`KneadVesselMixin`) is asked for its plan, and anything else the
     # default bound (a shaker) is refused in the controller's own words.

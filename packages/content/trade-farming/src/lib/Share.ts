@@ -9,6 +9,8 @@
  * the fraction IS this object's one concept.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
+
 const WORD_FRACTIONS: Readonly<Record<string, number>> = {
   'all': 1,
   'whole': 1,
@@ -45,7 +47,7 @@ export class Share {
       .replace(/\bof (it|the tract|the ground|this)\b/g, '')
       .replace(/[-]/g, ' ')
       .trim();
-    if (words === '' || /^(the )?rest$/.test(words) || words === 'what is left') {
+    if (words === '' || GrammarApi.withoutArticle(words) === 'rest' || words === 'what is left') {
       this.value = null;
       this.rest = true;
       return;

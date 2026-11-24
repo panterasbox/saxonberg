@@ -70,6 +70,8 @@ export interface ProfileCard {
   header: string;
   isSelf: boolean;
   recognized: boolean;
+  /** `@<id>` — what to type to address this player (absent when masked). */
+  address?: string;
   // account / world facts — always shown
   country?: string;
   newness?: "new-arrival";

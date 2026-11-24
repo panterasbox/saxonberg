@@ -14,8 +14,8 @@
  *   /world/<world>/msh/<name>        managed world content (a pack's msh/)
  *
  * The record carries a **`kind`** discriminator — what kind of object
- * lives here (`'msh'`, `'emote'`, `'recipe'`, … — the pack-installable
- * ones are the closed `DocumentKinds` vocabulary) — and an arbitrary JSON
+ * lives here (`'msh'`, `'emote'`, `'recipe'`, … — free text, each declared
+ * by a `kind` document at `<root>/kinds/<kind>`) — and an arbitrary JSON
  * **`data`** payload. The store itself is kind-agnostic (it never inspects
  * `data`); each kind's consumer owns the meaning + any go-live behavior.
  * Scripts are `kind: 'msh'` with `data: { source }` (re-parsed on
@@ -31,11 +31,7 @@
 import { Document } from "../persistence/Document";
 import type { FieldMeta } from "../mixin";
 import { Collections } from '../persistence/Collections';
-import {
-  DOCUMENT_KINDS,
-  type DocumentKeyValue,
-  type DocumentKindSpec,
-} from './DocumentKinds';
+import type { DocumentKeyValue } from './DocumentKind';
 
 /**
  * A query over one key of a kind's catalogue card (`DocumentApi.findByKey`).
@@ -77,7 +73,8 @@ export class StoredDocument extends Document {
   /**
    * ⭐ The **catalogue card** — the keys this document can be found by
    * besides its path, DERIVED from `data` by its kind's declaration
-   * (`DocumentKinds` `keys` + `words`) on every write and never authored.
+   * (`DocumentKind.cardOf`) on every write — by the store's one write
+   * funnel and the installer — and never authored.
    * Empty for most documents. Served by one wildcard index
    * (`{kind, 'keys.$**'}`); read with `DocumentApi.findByKey`.
    */
@@ -101,47 +98,6 @@ export class StoredDocument extends Document {
 
   getKeys(): Record<string, DocumentKeyValue> {
     return this.keys;
-  }
-
-  /**
-   * The card a document of `kind` at `path` with `data` carries — every
-   * key its kind declares that has a value, plus `word` for a typed-word
-   * kind. Both writers call it: {@link save} and the pack installer's row
-   * builder (which writes before any hook is loaded). A kind the
-   * vocabulary does not declare (a runtime kind the CMS or a brain files)
-   * has an empty card — the store is kind-agnostic; only a pack-installable
-   * kind is closed. ⚠ Throws on an empty path: the path is the identity.
-   */
-  static cardOf(
-    kind: string,
-    path: string,
-    data: Record<string, unknown>,
-  ): Record<string, DocumentKeyValue> {
-    if (!path) {
-      throw new Error(
-        `StoredDocument: a ${kind || 'kindless'} document has no path — the path is its identity`,
-      );
-    }
-    const spec = (DOCUMENT_KINDS as Record<string, DocumentKindSpec>)[kind];
-    const card: Record<string, DocumentKeyValue> = {};
-    if (!spec) return card;
-    const source = { path, data };
-    for (const [key, derive] of Object.entries(spec.keys ?? {})) {
-      const value = derive(source);
-      if (value !== undefined) card[key] = value;
-    }
-    if (spec.words) {
-      const words = spec.words(source);
-      if (words.length === 1) card.word = words[0]!;
-      else if (words.length > 1) card.word = words;
-    }
-    return card;
-  }
-
-  /** Writes the derived card with the row — the card is never a second copy to drift. */
-  override async save(): Promise<void> {
-    this.keys = StoredDocument.cardOf(this.kind, this.path, this.data);
-    await super.save();
   }
 
   /** The one document stored at `path`, or null. */

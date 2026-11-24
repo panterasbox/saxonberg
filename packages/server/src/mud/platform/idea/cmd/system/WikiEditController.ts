@@ -56,7 +56,7 @@ export default class WikiEditController extends WikiControllerBase {
       return;
     }
 
-    const section = (model.section ?? '').trim().toLowerCase();
+    const section = (model.section ?? '').trim();
     if (section && !Sections.find(page.getBody(), section)) {
       return this.fail(
         context,

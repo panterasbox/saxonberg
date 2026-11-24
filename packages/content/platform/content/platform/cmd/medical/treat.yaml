@@ -55,7 +55,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     updates_focus: extend
     prepositions: [on]
     requires: [VisibleMixin, VitalsMixin]
@@ -68,7 +68,7 @@ options:
   # the teaching with a shrug.
   with:
     type: object
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: any
     description: "What to treat with; with nothing named, the first thing to hand"
   # What the medic thinks it is — a condition's NAME, typed. Free text on

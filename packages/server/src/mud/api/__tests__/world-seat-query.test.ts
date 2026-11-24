@@ -88,7 +88,7 @@ description: stub
 args:
   - name: target
     type: objects
-    scope: "reachable"
+    scope: "~reachable"
 `,
   '<test>',
 );
@@ -101,10 +101,10 @@ description: stub
 args:
   - name: first
     type: objects
-    scope: "reachable"
+    scope: "~reachable"
   - name: second
     type: objects
-    scope: "reachable"
+    scope: "~reachable"
 `,
   '<test>',
 );
@@ -173,7 +173,7 @@ describe("the Prime Minister's typed world query", () => {
     expect(err).toBeDefined();
     expect(String(err!.detail)).toMatch(/not available here/);
     // ⚠ The refusal has to name a way forward.
-    expect(String(err!.detail)).toMatch(/reachable, here, person/);
+    expect(String(err!.detail)).toMatch(/~reachable, ~here, ~person/);
     expect(notes.some((n) => n.kind === 'registry-scan')).toBe(false);
   });
 

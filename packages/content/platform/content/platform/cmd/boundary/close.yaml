@@ -23,7 +23,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     updates_focus: extend
     # ⭐ …and a chamber that buttons (`open "breast pocket"` — size and
     # carrying D-W10-12): the binder's `via.region` names it on its host.

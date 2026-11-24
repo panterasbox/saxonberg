@@ -322,11 +322,10 @@ describe('office (assign / vacate / list controllers)', () => {
       } as CommandModel,
       ctx,
     );
+    // ⭐ Named by the one rule (naming overhaul D-C5): an unknown office
+    // is `no-such-name`, listing the offices there are.
     expect(ctx.getNotes()).toContainEqual(
-      expect.objectContaining({
-        kind: 'controller-rejected',
-        reason: 'unknown-office',
-      }),
+      expect.objectContaining({ kind: 'refused', reason: 'no-such-name' }),
     );
   });
 

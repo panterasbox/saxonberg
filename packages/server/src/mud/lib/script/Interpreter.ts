@@ -42,6 +42,7 @@ import { CommandLineApi } from "../../api/command-line";
 import { CommandApi } from "../../api/command";
 import type { CommandModel, CommandContext } from "../../api/command";
 import { MixinApi } from "../../api/mixin";
+import { GrammarApi } from "../../api/grammar";
 import { Expression } from "./Expression";
 import { Block } from "./Block";
 import { Scope } from "./Scope";
@@ -78,7 +79,7 @@ export type Effect =
       command: CommandDefinition;
       model: CommandModel;
       prep: Record<string, string>;
-      /** The `verb@source` source the line named, when it named one. */
+      /** The `source::verb` source the line named, when it named one. */
       source?: Stuff;
       /** The line as the script wrote it — what a stop names. */
       line: string;
@@ -196,16 +197,15 @@ function itemsOf(value: ScriptValue): ScriptValue[] {
 }
 
 /**
- * Parse a duration literal (`5m`, `30s`, `2h`, `1d`, or a bare number =
- * seconds) into game-seconds. Unparseable → 0 (fires next tick).
+ * A script duration (`5m`, `30s`, `2 hours`, `a day`) in game seconds —
+ * the one duration grammar (naming overhaul D-C6), with a bare number read
+ * as seconds (a script's own shorthand). Unparseable → 0 (fires next tick).
  */
 function parseDurationSeconds(text: string): number {
-  const match = /^(\d+(?:\.\d+)?)\s*(s|m|h|d)?$/.exec(text.trim());
-  if (!match) return 0;
-  const value = Number(match[1]);
-  const unit = match[2] ?? "s";
-  const scale = unit === "m" ? 60 : unit === "h" ? 3600 : unit === "d" ? 86400 : 1;
-  return value * scale;
+  const t = text.trim();
+  const bare = Number(t);
+  if (t !== "" && Number.isFinite(bare)) return bare;
+  return GrammarApi.parseDuration(t) ?? 0;
 }
 
 /** Extract `def` param names from a `($a $b)` island source. */
@@ -375,7 +375,7 @@ export class Interpreter {
     // ⭐ A line the binder refuses is a refusal like any other (D5): the
     // script stops there unless a `try` handles it. Its notes go with it.
     if (bindings === null) throw this.refusalFromNotes(this.notes.splice(mark), line);
-    // ⭐ One binding, or one per source of a plural `verb@source` batch.
+    // ⭐ One binding, or one per source of a plural `source::verb` batch.
     // The pump throws a refused line's Refusal (or a defect's
     // ScriptHalted) back in at this yield.
     for (const bound of bindings) {
@@ -803,7 +803,7 @@ export class Interpreter {
     const location = MixinApi.isContainable(this.actor)
       ? this.actor.getContainer()
       : null;
-    // ⭐ The dispatcher's own matcher (verb filter + `verb@source`).
+    // ⭐ The dispatcher's own matcher (verb filter + `source::verb`).
     const matched = this.actor.matchAffordances(parsed);
     if (!matched.ok) {
       this.note(matched.note);

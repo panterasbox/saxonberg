@@ -109,7 +109,7 @@ function lookContext(viewer: Viewer, room: Room): CommandContext {
 async function runLook(viewer: Viewer, room: Room): Promise<string> {
   viewer.received.length = 0;
   const controller = makeStuff(() => new LookController());
-  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ target: { stuff: room as unknown as Stuff, raw: 'here' } } as CommandModel, ctx$)))(lookContext(viewer, room));
+  await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => controller.execute({ target: { stuff: room as unknown as Stuff, raw: '~here' } } as CommandModel, ctx$)))(lookContext(viewer, room));
   return JSON.stringify(viewer.received);
 }
 
@@ -171,11 +171,11 @@ describe('honest fog — a concealed thing is absent until discovered', () => {
     // obvious one survives.
     const lampMatches = MqlApi.resolveMany(OBVIOUS_TOKEN, {
       commandGiver: viewer as never,
-      scope: 'reachable',
+      scope: '~reachable',
     }).stuff;
     const secretMatches = MqlApi.resolveMany(SECRET_TOKEN, {
       commandGiver: viewer as never,
-      scope: 'reachable',
+      scope: '~reachable',
     }).stuff;
     expect(secretMatches.map((s) => s.stuffId)).toContain(secret.stuffId);
     const perceivedLamp = PerceptionApi.perceived(viewer as never, lampMatches);
@@ -201,7 +201,7 @@ describe('honest fog — a concealed thing is absent until discovered', () => {
       viewer as never,
       MqlApi.resolveMany(SECRET_TOKEN, {
         commandGiver: viewer as never,
-        scope: 'reachable',
+        scope: '~reachable',
       }).stuff,
     ).map((s) => s.stuffId);
     expect(secretHits).toContain(secret.stuffId);

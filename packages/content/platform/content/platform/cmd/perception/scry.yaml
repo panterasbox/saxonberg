@@ -20,7 +20,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["online", "/stuff/**", "/platform/**"]
+    scope: ["~peers", "~contacts", "/stuff/**", "/platform/**"]
     requires: any
   # ⭐⭐ WHICH INSTRUMENT, declared rather than hunted for — and PLURAL,
   # which is the whole reason this could move off the controller.
@@ -43,6 +43,6 @@ args:
     type: objects
     required: false
     prepositions: [with, using, through]
-    default: "reachable:[mixin.ScryableMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.ScryableMixin]"
+    scope: ["~reachable"]
     requires: [ScryableMixin]

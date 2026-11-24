@@ -43,6 +43,7 @@
  * See docs/subsystems/storage.md.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Containable } from '../spatial/Containable';
@@ -972,7 +973,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       if (!staff && this.custodianIn(room) === null) {
         return { ok: false, reason: 'no-keeper', line: 'Nobody is keeping the book just now.' };
       }
-      const word = good.trim().toLowerCase();
+      const word = good.trim();
       let mine: StoreReceipt[];
       if (!staff && this.terms.bearer === true) {
         // ⭐ BEARER: the paper in hand is the claim — the
@@ -997,8 +998,11 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         mine = (await this.allClaims()).filter((r) => r.depositor === depositor);
       }
 
+      // ⭐ The receipts the word names, by the one rule (naming overhaul
+      // D-C7) — alike receipts are all of them.
+      const named = receiptsNamed(mine, word);
       // A unique good first: the depot's crate comes back as itself.
-      for (const r of mine.filter((x) => x.unit === 'count' && matchesGood(x, word))) {
+      for (const r of named.filter((x) => x.unit === 'count')) {
         const live = this.liveGood(r.poolKey);
         if (live === null) continue;
         // Handed (owner, 2026-11-15): onto you, or — with nowhere for it —
@@ -1011,7 +1015,7 @@ export function StoreMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
         return { ok: true, receipt: r, receiptPath, amountKg: 1, goods: [live], feeMinor: 0 };
       }
 
-      const claim = mine.find((r) => r.unit === 'kg' && r.amountKg > LINE_EPSILON_KG && matchesGood(r, word));
+      const claim = named.find((r) => r.unit === 'kg' && r.amountKg > LINE_EPSILON_KG);
       if (!claim) {
         return { ok: false, reason: 'no-claim', line: 'You hold no receipt for that here.' };
       }
@@ -1311,19 +1315,22 @@ function liveIdOf(item: Stuff): string {
   return (typeof c.getChattelId === 'function' ? c.getChattelId() : null) || item.stuffId;
 }
 
-/** Does a receipt answer to the word a withdrawer typed? */
-function matchesGood(r: StoreReceipt, word: string): boolean {
-  if (!word) return true;
-  const leaf = (r.good.split('/').pop() ?? '').toLowerCase();
-  const kind = (r.poolKey.split('|')[0] ?? '').toLowerCase();
-  const what = r.what.toLowerCase();
-  return (
-    leaf === word ||
-    leaf.split('-').includes(word) ||
-    kind === word ||
-    r.poolKey.toLowerCase() === word ||
-    what.split(/\s+/).includes(word)
+/**
+ * The receipts a withdrawer's word names — every one when nothing is named —
+ * by the one rule (naming overhaul D-C7): the good's leaf and its words, the
+ * pool's kind and key, the receipt's own words. Alike receipts all answer.
+ */
+function receiptsNamed(rs: readonly StoreReceipt[], word: string): StoreReceipt[] {
+  if (!word) return [...rs];
+  const answer = GrammarApi.nameAmong(
+    word,
+    rs.map((r) => {
+      const leaf = r.good.split('/').pop() ?? '';
+      const kind = r.poolKey.split('|')[0] ?? '';
+      return { value: r, keywords: [leaf, leaf.replace(/-/g, ' '), kind, r.poolKey, r.what].filter((k) => k !== '').map((k) => k.toLowerCase()), title: r.what };
+    }),
   );
+  return answer.kind === 'one' ? [answer.one] : answer.kind === 'tie' ? answer.tie : [];
 }
 
 /** True inside the persistence spine's restore frame. */

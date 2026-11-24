@@ -37,6 +37,7 @@
  * pack.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { RegistrarMixin, type Registrar } from '@saxonberg/server/mud/lib/document/Registrar';
@@ -216,23 +217,21 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
    * (`town-quay`) or its name (`town quay`, `the Town Quay`) — or `null`.
    */
   public async quayNamed(word: string): Promise<string | null> {
-    const w = word.trim().toLowerCase().replace(/^the\s+/, '');
-    if (w === '') return null;
-    const dashed = w.replace(/\s+/g, '-');
+    // ⭐ By the one rule (naming overhaul D-C4): its leaf and its name.
+    const entries = [];
     for (const q of this.quays) {
       const leaf = q.place.slice(q.place.lastIndexOf('/') + 1);
-      if (leaf === dashed) return q.place;
-      const name = (await nameOf(q.place)).toLowerCase().replace(/^the\s+/, '');
-      if (name === w) return q.place;
+      const name = await nameOf(q.place);
+      entries.push({ value: q.place, keywords: [leaf, leaf.replace(/-/g, ' '), name].map((k) => k.toLowerCase()), title: name });
     }
-    return null;
+    const answer = GrammarApi.nameAmong(word, entries);
+    return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
   }
 
   /** Is `word` the harbor's roads (`roads`, `the roads`, or the node's name)? */
   public async isRoadsWord(word: string): Promise<boolean> {
-    const w = word.trim().toLowerCase().replace(/^the\s+/, '');
-    if (w === 'roads') return true;
-    return (await this.roadsName()).toLowerCase().replace(/^the\s+/, '') === w;
+    const name = await this.roadsName();
+    return GrammarApi.nameAmong(word, [{ value: true, keywords: ['roads', name.toLowerCase()], title: name }]).kind === 'one';
   }
 
   /** ⭐ How deep the water lies at a quay's berth, m, or `null`. */
@@ -527,14 +526,16 @@ export default class Harbor extends RegistrarMixin(SingletonMixin(Idea)) {
    * its lines, or hailed lately. `null` when it knows none by that word.
    */
   public async shipNamed(word: string, nowS: number): Promise<Ship | null> {
-    const w = word.trim().toLowerCase().replace(/^the\s+/, '');
-    if (w === '') return null;
-    for (const k of (await this.liveBook()).knownShips(nowS)) {
-      const name = k.name.toLowerCase().replace(/^the\s+/, '');
-      const leaf = k.ship.split('/').filter((x) => x !== '' && x !== 'structure').pop() ?? '';
-      if (name === w || leaf === w) return this.shipOf(k.ship);
-    }
-    return null;
+    // ⭐ By the one rule (naming overhaul D-C4): her name, her handle's leaf.
+    const answer = GrammarApi.nameAmong(
+      word,
+      (await this.liveBook()).knownShips(nowS).map((k) => {
+        const leaf = k.ship.split('/').filter((x) => x !== '' && x !== 'structure').pop() ?? '';
+        return { value: k.ship, keywords: [k.name, leaf].filter((x) => x !== '').map((x) => x.toLowerCase()), title: k.name };
+      }),
+    );
+    const ship = answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
+    return ship === null ? null : this.shipOf(ship);
   }
 
   /**

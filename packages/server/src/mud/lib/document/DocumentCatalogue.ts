@@ -25,14 +25,19 @@ import { Idea } from '../stuff/Idea';
 import { DocumentNotResidentError, type VetoResult } from '../errors';
 import type { EvictionContext } from '../stuff/Stuff';
 import type { StoredDocument } from './StoredDocument';
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 
 /**
- * What serves a document kind: it can forget edited paths (every path when
- * omitted) — the go-live of an installer sync or a CMS save. The
- * `DocumentCatalogue`s, the aromas and the topics all do.
+ * ⭐ What serves a document kind — the service a kind's `catalogued.by`
+ * names. It can **forget** edited and deleted paths (every path when
+ * omitted) — the go-live of an installer sync or a CMS save, awaited when it
+ * re-warms — and may **parse** a document, which is how the kind's meaning
+ * is checked at install and at every save (shape is the declaration's
+ * `fields:`).
  */
 export interface ServesDocuments {
-  forget(paths?: readonly string[]): void;
+  forget(paths?: readonly string[]): void | Promise<void>;
+  parse?(data: Record<string, unknown>, path: string): unknown;
 }
 
 /** One kind's memory: what has been read, and what is being read. */
@@ -148,6 +153,38 @@ export abstract class DocumentCatalogue<T> extends Idea implements ServesDocumen
     }
     const docs = await (await import('../../api/document')).DocumentApi.findByKey(this.kind, 'word', { eq: word });
     return docs.map((doc) => ({ path: doc.getPath(), value: this.keep(doc) }));
+  }
+
+  /**
+   * ⭐⭐ The documents a player's words name (naming overhaul D-C5 rule 3):
+   * the kind is `keyworded`, and every document answers to the words its
+   * kind derives (`DocumentKind.keywordsOf` — the leaf, its keywords
+   * field, its title), ranked by THE rule (`GrammarApi.nameAmong` — article,
+   * ordinal, plural, word start, a tie in path order). `among` narrows to
+   * these paths (the formations a party may adopt). Never prompts — the
+   * controller's `named` does.
+   */
+  public async named(text: string, among?: readonly string[]): Promise<NameAnswer<{ path: string; value: T }>> {
+    const { DocumentApi } = await import('../../api/document');
+    const kind = DocumentApi.kinds().byName(this.kind);
+    const docs = (await DocumentApi.listOfKind(this.kind))
+      .filter((d) => among === undefined || among.includes(d.getPath()))
+      .sort((a, b) => a.getPath().localeCompare(b.getPath()));
+    return GrammarApi.nameAmong(
+      text,
+      docs.map((doc) => {
+        const path = doc.getPath();
+        const data = doc.getData();
+        const leaf = path.slice(path.lastIndexOf('/') + 1);
+        const words = kind?.keywordsOf(path, data) ?? [];
+        return {
+          value: { path, value: this.keep(doc) },
+          // A kind not (yet) declared keyworded still answers to its leaf.
+          keywords: words.length > 0 ? words : [leaf.toLowerCase()],
+          title: kind?.titleOf(path, data) ?? path.slice(path.lastIndexOf('/') + 1),
+        };
+      }),
+    );
   }
 
   /** Forget `paths` (every path when omitted) — the go-live of an edit. */

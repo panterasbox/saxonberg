@@ -26,10 +26,12 @@ export default class CookController extends CraftController<CookModel> {
 
     // The knowledge gate: the book/menu gives the claim, the hands earn
     // the shorthand (the shared `requireDeed` gate).
-    if (!(await this.requireDeed(context, model.dish, 'cook'))) return;
+    const dish = await this.recipeNamed(context, model.dish);
+    if (dish === null) return;
+    if (!(await this.requireDeed(context, dish, 'cook'))) return;
 
     const outcome = await CraftingApi.craft({
-      recipeRef: model.dish,
+      recipeRef: dish,
       makerMode: 'self',
       // The dish comes to hand — the Api lands, stamps and captures it.
       landing: 'hands',

@@ -43,8 +43,6 @@
  */
 
 import { Collections } from './Collections';
-import { RELEASE_DOCUMENT_KIND } from '../press/Release';
-import { RESET_KEPT_DOCUMENT_KINDS } from '../document/DocumentKinds';
 
 /**
  * What the reset does to one collection.
@@ -100,28 +98,16 @@ export const RESET_DISPOSITIONS: Readonly<
   [Collections.Diagnostics]: { verb: 'wipe' },
   [Collections.DispositionEvents]: { verb: 'wipe' },
   [Collections.Documents]: {
-    verb: 'wipe-except',
-    keep: {
-      kind: { $in: [RELEASE_DOCUMENT_KIND, ...RESET_KEPT_DOCUMENT_KINDS] },
-    },
+    verb: 'keep',
     because:
-      'published press releases — the front door reads them without an ' +
-      'account, and the gazette design requires bulletins to outlive the ' +
-      'night they were published; and every DECLARED document kind ' +
-      '(emotes, recipes, name banks, blueprints, msh scripts, command ' +
-      'views) — pack-installed world content (the expression / ' +
-      'generic-objects / species-and-names / platform / saxonberg-lounge ' +
-      'packs), reference data not player state; wiping it would empty the ' +
-      'soul vocabulary at 04:00 until a reboot re-installed it; and the ' +
-      'RUNTIME-WRITTEN record kinds (water rights, bills of lading, ' +
-      'warehouse receipts, rate cards, MAPS) — a record of something that ' +
-      'happened, which nothing may erase because a night went by. ⭐ A map ' +
-      'is one player\'s knowledge of one locality, written from what they ' +
-      'perceived; walk somewhere, let the reset run, and the map still ' +
-      'says you were there ⭐ Except the kinds marked `onReset: \'wipe\'` ' +
-      '(persistence-model D5): the LEDGERS history moved to from ' +
-      'holder_snapshots — the water ledger, a business\'s cap table and ' +
-      'hull sales — are wiped as the records they replace were.',
+      'every row is of a DECLARED document kind — an undeclared kind is ' +
+      'refused at the write (naming overhaul A1) — so the whole ' +
+      'collection is kept: pack-installed reference documents (emotes, ' +
+      'recipes, command views…), published press releases (the front door ' +
+      'reads them without an account), and the filed records (herds, ' +
+      'water rights, bills of lading, receipts, rate cards, maps) — a ' +
+      'record of something that happened, which nothing may erase because ' +
+      'a night went by.',
   },
   [Collections.ForumBoards]: { verb: 'wipe' },
   [Collections.ForumEntries]: { verb: 'wipe' },

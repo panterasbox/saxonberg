@@ -94,7 +94,7 @@ describe('PronounMemory', () => {
     // overwrite the original "rose" fragment.
     mem.update(many([rose]), 'it', routeAsIt);
     mem.update(many([rose]), 'It  ', routeAsIt); // case + whitespace
-    mem.update(many([rose]), '$$', routeAsIt);
+    mem.update(many([rose]), '~last', routeAsIt);
     expect(mem.readFragment('it')).toBe('rose');
     expect(mem.readFragment('last')).toBe('rose');
   });
@@ -137,7 +137,7 @@ describe('PronounMemory', () => {
 
 describe('isDynamicPronounFragment', () => {
   it('matches the bare pronouns case-insensitively', () => {
-    for (const f of ['it', 'IT', 'It', '  it  ', 'him', 'her', 'them', '$$']) {
+    for (const f of ['it', 'IT', 'It', '  it  ', 'him', 'her', 'them', '~it', '~last']) {
       expect(isDynamicPronounFragment(f)).toBe(true);
     }
   });

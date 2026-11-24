@@ -22,6 +22,7 @@
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
+import { WorldClockApi } from '../../../../api/worldclock';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
@@ -76,14 +77,16 @@ export abstract class PressControllerBase extends CommandController<ReleaseModel
   }
 
   /**
-   * The `--expires` duration (ms, bound by the view) as an epoch-ms
-   * expiry. Absent → `0` (never expires). Zero or negative → `null`
+   * The `--expires` duration (game seconds, bound by the view) as a
+   * game-seconds expiry. Absent → `0` (never expires). Zero or negative → `null`
    * (caller rejects).
    */
-  protected static resolveExpiry(ms: number | undefined): number | null {
-    if (ms === undefined) return 0;
-    if (!(ms > 0)) return null;
-    return Date.now() + ms;
+  protected static resolveExpiry(seconds: number | undefined): number | null {
+    if (seconds === undefined) return 0;
+    if (!(seconds > 0)) return null;
+    // ⭐ Game time (naming overhaul D-A10): a release's expiry is in-world,
+    // and the duration slot reads game seconds.
+    return WorldClockApi.getNow().rawValue() + seconds;
   }
 
   /** Operator-tunable headline / body length caps (fallbacks mirror the seed). */

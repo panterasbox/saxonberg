@@ -532,6 +532,54 @@ The biome substrate adds tagless or thermal scales for
 `thermal` scale on K. `m` and `m³` stay tagless (rendered
 numerically). See [biome.md](./biome.md) for the breakpoints.
 
+## Durations — one grammar, game seconds (naming overhaul D-C6)
+
+A length of time a player or an author WRITES has one reading:
+**`GrammarApi.parseDuration(text)`** → whole **game seconds**, or `null`.
+It is English grammar rather than a `Quantity` (nothing marshals it), so
+it lives on `GrammarApi` beside `isDurationUnit(word)`;
+`CommandDefinition.parseDuration` forwards to it.
+
+| form | example |
+|---|---|
+| compact | `90s` · `15m` · `2h` · `1h30m` · `3d` |
+| words | `90 seconds` · `2 hours` · `1 hour 30 minutes` · `an hour and 30 minutes` |
+| number words | `a week` · `two days` · `a fortnight` |
+
+Units: `s`/`sec`/`second`, `m`/`min`/`minute`, `h`/`hr`/`hour`, `d`/`day`,
+`w`/`week`, `fortnight` (and plurals). ⚠ **A unit is required** — a bare
+`90` could be seconds or minutes, so it is not a duration (the one
+exception is the script `wait` / `every`, where a bare number still means
+seconds).
+
+**Who reads it:** every `type: duration` slot, the script interpreter's
+`wait` / `every`, the world clock's `after('5 minutes')`, and `testharness
+clock-advance`. ⚠ The stream verbs do not — `StreamApi.parseDuration` is
+on the wall clock by owner ruling, a named exemption in
+`lint:hand-matchers`.
+
+### The `type: duration` slot
+
+A slot or option of `type: duration` binds the game seconds. Three keys,
+legal only on a duration slot and validated at load (`lint:view-keys`; a
+`default:` the slot itself would refuse refuses the view):
+
+| key | means |
+|---|---|
+| `granularity:` | `minute` · `hour` · `day` — a value off the step will not do (`rent` is reckoned in whole days) |
+| `min:` | a written duration — the least it takes (`min: "1 day"`) |
+| `max:` | a written duration — the most it takes |
+
+As a positional it takes the longest run of up to four words that reads
+as one duration, up to the next slot's preposition (`rent canoe for a
+week`, `fire limekiln for 90 minutes`). An unreadable value, one off the
+granularity or one out of bounds is the binder's **`bad-duration`**
+refusal (`facts: what, why` — *"'90 minutes' is not a length of time this
+takes — it is reckoned in whole days."*), and an unreadable run takes
+every word to the next preposition, so `for soon` and `for a while` give
+the same line. A view with a duration slot gets the forms line in its
+`help`.
+
 ## Out of scope (v1)
 
 - **Pedagogical-seam setting** — the per-viewer "show tag vs

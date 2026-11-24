@@ -10,12 +10,14 @@ import { describe, it, expect } from 'vitest';
 import {
   scoreCandidate,
   scoreCandidates,
-  scoreTier,
-  TIER_PHRASE,
-  TIER_WORDS,
-  TIER_PREFIX,
 } from '../scope-walk';
 import type { ScopeCandidate } from '../scope-walk';
+import { GrammarApi } from '../../grammar';
+
+// ⭐ The tiers are GrammarApi's (naming overhaul D-C1); scope-walk reads
+// a candidate's one keyword list into them.
+const { TIER_PHRASE, TIER_WORDS, TIER_PREFIX } = GrammarApi;
+const scoreTier = (n: number): number => GrammarApi.scoreTier(n);
 
 const cand = (keywords: string[]): ScopeCandidate =>
   ({ stuff: { keywords } as never, keywords }) as ScopeCandidate;
@@ -168,7 +170,7 @@ import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 class Angler extends PerceptionMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))) {}
 class Gear extends VisibleMixin(PerceptibleMixin(ContainableMixin(Idea))) {}
 
-describe('reachable:net — the whole-word tier in situ (fishing B8)', () => {
+describe('~reachable:net — the whole-word tier in situ (fishing B8)', () => {
   it('⭐ resolves to the net on the floor, not the keepnet in hand, under the top policy', () => {
     const room = makeStuff(() => new Place());
     const angler = makeStuff(() => new Angler());
@@ -181,9 +183,9 @@ describe('reachable:net — the whole-word tier in situ (fishing B8)', () => {
     ContainmentApi.move(angler, room);
     ContainmentApi.move(keepnet, angler);
     ContainmentApi.move(net, room);
-    const ctx = { commandGiver: angler as never, scope: 'reachable' as const };
-    const many = MqlApi.resolveMany('reachable:net', ctx);
+    const ctx = { commandGiver: angler as never, scope: '~reachable' as const };
+    const many = MqlApi.resolveMany('~reachable:net', ctx);
     expect(many.stuff.map((s) => s.stuffId)).toContain(net.stuffId);
-    expect(MqlApi.resolveOne('reachable:net', ctx).stuff?.stuffId).toBe(net.stuffId);
+    expect(MqlApi.resolveOne('~reachable:net', ctx).stuff?.stuffId).toBe(net.stuffId);
   });
 });

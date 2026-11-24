@@ -32,7 +32,7 @@ subcommands:
       type: object
       required: true
       scope:
-      - inventory
+      - "~inventory"
       requires:
       - ChattelMixin
     - name: rack
@@ -40,11 +40,10 @@ subcommands:
       required: false
       prepositions:
       - from
-      default: reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]
+      default: "~reachable:[mixin.HeldGoodsMixin] - ~reachable:[mixin.ConsignmentShelfMixin]"
       scope:
-      - here
-      - peers
-      - person
+      - "~peers"
+      - "~person"
       requires:
       - HeldGoodsMixin
   reclaim:
@@ -68,10 +67,9 @@ subcommands:
       required: false
       prepositions:
       - from
-      default: reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]
+      default: "~reachable:[mixin.HeldGoodsMixin] - ~reachable:[mixin.ConsignmentShelfMixin]"
       scope:
-      - here
-      - peers
-      - person
+      - "~peers"
+      - "~person"
       requires:
       - HeldGoodsMixin

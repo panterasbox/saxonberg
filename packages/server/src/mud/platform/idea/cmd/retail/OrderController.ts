@@ -57,14 +57,16 @@ export default class OrderController extends ManualBuildController<OrderModel> {
     }
 
     const phrase = (model.cocktail ?? '').trim();
-    const key = (phrase.split(/\s+/)[0] ?? '').toLowerCase();
+    // The board names what the words ask for (naming overhaul D-C7); the
+    // head word rides along for a board that reads it.
+    const key = phrase.split(/\s+/)[0] ?? '';
 
     // ⭐ Two houses in one room (blood build D6): every reachable board was
     // bound, and those that take this word are the candidates. One is simply
     // it. Two is a real question, the view's own policy shape: a name, and
     // more of them than the slot takes.
     const taking = (model.counter?.stuff ?? []).filter(
-      (b) => MixinApi.isPricedOffer(b) && b.offersOrder(key),
+      (b) => MixinApi.isPricedOffer(b) && b.offersOrder(phrase),
     );
     const picked = await CommandApi.applyCardinalityPolicy(
       { type: 'object', onExcess: 'prompt' },

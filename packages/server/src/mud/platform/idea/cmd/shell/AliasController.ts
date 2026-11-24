@@ -31,6 +31,8 @@ interface AliasModel extends CommandModel {
   name?: string;
   body?: string;
   session?: boolean;
+  /** `--query` — a query alias (naming overhaul D-B7). */
+  query?: boolean;
 }
 
 export default class AliasController extends CommandController<AliasModel> {
@@ -46,15 +48,16 @@ export default class AliasController extends CommandController<AliasModel> {
     const name = model.name;
     const body = model.body;
     const session = !!model.session;
+    const at: 'verb' | 'query' = model.query === true ? 'query' : 'verb';
     switch (sub) {
       case 'list':
         return this.executeList(avatar, context);
       case 'get':
         return this.executeGet(avatar, name, context);
       case 'set':
-        return this.executeSet(avatar, name, body, session, context);
+        return this.executeSet(avatar, name, body, session, at, context);
       case 'unset':
-        return this.executeUnset(avatar, name, context);
+        return this.executeUnset(avatar, name, at, context);
       case 'describe':
         return this.executeDescribe(avatar, name, context);
     }
@@ -122,6 +125,7 @@ export default class AliasController extends CommandController<AliasModel> {
     name: string | undefined,
     body: string | undefined,
     session: boolean,
+    at: 'verb' | 'query',
     context: CommandContext,
   ): void {
     if (!name) return this.fail(context, 'name required', 'name-required');
@@ -131,6 +135,7 @@ export default class AliasController extends CommandController<AliasModel> {
       avatar.setAlias(name, body, {
         lifetime: session ? 'session' : 'persistent',
         actor: avatar,
+        at,
       });
     } catch (err) {
       return this.fail(context, (err as Error).message, 'set-failed');
@@ -138,7 +143,7 @@ export default class AliasController extends CommandController<AliasModel> {
     const tier = session ? 'session' : 'persistent';
     this.send(
       context,
-      Mml.fromMarkup(`\n${name} set [${tier}].\n`),
+      Mml.fromMarkup(`\n${name} set [${tier}${at === 'query' ? ', query' : ''}].\n`),
     );
     return;
   }
@@ -146,10 +151,11 @@ export default class AliasController extends CommandController<AliasModel> {
   private executeUnset(
     avatar: AliasHost,
     name: string | undefined,
+    at: 'verb' | 'query',
     context: CommandContext,
   ): void {
     if (!name) return this.fail(context, 'name required', 'name-required');
-    const removed = avatar.removeAlias(name, avatar);
+    const removed = avatar.removeAlias(name, avatar, at);
     if (!removed) {
       return this.fail(context, `no such alias: ${name}`, 'no-such-alias');
     }

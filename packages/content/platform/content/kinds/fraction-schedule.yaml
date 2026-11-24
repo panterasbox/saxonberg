@@ -1,0 +1,4 @@
+title: Fraction schedule
+traits:
+  shipped: { dir: fraction-schedules }
+  catalogued: { by: /platform/idea/FractionScheduleCatalogue, load: whole }

@@ -612,7 +612,7 @@ export default class Tract extends TractBase {
         return {
           ok: false,
           reason: 'crop-stands',
-          line: `You cannot move a boundary through ${crop.getPresentation().replace(/^(a|an|the) /, '').replace(/^stand of /, 'standing ')}.`,
+          line: `You cannot move a boundary through ${GrammarApi.withoutArticle(crop.getPresentation()).replace(/^stand of /, 'standing ')}.`,
         };
       }
       this.fields = this.fields.map((f) => (f.key === key ? { ...f, share: fixed } : f));
@@ -1666,10 +1666,8 @@ const SOIL_FOLD_KEYS = [
 
 /** A field's stable key from the name it was marked with. */
 function fieldKeyOf(name: string): string {
-  return name
-    .trim()
+  return GrammarApi.withoutArticle(name)
     .toLowerCase()
-    .replace(/^the\s+/, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }

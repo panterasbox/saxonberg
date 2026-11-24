@@ -27,6 +27,7 @@
  * data: {} }`.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import { SecurityApi } from '../../api/security';
 import Subject, {
@@ -129,7 +130,12 @@ export default class SubjectCatalogue extends SubjectCatalogueBase {
   /** Resolve a subject by its flat-global title handle (case-insensitive). */
   public async resolveByTitle(title: string): Promise<Subject | null> {
     await this.ensureCache();
-    return this.byTitle.get(title.toLowerCase()) ?? null;
+    // ⭐ By the one rule (naming overhaul D-C5 rule 6); a tie is no subject.
+    const answer = GrammarApi.nameAmong(
+      title,
+      [...this.byTitle.values()].map((s) => ({ value: s, keywords: [s.title.toLowerCase()], title: s.title })),
+    );
+    return answer.kind === 'one' ? answer.one : null;
   }
 
   /** Resolve a subject by `_id`. */

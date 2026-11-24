@@ -209,6 +209,7 @@ export class PressApi {
       author: author.length > 0 ? author : undefined,
       source: source.length > 0 ? source : undefined,
       publishedAt: release.getPublishedAt(),
+      publishedOn: release.getPublishedOn(),
       pinned: release.isPinned(),
       expiresAt: expiresAt > 0 ? expiresAt : undefined,
     };

@@ -27,6 +27,7 @@
  * never searched for.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
@@ -115,15 +116,8 @@ export default class MoveController extends CommandController<MoveModel> {
   ): Promise<HerdRecord | null> {
     const words = (named ?? '').trim();
     if (!words) return registry.sole();
-    const byName = await registry.named(words);
-    if (byName) return byName;
-    const bare = words.replace(/^the\s+/i, '');
-    if (bare !== words) {
-      const again = await registry.named(bare);
-      if (again) return again;
-    }
-    const head = bare.replace(/\s+(herd|flock|book|register|tally)$/i, '');
-    return head !== bare ? registry.named(head) : null;
+    // The registry names it by the one rule — article, a word, `… herd`.
+    return registry.named(words);
   }
 
   /**
@@ -139,9 +133,8 @@ export default class MoveController extends CommandController<MoveModel> {
     herd: HerdRecord,
     wanted: string,
   ): Promise<Field | string | null> {
-    const want = wanted.toLowerCase().replace(/^the\s+/, '');
     const here = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    if (here && want === 'here') return here instanceof Tract ? this.fieldOfTract(here) : null;
+    if (here && GrammarApi.nameAmong(wanted, [{ value: 'here', keywords: ['here'], title: 'here' }]).kind === 'one' && wanted.trim().split(/\s+/).length === 1) return here instanceof Tract ? this.fieldOfTract(here) : null;
     const candidates: Stuff[] = [];
     if (here) candidates.push(here);
     if (here && MixinApi.isExitable(here)) {
@@ -158,17 +151,24 @@ export default class MoveController extends CommandController<MoveModel> {
       if (current) candidates.push(current as unknown as Stuff);
     }
     const tracts = candidates.filter((c): c is Tract & Stuff => c instanceof Tract);
-    for (const tract of tracts) {
-      for (const field of tract.getFields()) {
-        const name = field.getShortDescription().toLowerCase().replace(/^the\s+/, '');
-        if (name === want || field.hasKeyword(want)) return field;
-      }
-    }
-    for (const tract of tracts) {
-      const name = tract.getFieldName().toLowerCase().replace(/^the\s+/, '');
-      if (name === want || tract.hasKeyword(want)) return this.fieldOfTract(tract);
-    }
-    return null;
+    // ⭐ By the one rule (naming overhaul D-C4): a FIELD by its own name or
+    // keywords first; else a TRACT by its name or keywords, meaning its field.
+    const fields = GrammarApi.nameAmong<Field>(
+      wanted,
+      tracts.flatMap((t) => t.getFields()).map((f) => ({
+        value: f,
+        keywords: [f.getShortDescription(), ...f.getKeywords()].map((k) => k.toLowerCase()),
+        title: f.getShortDescription(),
+      })),
+    );
+    const hit = fields.kind === 'one' ? fields.one : fields.kind === 'tie' ? fields.tie[0]! : null;
+    if (hit !== null) return hit;
+    const named = GrammarApi.nameAmong(
+      wanted,
+      tracts.map((t) => ({ value: t, keywords: [t.getFieldName(), ...t.getKeywords()].map((k) => k.toLowerCase()), title: t.getFieldName() })),
+    );
+    const tract = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : null;
+    return tract === null ? null : this.fieldOfTract(tract);
   }
 
   /** A tract named whole: its one field, its one grass field, or its refusal. */

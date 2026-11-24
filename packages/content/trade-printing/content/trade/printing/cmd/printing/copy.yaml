@@ -20,20 +20,20 @@ args:
   - name: from
     type: object
     required: true
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: [MarkedMixin]
   - name: onto
     prepositionRequired: true
     type: object
     required: true
     prepositions: [onto, on, to]
-    scope: ["inventory"]
+    scope: ["~inventory"]
     requires: [MarkedMixin]
   - name: pen
     prepositionRequired: true
     type: objects
     required: false
     prepositions: [with, using]
-    default: "inventory:[mixin.ToolMixin]"
-    scope: ["inventory"]
+    default: "~inventory:[mixin.ToolMixin]"
+    scope: ["~inventory"]
     requires: [ToolMixin]

@@ -123,7 +123,7 @@ export type { InboundClientMessage };
  *
  * - the message must be a `command`;
  * - the line must parse to ONE command whose verb is literally `stream`
- *   (no `verb@source` scope, no emote sigil);
+ *   (no `source::verb` scope, no emote sigil);
  * - `stream token` is refused — a control token must not mint tokens;
  * - a streamer alias named `stream` is refused (no alias expansion may
  *   turn the one verb into another);

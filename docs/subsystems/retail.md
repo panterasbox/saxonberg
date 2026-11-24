@@ -734,3 +734,15 @@ cover).
 
 ⚠ Still open, and recorded by the same step: a transfusion collects at completion,
 outside the command frame, where the bath's comment says there is no acting payer.
+
+## Naming a good (naming overhaul, 2026-11-21)
+
+`buy <word>` names the good by the one rule (`GrammarApi.nameAmong`): a shelf
+good answers to its keywords and to the line leaf the shelf list prints, a
+priced house good lying in the room to its leaf, a consignment to its
+keywords, a yard's hull to her kind or her slot, a service to its key —
+article, plural and word start included (`buy loaves`, `buy a loaf`). Alike
+goods are one choice. The word stays a word (not an object slot) because a
+bare shelf is brought up to order and *sold out* is said of a good that is
+not there. An unnamed seller is the view's default (`defaulted` on the bound
+result); a named one (`from` / `at`) is held to its own refusal.

@@ -33,7 +33,7 @@ args:
     required: true
     # ⭐ One word, or a quoted name (`read "city directory" page 3`) —
     # quoting replaced the greedy arg (controller liquidity).
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     updates_focus: extend
     requires: [VisibleMixin, ReadableMixin]
     validators:

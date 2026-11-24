@@ -133,7 +133,7 @@ subcommands:
         # ⭐ Only what is ON YOU (size and carrying D-W10-16): a sword on the
         # floor or a gun in the pack at your feet is `get … from …`, never a
         # switch. A shut holder says `open` it first (`canReach`).
-        scope: ["inventory"]
+        scope: ["~inventory"]
         requires: WieldableMixin
         validators:
           - /lib/command/validators/canReach
@@ -178,7 +178,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: ["$focus", "reachable"]
+        scope: ["$focus", "~reachable"]
         # ⭐ The arg gate (controller-liquidity W15, reachability link 5): only
         # a combatant can be read as one; a chair is refused by the binder.
         requires: [VisibleMixin, CombatantMixin]

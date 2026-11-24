@@ -30,13 +30,13 @@ args:
   - name: gear
     type: object
     required: true
-    scope: "inventory"
+    scope: "~inventory"
     requires: [TieableMixin]
   - name: load
     prepositionRequired: true
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: any
     prepositions: [to, round, around]
   - name: knot

@@ -24,7 +24,7 @@ args:
   - name: pattern
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: [TangibleMixin]
   # ⭐ The soft thing it is pressed into. `requires: any` — the controller
   # narrows to an impressible medium (`ImpressibleMixin`) and refuses
@@ -33,5 +33,5 @@ args:
     type: object
     required: true
     prepositions: [on, in, into]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any

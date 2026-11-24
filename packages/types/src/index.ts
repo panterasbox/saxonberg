@@ -222,6 +222,8 @@ export type PresenceStatus = 'active' | 'idle' | 'engaged' | 'reconnecting';
 export interface RosterRow {
   handle: string;
   header: string;
+  /** `@<id>` — what to type to address this player (absent when masked). */
+  address?: string;
   country?: string;
   status?: PresenceStatus;
   recognized: boolean;
@@ -276,10 +278,12 @@ export interface ReleaseRow {
   author?: string;
   /** Where a `repost`'s substance came from; absent on an original. */
   source?: string;
-  /** Publish time, epoch-ms. */
+  /** Publish time, game seconds (the world clock — a release is in-world). */
   publishedAt: number;
+  /** The publish date in words, on the world's calendar (rendered by the server). */
+  publishedOn: string;
   pinned: boolean;
-  /** Expiry, epoch-ms; absent / `0` = never expires. */
+  /** Expiry, game seconds; absent / `0` = never expires. */
   expiresAt?: number;
 }
 
@@ -308,7 +312,10 @@ export interface PublicReleaseRow {
   source?: string;
   headline: string;
   body: string;
+  /** Publish time, game seconds (ordering). */
   publishedAt: number;
+  /** The publish date in words, on the world's calendar. */
+  publishedOn: string;
   pinned: boolean;
 }
 
@@ -400,6 +407,9 @@ export type ReleaseFeedFrame =
 export interface SocialRuleProjection {
   groupRef: string;
   label: string;
+  /** What the player types to name this rule in `notify` (`~friends`,
+   *  `~bookclub`, `strangers`) — the card's commands use it, never `groupRef`. */
+  subject: string;
   nameRendering: 'name' | 'feature-string' | 'count-only' | 'hidden';
   boostInDense: boolean;
   onConnect: 'show' | 'silent';

@@ -1,0 +1,4 @@
+title: Shape
+traits:
+  shipped: { dir: shapes }
+  catalogued: { by: /platform/idea/ShapeCatalogue, load: boot }

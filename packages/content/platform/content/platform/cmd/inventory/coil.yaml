@@ -17,5 +17,5 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     requires: any

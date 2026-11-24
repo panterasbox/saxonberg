@@ -738,6 +738,17 @@ moment the drink is served. ⚠ Importance flows one way: a call preempts a
 task, and a task never defers a call. A `critical` body need that should
 beat a call is deferred design, in `call-slate`.
 
+### Naming a house (naming overhaul, 2026-11)
+
+`job apply`, `job quit` and `clock` name a house among the ones in hand —
+`EmploymentApi.organizationNamed(text, paths)` over the openings here or
+your employers, by the one naming rule. ⚠ Two things stay open: the
+`~employers` / `~business` relations were not minted, and `findOrganization`
+is still a global name read for the record verbs (`chronicle`,
+`competence`) and `house appoint`. The end state is *organizations are
+reached by relation, else by path; no global name search*
+([one-resolution-rule-slate](../slates/tech-debt/one-resolution-rule-slate.md) § 7).
+
 ### Two houses in one room
 
 `resolveMaker` declines `ambiguous-house` when the able candidates belong to
@@ -1345,7 +1356,7 @@ facade* is struck: a trade supplies the driver now. `trade-drilling`'s
 calls the public org face (`house appoint`), then the roster primitives under
 `SelfOnly`.
 
-⭐ `house appoint` is deliberately **not** widened. `scope: "online"` is right
+⭐ `house appoint` is deliberately **not** widened. `scope: ["~reachable", "~contacts"]` is right
 for appointing somebody to an OFFICE, where the appointee has to be able
 to accept; a roustabout is not appointed to anything. If a second trade
 wants the same word, widen it then — one consumer is not a pattern.

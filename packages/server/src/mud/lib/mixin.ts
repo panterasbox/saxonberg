@@ -823,6 +823,7 @@ export const Mixins = {
   // positions may publish through it.
   Publisher: 'PublisherMixin',
   Registrar: 'RegistrarMixin',
+  Relating: 'RelatingMixin',
   // Attendant — the universal storefront-attention substrate: a service-point
   // fixture holding the queue + being-attended leases (a server's attention).
   Attendant: 'AttendantMixin',

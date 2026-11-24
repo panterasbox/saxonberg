@@ -59,7 +59,7 @@ function bind(text: string): Record<string, unknown> {
   return r.model as Record<string, unknown>;
 }
 
-const STONES = 'reachable:[mixin.ComminutingMixin]';
+const STONES = '~reachable:[mixin.ComminutingMixin]';
 
 describe('mill — rung 4, where quoting is the answer', () => {
   it('`mill wheat` binds the grain and defaults the stones', () => {

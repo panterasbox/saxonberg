@@ -18,6 +18,7 @@
  * (`docs/antipatterns.md § A bare COUNT as a permanent gate`).
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { JobControllerBase, TOPIC } from './JobControllerBase';
 import { MessageApi } from '../../../../api/message';
@@ -43,11 +44,20 @@ export default class JobApplyController extends JobControllerBase<ApplyModel> {
     const wantHouse = (model.organization ?? '').trim();
 
     let openings = await EmploymentApi.noticesAt(context.location ?? null);
+    // ⭐ The house and the position, NAMED by the one rule (naming
+    // overhaul D-C5): `job apply cook at the yard office` — never a path
+    // or a key the player cannot see.
     if (wantHouse) {
-      openings = openings.filter((o) => o.organizationPath === wantHouse);
+      const named = EmploymentApi.organizationNamed(wantHouse, openings.map((o) => o.organizationPath));
+      const keep = named.kind === 'one' ? [named.one] : named.kind === 'tie' ? named.tie : [];
+      openings = openings.filter((o) => keep.includes(o.organizationPath));
     }
     if (wantPosition) {
-      openings = openings.filter((o) => o.position.key === wantPosition);
+      const named = GrammarApi.nameAmong(
+        wantPosition,
+        openings.map((o) => ({ value: o, keywords: [o.position.key, o.position.key.replace(/-/g, ' ')], title: o.position.key })),
+      );
+      openings = named.kind === 'one' ? [named.one] : named.kind === 'tie' ? named.tie : [];
     }
 
     if (openings.length === 0) {

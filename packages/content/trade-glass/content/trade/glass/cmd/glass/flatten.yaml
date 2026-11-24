@@ -14,12 +14,12 @@ args:
   - name: cylinder
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: TintedMixin
   - name: furnace
     type: objects
     required: false
     prepositions: [at, in]
-    default: "reachable:[mixin.BurnerMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BurnerMixin]"
+    scope: ["~peers", "~person"]
     requires: [BurnerMixin]

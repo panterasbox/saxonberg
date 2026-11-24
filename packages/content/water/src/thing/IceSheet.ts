@@ -34,6 +34,7 @@
  * restage when it is not. The thickness is DERIVED and never kept.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import WaterSurface, { GROUND_SLOT } from '@saxonberg/server/mud/platform/thing/WaterSurface';
 import type { Adornment } from '@saxonberg/server/mud/lib/boundary/Adornment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -154,25 +155,29 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     return cat.iceAtSync(ref, nowS(), historyOf(patch));
   }
 
+  /**
+   * The kind of patch a player's word names (naming overhaul D-C4) — the
+   * sheet's own small vocabulary, through the one rule; empty is the field.
+   */
+  private patchKindNamed(word: string | null): PatchKind | null {
+    if ((word ?? '').trim() === '') return 'field';
+    const answer = GrammarApi.nameAmong<PatchKind>(word ?? '', [
+      { value: 'field', keywords: ['ice', 'sheet', 'field', 'snowy'], title: 'the field' },
+      { value: 'scraped', keywords: ['scraped', 'bare'], title: 'the scraped patch' },
+      { value: 'marked', keywords: ['marked', 'grid'], title: 'the marked grid' },
+      { value: 'cut', keywords: ['cut', 'channel'], title: 'the channel' },
+      { value: 'broken', keywords: ['broken'], title: 'the broken ice' },
+      { value: 'hole', keywords: ['hole'], title: 'the hole' },
+    ]);
+    return answer.kind === 'one' ? answer.one : null;
+  }
+
   /** A patch by the word a player uses for it. */
   public patchByWord(word: string | null): PatchRecord | null {
     const log = this.ensureLog();
-    const w = (word ?? '').trim().toLowerCase();
-    if (w === '' || w === 'ice' || w === 'sheet' || w === 'field' || w === 'snowy') {
-      return log.find((p) => p.kind === 'field') ?? null;
-    }
-    const kinds: Record<string, PatchKind> = {
-      scraped: 'scraped',
-      bare: 'scraped',
-      marked: 'marked',
-      grid: 'marked',
-      cut: 'cut',
-      channel: 'cut',
-      broken: 'broken',
-      hole: 'hole',
-    };
-    const kind = kinds[w];
-    if (!kind) return null;
+    const kind = this.patchKindNamed(word);
+    if (kind === null) return null;
+    if (kind === 'field') return log.find((p) => p.kind === 'field') ?? null;
     const matching = log.filter((p) => p.kind === kind && p.areaM2 > 0);
     return matching.sort((a, b) => b.sinceS - a.sinceS)[0] ?? null;
   }
@@ -398,7 +403,7 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     const saw = req.tools.find((t) => MixinApi.isTool(t) && t.hasCapability('ice-sawing'));
     if (!saw) return refuse({ ok: false, reason: 'no-ice-saw' });
     if (!this.supports(req.actor)) return refuse({ ok: false, reason: 'not-on-ice' });
-    const hole = (req.part ?? '').trim().toLowerCase() === 'hole';
+    const hole = req.part !== undefined && req.part !== null && this.patchKindNamed(req.part) === 'hole';
     const patch = hole ? this.patchByWord('field') : this.patchByWord(req.part ?? 'marked');
     if (patch === null) return refuse({ ok: false, reason: hole ? 'no-ice' : 'no-grid' });
     if (!hole && patch.kind !== 'marked') return refuse({ ok: false, reason: 'no-grid' });

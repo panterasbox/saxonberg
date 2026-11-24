@@ -56,7 +56,7 @@ function bind(text: string): Record<string, unknown> {
   return r.model as Record<string, unknown>;
 }
 
-const OVEN_DEFAULT = 'reachable:[mixin.BurnerMixin]';
+const OVEN_DEFAULT = '~reachable:[mixin.BurnerMixin]';
 
 describe('bake — the forms the help text promises', () => {
   it('bare `bake` leaves the dough unbound and the oven to its default', () => {

@@ -47,7 +47,8 @@ interface BakeModel extends CommandModel {
 export default class BakeController extends CraftController<BakeModel> {
   async execute(model: BakeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const recipeRef = model.loaf ?? 'lean-loaf';
+    const recipeRef = await this.recipeNamed(context, model.loaf ?? 'lean-loaf');
+    if (recipeRef === null) return;
 
     if (!(await this.requireDeed(context, recipeRef, 'bake'))) return;
 

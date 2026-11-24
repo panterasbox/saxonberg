@@ -20,5 +20,5 @@ args:
     # the bookcase), then fall back to `reachable` for fresh selection.
     # The absence of `updates_focus` is load-bearing — `find`
     # deliberately does not touch focus (defaults to `'none'`).
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     requires: any

@@ -34,7 +34,7 @@ subcommands:
       - name: target
         type: object
         required: true
-        scope: "online"
+        scope: ["~peers", "~contacts"]
         requires: class:Agent
         onExcess: prompt
       - name: label
@@ -42,18 +42,28 @@ subcommands:
         required: true
   remove:
     controller: /platform/idea/cmd/social/ContactsRemoveController
-    description: "Remove a single entry from a labeled list (matches against entries already in your list)"
+    description: "Remove a single entry from one of your lists"
     help: |
-      Take one person off a label. The name is matched against the
-      entries already on that list, so you can target someone even
-      if they aren't online.
+      Take one person off a list. Name them through the list —
+      `contacts remove ~friends:iffy` — and they come off that list
+      and no other. `contacts remove iffy friends` says the list
+      after the name instead. Someone who is not in the world is
+      matched against the entries already on the list, so you can
+      still take them off.
+    examples:
+      - cmd: contacts remove ~friends:iffy
+        note: Take Iffy off your friends list
     args:
+      # ⭐ A person you keep (naming overhaul D-B12): bound through your
+      # lists (`~contacts`), and the list it came by is read off the binding.
       - name: target
-        type: string
+        type: object
         required: true
+        scope: ["~contacts"]
+        requires: class:Agent
       - name: label
         type: string
-        required: true
+        required: false
   show:
     controller: /platform/idea/cmd/social/ContactsShowController
     description: "Show the entries on a labeled list, with current names"

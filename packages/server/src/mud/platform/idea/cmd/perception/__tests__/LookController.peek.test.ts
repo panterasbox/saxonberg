@@ -58,7 +58,7 @@ function lookCommand(): CommandDefinition {
       "  - name: target",
       "    type: object",
       "    required: false",
-      '    scope: ["$focus", "reachable"]',
+      '    scope: ["$focus", "~reachable"]',
       "    updates_focus: extend",
       "options:",
       "  peek:",
@@ -117,7 +117,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
   });
 
   it("look rose --peek leaves focus unchanged", async () => {
-    giver.setFocus("here");
+    giver.setFocus("~here");
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
@@ -132,11 +132,11 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     // Without --peek, `updates_focus: extend` would replace focus
     // with `rose` (extend on a non-detail target replaces rather
     // than appending). With --peek the gate skips the update.
-    expect(giver.getFocus()).toBe("here");
+    expect(giver.getFocus()).toBe("~here");
   });
 
   it("look rose (no peek) replaces focus with rose", async () => {
-    giver.setFocus("here");
+    giver.setFocus("~here");
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
@@ -151,10 +151,10 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     expect(giver.getFocus()).toBe("rose");
   });
 
-  it("look rose --peek with no prior focus leaves the default 'here'", async () => {
-    // Default Focused.getFocus() is 'here'. A peek pass shouldn't
+  it("look rose --peek with no prior focus leaves the default ~here", async () => {
+    // Default Focused.getFocus() is ~here. A peek pass shouldn't
     // disturb it.
-    expect(giver.getFocus()).toBe("here");
+    expect(giver.getFocus()).toBe("~here");
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
@@ -166,14 +166,14 @@ describe("look --peek (focus-update/skip phase effect)", () => {
       { target: "rose", peek: true },
       ctx
     );
-    expect(giver.getFocus()).toBe("here");
+    expect(giver.getFocus()).toBe("~here");
   });
 
   it("peek=false explicitly is treated as not skipping (extend fires)", async () => {
     // A boolean option absent from the model coerces to undefined;
     // explicit `false` is also falsy. Both leave the gate open, so
     // the focus update fires.
-    giver.setFocus("here");
+    giver.setFocus("~here");
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
@@ -193,7 +193,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     // The dispatcher's peek gate is focus-only; pronoun memory still
     // captures the referent so `look it` after `look rose --peek`
     // works.
-    giver.setFocus("here");
+    giver.setFocus("~here");
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
@@ -206,7 +206,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
       ctx
     );
     // Focus untouched.
-    expect(giver.getFocus()).toBe("here");
+    expect(giver.getFocus()).toBe("~here");
     // Pronoun memory captured: a follow-up `look it` would
     // substitute the rose's stored fragment ('rose'), proving the
     // gate didn't accidentally block pronoun memory too. The
@@ -220,7 +220,7 @@ describe("look --peek (focus-update/skip phase effect)", () => {
     // '$focus'. The dispatcher still runs the resolve+focus path on
     // the default; peek prevents the focus update. (Default-resolves
     // currently land the giver's focus referent.)
-    giver.setFocus("here");
+    giver.setFocus("~here");
     const cmd = lookCommand();
     const ctx = makeContext(
       giver,
@@ -234,6 +234,6 @@ describe("look --peek (focus-update/skip phase effect)", () => {
       { target: "here", peek: true },
       ctx
     );
-    expect(giver.getFocus()).toBe("here");
+    expect(giver.getFocus()).toBe("~here");
   });
 });

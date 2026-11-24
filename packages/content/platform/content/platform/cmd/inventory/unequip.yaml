@@ -29,5 +29,5 @@ args:
   - name: target
     type: object
     required: false
-    scope: "inventory"
+    scope: "~inventory"
     requires: WearableMixin|WieldableMixin

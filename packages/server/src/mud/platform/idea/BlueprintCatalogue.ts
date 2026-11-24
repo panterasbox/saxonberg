@@ -130,8 +130,8 @@ export default class BlueprintCatalogue extends BlueprintCatalogueBase {
     return { inserted, reaped };
   }
 
-  /** The installer's go-live: a full re-warm from both layers. */
-  public async invalidateCache(): Promise<void> {
+  /** ⭐ The blueprint kind's service: an edit goes live by a full re-warm from both layers. */
+  public async forget(_paths?: readonly string[]): Promise<void> {
     await this.warm();
   }
 

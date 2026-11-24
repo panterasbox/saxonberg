@@ -35,6 +35,17 @@ export abstract class CraftController<
   M extends CommandModel,
 > extends CommandController<M> {
   /**
+   * ⭐⭐ The recipe a player's words name (naming overhaul D-C5 rule 3) —
+   * its id, its name or a keyword, by the one rule: article, plural, word
+   * start; two recipes that share the word are ASKED between (a script is
+   * refused). Returns the recipe's id, or null after refusing.
+   */
+  protected async recipeNamed(context: CommandContext, text: string): Promise<string | null> {
+    const pick = await this.named(context, CraftingApi.recipes().recipeNamed(text), 'recipe', text);
+    return pick ? pick.getRecipeId() : null;
+  }
+
+  /**
    * The knowledge gate shared by the earned one-shots (`forge`/`cook`/
    * `mix`/`serve`/`bake`): a **catalogue** recipe declines until the
    * can-make deed exists — the first time you MADE it, by any crafting act

@@ -24,6 +24,7 @@
  * Structure).
  */
 
+import { GrammarApi } from '../../api/grammar';
 import Structure from '../../lib/structure/Structure';
 import type Place from '../../lib/stuff/Place';
 import { PositionedMixin } from '../../lib/expanse/Positioned';
@@ -1339,7 +1340,7 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
     const flag = register.getGovernmentKey();
     const owner = buyer.getIdentityPath();
     if (!owner) throw new Error('Ship.commission: her buyer has no durable identity to hold her units');
-    const named = name.trim().replace(/^the\s+/i, '');
+    const named = GrammarApi.withoutArticle(name);
     this.setName(`the ${named}`);
     this.setShortDescription(named);
     // ⚠ DERIVED (magic), named here: her keywords are written from her
@@ -1430,7 +1431,7 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
       this.house = identity;
       return live;
     }
-    const label = named ?? this.getName().replace(/^the\s+/i, '');
+    const label = named ?? GrammarApi.withoutArticle(this.getName());
     try {
       const overlay: Record<string, unknown> = { name: `the ${label}'s company` };
       if (founder !== undefined) {
@@ -1656,7 +1657,7 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
    * `Exit.getKeywords`). No author writes it.
    */
   public berthWord(): string {
-    return this.getName().replace(/^the\s+/i, '').trim().toLowerCase() || 'ship';
+    return GrammarApi.withoutArticle(this.getName()).trim().toLowerCase() || 'ship';
   }
 
   /**

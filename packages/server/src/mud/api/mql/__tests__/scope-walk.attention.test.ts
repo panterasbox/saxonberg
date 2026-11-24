@@ -55,13 +55,13 @@ function mover(level: ConcealmentLevel): Mover {
 }
 
 function ctx(viewer: Viewer): MqlContext {
-  return { commandGiver: viewer as never, scope: 'peers' };
+  return { commandGiver: viewer as never, scope: '~peers' };
 }
 function named(viewer: Viewer): string[] {
-  return MqlApi.resolveMany('peers:living', ctx(viewer)).stuff.map((s) => s.stuffId);
+  return MqlApi.resolveMany('~peers:living', ctx(viewer)).stuff.map((s) => s.stuffId);
 }
 function ids(viewer: Viewer, attention?: number): string[] {
-  return MqlApi.resolveMany('peers:living', ctx(viewer))
+  return MqlApi.resolveMany('~peers:living', ctx(viewer))
     .stuff.filter((s) => PerceptionApi.perceives(viewer, s, attention))
     .map((s) => s.stuffId);
 }

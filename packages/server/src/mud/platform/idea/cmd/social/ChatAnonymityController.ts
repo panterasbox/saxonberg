@@ -16,7 +16,8 @@ export default class ChatAnonymityController extends ChatControllerBase {
   async execute(model: ChatModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
     const name = (model.name ?? '').trim();
-    const setting = (model.setting ?? '').trim().toLowerCase();
+    // `permit` / `forbid` — canonicalized by the view (type: enum).
+    const setting = model.setting ?? '';
     if (!name || !setting) {
       return this.fail(
         context,

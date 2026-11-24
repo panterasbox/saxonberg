@@ -21,6 +21,6 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["reachable", "online"]
+    scope: ["~reachable", "~contacts"]
     requires: class:Agent
     onExcess: prompt

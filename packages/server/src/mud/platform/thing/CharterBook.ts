@@ -24,8 +24,9 @@ import type Place from '../../lib/stuff/Place';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import Ship from '../idea/Ship';
+import { RelatingMixin, type HeldRelation, type RelatedSet } from '../../lib/relation/Relating';
 
-export default class CharterBook extends Good {
+export default class CharterBook extends RelatingMixin(Good) {
   /** ⭐ The charter is written at the book. */
   static commandContributions: CommandContributions = {
     peers: ['platform/cmd/work/charter.yaml'],
@@ -48,8 +49,47 @@ export default class CharterBook extends Good {
   protected payTo: string | null = null;
 
   public getShips(): string[] { return [...this.ships]; }
-  public setShips(v: string[] | null): void {
+  /**
+   * ⭐ The setter returns the LOAD (the resident-by-construction rung): the
+   * listed ships stand up with the book, so `book:~ships` — answered from
+   * residents, synchronously — finds them at a cold harbor.
+   */
+  public setShips(v: string[] | null): Promise<void> {
     this.ships = Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string' && x !== '') : [];
+    return Promise.all(
+      this.ships.map((p) =>
+        StuffApi.singleton<Stuff>(p).catch((err: unknown) => {
+          console.warn(`CharterBook: listed ship ${p} did not load`, err);
+          return null;
+        }),
+      ),
+    ).then(() => undefined);
+  }
+
+  /**
+   * The ships this book lets that are in the world: the listed ones, or —
+   * a book with none listed — the ship whose room it lies in.
+   */
+  public lets(): Ship[] {
+    if (this.ships.length === 0) {
+      const room = MixinApi.isContainable(this) ? this.getContainer() : null;
+      const s = room && room.isPlace() ? (room as unknown as Place).structureNow() : null;
+      return s instanceof Ship ? [s] : [];
+    }
+    return this.ships
+      .map((p) => StuffApi.findByTemplatePath<Stuff>(p))
+      .filter((s): s is Ship => s instanceof Ship);
+  }
+
+  /** ⭐ `book:~ships` — the ships it lets (naming overhaul D-B5); anyone may ask. */
+  public relationsFor(asker: Stuff | null): HeldRelation[] {
+    return [{ name: 'ships', meaning: 'the ships this book lets' }, ...super.relationsFor(asker)];
+  }
+
+  public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
+    const below = super.relatedBy(name, asker);
+    if (name !== 'ships') return below;
+    return [{ name, meaning: 'the ships this book lets', members: this.lets() }, ...below];
   }
   public getRatePerDay(): number { return this.ratePerDay; }
   public setRatePerDay(v: number): void {
@@ -72,29 +112,23 @@ export default class CharterBook extends Good {
   }
 
   /**
-   * ⭐ The ship `word` names at this book — or the refusal in words.
-   * Aboard, the ship it is in (a word, if given, must name her); at a desk,
-   * the listed ship the word names, or the only one listed.
+   * The ship a bare `charter` means — the one whose hold the book lies in,
+   * else the one ship it lets — or the refusal in words. A NAMED ship is
+   * bound by the view through the book's `~ships` (naming overhaul B2), so
+   * nothing here reads a word.
    */
-  public async shipFor(word: string | null): Promise<Ship | string> {
-    const w = (word ?? '').trim().toLowerCase().replace(/^the\s+/, '');
+  public async shipFor(): Promise<Ship | string> {
     if (this.ships.length === 0) {
       const ship = await this.shipAboard();
-      if (ship === null) return 'This book lets no ship.';
-      if (w !== '' && !answersTo(ship, w)) return `This book lets ${ship.getPresentation()}, and no other.`;
-      return ship;
+      return ship ?? 'This book lets no ship.';
     }
     const listed: Ship[] = [];
     for (const p of this.ships) {
       const s = await StuffApi.singleton<Stuff>(p).catch(() => null);
       if (s instanceof Ship) listed.push(s);
     }
-    if (w === '') {
-      if (listed.length === 1) return listed[0]!;
-      return `Charter which? ${listed.map((s) => s.getPresentation()).join(', ')}.`;
-    }
-    const hit = listed.find((s) => answersTo(s, w));
-    return hit ?? `This book does not let a ship called '${word}'. It lets ${listed.map((s) => s.getPresentation()).join(', ')}.`;
+    if (listed.length === 1) return listed[0]!;
+    return `Charter which? ${listed.map((s) => s.getPresentation()).join(', ')}.`;
   }
 
   /** The ship whose room the book lies in, or `null`. */
@@ -107,9 +141,3 @@ export default class CharterBook extends Good {
   }
 }
 
-/** Does `word` name the ship — her way-word, her name or a keyword? */
-function answersTo(ship: Ship, word: string): boolean {
-  if (ship.berthWord() === word) return true;
-  if (ship.getName().toLowerCase().replace(/^the\s+/, '') === word) return true;
-  return ship.getKeywords().some((k) => k.toLowerCase() === word);
-}

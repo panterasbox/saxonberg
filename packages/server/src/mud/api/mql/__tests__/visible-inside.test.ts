@@ -55,7 +55,7 @@ const ids = (xs: readonly Stuff[]): string[] => xs.map((x) => x.stuffId).sort();
 describe('`:i` names everything inside, for everyone (D23)', () => {
   it('⭐⭐ another holder: MQL names the pockets too; the act perceives', () => {
     const rule = vi.spyOn(PerceptionApi, 'visibleContentsOf');
-    const r = MqlApi.resolveMany('here:i:i', { commandGiver: viewer as never, scope: '' });
+    const r = MqlApi.resolveMany('~here:i:i', { commandGiver: viewer as never, scope: '' });
     expect(ids(r.stuff)).toEqual(ids([shirt, coin]));
     expect(rule).not.toHaveBeenCalled();
   });

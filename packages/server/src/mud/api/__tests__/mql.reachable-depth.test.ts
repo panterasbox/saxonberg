@@ -147,7 +147,7 @@ describe('MQL addresses; the verb refuses (D6)', () => {
     const a = apple();
     ContainmentApi.move(chest, river);
     ContainmentApi.move(a, chest);
-    expect(ids(MqlApi.resolveMany('here:I:apple', ctx(me, 'reachable')).stuff)).toContain(a.stuffId);
+    expect(ids(MqlApi.resolveMany('~here:I:apple', ctx(me, 'reachable')).stuff)).toContain(a.stuffId);
 
     const other = makeStuff(() => new Person());
     ContainmentApi.move(other, river);
@@ -155,7 +155,7 @@ describe('MQL addresses; the verb refuses (D6)', () => {
     const b = apple();
     carry(other, box);
     ContainmentApi.move(b, box);
-    const named = MqlApi.resolveMany('here:I:apple', ctx(me, 'reachable')).stuff;
+    const named = MqlApi.resolveMany('~here:I:apple', ctx(me, 'reachable')).stuff;
     expect(ids(named)).toContain(b.stuffId);
     expect(ids(PerceptionApi.perceived(me, named))).not.toContain(b.stuffId);
   });
@@ -179,7 +179,7 @@ describe('here is the place (D7)', () => {
     ContainmentApi.move(boat, river);
     ContainmentApi.move(me, boat);
     expect(me.getEnclosingPlace()?.stuffId).toBe(river.stuffId);
-    expect(ids(MqlApi.resolveMany('here', ctx(me, 'reachable')).stuff)).toEqual([river.stuffId]);
+    expect(ids(MqlApi.resolveMany('~here', ctx(me, 'reachable')).stuff)).toEqual([river.stuffId]);
     expect(ids(MqlApi.resolveMany('me:e', ctx(me, 'reachable')).stuff)).toEqual([boat.stuffId]);
   });
 
@@ -192,9 +192,9 @@ describe('here is the place (D7)', () => {
     const inBoat = apple();
     ContainmentApi.move(onBank, river);
     ContainmentApi.move(inBoat, boat);
-    const peers = ids(MqlApi.resolveMany('peers:apple', ctx(me, 'peers')).stuff);
+    const peers = ids(MqlApi.resolveMany('~peers:apple', ctx(me, 'peers')).stuff);
     expect(peers.sort()).toEqual([onBank.stuffId, inBoat.stuffId].sort());
-    const here = ids(MqlApi.resolveMany('peers:here', ctx(me, 'peers')).stuff);
+    const here = ids(MqlApi.resolveMany('~peers:here', ctx(me, 'peers')).stuff);
     expect(here).toContain(onBank.stuffId);
     expect(here).toContain(inBoat.stuffId);
   });
@@ -218,7 +218,7 @@ describe(':held', () => {
     carry(me, bag);
     ContainmentApi.move(inBag, bag);
     ContainmentApi.move(onGround, river);
-    const held = ids(MqlApi.resolveMany('reachable:held', ctx(me, 'reachable')).stuff);
+    const held = ids(MqlApi.resolveMany('~reachable:held', ctx(me, 'reachable')).stuff);
     expect(held).toContain(inHand.stuffId);
     expect(held).toContain(bag.stuffId);
     expect(held).not.toContain(inBag.stuffId);

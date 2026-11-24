@@ -26,7 +26,7 @@ args:
   - name: target
     type: objects
     required: true
-    scope: "online"
+    scope: ["~here", "~contacts"]
     cardinality: { min: 1, max: 10 }
     onShortage: error
     onExcess: error

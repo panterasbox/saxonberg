@@ -18,7 +18,7 @@ import { Mml } from "../../../../api/mml";
 import { Refusal } from "../../../../lib/errors";
 
 const TOPIC = "act.deed";
-const USAGE = 'reserve retire <amount> from <target> "<reason>"';
+
 
 interface ReserveRetireModel extends CommandModel {
   amount?: string;
@@ -34,9 +34,7 @@ export default class ReserveRetireController extends BankingControllerBase<Reser
     if (!Number.isInteger(minor)) {
       return this.refuse(context, new Refusal("reserve-bad-amount", { amount: model.amount ?? "" }));
     }
-    if ((model.from ?? "").toLowerCase() !== "from") {
-      return this.refuse(context, new Refusal("reserve-usage", { usage: USAGE }));
-    }
+    // `from` is the view's own word (type: enum) — the binder held it.
     const reason = (model.reason ?? "").trim().replace(/^["']|["']$/g, "");
     if (!reason) return this.refuse(context, new Refusal("reserve-no-reason"));
     const target = ReserveRetireController.resolvePayee(model.target ?? "");

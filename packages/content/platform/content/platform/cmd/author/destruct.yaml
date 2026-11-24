@@ -14,7 +14,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
 options:
   force:

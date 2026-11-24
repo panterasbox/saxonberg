@@ -40,6 +40,9 @@ export default class FormCatalogue extends DocumentCatalogue<FormWord> {
       seats: Array.isArray(data.seats) ? data.seats.filter((x): x is string => typeof x === 'string') : [],
       greenScale,
       discipline: typeof data.discipline === 'string' && data.discipline ? data.discipline : 'pottery',
+      keywords: Array.isArray(data.keywords)
+        ? data.keywords.filter((x): x is string => typeof x === 'string').map((x) => x.toLowerCase())
+        : [],
     };
     }
 }

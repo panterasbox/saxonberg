@@ -1,7 +1,7 @@
 /**
  * ⭐ A tool default is what you CARRY, used where it sits (size and carrying
  * D-W10-1/-7; finalize run 16). The 31 tool views default their tool to
- * `person:[…]` — the on-person pool, the whole carried tree (since W9 a
+ * `~person:[…]` — the on-person pool, the whole carried tree (since W9 a
  * pouch's thing is the POUCH's contents; `me:i` read the top level) — and
  * declare `canReach`; the binder narrows such a
  * defaulted slot to what is to hand (an open medic's pouch on the belt is,
@@ -33,8 +33,8 @@ args:
     type: ${type}
     required: false
     prepositions: [with]
-    default: "person:bandage"
-    scope: ["reachable"]
+    default: "~person:bandage"
+    scope: ["~reachable"]
 ${validators ? '    validators:\n      - /lib/command/validators/canReach\n' : ''}`,
     '<test>',
   );
@@ -59,7 +59,7 @@ async function bind(me: Stuff, room: Stuff, cmd: CommandDefinition): Promise<{ s
     verb: 'stitch',
     command: cmd,
   });
-  const r = await CommandApi.resolveModel({ kit: 'person:bandage' }, ctx);
+  const r = await CommandApi.resolveModel({ kit: '~person:bandage' }, ctx);
   if (!('resolved' in r) || r.resolved === undefined) throw new Error('did not resolve');
   return r.resolved.kit as { stuff: unknown; defaulted?: true };
 }

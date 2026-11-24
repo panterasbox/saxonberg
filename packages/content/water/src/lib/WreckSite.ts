@@ -25,6 +25,7 @@
  * `charted` seam): a wreck is found by being over it.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -98,7 +99,7 @@ export function WreckSiteMixin<TBase extends MixinConstructor<SiteHost>>(Base: T
       if (!this.wrecks.some((w) => w.ship === handle)) {
         // ⚠ DERIVED (magic), named here: the way to her wreck is named for
         // the first word of her name.
-        const word = ship.getName().replace(/^the\s+/i, '').trim().toLowerCase().split(/\s+/)[0] || 'wreck';
+        const word = GrammarApi.withoutArticle(ship.getName()).trim().toLowerCase().split(/\s+/)[0] || 'wreck';
         this.wrecks = [...this.wrecks, { ship: handle, name: ship.getName(), word, deck }];
         const self = this as unknown as SiteHost;
         await PersistableApi.capture(self, self.getPersistenceKey() ?? undefined).catch((err) =>

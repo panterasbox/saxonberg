@@ -5,6 +5,7 @@
  * patient, and hands it over. Credits `medicine easy`.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -60,19 +61,29 @@ export default class PrescribeController extends CommandController<PrescribeMode
         'unlicensed',
       );
     }
-    // The active must resolve to a warmed drug Condition.
-    const row = ConditionApi.conditions().peek(
-      TemplatePathPrefixes.metabolismCondition + active,
+    // ⭐ The active, NAMED among the warmed drug Conditions by the one rule
+    // (naming overhaul D-C5 rule 4); a shared word is asked between.
+    const row = await this.named(
+      context,
+      GrammarApi.nameAmong(
+        active,
+        ConditionApi.conditions()
+          .roster()
+          .filter((c) => c.getToxinBehavior() !== null)
+          .map((c) => {
+            const leaf = (c.getTemplatePath() ?? '').split('/').pop() ?? '';
+            return { value: leaf, keywords: [c.getName().toLowerCase(), leaf.replace(/-/g, ' ')], title: c.getName() };
+          }),
+      ),
+      'remedy',
+      active,
     );
-    if (!row || row.getToxinBehavior() === null) {
-      return this.fail(context, `There is no such remedy as "${active}".`, 'no-such-remedy');
-    }
-
+    if (row === null) return;
     const doses = Math.max(1, Math.floor(model.doses ?? 1));
     const slip = await StuffApi.clone<Stuff & Prescription>(PRESCRIPTION);
     slip.stampPrescription({
       patientIdentityPath: patient.getIdentityPath() ?? patient.getTemplatePath() ?? '',
-      active,
+      active: row,
       doses,
       prescriberIdentityPath:
         (giver as Stuff).getIdentityPath?.() ?? (giver as Stuff).getTemplatePath?.() ?? '',
@@ -96,7 +107,7 @@ export default class PrescribeController extends CommandController<PrescribeMode
       .topic(TOPIC)
       .toSelf(
         Mml.fromMarkup(
-          `You write ${Mml.escape(patient.getPresentation())} a prescription for ${Mml.escape(active)} (${doses}).`,
+          `You write ${Mml.escape(patient.getPresentation())} a prescription for ${Mml.escape(row)} (${doses}).`,
         ),
       )
       .send();

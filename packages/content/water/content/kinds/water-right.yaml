@@ -1,0 +1,5 @@
+title: Water right
+traits:
+  dated: { field: priorityDateS }
+  filed: register
+  titled: { field: name }

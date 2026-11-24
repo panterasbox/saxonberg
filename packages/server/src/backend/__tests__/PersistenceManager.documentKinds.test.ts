@@ -1,7 +1,7 @@
 /**
  * The declared document kinds: the path is the only identity (a unique
- * path index), every key a kind declares is served by one wildcard index; the nightly reset keeps every declared kind (plus
- * releases) — or the world loses its emotes at 04:00; and the one-time
+ * path index), every key a kind declares is served by one wildcard index; the nightly reset keeps the
+ * collection (undeclared kinds are refused at the write); and the one-time
  * `script` → `msh` kind rename is idempotent.
  */
 
@@ -11,11 +11,6 @@ import { PersistenceManager, Collections } from '../PersistenceManager';
 import { RESET_DISPOSITIONS } from '../../mud/lib/persistence/ResetPolicy';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import {
-  DOCUMENT_KINDS,
-  DECLARED_DOCUMENT_KINDS,
-} from '../../mud/lib/document/DocumentKinds';
-import { RELEASE_DOCUMENT_KIND } from '../../mud/lib/press/Release';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -40,16 +35,7 @@ describe('the documents indexes (path identity + the catalogue card)', () => {
 });
 
 describe('the reset policy over documents', () => {
-  it('keeps releases AND every declared document kind — but the ledgers marked onReset: wipe (persistence-model D5)', () => {
-    const d = RESET_DISPOSITIONS[Collections.Documents];
-    expect(d.verb).toBe('wipe-except');
-    const keep = (d as unknown as { keep: { kind: { $in: string[] } } }).keep.kind.$in;
-    expect(keep).toContain(RELEASE_DOCUMENT_KIND);
-    for (const k of DECLARED_DOCUMENT_KINDS) {
-      const spec = DOCUMENT_KINDS[k] as { kind: string; onReset?: string };
-      if (spec.onReset === 'wipe') expect(keep).not.toContain(spec.kind);
-      else expect(keep).toContain(spec.kind);
-    }
-    expect(keep).not.toContain('water-ledger');
+  it('keeps the whole collection — every row is of a declared kind (an undeclared one is refused)', () => {
+    expect(RESET_DISPOSITIONS[Collections.Documents].verb).toBe('keep');
   });
 });

@@ -1,0 +1,4 @@
+title: Mould form
+traits:
+  shipped: { dir: forms }
+  catalogued: { by: /platform/idea/FormCatalogue, load: per-path }

@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ `verb@source` at the dispatcher (controllers-are-io D2, D3, D23).
+ * ⭐⭐ `source::verb` at the dispatcher (controllers-are-io D2, D3, D23).
  *
  * The scope after the `@` resolves as MQL; the chain sees only what that
  * source affords; the source fills the first object slot it fits; a NAME
@@ -75,7 +75,7 @@ interface Run {
   source: Stuff;
 }
 
-describe('verb@source at the dispatcher', () => {
+describe('source::verb at the dispatcher', () => {
   let world: MqlWorld;
   let runs: Run[];
   let wind: CommandDefinition;
@@ -139,55 +139,55 @@ describe('verb@source at the dispatcher', () => {
     expect(targetOf(runs[0]!)).toBe(world.daisy);
   });
 
-  it('(a) nothing typed → the source fills its slot: `windish@me:i:apple`', async () => {
-    await dispatch('windish@me:i:apple', [offer(world.rose, wind), offer(world.apple, wind, 'inventory')]);
+  it('(a) nothing typed → the source fills its slot: `me:i:apple::windish`', async () => {
+    await dispatch('me:i:apple::windish', [offer(world.rose, wind), offer(world.apple, wind, 'inventory')]);
     expect(runs).toHaveLength(1);
     expect(runs[0]!.source).toBe(world.apple);
     expect(targetOf(runs[0]!)).toBe(world.apple);
   });
 
   it('(b) a typed word that matches the source → the source wins the slot', async () => {
-    await dispatch('windish@daisy flower', [offer(world.rose, wind), offer(world.daisy, wind)]);
+    await dispatch('daisy::windish flower', [offer(world.rose, wind), offer(world.daisy, wind)]);
     expect(runs[0]!.source).toBe(world.daisy);
     expect(targetOf(runs[0]!)).toBe(world.daisy);
   });
 
   it('(c) a typed word that does not match → the typed words win', async () => {
-    await dispatch('windish@daisy rose', [offer(world.rose, wind), offer(world.daisy, wind)]);
+    await dispatch('daisy::windish rose', [offer(world.rose, wind), offer(world.daisy, wind)]);
     expect(runs[0]!.source).toBe(world.daisy);
     expect(targetOf(runs[0]!)).toBe(world.rose);
   });
 
-  it('a view with no slot binds as unscoped: `sayish@me hello`', async () => {
+  it('a view with no slot binds as unscoped: `me::sayish hello`', async () => {
     const say = await view(SAY);
-    await dispatch('sayish@me hello there', [offer(world.giver, say, 'self')]);
+    await dispatch('me::sayish hello there', [offer(world.giver, say, 'self')]);
     expect(runs).toHaveLength(1);
     expect(runs[0]!.source).toBe(world.giver);
     expect(runs[0]!.model.message).toBe('hello there');
   });
 
   it('a scope naming nothing → `source-not-found`, nothing runs', async () => {
-    const ctx = await dispatch('windish@teapot', [offer(world.rose, wind)]);
+    const ctx = await dispatch('teapot::windish', [offer(world.rose, wind)]);
     expect(runs).toHaveLength(0);
     expect(reasons(ctx)).toContain('source-not-found');
   });
 
   it('a scope naming something that affords nothing → `source-affords-nothing`', async () => {
-    const ctx = await dispatch('windish@me:i:apple', [offer(world.rose, wind)]);
+    const ctx = await dispatch('me:i:apple::windish', [offer(world.rose, wind)]);
     expect(runs).toHaveLength(0);
     expect(reasons(ctx)).toContain('source-affords-nothing');
   });
 
   it('⭐ a NAME matching several asks the player which', async () => {
     const promptMqlObject = vi.fn(async (_l: string, c: Stuff[]) => c.find((s) => s === world.daisy)!);
-    await dispatch('windish@flower', [offer(world.rose, wind), offer(world.daisy, wind)], { promptMqlObject });
+    await dispatch('flower::windish', [offer(world.rose, wind), offer(world.daisy, wind)], { promptMqlObject });
     expect(promptMqlObject).toHaveBeenCalledTimes(1);
     expect(runs).toHaveLength(1);
     expect(runs[0]!.source).toBe(world.daisy);
   });
 
   it('⭐⭐ …and with nobody to ask (a script, an NPC) fails CLOSED, naming the input', async () => {
-    const ctx = await dispatch('windish@flower', [offer(world.rose, wind), offer(world.daisy, wind)]);
+    const ctx = await dispatch('flower::windish', [offer(world.rose, wind), offer(world.daisy, wind)]);
     expect(runs).toHaveLength(0);
     const note = ctx.getNotes().find((n) => (n as { reason?: string }).reason === 'needs-input') as
       | { detail?: string }
@@ -196,7 +196,7 @@ describe('verb@source at the dispatcher', () => {
   });
 
   it('⭐ a plural scope is a BATCH: once per source, one envelope', async () => {
-    const ctx = await dispatch('windish@"all flower"', [offer(world.rose, wind), offer(world.daisy, wind)]);
+    const ctx = await dispatch('"all flower"::windish', [offer(world.rose, wind), offer(world.daisy, wind)]);
     expect(runs.map((r) => r.source).sort((a, b) => a.stuffId.localeCompare(b.stuffId))).toEqual(
       [world.rose, world.daisy].sort((a, b) => a.stuffId.localeCompare(b.stuffId)),
     );
@@ -243,7 +243,7 @@ describe('verb@source at the dispatcher', () => {
       // The scoped form is PROVED: it resolves to exactly that source.
       const proved = MqlApi.resolveMany(offered!.scopedForm, {
         commandGiver: world.giver,
-        scope: 'reachable',
+        scope: '~reachable',
       }).stuff;
       expect(proved).toEqual([far]);
     });

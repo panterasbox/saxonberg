@@ -23,6 +23,7 @@
  * gone (D14 — cutting is several acts, each its own small protocol).
  */
 
+import { GrammarApi } from '../../api/grammar';
 import type { Stuff } from '../stuff/Stuff';
 import type { MixinConstructor } from '../mixin';
 import type { ActAnswer, ActDone, ActPlan, ActRefusal } from './ActPlan';
@@ -289,13 +290,18 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         (cutting === 'chop' && hasCleaver && kit.block !== null);
 
       // ⭐⭐ `for <cut>`: one line, named by a WORD against the row's keywords.
-      const asked = kit.cut.trim().toLowerCase();
       let lines = dressed;
-      if (asked) {
-        lines = dressed.filter((line) => {
-          const ex = exemplarFor.get(line.cut);
-          return !!ex && MixinApi.isPerceptible(ex) && ex.getKeywords().some((k) => k.toLowerCase() === asked);
-        });
+      if (kit.cut.trim()) {
+        // By the one rule (naming overhaul D-C4); alike lines all answer.
+        const named = GrammarApi.nameAmong(
+          kit.cut,
+          dressed.map((line) => {
+            const ex = exemplarFor.get(line.cut);
+            const words = ex && MixinApi.isPerceptible(ex) ? ex.getKeywords() : [];
+            return { value: line, keywords: words.map((k) => k.toLowerCase()), title: line.cut };
+          }),
+        );
+        lines = named.kind === 'one' ? [named.one] : named.kind === 'tie' ? named.tie : [];
         if (lines.length === 0) {
           await discard();
           return { ok: false, reason: 'no-such-cut', facts: { body } };

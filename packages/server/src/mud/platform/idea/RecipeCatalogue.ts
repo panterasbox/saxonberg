@@ -26,6 +26,7 @@ import { CommandApi } from '../../api/command';
 import type { CarvePlan, CarveRefusal, CarveRequest } from '../../lib/craft/Carvable';
 import { CraftingApi } from '../../api/crafting';
 import { MixinApi } from '../../api/mixin';
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
@@ -59,9 +60,6 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
   /** recipeId → Recipe. `null` = not yet warmed. */
   private cache: Map<string, Recipe> | null = null;
 
-  /** Lowercase keyword/name/id → recipeId. */
-  private byKeyword: Map<string, string> = new Map();
-
   /**
    * outputTemplate → recipeId, the first by id when several recipes make
    * one row (repair D1). Built in `warm`, never a scan at the read.
@@ -80,7 +78,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
 
   /** The content error a broken row named by `ref` (word or path) carries, thrown. */
   private refuseBroken(ref: string): void {
-    const err = this.broken.get(ref.startsWith('/') ? ref : ref.toLowerCase());
+    const err = this.broken.get(ref);
     if (err) throw err;
   }
 
@@ -99,19 +97,44 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     return word ? (this.cache!.get(word) ?? null) : null;
   }
 
-  /** Resolve a recipe by keyword / name / word — or by its path — or null. */
+  /**
+   * ⭐⭐ The recipes a player's words name (naming overhaul D-C5 rule 3) —
+   * every recipe answers to its id, its name and its keywords, ranked by
+   * THE rule (`GrammarApi.nameAmong`: article, ordinal, plural, word start; a
+   * tie in id order). `among` narrows the pool (the carvings). Never
+   * prompts — a controller's `named` does.
+   */
+  public recipeNamed(text: string, among?: (recipe: Recipe) => boolean): NameAnswer<Recipe> {
+    this.ensureCache();
+    this.refuseBroken(text.trim());
+    const pool = [...this.cache!.values()]
+      .filter((r) => among === undefined || among(r))
+      .sort((a, b) => a.getRecipeId().localeCompare(b.getRecipeId()));
+    return GrammarApi.nameAmong(
+      text,
+      pool.map((r) => ({
+        value: r,
+        keywords: [r.getRecipeId(), r.getName(), ...r.getKeywords()]
+          .filter((k) => k !== '')
+          .map((k) => k.toLowerCase()),
+        title: r.getName() || r.getRecipeId(),
+      })),
+    );
+  }
+
+  /**
+   * A recipe by its path (an authored citation), its id, or — for a
+   * reference with no player behind it — the ONE recipe its words name;
+   * null when none or several do. A player's words go through
+   * {@link recipeNamed} and the controller's `named`, which asks among a tie.
+   */
   public findByKeyword(keyword: string): Recipe | null {
     this.ensureCache();
-    // An authored citation names the recipe's path.
     if (keyword.startsWith('/')) return this.getRecipeAt(keyword);
-    this.refuseBroken(keyword);
-    const id = this.byKeyword.get(keyword.toLowerCase());
-    if (id) return this.cache!.get(id) ?? null;
-    // Fallback: scan (covers keywords added after warm).
-    for (const recipe of this.cache!.values()) {
-      if (recipe.matchesKeyword(keyword)) return recipe;
-    }
-    return null;
+    const exact = this.cache!.get(keyword);
+    if (exact) return exact;
+    const answer = this.recipeNamed(keyword);
+    return answer.kind === 'one' ? answer.one : null;
   }
 
   /**
@@ -165,10 +188,11 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
    * `carve` when the thing named plans no carving of its own.
    */
   public carvingPlanFor(req: CarveRequest): CarvePlan | CarveRefusal {
-    const word = req.word.trim().toLowerCase();
+    const word = req.word.trim();
     if (!word) return { ok: false, reason: 'no-part', facts: { names: this.carvingNames() } };
-    const found = this.getRecipe(word) ?? this.findByKeyword(word);
-    const recipe = found !== null && RecipeCatalogue.isCarving(found) ? found : null;
+    // ⭐ Among the carvings, by the one rule (D-C5 rule 3).
+    const answer = this.recipeNamed(word, (r) => RecipeCatalogue.isCarving(r));
+    const recipe = answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
     if (recipe === null) {
       return { ok: false, reason: 'not-a-carving', facts: { word, names: this.carvingNames() } };
     }
@@ -235,10 +259,23 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
    */
   public invalidateCache(): void {
     this.cache = null;
-    this.byKeyword = new Map();
     this.byOutput = new Map();
     this.byPath = new Map();
     this.broken = new Map();
+  }
+
+  /**
+   * ⭐ The recipe kind's service (`catalogued.by`): an edited recipe goes
+   * live by a re-warm — the read surface is SYNC, so the cache is rebuilt
+   * in place rather than dropped.
+   */
+  public async forget(_paths?: readonly string[]): Promise<void> {
+    await this.warm();
+  }
+
+  /** A recipe document's meaning, checked at install and at every save. */
+  public parse(data: Record<string, unknown>, path: string): Recipe {
+    return Recipe.fromData(data, path);
   }
 
   /** (Re)build the cache + keyword index from `documents {kind: recipe}`. */
@@ -256,7 +293,7 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
         if (err instanceof ContentError) {
           const path = doc.getPath();
           broken.set(path, err);
-          broken.set(path.slice(path.lastIndexOf('/') + 1).toLowerCase(), err);
+          broken.set(path.slice(path.lastIndexOf('/') + 1), err);
           await CommandApi.reportFailure(err, null, path);
         } else {
           console.warn(`RecipeCatalogue: skipping ${doc.getPath()}: ${(err as Error).message}`);
@@ -264,7 +301,6 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
       }
     }
     const cache = new Map<string, Recipe>();
-    const byKeyword = new Map<string, string>();
     const byOutput = new Map<string, string>();
     const byPath = new Map<string, string>();
     for (const recipe of recipes) {
@@ -272,12 +308,6 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
       if (!id) continue;
       cache.set(id, recipe);
       byPath.set(recipe.path, id);
-      byKeyword.set(id.toLowerCase(), id);
-      const name = recipe.getName();
-      if (name) byKeyword.set(name.toLowerCase(), id);
-      for (const kw of recipe.getKeywords()) {
-        byKeyword.set(kw.toLowerCase(), id);
-      }
       // ⭐ Only a recipe that MAKES a thing — a `bulk` recipe fills a
       // vessel, and the dough did not make the trough.
       const out =
@@ -287,7 +317,6 @@ export default class RecipeCatalogue extends RecipeCatalogueBase {
     }
     this.cache = cache;
     this.broken = broken;
-    this.byKeyword = byKeyword;
     this.byOutput = byOutput;
     this.byPath = byPath;
   }

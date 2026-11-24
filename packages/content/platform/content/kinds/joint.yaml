@@ -1,0 +1,5 @@
+title: Joint
+traits:
+  shipped: { dir: joints }
+  catalogued: { by: /platform/idea/JointCatalogue, load: per-path }
+  titled: { field: label }

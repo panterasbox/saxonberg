@@ -4,7 +4,17 @@
  *
  * Reserved character set (per req §1):
  *   `,` `:` `(` `)` `[` `]` `.` `-` `#` `$` `*` `/` `'`
- *   `=` `!=` `>` `<` `>=` `<=`
+ *   `=` `!=` `>` `<` `>=` `<=` `~` `@`
+ *
+ * - **Tilde** (`~`, naming overhaul D-B1) is the relation sigil: `~name`
+ *   lexes as {@link TokenKind.Tilde} then the bareword; a bare `~` is the
+ *   tilde alone (the parser reads it as your home at the head of a query,
+ *   or as "list the relations" after a `:`). `~/x` lexes as one
+ *   {@link TokenKind.HomePath} whose value is `/x` — a home path, valid
+ *   only at the head of a query (the parser says so).
+ *
+ * - **At** (`@abc123`) is a player address: one {@link TokenKind.PlayerId}
+ *   token whose value is the id. A bare `@` is a lex error.
  *
  * Tricky cases:
  *
@@ -70,6 +80,9 @@ export type TokenKind =
   | 'int'
   | 'bareword'
   | 'transformLetter'
+  | 'tilde'
+  | 'homePath'
+  | 'playerId'
   | 'eof';
 
 /**
@@ -217,6 +230,32 @@ export function lex(input: string): Token[] {
         tokens.push({ kind: 'lt', value: '<', start: i, end: i + 1 });
         i += 1;
       }
+      continue;
+    }
+
+    if (ch === '~') {
+      if (input[i + 1] === '/') {
+        // `~/x` — a home path: the rest of it as a path value.
+        const start = i;
+        let j = i + 1;
+        while (j < n && isPathChar(input[j]!)) j += 1;
+        tokens.push({ kind: 'homePath', value: input.slice(i + 1, j), start, end: j });
+        i = j;
+        continue;
+      }
+      tokens.push({ kind: 'tilde', value: '~', start: i, end: i + 1 });
+      i += 1;
+      continue;
+    }
+
+    if (ch === '@') {
+      let j = i + 1;
+      while (j < n && (isWordChar(input[j]!) || input[j] === '-')) j += 1;
+      if (j === i + 1) {
+        throw new MqlLexError(`bare '@' at position ${i} — a player address is '@<their id>'`, i);
+      }
+      tokens.push({ kind: 'playerId', value: input.slice(i + 1, j), start: i, end: j });
+      i = j;
       continue;
     }
 

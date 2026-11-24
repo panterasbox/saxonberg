@@ -45,11 +45,14 @@ describe('MQL parser — seeds', () => {
     });
   });
 
-  it('recognizes pronouns by name', () => {
-    for (const name of ['me', 'here', 'it', 'them', 'him', 'her']) {
-      const q = parse(name);
-      const head = singleChain(q).head;
-      expect(head).toEqual<PronounNode>({ kind: 'pronoun', name: name as never });
+  it('recognizes the one pronoun, `me`; the others are relations and keywords now', () => {
+    expect(singleChain(parse('me')).head).toEqual<PronounNode>({ kind: 'pronoun', name: 'me' });
+    for (const name of ['here', 'it', 'them', 'him', 'her']) {
+      expect(singleChain(parse(name)).head).toEqual({ kind: 'keywords', words: [name] });
+      // `~here` is `me:~here` (naming overhaul D-B1).
+      const rel = singleChain(parse(`~${name}`));
+      expect(rel.head).toEqual({ kind: 'pronoun', name: 'me' });
+      expect(rel.rest[0]!.element).toEqual({ kind: 'relation', name });
     }
   });
 
@@ -83,9 +86,8 @@ describe('MQL parser — seeds', () => {
     expect(singleChain(q).head).toEqual({ kind: 'stuffId', id: 'abc123' });
   });
 
-  it('parses $$ as last result', () => {
-    const q = parse('$$');
-    expect(singleChain(q).head).toEqual({ kind: 'lastResult' });
+  it("refuses $$ — the last result is ~last now", () => {
+    expect(() => parse('$$')).toThrow(/~last/);
   });
 
   it('rejects #5 at chain head', () => {

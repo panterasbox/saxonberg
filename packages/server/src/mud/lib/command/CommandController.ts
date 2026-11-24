@@ -41,7 +41,7 @@ import type { Display } from '../display/Display';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandGiver } from '../command/CommandGiver';
 import { SchedulerApi } from '../../api/scheduler';
-import { GrammarApi } from '../../api/grammar';
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 import type { CarryRefusal } from '../slot/Carrying';
 import type { ArrivalRefusal } from '../spatial/Container';
 import { ManualBuildStep } from '../craft/ManualBuildStep';
@@ -136,9 +136,9 @@ export abstract class CommandController<
     // ⭐ A screen you do not perceive is not one you drive (D23).
     const reachable = PerceptionApi.perceived(
       actor,
-      MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+      MqlApi.resolveMany('~reachable:[mixin.DisplayMixin]', {
         commandGiver: actor,
-        scope: 'reachable',
+        scope: '~reachable',
       }).stuff,
     ).filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
 
@@ -368,7 +368,7 @@ export abstract class CommandController<
     try {
       scored = MqlApi.resolveMany(text, {
         commandGiver: giver,
-        scope: 'reachable',
+        scope: '~reachable',
         admits: (s) => choices.includes(s as C),
       });
     } catch {
@@ -393,6 +393,45 @@ export abstract class CommandController<
       }
     }
     return best === null || tied ? preferred : best;
+  }
+
+  /**
+   * ⭐⭐ **The I/O half of naming** (naming overhaul D-C3): what a holder's
+   * `…Named(text)` answered, turned into the value — or a prompt among a
+   * tie (the entries' titles; a number picks), or the `no-such-name`
+   * refusal listing what could have been named. `noun` is the holder's
+   * word for one entry (`quay`, `reading`); `what` is the player's words.
+   * A script never prompts (D23): a tie there is `needs-input`, refused.
+   * Returns `null` after refusing — the caller simply returns.
+   */
+  protected async named<T>(
+    context: CommandContext,
+    answer: NameAnswer<T>,
+    noun: string,
+    what: string,
+  ): Promise<T | null> {
+    if (answer.kind === 'one') return answer.one;
+    if (answer.kind === 'none') {
+      this.refuse(context, new Refusal('no-such-name', {
+        what: what.trim(),
+        noun,
+        offered: GrammarApi.joinList(answer.offered),
+      }));
+      return null;
+    }
+    const interactive = context.requireInteractive(`which ${noun}`);
+    if (!interactive) return null;
+    try {
+      const picked = await interactive.promptChoice(
+        `Which ${noun}?`,
+        answer.titles.map((label, i) => ({ label, response: String(i) })),
+      );
+      return answer.tie[Number(picked)] ?? null;
+    } catch {
+      // @quiet the player cancelled, the prompt timed out or the host
+      // dropped: no choice was made, and the command ends unanswered.
+      return null;
+    }
   }
 
   /**

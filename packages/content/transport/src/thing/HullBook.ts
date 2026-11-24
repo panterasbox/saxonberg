@@ -30,6 +30,7 @@
  * be sold the last hull.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Ship from '@saxonberg/server/mud/platform/idea/Ship';
 import ShipRegister from '@saxonberg/server/mud/platform/idea/ShipRegister';
@@ -175,7 +176,7 @@ export default class HullBook extends ForSaleMixin(Good) {
 
   /** ⭐ The book offers every hull it lists — sold out or not (the refusal then says so). */
   public override offers(word: string): boolean {
-    return this.hulls.some((h) => answersTo(h, word));
+    return this.hullsNamed(word).length > 0;
   }
 
   public override async sell(sale: SaleRequest): Promise<SaleOutcome> {
@@ -185,7 +186,7 @@ export default class HullBook extends ForSaleMixin(Good) {
     if (house !== null && MixinApi.isBusiness(house) && house.isClosed()) {
       return no(Mml.compose`There's nobody in the yard just now.`, 'unattended', 'closed');
     }
-    if (!this.hulls.some((h) => answersTo(h, word))) return no(Mml.compose`"${word}" isn't for sale here.`, 'not-on-shelf', word);
+    if (this.hullsNamed(word).length === 0) return no(Mml.compose`"${word}" isn't for sale here.`, 'not-on-shelf', word);
     const first = this.firstOnTheStocks(word);
     if (first === null) return no(Mml.compose`The yard has no hull on the stocks.`, 'sold-out', word);
     const leaf = leafOf(first.kind);
@@ -216,7 +217,7 @@ export default class HullBook extends ForSaleMixin(Good) {
       } catch {
         return no(Mml.compose`Unnamed, she is not entered, and not sold.`, 'unnamed', word);
       }
-      const bare = asked.replace(/^the\s+/i, '').trim();
+      const bare = GrammarApi.withoutArticle(asked);
       if (bare === '') continue;
       if (await register.isNameTaken(bare)) {
         MessageApi.scene(buyer).topic('act.deed').toSelf(Mml.compose`There is a ship in the register of ${polity} named ${bare} already. Another name.`).send();
@@ -288,8 +289,25 @@ export default class HullBook extends ForSaleMixin(Good) {
   }
 
   /** The first hull the word names that is still on the stocks. */
+  /**
+   * ⭐ The hulls a word names — her kind (`smack`) or the slot she lies on
+   * (`near stocks`) — by the one rule (naming overhaul D-C7): the book's
+   * device for what is not on a shelf. Alike hulls are all returned.
+   */
+  private hullsNamed(word: string): HullSlot[] {
+    const answer = GrammarApi.nameAmong(
+      word,
+      this.hulls.map((h) => ({
+        value: h,
+        keywords: [leafOf(h.kind), leafOf(h.kind).replace(/[-_]/g, ' '), h.slot].map((k) => k.toLowerCase()),
+        title: leafOf(h.kind),
+      })),
+    );
+    return answer.kind === 'one' ? [answer.one] : answer.kind === 'tie' ? answer.tie : [];
+  }
+
   private firstOnTheStocks(word: string): HullSlot | null {
-    return this.hulls.find((h) => answersTo(h, word) && !this.isSold(h.slot)) ?? null;
+    return this.hullsNamed(word).find((h) => !this.isSold(h.slot)) ?? null;
   }
 
   /**
@@ -332,10 +350,3 @@ function leafOf(kind: string): string {
   return kind.slice(kind.lastIndexOf('/') + 1);
 }
 
-/** Does `word` name this hull — her kind (`smack`), or the slot she lies on (`near stocks`)? */
-function answersTo(h: HullSlot, word: string): boolean {
-  const w = word.trim().toLowerCase().replace(/^(?:a|an|the)\s+/, '').replace(/[-_]/g, ' ');
-  if (w === '') return false;
-  if (leafOf(h.kind).toLowerCase().replace(/[-_]/g, ' ') === w) return true;
-  return h.slot.toLowerCase().replace(/^the\s+/, '') === w;
-}

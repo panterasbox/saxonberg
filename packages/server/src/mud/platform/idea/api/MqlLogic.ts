@@ -7,7 +7,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { resolveWithQuantity } from '../../../api/mql/resolver';
 import { trackTouched } from '../../../api/mql/scope-walk';
-import { scoreTier } from '../../../api/mql/scope-walk';
+import { GrammarApi } from '../../../api/grammar';
 import { PerceptionApi } from '../../../api/perception';
 
 import type { Container } from '../../../lib/spatial/Container';
@@ -120,7 +120,7 @@ export class MqlLogic extends ApiLogic {
   @CallSecurity(MqlApiCallers)
   public resolveOne(query: string, ctx: MqlContext): MqlOne {
     const resolved = steadyResolve(query, ctx);
-    const { quantity, scan, isSet } = resolved;
+    const { quantity, scan, isSet, relations, relationTie } = resolved;
     // ⭐ One-of-N with a head ordinal picks the nth of the UNIVERSAL list
     // (system semantics). A surface that shows or binds for a viewer uses
     // `resolveMany`, filters by `PerceptionApi.perceived`, then applies
@@ -129,6 +129,8 @@ export class MqlLogic extends ApiLogic {
       resolved.ordinal === undefined ? resolved.matches : nthOf(resolved.matches, resolved.ordinal);
     if (matches.length === 0) {
       const empty: MqlOne = { stuff: null };
+      if (relations) empty.relations = relations;
+      if (relationTie) empty.relationTie = relationTie;
       if (isSet) empty.isSet = true;
       if (quantity) empty.quantity = quantity;
       if (scan) empty.scan = scan;
@@ -136,6 +138,7 @@ export class MqlLogic extends ApiLogic {
     }
     const top = matches[0]!;
     const out: MqlOne = { stuff: top.stuff };
+    if (relationTie) out.relationTie = relationTie;
     if (isSet) out.isSet = true;
     if (top.via) out.via = top.via;
     if (quantity) out.quantity = quantity;
@@ -147,14 +150,17 @@ export class MqlLogic extends ApiLogic {
   @CallSecurity(MqlApiCallers)
   public resolveMany(query: string, ctx: MqlContext): MqlMany {
     const tracked = ctx.trackTouched === true ? trackTouched(() => steadyResolve(query, ctx)) : null;
-    const { matches, quantity, scan, isSet, ordinal } = tracked?.value ?? steadyResolve(query, ctx);
+    const { matches, quantity, scan, isSet, ordinal, relations, relationTie } =
+      tracked?.value ?? steadyResolve(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
     const out: MqlMany = { stuff };
+    if (relations) out.relations = relations;
+    if (relationTie) out.relationTie = relationTie;
     if (isSet) out.isSet = true;
     if (via) out.via = via;
     if (matches.some((m) => m.via)) out.vias = matches.map((m) => m.via);
-    if (matches.length > 0) out.tiers = matches.map((m) => scoreTier(m.score));
+    if (matches.length > 0) out.tiers = matches.map((m) => GrammarApi.scoreTier(m.score));
     if (quantity) out.quantity = quantity;
     if (scan) out.scan = scan;
     if (ordinal !== undefined) out.ordinal = ordinal;

@@ -1,0 +1,5 @@
+title: Aroma
+traits:
+  tree: { parent: folder }
+  shipped: { dir: aromas }
+  catalogued: { by: /platform/idea/AromaCatalogue, load: per-path }

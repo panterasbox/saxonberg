@@ -14,12 +14,12 @@ args:
   - name: sheet
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: TintedMixin
   - name: wheel
     type: objects
     required: false
     prepositions: [with, using]
-    default: "reachable:[capability.scribing]"
-    scope: ["reachable"]
+    default: "~reachable:[capability.scribing]"
+    scope: ["~reachable"]
     requires: [ToolMixin]

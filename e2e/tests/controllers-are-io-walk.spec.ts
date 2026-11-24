@@ -9,7 +9,7 @@ import { openWorldAs, runCommand } from './helpers';
  * The wire drive (`packages/wire/tests/controllers-are-io.dirty.wire.test.ts`)
  * asserts the ENVELOPE: note kinds, reasons, world state. This is a real
  * Chromium against the real client, so it reads what a person reads: that
- * `wind@me:i:watch` survives the input box, that the other-offer line is a
+ * `me:i:watch::wind` survives the input box, that the other-offer line is a
  * sentence with a form you can type back, that the usage line's `<item>` is
  * not eaten by the renderer, that `help` reads by category, that the card's
  * chip says *answers: dip*, that a greyed offer in the radial says why, and
@@ -112,14 +112,14 @@ test.describe('controllers are IO, in a browser', () => {
     try {
       // ── One carried: the MQL scope picks it, and the input box did not eat the `@` ──
       await hand(handle, WATCH);
-      await sayAwaiting(page, 'wind@me:i:watch', /You wind/i);
+      await sayAwaiting(page, 'me:i:watch::wind', /You wind/i);
 
-      // ── `say@me` says what `say` says ──
-      await sayAwaiting(page, 'say@me hello', /You say, "hello"/);
+      // ── `me::say` says what `say` says ──
+      await sayAwaiting(page, 'me::say hello', /You say, "hello"/);
 
       // ── Two carried: the scope asks which, on chips, and the chosen one runs ──
       await hand(handle, WATCH);
-      await runCommand(page, 'wind@me:i:watch');
+      await runCommand(page, 'me:i:watch::wind');
       await expect(chipPrompt(page), 'the bar is asking which').toBeVisible({ timeout: 30_000 });
       const offered = chips(page, /watch/i);
       await expect(offered, 'one chip per carried watch').toHaveCount(2);
@@ -133,7 +133,7 @@ test.describe('controllers are IO, in a browser', () => {
 
       // ── The bare name asks too. ⚠ At least two: it searches what you can
       // reach, and the square keeps other runs' watches. ──
-      await runCommand(page, 'wind@watch');
+      await runCommand(page, 'watch::wind');
       await expect(chipPrompt(page)).toBeVisible({ timeout: 30_000 });
       await expect.poll(() => chips(page, /watch/i).count()).toBeGreaterThanOrEqual(2);
       before = await transcript(page);
@@ -144,7 +144,7 @@ test.describe('controllers are IO, in a browser', () => {
       await expect(page.getByPlaceholder('Enter command...')).toBeVisible();
 
       // ── A scope that names nothing is a sentence, not a stack trace ──
-      const nonsense = await sayAwaiting(page, 'wind@nonsense', /Nothing you can reach answers to 'nonsense'\./);
+      const nonsense = await sayAwaiting(page, 'nonsense::wind', /Nothing you can reach answers to 'nonsense'\./);
       expect(nonsense).not.toMatch(GARBLED);
       await page.screenshot({ path: `${SHOTS}/02-wind-nonsense.png`, fullPage: true });
     } finally {
@@ -184,7 +184,7 @@ test.describe('controllers are IO, in a browser', () => {
       // OFFER poll goes red, which is the honest answer.
       const before = await transcript(page);
       await runCommand(page, `harvest ${word}`);
-      const OFFER = /also answers\W+harvest\W+harvest@/;
+      const OFFER = /also answers\W+harvest\W+/;::harvest
       await expect
         .poll(
           async () => {

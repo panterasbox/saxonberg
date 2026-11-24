@@ -43,6 +43,7 @@
  * See docs/subsystems/soil.md § Tracts and fields.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
 import { VisibleMixin } from '@saxonberg/server/mud/lib/description/Visible';
 import { AdornmentMixin } from '@saxonberg/server/mud/lib/boundary/Adornment';
@@ -386,7 +387,7 @@ export default class Field extends FieldBase {
     this.lean = spec.lean ?? null;
     this.setAreaM2(areaM2);
     this.setLegumeFraction(spec.legumeFraction ?? legumeFraction);
-    const stem = spec.name.trim().replace(/^the\s+/i, '') || spec.key.replace(/-/g, ' ');
+    const stem = GrammarApi.withoutArticle(spec.name) || spec.key.replace(/-/g, ' ');
     this.setShortDescription(stem);
     this.setRegister('definite');
     // ⚠ The AUTHORED list, not `getKeywords()`: that one also folds in

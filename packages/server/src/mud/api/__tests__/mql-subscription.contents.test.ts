@@ -103,7 +103,7 @@ describe('SubscriptionApi — contents projection (Wave 1)', () => {
 
     envelopes.length = 0;
     interactive.subscribe('s-contents', SUBSCRIPTION_SOURCES.mql, {
-    query: 'here',
+    query: '~here',
     cardinality: 'one',
     fields: 'detail',
   });
@@ -130,7 +130,7 @@ describe('SubscriptionApi — contents projection (Wave 1)', () => {
     ContainmentApi.move(t1, location);
 
     interactive.subscribe('s-contents', SUBSCRIPTION_SOURCES.mql, {
-    query: 'here',
+    query: '~here',
     cardinality: 'one',
     fields: 'detail',
   });
@@ -172,7 +172,7 @@ describe('SubscriptionApi — contents projection (Wave 1)', () => {
       envelopes.push(tpl as unknown as CapturedEnvelope);
     });
     interactive.subscribe('s-contents', SUBSCRIPTION_SOURCES.mql, {
-    query: 'here',
+    query: '~here',
     cardinality: 'one',
     fields: 'detail',
   });

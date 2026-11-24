@@ -1,0 +1,7 @@
+# A duration the verb's slot will not take: unreadable, off its
+# granularity, or out of its bounds.
+facts:
+  what: text
+  why: text
+says: "'{{ what }}' is not a length of time this takes — {{ why }}."
+topic: shell.error

@@ -20,6 +20,7 @@
  * board makes a pattern no better than fair.
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
@@ -52,12 +53,16 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
     /** The metal a word names, among the metals — or `null`. */
     protected async metalNamed(word: string): Promise<Material | null> {
-      const w = word.trim().toLowerCase();
-      if (w === '') return null;
-      for (const m of await MaterialApi.findByTag('metal')) {
-        if (m.getName().toLowerCase() === w || m.hasKeyword(w)) return m;
-      }
-      return null;
+      // By the one rule (naming overhaul D-C4): a metal's name and keywords.
+      const answer = GrammarApi.nameAmong(
+        word,
+        (await MaterialApi.findByTag('metal')).map((m) => ({
+          value: m,
+          keywords: [m.getName(), ...m.getKeywords()].map((k) => k.toLowerCase()),
+          title: m.getName(),
+        })),
+      );
+      return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
     }
 
     /**
@@ -68,7 +73,7 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
      */
     public async carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       const self = this as unknown as Stuff;
-      if (!/^pattern/.test(req.word.trim().toLowerCase())) return null;
+      if (GrammarApi.nameAmong(req.word, [{ value: 'pattern', keywords: ['pattern'], title: 'a pattern' }]).kind === 'none') return null;
       const of = req.of ?? null;
       if (of === null) return { ok: false, reason: 'not-carvable', facts: { carves: 'pattern' } };
       if (of === self) return { ok: false, reason: 'self-target' };
@@ -126,7 +131,7 @@ export function PatternStockMixin<TBase extends MixinConstructor<Stuff>>(Base: T
             volumeL: shape.volumeL * grow,
             allowance,
           });
-          const form = shape.formDescription.replace(/^(a|an)\s+/i, '');
+          const form = GrammarApi.withoutArticle(shape.formDescription);
           pattern.setShortDescription(`pattern of ${shape.formDescription}`);
           const kw = new Set(pattern.getKeywords());
           for (const w of form.split(/\s+/)) if (w) kw.add(w);

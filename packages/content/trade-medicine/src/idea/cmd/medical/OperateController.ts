@@ -65,14 +65,16 @@ export default class OperateController extends CommandController<OperateModel> {
     const ops = await ConditionApi.operations().all();
     const body = target as Stuff & Vitals;
 
-    // Pick the operation: named, else the most urgent applicable.
-    const wanted = (model.for ?? '').trim();
-    const matches = this.matchesFor(body, ops).filter(
-      (m) => !wanted || m.op.key === wanted,
-    );
-    if (wanted && !ops.some((o) => o.key === wanted)) {
-      return this.fail(context, `There is no such operation as "${wanted}".`, 'no-such-op');
+    // Pick the operation: named by its keywords through the one rule
+    // (naming overhaul D-C5 rule 3), else the most urgent applicable.
+    const typed = (model.for ?? '').trim();
+    let wanted: string | null = null;
+    if (typed) {
+      const pick = await this.named(context, await ConditionApi.operations().named(typed), 'operation', typed);
+      if (!pick) return;
+      wanted = pick.value.key;
     }
+    const matches = this.matchesFor(body, ops).filter((m) => wanted === null || m.op.key === wanted);
     const match = matches[0];
     if (!match) {
       const who = self ? 'You have' : 'They have';

@@ -745,7 +745,7 @@ export default class Rope extends CuttableMixin(
       // ⚠ DERIVED (magic), named here: the end ashore answers to the words
       // of the ship it came from — written at mint, not authored.
       // ⭐ As one phrase: her bare name is hers, and a word of this still finds it.
-      end.setKeywords([...end.getKeywords(), `line from ${name.replace(/^the\s+/i, '').toLowerCase()}`]);
+      end.setKeywords([...end.getKeywords(), `line from ${GrammarApi.withoutArticle(name).toLowerCase()}`]);
       end.setLongDescription(
         `${GrammarApi.cap(`${GrammarApi.articleFor(stem)} ${stem}`)} comes ashore from ${name}, ${made.knot.label.replace(/^made fast/, `made fast round ${load.getPresentation()}`)}.`,
       );
@@ -768,8 +768,10 @@ export default class Rope extends CuttableMixin(
    * credited to it. A knot nobody knows is refused by name.
    */
   private async makeKnot(by: Stuff, asked: string | null): Promise<{ ok: true; knot: KnotRecord } | TieRefusal> {
-    const key = (asked ?? 'bowline').trim().toLowerCase().replace(/^an? /, '').replace(/\s+/g, '-');
-    if (!(KNOTS as readonly string[]).includes(key)) {
+    // The knots there are, through the one rule (naming overhaul D-C5).
+    const named = GrammarApi.nameAmong<string>(asked ?? 'bowline', KNOTS.map((k) => ({ value: k, keywords: [k, k.replace(/-/g, ' ')], title: k })));
+    const key = named.kind === 'one' ? named.one : '';
+    if (key === '') {
       return { ok: false, reason: 'no-such-knot', facts: { gear: this as unknown as Stuff, knot: asked ?? key } };
     }
     // The act loads the knot it ties (documents D7: the act holds it). A

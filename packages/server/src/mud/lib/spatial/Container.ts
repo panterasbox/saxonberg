@@ -1010,7 +1010,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
               // type at this seam is only `Stuff & Sensor`.
               {
                 commandGiver: viewer as unknown as Stuff & CommandGiver,
-                scope: 'here',
+                scope: '~here',
                 ...(SubscriptionApi.collecting ? { trackTouched: true } : {}),
               },
             );

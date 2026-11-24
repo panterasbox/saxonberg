@@ -116,22 +116,42 @@ export abstract class NotifyControllerBase extends CommandController<NotifyModel
   }
 
   /**
-   * Normalize a typed `<ref>` to a canonical `GroupRef`:
-   *   - the bare pseudo-subjects `everyone-else` / `strangers` stay bare,
-   *   - anything already containing a `:` is a full ref (`managed:…`,
-   *     `mql:…`, `contacts:…`) and passes through,
-   *   - any other bare word (including `friends` / `foes`) is a contacts
-   *     label → `contacts:<me>:<word>`.
-   * MUST match `SocialLogic.canonicalReservedRef` so a materialized reserved
-   * rule dedups its virtual baseline twin.
+   * ⭐ The `GroupRef` a typed subject names (naming overhaul D-B9), or why
+   * it names none:
+   *   - the bare pseudo-subjects `everyone-else` / `strangers` stay bare;
+   *   - `~<name>` is one of YOUR relations — the holder that answers it
+   *     (a contact list, a group you belong to, your party) says which
+   *     durable group it stands for (`Relating.groupRefOf`);
+   *   - a typed `contacts:` / `managed:` / `mql:` / `party:` ref is refused
+   *     with the new spelling (the private ref syntax retired);
+   *   - a bare word is refused, pointing at `~<word>`.
+   * A built-in relation (`~peers`) is no durable group, so it is refused.
    */
-  protected static normalizeRef(vid: string, raw: string): string {
-    const trimmed = raw.trim();
-    if (trimmed === RESERVED.everyoneElse || trimmed === RESERVED.strangers) {
-      return trimmed;
+  protected static groupRefFor(giver: Stuff, raw: string): { ok: true; ref: string } | { ok: false; why: string } {
+    const typed = raw.trim();
+    if (typed === RESERVED.everyoneElse || typed === RESERVED.strangers) return { ok: true, ref: typed };
+    if (/^(contacts|managed|mql|party|guild):/.test(typed)) {
+      return { ok: false, why: `Name the list or group as a relation of yours — \`notify ~friends\`, \`notify ~bookclub\`, \`notify ~party\`.` };
     }
-    if (trimmed.includes(":")) return trimmed;
-    return `contacts:${vid}:${trimmed}`;
+    if (!typed.startsWith('~')) {
+      return { ok: false, why: `Name it as a relation of yours: \`notify ~${typed || 'friends'}\`.` };
+    }
+    const name = typed.slice(1);
+    const ref = MixinApi.isRelating(giver) ? giver.groupRefOf(name, giver) : null;
+    if (ref === null) {
+      return { ok: false, why: `~${name} is not a list or group you keep (\`query me:~\` lists them).` };
+    }
+    return { ok: true, ref };
+  }
+
+  /** The `GroupRef` a typed subject names, or `null` after refusing. */
+  protected refOrFail(context: CommandContext, raw: string): string | null {
+    const got = NotifyControllerBase.groupRefFor(context.commandGiver, raw);
+    if (!got.ok) {
+      this.fail(context, got.why, 'not-a-group');
+      return null;
+    }
+    return got.ref;
   }
 
   /**
@@ -208,6 +228,7 @@ export abstract class NotifyControllerBase extends CommandController<NotifyModel
     return host.effectiveNotifyRules().map((r) => ({
       groupRef: r.groupRef,
       label: NotifyControllerBase.labelFor(r.groupRef),
+      subject: NotifyControllerBase.subjectFor(host, r.groupRef),
       nameRendering: r.nameRendering,
       boostInDense: r.boostInDense,
       onConnect: r.onConnect,
@@ -232,9 +253,28 @@ export abstract class NotifyControllerBase extends CommandController<NotifyModel
     return ref;
   }
 
-  protected static renderRuleLine(r: NotifyRule): string {
+  /**
+   * ⭐ What you TYPE to name a stored rule (naming overhaul D-B9): the
+   * relation of yours that stands for its group (`~friends`, `~bookclub`,
+   * `~party`), or the bare pseudo-subject. A rule whose group none of your
+   * resident relations answers falls back to its stored ref, which the verb
+   * refuses with the relation spelling — honest, never a silent miss.
+   */
+  protected static subjectFor(host: Stuff, ref: string): string {
+    if (ref === RESERVED.everyoneElse || ref === RESERVED.strangers) return ref;
+    if (MixinApi.isRelating(host)) {
+      // The reserved lists stand even empty, so they are asked by name too.
+      const names = [RESERVED.foes, RESERVED.friends, ...host.relationsFor(host).map((h) => h.name)];
+      for (const name of names) {
+        if (host.groupRefOf(name, host) === ref) return `~${name}`;
+      }
+    }
+    return ref;
+  }
+
+  protected static renderRuleLine(host: Stuff, r: NotifyRule): string {
     return (
-      `${r.groupRef}  render=${r.nameRendering} boost=${r.boostInDense ? "on" : "off"} ` +
+      `${NotifyControllerBase.subjectFor(host, r.groupRef)}  render=${r.nameRendering} boost=${r.boostInDense ? "on" : "off"} ` +
       `login=${r.onConnect} disconnect=${r.onDisconnect} message=${r.onMessage} ` +
       `color=${r.color}`
     );

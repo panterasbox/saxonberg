@@ -43,9 +43,9 @@ class Contraband extends ContainableMixin(Idea) {
 }
 
 function reachableFrom(actor: Stuff): Stuff[] {
-  return MqlApi.resolveMany('reachable', {
+  return MqlApi.resolveMany('~reachable', {
     commandGiver: actor as unknown as Stuff & CommandGiver,
-    scope: 'reachable',
+    scope: '~reachable',
   }).stuff;
 }
 

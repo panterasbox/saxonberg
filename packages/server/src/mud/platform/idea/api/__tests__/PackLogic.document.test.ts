@@ -410,7 +410,8 @@ describe('the recipe document kind', () => {
     expect(rowsOfKind('recipe')[0]).toMatchObject({
       path: '/generic-objects/recipes/martini',
       data: { name: 'Gin Martini' },
-      keys: { word: 'martini', output: '/trade/hospitality/thing/coupe' },
+      // The leaf and the title both answer (the recipe kind is keyworded + titled).
+      keys: { word: ['martini', 'gin martini'], output: '/trade/hospitality/thing/coupe' },
     });
     writeDocumentFile(packRoot, 'recipes', 'martini', { ...MARTINI, name: 'Dry Martini' });
     const s = await PackApi.sync('g', packRoot);
@@ -506,3 +507,13 @@ describe('the command-view document kind', () => {
 function contentRowsCount(): number {
   return store.rows.filter((r) => (r.__col ?? 'content') === 'content').length;
 }
+
+describe('a runtime-only kind reserves no dir (naming overhaul A1, defect 3)', () => {
+  it('a pack with a `maps/` template folder installs its templates — `map` is not shipped', async () => {
+    const packRoot = writePack('m', [{ rel: 'maps/old-town.yaml' }], { root: '/m' });
+    const [r] = await PackApi.install([packRoot]);
+    expect(r!.failure).toBeNull();
+    expect(r!.inserted).toContain('/maps/old-town');
+    expect(documentRows()).toHaveLength(0);
+  });
+});

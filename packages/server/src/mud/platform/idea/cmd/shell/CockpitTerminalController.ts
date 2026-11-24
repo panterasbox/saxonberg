@@ -14,6 +14,7 @@
  * `unknown-view`, so a typo never silently opens an empty terminal.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
@@ -88,12 +89,18 @@ export default class CockpitTerminalController extends CommandController<Termina
    */
   private filterFor(target: string, context: CommandContext): TerminalFilter | null {
     if (target.startsWith('#') && target !== '#') return { channel: target.slice(1) };
-    if (target.toLowerCase() === ALL_VIEW.toLowerCase()) return { view: ALL_VIEW };
     const giver = context.commandGiver;
-    if (!MixinApi.isClientState(giver)) return null;
-    const tabs = giver.getClientState<ConsoleTab[]>('console.tabs') ?? [];
-    const tab = tabs.find((t) => t.name.toLowerCase() === target.toLowerCase());
-    if (!tab) return null;
+    const tabs = MixinApi.isClientState(giver) ? (giver.getClientState<ConsoleTab[]>('console.tabs') ?? []) : [];
+    // ⭐ One of the player's views (or All), by the one rule (D-C5 rule 7).
+    const named = GrammarApi.nameAmong<ConsoleTab | null>(target, [
+      { value: null, keywords: [ALL_VIEW.toLowerCase()], title: ALL_VIEW },
+      ...tabs.map((t) => ({ value: t, keywords: [t.name.toLowerCase()], title: t.name })),
+    ]);
+    // A tie (the `All` tab and All itself) takes the first — All.
+    const pick = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : undefined;
+    if (pick === undefined) return null;
+    if (pick === null) return { view: ALL_VIEW };
+    const tab = pick;
     return {
       view: tab.name,
       ...(tab.muted.length ? { muted: [...tab.muted] } : {}),

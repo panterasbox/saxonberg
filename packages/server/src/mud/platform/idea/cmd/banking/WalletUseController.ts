@@ -13,6 +13,7 @@
  * position unlinks it (`fire`/`quit`).
  */
 
+import { GrammarApi } from "../../../../api/grammar";
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { BankingApi } from "../../../../api/banking";
@@ -39,12 +40,26 @@ export default class WalletUseController extends BankingControllerBase<WalletUse
     const corpo = model.corpo;
     if (corpo === "house") return this.useHouse(context);
     const mine = await BankingApi.accountsOf();
-    const match = mine.find((a) => a.corpoKey === corpo || a.bank === corpo);
-    if (!corpo || !match) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You have no '${corpo ?? ""}' account.`).send();
-      context.note({ kind: "controller-rejected", reason: "no-such-account", detail: corpo ?? "" });
+    if (!corpo) {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Pay from which account?`).send();
+      context.note({ kind: "controller-rejected", reason: "no-such-account", detail: "" });
       return;
     }
+    // ⭐ One of YOUR accounts, named by the one rule (naming overhaul
+    // D-C5): its bank's key or the bank's place.
+    const match = await this.named(
+      context,
+      GrammarApi.nameAmong(
+        corpo,
+        mine.map((a) => {
+          const leaf = a.bank.split("/").pop() ?? "";
+          return { value: a, keywords: [a.corpoKey, a.corpoKey.replace(/-/g, " "), leaf, leaf.replace(/-/g, " ")].filter((k) => k !== "").map((k) => k.toLowerCase()), title: a.corpoKey };
+        }),
+      ),
+      "account",
+      corpo,
+    );
+    if (!match) return;
     try {
       credential.setActiveAccount(match.accountId);
     } catch (err) {

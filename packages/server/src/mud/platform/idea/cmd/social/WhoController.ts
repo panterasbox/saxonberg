@@ -149,9 +149,10 @@ export default class WhoController extends CommandController<WhoModel> {
     return Mml.fromMarkup(blocks.join('\n'));
   }
 
-  /** One roster line: "<who> — <country> [status]". */
+  /** One roster line: "<who> @<id> — <country> [status]". */
   private line(r: RosterRow): string {
     let line = r.header;
+    if (r.address) line += ` ${r.address}`;
     if (r.country) line += ` — ${r.country}`;
     if (r.status) line += ` [${r.status}]`;
     return line;

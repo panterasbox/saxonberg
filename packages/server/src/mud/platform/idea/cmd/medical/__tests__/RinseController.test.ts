@@ -90,7 +90,7 @@ function waterJug(): Receptacle {
 /**
  * What the binder would hand the `water` arg: every reachable bulk vessel
  * (carried, then in the room). Controller tests skip the binder, so this
- * stands in for `reachable:[mixin.BulkableMixin]` — the controller then
+ * stands in for `~reachable:[mixin.BulkableMixin]` — the controller then
  * narrows it to the one holding water, exactly as in production.
  */
 function reachableWater(c: Creature): MqlManyResult {
