@@ -6,8 +6,8 @@
 > the self-view showing acts not positions · the valence-scale
 > denominator · species/culture personality by seeding tier (emergent from
 > affordances · the upbringing · a distribution never a value; the
-> non-sapient carve-out) before full-surface wiring · ⭐⭐ **how content expresses change** (PARKED
-> 2026-11-24 — the instrumentation question; no wizard code per situation)
+> non-sapient carve-out) before full-surface wiring · ⭐⭐ **how content expresses change** → designed as
+> [tropes-slate](./tropes-slate.md) (2026-11-24)
 > **Size:** a wave
 
 > Also settles how species and culture may express personality — the
@@ -279,7 +279,7 @@ Same function, two surfaces. Neither should print absolutes.
 
 ---
 
-## ⭐⭐ How content expresses change — PARKED **[2026-11-24]**
+## ⭐⭐ How content expresses change — PARKED **[2026-11-24]** → now [tropes-slate](./tropes-slate.md)
 
 > The owner: *"right now my solution to 'what do I do if I want to change a trait or discipline on a
 > player' is 'you get a wizard to write some code that does it' but that's not gonna scale and it
@@ -291,7 +291,8 @@ advancement's twin of it. Raised by the lineage demo, which needs a trait lean p
 uses a labeled prior instead ([lineage-slate](../society/lineage-slate.md) § *What the workplace
 stands for*). What the conversation established, so nobody re-derives it:
 
-- **Today nothing exercises a trait.** Nothing outside the trait module writes `disposition_events`;
+- ⚠ **Corrected 2026-11-24:** one thing writes trait evidence today — giving blood (generosity, plus
+  compassion for a named shortage), a constant in code. Otherwise nothing exercises a trait, and
   char-gen is the only place a player can see traits exist.
 - ⛔ **Not the command layer.** A verb is a handle; a command definition is a view onto a model and a
   controller; the controller is IO. None of them may say what an act exercises (MVC).
