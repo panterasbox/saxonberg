@@ -7,7 +7,7 @@
 # holds the seat answers for her at the harbor office: her dues are theirs
 # to pay (`pay office`). Whoever holds a majority of this company's table
 # appoints.
-class: /platform/idea/PersistentBusiness
+class: /platform/idea/Company
 data:
   name: "the Kittiwake's company"
   # ⭐ She is owned by this company, and this company by its cap table

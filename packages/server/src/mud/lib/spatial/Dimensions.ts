@@ -183,4 +183,16 @@ export class Dimensions {
       Math.min(this.height, box.height)
     );
   }
+
+  /**
+   * ⭐ The ground this takes lying on the floor of `box` (persistence-model
+   * D14): its two longest sides — a thing set down lies on its broadest
+   * face — each clipped to the floor's, so one oversized thing still lies
+   * in an empty field. Square metres.
+   */
+  public footprintWithin(box: Dimensions): number {
+    const [long, mid] = this.sorted();
+    const [floorA, floorB] = [Math.max(box.width, box.depth), Math.min(box.width, box.depth)];
+    return Math.min(long, floorA) * Math.min(mid, floorB);
+  }
 }

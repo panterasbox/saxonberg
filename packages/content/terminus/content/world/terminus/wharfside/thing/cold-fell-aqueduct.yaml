@@ -28,7 +28,7 @@
 # physics rather than from a lock.
 # ⭐ LIVE (water-supply D30): whoever opens or cuts the aqueduct does it to
 # the city's works, and the works remember.
-class: /system/water/thing/PersistentConduit
+class: /system/water/thing/Conduit
 data:
   shortDescription: Cold Fell aqueduct
   keywords: [aqueduct, conduit, channel, coldfell, cold-fell, cold, fell]

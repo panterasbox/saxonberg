@@ -32,3 +32,4 @@ data:
     - /world/testbed/thing/lamp
   cast:
     - /world/testbed/agent/attendant
+    - /world/testbed/agent/clerk

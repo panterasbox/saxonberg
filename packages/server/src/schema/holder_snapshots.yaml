@@ -52,3 +52,14 @@ indexes:
     why: |
       The active-member count and the estate reads: every avatar row
       written since a cutoff, without touching `state`.
+  - keys: { pinned: 1 }
+    partialFilterExpression: { pinned: true }
+    why: |
+      ⭐ **The residency pin roll reads the index and never the rows**
+      (persistence-model N8). A host whose class pins (`pinsResidency()` —
+      a kept animal) and that has an explicit key writes `pinned: true` on
+      its capture; at boot the `ResidencyWarden` stands every pinned host
+      back up (`ResidencyApi.pinNow`), because a pet has to *emit* while
+      nobody is looking. Partial, so the index is exactly the pinned set.
+      (It was the `chattel` collection's `pin` index until the estate's
+      goods half retired.)

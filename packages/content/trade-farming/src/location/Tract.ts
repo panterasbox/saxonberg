@@ -74,7 +74,6 @@
 import Location from '@saxonberg/server/mud/platform/location/Location';
 import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import HoldingWarren from '@saxonberg/content-residence/src/idea/HoldingWarren';
-import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
@@ -493,9 +492,9 @@ export default class Tract extends TractBase {
           }
           this.addFixture(minted, fieldSlot(spec.key));
           field = minted as unknown as Stuff & Field;
-          // ⭐ Its own record, keyed under this tract (D26): a field marked
-          // last week comes back with its soil and its herd.
-          await this.restoreField(field, spec.key);
+          // ⭐ It rides this tract's record (persistence-model D3): a field
+          // marked last week comes back with its soil and its herd.
+          await this.adoptRestoredState(minted);
         }
         field.configureField(spec, areas[i] ?? 0, this.legumeFraction);
         const sample = GroundCharacter.resolve(model, this.getGroundSpot(), seed, spec.lean);
@@ -521,22 +520,6 @@ export default class Tract extends TractBase {
   }
 
   /**
-   * Restore a freshly minted field's own record, or seed it (D26). ⚠ The
-   * record store may be absent (a unit test, a boot before the
-   * connection): the field still stands, fresh, and the miss is said.
-   */
-  private async restoreField(field: Stuff & Field, key: string): Promise<void> {
-    try {
-      await PersistableApi.restoreOrSeed(field, `${this.groundPath()}/${key}`);
-    } catch (err) {
-      console.warn(
-        `Tract: field '${key}' of ${this.groundPath()} kept no record — ` +
-          `${err instanceof Error ? err.message : String(err)}`,
-      );
-    }
-  }
-
-  /**
    * The path the parcel registry knows this tract by — a holding's keyed
    * copy by its key (`<extent>/<leaf>`), the one authored tract by its
    * row. Its fields are keyed under it.
@@ -544,11 +527,6 @@ export default class Tract extends TractBase {
   public groundPath(): string {
     const keyed = this.isPersistenceKeyExplicit() ? this.getPersistenceKey() : null;
     return keyed ?? this.getTemplatePath() ?? '';
-  }
-
-  /** The records this tract owns: its fields (D26). */
-  public override dependentPersistables(): (Stuff & Persistable)[] {
-    return this.getFields() as unknown as (Stuff & Persistable)[];
   }
 
   /**
@@ -689,17 +667,8 @@ export default class Tract extends TractBase {
       if (f !== null) theirs[k] = f;
     }
     const key = field.getFieldKey();
-    const record = field.getPersistenceKey();
     this.fields = this.fields.filter((f) => f.key !== key);
-    field.markForRevert();
     await StuffApi.destruct(field);
-    if (record) {
-      try {
-        await PersistableApi.deleteAllFor(record);
-      } catch (err) {
-        console.warn(`Tract.unmarkField: record '${record}' not deleted —`, err);
-      }
-    }
     // The remainder grows by the field's ground and takes its soil in,
     // area-weighted — or, when the fields had tiled the tract, IS it.
     const after = remainderBefore + fieldArea;
@@ -793,7 +762,7 @@ export default class Tract extends TractBase {
     return out;
   }
 
-  /** Write the tract and so its fields (D26) — a mark is kept at once. */
+  /** Write the tract, its fields with it (persistence-model D3) — a mark is kept at once. */
   private async captureFields(): Promise<void> {
     try {
       await PersistableApi.capture(this as unknown as Stuff);

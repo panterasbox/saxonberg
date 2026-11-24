@@ -29,7 +29,8 @@ data:
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
   banksAt: goodkin
-  offstage: /world/terminus/hearts-delight/brickfield/location/offstage
+  # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
+  offShift: out
   operatingLocations:
     - /world/terminus/hearts-delight/brickfield/location/potters-shop
     - /world/terminus/hearts-delight/brickfield/thing/ware-shelf

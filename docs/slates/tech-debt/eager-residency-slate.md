@@ -195,6 +195,8 @@ and it is honest for launch scale; it is not the design. The lapse is:
 
 ## 7. The keyless good in a public room — the gap the pin does not close
 
+> ⭐ **Answered by [persistence-model](../engine/persistence-model-slate.md) (2026-11-23):** a good left where nothing keeps is a stray and is **lost** at restage — owned or not, named or not; no sweep to storage. The estate and the overlay this section reasons about are retired there.
+
 A chair dropped on a public lane is carried in its owner's estate with
 `place = lane`, and — since the lane never materializes a record — nothing
 ever stands it up: not the room (never-fault), not the owner's login

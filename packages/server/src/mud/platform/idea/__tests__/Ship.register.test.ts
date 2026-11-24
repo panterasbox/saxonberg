@@ -135,7 +135,7 @@ function installStore(): void {
   add(HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
   add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], brand: 'flag-test-city' });
-  add(COMPANY, '/platform/idea/PersistentBusiness', {
+  add(COMPANY, '/platform/idea/Company', {
     name: "a ship's company",
     appointingAuthority: { kind: 'owners' },
     capTable: { units: 64, transfer: 'free', rows: [] },

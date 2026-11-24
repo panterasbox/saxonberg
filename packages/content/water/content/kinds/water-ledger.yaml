@@ -1,0 +1,6 @@
+title: Water ledger
+# ⭐ The water commons' history (persistence-model D5): one document per
+# subject — an aquifer's draws, a gate's settings, a conduit's deliveries,
+# a reach's stops — filed by the WaterLedger register.
+traits:
+  filed: register

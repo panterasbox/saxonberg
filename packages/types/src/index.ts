@@ -1567,7 +1567,12 @@ export interface PlaceSection {
   season?: string;
   daylight?: 'day' | 'night';
   water?: string;
-  staged?: boolean;
+  /**
+   * ⭐ Is what is left here KEPT (persistence-model D13)? `true` when the
+   * place keeps what is set down in it; `false` when it comes back as
+   * authored at the next restage.
+   */
+  kept?: boolean;
   crowd?: number;
   lowCeiling?: boolean;
   /** The total height above the sea: the zone's elevation plus the room's within it. */

@@ -49,6 +49,7 @@ new Dimensions(width, depth, height)   // meters; a non-positive side throws
 | `rotations()` | the six ways the box can stand |
 | `orientationWithin(box, closed)` · `fitsWithin` | ⭐ the way it stands in `box` fitting every side the box **closes** — open sides do not count (a broom stands in a bucket); of the ways that fit, the one that fills least |
 | `boxVolume()` | m³ |
+| `footprintWithin(box)` | ⭐ the ground it takes lying on `box`'s floor — its two longest sides (a thing set down lies on its broadest face), each clipped to the floor's, so one oversized thing still lies in an empty field. m² (persistence-model D14) |
 
 `BoundaryOpening` (`{width, height}`, `lib/boundary/Conduit.ts`) is reused
 as the mouth and the clearance type — an opening is not a thing, so it is
@@ -171,8 +172,16 @@ size: its size is its extent (`getLinearExtent()`, `bounds()`).
 4. **`no-room`** — only a container that closes some side holds a volume:
    Σ fill ≤ interior. A rigid thing fills by its box, a flexible one by
    its packed volume, a thing standing out of an open side by its
-   cross-section × the interior height. A field takes a whale skeleton
-   however much is lying there.
+   cross-section × the interior height. ⭐ **Ground takes ground**
+   (persistence-model D14, 2026-11-24): a place that closes NO side — a
+   field, a plaza, open shore — is bounded by its FLOOR instead: the sum of
+   `footprintWithin(interior)` over what lies there, **agents excluded**,
+   plus the arrival's, against its floor area (width × depth) →
+   `no-room`. A body is never refused by it and never counted, so a crowd
+   changes nothing, and a footprint is clipped to the floor, so a field
+   still takes one whale skeleton — just not an unbounded pile of them.
+   It applies to every open place, kept or not (physics never depends on
+   persistence).
 
 Every side closed is tried first — an open side only lets more in — so a
 move into a room never reads its exposure unless the strict case fails.
@@ -391,3 +400,10 @@ body's stature (on `Creature`, not `Posed` — `Posed` keeps only the
   `wornBulk` moves from `Creature` to `Attired` (the covering half reads
   what is worn); size is `ShapedMixin` (W10g) and a shape a `shape`
   document (W10j).
+
+### Ground takes ground (persistence-model, 2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): an open place
+bounds by floor area (`Dimensions.footprintWithin` in `fitRefusal`, bodies
+excluded). Before, a place that closed no side took anything, however
+much was lying there.

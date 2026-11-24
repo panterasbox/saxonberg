@@ -899,7 +899,8 @@ later is a drop, and closing one of several tabs does nothing to the body.
 - **What it carried goes with it.** A persistable host's destruct is its
   dormancy (`ContainerMixin.cleanupOnDestruct`): the record holds the contents,
   so they are destructed rather than dropped on the floor. A person it was
-  holding steps out. Goods placed in rooms stay there (their `place`, the estate).
+  holding steps out. Goods left in rooms stay there, kept or not by the
+  room (a good is kept by its container — furnishing.md).
 - **What it rode stays.** A mount or a vehicle is not its contents; the slot
   vacates, and the record's placement anchors on the room.
 - **A shade goes too.** It persists nothing, so it comes back the way it does

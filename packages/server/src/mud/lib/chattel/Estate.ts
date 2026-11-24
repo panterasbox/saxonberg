@@ -1,118 +1,26 @@
 /**
- * EstateMixin — **owner-based persistence**: the second persistence scope.
+ * EstateMixin — **what happens to a person's holdings when they stop
+ * playing**: the two succession facts on a played person's record, the
+ * day their estate escheated (`escheatedAt`) and who they named to inherit
+ * it (`beneficiary`). Read and written by `PlayerLogic` (dormancy and
+ * escheat) and `wallet beneficiary`. See [docs/subsystems/credit.md].
  *
- * A host that composes this owns an *estate* — every stamped good it holds
- * title to, wherever that good happens to sit. It is the counterpart to
- * `ContainerMixin.captureSlice`'s skip rule (D2): a host's contents slice
- * drops goods someone has been *stamped* as owning, and this is where they
- * persist instead.
- *
- * Why the good cannot simply ride the room it stands in — the three
- * directions the old behaviour was wrong in (D1):
- *
- *   - a chair carried into a dorm became durably part of the ROOM, losing
- *     the connection between a good and its owner;
- *   - a guest's dropped possessions rode a stranger's record;
- *   - "move house" was impossible in principle.
- *
- * ## The `place` routing
- *
- * Each entry carries a `place` (D3), and restore routes on it:
- *
- *   - `'inventory'` — cloned into the owner's own container.
- *   - `'storage'`   — cloned **nothing at all**. The good is live in the
- *                     registry and in this record and has no presence in
- *                     the world. This is what makes storage free: it is the
- *                     absence of a placement, not a place.
- *   - a room identity — for a good carried as **state** (a chair),
- *                     **deferred to that room's materialize**, not done
- *                     here. That is what makes "my chair is in my living
- *                     room while I am at work" true. For a good that
- *                     persists **itself** (a `key` entry — a named animal),
- *                     stood up here from its own record, which restores its
- *                     own placement: the owner arriving is the ask, and the
- *                     room does nothing. Usually a resolve, because the
- *                     residency pin roll stood it up at boot.
- *
- * ## Capture is synchronous, which shapes everything
- *
- * `captureSlice` cannot await, so it cannot go to the store for the goods
- * it can no longer see. It serializes the host's **live estate map**:
- *
- *   - an entry whose good is live (in inventory, or standing in a room that
- *     is still loaded) is **re-captured fresh**, so state that changed since
- *     it was placed (a plant that grew, a lamp that burned down) is kept;
- *   - an entry whose good is not live is **carried forward verbatim** from
- *     the last capture, which is the only correct thing to do — the host has
- *     nothing newer to say about it.
- *
- * The remaining case is a good placed in a room that goes dormant **while
- * its owner is offline**. Nobody is live to re-capture it, so the room's own
- * capture pass reports it (`CaptureContext.noteOwnedGood`) and
- * `PersistableLogic` flushes it into this record asynchronously, after its
- * synchronous state build. Without that, a skipped good would be captured by
- * nobody and destroyed with the room — the guest-drop feature losing the
- * book instead of leaving it at your friend's.
+ * ⭐⭐ **Its goods half retired** (persistence-model D9). An estate used to
+ * hold every good a player had title to, wherever it sat — a second
+ * persistence scope beside the container a good stands in, whose overlap
+ * with the room's record and with naming no player could predict. Now a
+ * good is kept by its container, whoever holds title: a player's record is
+ * what they CARRY, a kept room's record is everything in it, and a stray in
+ * a staged place is lost at the next restage. Title (`ChattelMixin`) is a
+ * claim, never storage.
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
-import { MixinApi } from "../../api/mixin";
-import { ContainmentApi } from "../../api/containment";
-import { Creature } from "../creature/Creature";
-import { CallSecurity, Final, Unshadowable } from "../security/decorators";
-import { SecurityPolicies } from "../security/SecurityPolicies";
-import {
-  ESTATE_INVENTORY,
-  ESTATE_STORAGE,
-  ESTATE_LOOSE,
-  type EstateEntry,
-  type EstateSlice,
-  type MixinSlice,
-  type CaptureContext,
-  type HydrateContext,
-  type ContentPlacement,
-} from "../persistence/PersistenceSlice";
 
-/**
- * Who may write an estate — three named principals and nothing else:
- *
- *   - the **chattel logic singleton**, when an act moves a good;
- *   - the **persistence logic singleton**, when the capture flush pushes a
- *     skipped good into an owner's estate;
- *   - the **host itself** (`SelfOnly`), because the spine restores every
- *     record *as its owning principal* — so during `hydrateSlice` the
- *     caller IS the host whose estate is being rebuilt, not the Logic that
- *     started the walk.
- *
- * That third arm is a real participant contract rather than a loophole: it
- * admits exactly one caller, and only for its own estate.
- */
-const ByEstateWriters = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromTemplate("/platform/idea/api/chattel"),
-  SecurityPolicies.FromTemplate("/platform/idea/api/persistable"),
-  SecurityPolicies.SelfOnly,
-);
-
-/** The public surface an estate-bearing host exposes. */
 export interface Estate {
-  /** Every entry, in capture order. */
-  getEstateEntries(): readonly EstateEntry[];
-  /** The entry for `chattelId`, or null. */
-  getEstateEntry(chattelId: string): EstateEntry | null;
-  /** Privileged: add or replace one entry — spine/chattel-logic only. */
-  _putEstateEntry(entry: EstateEntry, live: Stuff | null): void;
-  /** Privileged: drop one entry (a released or destroyed good). */
-  _dropEstateEntry(chattelId: string): void;
-  /** The live instance backing `chattelId`, if one is loaded. */
-  getEstateLive(chattelId: string): Stuff | null;
-
-  /**
-   * Epoch ms the estate PASSED, or 0 — the one flag that tells a login
-   * "the treasury holds something of yours".
-   */
+  /** The game time its estate escheated (0 = it has not). */
   getEscheatedAt(): number;
-  /** Stamp or clear the escheat. Floors at 0. */
   setEscheatedAt(at: number): void;
   /** The named beneficiary's identity path, or '' for none. */
   getBeneficiary(): string;
@@ -126,28 +34,12 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
   class EstateMixin extends Base implements Estate {
     static _mixinName = "EstateMixin";
 
-    /**
-     * Nothing field-shaped, and now for a second reason.
-     *
-     * The original: the whole layer is the slice below, and declaring
-     * no persistent fields keeps a host that has never owned anything
-     * byte-identical to its pre-estate record.
-     *
-     * ⚠⚠ The one that bites: `captureState` runs a layer's
-     * `captureSlice` **or** its declared fields — never both. A
-     * `fieldMeta` entry on a mixin that also has a `captureSlice` is
-     * therefore **silently never persisted**. The succession state
-     * (`escheatedAt`, `beneficiary`) lives IN the slice for exactly
-     * that reason; see `EstateSlice`.
-     */
-    static fieldMeta: FieldMeta = {};
+    static fieldMeta: FieldMeta = {
+      escheatedAt: { persistent: true },
+      beneficiary: { persistent: true },
+    };
 
-    /**
-     * ⭐ Epoch ms the estate PASSED (economic bootstrap D17), or 0. Set by
-     * the escheat, cleared by the reclaim a return runs; the one flag that
-     * tells a login "the treasury holds something of yours". Public for
-     * the applier; others read `getEscheatedAt`.
-     */
+    /** When the estate escheated (game seconds), 0 when it has not. */
     public escheatedAt: number = 0;
 
     public getEscheatedAt(): number {
@@ -155,237 +47,19 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public setEscheatedAt(at: number): void {
-      this.escheatedAt = Math.max(0, Math.floor(at));
+      this.escheatedAt = Math.max(0, Math.floor(Number(at) || 0));
     }
 
-    /**
-     * The member's named BENEFICIARY (D17): an identity path the estate
-     * passes to instead of the treasury — unless they are themselves
-     * dormant, in which case the chain runs onward. '' = none. Set by
-     * `wallet beneficiary <player>`.
-     */
-    public beneficiary: string = '';
+    /** Who inherits, by identity path — `wallet beneficiary <player>`. */
+    public beneficiary: string = "";
 
     public getBeneficiary(): string {
       return this.beneficiary;
     }
 
     public setBeneficiary(identityPath: string): void {
-      this.beneficiary = identityPath.trim();
-    }
-
-
-    /**
-     * chattelId → entry. Transient (rebuilt by `hydrateSlice`), because the
-     * durable copy IS the slice. A `Map` rather than an array so the
-     * spine's flush is an upsert.
-     */
-    private _estate: Map<string, EstateEntry> = new Map();
-
-    /**
-     * chattelId → the live good, when one is loaded. A **live-ref field**
-     * (a ref-shapes instance ref): never persisted, dropped on eviction, and
-     * consulted only to decide whether an entry can be re-captured fresh.
-     */
-    private _estateLive: Map<string, Stuff> = new Map();
-
-    public getEstateEntries(): readonly EstateEntry[] {
-      return [...this._estate.values()];
-    }
-
-    public getEstateEntry(chattelId: string): EstateEntry | null {
-      return this._estate.get(chattelId) ?? null;
-    }
-
-    public getEstateLive(chattelId: string): Stuff | null {
-      const live = this._estateLive.get(chattelId);
-      if (live && !live.isDestroyed()) return live;
-      if (live) this._estateLive.delete(chattelId);
-      return null;
-    }
-
-    @CallSecurity(ByEstateWriters)
-    @Final
-    @Unshadowable
-    public _putEstateEntry(entry: EstateEntry, live: Stuff | null): void {
-      if (!entry.chattelId) return;
-      this._estate.set(entry.chattelId, entry);
-      if (live) this._estateLive.set(entry.chattelId, live);
-      else this._estateLive.delete(entry.chattelId);
-    }
-
-    @CallSecurity(ByEstateWriters)
-    @Final
-    @Unshadowable
-    public _dropEstateEntry(chattelId: string): void {
-      this._estate.delete(chattelId);
-      this._estateLive.delete(chattelId);
-    }
-
-    /**
-     * Serialize the estate. Re-captures every entry whose good is live and
-     * carries the rest forward verbatim (see the class doc — capture is
-     * synchronous and cannot reach what is not loaded).
-     */
-    static captureSlice(host: Stuff, ctx: CaptureContext): MixinSlice {
-      const self = host as unknown as EstateMixin;
-      const entries: EstateEntry[] = [];
-      for (const entry of self.getEstateEntries()) {
-        const live = self.getEstateLive(entry.chattelId);
-        if (!live) {
-          entries.push(entry);
-          continue;
-        }
-        // ⭐⭐ A good that persists ITSELF is carried as a reference.
-        // Snapshotting it here would make a second copy of a creature
-        // that is also writing its own record, and the two would diverge
-        // from its first meal. The key is how the owner finds it again.
-        const key =
-          MixinApi.isPersistable(live) && live.isPersistenceKeyExplicit()
-            ? (live.getPersistenceKey() ?? undefined)
-            : undefined;
-        if (key) {
-          entries.push({
-            ...entry,
-            templatePath: live.getTemplatePath() ?? entry.templatePath,
-            key,
-            state: {},
-          });
-          continue;
-        }
-        // Where it rests NOW — the entry's was written when it was placed.
-        const { rests: _was, placedOn: _on, within: _in, ...kept } = entry;
-        const rests = MixinApi.isContainable(live) ? live.getRestingPlace() : null;
-        // ⭐ Inside a container in its place (rations in a pannier on the
-        // mule, a key in a satchel on its owner): the way in, so the
-        // restore puts it back in the container, not loose (finalize).
-        const within = MixinApi.isContainable(live) ? live.getKeptWithin() : null;
-        // ⭐ In the owner's keeping and placed on a host there (a pouch on
-        // the belt): the host by contents index, or by chattel id when the
-        // host is owned too (size and carrying W7). ⭐ Or in a region of a
-        // thing on the owner (a key in a coat's pocket — the coat's contents,
-        // W9, D-W9-7): the coat by the same two names, and pass (6) moves the
-        // key from the owner into the coat's region as it hangs a pouch.
-        const pair = MixinApi.isContainable(live) ? live.getPlacement() : null;
-        const at = MixinApi.isContainable(live) ? live.getContainer() : null;
-        const inKeeping =
-          at === host ||
-          (pair !== null &&
-            at !== null &&
-            pair.host.stuffId === at.stuffId &&
-            MixinApi.isContainable(at) &&
-            at.getContainer() === host);
-        let placedOn: ContentPlacement | null = null;
-        if (pair !== null && inKeeping) {
-          const idx = ctx.indexOf(pair.host);
-          if (idx >= 0) placedOn = { hostIndex: idx, placement: pair.name };
-          else if (MixinApi.isChattel(pair.host) && pair.host.isOwnerPersisted()) {
-            placedOn = { hostChattelId: pair.host.getChattelId(), placement: pair.name };
-          }
-        }
-        entries.push({
-          ...kept,
-          templatePath: live.getTemplatePath() ?? entry.templatePath,
-          state: ctx.captureState(live),
-          ...(rests ? { rests } : {}),
-          ...(placedOn ? { placedOn } : {}),
-          ...(within ? { within } : {}),
-        });
-      }
-      return {
-        entries,
-        // ⚠⚠ In the SLICE, not in `fieldMeta`. `captureState` runs a
-        // layer's `captureSlice` **or** its declared fields, never
-        // both, so a field declared beside a slice is silently never
-        // written. Found by the round-trip test on the first run.
-        escheatedAt: self.getEscheatedAt(),
-        beneficiary: self.getBeneficiary(),
-      } satisfies EstateSlice;
-    }
-
-    /**
-     * Rebuild the map, then materialize by `place`. Only `inventory` puts
-     * anything in the world from here — `storage` is deliberately nothing,
-     * and a room identity is that room's job (D3/D4).
-     */
-    static async hydrateSlice(
-      host: Stuff,
-      slice: MixinSlice,
-      ctx: HydrateContext,
-    ): Promise<void> {
-      if (!("entries" in slice)) return;
-      const self = host as unknown as Estate;
-      // Succession state first: it is plain data and nothing below
-      // depends on it, but a throw further down must not lose it.
-      const est = slice as EstateSlice;
-      if (typeof est.escheatedAt === "number") {
-        self.setEscheatedAt(est.escheatedAt);
-      }
-      if (typeof est.beneficiary === "string") {
-        self.setBeneficiary(est.beneficiary);
-      }
-      for (const entry of (slice as EstateSlice).entries) {
-        if (entry.place === ESTATE_STORAGE) {
-          // Owned-but-unplaced. Nothing is cloned; the entry alone IS the
-          // durable good. Eviction and lease-end land goods here, and they
-          // are never destructed.
-          self._putEstateEntry(entry, null);
-          continue;
-        }
-        if (entry.place === ESTATE_LOOSE) {
-          // ⭐ Titled, in transient space when last seen (river D33): no
-          // presence to restore — neither in the owner's hands nor stood up.
-          self._putEstateEntry(entry, null);
-          continue;
-        }
-        if (entry.place !== ESTATE_INVENTORY) {
-          if (entry.key) {
-            // ⭐ A good that persists ITSELF, standing in a room: its owner
-            // arriving is the ask. Stood up from its own record, which
-            // restores its own placement — the room is lazy-loaded if
-            // nothing is there yet, and the room does nothing. Resolve
-            // first: the boot pin roll usually got here already.
-            const live = (await ctx.standUpKeyed(
-              entry.templatePath,
-              entry.key,
-            )) as Stuff | null;
-            self._putEstateEntry(entry, live);
-            continue;
-          }
-          // Placed in a room, carried as state. That room's materialize
-          // overlays it (D4) if the room persists itself; the entry is
-          // kept and no instance is minted here.
-          self._putEstateEntry(entry, null);
-          continue;
-        }
-        if (entry.key) {
-          // ⭐ In the owner's hands, and it persists ITSELF: stood up from
-          // its own record (a keyed entry's `state` is `{}` — restoring
-          // that as a clone gave back a BLANK animal), then put back in
-          // the owner's hands. Its own record carries no placement while
-          // it is carried, so this move is the only one it gets.
-          const live = (await ctx.standUpKeyed(
-            entry.templatePath,
-            entry.key,
-          )) as Stuff | null;
-          // The restore path (size and carrying W8): what the record says the
-          // owner carried is admitted, as `restoreItem` admits it — a keyed
-          // thing on a body arrives as the body's own record, not a hand-off.
-          if (live && MixinApi.isContainable(live) && MixinApi.isContainer(host)) {
-            if (host instanceof Creature) host.admitWhile(live, () => ContainmentApi.move(live, host));
-            else ContainmentApi.move(live, host);
-          }
-          self._putEstateEntry(entry, live);
-          continue;
-        }
-        const item = (await ctx.restoreItem(
-          { templatePath: entry.templatePath, state: entry.state, placement: {} },
-          host,
-        )) as Stuff | null;
-        self._putEstateEntry(entry, item);
-      }
+      this.beneficiary = String(identityPath ?? "").trim();
     }
   }
-
   return EstateMixin;
 }

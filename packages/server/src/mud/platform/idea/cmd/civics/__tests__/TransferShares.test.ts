@@ -21,7 +21,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import TitleTransferController from '../TitleTransferController';
 import ShipRegister, { SHIP_ENTRY_KIND } from '../../../ShipRegister';
 import Ship from '../../../Ship';
-import PersistentBusiness from '../../../PersistentBusiness';
+import Company from '../../../Company';
 import { ExpanseApi } from '../../../../../api/expanse';
 import Avatar from '../../../../agent/PrimaryAvatar';
 import { StuffApi } from '../../../../../api/stuff';
@@ -136,7 +136,7 @@ const who = (s: Avatar, raw: string): MqlOneResult => ({ stuff: s as never, raw 
 
 describe('title transfer … shares — money and shares together, or neither (harbors B2, review 1)', () => {
   let reg: ShipRegister;
-  let company: PersistentBusiness;
+  let company: Company;
 
   beforeEach(async () => {
     vi.restoreAllMocks();
@@ -161,7 +161,7 @@ describe('title transfer … shares — money and shares together, or neither (h
     // ⭐ Her company owns her; its table is Ann's, whole (the founding a
     // row or a commissioning lays down — set raw here: the setter is the
     // applier's alone).
-    company = makeStuffAtPath(() => new PersistentBusiness(), COMPANY);
+    company = makeStuffAtPath(() => new Company(), COMPANY);
     Object.assign(company, { capTable: { units: 64, transfer: 'free', rows: [{ holder: { kind: 'player', path: ANN, name: 'Ann' }, units: 64 }] } });
     const gull = makeStuffAtPath(() => new Ship(), GULL);
     gull.setHouse(COMPANY);

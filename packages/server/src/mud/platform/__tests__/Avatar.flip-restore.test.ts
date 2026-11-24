@@ -268,7 +268,6 @@ describe('a pocketed key that is OWNED, across a restart (W9, D-W9-7)', () => {
     installStore();
     vi.spyOn(ParcelApi, 'ownerOf').mockResolvedValue({ kind: 'group', name: 'lounge' });
     vi.spyOn(ParcelApi, 'heldUnitOf').mockResolvedValue(null);
-    vi.spyOn(ChattelApi, 'placedIn').mockResolvedValue([]);
     makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       if (path === TROUSERS) return trousers();
@@ -292,7 +291,7 @@ describe('a pocketed key that is OWNED, across a restart (W9, D-W9-7)', () => {
     avatar.seatInSlots(t, ['legs']);
     ContainmentApi.move(k, t, 'right pocket');
     await settle();
-    expect(MixinApi.isChattel(k) && k.isOwnerPersisted()).toBe(true);
+    expect(MixinApi.isChattel(k) && k.isStamped()).toBe(true);
     const key = Avatar.getTemplatePath(playerId);
     await PersistableApi.capture(avatar, key);
     logout(avatar);
@@ -306,14 +305,14 @@ describe('a pocketed key that is OWNED, across a restart (W9, D-W9-7)', () => {
     return { t2, k2 };
   }
 
-  it('⭐ an owned key in an unowned coat\'s pocket comes back in the same pocket (the estate names the coat by index)', async () => {
+  it('⭐ an owned key in an unowned coat\'s pocket comes back in the same pocket (it rides the coat — persistence-model D9)', async () => {
     const { t2, k2 } = await roundTrip('flip-eve', false);
     expect(t2).toBeDefined();
     expect(k2).toBeDefined();
     expect(MixinApi.isContainable(k2!) && k2.getPlacement()).toEqual({ host: t2, name: 'right pocket' });
   });
 
-  it('⭐ an owned key in an owned coat\'s pocket comes back too (the estate names the coat by its chattel id)', async () => {
+  it('⭐ an owned key in an owned coat\'s pocket comes back too (whoever holds title, it rides the coat)', async () => {
     const { t2, k2 } = await roundTrip('flip-fay', true);
     expect(t2).toBeDefined();
     expect(k2).toBeDefined();

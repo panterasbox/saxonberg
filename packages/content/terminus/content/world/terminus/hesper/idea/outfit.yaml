@@ -5,7 +5,7 @@
 # the deck — so `house appoint` makes her see further with nothing about her
 # having changed. A hired watchman is a wage and a seat, not a second
 # player.
-class: /platform/idea/PersistentBusiness
+class: /platform/idea/Company
 data:
   name: "the Hesper's company"
   # ⭐ She is owned by this company, and this company by its cap table

@@ -21,10 +21,11 @@
  *    `field:<key>`), never loose contents, never carried (the
  *    Adornment-not-portable invariant fires at `ContainmentApi.move`),
  *    targetable by its name (`look at the top end`) because a fixture is a
- *    peer candidate. ⭐ It keeps its OWN record (tracts build D26), keyed
- *    `<tract key>/<field key>` — reserves, soil and sward stamps, the crop
- *    stamps and the grazing ledger — which the tract's capture walks
- *    (`dependentPersistables`) and its unmarking deletes.
+ *    peer candidate. ⭐ It has no record of its own (persistence-model
+ *    D3): a field is a THING, kept by its tract — its reserves, soil and
+ *    sward stamps, crop stamps and grazing ledger ride the tract's record
+ *    in its fixtures slice, keyed by the field's slot, and its unmarking
+ *    is the tract's next capture.
  *  - ⭐ **The grass is the field's** (tracts build D24, D34): a herd
  *    grazes a field, a crop shades one field's sward and not its
  *    neighbor's, and the nitrogen dung puts back lands where the herd
@@ -67,7 +68,6 @@ import {
   CROP_TRANSPIRATION_L_PER_M2_DAY,
 } from '../lib/CharacteredSoil';
 import { SwardMixin, SWARD_RESIDUAL_FRACTION, SWARD_RESERVE_KEY } from '../lib/Sward';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';
 import {
   SOIL_MOISTURE_RESERVE_KEY,
@@ -190,10 +190,8 @@ function fieldAugmenter(text: string, host: Stuff, viewer: Stuff): string {
 // generic mixin factories in one expression collapses (the `Tract`
 // precedent).
 const FieldGround = SoilMixin(ReservedMixin(AdornmentMixin(VisibleMixin(Thing))));
-// ⭐ `PersistableMixin` outermost (tracts build D26): a field keeps its OWN
-// `(scope, key)` record, keyed under its tract, so a field marked at
-// runtime survives a restart and dies with its unmarking.
-const FieldBase = PersistableMixin(SwardMixin(CharacteredSoilMixin(FieldGround)));
+// ⭐ No `PersistableMixin` (persistence-model D3): a field rides its tract.
+const FieldBase = SwardMixin(CharacteredSoilMixin(FieldGround));
 
 export default class Field extends FieldBase {
   /** The ground, the crop on it, the grass and the herds, in words. */

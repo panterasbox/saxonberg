@@ -195,6 +195,17 @@ describe('home moves by being fed there, over DAYS', () => {
   });
 });
 
+describe('⭐ eviction follows keeping, never a name (persistence-model D8)', () => {
+  it('a stray is evictable; once it has followed somebody it is kept, and is not', () => {
+    const a = animal();
+    expect(a.isKept()).toBe(false);
+    expect(a.canEvict()).toBe(true);
+    a.rememberFollowed(person('/platform/agent/Avatar/me'));
+    expect(a.isKept()).toBe(true);
+    expect(a.canEvict()).toBe(false);
+  });
+});
+
 describe('the naming gate', () => {
   it('remembers who it has followed home, once each', () => {
     const a = animal();

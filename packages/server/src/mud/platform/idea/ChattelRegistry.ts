@@ -26,7 +26,6 @@ import { PersistApi } from "../../api/persist";
 import {
   ChattelRecord,
   type ChattelOwner,
-  type ChattelPin,
 } from "../../lib/chattel/ChattelRecord";
 import { ChattelEvent, type ChattelEventKind } from "../../lib/chattel/ChattelEvent";
 import type { VetoResult } from "../../lib/errors";
@@ -60,13 +59,6 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   /** The ids whose title is bound — never transferable (aether-devices D10). */
   private boundIds = new Set<string>();
 
-  /**
-   * ⭐ The place (and pin) last written per good (db-performance H4): a
-   * custody walk re-places a good where it already stands often enough to
-   * be most of the chattel writes in the drive; an identical place is not
-   * written again. Instance state: a reload starts empty and writes once.
-   */
-  private placed = new Map<string, string>();
 
   public override async onCreate(_context?: unknown): Promise<void> {
     await this.rebuildIndex();
@@ -86,66 +78,6 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   @CallSecurity(ChattelApiCallers)
   public ownerOf(chattelId: string): ChattelOwner | null {
     return this.index.get(chattelId) ?? null;
-  }
-
-  /**
-   * Record where the owner keeps a titled good — the **by-room index**
-   * half of a `place` write (the good's own field is the other half, and
-   * `ChattelLogic.setPlace` writes both in one call). A no-op for a good
-   * with no title on file: an unstamped good has no owner to keep it.
-   *
-   * The residency **pin** rides the same write: a good that persists
-   * itself and opts in (`pinsResidency`) records how to stand itself up,
-   * and the pin roll at boot reads exactly those rows. One call for both
-   * because they change on the same acts — a pinned good that is carried
-   * off and dropped is re-pinned where it now stands.
-   */
-  @CallSecurity(ChattelApiCallers)
-  public async setPlace(
-    chattelId: string,
-    place: string,
-    pin: ChattelPin | null = null,
-  ): Promise<void> {
-    if (!this.index.has(chattelId)) return;
-    const said = JSON.stringify([place, pin]);
-    if (this.placed.get(chattelId) === said) return;
-    // ⭐ One partial keyed write (db-performance H4) — it was a find and a
-    // save. `insert: false`: a row that is not there is not made (the find
-    // used to return early), and only the place and the pin are written.
-    const record = new ChattelRecord();
-    record.chattelId = chattelId;
-    record.place = place;
-    record.pin = pin;
-    await PersistApi.saveMany(ChattelRecord.collectionName, [
-      await record.toBatchWrite({ key: ['chattelId'], fields: ['place', 'pin'], insert: false }),
-    ]);
-    this.placed.set(chattelId, said);
-  }
-
-  /**
-   * Every pinned row — the residency pin roll's input. The predicate is
-   * the partial index's own (`schema/chattel.yaml`), so this reads the
-   * index and never the collection.
-   */
-  @CallSecurity(ChattelApiCallers)
-  public async pinned(): Promise<ChattelRecord[]> {
-    return ChattelRecord.find<ChattelRecord>({ "pin.key": { $exists: true } });
-  }
-
-  /** Every titled good the index says is placed in `place`. */
-  @CallSecurity(ChattelApiCallers)
-  public async placedIn(place: string): Promise<ChattelRecord[]> {
-    return ChattelRecord.findByPlace(place);
-  }
-
-  /**
-   * Every titled good placed at or **under** `placePrefix` — a whole unit's
-   * worth, across all its rooms. The lease-end sweep's input.
-   */
-  @CallSecurity(ChattelApiCallers)
-  public async placedUnder(placePrefix: string): Promise<ChattelRecord[]> {
-    const all = await ChattelRecord.findAll();
-    return all.filter((r) => r.place.startsWith(placePrefix));
   }
 
   /** Is the title on `chattelId` bound — never transferable? Sync. */
@@ -192,7 +124,6 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     await this.appendEvent("released", chattelId, prior, null);
     this.index.delete(chattelId);
     this.boundIds.delete(chattelId);
-    this.placed.delete(chattelId);
   }
 
   /** Rebuild the in-memory index from the `chattel` collection (boot / reload). */
@@ -252,7 +183,6 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   private async rebuildIndex(): Promise<void> {
     this.index.clear();
     this.boundIds.clear();
-    this.placed.clear();
     for (const record of await ChattelRecord.findAll()) {
       const id = record.getChattelId();
       const owner = record.getOwner();

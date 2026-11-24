@@ -31,10 +31,9 @@ describe('Structure', () => {
     const tower = makeStuff(() => new Building());
     expect(MixinApi.isPositioned(tower)).toBe(false);
     expect(MixinApi.isVoyaging(tower)).toBe(false);
-    // ⭐ A building composes Persistable (paint D7) but keeps a record only
-    // once it is SOLD — a staged one restages; a ship persists always.
-    expect(MixinApi.isPersistable(tower)).toBe(true);
-    expect(tower.shouldPersist()).toBe(false);
+    // ⭐ A building keeps no record of its own (persistence-model D4): it
+    // rides its kept entrance; a ship is a body and keeps herself.
+    expect(MixinApi.isPersistable(tower)).toBe(false);
     const ship = makeStuff(() => new Ship());
     // ⭐ A ship is a structure — of the BASE: a building row is one building
     // (the singleton twin), a ship kind is many ships of one row.

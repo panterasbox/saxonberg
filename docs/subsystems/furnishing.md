@@ -1,18 +1,15 @@
-# Furnishing — owner-based persistence and the furnishable room
+# Furnishing — the furnishable room, kept by its container
 
 A residence you **furnish with goods you own**, that stay where you put
-them.
+them — because the room keeps them.
 
-Before this build a room persisted its *contents* in its own record, so a
-chair you carried into your dorm became, durably, part of the room —
-indexed under it, restored by it, gone with it. That was wrong in three
-directions at once: it lost the connection between a good and its owner, a
-guest's dropped possessions rode a stranger's record, and "move house" was
-impossible in principle.
-
-This subsystem introduces the **second persistence scope** — owned chattel
-persists with its *owner*, carrying a `place` — and the **furnishable
-room** that consumes it.
+⭐⭐ **The rule (persistence-model, 2026-11-24): a thing is kept by its
+CONTAINER.** A kept room's record is everything in it, whoever holds title;
+a player's own record is what they *carry*; a good left in a place that
+keeps nothing is lost at that place's next restage. Title
+([chattel](./chattel.md)) is a claim, never storage. The owner-side scope
+this subsystem first introduced — the estate's goods, the chattel `place`,
+the skip rule, the room overlay — is **retired** (§ *History* below).
 
 Rides [chattel](./chattel.md) (title, the registry, `ownerOf`),
 [persistence](./persistence.md) (the `(scope, key)` spine),
@@ -20,6 +17,62 @@ Rides [chattel](./chattel.md) (title, the registry, `ownerOf`),
 rung and every content precedent) and [posture](./posture.md).
 
 ---
+
+## Where a good is kept
+
+| a good is… | kept by | after a restart |
+|---|---|---|
+| carried or worn by a player | the player's own record (their carried tree) | on them |
+| in a kept room (a `PersistentLocation` row, a dorm unit, a holding's rooms) | that room's record, whoever holds title | where it was left — on its surface, in its container |
+| in a kept container standing anywhere (a chest, a `Locker`, a consignment shelf) | that container's record (keyed by its part name in a plain place — [persistence.md](./persistence.md)) | inside it |
+| hung on a kept room's wall | the room's `Adornable` slice, under `hung` (by slot), re-hung at the restore | on the wall |
+| set down in a place that keeps nothing (a street, the plaza, a tavern floor) | nothing | gone at the next restage |
+
+`Container.isKept()` answers the question for any container: a host that
+composes `PersistableMixin` and has an established record keeps, and
+anything else asks its own container, up the chain. A body is the
+exception (`Creature.isKept`): a body keeps itself or nothing, and never
+by standing in a kept room. **No field and no list** — the classes that
+compose `PersistableMixin` are exactly the ones that keep, and
+`lint:instanceable` invariant 15 holds that set to containers and bodies.
+
+⭐ **The player is told.** `look` at a place ends *Kept:* or *Not kept:*
+with a line saying what that means, `look in <thing>` says the same of its
+inside, the Explore card's place section carries a *kept* row
+([navigation-card.md](./navigation-card.md)), and the first time you set
+your own good down somewhere that keeps nothing, a teach-once line
+(`Avatar.teachOnce`, the `hints.kept` setting) says so — once, and once
+more on a later game day, then never.
+
+### Goods on the WALL and ON a surface
+
+A good can be *in* a room, *on* its wall, or *on* something in it. A
+hung good (`hang` moves an `AdornmentMixin` good onto the room's
+`Adornable` fixture map) is captured whole in the room's fixtures slice
+under `hung` (by slot) and re-hung at the restore; the authored fixtures
+(`_appliedFixtures`) are not, because the row lays them down again. Mount
+slots for owned goods are `mounted:<chattelId>`, stable across restarts
+and never colliding with the synthetic `fixture:<n>` counter an authored
+`adornments:` uses. A good resting on a surface (a cup on the table)
+records its placement in the container slice's `ContentPlacement`, so it
+comes back on that surface.
+
+`get` is how a hung good comes down, and it is the guarded direction:
+your own good comes off freely, anything else needs write authority over
+the room — the bar's neon stays on the bar's wall.
+
+### Lease end — the house's storeroom
+
+Moving out used to send every titled good to "storage" (`evictToStorage`),
+a place with no presence in the world. Now a letting house names a
+`storeroom:` (the office PLACE whose first non-sale `Locker` is the
+store), and `LettingWarren.boxGoods` checks the tenant's goods — what
+stands in the unit that its rooms' `props:` did not lay down — into that
+locker as held goods. The former tenant takes each back with
+`rack reclaim` at the office ([retail.md](./retail.md)). A good too big
+for the locker (`fitRefusal`) stays and is lost with the unit; the tenant
+is told which, and a diagnostic records it. Duncan Hall's lobby has a
+storeroom cage; Seznick House has a boxroom.
 
 ## ⭐ Cold storage is a property of a SPACE, not an appliance
 
@@ -81,181 +134,6 @@ difference is the design:
 Only the cellar ships. The walk-in is the upgrade a venue buys into, and
 it waits for the power meter to be worth having — a running cost and an
 outage that spoils what is inside are the whole point of it.
-
-## The two scopes
-
-| | host-side (shipped) | owner-side (this build) |
-|---|---|---|
-| carries | a host's contents, its worn gear, its fields | every good its host holds **title** to |
-| slice | `ContainerSlice` / `SlottedSlice` | `EstateSlice` |
-| lives on | any `Persistable` | any `Estate` (today: `Avatar`) |
-| routes on | containment | **`place`** |
-
-They compose over one spine and never both own the same field. The seam
-between them is one predicate, below.
-
-## `place` — where the owner keeps it
-
-A field on the good (`ChattelMixin._place`): a **room identity**,
-`'inventory'`, or `'storage'` (the default).
-
-It is deliberately *not* a registry. Ownership is a relation and therefore
-lives in one; *where the owner keeps it* is not a relation between two
-principals — it is one value, always present, changing on the same acts
-that move custody.
-
-**Writes go through one gate.** `item.setChattelPlace` is the single write
-path, and it writes three things in one call:
-
-1. the good's own `_place` field — what round-trips *with the good*;
-2. the `chattel` row's indexed `place` — the **by-room index**;
-3. the owner's estate entry, when that owner is live.
-
-> **On the index.** A materializing room has to find the goods that belong
-> in it, and their state lives in their *owner's* record — so something must
-> be queryable by room. That is the row's `place`. **It is an index, not a
-> second source of truth**, and the single gated write path is what keeps
-> them from diverging. The duplication is real and is stated here rather
-> than hidden.
-
-`item.followCustody()` re-derives the placement from where a good
-now *is* — called by the movement primitive on every move (nobody calls
-it by hand).
-
-## The skip rule
-
-`ContainerMixin.captureSlice` drops two kinds of content:
-
-- a live player avatar (`HasInteractive`) — shipped;
-- a good stamped to a **player** — a good its *owner* persists.
-
-Both in **one filter**, because the Container and Slotted slices read a
-single content ordering and `PersistableLogic` builds the same index; two
-passes would let the worn indices drift.
-
-**It keys on the stamped owner's kind, not on `ownerOf`.** A fixture under
-a parcel extent is *owned* (the parcel rung, below) but not *stamped*, so
-it keeps riding its room's record where it belongs. And only a **player**
-is an `EstateMixin` host with a record of its own to carry the good and a
-room overlay to lay it back down. An **organization** has no estate: the
-goods a business consigns onto its own counter, or buys for its own rail,
-are stamped `{ kind: 'organization' }` and live in that counter's, that
-rail's, record like any fixture — skipping them captured them by *nobody*
-(the libations live drive watched a dev restart empty the cash-and-carry
-counter and the bar). `item.isOwnerPersisted()` is the synchronous
-predicate (the registry's in-memory title index; `isStamped` is the
-weaker "has a title at all"), because a capture walk **cannot await**.
-
-## Capture is synchronous, and that shapes everything
-
-`captureSlice` cannot go to the store for goods it can no longer see. The
-estate slice therefore serializes the host's **live map**: an entry whose
-good is loaded is re-captured fresh (so a plant that grew keeps its
-growth); an entry whose good is not loaded is **carried forward verbatim**,
-which is the only correct thing to do.
-
-That leaves one case: a good standing in a room that goes dormant **while
-its owner is offline**. Nobody is live to re-capture it, and the room's
-slice has skipped it — so without a third path it would be captured by
-nobody and destroyed with the room, losing the book instead of leaving it
-at your friend's.
-
-So the room's capture **reports** what it skipped
-(`CaptureContext.noteOwnedGood`), and `PersistableLogic` flushes each into
-its owner's estate after the synchronous state build — in memory when the
-owner is live, read-modify-write of their stored record when not.
-
-> This is the one place the implementation amends the design. The
-> requirements' D4 says "the room captures nothing owner-side on the way
-> down"; that is unimplementable as an absolute. What survives is the part
-> that matters and is enforced by test: **the host's own record never
-> carries somebody else's goods.**
-
-> ✅ **Resolved (assembly build, MR !361): custody is DERIVED in the
-> movement primitive.** `ContainmentApi.move` (and `Adornable.addFixture`)
-> re-derive an owned good's place on every move, and title a FRESH good by
-> derivation — so a good minted onto a floor, a crafted cask left to
-> age, a bole on the wood floor are all placed with nobody calling
-> anything. See [spatial.md § Two layers of movement](./spatial.md).
-
-## The room overlay
-
-A host, on materialize, does two things in order:
-
-1. restore its **own** record — its fixtures;
-2. **overlay** the owned goods whose `place` names it.
-
-Order is the whole decision: fixtures first, so a placed good can rest on a
-surface that exists. Each good is cloned **as its owner**, so provenance
-and every principal-based gate resolve to the person whose good it is, in a
-room that may belong to somebody else.
-
-The room identity is `PersistableApi.placeIdOf(host)` — the host's scope,
-plus its per-instance key **only when that key is explicit**. A keyless
-host's stashed key is scope-derived, so folding it in would give one room
-two identities either side of its first capture.
-
-⚠⚠ **Only a host that persists ITSELF overlays** — the four location
-classes that compose `Persistable`. A public room never asks. The pets
-build tried putting the overlay on every `Location.onCreate`
-(hundreds of indexed point queries at boot) and reversed it the next day:
-a room doing work to find things that are not its own state is the room
-scan wearing another face. What a good in a public room needs is the
-**residency pin** on the good — [residency.md § the load half](./residency.md).
-
-⭐ **A good that persists itself is a REFERENCE in the estate** (pets
-build): `EstateEntry.key` with `state: {}` — a named animal writes its own
-record, and a second copy of a creature in its owner's estate would diverge
-from its first meal. The overlay and the owner's login both **resolve
-first** (`standUpKeyed`), so the world never holds two of the same animal.
-
-### Goods on the WALL (residences, 2026-08-31)
-
-A good can be *in* a room or *on* it. `hang` moves an
-`AdornmentMixin`-composing good out of custody and onto the room's
-`Adornable` fixture map; the estate entry records
-`mounted: { slot }`, derived from where the good actually hangs so the
-marker can never disagree with the map, and the overlay re-attaches it
-as a fixture instead of dropping it on the floor.
-
-The load-bearing half is on the capture side: **`AdornableMixin`
-contributes a capture pass of its own**, reporting stamped fixtures to
-`noteOwnedGood` exactly as the container slice reports stamped contents.
-Without it a room that went dormant while its owner was offline took the
-lamp down with it and nobody captured it — the container slice never sees
-a fixture. Mount slots for owned goods are `mounted:<chattelId>`, which
-is stable across restarts and cannot collide with the synthetic
-`fixture:<n>` counter an authored `adornments:` uses.
-
-`get` is how it comes down, and it is the guarded direction: your own
-good comes off freely, anything else needs write authority over the
-room — the bar's neon stays on the bar's wall.
-
-### Goods ON a surface (controller-liquidity finalize, 2026-11-11)
-
-A good can also rest *on* something in the room — a shirt on the drying
-rack, a cup on the table. The estate entry records `rests: { on,
-placement }` (the surface's row and the placement member, read off the
-good by `Containable.getRestingPlace`), and every entry builder writes it:
-the room-capture flush, `ChattelLogic.syncEstate`, and the estate's own
-capture, which re-reads it from the live good. The overlay runs after the
-room's fixtures stand, so it lays the good back on that surface; a surface
-that is gone, or will not take it (`canPlace`), leaves the good standing
-in the room — a skip, never an error. Before this, every placed good came
-back beside its surface, which the cleanliness drive's restart step found.
-
-## Restore routing
-
-| `place` | on materialize |
-|---|---|
-| `inventory` | cloned into the owner's own container — a **keyed** entry is stood up from its own record and put back in hand (it restored as a blank clone from `state: {}` before the pets build) |
-| `storage` | **nothing at all** — the good is live in the registry and the record, with no presence in the world |
-| a room identity, carried as state (a chair) | deferred to that room's materialize (mounted goods re-attach as fixtures); ⚠ a room that does not persist itself never materializes a record, so a chair left on a public lane is not put back — [eager-residency-slate § 7](../slates/tech-debt/eager-residency-slate.md) |
-| a room identity, **keyed** (a named animal) | stood up by the owner's login through `RestoreContext.standUpKeyed`, resolving first; its own record restores its placement; usually already standing (the pin roll) |
-
-Storage is what makes "move house" work: it is the *absence* of a
-placement, not a place. `ChattelApi.evictToStorage(prefix)` (key-based, still Api) is the
-lease-end sweep — intact, titled, recoverable, **never destructed**.
 
 ## `ownerOf` — three rungs
 
@@ -532,8 +410,8 @@ the multiplier read 1.0 on the very reconcile meant to pay out.
 shipped `onSlotReleased` — and `PosedMixin` records `restingOnPath` +
 `restingSlot` for **posture-bearing** slots only.
 
-Re-occupancy runs last in `restoreRecord`: after placement, after fixtures,
-after the overlay. Every failure degrades to the room floor — standing,
+Re-occupancy runs last in `restoreRecord`: after placement, after
+fixtures. Every failure degrades to the room floor — standing,
 1.0, **no error and no teleport**. Restoring a player must never fail
 because their furniture moved.
 
@@ -618,8 +496,9 @@ db.domain.findOne({ path: '/world/terminus/eternal/duncan-hall/dorm-fixtures/bed
   Each earns its class. The only thing shared is the *composition*, and
   that is guarded by test on both sides rather than by collapsing them.
 - **The unit floorplan and lease** — provisioning a multi-room leased unit,
-  its lease-gated door and its revert. The *rule* ships
-  (`evictToStorage`); the Warren-shaped content does not.
+  its lease-gated door and its revert. The *rule* ships (lease end boxes
+  the tenant's goods into the house's storeroom `Locker` —
+  `LettingWarren.boxGoods`, above).
 - **Land use and the building zone** — `ParcelRecord.landUse` and
   `landUseOf` are build-2's and are not on master yet; provisioning will
   read them.
@@ -641,3 +520,29 @@ db.domain.findOne({ path: '/world/terminus/eternal/duncan-hall/dorm-fixtures/bed
 [posture](./posture.md) · [slot](./slot.md) ·
 [metabolism](./metabolism.md) · [fire](./fire.md) ·
 [crafting](./crafting.md) · [spatial](./spatial.md)
+
+## History — the owner-side scope retires (persistence-model, 2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654). Until this
+build a good titled to a player persisted with its **owner**: a
+`ChattelMixin._place` field (and an indexed `place` on the `chattel` row)
+said where the owner kept it; `ContainerMixin.captureSlice` **skipped** any
+player-stamped good (`isOwnerPersisted`); a room going dormant reported
+what it skipped (`noteOwnedGood`) and `PersistableLogic` flushed it into
+the owner's `EstateSlice`; a self-persisting room **overlaid** the goods
+whose `place` named it (`ChattelApi.placedIn`) after its fixtures; and
+lease end sent every titled good to `storage` (`ChattelApi.evictToStorage`).
+
+It retired (D9) because two persistence scopes overlapped in ways no
+player could predict — a good in a friend's kept room was in two records'
+reach, naming promoted a good into a third, and a chair on a public lane
+was quietly kept by nobody. Now a good is kept by its container, whoever
+holds title; `EstateMixin` keeps only the succession facts (`escheatedAt`,
+`beneficiary` — [credit.md](./credit.md)); the residency pin moved from the
+chattel row to `holder_snapshots.pinned` ([residency.md](./residency.md));
+a wall-hung good rides its room's `hung` slice; and lease end boxes into
+the storeroom `Locker`. Gone with it: `ChattelApi.placedIn`/`pinned`/
+`evictToStorage`, the `_place` field, `Chattel.setChattelPlace`/`isOwnerPersisted`,
+`Containable.getKeptWithin`, `SlottedSlice.wornOwned`, `EstateEntry`,
+`PersistableApi.captureDetached`/`restoreDetached`, and the `chattel`
+collection's `place` and `pin` columns.

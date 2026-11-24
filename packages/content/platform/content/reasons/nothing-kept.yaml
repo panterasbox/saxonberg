@@ -1,0 +1,6 @@
+# A hydration source with nothing to restore (persistence-model): a building
+# whose entrance keeps no record, a hull book with no house to keep its paper.
+# Never reaches a player — said in the boot log.
+facts: {}
+says: "Nothing is kept for this — it stands as authored."
+topic: system

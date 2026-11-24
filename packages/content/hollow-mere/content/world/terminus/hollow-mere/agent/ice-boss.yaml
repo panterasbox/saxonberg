@@ -19,6 +19,14 @@ data:
     - /trade/ice/thing/scraper
     - /trade/ice/thing/hand-marker
   behaviors:
+    # ⭐ Off shift, to the company's shed (persistence-model D15 — the house
+    # names no offShift, so the hand stays in the story and walks there).
+    - brain: /lib/behavior/frequents
+      trigger: candidate
+      config:
+        place: /world/terminus/hollow-mere/shed/location/shed
+        visits:
+          - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
     - brain: /trade/ice/behavior/bosses
       trigger: candidate
       config: { marginKg: 200, pool: /world/terminus/hollow-mere/location/pool, shore: /world/terminus/hollow-mere/location/shore, out: north, back: south }

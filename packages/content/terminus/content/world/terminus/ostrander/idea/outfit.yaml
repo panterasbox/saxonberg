@@ -1,7 +1,7 @@
 # The Ostrander's company — the house whose roster mans her (river D36):
 # the master who has her, the engineer who keeps her fire, a deckhand who
 # handles her lines and her lead.
-class: /platform/idea/PersistentBusiness
+class: /platform/idea/Company
 data:
   name: "the Ostrander's company"
   # ⭐ She is owned by this company, and this company by its cap table

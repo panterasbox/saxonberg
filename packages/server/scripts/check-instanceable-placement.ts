@@ -61,6 +61,13 @@
  *  14. No row authors the RETIRED `container:` key (2026-10-15) — where
  *      a thing is is runtime state; a place, a seat or a producer's
  *      stock line names where it goes.
+ *  15. ⭐ **Only containers and bodies keep** (persistence-model N19): a
+ *      class a row names that composes `PersistableMixin` composes
+ *      `ContainerMixin` too, or is a body on the roster below (a ship). A
+ *      thing is kept by its container, history by a ledger, and the
+ *      derived never — so a record of its own on anything else is the
+ *      third rule the model retired. Read through the same composition
+ *      walk as everything here (`composesMixin`).
  *
  * ⚠⚠ **Invariants 5, 6, 7 and 12 all read the EFFECTIVE row** — the
  * parent chain folded in (`scripts/pack-roots.ts` `effectiveRow`). Read
@@ -94,8 +101,17 @@ import {
   effectiveRow,
   inheritanceIndex,
   declaredFields,
+  composesMixin,
+  extendsAny,
   type PackSource,
 } from './pack-roots';
+
+/**
+ * The bodies that keep themselves and are not containers (invariant 15):
+ * a ship. (A person, a kept animal and a draft animal are containers —
+ * `Creature` composes `ContainerMixin` — so they pass by that.)
+ */
+const KEPT_BODIES = ['/platform/idea/Ship'];
 
 /** CI-failing. The invariant is enforced by the build, not by review. */
 const EXIT_ON_FINDINGS = true;
@@ -335,6 +351,8 @@ function main(): void {
   const rows = idx.rows;
   const fieldCache = new Map<string, Set<string>>();
   const orphans: string[] = [];
+  // 15 — the classes rows name, checked once each after the walk.
+  const keptClasses = new Map<string, string>();
 
   for (const { file, path } of templates) {
     let doc: unknown;
@@ -377,6 +395,7 @@ function main(): void {
     const cls = eff.class;
     const data = eff.data;
     const hasData = Object.keys(eff.data).length > 0;
+    if (cls && !keptClasses.has(cls)) keptClasses.set(cls, file);
 
     // 1 — the headline
     if (cls?.startsWith('/lib/')) {
@@ -529,6 +548,19 @@ function main(): void {
     }
   }
 
+  // 15 — only containers and bodies keep (persistence-model N19).
+  const composition = new Map<string, boolean>();
+  for (const [cls, file] of keptClasses) {
+    if (!composesMixin(cls, 'PersistableMixin', sources, composition)) continue;
+    if (composesMixin(cls, 'ContainerMixin', sources, composition)) continue;
+    if (KEPT_BODIES.some((b) => cls === b || extendsAny(cls, [b], 0, sources))) continue;
+    findings.push({
+      invariant: 15,
+      file,
+      detail: `class: ${cls} keeps a record but is neither a container nor a body — a thing rides its container (PersistableApi.adoptRider for one that is not contained), history goes to a ledger`,
+    });
+  }
+
   // 12 — the ratchet. Census-then-ratchet: the count is the ceiling, it
   // may fall and may never rise. The LIST prints either way, because the
   // inventory is the point — a key the applier throws away has never
@@ -588,6 +620,7 @@ function main(): void {
     12: 'orphan data keys above the ratchet (a key the applier discards silently)',
     13: 'retired `hydratorClass:` key (the applier runs on data alone since 2026-10-01)',
     14: 'retired `container:` key (runtime-only since 2026-10-15) — a place, a seat or a stock line names where a thing goes',
+    15: 'a class that keeps a record but is neither a container nor a body (persistence-model: only containers and bodies keep)',
   };
   console.warn(
     `\n[check-instanceable-placement — ${EXIT_ON_FINDINGS ? 'ERROR' : 'WARN'}] ` +

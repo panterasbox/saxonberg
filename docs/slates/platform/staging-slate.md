@@ -6,7 +6,8 @@
 > restore; `ResettableMixin` and residency's reset sweep (`resetsWhilePresent`, single-flight; the
 > store's `Stock` its one consumer); eviction re-cloning a cold object from its template
 > ([residency.md](../../subsystems/residency.md)); employment's call (`regulars | rota`), roster
-> tick and off-shift `Offstage` room ([employment.md](../../subsystems/employment.md)); one
+> tick and, since persistence-model (!654), `offShift: out` — off shift is null, `Offstage` retired, a
+> visit window calling a regular in ([employment.md](../../subsystems/employment.md)); one
 > deliberation beat per agent with `Urgency` ([behavior.md](../../subsystems/behavior.md)); the
 > Cast/Extra rungs ([identity.md](../../subsystems/identity.md)); *"anything staged gets restaged"*
 > ([emergency-services](../society/emergency-services-slate.md), 2026-10-28). Restaging today happens only
@@ -16,9 +17,11 @@
 > the part policies (recall · remint · release · prevent) · strays · the four statuses (on stage ·
 > in the wings · on loan · gone) · claims and the call sheet · the unavailable-actor fallbacks ·
 > casting permission · the wings as null, the brain asleep, entrances and exits as behavior ·
-> the wings census · `Offstage` retired · `StagedMixin` as the one-node shorthand · employment's
+> the wings census · `StagedMixin` as the one-node shorthand · employment's
 > shift as a claim · restaging unobserved or diegetically · staged state across a reboot
 > **Size:** a build
+
+⭐ **[persistence-model](../engine/persistence-model-slate.md) (2026-11-23)** settles the other half: every thing carries two facts — *whose part is it* (this slate; the owner: **the warren IS the stage manager**) and *does its inside keep* — and a stray is lost at restage, nothing rescues it. The restage moment is shared.
 
 Siblings: [stage-and-simulation](../world/stage-and-simulation-slate.md) (§ 5: *staging in place — the
 same zone, NPCs swapped — is the same machinery without the exit*; this slate is that machinery) ·

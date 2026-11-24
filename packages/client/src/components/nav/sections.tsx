@@ -266,6 +266,20 @@ export function PlaceBody({
       <Fact icon="place.season" label="season">{p.season ?? "unknown"}</Fact>
       <Fact icon="place.time" label="time">{p.daylight ?? "unknown"}</Fact>
       <Fact icon="place.water" label="water">{p.water ?? "none"}</Fact>
+      <Tip
+        tip={{
+          header: { name: p.kept ? "Kept" : "Not kept", kindWord: "what you leave here" },
+          prose: p.kept
+            ? "What you set down here stays as you left it — after you walk away, and after a restart."
+            : "This place comes back as it was made: what you leave lying here is gone at the next restage. Leave things in a kept place, a kept locker, or carry them.",
+        }}
+      >
+        <div data-testid="nav-place-kept" tabIndex={0}>
+          <Fact icon="place.kept" label="kept">
+            {p.kept === undefined ? "unknown" : p.kept ? "kept — what you leave here stays" : "not kept — what you leave here is gone at the next restage"}
+          </Fact>
+        </div>
+      </Tip>
       <Fact icon="place.crowd" label="others">
         {crowd === 0 ? "nobody else here" : `${crowd} other${crowd === 1 ? "" : "s"} here`}
       </Fact>

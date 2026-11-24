@@ -31,3 +31,4 @@ data:
     - /world/testbed/thing/job-board
   cast:
     - /world/testbed/agent/greeter
+    - /world/testbed/agent/cat

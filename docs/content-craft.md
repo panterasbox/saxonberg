@@ -1274,7 +1274,7 @@ there.**
 1. ⚑ **Density is an allocation, not a dial** — what to emphasize and
    what to imply, what is functional and what is scenery. The
    `StagedMixin` theatre vocabulary (`props:` / `cast:` / `costume:`,
-   `Offstage`, `Extra` / `Cast`) is the frame to lean into, and the
+   `Extra` / `Cast`, and off shift out of the narrative) is the frame to lean into, and the
    allocation rule inside it is not written yet. ⚠ Every attempt in
    drafting to turn it into a tiering got cut.
    ⭐⭐⭐ **And a finding that reframes every density number in

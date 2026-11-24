@@ -636,7 +636,8 @@ describe('the dorm houseplant — content and placement', () => {
     expect(plant!.getSpecies()?.getBinomial()).toBe('Spathiphyllum wallisii');
     expect(plant!.isAlive()).toBe(true);
     expect(plant!.getConditionBand()).toBe('healthy');
-    expect(MixinApi.isPersistable(plant!)).toBe(true);
+    // ⭐ A plant is a thing kept by its container (persistence-model D3).
+    expect(MixinApi.isPersistable(plant!)).toBe(false);
 
     // The room is lit enough for it, and the tap is inexhaustible.
     expect(luxAt(room as Stuff & Container)).toBeGreaterThanOrEqual(20);
@@ -893,17 +894,11 @@ describe('the dorm houseplant — durability', () => {
     room: Stuff & Container,
     unit: string,
   ): Promise<Stuff & Container> {
-    // Capture each nested HOST first. The room's own record only refs a
-    // plant by `{ref, key}` — the plant's state lives in its own record, and
-    // in production that record is written by the act that changed it (the
-    // `water` verb's `captureHostOf`) and by the residency sweep before it
-    // culls. A test that pokes `waterPlant` directly has to do the same, or
-    // the plant restores from a record that was never written.
-    // Snapshot the subtree BEFORE anything is torn down — a destroyed room
-    // no longer answers `getDeepContents`.
+    // ⭐ The room's record carries the pot and its plant (persistence-model
+    // D3 — a plant has no record of its own), so one capture of the room is
+    // the whole checkpoint. Snapshot the subtree BEFORE anything is torn
+    // down — a destroyed room no longer answers `getDeepContents`.
     const subtree = room.getDeepContents() as Stuff[];
-    const hosts = subtree.filter((x) => x instanceof Plant);
-    for (const h of hosts) await PersistableApi.capture(h);
     await PersistableApi.capture(room); // under its own key, `<unit>/room`
     await (w as unknown as { reconcile(): Promise<void> }).reconcile();
     if (!room.isDestroyed()) StuffApi.destruct(room);
@@ -933,7 +928,6 @@ describe('the dorm houseplant — durability', () => {
       moisture: plant.getSoilMoisture(),
       vigor: plant.getVigor(),
       stage: plant.getGrowthStage(),
-      key: plant.getPersistenceKey(),
       soil: potIn(room)!.getSoilVolume(),
     };
 
@@ -948,14 +942,13 @@ describe('the dorm houseplant — durability', () => {
     expect(pot2!.getOccupant(PLANT_SLOT)).toBe(plant2);
     expect(pot2!.getContents()).toContain(plant2);
     expect((pot2!.getPlacement()?.host ?? null)).toBe(deskIn(reborn));
-    // Its growth state, and its own record key.
+    // Its growth state — nested in the room's record (persistence-model D3).
     expect(plant2!.getSoilMoisture()).toBeCloseTo(before.moisture, 4);
     expect(plant2!.getVigor()).toBeCloseTo(before.vigor, 4);
     expect(plant2!.getGrowthStage()).toBe(before.stage);
-    expect(plant2!.getPersistenceKey()).toBe(before.key);
   });
 
-  it('⭐ carry it out of the dorm and it stays yours — its own record, no dorm in the path', async () => {
+  it('⭐ carry it out of the dorm and it goes with you — it rides your record (persistence-model D3)', async () => {
     const w = await warren();
     const unit = seedUnit(1, 1);
     const room = await w.admit(unit);
@@ -969,30 +962,20 @@ describe('the dorm houseplant — durability', () => {
       setNow(d * DAY);
       plant.waterPlant(1);
     }
-    // Pick the pot up: the plant now rides the AVATAR's record, by
-    // `{ref, key}` through the pot's nested slice.
+    // Pick the pot up: the plant now rides the AVATAR's record, nested in
+    // the pot's slice — a plant has no record of its own.
     ContainmentApi.move(pot, tenant);
-    const key = plant.getPersistenceKey()!;
     const stage = plant.getGrowthStage();
     const vigorAtPack = plant.getVigor();
 
-    await PersistableApi.capture(plant);
     await PersistableApi.capture(tenant);
 
-    // The plant's record exists under its OWN scope and key — nothing about
-    // the dorm is involved.
     const records = col('holder_snapshots');
-    const own = records.find(
-      (r) => r.scope === '/trade/farming/thing/plant/peace-lily' && r.owner === key,
-    );
-    expect(own).toBeDefined();
-    // The avatar's slice refs it by (ref, key), not by absorbing it.
+    expect(records.some((r) => r.scope === '/trade/farming/thing/plant/peace-lily')).toBe(false);
     const avatarRec = records.find(
       (r) => r.scope === tenant.getTemplatePath(),
     )!;
-    const refs = JSON.stringify(avatarRec.state);
-    expect(refs).toContain('/trade/farming/thing/plant/peace-lily');
-    expect(refs).toContain(key);
+    expect(JSON.stringify(avatarRec.state)).toContain('/trade/farming/thing/plant/peace-lily');
 
     // Time passes while everything is torn down, then the avatar restores.
     setNow(80 * DAY);
@@ -1016,7 +999,6 @@ describe('the dorm houseplant — durability', () => {
     );
     expect(carriedPot).not.toBeNull();
     expect(carriedPlant).not.toBeNull();
-    expect(carriedPlant!.getPersistenceKey()).toBe(key);
     expect(carriedPlant!.getGrowthStage()).toBe(stage);
     expect(carriedPot!.getOccupant(PLANT_SLOT)).toBe(carriedPlant);
 
@@ -1035,9 +1017,8 @@ describe('the dorm houseplant — durability', () => {
     const p1 = plantIn(r1)!;
     const p2 = plantIn(r2)!;
 
-    // Same template, distinct records.
+    // Same template, two rooms' records.
     expect(p1.getTemplatePath()).toBe(p2.getTemplatePath());
-    expect(p1.getPersistenceKey()).not.toBe(p2.getPersistenceKey());
 
     // Tend one, neglect the other.
     p1.getVigor();
@@ -1054,12 +1035,8 @@ describe('the dorm houseplant — durability', () => {
     const subtrees = [r1, r2].map(
       (r) => (r as unknown as Stuff & Container).getDeepContents() as Stuff[],
     );
-    for (const [i, unit] of [u1, u2].entries()) {
-      for (const h of subtrees[i]!.filter((x) => x instanceof Plant)) {
-        await PersistableApi.capture(h);
-      }
-      await PersistableApi.capture([r1, r2][i] as Stuff, unit);
-    }
+    // Each room under its own stashed key (`<unit>/room`) — it carries its pot and plant.
+    for (const r of [r1, r2]) await PersistableApi.capture(r as Stuff);
     await (w as unknown as { reconcile(): Promise<void> }).reconcile();
     for (const s of subtrees.flat()) {
       if (s instanceof Plant || s instanceof PlantPot) StuffApi.unregister(s);
@@ -1068,7 +1045,6 @@ describe('the dorm houseplant — durability', () => {
     const r2b = (await w.admit(u2)) as unknown as Stuff & Container;
     const p1b = plantIn(r1b)!;
     const p2b = plantIn(r2b)!;
-    expect(p1b.getPersistenceKey()).not.toBe(p2b.getPersistenceKey());
     expect(p1b.getVigor()).toBeGreaterThan(p2b.getVigor());
   });
 
@@ -1103,7 +1079,6 @@ describe('the dorm houseplant — durability', () => {
     const room = await w.admit(seedUnit(1, 1));
     const plant = plantIn(room)!;
     const pot = potIn(room)!;
-    const key = plant.getPersistenceKey()!;
 
     const transient = makeStuff(() => new Place());
     ContainmentApi.move(pot, transient);
@@ -1119,112 +1094,10 @@ describe('the dorm houseplant — durability', () => {
     expect(transient.isDestroyed()).toBe(true);
     expect(plant.getBed()).toBeNull(); // its slot went with the pot
 
-    const records = col('holder_snapshots');
-    expect(
-      records.find(
-        (r) => r.scope === '/trade/farming/thing/plant/peace-lily' && r.owner === key,
-      ),
-    ).toBeUndefined();
-    // The room's record still REFERS to the key (it was written while the
-    // pot was on the desk), and that is the point: the ref resolves to a
-    // `(scope, key)` record that does not exist, so a re-admit mints a
-    // default plant rather than restoring the abandoned one. Nothing carries
+    // ⭐ No plant record anywhere (persistence-model D3): nothing carries
     // the tended state forward — no rescue registry, no boot walk.
-  });
-
-  it('⭐ the restart-rollback property: the elapsed time survives, the watering needs a capture', async () => {
-    const w = await warren();
-    const unit = seedUnit(1, 1);
-    const room = await w.admit(unit);
-    const plant = plantIn(room)!;
-    const pot = potIn(room)!;
-    const key = plant.getPersistenceKey()!;
-
-    // Part-dry it, then capture the checkpoint. Deliberately NOT bone dry:
-    // the assertion below is that ten more elapsed days leave it drier
-    // still, which needs somewhere left to fall.
-    plant.getVigor();
-    setNow(3 * DAY);
-    const dryMoisture = plant.getSoilMoisture();
-    expect(dryMoisture).toBeLessThan(1);
-    expect(dryMoisture).toBeGreaterThan(0);
-    await PersistableApi.capture(plant, key);
-    const checkpointStamp = plant.growthClockStamp;
-    // Since phase 2 the WATER is the pot's, so a faithful restart has to
-    // check the pot back in too — restoring the plant alone would restore
-    // half the world and leave it rooted in nothing.
-    const potMoistureAtCheckpoint = pot
-      .getReserve(SOIL_MOISTURE_RESERVE_KEY)!
-      .current.rawValue();
-
-    // Water it — and DO NOT capture (the crash-before-capture case).
-    plant.waterPlant(1);
-    expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
-    // The crash takes the plant with it — vacate its place so the
-    // restored instance can take it back.
-    pot.vacate(PLANT_SLOT, plant);
-    StuffApi.unregister(plant);
-
-    // Restart, ten game-days later, restoring from that record — the
-    // plant back into a pot rolled back to its checkpoint water.
-    setNow(20 * DAY);
-    pot.setReserve(
-      new Reserve(
-        SOIL_MOISTURE_RESERVE_KEY,
-        pot.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.capacity,
-        Quantity.of(potMoistureAtCheckpoint, 'L'),
-        'cultivation',
-        'wilting',
-      ),
-    );
-    // The pot's clock cursor is public (`TemplateApplier` reflects into it), so
-    // this is a plain write, not a cast through the contract. Winding it
-    // back is HOW you simulate a restart: production restores the stamp
-    // from the record, and there is no other seam that puts a pot's soil
-    // clock where a checkpoint left it.
-    pot.soilClockStamp = checkpointStamp;
-    const restored = makeStuffAtPath(
-      () => new Plant(),
-      '/trade/farming/thing/plant/peace-lily',
-    );
-    restored.setPersistenceKey(key);
-    await PersistableApi.materialize(restored, key);
-    // The record put the clock cursor back where the checkpoint left it…
-    // (asserted BEFORE re-seating: being placed is an environment change,
-    // and a reconcile is exactly what that is supposed to trigger.)
-    expect(restored.growthClockStamp).toBe(checkpointStamp);
-    pot.seatInSlot(restored, PLANT_SLOT);
-
-    // (a) The watering is LOST — an intervention cannot be re-derived.
-    // (b) The elapsed TIME is not: state derives from that clock stamp, so
-    //     the first read re-derives forward through the whole gap. A
-    //     tick-based model would have lost those ten days outright. This is
-    //     what makes reconcile-on-read survivable under an event-driven
-    //     capture spine, and the whole family inherits it.
-    const afterRollback = restored.getSoilMoisture();
-    expect(afterRollback).toBeLessThan(dryMoisture);
-    expect(restored.growthClockStamp).toBeGreaterThan(checkpointStamp);
-
-    // Now re-run WITH the capture wired (what the `water` verb actually
-    // does) and the watering survives the same restart. Since phase 2 the
-    // litres land in the POT, so the capture that has to happen is the
-    // ground's — which is what WaterController now does.
-    restored.waterPlant(1);
-    await PersistableApi.captureHostOf(restored);
-    await PersistableApi.captureHostOf(pot);
-    const wetMoisture = restored.getSoilMoisture();
-    expect(wetMoisture).toBeGreaterThan(afterRollback);
-    pot.vacate(PLANT_SLOT, restored);
-    StuffApi.unregister(restored);
-
-    const restored2 = makeStuffAtPath(
-      () => new Plant(),
-      '/trade/farming/thing/plant/peace-lily',
-    );
-    restored2.setPersistenceKey(key);
-    await PersistableApi.materialize(restored2, key);
-    pot.seatInSlot(restored2, PLANT_SLOT);
-    expect(restored2.getSoilMoisture()).toBeCloseTo(wetMoisture, 4);
+    const records = col('holder_snapshots');
+    expect(records.some((r) => r.scope === '/trade/farming/thing/plant/peace-lily')).toBe(false);
   });
 
   it('growth advances across a multi-day absence with no player and no scheduler', async () => {

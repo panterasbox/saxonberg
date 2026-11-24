@@ -40,24 +40,19 @@ afterEach(() => {
   StuffApi.clearAll();
 });
 
-describe('a building persists only once it is sold', () => {
-  it('a staged building (nobody, or an organization, holds the ground) writes nothing', () => {
+describe('a building rides what it stands on (persistence-model D4)', () => {
+  it('it keeps no record of its own, sold or not', () => {
     const s = makeStuffAtPath(() => new Building(), '/world/_p/cottage/structure');
     s.setExtent('/world/_p/cottage');
-    held(null);
-    expect(s.isTitleSold()).toBe(false);
-    expect(s.shouldPersist()).toBe(false);
-    held('organization');
-    expect(s.shouldPersist()).toBe(false);
+    held('player');
+    expect(MixinApi.isPersistable(s)).toBe(false);
   });
 
-  it('a building a person holds persists its coats and condition', () => {
+  it('its coats and condition are captured as its state (what its kept entrance carries)', () => {
     const s = makeStuffAtPath(() => new Building(), '/world/_p/house/structure');
     s.setExtent('/world/_p/house');
     s.setCoats({ outside: [{ material: '/x/oil', thicknessM: 0.00004, state: 'set' }] });
     held('player');
-    expect(s.isTitleSold()).toBe(true);
-    expect(s.shouldPersist()).toBe(true);
     const state = slices(s) as Record<string, { fields: Record<string, unknown> }>;
     expect(state.FacedMixin?.fields.coats).toBeTruthy();
     expect(state.DurableMixin?.fields.condition).toBe(1);

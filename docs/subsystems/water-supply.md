@@ -33,7 +33,7 @@ The supply is the kernel **`WaterSupply`** shape (`lib/supply/SupplyState.ts`):
 `supplyStateNow`, `supplyHeadM` (async), `drawL`, `availableL`,
 `shareFor(landUse)`, `serves(path)`, optional `readWaterChemistry`.
 Implemented by the water pack's `Conduit` and `StorageNode`, and the
-kernel's `WaterStore` (+ `SingletonWaterStore`, `PersistentWaterStore`).
+kernel's `WaterStore` (+ `SingletonWaterStore`).
 
 **The seventh word.** `SupplyState` gained `unplumbed` (*no pipe brings
 water here*), ahead of `cut` in precedence.
@@ -203,11 +203,20 @@ sprinklers are core to farming). What the rain reaches, it reaches.
 
 ## Staged or live
 
-Staged or live is the content's choice (D30). Each stateful kind ships
-plain (staged) plus a `Persistent…` twin used where a row needs live state:
-`PersistentConduit` (the city intake, the aqueduct), `PersistentGate` (the
-Delight's gates), `PersistentWaterStore` (a sold roof cistern),
-`PersistentAquifer` (the Delight valley), `PersistentWell` (a dug well).
+Staged or live is still the content's choice (D30), but it is made on
+the PLACE, never on the water class (persistence-model, 2026-11-24). A
+store, a well, a tank or a sheet of ice is a thing, **kept by the place it
+stands in**: a roof cistern in a kept room keeps what was poured in and
+drawn out, the same row in a plain room comes back as authored. What the
+commons *did* — an aquifer's draws, a gate's opening curve and work log, a
+conduit's deliveries — is history, filed on the water ledger
+([watershed.md](./watershed.md) § The water ledger) by every gate, conduit
+and aquifer. The five `Persistent…` twins (`PersistentConduit`,
+`PersistentGate`, `PersistentWaterStore`, `PersistentAquifer`,
+`PersistentWell`) are retired and their rows re-pointed at the plain
+classes. ⚠ A whether-the-main-is-cut setting on a plain pumphouse
+restages with the house. A `Wellhead` still keeps (it composes
+`ContainerMixin` — a pump is set in it — and banks its drilled depth).
 
 ## Deferred
 
@@ -244,3 +253,9 @@ Each with where it goes (salvaged from the plan at the sweep, 2026-11-06):
 - **Durable cuts on the grid** (`Conduit.cutLog` is the water twin) →
   power-utility-slate.
 - **Watering ships; a ship's discharge as a load** → running-water-slate § 7.
+
+## History — the twins retire (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): the
+`Persistent…` water twins retired (D3/D5); history moved to the water
+ledger; stores and wells ride the place they stand in.

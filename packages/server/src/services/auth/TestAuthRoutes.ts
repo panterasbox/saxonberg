@@ -363,6 +363,42 @@ export class TestAuthRoutes {
       }
     });
 
+    // ⭐ Refuse a character's saves, and save a batch (persistence-model D10).
+    app.post('/auth/test-save-fail', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const body = (req.body ?? {}) as { name?: unknown; on?: unknown };
+      if (typeof body.name !== 'string' || typeof body.on !== 'boolean') {
+        res.status(400).json({ error: 'name (a string) and on (a boolean) are required' });
+        return;
+      }
+      TestHooks.failSavesOf(body.name, body.on)
+        .then((r) => res.json(r))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-save-fail failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+    app.post('/auth/test-save', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.get('x-test-auth') !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const names = (req.body as { names?: unknown } | undefined)?.names;
+      if (!Array.isArray(names) || !names.every((n) => typeof n === 'string')) {
+        res.status(400).json({ error: 'names must be a list of names' });
+        return;
+      }
+      TestHooks.saveBatch(names as string[])
+        .then((r) => res.json(r))
+        .catch((err: unknown) => {
+          console.error('TestAuthRoutes: test-save failed:', err);
+          res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
+        });
+    });
+
     // ⭐ Force a bad row past its validator (failure-model D6) — what the
     // drive needs to see a content error reach the player and its keeper.
     app.post('/auth/test-force-document', (req: Request, res: Response) => {

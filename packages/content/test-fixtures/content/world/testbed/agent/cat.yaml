@@ -1,0 +1,21 @@
+# A stray cat in the plaza (persistence-model W0) — the testbed's kept animal
+# to be: unbonded it keeps nothing; once it has followed somebody it keeps
+# itself. Modeled on the shipped stray (`/stuff/agent/cat`). ⚠ TEST-ONLY.
+class: /platform/agent/KeptAnimal
+data:
+  _speciesPath: /stuff/idea/species/cat
+  lifecycleState: alive
+  shortDescription: thin cat
+  register: indefinite
+  primaryKeyword: cat
+  keywords: [cat, thin, stray]
+  longDescription: >-
+    A thin grey cat, watching the square.
+  handling: 0.25
+  behaviors:
+    - brain: /lib/behavior/follows
+      trigger: departure
+    - brain: /lib/behavior/feeds
+      trigger: candidate
+    - brain: /lib/behavior/homes
+      trigger: candidate

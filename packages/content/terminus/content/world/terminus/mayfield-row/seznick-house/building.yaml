@@ -22,3 +22,6 @@ data:
     shape: linear
     frontagesPerNode: 4
     frontageLeaf: u
+  # ⭐ Where a former tenant's things are boxed (persistence-model D11): the
+  # lobby, whose boxroom is the agency's store.
+  storeroom: /world/terminus/mayfield-row/seznick-house/lobby

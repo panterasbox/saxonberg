@@ -126,7 +126,7 @@ of the read-through mode the mutable registries will need.
 - **The phase axis, the death spec, and the class layering** (Sequencing
   6–9) → the same slate; a second requirements doc.
 - **Changing what a `holder_snapshots` record CONTAINS** →
-  [estate-nesting-slate](../slates/engine/estate-nesting-slate.md), which
+  [estate-nesting-slate](../slates/engine/persistence-model-slate.md), which
   is an unbuilt build about exactly that (reference vs copy vs capped
   copy). ⭐ This build changes **where a record lands, never its shape**;
   that is the non-interference boundary, stated so the two migrations do
@@ -494,7 +494,7 @@ the world never saw any of it). Ada starts in a bedroom with a wardrobe.
   `holder_snapshots`.
 - [measurement.md](../measurement.md) — A2, A5, A14.
 - [sandbox-slate](../slates/platform/sandbox-slate.md) — D9.
-- [estate-nesting-slate](../slates/engine/estate-nesting-slate.md),
+- [estate-nesting-slate](../slates/engine/persistence-model-slate.md),
   [hydration-framework-slate](../slates/tech-debt/hydration-framework-slate.md)
   — the two sequencing hazards, bounded in § Non-goals.
 - [money-integrity-slate](../slates/tech-debt/money-integrity-slate.md) —

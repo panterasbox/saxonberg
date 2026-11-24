@@ -28,7 +28,6 @@ import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
-import { ESTATE_STORAGE } from "../persistence/PersistenceSlice";
 import { StuffApi } from "../../api/stuff";
 import { MixinApi } from "../../api/mixin";
 // eslint-disable-next-line no-restricted-imports -- the F1 object face: a good's chattelOwner()/stampChattel()/transferChattel() forward into the chattel logic singleton exactly as the api/chattel facade does (the Combustible/Energized precedent)
@@ -74,13 +73,6 @@ export interface Chattel {
   getChattelId(): string;
   /** Privileged: set the server-minted id — chattel-logic-only. */
   _setChattelId(id: string): void;
-  /**
-   * Where the owner keeps this good — a room identity, `'inventory'`, or
-   * `'storage'` (the default). See {@link Chattel._setPlace}.
-   */
-  getPlace(): string;
-  /** Privileged: set the placement — chattel-logic-only. */
-  _setPlace(place: string): void;
 
   // The title face (F1) — forwards into ChattelLogic.
   /** The owner — `stamp ?? parcel-extent ?? authorOf`; null when nobody. */
@@ -89,16 +81,12 @@ export interface Chattel {
   stampedOwner(): ChattelOwner | null;
   /** Has someone been stamped as owning this good? (sync — capture walk). */
   isStamped(): boolean;
-  /** Persisted by its owner rather than its host? (player-stamped only). */
-  isOwnerPersisted(): boolean;
   /**
    * ⭐ Its room is going dormant, not away: the destruct that follows is
    * the room's, and the title outlives it. Called only by a persistable
    * container's destruct cascade.
    */
   keepTitleThroughDestruct(): void;
-  /** Record where the owner keeps this good (the single write path). */
-  setChattelPlace(place: string): Promise<void>;
   /**
    * Re-derive placement from where the good now IS. Called by the
    * movement primitive itself on every move (`ContainmentApi.move`) —
@@ -142,7 +130,6 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
 
     static fieldMeta: FieldMeta = {
       _chattelId: { persistent: true },
-      _place: { persistent: true },
     };
 
     /**
@@ -170,38 +157,6 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
       this._chattelId = id;
     }
 
-    /**
-     * Where the owner keeps this good: a **room identity**, `'inventory'`,
-     * or `'storage'` (the default). Distinct from *custody* — `place` says
-     * where the OWNER keeps it, and a good in a foreign room keeps naming
-     * that room while its title and its persistence stay with its owner.
-     *
-     * A property of the good rather than a registry, because it is not a
-     * relation between two principals: it is one value, always present,
-     * changing on the same acts that move custody (D1). The `chattel` row
-     * carries the same value as a **by-room index** so a materializing room
-     * can find what belongs in it without scanning every owner — index, not
-     * a second source of truth, and one gated call writes both.
-     *
-     * Plain field (not `#`): the hydrator bracket-assigns it on restore.
-     */
-    public _place: string = ESTATE_STORAGE;
-
-    public getPlace(): string {
-      return this._place;
-    }
-
-    /**
-     * Set the placement. Gated to the chattel logic singleton exactly as
-     * the id is — never author- or player-writable as data, so a `place`
-     * cannot be forged into someone else's residence.
-     */
-    @CallSecurity(ByChattelLogic)
-    @Final
-    @Unshadowable
-    public _setPlace(place: string): void {
-      this._place = place;
-    }
 
     /**
      * GC the chattel registry row when the good is genuinely destroyed
@@ -248,24 +203,6 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
       return this._chattelId !== "";
     }
 
-    /**
-     * See {@link Chattel.isOwnerPersisted} — true only for a good
-     * stamped to a **player** (an Estate host whose record carries it).
-     * Synchronous like `isStamped`, for the same capture-walk reason.
-     */
-    public isOwnerPersisted(): boolean {
-      return (
-        chattelLogic().stampedOwnerOf(this as unknown as Stuff)?.kind ===
-        "player"
-      );
-    }
-
-    /** See {@link Chattel.setChattelPlace} — the single write path. */
-    @Final
-    @Unshadowable
-    public setChattelPlace(place: string): Promise<void> {
-      return chattelLogic().setPlace(this as unknown as Stuff, place);
-    }
 
     /** See {@link Chattel.followCustody} — records, never judges. */
     @Final
