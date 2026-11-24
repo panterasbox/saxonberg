@@ -46,7 +46,6 @@ import { GoogleProfile } from '../identity/GoogleProfile';
  * Public shape provided by HasInteractiveMixin.
  *
  * Witness hooks (optional methods) — fire from `ConnectionApi`:
- *   - `onConnectionAttached(conn)` — per-connection, on every transfer;
  *   - `onLinkdead()` — the presence transition, when the connection
  *     count drops to 0.
  *
@@ -86,8 +85,6 @@ export interface HasInteractive {
    */
   hasLiveSession(): boolean;
 
-  /** Per-connection notification fired after attach. */
-  onConnectionAttached?(conn: Interactive): void;
   /** Fired when the connection count drops to zero. */
   onLinkdead?(): void;
 
