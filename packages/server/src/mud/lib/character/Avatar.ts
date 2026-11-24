@@ -287,7 +287,6 @@ export default abstract class Avatar extends AvatarBase {
       'platform/cmd/movement/route.yaml',
       "platform/cmd/system/ping.yaml",
       "platform/cmd/system/help.yaml",
-      "platform/cmd/shell/which.yaml",
       // The wiki sits beside `help` deliberately. Both are reference
       // surfaces a player carries rather than reaches for: `help` tells
       // you what a verb does, `wiki` tells you what a thing IS. Reading
@@ -296,6 +295,8 @@ export default abstract class Avatar extends AvatarBase {
       // way `forum`/`chat` are gated would contradict the access model
       // the build actually implements.
       "platform/cmd/system/wiki.yaml",
+      // `which` reads what you can type HERE; help and wiki are the reference beside it.
+      "platform/cmd/shell/which.yaml",
       /*
        * ⭐ The news sits beside `help` and `wiki` for the same reason:
        * it is a reference surface a player carries, and bare `press`
