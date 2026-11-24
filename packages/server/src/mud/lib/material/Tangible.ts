@@ -210,14 +210,12 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static commandContributions: CommandContributions = {
       self: [],
-      // OUTWARD to whoever holds it…
+      // OUTWARD to whoever holds it — and only to them (the which audit,
+      // 2026-11-23). ⛔ Not `peers`: sideways it made every body in the
+      // room something you could throw, every bolted-down counter and
+      // hearth with it. You throw what is in your hand; to throw the rock
+      // on the floor you pick it up first.
       environment: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
-      // …and SIDEWAYS to anyone sharing the room with it, because you
-      // do not have to be holding a rock for throwing it to be on the
-      // table. Whether the throw picks it up first, refuses, or costs a
-      // beat is the CONTROLLER's call — availability and permission are
-      // different questions, and only the first lives here.
-      peers: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
     };
     /**
      * Field-marshaller binding. `mass` round-trips via the kg-bound

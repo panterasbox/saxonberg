@@ -442,7 +442,7 @@ before W1.
 - Acceptance: `pnpm test:near` green. Commit `feat(which): the read —
   what you can type and what gives it`.
 
-**W2 — the affordance audit.** (R2, D3; § The affordance audit)
+**W2 — the affordance audit.** ✅ *(done — two slice fixes, no new substrate; § The affordance audit)* (R2, D3)
 - **Census.** A script-free read: a vitest under
   `platform/idea/api/__tests__/` that walks every kernel and pack class
   and mixin with a `static commandContributions` (the `pack-roots`
@@ -558,14 +558,33 @@ before W1.
 
 ## The affordance audit
 
-*(seeded at plan time from two known cases; W2's census fills every
-row and records each fix's commit)*
+✅ *W2, 2026-11-23.* **Census** — every `static commandContributions` in
+the kernel and every pack's `src/` (243 files), sorted by the rung that
+composes it. ⭐ The finding that sized the wave: **only two wide-rung
+mixins put verbs anywhere but `self`** — `TangibleMixin` (on `Thing` and
+`Agent`) and `IntegrityMixin` (on `Good` and `Vessel`). Every other mixin
+those rungs compose (`Container`, `Mobile`, `Posed`, `Vitals`, `Combatant`,
+`Respiration`, `Eating`, `Metabolic`, `Palate`, `Engaged`, `Visible`)
+contributes `self` only — the body's own verbs, the *usual* line. The
+other ~80 `peers` contributions are each on one class or a narrow mixin
+whose sentence they fit (a well's `pump`, a tub's `bathe`, a till's
+`buy`, a bonded animal's `pet`, `Bulkable`'s pour/drink, `Marked`'s
+read/write, `Behaved`'s `talk`), and were judged **right**.
 
-| verb (view) | declared on | bucket(s) | hosts that end up with it | verdict | fix |
+| verb (view) | declared on | bucket(s) before | hosts that ended up with it | verdict | fix (commit W2) |
 |---|---|---|---|---|---|
-| `ring` | `IntegrityMixin` (`lib/material/Integrity.ts:201`) | environment · peers | every `Good` (`lib/stuff/Good.ts:80`) and `Vessel` (`lib/stuff/Vessel.ts:84`); W2 confirms which bodies and places compose it | **wrong host** — a made article rings; a person does not, and most goods are not what anyone taps | W2: to the rung that means *an article you can tap and hear* (ceramics M5's intent) — named in the row once the census shows the composers |
-| `throw` · `throw-to` · `throw-at` | `TangibleMixin` (`lib/material/Tangible.ts:211`) | environment · peers | every `Thing` (`lib/stuff/Thing.ts:103`) and every `Agent` (`lib/stuff/Agent.ts:24`) — so fixtures, and whatever places descend from `Thing` | **wrong host** for places and fixed-in-place fixtures; **wrong slice** to check for bodies (`peers` makes a person a thing you throw) | W2: to the rung of things a hand can pick up; a fixture and a place never compose it |
-| *(every other verb)* | | | | | |
+| `throw` · `throw-to` · `throw-at` | `TangibleMixin` | environment · peers | via `peers`: every thing in the room — a fixed counter, a hearth — and **every body** (a person was a thing you could throw) | **wrong slice** | `peers` dropped; `environment` kept: you throw what you hold, and pick the floor rock up first. A place never composed it |
+| `ring` | `IntegrityMixin` | environment · peers | via `peers`: every good and vessel in the room — a rope, a loaf, a sack | **wrong slice** | `peers` dropped; `environment` kept (tap the article you hold — a held rope gives *a dead thud*, which is true and is how a player learns what rings); `peers` `ring` moved to `RingableMixin` — a bell is struck where it hangs (`Bell`, `SignalBell`) |
+| `ring` on a person | — | — | none: `Creature` does not compose `Integrity` (the requirements' first example was wrong; corrected before the plan) | right | — |
+| every other contribution | (243 files) | | each on the class or narrow mixin whose header sentence it fits | right | — |
+
+Consequence for D3: the *common* line (what the `Good` rung gives) is now
+`throw · ring` from what you **carry**, so it reads *and anything you're
+carrying: throw, ring*. Pinned by `command-which.test.ts` § the affordance
+audit (a floor good, a fixture and a person give neither; a held article
+gives both; `Good`'s `peers` has neither; a `Ringable` good keeps `ring`).
+Checked: the two soak drives that `throw`/`ring` (river-b, underwater)
+take the line up first and ring a `Ringable` bell.
 
 ## Reachability wiring
 

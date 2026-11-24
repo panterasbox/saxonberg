@@ -20,6 +20,7 @@ import { Creature } from '../../lib/creature/Creature';
 import { MarkedMixin } from '../../lib/description/Marked';
 import { SwitchableMixin } from '../../lib/boundary/Switchable';
 import { WieldableMixin } from '../../lib/slot/Wieldable';
+import { RingableMixin } from '../../lib/perception/Ringable';
 import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
 import Location from '../../lib/location/Location';
@@ -186,5 +187,41 @@ describe('which — what can I type here (W1)', () => {
     expect(none).toMatchObject({ ok: false, reason: 'nothing-gives-verb', facts: { verb: 'bail' } });
     const junk = await CommandApi.which(me as never, 'flurb');
     expect(junk).toMatchObject({ ok: false, reason: 'no-such-verb' });
+  });
+
+  describe('the affordance audit (W2) — verbs on the hosts that mean them', () => {
+    it('a thing on the floor, a fixture and a person give no throw and no ring', async () => {
+      const floor = note();
+      ContainmentApi.move(floor, room);
+      const fixture = lever();
+      const other = makeStuff(() => new Person());
+      ContainmentApi.move(other, room);
+      const a = await ask();
+      for (const id of [floor.stuffId, fixture.stuffId, other.stuffId]) {
+        const verbs = a.groups.filter((g) => g.ids.includes(id)).flatMap((g) => g.verbs.map((v) => v.verb));
+        expect(verbs).not.toContain('throw');
+        expect(verbs).not.toContain('ring');
+      }
+      expect(a.common).toBeUndefined();
+    });
+
+    it('what you hold still gives both', async () => {
+      const n = note();
+      ContainmentApi.move(n, me);
+      const a = await ask();
+      expect(a.common?.verbs).toEqual(expect.arrayContaining(['throw', 'ring']));
+    });
+
+    it('the census: who contributes throw and ring, and to whom', () => {
+      const of = (ctor: unknown, b: 'environment' | 'peers'): string[] =>
+        CommandApi.collectContributions(ctor, b).map((d) => d.getPrimaryVerb());
+      expect(of(Good, 'peers')).not.toContain('throw');
+      expect(of(Good, 'peers')).not.toContain('ring');
+      expect(of(Good, 'environment')).toEqual(expect.arrayContaining(['throw', 'ring']));
+      expect(of(Person, 'peers')).not.toContain('throw');
+      expect(of(Location, 'environment')).not.toContain('throw');
+      class Bell extends RingableMixin(Good) {}
+      expect(of(Bell, 'peers')).toContain('ring');
+    });
   });
 });
