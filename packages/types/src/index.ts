@@ -2274,12 +2274,14 @@ export interface WhichGroup {
 }
 
 /**
- * ⭐ A verb more than one thing gives you — and, per giver, the scope that
- * picks it (`counter::buy`; your own and your apps' with `me::`).
+ * ⭐ A word that means more than one COMMAND here — two views answer it
+ * (the same view from many things is one command, and is not this). Per
+ * meaning: help's one line, who gives it, and the scope that picks it
+ * (`hearth::fire`; your own and your apps' with `me::`).
  */
 export interface WhichCollision {
   verb: string;
-  sources: (WhichSource & { scope: string })[];
+  meanings: { description: string; sources: WhichSource[]; scope: string }[];
 }
 
 /** One `~` word: what it means, whose it is, and how many it holds now. */
@@ -2315,7 +2317,7 @@ export interface WhichAnswer {
   relations?: WhichRelation[];
   /** For `which ~ <thing>`: whose words these are. */
   keeper?: WhichSource;
-  /** Verbs more than one thing here gives, with the scope that picks each. */
+  /** Words that mean more than one command here, with the scope that picks each. */
   collisions?: WhichCollision[];
   /** For `which <thing>`: what you can do TO it (the radial's usable verbs). */
   actsOn?: string[];

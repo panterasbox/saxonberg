@@ -2798,15 +2798,21 @@ interface SourceVerbs {
 function whichSources(viewer: Stuff & CommandGiver): {
   usual: string[];
   sources: SourceVerbs[];
-  /** ⭐ Every giver of each verb — the body included — before the dedupe: what collides. */
-  givers: Map<string, Stuff[]>;
+  /**
+   * ⭐ Every giver of each verb BY DEFINITION — the body included, before
+   * the dedupe. A verb is one command when every giver gives the same view;
+   * two views behind one word is what collides (owner, review).
+   */
+  givers: Givers;
 } {
   const usual: string[] = [];
-  const givers = new Map<string, Stuff[]>();
-  const give = (verb: string, who: Stuff): void => {
-    const list = givers.get(verb) ?? [];
-    if (!list.some((x) => x.stuffId === who.stuffId)) list.push(who);
-    givers.set(verb, list);
+  const givers: Givers = new Map();
+  const give = (verb: string, who: Stuff, def: CommandDefinition): void => {
+    const byDef = givers.get(verb) ?? new Map<string, { def: CommandDefinition; who: Stuff[] }>();
+    const at = byDef.get(def.filePath) ?? { def, who: [] };
+    if (!at.who.some((x) => x.stuffId === who.stuffId)) at.who.push(who);
+    byDef.set(def.filePath, at);
+    givers.set(verb, byDef);
   };
   const bySource = new Map<string, SourceVerbs>();
   const shown = new Map<string, boolean>();
@@ -2818,13 +2824,13 @@ function whichSources(viewer: Stuff & CommandGiver): {
     // spell catalogue as its source) is a verb of the body, not of a thing.
     if (a.source.stuffId === viewer.stuffId || (a.bucket === 'self' && !MixinApi.isAetherHosted(a.source))) {
       if (!usual.includes(verb)) usual.push(verb);
-      give(verb, viewer);
+      give(verb, viewer, a.command);
       continue;
     }
     const id = a.source.stuffId;
     if (!shown.has(id)) shown.set(id, sourceShown(a.source, viewer));
     if (!shown.get(id)) continue;
-    give(verb, a.source);
+    give(verb, a.source, a.command);
     let entry = bySource.get(id);
     if (!entry) {
       entry = { source: a.source, defs: new Map() };
@@ -2900,7 +2906,8 @@ async function whichGroups(
     const first = whichSourceOf(m.members[0]!, viewer, m.members.length);
     groups.push({
       key,
-      source: { ...first, name: andList(names) },
+      // The short form names every kind in the group: *shoes, trousers, shirt*.
+      source: { ...first, handle: [...byHandle.keys()].join(', '), name: andList(names) },
       count: m.members.length,
       ids: m.members.map((s) => s.stuffId),
       verbs: await evaluateGroup(m.entry, viewer, m.verbs),
@@ -2909,25 +2916,52 @@ async function whichGroups(
   return groups;
 }
 
+/** Each verb's givers, by the view (definition) they give it with. */
+type Givers = Map<string, Map<string, { def: CommandDefinition; who: Stuff[] }>>;
+
 /**
- * ⭐ Where each of `verbs` comes from when more than one thing gives it —
- * and how to pick one: `counter::buy` (owner, review: a player finding a
- * collision needs the scope that resolves it). The body and its own apps
- * are picked with `me::`.
+ * ⭐ A verb that means TWO commands here (owner, review): more than one view
+ * answers the same word. The same view from many things is one command —
+ * the thing you name decides — and is not a collision. Each meaning carries
+ * its own one line (help's), who gives it, and the scope that picks it
+ * (`hearth::fire`; your own and your apps' with `me::`).
  */
-function collisionsOf(verbs: string[], givers: Map<string, Stuff[]>, viewer: Stuff): WhichCollision[] {
+function collisionsOf(verbs: string[], givers: Givers, viewer: Stuff): WhichCollision[] {
   const out: WhichCollision[] = [];
   for (const verb of verbs) {
-    const who = givers.get(verb) ?? [];
-    if (who.length < 2) continue;
-    out.push({
-      verb,
-      sources: who.map((s) => {
-        const w = whichSourceOf(s, viewer);
-        const mine = s.stuffId === viewer.stuffId || (MixinApi.isAetherHosted(s) && w.place === '');
-        return { ...w, scope: `${mine ? 'me' : w.handle}::${verb}` };
-      }),
-    });
+    const byDef = givers.get(verb);
+    if (!byDef || byDef.size < 2) continue;
+    // A giver's MEANING is the set of views it gives the word with — one
+    // verb's several shapes (`throw`, `throw … to`, `throw … at`) from one
+    // body are one command. Givers with the same set are one meaning.
+    const viewsOf = new Map<string, { who: Stuff; views: CommandDefinition[] }>();
+    for (const { def, who } of byDef.values()) {
+      for (const g of who) {
+        const at = viewsOf.get(g.stuffId) ?? { who: g, views: [] };
+        at.views.push(def);
+        viewsOf.set(g.stuffId, at);
+      }
+    }
+    const meaningsByKey = new Map<string, { views: CommandDefinition[]; who: Stuff[] }>();
+    for (const { who, views } of viewsOf.values()) {
+      const key = views.map((d) => d.filePath).sort().join('|');
+      const m = meaningsByKey.get(key) ?? { views, who: [] };
+      m.who.push(who);
+      meaningsByKey.set(key, m);
+    }
+    if (meaningsByKey.size < 2) continue;
+    const meanings: WhichCollision['meanings'] = [];
+    for (const { views, who } of meaningsByKey.values()) {
+      const sources = who.map((g) => whichSourceOf(g, viewer));
+      const first = who[0]!;
+      const mine = first.stuffId === viewer.stuffId || (MixinApi.isAetherHosted(first) && sources[0]!.place === '');
+      meanings.push({
+        description: [...new Set(views.map((d) => d.description))].join(' / '),
+        sources,
+        scope: `${mine ? 'me' : sources[0]!.handle}::${verb}`,
+      });
+    }
+    out.push({ verb, meanings });
   }
   return out;
 }
@@ -2957,7 +2991,7 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
     if (commonSeen.length > 0) answer.common = { verbs: commonSeen, sources: commonSources };
     // Verbs more than one thing gives — the ones a bare line could mean twice.
     // (The common line's verbs are on every article by design; not listed.)
-    const clashes = collisionsOf([...givers.keys()].filter((v) => !common.has(v)), givers, viewer);
+    const clashes = collisionsOf([...givers.keys()], givers, viewer);
     if (clashes.length > 0) answer.collisions = clashes;
     return { ok: true, facts: answer };
   }

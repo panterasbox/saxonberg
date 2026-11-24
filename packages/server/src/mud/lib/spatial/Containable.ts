@@ -559,14 +559,14 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       const placed = this.getPlacement();
       if (placed !== null) {
         const word = placed.name.slice(placed.name.lastIndexOf('/') + 1);
-        return `${word} the ${placed.host.describeFor(viewer, 'handle')}`;
+        return `${word} ${placed.host.handlePhrase().definite()}`;
       }
       const here = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
       if (here === null) return 'nearby';
       if (container.stuffId === here.stuffId) return 'here';
       const holder = MixinApi.isContainable(container) ? container.getContainer() : null;
       if (holder !== null && holder.stuffId === here.stuffId) {
-        return `in the ${container.describeFor(viewer, 'handle')}`;
+        return `in ${container.handlePhrase().definite()}`;
       }
       return 'nearby';
     }

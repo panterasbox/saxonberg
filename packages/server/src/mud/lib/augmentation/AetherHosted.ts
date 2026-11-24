@@ -100,7 +100,7 @@ export function AetherHostedMixin<TBase extends MixinConstructor<Stuff>>(
     whereFor(viewer: Stuff): string {
       const host = this._host;
       if (host === null || host.stuffId === viewer.stuffId) return "";
-      const device = host.describeFor(viewer, "handle");
+      const device = host.handlePhrase().bare();
       const where = MixinApi.isContainable(host) ? host.whereFor(viewer) : "";
       if (where === "you're carrying" || where.startsWith("in your ")) return `on your ${device}`;
       return where ? `on the ${device} ${where}` : `on the ${device}`;

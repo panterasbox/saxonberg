@@ -34,11 +34,20 @@ export default class WhichController extends CommandController<WhichModel> {
     return lines;
   }
 
-  /** *buy — the counter here (`counter::buy`), the shelf here (`shelf::buy`)* */
+  /**
+   * A word that means two commands here, one line per meaning:
+   * *fire — Hold a loaded chamber at heat… — the hearth here (`hearth::fire`)*.
+   */
   private static collisionLines(a: WhichAnswer): string[] {
-    return (a.collisions ?? []).map(
-      (c) => `  ${c.verb} — ${c.sources.map((s) => `${WhichController.sourcePhrase(s)} (\`${s.scope}\`)`).join(', ')}`,
-    );
+    const lines: string[] = [];
+    for (const c of a.collisions ?? []) {
+      lines.push(`  ${c.verb} means ${c.meanings.length} different things here:`);
+      for (const m of c.meanings) {
+        const who = m.sources.map((x) => WhichController.sourcePhrase(x)).join(', ');
+        lines.push(`    ${m.description} — ${who} (\`${m.scope}\`)`);
+      }
+    }
+    return lines;
   }
 
   /** The terminal reply for a `which` answer. */
@@ -60,7 +69,11 @@ export default class WhichController extends CommandController<WhichModel> {
     if (clashes.length > 0) {
       // ⭐ Where a verb comes from when more than one thing gives it, and the
       // scope that picks one — a bare line tries each in turn.
-      lines.push(mode === 'thing' ? 'Also given here:' : 'More than one thing gives you (pick one with `thing::verb`):');
+      lines.push(
+        mode === 'thing'
+          ? "Its words mean something else here too (pick one with `thing::verb`):"
+          : 'One word, two commands (pick one with `thing::verb`):',
+      );
       lines.push(...clashes);
     }
     if (a.actsOn && a.actsOn.length > 0) lines.push(`What you can do to it: ${a.actsOn.join(', ')}`);

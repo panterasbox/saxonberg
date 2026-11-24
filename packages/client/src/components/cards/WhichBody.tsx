@@ -151,26 +151,25 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
   );
 }
 
-/** Verbs more than one thing gives, and the scope that picks each. */
+/** Words that mean two commands here, and the scope that picks each meaning. */
 function Collisions({ answer, clicks }: { answer: WhichAnswer; clicks: Clicks }): React.ReactElement | null {
   const list = answer.collisions ?? [];
   if (list.length === 0) return null;
   return (
-    <Details data-testid="which-collisions" open={answer.ask.mode !== "all"}>
-      <summary>
-        {answer.ask.mode === "thing" ? "also given here" : "more than one thing gives you"} ({list.length})
-      </summary>
+    <Details data-testid="which-collisions" open>
+      <summary>one word, two commands ({list.length})</summary>
       {list.map((c) => (
         <div key={c.verb}>
-          {c.verb} —{" "}
-          {c.sources.map((s, i) => (
-            <React.Fragment key={s.scope + i}>
-              {i > 0 ? ", " : null}
-              <VerbButton type="button" data-testid={`which-scope-${s.scope}`} onClick={() => clicks.type(s.scope)}>
-                {s.scope}
-              </VerbButton>
-              <Muted> {sourcePhrase(s)}</Muted>
-            </React.Fragment>
+          <strong>{c.verb}</strong>
+          {c.meanings.map((m) => (
+            <div key={m.scope}>
+              <VerbButton type="button" data-testid={`which-scope-${m.scope}`} onClick={() => clicks.type(m.scope)}>
+                {m.scope}
+              </VerbButton>{" "}
+              <Muted>
+                {m.description} — {m.sources.map(sourcePhrase).join(", ")}
+              </Muted>
+            </div>
           ))}
         </div>
       ))}

@@ -269,17 +269,40 @@ describe('which — what can I type here (W1)', () => {
       expect(g.source.name).toMatch(/the lever and the pull|the pull and the lever/);
     });
 
-    it('a verb two things give is a collision, each with the scope that picks it', async () => {
+    it('⭐ the same view from two things is ONE command, not a collision (owner)', async () => {
       lever();
       const p = makeStuff(() => new Lever());
       p.setShortDescription('a pull');
       p.setKeywords(['pull']);
       ContainmentApi.move(p, room);
       const a = await ask('switch');
-      const c = a.collisions?.find((x) => x.verb === 'switch');
-      expect(c?.sources.map((s) => s.scope).sort()).toEqual(['lever::switch', 'pull::switch']);
+      expect(a.collisions ?? []).toEqual([]);
+      // …and throw's three shapes from one body are one command too.
+      const t = await ask('throw');
+      expect(t.collisions ?? []).toEqual([]);
+    });
+
+    it('two views behind one word is a collision, each meaning with its scope', async () => {
+      // A fixture whose `switch` is a DIFFERENT view than the lever's.
+      class Dial extends Thing {
+        static override commandContributions = { peers: ['platform/cmd/device/draught.yaml'] };
+      }
+      class Vent extends Thing {
+        static override commandContributions = { peers: ['platform/cmd/device/draught-set.yaml'] };
+      }
+      const d = makeStuff(() => new Dial());
+      d.setShortDescription('a dial');
+      d.setKeywords(['dial']);
+      ContainmentApi.move(d, room);
+      const v = makeStuff(() => new Vent());
+      v.setShortDescription('a vent');
+      v.setKeywords(['vent']);
+      ContainmentApi.move(v, room);
+      const a = await ask('draught');
+      const c = a.collisions?.find((x) => x.verb === 'draught');
+      expect(c?.meanings.map((m) => m.scope).sort()).toEqual(['dial::draught', 'vent::draught']);
       const all = await ask();
-      expect(all.collisions?.some((x) => x.verb === 'switch')).toBe(true);
+      expect(all.collisions?.some((x) => x.verb === 'draught')).toBe(true);
     });
 
     it('which <thing> carries what you can do to it', async () => {
