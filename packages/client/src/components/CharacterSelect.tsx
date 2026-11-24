@@ -41,21 +41,25 @@ import { signOut } from "../services/auth";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
+import {
+  Screen as FrontScreen,
+  SectionLabel as FrontSectionLabel,
+  Panel as FrontPanel,
+} from "./front/Bands";
 import { Figure, UnbuiltGround } from "./ui";
 import { Seal } from "./frame/Seal";
 import type { FigureState } from "./ui";
 import { Tip } from "./tooltip/Tip";
 import { hoverDoc } from "./doc/docs";
 
-const Screen = styled.div`
+/*
+ * ⭐ The front page's parts (stream arrival D6): select is built of the
+ * same screen, label and panel as the front page, so the funnel reads as
+ * one place — extended here only where its layout differs.
+ */
+const Screen = styled(FrontScreen)`
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  max-width: 100vw;
-  overflow-x: hidden;
-  background: ${tokens.color.surfaceSunken};
-  color: ${tokens.color.fg};
-  font-family: ${tokens.font.family};
 `;
 
 /**
@@ -185,12 +189,7 @@ const Subhead = styled.p`
   color: ${tokens.color.fgMuted};
 `;
 
-const SectionLabel = styled.div`
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: ${tokens.color.sectionLabel};
+const SectionLabel = styled(FrontSectionLabel)`
   margin-bottom: ${tokens.space.md};
 `;
 
@@ -415,15 +414,8 @@ const CharacterMeta = styled.div`
   line-height: 1.5;
 `;
 
-const Panel = styled.div`
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+const Panel = styled(FrontPanel)`
   gap: ${tokens.space.xl};
-  padding: ${tokens.space.xl};
-  background: ${tokens.color.surface};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.md};
 `;
 
 const HatchedCard = styled(UnbuiltGround)`

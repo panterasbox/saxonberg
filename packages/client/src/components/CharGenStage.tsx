@@ -38,6 +38,7 @@ import { arrivalWatching, watchSuffix } from "../services/arrival";
 import { signOut } from "../services/auth";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
+import { SectionLabel as FrontSectionLabel } from "./front/Bands";
 import { UnbuiltGround } from "./ui/UnbuiltGround";
 import { Terminal } from "./Terminal";
 import { CommandBar } from "./CommandBar";
@@ -263,11 +264,10 @@ const FieldGroup = styled.div<{ $muted?: boolean }>`
   opacity: ${(p) => (p.$muted ? 0.45 : 1)};
 `;
 
-const FieldGroupHeading = styled.div`
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: ${tokens.color.fgMuted};
+/* ⭐ The front page's section label (stream arrival D6), so creation's
+   headings read in the same engraved voice as the page that led here. */
+const FieldGroupHeading = styled(FrontSectionLabel)`
+  margin-bottom: 0;
 `;
 
 /* --- Illustrated step: cards + detail card ------------------------ */
