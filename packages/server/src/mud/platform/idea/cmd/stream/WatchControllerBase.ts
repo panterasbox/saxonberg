@@ -205,11 +205,7 @@ export abstract class WatchControllerBase extends CommandController<WatchModel> 
       return;
     }
     // ⭐ The one personal writer (stream arrival D4) — an arrival uses it too.
-    if (MixinApi.isSaxonbergClient(host)) host.showPersonalStream(target);
-    else {
-      host.setClientState(WATCH_KEY, target);
-      host.pushClientStateUpdate(WATCH_KEY, target);
-    }
+    host.showPersonalStream(target);
     this.send(context, Mml.fromMarkup(`\nWatching ${label}.\n`));
   }
 
