@@ -249,7 +249,7 @@ export class TestHarnessApi {
    * burn or a caustic sealed, which never regrows (organism-biology D7).
    */
   @TestOnly('In a test world, sever a part with `testharness body-sever <target> <part> [heat|corrosion]`.')
-  public static severBodyPart(body: string, part: string, sealedBy: 'heat' | 'corrosion' | null = null): Promise<BodyWoundReport> {
+  public static severBodyPart(body: string, part: string, sealedBy: string | null = null): Promise<BodyWoundReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'severBodyPart', async () =>
       logic().severBodyPart(body, part, sealedBy),
     );

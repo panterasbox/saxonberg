@@ -585,7 +585,13 @@ export class TestHarnessLogic extends ApiLogic {
    * whatever a sever does in play all happen. Never a woundless loss.
    */
   @CallSecurity(TestHarnessApiCallers)
-  public async severBodyPart(handle: string, part: string, sealedBy: 'heat' | 'corrosion' | null = null): Promise<BodyWoundReport> {
+  public async severBodyPart(handle: string, part: string, sealedByWord: string | null = null): Promise<BodyWoundReport> {
+    // ⭐ What sealed the stump is the logic's to judge, not the controller's
+    // (one act per controller): `heat` or `corrosion`, else a usage error.
+    if (sealedByWord !== null && sealedByWord !== 'heat' && sealedByWord !== 'corrosion') {
+      throw new Error('testharness body-sever: a stump is sealed by `heat` or `corrosion`');
+    }
+    const sealedBy: 'heat' | 'corrosion' | null = sealedByWord;
     const body = await this.bodyByHandle(handle, 'body-sever');
     if (!MixinApi.isVitals(body)) throw new Error(`testharness body-sever: '${body.getPresentation()}' has no vitals`);
     const p = body.getPart(part);

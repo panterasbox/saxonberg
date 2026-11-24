@@ -425,6 +425,7 @@ Corpo.sector = 0
 Corpo.temperament = 0
 Corpse.conditionAtDeath = 0
 Corpse.ofIdentityPath = 2
+Corpse.takenKg = 0
 Corpse.takenLines = 0
 Corpse.takenTissues = 0
 CostumedMixin._costumeWorn = 0

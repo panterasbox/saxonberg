@@ -6034,13 +6034,13 @@
       "adult": [
         {
           "row": "/trade/fishing/thing/blubber",
-          "units": 257,
-          "kgEach": 40
+          "units": 10,
+          "kgEach": 1028.1
         },
         {
           "row": "/trade/fishing/thing/whale-meat",
-          "units": 589,
-          "kgEach": 25.01
+          "units": 29,
+          "kgEach": 507.9
         },
         {
           "row": "/stuff/thing/items/offal",
@@ -6049,8 +6049,8 @@
         },
         {
           "row": "/trade/fishing/thing/spermaceti",
-          "units": 333,
-          "kgEach": 14.99
+          "units": 50,
+          "kgEach": 99.86
         },
         {
           "row": "/trade/fishing/thing/whale-tooth",
