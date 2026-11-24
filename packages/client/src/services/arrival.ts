@@ -22,7 +22,7 @@
  * the buttons; the carrier both starts the video and orders them.
  */
 
-import type { ArrivalDoor, ProgramCarrier } from "@saxonberg/types";
+import type { ArrivalDoor, ProgramCarrier, ProgramListing, WatchTarget } from "@saxonberg/types";
 
 /** What the tab knows of how the visitor arrived. */
 export interface Arrival {
@@ -143,4 +143,22 @@ export function providerOrder(
 export function withDoor(url: string, a: Arrival = arrival()): string {
   if (!a.door) return url;
   return `${url}${url.includes("?") ? "&" : "?"}from=${a.door}`;
+}
+
+/**
+ * ⭐ The video a program's listing plays on `carrier` — field for field the
+ * target the server writes when the character arrives watching (D4), so the
+ * player's `src` does not change at the one moment this build protects.
+ * Null when the program has no feed there.
+ */
+export function targetOfListing(
+  listing: ProgramListing | null | undefined,
+  carrier: ProgramCarrier | null,
+): WatchTarget | null {
+  if (!listing || !carrier) return null;
+  const channel = listing.feeds[carrier];
+  if (!channel) return null;
+  return carrier === "youtube"
+    ? { platform: "youtube", channelId: channel }
+    : { platform: carrier, channel };
 }

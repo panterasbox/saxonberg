@@ -18,6 +18,7 @@ import {
 import { registerReactionHandlers } from "./store/reactionActions";
 import { registerForumHandlers } from "./store/forumActions";
 import { withDoor, rememberProvider } from "./services/arrival";
+import { StreamPlayer } from "./components/embed/StreamPlayer";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Rail } from "./components/frame/Rail";
@@ -838,6 +839,9 @@ function App() {
   return (
     <>
       {screen}
+      {/* ⭐ The ONE stream player (stream arrival D3) — a sibling of every
+          screen, so no phase or layout change ever reloads its video. */}
+      <StreamPlayer />
       <TooltipLayer onCommandClick={handleCommandClick} onCommandPreview={handleCommandPreview} />
     </>
   );
