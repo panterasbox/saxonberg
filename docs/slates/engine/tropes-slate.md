@@ -6,6 +6,8 @@
 > model operations that produce facts · the detector · the first roster (§ 6) · the author surfaces —
 > *could fire here*, *has fired here*, the gap report · the escalation to a quest · moving today's
 > hard-coded writers onto tropes · activity credit onto the rows the acts load
+> **Left (roster):** § 6 — twelve ready, five waiting on one small fact each, the helping and
+> deception families waiting on facts the world does not record.
 > **Size:** a build, probably two (the substrate with a first roster; the author surfaces)
 
 ## 0. The ask
@@ -132,16 +134,99 @@ narratives now."*
    gap); per trope (what is missing to stage it here, and where it has fired) — where authors already
    work: the CMS, and an author-side command beside `which`.
 
-## 6. The starting roster
+## 6. The starting roster **[DRAFT, 2026-11-24]**
 
-*(To be filled from the fact survey — § 1's sources first: harm with consent, money, contracts, work
-finished or abandoned. Drafted 2026-11-24.)*
+Grounded in a survey of what the engine records **today** (each producer confirmed in non-test code).
+Names borrow TV Tropes' where players know them (§ 7); every definition is ours. Magnitudes are dials,
+not shown.
+
+### Ready — the facts are already recorded
+
+| trope | roles | fires on | writes | replaces |
+|---|---|---|---|---|
+| **The Gift** (blood) | giver | a blood donation | giver: generosity up | the `Blood.ts` constant |
+| **Answering the Call** | giver; the need | a donation while the bank's stock is short | giver: compassion up | the same constant's `named` arm |
+| **The Gift** (goods) | giver, receiver | a title transfer, consented, with no sale in the same transaction (`chattel_events`) | giver: generosity up; receiver: regard for the giver up | — |
+| **The Gift** (money) | giver, receiver | `pay` to a person — a `transfer` leg, no sale, no contract | giver: generosity up | — ⚠ intent: a `pay` may be settling a debt |
+| **Murder in Plain Sight** | killer, victim, witnesses | a death, not consented, the killer named (`accountability_events`) | killer: compassion down; witnesses: regard for the killer down | `CombatLogic`'s −20 |
+| **The Fair Fight** | victor, opponent, witnesses | a consented fight won | victor: boldness up; witnesses: regard up | `CombatLogic`'s +2 |
+| **Sparing the Yielded** | victor, the yielded | a fight ended by a yield, the yielded left alive | victor: forgiveness and compassion up | — |
+| **The Broken Promise** | contractor, issuer | a breach by abandonment or expiry (`contract_events`) | contractor: constancy down (fickle); issuer: regard down | `ContractLogic`'s −15 |
+| **The Word Kept** | contractor, issuer | a contract fulfilled | contractor: constancy up; issuer: regard up | — |
+| **Abandoning Ship** | master, those left aboard | abandonment at sea (`Ship.ts`) | master: compassion and constancy down | — |
+| **Pet the Dog** | carer, animal | petting or hand-feeding a creature | carer: warmth and compassion up — ⚠ diminishing with repetition | — |
+| **The Bad Meal** | feeder, animal | hand-feeding that sickens the animal | feeder: regard of the animal down (as today) — no trait: intent unknown | `Bonded.ts`'s penalty |
+
+### Ready once one small fact is recorded
+
+| trope | the missing fact |
+|---|---|
+| **The Tip** — generosity up | a tip rides a plain transfer with the memo *"a tip"*; it wants its own ledger category |
+| **Light-Fingered** — honesty down; the owner's regard down when they learn it | picking up a good you hold no title to is allowed and **names no taker** — the taking wants a record |
+| **Returning the Wallet** — honesty up; the owner's regard up | handing a good back to its titled owner (`give` records nothing today) |
+| **Run Away** — boldness down; companions left behind: their regard down | fleeing a fight writes nothing |
+| **Walking Off the Job** — patience and diligence down | an abandoned engagement is held in memory only, never stored |
+
+### Waiting on facts the world does not record at all
+
+- **The Good Samaritan** — helping a stranger who is hurt: tending, treating, operating and rescue
+  (breathing someone back from drowning) leave no record; the transfusion's revival deed is
+  unreachable (its only caller never says who gave the blood — a defect worth its own fix).
+- **False Friend** and every deception trope — no record of a false claim or a planted belief.
+- **Mercy Kill**, **Took a Bullet for Him**, **Heroic Sacrifice** — need a consented-death request and
+  an interposition fact.
+
+### What the roster taught
+
+1. ⭐ **A fact without a known intent fires no trope.** Harmful food named to its maker, or a trap that
+   catches someone, could be malice or carelessness; the trope may write the victim's regard, never
+   the actor's character. Tropes interpret context — they do not invent it.
+2. **A trope characterizes the actor of an act, never the receiver of a reaction.** Applause already
+   writes renown; it says nothing about the applauded person's character.
+3. **Repetition must diminish** (*Pet the Dog* is a farming vector) — trait-slate's denominator,
+   arriving at the first roster.
+4. **Witnesses must be on the fact.** Today a fight's witnesses are computed in the moment and never
+   stored; a trope that writes the social layer needs them recorded with the fact.
+5. **The ledgers name accounts, not people** — a trope resolves an account to its owner before it can
+   cast a role.
+6. ⚠ **Regard is an overwritten number, not an evidence log.** If tropes become the writers of regard,
+   it may want to become derived from a ledger the way traits are — an open question, not a ruling.
 
 ## 7. Reference material — TV Tropes and the older catalogs
 
-*(To be filled.)* The owner: TV Tropes is reference material for our own catalog *"the way
-wikipedia is for other game concepts like materials"* — not a wiki we host, and the online world
-need not agree with our definitions: *"it was just a random idea to spice things up."*
+The owner: TV Tropes is reference material for our own catalog *"the way wikipedia is for other game
+concepts like materials"* — not a wiki we host, and the online world need not agree with our
+definitions: *"it was just a random idea to spice things up."* A research pass (2026-11-24; the site
+refused automated fetches, so its pages were not read directly) found:
+
+- **Mostly not about acts.** Roughly 30K tropes (Gala et al. 2020's crawl); by impression well under a
+  tenth describe something one person does to or for another. Most are narrative structure, genre,
+  presentation and audience reaction, and even the character tropes are mostly TYPES (*the Mentor*)
+  rather than ACTS. Its definitions are framed by narrative function (*"to show the audience X is
+  evil"*), so every one we borrow is restated as the act itself — actor, target, cost, witness.
+- **What it is good for:** the **vocabulary** — names players already know (*Kick the Dog*, *Pet the
+  Dog*, *Save the Cat*, *Good Samaritan*, *Honor Among Thieves*, *Even Evil Has Standards*, *Back
+  Stab*, *Mercy Kill*, *Shoot the Dog*, *Disproportionate Retribution*, *False Friend*) — and its
+  **"playing with a trope"** variations (inverted, subverted, averted …), a ready generator of role
+  swaps and near-misses for a trope's edge cases. Its **character-tropes index** and its sub-indexes
+  (morality, goodness, evil, bravery, selflessness, loyalty) are where to look.
+- ⛔ **The license: CC BY-NC-SA 3.0** (since 2012). The non-commercial clause is incompatible with this
+  project, so **no text is copied** — definitions, one-liners or examples. **Names and concepts are
+  free** (ideas and short phrases are not copyrightable, and many names predate the site: *Save the
+  Cat* is Blake Snyder's, *Good Samaritan* the Bible's). Every definition is our own writing.
+  (All The Tropes, a fork under CC BY-SA 4.0, is a commercial-friendly name reference.)
+- **Better-structured catalogs, for the act taxonomy:**
+  - ⭐ **Thompson's *Motif-Index of Folk-Literature*** — a hierarchical code system whose chapters on
+    traits of character (W: kindness, and the unfavorable traits such as greed and cruelty), rewards
+    and punishments (Q: kindness rewarded, misdeeds punished), deceptions (K) and society (P) map
+    nearly onto the trait axes. *(Chapter codes recalled, not yet checked against the text.)*
+  - **Propp's 31 functions** — acts defined by their consequence, with fixed roles; close to our role
+    model, narrow to the fairy-tale arc; the quest slate's lineage.
+  - **Polti's 36 dramatic situations** — situations with role slots; a coarse source for multi-role
+    patterns — the quest-sized end of the catalog.
+- **The lean [LEAN]:** take the **act taxonomy from Thompson** (W, Q, K, P), the **multi-role, quest
+  end from Propp and Polti**, and **borrow TV Tropes' names** where players already know them, writing
+  every definition ourselves.
 
 ## 8. Open
 
