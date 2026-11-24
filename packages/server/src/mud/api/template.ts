@@ -319,9 +319,9 @@ export class TemplateApi {
    * hydration failure.
    */
   /**
-   * ⭐ The app store (stream arrival D21): every published `App` row, any
-   * pack's, keyed by its leaf — what `apps` lists and `apps install`
-   * installs. Read lazily, the first time it is asked.
+   * ⭐ The app store (stream arrival D21): the apps packs published with an
+   * `app-listing` document, by the listing's word — what `apps` lists and
+   * `apps install` installs.
    */
   public static appStore(): AppStore {
     return StuffApi.singletonSync(APP_STORE, () => new AppStore());

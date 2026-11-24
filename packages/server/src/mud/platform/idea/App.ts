@@ -21,21 +21,8 @@
 import { Idea } from "../../lib/stuff/Idea";
 import { AetherHostedMixin } from "../../lib/augmentation/AetherHosted";
 import { TemplatePaths } from "../../lib/paths";
-import type { FieldMeta } from "../../lib/mixin";
 
 export default class App extends AetherHostedMixin(Idea) {
   /** The Messages row — the app the person's comms looks for. */
   static readonly MESSAGES_PATH = TemplatePaths.messagesApp;
-
-  /**
-   * ⚠ Authored on the row and declared so the template phase applies it.
-   * The store itself reads the ROW (`AppStore`), so an app instance never
-   * consults this — it is declared so the row field is a known one.
-   */
-  static fieldMeta: FieldMeta = {
-    published: { persistent: true, authorable: true },
-  };
-
-  /** Authored: in the app store (stream arrival D21). */
-  published = false;
 }

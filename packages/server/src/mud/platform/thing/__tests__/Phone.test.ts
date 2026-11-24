@@ -175,9 +175,6 @@ describe('Phone', () => {
     }
     const appFields = MixinApi.getAllPersistentFields(App as unknown as AnyConstructor);
     expect(appFields).toContain('appName');
-    // ⚠ The store reads `published` off the ROW; it is declared so the row's
-    // field is a known one (stream arrival D21).
-    expect(appFields).toContain('published');
     // `offersApps` retired — the store is the published rows (D21).
     expect(fields).not.toContain('offersApps');
   });

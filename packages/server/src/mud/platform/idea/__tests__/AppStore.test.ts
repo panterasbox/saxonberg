@@ -1,45 +1,38 @@
 /**
- * AppStore — the one app store (stream arrival D21): every row that
- * publishes itself (`published: true`) and whose class is an `App`, by its
- * own name — WHEREVER it is filed. Unpublished rows (the person's own
- * wallet, calendar, forums) are never in it; an app filed under no `app/`
- * branch is; two published apps with one name are reported and neither is
- * installable; a row whose class is not an app is not an app.
+ * AppStore — the one app store (stream arrival D21): the apps packs
+ * PUBLISHED, one `app-listing` document each, by the listing's word. An app
+ * not listed (the person's own wallet) is not in it; a listing that names
+ * no App row is refused as malformed; nothing searches the template table.
  */
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { Template } from '../../../lib/stuff/Template';
-import { StuffApi } from '../../../api/stuff';
+import { DocumentApi } from '../../../api/document';
 import { TemplateApi } from '../../../api/template';
-import App from '../App';
-import ForumsApp from '../ForumsApp';
-import BroadcastApp from '../BroadcastApp';
+import { Template } from '../../../lib/stuff/Template';
+import { StoredDocument } from '../../../lib/document/StoredDocument';
 
-type Row = { path: string; class: string; data: Record<string, unknown> };
-let rows: Row[];
+function listing(path: string, app: unknown): StoredDocument {
+  const d = new StoredDocument();
+  d.path = path;
+  d.kind = 'app-listing';
+  d.data = { app };
+  return d;
+}
 
-const CLASSES: Record<string, unknown> = {
-  '/platform/idea/App': App,
-  '/platform/idea/ForumsApp': ForumsApp,
-  '/platform/idea/BroadcastApp': BroadcastApp,
-  '/platform/idea/Biome': class NotAnApp {},
-};
+let docs: StoredDocument[];
 
 beforeEach(() => {
   TemplateApi.appStore().forget();
-  rows = [
-    { path: '/platform/idea/app/messages', class: '/platform/idea/App', data: { appName: 'Messages', published: true } },
-    { path: '/platform/idea/app/broadcast', class: '/platform/idea/BroadcastApp', data: { appName: 'Broadcast', published: true } },
-    { path: '/platform/idea/app/wallet', class: '/platform/idea/App', data: { appName: 'Wallet', published: false } },
-    // ⭐ Filed nowhere near an `app/` branch: still an app, still published.
-    { path: '/trade/games/thing/board-game-kit', class: '/platform/idea/App', data: { appName: 'Chess', published: true } },
-    // Says published, but its class is no app.
-    { path: '/stuff/idea/app/weather', class: '/platform/idea/Biome', data: { published: true } },
+  docs = [
+    listing('/platform/apps/messages', '/platform/idea/app/messages'),
+    listing('/platform/apps/broadcast', '/platform/idea/app/broadcast'),
+    listing('/trade/games/apps/chess', '/trade/games/idea/chess-app'),
   ];
-  vi.spyOn(Template, 'findWhereDataHas').mockImplementation((async (field: string) =>
-    rows.filter((r) => field in r.data)) as never);
-  vi.spyOn(StuffApi, 'loadClassByPath').mockImplementation((async (p: string) => CLASSES[p]) as never);
+  vi.spyOn(DocumentApi, 'listOfKind').mockImplementation((async (kind: string) =>
+    docs.filter((d) => d.getKind() === kind)) as never);
+  vi.spyOn(DocumentApi, 'findByKey').mockImplementation((async (_k: string, _key: string, q: { eq: string }) =>
+    docs.filter((d) => d.getPath().endsWith(`/${q.eq}`))) as never);
 });
 
 afterEach(() => {
@@ -48,31 +41,29 @@ afterEach(() => {
 });
 
 describe('the app store', () => {
-  it('lists the apps that publish themselves, wherever filed — and nothing unpublished or not an app', async () => {
-    const keys = (await TemplateApi.appStore().published()).map((a) => a.key);
-    expect(keys).toEqual(['broadcast', 'chess', 'messages']);
+  it('lists what the packs published, in key order', async () => {
+    expect((await TemplateApi.appStore().published()).map((a) => a.key)).toEqual(['broadcast', 'chess', 'messages']);
   });
 
-  it('looks a key up by the app\'s own name', async () => {
+  it('looks a key up by its word, and names the App row to install', async () => {
     expect(await TemplateApi.appStore().lookup('Broadcast')).toEqual({
       found: { key: 'broadcast', path: '/platform/idea/app/broadcast' },
     });
     expect(await TemplateApi.appStore().lookup('wallet')).toEqual({ missing: true });
   });
 
-  it('two published apps with one name: reported by both rows, neither installable', async () => {
-    rows.push({ path: '/trade/games/idea/app/messages', class: '/platform/idea/App', data: { appName: 'Messages', published: true } });
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    expect(await TemplateApi.appStore().lookup('messages')).toEqual({
-      collision: ['/platform/idea/app/messages', '/trade/games/idea/app/messages'],
-    });
-    expect((await TemplateApi.appStore().published()).map((a) => a.key)).not.toContain('messages');
-    expect(warn).toHaveBeenCalled();
+  it('a listing that names no App row is malformed', () => {
+    expect(() => TemplateApi.appStore().parse({ app: 'messages' }, '/platform/apps/x')).toThrow(/App row/);
   });
 
-  it('reads the table once, lazily', async () => {
+  it('never searches the template table', async () => {
+    const scans = [
+      vi.spyOn(Template, 'findByPathInfix'),
+      vi.spyOn(Template, 'findWhereDataHas'),
+      vi.spyOn(Template, 'findByClass'),
+    ];
     await TemplateApi.appStore().published();
     await TemplateApi.appStore().lookup('chess');
-    expect(Template.findWhereDataHas).toHaveBeenCalledTimes(1);
+    for (const s of scans) expect(s).not.toHaveBeenCalled();
   });
 });

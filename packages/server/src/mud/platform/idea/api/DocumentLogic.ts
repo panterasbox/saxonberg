@@ -903,6 +903,7 @@ async function pagesOfImpl(path: string): Promise<DocumentPages | null> {
     case 'lower-third-panel':
     case 'stream-token': // ⛔ a credential is never paper
     case 'program': // a register row; the broadcasting build may print a bill
+    case 'app-listing':
       return null;
     default: {
       const unreachable: never = kind;

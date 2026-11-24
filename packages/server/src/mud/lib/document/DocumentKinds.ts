@@ -350,6 +350,17 @@ export const DOCUMENT_KINDS = {
    * `saveProgram` transport — the owner holds the pen on the title, never
    * on a feed (*you file; you do not hold the pen*).
    */
+  /**
+   * An **app listing** — a pack PUBLISHING an app to the one app store
+   * (stream arrival D21): `content/apps/<key>.yaml`, naming the `App` row a
+   * device installs (`app:`). The listing's leaf is the word `apps install
+   * <key>` types, so a second pack listing the same word is refused AT
+   * INSTALL — the collision is settled when the app is published, never
+   * discovered later. Served by `AppStore` (`TemplateApi.appStore()`);
+   * unlisted apps (the person's own wallet, calendar, forums) are never in
+   * the store.
+   */
+  'app-listing': { kind: 'app-listing', catalogue: '/platform/idea/AppStore', words: leafWord, contentDir: 'apps', ext: 'yaml', onVanish: 'delete' },
   program: { kind: 'program', catalogue: '/platform/idea/ProgramCatalogue', contentDir: 'programs', ext: 'yaml', onVanish: 'keep' },
   map: { kind: 'map', contentDir: 'maps', ext: 'yaml', onVanish: 'keep' },
   /**

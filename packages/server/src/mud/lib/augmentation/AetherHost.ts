@@ -23,7 +23,8 @@
  * `installApp(path)` is the ONE way software gets onto any host: it
  * clones the row, hosts it and records it — the default loadout uses it
  * too. What `apps install` offers is the ONE app store (stream arrival
- * D21: every published `App` row, `TemplateApi.appStore()`) — not a list
+ * D21: the apps packs PUBLISHED with an `app-listing` document,
+ * `TemplateApi.appStore()`) — not a list
  * on each device; a person's own wallet, calendar and forums are never in
  * it. `manifestsAs` is how what
  * arrives through this host shows: `known` (straight to the mind — an
@@ -95,9 +96,8 @@ export interface AetherHost {
   getManifestsAs(): AetherManifestation;
   /**
    * Install the store's app whose key is `key` (`apps install <key>`).
-   * An unknown or unpublished key answers with what the store offers; a
-   * key two packs publish answers `collision`, naming both; an app already
-   * installed answers `already`.
+   * An unknown or unlisted key answers with what the store offers; an app
+   * already installed answers `already`.
    */
   installByKey(key: string): Promise<AppInstallResult>;
 }
@@ -105,7 +105,7 @@ export interface AetherHost {
 /** What `installByKey` did. */
 export type AppInstallResult =
   | { ok: true; app: Stuff & AetherHosted; already: boolean }
-  | { ok: false; offered: readonly string[]; collision?: readonly string[] };
+  | { ok: false; offered: readonly string[] };
 
 /** An app's key is the last segment of its row path (`…/app/messages`). */
 function appKeyOf(path: string): string {
@@ -255,10 +255,9 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (installed !== undefined) {
         return { ok: true, app: await this.installApp(installed), already: true };
       }
-      const offered = (await this.availableApps()).map(appKeyOf);
-      return 'collision' in found
-        ? { ok: false, offered, collision: found.collision }
-        : { ok: false, offered };
+      const store = await TemplateApi.appStore().published();
+      const installedNow = new Set(this.installedApps);
+      return { ok: false, offered: store.filter((a) => !installedNow.has(a.path)).map((a) => a.key) };
     }
   }
   return AetherHostMixin;

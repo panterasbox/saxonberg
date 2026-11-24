@@ -10,7 +10,8 @@
  *
  * Reaches its bearer through the device (`CommandLogic.lendHostedApps`,
  * D16); a device that will not run still lends the verb so it can say why.
- * Row: `/platform/idea/app/broadcast` (`published: true` — in the store).
+ * Row: `/platform/idea/app/broadcast`; listed in the store by the platform
+ * pack's `content/apps/broadcast.yaml`.
  */
 
 import App from './App';

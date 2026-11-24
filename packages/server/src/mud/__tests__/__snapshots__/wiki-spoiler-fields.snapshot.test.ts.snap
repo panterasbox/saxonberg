@@ -44,7 +44,6 @@ AmbientLitMixin.ambientColorTemperature = 0
 AmbientLitMixin.ambientIntensity = 0
 AmbientLitMixin.ambientOpening = 0
 AmbientLitMixin.ambientSource = 0
-App.published = 0
 AppSettings.values = 0
 ArcaneMixin.carriedSpellPath = 0
 ArcaneMixin.declaredAddresses = 0

@@ -5,5 +5,3 @@
 class: /platform/idea/App
 data:
   appName: Messages
-  # In the app store (stream arrival D21): any device can install it.
-  published: true
