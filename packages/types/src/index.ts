@@ -3221,6 +3221,17 @@ export const STREAM_PANEL_WHENS: readonly StreamPanelWhen[] = [
   "client",
 ];
 
+/**
+ * ⭐ The door a visitor came in by (stream arrival D7): the carrier they
+ * watched on (`twitch` · `youtube` · `kick`), or `stream` — Rodney's one
+ * on-screen card and QR, sent to every carrier, which means Twitch unless
+ * the referrer names another. A closed vocabulary; anything else is no door.
+ */
+export type ArrivalDoor = "twitch" | "youtube" | "kick" | "stream";
+
+/** The four door words. */
+export const ARRIVAL_DOORS: readonly ArrivalDoor[] = ["twitch", "youtube", "kick", "stream"];
+
 /** A carrier a program's video may be on (stream arrival). */
 export type ProgramCarrier = "twitch" | "youtube" | "kick";
 

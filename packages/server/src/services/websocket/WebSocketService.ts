@@ -157,13 +157,14 @@ export class WebSocketService {
         `WebSocketService: WebSocket upgrade successful - userId=${userId}, sessionId=${sessionId}`
       );
 
-      // Delegate to Backend. `?from=stream` is the show's tagged link
-      // (D7) — a closed vocabulary, anything else is no door at all.
+      // Delegate to Backend. `?from=` is the door a tagged link names
+      // (stream arrival D7) — a closed vocabulary, anything else is none.
       const from = this.readQueryParam(request.url, 'from');
       this.backend.handleWebSocketConnect(ws, userId, sessionId, {
         kind: 'player',
         clientIp,
-        arrivedFrom: from === 'stream' ? 'stream' : null,
+        // The Interactive keeps only the four door words (D7).
+        arrivedFrom: from,
       });
     });
   }

@@ -36,6 +36,7 @@
 import type { Express, Request, Response } from 'express';
 import type { Application } from '../../backend/Application';
 import { TestHooks, type TestLinkedAccounts } from '../../backend/TestHooks';
+import { AuthRoutes } from './AuthRoutes';
 
 const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
 
@@ -163,6 +164,47 @@ export class TestAuthRoutes {
         // handle, created and run by the character — typed, not granted.
         body?.streamer === true,
         linked
+      );
+    });
+
+    // ⭐ The sign-in RETURN (stream arrival D8): a real navigation back to the
+    // client, the way a provider's callback lands — signed in as
+    // `test-login` signs in, then the SAME `AuthRoutes.finishSignIn`. The
+    // browser walk routes `/auth/<provider>` here with a 302, so the page
+    // really leaves and really comes back. No seam that `fetch`es can test
+    // that the client resumes from its own tab storage. A navigation sends
+    // no header, so a configured token rides the query.
+    app.get('/auth/test-return', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.query.token !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const handle = typeof req.query.handle === 'string' ? req.query.handle : 'default';
+      const provider = req.query.provider;
+      if (provider !== 'google' && provider !== 'twitch' && provider !== 'kick') {
+        res.status(400).json({ error: 'provider must be google, twitch or kick' });
+        return;
+      }
+      const withCharacter = req.query.character === '1';
+      void TestHooks.authenticate(
+        application,
+        handle,
+        (err, user) => {
+          if (err || !user) {
+            console.error('TestAuthRoutes: test-return failed:', err);
+            res.status(500).json({ error: 'test-return failed' });
+            return;
+          }
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              console.error('TestAuthRoutes: req.login failed:', loginErr);
+              res.status(500).json({ error: 'session establishment failed' });
+              return;
+            }
+            AuthRoutes.finishSignIn(res, provider);
+          });
+        },
+        withCharacter
       );
     });
 

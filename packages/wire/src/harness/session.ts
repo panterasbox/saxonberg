@@ -53,6 +53,7 @@ import type {
   StuffRefRecord,
   StuffDetailRecord,
   StuffDetailFocusRecord,
+  ArrivalDoor,
 } from '@saxonberg/types';
 import { countProseRead } from './registry';
 import { assertPacksPresent } from './world';
@@ -459,7 +460,7 @@ export class Session {
   static async embody(
     handle: string,
     picks: { species?: string; name?: string; pronouns?: string } = {},
-    door: { from?: 'stream' } = {}
+    door: { from?: ArrivalDoor } = {}
   ): Promise<Session> {
     await assertPacksPresent();
     const cookie = await login(handle, { withCharacter: false });

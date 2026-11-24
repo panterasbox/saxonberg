@@ -42,6 +42,7 @@
 
 import React, { useState } from "react";
 import styled from "styled-components";
+import { withDoor } from "../services/arrival";
 import { SERVER_URL, WS_URL } from "../config";
 import { websocketClient } from "../services/websocket";
 import { useStore } from "../store/index";
@@ -534,7 +535,7 @@ function DevLogin() {
       // "Skip to world" provisioned a character, so flag the auto-enter
       // for CharacterSelect; "New character" has none → char-gen.
       if (withCharacter) useStore.getState().setAutoEnterPending(true);
-      websocketClient.connect(WS_URL);
+      websocketClient.connect(withDoor(WS_URL));
     } catch {
       setBusy(false);
     }
@@ -605,7 +606,7 @@ export const StartScreen: React.FC = () => {
       // terminal — the guest never passes through the character-select
       // phase (no roster flash). On failure the connection state machine
       // drives the phase back here.
-      websocketClient.connect(WS_URL);
+      websocketClient.connect(withDoor(WS_URL));
     } catch {
       setGuestBusy(false);
     }

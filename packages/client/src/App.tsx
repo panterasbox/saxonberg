@@ -17,6 +17,7 @@ import {
 } from "./store/index";
 import { registerReactionHandlers } from "./store/reactionActions";
 import { registerForumHandlers } from "./store/forumActions";
+import { withDoor, rememberProvider } from "./services/arrival";
 import { SERVER_URL, WS_URL } from "./config";
 import { websocketClient } from "./services/websocket";
 import { Rail } from "./components/frame/Rail";
@@ -367,6 +368,9 @@ function App() {
     const authResult = params.get("auth");
 
     if (authResult === "success") {
+      // ⭐ The method that WORKED (stream arrival D2) — remembered only on
+      // a sign-in that succeeded, never on a click; it orders the buttons.
+      rememberProvider(params.get("via"));
       // Remove query param from URL
       window.history.replaceState({}, "", window.location.pathname);
 
@@ -384,7 +388,7 @@ function App() {
     // longer a REST-only takeover tab to special-case.
     if (auth.isAuthenticated && !connection.isConnected) {
       console.info("App: Authenticated - connecting to WebSocket...");
-      websocketClient.connect(WS_URL);
+      websocketClient.connect(withDoor(WS_URL));
     }
   }, [auth.isAuthenticated, connection.isConnected]);
 

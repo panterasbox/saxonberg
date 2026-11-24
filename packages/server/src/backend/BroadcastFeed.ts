@@ -220,7 +220,8 @@ export class BroadcastFeed {
           type: 'stream-event',
           kind: 'new-player',
           name,
-          fromStream: arrivedFrom === 'stream',
+          // Any door — a carrier's tagged link or Rodney's (stream arrival D7).
+          fromStream: arrivedFrom !== null,
         };
         for (const socketId of this.connections.keys()) this.send(socketId, envelope);
       },
