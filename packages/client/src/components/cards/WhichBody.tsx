@@ -114,14 +114,14 @@ const REACH_WORDS: Record<WhichVerb["reach"], string> = {
  * and why it is greyed when it is.
  */
 function verbDoc(v: WhichVerb | string): TooltipDoc {
-  if (typeof v === "string") return { header: { icon: "verb.types", name: v, kindWord: "verb" }, hint: "Click to type it" };
+  if (typeof v === "string") return { header: { icon: "verb.types", name: v, kindWord: "verb" } };
   const facts: TooltipFact[] = [];
   if (v.from) facts.push({ icon: "verb.mixin", label: "given by", value: v.from, source: "client" });
   facts.push({ icon: `reach.${v.reach === "beside" ? "here" : v.reach}`, label: "reaches you", value: REACH_WORDS[v.reach], source: "client" });
   facts.push({ icon: "verb.view", label: "view", value: v.view, source: "client" });
   if (v.category) facts.push({ icon: "verb.category", label: "category", value: v.category, source: "client" });
   if (v.state === "disabled" && v.reason) facts.push({ icon: "verb.off", label: "not now", value: v.reason, source: "client" });
-  return { header: { icon: "verb.types", name: v.verb, kindWord: "verb" }, prose: v.description, facts, hint: "Click to type it" };
+  return { header: { icon: "verb.types", name: v.verb, kindWord: "verb" }, prose: v.description, facts };
 }
 
 /**
