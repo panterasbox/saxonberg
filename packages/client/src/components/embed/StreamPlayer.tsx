@@ -64,7 +64,7 @@ const Box = styled.div`
   position: fixed;
   z-index: 40;
   background: ${tokens.color.surfaceSunken};
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 4px 18px ${tokens.color.shadow};
   border-radius: 6px;
   overflow: hidden;
 
@@ -94,8 +94,8 @@ const Control = styled.button`
   font-family: ${tokens.font.mono};
   font-size: ${tokens.font.small};
   color: ${tokens.color.fg};
-  background: rgba(0, 0, 0, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: ${tokens.color.scrim};
+  border: 1px solid ${tokens.color.borderMuted};
   border-radius: 4px;
   padding: 2px 8px;
   cursor: pointer;
