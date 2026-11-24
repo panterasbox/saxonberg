@@ -861,17 +861,17 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⚠ A named animal is not a cold object. Residency evicts a quiet
-     * tail; an animal somebody owns and has named is exactly the thing
-     * that must still be standing where they left it.
+     * ⚠ A KEPT animal is not a cold object (persistence-model D8): it keeps
+     * itself, and nothing yet reloads an unloaded one where it was left
+     * (that is the eager-residency slate's). A name confers nothing — a
+     * named stray is as evictable as any other.
      */
     public canEvict(): boolean {
       const self = this as unknown as Stuff;
-      const stamped = MixinApi.isChattel(self) && self.isStamped();
       const alive = MixinApi.isOrganism(self)
         ? self.getLifecycleState() !== 'dead'
         : true;
-      return !(stamped && alive);
+      return !(this.isKept() && alive);
     }
   }
   return BondedMixin;

@@ -792,19 +792,13 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       ctx: CaptureContext,
     ): ContainerSlice {
       const container = host as Stuff & Container;
-      // Three skips, one filter — they must produce the SINGLE ordering the
+      // Two skips, one filter — they must produce the SINGLE ordering the
       // Slotted slice indexes into, so they cannot be separate passes.
       //
       // 1. A live player avatar (HasInteractive) is a transient occupant,
       //    never a host's persistent content — it persists itself, under
       //    its own record.
-      // 2. A good someone has been STAMPED as owning persists owner-side
-      //    too, in that owner's estate (D2). An unstamped fixture — the
-      //    dorm's bed, a let unit's range, litter — captures here exactly
-      //    as it always has, which is why the rule keys on the stamp and
-      //    not on `ownerOf`: a fixture under a parcel extent is *owned* but
-      //    not *stamped*, and belongs to its room's record.
-      // 3. A `Behaved` NPC is CAST, never content. A hand that commutes
+      // 2. A `Behaved` NPC is CAST, never content. A hand that commutes
       //    between two persistable rooms (its floor and the counter it
       //    consigns at) stands in whichever one each room's capture
       //    happens to catch — so BOTH records can carry it, and the next
@@ -816,9 +810,6 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       //    wandering NPC standing here at capture time is some other
       //    room's cast, and equally not our content.)
       //
-      // The skipped goods are reported so `PersistableLogic` can flush them
-      // into their owners' estates after this synchronous walk. Dropping
-      // one here without reporting it would destroy it with the host.
       // ⭐ A good is kept by its container, whoever holds title
       // (persistence-model D9): an owned good is captured here like any other.
       const contents = container.getContents().filter((item) => {

@@ -184,7 +184,7 @@ test.describe('controllers are IO, in a browser', () => {
       // OFFER poll goes red, which is the honest answer.
       const before = await transcript(page);
       await runCommand(page, `harvest ${word}`);
-      const OFFER = /also answers\W+harvest\W+/;::harvest
+      const OFFER = /also answers\W+harvest\W+/;
       await expect
         .poll(
           async () => {

@@ -3,8 +3,9 @@
  * D9/D16; controller-liquidity W13): Duncan Hall's dorms and Seznick House's
  * flats are the same act on two buildings — mint a unit parcel at the lowest
  * free slot, grant it to the tenant, key it fresh and hand over the key; and
- * at the end of the let, the tenant's goods to STORAGE (intact, titled,
- * recoverable), the shell reverted whole, the slot freed.
+ * at the end of the let, the tenant's goods boxed into the house's storeroom
+ * locker (intact, titled, `rack reclaim`-able — persistence-model D11), the
+ * shell reverted whole, the slot freed.
  *
  * It used to be four controllers in two packs — `provision`/`unprovision`,
  * `lease`/`unlease` — near-twins, each with the whole sequence and its own
@@ -237,8 +238,9 @@ export abstract class LettingWarren extends CirculationWarren {
 
   /**
    * ⭐ **End `tenant`'s let here, as `by`** (D9/D16) — revoke the grants;
-   * the tenant's owned goods go to STORAGE per room place, intact and
-   * titled (never destructed — C4); any live occupant steps out to the
+   * the tenant's owned goods are boxed into the house's storeroom locker,
+   * intact and titled (never destructed — C4; a good too big is lost, and
+   * said — persistence-model D11); any live occupant steps out to the
    * landing; the shell reverts whole; every record under the unit clears;
    * the slot frees and the keyway dies with the row.
    */
