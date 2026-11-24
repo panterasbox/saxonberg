@@ -1,17 +1,12 @@
 # organism-biology D4: a named tissue, so a module can cite it and (W5)
 # name what it leaves a carcass as. Nothing cites it before its wave.
-class: /platform/idea/material/Horn
+# Horn by another name (organic/horn): the hoof, the claw and the beak are
+# keratin, so this row states only what differs from horn.
+extends: /stuff/idea/material/organic/horn
 data:
-  smells: [{ aroma: /base-library/aromas/hide, strength: 20 }]
   name: keratin
   keywords: [keratin, hoof, claw, beak]
   appearance: hard grey-brown keratin, with growth lines across it
-  density: 1300
-  specificHeat: 1700
-  thermalConductivity: 0.2
   lightAbsorption: 400
   hardness: 55
-  toughness: 6
-  electricalConductivity: 1.0e-11
-  waterAbsorptionCapacity: 12
   tags: ["tissue", "animal", "keratin", "horn", "once-living"]

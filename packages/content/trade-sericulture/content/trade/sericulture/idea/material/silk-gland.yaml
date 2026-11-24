@@ -1,6 +1,8 @@
 # organism-biology D4, D10: the silkworm's paired silk gland — the organ a
-# cocoon is spun from (W8 derives the shell's mass from its share).
-class: /platform/idea/material/Flesh
+# cocoon is spun from (W8 derives the shell's mass from its share). An
+# organ (tissue/organ); it states what differs — denser, a little drier,
+# and nobody's dinner.
+extends: /stuff/idea/material/tissue/organ
 data:
   name: silk-gland
   keywords: [silk-gland, gland]
@@ -8,9 +10,5 @@ data:
   density: 1100
   specificHeat: 3500
   thermalConductivity: 0.45
-  hardness: 1
-  toughness: 1
-  spoilActivationEnergy: 80000
   waterActivity: 0.97
-  nutrients: ["protein", "water"]
   tags: ["tissue", "animal", "organ", "silk", "organic", "living"]

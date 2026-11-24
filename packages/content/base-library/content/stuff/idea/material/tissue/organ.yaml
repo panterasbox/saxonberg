@@ -20,5 +20,11 @@ data:
   waterAbsorptionCapacity: 25
   spoilActivationEnergy: 80000
   waterActivity: 0.99
+  # Offal tastes and feeds as the gut does (food/gut): authored ONCE here,
+  # so every organ that extends this row carries it (owner, 2026-11-24 —
+  # a parent that fills the field fills it for every child).
+  tastes: [{ type: umami, amount: 2 }]
   nutrients: ["protein", "water"]
+  nutrientAmounts:
+    protein: 17000
   tags: ["tissue", "animal", "organ", "organic", "living", "edible"]
