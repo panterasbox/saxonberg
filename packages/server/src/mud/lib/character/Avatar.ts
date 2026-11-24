@@ -36,6 +36,7 @@ import CalendarApp from "../../platform/idea/CalendarApp";
 import { MessageApi } from "../../api/message";
 import { MagicApi } from "../../api/magic";
 import { Mml } from "../../api/mml";
+import { WorldClockApi } from "../../api/worldclock";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
 import {
   SettingTypes,
@@ -623,6 +624,19 @@ export default abstract class Avatar extends AvatarBase {
    * take it, and Avatar should compose that.
    */
   static settings: SettingsSchemaEntry[] = [
+    {
+      // ⭐ Teach once, never nag (persistence-model N11): the game days the
+      // kept line was shown — at most two, then never again.
+      key: "hints.kept",
+      type: SettingTypes.List,
+      default: [],
+      lifetime: "persistent",
+      description:
+        "The game days you were told what \"kept\" means (when you set " +
+        "something down in a place that does not keep it). It is said at " +
+        "most twice — once, and once more on a later day — then never. " +
+        "`settings unset hints.kept` to hear it again.",
+    },
     {
       key: "world.autosave.interval",
       type: SettingTypes.Number,
@@ -1722,6 +1736,23 @@ export default abstract class Avatar extends AvatarBase {
     EventApi.emit(Events.PlayerDisconnected, { playerId: this.playerId });
     // Persist the stamp; a save failure must not break teardown.
     this.save().catch(() => undefined);
+  }
+
+  /**
+   * ⭐⭐ **Teach a rule once, then never nag** (persistence-model N11/D12):
+   * say `line` to this person if the hint `key` has been shown on no game
+   * day yet, or on exactly one EARLIER day — so at most twice, never twice
+   * in a day, then never again. The days live in the setting `hints.<key>`.
+   * Returns whether it spoke.
+   */
+  public teachOnce(key: string, line: Mml): boolean {
+    const setting = `hints.${key}`;
+    const shown = (this.getSetting<unknown[]>(setting) ?? []).filter((d): d is number => typeof d === "number");
+    const today = Math.floor(WorldClockApi.getNow().rawValue() / 86_400);
+    if (shown.length >= 2 || shown.includes(today)) return false;
+    this.setSetting(setting, [...shown, today], this);
+    MessageApi.scene(this).topic("sense.survey").toSelf(line).send();
+    return true;
   }
 
   /** Commands this body has running; a retirement waits them out. */

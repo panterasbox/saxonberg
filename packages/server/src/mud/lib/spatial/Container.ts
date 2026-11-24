@@ -448,6 +448,26 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (box === null) return null;
       const interior = interiorOf(self);
       if (interior === null) return null;
+      // ⭐⭐ Ground takes ground (persistence-model D14): a place that closes
+      // no side is bounded by its FLOOR — what lies there, agents excluded,
+      // plus the arrival, against its area. A body is never refused by it,
+      // and never counted, so a crowd changes nothing.
+      if (self.isPlace() && !item.isAgent()) {
+        const open = this.bounds();
+        if (open !== null && !open.closed.width && !open.closed.depth && !open.closed.height) {
+          const floor = open.interior.width * open.interior.depth;
+          let lying = box.footprintWithin(open.interior);
+          for (const c of this.getContents()) {
+            if (c.stuffId === item.stuffId || c.isAgent()) continue;
+            const cb = MixinApi.isShaped(c) ? c.getFitBox() : null;
+            if (cb !== null) lying += cb.footprintWithin(open.interior);
+          }
+          if (lying > floor * (1 + 1e-9)) {
+            return { ok: false, reason: 'no-room', facts: { container: self as Stuff, item, dims: box } };
+          }
+          return null;
+        }
+      }
       // ⭐ Every side closed is the strictest case — an open side only ever
       // lets more in. A thing that fits a closed box fits whatever this is,
       // and the sides (a place's cost an exposure read) are never asked.

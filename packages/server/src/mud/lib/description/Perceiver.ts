@@ -549,6 +549,8 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
         ...(sample ? { weather: sample.type, season: sample.season } : {}),
         ...(day !== undefined ? { daylight: day ? ('day' as const) : ('night' as const) } : {}),
         ...(MixinApi.isWaterPlace(place) ? { water: place.stateNow() } : {}),
+        // ⭐ Kept or not (persistence-model D13): the place's class says it.
+        ...(MixinApi.isContainer(place) ? { kept: place.isKept() } : {}),
         crowd,
         ...(ceiling !== null && stature !== null ? { lowCeiling: ceiling.rawValue() < stature } : {}),
         ...(elevationM !== null ? { elevationM: Math.round(elevationM * 10) / 10 } : {}),

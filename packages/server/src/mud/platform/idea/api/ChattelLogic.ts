@@ -26,6 +26,7 @@ import { ParcelApi } from "../../../api/parcel";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { PersistableApi } from "../../../api/persistable";
 import { TemplatePaths } from "../../../lib/paths";
+import { Mml } from "../../../api/mml";
 import type {
   ChattelOwner,
 } from "../../../lib/chattel/ChattelRecord";
@@ -239,6 +240,28 @@ export class ChattelLogic extends ApiLogic {
     }
     // ⭐ Title only (persistence-model D9): where a good is kept is its
     // container's to say, never its owner's.
+    await this.teachKept(good);
+  }
+
+  /**
+   * ⭐ The teaching line (persistence-model D12): the person who owns this
+   * good, setting it down themselves somewhere that does not keep it, is
+   * told what "kept" means — at most twice, then never (`Avatar.teachOnce`).
+   * Nothing is said for a good carried, or left where it keeps.
+   */
+  private async teachKept(good: Stuff & Chattel): Promise<void> {
+    if (!MixinApi.isContainable(good)) return;
+    const at = good.getContainer();
+    if (at === null || at.isAgent() || !MixinApi.isContainer(at) || at.isKept()) return;
+    const owner = good.stampedOwner();
+    const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
+    if (owner?.kind !== "player" || !actor || owner.templatePath !== actor.getIdentityPath()) return;
+    const { default: Avatar } = await import("../../../lib/character/Avatar");
+    if (!(actor instanceof Avatar) || !actor.hasLiveSession()) return;
+    actor.teachOnce(
+      "kept",
+      Mml.compose`Not kept: ${Mml.thing(good)} lies somewhere that does not keep what is left in it — it will be gone at the next restage. A kept place, a kept locker or your own hands keep things.`,
+    );
   }
 
   /**
