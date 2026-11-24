@@ -2801,7 +2801,10 @@ function whichSources(viewer: Stuff & CommandGiver): { usual: string[]; sources:
   for (const a of viewer.getAffordances()) {
     const verb = a.command.getPrimaryVerb();
     if (!verb) continue;
-    if (a.source.stuffId === viewer.stuffId) {
+    // ⭐ The body's own: its class's verbs, and any `self` entry that is
+    // not an app — a gift or a conferral (a caster's `cast`, pushed with the
+    // spell catalogue as its source) is a verb of the body, not of a thing.
+    if (a.source.stuffId === viewer.stuffId || (a.bucket === 'self' && !MixinApi.isAetherHosted(a.source))) {
       if (!usual.includes(verb)) usual.push(verb);
       continue;
     }
@@ -4850,15 +4853,27 @@ function applyContainmentDeltaImpl(
   // (the rule this function already states for `inventory` and
   // `environment`). Found by the fishing drive.
   const scopes = peerScopesOf(to);
+  // The rooms the movers actually stand in (the open container's room too).
+  const local: Stuff[] = [to];
   if (
     MixinApi.isOpenContainer(to) &&
     MixinApi.isContainable(to) &&
     to.getContainer() !== null
   ) {
+    local.push(to.getContainer()!);
     for (const s of peerScopesOf(to.getContainer()!)) if (!scopes.includes(s)) scopes.push(s);
   }
   for (const scope of scopes) {
     if (!MixinApi.isContainer(scope)) continue;
+    /*
+     * ⭐ Next door, only someone you can ADDRESS (the which audit,
+     * 2026-11-23). `peerScopesOf` says why a room one exit away counts at
+     * all — *you can see who is next door well enough to address them* —
+     * and `which` showed the rest leaking through: the plaza offered the
+     * shop counter's `buy` and the hearth's `stoke` from the next room. So
+     * across an exit only an agent contributes, either way round.
+     */
+    const remote = !local.includes(scope);
     const siblings: Stuff[] = [];
     for (const direct of (scope as Stuff & Container).getContents()) {
       siblings.push(direct);
@@ -4869,7 +4884,7 @@ function applyContainmentDeltaImpl(
     for (const sibling of siblings) {
       if (moved.includes(sibling)) continue;
 
-      const theirs = collectBucketDefs(sibling.constructor, 'peers');
+      const theirs = remote && !sibling.isAgent() ? [] : collectBucketDefs(sibling.constructor, 'peers');
       if (theirs.length > 0) {
         for (const m of moved) {
           if (!MixinApi.isCommandGiver(m)) continue;
@@ -4878,6 +4893,7 @@ function applyContainmentDeltaImpl(
       }
       if (!MixinApi.isCommandGiver(sibling)) continue;
       for (const m of moved) {
+        if (remote && !m.isAgent()) continue;
         const mine = collectBucketDefs(m.constructor, 'peers');
         if (mine.length === 0) continue;
         (sibling as Stuff & CommandGiver).pushCommandSource(m, 'peers', mine);
@@ -4934,6 +4950,8 @@ function applyShadowDeltaImpl(
     if (peerDefs.length === 0) return;
     for (const scope of peerScopesOf(container)) {
       if (!MixinApi.isContainer(scope)) continue;
+      // Next door, only someone you can address (as the containment path).
+      if (scope !== container && !host.isAgent()) continue;
       for (const sibling of (scope as Stuff & Container).getContents()) {
         if ((sibling as Stuff) === host) continue;
         if (!MixinApi.isCommandGiver(sibling)) continue;

@@ -13,6 +13,7 @@ import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { describe, it, expect, beforeEach, vi  } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
+import { Agent } from '../../lib/stuff/Agent';
 import Place from '../../lib/stuff/Place';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import Location from '../../lib/location/Location';
@@ -85,6 +86,15 @@ const EnvProviderBase = ContainableMixin(Idea);
 class EnvProvider extends EnvProviderBase {
   static commandContributions = {
       peers: ['platform/cmd/system/ping.yaml'],
+    self: [],
+    environment: [],
+  };
+}
+
+/** The same provider as a PERSON — someone you can address next door. */
+class PersonProvider extends ContainableMixin(Agent) {
+  static commandContributions = {
+    peers: ['platform/cmd/system/ping.yaml'],
     self: [],
     environment: [],
   };
@@ -390,26 +400,28 @@ describe('affordance reach — peers one hop away', () => {
     return { here, there };
   }
 
-  it('a peer provider NEXT DOOR reaches you through an open exit', async () => {
+  it('a PERSON next door reaches you through an open exit; a thing next door does not (the which audit)', async () => {
     const { here, there } = twoRooms();
     const exit = makeStuff(
       () => new Exit({ direction: 'north', source: here, destination: there }),
     );
     await here.addExit(exit);
 
-    // The provider is already next door; the giver walks in after.
-    const provider = makeStuff(() => new EnvProvider());
-    ContainmentApi.move(provider, there as never);
+    // Both are already next door; the giver walks in after.
+    const person = makeStuff(() => new PersonProvider());
+    ContainmentApi.move(person, there as never);
+    const thing = makeStuff(() => new EnvProvider());
+    ContainmentApi.move(thing, there as never);
 
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     ContainmentApi.move(giver, here as never);
     giver.getAvailableCommands();
 
-    expect(
-      stackOf(giver).some(
-        (e) => e.source === (provider as never) && e.bucket === 'peers',
-      ),
-    ).toBe(true);
+    const from = (s: unknown): boolean =>
+      stackOf(giver).some((e) => e.source === (s as never) && e.bucket === 'peers');
+    expect(from(person)).toBe(true);
+    // ⭐ A counter or a hearth in the next room gives nothing here.
+    expect(from(thing)).toBe(false);
   });
 
   /**

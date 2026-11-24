@@ -216,11 +216,19 @@ suite("listed ⇒ accepted", () => {
       for (const verb of [...verbs].sort()) {
         if (SKIP.has(verb) || verb.startsWith("~")) continue;
         await s.drainProse();
-        const { result, prompt } = await s.cmdOrPrompt(verb);
-        // A bare verb may ask for its object ("Arm what?") — asked, it was ACCEPTED.
-        const w = squash(await result.said());
-        record.push(`${s.handle}: ${verb} → ${prompt ? "prompt" : result.status} · ${w.slice(0, 160)}`);
         typed.push(verb);
+        // A bare verb may ask for its object ("Arm what?") — asked, it was ACCEPTED.
+        let w = "";
+        try {
+          const { result, prompt } = await s.cmdOrPrompt(verb);
+          w = squash(await result.said());
+          record.push(`${s.handle}: ${verb} → ${prompt ? "prompt" : result.status} · ${w.slice(0, 160)}`);
+        } catch (err) {
+          const why = (err as Error).message;
+          if (!/raised a PROMPT/.test(why)) throw err;
+          record.push(`${s.handle}: ${verb} → prompt (asked for its object)`);
+          continue;
+        }
         expect(w, `${verb}: ${w}`).not.toMatch(/I don't understand/);
       }
     }

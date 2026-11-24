@@ -731,6 +731,15 @@ throw, or tap, what you hold. A bell is struck where it hangs —
 in your hand gives you the verbs for handling it; a thing in the room gives
 only what it does where it stands.**
 
+⭐ **Next door, only someone you can address** (found by the which drive):
+`peerScopesOf` counts the rooms one passable exit away so you can see who is
+next door well enough to address them — and the plaza was offering the shop
+counter's `buy` and the hearth's `stoke` from the next room. Across an exit
+only an **agent** contributes `peers`, either way round (the containment and
+the shadow paths alike); in your own room everything does. And a `self` entry
+that is not an app — a caster's `cast`, pushed with the spell catalogue as its
+source — is the body's own, so `which` puts it on the usual line.
+
 ## Stage 1 — Ingress
 
 The client sends `{ type: 'command', payload: { text } }` via
