@@ -6,8 +6,10 @@ controller: /platform/idea/cmd/device/AppsListController
 description: "The apps on a device you carry — list / install / uninstall"
 help: |
   A phone or an implant runs apps. Bare `apps` lists what is installed
-  on the device you carry and what else it offers. `apps install
-  messages` puts Messages back; `apps uninstall messages` takes it off.
+  on the device you carry and what else the app store has — any device
+  installs any app in the store. `apps install messages` puts Messages
+  back; `apps install broadcast` gets you `program` and `rodney`; `apps
+  uninstall messages` takes one off.
   Without Messages a device cannot carry a `dm`, a `reply` or a `chat`
   line — it says so, and tells you how to fix it.
 
@@ -17,7 +19,7 @@ help: |
   never lists or removes them.
 examples:
   - cmd: apps
-    note: List what your device runs and what it offers
+    note: List what your device runs and what the app store has
   - cmd: apps install messages
     note: Install Messages
 validators:
@@ -37,7 +39,7 @@ args:
 subcommands:
   install:
     controller: /platform/idea/cmd/device/AppsInstallController
-    description: "Install an app the device offers"
+    description: "Install an app from the app store"
     args:
       - name: app
         type: string

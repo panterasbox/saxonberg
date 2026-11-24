@@ -168,12 +168,17 @@ describe('Phone', () => {
   it('every field a phone row authors is one the template phase applies', () => {
     const fields = MixinApi.getAllPersistentFields(Phone as unknown as AnyConstructor);
     for (const f of [
-      'on', 'brand', 'installedApps', 'offersApps', 'manifestsAs', 'ownerLocked',
+      'on', 'brand', 'installedApps', 'manifestsAs', 'ownerLocked',
       'capacityWh', 'standbyW', 'useWh', 'acceptW', 'slotClaims',
     ]) {
       expect(fields, f).toContain(f);
     }
     const appFields = MixinApi.getAllPersistentFields(App as unknown as AnyConstructor);
     expect(appFields).toContain('appName');
+    // ⚠ The store reads `published` off the ROW; it is declared so the row's
+    // field is a known one (stream arrival D21).
+    expect(appFields).toContain('published');
+    // `offersApps` retired — the store is the published rows (D21).
+    expect(fields).not.toContain('offersApps');
   });
 });

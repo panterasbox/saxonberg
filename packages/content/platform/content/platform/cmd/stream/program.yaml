@@ -17,6 +17,9 @@ help: |
   channel you linked in your settings) and attaches that channel. A
   program with no channel is still a program.
 
+  You get this verb from the Broadcast app on a phone you carry (`apps
+  install broadcast`), or at a broadcast desk.
+
   `program run <name>` puts your stream in a program's chair — then
   `rodney` drives it. `program` on its own shows the program your stream
   runs.

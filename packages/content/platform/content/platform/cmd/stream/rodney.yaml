@@ -26,6 +26,9 @@ help: |
   reaches them.
 
   It changes only your overlay, never anything in the world.
+
+  You get this verb from the Broadcast app on a phone you carry (`apps
+  install broadcast`), or at a broadcast desk.
 examples:
   - cmd: rodney start in 10m
     note: Starting Soon, counting down ten minutes

@@ -13,9 +13,11 @@ export default class AppsInstallController extends AppsControllerBase {
     const key = model.app ?? '';
     const result = await device.installByKey(key);
     if (!result.ok) {
-      const offered = result.offered.length
-        ? `It offers: ${result.offered.join(', ')}.`
-        : 'It offers nothing else.';
+      const offered = result.collision
+        ? `Two packs publish '${key}' (${result.collision.join(' and ')}); neither is installable.`
+        : result.offered.length
+          ? `The app store has: ${result.offered.join(', ')}.`
+          : 'The app store has nothing else.';
       return this.refuse(context, {
         ok: false,
         reason: 'unknown-app',

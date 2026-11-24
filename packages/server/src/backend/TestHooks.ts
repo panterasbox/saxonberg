@@ -293,7 +293,8 @@ export class TestHooks {
 
   /**
    * TEST-ONLY: make the test character a broadcaster the way a player
-   * becomes one (stream arrival A2) — by PLAYING: `program create <name>`
+   * becomes one (stream arrival A2, C2) — by PLAYING: `apps install
+   * broadcast` on the phone they carry, then `program create <name>`
    * (taken by an earlier login of the same handle is fine) and `program run
    * <name>`, typed as the character through the ordinary dispatcher. The
    * program is named for the handle. Nobody is *the* streamer any more;
@@ -320,6 +321,12 @@ export class TestHooks {
       );
       return status;
     };
+    // ⭐ First an instrument (stream arrival D17): the Broadcast app on the
+    // phone the character already carries, installed from the store.
+    const installed = await run('apps install broadcast');
+    if (installed !== 'ok') {
+      throw new Error(`TestHooks: 'apps install broadcast' answered ${String(installed)} for ${playerId}`);
+    }
     await run(`program create ${name}`);
     const ran = await run(`program run ${name}`);
     if (ran !== 'ok') {

@@ -274,10 +274,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // rowless one exempts nobody and every city craft pays dues.
   // ⭐ A charter book's `ships` — the ships a line's desk lets;
   // a rowless one is a charter for a ship that is not there.
-  // ⭐ An aether host's `installedApps` / `offersApps` (aether-devices D2)
-  // — the app rows it clones at birth and offers to `apps install`; a
-  // rowless one is a phone whose Messages throws at the clone.
-  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships', 'installedApps', 'offersApps'] as const) {
+  // ⭐ An aether host's `installedApps` (aether-devices D2) — the app rows
+  // it clones at birth; a rowless one is a phone whose Messages throws at
+  // the clone. (`offersApps` retired: the app store is the published rows,
+  // stream arrival D21.)
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships', 'installedApps'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
   // ⭐ A harbor's `quays[].place` — a rowless one is a berth

@@ -22,8 +22,10 @@
  *
  * `installApp(path)` is the ONE way software gets onto any host: it
  * clones the row, hosts it and records it — the default loadout uses it
- * too. `offersApps` is what this host's own list offers to `apps
- * install`; empty on a person by authoring. `manifestsAs` is how what
+ * too. What `apps install` offers is the ONE app store (stream arrival
+ * D21: every published `App` row, `TemplateApi.appStore()`) — not a list
+ * on each device; a person's own wallet, calendar and forums are never in
+ * it. `manifestsAs` is how what
  * arrives through this host shows: `known` (straight to the mind — an
  * implant, a born-tuned body) or `read` (off a screen — a phone, D9).
  *
@@ -87,13 +89,14 @@ export interface AetherHost {
   uninstallApp(key: string): boolean;
   /** Is the app keyed `key` installed? (Reads the record.) */
   hasApp(key: string): boolean;
-  /** The app row paths this host's own list offers and does not yet run. */
-  availableApps(): readonly string[];
+  /** The store's app row paths this host does not yet run (D21). */
+  availableApps(): Promise<readonly string[]>;
   /** How what arrives through this host shows to its bearer. */
   getManifestsAs(): AetherManifestation;
   /**
-   * Install the offered app whose key is `key` (`apps install <key>`).
-   * An unknown key answers with what this host offers; an app already
+   * Install the store's app whose key is `key` (`apps install <key>`).
+   * An unknown or unpublished key answers with what the store offers; a
+   * key two packs publish answers `collision`, naming both; an app already
    * installed answers `already`.
    */
   installByKey(key: string): Promise<AppInstallResult>;
@@ -102,7 +105,7 @@ export interface AetherHost {
 /** What `installByKey` did. */
 export type AppInstallResult =
   | { ok: true; app: Stuff & AetherHosted; already: boolean }
-  | { ok: false; offered: readonly string[] };
+  | { ok: false; offered: readonly string[]; collision?: readonly string[] };
 
 /** An app's key is the last segment of its row path (`…/app/messages`). */
 function appKeyOf(path: string): string {
@@ -135,7 +138,6 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⚠ Authored fields must be declared to be APPLIED: the template
       // phase writes only declared persistent fields (the drive found
       // every authored host field silently unset).
-      offersApps: { persistent: true },
       manifestsAs: { persistent: true },
     };
 
@@ -143,9 +145,6 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Persisted: the app row paths installed on this host. */
     installedApps: string[] = [];
-
-    /** Authored: the app row paths this host's own list offers. */
-    offersApps: string[] = [];
 
     /** Authored: how what arrives through this host shows (D9). */
     manifestsAs: AetherManifestation = 'known';
@@ -233,8 +232,10 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.installedApps.some((p) => appKeyOf(p) === key);
     }
 
-    availableApps(): readonly string[] {
-      return this.offersApps.filter((p) => !this.installedApps.includes(p));
+    async availableApps(): Promise<readonly string[]> {
+      const { TemplateApi } = await import('../../api/template');
+      const store = await TemplateApi.appStore().published();
+      return store.map((a) => a.path).filter((p) => !this.installedApps.includes(p));
     }
 
     getManifestsAs(): AetherManifestation {
@@ -247,11 +248,15 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (installed !== undefined) {
         return { ok: true, app: await this.installApp(installed), already: true };
       }
-      const offered = this.offersApps.find((p) => appKeyOf(p) === k);
-      if (offered === undefined) {
-        return { ok: false, offered: this.availableApps().map(appKeyOf) };
+      const { TemplateApi } = await import('../../api/template');
+      const found = await TemplateApi.appStore().lookup(k);
+      if ('found' in found) {
+        return { ok: true, app: await this.installApp(found.found.path), already: false };
       }
-      return { ok: true, app: await this.installApp(offered), already: false };
+      const offered = (await this.availableApps()).map(appKeyOf);
+      return 'collision' in found
+        ? { ok: false, offered, collision: found.collision }
+        : { ok: false, offered };
     }
   }
   return AetherHostMixin;

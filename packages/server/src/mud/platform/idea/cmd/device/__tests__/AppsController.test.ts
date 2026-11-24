@@ -32,6 +32,13 @@ import type { MqlOneResult } from '../../../../../api/mql';
 import type { MessageFrame } from '@saxonberg/types';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { TemplateApi } from '../../../../../api/template';
+
+/** The app store, as the rows would answer (stream arrival D21). */
+const STORE = [
+  { key: 'broadcast', path: '/platform/idea/app/broadcast' },
+  { key: 'messages', path: App.MESSAGES_PATH },
+];
 
 class Person extends AetherHostMixin(
   CommandGiverMixin(NamedMixin(ContainerMixin(SensorMixin(ContainableMixin(Idea))))),
@@ -77,7 +84,13 @@ describe('apps', () => {
     person.setName('Ana');
     ContainmentApi.move(person as never, room as never);
     implant = makeStuff(() => new AetherImplant());
-    implant.offersApps = [App.MESSAGES_PATH];
+    vi.spyOn(TemplateApi, 'appStore').mockReturnValue({
+      published: async () => STORE,
+      lookup: async (k: string) => {
+        const found = STORE.find((a) => a.key === k);
+        return found ? { found } : { missing: true };
+      },
+    } as never);
     await implant.installApp(App.MESSAGES_PATH);
     ContainmentApi.move(implant as never, person as never);
   });
@@ -93,9 +106,11 @@ describe('apps', () => {
     expect(aff?.source).toBe(implant);
   });
 
-  it('lists what the device runs', () => {
-    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AppsListController()).execute({} as never, ctx$)))(ctx(person, implant));
+  it('lists what the device runs, and what the store has that it does not', async () => {
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AppsListController()).execute({} as never, ctx$)))(ctx(person, implant));
     expect(said(person)).toMatch(/runs: Messages/);
+    expect(said(person)).toMatch(/app store has: broadcast/);
+    expect(said(person)).not.toMatch(/app store has:.*messages/);
   });
 
   it('uninstall then install round-trips', async () => {
@@ -117,18 +132,31 @@ describe('apps', () => {
     const refused = c.getNotes().find((n) => n.kind === 'refused');
     expect(refused).toMatchObject({ reason: 'unknown-app' });
     expect(JSON.stringify(refused)).toMatch(/chess/);
-    expect(JSON.stringify(refused)).toMatch(/offers: messages/);
+    expect(JSON.stringify(refused)).toMatch(/app store has: broadcast, messages/);
   });
 
-  it('a non-device source (a person host) has nothing to act on', () => {
+  it('a non-device source (a person host) has nothing to act on', async () => {
     const c = ctx(person, person);
-    TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsListController()).execute({} as never, c));
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsListController()).execute({} as never, c));
     expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({ reason: 'no-device' });
   });
 
-  it('`on <device>` picks the named device', () => {
+  it('`on <device>` picks the named device', async () => {
     const named = { stuff: implant, raw: 'implant' } as unknown as MqlOneResult;
-    ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AppsListController()).execute({ device: named } as never, ctx$)))(ctx(person, undefined));
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => makeStuff(() => new AppsListController()).execute({ device: named } as never, ctx$)))(ctx(person, undefined));
     expect(said(person)).toMatch(/runs: Messages/);
+  });
+
+  it('a key the store does not publish (the person\'s wallet) is refused, naming the store', async () => {
+    const c = ctx(person, implant);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsInstallController()).execute({ app: 'wallet' } as never, c));
+    expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({ reason: 'unknown-app' });
+    expect(implant.hasApp('wallet')).toBe(false);
+  });
+
+  it('installs a published app the device did not ship with', async () => {
+    const c = ctx(person, implant);
+    await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsInstallController()).execute({ app: 'broadcast' } as never, c));
+    expect(implant.hasApp('broadcast')).toBe(true);
   });
 });

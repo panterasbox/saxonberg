@@ -1,0 +1,10 @@
+# Broadcast — the broadcaster's app (stream arrival D17): with it installed
+# on a phone you carry, `program` and `rodney` are verbs you have, anywhere.
+# Its verbs are its class's (`BroadcastApp`); the run's state stays on your
+# body, so a stream outlives a dead phone — it just cannot be steered until
+# you charge it or reach a broadcast desk.
+class: /platform/idea/BroadcastApp
+data:
+  appName: Broadcast
+  # In the app store (D21).
+  published: true

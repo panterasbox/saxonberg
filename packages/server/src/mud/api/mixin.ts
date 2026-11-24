@@ -1380,8 +1380,9 @@ export class MixinApi {
   /**
    * Narrows to *this body carries a stream* (broadcast-ready D1, D17).
    * ⚠ Composition, not permission — every Avatar is a broadcast host;
-   * whether one may RUN `rodney` is the program it runs and that
-   * program's pen (`requiresProgram`, stream arrival D12).
+   * the verb comes from an instrument (stream arrival D17), and whether
+   * one may RUN `rodney` is the program it runs and that program's pen
+   * (`requiresProgram`, D12).
    */
   public static isBroadcastHost(obj: Stuff): obj is Stuff & BroadcastHost {
     return this.hasMixin(obj, Mixins.Broadcast);

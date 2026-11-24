@@ -113,6 +113,7 @@ export const TemplatePaths = {
   // row path (`installApp`); the key is the last segment.
   messagesApp: "/platform/idea/app/messages",
   forumsApp: "/platform/idea/app/forums",
+  broadcastApp: "/platform/idea/app/broadcast",
   calendarApp: "/platform/idea/app/calendar",
   // The unified credential wallet app — one hosted holder for every
   // credential kind (payment, travel, …).

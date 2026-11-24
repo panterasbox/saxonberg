@@ -35,7 +35,8 @@
  * only the streamer returns the desktop to the air).
  *
  * Composed on every `Avatar`. Nobody is *the* streamer (stream arrival):
- * `rodney` is gated by the PROGRAM the body runs and its pen, not a role —
+ * `rodney` comes from an instrument (the Broadcast app, a broadcast desk)
+ * and is gated by the PROGRAM the body runs and its pen, not a role —
  * most bodies run none and read `offline` forever, as most never fill a
  * calendar.
  */
@@ -147,17 +148,14 @@ export function BroadcastMixin<
     };
 
     /**
-     * ⭐ `rodney` is afforded to every played body; `requiresProgram` on
-     * the view gates who may RUN it — the body runs a program whose pen it
-     * holds (stream arrival D12; the streamer axis is retired).
+     * ⭐ The body affords NOTHING (stream arrival D17): `rodney` and
+     * `program` come from instruments — the Broadcast app on a phone you
+     * carry (`BroadcastApp`), or a broadcast desk you stand at
+     * (`BroadcastDesk`). The body keeps the RUN, which is state; who may
+     * run it is the program's pen (`requiresProgram`).
      */
     static commandContributions: CommandContributions = {
-      // `program` sits beside the stream verb for now (stream arrival A1);
-      // the instruments take both (C2).
-      self: [
-        'platform/cmd/stream/rodney.yaml',
-        'platform/cmd/stream/program.yaml',
-      ],
+      self: [],
       peers: [],
       environment: [],
     };

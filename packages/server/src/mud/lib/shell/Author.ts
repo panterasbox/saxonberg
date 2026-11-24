@@ -124,8 +124,8 @@ export function AuthorMixin<TBase extends MixinConstructor>(Base: TBase) {
         // non-authors don't see the verb in their recency stack.
         'platform/cmd/social/soul.yaml',
         // ⚠ `platform/cmd/stream/rodney.yaml` LEFT this list (broadcast-ready
-        // D1): the stream is every played body's own, so `BroadcastMixin`
-        // affords it; `requiresProgram` gates who may run it.
+        // D1); since stream arrival D17 an instrument affords it (the
+        // Broadcast app, a broadcast desk) and `requiresProgram` gates it.
         // Wizard conferral — `wizard grant/revoke <player>`. Afforded on
         // the operator command surface like the rest of this suite, but
         // *authorized* on the orthogonal archwizard axis: `wizard.yaml`
