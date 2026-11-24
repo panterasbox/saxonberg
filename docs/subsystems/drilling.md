@@ -220,7 +220,7 @@ concern.** ⚠ The mint reads the seats off the seed and adds only the
 headcount, so the seat is defined once.
 
 ⚠ A hired hand is **sent to the rig** (`operatingLocations[0]`, the
-`moveForShift` rule). A roustabout has no brain on purpose, so he does
+shift move's rule). A roustabout has no brain on purpose, so he does
 not walk anywhere — hiring at the rig would otherwise be unreachable by
 construction. ⭐ Which is also why the roustabout cast stands **at the
 flat**: the requirement's own words are *a bore crew is hired at the

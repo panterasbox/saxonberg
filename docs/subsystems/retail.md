@@ -283,9 +283,9 @@ share; `ForSale` is the act. `lint:counters` is unmoved: an implementer
 outside the kernel's `platform/**` (a pack's book) is not a counter class.
 
 **Sold where it lies, and title only.** The sale where a good lies
-transfers its title (the good's own `transferChattel`) and moves nothing, then
-calls the good's `followCustody()` so the new owner's estate records
-where they keep it ([chattel.md](./chattel.md)). Such a landing is
+transfers its title (the good's own `transferChattel`) and moves nothing;
+the place it lies in keeps it, whoever holds title ([chattel.md](./chattel.md)
+§ Title is a claim, never storage). Such a landing is
 **kept** — `platform/location/PersistentShore` (`Persistable(Shore)`):
 it lays its `props:` down once and its record is authoritative after, so
 the boat sold does not come back at the next restart (⚠ never a quay a
@@ -347,10 +347,11 @@ rubber-boots` — the word the shelf list prints, `rubber-boots (11)` — was
 refused as *the shelf is bare … none of it today* while a pair sat on the
 counter.
 
-⭐ **A bought good is placed in the buyer's estate** (fishing B7,
-2026-09: a bought rod vanished at the next restart). Since the assembly
-build the movement primitive records it — `buy` stamps the title (a sale
-is a title act) BEFORE handing over, and `move` does the rest. ⚠ `buy`
+⭐ **A bought good is kept by whoever carries it** (fishing B7, 2026-09: a
+bought rod vanished at the next restart): `buy` stamps the title (a sale is
+a title act) BEFORE handing over, and the good is then in the buyer's
+hands, so in the buyer's own record (since 2026-11-24 a player's record is
+what they carry; the estate that used to place it is retired). ⚠ `buy`
 sells ONE piece off a stocked heap at the piece price, and a counter must
 be one of its house's `operatingLocations` (`lint:shopfronts`). The fish stall (`market/thing/fish-stall.yaml`) is a second
 consignment counter with no lines of its own — self-service, capacity 40.
@@ -402,16 +403,33 @@ The custody half of consignment is factored out as **`HeldGoodsMixin`**
 (the shared base): move a good into a fixture's custody (owner-stamp
 stays put), know whose it is (`recordHolding`/`holdingFor`/`holdingsOf`/
 `countHeld`/`removeHolding`), and hand it back to its owner
-(`resolveHeld`). *That is the coat check, whole.* `ConsignmentShelfMixin
+(`resolveHeld`; ⭐ `resolveHeldFor(actor, keyword)` for a reclaim — it
+names among the goods `actor` may dispose of first, else any held good,
+so in a shared locker with four people's notebooks `rack reclaim
+notebook` returns YOURS, and a stranger's is still named and refused —
+#155, persistence-model). `checkIn(good, holder, { ticket: false })`
+holds a good with no ticket, for a holder who is not standing there.
+*That is the coat check, whole.* `ConsignmentShelfMixin
 extends HeldGoodsMixin` and adds the **sale** layer on top — the ask, the
 per-consignor cap, `buy` — so a `ConsignmentListing extends HeldGood`
 with an `askMinor`. The `ConsignmentShelf` public surface is unchanged;
 the sale controllers don't know the base exists.
 
+⭐ **The locker** (persistence-model N3, 2026-11-24) is the base as a kept
+container: `platform/thing/Locker` = `Persistable(HeldGoods(Fixture(
+Holder)))` — a rented locker, a coat check, a landlord's storeroom. It
+affords `rack check` + `rack reclaim` and takes any held good; what is in
+it is as its holders left it after a restart, wherever it stands (in a
+plain room it is keyed by its part name — [persistence.md](./persistence.md)
+§ Who keeps what). The testbed's hall has a bank of `lockers`; a letting
+house's `storeroom:` names the office whose locker takes a former tenant's
+goods at lease end ([furnishing.md](./furnishing.md) § Lease end). ⚠ The
+reclaim line still says *"back off the rack"* at a locker (wording, open).
+
 **The check rack (`rack check` — the bar-fight build)** composes **only the
 base**. `CheckRack` (`trade-hospitality/src/thing/CheckRack.ts` — a
-cloakroom is the publican's) = `Persistable +
-HeldGoodsMixin + FixtureMixin`, affording `rack check` + `rack reclaim` (the `rack` noun), never
+cloakroom is the publican's) `extends Locker` and narrows `accepts` to
+arms, affording `rack check` + `rack reclaim` (the `rack` noun), never
 `shelf consign`/`buy` — a checked weapon is a plain held good (no ask, no
 listing), so there was never a "not-for-sale" flag to add: a coat check
 is the base without the marketplace. `rack check <weapon>` (gated on
@@ -432,16 +450,15 @@ consigned goods + their `_chattelId`s into a durable record, so a consigned
 player-owned good survives a relog while in the shop's custody (a transient
 shelf would drop it).
 
-⚠ **A relog, not a restart — unless the counter establishes its own
-record** (found by the repair drive, 2026-10-17). A `props:` counter like
-the general store's is cloned fresh at every boot and has no persistence
-key, so it never captures at shutdown and never materializes — and the
-owner overlay that would put a consigned good back runs only on
-materialize. The good is not lost (its owner's estate keeps it, placed
-at the counter); it is never placed. `MarketStalls.hydrationSource` is
-the fix on the market square; whether every `Stock` should carry one
-(a boot-time read per counter, and a keyless restore on a rented stall
-before it is keyed) is open.
+✅ **A restart too, since persistence-model (D2, 2026-11-24).** A `props:`
+counter like the general store's used to be cloned fresh at every boot
+with no persistence key, so it never captured or materialized (found by
+the repair drive, 2026-10-17), and `MarketStalls` carried a bespoke
+`hydrationSource` workaround. Now a kept container staged as a prop is
+established with `restoreOrSeed` under its part-name key
+(`<host handle>/<part>`), so every consignment shelf keeps what is on it
+wherever it is staged, and two shelves of one row in two shops are two
+records. The `MarketStalls` workaround is gone.
 
 ## The distributor — the cash-and-carry, and consignment BY a business (libations)
 
@@ -746,3 +763,11 @@ goods are one choice. The word stays a word (not an object slot) because a
 bare shelf is brought up to order and *sold out* is said of a good that is
 not there. An unnamed seller is the view's default (`defaulted` on the bound
 result); a named one (`from` / `at`) is held to its own refusal.
+
+## History — lockers, and the shelf keeps across a restart (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): the
+`Locker` class (`CheckRack` re-based onto it), `checkIn`'s `{ ticket:
+false }`, `resolveHeldFor` (#155), the part-name key that makes a staged
+counter keep, and lease end boxing into the house's storeroom locker.
+`lint:counters` rose 4 → 5 for `Locker` (a stated rise).

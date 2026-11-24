@@ -314,7 +314,12 @@ once, past the long clock.
    reclaimable forever;
 7. `Avatar.escheatedAt` stamped — the idempotence marker.
 
-Chattel lying in the world is finders-keepers. Pets and livestock are
+The estate is **money, titles and seats — never goods**. A member's two
+succession facts live on `EstateMixin` (`escheatedAt`, `beneficiary`,
+on the Avatar's own record); what they own is kept wherever it lies, by
+its container ([furnishing.md](./furnishing.md) — the estate's goods half
+retired 2026-11-24), so an escheat moves no thing. Chattel lying in the
+world is finders-keepers. Pets and livestock are
 not escheated by this build (the pound keeper is the institutions
 slate's; a bonded animal's transfer needs the pets consent model).
 
@@ -367,3 +372,11 @@ credits nobody; the rule's act credits nobody.
   keeper's next `stall`. The closed sign covers the absent keeper's case.
 - **Pets, livestock, chattel lying in the world** — see the escheat.
 - **Rung 3, the debt market** — the auction slate's.
+
+## History — the estate is succession only (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): D9 slimmed
+`EstateMixin` to the two succession fields this subsystem reads
+(`escheatedAt`, `beneficiary`); the goods half it also carried (every good
+a player had title to, wherever it sat) retired. `PlayerLogic`'s escheat
+and reclaim and `wallet beneficiary` are unchanged.

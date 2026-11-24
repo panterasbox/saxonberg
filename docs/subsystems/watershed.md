@@ -556,8 +556,12 @@ jump would leave answering yesterday's ice.
 
 A phase change never creates or removes space. A harvest pool is a plain
 kernel `Pool` whose `floor:` names the water pack's
-`/system/water/thing/ice-sheet` (`IceSheet` = `PersistableMixin(
-WaterSurface)`, see [ground.md](./ground.md) § The water's surface); a
+`/system/water/thing/ice-sheet` (`IceSheet` = `Cuttable(WaterSurface)`,
+see [ground.md](./ground.md) § The water's surface — ⭐ since
+persistence-model it keeps no record of its own: its patch `log` rides its
+pool's fixtures slice, kept when the pool is a kept place and healed at a
+restage when it is not, and a sheet hung after the pool restored takes its
+slot's state through `Adornable.adoptRestoredState`); a
 venue's sheet row `extends:` it with its `areaM2`. Whether you are on the
 ice or in the water under it is **support** (the floor's ground slot),
 never location — no `FrozenPool` class, no down exit. A second harvest
@@ -769,10 +773,13 @@ roof.
 Everything else derives — flow from the weather, direction from
 elevation, contamination from distance. A **level cannot**, because
 outflow depends on what players drew and no function of time knows that.
-So it is state plus a stamp on a `Persistable` host, and it is the one
-place a restart could lose something. `Storage.test.ts` proves the round
-trip through the spine itself: capture, lose the live value the way a
-restart loses it, materialize, and the level comes back.
+So it is state plus a stamp — ⭐ and since persistence-model (D3,
+2026-11-24) it is a THING's state, water standing somewhere, **kept by the
+place the tank stands in**: `StorageNode` no longer composes
+`PersistableMixin`, so a tank in a kept place is as it was left and a tank
+in a plain place (Hinkley Hills' district tank on its lane) comes back as
+authored at a restage — the model the player is shown (`look` says *Not
+kept*).
 
 It is persistent but deliberately **not authorable**: a level is a fact
 about the world, and a template that set one would be asserting how much
@@ -1409,3 +1416,38 @@ water unless there is a hole in it. See [cleanliness.md](./cleanliness.md).
   moved to 0.5 m/s; `iceAt` took a patch history; the frozen pool became
   an ice-sheet FLOOR with a patch log, the one skim threshold
   `OPEN_WATER_BELOW_M`, the `drawAt` gate and `lint:water-citations`.
+
+## ⭐⭐ The water ledger — history is filed, not kept (persistence-model, 2026-11-24)
+
+What the commons *did* is history, and history is neither a thing in a
+container nor a body: it is a LEDGER. `WaterLedger`
+(`/system/water/idea/WaterLedger`, row `/system/water/idea/ledger`, a
+`Registrar` singleton the water pack owns) files one `water-ledger`
+document per subject (the document kind is a row,
+`packages/content/water/content/kinds/water-ledger.yaml`), at the
+register's prefix plus the subject's durable handle. Two acts: `read`
+(once, as the subject stands up — its hydration source) and `file` (after
+every act that changes its history); writes are single-flight per subject,
+the latest state winning, so a burst of draws is one write in flight and
+one queued. A subject implements `Ledgered` (`ledgerRecord` /
+`takeLedger`). The subjects:
+
+- an **aquifer**'s running draw total and stamp — on the ledger when the
+  draw happens, where it used to wait for a shutdown capture;
+- a **gate**'s opening curve and work log — filed on a HAND's setting
+  only; a rota's turns re-derive from the filed `turnStamp` on read
+  (reading never writes);
+- a **conduit**'s delivery log;
+- the **reach warren**'s `stops`.
+
+**Every** gate, conduit and aquifer files, not only the rows that used to
+name a `Persistent*` twin, so a second ledgered gate needs no code. The
+twins — `PersistentAquifer`, `PersistentGate`, `PersistentConduit` — are
+retired and their rows re-pointed at the plain classes; `ReachWarren` and
+`ColumnWarren` no longer compose `PersistableMixin`. A ledger is a declared
+document, so it survives the nightly reset like every declared document.
+
+## History — the ledger and the riding things (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): D5 (the
+ledger above) and D3 (`StorageNode` and `IceSheet` ride their place).

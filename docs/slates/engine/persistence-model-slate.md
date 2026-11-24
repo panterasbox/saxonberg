@@ -1,16 +1,13 @@
 # Persistence model slate — what is here when you come back
 
-> **Status: DESIGNED** — the model was agreed with the owner on 2026-11-23,
-> restarting the estate-nesting slate from first principles. It covers two
-> facts per thing, one rule for every thing, keepers, legibility, and what it
-> retires.
-> **Left:** requirements drafted 2026-11-23 for **persistence +
-> [staging](../platform/staging-slate.md) as ONE design** —
-> [persistence-model-requirements](../../requirements/persistence-model-requirements.md);
-> then the plan
-> **Size:** **a build, with staging** — it retires the estate, the promoted
-> tier and the room overlay, gives every container a keeping rule, and
-> builds the stage manager
+> **Status: BUILT** — the persistence half is built in MR !654 (2026-11-24):
+> containers keep, ledgers keep history, bodies keep themselves, the estate
+> and the room overlay retired, the kept line and the teach-once line, lease
+> end into the landlord's lockers, `offShift: out`. See
+> [persistence.md](../../subsystems/persistence.md).
+> **Left:** the stage manager (restage on unload, part policies, strays
+> decided at the restage) → [staging](../platform/staging-slate.md).
+> **Size:** nothing left here — what remains is staging's build
 
 **Captured 2026-09-16** as *estate nesting*, in review of the pets MR
 (!257): an owner's saved record nests a full copy of every good they own,

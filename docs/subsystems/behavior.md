@@ -161,6 +161,7 @@ the `act` entry live as **statics** so they read without instantiation
 | `claims?` | Engagement slots the brain occupies while acting |
 | `requiresFree?` | Slots that must be free for the brain to proceed |
 | `presenceGated?` | Default `true`; `false` to fire even with no audience |
+| `callsAt?(config, nowS)` | ⭐ Where this brain calls its host at `nowS`, if anywhere — a pure read of its declared hours, never a run (`frequents`: its `place` while a `visits` window is open). The roster tick asks it of a hand off shift through `Behaved.calledToAt(nowS)` (the first brain that answers), so a visit and a shift enter the narrative the same way ([employment.md](./employment.md) § Presence and cover; persistence-model D15) |
 | `act(ctx)` | The entry point the framework invokes when a trigger fires |
 
 `act` receives a `BrainContext`:
@@ -647,7 +648,9 @@ mid-conversation (a `DialogueConversation` holds both slots) — the spoken
 dialogue isn't muddied by ambient chatter.
 
 ⛔ **`shifts` and `covers` were retired (2026-09-30).** Presence and cover
-are the **roster tick's**, not a brain's — `offstage:` on the Business,
+are the **roster tick's**, not a brain's — `offShift:` on the Business
+(`out`: off shift a hand leaves the narrative, unless a brain's `callsAt`
+calls it somewhere — the `Offstage` parking room retired 2026-11-24),
 `station:` on the seat, the move on each shift transition, and the cover
 reconciled at the end of `tickBusiness` (so also on the first `order`). See
 [employment.md](./employment.md) § Presence and cover.
@@ -809,3 +812,12 @@ somebody else's, and the occupant delta names exactly who arrived. The room's
 audience (`_currentPlayers`, `_hasAudience`) is a body with `hasLiveSession()`: a
 linkdead player still counts (they are coming back), and a body stood up with no
 session does not.
+
+## History — `callsAt` (persistence-model, 2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): the optional
+`BrainStatics.callsAt` and `Behaved.calledToAt` replaced the `Offstage`
+room's role for a regular — the roster tick brings a `frequents` regular
+in on the hour its window opens and out when it closes.
+`BrainMoves.stage` (the teleport into and out of an offstage room) is gone:
+with no route, a brain's move is no move.

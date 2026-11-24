@@ -642,7 +642,7 @@ final state written captures it explicitly before `StuffApi.destruct`.
 > |---|---|---|
 > | **floor stock / props** | **nothing** — *"lives in transient space"* | the author **staged** the scene; `restoreOrSeed`'s seed branch re-lays it, and ⭐ **a prop a player breaks comes back** |
 > | **ordinary player property** | its **host's** record, via `captureHostOf` | the author made the place **player-supplied** |
-> | ⭐⭐ **a promoted object** — named, masterwork | its own **`(row, chattelId)`** record | earned, not authored; `NameController`'s direct `capture` is the shipped path |
+> | ~~a promoted object — named, masterwork~~ | ⛔ **retired 2026-11-24** (persistence-model D8): naming confers no record. A *body* keeps itself (an Avatar, a kept animal, a draft animal, a ship); everything else is kept by its container | — |
 >
 > ⚠ **And `captureHostOf`'s "clean no-op when no host is found" is benign
 > for an UNOWNED thing and lossy for an owned one — which is correct.**
@@ -655,9 +655,11 @@ final state written captures it explicitly before `StuffApi.destruct`.
 > must therefore refuse player property — **refused**, because a room that
 > refuses property cannot let you put a cup down in a tavern.
 >
-> ⭐⭐ **Why a UNIQUE object earns its own tier:** a fungible thing can be
+> ~~⭐⭐ **Why a UNIQUE object earns its own tier:** a fungible thing can be
 > replaced and a unique one cannot — *"you could replace it with a new one
-> but it wouldn't be the same item."* That is why naming promotes.
+> but it wouldn't be the same item."* That is why naming promotes.~~
+> Retired with the tier (2026-11-24): a unique thing is kept the way every
+> thing is — by the kept container it is left in.
 >
 > ⚠ **And capture is EXPLICIT** — *"after a mutating act"* — so every act
 > that changes `runtimeState` must call it. A **census-then-ratchet**
@@ -669,10 +671,20 @@ collection — a `{ scope, owner, state }` envelope:
 
 - `scope` — the host's singleton `templatePath` (identity + re-clone base;
   materialize loads every record scoped to it).
-- `owner` — whose content (a principal's durable `templatePath`, a
-  `group:<name>` sentinel, an `organization:<path>` sentinel, or — for
-  untitled ground — the scope itself) → the **account-deletion cascade
-  key**. Derived from `ParcelApi.ownerOf(scope)` — never a parameter.
+- `owner` — ⚠ the column is named for its first use but holds **the
+  record's KEY**: the host's per-instance key when it has one (an explicit
+  key, else the key it stashed at its first capture — a dorm unit's parcel,
+  a kept prop's part name `<host>/<part>`, a kept animal's uuid); only a
+  host with no key falls back to whose content it is (a principal's durable
+  `templatePath`, a `group:<name>` / `organization:<path>` sentinel, or —
+  for untitled ground — the scope itself, from `ParcelApi.ownerOf(scope)`).
+  `PersistableLogic`: `owner = key ?? stashedKey(host) ?? ownerOfScope(…)`.
+  It is still the **account-deletion cascade key** for a body, which owns
+  its own record (`owner = scope`).
+- `pinned` — `true` on the record of a host whose class pins residency
+  (`pinsResidency()` — a kept animal) and that has an explicit key; a
+  partial index, read by the boot pin roll through
+  `PersistableApi.pinned()` ([residency.md](./residency.md)).
 - `state` — the **per-mixin-composed** capture: a map keyed by mixin/layer
   name to that layer's `MixinSlice` (`lib/persistence/PersistenceSlice.ts`).
   Stored as opaque JSON (no marshaller — `Document.toDocument` copies it
@@ -683,6 +695,63 @@ There is **no player-facing write path**: `holder_snapshots` is written only
 by the gated `PersistableLogic`, reachable only through `PersistableApi`'s
 gated methods (`capture` / `materialize` / `restoreOrSeed` / `hasRecord` /
 `deleteAllFor`).
+
+### ⭐⭐ Who keeps what — containers, ledgers, bodies (persistence-model, 2026-11-24)
+
+**Things are kept by their container; history by a ledger; bodies keep
+themselves; the derived is never kept.** That is the whole model, and the
+class list says it: only a container or a body composes
+`PersistableMixin` (`lint:instanceable` invariant 15 — a row's class that
+keeps a record must compose `ContainerMixin` or be a body on the gate's
+roster, today `Ship`; a person, a kept animal and a draft animal are
+containers already).
+
+- **Kept is a read, not a field.** `Container.isKept()`: a host that is
+  record-capable, `shouldPersist()` and established (`capturesAtShutdown()`)
+  keeps; anything else asks its own container, up the chain; a place with
+  neither does not. `Creature.isKept` overrides it — a body keeps itself or
+  nothing, never by standing in a kept room. `look`, `look in` and the
+  Explore card show the answer ([furnishing.md](./furnishing.md)).
+- **A kept container staged as a prop is keyed by its PART NAME** (D2).
+  `Template._stageEntries` establishes a non-singleton prop whose class
+  composes `PersistableMixin` + `ContainerMixin` with
+  `restoreOrSeed(inst, "<host handle>/<part>")`: the host's durable handle
+  (else its template path), and the entry's `as`, else its path (a repeat
+  takes `~2`, `~3`; `count: N` appends `#1…#N`). Both halves are authored,
+  so the key survives a restart, and two shelves of one row in two shops
+  are two records. A plain room can restage while the `Locker` or
+  consignment shelf in it keeps.
+- **A thing that is not contained RIDES a kept host** — `PersistableApi.
+  adoptRider(host, name, rider)`. The rider's state goes under `@riders`
+  in the host's record; a rider adopted after the restore takes its state
+  then; `captureHostOf` hops through a rider to its host; `capture()`
+  refuses a non-host. A `HoldingBuilding` rides its holding; the kernel
+  `Building` rides its entrance when that room keeps (a staged building
+  comes back as authored). `Adornable.adoptRestoredState(f)` gives a
+  fixture minted after its host restored its slot's state (a tract's
+  marked field, a pool's ice sheet).
+- **History is a ledger, filed as a document** — the water pack's
+  `WaterLedger` ([watershed.md](./watershed.md)), a company's `cap-table`
+  paper ([employment.md](./employment.md)), the hull book's `hull-sale`
+  paper ([ship.md](./ship.md)). A ledger is a declared document kind
+  (`content/kinds/<name>.yaml`), so it survives the nightly reset like
+  every declared document — the plan's per-kind `onReset: 'wipe'` was
+  dropped when kinds became rows.
+- **The residency pin rides the record**: capture writes `pinned: true`
+  for a host that `pinsResidency()` and has an explicit key, and the boot
+  roll reads `PersistableApi.pinned()` ([residency.md](./residency.md)).
+- **A refused save is told, isolated, and never keeps a body** (D10). The
+  shutdown sweep and the harness batch write through one batch writer: on
+  a throw it re-writes that chunk one record at a time, so only the refused
+  record fails. Each failure is a diagnostic on channel `persistence` (the
+  `errors` verb); the first of a streak is also one `shell.error` line to
+  the body concerned (the host when it is a connected body, else each
+  connected body standing in the kept place), and nothing more until a
+  save lands. A sign-out whose save was refused destructs the body anyway
+  (`Avatar.retireSignedOutBody`) — the last good record stands.
+- **`records:sizes`** (`packages/server/scripts/record-sizes.ts`) reads
+  `holder_snapshots` with `$bsonSize`: scope, key, bytes, direct content
+  count (`--entries` names each; `--scopes` lists the distinct scopes).
 
 ### Per-mixin composition
 
@@ -707,24 +776,18 @@ shapes:
   ITSELF (a coat's pocketed key — size and carrying W9) records the
   region's name with no host field (`{ placement: 'left pocket' }`), and
   `restoreItem` moves it straight into that region; a stale record (the
-  row lost the pocket) is logged and the host's arrival decides. An owned
-  key in a pocket rides its owner's estate, `placedOn` naming the coat
-  (by index, or chattel id when the coat is owned too). Three occupants are **skipped**
-  (one filter, one ordering shared with the Slotted slice): a live avatar
-  (`HasInteractive` — persists itself), a player-stamped good
-  (`ChattelApi.isOwnerPersisted` — persists in its owner's estate), and a
-  `Behaved` NPC (**cast, never content** — see *The third skip* below).
-- **slotted** (`{ worn, wornOwned? }`, `SlottedMixin.captureSlice`) —
+  row lost the pocket) is logged and the host's arrival decides. Two
+  occupants are **skipped** (one filter, one ordering shared with the
+  Slotted slice): a live avatar (`HasInteractive` — persists itself) and a
+  `Behaved` NPC (**cast, never content**). ⭐ A good stamped to a player is
+  NOT skipped (since persistence-model D9): it is content like any other,
+  kept by whatever container it is in.
+- **slotted** (`{ worn }`, `SlottedMixin.captureSlice`) —
   worn/equipped occupancy by **position** (indices into the container
   slice) + the slot names each item claims; non-content occupants (a
-  rider, a sitter) resolve to −1 and are skipped. ⭐ **Except an owned
-  good**: an owner-persisted chattel worn by the host rides the ESTATE, not
-  the contents order, so it has no index — `wornOwned` names it by
-  `chattelId`, and `restoreState` re-wears it in pass (5), after the
-  estate slice restores (`getEstateLive`). ⚠ Before (the rubber build's
-  browser drive across a restart, 2026-10-18) every bought garment and the
-  implant came back *carried*, and the loadout cloned a second implant
-  each boot.
+  rider, a sitter) resolve to −1 and are skipped. An owned garment is in
+  the contents order like anything else, so it has an index (the
+  `wornOwned` side-channel the estate needed retired with it, 2026-11-24).
 
 The recursion seam (`CaptureContext`) lets a mixin's `captureSlice` descend
 into item state without importing `PersistableLogic` (breaking the lib →
@@ -823,15 +886,20 @@ Two related rules fall out:
   `seedBornWith` runs on the no-record branch alone — so this is the same
   rule for the non-host case.
 
-The first consumer is the houseplant (each cultivated plant is its own keyed
-host, carrying its own location), and **pets and livestock are the same
-shape** — see [husbandry.md](./husbandry.md).
+The first consumer was the houseplant; since persistence-model (D3) a plant
+rides its bed's or its place's record and keeps none of its own. The keyed
+nested hosts today are kept containers and bodies — a kept animal, a keyed
+room, a kept prop keyed by its part name (below) — see
+[husbandry.md](./husbandry.md).
 
 ### Dependent records — `dependentPersistables`
 
-A host may OWN keyed records that live and die with it — a tract's marked
-fields (tracts build D26), a warren's rooms that keep a record, a ship's
-warren and her minted company (harbors review). `Persistable.dependentPersistables()`
+A host may OWN keyed records that live and die with it — a warren's rooms
+that keep a record (`FloorplanWarren`, `MineWarren`), a ship's warren
+(harbors review). ⚠ A tract's marked fields, a holding's buildings and a
+ship's company were dependents until persistence-model: a field rides its
+tract's `Adornable` slice, a building RIDES its holding's record (§ *Riders*
+below), and a company files its cap table as a paper. `Persistable.dependentPersistables()`
 (`@hook`, default `[]`) names them, so a capture of the host captures each
 after its own record write (each through its own record's queue — the
 list is read before the write awaits, so a dependent destroyed meanwhile
@@ -873,8 +941,7 @@ capture beside the sweep's is ordered by the per-record write queue; each
 writes a whole snapshot.
 
 ⭐ **A capture is ONE keyed write, and the sweep is bounded** (W4). A
-capture prepares its record (key, synchronous snapshot, the estate flush
-of goods titled to others) and writes it as one `saveMany` upsert on
+capture prepares its record (key, synchronous snapshot) and writes it as one `saveMany` upsert on
 `{scope, owner}` — where it was a find then a save, two round trips and
 not atomic (the per-record queue exists because two first captures both
 inserted and died on the unique index; the upsert cannot). The shutdown
@@ -988,13 +1055,12 @@ Three generic substrate capabilities support it:
   room clone has no address to name — a good left in one comes back in *a*
   room of that kind, the honest limit of a transient place.
   ⚠ **Who holds a placement is decided by the container slice's skip
-  list**: the slice skips avatars, cast and owner-persisted chattel, and
-  exactly those keep their own placement — a named animal in a bedroom
-  that persists itself is not referred to by the room (its slice skips
-  it), so its own `place` is the only record. A good **carried** by
-  somebody records no placement at all (a `via` hop naming an avatar could
-  land it in a stranger's pockets — every avatar shares one template path);
-  the owner's estate puts it back in hand.
+  list**: the slice skips avatars and `Behaved` cast, and exactly those
+  keep their own placement — a kept animal (`Behaved`) in a bedroom is not
+  referred to by the room, so its own `place` is the only record. A good **carried** by somebody records no
+  placement at all (a `via` hop naming an avatar could land it in a
+  stranger's pockets — every avatar shares one template path); it is in
+  its carrier's own record.
 - **Resolve-or-mint is every route's first question.** `cloneHost(scope,
   key)` resolves a live keyed instance before minting: two records can
   both refer to one keyed host (a chest carried between two persistable
@@ -1673,3 +1739,20 @@ It obeys `save`'s rules and refuses where it cannot:
 a count) and for a hooked collection. Its consumers: the frame drain
 (record-layer.md), the three scoring passes (participation.md,
 renown.md), and the capture write (below).
+
+## History — the persistence model (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654). The spine
+stopped keeping things anywhere but in their container. Retired: the
+estate's goods half (`EstateSlice`, `EstateEntry`, the owner-persisted
+skip in the container, slotted and adornable slices, `noteOwnedGood` and
+its flush, the room overlay, `captureDetached`/`restoreDetached`,
+`wornOwned`); the promoted tier (naming captures nothing); the own records
+of `Plant`, `Field`, `StorageNode`, `IceSheet`, `HoldingBuilding`, the
+kernel `Building`, `HullBook` and the business (`PersistentBusiness` →
+`Company`); and the `PersistentWell`, `PersistentWaterStore`,
+`PersistentAquifer`, `PersistentConduit` and `PersistentGate` twins. Added:
+`Container.isKept`, the part-name key, riders, `PersistedRecord.pinned`,
+the batch writer and the refused-save report, `records:sizes`, and
+invariant 15. See § *Who keeps what* above and
+[furnishing.md](./furnishing.md) § History.

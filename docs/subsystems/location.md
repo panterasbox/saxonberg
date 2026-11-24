@@ -697,7 +697,7 @@ place its cell:
 
 | the place | its cell |
 |---|---|
-| an authored row (`Locale`, `Street`, `Offstage`…) | its own `coords:` in its zone |
+| an authored row (`Locale`, `Street`…) | its own `coords:` in its zone |
 | a minted circulation node (a reach of lane, a dorm or Seznick corridor) | `Location.plotBesideNeighbour`, from `CirculationWarren.ensureNode` — one step from the neighbour it was wired to (a corridor `down` to a lobby at (0,1,0) is at (0,1,1)); it refuses rather than overwrite a held cell |
 | a lounge satellite, a mine cell | its warren (`LoungeWarren.wireHubExit`, `MineWarren.placeInGrid`) |
 | a holding's or a ship's room (a house, a let unit, a dorm room, a field, a deck) | its plan row's own `coords:` — on the grid of the COPY's zone, reflected when the copy is mirrored ([zone.md § Copies](./zone.md)) |

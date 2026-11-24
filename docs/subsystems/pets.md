@@ -10,8 +10,8 @@ brains `lib/behavior/{follows,feeds,homes}.ts`, and the five verbs. Built
 **Read first:** [ranching.md](./ranching.md) (the animal economy this
 sits beside — three roles, not three classes), [belief.md](./belief.md)
 (regard; per-viewer memory), [residency.md](./residency.md) (the pin —
-what loads a pet), [furnishing.md](./furnishing.md) (the estate — where
-its record lives). ⭐ The lens pass that shaped the last round:
+what loads a pet), [persistence.md](./persistence.md) (a kept animal is a
+body that keeps its own record). ⭐ The lens pass that shaped the last round:
 [design-lenses.md](../design-lenses.md) — *owning a pet is about its needs,
 not the owner's*, and that is a choice the sim must force, not a sentence.
 
@@ -48,7 +48,7 @@ The stack, outer → inner (and ⚠ the order is load-bearing — see
 *PostRegistration is innermost*):
 
 ```
-Persistable   it can be promoted to something the world remembers
+Persistable   once kept (it chose somebody) it keeps itself — a body
   Behaved     it decides things: follows · feeds · homes
     Bonded    the bond, the home, the verbs           ⟵ the point
       Status  legible attention
@@ -253,37 +253,40 @@ the other. ⚠ A row's `commandContributions:` is dead silently.
   (`PerceptionApi.perceives(animal, actor)`), so in the dark you can know
   where your dog is and have no way to signal it. Freed from `combat`'s
   `intervene` alias.
-- **`name <animal> <name>`** — ⭐⭐ **naming is the promotion**, four
-  things in one act: `setName` (public to everybody — an animal's name is
-  not a person's), `stampChattel` (title, chain of title, and the moment
-  its clock starts integrating your absences — `integratesLongAbsence() =
-  isChattel && isStamped`), an explicit persistence key **before** the
-  place write (so the residency pin lands on the row), and its first
-  capture. Two gates, one sentence: bond ≥ `NAME_BOND` and *it has
+- **`name <animal> <name>`** — the name and the title in one act:
+  `setName` (public to everybody — an animal's name is not a person's)
+  and `stampChattel` (title, chain of title, and the moment its clock
+  starts integrating your absences — `integratesLongAbsence() =
+  isChattel && isStamped`). ⭐ **Naming confers no persistence**
+  (persistence-model D8, 2026-11-24): the animal already keeps itself if
+  it is kept (below), and the name is captured with it. Two gates, one sentence: bond ≥ `NAME_BOND` and *it has
   followed you home at least once* — *"It has not chosen you."* Witnessed
   by everything that can perceive it (the `introduce` shape), which is the
   second route home. A connected player's name may not be taken.
 - **`offer <food> to <animal>`** — above.
 
-**An unnamed animal is free.** Real, present, interactable, and the world
-keeps no record whatsoever; its regard for you lives until the restart.
-That is the feature.
+**A stray is free.** Real, present, interactable, and the world keeps no
+record whatsoever; its regard for you lives until the restart. That is
+the feature.
 
-## Persistence — the containable remembers, the room does nothing
+## Persistence — a kept animal is a body that keeps itself
 
-A named animal is a **keyed `Persistable`** (scope = its template path,
-key = a uuid) writing its own record; it is **owner-persisted chattel**,
-so its owner's estate carries it as a *reference* (`EstateEntry.key`,
-`state: {}`) rather than a copy. Where it stands is the `chattel` row's
-`place` plus its own `HostPlacement` (anchor + `via`;
-[persistence.md](./persistence.md)). ⚠ Four location classes compose
-`Persistable` and this build added none: persisting a container preserves
-its whole tree and is the rare, expensive model.
+⭐⭐ **Kept is the bond's own fact, never its name** (persistence-model D8,
+2026-11-24). `Bonded.isKept()` is derived: the animal has followed
+somebody it is bonded to, or earned a home (`followedKeys.length > 0 ||
+homeEarnedDay >= 0`). At that transition `keepSelf()` mints its explicit
+key (a uuid) and captures it, so from then on it is a **keyed
+`Persistable`** (scope = its template path) writing its own record —
+`KeptAnimal.shouldPersist()` is `isKept()`. Bonding is the animal's own
+act, not a wand: a named stray keeps nothing, and a kept animal nobody
+named keeps itself. Where it stands is its own `HostPlacement` (anchor +
+`via`; [persistence.md](./persistence.md)); it re-captures when it changes
+place (`KeptAnimal.onMoved`). It is `Behaved` cast, so a room's container
+slice skips it and never carries a copy.
 
-**Why a keyed clone, and not the two other shapes.** A pet is the third
-instance of `setPersistenceKey`'s own examples (a leased dorm unit, a
-cultivated plant's uuid), coordinated by the owner's estate because it is
-already chattel — nothing was invented for it. Two shapes were rejected.
+**Why a keyed clone, and not the two other shapes.** A pet is an
+instance of `setPersistenceKey`'s own examples (a leased dorm unit) —
+nothing was invented for it. Two shapes were rejected.
 *Minting a singleton the way `Avatar` does*: `Avatar`'s templatePath-as-
 identity predates `identityPath`, `Persistable.ts` carries three Avatar
 carve-outs, and it is the worst thing in the tree to pattern-match on;
@@ -295,14 +298,15 @@ model): right for a herd, wrong here — a pet's overlay is most of what the
 animal is (name, bond, transcript, who it remembers), and a seed-only
 stray has no container coordinator, so it is not in the room at all and
 nobody can `look` at it. Hence **a stray is an ordinary unkeyed clone and
-naming adds the key** — clone → keyed clone, never clone → singleton or
-seed → snapshot — which is why the name verb is the promotion and not a
-cosmetic.
+becoming kept adds the key** — clone → keyed clone, never clone →
+singleton or seed → snapshot. (Until 2026-11-24 the NAME verb added the
+key — naming was "the promotion"; the owner ruled a name a wand, and the
+key moved to the bond.)
 
 **What loads it** is [residency.md § the load half](./residency.md):
-`KeptAnimal.pinsResidency()` answers true, the pin is stamped on its
-`chattel` row, and `ResidencyWarden` stands every pinned good up once at
-boot; the owner's login is the other ask. Pinning, not swap — no room asks
+`KeptAnimal.pinsResidency()` answers true, its record carries `pinned:
+true` (`holder_snapshots`), and `ResidencyWarden` stands every pinned host
+up once at boot (`PersistableApi.pinned()`). Pinning, not swap — no room asks
 for what stands in it. Who may honour a pin is
 [eager-residency-slate](../slates/tech-debt/eager-residency-slate.md).
 
@@ -394,3 +398,11 @@ by its chattel id (every fish bowl was one home by template path);
 fish is the first kept animal that is also `Contaminable`. ⚠ Risk 7 stands:
 a keyed animal inside a moved vessel restores loose, and a dropped chattel
 restores to inventory (the drive's restart step).
+
+## History — kept by the bond, not the name (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): D8 moved a
+pet's record from naming to the bond (`Bonded.isKept` / `keepSelf`), the
+pin from the `chattel` row to its own record, and retired the estate
+reference that carried it. The fishing-drive findings above about the
+owner's `inventory` restore predate this and describe the retired estate.

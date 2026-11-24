@@ -227,8 +227,9 @@ review, 2026-11-01). `wakeRoom` restores a room's `(row, key)` record only
 when the room composes `Persistable`; a plain room — a farmyard — comes up
 from its row each wake and keeps nothing. Before, every member was forced
 to persist. Persistence is the exception: a room keeps a record when it
-must lay an owner's goods back down (the room overlay — a house's rooms,
-a farm's barn) or carries state nothing else does (a tract's soil).
+must keep what is left in it (a house's rooms, a farm's barn — a kept
+room's record is everything in it, whoever holds title) or carries state
+nothing else does (a tract's soil).
 A ship follows the same rule (harbors review 2): her **hold** (`Hold`,
 `Persistable(Compartment)`) keeps a record — her cargo — and her deck and
 cabin are plain `Compartment`s. Because a ship sleeps whenever the last
@@ -409,8 +410,11 @@ the plan's rooms **at or under its extent** — the Structure rule, read
 off the paths; nothing reads how the rooms connect, which ones hold their
 air, or the order of an `exits:` map. Ground under no building's extent (a
 yard, a tract, a garden) is open ground and no building's. A copy mints
-one `HoldingBuilding` per named row at the holding's wake, persisted under
-the holding's extent (the main one) or `<extent>@<row leaf>`.
+one `HoldingBuilding` per named row at the holding's wake, which **rides
+the holding's record** (persistence-model D4, 2026-11-24 —
+`PersistableApi.adoptRider(holding, 'building' | 'building@<row leaf>',
+house)`, its state under `@riders`) and keeps no record of its own; the
+end-of-tenure revert goes with the holding's.
 `Floorplan.load` refuses loudly a building outside the plan, one with no
 rooms, an entrance that is not one of its rooms, a room two buildings
 claim, or two buildings with one leaf. A plan that names **none** (a
@@ -553,10 +557,13 @@ one. A source walk asserts it, because a habit is not a guarantee.
 
 ## Owned goods in a holding
 
-The furnishing subsystem's owner-based persistence carries straight
-across ([furnishing.md](./furnishing.md), [persistence.md](./persistence.md)):
-a stamped good persists in its OWNER's estate against a `place`, and a
-room going dormant simply forgets furniture it never owned.
+A good is kept by its container ([furnishing.md](./furnishing.md),
+[persistence.md](./persistence.md) § Who keeps what): a holding's kept
+room keeps everything left in it, whoever holds title, and a plain room
+(a farmyard) keeps nothing. At lease end a letting house boxes the
+tenant's goods into its storeroom `Locker` (`LettingWarren.boxGoods`).
+(Until 2026-11-24 a stamped good persisted in its OWNER's estate against
+a `place`, and a room overlaid it back — retired.)
 
 Two residences-era additions:
 
@@ -566,14 +573,10 @@ Two residences-era additions:
   restoring host re-enters through `CirculationWarren.admitFor(key)`. That
   is the "log out in your own yard, log back into the same yard"
   acceptance.
-- **the mount marker.** A good hung on a wall (`hang`) records
-  `mounted: { slot }` on its estate entry, derived from where it
-  actually hangs so it can never disagree with the fixture map; the room
-  overlay re-attaches it as a fixture instead of dropping it on the
-  floor. `AdornableMixin` contributes a capture pass that reports
-  stamped fixtures to `noteOwnedGood` — without it, a room that slept
-  while its owner was offline took the lamp with it and nobody captured
-  it.
+- **the hung good.** A good hung on a wall (`hang`) is captured whole in
+  its room's fixtures slice under `hung` (by slot) and re-hung at the
+  restore (it rode the owner's estate with a `mounted` marker until
+  2026-11-24).
 
 ---
 
@@ -700,8 +703,8 @@ reasoning lives in the sections of this doc that the titles describe.
   multi-instance persistence model this generalizes
 - [smallholding.md](./smallholding.md) — the holder half (plat book, lot
   holder, the title gate) and the cultivation half beyond it
-- [furnishing.md](./furnishing.md) — owner-based persistence, the estate
-  slice, `place`, the room overlay
+- [furnishing.md](./furnishing.md) — where a good is kept (its
+  container), lease end into the storeroom locker
 - [persistence.md](./persistence.md) — the spine, keyed hosts, the
   `mounted` marker
 - [parcel.md](./parcel.md) — title, grants, `heldUnitsOf`, keyways
@@ -894,3 +897,11 @@ holding answers).
   (`8125deeed`), and the blueprint row went, the plan living on its
   owner (`a20704a98`); `MineWarren extends FloorplanWarren`
   (`8b5f04273`).
+
+## History — buildings ride the holding (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654):
+`HoldingWarren` no longer lists its `HoldingBuilding`s as
+`dependentPersistables` — each rides the holding's record as a rider; the
+owner-side estate a holding's rooms overlaid retired; lease end boxes into
+the house's storeroom locker.
