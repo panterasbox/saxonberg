@@ -20,6 +20,7 @@
  * controller plans nothing.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { ManualBuildController } from './ManualBuildController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
@@ -55,10 +56,12 @@ export default class DipController extends ManualBuildController<DipModel> {
       return;
     }
 
-    const faceWord = (model.face ?? model.side ?? '').trim().toLowerCase();
+    const faceWord = (model.face ?? model.side ?? '').trim();
     let faces: FaceName[] | null = null;
     if (faceWord !== '') {
-      if (!FACE_WORDS.includes(faceWord as FaceName)) {
+      // The closed faces, through the one rule (naming overhaul D-C5).
+      const named = GrammarApi.nameAmong<FaceName>(faceWord, FACE_WORDS.map((f) => ({ value: f, keywords: [f], title: f })));
+      if (named.kind !== 'one') {
         this.declineStep(
           context,
           Mml.compose`Dip which face of it? Say inside or outside.`,
@@ -66,7 +69,7 @@ export default class DipController extends ManualBuildController<DipModel> {
         );
         return;
       }
-      faces = [faceWord as FaceName];
+      faces = [named.one];
     }
 
     const baths = (model.bath?.stuff ?? []).filter(

@@ -167,7 +167,8 @@ subcommands:
         type: string
         required: true
       - name: setting
-        type: string
+        type: enum
+        values: [permit, forbid]
         required: true
   promote:
     controller: /platform/idea/cmd/social/ChatPromoteController

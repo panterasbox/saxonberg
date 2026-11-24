@@ -1,0 +1,6 @@
+title: Dyestuff
+traits:
+  shipped: { dir: dyestuffs }
+  catalogued: { by: /trade/dyeing/idea/DyestuffCatalogue, load: whole }
+fields:
+  material: { type: string, index: material }

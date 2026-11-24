@@ -35,9 +35,9 @@ export default class CollectController extends CommandController<CollectModel> {
     // The nearest tip jar the giver perceives (D23).
     const jar = (PerceptionApi.perceived(
       context.commandGiver,
-      MqlApi.resolveMany('reachable:[class.TipJar]', {
+      MqlApi.resolveMany('~reachable:[class.TipJar]', {
         commandGiver: context.commandGiver,
-        scope: 'reachable',
+        scope: '~reachable',
       }).stuff,
     )[0] ?? null) as TipJar | null;
     if (!jar) {

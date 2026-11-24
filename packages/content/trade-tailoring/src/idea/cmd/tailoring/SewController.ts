@@ -55,7 +55,7 @@ export default class SewController extends ManualBuildController<SewModel> {
       );
       return;
     }
-    const pattern = (model.pattern ?? 'shirt').trim().toLowerCase();
+    const pattern = (model.pattern ?? 'shirt').trim();
     const plan = pieces.sewPlan(giver, pattern, this.bestInstrument(model.kit, 'mending'));
     if (!plan.ok) {
       this.declineStep(context, SewController.refusalWords(plan), plan.reason);

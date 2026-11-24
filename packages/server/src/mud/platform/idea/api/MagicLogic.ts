@@ -40,6 +40,7 @@
  * @internal
  */
 
+import type { NameAnswer } from '../../../api/grammar';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -385,6 +386,12 @@ export class MagicLogic extends ApiLogic {
   @CallSecurity(MagicApiCallers)
   public spellAt(path: string): SpellDescriptor | null {
     return catalogue().getSpellAt(path) ?? null;
+  }
+
+  /** See {@link MagicApi.spellNamed}. */
+  @CallSecurity(MagicApiCallers)
+  public spellNamed(text: string): NameAnswer<SpellDescriptor> {
+    return catalogue().spellNamed(text);
   }
 
   /** See {@link MagicApi.spellsView}. */

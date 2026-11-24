@@ -61,10 +61,12 @@ export default class ForgeController extends CraftController<ForgeModel> {
 
     // The knowledge gate: the one-shot is earned by the hands, not the
     // book — a catalogue recipe declines until the can-make deed exists.
-    if (!(await this.requireDeed(context, model.item, 'forge'))) return;
+    const item = await this.recipeNamed(context, model.item);
+    if (item === null) return;
+    if (!(await this.requireDeed(context, item, 'forge'))) return;
 
     const outcome = await CraftingApi.craft({
-      recipeRef: model.item,
+      recipeRef: item,
       makerMode: 'self',
       brand: model.brand,
     });

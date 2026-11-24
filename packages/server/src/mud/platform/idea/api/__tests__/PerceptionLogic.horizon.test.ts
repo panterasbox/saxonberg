@@ -209,12 +209,12 @@ describe('the author\'s word: block and reach (D5)', () => {
 });
 
 describe('the MQL seed', () => {
-  it('⭐ `horizon` is a set and `horizon:light` a name', async () => {
+  it('⭐ `horizon` is a set and `~horizon:light` a name', async () => {
     const v = await viewerIn('/t/pell/room-0');
-    const all = MqlApi.resolveMany('horizon', { commandGiver: v as never, scope: '' });
+    const all = MqlApi.resolveMany('~horizon', { commandGiver: v as never, scope: '' });
     expect(all.isSet).toBe(true);
     expect(all.stuff.map((s) => s.getTemplatePath())).toContain('/t/rock/light');
-    const one = MqlApi.resolveOne('horizon:light', { commandGiver: v as never, scope: '' });
+    const one = MqlApi.resolveOne('~horizon:light', { commandGiver: v as never, scope: '' });
     expect(one.stuff?.getTemplatePath()).toBe('/t/rock/light');
   });
 });

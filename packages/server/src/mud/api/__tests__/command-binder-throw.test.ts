@@ -7,7 +7,7 @@
  * `throw rock at wolf` actually parse, do the args bind, do the
  * validators fire — was untested by construction, and two defects in
  * `throw.yaml` alone escaped the suite entirely: `$focus` beside a
- * preposition never matching a shape, and an `inventory` scope on an
+ * preposition never matching a shape, and an `~inventory` scope on an
  * argument the design wants resolved off the ground.
  *
  * This walks the whole chain the dispatcher walks —
@@ -69,7 +69,7 @@ function realThrow(itemScope?: string, file = 'throw.yaml'): CommandDefinition {
   const path = fileURLToPath(new URL(`../../../../../content/platform/content/platform/cmd/inventory/${file}`, import.meta.url));
   let text = readFileSync(path, 'utf8');
   if (itemScope !== undefined) {
-    text = text.replace(/scope: "reachable"/, `scope: "${itemScope}"`);
+    text = text.replace(/scope: "~reachable"/, `scope: "${itemScope}"`);
   }
   return CommandDefinition.fromYaml(text, THROW_YAML);
 }
@@ -189,13 +189,13 @@ describe('throw.yaml through the whole binder', () => {
     });
   });
 
-  it('⚠ an `inventory` scope cannot see the ground at all', async () => {
+  it('⚠ an `~inventory` scope cannot see the ground at all', async () => {
     move(rock, location);
-    // Why the scope must stay wide. Under `inventory` the same command
+    // Why the scope must stay wide. Under `~inventory` the same command
     // binds NOTHING — no match, no refusal, no way for `mustBeHeld` to
     // ever run. This is the defect the wide scope fixes; narrowing it
     // back silently removes the teaching refusal above.
-    expect(await drive(realThrow('inventory'), 'throw rock')).toEqual({
+    expect(await drive(realThrow('~inventory'), 'throw rock')).toEqual({
       stage: 'ok',
       item: 'NULL',
       target: '(absent)',
@@ -203,7 +203,7 @@ describe('throw.yaml through the whole binder', () => {
   });
 
   it('prefers the one in your hand when two share a name', async () => {
-    // `reachable` emits on-person candidates FIRST, so widening the
+    // `~reachable` emits on-person candidates FIRST, so widening the
     // scope does not cost you the obvious reading: with a rock in hand
     // and another at your feet, `throw rock` throws the one you are
     // holding rather than refusing with "pick it up first".

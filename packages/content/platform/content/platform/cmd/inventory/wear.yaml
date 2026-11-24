@@ -40,7 +40,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "inventory"
+    scope: "~inventory"
     requires: WearableMixin
     validators:
       - /lib/command/validators/mustBeInInventory

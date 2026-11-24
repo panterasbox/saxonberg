@@ -1,0 +1,9 @@
+title: Edition
+traits:
+  paper:
+    template: '{% for p in pages %}{{ p }}{% unless forloop.last %}<page/>{% endunless %}{% endfor %}'
+  dated: { field: frozenAtS }
+  ledger: immutable
+  filed: edition
+  shipped: { dir: editions, vanish: keep }
+  titled: { field: title }

@@ -325,7 +325,7 @@ afterAll(async () => {
   await unpinWeather(SQUARE).catch(() => undefined);
 });
 
-/* ───────────────── steps 1–5: `verb@source` ───────────────── */
+/* ───────────────── steps 1–5: `source::verb` ───────────────── */
 
 const WATCH = '/world/terminus/general-store/thing/pocket-watch';
 /** The mainspring of a watch, in seconds; `null` until it is first wound. */
@@ -336,20 +336,20 @@ const notesOf = (r: CommandResult): string =>
 const reasonOf = (r: CommandResult): string | null =>
   (r.notes.map((n) => (n as { reason?: string }).reason).find((x) => typeof x === 'string') as string | undefined) ?? null;
 
-suite('1–5. `verb@source`', () => {
+suite('1–5. `source::verb`', () => {
   afterAll(parkAll);
   let s: Session;
   beforeAll(async () => {
     s = await stager(uniqueHandle('caio-winder'), SQUARE);
   }, 300_000);
 
-  it('1. `wind@me:i:watch` winds the carried watch and not the one beside it; `wind` alone as ever', async () => {
+  it('1. `me:i:watch::wind` winds the carried watch and not the one beside it; `wind` alone as ever', async () => {
     const mine = await hand(s, WATCH);
     const beside = await hand(s, WATCH);
     expectOk(await s.cmd(`drop #${beside}`));
     await s.drainProse();
     expect(await spring(s, mine), 'unwound before').toBeNull();
-    const { r } = await act(s, 'wind@me:i:watch');
+    const { r } = await act(s, 'me:i:watch::wind');
     expectOk(r);
     expect(await spring(s, mine), 'the carried watch is wound').toBeGreaterThan(0);
     expect(await spring(s, beside), 'the one beside it is not').toBeNull();
@@ -361,48 +361,48 @@ suite('1–5. `verb@source`', () => {
     await s.drainProse();
   }, 120_000);
 
-  it('2. with two carried, `wind@watch` asks which; the chosen one is wound', async () => {
+  it('2. with two carried, `watch::wind` asks which; the chosen one is wound', async () => {
     s = await stager(uniqueHandle('caio-winder'), SQUARE);
     const a = await hand(s, WATCH);
     const b = await hand(s, WATCH);
-    const { r, prompts } = await act(s, 'wind@me:i:watch', () => b);
+    const { r, prompts } = await act(s, 'me:i:watch::wind', () => b);
     expect(prompts, 'asked which').toBe(1);
     expectOk(r);
     expect(await spring(s, b), 'the chosen watch').toBeGreaterThan(0);
     expect(await spring(s, a), 'the other').toBeNull();
     // The bare name asks too.
-    const again = await act(s, 'wind@watch', () => a);
-    expect(again.prompts, '`wind@watch` asks').toBe(1);
+    const again = await act(s, 'watch::wind', () => a);
+    expect(again.prompts, '`watch::wind` asks').toBe(1);
     expectOk(again.r);
     expect(await spring(s, a), 'chosen on the bare name').toBeGreaterThan(0);
   }, 120_000);
 
-  it('3. a script errors at once where a person would be asked; `wind@"all watches"` winds both', async () => {
+  it('3. a script errors at once where a person would be asked; `"all watches"::wind` winds both', async () => {
     s = await stager(uniqueHandle('caio-winder'), SQUARE);
     const a = await hand(s, WATCH);
     const b = await hand(s, WATCH);
     const began = Date.now();
-    const { r, prompts } = await act(s, 'script wind@watch');
+    const { r, prompts } = await act(s, 'script watch::wind');
     expect(prompts, 'a script never waits on a person').toBe(0);
     expect(Date.now() - began, 'at once').toBeLessThan(10_000);
     expect(reasonOf(r), notesOf(r)).toBe('needs-input');
     expect(await spring(s, a)).toBeNull();
     expect(await spring(s, b)).toBeNull();
-    const all = await act(s, 'wind@"all watches"');
+    const all = await act(s, '"all watches"::wind');
     expect(all.prompts).toBe(0);
     expectOk(all.r);
     expect(await spring(s, a)).toBeGreaterThan(0);
     expect(await spring(s, b)).toBeGreaterThan(0);
   }, 120_000);
 
-  it('4. `say@me hello` says what `say hello` says; `wind@nonsense` is not-found', async () => {
-    const scoped = await s.cmd('say@me hello');
+  it('4. `me::say hello` says what `say hello` says; `nonsense::wind` is not-found', async () => {
+    const scoped = await s.cmd('me::say hello');
     expectOk(scoped);
     const plain_ = await s.cmd('say hello');
     expectOk(plain_);
     const scopedSaid = /You say, "hello"/.test(await scoped.said());
     expect(scopedSaid, 'the scoped line says hello').toBe(true);
-    const nonsense = await s.cmd('wind@nonsense');
+    const nonsense = await s.cmd('nonsense::wind');
     expect(reasonOf(nonsense), notesOf(nonsense)).toBe('source-not-found');
   }, 120_000);
 

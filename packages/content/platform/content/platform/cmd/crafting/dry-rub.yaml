@@ -24,7 +24,7 @@ args:
     type: object
     required: true
     # ⭐ What is in hand first — the same reach as hanging it up.
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     # The controller refuses a thing with no water in it, in its own words.
     requires: any
     validators:
@@ -34,7 +34,7 @@ args:
     type: object
     required: true
     prepositions: [with]
-    scope: "reachable"
+    scope: "~reachable"
     # Any wet-able thing will rub something dry; the controller narrows.
     requires: any
     validators:

@@ -63,7 +63,7 @@ args:
   - name: target
     type: objects
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     requires: SoilableMixin
   # ⭐ WHAT IN — DECLARED, not hunted for (`lint:controller-resolution`). A
   # vessel of water, or the water a shore is beside — `wash shirt in
@@ -76,8 +76,8 @@ args:
     prepositions: [in, under, at]
     # ⭐ The water answers for itself (`WaterDrawableMixin`, controller-liquidity
     # W7c): a basin, a tap, a tub, a pail, a shore — the read `rinse` makes.
-    default: "reachable:[mixin.WaterDrawableMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.WaterDrawableMixin]"
+    scope: ["~reachable"]
     requires: any
   # ⭐ WHAT WITH — a cleanser: anything whose material a Cleanser row's
   # agent tag names (soap, lye, washing soda, fuller's earth, vinegar…).
@@ -88,7 +88,7 @@ args:
     type: objects
     required: false
     prepositions: [with]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
   # ⭐ WHAT WITH — the brush, DECLARED (`lint:controller-resolution`): a
   # scrubbing brush in hand or reach scrubs at the full rate on `--hard`;
@@ -99,8 +99,8 @@ args:
     type: objects
     required: false
     prepositions: [using]
-    default: "person:[capability.scrubbing],reachable:[capability.scrubbing]"
-    scope: ["reachable"]
+    default: "~person:[capability.scrubbing],~reachable:[capability.scrubbing]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

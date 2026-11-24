@@ -224,6 +224,21 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
     expect(row.status).toBeUndefined(); // bare online — status withheld
   });
 
+  it('⭐ carries the @<id> a viewer may type (naming overhaul D-B6)', async () => {
+    stubRow('active', 'anyone');
+    const row = await composer.composeRow(viewer(), makeAvatarTarget());
+    expect(row.address).toBe('@p-mara');
+  });
+
+  it('⭐ withholds the @<id> when a disguise masks who they are', async () => {
+    stubRow('active', 'anyone');
+    vi.spyOn(MixinApi, 'isDisguisable').mockReturnValue(true);
+    const t = makeAvatarTarget() as unknown as Record<string, unknown>;
+    t.getDisguise = () => ({ masksIdentity: true });
+    const row = await composer.composeRow(viewer(), t as unknown as Stuff);
+    expect(row.address).toBeUndefined();
+  });
+
   it('omits the unremarkable active default from a row', async () => {
     stubRow('active', 'anyone');
     const row = await composer.composeRow(viewer(), makeAvatarTarget());

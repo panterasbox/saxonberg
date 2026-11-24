@@ -31,14 +31,7 @@ export default class ReserveOverrideController extends BankingControllerBase<Res
       context.note({ kind: "controller-rejected", reason: "bad-amount", detail: model.amount ?? "" });
       return;
     }
-    if ((model.to ?? "").toLowerCase() !== "to") {
-      MessageApi.scene(giver)
-        .topic(TOPIC)
-        .toSelf(Mml.compose`Usage: \`reserve override <amount> to <target> "<reason>"\`.`)
-        .send();
-      context.note({ kind: "controller-rejected", reason: "bad-syntax", detail: model.to ?? "" });
-      return;
-    }
+    // `to` is the view's own word (type: enum) — the binder held it.
     const reason = (model.reason ?? "").trim().replace(/^["']|["']$/g, "");
     if (!reason) {
       MessageApi.scene(giver)

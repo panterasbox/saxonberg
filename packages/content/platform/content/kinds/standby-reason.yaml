@@ -1,0 +1,10 @@
+title: Standby reason
+traits:
+  shipped: { dir: standby-reasons }
+  titled: { field: label }
+fields:
+  label: { type: string, required: true }
+  copy: { type: string, required: true }
+  defaultDurationMs: { type: number }
+  scene: { type: string }
+  privacy: { type: boolean }

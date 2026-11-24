@@ -41,8 +41,8 @@ args:
     type: object
     required: false
     prepositions: [at]
-    default: "reachable:[class.MarketStalls]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.MarketStalls]"
+    scope: ["~here", "~peers", "~person"]
     requires: [TangibleMixin]
 subcommands:
   rent:
@@ -55,8 +55,8 @@ subcommands:
         type: object
         required: false
         prepositions: [at]
-        default: "reachable:[class.MarketStalls]"
-        scope: ["here", "peers", "person"]
+        default: "~reachable:[class.MarketStalls]"
+        scope: ["~here", "~peers", "~person"]
         requires: [TangibleMixin]
   give-up:
     controller: /world/terminus/market/idea/cmd/StallGiveUpController
@@ -68,6 +68,6 @@ subcommands:
         type: object
         required: false
         prepositions: [at]
-        default: "reachable:[class.MarketStalls]"
-        scope: ["here", "peers", "person"]
+        default: "~reachable:[class.MarketStalls]"
+        scope: ["~here", "~peers", "~person"]
         requires: [TangibleMixin]

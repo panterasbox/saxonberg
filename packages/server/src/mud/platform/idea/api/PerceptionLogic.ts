@@ -1373,7 +1373,7 @@ function isAnotherPersonImpl(viewer: Stuff, target: Stuff): boolean {
  * query `sense` reads. ⚠ It NAMES (the same for everyone); the viewer's
  * listing is this through `perceives` (honest fog — D23).
  */
-const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
+const ROOM_LISTING = '~here:i:visible:[not mixin.AdornmentMixin] - me';
 
 /** An observation that took nothing in. */
 function emptyObservation(): Observation {
@@ -1418,7 +1418,7 @@ async function observePlace(
   // is the perceived subset (size-and-carrying D23).
   const named = MqlApi.resolveMany(ROOM_LISTING, {
     commandGiver: viewer as never,
-    scope: 'here',
+    scope: '~here',
   }).stuff;
   const seen = named.filter((x) => perceivesImpl(viewer, x));
   // ⭐ Nothing to perceive teaches nothing — the void on a fresh login

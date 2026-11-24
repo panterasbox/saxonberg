@@ -24,7 +24,7 @@ options:
   to:
     short: t
     type: object
-    scope: "online"
+    scope: ["~peers"]
     field: target
     description: "Address an explicit target. Public — everyone in the room hears, the target is marked."
     requires: class:Agent

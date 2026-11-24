@@ -42,20 +42,12 @@ export default class ReadingsController extends CommandController<ReadingsModel>
   async execute(model: ReadingsModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as unknown as Stuff;
     const tools = model.tool?.stuff ?? [];
-    const named = (model.channel ?? '').trim().toLowerCase();
+    const named = (model.channel ?? '').trim();
 
     if (named !== '') {
-      const reading = await (await this.catalogue()).warmed(named);
-      if (!reading) {
-        this.refuse(
-          context,
-          TOPIC,
-          `There is no reading called '${named}'. Bare \`readings\` lists what you can find out.`,
-          'unknown-channel',
-          named,
-        );
-        return;
-      }
+      // ⭐ Named by the one rule (naming overhaul D-C5 rule 4).
+      const reading = await this.named(context, await (await this.catalogue()).readingNamed(named), 'reading', named);
+      if (!reading) return;
       const lines: string[] = [`${reading.getChannel()}:`];
       for (const route of await reading.routesFor(actor, tools)) {
         lines.push(`  ${route.open ? '·' : '×'} ${route.line}`);

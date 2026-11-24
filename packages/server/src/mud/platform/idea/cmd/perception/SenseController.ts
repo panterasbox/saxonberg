@@ -77,7 +77,7 @@ const SCENE_TOPIC = 'sense.survey';
  * the room's structure, never the viewer. Shared with `look` (one rule;
  * the mql-predicate-parity slate's three copies, one query).
  */
-const ROOM_LISTING = 'here:i:visible:[not mixin.AdornmentMixin] - me';
+const ROOM_LISTING = '~here:i:visible:[not mixin.AdornmentMixin] - me';
 
 export default class SenseController extends CommandController<SenseModel> {
   execute(model: SenseModel, context: CommandContext): void {
@@ -161,7 +161,7 @@ export default class SenseController extends CommandController<SenseModel> {
     // through the one perception filter, honest fog included (D23).
     const visibleContents = PerceptionApi.perceived(
       actor,
-      MqlApi.resolveMany(ROOM_LISTING, { commandGiver: actor, scope: 'here' }).stuff,
+      MqlApi.resolveMany(ROOM_LISTING, { commandGiver: actor, scope: '~here' }).stuff,
     );
 
     if (

@@ -767,23 +767,39 @@ export interface EffectiveRow {
 
 /**
  * The content subdirectories that are NOT template rows — the installer's
- * `NON_TEMPLATE_DIRS`, mirrored the way this module already mirrors
- * `namespaceRootsOf`: derived from `DocumentKinds.ts` rather than
- * enumerated, so a new yaml document kind does not silently start
- * reading as a malformed template.
+ * rule mirrored: the four non-document dirs (`lib/paths.ts`
+ * `NON_TEMPLATE_DIRS`), `kinds`, and every shipped kind's `dir` read from
+ * the declarations (`content/kinds/*.yaml`) — never enumerated, so a new
+ * document kind does not silently start reading as a malformed template.
  */
-export function nonTemplateDirs(serverSrc: string = SERVER_SRC): Set<string> {
-  const out = new Set(["settings", "subjects", "descriptor-banks", "quantity"]);
-  const file = join(serverSrc, "mud", "lib", "document", "DocumentKinds.ts");
-  if (existsSync(file)) {
-    const src = readFileSync(file, "utf8");
-    for (const m of src.matchAll(
-      /contentDir:\s*['"]([^'"]+)['"],\s*ext:\s*['"]yaml['"]/g,
-    )) {
-      out.add(m[1]!);
+export function nonTemplateDirs(contentDir: string = CONTENT): Set<string> {
+  const out = new Set(["settings", "subjects", "descriptor-banks", "quantity", "kinds"]);
+  for (const [dir] of shippedKindDirs(contentDir)) out.add(dir);
+  return out;
+}
+
+/**
+ * Every shipped kind's top-level content dir → the kind's name and file
+ * extension, read from the `kind` declarations (the scripts' twin of the
+ * installer's read; in-tree kinds — command views' `cmd` — have no dir).
+ */
+export function shippedKindDirs(contentDir: string = CONTENT): Map<string, { kind: string; ext: string }> {
+  const out = new Map<string, { kind: string; ext: string }>();
+  for (const d of kindDeclarations(contentDir)) {
+    const shipped = ((d.data.traits ?? {}) as Record<string, unknown>).shipped as
+      | { dir?: unknown; ext?: unknown }
+      | undefined;
+    if (shipped && typeof shipped.dir === "string") {
+      out.set(shipped.dir, { kind: d.name, ext: typeof shipped.ext === "string" ? shipped.ext : "yaml" });
     }
   }
   return out;
+}
+
+/** The content dir a kind ships in (`recipe` → `recipes`), read from its declaration. */
+export function shippedDirOf(kind: string, contentDir: string = CONTENT): string {
+  for (const [dir, k] of shippedKindDirs(contentDir)) if (k.kind === kind) return dir;
+  throw new Error(`pack-roots: no shipped declaration for document kind '${kind}'`);
 }
 
 /**
@@ -867,7 +883,8 @@ export function templateRows(
   contentDir: string = CONTENT,
 ): Map<string, TemplateRow> {
   const rows = new Map<string, TemplateRow>();
-  const kindDirs = nonTemplateDirs(serverSrc);
+  void serverSrc;
+  const kindDirs = nonTemplateDirs(contentDir);
   const add = (file: string, root: string, pack: string): void => {
     const rel = relative(root, file).split("\\").join("/");
     if (!isTemplateRelPath(rel, kindDirs)) return;
@@ -1199,5 +1216,70 @@ export function effectiveDoc(
   if (eff.error) return doc;
   const out: Record<string, unknown> = { ...doc, data: eff.data };
   if (eff.class !== null) out.class = eff.class;
+  return out;
+}
+
+/** One `kind` declaration as shipped in a pack's `content/kinds/`. */
+export interface KindDeclarationFile {
+  /** The declaring pack's id. */
+  pack: string;
+  /** The declaring pack's document root (`/platform`, `/trade/dyeing`). */
+  root: string;
+  /** The kind's name — the file's leaf. */
+  name: string;
+  /** Absolute file path. */
+  file: string;
+  /** The declaration's parsed data. */
+  data: Record<string, unknown>;
+}
+
+/** A pack's id, root and the content packs its `package.json` depends on. */
+export interface PackManifestSummary {
+  id: string;
+  root: string;
+  dir: string;
+  /** Pack ids this pack depends on (`@saxonberg/content-<id>`). */
+  depends: string[];
+}
+
+/** Every pack's manifest summary (root, dependencies). */
+export function packManifests(contentDir: string = CONTENT): PackManifestSummary[] {
+  if (!existsSync(contentDir)) return [];
+  const out: PackManifestSummary[] = [];
+  for (const pack of readdirSync(contentDir).sort()) {
+    const dir = join(contentDir, pack);
+    const manifestFile = join(dir, "pack.yaml");
+    if (!existsSync(manifestFile)) continue;
+    const m = YAML.parse(readFileSync(manifestFile, "utf8")) as Manifest;
+    const pkgFile = join(dir, "package.json");
+    const depends: string[] = [];
+    if (existsSync(pkgFile)) {
+      const pkg = JSON.parse(readFileSync(pkgFile, "utf8")) as { dependencies?: Record<string, string> };
+      for (const d of Object.keys(pkg.dependencies ?? {})) {
+        if (d.startsWith("@saxonberg/content-")) depends.push(d.slice("@saxonberg/content-".length));
+      }
+    }
+    out.push({ id: m.id, root: m.root ?? `/${m.id}`, dir, depends });
+  }
+  return out;
+}
+
+/**
+ * ⭐ Every shipped `kind` declaration (`<pack>/content/kinds/<kind>.yaml`) —
+ * the scripts' reader of the document kinds, parsed by the caller with
+ * `DocumentKind.fromData` (kinds are free text: nothing lists them).
+ */
+export function kindDeclarations(contentDir: string = CONTENT): KindDeclarationFile[] {
+  const out: KindDeclarationFile[] = [];
+  for (const m of packManifests(contentDir)) {
+    const dir = join(m.dir, "content", "kinds");
+    if (!existsSync(dir) || !statSync(dir).isDirectory()) continue;
+    for (const f of readdirSync(dir).sort()) {
+      if (!f.endsWith(".yaml")) continue;
+      const file = join(dir, f);
+      const data = (YAML.parse(readFileSync(file, "utf8")) ?? {}) as Record<string, unknown>;
+      out.push({ pack: m.id, root: m.root, name: f.slice(0, -".yaml".length), file, data });
+    }
+  }
   return out;
 }

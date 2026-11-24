@@ -40,8 +40,8 @@ args:
   - name: vessel
     type: object
     required: false
-    scope: ["reachable"]
-    default: "person:[mixin.BulkableMixin]"
+    scope: ["~reachable"]
+    default: "~person:[mixin.BulkableMixin]"
     requires: [BulkableMixin]
     validators:
       - /lib/command/validators/canReach

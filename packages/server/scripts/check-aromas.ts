@@ -32,7 +32,7 @@ import { readFileSync, readdirSync, existsSync, statSync } from 'fs';
 import { join, relative } from 'path';
 import { pathToFileURL } from 'url';
 import YAML from 'yaml';
-import {
+import { shippedDirOf,
   CONTENT,
   SERVER_SRC,
   composesMixin,
@@ -42,7 +42,7 @@ import {
   walkYamlFiles,
 } from './pack-roots';
 
-const AROMA_DIR = 'aromas';
+const AROMA_DIR = shippedDirOf('aroma');
 const LEAF_SHAPE = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 const BASIC_TASTES = new Set(['sweet', 'sour', 'salty', 'bitter', 'umami']);
 /** The kernel names these itself (rot, decay and a corpse's stale blood). */
@@ -110,7 +110,7 @@ function aromasIn(data: unknown, into: { field: string; aroma: unknown }[] = [])
 function recipeFiles(content: string): { pack: string; file: string }[] {
   const out: { pack: string; file: string }[] = [];
   for (const pack of readdirSync(content)) {
-    const dir = join(content, pack, 'content', 'recipes');
+    const dir = join(content, pack, 'content', shippedDirOf('recipe'));
     if (existsSync(dir) && statSync(dir).isDirectory()) {
       for (const file of walkYamlFiles(dir)) out.push({ pack, file });
     }

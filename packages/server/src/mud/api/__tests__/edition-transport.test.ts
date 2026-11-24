@@ -100,11 +100,11 @@ describe('⭐ pagesOf', () => {
     expect(p.teaches).toEqual([{ recipeId: 'iron-gall-ink', name: 'Iron-gall ink' }]);
   });
 
-  it('an edition reads as its pages; a script does not read as a page', async () => {
+  it('an edition reads as its pages; a script prints its summary line (every document prints)', async () => {
     put('/home/ann/editions/k', '/home/ann', 'edition', { pages: ['one', 'two'] });
     put('/home/ann/scripts/s', '/home/ann', 'msh', { source: 'say hi' });
     expect((await DocumentApi.pagesOf('/home/ann/editions/k'))!.pages).toEqual(['one', 'two']);
-    expect(await DocumentApi.pagesOf('/home/ann/scripts/s')).toBeNull();
+    expect((await DocumentApi.pagesOf('/home/ann/scripts/s'))!.pages).toEqual(['s']);
     expect(await DocumentApi.pagesOf('/home/ann/nothing')).toBeNull();
   });
 

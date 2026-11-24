@@ -236,23 +236,23 @@ describe('ShellApi.expandAliases', () => {
     expect(out.expansion?.expandedText).toBe('look book');
   });
 
-  it('⭐ `verb@source` survives the alias: `l@me:book` → `look@me:book`', () => {
+  it('⭐ `source::verb` survives the alias: `me:book::l` → `me:book::look`', () => {
     host.setAlias('l', 'look', { actor: host });
-    const out = ShellApi.expandAliases(parse('l@me:book closely'), host);
+    const out = ShellApi.expandAliases(parse('me:book::l closely'), host);
     expect(out.parsed.verb).toBe('look');
     expect(out.parsed.scope).toBe('me:book');
-    expect(out.expansion?.expandedText).toBe('look@me:book closely');
+    expect(out.expansion?.expandedText).toBe('me:book::look closely');
   });
 
   it("⭐ the invocation's scope wins over one in the alias body", () => {
-    host.setAlias('ww', 'wind@me:watch', { actor: host });
-    expect(ShellApi.expandAliases(parse('ww@here'), host).parsed.scope).toBe('here');
+    host.setAlias('ww', 'me:watch::wind', { actor: host });
+    expect(ShellApi.expandAliases(parse('here::ww'), host).parsed.scope).toBe('here');
     // With none typed, the body's own stands.
     expect(ShellApi.expandAliases(parse('ww'), host).parsed.scope).toBe('me:watch');
   });
 
-  it('the bypass prefix keeps the scope: `\\look@me`', () => {
-    const out = ShellApi.expandAliases(parse('\\look@me'), host);
+  it('the bypass prefix keeps the scope: `\\me::look`', () => {
+    const out = ShellApi.expandAliases(parse('\\me::look'), host);
     expect(out.parsed.verb).toBe('look');
     expect(out.parsed.scope).toBe('me');
   });

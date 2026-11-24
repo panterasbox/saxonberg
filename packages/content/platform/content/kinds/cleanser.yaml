@@ -1,0 +1,4 @@
+title: Cleanser
+traits:
+  shipped: { dir: cleansers }
+  catalogued: { by: /platform/idea/CleanserCatalogue, load: per-path }

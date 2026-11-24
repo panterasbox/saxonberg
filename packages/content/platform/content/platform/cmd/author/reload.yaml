@@ -25,7 +25,7 @@ args:
 options:
   mql:
     type: object
-    scope: [reachable]
+    scope: ["~reachable"]
     description: "MQL expression alternate to <target>"
     requires: any
   no-check:

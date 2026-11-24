@@ -10,6 +10,7 @@
  * threads them through `ctx.note(...)` instead.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type {
   CommandContext,
@@ -77,12 +78,14 @@ export default class GetController extends CommandController<GetModel> {
       // letter a search found in a coat's inner pocket is the coat's, and a
       // top-level read answered "You don't find any 'letter'". What you
       // perceive is the gate — a find is belief's, held only by its finder.
-      const word = raw.toLowerCase();
-      const onThem = MixinApi.isContainer(source) ? source.getDeepContents() : [];
-      stuff = onThem.filter((t) =>
-        PerceptionApi.perceives(giver, t) &&
-        t.perceivedKeywordsFor(giver).some((k) => k.toLowerCase() === word),
+      const onThem = (MixinApi.isContainer(source) ? source.getDeepContents() : []).filter((t) => PerceptionApi.perceives(giver, t));
+      // ⭐ By what the GIVER perceives, through the one rule (naming
+      // overhaul D-C5); alike things all answer.
+      const named = GrammarApi.nameAmong(
+        raw,
+        onThem.map((t) => ({ value: t, keywords: t.perceivedKeywordsFor(giver).map((k) => k.toLowerCase()), title: t.describeFor(giver) })),
       );
+      stuff = named.kind === 'one' ? [named.one] : named.kind === 'tie' ? named.tie : [];
       const resists = MixinApi.isVitals(source) ? source.searchRefusal(giver) : null;
       if (resists !== null && stuff.length > 0) {
         MessageApi.scene(giver).topic('sense.survey').toSelf(Mml.compose`${Mml.actor(source)} won't let you.`).send();

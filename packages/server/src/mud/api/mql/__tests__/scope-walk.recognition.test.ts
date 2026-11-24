@@ -55,7 +55,7 @@ function makeFigure(name: string, appearance: string): Figure {
 }
 
 function peersCtx(viewer: Viewer): MqlContext {
-  return { commandGiver: viewer as never, scope: 'peers' };
+  return { commandGiver: viewer as never, scope: '~peers' };
 }
 
 describe('viewer-relative targeting (name-leak gate)', () => {

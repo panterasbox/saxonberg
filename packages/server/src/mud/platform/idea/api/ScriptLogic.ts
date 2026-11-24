@@ -34,7 +34,6 @@ import type { Sensor } from "../../../lib/message/Sensor";
 import type { CommandGiver } from "../../../lib/command/CommandGiver";
 import type { Script, Pipeline, Command, Arg } from "../../../lib/script/ast";
 import type { ParsedCommand } from "../../../api/command-line";
-import { DOCUMENT_KINDS } from "../../../lib/document/DocumentKinds";
 
 const ScriptApiCallers = SecurityPolicies.FromModule("/api/script#ScriptApi");
 
@@ -400,7 +399,8 @@ async function invokeImpl(name: string, args: string[], context?: CommandContext
 // storage, the owner-access gate, and provenance.
 
 /** The document-store `kind` scripts are persisted under (`msh`). */
-const SCRIPT_KIND = DOCUMENT_KINDS.msh.kind;
+/** The document kind a script is stored as (declared at `/platform/kinds/msh`). */
+const SCRIPT_KIND = 'msh';
 
 /**
  * Parsed-AST cache keyed on path — the resolve-by-path hot path (the one

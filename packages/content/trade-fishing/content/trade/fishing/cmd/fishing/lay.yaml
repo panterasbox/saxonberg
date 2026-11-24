@@ -26,8 +26,8 @@ args:
   - name: trap
     type: object
     required: false
-    default: "person:[capability.trapping]"
-    scope: ["inventory"]
+    default: "~person:[capability.trapping]"
+    scope: ["~inventory"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach
@@ -35,6 +35,6 @@ args:
     type: object
     required: false
     prepositions: [at, in]
-    default: "reachable:[mixin.ShoreMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ShoreMixin]"
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: any

@@ -227,6 +227,11 @@ export default class HelpCatalogue extends HelpCatalogueBase {
    */
   private concepts: HelpTopic[] = [];
 
+  /** ⭐ The help-concept kind's service: an edited concept drops the index; the next read re-warms. */
+  public forget(_paths?: readonly string[]): void {
+    this.invalidate();
+  }
+
   /** Drop the warmed index (HMR / admin invalidation). */
   public invalidate(): void {
     this.topics = null;

@@ -59,7 +59,7 @@ import { TestHarnessApi } from '../../../../../api/test-harness';
 function resolveTarget(giver: Stuff, raw: string): MqlOneResult {
   const r = MqlApi.resolveOne(raw, {
     commandGiver: giver as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
-    scope: 'reachable',
+    scope: '~reachable',
   });
   const bound: MqlOneResult = { stuff: r.stuff, raw };
   if (r.via) bound.via = r.via;

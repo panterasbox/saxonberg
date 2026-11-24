@@ -70,7 +70,7 @@ describe('buildPromptContext', () => {
 
   it('exposes focus for Focused givers', () => {
     const giver = makeStuff(() => new TestGiver());
-    expect(buildPromptContext(giver)).toEqual({ focus: 'here' });
+    expect(buildPromptContext(giver)).toEqual({ focus: '~here' });
     giver.setFocus('thermometer');
     expect(buildPromptContext(giver)).toEqual({ focus: 'thermometer' });
   });

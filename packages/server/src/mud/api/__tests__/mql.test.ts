@@ -3,7 +3,7 @@
  * pipeline against a small in-memory world (see `fixtures/mql-world`).
  *
  * Phase 5 scope: direct seeds (pronouns, keywords, paths, ids,
- * literals), scope-promoted seeds (`inventory`, `online`, `world`),
+ * literals), the built-in relations (`~inventory`, `~peers`), `world`,
  * `:i` and `:e` transforms, set ops, and detail navigation via the
  * unified chain rule (`:keyword` mid-chain auto-extends with detail
  * names at the current via depth). Predicates and bracket filter
@@ -28,7 +28,7 @@ describe('MQL resolver — direct seeds', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
   });
 
   it('me resolves to the giver', () => {
@@ -37,14 +37,14 @@ describe('MQL resolver — direct seeds', () => {
   });
 
   it('here resolves to the giver location', () => {
-    const out = resolve('here', ctx);
+    const out = resolve('~here', ctx);
     expect(ids(out)).toEqual([world.location.stuffId]);
   });
 
   it('it / him / her / them resolve from the giver pronoun stash', () => {
     // Empty stash → empty match list.
-    expect(resolve('it', ctx)).toEqual([]);
-    expect(resolve('them', ctx)).toEqual([]);
+    expect(resolve('~it', ctx)).toEqual([]);
+    expect(resolve('~them', ctx)).toEqual([]);
 
     // Populate the stash directly (the dispatcher does this in
     // production; here we go through the public stash surface).
@@ -53,7 +53,7 @@ describe('MQL resolver — direct seeds', () => {
       'rose',
       () => 'it'
     );
-    expect(ids(resolve('it', ctx))).toEqual([world.rose.stuffId]);
+    expect(ids(resolve('~it', ctx))).toEqual([world.rose.stuffId]);
 
     world.giver.getPronounMemory().update(
       { stuff: [world.rose, world.daisy] },
@@ -61,31 +61,26 @@ describe('MQL resolver — direct seeds', () => {
       () => 'it'
     );
     // Multi-stuff routes to `them`.
-    expect(ids(resolve('them', ctx))).toEqual([
+    expect(ids(resolve('~them', ctx))).toEqual([
       world.rose.stuffId,
       world.daisy.stuffId,
     ]);
   });
 
   it('$$ returns the previous full result, including via', () => {
-    expect(resolve('$$', ctx)).toEqual([]);
+    expect(resolve('~last', ctx)).toEqual([]);
     world.giver.getPronounMemory().update(
       { stuff: [world.location], via: { detailPath: ['inscription'] } },
       'square.inscription',
       () => 'it'
     );
-    const out = resolve('$$', ctx);
+    const out = resolve('~last', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]!.stuff).toBe(world.location);
-    expect(out[0]!.via).toEqual({ detailPath: ['inscription'] });
+    expect(out[0]!.via).toMatchObject({ detailPath: ['inscription'] });
   });
 
   describe('the wide seeds — resolving is never a permission (content-packs wave 3)', () => {
-    it('online resolves for anyone (who-style listing)', () => {
-      // No interactives are connected in tests, so result is empty
-      // — still a successful resolve (no permission throw).
-      expect(resolve('online', ctx)).toEqual([]);
-    });
 
     it('⭐ world is REFUSED, and the refusal names the alternatives', () => {
       // The wide seeds are not one family any more. `online` is bounded
@@ -96,7 +91,7 @@ describe('MQL resolver — direct seeds', () => {
       // unaffordable.
       expect(() => resolve('world', ctx)).toThrow(/not available here/);
       expect(() => resolve('world', ctx)).toThrow(
-        /reachable, here, person, inventory, online/,
+        /~reachable, ~here, ~person, ~inventory, ~contacts/,
       );
       expect(() => resolve('world', ctx)).toThrow(/path glob/);
     });
@@ -106,7 +101,7 @@ describe('MQL resolver — direct seeds', () => {
         /not available here/,
       );
       // Mid-chain, where `world` intersects rather than seeds.
-      expect(() => resolve('reachable:world', ctx)).toThrow(
+      expect(() => resolve('~reachable:world', ctx)).toThrow(
         /not available here/,
       );
       // And as a SCOPE, which is a different code path entirely.
@@ -117,23 +112,20 @@ describe('MQL resolver — direct seeds', () => {
   });
 
   describe('inventory seed', () => {
-    it('resolves to giver as anchor (transforms with :i give contents)', () => {
+    it('is what you carry', () => {
       // The `inventory` seed alias resolves to the giver itself. The
       // resolver's :i transform on the giver yields contents — but
       // bare `inventory` is the anchor, not its expansion.
-      const out = resolve('inventory', ctx);
-      expect(ids(out)).toEqual([world.giver.stuffId]);
-    });
-
-    it('inventory:i yields giver contents (the apple)', () => {
-      const out = resolve('inventory:i', ctx);
+      // ⭐ `~inventory` is what you carry (naming overhaul D-B2) — one
+      // answer, not "the giver, so that :i gives the contents".
+      const out = resolve('~inventory', ctx);
       expect(ids(out)).toEqual([world.apple.stuffId]);
     });
   });
 
   describe('peers seed', () => {
     it('resolves to the location contents excluding the giver', () => {
-      const out = resolve('peers', ctx);
+      const out = resolve('~peers', ctx);
       const idSet = new Set(ids(out));
       expect(idSet.has(world.rose.stuffId)).toBe(true);
       expect(idSet.has(world.daisy.stuffId)).toBe(true);
@@ -142,14 +134,14 @@ describe('MQL resolver — direct seeds', () => {
     });
 
     it('mid-chain peers:rose filters peers by keyword', () => {
-      const out = resolve('peers:rose', ctx);
+      const out = resolve('~peers:rose', ctx);
       expect(ids(out)).toEqual([world.rose.stuffId]);
     });
   });
 
   describe('reachable seed', () => {
     it('includes peers, the location, and inventory items', () => {
-      const out = resolve('reachable', ctx);
+      const out = resolve('~reachable', ctx);
       const idSet = new Set(ids(out));
       expect(idSet.has(world.rose.stuffId)).toBe(true);
       expect(idSet.has(world.daisy.stuffId)).toBe(true);
@@ -172,7 +164,7 @@ describe('MQL resolver — keyword search', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it('rose finds the rose in the room', () => {
@@ -188,31 +180,31 @@ describe('MQL resolver — keyword search', () => {
   });
 
   it('honors a multi-source scope fragment', () => {
-    ctx = { commandGiver: world.giver, scope: 'inventory, peers' };
+    ctx = { commandGiver: world.giver, scope: '~inventory, ~peers' };
     const out = resolve('apple', ctx);
     expect(ids(out)).toContain(world.apple.stuffId);
   });
 
   it('inventory-only scope does not find room contents', () => {
-    ctx = { commandGiver: world.giver, scope: 'inventory' };
+    ctx = { commandGiver: world.giver, scope: '~inventory' };
     const out = resolve('rose', ctx);
     expect(ids(out)).not.toContain(world.rose.stuffId);
   });
 
   it('inventory-only scope finds inventory items', () => {
-    ctx = { commandGiver: world.giver, scope: 'inventory' };
+    ctx = { commandGiver: world.giver, scope: '~inventory' };
     const out = resolve('apple', ctx);
     expect(ids(out)).toContain(world.apple.stuffId);
   });
 
   it('here scope alone matches keywords on the location itself', () => {
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
     const out = resolve('square', ctx);
     expect(ids(out)).toContain(world.location.stuffId);
   });
 
-  it('here scope alone does NOT match peers (post-split)', () => {
-    ctx = { commandGiver: world.giver, scope: 'here' };
+  it('~here scope alone does NOT match peers (post-split)', () => {
+    ctx = { commandGiver: world.giver, scope: '~here' };
     const out = resolve('rose', ctx);
     expect(ids(out)).not.toContain(world.rose.stuffId);
   });
@@ -224,13 +216,13 @@ describe('MQL resolver — keyword search', () => {
   });
 
   it('peers scope finds peer items', () => {
-    ctx = { commandGiver: world.giver, scope: 'peers' };
+    ctx = { commandGiver: world.giver, scope: '~peers' };
     const out = resolve('rose', ctx);
     expect(ids(out)).toContain(world.rose.stuffId);
   });
 
   it('reachable scope unions peers, here, and inventory', () => {
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
     expect(ids(resolve('rose', ctx))).toContain(world.rose.stuffId);
     expect(ids(resolve('apple', ctx))).toContain(world.apple.stuffId);
     expect(ids(resolve('square', ctx))).toContain(world.location.stuffId);
@@ -241,13 +233,13 @@ describe('MQL resolver — keyword search', () => {
     // split removed contents from the candidate pool but kept the
     // location-as-anchor semantics. `:inscription` mid-chain matches
     // the detail name at top-level via depth.
-    const out = resolve('here:inscription', ctx);
+    const out = resolve('~here:inscription', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
   });
 
   it('peers scope does not include the giver itself', () => {
-    ctx = { commandGiver: world.giver, scope: 'peers' };
+    ctx = { commandGiver: world.giver, scope: '~peers' };
     const out = resolve('bob', ctx);
     expect(ids(out)).not.toContain(world.giver.stuffId);
   });
@@ -259,7 +251,7 @@ describe('MQL resolver — transforms', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
   });
 
   it(':i lists giver contents (no via — Stuff containment)', () => {
@@ -287,7 +279,7 @@ describe('MQL resolver — transforms', () => {
       // detail, "book", so the result is a single match still
       // anchored on the location, with via.detailPath = ['bookcase',
       // 'book'].
-      const out = resolve('here:bookcase:i', ctx);
+      const out = resolve('~here:bookcase:i', ctx);
       expect(out).toHaveLength(1);
       expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
       expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
@@ -296,7 +288,7 @@ describe('MQL resolver — transforms', () => {
     it('here:bookcase:e pops the bookcase detail level', () => {
       // After `here:bookcase` the via is ['bookcase']. `:e` from a
       // detailPath of length 1 pops to no-via (same Stuff, no via).
-      const out = resolve('here:bookcase:e', ctx);
+      const out = resolve('~here:bookcase:e', ctx);
       expect(out).toHaveLength(1);
       expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
       expect(out[0]?.via?.detailPath).toBeUndefined();
@@ -305,7 +297,7 @@ describe('MQL resolver — transforms', () => {
     it('here:bookcase:book:e pops to (location, via=[bookcase])', () => {
       // From detailPath = ['bookcase', 'book'], `:e` pops one level
       // back to ['bookcase'].
-      const out = resolve('here:bookcase:book:e', ctx);
+      const out = resolve('~here:bookcase:book:e', ctx);
       expect(out).toHaveLength(1);
       expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
       expect(out[0]?.via?.detailPath).toEqual(['bookcase']);
@@ -315,8 +307,8 @@ describe('MQL resolver — transforms', () => {
       // The `:i` between detail steps is redundant — `:keyword`
       // already auto-extends with child detail names at the current
       // depth. Both forms should land the same match.
-      const a = resolve('here:bookcase:i:book', ctx);
-      const b = resolve('here:bookcase:book', ctx);
+      const a = resolve('~here:bookcase:i:book', ctx);
+      const b = resolve('~here:bookcase:book', ctx);
       expect(a).toHaveLength(1);
       expect(b).toHaveLength(1);
       expect(a[0]?.stuff.stuffId).toBe(b[0]?.stuff.stuffId);
@@ -331,7 +323,7 @@ describe('MQL resolver — transforms', () => {
       // is exercised through the negative path where bookcase has
       // no children — `here:inscription:i` should be empty since
       // inscription has no children.)
-      const out = resolve('here:inscription:i', ctx);
+      const out = resolve('~here:inscription:i', ctx);
       expect(out).toEqual([]);
     });
   });
@@ -341,7 +333,7 @@ describe('MQL resolver — transforms', () => {
       // The location's :I covers peers + the giver's contents
       // (apple). With a single non-nested layer and the apple
       // inside the giver, :I from `here` reaches the apple.
-      const out = resolve('here:I', ctx);
+      const out = resolve('~here:I', ctx);
       const idSet = new Set(ids(out));
       expect(idSet.has(world.rose.stuffId)).toBe(true);
       expect(idSet.has(world.daisy.stuffId)).toBe(true);
@@ -360,7 +352,7 @@ describe('MQL resolver — transforms', () => {
       // From here:bookcase (via=[bookcase]), :I walks descendants:
       // 'book' (the only child of bookcase). Result has via=
       // ['bookcase', 'book'].
-      const out = resolve('here:bookcase:I', ctx);
+      const out = resolve('~here:bookcase:I', ctx);
       expect(out).toHaveLength(1);
       expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
     });
@@ -374,14 +366,14 @@ describe('MQL resolver — transforms', () => {
 
     it(':E from a stuff already at the root yields nothing', () => {
       // here:E — the location has no container; result is empty.
-      const out = resolve('here:E', ctx);
+      const out = resolve('~here:E', ctx);
       expect(out).toEqual([]);
     });
 
     it(':E with via drops the entire detail path', () => {
       // From here:bookcase:book (via=['bookcase','book']), :E pops
       // back to (location, no via).
-      const out = resolve('here:bookcase:book:E', ctx);
+      const out = resolve('~here:bookcase:book:E', ctx);
       expect(out).toHaveLength(1);
       expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
       expect(out[0]?.via?.detailPath).toBeUndefined();
@@ -422,32 +414,32 @@ describe('MQL resolver — detail-keyword extension on `:`', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'here' };
+    ctx = { commandGiver: world.giver, scope: '~here' };
   });
 
   it('here:inscription navigates to the inscription detail', () => {
-    const out = resolve('here:inscription', ctx);
+    const out = resolve('~here:inscription', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
     expect(out[0]?.via?.detailPath).toEqual(['inscription']);
   });
 
   it('here:bookcase navigates to the bookcase detail (top-level)', () => {
-    const out = resolve('here:bookcase', ctx);
+    const out = resolve('~here:bookcase', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
     expect(out[0]?.via?.detailPath).toEqual(['bookcase']);
   });
 
   it('here:bookcase:book navigates to the book child detail', () => {
-    const out = resolve('here:bookcase:book', ctx);
+    const out = resolve('~here:bookcase:book', ctx);
     expect(out).toHaveLength(1);
     expect(out[0]?.stuff.stuffId).toBe(world.location.stuffId);
     expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
   });
 
   it('here:nope returns no matches (not a detail of the location)', () => {
-    const out = resolve('here:nope', ctx);
+    const out = resolve('~here:nope', ctx);
     expect(out).toEqual([]);
   });
 
@@ -457,7 +449,7 @@ describe('MQL resolver — detail-keyword extension on `:`', () => {
     // the prior set ((location, no via)) and only matches when "rose"
     // is one of the location's keywords or a top-level detail name.
     // Neither holds, so the result is empty.
-    const out = resolve('here:rose', ctx);
+    const out = resolve('~here:rose', ctx);
     expect(out).toEqual([]);
   });
 
@@ -476,7 +468,7 @@ describe('MQL resolver — detail-keyword extension on `:`', () => {
     // 1, so the next `:` should look for child details, not top-level
     // ones — confirmed by `here:bookcase:book` finding the nested
     // book detail.
-    const out = resolve('here:bookcase:book', ctx);
+    const out = resolve('~here:bookcase:book', ctx);
     expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
   });
 
@@ -485,7 +477,7 @@ describe('MQL resolver — detail-keyword extension on `:`', () => {
     // `:book` step looks for children of "bookcase", not for top-level
     // details. `inscription` is top-level, so `here:bookcase:inscription`
     // misses (inscription is not a child of bookcase).
-    const out = resolve('here:bookcase:inscription', ctx);
+    const out = resolve('~here:bookcase:inscription', ctx);
     expect(out).toEqual([]);
   });
 
@@ -535,18 +527,18 @@ describe('MQL resolver — scope-as-MQL evaluation', () => {
     expect(out[0]?.via?.detailPath).toEqual(['bookcase', 'book']);
   });
 
-  it('scope: "here" still hits the fast path', () => {
+  it('scope: "~here" is the place', () => {
     // The fast path predates this work; it still produces the right
     // candidates for keyword search.
-    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
+    const ctx: MqlContext = { commandGiver: world.giver, scope: '~here' };
     const out = resolve('square', ctx);
     expect(ids(out)).toContain(world.location.stuffId);
   });
 
-  it('scope: "reachable, peers" still hits the fast path (comma-union)', () => {
+  it('scope: "~reachable, ~peers" still hits the fast path (comma-union)', () => {
     const ctx: MqlContext = {
       commandGiver: world.giver,
-      scope: 'reachable, peers',
+      scope: '~reachable, ~peers',
     };
     const out = resolve('rose', ctx);
     expect(ids(out)).toContain(world.rose.stuffId);
@@ -564,125 +556,6 @@ describe('MQL resolver — scope-as-MQL evaluation', () => {
   });
 });
 
-describe('MQL resolver — mid-chain seed semantics', () => {
-  let world: MqlWorld;
-  let ctx: MqlContext;
-
-  beforeEach(() => {
-    world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
-  });
-
-  // Element-derivable seeds (`peers`, `reachable`, `inventory`)
-  // flat-map per-element with set-aware exclusion of the prior set.
-  // Fixed-pool seeds (`me`, `here`, `online`, `world`, paths,
-  // stuff ids, `$$`, groups) intersect.
-
-  it('flat-map: (rose, daisy):peers excludes rose and daisy themselves', () => {
-    // rose and daisy share the room with the giver. `peers(rose)` is
-    // the room contents minus rose (= giver, daisy); `peers(daisy)`
-    // is room minus daisy (= giver, rose). Union, then exclude
-    // {rose, daisy} → just the giver.
-    const out = resolve('(rose, daisy):peers', ctx);
-    const idSet = new Set(ids(out));
-    expect(idSet.has(world.rose.stuffId)).toBe(false);
-    expect(idSet.has(world.daisy.stuffId)).toBe(false);
-    expect(idSet.has(world.giver.stuffId)).toBe(true);
-  });
-
-  it('flat-map: flower:peers — peers of each flower, minus the flowers', () => {
-    // The keyword "flower" matches rose and daisy. `:peers`
-    // flat-maps over both, unions, then excludes rose and daisy.
-    const out = resolve('flower:peers', ctx);
-    const idSet = new Set(ids(out));
-    expect(idSet.has(world.rose.stuffId)).toBe(false);
-    expect(idSet.has(world.daisy.stuffId)).toBe(false);
-    expect(idSet.has(world.giver.stuffId)).toBe(true);
-  });
-
-  it('flat-map: peers:reachable expands each peer to its reachable set (includes self-reachable)', () => {
-    // Each peer's reachable set includes itself (you can reach
-    // yourself), so rose and daisy stay in the result. The room
-    // and giver are also in each peer's reachable set.
-    const out = resolve('peers:reachable', ctx);
-    const idSet = new Set(ids(out));
-    expect(idSet.has(world.rose.stuffId)).toBe(true);
-    expect(idSet.has(world.daisy.stuffId)).toBe(true);
-    expect(idSet.has(world.location.stuffId)).toBe(true);
-    expect(idSet.has(world.giver.stuffId)).toBe(true);
-  });
-
-  it('flat-map: (rose, daisy):reachable keeps rose and daisy (self-reachable)', () => {
-    // `reachable` includes the focal in its per-element definition,
-    // so set-aware exclusion does NOT apply. Contrast with
-    // `(rose, daisy):peers`, which excludes the prior set.
-    const out = resolve('(rose, daisy):reachable', ctx);
-    const idSet = new Set(ids(out));
-    expect(idSet.has(world.rose.stuffId)).toBe(true);
-    expect(idSet.has(world.daisy.stuffId)).toBe(true);
-  });
-
-  it('flat-map: me:i:peers is empty (peers of inventory items are siblings; all in prior set)', () => {
-    // me:i is the giver's inventory (apple). peers(apple) =
-    // apple.container.contents - apple = giver.contents - apple,
-    // which would be other inventory items if any. With one
-    // inventory item, peers(apple) is empty. Either way, set-aware
-    // exclusion drops anything that was in the prior set.
-    const out = resolve('me:i:peers', ctx);
-    expect(out).toEqual([]);
-  });
-
-  it('flat-map: me:i:inventory is empty (inventory items are not Containers)', () => {
-    // me:i = apple (a TestThing, not a Container).
-    // inventory(apple) = ∅ because apple isn't a Container.
-    const out = resolve('me:i:inventory', ctx);
-    expect(out).toEqual([]);
-  });
-
-  it('intersection: reachable:online (online is fixed-pool) is empty when nobody is online', () => {
-    // No interactives connected → online is empty → intersection is
-    // empty.
-    expect(resolve('reachable:online', ctx)).toEqual([]);
-  });
-
-  it('intersection: peers:me filters peers down to the giver (not in peers, so empty)', () => {
-    // `me` is a fixed-pool seed (the giver). Mid-chain `:me`
-    // intersects: which peers are the giver? None — peers exclude
-    // the giver by definition.
-    const out = resolve('peers:me', ctx);
-    expect(out).toEqual([]);
-  });
-
-  it('intersection: reachable:here filters reachable down to the location', () => {
-    // `here` is a fixed-pool seed (the location). Mid-chain `:here`
-    // intersects.
-    const out = resolve('reachable:here', ctx);
-    const idSet = new Set(ids(out));
-    expect(idSet.has(world.location.stuffId)).toBe(true);
-    expect(idSet.size).toBeGreaterThanOrEqual(1);
-  });
-
-  it('intersection preserves prior via on fixed-pool seeds', () => {
-    // Navigate into the inscription detail (chain narrowing), then
-    // intersect with `here` (fixed-pool — the location). The
-    // location is one of the matches; its prior via.detailPath is
-    // preserved.
-    const out = resolve('here:inscription:here', ctx);
-    expect(out.length).toBeGreaterThanOrEqual(1);
-    const withDetail = out.find((m) => m.via?.detailPath?.[0] === 'inscription');
-    expect(withDetail).toBeDefined();
-  });
-
-  it('peers:sword (bareword keyword filter) still works', () => {
-    // `sword` is not a seed name → falls through to keyword filter.
-    const out = resolve('peers:sword', ctx);
-    expect(out).toEqual([]);
-  });
-
-  it('flower:online resolves without admin (online is public)', () => {
-    expect(() => resolve('flower:online', ctx)).not.toThrow();
-  });
-});
 
 describe('MQL resolver — set operations', () => {
   let world: MqlWorld;
@@ -690,7 +563,7 @@ describe('MQL resolver — set operations', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it('comma is union', () => {
@@ -720,7 +593,7 @@ describe('MQL resolver — literals', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it("'rose' (literal) matches by exact name", () => {
@@ -745,7 +618,7 @@ describe('MQL resolver — predicates', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it(':here filters to the giver location and contents', () => {
@@ -773,9 +646,6 @@ describe('MQL resolver — predicates', () => {
     expect(out).toEqual([]);
   });
 
-  it(':online resolves for anyone (public)', () => {
-    expect(() => resolve('me:online', ctx)).not.toThrow();
-  });
 
   it(':admin is not a predicate any more — it reads as a keyword filter and matches nothing', () => {
     expect(resolve('me:admin', ctx)).toEqual([]);
@@ -788,7 +658,7 @@ describe('MQL resolver — filter expressions', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it("filters by name comparison", () => {
@@ -853,7 +723,7 @@ describe('MQL resolver — bracket ordinals and ranges', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it('[1] picks the first match', () => {
@@ -883,7 +753,7 @@ describe('MQL resolver — desugar integration', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it('strips leading articles', () => {
@@ -916,7 +786,7 @@ describe('MQL resolver — quantity threading', () => {
 
   beforeEach(() => {
     world = makeWorld();
-    ctx = { commandGiver: world.giver, scope: 'reachable' };
+    ctx = { commandGiver: world.giver, scope: '~reachable' };
   });
 
   it('threads a natural-language count onto MqlApi.resolveMany as lenient', () => {
@@ -977,8 +847,8 @@ const out = MqlApi.resolveMany('flower', ctx);
 describe('⭐ resolveMany carries each match its OWN via (maritime browser walk, 2026-10-14)', () => {
   it('a mixed set keeps every path: the room through its feature, its contents through nothing', () => {
     const world = makeWorld();
-    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
-    const out = MqlApi.resolveMany('here:inscription, here:i', ctx);
+    const ctx: MqlContext = { commandGiver: world.giver, scope: '~here' };
+    const out = MqlApi.resolveMany('~here:inscription, ~here:i', ctx);
     expect(out.stuff.length).toBeGreaterThan(1);
     expect(out.via).toBeUndefined();
     expect(out.vias).toHaveLength(out.stuff.length);
@@ -989,7 +859,7 @@ describe('⭐ resolveMany carries each match its OWN via (maritime browser walk,
 
   it('a set with no feature in it carries no vias at all', () => {
     const world = makeWorld();
-    const ctx: MqlContext = { commandGiver: world.giver, scope: 'here' };
-    expect(MqlApi.resolveMany('here:i', ctx).vias).toBeUndefined();
+    const ctx: MqlContext = { commandGiver: world.giver, scope: '~here' };
+    expect(MqlApi.resolveMany('~here:i', ctx).vias).toBeUndefined();
   });
 });

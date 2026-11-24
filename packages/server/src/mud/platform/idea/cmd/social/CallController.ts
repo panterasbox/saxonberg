@@ -28,6 +28,7 @@
  * places, and that is the honest difference between them.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
@@ -55,7 +56,7 @@ interface CallModel extends CommandModel {
 export default class CallController extends CommandController<CallModel> {
   async execute(model: CallModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver;
-    const wanted = (model.animalName ?? '').trim().toLowerCase();
+    const wanted = (model.animalName ?? '').trim();
 
     if (!MixinApi.isContainable(actor)) return;
     const here = actor.getContainer();
@@ -81,7 +82,9 @@ export default class CallController extends CommandController<CallModel> {
     for (const { sensor } of AudienceGather.gather(here, CALL_DB)) {
       const animal = sensor as unknown as Stuff;
       if (!MixinApi.isBonded(animal)) continue;
-      if (wanted && !answersTo(animal, wanted)) continue;
+      // ⭐ By the one rule (naming overhaul D-C8): its name and what it is
+      // called — an article, a word start.
+      if (wanted && GrammarApi.nameAmong(wanted, [{ value: animal, keywords: callWords(animal), title: animal.getPresentation() }]).kind === 'none') continue;
 
       // ⚠ Attention first: an animal that is busy is not disobeying, and
       // it is the one refusal the player genuinely needs told apart.
@@ -158,10 +161,10 @@ export default class CallController extends CommandController<CallModel> {
   }
 }
 
-/** Does it answer to that word — its name, or something it is called? */
-function answersTo(animal: Stuff, word: string): boolean {
-  if (MixinApi.isNamed(animal) && (animal.getName() ?? '').toLowerCase() === word) {
-    return true;
-  }
-  return MixinApi.isPerceptible(animal) && animal.hasKeyword(word);
+
+/** The words an animal answers a call to: its name, its keywords. */
+function callWords(animal: Stuff): string[] {
+  const name = MixinApi.isNamed(animal) ? (animal.getName() ?? '') : '';
+  const kw = MixinApi.isPerceptible(animal) ? animal.getKeywords() : [];
+  return [name, ...kw].filter((k) => k !== '').map((k) => k.toLowerCase());
 }

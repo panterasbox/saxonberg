@@ -22,15 +22,15 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: SoilableMixin
   - name: tool
     prepositionRequired: true
     type: objects
     required: false
     prepositions: [with, using]
-    default: "person:[capability.brushing or capability.sweeping],reachable:[capability.brushing or capability.sweeping]"
-    scope: ["reachable"]
+    default: "~person:[capability.brushing or capability.sweeping],~reachable:[capability.brushing or capability.sweeping]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

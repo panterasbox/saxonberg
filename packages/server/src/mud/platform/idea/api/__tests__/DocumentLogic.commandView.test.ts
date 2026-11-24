@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '../../../../api/document';
 import { AccessApi } from '../../../../api/access';
 import { CommandApi } from '../../../../api/command';
+import { StuffApi } from '../../../../api/stuff';
 import { ProvenanceApi } from '../../../../api/provenance';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
@@ -57,7 +58,13 @@ beforeEach(() => {
   }) as unknown as PersistenceManager);
   vi.spyOn(AccessApi, 'canAtPath').mockResolvedValue(true);
   vi.spyOn(ProvenanceApi, 'recordAuthoring').mockResolvedValue(undefined as never);
-  reload = vi.spyOn(CommandApi, 'reload').mockResolvedValue(true) as never;
+  // ⭐ The command-view kind's service (its declaration's `catalogued.by`)
+  // is the resident command logic: a save goes live through its `forget`.
+  CommandApi.invalidate('stand-the-logic-up.yaml');
+  const logic = StuffApi.findByTemplatePath('/platform/idea/api/command') as unknown as {
+    forget(paths?: readonly string[]): Promise<void>;
+  };
+  reload = vi.spyOn(logic, 'forget').mockResolvedValue(undefined) as never;
   actor = makeStuffAtPath(() => new Idea(), '/platform/agent/Avatar/ann') as unknown as Stuff;
 });
 afterEach(() => vi.restoreAllMocks());
@@ -68,20 +75,20 @@ describe('command-view saves', () => {
   it('a title holder\'s cosmetic edit (help text) is admitted and goes live', async () => {
     await runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, help: 'v2' }));
     expect((rows[0]!.data as { help: string }).help).toBe('v2');
-    expect(reload).toHaveBeenCalledWith(PATH);
+    expect(reload).toHaveBeenCalledWith([PATH]);
   });
 
   it('a title holder changing controller is admitted — no wizard asked', async () => {
     const wiz = vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(false);
     await runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, controller: '/platform/idea/cmd/system/PingController' }));
     expect((rows[0]!.data as { controller: string }).controller).toBe('/platform/idea/cmd/system/PingController');
-    expect(reload).toHaveBeenCalledWith(PATH);
+    expect(reload).toHaveBeenCalledWith([PATH]);
     expect(wiz).not.toHaveBeenCalled();
   });
 
   it('a title holder changing the validator set is admitted', async () => {
     await runAs(() => DocumentApi.save(PATH, 'command-view', { ...LOOK, validators: [] }));
-    expect(reload).toHaveBeenCalledWith(PATH);
+    expect(reload).toHaveBeenCalledWith([PATH]);
   });
 
   it('a non-holder changing controller is refused on title', async () => {

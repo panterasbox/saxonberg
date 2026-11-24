@@ -47,7 +47,7 @@ args:
     type: object
     required: false
     prepositions: [with]
-    scope: ["inventory"]
+    scope: ["~inventory"]
     requires: any
   # ⭐ WHICH ROD — declared, not hunted for. `[capability.angling]` asks
   # for the thing you can fish with; `person` is what you carry, used
@@ -60,8 +60,8 @@ args:
     type: object
     required: false
     prepositions: [using]
-    default: "person:[capability.angling]"
-    scope: ["inventory"]
+    default: "~person:[capability.angling]"
+    scope: ["~inventory"]
     requires: any
     validators:
       - /lib/command/validators/canReach
@@ -74,6 +74,6 @@ args:
     type: object
     required: false
     prepositions: [at, in, from]
-    default: "reachable:[mixin.ShoreMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ShoreMixin]"
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: any

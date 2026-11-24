@@ -15,7 +15,6 @@ import Avatar from '../../../../agent/PrimaryAvatar';
 import Locale from '../../../../location/Locale';
 import { AccessApi } from '../../../../../api/access';
 import { ParcelApi } from '../../../../../api/parcel';
-import { MqlApi } from '../../../../../api/mql';
 import { MessageApi } from '../../../../../api/message';
 import { ContainmentApi } from '../../../../../api/containment';
 import { StuffApi } from '../../../../../api/stuff';
@@ -23,6 +22,7 @@ import { makeStuff, makeStuffAtPath } from '../../../../../lib/security/__tests_
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { PlayerApi } from '../../../../../api/player';
 
 let delivered: string[];
 let selfLines: string[];
@@ -80,7 +80,8 @@ let home: Locale;
 let online: Avatar[];
 
 async function run(giver: Avatar, location: Locale, model: Record<string, unknown>): Promise<void> {
-  vi.spyOn(MqlApi, 'resolveMany').mockReturnValue({ stuff: online } as never);
+  // Who is connected (naming overhaul D-B10: `online` left MQL).
+  vi.spyOn(PlayerApi, 'connectedAvatars').mockImplementation(() => online);
   const ctrl = makeStuff(() => new BroadcastController());
   await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({ message: 'hi', ...model } as CommandModel as never, ctx$)))(ctx(giver, location));
 }

@@ -116,8 +116,9 @@ function durablePersonId(person: Stuff): string | null {
 /**
  * The canonical groupRef a reserved label resolves to. `foes` / `friends`
  * are contacts labels (`contacts:<viewer>:<id>`); `everyone-else` /
- * `strangers` are bare pseudo-subjects. This MUST match the verb-side
- * `normalizeRef` so a materialized reserved rule dedups its virtual twin.
+ * `strangers` are bare pseudo-subjects. This MUST match
+ * `Contacts.groupRefOf` (what `notify ~friends` resolves to) so a
+ * materialized reserved rule dedups its virtual twin.
  */
 function canonicalReservedRef(viewer: Stuff, id: ReservedId): GroupRef {
   if (id === RESERVED.everyoneElse || id === RESERVED.strangers) return id;

@@ -115,7 +115,7 @@ describe('apps', () => {
 
   it('uninstall then install round-trips', async () => {
     const c1 = ctx(person, implant);
-    TestHarnessApi.actAs(c1.commandGiver, () => makeStuff(() => new AppsUninstallController()).execute({ app: 'messages' } as never, c1));
+    await TestHarnessApi.actAs(c1.commandGiver, () => makeStuff(() => new AppsUninstallController()).execute({ app: 'the messages' } as never, c1));
     expect(implant.hasApp('messages')).toBe(false);
     expect(said(person)).toMatch(/You uninstall Messages/);
 
@@ -128,11 +128,14 @@ describe('apps', () => {
     await implant.uninstallApp('messages');
     const c = ctx(person, implant);
     await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsInstallController()).execute({ app: 'chess' } as never, c));
-    // Refused with the reason `unknown-app`; its row words the line at emit.
+    // ⭐ Named by the one rule (naming overhaul D-C5): an unknown word is
+    // `no-such-name`, listing what could have been named.
     const refused = c.getNotes().find((n) => n.kind === 'refused');
-    expect(refused).toMatchObject({ reason: 'unknown-app' });
+    expect(refused).toMatchObject({ reason: 'no-such-name' });
     expect(JSON.stringify(refused)).toMatch(/chess/);
-    expect(JSON.stringify(refused)).toMatch(/app store has: broadcast, messages/);
+    // …and what could have been named is the store's (stream arrival D21).
+    expect(JSON.stringify(refused)).toMatch(/broadcast/);
+    expect(JSON.stringify(refused)).toMatch(/messages/);
   });
 
   it('a non-device source (a person host) has nothing to act on', async () => {
@@ -150,7 +153,7 @@ describe('apps', () => {
   it('a key the store does not publish (the person\'s wallet) is refused, naming the store', async () => {
     const c = ctx(person, implant);
     await TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new AppsInstallController()).execute({ app: 'wallet' } as never, c));
-    expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({ reason: 'unknown-app' });
+    expect(c.getNotes().find((n) => n.kind === 'refused')).toMatchObject({ reason: 'no-such-name' });
     expect(implant.hasApp('wallet')).toBe(false);
   });
 

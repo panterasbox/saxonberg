@@ -43,7 +43,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: any
   # ⭐ WHICH TOOL, declared rather than hunted for. The default asks
   # `[capability.upkeep]` — *the thing that can do this job* — rather than
@@ -60,8 +60,8 @@ args:
     # refused, naming `open …` / `remove …`). A tool on the ground is picked
     # up first. (`reachable` for a day widened every hand tool to the room.
     # Naming one still reaches it.)
-    default: "person:[capability.upkeep]"
-    scope: ["reachable"]
+    default: "~person:[capability.upkeep]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

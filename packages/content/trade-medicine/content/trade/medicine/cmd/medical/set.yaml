@@ -21,7 +21,7 @@ args:
   - name: patient
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     requires: VitalsMixin
   # ⭐ The instrument, declared not hunted — `[capability.splint]` is the
   # thing that can do this job (the Whetstone rule); `person` = what you
@@ -31,8 +31,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "person:[capability.splint]"
-    scope: ["reachable"]
+    default: "~person:[capability.splint]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

@@ -43,8 +43,8 @@ subcommands:
       - name: location
         type: object
         required: false
-        default: "here"
-        scope: ["reachable"]
+        default: "~here"
+        scope: ["~reachable"]
         requires: ContainerMixin
   atmosphere:
     description: "Show which layer supplied each atmospheric value here"

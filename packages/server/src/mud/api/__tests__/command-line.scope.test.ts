@@ -1,11 +1,12 @@
 /**
- * ⭐ `verb@source` in the tokenizer (controllers-are-io D1).
+ * ⭐ `source::verb` in the tokenizer (controllers-are-io D1).
  *
- * The verb token — and ONLY the verb token — splits at its first `@`
- * past index 0: the part before is the verb, the rest the scope. The raw
+ * The verb token — and ONLY the verb token — splits at its first `::`
+ * outside quotes: the part before is the source, the rest the verb
+ * (naming overhaul D-B8; `@` is a player address now). The raw
  * token is untouched, so `format()` round-trips; a synthesized command
  * (an alias expansion) that carries a scope its token 0 does not
- * re-emits `verb@scope`.
+ * re-emits `scope::verb`.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -14,30 +15,35 @@ import { CommandLineApi, type ParsedCommand } from '../command-line';
 const one = (text: string): ParsedCommand =>
   CommandLineApi.parsePipeline(text).commands[0]!;
 
-describe('verb@source — the five forms', () => {
-  it('splits a scoped verb: `wind@me:watch`', () => {
-    const p = one('wind@me:watch');
+describe('source::verb — the five forms', () => {
+  it('splits a scoped verb: `me:watch::wind`', () => {
+    const p = one('me:watch::wind');
     expect(p.verb).toBe('wind');
     expect(p.scope).toBe('me:watch');
   });
 
-  it('a multi-word scope is quoted: `wind@"pocket watch" slowly`', () => {
-    const p = one('wind@"pocket watch" slowly');
+  it('a multi-word scope is quoted: `"pocket watch"::wind slowly`', () => {
+    const p = one('"pocket watch"::wind slowly');
     expect(p.verb).toBe('wind');
     expect(p.scope).toBe('pocket watch');
     expect(p.rawTokens).toHaveLength(2);
   });
 
-  it('a leading `@` is not a split: `@bob` is a verb word', () => {
-    const p = one('@bob hello');
-    expect(p.verb).toBe('@bob');
+  it('an `@` is no longer a split: `wind@watch` is one (unknown) verb word', () => {
+    const p = one('wind@watch');
+    expect(p.verb).toBe('wind@watch');
     expect(p.scope).toBeUndefined();
   });
 
-  it('an empty scope is no scope: `wind@`', () => {
-    const p = one('wind@');
+  it('an empty side is no split: `::wind`, `wind::`', () => {
+    expect(one('::wind').scope).toBeUndefined();
+    expect(one('wind::').scope).toBeUndefined();
+  });
+
+  it('a quoted source keeps its own colons: `"a::b"::wind`', () => {
+    const p = one('"a::b"::wind');
     expect(p.verb).toBe('wind');
-    expect(p.scope).toBeUndefined();
+    expect(p.scope).toBe('a::b');
   });
 
   it('only the verb token is ever looked at: `say hi @bob` is untouched', () => {
@@ -55,15 +61,15 @@ describe('verb@source — the five forms', () => {
     expect('scope' in one('look rose')).toBe(false);
   });
 
-  it('splits at the FIRST `@`: `give@a@b`', () => {
-    const p = one('give@a@b');
-    expect(p.verb).toBe('give');
-    expect(p.scope).toBe('a@b');
+  it('splits at the FIRST `::`: `me:i:watch::wind`', () => {
+    const p = one('me:i:watch::wind');
+    expect(p.verb).toBe('wind');
+    expect(p.scope).toBe('me:i:watch');
   });
 });
 
-describe('verb@source — format() round-trips', () => {
-  for (const text of ['wind@me:watch', 'wind@"pocket watch" slowly', 'harvest@here:wheat --sync']) {
+describe('source::verb — format() round-trips', () => {
+  for (const text of ['me:watch::wind', '"pocket watch"::wind slowly', 'here:wheat::harvest --sync']) {
     it(`parse(format(parse(${JSON.stringify(text)}))) keeps verb + scope`, () => {
       const a = one(text);
       const b = one(CommandLineApi.format(a));
@@ -72,7 +78,7 @@ describe('verb@source — format() round-trips', () => {
     });
   }
 
-  it('a synthesized command with a scope re-emits `verb@scope`, quoted when needed', () => {
+  it('a synthesized command with a scope re-emits `scope::verb`, quoted when needed', () => {
     const synth: ParsedCommand = {
       verb: 'wind',
       rawTokens: [{ kind: 'word', value: 'wind', raw: 'wind', pos: 0 }],
@@ -81,12 +87,12 @@ describe('verb@source — format() round-trips', () => {
       scope: 'pocket watch',
     };
     const text = CommandLineApi.format(synth);
-    expect(text).toBe('wind@"pocket watch"');
+    expect(text).toBe('"pocket watch"::wind');
     expect(one(text).scope).toBe('pocket watch');
   });
 
   it('a scope that differs from the one in token 0 wins (the alias carry)', () => {
-    const p = { ...one('wind@me:watch'), scope: 'here' };
-    expect(CommandLineApi.format(p)).toBe('wind@here');
+    const p = { ...one('me:watch::wind'), scope: 'here' };
+    expect(CommandLineApi.format(p)).toBe('here::wind');
   });
 });

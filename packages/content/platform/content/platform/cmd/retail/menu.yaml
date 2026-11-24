@@ -12,7 +12,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["here", "peers", "person"]
+    scope: ["~peers", "~person"]
     # ⚠ NOT `AttendantMixin`, which is what this said and which `Menu`
     # does not compose — so naming the menu (`menu drinks list`) was
     # refused by the very verb that reads it. Bare `menu` still worked,
@@ -35,8 +35,8 @@ args:
     type: object
     required: false
     prepositions: [from]
-    default: "reachable:[class.Tariff]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.Tariff]"
+    scope: ["~peers", "~person"]
     requires: [PricedOfferMixin]
   # ⭐ The recipe menu — DECLARED, so the binder resolves it and the controller
   # just reads it. `off` keeps the typed grammar intact while making it
@@ -46,6 +46,6 @@ args:
     type: object
     required: false
     prepositions: [off]
-    default: "reachable:[class.CommerceMenu]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.CommerceMenu]"
+    scope: ["~peers", "~person"]
     requires: [PricedOfferMixin]

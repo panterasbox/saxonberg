@@ -123,7 +123,7 @@ export type { InboundClientMessage };
  *
  * - the message must be a `command`;
  * - the line must parse to ONE command whose verb is literally `rodney`
- *   (no `verb@source` scope, no emote sigil);
+ *   (no `source::verb` scope, no emote sigil);
  * - `rodney token` is refused — a control token must not mint tokens;
  * - a streamer alias named `rodney` is refused (no alias expansion may
  *   turn the one verb into another);

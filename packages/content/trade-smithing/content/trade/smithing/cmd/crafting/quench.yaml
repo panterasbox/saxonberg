@@ -15,11 +15,11 @@ args:
   - name: target
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     # ⭐ Bare `quench` works the build you are at — DECLARED, so the binder
     # resolves it (held first) instead of the controller walking for it
     # (`lint:controller-resolution`).
-    default: "reachable:[mixin.QuenchableMixin]"
+    default: "~reachable:[mixin.QuenchableMixin]"
     # ⭐ controller-liquidity W9: the piece decides whether the tub finishes
     # it or heat-treats it (`QuenchableMixin`); a cook pot is a build too,
     # and the old `ManualBuildMixin` gate would have bound one.
@@ -32,6 +32,6 @@ args:
     type: objects
     required: false
     prepositions: [on, at, against]
-    default: "reachable:[capability.anvil]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[capability.anvil]"
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]

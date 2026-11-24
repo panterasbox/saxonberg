@@ -33,9 +33,9 @@ export abstract class BankingControllerBase<
    * hand-rolled containment scan.
    */
   private peers(context: CommandContext): Stuff[] {
-    return MqlApi.resolveMany("peers", {
+    return MqlApi.resolveMany("~peers", {
       commandGiver: context.commandGiver,
-      scope: "reachable",
+      scope: "~reachable",
     }).stuff;
   }
 

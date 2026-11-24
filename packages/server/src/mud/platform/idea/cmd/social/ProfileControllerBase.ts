@@ -65,6 +65,7 @@ export abstract class ProfileControllerBase extends CommandController<ProfileMod
 
     // Account / world facts.
     const facts: string[] = [];
+    if (card.address) facts.push(card.address);
     if (card.country) facts.push(`From ${card.country}`);
     if (card.status) facts.push(card.status);
     if (card.newness === 'new-arrival') facts.push('new arrival');

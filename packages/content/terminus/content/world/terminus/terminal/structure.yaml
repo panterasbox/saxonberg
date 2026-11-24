@@ -1,7 +1,7 @@
 # The terminal — and its clock tower, a LANDMARK.
 #
 # ⭐⭐ A Structure is Visible: described once, here, the ordinary way, and
-# read by `look horizon:tower` from any zone whose `horizon` names this
+# read by `look ~horizon:tower` from any zone whose `horizon` names this
 # one (maritime R1/R3). `landmark: true` FEATURES it in the horizon
 # summary; whether it can be seen at all is derived (sky, height, the
 # zones' size in metres). ⛔ No room repeats it — a room that mentions the

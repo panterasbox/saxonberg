@@ -217,7 +217,7 @@ interface ParsedCommand {
   source: string;          // slice of original input this command came from
   start: number;           // byte offset in original input
   emotePrefixed?: boolean;
-  scope?: string;          // `verb@source` — see below
+  scope?: string;          // `source::verb` — see below
 }
 
 interface ParsedPipeline {
@@ -230,18 +230,20 @@ interface ParsedPipeline {
 greedy positional binder needs to slice the original input; without
 them, greedy fields would lose interior whitespace runs.
 
-## ⭐ `verb@source` — the scope on the verb token
+## ⭐ `source::verb` — the scope on the verb token
 
-The verb token — **and only the verb token** — splits at its first `@`
-past index 0 (`parsePipelineImpl`, controllers-are-io D1): the part
-before is `verb`, the rest is `scope`.
+The verb token — **and only the verb token** — splits at its first `::`
+outside quotes (`parsePipelineImpl`, controllers-are-io D1; naming overhaul
+D-B8 — it was `verb@source` until `@` became a player address): the part
+before is `scope`, the part after is `verb`.
 
 | typed | `verb` | `scope` |
 |---|---|---|
-| `wind@me:i:watch` | `wind` | `me:i:watch` |
-| `wind@"pocket watch"` | `wind` | `pocket watch` (quote a multi-word scope) |
-| `@bob hello` | `@bob` | — (a leading `@` is not a split) |
-| `wind@` | `wind` | — (an empty scope is none) |
+| `me:i:watch::wind` | `wind` | `me:i:watch` |
+| `"pocket watch"::wind` | `wind` | `pocket watch` (quote a multi-word scope) |
+| `wind@watch` | `wind@watch` | — (the old spelling is an unknown verb; the refusal names the new one) |
+| `::wind`, `wind::` | — | — (an empty side is no split) |
+| `"a::b"::wind` | `wind` | `a::b` (a quoted source keeps its colons) |
 | `say hi @bob` | `say` | — (only the verb token is ever looked at) |
 
 The raw token is left as typed, so `format()` round-trips. A
@@ -250,7 +252,7 @@ expansion, which carries the invocation's scope — see
 [shell-alias.md](./shell-alias.md)) re-emits `${verb}@${quoteIfNeeded(scope)}`.
 An unscoped line has no `scope` key at all. The scope is MQL: the
 dispatcher resolves it and filters the affordances to that source — see
-[command-routing.md § `verb@source`](./command-routing.md).
+[command-routing.md § `source::verb`](./command-routing.md).
 ⚠ Contents are `:i` in MQL — `me:watch` is a feature of me, the carried
 watch is `me:i:watch`.
 

@@ -33,7 +33,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: [VisibleMixin, ChargedMixin]
   - name: amount
     type: number

@@ -39,7 +39,7 @@ export default class PullController extends CommandController<PullModel> {
     const named = (model.target?.raw ?? '').trim();
     let target: Stuff | null = model.target?.stuff ?? null;
     if (target === null && named === '') {
-      const reach = MqlApi.resolveMany('reachable', { commandGiver: giver, scope: 'reachable' });
+      const reach = MqlApi.resolveMany('~reachable', { commandGiver: giver, scope: '~reachable' });
       target = (reach.stuff ?? []).find((s) => MixinApi.isPullable(s)) ?? null;
       if (target === null) {
         return this.refuse(context, 'act.deed', 'There is nothing here on a line to pull.', 'nothing-to-pull');
@@ -61,7 +61,8 @@ export default class PullController extends CommandController<PullModel> {
       }
       return this.refuse(context, 'act.deed', `You see no ${named} to pull.`, 'nothing-to-pull');
     }
-    const word = (model.sense ?? '').trim().toLowerCase();
+    // `up` / `down` — canonicalized by the view (type: enum).
+    const word = model.sense ?? '';
     if (word !== '' && word !== 'up' && word !== 'down') {
       return this.refuse(context, 'act.deed', 'Pull it up, or down?', 'which-way');
     }

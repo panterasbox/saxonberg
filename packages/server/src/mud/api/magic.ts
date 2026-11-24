@@ -25,6 +25,7 @@
  * See `docs/subsystems/magic.md`.
  */
 
+import type { NameAnswer } from './grammar';
 import type { ApiNeed } from './security';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { StuffApi } from './stuff';
@@ -86,6 +87,15 @@ export class MagicApi {
    */
   public static spellAt(path: string): SpellDescriptor | null {
     return logic().spellAt(path);
+  }
+
+  /**
+   * The workings a player's words name (naming overhaul D-C5 rule 4) — by
+   * short id, name or keyword, through the one rule; a shared word is a
+   * tie for the controller's `named` to ask between.
+   */
+  public static spellNamed(text: string): NameAnswer<SpellDescriptor> {
+    return logic().spellNamed(text);
   }
 
   /**

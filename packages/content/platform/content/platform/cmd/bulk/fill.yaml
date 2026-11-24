@@ -25,7 +25,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     # The article defect (the water-supply browser walk): `fill the pail
     # from the standpipe` is this verb's own help example.
     requires: VisibleMixin
@@ -36,7 +36,7 @@ args:
     prepositionRequired: true
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     prepositions: [from]
     requires: VisibleMixin
     validators:

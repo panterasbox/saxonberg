@@ -7,6 +7,7 @@
  * (over {@link BankingControllerBase}).
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
@@ -28,7 +29,7 @@ export default class WalletBeneficiaryController extends BankingControllerBase<W
       return;
     }
     const want = (model.player ?? "").trim();
-    if (!want || want.toLowerCase() === "none") {
+    if (!want || GrammarApi.nameAmong(want, [{ value: "none", keywords: ["none", "nobody"], title: "none" }]).kind === "one") {
       giver.setBeneficiary("");
       MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Your estate passes to the Compact, held unclaimed for your return.`).send();
       return;

@@ -15,7 +15,7 @@ args:
   - name: item
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     # ⚠ NOT `CraftedMixin`. `CraftingApi.salvage` is "the one generic
     # lossy melt-down" (crafting.md) and refuses only
     # `!isTangible || isOrganism` — it flattens ANY material

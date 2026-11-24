@@ -17,7 +17,8 @@ export default class ForumVoteController extends ForumControllerBase {
     const actor = context.commandGiver as Stuff & CommandGiver &
       SubjectSubscriber;
     const entryId = (model.entry ?? '').trim();
-    const dir = (model.direction ?? '').trim().toLowerCase();
+    // `up` / `down` — canonicalized by the view (type: enum).
+    const dir = model.direction ?? '';
     if (!entryId) return this.fail(context, 'entry required', 'entry-required');
     if (dir !== 'up' && dir !== 'down') {
       return this.fail(context, 'direction must be up or down', 'bad-direction');

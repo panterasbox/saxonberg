@@ -53,11 +53,11 @@ args:
   - name: target
     type: object
     required: false
-    scope: [inventory, reachable]
+    scope: ["~inventory", "~reachable"]
     requires: WearableMixin|WieldableMixin
 options:
   from:
     type: object
-    scope: [reachable]
+    scope: ["~reachable"]
     description: "A chest or wardrobe to take the kit out of first"
     requires: ContainerMixin

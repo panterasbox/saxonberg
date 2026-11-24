@@ -1,0 +1,7 @@
+# A plain save of a filed kind — only its transport may write it.
+facts:
+  path: text
+  kind: text
+  transport: text
+says: "{{ path }} was not saved — a {{ kind }} is filed through its {{ transport }}, never written by hand."
+topic: shell.error

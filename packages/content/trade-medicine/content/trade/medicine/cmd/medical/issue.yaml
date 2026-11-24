@@ -23,11 +23,11 @@ args:
     type: object
     required: false
     prepositions: [to]
-    scope: "reachable"
+    scope: "~reachable"
     requires: VitalsMixin
   - name: window
     type: object
     required: false
-    default: "reachable:[mixin.DonationBankMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.DonationBankMixin]"
+    scope: ["~peers", "~person"]
     requires: [DonationBankMixin]

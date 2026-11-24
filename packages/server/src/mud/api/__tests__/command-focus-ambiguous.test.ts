@@ -49,7 +49,7 @@ function lookCommand(): CommandDefinition {
       '  - name: target',
       '    type: object',
       '    required: false',
-      '    scope: ["$focus", "reachable"]',
+      '    scope: ["$focus", "~reachable"]',
       '    updates_focus: extend',
       '    onExcess: prompt',
     ].join('\n'),

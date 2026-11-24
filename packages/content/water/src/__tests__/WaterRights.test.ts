@@ -25,7 +25,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WaterRightRegistry, {
   WATER_USES,
   type WaterRight,
@@ -46,8 +46,9 @@ let parcels: Array<{ extent: string; reach: string; owner: string | null }>;
 function installStores(): void {
   docs = new Map();
   parcels = [];
-  vi.spyOn(DocumentApi, 'save').mockImplementation(
-    async (path: string, _kind: string, data: Record<string, unknown>) => {
+  // ⭐ A right is filed through its register (`filed: register`).
+  vi.spyOn(DocumentApi, 'saveToRegister').mockImplementation(
+    async (_register: unknown, path: string, data: Record<string, unknown>) => {
       docs.set(path, { ...data });
     },
   );
@@ -76,7 +77,7 @@ function installStores(): void {
 }
 
 const registry = (): WaterRightRegistry =>
-  makeStuff(() => new WaterRightRegistry()) as WaterRightRegistry;
+  makeStuffAtPath(() => new WaterRightRegistry(), '/system/water/idea/WaterRightRegistry') as WaterRightRegistry;
 
 function right(over: Partial<WaterRight> = {}): WaterRight {
   return {

@@ -32,7 +32,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~peers", "~person"]
     # A plant, a bed or pot, a field or a tract (field population D18).
     requires: [VisibleMixin, GrowingMixin|SoilMixin]
   # ⭐ WHICH PART — `at <field>` on a tract marked into fields (field population D5).
@@ -44,7 +44,7 @@ args:
     prepositionRequired: true
     type: object
     required: false
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~peers", "~person"]
     prepositions: [at]
     requires: SoilMixin
   # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:controller-resolution`).
@@ -64,9 +64,9 @@ args:
     # CARRY, to hand where it sits — the default's seed is `person`, not
     # `reachable`, narrowed by `canReach` (a can in a shut bag is refused,
     # naming `open …`).
-    scope: ["reachable"]
+    scope: ["~reachable"]
     prepositions: [with, from]
-    default: "person:[mixin.BulkableMixin or class.WaterHose]"
+    default: "~person:[mixin.BulkableMixin or class.WaterHose]"
     requires: any
     validators:
       - /lib/command/validators/canReach

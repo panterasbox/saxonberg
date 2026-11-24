@@ -25,6 +25,7 @@
  * reloads it.
  */
 
+import type { NameAnswer } from './grammar';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Business } from '../platform/idea/Business';
 import type { Organization } from '../lib/employment/Organization';
@@ -201,6 +202,16 @@ export class EmploymentApi {
    */
   public static findOrganization(asked: string): Stuff | null {
     return logic().findOrganization(asked);
+  }
+
+  /**
+   * ⭐ Which of `paths` (organizations) a player's words name — by what
+   * each calls itself and its row key, through the one rule (naming
+   * overhaul D-C5 rule 6). For a verb whose houses are already in hand
+   * (your employers, the openings here): a player never types a path.
+   */
+  public static organizationNamed(text: string, paths: readonly string[]): NameAnswer<string> {
+    return logic().organizationNamed(text, paths);
   }
 
   /** What a body of people calls itself (a publisher's label, else its name). */

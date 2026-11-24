@@ -49,9 +49,11 @@ export default class MixController<M extends MixModel = MixModel> extends CraftC
     holder: Stuff,
     verb: string,
   ): Promise<Stuff | null> {
-    if (!(await this.requireDeed(context, model.cocktail, verb))) return null;
+    const cocktail = await this.recipeNamed(context, model.cocktail);
+    if (cocktail === null) return null;
+    if (!(await this.requireDeed(context, cocktail, verb))) return null;
     const outcome = await CraftingApi.craft({
-      recipeRef: model.cocktail,
+      recipeRef: cocktail,
       makerMode: 'self',
       brand: model.brand,
     });

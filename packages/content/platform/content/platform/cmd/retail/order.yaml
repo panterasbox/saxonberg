@@ -48,7 +48,7 @@ args:
     type: object
     required: false
     prepositions: [for]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
   # ⭐ The tariff boards of services — DECLARED, so the binder resolves them
   # and the controller just reads them. Every reachable board: two houses
@@ -63,8 +63,8 @@ args:
     type: objects
     required: false
     prepositions: [from]
-    default: "reachable:[class.Tariff]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.Tariff]"
+    scope: ["~peers", "~person"]
     requires: [PricedOfferMixin]
   # ⭐ The recipe menu — DECLARED, so the binder resolves it and the controller
   # just reads it. `off` keeps the typed grammar intact while making it
@@ -75,6 +75,6 @@ args:
     type: object
     required: false
     prepositions: [off]
-    default: "reachable:[class.CommerceMenu]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.CommerceMenu]"
+    scope: ["~peers", "~person"]
     requires: [PricedOfferMixin]

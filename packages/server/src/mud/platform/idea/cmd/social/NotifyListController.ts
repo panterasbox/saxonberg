@@ -17,7 +17,7 @@ export default class NotifyListController extends NotifyControllerBase {
       return;
     }
     const lines = ["Your notify rules (top = highest precedence):"];
-    for (const r of rules) lines.push(`  ${NotifyListController.renderRuleLine(r)}`);
+    for (const r of rules) lines.push(`  ${NotifyListController.renderRuleLine(host, r)}`);
     this.send(context, Mml.fromMarkup(`\n${lines.join("\n")}\n`));
     // A bare `notify` is how the settings card requests a fresh
     // projection on mount — push the effective list back.

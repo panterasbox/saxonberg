@@ -24,8 +24,8 @@ args:
   - name: vessel
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     # ⭐ Bare `churn` works the churn you are at — DECLARED, so the binder
     # resolves it (`lint:controller-resolution`).
-    default: "reachable:[mixin.HandWorkedMixin]"
+    default: "~reachable:[mixin.HandWorkedMixin]"
     requires: HandWorkedMixin

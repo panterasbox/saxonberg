@@ -37,42 +37,48 @@ args:
 
 describe('parseDuration — the written forms', () => {
   it.each([
-    ['90s', 90_000],
-    ['15m', 900_000],
-    ['2h', 7_200_000],
-    ['1h30m', 5_400_000],
-    ['3d', 259_200_000],
-    ['90 seconds', 90_000],
-    ['2 hours', 7_200_000],
-    ['1 hour 30 minutes', 5_400_000],
-    ['90m', 5_400_000],
-  ])('%s → %d ms', (text, ms) => {
+    ['90s', 90],
+    ['15m', 900],
+    ['2h', 7_200],
+    ['1h30m', 5_400],
+    ['3d', 259_200],
+    ['90 seconds', 90],
+    ['2 hours', 7_200],
+    ['1 hour 30 minutes', 5_400],
+    ['90m', 5_400],
+    // The word forms (naming overhaul D-C6).
+    ['a week', 604_800],
+    ['two days', 172_800],
+    ['an hour and 30 minutes', 5_400],
+    ['a fortnight', 1_209_600],
+    ['2 fortnights', 2_419_200],
+  ])('%s → %d game seconds', (text, ms) => {
     expect(CommandDefinition.parseDuration(text)).toBe(ms);
   });
 
-  it.each(['90', '', 'soon', '2 fortnights', '1h?', 'h'])('refuses %j', (text) => {
+  it.each(['90', '', 'soon', '1h?', 'h', 'a while', 'a'])('refuses %j', (text) => {
     expect(CommandDefinition.parseDuration(text)).toBeNull();
   });
 });
 
-describe('type: duration — bound as milliseconds', () => {
+describe('type: duration — bound as game seconds', () => {
   it('an option, one token or two', () => {
-    expect(assemble('awayish --for 90m', defOf(AWAY))).toMatchObject({ model: { for: 5_400_000 } });
-    expect(assemble('awayish --for 2 hours', defOf(AWAY))).toMatchObject({ model: { for: 7_200_000 } });
-    expect(assemble('awayish --for=1h30m', defOf(AWAY))).toMatchObject({ model: { for: 5_400_000 } });
+    expect(assemble('awayish --for 90m', defOf(AWAY))).toMatchObject({ model: { for: 5_400 } });
+    expect(assemble('awayish --for 2 hours', defOf(AWAY))).toMatchObject({ model: { for: 7_200 } });
+    expect(assemble('awayish --for=1h30m', defOf(AWAY))).toMatchObject({ model: { for: 5_400 } });
   });
 
   it('a positional, one token or two, leaving the rest for the next slot', () => {
     expect(assemble('awayish 2 hours lunch', defOf(AWAY))).toMatchObject({
-      model: { span: 7_200_000, note: 'lunch' },
+      model: { span: 7_200, note: 'lunch' },
     });
-    expect(assemble('awayish 15m', defOf(AWAY))).toMatchObject({ model: { span: 900_000 } });
+    expect(assemble('awayish 15m', defOf(AWAY))).toMatchObject({ model: { span: 900 } });
   });
 
   it('⭐ refuses a bad option value, naming the forms', () => {
     const r = assemble('awayish --for soon', defOf(AWAY));
     expect(r).toMatchObject({ error: 'bind' });
-    expect((r as { summary: string }).summary).toMatch(/'soon' is not a duration/);
+    expect((r as { summary: string }).summary).toMatch(/'soon' is not a length of time this takes/);
   });
 
   it('a REQUIRED duration positional refuses a word that is not one', () => {

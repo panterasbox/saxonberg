@@ -45,7 +45,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: any
   # ⭐ Every reachable bulk vessel is a candidate; the controller takes the
   # first whose liquid lays a coat (a bucket of water says so).
@@ -54,8 +54,8 @@ args:
     type: objects
     required: false
     prepositions: [with, from]
-    default: "reachable:[mixin.BulkableMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.BulkableMixin]"
+    scope: ["~reachable"]
     requires: [BulkableMixin]
   # ⭐ WHICH BRUSH, declared rather than hunted for — in hand.
   - name: brush
@@ -63,8 +63,8 @@ args:
     type: object
     required: false
     prepositions: [using]
-    default: "person:[capability.painting]"
-    scope: ["reachable"]
+    default: "~person:[capability.painting]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

@@ -115,7 +115,7 @@ describe('Ladder — somebody can finally climb', () => {
     const controller = makeStuff(() => new ClimbController());
     const r = MqlApi.resolveOne('down', {
       commandGiver: climber as unknown as Parameters<typeof MqlApi.resolveOne>[1]['commandGiver'],
-      scope: 'reachable',
+      scope: '~reachable',
     });
     const target: MqlOneResult = { stuff: r.stuff, raw: 'down' };
     if (r.via) target.via = r.via;

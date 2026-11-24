@@ -32,7 +32,8 @@ function row(overrides: Partial<PublicReleaseRow> = {}): PublicReleaseRow {
     kind: "notice",
     headline: "Something happened",
     body: "",
-    publishedAt: 1_700_000_000_000,
+    publishedAt: 1_700_000,
+    publishedOn: "Twoday, 20 Teliminus 1 16:13",
     pinned: false,
     ...overrides,
   };

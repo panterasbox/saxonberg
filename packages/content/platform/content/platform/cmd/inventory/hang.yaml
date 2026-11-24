@@ -35,7 +35,7 @@ args:
   - name: item
     type: object
     required: true
-    scope: "inventory"
+    scope: "~inventory"
     requires: AdornmentMixin
     validators:
       - /lib/command/validators/mustBeInInventory

@@ -324,6 +324,7 @@ import type { PumpSource } from '../lib/pump/PumpSource';
 import type { CapTable } from '../lib/employment/CapTable';
 import type { Publisher } from '../lib/press/Publisher';
 import type { Registrar } from '../lib/document/Registrar';
+import type { Relating } from '../lib/relation/Relating';
 import type { Attendant } from '../lib/attendant/Attendant';
 import type { Employed } from '../lib/employment/Employed';
 import type { Cast } from '../lib/npc/Cast';
@@ -2582,6 +2583,12 @@ export class MixinApi {
    */
   public static isRegistrar(obj: Stuff): obj is Stuff & Registrar {
     return this.hasMixin(obj, Mixins.Registrar);
+  }
+
+
+  /** ⭐ A holder that keeps named sets MQL can ask for (`holder:~name`). */
+  public static isRelating(obj: Stuff): obj is Stuff & Relating {
+    return this.hasMixin(obj, Mixins.Relating);
   }
 
   /**

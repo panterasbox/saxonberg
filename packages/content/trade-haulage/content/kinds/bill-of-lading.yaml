@@ -1,0 +1,4 @@
+title: Bill of lading
+traits:
+  dated: { field: filedAtS, indexed: true }
+  filed: business

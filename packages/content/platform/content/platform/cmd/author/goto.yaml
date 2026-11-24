@@ -30,13 +30,13 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["online", "/stuff/**", "/platform/**", "reachable"]
+    scope: ["~contacts", "/stuff/**", "/platform/**", "~reachable"]
     requires: any
 options:
   subject:
     short: s
     type: object
-    scope: ["reachable", "online", "/stuff/**", "/platform/**"]
+    scope: ["~reachable", "~contacts", "/stuff/**", "/platform/**"]
     description: "Relocate this object/being to the destination instead of yourself (access-gated)."
     requires: any
   force:

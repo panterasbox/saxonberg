@@ -421,7 +421,7 @@ export class ContainmentApi {
   // from where the callers are.
   // (`PerceptionApi.reach`, filtered by api/mql/scope-walk.ts
   // `candidatesForReachable` — self → own apps → slot occupants
-  // → carried → the place's surface → peers, on-person first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
+  // → carried → the place's surface → peers, on-person first). Callers resolve the pool via `MqlApi.resolveMany('~reachable',
   // …)` and narrow locally; identity-bound (own-attunement) reads scan
   // `actor.getHostedApps()` directly.
 

@@ -9,12 +9,12 @@ related:
 ---
 # The horizon {#the-horizon}
 
-`look` tells you what one thing is like. `query horizon` lists what you can
+`look` tells you what one thing is like. `query ~horizon` lists what you can
 see from where you stand that is **not** in your room: the towers and lights
 on the skyline, the ships on a sea you look out over.
 
 ```
-> query horizon
+> query ~horizon
 You can see the terminal clock tower, to the south, some 5 miles off.
 You can see the light on Gannet Rock, to the east, some 18 miles off.
 ```

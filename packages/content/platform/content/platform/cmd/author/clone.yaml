@@ -26,12 +26,12 @@ args:
 options:
   mql:
     type: object
-    scope: [reachable]
+    scope: ["~reachable"]
     description: "MQL expression alternate to <template>"
     requires: any
   into:
     type: object
-    scope: [reachable]
+    scope: ["~reachable"]
     description: "Container to land the clone in (overrides default)"
     requires: any
   here:

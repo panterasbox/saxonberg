@@ -121,9 +121,9 @@ subcommands:            # one controller per subcommand (controller-liquidity W7
     options:
       char: { short: c, type: boolean }
     args:
-      - { name: target, type: object, required: true, scope: "online" }
+      - { name: target, type: object, required: true, scope: ["~peers", "~contacts"], requires: class:Agent }
       - { name: label,  type: string, required: true }
-  remove: { controller: …/ContactsRemoveController, args: [ { target: string }, { label: string } ] }
+  remove: { controller: …/ContactsRemoveController, args: [ { target: object, scope: ["~contacts"] }, { label: string, required: false } ] }
   show:   { controller: …/ContactsShowController,   args: [ { label:  string } ] }
   list:   { controller: …/ContactsListController }
   clear:  { controller: …/ContactsClearController,  args: [ { label:  string } ] }
@@ -179,11 +179,16 @@ their template name with an `(NPC)` suffix.
 entry counts. No `make` / `delete` for labels — once the last entry
 of a label is removed, the label drops out of `list` automatically.
 
-`contacts remove <target> <label>` matches against entries **already
-in the caller's list**. It does not do a global search. The match is
-case-insensitive against the stored `playerId` (for avatar entries)
-or `templatePath` (for npc entries). This makes `remove` cheap and
-keeps it from accidentally targeting an unrelated Avatar.
+`contacts remove ~<label>:<them>` takes one person off one list (naming
+overhaul D-B6/D-B12). Each list is a relation of yours (`me:~friends`),
+so the person binds THROUGH the list, and the controller reads the list
+off the binding (`via.relation`) — never re-parsing the words; they come
+off that list and no other. When the person is not in the world the
+query binds nothing, and `remove` falls back to the entries **already in
+the caller's list**: the list from the typed `~<label>:` (or a trailing
+label), the person matched case-insensitively by the name the entry goes
+by, or by the raw `playerId` / `templatePath`. It never does a global
+search, which keeps it from targeting an unrelated Avatar.
 
 `contacts clear <label>` bulk-removes every entry of a label;
 `contacts rename <old> <new>` is a non-destructive relabel.
@@ -239,6 +244,23 @@ and MQL queries. No per-consumer special case.
 The contacts controllers call `fireChange(ownerPlayerId, label)` after
 every CRUD mutation, and subscribed listeners (chat audience cache,
 future targeting subscriptions) get a tick.
+
+## Your lists and your groups, as relations
+
+Every list answers as a relation of its owner — `~friends`,
+`~friends:iffy`, `me:~` lists them — and so does every **managed group
+you belong to** (`~bookclub`). Both answer to you only. Both come from
+`ContactsMixin` (folded there in naming-overhaul review): a list and a
+group are both named sets of people a person keeps, so one contributor
+answers for both, and the `group` verb already rides this mixin.
+
+⚠ The groups are a **resident read** of the `groups` records, not a
+second store: read once when your session starts (`refreshGroups`, from
+`Avatar.enter`), re-read when a group's roster changes (each group's
+change hook) or when you are added to one, never persisted, and never
+deciding membership — `GroupApi` does that. A body whose session never
+starts (an NPC) holds no groups. When a list and a group share a name,
+the binder asks which.
 
 ## Online-only `contacts add` — v1 limitation
 

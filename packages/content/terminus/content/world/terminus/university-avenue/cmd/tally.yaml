@@ -18,7 +18,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     updates_focus: extend
     validators:
       - /lib/command/validators/canReach

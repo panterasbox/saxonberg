@@ -112,15 +112,15 @@ post-bypass verb (`look`); the spec-level "literal-backslash verb"
 hypothetical is unreachable through msh and that's a known
 limitation.
 
-### `verb@source` survives the alias
+### `source::verb` survives the alias
 
 A scoped invocation keeps its scope through expansion
-(`ShellLogic.carryScope`, controllers-are-io D1): `l@me:i:book` with
-`l = look` dispatches `look@me:i:book`, and the echo's `expandedText`
+(`ShellLogic.carryScope`, controllers-are-io D1): `me:i:book::l` with
+`l = look` dispatches `me:i:book::look`, and the echo's `expandedText`
 says so. The **invocation's** scope wins over one written in an alias
-body (`ww = wind@me:i:watch`, typed `ww@here` → `wind@here`); with none
+body (`ww = me:i:watch::wind`, typed `here::ww` → `here::wind`); with none
 typed, the body's own stands. The bypass prefix keeps it too
-(`\look@me`).
+(`\me::look`).
 
 ### Cycle guard + depth ceiling
 

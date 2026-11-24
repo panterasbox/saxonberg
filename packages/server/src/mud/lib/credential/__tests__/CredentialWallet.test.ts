@@ -73,9 +73,9 @@ const isWallet = (s: Stuff): s is Stuff & CredentialWallet =>
 /** The MQL `reachable` pool anchored on `actor` (the fixture actor isn't a
  *  real CommandGiver — the cast satisfies the seed's giver anchor). */
 function reachableFrom(actor: Stuff): Stuff[] {
-  return MqlApi.resolveMany("reachable", {
+  return MqlApi.resolveMany("~reachable", {
     commandGiver: actor as Stuff & CommandGiver,
-    scope: "reachable",
+    scope: "~reachable",
   }).stuff;
 }
 

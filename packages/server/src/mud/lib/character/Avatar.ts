@@ -983,6 +983,12 @@ export default abstract class Avatar extends AvatarBase {
     // read-modify-write with a write-through, so an unfilled map
     // overwrites a stored regard with a value derived from zero.
     await this.recordFirstArrival(startingLocation);
+    // ⭐ Your groups, resident (naming overhaul D-B11): read once here so
+    // `~<group>` answers synchronously; a group that cannot be read is
+    // logged and the session goes on without it.
+    await this.refreshGroups().catch((err: unknown) =>
+      console.warn(`Avatar.enter: could not read the groups of ${this.getIdentityPath() ?? '?'}`, err),
+    );
     const payload = await this.buildWelcomePayload(interactive);
     this.sendWelcome(payload, opts.firstArrival === true);
     // Force a sense so the player perceives where they are across every

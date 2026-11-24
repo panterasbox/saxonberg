@@ -836,13 +836,4 @@ export class Recipe {
     return this.baseGradeBand ? Grade.of(this.baseGradeBand) : null;
   }
 
-  /** Whether `kw` matches a keyword or the (case-insensitive) name. */
-  matchesKeyword(kw: string): boolean {
-    const needle = kw.toLowerCase();
-    return (
-      this.keywords.some((k) => k.toLowerCase() === needle) ||
-      this.name.toLowerCase() === needle ||
-      this.recipeId.toLowerCase() === needle
-    );
-  }
 }

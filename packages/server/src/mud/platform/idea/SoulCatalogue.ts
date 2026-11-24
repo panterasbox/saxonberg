@@ -153,6 +153,16 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     this.cache = null;
   }
 
+  /** ⭐ The emote kind's service: an edited emote drops the cache; the next read re-warms. */
+  public forget(_paths?: readonly string[]): void {
+    this.cache = null;
+  }
+
+  /** An emote document's meaning, checked at install and at every save. */
+  public parse(data: Record<string, unknown>, path: string): Emote {
+    return Emote.fromData(data, path);
+  }
+
   /**
    * Resolve a CANONICAL verb to its Emote record. Returns `null` when
    * nothing matches — a search term is not a verb (`;grin` where `grin`
@@ -189,7 +199,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'setDisabled');
     const map = await this.ensureCache();
-    const existing = map.get(verb.toLowerCase());
+    const existing = await this.resolveAny(verb);
     if (!existing) return false;
     // ⚠ Write FIRST, then the cache: the write is title-gated, and a
     // refused write must leave the live catalogue as it was.
@@ -354,7 +364,7 @@ export default class SoulCatalogue extends SoulCatalogueBase {
     // shared state; denied under circle scope with a receipt.
     SecurityApi.assertFieldMutation(this, 'delete');
     const map = await this.ensureCache();
-    const existing = map.get(verb.toLowerCase());
+    const existing = await this.resolveAny(verb);
     if (!existing) return false;
     // The gated delete first; the cache follows only a delete that landed.
     await DocumentApi.delete(existing.path);

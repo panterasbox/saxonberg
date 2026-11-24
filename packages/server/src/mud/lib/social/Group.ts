@@ -20,6 +20,7 @@
  * inside `ChannelCatalogue` instead).
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { Document } from '../persistence/Document';
 import type { FieldMeta } from '../mixin';
 import { Collections } from '../persistence/Collections';
@@ -196,13 +197,15 @@ export class Group extends Document {
     if (this.memberIds.includes(want)) return want;
     const bySegment = this.memberIds.find((id) => id.endsWith(`/${want}`));
     if (bySegment !== undefined) return bySegment;
-    const lower = want.toLowerCase();
+    // ⭐ A player member by stored name, through the one rule (D-C5 rule 6).
+    const entries: Array<{ value: string; keywords: string[]; title: string }> = [];
     for (const id of this.memberIds) {
       if (!PlayerApi.isAvatarIdentityPath(id)) continue;
-      const playerId = id.slice(id.lastIndexOf('/') + 1);
-      const name = await PlayerApi.storedNameOf(playerId);
-      if (name !== null && name.toLowerCase() === lower) return id;
+      const name = await PlayerApi.storedNameOf(id.slice(id.lastIndexOf('/') + 1));
+      if (name !== null) entries.push({ value: id, keywords: [name.toLowerCase()], title: name });
     }
+    const answer = GrammarApi.nameAmong(want, entries);
+    if (answer.kind === 'one') return answer.one;
     return null;
   }
 }

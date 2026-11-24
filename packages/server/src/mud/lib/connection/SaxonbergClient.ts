@@ -776,9 +776,9 @@ export function SaxonbergClientMixin<
       // inventory and room, at depth — so a screen the viewer carries and
       // one standing in the room are both found, and no world scan is.
       if (!MixinApi.isCommandGiver(self)) return;
-      const found = MqlApi.resolveMany('reachable:[mixin.DisplayMixin]', {
+      const found = MqlApi.resolveMany('~reachable:[mixin.DisplayMixin]', {
         commandGiver: self,
-        scope: 'reachable',
+        scope: '~reachable',
       });
       for (const s of found.stuff) {
         if (!MixinApi.isDisplay(s)) continue;

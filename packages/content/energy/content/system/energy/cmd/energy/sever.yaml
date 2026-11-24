@@ -20,6 +20,6 @@ args:
     type: object
     required: false
     prepositions: [at]
-    default: "reachable:[class.LineAccess]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.LineAccess]"
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: [DetailedMixin]

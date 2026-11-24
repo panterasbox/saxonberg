@@ -46,7 +46,7 @@ function makeStone(): Whetstone {
 
 /**
  * ⚠ **Stand in for the BINDER.** `sharpen`'s `stone` is a declared arg
- * defaulting to `reachable:[capability.whetstone]`, so the binder finds
+ * defaulting to `~reachable:[capability.whetstone]`, so the binder finds
  * the stone and the controller just reads it. A hand-built model skips
  * the binder, so the harness resolves it the same way the view would —
  * the first carried thing offering `whetstone`.

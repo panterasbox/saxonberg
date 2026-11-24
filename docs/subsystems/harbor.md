@@ -358,7 +358,7 @@ have **sunk** a neglected smack rather than settling her on the mud.
   `platform/idea/cmd/work/CharterController.ts`,
   `platform/idea/cmd/banking/PayController.ts` (the `Payable` form),
   `platform/idea/cmd/social/HailController.ts`, `platform/idea/ExpanseNode.ts`
-  (`hail`), `lib/document/DocumentKinds.ts` (`berth-roll`),
+  (`hail`), the `berth-roll` kind declaration (`<root>/kinds/berth-roll.yaml`),
   `platform/idea/api/DocumentLogic.ts` (`saveBerth`, `berthRollOf`).
 - Content: `packages/content/terminus/content/world/terminus/harbor/`
   (district, quays, office, line desk, yard, chandler, regulars,

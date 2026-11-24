@@ -16,11 +16,11 @@ args:
   - name: solute
     type: object
     required: true
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: any
   - name: vessel
     type: object
     required: true
     prepositions: [in, into]
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: [BulkableMixin]

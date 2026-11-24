@@ -14,7 +14,7 @@
  * *should I trust this piece of paper* — and that is a question about a
  * person and a moment, not about the reader holding it.
  *
- * ⚠ **No new collection and no `DocumentKinds` edit.** It persists the
+ * ⚠ **No new collection and no new document kind.** It persists the
  * way any carried Thing does: through the owner's snapshot, or the room
  * overlay when it is left on a bench.
  *

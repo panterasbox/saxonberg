@@ -70,35 +70,35 @@ function resolve(q: string): Stuff[] {
   return MqlApi.resolveMany(q, { commandGiver: null, scope: 'world' }).stuff;
 }
 
-describe('the :members chain element', () => {
+describe('the ~rooms relation (was the :members chain element)', () => {
   it('expands a warren to its live members', () => {
-    const got = resolve(`${WARREN_PATH}:members`);
+    const got = resolve(`${WARREN_PATH}:~rooms`);
     const ids = got.map((s) => s.stuffId).sort();
     expect(ids).toEqual([keyed.stuffId, plain.stuffId].sort());
   });
 
   it('a non-warren prior element contributes nothing', () => {
-    const got = resolve(`${WARREN_PATH}:members:members`);
+    const got = resolve(`${WARREN_PATH}:~rooms:~rooms`);
     expect(got).toEqual([]);
   });
 });
 
 describe('the key / address filter atoms', () => {
   it('warren → member by explicit persistence key', () => {
-    const got = resolve(`${WARREN_PATH}:members:[key = '${EXTENT}/bedroom']`);
+    const got = resolve(`${WARREN_PATH}:~rooms:[key = '${EXTENT}/bedroom']`);
     expect(got.map((s) => s.stuffId)).toEqual([keyed.stuffId]);
   });
 
   it('member by declared Locality address', () => {
     const got = resolve(
-      `${WARREN_PATH}:members:[address = 'test/members-warren/lot-7']`,
+      `${WARREN_PATH}:~rooms:[address = 'test/members-warren/lot-7']`,
     );
     expect(got.map((s) => s.stuffId)).toEqual([keyed.stuffId]);
   });
 
   it('an unkeyed, unaddressed member never false-matches', () => {
-    expect(resolve(`${WARREN_PATH}:members:[key = '${EXTENT}/bedroom']`)).toHaveLength(1);
-    expect(resolve(`${WARREN_PATH}:members:[has key]`)).toHaveLength(1);
-    expect(resolve(`${WARREN_PATH}:members:[has address]`)).toHaveLength(1);
+    expect(resolve(`${WARREN_PATH}:~rooms:[key = '${EXTENT}/bedroom']`)).toHaveLength(1);
+    expect(resolve(`${WARREN_PATH}:~rooms:[has key]`)).toHaveLength(1);
+    expect(resolve(`${WARREN_PATH}:~rooms:[has address]`)).toHaveLength(1);
   });
 });

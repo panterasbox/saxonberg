@@ -36,8 +36,8 @@ function tree(files: Record<string, Record<string, unknown>>): {
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, YAML.stringify(body));
   }
-  // An empty server src — no seeds, no DocumentKinds; the kind-dir
-  // derivation falls back to its four literals, which is enough here.
+  // An empty server src — no seeds; no pack ships a kind declaration, so
+  // the kind-dir derivation is its five literals, which is enough here.
   const serverSrc = join(root, 'src');
   mkdirSync(join(serverSrc, 'mud', 'seeds'), { recursive: true });
   return {

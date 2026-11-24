@@ -24,7 +24,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     # ⚠ `HandlingMixin`, which admits the farm dog deliberately: it must
     # BIND so the refusal can be spoken. A target that fails at the binder
     # is refused silently, and a refusal you cannot hear is not a refusal.
@@ -38,6 +38,6 @@ args:
     type: objects
     required: false
     prepositions: [with, using]
-    default: "reachable:[mixin.ConstructedMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.ConstructedMixin]"
+    scope: ["~reachable"]
     requires: [ConstructedMixin]

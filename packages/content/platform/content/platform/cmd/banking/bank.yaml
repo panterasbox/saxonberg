@@ -52,7 +52,7 @@ subcommands:
       - name: coins
         type: object
         required: true
-        scope: "inventory"
+        scope: "~inventory"
         requires: StackableMixin
   withdraw:
     controller: /platform/idea/cmd/banking/BankWithdrawController
@@ -73,7 +73,8 @@ subcommands:
     options:
       for:
         short: f
-        type: string
+        type: enum
+        values: [stock, wages]
         description: "What the loan is for: stock (inventory finance, the default) or wages (working capital)."
   book:
     controller: /platform/idea/cmd/banking/BankBookController
@@ -91,5 +92,5 @@ subcommands:
         type: object
         required: true
         prepositions: [to]
-        scope: ["reachable", "online"]
+        scope: ["~reachable", "~contacts"]
         requires: any

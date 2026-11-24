@@ -17,7 +17,7 @@ import EmbodyController, {
 import Login from '../../../Login';
 import Interactive from '../../../Interactive';
 import Species from '../../../species/Species';
-import { NameBank } from '../../../../../lib/species/NameBank';
+import { SpeciesApi } from '../../../../../api/species';
 import Material from '../../../../../lib/material/Material';
 import { Quantity } from '../../../../../lib/quantity';
 import { StuffApi } from '../../../../../api/stuff';
@@ -46,7 +46,7 @@ describe('EmbodyController step model', () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
-    NameBank.clearCache();
+    SpeciesApi.nameBanks().forget();
     EmbodyController.resetConfigCache();
 
     const interactive = makeStuff(
@@ -85,7 +85,7 @@ describe('EmbodyController step model', () => {
       if (p === FLESH_PATH) return flesh as never;
       return undefined as never;
     });
-    vi.spyOn(NameBank, 'resolve').mockResolvedValue({
+    vi.spyOn(SpeciesApi.nameBanks(), 'resolve').mockResolvedValue({
       given: ['Bobalu', 'Bram', 'Cora'],
       surname: ['Ashby', 'Reed'],
       styles: [],

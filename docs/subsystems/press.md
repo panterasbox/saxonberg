@@ -126,8 +126,7 @@ not resolve, and a principal with no durable identity.
 
 Stored: `releaseId`, `kind`, MML `headline` + `body`, `author` (the acting
 author's durable `templatePath` — a stored identity string, **not** an
-`AuthoringEvent`), `publishedAt` / `expiresAt` (**epoch-ms numbers, not
-`Date`**; `0` = never), `pinned`, `retracted` (a **soft** delete — the
+`AuthoringEvent`), `publishedAtS` (the **game-clock** second it was published — the kind's `dated` trait, naming-overhaul A3) / `expiresAt` (epoch-ms; `0` = never), `pinned`, `retracted` (a **soft** delete — the
 document stays, the window drops it), the optional `visibility` narrowing
 (`null` = inherit) and `source` (a `repost`'s provenance line).
 
@@ -197,7 +196,7 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
 - `recent(limit?)` — the live ticker window.
 - `archive(query)` — the paged history (`realm`/`kind` filters +
   `before`/`limit`): ⭐ one ordered read by the release's catalogue card,
-  `DocumentApi.findByKey('release', 'publishedAt', {max: before − 1,
+  `DocumentApi.findByKey('release', 'date', {max: before − 1,
   order: 'desc', limit: limit × 4})`, newest first off the index; the
   realm/kind/retraction/`publishedByOwner` filter runs over that page
   (realm derives from the live publisher, so it cannot be a key — hence
@@ -217,18 +216,18 @@ shell ending in `SecurityApi.decorateApiClass`; the logic is `@internal
 
 **`PressBoard`** (`obj/PressBoard.ts`, manifest-registered at
 `/platform/idea/PressBoard`) is a warm cache **over the tree** owning the window
-semantics — `recentWindow()` = pins-first then `publishedAt`-desc,
+semantics — `recentWindow()` = pins-first then `date`-desc,
 excluding retracted and expired, the pin block capped at `press.maxPins`
 and the whole window at `press.tickerWindow`. Soft-retracted releases stay
 cached (reachable by id) and drop out of the window. ⭐ Its warm is **two
 bounded reads** by the card — `pinned` eq true, and the newest
-`publishedAt` descending, each over-fetching its cap ×4 so filtered rows
+`date` descending, each over-fetching its cap ×4 so filtered rows
 do not shorten the window — never a read of every release. It stays on
 the boot list because `PressApi.recent()` is read synchronously at
 session entry.
 
-A release's card declares three keys (`DocumentKinds`): `publishedAt`
-(the order), `pinned` (the ticker's pins) and `releaseId` (the load by
+A release's card declares three keys (its kind declaration, `/platform/kinds/release`): `date`
+(the order, from the `dated` trait), `pinned` (the ticker's pins) and `releaseId` (the load by
 id) — each derived from the release's data on write
 ([document-store.md](./document-store.md)). The document store's
 `callUp` (an in-game reader naming a release by a word) searches the
@@ -512,6 +511,6 @@ the shipped `press` verb. See `employment.md`, `blood.md`.
 ## History
 
 - 2026-11-09 — documents path identity: the press reads releases by key
-  (`publishedAt` newest first, `pinned`, `releaseId`) over the one
+  (`date` newest first, `pinned`, `releaseId`) over the one
   wildcard index; no `listOfKind('release')` remains. See git log for the
   `reqs/documents-path-identity` branch.

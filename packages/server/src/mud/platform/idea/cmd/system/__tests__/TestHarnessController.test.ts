@@ -101,7 +101,7 @@ describe('testharness controllers', () => {
       const before = TestHarnessApi.clockNow();
       await run({ subcommand: 'clock-advance', value: '2h' });
       expect(TestHarnessApi.clockNow() - before).toBeGreaterThanOrEqual(7_200);
-      expect(said.join('\n')).toMatch(/The clock moved 2 hours/);
+      expect(said.join('\n')).toMatch(/The clock moved 2h/);
     });
 
     it('⛔ `clock-advance 3d` is the span rule, in its own words — the clock unmoved', async () => {

@@ -24,7 +24,7 @@ args:
   - name: person
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: any
   # ⭐ The rope you hold the belay with — DECLARED, never hunted
   # (`lint:controller-resolution`): `belay hal with rope`, or the rope in hand.
@@ -37,6 +37,6 @@ args:
     type: object
     required: false
     prepositions: [with]
-    default: "inventory:[class.Rope]"
-    scope: ["reachable"]
+    default: "~inventory:[class.Rope]"
+    scope: ["~reachable"]
     requires: [TieableMixin]

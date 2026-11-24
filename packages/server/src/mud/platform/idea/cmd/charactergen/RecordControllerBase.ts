@@ -39,6 +39,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { EmploymentApi } from '../../../../api/employment';
 import { MqlApi } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
+import { GrammarApi } from '../../../../api/grammar';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 
 /** What a record read resolved its subject to. */
@@ -46,28 +47,6 @@ export type RecordSubject =
   | { kind: 'person'; stuff: Stuff }
   | { kind: 'body'; stuff: Stuff }
   | null;
-
-/** The words a phrase is made of, lowercased and punctuation-stripped. */
-function words(text: string): string[] {
-  return text
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, ' ')
-    .split(/\s+/)
-    .filter(Boolean);
-}
-
-/** Drop a leading article — "the watch" and "watch" name one thing. */
-function needleOf(asked: string): string {
-  return asked.trim().toLowerCase().replace(/^(the|a|an)\s+/, '');
-}
-
-/** Whether `needle` is a WHOLE word of `text` (not merely a prefix). */
-function namesItself(text: string, needle: string): boolean {
-  const parts = words(needle);
-  if (parts.length === 0) return false;
-  const pool = words(text);
-  return parts.every((p) => pool.includes(p));
-}
 
 export abstract class RecordControllerBase<
   M extends CommandModel,
@@ -80,24 +59,24 @@ export abstract class RecordControllerBase<
     asked: string,
     context: CommandContext,
   ): RecordSubject {
-    const needle = needleOf(asked);
-    if (!needle) return null;
+    if (asked.trim() === '') return null;
 
     const person = MqlApi.resolveMany(asked, {
       commandGiver: context.commandGiver,
-      scope: 'reachable',
+      scope: '~reachable',
     }).stuff.find((s) => MixinApi.isPersona(s));
-    const body = this.findBody(needle);
+    const body = this.findBody(asked);
 
-    const personNames =
-      person !== undefined && namesItself(person.getPresentation(), needle);
-    const bodyNames = body !== null && namesItself(this.labelOf(body), needle);
-
-    // A whole-word match wins; a tie goes to the person in the room.
-    if (personNames) return { kind: 'person', stuff: person };
-    if (bodyNames) return { kind: 'body', stuff: body };
-    // Neither names itself exactly — MQL's loose match still answers, so
-    // a half-typed keyword keeps working.
+    // ⭐ Which the words name better, by the one rule (naming overhaul
+    // D-C5): a tie goes to the person in the room; when neither names
+    // itself, MQL's loose match still answers.
+    type Subject = Exclude<RecordSubject, null>;
+    const entries: Array<{ value: Subject; keywords: string[]; title: string }> = [];
+    if (person) entries.push({ value: { kind: 'person', stuff: person }, keywords: [person.getPresentation().toLowerCase()], title: person.getPresentation() });
+    if (body) entries.push({ value: { kind: 'body', stuff: body }, keywords: [this.labelOf(body).toLowerCase()], title: this.labelOf(body) });
+    const answer = GrammarApi.nameAmong(asked, entries);
+    if (answer.kind === 'one') return answer.one;
+    if (answer.kind === 'tie') return answer.tie[0]!;
     if (person) return { kind: 'person', stuff: person };
     if (body) return { kind: 'body', stuff: body };
     return null;
@@ -110,8 +89,8 @@ export abstract class RecordControllerBase<
    * so "reachable" would find none of them — and a body of people is not
    * something a viewer's fog hides.
    */
-  protected findBody(needle: string): Stuff | null {
-    return EmploymentApi.findOrganization(needle);
+  protected findBody(asked: string): Stuff | null {
+    return EmploymentApi.findOrganization(asked);
   }
 
   /** What a body of people calls itself. */

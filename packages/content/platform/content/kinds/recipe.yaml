@@ -1,0 +1,14 @@
+title: Recipe
+traits:
+  paper:
+    template: |-
+      {{ title | upcase }}{% if inputSlots.size > 0 %}
+      Take: {% for s in inputSlots %}{% if s.slot %}{{ s.slot }}{% else %}{{ s.category }}{% endif %}{% if s.count > 1 %} ×{{ s.count }}{% endif %}{% unless forloop.last %}, {% endunless %}{% endfor %}.{% endif %}{% if toolCapabilities.size > 0 %}
+      With: {{ toolCapabilities | join: ", " }}.{% endif %}{% if discipline %}
+      The {{ discipline }} trade's work.{% endif %}
+  catalogued: { by: /platform/idea/RecipeCatalogue, load: whole }
+  shipped: { dir: recipes }
+  keyworded: {}
+  titled: { field: name }
+fields:
+  outputTemplate: { type: string, index: output }
