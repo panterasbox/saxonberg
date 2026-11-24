@@ -1,0 +1,5 @@
+title: Hull sale
+# ⭐ The hulls a yard's book has sold (persistence-model D7), filed by the
+# selling house.
+traits:
+  filed: business

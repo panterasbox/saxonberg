@@ -20,6 +20,7 @@ import Field from '../thing/Field';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
@@ -112,12 +113,12 @@ describe('marking fields on a tract', () => {
     expect(PersistableApi.capture).toHaveBeenCalled();
   });
 
-  it('⭐ a field keeps its own record, keyed under its tract, and the tract owns it (D26)', async () => {
+  it('⭐ a field keeps no record of its own — it rides its tract (persistence-model D3)', async () => {
     const t = bench(1200);
     await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
     const field = t.fieldByKey('barley-field')!;
-    expect(PersistableApi.restoreOrSeed).toHaveBeenCalledWith(field, `${t.groundPath()}/barley-field`);
-    expect(t.dependentPersistables()).toEqual([field]);
+    expect(MixinApi.isPersistable(field)).toBe(false);
+    expect(t.dependentPersistables()).toEqual([]);
   });
 
   it('a new field carries the unmarked ground\'s soil, never fresh', async () => {
@@ -210,18 +211,17 @@ describe('marking fields on a tract', () => {
     }
   });
 
-  it('⭐ unmarking folds the field back in, by area, and deletes its record', async () => {
+  it('⭐ unmarking folds the field back in, by area (it had no record of its own — persistence-model D3)', async () => {
     const t = bench(1200);
     await asOne(holder, (who) => t.markField(who, 'barley field', 1 / 3));
     const field = t.fieldByKey('barley-field')!;
-    field.setPersistenceKey(`${t.groundPath()}/barley-field`);
     field.setSoilReserveFraction(SOIL_NITROGEN_RESERVE_KEY, 0.6);
     t.setSoilReserveFraction(SOIL_NITROGEN_RESERVE_KEY, 0.3);
     const r = await asOne(holder, (who) => t.unmarkField(who, field));
     expect(r.ok).toBe(true);
     expect(t.getFields()).toHaveLength(0);
     expect(field.isDestroyed()).toBe(true);
-    expect(deleted).toContain(`${t.groundPath()}/barley-field`);
+    expect(deleted).not.toContain(`${t.groundPath()}/barley-field`);
     // 800 m² at 0.3 and 400 m² at 0.6 → 0.4 over the whole again.
     expect(t.soilReserveFraction(SOIL_NITROGEN_RESERVE_KEY)).toBeCloseTo(0.4, 6);
     expect(t.soilRemainderAreaM2()).toBe(0); // no parts: one piece again

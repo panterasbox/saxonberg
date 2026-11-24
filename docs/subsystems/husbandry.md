@@ -67,9 +67,10 @@ shape with a bigger N, so phase 2's garden bed is this code and not a
 rewrite. A fused pot-and-plant object would have been thrown away.
 
 ```ts
-// obj/Plant.ts — PersistableMixin OUTERMOST (the host rule)
-PersistableMixin(SlottableMixin(GrowingMixin(
-  ReservedMixin(OrganismMixin(ThermalMixin(Good))))))
+// platform/thing/Plant.ts — NOT a host since persistence-model (D3): it
+// rides its pot's, bed's or place's record
+SampledMixin(LabelledMixin(SlottableMixin(GrowingMixin(
+  ReservedMixin(OrganismMixin(ThermalMixin(Good)))))))
 
 // obj/PlantPot.ts — the Slotted host + the soil holder. NOT a host.
 StagedMixin(SlottedMixin(BulkableMixin(ContainerMixin(Good))))
@@ -468,9 +469,15 @@ the game-day. And **one skipped day is recoverable at every rung above
 
 ## Durability — growing ⇒ cultivated ⇒ durable
 
-> **A `Plant` owns its own persistence record**, keyed per instance, and
-> carries its own location — so it keeps growing wherever you take it, and
-> nothing about its durability is wired to dorm code. **Decorative greenery
+> ⚠ **Superseded 2026-11-24 (persistence-model D3): a `Plant` keeps no
+> record of its own** — it rides its container (a pot's or bed's slotted
+> slice, a place's contents), so a plant in a plain bed in a staged park
+> restages, and the same row in a `PermanentBed` or on a kept tract is as
+> left. The text below describes the shape it had until then.
+>
+> **A `Plant` owned its own persistence record**, keyed per instance, and
+> carried its own location — so it kept growing wherever you took it, and
+> nothing about its durability was wired to dorm code. **Decorative greenery
 > is scenery**, an ordinary `Thing` with a description, and needs none of
 > this. A cultivated plant left loose in a **transient** room is
 > **abandoned**, the same rule chattel.md already applies to owned goods.
@@ -485,8 +492,8 @@ race it. `Plant` overrides `getPersistenceKey()` because the capture path is
 the only caller that asks, both directly and through an ancestor's
 `{ref, key}` entry.
 
-So a pot in a dorm room restores as **room → pot (nested state) → plant (its
-own record)**. That required lifting a stated limitation in the spine —
+So a pot in a dorm room restored as **room → pot (nested state) → plant (its
+own record)** (today: room → pot → plant, all nested state). That required lifting a stated limitation in the spine —
 nested hosts were assumed singletons — which is documented in
 [persistence.md](./persistence.md) § Keyed nested hosts.
 

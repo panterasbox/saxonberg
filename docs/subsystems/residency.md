@@ -492,7 +492,7 @@ is **emit**: wander, come to a door, get fed by a neighbour, die in
 front of somebody instead of retroactively. So the set that needs to be
 resident while unobserved is exactly *objects with a brain whose events
 must happen while nobody is looking*. A chair is never in it; a cask is
-not (maturation reconciles); a named animal is.
+not (maturation reconciles); a kept animal is.
 
 **The mechanism.**
 
@@ -500,23 +500,23 @@ not (maturation reconciles); a named animal is.
   answers true to say *I emit while unobserved*. `KeptAnimal` does
   (on the class body — `Persistable` is the outermost layer, so a mixin
   further in cannot override its default).
-- The pin is **stamped on the good's `chattel` row** (`pin: {scope,
-  key}`) on the same gated write as `place` — `ChattelLogic.applyPlace`
-  — when the class opts in, the good persists itself, and it has an
-  explicit key. Cleared when the good goes to `storage` or `inventory`
-  (it stands nowhere). A partial index `{pin.key: 1}` holds exactly the
-  pinned set, so a world with no pets pays nothing.
+- The pin **rides the host's own record** (persistence-model D8,
+  2026-11-24): capture writes `pinned: true` on the `holder_snapshots`
+  row when the class opts in and the host has an explicit key. A partial
+  index `{pinned: 1}` holds exactly the pinned set, so a world with no
+  pets pays nothing. (It was the `chattel` row's `pin` column, written on
+  the chattel `place` write, until the estate's goods half retired.) A
+  kept animal captures when it changes place (`KeptAnimal.onMoved`), the
+  write the `place` used to make.
 - `ResidencyLogic.pinNow()` — **the roll**, armed once by
   `ResidencyWarden.warm()` beside the three sweeps (after the chattel
   and parcel registries: standing a good up resolves its place, which
-  reads title). It reads the index, `PersistableApi.standUpKeyed` per pin
+  reads title). It reads `PersistableApi.pinned()` (the index, never the
+  rows), `PersistableApi.standUpKeyed` per pin
   (resolve-or-mint, so an owner who logged in first does not get a
   second cat), and a pin whose place cannot resolve is logged and
   skipped — the animal reads as *lost*, which is a thing that can happen
   to an animal, rather than a boot failure.
-- The owner's login is the other ask: `Estate.restoreSlice` stands a
-  **keyed** room-placed entry up through `RestoreContext.standUpKeyed`,
-  resolving first — usually a hit, because the roll got there.
 - ⭐ **Where it lands is the good's own record**, not the pin: the roll
   says *which*, `HostPlacement` says *where*. And where is **anchored**
   — `container` names the nearest ancestor with an address (a keyed
@@ -527,14 +527,14 @@ not (maturation reconciles); a named animal is.
   paths — matched hop by hop **within** the anchor and stopping at the
   deepest hop that resolves: a missing cage leaves the bird in the room,
   never in the first cage anywhere. ⚠ Two rules the pets build found by
-  test, not live: an owner-persisted chattel keeps its own placement
-  even inside a room that persists itself (the room's slice skips it,
-  so nothing else refers to it), and a plain non-singleton room clone
+  test, not live: a kept animal (`Behaved`, so cast) keeps its own
+  placement even inside a room that persists itself (the room's slice
+  skips it, so nothing else refers to it), and a plain non-singleton room clone
   has no address to name — a good left in one comes back in *a* room
   of that kind, which is the honest limit of a transient place.
 - ⭐ **One record owns each placement fact, and the skip list decides
-  which.** A room's container slice skips avatars, cast and
-  owner-persisted chattel; exactly those keep their own `HostPlacement`.
+  which.** A room's container slice skips avatars and cast; exactly
+  those keep their own `HostPlacement`.
   Everything else is placed by its referrer's `{ref, key}` and records
   nothing of its own. So no two records claim the same good's position
   in steady state. Where they *can* disagree is time skew, and each case
@@ -543,12 +543,9 @@ not (maturation reconciles); a named animal is.
   second record moves the standing instance, last-to-materialize wins,
   the stale record heals on its next capture (before: a second mint,
   `assertUniqueKey` threw, that room's whole restore aborted);
-  **the good's own record vs the `chattel` index** — a self-persisting
-  good is re-captured on every `place` write, so they are one act;
   **a good carried by somebody** — records no placement at all (a `via`
   hop naming an avatar could land it in a stranger's pockets: every
-  avatar shares one template path), and the owner's estate stands it up
-  and puts it back in hand.
+  avatar shares one template path); it is in its carrier's own record.
 
 ⭐ **Pinning, not swap.** Page-in happens at boot and at login — a
 process start or a human act, never an *access*. Page-out is only the
@@ -608,3 +605,13 @@ only advertises is stood up when somebody arrives at a place it operates
 skips a line with a `supplier` — the sweep is the faucet for IMPORTS
 only (goods nobody produces), never for a line somebody sells. See
 [credit.md](./credit.md).
+
+## History — the pin moves to the record (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): the
+residency pin moved from the `chattel` row (`pin`, written with the
+retired chattel `place`) to `holder_snapshots.pinned`
+(`PersistedRecord.pinned`, `PersistableApi.pinned()`); a kept animal is
+one that chose somebody (`Bonded.isKept`), not one that was named. The
+residency sweep still declines to cull a kept place whose capture failed
+(persistence.md § Who keeps what).

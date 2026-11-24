@@ -161,8 +161,8 @@ export interface FloorDefaults {
 // consumer, at the root of the biggest class family in the game.
 // ⭐⭐ **`Visible`, `Perceptible` and `Detailed` joined the root in the
 // base-class narrowing (2026-09-30), and the finding was already
-// written down three times.** `Offstage.ts:20-24`, `Bar.ts:40-44` and
-// `Lounge.ts:33-37` each carry the same sentence — *"`PerceptibleMixin`
+// written down three times.** `Offstage.ts` (axed since), `Bar.ts:40-44`
+// and `Lounge.ts:33-37` each carried the same sentence — *"`PerceptibleMixin`
 // … is composed per class because `Place` does NOT carry it, so
 // every room class built directly on `Place` has to remember"* —
 // with the note that those rows *"were authoring `primaryKeyword` into
@@ -182,9 +182,6 @@ export interface FloorDefaults {
 // wherever it goes (D8) — a place addressable by keyword has parts
 // addressable the same way.
 //
-// ⚠ `Offstage` is where this root ENDS, and it is the branch's proof of
-// the line, the way `Corpse` was the Agent branch's: it composes all
-// three description mixins and none of `Exitable`/`Staged`/coordinates.
 // A location is *a place you can see, name and point at*; being a place
 // you can walk BETWEEN is the next rung out.
 const PlaceBase = AddressableMixin(

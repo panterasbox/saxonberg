@@ -99,40 +99,26 @@ Two cases the rungs above could not answer, both found by the potash drive
 CODE-maintenance title (`two-ownership-axes`); attribution flowing reaches
 it far less often, and whether it should exist is its own question.
 
-## Where the owner keeps it — `place`
+## Title is a claim, never storage
 
-A stamped good also carries a **`place`** (a room identity, `'inventory'`,
-or `'storage'`) and persists **owner-side** rather than with whatever room
-it is standing in. That is the [furnishing](./furnishing.md) subsystem —
-`setPlace` / `followCustody` / `placedIn` / `evictToStorage` / `isStamped` /
-`isOwnerPersisted` (stamped to a player — the persistence skip rule's predicate)
-on this same facade, the `place` column on the `chattel` row as a by-room
-index, and the estate slice that carries the goods themselves.
+⭐⭐ **Where a good is kept is its CONTAINER's to say, never its owner's**
+(persistence-model D9, 2026-11-24). A titled good is kept by whatever
+kept container it is in — a player's own record when they carry it, a
+kept room's record when it is set down there, a `Locker`'s when it is
+checked in — and is lost with a place that keeps nothing, titled still
+(ownership of a lost thing is moot, not false). See
+[furnishing.md](./furnishing.md) § *Where a good is kept*.
 
-⭐ **The `chattel` row is the containable-side record of where a good
-belongs** (pets build, 2026-09-17), and two things ride the same gated
-`place` write (`ChattelLogic.applyPlace` — the good's field, the row, a
-live owner's estate, all in one call so nothing drifts):
-
-- **`pin: {scope, key} | null`** — how to stand a good up that persists
-  *itself*, stamped when its class answers `pinsResidency()`, it has an
-  explicit persistence key, and it is placed in a room (cleared for
-  `storage` / `inventory`). ⚠ The `scope` is the good's
-  **`getIdentityPath()`** — the same string `captureImpl` files the
-  record under. It read `getTemplatePath()` until 2026-10-04, which is
-  identical for every pinned class today (none is identity-stamped) and
-  would have sent the pin roll looking where no record is, silently, the
-  moment one was. ⚠ A pin on a host that is both stamped and keyed is
-  still unbuilt: `standUpKeyed` needs the ROW to clone a shell and the
-  identity to find the record, so such a pin would have to carry both.
-  Recorded here rather than designed around; no pinned class is stamped. A partial index `{pin.key}` holds exactly
-  the pinned set; `ChattelApi.pinned()` is the residency pin roll's one
-  read — [residency.md § the load half](./residency.md). The `place`
-  column is indexed too: `placedIn` and `evictToStorage` were scans.
-- **A self-persisting good is re-captured on every `place` write**, so
-  its own record's placement and the row are one fact — the pin roll
-  trusts the record, and a crash between `drop` and the shutdown sweep
-  would otherwise stand it up one room stale.
+Until then a stamped good carried a **`place`** (a room identity,
+`'inventory'` or `'storage'`) and persisted owner-side in its owner's
+estate, with `setPlace` / `placedIn` / `evictToStorage` /
+`isOwnerPersisted` on this facade and `place` + `pin` columns on the
+`chattel` row. All of it retired: `followCustody` now derives **title
+only** (and, for a person setting their own good down somewhere that
+keeps nothing, says the teach-once *Not kept* line — `Avatar.teachOnce`,
+the `hints.kept` setting), and the residency pin for a good that keeps
+itself (a kept animal) moved onto its own record
+(`holder_snapshots.pinned`, [residency.md](./residency.md)).
 
 `stampedOwner()` on the good (sync) is the object-side read of the stamp.
 
@@ -286,7 +272,7 @@ the good itself) with the recipient's consent; a stack carries no title.
 
 - **`chattel`** (`ChattelRecord`, `lib/chattel/ChattelRecord.ts`) — the
   rebuildable current-state row: `{ chattelId, owner: ChattelOwner,
-  titledAt, place, pin }`.
+  titledAt }` (its `place` and `pin` columns retired 2026-11-24).
 - **`chattel_events`** (`ChattelEvent`, `lib/chattel/ChattelEvent.ts`) —
   the append-only chain-of-title: `mint` | `transfer` | `released`, one
   row per act, `from`/`to`/`actor`/`at`. A transfer never overwrites
@@ -331,19 +317,20 @@ different concept, and it belongs to the deferred coroner economy. See
 
 ## River build (2026-10-21)
 
-A good whose host is transient space (a river patch, a sea room) is written
+A good whose host is transient space (a river patch, a sea room) was written
 to the estate as **`loose`** (`ESTATE_LOOSE`): kept where its place is
-persisted (a river stop), lost otherwise, titled still. `Estate.hydrateSlice`
-skips loose entries.
+persisted (a river stop), lost otherwise, titled still. (The estate's goods
+half retired 2026-11-24; the rule it stated is now the general one — a good
+is kept by its container, so a good in a kept river stop keeps and one in
+a patch does not.)
 
 ## Harbors build (2026-11, MR !511)
 
 ⭐ **Sold where it lies — title moves, the good does not.** A boat the
 put-in's house sells is already lying on its shingle, too big to hand
 across a counter: the sale settles the price, then the good's own
-`transferChattel(buyer)` moves the TITLE and nothing moves the thing; then
-`followCustody()` re-reads where its new owner keeps it, as a move would
-have, so the buyer's estate places it on that landing
+`transferChattel(buyer)` moves the TITLE and nothing moves the thing, and
+the landing keeps it, whoever now holds title
 ([retail.md](./retail.md) § the offer protocol). The landing is a kept
 `PersistentShore`, so the house's unsold boats do not come back after a
 sold one at a restart.
@@ -359,8 +346,15 @@ company, whose holders are its cap table ([ship.md](./ship.md)).
 
 ## Writes are keyed (db-performance, 2026-11)
 
-`setPlace` and the title upsert (`stamp`, `transfer`) each write ONE keyed
-`saveMany` row (on `chattelId`) where they were a find then a save. A
-place write is partial (`place`, `pin`) with `insert: false` — a row that
-is not there is not made, as the old early return did. Each write names
-its fields: a field the stamp gains is one more name in its list.
+The title upsert (`stamp`, `transfer`) writes ONE keyed `saveMany` row (on
+`chattelId`) where it was a find then a save. Each write names its fields:
+a field the stamp gains is one more name in its list. (The partial `place`
+write retired with the column, 2026-11-24.)
+
+## History — title stops being storage (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): D9 retired
+the chattel `place` and `pin` (the field, the columns and their indexes,
+`ChattelApi.placedIn`/`pinned`/`evictToStorage`,
+`Chattel.setChattelPlace`/`isOwnerPersisted`, `ChattelLogic.applyPlace`).
+`followCustody` is title derivation plus the teach-once line.

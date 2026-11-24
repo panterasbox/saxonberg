@@ -420,7 +420,7 @@ describe('a tract divided into fields', () => {
   });
 });
 
-describe('⭐ R4 / D26 — a field survives a restart on its OWN record', () => {
+describe('⭐ R4 — a field survives a restart on its TRACT\'s record (persistence-model D3)', () => {
   let snapshots: Record<string, unknown>[];
   let clock: ReturnType<typeof vi.spyOn>;
   let base: number;
@@ -470,7 +470,7 @@ describe('⭐ R4 / D26 — a field survives a restart on its OWN record', () => 
     vi.restoreAllMocks();
   });
 
-  it("⭐ the field's reserves and soil stamps come back onto the re-minted field, from its own key", async () => {
+  it("⭐ the field's reserves and soil stamps come back onto the re-minted field, from the tract's record", async () => {
     const PATH = '/world/test/kept-tract';
     const f = await markedTract(1000, PATH);
     const top = field(f, 'top-end');
@@ -482,11 +482,12 @@ describe('⭐ R4 / D26 — a field survives a restart on its OWN record', () => 
     expect(stamp).toBeGreaterThan(0);
 
     await PersistableApi.capture(f);
-    // ⭐ The tract's capture wrote each field under its own key (D26).
-    expect(snapshots.some((d) => d.owner === `${PATH}/top-end`)).toBe(true);
+    // ⭐ A field has no record of its own: the tract's carries it.
+    expect(snapshots.some((d) => d.owner === `${PATH}/top-end`)).toBe(false);
+    expect(snapshots.some((d) => d.scope === PATH)).toBe(true);
 
-    // The world restarts: the tract is re-minted, and minting each field
-    // restores that field's own record.
+    // The world restarts: the tract is re-minted, and its restore gives
+    // each field back what the tract's record held for it.
     StuffApi.unregister(top);
     StuffApi.unregister(field(f, 'lane-end'));
     StuffApi.unregister(f);
@@ -497,7 +498,6 @@ describe('⭐ R4 / D26 — a field survives a restart on its OWN record', () => 
     const freshTop = field(reborn, 'top-end');
     expect(freshTop).not.toBe(top);
 
-    // The tract's own restore does not clobber what the field brought back.
     await PersistableApi.materialize(reborn);
 
     expect(freshTop.getReserve(SOIL_MOISTURE_RESERVE_KEY)!.current.rawValue()).toBe(7);

@@ -385,7 +385,7 @@ which `pour gin into glass` binds both of — so the gate compares ranges.
 
 ## Content, templates & vocabulary
 
-- **`lint:instanceable`** — **nothing instances `/lib/`.** Thirteen
+- **`lint:instanceable`** — **nothing instances `/lib/`.** Fifteen
   invariants over every template: no `class:` resolves under `/lib/`,
   no template path lives there, every `class:` resolves to a real
   module + export. No exemption list, by design.
@@ -416,6 +416,16 @@ which `pour gin into glass` binds both of — so the gate compares ranges.
     `fieldMeta` is not the universe there.
   - **5, 6 and 7 now read the EFFECTIVE row**, and 5 gained a second
     shape: a child restating the hydrator its parent already supplies.
+
+  ⭐ **15 — only containers and bodies keep** (persistence-model N19,
+  2026-11-24). A class a row names that composes `PersistableMixin` must
+  compose `ContainerMixin` too, or be a body on the script's
+  `KEPT_BODIES` roster (`/platform/idea/Ship`; a person, a kept animal
+  and a draft animal are containers already). A thing is kept by its
+  container, history by a ledger, the derived never — so a record of its
+  own on anything else is the rule the model retired. Proved red on
+  `StorageNode` before it lost its mixin. The finding names the way out:
+  `PersistableApi.adoptRider` for a thing that is not contained.
 
   ⚠⚠ **The migration that mattered more than either new invariant.**
   Fifteen gates selected rows by `raw.class`, each through its own local
@@ -2285,16 +2295,21 @@ own cost model.
 All three came out of one build, and each closes a link of the
 **reachability chain** that fails closed and silent.
 
-**`lint:counters` — a counter is a vocation's instrument (ceiling 4).**
+**`lint:counters` — a counter is a vocation's instrument (ceiling 5).**
 A *counter* is the front-of-house thing somebody stands behind: it holds
 the goods, prices them, takes them into custody, or leases the customer's
 attention. It is never generic — it is what one TRADE does for a living,
 so the instanceable class a row names ships in `/trade/<x>`. The
 MECHANISM may stay kernel (`lib/retail/Stock.ts` is substrate the price
-index and the credit ladder read, and nothing instances it). The four the
+index and the credit ladder read, and nothing instances it). The five the
 kernel keeps are named in the script with their reasons, and `BankCounter`
 is explicitly the one **to-do** — trade-banking is deferred with a stated
-reason, so when it ships the ceiling drops to 3.
+reason, so when it ships the ceiling drops to 4. ⚠ The fifth is
+`platform/thing/Locker` (persistence-model, 2026-11-24, a stated rise
+4 → 5): custody for named people, composed by residence's letting
+offices, trade-hospitality's check rack and the testbed — three
+composers with no common pack ancestor, the standing test for kernel
+substrate.
 
 ⚠ **The census read 2 where the truth was 4**, on the first cut. The plan
 named four composition markers; `BankCounter` composes `BankMixin` (not

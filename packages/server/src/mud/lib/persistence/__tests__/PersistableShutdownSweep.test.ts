@@ -91,10 +91,21 @@ describe('the shutdown sweep', () => {
     expect(report.captured).toBe(5);
   });
 
-  it('a batch the database refuses is counted failed, whole', async () => {
+  it('⭐ a batch the database refuses is retried one record at a time — only the refused ones fail (persistence-model D10)', async () => {
     for (let i = 0; i < 3; i++) room(`/test/sweep/x${i}`, `x${i}`);
     vi.spyOn(PersistApi, 'saveMany').mockRejectedValueOnce(new Error('the link dropped'));
     const report = await PersistableApi.captureAtShutdown();
-    expect(report).toMatchObject({ captured: 0, failed: 3 });
+    expect(report).toMatchObject({ captured: 3, failed: 0 });
+  });
+
+  it('a record the database keeps refusing fails alone; its batch-mates are saved', async () => {
+    for (let i = 0; i < 3; i++) room(`/test/sweep/y${i}`, `y${i}`);
+    PersistableApi.refuseSavesOf('/test/sweep/y1', true);
+    try {
+      const report = await PersistableApi.captureAtShutdown();
+      expect(report).toMatchObject({ captured: 2, failed: 1 });
+    } finally {
+      PersistableApi.refuseSavesOf('/test/sweep/y1', false);
+    }
   });
 });

@@ -9,7 +9,7 @@
 # windy noon measurably less (the soil's overhead inlet reads the weather).
 # A Gate on the ditch's head reach, so its draw is the ditch's, and
 # whoever opens it is on its record.
-class: /system/water/thing/PersistentGate
+class: /system/water/thing/Gate
 data:
   shortDescription: sprinkler valve
   keywords: [sprinkler, valve, "sprinkler valve", standpipe, spray, wheel]

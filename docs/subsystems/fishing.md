@@ -302,7 +302,8 @@ change: **`shelf consign` refuses what has turned** — a `Provision` past
 `fresh`, or a dead body whose `Postmortem.freshnessLoad()` (the
 butchering arithmetic, answered by the carcass) is past `fresh`. A rule
 of every shelf. The fishmonger keeps the stall on the market's roster
-(committee-appointed, on a shift with an `Offstage`), replaceable through
+(committee-appointed, on a shift, and out of the narrative off it — the
+market says `offShift: out`), replaceable through
 `house appoint`; the fisher fishes the confluence bare-hooked on his own
 cadence and **reads the water aloud from the record** (`reads-water`, an
 `engage` responder building a one-beat tree from `readFor` at the

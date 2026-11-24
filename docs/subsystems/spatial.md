@@ -633,10 +633,10 @@ read is a walk and not a second step. See
 [thermal.md](./thermal.md) § *Two questions, one step apart*.
 
 **The pair IS persisted**, by the container's slice.
-`ContentPlacement { hostIndex?, hostChattelId?, placement? }` in
+`ContentPlacement { hostIndex?, placement? }` in
 `lib/persistence/PersistenceSlice.ts` records the host's **index
-within the same contents list** (or its chattel id, when the host is an
-owned good the estate carries) plus the member's **path**
+within the same contents list** (an owned host is content like any other
+since the estate's goods half retired, 2026-11-24) plus the member's **path**
 (`/platform/placements/on`) or the host's region name;
 `PersistableLogic`'s placement pass re-`place`s on restore. ⭐ A region of
 the container ITSELF (a pocket's key, W9) records `{ placement: 'left

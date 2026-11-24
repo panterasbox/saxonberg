@@ -135,6 +135,7 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
     declare holdingsOf: HeldGoodsShelf["holdingsOf"];
     declare countHeld: HeldGoodsShelf["countHeld"];
     declare resolveHeld: HeldGoodsShelf["resolveHeld"];
+    declare resolveHeldFor: HeldGoodsShelf["resolveHeldFor"];
     declare actingHouseOf: HeldGoodsShelf["actingHouseOf"];
     declare mayDisposeOf: HeldGoodsShelf["mayDisposeOf"];
     declare accepts: HeldGoodsShelf["accepts"];

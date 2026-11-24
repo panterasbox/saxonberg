@@ -2314,7 +2314,7 @@ function rowWork(
   const reachRef = str(row.reachRef);
   const num = (v: unknown, d: number): number =>
     typeof v === 'number' && Number.isFinite(v) ? v : d;
-  if (cls.endsWith('/thing/Gate') || cls.endsWith('/thing/PersistentGate')) {
+  if (cls.endsWith('/thing/Gate')) {
     // An unloaded gate reads as its row stands: its authored opening (a
     // live gate's own record answers once it is loaded).
     const opening = Math.min(1, Math.max(0, num(row.opening, row.open === true ? 1 : 0)));

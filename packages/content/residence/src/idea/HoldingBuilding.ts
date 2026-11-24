@@ -29,15 +29,16 @@
  * `extends: /system/residence/idea/holding-building`, the plain house's
  * words.
  *
- * ⭐ It persists unconditionally — a holding exists only because somebody
- * holds it — under the holding's own `(scope, key)`.
+ * ⭐ It has no record of its own (persistence-model D4): a building is a
+ * THING kept by what it stands on, so its coats and condition ride its
+ * holding's record (`PersistableApi.adoptRider`) — a holding exists only
+ * because somebody holds it.
  *
  * A plan that names no building (a Seznick House flat) mints none:
  * its units read the Building row they are in.
  */
 
 import BuildingBase from '@saxonberg/server/mud/lib/structure/Building';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff, EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { VetoResult } from '@saxonberg/server/mud/lib/errors';
@@ -47,7 +48,7 @@ interface HoldingRooms {
   isDestroyed(): boolean;
 }
 
-export default class HoldingBuilding extends PersistableMixin(BuildingBase) {
+export default class HoldingBuilding extends BuildingBase {
   /** The holding whose house this is — a weak, runtime ref set at its wake. */
   private holding: HoldingRooms | null = null;
 

@@ -1,5 +1,6 @@
 /**
- * CheckRack — the weapons-check rack: a **persistable** container fixture
+ * CheckRack — the weapons-check rack: a {@link Locker} (persistence-model
+ * N3) that takes only arms. A **kept** container fixture
  * that takes a patron's arms into custody (their owner-stamps stay put)
  * against a claim ticket, and hands them back on `rack reclaim`. Custody, never
  * title — the bar-fight build's coat-check-with-teeth.
@@ -15,36 +16,14 @@
  * just the base.
  */
 
-import Holder from "@saxonberg/server/mud/lib/stuff/Holder";
-import { ContainerMixin } from "@saxonberg/server/mud/lib/spatial/Container";
-import { PersistableMixin } from "@saxonberg/server/mud/lib/persistence/Persistable";
-import { FixtureMixin } from "@saxonberg/server/mud/lib/stuff/Fixture";
-import { HeldGoodsMixin } from "@saxonberg/server/mud/lib/retail/HeldGoods";
+import Locker from "@saxonberg/server/mud/platform/thing/Locker";
 import type { HoldRefusal } from "@saxonberg/server/mud/lib/retail/HeldGoods";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-import type { CommandContributions } from "@saxonberg/server/mud/api/command";
 import type { FieldMeta } from "@saxonberg/server/mud/lib/mixin";
 
-// `FixtureMixin` lets a rack declare `seatIn: <warren>` and follow an
-// elastic host (the lounge's rack rides the Warren host the way the TPA
-// terminal does — re-seated on host migration). A fixed-room rack just
-// leaves `seatIn` unset and is placed by ordinary containment.
-const CheckRackBase = PersistableMixin(
-  HeldGoodsMixin(
-    FixtureMixin(Holder),
-  ),
-);
-
-export default class CheckRack extends CheckRackBase {
+export default class CheckRack extends Locker {
   static fieldMeta: FieldMeta = {};
-
-  /** Seat into the declared `seatIn` (the Warren host, or a location) once
-   * registered — the host-following fixture contract. No-op when unset. */
-  async onCreate(): Promise<void> {
-    await super.onCreate();
-    await this.seatSelf();
-  }
 
   /**
    * ⭐ A check rack holds ARMS, and discrete ones: a shield is armor (not a
@@ -60,13 +39,4 @@ export default class CheckRack extends CheckRackBase {
     return super.accepts(item);
   }
 
-  static commandContributions: CommandContributions = {
-    self: [],
-    peers: [
-      "platform/cmd/retail/rack.yaml",
-    ],
-    environment: [
-      "platform/cmd/retail/rack.yaml",
-    ],
-  };
 }

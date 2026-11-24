@@ -1,0 +1,12 @@
+# The testbed clerk — the venue's day `attendant` at the shop counter
+# (persistence-model W0): on the roster 08:00–18:00 every day, so a drive can
+# watch a hand's shift end and begin again. ⚠ TEST-ONLY.
+class: /platform/agent/Extra
+data:
+  keywords: [clerk, counterhand]
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  shortDescription: clerk
+  register: indefinite
+  longDescription: |
+    A clerk with a pencil behind one ear, minding the shop counter.

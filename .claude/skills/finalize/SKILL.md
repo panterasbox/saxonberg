@@ -263,6 +263,15 @@ slate goes in the folder whose README sentence describes it.
 
 ### 5. Validation
 
+⛔⛔ **Catch up with master FIRST — immediately before the suite, not at
+the start of the sweep.** `git fetch origin master`; if it is ahead, merge it
+into the branch (yours to do, never ask), push, then run the suite. A suite
+run before a catch-up merge is invalidated by it: the green record is keyed
+to the exact source. ⭐ And if the walk's subject changed since it last ran
+(any source commit touching what it walks), **re-run the walk** — never
+record "only small changes since" in place of a run; waiving a check is the
+owner's call, not yours.
+
 `echo suite > .build-phase` first — the guard in `tools/hooks/` refuses the
 full suite and `lint:family` in any other phase.
 
@@ -326,6 +335,16 @@ Commit message rules:
   (the model name changes; do not hardcode one).
 
 ### 7. Stop
+
+⛔⛔⛔ **Before you say "done", run `/merge`'s nine checks yourself**
+(`.claude/skills/merge/SKILL.md` § 1) — fetch master AGAIN (it moves while
+the suite runs), compare `.suite/green` with `tools/source-fingerprint`,
+confirm the walk and drive ran after the last source commit. If master moved
+during the suite, catch up and re-verify now. Report the nine-check table.
+**/finalize is finished only when `/merge` would merge without a question**
+(owner, 2026-11-24, MR !654: *"either the /merge is broken or /finalize is
+broken"* — /finalize was: it stopped after the suite while master moved under
+it, and recorded the walk as waived).
 
 Push the sweep commit when it's ready — no need to ask. The one
 thing you never do on your own is merge: surface what you did and

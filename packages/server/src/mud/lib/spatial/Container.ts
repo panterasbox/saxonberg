@@ -156,6 +156,13 @@ const TAPE_REASONS = new Set(['too-big-for-mouth', 'too-big-inside', 'no-room', 
  * about; absence is treated as "no opinion."
  */
 export interface Container {
+  /**
+   * ⭐ Is what stands in this container KEPT (persistence-model D1)? True
+   * when this container's class composes `PersistableMixin` and it has an
+   * established record; otherwise its container's answer; a place with
+   * neither is not kept. A body overrides (`Creature`).
+   */
+  isKept(): boolean;
   hasContainable(item: Stuff): boolean;
   addContainable(item: Stuff & Containable): void;
   removeContainable(item: Stuff & Containable): boolean;
@@ -441,6 +448,25 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (box === null) return null;
       const interior = interiorOf(self);
       if (interior === null) return null;
+      // ⭐⭐ Ground takes ground (persistence-model D14): a place that closes
+      // no side is bounded by its FLOOR — what lies there, agents excluded,
+      // plus the arrival, against its area. A body is never refused by it,
+      // and never counted, so a crowd changes nothing.
+      if (self.isPlace() && !item.isAgent()) {
+        const open = this.bounds();
+        if (open !== null && !open.closed.width && !open.closed.depth && !open.closed.height) {
+          const floor = open.interior.width * open.interior.depth;
+          let lying = box.footprintWithin(open.interior);
+          for (const c of this.getContents()) {
+            if (c.stuffId === item.stuffId || c.isAgent()) continue;
+            const cb = MixinApi.isShaped(c) ? c.getFitBox() : null;
+            if (cb !== null) lying += cb.footprintWithin(open.interior);
+          }
+          if (lying > floor * (1 + 1e-9)) {
+            return { ok: false, reason: 'no-room', facts: { container: self as Stuff, item, dims: box } };
+          }
+        }
+      }
       // ⭐ Every side closed is the strictest case — an open side only ever
       // lets more in. A thing that fits a closed box fits whatever this is,
       // and the sides (a place's cost an exposure read) are never asked.
@@ -708,6 +734,20 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * ⭐ See {@link Container.isKept} (persistence-model D1). No field: the
+     * class says it, and the chain carries it — a chest in a kept room is
+     * kept, a chest in a plain room is not.
+     */
+    public isKept(): boolean {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isPersistable(self) && self.shouldPersist() && self.capturesAtShutdown()) {
+        return true;
+      }
+      const up = MixinApi.isContainable(self) ? self.getContainer() : null;
+      return up !== null && MixinApi.isContainer(up) ? up.isKept() : false;
+    }
+
+    /**
      * Residency veto: a non-empty container stays resident — its cold
      * contents cull individually first, then the emptied container culls
      * a later sweep (bottom-up, so R2.4's owning-cascade never destructs
@@ -752,19 +792,13 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       ctx: CaptureContext,
     ): ContainerSlice {
       const container = host as Stuff & Container;
-      // Three skips, one filter — they must produce the SINGLE ordering the
+      // Two skips, one filter — they must produce the SINGLE ordering the
       // Slotted slice indexes into, so they cannot be separate passes.
       //
       // 1. A live player avatar (HasInteractive) is a transient occupant,
       //    never a host's persistent content — it persists itself, under
       //    its own record.
-      // 2. A good someone has been STAMPED as owning persists owner-side
-      //    too, in that owner's estate (D2). An unstamped fixture — the
-      //    dorm's bed, a let unit's range, litter — captures here exactly
-      //    as it always has, which is why the rule keys on the stamp and
-      //    not on `ownerOf`: a fixture under a parcel extent is *owned* but
-      //    not *stamped*, and belongs to its room's record.
-      // 3. A `Behaved` NPC is CAST, never content. A hand that commutes
+      // 2. A `Behaved` NPC is CAST, never content. A hand that commutes
       //    between two persistable rooms (its floor and the counter it
       //    consigns at) stands in whichever one each room's capture
       //    happens to catch — so BOTH records can carry it, and the next
@@ -776,16 +810,11 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       //    wandering NPC standing here at capture time is some other
       //    room's cast, and equally not our content.)
       //
-      // The skipped goods are reported so `PersistableLogic` can flush them
-      // into their owners' estates after this synchronous walk. Dropping
-      // one here without reporting it would destroy it with the host.
+      // ⭐ A good is kept by its container, whoever holds title
+      // (persistence-model D9): an owned good is captured here like any other.
       const contents = container.getContents().filter((item) => {
         if (MixinApi.isHasInteractive(item)) return false;
         if (MixinApi.isBehaved(item)) return false;
-        if (MixinApi.isChattel(item) && item.isOwnerPersisted()) {
-          ctx.noteOwnedGood(item);
-          return false;
-        }
         return true;
       });
       const entries: ContentEntry[] = contents.map((item) => {
@@ -800,10 +829,6 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           const idx = ctx.indexOf(placed.host);
           if (idx >= 0) {
             placement.hostIndex = idx;
-            placement.placement = placed.name;
-          } else if (MixinApi.isChattel(placed.host) && placed.host.isOwnerPersisted()) {
-            // ⭐ An owned host persists in its owner's estate, not here (W7).
-            placement.hostChattelId = placed.host.getChattelId();
             placement.placement = placed.name;
           }
         }
@@ -887,14 +912,9 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
             ContainmentApi.move(item, evacuationFallback);
           } else {
             // ⭐ A persistable host's destruct is its dormancy: its record
-            // keeps its contents and an owned good rides its owner's
-            // estate, naming this host — so the good's title must outlive
-            // this instance.
-            if (
-              MixinApi.isPersistable(host) &&
-              MixinApi.isChattel(item) &&
-              item.isOwnerPersisted()
-            ) {
+            // keeps its contents, an owned good among them — so a good's
+            // title must outlive this instance.
+            if (MixinApi.isPersistable(host) && MixinApi.isChattel(item) && item.isStamped()) {
               item.keepTitleThroughDestruct();
             }
             StuffApi.destruct(item);

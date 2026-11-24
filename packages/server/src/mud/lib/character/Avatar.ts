@@ -36,6 +36,7 @@ import CalendarApp from "../../platform/idea/CalendarApp";
 import { MessageApi } from "../../api/message";
 import { MagicApi } from "../../api/magic";
 import { Mml } from "../../api/mml";
+import { WorldClockApi } from "../../api/worldclock";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
 import {
   SettingTypes,
@@ -623,6 +624,19 @@ export default abstract class Avatar extends AvatarBase {
    * take it, and Avatar should compose that.
    */
   static settings: SettingsSchemaEntry[] = [
+    {
+      // ⭐ Teach once, never nag (persistence-model N11): the game days the
+      // kept line was shown — at most two, then never again.
+      key: "hints.kept",
+      type: SettingTypes.List,
+      default: [],
+      lifetime: "persistent",
+      description:
+        "The game days you were told what \"kept\" means (when you set " +
+        "something down in a place that does not keep it). It is said at " +
+        "most twice — once, and once more on a later day — then never. " +
+        "`settings unset hints.kept` to hear it again.",
+    },
     {
       key: "world.autosave.interval",
       type: SettingTypes.Number,
@@ -1730,6 +1744,23 @@ export default abstract class Avatar extends AvatarBase {
     this.save().catch(() => undefined);
   }
 
+  /**
+   * ⭐⭐ **Teach a rule once, then never nag** (persistence-model N11/D12):
+   * say `line` to this person if the hint `key` has been shown on no game
+   * day yet, or on exactly one EARLIER day — so at most twice, never twice
+   * in a day, then never again. The days live in the setting `hints.<key>`.
+   * Returns whether it spoke.
+   */
+  public teachOnce(key: string, line: Mml): boolean {
+    const setting = `hints.${key}`;
+    const shown = (this.getSetting<unknown[]>(setting) ?? []).filter((d): d is number => typeof d === "number");
+    const today = Math.floor(WorldClockApi.getNow().rawValue() / 86_400);
+    if (shown.length >= 2 || shown.includes(today)) return false;
+    this.setSetting(setting, [...shown, today], this);
+    MessageApi.scene(this).topic("sense.survey").toSelf(line).send();
+    return true;
+  }
+
   /** Commands this body has running; a retirement waits them out. */
   private commandsInFlight = 0;
 
@@ -1814,7 +1845,15 @@ export default abstract class Avatar extends AvatarBase {
       // A shift ends with the sign-out, before the save: the record must say so,
       // or the return reads on-shift and `clock off` pays the whole absence.
       if (MixinApi.isEmployed(this)) await this.leaveShifts();
-      await this.save();
+      // ⭐ A refused save never keeps the body (persistence-model D10): the
+      // refusal is reported where it is written, the last good record
+      // stands, and the body leaves anyway.
+      try {
+        await this.save();
+      } catch (err) {
+        // @quiet reported by the save itself (a diagnostic, and the player told).
+        console.warn(`Avatar: signing out playerId=${this.playerId}: the save was refused; the body leaves on its last good record`, err);
+      }
       if (retirement !== this.signOutRetirement) return;
       if (this.isDestroyed() || this.hasLiveSession()) return;
       if (this.signOutHold() !== null) {

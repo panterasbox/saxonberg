@@ -323,6 +323,26 @@ export class TestHarnessApi {
   }
 
   /**
+   * ⭐ Refuse every save of a resident character's record (`on`), or stop
+   * (persistence-model D10) — the staged twin of a save the database turned
+   * down. Named by the character's name.
+   */
+  @TestOnly('In a test world, refuse a character\u2019s saves with the wire harness\u2019s failSavesOf() (POST /auth/test-save-fail).')
+  public static failSavesOf(handle: string, on: boolean): Promise<{ scope: string; refusing: boolean }> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'failSavesOf', () => logic().failSavesOf(handle, on));
+  }
+
+  /**
+   * ⭐ Save resident characters' records as ONE batch, as the shutdown
+   * sweep does (persistence-model D10): a refused record fails alone and
+   * its batch-mates are saved.
+   */
+  @TestOnly('In a test world, save a batch with the wire harness\u2019s saveBatch() (POST /auth/test-save).')
+  public static captureBatch(handles: readonly string[]): Promise<{ captured: number; failed: number; refused: string[] }> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'captureBatch', () => logic().captureBatch(handles));
+  }
+
+  /**
    * ⭐ Write a document PAST its validator (failure-model D6) — the staged
    * twin of a bad row forced through, so the drive sees a content error
    * meet a player. Forgets the kind's resident copy so the next read sees it.

@@ -122,7 +122,6 @@ beforeEach(() => {
     kind: "organization",
     templatePath: OUTFIT,
   } as never);
-  vi.spyOn(ChattelApi, "placedIn").mockResolvedValue([]);
   Document.setMarshallerResolver(() => undefined, async () => undefined);
   installV1QuantityMarshallers();
   makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
@@ -141,30 +140,6 @@ const OUTFIT_OWNER = { kind: "organization", templatePath: OUTFIT };
 const ALICE_OWNER = { kind: "player", templatePath: "/platform/agent/Avatar/alice" };
 
 describe("organization-owned goods persist with their host", () => {
-  it("a consigned good on the counter survives capture → clear → restore", async () => {
-    const room = (await StuffApi.singleton<Room>(ROOM)) as Room;
-    const counter = (await StuffApi.singleton<Counter>(COUNTER)) as Counter;
-    ContainmentApi.move(counter as never, room as never);
-    const good = makeStuffAtPath(() => new Good(), GOOD);
-    ContainmentApi.move(good as never, counter as never);
-    await stamp(good, OUTFIT_OWNER);
-    expect(good.isStamped()).toBe(true);
-    expect(good.isOwnerPersisted()).toBe(false);
-
-    await PersistableApi.capture(counter);
-    await PersistableApi.capture(room);
-    StuffApi.clearAll();
-    installV1QuantityMarshallers();
-    makeStuffAtPath(() => new TemplateApplier(), TemplateApplier.templatePath);
-
-    const reborn = (await StuffApi.singleton<Room>(ROOM)) as Room;
-    const counter2 = reborn
-      .getContents()
-      .find((c) => c.getTemplatePath() === COUNTER) as Counter | undefined;
-    expect(counter2).toBeDefined();
-    const goods = counter2!.getContents().map((c) => c.getTemplatePath());
-    expect(goods).toEqual([GOOD]);
-  });
 
   it("a hand's card and the room's fixtures come back where they were; nothing holds itself", async () => {
     const room = (await StuffApi.singleton<Room>(ROOM)) as Room;
@@ -193,15 +168,4 @@ describe("organization-owned goods persist with their host", () => {
     for (const c of hand2.getContents()) expect(c).not.toBe(hand2);
   });
 
-  it("a PLAYER's good still rides its owner's record, never the host's (the skip rule holds)", async () => {
-    const room = (await StuffApi.singleton<Room>(ROOM)) as Room;
-    const good = makeStuffAtPath(() => new Good(), GOOD);
-    ContainmentApi.move(good as never, room as never);
-    await stamp(good, ALICE_OWNER);
-    expect(good.isOwnerPersisted()).toBe(true);
-    await PersistableApi.capture(room);
-    const rec = snapshots.find((d) => d.scope === ROOM) as { state: Record<string, { contents?: unknown[] }> };
-    const contents = Object.values(rec.state).find((sl) => "contents" in sl)?.contents ?? [];
-    expect(contents).toEqual([]);
-  });
 });

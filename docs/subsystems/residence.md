@@ -372,6 +372,20 @@ reuse) → `refreshProvisioned`. The shell re-leases clean; a re-provision to
 that slot materializes at the **default** look. A live occupant is ejected to
 the floor corridor first (best-effort).
 
+⭐ **What the tenant left is boxed, not destroyed** (persistence-model D11,
+2026-11-24). Before the shell reverts, `LettingWarren.endLet` calls
+`boxGoods(unit, tenant, store)`: the tenant's goods are what stands in the
+unit's rooms that the rooms' own `props:` did not lay down (including what
+lies inside the shell's containers), and each titled good that fits is
+checked into the house's store — the first non-sale `Locker` in the place
+the warren's `storeroom:` names — held for the tenant with no ticket. The
+former tenant takes each back with `rack reclaim` at the office
+([retail.md](./retail.md)). A good that does not fit (or carries no title)
+stays and is lost with the unit; the answer names it and a diagnostic
+records it. An end-let with no store standing refuses (`no-storeroom`)
+before anything moves. Duncan Hall's `storeroom:` is the lobby, whose
+storeroom cage is the locker; Seznick House's is its lobby boxroom.
+
 ## ⭐⭐ The PLACE names its institution (the scan sweep, 2026-10-14)
 
 Three places used to find this system's objects by walking every live
@@ -450,8 +464,9 @@ risk this shape carries and the reason the live drive walks these paths.
 - **Katie / onboarding** — the diegetic move-in fronts `provision`
   ([eternal-university-drafts § Katie](../slates/world/eternal-university-drafts-slate.md#57-katie-the-property-manager)).
 - ~~**Chattel / owned effects**~~ and ~~**multi-room apartments**~~ —
-  **shipped** (furnishing, then residences): owned goods persist owner-side
-  against a `place` ([furnishing.md](./furnishing.md)), and the let unit at
+  **shipped** (furnishing, then residences): owned goods are kept by the
+  room they are left in, and boxed into the storeroom at move-out
+  ([furnishing.md](./furnishing.md)), and the let unit at
   Seznick House is the multi-room rung ([holding.md](./holding.md)).
 - **Hand-authored custom prose**, **the roommate half**, **multi-room
   apartments**, **timed auto-revert on expiry**, **first-class keyed members
@@ -510,8 +525,17 @@ let sequence and its own copy of who may let (`HallController`,
 way — a student's goods were destructed with the room (defect C4). The
 sequence moved onto `LettingWarren` (`residence/src/lib/`): mint the unit
 parcel at the lowest free slot, grant it, key it fresh, hand over the key;
-at the end, the tenant's goods to STORAGE (intact, titled, recoverable), the
-shell reverted, the slot freed. Each building supplies only policy hooks
+at the end, the tenant's goods to STORAGE (intact, titled, recoverable —
+since 2026-11-24, into the house's storeroom `Locker`), the shell reverted,
+the slot freed. Each building supplies only policy hooks
 (the letting organization, where units hang, the ascent gate — `Ascent`, the
 ladder's condition read — the domicile). The four verbs keep their words.
 Build range `14af1e8ba..726c1f195`.
+
+## History — lease end boxes into the storeroom (2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): D11 replaced
+the owner-side `evictToStorage` (goods with no presence in the world) with
+`LettingWarren.boxGoods` into a `Locker` the letting house names as its
+`storeroom:`; Duncan Hall and Seznick House each gained one, and the
+`unprovision` / `unlease` help says where the goods go.

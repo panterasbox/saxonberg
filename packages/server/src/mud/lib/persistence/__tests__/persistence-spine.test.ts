@@ -196,7 +196,8 @@ class AvatarLike extends PersistableMixin(
 }
 
 // A Slotted host (worn-gear demo) + a Slottable garment.
-class Wearer extends SlottedMixin(ContainerMixin(Idea)) {}
+// A kept wearer (only a host captures — persistence-model D1).
+class Wearer extends PersistableMixin(SlottedMixin(ContainerMixin(Idea))) {}
 class Garment extends SlottableMixin(ContainableMixin(Idea)) {
   static fieldMeta: FieldMeta = {
     tag: { persistent: true },
@@ -626,14 +627,16 @@ describe("security (AC #8)", () => {
         "capture",
         "captureAtShutdown",
         "captureHostOf",
-        "captureDetached",
-        "restoreDetached",
         "placeIdOf",
         "deleteAllFor",
         "hasRecord",
         "materialize",
         "restoreOrSeed",
         "standUpKeyed",
+        "refuseSavesOf",
+        "adoptRider",
+        "pinned",
+        "captureBatch",
         "forkRuntimeState",
         "mergeRuntimeState",
         "storedField",

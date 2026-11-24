@@ -16,8 +16,10 @@
  * reconcile never does what the live act could not.
  *
  * Weirs and dams stay plain `ControlStructure`s: a weir has no setting.
- * Staged or live is the row's (D30): a row that is the valley's ledger
- * names {@link PersistentGate}.
+ * ⭐ Its opening curve and work log are HISTORY (persistence-model D5):
+ * every gate files them on the water ledger after a setting and reads them
+ * back as it stands up; its lock and seal are a thing's state, kept by the
+ * place it stands in. (The `PersistentGate` twin retired.)
  */
 
 import { SealableMixin, type OpenVeto } from '@saxonberg/server/mud/lib/spatial/Sealable';
@@ -35,6 +37,9 @@ import type { ShiftEntry } from '@saxonberg/server/mud/lib/employment/Roster';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { MarkupAugmenter } from '@saxonberg/server/mud/api/mml';
 import ControlStructure, { type ControlSplit } from './ControlStructure';
+import WaterLedger, { type Ledgered } from '../idea/WaterLedger';
+import type { HydrationSource, HydrateOutcome } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
+
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '../idea/WatercourseCatalogue';
 
 /** Whose turns open this gate: a position on a business's roster. */
@@ -88,7 +93,7 @@ function gateStateAugmenter(text: string, host: Stuff): string {
 
 const GateBase = ThrottleableMixin(LockableMixin(SealableMixin(ControlStructure)));
 
-export default class Gate extends GateBase {
+export default class Gate extends GateBase implements Ledgered {
   static fieldMeta: FieldMeta = {
     capacityM3S: { persistent: true, authorable: true },
     turnOf: { persistent: true, authorable: true },
@@ -105,6 +110,64 @@ export default class Gate extends GateBase {
   constructor() {
     super();
     this.fixedInPlace = true;
+  }
+
+  /**
+   * ⭐ What the commons remembers of this gate: its history on the water
+   * ledger (persistence-model D5), read as it stands up. `required: false`
+   * — an unreachable store (early boot, every unit test) is a recorded
+   * skip, and the row's authored state stands.
+   */
+  static hydrationSource: HydrationSource = { name: 'documents (water-ledger)', required: false };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    if (!(host instanceof Gate)) return { status: 'skipped', reason: 'not-its-kind' };
+    try {
+      const data = await (await WaterLedger.get()).read(host);
+      if (data) host.takeLedger(data);
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built gate.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+
+  /** File this gate's history on the water ledger (fire-and-forget; a failure is a diagnostic). */
+  private fileLedger(): void {
+    void WaterLedger.get()
+      .then((ledger) => ledger.file(this as unknown as Stuff & Ledgered))
+      .catch((err: unknown) => console.warn('Gate: filing on the water ledger failed:', err));
+  }
+
+  /**
+   * ⭐ A hand set it: the setting is history, filed on the ledger by the act
+   * (persistence-model D5). The rota's own turns are re-derived from the
+   * filed `turnStamp` on the next read — reading never writes.
+   */
+  public override setOpening(fraction: number, by: Stuff | null = null): void {
+    super.setOpening(fraction, by);
+    this.fileLedger();
+  }
+
+  /** See {@link Ledgered.ledgerRecord}: its setting, its opening curve, its work log and the rota's last reconcile. */
+  public ledgerRecord(): Record<string, unknown> {
+    return {
+      opening: this.opening,
+      openingCurve: this.openingCurve.map((b) => ({ ...b })),
+      workLog: this.workLog.map((w) => ({ ...w })),
+      turnStamp: this.turnStamp,
+    };
+  }
+
+  /** See {@link Ledgered.takeLedger}. */
+  public takeLedger(data: Record<string, unknown>): void {
+    if (typeof data.opening === 'number' && Number.isFinite(data.opening)) {
+      this.opening = Math.max(0, Math.min(1, data.opening));
+      this.setOpen(this.opening > 0);
+    }
+    if (Array.isArray(data.openingCurve)) this.openingCurve = data.openingCurve as typeof this.openingCurve;
+    if (Array.isArray(data.workLog)) this.workLog = data.workLog as typeof this.workLog;
+    if (typeof data.turnStamp === 'number' && Number.isFinite(data.turnStamp)) this.turnStamp = data.turnStamp;
   }
 
   public getCapacityM3S(): number {

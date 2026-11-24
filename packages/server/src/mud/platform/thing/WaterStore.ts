@@ -10,11 +10,10 @@
  * ⭐ **A store carries what is poured in** (D25): a fouled cask poured into
  * a cistern fouls it by volume — the shipped bulk blend, nothing new.
  *
- * ⭐ **Staged or live is the content's choice** (D30): this plain class is a
- * staged store — Rejection's butts, whose rain-fill derives and whose water
- * is nobody's — and reverts to its row when its room unloads. A row names
- * {@link PersistentWaterStore} when what was poured in and drawn out is
- * somebody's water.
+ * ⭐ **A store is a THING, kept by its container** (persistence-model D3):
+ * its water nests in the record of the kept room it stands in, and a store
+ * in a plain room comes back as authored. (The `PersistentWaterStore` twin
+ * retired: a store is not a container of goods, so it has no twin.)
  *
  * Not `StorageNode` (a civic tank in m³ at an elevation: you do not `pour`
  * into a water tower) and not `WaterFixture` (a fixture does not hold its

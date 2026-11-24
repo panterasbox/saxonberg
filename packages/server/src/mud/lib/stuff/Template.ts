@@ -535,6 +535,9 @@ export abstract class Template extends Document {
     // last-wins: two entries claiming one identity means the merge
     // rule cannot say which one a child is replacing.
     const seenKeys = new Set<string>();
+    // ⭐ persistence-model D2: how many entries of one path (with no `as`)
+    // came before — a repeat's part name takes `~2`, `~3`.
+    const pathRepeats = new Map<string, number>();
     for (const spec of specs) {
       const path = Template._entryTemplate(spec);
       if (path === null) continue;
@@ -607,6 +610,26 @@ export abstract class Template extends Document {
       // gesture written out longhand; the entry is the same in every
       // other respect, so the loop is the whole feature.
       const times = count ?? 1;
+      // ⭐⭐ persistence-model D2: a kept container standing as a PROP is
+      // keyed by its part name — the host's handle and the entry's `as`
+      // (else its path, a repeat `~n`, a count `#n`). Both halves are
+      // authored, so the key survives a restart, and the prop restores its
+      // own record (or seeds and writes its first) where it is minted.
+      // Before this a non-singleton kept prop had no key: it never captured
+      // and never restored — a consignment shelf in a plain hall came back
+      // empty at every boot.
+      const keyed =
+        kind === 'props' &&
+        !singleton &&
+        MixinApi.hasMixin(cls, Mixins.Persistable) &&
+        MixinApi.hasMixin(cls, Mixins.Container);
+      let partName = as ?? path;
+      if (as === undefined) {
+        const seen = (pathRepeats.get(path) ?? 0) + 1;
+        pathRepeats.set(path, seen);
+        if (seen > 1) partName = `${path}~${seen}`;
+      }
+      const hostHandle = host.getDurableHandle() ?? host.getIdentityPath() ?? host.getTemplatePath() ?? host.stuffId;
       let inst!: Stuff & Containable;
       for (let n = 0; n < times; n++) {
         if (singleton) {
@@ -616,6 +639,11 @@ export abstract class Template extends Document {
           if (inst.getContainer() !== null && !placement) continue;
         } else {
           inst = await StuffApi.clone<Stuff & Containable>(path);
+          if (keyed) {
+            const { PersistableApi } = await import('../../api/persistable');
+            const part = count !== undefined ? `${partName}#${n + 1}` : partName;
+            await PersistableApi.restoreOrSeed(inst, `${hostHandle}/${part.replace(/^\//, "")}`);
+          }
         }
         if (placement) {
           const host = placed.get(placement.host);

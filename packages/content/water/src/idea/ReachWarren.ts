@@ -43,7 +43,8 @@ import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
 import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
 import type MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
-import { PersistableMixin } from '@saxonberg/server/mud/lib/persistence/Persistable';
+import WaterLedger, { type Ledgered } from './WaterLedger';
+import type { HydrationSource, HydrateOutcome } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
 import { Drift } from '@saxonberg/server/mud/lib/location/Drift';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -121,18 +122,46 @@ interface StopRecord {
   side: RiverSide | 'mid';
 }
 
-export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(SingletonMixin(PersistableMixin(RoomWarren)))) {
+export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(SingletonMixin(RoomWarren))) implements Ledgered {
   /** Where the singleton lives. */
   static readonly PATH = '/system/water/idea/ReachWarren';
 
-  static fieldMeta: FieldMeta = {
-    // ⭐ Where the river is keeping something — so a stop holding a sword
-    // is found again by the water drifting past it after a restart.
-    stops: { persistent: true },
-  };
+  // ⭐ `stops` — where the river is keeping something, so a stop holding a
+  // sword is found again by the water drifting past it after a restart —
+  // is on the water ledger (persistence-model D5), not in a record.
+  static fieldMeta: FieldMeta = {};
 
   /** The stops holding something, by position. */
   public stops: StopRecord[] = [];
+
+  /**
+   * ⭐ Where the river keeps something is HISTORY (persistence-model D5):
+   * the stops index is filed on the water ledger, read back as the warren
+   * stands up. Each stop is a kept place and captures itself.
+   */
+  static hydrationSource: HydrationSource = { name: 'documents (water-ledger)', required: false };
+
+  static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
+    if (!(host instanceof ReachWarren)) return { status: 'skipped', reason: 'not-its-kind' };
+    try {
+      const data = await (await WaterLedger.get()).read(host);
+      if (data) host.takeLedger(data);
+      return { status: 'hydrated' };
+    } catch (err) {
+      // ⚠ Never throw: a throw unregisters the half-built warren.
+      return { status: 'unreachable', reason: String(err) };
+    }
+  }
+
+  /** See {@link Ledgered.ledgerRecord}: the stops holding something. */
+  public ledgerRecord(): Record<string, unknown> {
+    return { stops: this.stops.map((r) => ({ ...r })) };
+  }
+
+  /** See {@link Ledgered.takeLedger}. */
+  public takeLedger(data: Record<string, unknown>): void {
+    if (Array.isArray(data.stops)) this.stops = data.stops as StopRecord[];
+  }
 
   /** Which row the next `createMember()` clones (set inside the chain). */
   private _budRow = PATCH_ROW;
@@ -1558,8 +1587,9 @@ export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(Single
     return next;
   }
 
+  /** File the stops index on the water ledger (persistence-model D5). */
   private async saveSelf(): Promise<void> {
-    await PersistableApi.capture(this as unknown as Stuff).catch(() => undefined);
+    await (await WaterLedger.get()).file(this as unknown as Stuff & Ledgered);
   }
 
   private tellOf(thing: Stuff, line: Mml): void {

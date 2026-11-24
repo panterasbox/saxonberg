@@ -1,7 +1,7 @@
 # The Avila turnout (water-supply W6, D21) — the junior farm's gate onto the
 # bench. LIVE (D30). ⭐ Its padlock takes the JUNIOR key: in a dry year the
 # rider padlocks it against the junior's turns, in priority order.
-class: /system/water/thing/PersistentGate
+class: /system/water/thing/Gate
 data:
   shortDescription: Avila turnout
   keywords: [turnout, gate, "avila turnout", avila]

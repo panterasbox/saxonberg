@@ -266,7 +266,6 @@ import type { NotifyPolicy } from '../lib/social/NotifyPolicy';
 import type { SubjectSubscriber } from '../lib/forum/SubjectSubscriber';
 import type { Soul } from '../lib/social/Soul';
 import type { WarrenMember } from '../lib/location/WarrenMember';
-import type { Offstage } from '../lib/employment/Offstage';
 import type { BeliefStore } from '../lib/belief/BeliefStore';
 import type { Cartographer } from '../lib/location/Cartographer';
 import type { Disguisable } from '../lib/disguise/Disguisable';
@@ -2349,10 +2348,6 @@ export class MixinApi {
 
   public static isWarrenMember(obj: Stuff): obj is Stuff & WarrenMember {
     return this.hasMixin(obj, Mixins.WarrenMember);
-  }
-
-  public static isOffstage(obj: Stuff): obj is Stuff & Offstage {
-    return this.hasMixin(obj, Mixins.Offstage);
   }
 
   public static isBeliefStore(obj: Stuff): obj is Stuff & BeliefStore {

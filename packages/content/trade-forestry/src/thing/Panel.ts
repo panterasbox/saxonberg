@@ -57,6 +57,7 @@ import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { STAND_MIXIN, type Stand } from '../lib/Stand';
+import Standard from './Standard';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -137,8 +138,10 @@ export default class Panel extends PanelBase {
     // Somebody planted it — a restore at boot has no acting author.
     const author = ExecutionContextApi.getActingAuthor() as Stuff | null;
     if (!author) return;
-    const plantKey = MixinApi.isPersistable(candidate) ? candidate.getPersistenceKey() : null;
-    if (!plantKey) return;
+    // ⭐ A tree has no record of its own (persistence-model D3): its durable
+    // name is its planting key.
+    if (!(candidate instanceof Standard)) return;
+    const plantKey = candidate.getPlantingKey();
     const name = candidate.getPresentation();
     const speciesPath = MixinApi.isOrganism(candidate)
       ? candidate.getSpecies()?.getTemplatePath() ?? ''

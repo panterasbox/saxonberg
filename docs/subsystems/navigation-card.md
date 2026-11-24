@@ -127,13 +127,20 @@ ones above) · horizon · structure · **here** (the place) · **you**.
   summary would repeat its rows is headed by name (*Here*, *You*).
 - ⭐⭐ **Every row, in every place, always** (owner, review — the rule
   this card is built on): the place shows light · overhead · ceiling ·
-  weather · season · time · water · others · height · your map; you show
+  weather · season · time · water · others · height · **kept** · your map; you show
   pace · posture · hands · load · your light · riding · leading · pulling
   · held back · fighting. A field the server leaves out says so in words
   (*unknown*, *none*, *nobody else here*). A fixed vocabulary teaches; a
   change shows by contrast. ⚠ The rows expose real gaps — the lounge has
   no roof or sky modelled, so *overhead* reads *unknown*. That is a
   content fact, not a card defect.
+- ⭐ **The `kept` row** (persistence-model D13, 2026-11-24): *kept — what
+  you leave here stays* or *not kept — what you leave here is gone at the
+  next restage*, from `PlaceSection.kept` (`place.isKept()`, the server's
+  `Perceiver.placeSection`; it replaced the type's `staged` field). Its
+  client-source tooltip says what that means and where to leave things
+  instead (a kept place, a kept locker, your hands). `look` says the same
+  in its own *Kept:* / *Not kept:* line.
 - **Fill the height** (`fitSections`): the card opens sections into the
   panel's spare height and folds the last ones when it overflows; a
   section the player opened or folded by hand stays as they set it
@@ -183,3 +190,8 @@ it previews the command in the status bar.
 Built in MR !640 (2026-11-20 → 11-21), commits `58e100b5c`…the sweep.
 Review rounds moved it from a dashboard of words to a map app: the camera,
 icons everywhere, one trail, guest maps, every row always.
+
+### The kept row (persistence-model, 2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654) added the
+place section's `kept` row and its tooltip (`nav-place-kept`).

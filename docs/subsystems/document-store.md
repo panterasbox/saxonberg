@@ -149,6 +149,18 @@ is not the state but the depot, whose coverage is its market share.
 the business's branch, and a kind declared `filed: business` (the closed
 allowlist it once kept is the trait now).
 
+⭐⭐ **The persistence model added three, all HISTORY** (2026-11-24 — a
+thing is kept by its container, history by a ledger): `cap-table` and
+`hull-sale` (platform, `filed: business` — a company's owners after every
+sale, gift or transfer, at `<company>/cap-table`; a yard's sold hulls at
+`<house>/hull-sales/<book>`) and `water-ledger` (the water pack,
+`filed: register` — one document per subject an aquifer, gate, conduit or
+reach files through `WaterLedger`, a `Registrar`, under
+`/system/water/ledger`). Each is its owner's hydration source, read once as
+it stands up. They are declared documents, so the nightly reset keeps
+them (the plan's per-kind `onReset: 'wipe'` was dropped when kinds became
+rows). See [persistence.md](./persistence.md) § Who keeps what.
+
 ⭐ **`ship` — a ship's register entry** (harbors P14). One document per
 ship a register holds, at `<register prefix>/<name slug>`
 (`/platform/ships/terminus-city/petrel`), written only by its
@@ -859,3 +871,9 @@ pack-installed kinds, and releases ride it today.
   ledgers, secret kinds; every document a title, a game-time date and a
   page; the reset keeps the collection; the Idea-or-document limb 1
   restated in trait terms. Decisions cited in code as `D-A*`.
+
+### The history kinds (persistence-model, 2026-11-24)
+
+`origin/master..HEAD` on `build/persistence-model` (MR !654): the
+`cap-table`, `hull-sale` and `water-ledger` kind rows, and `WaterLedger`
+as a register.

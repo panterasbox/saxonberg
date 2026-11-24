@@ -232,16 +232,6 @@ describe('Chattel → MadeFrom', () => {
     MadeFromMixin(ChattelMixin(ContainerMixin(Idea))),
   ) {}
 
-  it("⭐ the title's fields read back on a made host", async () => {
-    const b = await roundTrip(() => new Ware(), '/test/splits/ware', (h) => {
-      h._chattelId = 'chattel-xyz';
-      h._place = '/test/splits/shed';
-    });
-    expect(b.getChattelId()).toBe('chattel-xyz');
-    expect(b._place).toBe('/test/splits/shed');
-    expect(MixinApi.isMadeFrom(b)).toBe(true);
-  });
-
   it('⭐⭐ a cow is a Chattel and NOT MadeFrom; a good and a vessel are both', () => {
     expect(composes(KeptAnimal, Mixins.Chattel)).toBe(true);
     expect(composes(KeptAnimal, Mixins.MadeFrom)).toBe(false);

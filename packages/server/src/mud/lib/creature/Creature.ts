@@ -386,6 +386,17 @@ export class Creature extends CreatureBase {
     },
   ];
 
+  /**
+   * ⭐ A body keeps ITSELF (persistence-model D1): it is kept iff it has a
+   * record of its own — a played person who is not a guest, a kept animal,
+   * a draft animal — and never by standing in a kept room (cast is not
+   * captured with the room). What it carries is kept with it.
+   */
+  public override isKept(): boolean {
+    const self = this as unknown as Stuff;
+    return MixinApi.isPersistable(self) && self.shouldPersist() && self.capturesAtShutdown();
+  }
+
   constructor() {
     super();
     // Every living body starts with its biological reserves (endurance /

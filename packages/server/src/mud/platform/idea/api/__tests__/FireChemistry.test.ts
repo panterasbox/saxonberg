@@ -241,7 +241,7 @@ describe('fire chemistry — the oxygen leg, derived', () => {
     expect(yard.airChangesPerHour()).toBe(Infinity);
   });
 
-  it('a scope with no derivable volume accepts nothing — an Offstage room is not a place', async () => {
+  it('a scope with no derivable volume accepts nothing', async () => {
     const zone = makeStuff(() => new CartesianZone());
     const r = makeStuff(() => new Location());
     // No extent, no zone → getVolume() is null.

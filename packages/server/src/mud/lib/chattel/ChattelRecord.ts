@@ -21,7 +21,6 @@
 import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import type { GroupRef } from "../social/GroupProvider";
-import { ESTATE_STORAGE } from "../persistence/PersistenceSlice";
 import type { FieldMeta } from "../mixin";
 
 /**
@@ -42,26 +41,12 @@ export type ChattelOwner =
   | { kind: "player"; templatePath: string }
   | { kind: "organization"; templatePath: string };
 
-/**
- * How to stand a good up that persists **itself**: the `(scope, key)` of
- * its own record. Present only on a good whose class answers
- * `pinsResidency()` — the residency pin roll's input, and nothing else's.
- */
-export interface ChattelPin {
-  /** The template path the good is cloned from (`standUpKeyed`'s scope). */
-  scope: string;
-  /** Its explicit persistence key. */
-  key: string;
-}
-
 export class ChattelRecord extends Document {
   static collectionName = Collections.Chattel;
   static fieldMeta: FieldMeta = {
     chattelId: { persistent: true },
     owner: { persistent: true },
     titledAt: { persistent: true },
-    place: { persistent: true },
-    pin: { persistent: true },
     bound: { persistent: true },
   };
 
@@ -78,22 +63,6 @@ export class ChattelRecord extends Document {
   owner: ChattelOwner | null = null;
   /** Real-time epoch millis of the last title change (for auditing). */
   titledAt: number = 0;
-  /**
-   * Where the owner keeps this good — a room identity, `'inventory'`, or
-   * `'storage'`. **The by-room index**, nothing more: the good's own
-   * `_place` field is what round-trips with the good, and a materializing
-   * room needs to find what belongs in it without scanning every owner's
-   * record. One gated call in `ChattelLogic` writes both, which is what
-   * keeps them from diverging. See D1 + the plan's `Resolved`.
-   */
-  place: string = ESTATE_STORAGE;
-  /**
-   * The residency **pin** — set when the good's class opts in and it has
-   * a record of its own to be stood up from; null for everything else.
-   * Written on the same gated call as `place`, so a pinned good that
-   * moves is re-pinned where it now stands. See {@link ChattelPin}.
-   */
-  pin: ChattelPin | null = null;
 
   getChattelId(): string {
     return this.chattelId;
@@ -101,14 +70,6 @@ export class ChattelRecord extends Document {
 
   getOwner(): ChattelOwner | null {
     return this.owner;
-  }
-
-  getPlace(): string {
-    return this.place;
-  }
-
-  getPin(): ChattelPin | null {
-    return this.pin;
   }
 
   /** The current-state row for `chattelId`, or null. */
@@ -120,11 +81,6 @@ export class ChattelRecord extends Document {
   static async findByChattelId(chattelId: string): Promise<ChattelRecord | null> {
     const rows = await ChattelRecord.find<ChattelRecord>({ chattelId });
     return rows[0] ?? null;
-  }
-
-  /** Every row whose good is placed in `place` — the by-room lookup. */
-  static async findByPlace(place: string): Promise<ChattelRecord[]> {
-    return ChattelRecord.find<ChattelRecord>({ place });
   }
 
   /** Every current-state row (the boot index rebuild source). */

@@ -92,8 +92,8 @@ export interface BusinessTrade {
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
-  /** Where this house's off-shift cast wait (a location path); empty ⇒ nowhere. */
-  getOffstage(): string;
+  /** ⭐ `'out'` when this house's hands leave the narrative off shift; `null` — they stay where they are. */
+  getOffShift(): 'out' | null;
   /** The charters this business holds (`bank` — it may lend and present paper at the window). */
   getCharters(): readonly Charter[];
   /** Does it hold `charter`? */
@@ -185,34 +185,37 @@ export function BusinessMixin<
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
       parLines: { persistent: true, authorable: true },
-      offstage: {
-        persistent: true,
-        authorable: true,
-        authorPicker: 'Template',
-        ref: 'identity:relation',
-      },
+      offShift: { persistent: true, authorable: true },
       charter: { persistent: true, authorable: true },
       payrollArrears: { persistent: true },
     };
 
     /**
-     * ⭐⭐ **Where this house parks its cast when they are off shift** — a
-     * location templatePath, resolved live (and materialized on demand).
-     * Empty ⇒ nobody is moved, which is what every house that never
-     * authored a `shifts` brain does today.
+     * ⭐⭐ **Whether this house's hands leave the narrative off shift**
+     * (persistence-model D15). `out`: a hand off shift and called nowhere
+     * (no visit window of its own open) is out of the narrative — null,
+     * never a room meaning "nowhere" — and comes back through the station's
+     * door when a shift starts or a visit opens. Empty: the engine moves
+     * nobody, as for every house that never said.
      *
-     * ⚠ It is a field on the BUSINESS, not config on each person's row.
-     * It used to be the same two paths repeated in every cast member's
-     * `shifts` config — eight rows saying `offstage: /world/lounge/
-     * location/offstage` — which is the shape that lets one of them say
-     * something different by accident. Presence FOLLOWS employment, so
-     * the fact belongs to the employer.
+     * A field on the BUSINESS, not config on each person's row: presence
+     * follows employment, so the fact belongs to the employer.
      */
-    public offstage: string = '';
+    public offShift: string = '';
 
-    /** Where this house's off-shift cast wait; empty ⇒ nowhere. */
-    public getOffstage(): string {
-      return this.offstage;
+    /** See {@link Business.getOffShift}. */
+    public getOffShift(): 'out' | null {
+      return this.offShift === 'out' ? 'out' : null;
+    }
+
+    /** The applier's setter: `out`, or nothing. */
+    public setOffShift(value: unknown): void {
+      if (value === null || value === undefined || value === '') {
+        this.offShift = '';
+        return;
+      }
+      if (value !== 'out') throw new Error(`Business.offShift: 'out' or nothing (got ${JSON.stringify(value)})`);
+      this.offShift = 'out';
     }
 
     /**

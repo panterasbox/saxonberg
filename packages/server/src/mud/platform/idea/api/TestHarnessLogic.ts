@@ -723,6 +723,24 @@ export class TestHarnessLogic extends ApiLogic {
     return this.residentCharacter(handle, verb);
   }
 
+  /** See {@link TestHarnessApi.failSavesOf}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async failSavesOf(handle: string, on: boolean): Promise<{ scope: string; refusing: boolean }> {
+    const body = this.residentCharacter(handle, 'save-fail');
+    const scope = body.getIdentityPath();
+    if (!scope) throw new Error(`testharness save-fail: '${handle}' has no record`);
+    PersistableApi.refuseSavesOf(scope, on);
+    return { scope, refusing: on };
+  }
+
+  /** See {@link TestHarnessApi.captureBatch}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async captureBatch(handles: readonly string[]): Promise<{ captured: number; failed: number; refused: string[] }> {
+    const bodies = handles.map((h) => this.residentCharacter(h, 'save'));
+    const r = await PersistableApi.captureBatch(bodies);
+    return { captured: r.captured, failed: r.failed, refused: r.refused };
+  }
+
   /** A resident character by name — what the staging verbs act on. */
   private residentCharacter(handle: string, verb: string): Stuff {
     const avatar = PlayerApi.findAvatarByName(handle);

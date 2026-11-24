@@ -63,19 +63,10 @@ export interface ContentPlacement {
    */
   hostIndex?: number;
   /**
-   * ⭐ The chattel id of the host when it is a good the holder OWNS (an
-   * owner-persisted chattel — a bought belt, a bought coat): such a host is
-   * not in the contents slice (the estate carries it), so it has no index
-   * here. Restored after the estate and the owned goods are re-worn, so a
-   * pouch comes back hung on the bought belt as worn (size and carrying W7;
-   * D26-h's gap).
-   */
-  hostChattelId?: string;
-  /**
    * The placement's PATH (`/platform/placements/on`) the item is placed
    * under — a document's only name — or the host's own region name (`left
-   * pocket`). Undefined when it sits loose. ⭐ With neither `hostIndex` nor
-   * `hostChattelId`, it names a region of the container this slice belongs
+   * pocket`). Undefined when it sits loose. ⭐ With no `hostIndex`, it
+   * names a region of the container this slice belongs
    * to: a coat's pocket, whose key is the coat's contents (size and
    * carrying W9).
    */
@@ -119,6 +110,8 @@ export interface FieldsSlice {
  */
 export interface FixturesSlice extends FieldsSlice {
   fixtures?: Record<string, Record<string, unknown>>;
+  /** ⭐ Fixtures somebody HUNG (stamped goods), whole, by slot — re-hung at the restore (persistence-model D9). */
+  hung?: Record<string, ContentEntry>;
 }
 
 /** `ContainerMixin`'s slice — the host's directly-held content tree. */
@@ -135,136 +128,6 @@ export interface ContainerSlice {
  */
 export interface SlottedSlice {
   worn: Array<{ index: number; slots: string[] }>;
-  /**
-   * ⭐⭐ Worn goods the host OWNS. An owner-titled good is not in the
-   * container slice at all — it rides the estate — so it has no index,
-   * and recording by index dropped every bought garment's slot (and the
-   * implant's) on each restart. These are named by their durable chattel
-   * id and re-worn after the estate slice restores them. Absent on records
-   * written before the field existed.
-   */
-  wornOwned?: Array<{ chattelId: string; slots: string[] }>;
-}
-
-/**
- * Where an owned good sits, from its owner's point of view — the D1
- * `place` vocabulary. Either one of the two sentinels or a **room
- * identity** (a room's persistence scope).
- */
-export const ESTATE_INVENTORY = "inventory";
-export const ESTATE_STORAGE = "storage";
-/**
- * ⭐ Titled, and standing in TRANSIENT space (river D33): a place nothing
- * persists — the water drifting past, a lounge satellite. The owner's
- * restore mints NOTHING for it (it is not in their hands); the good is
- * where it was left only if a persisting place picked it up since, and
- * lost otherwise, titled still. Before this word a good dropped in
- * transient space kept the `inventory` it was last carried in, and the
- * next restore cloned a second copy into its owner's hands.
- */
-export const ESTATE_LOOSE = "loose";
-
-/**
- * One good in an owner's **estate**: a good they hold title to that the
- * owner's record — not the room it happens to stand in — is authoritative
- * for. `state` is the good's captured composition, exactly the shape a
- * non-host {@link ContentEntry} nests, so restore re-uses one path.
- *
- * `place` routes the restore: `inventory` clones into the owner's own
- * container, `storage` clones **nothing** (an owned-but-unplaced good has
- * no presence in the world — that is what makes storage free), and a room
- * identity defers to that room's materialize.
- */
-export interface EstateEntry {
-  chattelId: string;
-  templatePath: string;
-  state: Record<string, MixinSlice>;
-  place: string;
-  /**
-   * ⭐⭐ Present iff the good **persists itself** — a host with an explicit
-   * persistence key of its own (a named animal).
-   *
-   * When it is set the entry is a **reference, not a copy**: `state` is
-   * empty and the good's own `holder_snapshots` record is authoritative
-   * for everything about it, including where it stands. The owner's
-   * estate says only *you have title to this, and here is how to find
-   * it* — which is right, because a pet's regard, hunger, handling and
-   * home are the PET's state, not its owner's inventory listing.
-   *
-   * ⚠ Without the split, capturing an owner would snapshot the animal
-   * into the owner's record and the animal would also be writing its
-   * own — two copies of one creature, diverging from the first meal.
-   */
-  key?: string;
-  /**
-   * Present iff the good is **mounted** on the place rather than standing
-   * in it — hung on the room's `Adornable` fixture map (residences D11).
-   * `slot` is the fixture slot name to re-attach under, so a wall lamp
-   * comes back on the wall and not on the floor. Absent for every good
-   * that simply sits somewhere, which is every good written before the
-   * marker existed.
-   */
-  mounted?: { slot: string };
-  /**
-   * Present iff the good **rests on a surface** in the place — a shirt on
-   * the drying rack, a cup on the table: the surface's row and the
-   * placement member (`Containable.getRestingPlace`). The room overlay
-   * restores the room's own fixtures first, then lays the good back on
-   * that surface; a surface that is gone, or will not take it, leaves it
-   * standing in the room (finalize, controller liquidity — the cleanliness
-   * drive's shirt came back beside its rack).
-   */
-  rests?: { on: string; placement: string };
-  /**
-   * Present iff the good is **in the owner's own keeping and placed on a
-   * host there** — a bought pouch hung from the belt, a bought key in a
-   * coat's pocket (size and carrying W7): the host as an index into the
-   * owner's contents slice or as an owned host's chattel id, and the
-   * placement. Without it a placed good came back loose on the body.
-   */
-  placedOn?: ContentPlacement;
-  /**
-   * ⭐ Present iff the good is **inside a container in its place** — rations
-   * in a pannier hung on a mule, a key in a satchel on its owner
-   * (`Containable.getKeptWithin`): the containers from the place inward. A
-   * container's own contents slice skips an owned good (D2), so without
-   * this the good came back loose on the place — on a body, a broken record
-   * (size and carrying, finalize run 15, step 21).
-   */
-  within?: KeptWithinStep[];
-}
-
-/**
- * One step of {@link EstateEntry.within}, outermost first: an untitled
- * container by its row and its ordinal among the untitled things of that
- * row in the step's holder (the place's own record restores them in
- * order), or a container somebody owns by its chattel id (its owner's
- * estate restores it).
- */
-export type KeptWithinStep =
-  | { in: string; nth: number; chattelId?: undefined }
-  | { chattelId: string; in?: undefined; nth?: undefined };
-
-/**
- * `EstateMixin`'s slice — every stamped good its host holds title to,
- * wherever it sits. The counterpart to the {@link ContainerSlice}'s skip
- * rule: a host's contents slice drops goods someone has been *stamped* as
- * owning, and this is where they persist instead.
- */
-export interface EstateSlice {
-  entries: EstateEntry[];
-  /**
-   * ⚠⚠ The estate's SUCCESSION state rides the slice, not a declared
-   * field, and that is forced rather than chosen: a layer with a
-   * `captureSlice` **never contributes its own `fieldMeta`** —
-   * `captureState` is an `if captureSlice / else if fields` — so a
-   * field declared beside a slice is silently never written.
-   *
-   * Optional because a record captured before the fields moved here
-   * has neither; both default on restore (0 and '').
-   */
-  escheatedAt?: number;
-  beneficiary?: string;
 }
 
 /**
@@ -287,7 +150,6 @@ export type MixinSlice =
   | FieldsSlice
   | ContainerSlice
   | SlottedSlice
-  | EstateSlice
   | BeliefSlice;
 
 /**
@@ -349,15 +211,6 @@ export interface CaptureContext {
    * worn item by position without a second capture.
    */
   indexOf(item: unknown): number;
-  /**
-   * Report a good this host **skipped** because someone is stamped as
-   * owning it (the D2 skip rule). Capture is synchronous and cannot write
-   * to another principal's record, so the skipped goods are collected here
-   * and flushed into their owners' estates by `PersistableLogic` after the
-   * state build — the only path by which a good standing in a room that
-   * goes dormant, whose owner is offline, is captured by anybody at all.
-   */
-  noteOwnedGood(item: unknown): void;
 }
 
 /**
