@@ -17,6 +17,9 @@
 > rows · endowed appearance that actually renders · surname inheritance ·
 > the adopt/commit path as a seeder list · the birthday occasion · phase
 > 2's generator (pair plausibility, the locality→trade join)
+> ⭐⭐⭐ **Next: the demo** (§ *The demo — a father, a mother, and you*, 2026-11-24) — lighter than
+> phase 1 and built first: two parents, a handful of loci, traits as the headline, a parent's past
+> workplace from the shipped businesses; no households, no hooks, no gear.
 > **Size:** a build
 
 ---
@@ -1271,6 +1274,134 @@ get the full body/faculty budget.
 gallery size, reroll pricing, and how discoverable advanced mode is can
 all be iterated without shipping code. The allocation system is the
 expensive half; let the cheap half measure the appetite first.
+
+---
+
+## ⭐⭐⭐ The demo — a father, a mother, and you **[DECIDED — the owner, 2026-11-24, except where marked]**
+
+Prototype: [Lineage Roller](https://claude.ai/artifact/961xuH6mxRRgxEDxrbAKmk) (private artifact; real
+name banks, the 58 shipped businesses with their place prose, the 19 trait axes).
+
+### Why it exists
+
+> *"this is basically our version of the class selection screen in other RPG games so I want to give
+> an impression on our philosophy behind the system."* And: *"we're a ways off from any of the more
+> dynamic and expressive parts of our system … the only way to preview any of it is through char gen
+> … it's your first impression and for some maybe only impression into what the game is. nothing
+> else in char gen has the ability to express that more than lineage … it's the most reflective of
+> 'what kind of game is this?' posed as a question by the player entering the game."*
+
+It is lighter than § *Phase 1* above and replaces it as the next thing built. The full feature —
+procgen'd parents grounded in trades the game has — waits: *"you can't decide what 'my father was a
+whaler' means if you dont have whaling in the game yet."* Everything in the demo is placeholder
+content until a playtest says otherwise.
+
+### ⚠ What it is NOT — corrections from the conversation
+
+- **Not a household.** Two inputs — a mother and a father — and a resolution. The gallery of
+  households, its eight columns and its hooks are not the demo.
+- **No relationships with specific NPCs.** *"players have traits and other things that express how
+  they relate to other people and those traits can be inherited. the relationships themselves
+  shouldn't be."* The hooks' REGARD rows (§ *An obligation is inherited as REGARD*) are out.
+- **The parents are not NPCs and not Stuff, and nothing is minted.** *"real NPCs need to stand up
+  economically, a profile on a card in char gen doesn't."* Realizing them later stays possible and
+  is never blocked on.
+- **A profile models no state, so no gear.** *"I dont really want gear even shown until you log in
+  and find out what you're carrying … gear is state. dont turn a profile into something that's
+  modelling state."* The phone brand from your family (§ *The gallery*) is not in the demo.
+- **Birth vs raising, and parents of any sex** — wanted eventually (*"something people are going to
+  want"*), not in the demo nor in phase 1 of the real thing; when is the Compact's priority or the
+  owner's own time. Storing the two roles separately stays cheap insurance.
+
+### The screen — Oxygen Not Included's starting crew
+
+- **Three fathers, three mothers, and you.** Selecting a father and a mother is free; **you**
+  re-resolve live from the pair. Many random options, fast.
+- **Species and sex offer *Random*** in the declared fields. Declared, the species is fixed and both
+  sides are drawn as it **[LEAN — free to declare]**; random, it is one rolled cell **above both
+  sides**, pinnable, and rerolling it redraws both.
+- ⭐⭐ **Species belongs to the family, not to a parent** — that is what keeps a selection on one side
+  from ever emptying the other (the zero case). **The test for any later cross-side rule:** *a
+  selection on one side never empties the other* — it lives a level up, like species, or it does
+  not ship.
+- **A parent profile is facts only:** a name, a species and age, a past workplace, two or three
+  pronounced traits, a look, and genes behind a click.
+- **You:** your pronounced traits, each marked with the parent it leans from; your looks; blood type
+  *untested*; your genes behind a click.
+- **Commit** seeds your traits as claims, stores your genes, records your parents in your chronicle,
+  and leaves the rest of the budget as your starting money. What you carry, you find out when you
+  arrive.
+
+### Rerolls, pins and the budget
+
+- **A reroll redraws a side** — the two unselected slots; the selected parent stays — and costs
+  zorkmids from the starting-money budget (§ *Reroll is priced*).
+- **A pin holds a cell for every later draw on that side** — a trait pole, a workplace — and each
+  pin raises that side's reroll cost (superlinear, § *The price ESCALATES*). Pins only on what you
+  have been shown; names and faces never.
+- ⭐ **Pinned parents still give a random child — that is the point.** *"some stuff is
+  determinative but this is one place where we can actually put randomness into the game and getting
+  your mother and father into agreement to guarantee an outcome costs real zorkmids and requires
+  knowing real genetics."*
+  - The same pair always gives the same child (seeded by the pair and a sibling number); **another
+    child of the same two — a sibling — costs zorkmids**, or spinning siblings would make genetics
+    worthless **[LEAN]**.
+  - **No odds are shown**; the genotypes are one click away and the reasoning is the player's
+    **[LEAN]**.
+
+### The genetics — a handful of loci, real rules
+
+- **Species is the outermost layer** — both parents one species (§ *decision A*), so you inherit its
+  body plan unchanged.
+- **Loci are authored on the species**, each with alleles at frequencies and an expression rule —
+  dominant/recessive, blended (copper and silver scales make bronze), codominant (ABO). A new trait is
+  rows. `Species.bloodGroups` is already one such locus and generalizes into the model.
+- **One allele from each parent per locus**; a parent's own genotype is drawn from the species'
+  frequencies. The phenotype derives and is never stored.
+- The owner's frame: *"a handful of modelled genotypes with some genetics, and we dont really have
+  phenotypes"* — the looks are words on a card until appearance renders in the world.
+
+### ⭐⭐ The headline — traits
+
+*"the whole reason to make traits the headline is because they exist nowhere else"* — the game has
+no instrumentation that exercises them yet, so char-gen is the only place a player can see they
+exist.
+
+- **Inheritance is quantitative, not Mendelian** — the owner chose the **blend**: your position on
+  each axis is your parents' midpoint, pulled toward the species mean by heritability, plus seeded
+  variation (the breeder's equation, `R = h²S`, which sericulture ships). Two wary parents probably
+  give a wary child; never certainly. Parents who disagree usually give nothing pronounced on that
+  axis.
+- **A card shows only the pronounced axes** — up to three, furthest from the mean
+  (`pronouncedFor`'s shape) — on parents and on you alike.
+- Committed traits are seeded as `claim` evidence (`TraitApi.seedClaims` ships).
+
+### ⭐⭐ Trades — a parent worked somewhere real
+
+*"we do have some placeholder businesses and other named institutions in the game we can draw from
+to say 'hey this guy worked as a field hand on Smallberries Farms for 20 years'."*
+
+- **A parent's vocation is a position at an actual Business row, plus years** — *"worked as a hand
+  at the farm outfit for twenty years."* No trade registry: nothing in the game says *x comes from
+  trade y*, and pack boundaries are not a class system. The business is the institution.
+- **Past tense**, never a roster entry — the parent is not that business's NPC. The years fit the
+  parent's age for their species.
+- **A tooltip on the workplace** shows its place's prose from content; show *"what's meaningful for
+  the experience of character gen."*
+- **Traits and the job agree, best effort** **[DECIDED]**: an **affinity table keyed by position
+  noun** (a hand leans patient and diligent; a clerk honest and guarded). Generation draws the
+  workplace first, then traits weighted by its affinity; a pinned trait weights later workplaces the
+  other way. ⭐ **A weighting, never a filter** — it cannot empty a side.
+- **The vocation reaches you through traits** — it shapes your parent's, and you inherit those. A
+  Discipline learned from them is phase 2 (it needs the seeding surface).
+
+### Open
+
+- Declaring a species: free, or a priced pin as § *Controls* had it.
+- Sibling cost and the no-odds rule (leans above).
+- The backend: a catalog of businesses and positions to draw from without loading the content —
+  the same need as the location graph's projection; the shared content-projection model is open
+  (raised by the owner 2026-11-24).
 
 ---
 
