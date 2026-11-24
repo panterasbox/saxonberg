@@ -243,13 +243,13 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** ⭐ `device:~apps` — the apps running on it (naming overhaul D-B5); anyone may ask. */
     public relationsFor(asker: Stuff | null): HeldRelation[] {
-      return [{ name: 'apps', meaning: 'the apps installed and running on it' }, ...super.relationsFor(asker)];
+      return [{ name: 'apps', meaning: 'the apps installed and running' }, ...super.relationsFor(asker)];
     }
 
     public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
       const below = super.relatedBy(name, asker);
       if (name !== 'apps') return below;
-      return [{ name, meaning: 'the apps installed and running on it', members: [...this._hostedApps] }, ...below];
+      return [{ name, meaning: 'the apps installed and running', members: [...this._hostedApps] }, ...below];
     }
 
     availableApps(): readonly string[] {

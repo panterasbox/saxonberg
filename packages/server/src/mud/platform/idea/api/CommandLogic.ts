@@ -33,7 +33,7 @@ import type { StoredDocument } from '../../../lib/document/StoredDocument';
 import { SecurityApi } from '../../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { CARD_IDS } from '@saxonberg/types';
-import type { WhichAnswer, WhichGroup, WhichRelation, WhichSource } from '@saxonberg/types';
+import type { WhichAnswer, WhichCollision, WhichGroup, WhichRelation, WhichSource } from '@saxonberg/types';
 import type { Relating } from '../../../lib/relation/Relating';
 import { BUILTIN_RELATION_WORDS } from '../../../lib/relation/BuiltinRelations';
 import { SourceTreeApi } from '../../../api/source-tree';
@@ -2768,7 +2768,8 @@ function whichSourceOf(source: Stuff, viewer: Stuff, count = 1): WhichSource {
   if (MixinApi.isAetherHosted(source)) {
     const app = source.getAppName();
     const place = source.whereFor(viewer);
-    return { id, handle: app.toLowerCase(), name: place === '' ? `your ${app}` : `the ${app} app`, place };
+    const word = app.toLowerCase();
+    return { id, handle: word, name: place === '' ? `your ${word}` : `the ${word} app`, place };
   }
   const phrase = source.handlePhrase();
   const handle = phrase.bare();
@@ -2794,8 +2795,19 @@ interface SourceVerbs {
  * list (`getAffordances()`, which D1) behind the radial's gates. The body's
  * own verbs come back as `usual`; the rest per source.
  */
-function whichSources(viewer: Stuff & CommandGiver): { usual: string[]; sources: SourceVerbs[] } {
+function whichSources(viewer: Stuff & CommandGiver): {
+  usual: string[];
+  sources: SourceVerbs[];
+  /** ⭐ Every giver of each verb — the body included — before the dedupe: what collides. */
+  givers: Map<string, Stuff[]>;
+} {
   const usual: string[] = [];
+  const givers = new Map<string, Stuff[]>();
+  const give = (verb: string, who: Stuff): void => {
+    const list = givers.get(verb) ?? [];
+    if (!list.some((x) => x.stuffId === who.stuffId)) list.push(who);
+    givers.set(verb, list);
+  };
   const bySource = new Map<string, SourceVerbs>();
   const shown = new Map<string, boolean>();
   for (const a of viewer.getAffordances()) {
@@ -2806,11 +2818,13 @@ function whichSources(viewer: Stuff & CommandGiver): { usual: string[]; sources:
     // spell catalogue as its source) is a verb of the body, not of a thing.
     if (a.source.stuffId === viewer.stuffId || (a.bucket === 'self' && !MixinApi.isAetherHosted(a.source))) {
       if (!usual.includes(verb)) usual.push(verb);
+      give(verb, viewer);
       continue;
     }
     const id = a.source.stuffId;
     if (!shown.has(id)) shown.set(id, sourceShown(a.source, viewer));
     if (!shown.get(id)) continue;
+    give(verb, a.source);
     let entry = bySource.get(id);
     if (!entry) {
       entry = { source: a.source, defs: new Map() };
@@ -2824,7 +2838,7 @@ function whichSources(viewer: Stuff & CommandGiver): { usual: string[]; sources:
     for (const verb of usual) entry.defs.delete(verb);
     if (entry.defs.size > 0) sources.push(entry);
   }
-  return { usual, sources };
+  return { usual, sources, givers };
 }
 
 /** Evaluate one source's verbs as the radial does (which D2). */
@@ -2845,42 +2859,82 @@ async function evaluateGroup(entry: SourceVerbs, viewer: Stuff & CommandGiver, v
   return out;
 }
 
+/** *the shoes, the trousers and the shirt* — a list in a person's words. */
+function andList(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? '';
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
 /**
- * Build the groups for `entries`, merging alike sources (the same words
- * and verbs) and ordering by the rarest verb first (which D3).
+ * Build the groups for `entries`, ordering by the rarest verb first (which
+ * D3). ⭐ Sources that give the SAME verbs from the SAME place are one group
+ * (owner, review): *tear, wear, … — the shoes, the trousers and the shirt
+ * you're wearing*, not one line per garment; alike things are counted
+ * (*2 notebooks*).
  */
 async function whichGroups(
   entries: { entry: SourceVerbs; verbs: string[] }[],
   viewer: Stuff & CommandGiver,
 ): Promise<WhichGroup[]> {
-  const merged = new Map<string, { entry: SourceVerbs; verbs: string[]; ids: string[] }>();
+  const merged = new Map<string, { entry: SourceVerbs; verbs: string[]; members: Stuff[] }>();
   for (const e of entries) {
     const words = whichSourceOf(e.entry.source, viewer);
-    const key = `${words.handle}|${words.place}|${e.verbs.join(',')}`;
+    const key = `${words.place}|${e.verbs.join(',')}`;
     const had = merged.get(key);
-    if (had) had.ids.push(e.entry.source.stuffId);
-    else merged.set(key, { entry: e.entry, verbs: e.verbs, ids: [e.entry.source.stuffId] });
+    if (had) had.members.push(e.entry.source);
+    else merged.set(key, { entry: e.entry, verbs: e.verbs, members: [e.entry.source] });
   }
   const givers = new Map<string, number>();
-  for (const m of merged.values()) for (const v of m.verbs) givers.set(v, (givers.get(v) ?? 0) + m.ids.length);
+  for (const m of merged.values()) for (const v of m.verbs) givers.set(v, (givers.get(v) ?? 0) + m.members.length);
   const rarity = (verbs: string[]): number => Math.min(...verbs.map((v) => givers.get(v) ?? 0));
   const ordered = [...merged.entries()].sort((a, b) => rarity(a[1].verbs) - rarity(b[1].verbs));
   const groups: WhichGroup[] = [];
   for (const [key, m] of ordered) {
+    // One name per distinct handle, counted: *2 notebooks and the rope*.
+    const byHandle = new Map<string, Stuff[]>();
+    for (const s of m.members) {
+      const h = whichSourceOf(s, viewer).handle;
+      byHandle.set(h, [...(byHandle.get(h) ?? []), s]);
+    }
+    const names = [...byHandle.values()].map((list) => whichSourceOf(list[0]!, viewer, list.length).name);
+    const first = whichSourceOf(m.members[0]!, viewer, m.members.length);
     groups.push({
       key,
-      source: whichSourceOf(m.entry.source, viewer, m.ids.length),
-      count: m.ids.length,
-      ids: m.ids,
+      source: { ...first, name: andList(names) },
+      count: m.members.length,
+      ids: m.members.map((s) => s.stuffId),
       verbs: await evaluateGroup(m.entry, viewer, m.verbs),
     });
   }
   return groups;
 }
 
+/**
+ * ⭐ Where each of `verbs` comes from when more than one thing gives it —
+ * and how to pick one: `counter::buy` (owner, review: a player finding a
+ * collision needs the scope that resolves it). The body and its own apps
+ * are picked with `me::`.
+ */
+function collisionsOf(verbs: string[], givers: Map<string, Stuff[]>, viewer: Stuff): WhichCollision[] {
+  const out: WhichCollision[] = [];
+  for (const verb of verbs) {
+    const who = givers.get(verb) ?? [];
+    if (who.length < 2) continue;
+    out.push({
+      verb,
+      sources: who.map((s) => {
+        const w = whichSourceOf(s, viewer);
+        const mine = s.stuffId === viewer.stuffId || (MixinApi.isAetherHosted(s) && w.place === '');
+        return { ...w, scope: `${mine ? 'me' : w.handle}::${verb}` };
+      }),
+    });
+  }
+  return out;
+}
+
 /** See {@link CommandApi.which}. */
 async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
-  const { usual, sources } = whichSources(viewer);
+  const { usual, sources, givers } = whichSources(viewer);
   const word = what?.trim() ?? '';
 
   if (word === '') {
@@ -2901,6 +2955,10 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
       usual: { verbs: usual },
     };
     if (commonSeen.length > 0) answer.common = { verbs: commonSeen, sources: commonSources };
+    // Verbs more than one thing gives — the ones a bare line could mean twice.
+    // (The common line's verbs are on every article by design; not listed.)
+    const clashes = collisionsOf([...givers.keys()].filter((v) => !common.has(v)), givers, viewer);
+    if (clashes.length > 0) answer.collisions = clashes;
     return { ok: true, facts: answer };
   }
 
@@ -2920,10 +2978,23 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
       const thing = named.length === 1 ? whichSourceOf(named[0]!, viewer).name : `'${word}'`;
       return { ok: false, reason: 'gives-nothing', facts: { thing } };
     }
-    return {
-      ok: true,
-      facts: { ask: { mode: 'thing', command, what: word, subjectIds }, groups: await whichGroups(entries, viewer) },
+    const answer: WhichAnswer = {
+      ask: { mode: 'thing', command, what: word, subjectIds },
+      groups: await whichGroups(entries, viewer),
     };
+    // ⭐ Related (owner, review): what else here gives the same verbs, and
+    // what you can do TO it — the radial's own answer, the usable verbs.
+    const theirs = [...new Set(entries.flatMap((e) => e.verbs))];
+    const clashes = collisionsOf(theirs, givers, viewer);
+    if (clashes.length > 0) answer.collisions = clashes;
+    if (named.length === 1) {
+      const radial = await CommandApi.resolveAffordances(named[0]!, viewer);
+      const actsOn = (radial?.verbs ?? [])
+        .filter((v) => v.source === 'actor' && v.state !== 'disabled')
+        .map((v) => v.verb);
+      if (actsOn.length > 0) answer.actsOn = actsOn;
+    }
+    return { ok: true, facts: answer };
   }
 
   // ⭐ The word as typed — the view's own `hasVerb` is the matcher.
@@ -2938,6 +3009,9 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
       groups: await whichGroups(entries, viewer),
     };
     if (own.length > 0) answer.usual = { verbs: own };
+    const asked = [...new Set([...entries.flatMap((e) => e.verbs), ...own])];
+    const clashes = collisionsOf(asked, givers, viewer);
+    if (clashes.length > 0) answer.collisions = clashes;
     return { ok: true, facts: answer };
   }
   if ([...commands.values()].some((d) => d.hasVerb(verb))) {

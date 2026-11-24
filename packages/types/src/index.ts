@@ -2273,6 +2273,15 @@ export interface WhichGroup {
   verbs: AffordanceEntry[];
 }
 
+/**
+ * ⭐ A verb more than one thing gives you — and, per giver, the scope that
+ * picks it (`counter::buy`; your own and your apps' with `me::`).
+ */
+export interface WhichCollision {
+  verb: string;
+  sources: (WhichSource & { scope: string })[];
+}
+
 /** One `~` word: what it means, whose it is, and how many it holds now. */
 export interface WhichRelation {
   name: string;
@@ -2306,6 +2315,10 @@ export interface WhichAnswer {
   relations?: WhichRelation[];
   /** For `which ~ <thing>`: whose words these are. */
   keeper?: WhichSource;
+  /** Verbs more than one thing here gives, with the scope that picks each. */
+  collisions?: WhichCollision[];
+  /** For `which <thing>`: what you can do TO it (the radial's usable verbs). */
+  actsOn?: string[];
 }
 
 /**

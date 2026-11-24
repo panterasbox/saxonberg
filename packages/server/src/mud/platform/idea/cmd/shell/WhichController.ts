@@ -34,16 +34,37 @@ export default class WhichController extends CommandController<WhichModel> {
     return lines;
   }
 
+  /** *buy — the counter here (`counter::buy`), the shelf here (`shelf::buy`)* */
+  private static collisionLines(a: WhichAnswer): string[] {
+    return (a.collisions ?? []).map(
+      (c) => `  ${c.verb} — ${c.sources.map((s) => `${WhichController.sourcePhrase(s)} (\`${s.scope}\`)`).join(', ')}`,
+    );
+  }
+
   /** The terminal reply for a `which` answer. */
   private static lines(a: WhichAnswer): string[] {
-    const all = a.ask.mode === 'all';
-    const lines: string[] = all ? ['What you can type here:'] : [];
+    const mode = a.ask.mode;
+    const lines: string[] = mode === 'all' ? ['What you can type here:'] : [];
     for (const g of a.groups) lines.push(...WhichController.groupLines(g));
     if (a.common) lines.push(`and anything you're carrying: ${a.common.verbs.join(', ')}`);
     if (a.usual && a.usual.verbs.length > 0) {
-      lines.push(`${all ? 'and the usual' : 'you'}: ${a.usual.verbs.join(', ')}${all ? ' (you)' : ''}`);
+      // ⭐ The body's verbs are the bulk of any answer: on the whole read they
+      // are one line that says how many and where the list is (owner, review).
+      lines.push(
+        mode === 'all'
+          ? `and the usual: ${a.usual.verbs.length} verbs of your own — \`which me\` lists them`
+          : `you: ${a.usual.verbs.join(', ')}`,
+      );
     }
-    if (a.ask.mode === 'verb' && a.ask.what) lines.push(`(\`help ${a.ask.what}\` has its shape.)`);
+    const clashes = WhichController.collisionLines(a);
+    if (clashes.length > 0) {
+      // ⭐ Where a verb comes from when more than one thing gives it, and the
+      // scope that picks one — a bare line tries each in turn.
+      lines.push(mode === 'thing' ? 'Also given here:' : 'More than one thing gives you (pick one with `thing::verb`):');
+      lines.push(...clashes);
+    }
+    if (a.actsOn && a.actsOn.length > 0) lines.push(`What you can do to it: ${a.actsOn.join(', ')}`);
+    if (mode === 'verb' && a.ask.what) lines.push(`(\`help ${a.ask.what}\` has its shape.)`);
     return lines;
   }
 

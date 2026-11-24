@@ -169,7 +169,17 @@ describe('which — what can I type here (W1)', () => {
     expect(a.groups.some((g) => g.ids.includes(l.stuffId))).toBe(false);
   });
 
+  /** The radial's answer for `which <thing>`'s related section — stubbed: this
+   *  fixture does not load the sense modalities `taste`'s validator reads. */
+  const stubRadial = (): void => {
+    vi.spyOn(CommandApi, 'resolveAffordances').mockResolvedValue({
+      verbs: [{ verb: 'look', description: 'look', state: 'enabled', source: 'actor' }],
+      composition: [],
+    } as never);
+  };
+
   it('which <thing> answers only that thing', async () => {
+    stubRadial();
     const l = lever();
     const n = note();
     ContainmentApi.move(n, me);
@@ -243,6 +253,41 @@ describe('which — what can I type here (W1)', () => {
     it('a thing that keeps nothing says so', () => {
       const l = lever();
       expect(CommandApi.whichRelations(me as never, l)).toMatchObject({ ok: false, reason: 'keeps-nothing', facts: { thing: 'the lever' } });
+    });
+  });
+
+  describe('review: one group per place and verbs; where a verb comes from; related', () => {
+    it('different things giving the same verbs from the same place are one group, all named', async () => {
+      const l = lever();
+      const p = makeStuff(() => new Lever());
+      p.setShortDescription('a pull');
+      p.setKeywords(['pull']);
+      ContainmentApi.move(p, room);
+      const a = await ask();
+      const g = a.groups.find((x) => x.ids.includes(l.stuffId))!;
+      expect(g.ids).toContain(p.stuffId);
+      expect(g.source.name).toMatch(/the lever and the pull|the pull and the lever/);
+    });
+
+    it('a verb two things give is a collision, each with the scope that picks it', async () => {
+      lever();
+      const p = makeStuff(() => new Lever());
+      p.setShortDescription('a pull');
+      p.setKeywords(['pull']);
+      ContainmentApi.move(p, room);
+      const a = await ask('switch');
+      const c = a.collisions?.find((x) => x.verb === 'switch');
+      expect(c?.sources.map((s) => s.scope).sort()).toEqual(['lever::switch', 'pull::switch']);
+      const all = await ask();
+      expect(all.collisions?.some((x) => x.verb === 'switch')).toBe(true);
+    });
+
+    it('which <thing> carries what you can do to it', async () => {
+      stubRadial();
+      lever();
+      const a = await ask('lever');
+      expect(a.actsOn?.length ?? 0).toBeGreaterThan(0);
+      expect(a.actsOn).toContain('look');
     });
   });
 });

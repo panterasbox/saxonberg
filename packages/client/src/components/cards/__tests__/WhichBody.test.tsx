@@ -30,7 +30,8 @@ const answer: WhichAnswer = {
 describe("WhichBody", () => {
   it("one column: verb and the short source; no reason, no help line", () => {
     render(<WhichBody answer={answer} size="unit" onSendCommand={() => undefined} />);
-    expect(screen.getAllByTestId("which-row")).toHaveLength(2);
+    // One row per SOURCE (owner, review), its verbs as chips.
+    expect(screen.getAllByTestId("which-row")).toHaveLength(1);
     expect(screen.getAllByTestId("which-source")[0]!.textContent).toBe("counter");
     expect(screen.queryByText("You have nothing to sell.")).toBeNull();
     expect(screen.queryByTestId("which-help-buy")).toBeNull();
@@ -39,14 +40,14 @@ describe("WhichBody", () => {
   it("across the terminal: the place and the greyed reason", () => {
     render(<WhichBody answer={answer} size="medium" onSendCommand={() => undefined} />);
     expect(screen.getAllByTestId("which-source")[0]!.textContent).toBe("the counter here");
-    expect(screen.getByText("You have nothing to sell.")).toBeTruthy();
+    expect(screen.getByText(/You have nothing to sell\./)).toBeTruthy();
     expect(screen.queryByTestId("which-help-buy")).toBeNull();
   });
 
   it("the stage: help's own line and a link to help", () => {
     const send = vi.fn();
     render(<WhichBody answer={answer} size="full" onSendCommand={send} />);
-    expect(screen.getByText("Buy something")).toBeTruthy();
+    expect(screen.getByText(/Buy something/)).toBeTruthy();
     fireEvent.click(screen.getByTestId("which-help-buy"));
     expect(send).toHaveBeenCalledWith("help buy");
   });

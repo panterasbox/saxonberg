@@ -20,7 +20,7 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { AffordanceEntry, WhichAnswer, WhichGroup, WhichSource, WidthClass } from "@saxonberg/types";
+import type { WhichAnswer, WhichGroup, WhichSource, WidthClass } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { tokens } from "../ui";
 
@@ -93,35 +93,88 @@ function VerbChips({ verbs, clicks }: { verbs: readonly string[]; clicks: Clicks
   );
 }
 
-function Row({ v, g, size, clicks }: { v: AffordanceEntry; g: WhichGroup; size: WidthClass; clicks: Clicks }): React.ReactElement {
-  const off = v.state === "disabled";
+/**
+ * ⭐ One source's row (owner, review: one row per SOURCE, as the terminal
+ * groups — not the source repeated on every verb). Its verbs as chips; at
+ * `medium` the source's place and a greyed verb's reason; at `full` each
+ * verb's help line and link.
+ */
+function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks: Clicks }): React.ReactElement {
   const wide = size === "medium" || size === "full";
   return (
     <tr data-testid="which-row">
       <td>
-        <VerbButton type="button" $off={off} data-testid={`which-verb-${v.verb}`} onClick={() => clicks.type(v.verb)}>
-          {v.verb}
-        </VerbButton>
+        {g.verbs.map((v, i) => (
+          <React.Fragment key={v.verb}>
+            {i > 0 ? ", " : null}
+            <VerbButton
+              type="button"
+              $off={v.state === "disabled"}
+              title={v.description}
+              data-testid={`which-verb-${v.verb}`}
+              onClick={() => clicks.type(v.verb)}
+            >
+              {v.verb}
+            </VerbButton>
+          </React.Fragment>
+        ))}
+        {wide
+          ? g.verbs
+              .filter((v) => v.state === "disabled" && v.reason)
+              .map((v) => (
+                <div key={`r:${v.verb}`}>
+                  <Muted>
+                    {v.verb}: {v.reason}
+                  </Muted>
+                </div>
+              ))
+          : null}
+        {size === "full"
+          ? g.verbs.map((v) => (
+              <div key={`d:${v.verb}`}>
+                <Muted>
+                  {v.verb} — {v.description}{" "}
+                </Muted>
+                <SourceButton type="button" data-testid={`which-help-${v.verb}`} onClick={() => clicks.send(`help ${v.verb}`)}>
+                  <Muted>(help)</Muted>
+                </SourceButton>
+              </div>
+            ))
+          : null}
       </td>
       <td>
         <SourceButton type="button" data-testid="which-source" onClick={() => clicks.send(`which #${g.source.id}`)}>
           {wide ? sourcePhrase(g.source) : g.source.handle}
         </SourceButton>
-        {wide && off && v.reason ? (
-          <div>
-            <Muted>{v.reason}</Muted>
-          </div>
-        ) : null}
       </td>
-      {size === "full" ? (
-        <td>
-          <Muted>{v.description}</Muted>{" "}
-          <SourceButton type="button" data-testid={`which-help-${v.verb}`} onClick={() => clicks.send(`help ${v.verb}`)}>
-            <Muted>(help)</Muted>
-          </SourceButton>
-        </td>
-      ) : null}
     </tr>
+  );
+}
+
+/** Verbs more than one thing gives, and the scope that picks each. */
+function Collisions({ answer, clicks }: { answer: WhichAnswer; clicks: Clicks }): React.ReactElement | null {
+  const list = answer.collisions ?? [];
+  if (list.length === 0) return null;
+  return (
+    <Details data-testid="which-collisions" open={answer.ask.mode !== "all"}>
+      <summary>
+        {answer.ask.mode === "thing" ? "also given here" : "more than one thing gives you"} ({list.length})
+      </summary>
+      {list.map((c) => (
+        <div key={c.verb}>
+          {c.verb} —{" "}
+          {c.sources.map((s, i) => (
+            <React.Fragment key={s.scope + i}>
+              {i > 0 ? ", " : null}
+              <VerbButton type="button" data-testid={`which-scope-${s.scope}`} onClick={() => clicks.type(s.scope)}>
+                {s.scope}
+              </VerbButton>
+              <Muted> {sourcePhrase(s)}</Muted>
+            </React.Fragment>
+          ))}
+        </div>
+      ))}
+    </Details>
   );
 }
 
@@ -170,7 +223,9 @@ export function WhichBody({
       ) : null}
       <Table>
         <tbody>
-          {answer.groups.flatMap((g) => g.verbs.map((v) => <Row key={`${g.key}:${v.verb}`} v={v} g={g} size={size} clicks={clicks} />))}
+          {answer.groups.map((g) => (
+            <GroupRow key={g.key} g={g} size={size} clicks={clicks} />
+          ))}
         </tbody>
       </Table>
       {answer.common ? (
@@ -180,6 +235,13 @@ export function WhichBody({
           <div>
             <Muted>{answer.common.sources.map(sourcePhrase).join(" · ")}</Muted>
           </div>
+        </Details>
+      ) : null}
+      <Collisions answer={answer} clicks={clicks} />
+      {answer.actsOn && answer.actsOn.length > 0 ? (
+        <Details data-testid="which-acts-on" open>
+          <summary>what you can do to it</summary>
+          <VerbChips verbs={answer.actsOn} clicks={clicks} />
         </Details>
       ) : null}
       {answer.usual && answer.usual.verbs.length > 0 ? (
