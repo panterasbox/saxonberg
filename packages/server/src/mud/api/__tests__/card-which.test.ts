@@ -26,7 +26,7 @@ const answerOf = (command: string, verbs: string[]): WhichAnswer => ({
       source: { id: 'l1', handle: 'lever', name: 'the lever', place: 'here' },
       count: 1,
       ids: ['l1'],
-      verbs: verbs.map((verb) => ({ verb, description: verb, state: 'enabled' as const })),
+      verbs: verbs.map((verb) => ({ verb, description: verb, state: 'enabled' as const, reach: 'beside' as const, view: verb })),
     },
   ],
 });

@@ -111,6 +111,8 @@ describe('which — what can I type here (W1)', () => {
     const g = a.groups.find((x) => x.ids.includes(l.stuffId));
     expect(g?.source).toMatchObject({ handle: 'lever', name: 'the lever', place: 'here' });
     expect(g?.verbs.map((v) => v.verb)).toContain('switch');
+    // ⭐ Where it came from: the mixin that declared it, how it reaches you, its view.
+    expect(g?.verbs.find((v) => v.verb === 'switch')).toMatchObject({ from: 'SwitchableMixin', reach: 'beside', view: 'device/switch' });
     expect(a.usual?.verbs.length).toBeGreaterThan(0);
     expect(a.ask.command).toBe('which');
   });
@@ -137,6 +139,7 @@ describe('which — what can I type here (W1)', () => {
     // `move` onto a body lands it in a free hand (carrying.md).
     expect(g?.source.place).toMatch(/^in your (left|right) hand$/);
     expect(g?.verbs.map((v) => v.verb)).toContain('read');
+    expect(g?.verbs.find((v) => v.verb === 'read')).toMatchObject({ from: 'MarkedMixin', reach: 'held' });
     expect(g?.verbs.map((v) => v.verb)).not.toContain('ring');
     expect(a.common?.verbs).toContain('ring');
     // A body throws (the audit): `throw` is on the usual line.

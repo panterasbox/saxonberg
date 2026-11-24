@@ -9,7 +9,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
-import type { CommandGiver } from '../../../lib/command/CommandGiver';
+import type { CommandGiver, RecencyBucket } from '../../../lib/command/CommandGiver';
 import type { Focused } from '../../../lib/command/Focused';
 import { ArrayApi } from '../../../api/array';
 import { ShellApi } from '../../../api/shell';
@@ -33,7 +33,7 @@ import type { StoredDocument } from '../../../lib/document/StoredDocument';
 import { SecurityApi } from '../../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { CARD_IDS } from '@saxonberg/types';
-import type { WhichAnswer, WhichCollision, WhichGroup, WhichRelation, WhichSource } from '@saxonberg/types';
+import type { WhichAnswer, WhichCollision, WhichGroup, WhichRelation, WhichSource, WhichVerb } from '@saxonberg/types';
 import type { Relating } from '../../../lib/relation/Relating';
 import { BUILTIN_RELATION_WORDS } from '../../../lib/relation/BuiltinRelations';
 import { SourceTreeApi } from '../../../api/source-tree';
@@ -2788,6 +2788,8 @@ function whichSourceOf(source: Stuff, viewer: Stuff, count = 1): WhichSource {
 interface SourceVerbs {
   source: Stuff;
   defs: Map<string, CommandDefinition>;
+  /** The bucket each verb reached the viewer through. */
+  buckets: Map<string, RecencyBucket>;
 }
 
 /**
@@ -2833,10 +2835,13 @@ function whichSources(viewer: Stuff & CommandGiver): {
     give(verb, a.source, a.command);
     let entry = bySource.get(id);
     if (!entry) {
-      entry = { source: a.source, defs: new Map() };
+      entry = { source: a.source, defs: new Map(), buckets: new Map() };
       bySource.set(id, entry);
     }
-    if (!entry.defs.has(verb)) entry.defs.set(verb, a.command);
+    if (!entry.defs.has(verb)) {
+      entry.defs.set(verb, a.command);
+      entry.buckets.set(verb, a.bucket);
+    }
   }
   // A verb the body has is never repeated under another source (which D4).
   const sources: SourceVerbs[] = [];
@@ -2847,20 +2852,53 @@ function whichSources(viewer: Stuff & CommandGiver): {
   return { usual, sources, givers };
 }
 
-/** Evaluate one source's verbs as the radial does (which D2). */
-async function evaluateGroup(entry: SourceVerbs, viewer: Stuff & CommandGiver, verbs: string[]): Promise<AffordanceEntry[]> {
-  const out: AffordanceEntry[] = [];
+/**
+ * ⭐ The class or mixin whose OWN `commandContributions` lists `cmd` in
+ * `bucket` — the first such in `source`'s chain, concrete class first. A
+ * mixin is a class in the prototype chain, so one walk finds both; an
+ * own-property check keeps an inherited static from claiming it.
+ */
+function contributorOf(source: Stuff, bucket: RecencyBucket, cmd: CommandDefinition): string | undefined {
+  for (let c: unknown = source.constructor; c && c !== Function.prototype; c = Object.getPrototypeOf(c)) {
+    if (!Object.prototype.hasOwnProperty.call(c, 'commandContributions')) continue;
+    const own = getContributions(c)?.[bucket as Bucket];
+    if (!own || !resolveDefs(own).includes(cmd)) continue;
+    const named = c as { _mixinName?: unknown; name?: string };
+    return Object.prototype.hasOwnProperty.call(c, '_mixinName') && typeof named._mixinName === 'string'
+      ? named._mixinName
+      : named.name;
+  }
+  return undefined;
+}
+
+/** The view a definition was loaded from, as a player might name it: `perception/ring`. */
+function viewWord(cmd: CommandDefinition): string {
+  const m = /cmd\/(.+?)\.yaml$/.exec(cmd.filePath);
+  return m ? m[1]! : cmd.getPrimaryVerb();
+}
+
+/** Evaluate one source's verbs as the radial does (which D2), with where each came from. */
+async function evaluateGroup(entry: SourceVerbs, viewer: Stuff & CommandGiver, verbs: string[]): Promise<WhichVerb[]> {
+  const out: WhichVerb[] = [];
+  const yours = MixinApi.isAetherHosted(entry.source);
   for (const verb of verbs) {
     const cmd = entry.defs.get(verb)!;
+    const bucket = entry.buckets.get(verb) ?? 'peers';
+    const from = contributorOf(entry.source, bucket, cmd);
+    const meta = {
+      ...(from ? { from } : {}),
+      reach: yours || bucket === 'self' ? ('yours' as const) : bucket === 'peers' ? ('beside' as const) : ('held' as const),
+      view: viewWord(cmd),
+    };
     const e = await evaluateAffordance(cmd, verb, entry.source, viewer, objectFields(cmd), false);
     // An operand still to choose is not a state `which` reports: typed, the
     // verb asks for it.
     if (e.state !== 'pending-operand') {
-      out.push(e);
+      out.push({ ...e, ...meta });
       continue;
     }
     const { operand: _operand, ...open } = e;
-    out.push({ ...open, state: 'enabled' });
+    out.push({ ...open, state: 'enabled', ...meta });
   }
   return out;
 }

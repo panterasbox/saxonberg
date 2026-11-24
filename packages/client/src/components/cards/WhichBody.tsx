@@ -20,9 +20,10 @@
 
 import React from "react";
 import styled from "styled-components";
-import type { WhichAnswer, WhichGroup, WhichSource, WidthClass } from "@saxonberg/types";
+import type { TooltipDoc, TooltipFact, WhichAnswer, WhichGroup, WhichSource, WhichVerb, WidthClass } from "@saxonberg/types";
+import { Tip } from "../tooltip/Tip";
 import { useStore } from "../../store/index";
-import { tokens } from "../ui";
+import { Icon, tokens } from "../ui";
 
 const Table = styled.table`
   width: 100%;
@@ -47,11 +48,14 @@ const VerbButton = styled.button<{ $off?: boolean }>`
 const HelpLink = styled.button`
   background: none;
   border: none;
-  padding: 0 0 0 2px;
+  padding: 0 2px;
   cursor: pointer;
-  font-size: 0.8em;
-  vertical-align: super;
-  color: ${tokens.color.fgMuted};
+  vertical-align: -2px;
+  color: ${tokens.color.fg};
+  opacity: 0.8;
+  &:hover {
+    opacity: 1;
+  }
 `;
 
 const SourceButton = styled.button`
@@ -98,38 +102,66 @@ function sourceWord(s: WhichSource): string {
   return s.handle.split(",")[0]!.trim();
 }
 
+const REACH_WORDS: Record<WhichVerb["reach"], string> = {
+  held: "from something you hold",
+  beside: "from something beside you",
+  yours: "your own",
+};
+
+/**
+ * ⭐ A verb's tooltip — where it comes from, icons first (owner, review):
+ * the mixin that declared it, how it reaches you, its view, its category,
+ * and why it is greyed when it is.
+ */
+function verbDoc(v: WhichVerb | string): TooltipDoc {
+  if (typeof v === "string") return { header: { icon: "verb.types", name: v, kindWord: "verb" }, hint: "Click to type it" };
+  const facts: TooltipFact[] = [];
+  if (v.from) facts.push({ icon: "verb.mixin", label: "given by", value: v.from, source: "client" });
+  facts.push({ icon: `reach.${v.reach === "beside" ? "here" : v.reach}`, label: "reaches you", value: REACH_WORDS[v.reach], source: "client" });
+  facts.push({ icon: "verb.view", label: "view", value: v.view, source: "client" });
+  if (v.category) facts.push({ icon: "verb.category", label: "category", value: v.category, source: "client" });
+  if (v.state === "disabled" && v.reason) facts.push({ icon: "verb.off", label: "not now", value: v.reason, source: "client" });
+  return { header: { icon: "verb.types", name: v.verb, kindWord: "verb" }, prose: v.description, facts, hint: "Click to type it" };
+}
+
 /**
  * ⭐ Every verb is TWO links (owner, review): the verb itself — typed onto
- * your command line, never sent — and `?`, which runs `help <verb>`.
+ * your command line, never sent — and the help icon, which runs
+ * `help <verb>`. Each has its tooltip; each previews its command.
  */
-function VerbLinks({
-  verb,
-  clicks,
-  off,
-  title,
-}: {
-  verb: string;
-  clicks: Clicks;
-  off?: boolean;
-  title?: string;
-}): React.ReactElement {
+function VerbLinks({ verb, clicks }: { verb: WhichVerb | string; clicks: Clicks }): React.ReactElement {
+  const word = typeof verb === "string" ? verb : verb.verb;
+  const off = typeof verb !== "string" && verb.state === "disabled";
   return (
     <>
-      <VerbButton
-        type="button"
-        $off={off}
-        title={title}
-        data-testid={`which-verb-${verb}`}
-        onClick={() => clicks.type(verb)}
-        {...clicks.hover(`${verb} `)}
-      >
-        {verb}
-      </VerbButton>
-      <HelpLink type="button" data-testid={`which-help-${verb}`} onClick={() => clicks.send(`help ${verb}`)} {...clicks.hover(`help ${verb}`)}>
-        ?
-      </HelpLink>
+      <Tip tip={verbDoc(verb)}>
+        <VerbButton
+          type="button"
+          $off={off}
+          data-testid={`which-verb-${word}`}
+          onClick={() => clicks.type(word)}
+          {...clicks.hover(`${word} `)}
+        >
+          {word}
+        </VerbButton>
+      </Tip>
+      {off ? <Icon name="verb.off" label={(verb as WhichVerb).reason ?? "not usable now"} size={12} /> : null}
+      <Tip tip={{ header: { icon: "verb.help", name: `help ${word}`, kindWord: "help" }, command: `help ${word}` }}>
+        <HelpLink type="button" data-testid={`which-help-${word}`} onClick={() => clicks.send(`help ${word}`)} {...clicks.hover(`help ${word}`)}>
+          <Icon name="verb.help" label={`help ${word}`} size={13} decorative />
+        </HelpLink>
+      </Tip>
     </>
   );
+}
+
+/** How a group reaches you, as its icon: held, here, next door, or yours. */
+function reachIcon(g: WhichGroup): { name: string; label: string } {
+  const reach = g.verbs[0]?.reach ?? "beside";
+  if (reach === "yours") return { name: "reach.yours", label: "yours" };
+  if (reach === "held") return { name: "reach.held", label: "something you hold" };
+  if (g.source.place === "nearby") return { name: "reach.nearby", label: "next door" };
+  return { name: "reach.here", label: "here, beside you" };
 }
 
 function VerbChips({ verbs, clicks }: { verbs: readonly string[]; clicks: Clicks }): React.ReactElement {
@@ -159,7 +191,7 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
         {g.verbs.map((v, i) => (
           <React.Fragment key={v.verb}>
             {i > 0 ? ", " : null}
-            <VerbLinks verb={v.verb} clicks={clicks} off={v.state === "disabled"} title={v.description} />
+            <VerbLinks verb={v} clicks={clicks} />
           </React.Fragment>
         ))}
         {wide
@@ -184,6 +216,7 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
           : null}
       </td>
       <td>
+        <Icon name={reachIcon(g).name} label={reachIcon(g).label} size={13} style={{ marginRight: 4, verticalAlign: "-2px" }} />
         <SourceButton
           type="button"
           data-testid="which-source"

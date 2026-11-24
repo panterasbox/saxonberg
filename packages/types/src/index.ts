@@ -1847,6 +1847,8 @@ export interface TooltipHeader {
 
 /** One fact row: a label, a value, and where and when it was learned. */
 export interface TooltipFact {
+  /** ⭐ An icon-map name the row leads with — icons are the visual language. */
+  icon?: string;
   label: string;
   value: string;
   source: TooltipSource;
@@ -2270,7 +2272,20 @@ export interface WhichGroup {
   count: number;
   /** Every alike source's id (the first is `source.id`). */
   ids: string[];
-  verbs: AffordanceEntry[];
+  verbs: WhichVerb[];
+}
+
+/**
+ * ⭐ One verb as `which` reports it — the radial's entry, plus where it
+ * comes from (owner, review: the mixin source is the metadata that teaches).
+ */
+export interface WhichVerb extends AffordanceEntry {
+  /** The class or mixin whose `commandContributions` put it on its source. */
+  from?: string;
+  /** How it reaches you: a thing you hold, one beside you, or your own. */
+  reach: 'held' | 'beside' | 'yours';
+  /** The view that defines it — `perception/ring`. */
+  view: string;
 }
 
 /**

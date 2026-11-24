@@ -19,8 +19,8 @@ const answer: WhichAnswer = {
       count: 1,
       ids: ["c1"],
       verbs: [
-        { verb: "buy", description: "Buy something", state: "enabled" },
-        { verb: "sell", description: "Sell something", state: "disabled", reason: "You have nothing to sell." },
+        { verb: "buy", description: "Buy something", state: "enabled", reach: "beside", view: "retail/buy", from: "Stock", category: "retail" },
+        { verb: "sell", description: "Sell something", state: "disabled", reason: "You have nothing to sell.", reach: "beside", view: "retail/sell" },
       ],
     },
   ],
