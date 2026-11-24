@@ -33,7 +33,9 @@ import type { StoredDocument } from '../../../lib/document/StoredDocument';
 import { SecurityApi } from '../../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { CARD_IDS } from '@saxonberg/types';
-import type { WhichAnswer, WhichGroup, WhichSource } from '@saxonberg/types';
+import type { WhichAnswer, WhichGroup, WhichRelation, WhichSource } from '@saxonberg/types';
+import type { Relating } from '../../../lib/relation/Relating';
+import { BUILTIN_RELATION_WORDS } from '../../../lib/relation/BuiltinRelations';
 import { SourceTreeApi } from '../../../api/source-tree';
 import type {
   MessageFrame,
@@ -102,7 +104,7 @@ import {
   type AssembleOptions,
   type ResolveModelOptions,
 } from '../../../api/command';
-import type { OnFilteredPolicy, WhichResult } from '../../../api/command';
+import type { OnFilteredPolicy, WhichResult, WhichRelationsResult } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
 import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
@@ -2466,6 +2468,12 @@ export class CommandLogic extends ApiLogic {
   public which(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
     return whichImpl(viewer, what);
   }
+
+  /** See {@link CommandApi.whichRelations}. */
+  @CallSecurity(CommandApiCallers)
+  public whichRelations(viewer: Stuff & CommandGiver, thing?: Stuff): WhichRelationsResult {
+    return whichRelationsImpl(viewer, thing);
+  }
 }
 
 /* ─────────────────── Affordance resolution ─────────────────── */
@@ -2999,6 +3007,36 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
     return { ok: false, reason: 'nothing-gives-verb', facts: { verb } };
   }
   return { ok: false, reason: 'no-such-verb', facts: { verb: word } };
+}
+
+/** Members of `holder`'s kept sets under `name` that are in the world now. */
+function keptCount(holder: Stuff & Relating, name: string, asker: Stuff): number {
+  const ids = new Set<string>();
+  for (const set of holder.relatedBy(name, asker)) for (const m of set.members) ids.add(m.stuffId);
+  return ids.size;
+}
+
+/** See {@link CommandApi.whichRelations}. */
+function whichRelationsImpl(viewer: Stuff & CommandGiver, thing?: Stuff): WhichRelationsResult {
+  if (thing !== undefined && thing.stuffId !== viewer.stuffId) {
+    const keeper = whichSourceOf(thing, viewer);
+    const held = MixinApi.isRelating(thing) ? thing.relationsFor(viewer) : [];
+    if (held.length === 0) return { ok: false, reason: 'keeps-nothing', facts: { thing: keeper.name } };
+    const relations = held.map((r) => ({ name: r.name, meaning: r.meaning, count: keptCount(thing as Stuff & Relating, r.name, viewer) }));
+    return {
+      ok: true,
+      facts: { ask: { mode: 'relations', command: `which ~ #${thing.stuffId}`, subjectIds: [thing.stuffId] }, groups: [], relations, keeper },
+    };
+  }
+  // ⭐ Every built-in applies to the asker; then the sets they keep (which D8).
+  const relations: WhichRelation[] = BUILTIN_RELATION_WORDS.map((w) => ({ name: w.name, meaning: w.meaning }));
+  if (MixinApi.isRelating(viewer)) {
+    for (const r of viewer.relationsFor(viewer)) {
+      if (relations.some((x) => x.name === r.name)) continue;
+      relations.push({ name: r.name, meaning: r.meaning, count: keptCount(viewer, r.name, viewer) });
+    }
+  }
+  return { ok: true, facts: { ask: { mode: 'relations', command: 'which ~' }, groups: [], relations } };
 }
 
 /* ─────────────────── Matcher helpers ─────────────────── */

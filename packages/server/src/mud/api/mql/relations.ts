@@ -26,6 +26,7 @@ import { MixinApi } from '../mixin';
 import { StuffApi } from '../stuff';
 import { PerceptionApi } from '../perception';
 import type { MqlContext } from './types';
+import { BUILTIN_RELATION_WORDS, type BuiltinRelationName } from '../../lib/relation/BuiltinRelations';
 import {
   candidateFor,
   candidatesForFlat,
@@ -40,7 +41,7 @@ import {
 /** One built-in relation. */
 export interface BuiltinRelation {
   name: string;
-  /** The one line `thing:~` prints for it. */
+  /** The one line `which ~` prints for it. */
   meaning: string;
   /** `self`: answers only when the left side is the asker. */
   whose: 'anyone' | 'self';
@@ -68,86 +69,49 @@ export function avatarOfPlayer(id: string): Stuff | null {
   return StuffApi.findByIdentityPath(`${AVATAR_IDENTITY_ROOT}/${id}`)[0] ?? null;
 }
 
-const BUILTINS: readonly BuiltinRelation[] = [
-  {
-    name: 'here',
-    meaning: 'the place you stand in',
-    whose: 'anyone',
-    members: (left, ctx) => {
-      const place = MixinApi.isContainable(left) ? left.getEnclosingPlace() : null;
-      return place ? [candidateFor(place, ctx.commandGiver)] : [];
-    },
+/** Each built-in word's set — keyed by the vocabulary, so a word with no set does not compile. */
+const MEMBERS: Record<BuiltinRelationName, BuiltinRelation['members']> = {
+  here: (left, ctx) => {
+    const place = MixinApi.isContainable(left) ? left.getEnclosingPlace() : null;
+    return place ? [candidateFor(place, ctx.commandGiver)] : [];
   },
-  {
-    name: 'inventory',
-    meaning: 'what is carried',
-    whose: 'anyone',
-    members: (left, ctx) =>
-      left === ctx.commandGiver ? candidatesForInventory(left) : candidatesHeldBy(left, false, ctx.commandGiver),
-  },
-  {
-    name: 'peers',
-    meaning: 'what stands where you are, and one level into open things there',
-    whose: 'self',
-    members: (left) => candidatesForPeers(left),
-  },
-  {
-    name: 'reachable',
-    meaning: 'everything within reach — carried, standing here, and the place',
-    whose: 'self',
-    members: (left) => candidatesForReachable(left),
-  },
-  {
-    name: 'person',
-    meaning: 'your body and what you wear and hold',
-    whose: 'self',
-    members: (left) => candidatesForPerson(left),
-  },
-  {
-    name: 'horizon',
-    meaning: 'what you can see from here that is not here',
-    whose: 'self',
-    members: (left) => candidatesForFlat(PerceptionApi.horizonFor(left).things.map((t) => t.stuff), left),
-  },
-  {
-    name: 'buildings',
-    meaning: 'the buildings whose door is at hand from this place',
-    whose: 'anyone',
-    members: (left, ctx) =>
-      left.isPlace() ? candidatesForFlat(left.landedStructuresNow() as unknown as Stuff[], ctx.commandGiver) : [],
-  },
-  {
-    // ⭐ Everyone you KEEP — every contact list and every managed group you
-    // belong to (owner, naming-overhaul review: `~contacts` promised the union of
-    // every built-in; it never was). Yourself excluded.
-    name: 'contacts',
-    meaning: 'everyone on your contact lists or in your groups who is in the world',
-    whose: 'self',
-    members: (left, ctx) => {
-      if (!MixinApi.isContacts(left)) return [];
-      const out: Stuff[] = [];
-      const seen = new Set<string>([left.stuffId]);
-      const keep = (s: Stuff | null): void => {
-        if (s !== null && !seen.has(s.stuffId)) {
-          seen.add(s.stuffId);
-          out.push(s);
-        }
-      };
-      for (const e of left.allContacts()) {
-        keep(e.kind === 'avatar' ? avatarOfPlayer(e.playerId) : (StuffApi.findByIdentityPath(e.templatePath)[0] ?? null));
+  inventory: (left, ctx) =>
+    left === ctx.commandGiver ? candidatesForInventory(left) : candidatesHeldBy(left, false, ctx.commandGiver),
+  peers: (left) => candidatesForPeers(left),
+  reachable: (left) => candidatesForReachable(left),
+  person: (left) => candidatesForPerson(left),
+  horizon: (left) => candidatesForFlat(PerceptionApi.horizonFor(left).things.map((t) => t.stuff), left),
+  buildings: (left, ctx) =>
+    left.isPlace() ? candidatesForFlat(left.landedStructuresNow() as unknown as Stuff[], ctx.commandGiver) : [],
+  // ⭐ Everyone you KEEP — every contact list and every managed group you
+  // belong to (owner, naming-overhaul review: `~contacts` promised the union of
+  // every built-in; it never was). Yourself excluded.
+  contacts: (left, ctx) => {
+    if (!MixinApi.isContacts(left)) return [];
+    const out: Stuff[] = [];
+    const seen = new Set<string>([left.stuffId]);
+    const keep = (s: Stuff | null): void => {
+      if (s !== null && !seen.has(s.stuffId)) {
+        seen.add(s.stuffId);
+        out.push(s);
       }
-      for (const g of left.residentGroups()) {
-        for (const id of g.memberIds) keep(id.startsWith('/') ? (StuffApi.findByIdentityPath(id)[0] ?? null) : avatarOfPlayer(id));
-      }
-      return candidatesForFlat(out, ctx.commandGiver);
-    },
+    };
+    for (const e of left.allContacts()) {
+      keep(e.kind === 'avatar' ? avatarOfPlayer(e.playerId) : (StuffApi.findByIdentityPath(e.templatePath)[0] ?? null));
+    }
+    for (const g of left.residentGroups()) {
+      for (const id of g.memberIds) keep(id.startsWith('/') ? (StuffApi.findByIdentityPath(id)[0] ?? null) : avatarOfPlayer(id));
+    }
+    return candidatesForFlat(out, ctx.commandGiver);
   },
-  { name: 'it', meaning: 'the thing you last named', whose: 'self', members: stash('it') },
-  { name: 'them', meaning: 'the things you last named', whose: 'self', members: stash('them') },
-  { name: 'him', meaning: 'the man you last named', whose: 'self', members: stash('him') },
-  { name: 'her', meaning: 'the woman you last named', whose: 'self', members: stash('her') },
-  { name: 'last', meaning: 'what your last query found', whose: 'self', members: stash('last') },
-];
+  it: stash('it'),
+  them: stash('them'),
+  him: stash('him'),
+  her: stash('her'),
+  last: stash('last'),
+};
+
+const BUILTINS: readonly BuiltinRelation[] = BUILTIN_RELATION_WORDS.map((w) => ({ ...w, members: MEMBERS[w.name] }));
 
 /** The built-ins, by name. */
 export const BUILTIN_RELATIONS: ReadonlyMap<string, BuiltinRelation> = new Map(

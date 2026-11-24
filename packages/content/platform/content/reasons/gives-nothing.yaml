@@ -1,0 +1,5 @@
+# `which <thing>` for a thing that gives no verbs of its own (the which build).
+facts:
+  thing: text
+says: "No verbs come from {{ thing }} — it gives you nothing of its own to type."
+topic: shell.error

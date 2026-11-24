@@ -287,6 +287,7 @@ export default abstract class Avatar extends AvatarBase {
       'platform/cmd/movement/route.yaml',
       "platform/cmd/system/ping.yaml",
       "platform/cmd/system/help.yaml",
+      "platform/cmd/shell/which.yaml",
       // The wiki sits beside `help` deliberately. Both are reference
       // surfaces a player carries rather than reaches for: `help` tells
       // you what a verb does, `wiki` tells you what a thing IS. Reading

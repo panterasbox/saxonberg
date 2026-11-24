@@ -473,7 +473,7 @@ before W1.
   touched packs' own vitest green. Commit `fix(affordances): the audit —
   verbs on the hosts that mean them` (split per verb family if large).
 
-**W3 — the verb.** (D6, D7, D8, D13)
+**W3 — the verb.** ✅ *(done)* (D6, D7, D8, D13) — decided: the `~` read is its own static, `CommandApi.whichRelations(viewer, thing?)`, beside `which` (one concept, two shapes of answer); the usual line names every body verb (a cutoff count was a controller decision `lint:controller-decisions` refused — the card collapses the row instead); `opens_card: which` lands with the card id in W4; replies ride `shell.result`; the common line reads *and anything you're carrying* (W2 made that the truth).
 - `lib/relation/BuiltinRelations.ts`; `api/mql/relations.ts` reads it
   (`Record<BuiltinRelationName, members>` — a missing word is a compile
   error).

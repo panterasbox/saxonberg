@@ -1,0 +1,58 @@
+verbs: [which]
+category: shell
+controller: /platform/idea/cmd/shell/WhichController
+description: "What you can type here, and what gives you each verb"
+help: |
+  `which` lists the verbs you can type where you stand, grouped by what
+  gives you each one — *fish — the rod in your right hand*, *buy — the
+  counter here*. The most unusual sources come first. Two closing lines
+  gather the rest: *and anything you're carrying* (what every article you
+  hold lets you do — throw it, tap it) and *and the usual* (what your own
+  body can always do). A verb you cannot use right now is listed with the
+  reason, in the words the verb itself would refuse you with.
+
+  `which <thing>` lists what that one thing lets you do. `which <verb>`
+  says what gives you that verb here — or, in one line, that nothing does
+  (`help <verb>` has its shape). ⭐ A word that names something within
+  reach is read as that thing; a word that names nothing here is read as
+  a verb.
+
+  `which ~` lists the `~` words you can type — `~here`, `~inventory`,
+  your contact lists and groups — each with what it means. `which ~
+  <thing>` lists the ones a thing keeps (a charter book's `~ships`).
+
+  `which` only reads; it never does anything. Typed, it also puts up a
+  card that stays current while you play; click a verb on it to put the
+  verb on your command line.
+examples:
+  - cmd: which
+    note: Everything you can type here
+  - cmd: which counter
+    note: What the counter lets you do
+  - cmd: which fish
+    note: What gives you `fish` here
+  - cmd: which ~
+    note: The ~ words you can type
+fallthrough: true
+args:
+  # `which counter` / `which fish` — one word, read as a thing first (the
+  # model decides; a thing and a verb cannot be two shapes, which D6).
+  - name: what
+    type: string
+    required: false
+subcommands:
+  "~":
+    controller: /platform/idea/cmd/shell/WhichRelationsController
+    description: "The ~ words you can type, or the ones a thing keeps"
+    help: |
+      Bare `which ~` lists every `~` word you can type with its meaning,
+      and how many of each of your own lists are in the world now.
+      `which ~ <thing>` lists only the ones that thing keeps.
+    examples:
+      - cmd: which ~ book
+        note: What the charter book keeps
+    args:
+      - name: thing
+        type: object
+        required: false
+        scope: ["~reachable"]

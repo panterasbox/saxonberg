@@ -224,4 +224,21 @@ describe('which — what can I type here (W1)', () => {
       expect(of(Bell, 'peers')).toContain('ring');
     });
   });
+
+  describe('which ~ (W3)', () => {
+    it('lists every built-in word with its meaning', () => {
+      const r = CommandApi.whichRelations(me as never);
+      expect(r.ok).toBe(true);
+      if (!r.ok) return;
+      const names = r.facts.relations!.map((x) => x.name);
+      expect(names).toEqual(expect.arrayContaining(['here', 'inventory', 'peers', 'contacts']));
+      expect(r.facts.relations!.find((x) => x.name === 'here')?.meaning).toBe('the place you stand in');
+      expect(r.facts.ask.command).toBe('which ~');
+    });
+
+    it('a thing that keeps nothing says so', () => {
+      const l = lever();
+      expect(CommandApi.whichRelations(me as never, l)).toMatchObject({ ok: false, reason: 'keeps-nothing', facts: { thing: 'the lever' } });
+    });
+  });
 });

@@ -467,6 +467,11 @@ export type WhichResult =
   | { ok: false; reason: 'gives-nothing'; facts: { thing: string } }
   | { ok: false; reason: 'nothing-gives-verb' | 'no-such-verb'; facts: { verb: string } };
 
+/** What {@link CommandApi.whichRelations} answers: the `~` words, or `keeps-nothing`. */
+export type WhichRelationsResult =
+  | { ok: true; facts: WhichAnswer }
+  | { ok: false; reason: 'keeps-nothing'; facts: { thing: string } };
+
 export interface AffordanceResolution {
   verbs: AffordanceEntry[];
   composition: CompositionEntry[];
@@ -2287,6 +2292,16 @@ export class CommandApi {
    */
   static which(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
     return logic().which(viewer, what);
+  }
+
+  /**
+   * ⭐ **Which `~` words can this viewer type?** — `which ~`: every
+   * built-in word with its meaning, then the sets the viewer keeps (lists,
+   * groups, a party) with how many of each are in the world. Given a
+   * `thing`, only the sets that thing keeps (`which ~ book`).
+   */
+  static whichRelations(viewer: Stuff & CommandGiver, thing?: Stuff): WhichRelationsResult {
+    return logic().whichRelations(viewer, thing);
   }
 
   /**
