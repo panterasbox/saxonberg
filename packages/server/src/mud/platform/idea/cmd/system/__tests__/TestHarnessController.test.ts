@@ -253,6 +253,10 @@ describe('testharness controllers', () => {
       const sv = vi.spyOn(TestHarnessApi, 'severBodyPart').mockResolvedValue({ ...wound, type: 'avulsion' });
       await run({ subcommand: 'body-sever', target: { stuff: cow }, part: 'body.leg.frontLeft' });
       expect(sv).toHaveBeenCalledWith('#c1', 'body.leg.frontLeft', null);
+      // ⭐ A target that bound no thing forwards what was typed — a player's
+      // name a stranger cannot see by (the walk's crash on `stuffId`).
+      await run({ subcommand: 'body-sever', target: { stuff: null, raw: 'Mara' }, part: 'body.leg.frontLeft' });
+      expect(sv).toHaveBeenLastCalledWith('Mara', 'body.leg.frontLeft', null);
       // ⭐ The third word seals the stump (D7's burned crab).
       await run({ subcommand: 'body-sever', target: { stuff: cow }, part: 'body.leg.frontLeft', sealedBy: 'heat' });
       expect(sv).toHaveBeenLastCalledWith('#c1', 'body.leg.frontLeft', 'heat');

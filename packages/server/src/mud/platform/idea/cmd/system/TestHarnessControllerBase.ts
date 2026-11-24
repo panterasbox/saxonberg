@@ -132,9 +132,16 @@ export abstract class TestHarnessControllerBase extends CommandController<TestHa
    * (`#<stuffId>`): the binder resolved the object, the Api names it by id.
    */
   protected static bodyOf(model: TestHarnessModel): string {
-    const stuff = model.target?.stuff as Stuff | undefined;
-    if (stuff === undefined) throw new Error('testharness: name a body');
-    return `#${stuff.stuffId}`;
+    const stuff = model.target?.stuff as Stuff | null | undefined;
+    if (stuff) return `#${stuff.stuffId}`;
+    // ⭐ What the wizard typed, when it bound no thing (organism-biology
+    // walk: a player's character name is not a name a stranger can see by,
+    // so the bind came back null and the subcommand crashed reading
+    // `stuffId`). The harness resolves a handle itself — `#id`, a path, a
+    // resident character's name.
+    const raw = model.target?.raw?.trim();
+    if (raw) return raw;
+    throw new Error('testharness: name a body');
   }
 
   protected static say(context: CommandContext, text: string): void {

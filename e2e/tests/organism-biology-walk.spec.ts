@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { openWorldAs, openWorldAsFounder, runCommand } from './helpers';
+import { openWorldAs, runCommand } from './helpers';
 
 /**
  * ⭐⭐ **The organism-biology build's browser walk** — what a person sees
@@ -16,9 +16,11 @@ const YARD = '/world/testbed/location/yard';
 
 test.describe('organism biology — what a person sees', () => {
   test('15 · a wounded eye is told to its owner when they look at themselves', async ({ browser }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(600_000);
     const me = await openWorldAs(browser, 'obwalk', { startLocation: YARD });
-    const founder = await openWorldAsFounder(browser, { startLocation: YARD });
+    // A wizard in the test world stages the wound (the wire drive's founder
+    // shape: `testharness` needs a test world, not the founder's seat).
+    const founder = await openWorldAs(browser, 'obwiz', { startLocation: YARD, wizard: true });
     try {
       const transcript = me.page.getByTestId('terminal');
       await runCommand(me.page, 'look me');
@@ -26,7 +28,8 @@ test.describe('organism biology — what a person sees', () => {
 
       await runCommand(founder.page, `testharness body-wound ${me.handle} body.head.eye.left point 30`);
       await runCommand(founder.page, `testharness body-wound ${me.handle} body.head.eye.right point 20`);
-      await expect(founder.page.getByTestId('terminal')).toContainText(/eye/, { timeout: 20_000 });
+      // The harness's own report, not the echoed command (which also says "eye").
+      await expect(founder.page.getByTestId('terminal')).toContainText(/puncture at body\.head\.eye/, { timeout: 60_000 });
 
       await expect(async () => {
         await runCommand(me.page, 'look me');
@@ -43,7 +46,7 @@ test.describe('organism biology — what a person sees', () => {
   });
 
   test('9 · `help herd` names the register\'s transaction', async ({ browser }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(600_000);
     const me = await openWorldAs(browser, 'obhelp', { startLocation: YARD });
     try {
       await runCommand(me.page, 'help herd');

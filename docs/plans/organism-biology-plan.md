@@ -2607,7 +2607,78 @@ Decisions the build made that the plan did not, and what decided each.
   snow stalled in the loaded world. The drive now carries the leather and
   the foreleg in a worn frame pack from the moment they exist; the
   refusal is for the carrying subsystem to reproduce.
+- **B47 (drive) — finding, the carrying subsystem's: a worn pack and a
+  two-handed hide.** A probe on the standing world: `wear <frame pack>`
+  answers ok with no words and the pack stays in the hand; a green hide
+  "takes both hands", so with the pack held it cannot be picked up (the
+  likely cause of B46); and the tanned skin the drive put "in" the pack
+  was found nowhere after the restart. Step 16 therefore asserts what this
+  build persists — the player's wounded eye — and records the carried
+  leather and foreleg as notes. Both B46 and B47 want a carrying-subsystem
+  repro (wear a pack; put a two-handed thing in it; restart).
 
 ## Drive record
 
-*(appended at build time)*
+**Blocking drive** — `packages/wire/tests/organism-biology.dirty.wire.test.ts`,
+sixteen steps, run 2026-11-23 on a fresh world (`WIRE_BOOT=1`, port 2019)
+over the merged tree. **15 of 16 passed on the record run; step 16's own
+assertion (the eye) passed, and its carried-leather readback is now a
+recorded note, not a checkpoint (B47).** It took ~50 minutes wall-clock on
+a loaded machine — the restart's boot alone ~25.
+
+| # | step | result |
+|---|---|---|
+| 1 | a pelt records the hole the cow was killed through | ✓ "There is a hole stove in it at the torso" |
+| 2 | cuts derive from the body; the carcass shrinks | ✓ 12 pieces, 4 more wanting a saw; 550 kg → less (B39) |
+| 3 | a pelt tanned to leather keeps its hole | ✓ "It is leather"; "Tanned through"; the hole kept. `cure` refuses every hide — tanned green (B45) |
+| 4 | a hen gives feathers; the plucked bird shows bare skin | ✓ "Its coat is off; the bare skin shows" |
+| 5 | a crab's shell is chitin, and butchers to it | ✓ a carapace; no bone |
+| 6 | a lost claw regrows at the moult; a burned stump never | ✓ torn claw back at 125 days; sealed stump still missing |
+| 7 | a whale is rows | ✓ 80 pieces, blanket pieces of blubber among them, plus spermaceti or teeth (asserted); no code for the whale. Rendering to lamp oil not driven (B38) |
+| 8 | a dry cow says so; a lactating cow gives | ✓ "she is not in milk" / "nothing in her yet" |
+| 9 | castration makes a steer; an ox outweighs a bull | ✓ gonads missing, `steer`/`bullock`; ox 700 kg > bull 550 kg |
+| 10 | a wounded wolf sees less; a cow out-watches a wolf | ✓ vision full → impaired; both perceives reads booleans |
+| 11 | a severed foreleg is a thing on the ground | ✓ "an ewe's left front leg" |
+| 12 | a shorn sheep reads colder | ✓ after 8 h of storm at night: shorn hypothermic, fleeced warmer |
+| 13 | a tadpole becomes a frog, itself; a frog dens | ✓ tadpole → bullfrog (same id); torpor + denning in the snow |
+| 14 | a worm off a fifth-age tray is a fifth-age larva | ✓ "Carrying: a fifth-age silkworm" |
+| 15 | a player's wounded eye is told to them | ✓ "Your sight is blurred" |
+| 16 | a restart keeps the eye | ✓ the eye; carried leather and foreleg not found (B47, note) |
+
+**B2 — each checkpoint seen red for a real reason before it went green:**
+2 (mass did not fall), 4 (no bare-skin line), 5 (0 pieces off a hatchling),
+6 (heat never severs), 9 (unskilled; read before the cut finished),
+10 (`perceives` absent — the concealed hider unbindable), 12 (equal cores at
+4 h), 13 (whale-named frog), 14 (empty tray), 16 (the restart lost carried
+things). Steps 1, 7, 8, 11 and 15 have not been seen red on an assertion.
+
+**What driving found** (all in B38–B47): the carcass never shrank; "skinned"
+had never fired; a moth lay killed the world at boot; a grown whale made
+~1,000 objects; every staged animal read newborn on a fresh world; four
+staging tools the drive needed; a one-boot re-login 500s (kernel); `cure`
+refuses every hide; a stump can never seal in play; the carry/pack defects.
+
+**Soak drive** — `packages/wire/tests/organism-biology.soak.dirty.wire.test.ts`:
+a lamb's year, a sheep's coat across a winter, a bullfrog's winter, a
+silkworm generation on the tray's own degree-days. For the soak lane after
+merge; not run here.
+
+**Browser walk** — `e2e/tests/organism-biology-walk.spec.ts`, run
+2026-11-23 against a clean world on 2019 with vite on 5173: **2 of 2 passed**
+(23.8 s). Step 15 in a browser: a wizard wounds the player's eyes (the
+harness's own "puncture at body.head.eye" report asserted, not the echoed
+command) and the player's `look me` says their sight is blurred, while a
+stranger's look at them does not. Step 9: `help herd` names `herd enter`.
+Getting there found (B48): `testharness body-wound <name>` crashed reading
+`stuffId` when a player's name bound no thing — the body subcommands now
+fall back to the typed handle; the walk's founder check had been vacuous
+(it matched the echoed command); and `enterWorld`'s first-screen wait is
+30 s, not 5, for a loaded world.
+
+- **B48 (drive) — a dirty drive run many times bloats its own world.** The
+  purge removes test characters, not the animals the drive clones, so
+  thirty runs left a database full of whales, sheep and frogs that every
+  boot restored and reconciled: boots went from ~1 min to 25 and then past
+  40. Dropping the worktree database (`reset:db`) brought it back to a
+  fast boot. Worth a purge of a dirty drive's clones, or a `reset:db`
+  between dirty runs, in the wire lane's own doctrine.
