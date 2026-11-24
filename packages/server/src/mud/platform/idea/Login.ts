@@ -44,7 +44,8 @@ import { SaxonbergClientMixin } from "../../lib/connection/SaxonbergClient";
 import { SensorMixin } from "../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../lib/command/CommandGiver";
 import { GoogleProfile } from "../../lib/identity/GoogleProfile";
-import Avatar from "../../lib/character/Avatar";
+import Avatar, { type ArrivalWatching } from "../../lib/character/Avatar";
+import { Refusal } from "../../lib/errors";
 import type { CommandContributions } from "../../api/command";
 import type {
   MessageFrame,
@@ -217,7 +218,11 @@ export default class Login extends LoginBase {
     const avatar = await Login.mintRandomGuestAvatar(interactive.getUser());
     interactive.transferTo(avatar);
     console.info(`Login: Guest connected - ${avatar.getFullName()}`);
-    await avatar.enter(interactive, { firstArrival: true });
+    // ⭐ The guest's two words, off the socket (stream arrival D4).
+    await avatar.enter(interactive, {
+      firstArrival: true,
+      watching: interactive.getArrivalWatching(),
+    });
     StuffApi.destruct(this);
   }
 
@@ -369,7 +374,33 @@ export default class Login extends LoginBase {
    * Interactive, starts the avatar's session, and destructs Login.
    * Invoked by `PlayController` for `play <playerId>`.
    */
-  public async playCharacter(playerId: string): Promise<boolean> {
+  /**
+   * ⭐ Read `--watch <program>` and its carrier flag (stream arrival D4) —
+   * the one parse `play` and `embody confirm` share. Nothing asked → null;
+   * a name with no carrier, two carriers, or a name that is not a short
+   * name → a refusal (the client never sends those; a typist is told).
+   * Whether the program exists and is on the air is the entry's to decide.
+   */
+  public readWatching(opts: {
+    watch?: string;
+    twitch?: boolean;
+    youtube?: boolean;
+    kick?: boolean;
+  }): ArrivalWatching | null | Refusal {
+    const program = (opts.watch ?? '').trim().toLowerCase();
+    const carriers = (['twitch', 'youtube', 'kick'] as const).filter((c) => opts[c] === true);
+    if (program === '' && carriers.length === 0) return null;
+    if (program === '' || carriers.length !== 1) return new Refusal('watch-needs-carrier', {});
+    if (!/^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])$/.test(program)) {
+      return new Refusal('no-such-program', { name: program });
+    }
+    return { program, carrier: carriers[0]! };
+  }
+
+  public async playCharacter(
+    playerId: string,
+    opts: { watching?: ArrivalWatching | null } = {},
+  ): Promise<boolean> {
     const user = this.interactive.getUser();
     if (!user.playerIds.includes(playerId)) return false;
 
@@ -396,7 +427,9 @@ export default class Login extends LoginBase {
     )) as typeof restored;
     this.interactive.transferTo(avatar);
     console.info(`Login: User connected - ${avatar.getFullName()}`);
-    await avatar.enter(this.interactive);
+    // ⭐ An explicit entry: arriving watching, or plainly (which clears any
+    // visit mode) — never the reconnect shape (D4).
+    await avatar.enter(this.interactive, { watching: opts.watching ?? null });
     StuffApi.destruct(this);
     return true;
   }

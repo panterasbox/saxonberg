@@ -90,11 +90,7 @@ export default class AppStore extends Idea {
 
   /** Residency veto — the store's home; never culled. */
   public canEvict(_context: EvictionContext): VetoResult {
-    return { ok: false, reason: "the app store; never culled" };
-  }
-
-  public canDestruct(): VetoResult {
-    return { ok: false, reason: "the app store is a system singleton" };
+    return { ok: false, reason: "system singleton; never culled" };
   }
 }
 

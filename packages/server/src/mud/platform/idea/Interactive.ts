@@ -38,7 +38,13 @@ import type {
   ArrangementCard,
   TerminalFilter,
 } from '@saxonberg/types';
-import { SUBSCRIPTION_SOURCES, ARRIVAL_DOORS, type ArrivalDoor } from '@saxonberg/types';
+import {
+  SUBSCRIPTION_SOURCES,
+  ARRIVAL_DOORS,
+  PROGRAM_CARRIERS,
+  type ArrivalDoor,
+  type ProgramCarrier,
+} from '@saxonberg/types';
 import type { CardOpenOptions, CardListing, CardArrangeAction } from './CardRegistry';
 import type {
   ChoicePromptOpts,
@@ -216,6 +222,25 @@ export default class Interactive extends Idea {
     this.arrivedFrom = (ARRIVAL_DOORS as readonly string[]).includes(value ?? '')
       ? (value as ArrivalDoor)
       : null;
+  }
+
+  /**
+   * What the guest asked to arrive watching (stream arrival D4) — the two
+   * words off the socket URL, validated here (a short name, a carrier), and
+   * read ONLY by `Login.enterAsGuest`. Runtime only.
+   */
+  protected arrivalWatching: { program: string; carrier: ProgramCarrier } | null = null;
+  public getArrivalWatching(): { program: string; carrier: ProgramCarrier } | null {
+    return this.arrivalWatching;
+  }
+  public setArrivalWatching(value: { program: string; carrier: string } | null): void {
+    const program = (value?.program ?? '').trim().toLowerCase();
+    const carrier = (value?.carrier ?? '').trim().toLowerCase();
+    this.arrivalWatching =
+      /^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])$/.test(program) &&
+      (PROGRAM_CARRIERS as readonly string[]).includes(carrier)
+        ? { program, carrier: carrier as ProgramCarrier }
+        : null;
   }
 
   constructor(socketId: string, sessionId: string, user: User) {

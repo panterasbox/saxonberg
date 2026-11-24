@@ -34,7 +34,7 @@ import { MixinApi } from "../../../../api/mixin";
 import { ContractApi } from "../../../../api/contract";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { Template } from "../../../../lib/stuff/Template";
-import Avatar from "../../../../lib/character/Avatar";
+import Avatar, { type ArrivalWatching } from "../../../../lib/character/Avatar";
 import type PrimaryAvatar from "../../../agent/PrimaryAvatar";
 import type { StartingKitEntry } from "../../../agent/PrimaryAvatar";
 import Login from "../../Login";
@@ -97,6 +97,11 @@ const PRONOUN_OPTIONS: CharGenOption[] = PLAYER_PRONOUNS.map((v) => ({
 export interface EmbodyModel extends CommandModel {
   /** The raw `<field> <value...>` tail; split inside execute. */
   rest?: string;
+  /** `embody confirm --watch <program> --<carrier>` (stream arrival D4). */
+  watch?: string;
+  twitch?: boolean;
+  youtube?: boolean;
+  kick?: boolean;
 }
 
 // ---- Content config (rosters) -------------------------------------
@@ -625,6 +630,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
   public async commit(
     draft: CharacterDraft,
     cfg: CharGenConfig,
+    opts: { watching?: ArrivalWatching | null } = {},
   ): Promise<void> {
     const context = this.ctx;
     const login = context.commandGiver as unknown as Login;
@@ -767,7 +773,7 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
 
     // 6. Hand off to the avatar's session, then destruct Login.
     interactive.transferTo(avatar);
-    await avatar.enter(interactive, { firstArrival: true });
+    await avatar.enter(interactive, { firstArrival: true, watching: opts.watching ?? null });
     if (sexRefused !== null) {
       MessageApi.scene(avatar)
         .topic("act.deed")

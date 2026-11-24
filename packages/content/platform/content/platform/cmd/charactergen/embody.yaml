@@ -33,3 +33,25 @@ subcommands:
   confirm:
     controller: /platform/idea/cmd/charactergen/EmbodyConfirmController
     description: "Commit the draft and drop into the world (refused with what is still to choose)"
+    help: |
+      Commit the draft and drop into the world. `--watch <program>` with
+      `--twitch`, `--youtube` or `--kick` arrives watching that program's
+      stream — in watch mode, for this visit only — while it is on the air.
+    options:
+      watch:
+        type: string
+        field: watch
+        description: "Arrive watching this program (its short name) — with one carrier flag"
+      twitch:
+        type: boolean
+        field: twitch
+        description: "Watch it on Twitch"
+      youtube:
+        type: boolean
+        field: youtube
+        description: "Watch it on YouTube"
+      kick:
+        type: boolean
+        field: kick
+        description: "Watch it on Kick"
+

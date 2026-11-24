@@ -160,11 +160,16 @@ export class WebSocketService {
       // Delegate to Backend. `?from=` is the door a tagged link names
       // (stream arrival D7) — a closed vocabulary, anything else is none.
       const from = this.readQueryParam(request.url, 'from');
+      // The guest's arrival words (stream arrival D4); the Interactive
+      // validates them and only the guest mint reads them.
+      const watch = this.readQueryParam(request.url, 'watch');
+      const carrier = this.readQueryParam(request.url, 'carrier');
       this.backend.handleWebSocketConnect(ws, userId, sessionId, {
         kind: 'player',
         clientIp,
         // The Interactive keeps only the four door words (D7).
         arrivedFrom: from,
+        arrivalWatch: watch && carrier ? { program: watch, carrier } : null,
       });
     });
   }
