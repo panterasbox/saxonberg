@@ -167,16 +167,14 @@ describe('the chamber and the charge', () => {
     expect(kiln.getDraught()).toBeCloseTo(0.2, 6);
   });
 
-  it('a hold that is not a duration is refused', async () => {
-    loadStone();
-    expect(declinedFor(await fire({ hold: 'a while' }))).toBe('bad-duration');
-  });
+  // (A hold that is not a duration is the VIEW's refusal now —
+  // durationSlot.binder.test, naming overhaul D-C6.)
 });
 
 describe('⭐⭐ the material decides — the verb only holds the heat', () => {
   it('a charge the test INVENTED turns, in a bare Oven, by its own transition', async () => {
     const piece = loadStone(5);
-    const ctx = await fire({ hold: '3 hours' });
+    const ctx = await fire({ hold: 3 * 3600 });
     expect(declinedFor(ctx)).toBeUndefined();
     await completeStep(3 * 3600 * 1000);
     for (let i = 0; i < 8; i++) await new Promise<void>((r) => setTimeout(r, 0));

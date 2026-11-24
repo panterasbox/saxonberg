@@ -223,11 +223,15 @@ describe("the authored roster seeds", () => {
     expect(cat.getSpellAt("/stuff/idea/magic/Spell/firebolt")!.name).toBe("Core Firebolt");
     expect(cat.getSpellAt("/pack/ember/Spell/firebolt")!.name).toBe("Ember Firebolt");
 
-    // The short name is ambiguous, and says so rather than pretending.
-    expect(cat.pathsNamed("firebolt")).toHaveLength(2);
-    // A player typing it gets one — a disambiguation problem, not a
-    // corrupted pointer, which is the whole distinction.
-    expect(cat.getSpellNamed("firebolt")).not.toBeNull();
+    // The short name is ambiguous, and says so rather than pretending: a
+    // TIE the player is asked between (naming overhaul D-C5), never the
+    // first silently — a disambiguation problem, not a corrupted pointer.
+    const named = cat.spellNamed("firebolt");
+    expect(named.kind).toBe("tie");
+    expect(named.kind === "tie" ? named.titles : []).toEqual(["Ember Firebolt", "Core Firebolt"]);
+    expect(cat.getSpellNamed("firebolt")).toBeNull();
+    // Its name's own word picks one out.
+    expect(cat.spellNamed("ember firebolt")).toMatchObject({ kind: "one" });
 
     // …and the descriptor carries its own key, so anything holding a
     // descriptor can store a reference that survives the collision.

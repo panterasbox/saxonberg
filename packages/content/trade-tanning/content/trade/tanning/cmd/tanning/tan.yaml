@@ -27,7 +27,7 @@ args:
   - name: hide
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     # ⭐ The hide is the host set: only a thing that can tan is a thing
     # you can tan. A sack of flour fails at the binder, and correctly —
     # there is nothing useful to say to somebody tanning flour.
@@ -43,6 +43,6 @@ args:
     type: objects
     required: false
     prepositions: [in, into]
-    default: "reachable:[mixin.ContainerMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ContainerMixin]"
+    scope: ["~peers", "~person"]
     requires: [ContainerMixin]

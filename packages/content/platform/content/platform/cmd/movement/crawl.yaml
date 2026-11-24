@@ -16,7 +16,7 @@ args:
     type: object
     # Ways only, like `go` and `sneak`: the word names a way, or a vessel
     # standing here entered by its entry-exit.
-    scope: ["me:e:exits", "reachable:[class.ExitableVessel]"]
+    scope: ["me:e:exits", "~reachable:[class.ExitableVessel]"]
     required: true
     validators:
       - /lib/command/validators/canReach

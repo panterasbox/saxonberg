@@ -569,7 +569,7 @@ suite('19 · 20 · 25 · sight at sea', () => {
     expect(seen).toMatch(LIGHT);
     // `horizon:light`, explicitly: `measure` tries `$focus` first, and the focus
     // still points below decks after step 30 (the hold lamp answers to `light`).
-    const r = await me.cmd('measure bearing horizon:light');
+    const r = await me.cmd('measure bearing ~horizon:light');
     expectOk(r);
     expect(squash(await r.said())).toMatch(/The light on Gannet Rock bears \d{3}° ± [\d.]+°\. .*fixes you to within/);
   }, 600_000);

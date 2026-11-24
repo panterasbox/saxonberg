@@ -45,7 +45,7 @@ args:
   - name: goods
     type: object
     required: true
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     requires: ContainableMixin
   - name: destination
     type: string
@@ -67,8 +67,8 @@ args:
     type: object
     required: false
     prepositions: [at]
-    default: "reachable:[mixin.ShipmentDeskMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.ShipmentDeskMixin]"
+    scope: ["~peers", "~person"]
     requires: [ShipmentDeskMixin]
 options:
   worth:

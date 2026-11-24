@@ -22,6 +22,13 @@ declare module './types' {
      * lands `detailPath: ['bookcase', 'book']` on the room match).
      */
     detailPath?: string[];
+    /**
+     * ⭐ The kept set a match was reached through (naming overhaul D-B6):
+     * `me:~friends:iffy` binds Iffy with `relation: { holder: <you>,
+     * name: 'friends' }` — so `contacts remove` knows which list without
+     * re-reading what was typed. Built-ins carry it too.
+     */
+    relation?: { holder: import('../../lib/stuff/Stuff').Stuff; name: string; meaning: string };
   }
 }
 

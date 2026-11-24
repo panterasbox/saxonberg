@@ -111,6 +111,12 @@ import { Mml } from '../../../api/mml';
 import { ContentError, Refusal, Unavailable, type RefusalFacts } from '../../../lib/errors';
 import ReasonCatalogue from '../ReasonCatalogue';
 
+/** The document store and the installer — the callers of a kind's service. */
+const DocumentServiceCallers = SecurityPolicies.AnyOf(
+  SecurityPolicies.FromModule('/platform/idea/api/DocumentLogic#DocumentLogic'),
+  SecurityPolicies.FromModule('/platform/idea/api/PackLogic#PackLogic'),
+);
+
 const CommandApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/command#CommandApi'),
   SecurityPolicies.SelfOnly
@@ -578,7 +584,11 @@ function viasAligned(r: MqlMany, kept: readonly Stuff[]): (MqlMatchVia | undefin
 function scopeTries(yamlScopes: readonly string[], giver: Stuff): string[] {
   const tries = yamlScopes.map((s) => ShellApi.expandVariables(s, giver));
   return tries.filter(
-    (t, i) => !(t.trim().toLowerCase() === 'here' && tries.slice(i + 1).some((u) => u.trim().toLowerCase() === 'reachable')),
+    (t, i) =>
+      !(
+        ['here', '~here'].includes(t.trim().toLowerCase()) &&
+        tries.slice(i + 1).some((u) => u.trim().toLowerCase() === '~reachable')
+      ),
   );
 }
 
@@ -760,11 +770,34 @@ async function scopedMany(
       throw err;
     }
   };
-  const named = await ask(admits);
+  const named = await settleRelationTie(await ask(admits), context);
   const seen = perceivedOf(named, giver);
   if (seen.stuff.length > 0 || named.stuff.length === 0 || named.isSet) return seen;
   const sees = (s: Stuff): boolean => PerceptionApi.perceives(giver, s) && (admits ? admits(s) : true);
   return perceivedOf(await ask(sees), giver);
+}
+
+/**
+ * ⭐ A name two of your own sets share (a contact list and a group both
+ * called `bookclub` — naming overhaul D-B11): the player is asked which,
+ * and the chosen set's matches are kept. A script never prompts — the
+ * tie is the refusal (`requireInteractive` says so).
+ */
+async function settleRelationTie(r: MqlMany, context: CommandContext): Promise<MqlMany> {
+  const tie = r.relationTie;
+  if (tie === undefined) return r;
+  const interactive = context.requireInteractive(`to know which ~${tie.name} you mean (${tie.sets.join(' or ')})`);
+  if (!interactive) return { stuff: [] };
+  const chosen = await interactive.promptChoice(
+    `~${tie.name} — which do you mean?`,
+    tie.sets.map((meaning) => ({ label: meaning, response: meaning })),
+  );
+  const keep = r.stuff.map((_, i) => i).filter((i) => r.vias?.[i]?.relation?.meaning === chosen);
+  const out: MqlMany = { ...r, stuff: keep.map((i) => r.stuff[i]!) };
+  delete out.relationTie;
+  if (r.vias) out.vias = keep.map((i) => r.vias![i]);
+  if (r.tiers) out.tiers = keep.map((i) => r.tiers![i]!);
+  return out;
 }
 
 @Unshadowable
@@ -837,18 +870,28 @@ export class CommandLogic extends ApiLogic {
   /** See {@link CommandApi.reload}. */
   @CallSecurity(CommandApiCallers)
   public async reload(docPath: string): Promise<boolean> {
-    const key = viewKeyOf(docPath);
-    commands.delete(key);
-    if (!storeAvailable()) return false;
-    const doc = await DocumentApi.read(docPath);
-    if (!doc || doc.getKind() !== 'command-view') return false;
-    const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
-    // ⛔ A CMS reload cannot sneak a test-world verb into a played world.
-    if (!admitsView(cmd)) return false;
-    await resolveCommandValidators(cmd);
-    validateCommandEffects(cmd);
-    commands.set(key, cmd);
-    return true;
+    return reloadView(docPath);
+  }
+
+  /**
+   * ⭐ The command-view kind's service (its declaration's `catalogued.by`):
+   * an edited view reloads from the store, a deleted one drops from the
+   * cache (the next read falls to disk). Every path when omitted.
+   */
+  @CallSecurity(DocumentServiceCallers)
+  public async forget(paths?: readonly string[]): Promise<void> {
+    if (paths === undefined) {
+      commands.clear();
+      return;
+    }
+    for (const p of paths) await reloadView(p);
+  }
+
+  /** A view's meaning, checked at install and at every save: it conforms to the command schema. */
+  @CallSecurity(DocumentServiceCallers)
+  public parse(data: Record<string, unknown>, _path: string): void {
+    const trail = commandViewTrail(data);
+    if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);
   }
 
   /** See {@link CommandApi.preloadAll}. */
@@ -1240,7 +1283,7 @@ export class CommandLogic extends ApiLogic {
         continue;
       }
       const r = bindOptionToken(command, 'verb', tokens, i, fields);
-      if (!r.ok) return { error: 'bind', summary: r.summary };
+      if (!r.ok) return { error: 'bind', summary: r.summary, ...(r.refusal ? { refusal: r.refusal } : {}) };
       i = r.nextIndex;
     }
 
@@ -1302,7 +1345,7 @@ export class CommandLogic extends ApiLogic {
           t.kind === 'long-with-value')
       ) {
         const r = bindOptionToken(command, scope, tokens, i, fields);
-        if (!r.ok) return { error: 'bind', summary: r.summary };
+        if (!r.ok) return { error: 'bind', summary: r.summary, ...(r.refusal ? { refusal: r.refusal } : {}) };
         i = r.nextIndex;
         continue;
       }
@@ -1312,7 +1355,7 @@ export class CommandLogic extends ApiLogic {
     }
 
     // Phase 4: bind positionals against the node's args.
-    // ⭐ `verb@source`: the named source fills the slot it fits (D2).
+    // ⭐ `source::verb`: the named source fills the slot it fits (D2).
     const bindPositionals = (
       ps: WordToken[],
       args: PositionalDefinition[],
@@ -1480,7 +1523,7 @@ export class CommandLogic extends ApiLogic {
     // own, so it widens to what is in reach.
     const seeds = (def?.scope ?? []).filter((x) => !x.startsWith('$'));
     const out = new Map<string, Stuff>();
-    for (const seed of seeds.length > 0 ? seeds : ['reachable']) {
+    for (const seed of seeds.length > 0 ? seeds : ['~reachable']) {
       try {
         for (const s of MqlApi.resolveMany(seed, { commandGiver: giver, scope: '' }).stuff) {
           out.set(s.stuffId, s);
@@ -1718,9 +1761,39 @@ export class CommandLogic extends ApiLogic {
     // below — they share the resolution shape but live in a
     // separate spec map.
     for (const [fname, def] of Object.entries(fieldDefs)) {
-      const raw = resolved[fname];
+      const typedRaw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
-      if (typeof raw !== 'string' || raw.length === 0) continue;
+      if (typeof typedRaw !== 'string' || typedRaw.length === 0) continue;
+      // ⭐ The player's query aliases respell the head word (`here` →
+      // `~here`, `it` → `~it` — naming overhaul D-B7); an authored
+      // default never carries one.
+      const raw = ShellApi.expandQueryAliases(typedRaw, giver);
+
+      // ⭐ `thing:~` lists relations and binds nothing (D-B4): the slot
+      // that lists (`lists: relations` — `query`'s) is handed the listing;
+      // any other refuses, pointing at `query`.
+      if (/:~\s*$/.test(raw)) {
+        if (def.lists !== 'relations') {
+          context.refuse({ reason: 'names-relations', facts: { query: raw } });
+          return { result: 'failed' };
+        }
+        let listing: MqlMany;
+        try {
+          listing = MqlApi.resolveMany(raw, { commandGiver: giver, scope: '~reachable' });
+        } catch (err) {
+          // @quiet not silent: reported as the slot's `mql-error` note, as every resolve failure is.
+          context.note({
+            kind: 'mql-error',
+            field: fname,
+            stage: 'resolve',
+            detail: err instanceof Error ? err.message : String(err),
+          });
+          return { result: 'failed' };
+        }
+        const bound: MqlManyResult = { stuff: [], raw, relations: listing.relations ?? [] };
+        resolved[fname] = bound;
+        continue;
+      }
 
 
       // Build the scope try-list. The YAML's `scope:` is authoritative
@@ -1930,6 +2003,12 @@ export class CommandLogic extends ApiLogic {
         if (filtered === null) return { result: 'failed' };
         const picked = filtered[0] ?? null;
         const bound: MqlOneResult = { stuff: picked, raw };
+        // ⭐ The slot took its author's `default:` — a fact about the
+        // binding, so a controller never sniffs `raw` for it (naming
+        // overhaul D-C7: `buy`'s seller).
+        // (A slot that narrows its default to what is to hand binds as
+        // though named — `canReach` words why — so it is not stamped.)
+        if (isDefault && !narrowsDefault) bound.defaulted = true;
         if (isSet) bound.isSet = true;
         if (via) bound.via = via;
         if (quantity) bound.quantity = quantity;
@@ -1985,9 +2064,15 @@ export class CommandLogic extends ApiLogic {
     // INTO the target via that arg); an option saying `--mql foo`
     // is a side-channel reference, not an inspection drill.
     for (const [fname, def] of Object.entries(optionDefs)) {
-      const raw = resolved[fname];
+      const typedRaw = resolved[fname];
       if (def.type !== 'object' && def.type !== 'objects') continue;
-      if (typeof raw !== 'string' || raw.length === 0) continue;
+      if (typeof typedRaw !== 'string' || typedRaw.length === 0) continue;
+      const raw = ShellApi.expandQueryAliases(typedRaw, giver);
+      // `thing:~` binds nothing (D-B4) — an option never lists.
+      if (/:~\s*$/.test(raw)) {
+        context.refuse({ reason: 'names-relations', facts: { query: raw } });
+        return { result: 'failed' };
+      }
 
       const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
       const tries: string[] = scopeTries(yamlScopes, giver);
@@ -2338,38 +2423,7 @@ export class CommandLogic extends ApiLogic {
   /** See {@link CommandApi.validateCommandView}. */
   @CallSecurity(CommandApiCallers)
   public validateCommandView(view: unknown): string | null {
-    const validate = commandSpecValidator();
-    if (!validate(view)) {
-      return (validate.errors ?? [])
-        .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
-        .join('\n');
-    }
-    /*
-     * ⭐ `opens_card` resolves against the CATALOGUE, not against the
-     * schema.
-     *
-     * JSON Schema could carry the enum, but then the vocabulary would
-     * live in two places and the copy in the schema would drift the
-     * first time a card is added. Checking the real `CARD_IDS` here
-     * means a typo fails at BOOT — the same posture as the lint family —
-     * rather than at first invocation, where it would look like the card
-     * silently not opening.
-     */
-    const raw = (view as { opens_card?: unknown }).opens_card;
-    const declared =
-      raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
-    for (const id of declared) {
-      if (
-        typeof id !== 'string' ||
-        !(CARD_IDS as readonly string[]).includes(id)
-      ) {
-        return (
-          `  /opens_card '${String(id)}' is not a card ` +
-          `(known: ${CARD_IDS.join(', ')})`
-        );
-      }
-    }
-    return null;
+    return commandViewTrail(view);
   }
 
   /** See {@link CommandApi.validateAgainstJsonSchema}. */
@@ -2727,6 +2781,8 @@ interface BindOk {
 interface BindErr {
   ok: false;
   summary: string;
+  /** A refusal with its own row (`bad-duration`), worded at emit. */
+  refusal?: { reason: string; facts: Record<string, string> };
 }
 
 function bindOptionToken(
@@ -2799,20 +2855,20 @@ function bindOptionToken(
     }
     // ⭐ A duration may be written as two words (`--for 2 hours`): a
     // number followed by a unit is one value.
-    const unit = tokens[i + 2];
-    const twoWord =
-      opt.def.type === 'duration' &&
-      isNumericToken(next.value) &&
-      unit?.kind === 'word' &&
-      CommandDefinition.isDurationUnit(unit.value);
-    const text = twoWord ? `${next.value} ${(unit as WordToken).value}` : next.value;
+    let width = 1;
+    if (opt.def.type === 'duration') {
+      const words: string[] = [];
+      for (let k = i + 1; k < tokens.length && tokens[k]!.kind === 'word'; k++) words.push((tokens[k] as WordToken).value);
+      width = durationWidth(words);
+    }
+    const text = tokens.slice(i + 1, i + 1 + width).map((w) => (w as WordToken).value).join(' ');
     const coerced = coerceOptionValue(opt.def, text);
     if (!coerced.ok) {
-      return { ok: false, summary: `option --${t.name}: ${coerced.error}` };
+      return { ok: false, summary: `option --${t.name}: ${coerced.error}`, ...(coerced.refusal ? { refusal: coerced.refusal } : {}) };
     }
     const r = applyOptionValue(fields, fname, opt.def, coerced.value, opt.name);
     if (!r.ok) return r;
-    return { ok: true, nextIndex: i + (twoWord ? 3 : 2) };
+    return { ok: true, nextIndex: i + 1 + width };
   }
 
   if (t.kind === 'long-with-value') {
@@ -2874,10 +2930,25 @@ interface CoerceOk {
 interface CoerceErr {
   ok: false;
   error: string;
+  /** A refusal with its own row (`bad-duration`), worded at emit. */
+  refusal?: { reason: string; facts: Record<string, string> };
+}
+
+/**
+ * ⭐ How many words a duration takes (naming overhaul D-C6): the longest
+ * run (up to four) that reads as one (`a week`, `1 hour 30 minutes`); when
+ * none does, every word offered — so `for a while` is refused as `a while`,
+ * the same line as `for soon`.
+ */
+function durationWidth(words: readonly string[]): number {
+  for (let w = Math.min(4, words.length); w >= 1; w--) {
+    if (CommandDefinition.parseDuration(words.slice(0, w).join(' ')) !== null) return w;
+  }
+  return Math.max(1, words.length);
 }
 
 function coerceOptionValue(
-  def: Pick<OptionDefinition, 'type' | 'values'>,
+  def: Pick<OptionDefinition, 'type' | 'values' | 'granularity' | 'min' | 'max'>,
   raw: string
 ): CoerceOk | CoerceErr {
   switch (def.type) {
@@ -2900,14 +2971,19 @@ function coerceOptionValue(
       return { ok: true, value: n };
     }
     case 'duration': {
-      const ms = CommandDefinition.parseDuration(raw);
-      if (ms === null) {
+      const seconds = CommandDefinition.parseDuration(raw);
+      const why =
+        seconds === null
+          ? 'write it like 90s, 15m, 2 hours or a week'
+          : CommandDefinition.durationRefusal(seconds, def);
+      if (seconds === null || why !== null) {
         return {
           ok: false,
-          error: `'${raw}' is not a duration (write it like 90s, 15m, 2h, 1h30m or 2 hours)`,
+          error: `'${raw}' is not a length of time this takes — ${why}`,
+          refusal: { reason: 'bad-duration', facts: { what: raw.trim(), why: why ?? '' } },
         };
       }
-      return { ok: true, value: ms };
+      return { ok: true, value: seconds };
     }
     case 'boolean':
       // Boolean options never take a value via this path (long-with-
@@ -3023,7 +3099,7 @@ const _compiledStructSchemas = new Map<string, ValidateFunction>();
 type WordToken = Extract<RawToken, { kind: 'word' }>;
 
 /**
- * ⭐ **The source fills the slot it fits** (`verb@source`, D2). The
+ * ⭐ **The source fills the slot it fits** (`source::verb`, D2). The
  * first positional object slot whose `requires:` the source satisfies:
  *
  *  - nothing typed there → the source is bound (a per-invocation
@@ -3058,7 +3134,7 @@ function bindWithSource(
   if (typeof typed === 'string' && typed !== ref) {
     let names: Stuff[] = [];
     try {
-      const named = MqlApi.resolveMany(typed, { commandGiver: giver, scope: 'reachable' });
+      const named = MqlApi.resolveMany(typed, { commandGiver: giver, scope: '~reachable' });
       names = PerceptionApi.perceived(giver, named.stuff, named.ordinal);
     } catch {
       names = [];
@@ -3094,7 +3170,7 @@ function bindPositionalsImpl(
    * `draught <fire> <setting>` with the setting `at`; it is the next view's
    * `draught <setting> at <fire>`.
    */
-  let unread: { error: 'bind'; summary: string } | undefined;
+  let unread: { error: 'bind'; summary: string; refusal?: { reason: string; facts: Record<string, string> } } | undefined;
   /**
    * ⭐ A typed slot's value (controller-liquidity D1): a `number` or
    * `duration` is coerced, an `enum` word canonicalized — the same
@@ -3105,7 +3181,10 @@ function bindPositionalsImpl(
     text: string
   ): CoerceOk | CoerceErr =>
     def.type === 'number' || def.type === 'duration' || def.type === 'enum'
-      ? coerceOptionValue({ type: def.type, values: def.values }, text)
+      ? coerceOptionValue(
+          { type: def.type, values: def.values, granularity: def.granularity, min: def.min, max: def.max },
+          text,
+        )
       : { ok: true, value: text };
   /** A defaulted value, coerced like a typed one (a default is the author's word). */
   const defaulted = (def: PositionalDefinition): FieldValue => {
@@ -3372,7 +3451,12 @@ function bindPositionalsImpl(
     // ⭐ A `string` slot that names a GOOD the next object offers
     // (`buy <good> from <counter>`, `shelf reclaim <good> from <shelf>`)
     // is a name too, and folds the same way (controller-liquidity W5).
-    const isObject = def.type === 'object' || def.type === 'objects' || namesAnOfferedGood(args, ai);
+    // ⭐ And a view's LAST one-word `string` slot holds a NAME a controller
+    // names by the one rule (`party adopt the wedge`, naming overhaul): it
+    // folds too. A greedy (prose) slot was bound above and keeps every word;
+    // a string slot with others after it keeps its shape.
+    const namesLast = (def.type === 'string' || def.type === undefined) && ai === args.length - 1;
+    const isObject = def.type === 'object' || def.type === 'objects' || namesLast || namesAnOfferedGood(args, ai);
     if (isObject && pi + 1 < positionals.length) {
       const head = positionals[pi]!;
       if (head.raw === head.value && FOLDED_ARTICLES.has(head.value.toLowerCase())) pi++;
@@ -3410,14 +3494,15 @@ function bindPositionalsImpl(
     // followed by a unit is one value.
     const tokenText = (): { text: string; width: number } => {
       const tok = positionals[pi]!;
-      const unit = positionals[pi + 1];
-      if (
-        def.type === 'duration' &&
-        isNumericToken(tok.value) &&
-        unit !== undefined &&
-        CommandDefinition.isDurationUnit(unit.value)
-      ) {
-        return { text: `${tok.value} ${unit.value}`, width: 2 };
+      if (def.type === 'duration') {
+        // ⭐ `a week`, `2 hours`, `1 hour 30 minutes` — up to the next
+        // slot's preposition (naming overhaul D-C6).
+        const words: string[] = [];
+        for (let k = pi; k < positionals.length && !laterPreps.has(positionals[k]!.value.toLowerCase()); k++) {
+          words.push(positionals[k]!.value);
+        }
+        const width = durationWidth(words);
+        return { text: words.slice(0, width).join(' ') || tok.value, width: Math.max(1, width) };
       }
       return { text: tok.value, width: 1 };
     };
@@ -3445,7 +3530,7 @@ function bindPositionalsImpl(
       }
       const { text, width } = tokenText();
       const c = typed(def, expand(text));
-      if (!c.ok) unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+      if (!c.ok) unread ??= { error: 'bind', summary: `${name}: ${c.error}`, ...(c.refusal ? { refusal: c.refusal } : {}) };
       bound[name] = c.ok ? c.value : text;
       pi += width;
       continue;
@@ -3464,9 +3549,10 @@ function bindPositionalsImpl(
       if (c.ok) {
         bound[name] = c.value;
         pi += width;
-      } else if (def.type === 'enum') {
-        // A closed word set refuses, naming the set — once the shape fits.
-        unread ??= { error: 'bind', summary: `${name}: ${c.error}` };
+      } else if (def.type === 'enum' || def.type === 'duration') {
+        // A closed word set refuses, naming the set — once the shape fits;
+        // a duration that will not do refuses with its row (D-C6).
+        unread ??= { error: 'bind', summary: `${name}: ${c.error}`, ...(c.refusal ? { refusal: c.refusal } : {}) };
         bound[name] = text;
         pi += width;
       } else if (def.default !== undefined) {
@@ -4936,4 +5022,56 @@ function commandSpecValidator(): ValidateFunction {
   );
   _specValidate = new Ajv({ allErrors: true, strict: false }).compile(schema);
   return _specValidate;
+}
+
+/** Why `view` does not conform to the command schema, or null. */
+function commandViewTrail(view: unknown): string | null {
+  const validate = commandSpecValidator();
+  if (!validate(view)) {
+    return (validate.errors ?? [])
+      .map((e) => `  ${e.instancePath || '/'} ${e.message ?? ''}`)
+      .join('\n');
+  }
+  /*
+   * ⭐ `opens_card` resolves against the CATALOGUE, not against the
+   * schema.
+   *
+   * JSON Schema could carry the enum, but then the vocabulary would
+   * live in two places and the copy in the schema would drift the
+   * first time a card is added. Checking the real `CARD_IDS` here
+   * means a typo fails at BOOT — the same posture as the lint family —
+   * rather than at first invocation, where it would look like the card
+   * silently not opening.
+   */
+  const raw = (view as { opens_card?: unknown }).opens_card;
+  const declared =
+    raw === undefined ? [] : Array.isArray(raw) ? raw : [raw];
+  for (const id of declared) {
+    if (
+      typeof id !== 'string' ||
+      !(CARD_IDS as readonly string[]).includes(id)
+    ) {
+      return (
+        `  /opens_card '${String(id)}' is not a card ` +
+        `(known: ${CARD_IDS.join(', ')})`
+      );
+    }
+  }
+  return null;
+}
+
+/** Reload one view from the store (dropping it from the cache first). */
+async function reloadView(docPath: string): Promise<boolean> {
+  const key = viewKeyOf(docPath);
+  commands.delete(key);
+  if (!storeAvailable()) return false;
+  const doc = await DocumentApi.read(docPath);
+  if (!doc || doc.getKind() !== 'command-view') return false;
+  const cmd = CommandDefinition.fromView(doc.getData(), join(MUD_ROOT, key));
+  // ⛔ A CMS reload cannot sneak a test-world verb into a played world.
+  if (!admitsView(cmd)) return false;
+  await resolveCommandValidators(cmd);
+  validateCommandEffects(cmd);
+  commands.set(key, cmd);
+  return true;
 }

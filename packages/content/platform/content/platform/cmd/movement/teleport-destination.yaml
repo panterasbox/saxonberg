@@ -34,7 +34,7 @@ args:
     type: object
     required: true
     onExcess: error
-    scope: ["reachable", "here", "peers"]
+    scope: ["~reachable", "~here", "~here:exits", "~here:~buildings", "~peers"]
     requires: any
 options:
   # Whose energy pays, for a network that runs on something. Inert at a

@@ -5,12 +5,13 @@ category: social
 # `show`, `set`, `move`, `remove`; the setting flags belong to `set` and the
 # reorder flags to `move`.
 controller: /platform/idea/cmd/social/NotifyListController
-description: "Manage your attention rules — how a group's connect / disconnect / message surfaces, and how they render in a room (keyed on any group ref, ordered by precedence)"
+description: "Manage your attention rules — how a group's connect / disconnect / message surfaces, and how they render in a room (keyed on a list or group of yours, ordered by precedence)"
 help: |
   Decide whose comings, goings, and messages reach you, and how the
   people in a group render when you look at a room. A rule is keyed on
-  any group — a contacts label (`friends`), a managed group
-  (`managed:fighter-guild`), or an MQL query — and your rules are an
+  a list or group of yours, named as a relation — a contacts list
+  (`~friends`), a group you belong to (`~fighter-guild`), your party
+  (`~party`); `query me:~` lists them — and your rules are an
   ordered list: when someone matches several, the FIRST rule down the
   list wins. Order is precedence, so placing a rule higher makes it
   authoritative.
@@ -18,9 +19,9 @@ help: |
   Bare `notify` lists your rules. `notify show <ref>` shows one.
   `notify set <ref> --login show …` sets fields. `notify move <ref>
   --above <other>` (or `--below`) reorders. `notify remove <ref>` drops a
-  rule (the group falls back to the sensible default tail). Reserved
-  labels — `friends`, `foes`, `everyone-else`, `strangers` — ship
-  sensible defaults you can edit.
+  rule (the group falls back to the sensible default tail). The reserved
+  rules — `~friends`, `~foes`, and the bare `everyone-else` and
+  `strangers` — ship sensible defaults you can edit.
 
   Field options for `set`: `--login` / `--disconnect` (show|silent — a
   presence frame in your buffer, or nothing), `--message`
@@ -34,9 +35,9 @@ help: |
 examples:
   - cmd: notify
     note: List your rules, top = highest precedence
-  - cmd: notify set friends --login show --message full
+  - cmd: notify set ~friends --login show --message full
     note: Hear your friends arrive, and see their messages in full
-  - cmd: notify move managed:fighter-guild --above friends
+  - cmd: notify move ~fighter-guild --above ~friends
     note: Make a rule outrank another
 validators:
   - /lib/command/validators/requiresAnimate
@@ -97,7 +98,7 @@ subcommands:
     description: "Drop a rule (the group falls back to the default tail)"
     help: |
       Remove a rule you set. The group it covered falls back to the
-      reserved baseline default (so removing your `friends` rule just
+      reserved baseline default (so removing your `~friends` rule just
       restores the shipped friends behavior, it doesn't forget anyone).
     args:
       - name: ref

@@ -26,7 +26,7 @@ args:
   - name: food
     type: object
     required: true
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     # ⚠ The same pair `eat` uses: the mixin gate is only that you can SEE
     # it, because edibility is a fact about the material rather than a
     # composition, and the validator is what actually reads it.
@@ -37,5 +37,5 @@ args:
     type: object
     required: true
     prepositions: [to]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: BondedMixin

@@ -369,7 +369,7 @@ describe('aboard a ship of a kind — the room is asked, never its row', () => {
     expect(way.describeFor(who)).toMatch(/^the smack's gangway$/i);
     expect(way.getKeywords()).toEqual(expect.arrayContaining(['gangway', 'smack gangway']));
     // `look gangway` binds the WAY itself, and look shows what MQL bound.
-    const bound = MqlApi.resolveOne('gangway', { commandGiver: who as never, scope: 'reachable' });
+    const bound = MqlApi.resolveOne('gangway', { commandGiver: who as never, scope: '~reachable' });
     expect(bound.stuff).toBe(way);
     vi.spyOn(CardApi, 'open').mockReturnValue(null as never);
     const look = makeStuff(() => new LookController());

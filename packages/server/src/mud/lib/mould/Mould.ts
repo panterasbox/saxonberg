@@ -54,6 +54,7 @@
  * pail, a pot, a crucible are not, and a pool left in one sets as a lump.
  * See `docs/subsystems/mould.md`.
  */
+import { GrammarApi } from '../../api/grammar';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import type { AnyConstructor } from '../../api/mixin';
@@ -1068,8 +1069,8 @@ export function MouldMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     public async carvePlanFor(req: CarveRequest): Promise<CarvePlan | CarveRefusal | null> {
       const self = this as unknown as Stuff;
-      const word = req.word.trim().toLowerCase();
-      if (word !== 'riser' && word !== 'runner' && word !== 'gate') {
+      // The mould's own small vocabulary, through the one rule (D-C4).
+      if (GrammarApi.nameAmong(req.word, [{ value: 'riser', keywords: ['riser', 'runner', 'gate'], title: 'a riser' }]).kind === 'none') {
         return { ok: false, reason: 'not-carvable', facts: { carves: 'riser' } };
       }
       if (!this.impressible || this.impression === null) return { ok: false, reason: 'no-cavity' };

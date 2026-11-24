@@ -345,7 +345,7 @@ export const CARDS: Readonly<Record<CardId, CardDefinition>> = {
     label: 'the stock sheet',
     source: {
       kind: 'mql',
-      query: 'reachable:[mixin.BulkableMixin]',
+      query: '~reachable:[mixin.BulkableMixin]',
       cardinality: 'many',
       fields: ['displayName', 'primaryKeyword', 'bulkMaterial', 'bulkAmount'],
     },

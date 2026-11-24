@@ -25,10 +25,11 @@ args:
   - name: thing
     type: object
     required: true
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: [SealableMixin]
   - name: seal
     prepositionRequired: true
-    type: string
+    type: enum
+    values: [gum, wax]
     required: false
     prepositions: [with]

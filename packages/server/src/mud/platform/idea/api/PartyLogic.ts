@@ -1,6 +1,7 @@
 // PartyLogic — the hot-reloadable logic singleton behind PartyApi.
 // (Doc comment on the class below so @internal lands on the reflection.)
 
+import { GrammarApi } from '../../../api/grammar';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
@@ -574,14 +575,15 @@ async function setFormationImpl(
   if (!party.isCaptain(memberIdOf(captain))) {
     return { ok: false, reason: "not-the-captain" };
   }
-  const trimmed = name.trim().toLowerCase();
-  if (!trimmed || !/^[a-z][a-z-]*$/.test(trimmed)) {
-    return { ok: false, reason: "unknown-formation" };
-  }
-  // ⭐ The captain's word names a formation document (a typed word, unique
-  // at install); resolving it loads it, so a mid-fight switch is live by
-  // its next beat (the beat's consult is a sync read).
-  const path = await PartyApi.formations().pathOfWord(trimmed);
+  // ⭐ A formation document's PATH (the controller named it by the one rule,
+  // naming overhaul D-C5 rule 3), or — for a script or a fixture — its
+  // exact word. Resolving it loads it, so a mid-fight switch is live by its
+  // next beat (the beat's consult is a sync read).
+  const ref = name.trim();
+  if (!ref) return { ok: false, reason: "unknown-formation" };
+  const path = ref.startsWith("/")
+    ? await PartyApi.formations().ensure(ref).then(() => ref, () => null)
+    : await PartyApi.formations().pathOfWord(ref);
   if (!path) return { ok: false, reason: "unknown-formation" };
   party.setFormationPath(path);
   await persistParty(party);
@@ -612,10 +614,12 @@ async function assignRoleImpl(
   const formationPath = party.getFormationPath();
   if (!formationPath) return { ok: false, reason: "no-formation" };
   const roles = formationRolesAt(formationPath);
-  const wanted = role.trim().toLowerCase();
-  if (!roles.includes(wanted)) {
+  // ⭐ A role of the formation's own vocabulary, by the one rule.
+  const named = GrammarApi.nameAmong(role, roles.map((r) => ({ value: r, keywords: [r], title: r })));
+  if (named.kind !== 'one') {
     return { ok: false, reason: "unknown-role" };
   }
+  const wanted = named.one;
   party.assignRole(targetId, wanted);
   await persistParty(party);
   return { ok: true };
@@ -629,11 +633,11 @@ async function musterImpl(
     return { ok: false, reason: "not-a-party-member" };
   }
   const memberId = memberIdOf(member);
-  const trimmed = name.trim().toLowerCase();
-  const records = await PartyRecord.find<PartyRecord>({});
-  const rec = records.find(
-    (r) => r.name.toLowerCase() === trimmed && r.memberIds.includes(memberId),
-  );
+  // ⭐ One of YOUR crews, by its chosen name through the one rule (naming
+  // overhaul D-C5 rule 6).
+  const records = (await PartyRecord.find<PartyRecord>({})).filter((r) => r.memberIds.includes(memberId));
+  const named = GrammarApi.nameAmong(name, records.map((r) => ({ value: r, keywords: [r.name.toLowerCase()], title: r.name })));
+  const rec = named.kind === 'one' ? named.one : named.kind === 'tie' ? named.tie[0]! : undefined;
   if (!rec) return { ok: false, reason: "no-such-crew" };
   const party = partyAt(rec.path) ?? (await materializeParty(rec));
 

@@ -51,9 +51,9 @@ const DEFAULT_ALERTNESS = 4;
  */
 function detectedIntruders(host: Stuff, alertness: number): Stuff[] {
   if (!MixinApi.isCommandGiver(host)) return [];
-  return MqlApi.resolveMany('peers:living', {
+  return MqlApi.resolveMany('~peers:living', {
     commandGiver: host,
-    scope: 'reachable',
+    scope: '~reachable',
   }).stuff.filter((s) => PerceptionApi.perceives(host, s, alertness));
 }
 

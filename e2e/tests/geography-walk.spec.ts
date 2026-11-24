@@ -42,7 +42,7 @@ test.describe('the geography build, in a browser', () => {
     try {
       // ── 1. The Market: the Terminal close by. The light on Gannet Rock is
       // 18.7 nm off, under a 37 m eye's horizon on this small world. ──
-      const market = await sayAwaiting(page, 'query horizon', /clock tower/i);
+      const market = await sayAwaiting(page, 'query ~horizon', /clock tower/i);
       expect(market).toMatch(/clock tower[^.]*close by/i);
       expect(market).not.toMatch(/light on Gannet Rock/i);
       // ⛔ The transcript never carries a true bearing.
@@ -53,7 +53,7 @@ test.describe('the geography build, in a browser', () => {
       // ── 2. Hinkley Hills, 132 m up: the light to the east, and the eye's bearing ──
       await sayAwaiting(page, `goto ${HINKLEY}`, /hinkley|lane|arrival/i);
       await sayAwaiting(page, 'look', /.+/);
-      const hills = await sayAwaiting(page, 'query horizon', /light on Gannet Rock/i);
+      const hills = await sayAwaiting(page, 'query ~horizon', /light on Gannet Rock/i);
       expect(hills).toMatch(/light on Gannet Rock\s*, to the east/i);
       expect(hills).toMatch(/clock tower\s*, to the south/i);
       const eye = await sayAwaiting(page, 'analyze bearing light', /bears|cannot see/i);
@@ -62,7 +62,7 @@ test.describe('the geography build, in a browser', () => {
       // ── 3. The headland brow, a hundred meters up: the light, and the ships ──
       await sayAwaiting(page, `goto ${BROW}`, /headland|brow/i);
       await sayAwaiting(page, 'look', /.+/);
-      const brow = await sayAwaiting(page, 'query horizon', /light on Gannet Rock/i);
+      const brow = await sayAwaiting(page, 'query ~horizon', /light on Gannet Rock/i);
       expect(brow).toMatch(/light on Gannet Rock\s*, to the north-east/i);
       expect(brow).toMatch(/clock tower\s*, to the west/i);
     } finally {

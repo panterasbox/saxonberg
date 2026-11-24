@@ -47,7 +47,6 @@ import type { Marshaller } from '../mud/lib/persistence/Marshaller';
 // routing it through api/mql.ts would drag in the resolver chain and
 // reintroduce that very cycle.
 // eslint-disable-next-line no-restricted-imports -- documented cycle-avoidance; provider registration that must bypass the facade's eager load chain
-import { installOnlineHoldersProvider } from '../mud/api/mql/online-wire';
 
 export interface AppBootstrapConfig {
   /** Mongo connection URI. */
@@ -212,8 +211,6 @@ export class AppBootstrap {
           `(not a test world): ${cmd.withheld.join(', ')}`
       );
     }
-
-    installOnlineHoldersProvider();
 
     // ⭐⭐ Every Api's dictionaries, stood ONCE, here (owner, load-on-use
     // review): each Api declares what its reads stand on (`static needs`),

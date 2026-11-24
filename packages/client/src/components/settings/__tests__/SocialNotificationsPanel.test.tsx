@@ -13,11 +13,13 @@ import { SocialNotificationsPanel } from "../SocialNotificationsPanel";
 import type { SocialRuleProjection } from "@saxonberg/types";
 
 const FRIENDS = "contacts:me:friends";
+const TYPED = "~friends";
 
 function rule(p: Partial<SocialRuleProjection>): SocialRuleProjection {
   return {
     groupRef: "everyone-else",
     label: "everyone-else",
+    subject: "everyone-else",
     nameRendering: "name",
     boostInDense: false,
     onConnect: "silent",
@@ -56,7 +58,7 @@ describe("SocialNotificationsPanel", () => {
 
   it("lists rules from the social.rules projection", () => {
     seed([
-      rule({ groupRef: FRIENDS, label: "friends", reserved: false }),
+      rule({ groupRef: FRIENDS, label: "friends", subject: TYPED, reserved: false }),
       rule({}),
     ]);
     renderPanel({});
@@ -66,12 +68,12 @@ describe("SocialNotificationsPanel", () => {
   });
 
   it("a control previews its notify command on hover and issues it on commit", () => {
-    seed([rule({ groupRef: FRIENDS, label: "friends", reserved: false })]);
+    seed([rule({ groupRef: FRIENDS, label: "friends", subject: TYPED, reserved: false })]);
     const onCommandPreview = vi.fn();
     const onCommandClick = vi.fn();
     renderPanel({ onCommandPreview, onCommandClick });
 
-    const cmd = `notify set ${FRIENDS} --color teal`;
+    const cmd = `notify set ${TYPED} --color teal`;
     const swatch = screen.getByTestId(cmd);
     fireEvent.mouseEnter(swatch);
     expect(onCommandPreview).toHaveBeenCalledWith(cmd);
@@ -82,51 +84,51 @@ describe("SocialNotificationsPanel", () => {
   });
 
   it("a surface button issues notify set <ref> --message full", () => {
-    seed([rule({ groupRef: FRIENDS, label: "friends", reserved: false })]);
+    seed([rule({ groupRef: FRIENDS, label: "friends", subject: TYPED, reserved: false })]);
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
-    fireEvent.click(screen.getByTestId(`notify set ${FRIENDS} --message full`));
+    fireEvent.click(screen.getByTestId(`notify set ${TYPED} --message full`));
     expect(onCommandClick).toHaveBeenCalledWith(
-      `notify set ${FRIENDS} --message full`,
+      `notify set ${TYPED} --message full`,
     );
   });
 
   it("the boost toggle issues --boost / --no-boost", () => {
-    seed([rule({ groupRef: FRIENDS, label: "friends", reserved: false })]);
+    seed([rule({ groupRef: FRIENDS, label: "friends", subject: TYPED, reserved: false })]);
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
-    fireEvent.click(screen.getByTestId(`notify set ${FRIENDS} --boost`));
-    expect(onCommandClick).toHaveBeenCalledWith(`notify set ${FRIENDS} --boost`);
-    fireEvent.click(screen.getByTestId(`notify set ${FRIENDS} --no-boost`));
-    expect(onCommandClick).toHaveBeenCalledWith(`notify set ${FRIENDS} --no-boost`);
+    fireEvent.click(screen.getByTestId(`notify set ${TYPED} --boost`));
+    expect(onCommandClick).toHaveBeenCalledWith(`notify set ${TYPED} --boost`);
+    fireEvent.click(screen.getByTestId(`notify set ${TYPED} --no-boost`));
+    expect(onCommandClick).toHaveBeenCalledWith(`notify set ${TYPED} --no-boost`);
   });
 
   it("reorder up issues --above the previous row", () => {
     seed([
-      rule({ groupRef: FRIENDS, label: "friends", reserved: false }),
+      rule({ groupRef: FRIENDS, label: "friends", subject: TYPED, reserved: false }),
       rule({}), // everyone-else, second
     ]);
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
     // The up button on the everyone-else row anchors above friends.
-    fireEvent.click(screen.getByTestId(`notify move everyone-else --above ${FRIENDS}`));
+    fireEvent.click(screen.getByTestId(`notify move everyone-else --above ${TYPED}`));
     expect(onCommandClick).toHaveBeenCalledWith(
-      `notify move everyone-else --above ${FRIENDS}`,
+      `notify move everyone-else --above ${TYPED}`,
     );
   });
 
   it("reorder down issues --below the next row", () => {
     seed([
-      rule({ groupRef: FRIENDS, label: "friends", reserved: false }),
+      rule({ groupRef: FRIENDS, label: "friends", subject: TYPED, reserved: false }),
       rule({}),
     ]);
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
     fireEvent.click(
-      screen.getByTestId(`notify move ${FRIENDS} --below everyone-else`),
+      screen.getByTestId(`notify move ${TYPED} --below everyone-else`),
     );
     expect(onCommandClick).toHaveBeenCalledWith(
-      `notify move ${FRIENDS} --below everyone-else`,
+      `notify move ${TYPED} --below everyone-else`,
     );
   });
 
@@ -135,11 +137,11 @@ describe("SocialNotificationsPanel", () => {
     const onCommandClick = vi.fn();
     renderPanel({ onCommandClick });
     fireEvent.change(screen.getByTestId("social-add-input"), {
-      target: { value: "managed:fighter-guild" },
+      target: { value: "~fighter-guild" },
     });
     fireEvent.click(screen.getByTestId("social-add-button"));
     expect(onCommandClick).toHaveBeenCalledWith(
-      "notify set managed:fighter-guild --render name",
+      "notify set ~fighter-guild --render name",
     );
   });
 

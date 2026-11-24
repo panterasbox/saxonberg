@@ -54,8 +54,8 @@ function throwFocusFirst(): CommandDefinition {
     new URL('../../../../../content/platform/content/platform/cmd/inventory/throw.yaml', import.meta.url)
   );
   const text = readFileSync(path, 'utf8').replace(
-    /scope: "reachable"/,
-    'scope: ["$focus", "reachable"]'
+    /scope: "~reachable"/,
+    'scope: ["$focus", "~reachable"]'
   );
   return CommandDefinition.fromYaml(text, 'platform/cmd/inventory/throw.yaml');
 }

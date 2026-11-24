@@ -17,7 +17,7 @@ args:
 options:
   mql:
     type: object
-    scope: [reachable]
+    scope: ["~reachable"]
     description: "MQL expression alternate to <path>"
     requires: any
   content:

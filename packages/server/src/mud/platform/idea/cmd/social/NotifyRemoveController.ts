@@ -13,15 +13,16 @@ export default class NotifyRemoveController extends NotifyControllerBase {
     const { host, vid } = me;
     const trimmed = (model.ref ?? "").trim();
     if (!trimmed) return this.fail(context, "Remove which rule?", "ref-required");
-    const ref = NotifyRemoveController.normalizeRef(vid, trimmed);
+    const ref = this.refOrFail(context, trimmed);
+    if (ref === null) return;
     const removed = host.clearNotifyRule(ref);
     if (!removed) {
-      this.send(context, Mml.fromMarkup(`\nNo rule for ${ref}.\n`));
+      this.send(context, Mml.fromMarkup(`\nNo rule for ${trimmed}.\n`));
       return;
     }
     this.send(
       context,
-      Mml.fromMarkup(`\nRemoved rule for ${ref}; it falls back to the default.\n`),
+      Mml.fromMarkup(`\nRemoved rule for ${trimmed}; it falls back to the default.\n`),
     );
     this.pushProjection(host);
   }

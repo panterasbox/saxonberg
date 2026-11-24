@@ -27,7 +27,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     # ⭐ Greedy (water-supply D12): with a trailing `to <setting>`, an article
     # would otherwise eat the one positional — `open the headgate to half`
     # bound `the` and handed `headgate to half` to the setting (the

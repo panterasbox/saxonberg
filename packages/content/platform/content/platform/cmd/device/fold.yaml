@@ -17,7 +17,7 @@ args:
   - name: target
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     updates_focus: extend
     requires: FoldableMixin
     validators:

@@ -313,7 +313,7 @@ function ctx(actor: Delver, location: Stuff, verb: string): CommandContext {
 function targetOf(giver: Delver, raw: string): MqlOneResult {
   const r = MqlApi.resolveOne(raw, {
     commandGiver: giver as never,
-    scope: 'reachable',
+    scope: '~reachable',
   });
   const bound: MqlOneResult = { stuff: r.stuff, raw };
   if (r.via) bound.via = r.via;

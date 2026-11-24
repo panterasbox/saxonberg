@@ -270,7 +270,7 @@ describe('SmellController', () => {
   it('targets outside MQL scope are unresolvable', () => {
     const result = MqlApi.resolveOne('nonsense-thing-9001', {
       commandGiver: fix.giver,
-      scope: 'reachable',
+      scope: '~reachable',
     });
     expect(result.stuff).toBeNull();
   });

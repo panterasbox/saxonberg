@@ -135,7 +135,7 @@ args:
   - name: target
     type: object
     onExcess: prompt
-    scope: "reachable"
+    scope: "~reachable"
 `,
       '<test>',
     );
@@ -197,7 +197,7 @@ args:
   - name: target
     type: object
     onExcess: prompt
-    scope: "reachable"
+    scope: "~reachable"
 `,
       '<test>',
     );
@@ -243,7 +243,7 @@ args:
   - name: target
     type: object
     onExcess: prompt
-    scope: "reachable"
+    scope: "~reachable"
 `,
       '<test>',
     );
@@ -279,7 +279,7 @@ args:
     cardinality:
       max: 1
     onExcess: prompt
-    scope: "reachable"
+    scope: "~reachable"
 `,
       '<test>',
     );

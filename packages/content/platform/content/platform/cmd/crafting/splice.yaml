@@ -23,13 +23,13 @@ args:
     type: object
     required: false
     prepositions: [at]
-    default: "reachable:[mixin.SpliceableMixin]"
-    scope: ["reachable"]
+    default: "~reachable:[mixin.SpliceableMixin]"
+    scope: ["~reachable"]
     requires: [SpliceableMixin]
   - name: other
     prepositionRequired: true
     type: object
     required: false
     prepositions: [to, into, with]
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: [SpliceableMixin]

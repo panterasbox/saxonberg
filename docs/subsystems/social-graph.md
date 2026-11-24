@@ -105,8 +105,17 @@ label. The `GroupApi` facade already unifies three group kinds behind
 one ref shape — **managed** (`managed:fighter-guild`), **MQL**
 (`mql:…`), and **contacts** (`contacts:<pid>:<label>`) — so "notify me of
 all Fighter Guild logins" is the *same* mechanism as "boost my friends."
-Contacts labels are addressable by bare name at the verb boundary
-(`notify friends …` → `contacts:<me>:friends`).
+⭐ **At the verb boundary a subject is a relation of yours, never a ref**
+(naming overhaul D-B9): `notify ~friends …`, `notify ~fighter-guild …`,
+`notify ~party …`. The holder that answers the name says which durable
+group it stands for (`Relating.groupRefOf` — a contact list answers
+`contacts:<me>:<label>`, a resident group its managed ref), and THAT is
+what the rule stores; matching (`matchesRule`, `ruleFor`) is unchanged.
+A typed `contacts:` / `managed:` / `mql:` / `party:` ref, a bare word, and
+a built-in relation (`~peers` is no durable group) are refused with the
+relation spelling. The settings card's projection carries each rule's
+typed `subject` beside its `groupRef`, and the card's commands use the
+subject.
 
 ### The reserved baseline (virtual until edited)
 

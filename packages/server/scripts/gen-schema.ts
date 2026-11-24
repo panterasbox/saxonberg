@@ -134,21 +134,14 @@ const RESET_DOC = `/**
 
 /**
  * The `wipe-except` keep filters that are DERIVED rather than authored.
- * One entry today. The doc names the derivation; this is what it means.
+ * None today (the documents reset became a plain keep when undeclared kinds
+ * were refused — naming overhaul A1). The doc names the derivation; this is
+ * what it means.
  */
 const KEEP_DERIVATIONS: Record<
   string,
   { imports: string[]; expression: string }
-> = {
-  'declared-document-kinds': {
-    imports: [
-      "import { RELEASE_DOCUMENT_KIND } from '../press/Release';",
-      "import { DECLARED_DOCUMENT_KINDS } from '../document/DocumentKinds';",
-    ],
-    expression:
-      'kind: { $in: [RELEASE_DOCUMENT_KIND, ...DECLARED_DOCUMENT_KINDS] },',
-  },
-};
+> = {};
 
 // ── Read ──────────────────────────────────────────────────────────────
 

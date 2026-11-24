@@ -30,6 +30,10 @@ import BodyModuleCatalogue from '../platform/idea/BodyModuleCatalogue';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { NamePools } from '../lib/species/NameBank';
+import NameBankCatalogue from '../platform/idea/NameBankCatalogue';
+
+/** Where the name banks are served. */
+const NAME_BANK_CATALOGUE = '/platform/idea/NameBankCatalogue';
 
 const LOGIC_PATH = '/platform/idea/api/species';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -49,6 +53,15 @@ function logic(): SpeciesLogic {
 }
 
 export class SpeciesApi {
+  /**
+   * ⭐ The name banks — the given-name and surname pools char-gen suggests
+   * from (`name-bank` documents), served by {@link NameBankCatalogue} and
+   * read the first time a species names one.
+   */
+  static nameBanks(): NameBankCatalogue {
+    return StuffApi.singletonSync(NAME_BANK_CATALOGUE, () => new NameBankCatalogue());
+  }
+
   /**
    * Walk the species' template-path ancestors and return the first
    * Clade whose `rank === 'kingdom'`. Returns `null` if no kingdom

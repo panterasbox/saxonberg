@@ -67,7 +67,7 @@ describe('fell.yaml — the arg gates', () => {
   });
   it('`axe` is DECLARED on the felling atom and gated on ToolMixin, which the axe composes', () => {
     const axe = args().find((a) => a.name === 'axe')!;
-    expect(axe.default).toBe('reachable:[capability.felling]');
+    expect(axe.default).toBe('~reachable:[capability.felling]');
     expect([axe.requires].flat()).toEqual(['ToolMixin']);
     expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
   });
@@ -108,7 +108,7 @@ describe('tap.yaml — the arg gates and the three-way contest', () => {
 
   it('`tool` is DECLARED on the boring atom, and the auger composes ToolMixin', () => {
     const tool = tapArgs().find((a) => a.name === 'tool')!;
-    expect(tool.default).toBe('reachable:[capability.boring]');
+    expect(tool.default).toBe('~reachable:[capability.boring]');
     expect([tool.requires].flat()).toEqual(['ToolMixin']);
     expect(MixinApi.hasMixin(Tool, Mixins.Tool)).toBe(true);
   });
@@ -117,7 +117,7 @@ describe('tap.yaml — the arg gates and the three-way contest', () => {
     // `lint:controller-resolution`: a player must be able to say WHICH pail.
     const vessel = tapArgs().find((a) => a.name === 'vessel')!;
     expect(vessel.required).toBe(false);
-    expect(vessel.default).toBe('person:[mixin.BulkableMixin]');
+    expect(vessel.default).toBe('~person:[mixin.BulkableMixin]');
   });
 
   it('⭐⭐ THE THREE-WAY CONTEST: the tree affords it, the wood refuses it, the treeline has neither', () => {

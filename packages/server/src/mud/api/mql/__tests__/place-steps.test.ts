@@ -2,7 +2,7 @@
  * ⭐ The steps between places: `:exits` (a place's
  * exits, as the viewer sees them), `:to` (an exit's destination — live
  * only, never materialized), `:from` (an exit's source). Element-derivable
- * flat-maps, reserved like `:members`.
+ * flat-maps, reserved chain words.
  */
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
@@ -55,34 +55,34 @@ describe('MQL steps between places — :exits, :to, :from', () => {
   });
 
   const many = (q: string) =>
-    MqlApi.resolveMany(q, { commandGiver: viewer as never, scope: 'reachable' }).stuff;
+    MqlApi.resolveMany(q, { commandGiver: viewer as never, scope: '~reachable' }).stuff;
 
-  it('`here:exits` is the place’s exits, and a set', () => {
-    const r = MqlApi.resolveMany('here:exits', { commandGiver: viewer as never, scope: 'reachable' });
+  it('`~here:exits` is the place’s exits, and a set', () => {
+    const r = MqlApi.resolveMany('~here:exits', { commandGiver: viewer as never, scope: '~reachable' });
     expect(r.stuff).toEqual([hall.getExit('north')]);
     expect(r.isSet).toBe(true);
   });
 
-  it('`here:exits:north` narrows to the way by its keywords', () => {
-    expect(many('here:exits:north')).toEqual([hall.getExit('north')]);
-    expect(many('here:exits:n')).toEqual([hall.getExit('north')]);
+  it('`~here:exits:north` narrows to the way by its keywords', () => {
+    expect(many('~here:exits:north')).toEqual([hall.getExit('north')]);
+    expect(many('~here:exits:n')).toEqual([hall.getExit('north')]);
   });
 
   it('`:to` is the far place; `:from` the near one', () => {
-    expect(many('here:exits:north:to')).toEqual([yard]);
-    expect(many('here:exits:north:from')).toEqual([hall]);
+    expect(many('~here:exits:north:to')).toEqual([yard]);
+    expect(many('~here:exits:north:from')).toEqual([hall]);
   });
 
-  it('⭐ composes: `here:exits:north:to:exits` is the far place’s ways', () => {
-    const far = many('here:exits:north:to:exits');
+  it('⭐ composes: `~here:exits:north:to:exits` is the far place’s ways', () => {
+    const far = many('~here:exits:north:to:exits');
     expect(far).toEqual(expect.arrayContaining([yard.getExit('south'), yard.getExit('east')]));
     expect(far).toHaveLength(2);
-    expect(many('here:exits:north:to:exits:east:to')).toEqual([barn]);
+    expect(many('~here:exits:north:to:exits:east:to')).toEqual([barn]);
   });
 
   it('`:exits` hides what the viewer cannot see', () => {
     hall.getExit('north')!.setConcealment('hidden');
-    expect(many('here:exits')).toEqual([]);
+    expect(many('~here:exits')).toEqual([]);
   });
 
   it('`:to` never materializes: an exit whose far place is not loaded yields nothing', () => {
@@ -90,7 +90,7 @@ describe('MQL steps between places — :exits, :to, :from', () => {
     const peek = north.peekDestination.bind(north);
     north.peekDestination = () => null;
     try {
-      expect(many('here:exits:north:to')).toEqual([]);
+      expect(many('~here:exits:north:to')).toEqual([]);
     } finally {
       north.peekDestination = peek;
     }

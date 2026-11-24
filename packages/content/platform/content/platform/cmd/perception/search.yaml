@@ -24,7 +24,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     updates_focus: extend
     prepositions: [in, inside, through]
     # `search the floor` / `search in the chest` — the same article problem

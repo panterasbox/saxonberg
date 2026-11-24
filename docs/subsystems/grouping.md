@@ -71,6 +71,12 @@ contains further colons. The `contacts` provider does its own split
 on the id portion to peel off the owner before treating the rest as
 the label.
 
+⭐ **A `GroupRef` is a stored key, never a typed word** (naming overhaul
+D-B9). Players name a group as a relation of theirs — `~friends`,
+`~fighter-guild`, `~party` — and the holder answering the name supplies
+the ref (`Relating.groupRefOf`). `notify` refuses a typed ref with that
+spelling.
+
 ## The provider contract
 
 Each source registers a `GroupProvider` implementation. The contract

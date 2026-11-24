@@ -45,6 +45,7 @@
  * its own water.
  */
 
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 import { NavigationApi } from '../../api/navigation';
 import { SpatialZone } from '../zone/SpatialZone';
 import { SingletonMixin } from '../stuff/Singleton';
@@ -302,7 +303,16 @@ export abstract class Expanse extends SingletonMixin(SpatialZone) implements Fra
 
   /** The node answering to `word`, by its own name — never through MQL. */
   public async nodeByKeyword(word: string): Promise<ExpanseNode | null> {
-    return (await this.nodes()).find((n) => n.answersTo(word)) ?? null;
+    const answer = await this.nodeNamed(word);
+    return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
+  }
+
+  /** The nodes a player's words name, by the one rule (naming overhaul D-C5 rule 2). */
+  public async nodeNamed(text: string): Promise<NameAnswer<ExpanseNode>> {
+    return GrammarApi.nameAmong(
+      text,
+      (await this.nodes()).map((n) => ({ value: n, keywords: n.nameKeywords(), title: n.getName() })),
+    );
   }
 
   /**

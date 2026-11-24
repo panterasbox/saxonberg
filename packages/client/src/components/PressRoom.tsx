@@ -184,17 +184,6 @@ type Feed =
 
 const noop = (): void => undefined;
 
-function formatDate(epochMs: number): string {
-  if (!Number.isFinite(epochMs) || epochMs <= 0) return "";
-  try {
-    return new Date(epochMs).toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return "";
-  }
-}
 
 export const PressRoom: React.FC = () => {
   const [feed, setFeed] = React.useState<Feed>({ state: "loading" });
@@ -302,7 +291,7 @@ export const PressRoom: React.FC = () => {
             <Item key={row.releaseId}>
               <Byline>
                 <span>{row.publisherLabel}</span>
-                <span>{formatDate(row.publishedAt)}</span>
+                <span>{row.publishedOn}</span>
                 {row.pinned && <Pinned>Pinned</Pinned>}
                 {row.source && <span>via {row.source}</span>}
               </Byline>

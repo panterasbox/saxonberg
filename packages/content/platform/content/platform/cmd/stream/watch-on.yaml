@@ -33,7 +33,7 @@ args:
   - name: on
     type: object
     required: true
-    scope: "peers"
+    scope: "~peers"
     prepositions: [on]
     # ⭐ The slot binds only with its preposition, so this shape and
     # `watch-stream.yaml` are disjoint (the `throw` trio's rule).

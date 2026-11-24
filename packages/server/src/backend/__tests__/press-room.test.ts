@@ -59,6 +59,9 @@ const FROZEN_KEYS = [
   "headline",
   "body",
   "publishedAt",
+  // The date in words on the world's calendar (naming overhaul D-A10) —
+  // a release's own content, rendered by the server for a clockless page.
+  "publishedOn",
   "pinned",
 ].sort();
 

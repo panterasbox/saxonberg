@@ -1,0 +1,4 @@
+title: Stream token
+traits:
+  filed: stream-token
+  secret: true

@@ -15,6 +15,7 @@
  * lookup here is the shipped path, gate included.
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { vi } from 'vitest';
 import { StuffApi } from '../../../../api/stuff';
 import { READING_CATALOGUE_PATH } from '../../ReadingCatalogue';
@@ -42,7 +43,13 @@ function stubLookup(reading: Reading): void {
     factory?: unknown,
   ) =>
     path === READING_CATALOGUE_PATH
-      ? { warmed: async () => reading, allWarmed: async () => [reading] }
+      ? {
+          warmed: async () => reading,
+          allWarmed: async () => [reading],
+          // The one rule over the one row (naming overhaul D-C5 rule 4).
+          readingNamed: async (text: string) =>
+            GrammarApi.nameAmong(text, [{ value: reading, keywords: [reading.getChannel()], title: reading.getChannel() }]),
+        }
       : real(path, factory as never)) as never);
 }
 

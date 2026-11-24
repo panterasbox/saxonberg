@@ -1,0 +1,8 @@
+title: Help concept
+traits:
+  catalogued: { by: /platform/idea/HelpCatalogue, load: whole }
+  shipped: { dir: concepts }
+  keyworded: {}
+  titled: { field: title }
+fields:
+  title: { type: string, required: true }

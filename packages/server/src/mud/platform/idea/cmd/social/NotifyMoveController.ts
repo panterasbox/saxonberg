@@ -10,7 +10,7 @@ export default class NotifyMoveController extends NotifyControllerBase {
   async execute(model: NotifyModel, context: CommandContext): Promise<void> {
     const me = this.hostOf(context);
     if (me === null) return;
-    const { host, vid } = me;
+    const { host } = me;
     const rawRef = (model.ref ?? "").trim();
     if (!rawRef) {
       return this.fail(context, "Which rule to reorder?", "ref-required");
@@ -20,16 +20,18 @@ export default class NotifyMoveController extends NotifyControllerBase {
     if (!anchorRaw) {
       return this.fail(context, "Reorder relative to which rule?", "anchor-required");
     }
-    const ref = NotifyMoveController.normalizeRef(vid, rawRef);
-    const anchor = NotifyMoveController.normalizeRef(vid, anchorRaw);
+    const ref = this.refOrFail(context, rawRef);
+    if (ref === null) return;
+    const anchor = this.refOrFail(context, anchorRaw);
+    if (anchor === null) return;
     if (ref === anchor) {
       return this.fail(context, "A rule can't be reordered against itself.", "self-anchor");
     }
     const ok = host.moveNotifyRule(ref, anchor, where);
     if (!ok) {
-      return this.fail(context, `Couldn't reorder ${ref}.`, "reorder-failed");
+      return this.fail(context, `Couldn't reorder ${rawRef}.`, "reorder-failed");
     }
-    this.send(context, Mml.fromMarkup(`\nMoved ${ref} ${where} ${anchor}.\n`));
+    this.send(context, Mml.fromMarkup(`\nMoved ${rawRef} ${where} ${anchorRaw}.\n`));
     this.pushProjection(host);
   }
 }

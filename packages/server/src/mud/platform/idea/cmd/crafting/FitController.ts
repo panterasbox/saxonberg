@@ -25,6 +25,7 @@
  * forms are one act through one Api (`CraftingApi.fit`).
  */
 
+import { GrammarApi } from '../../../../api/grammar';
 import { CraftController } from './CraftController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
@@ -80,7 +81,7 @@ export default class FitController extends CraftController<FitModel> {
     // a slack barrel bound the cask HEAD ("cask head") and fitted it into
     // the barrel (the assembly drive). `fit head` still means the head.
     const ownWord =
-      part !== null && MixinApi.isPerceptible(part) && part.hasKeyword(raw.toLowerCase());
+      part !== null && MixinApi.isPerceptible(part) && GrammarApi.nameAmong(raw, [{ value: part, keywords: part.getKeywords().map((k) => k.toLowerCase()), title: part.getPresentation() }]).kind === 'one';
     if (part && !whole && raw && (!ownWord || !this.wholeFor(part, giver))) {
       const recipe = await CraftingApi.lookupRecipe(raw);
       if (recipe) return this.raise(raw, giver, context);
@@ -129,7 +130,7 @@ export default class FitController extends CraftController<FitModel> {
       (!MixinApi.isAssembled(whole) || whole.isOnePiece()) &&
       model.whole?.raw
     ) {
-      const meant = this.wholeFor(part, giver, model.whole.raw.trim().toLowerCase());
+      const meant = this.wholeFor(part, giver, model.whole.raw.trim());
       if (meant) whole = meant;
     }
 
@@ -155,11 +156,9 @@ export default class FitController extends CraftController<FitModel> {
   /** Does `word` name one of `whole`'s lines (`lining`, `staves`)? */
 
   private namesLine(whole: Stuff & Assembled, word: string): boolean {
-    const w = word.trim().toLowerCase();
     whole.ensureParts();
-    return whole
-      .getParts()
-      .some((l) => l.part.toLowerCase() === w || `${l.part.toLowerCase()}s` === w);
+    // By the one rule (naming overhaul D-C4) — the plural comes with it.
+    return GrammarApi.nameAmong(word, whole.getParts().map((l) => ({ value: l, keywords: [l.part.toLowerCase()], title: l.part }))).kind !== 'none';
   }
 
   /** Say the replace arm's outcome to the room. */
@@ -221,7 +220,7 @@ export default class FitController extends CraftController<FitModel> {
     const tpl = part.getTemplatePath() ?? '';
     const fits = (s: Stuff): { failed: boolean } | null => {
       if (s === part || !MixinApi.isAssembled(s)) return null;
-      if (named && !(MixinApi.isPerceptible(s) && s.hasKeyword(named))) return null;
+      if (named && GrammarApi.nameAmong(named, [{ value: s, keywords: MixinApi.isPerceptible(s) ? s.getKeywords().map((k) => k.toLowerCase()) : [], title: s.getPresentation() }]).kind === 'none') return null;
       const lines = s
         .getParts()
         .filter(

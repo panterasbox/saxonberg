@@ -17,59 +17,137 @@ kinds, pump mechanisms, joints, forms, operations, help concepts,
 formations, placements and topics. Dorm-room customization will be another (the first non-script
 runtime consumer — see the Warren/lounge work).
 
-### The closed kind vocabulary
+### ⭐⭐ Kinds are declared — free text, ten traits (naming overhaul, 2026-11)
 
-`lib/document/DocumentKinds.ts` declares every **pack-installable** kind
-— its `kind` string, its pack subdir (`contentDir`), extension and vanish
-policy, and optionally the **keys** and **words** of its catalogue card
-(below). Editing it is a platform act: a kind needs a code consumer and a
-go-live hook ([content-packs.md](./content-packs.md)). The nightly reset
-**keeps** every declared kind beside `release` (`ResetPolicy`) —
-pack-installed rows are world content, not player state. `release` is
-press-owned; `wiki` is deliberately not a document kind (a page has a
-revision log and a CAS edit path of its own).
+There is **no closed list of kinds** (the old `DocumentKinds.ts` table is
+deleted). A kind is a **declaration** — a document of kind `kind` at
+`<root>/kinds/<kind>`, shipped as a pack's `content/kinds/<kind>.yaml`
+(the platform's land at `/platform/kinds/<kind>`) or saved by an author
+under their own extent. Its leaf is the kind's name, and the namespace is
+global: two declarations of one leaf are refused, by the installer across
+packs and by `lint:document-kinds`. Who may change a kind is decided by
+title on its declaration's path, like any document. The one kind code
+knows by name is `kind` itself (`DocumentKind.BOOTSTRAP`).
+
+A declaration is read into a **`DocumentKind`** value
+(`lib/document/DocumentKind.ts` — pure, so the installer and the lint
+scripts read declarations off disk through it) and served by
+`DocumentKindCatalogue`, reached as `DocumentApi.kinds()`. Every write
+and every paper read asks its kind synchronously, so the whole roster
+stands at boot as `DocumentApi`'s declared `needs` (one
+`listOfKind('kind')`); a declaration saved later is read back at once.
+
+A declaration composes **traits**, each parameterized by data, plus an
+optional **`fields:` schema** (`type: string | number | boolean | list |
+map | any`, `required`, and `index:`/`default:` for a card key, below).
+An unknown trait or parameter is an error, never ignored:
+
+| trait | says |
+|---|---|
+| `shipped` | packs ship it: `{ dir, ext?, vanish? }`, or `{ in-tree: cmd }` (any `cmd/` dir — command views). A kind with no `shipped` is runtime-only and reserves no pack dir |
+| `catalogued` | a service reads it: `{ by: <singleton path>, load: per-path \| whole \| boot }` — its `parse` checks a document's meaning, its `forget` is how an edit goes live |
+| `keyworded` | what words find one: `{ keywords?: <field>, leaf?: bool, unique?: bool }` — `unique` means a word names one document across every pack (`emote`, `formation`, `topic`, `kind`) |
+| `titled` | what one is called: `{ field }` (no title → the leaf) |
+| `dated` | when: `{ field, unit?: game-s \| real-ms, indexed?: bool }` |
+| `filed` | written only by its transport — `register`, `business`, `release`, `instrument`, `map`, `stream-token`, `berth`, `edition` (closed: each is a security path) |
+| `paper` | how it prints: `{ template }`, Liquid |
+| `ledger` | writes may add, never alter: `immutable`, or `{ grows: [field…] }` |
+| `tree` | `{ parent: folder \| <field> }` — `DocumentKind.parentOf` |
+| `secret` | never listed, never paper, never in the CMS tree; read by exact path only |
+
+⚠ **No trait is a class a document becomes.** The only code a declaration
+names is a service (`catalogued.by`, resolved with the class-file rule at
+install and at a live edit) and a filing transport. Shipped dirs derive
+from the `shipped` traits alone — a runtime-only kind's name (`maps`,
+`herds`) no longer silently reserves a template dir.
+
+⭐ **Every document has a title, a date and a page.** `titleOf` reads the
+`titled` field (else the leaf), `dateOf` the `dated` field (game seconds
+unless `real-ms`), and `DocumentApi.pagesOf(path)` renders any non-secret
+document as paper: the kind's `paper.template` (over its data plus
+`title`, `date`, `path`, `owner`, `owner_leaf`; `<page/>` breaks a page),
+else one summary line — *title — date*, the date on the world's calendar.
+`ls` prints titles.
+
+The nightly reset **keeps the whole collection** (`documents.yaml`
+`reset: verb: keep`): an undeclared kind is refused at the write, so every
+row is of a declared kind. `wiki` is deliberately not a document kind (a
+page has a revision log and a CAS edit path of its own).
+
+⭐ **Four decisions the declarations carry, and why** (naming overhaul):
+
+- **Validation is not a trait.** Shape is the declaration's `fields:`;
+  meaning is the reading service's `parse`. The installer no longer
+  hydrates a document into a value class to check it — doing so was the
+  sign of a kind that wanted to be a class.
+- **A reader that caches is the kind's declared catalogue.** `forget` is
+  the only way an edit reaches a cache, and `recipe`, `archetype`,
+  `help-concept`, `blueprint` and `name-bank` had readers nothing could
+  tell — a CMS edit to one never went live. Each has a declared catalogue
+  now.
+- **`ledger` is the constitution's A2 reaching the store** — *ledgers are
+  append-only* ([measurement.md](../measurement.md)) — for the bore log
+  and an instrument's history (`grows`), an edition and a rate card
+  (`immutable`).
+- **A release and an edition are dated in game seconds** (`publishedAtS`,
+  `expiresAtS`, `frozenAtS`): both are in-world. `real-ms` exists for an
+  out-of-character kind and none declares it today.
+
+`venue-eighty-six` (the list a venue's enforcement brain keeps) is declared
+plain — a `fields:` schema and no trait, written by the plain `save` — so
+that its write is checked instead of wiped at the next reset.
+
+⭐ **A kind belongs to the pack that declares it.** The installer reads every
+pack's `kinds/` first; a pack that ships documents of a kind must declare it
+or depend on its declarer (its `package.json`, transitively) — else it fails
+at the `kind-declarer` step, naming the declarer to add. Without the rule a
+pack's documents install only when the declarer happens to be in the set.
+The platform's kinds are everyone's (pack zero is always installed), and a
+kind declared at runtime has no declaring pack to check.
 
 ⭐ **The authored metadata kinds** — each cited by path, none with a
 second name; most read through a value class in `lib/` over a
 `DocumentCatalogue` (below — `Topic` keeps a dictionary of its own, and help
 concepts have no value class):
 
-| kind | `contentDir` | value class | named by | typed word |
+| kind | shipped `dir` | value class | named by | `keyworded` |
 |---|---|---|---|---|
 | `aroma` | `aromas` | `lib/perception/Aroma.ts` | path; the folder is the tree ([senses.md](./senses.md)) | — |
 | `dirt` | `dirt` | `lib/cleanliness/DirtKind.ts` | path (`DirtKinds.*` constants for the kernel's) | — |
 | `pump-mechanism` | `pump-mechanisms` | `lib/pump/PumpMechanism.ts` | a pump's `mechanism:` path | — |
 | `joint` | `joints` | `lib/craft/Joint.ts` | a bill's `joints[].method` path | — |
 | `form` | `forms` | `Form` in `lib/craft/FormSpec.ts` | an instrument's `forms:` paths (the word resolves against that list, so two wheels may each know a `brick`) | — |
-| `operation` | `operations` | `lib/vitals/Operation.ts` | `operate … for <word>` | the leaf |
-| `help-concept` | `concepts` | none — `HelpCatalogue` reads the kind | `help <word>`; `seeAlso:` paths | the leaf |
-| `formation` | `formations` | `lib/combat/Formation.ts` | a party's path; `party adopt <word>` | the leaf |
-| `placement` | `placements` | `lib/spatial/Placement.ts` | a host's `placements:` paths | the primary preposition |
+| `operation` | `operations` | `lib/vitals/Operation.ts` | `operate … for <word>` | leaf + title |
+| `help-concept` | `concepts` | none — `HelpCatalogue` reads the kind | `help <word>`; `seeAlso:` paths | leaf + title |
+| `formation` | `formations` | `lib/combat/Formation.ts` | a party's path; `party adopt <word>` | leaf + title, `unique` |
+| `placement` | `placements` | `lib/spatial/Placement.ts` | a host's `placements:` paths | leaf + its `prepositions` |
 | `shape` | `shapes` | `lib/spatial/Shape.ts` | a thing's `shape:` — a bare word is `/platform/shapes/<word>`, a path any pack's ([size.md](./size.md)); ⚠ not the potter's `form` | — |
 | `reason` | `reasons` | `lib/command/Reason.ts` | a refusal's code — a bare word is `/platform/reasons/<word>`, a path any pack's; its `facts` and Liquid `says` word it at emit ([response-envelope.md](./response-envelope.md)); ⚠ not `standby-reason` | — |
-| `topic` | `topics` | `lib/message/Topic.ts` | code (`.topic('act.combat')`); the dotted key is the leaf | the leaf |
+| `topic` | `topics` | `lib/message/Topic.ts` | code (`.topic('act.combat')`); the dotted key is the leaf | leaf + title, `unique` |
 | `cleanser` | `cleansers` | `lib/cleanliness/Cleanser.ts` | a material's `cleanser:` path ([cleanliness.md](./cleanliness.md)) | — |
 | `fabric` | `fabrics` | `FabricSpec` in `lib/material/Construction.ts` | a garment's `constructionForm:` path (kernel forms stay words — [textiles.md](./textiles.md)) | — |
 | `maturation-profile` | `maturation-profiles` | `lib/maturation/MaturationProfile.ts` | a vessel's charge by tag; the vessel keeps the path ([maturation.md](./maturation.md)) | — |
 | `fraction-schedule` | `fraction-schedules` | `lib/fractionation/FractionSchedule.ts` | a still's charge by tag; the still keeps the path ([fractionation.md](./fractionation.md)) | — |
 | `dyestuff` | `dyestuffs` | trade-dyeing's `src/lib/Dyestuff.ts` | the card key `material` (the dye bath's material) | — |
 
-`emote`, `recipe` and `archetype` declare the leaf as their typed word;
-a `blueprint` is named by its leaf too. ⭐ None of the four carries a key
+`emote` (`unique`), `recipe` and `archetype` are `keyworded` too; a
+`blueprint` is named by its leaf. ⭐ None of the four carries a key
 line in its file any more (`verb:`, `recipeId:`, `archetypeId:`,
 `blueprintId:` are gone; `Emote/Recipe/Archetype.fromData(data, path)`
 read the word from the path).
 
 ⭐⭐ **The logistics build added three, all on the `water-right`
 pattern**: `bill-of-lading`, `warehouse-receipt` and `rate-card` — all
-path-keyed, `onVanish: 'keep'`, and filed **under the filing business's
+path-keyed, declared `filed: business` by the haulage pack (`rate-card`
+also `ledger: immutable`), and filed **under the filing business's
 own branch**. That last part is the design rather than the plumbing:
 a depot's records cover exactly what it handled and nothing else, which
 is the honest consequence of shipping without customs — ⭐ *private
 books do not aggregate*, and the first institution that can see across
 is not the state but the depot, whose coverage is its market share.
 ⚠ `DocumentApi.saveAsBusiness` is the gate: derived owner, a path under
-the business's branch, and a closed kind allowlist.
+the business's branch, and a kind declared `filed: business` (the closed
+allowlist it once kept is the trait now).
 
 ⭐ **`ship` — a ship's register entry** (harbors P14). One document per
 ship a register holds, at `<register prefix>/<name slug>`
@@ -107,15 +185,17 @@ chained per path. The landing reads it with `DocumentApi.berthRollOf` on
 first use and stands up every ship on it that is not loaded
 ([expanse.md](./expanse.md), `FrameSited`).
 
-⭐ **`water-right` is the worked example of why the vocabulary is closed**
-(water build). A prior-appropriation right is a *record* — dated,
-transferable, and meaningless if it can be quietly lost — so it is
-path-keyed (no card, `contentDir: 'water-rights'`,
-`ext: 'yaml'`) and, critically, `onVanish: 'keep'`: a right survives the
-pack that seeded it going away, because the whole point of recording an
-appropriation is that it outlives the paperwork. A capability pack
-**cannot** declare a kind — adding this one was a platform edit, and that
-is the gate working, not friction to route around.
+⭐ **`water-right` is the worked example of a filed record** (water
+build; re-declared by the naming overhaul). A prior-appropriation right is
+a *record* — dated, transferable, and meaningless if it can be quietly
+lost — so it is path-keyed, `titled`, `dated` (`priorityDateS`) and
+**`filed: register`**: `WaterRightRegistry` composes `Registrar` and writes
+through `saveToRegister`, and the plain `save` that once reached it
+ungated is refused (`document-filed`). The water pack declares the kind
+itself (`content/kinds/water-right.yaml`) — ⚠ *a capability pack cannot
+declare a kind* was true of the closed table and is not any more: a pack
+ships its kinds' declarations; what stays closed is the set of filing
+TRANSPORTS, because each is a security path.
 
 ⭐ **`aroma`** (vocabularies-to-rows, 2026-11): what a nose can read; authored
 metadata ([senses.md](./senses.md#one-smell-source-air-nose)). It was an Idea
@@ -124,7 +204,7 @@ should not find one. It was the precedent the nine families of the
 documents path identity build followed (the table above).
 
 ⭐⭐ **A document's identity is its PATH** (owner, 2026-11-08). A pack's document is
-stored at `<pack root>/<contentDir>/<rel>`, so a reference names that full path
+stored at `<pack root>/<shipped dir>/<rel>`, so a reference names that full path
 (`/base-library/aromas/smoke`, `/species-and-names/name-banks/common`) and is read
 with `DocumentApi.read`; the path is the scoped namespace, and two packs shipping
 the same file name ship two documents. `naturalKey` — a second identity beside
@@ -139,7 +219,14 @@ A row family is an **Idea** when any one of these holds; otherwise it is a
 **document kind** (owner, 2026-11-07/08: *"Ideas are MQL addressable and
 they carry mutable state, documents just hold a buncha metadata"*):
 
-1. something **writes** it after it loads (it carries mutable state);
+1. it carries **mutable state of its own** — a thing that is live, holds
+   behavior over time, and is changed in place by acts on it. ⚠ **Being
+   written at runtime is not this limb** (restated by the naming
+   overhaul, 2026-11): a record written after it loads — a herd entry, a
+   water right, a bore log, a release that is retracted — is what the
+   `filed` and `ledger` traits mean, and its behavior lives in the service
+   that reads it. `herd`, `water-right` and `warehouse-receipt` were
+   weighed against this limb and stay documents (owner, 2026-11-20);
 2. something **acts on** it — it is shadowable, a command targets it, or
    its behavior varies by class;
 3. ⭐ it could be **a link in a query chain** — an MQL path a person would
@@ -158,21 +245,32 @@ threshold. Behavior that varies by CLASS is limb 2; computation is not.
 ## ⭐ The catalogue card — `keys`, and `findByKey`
 
 Every document carries a **card**, `keys: Record<string, DocumentKeyValue>`
-(`string | number | boolean | Array<string|number>`): the keys its kind
-declares in `DocumentKinds` (`keys`, plus `words` stored as `keys.word`),
-each **derived from the document's own data and never authored**, so it
-cannot drift from the value it repeats. One static derives it,
-`StoredDocument.cardOf(kind, path, data)`, called by the only two writers
-there are — `StoredDocument.save()` (every `DocumentLogic` write) and the
-pack installer's row builder (the installer writes before any persistence
-hook is loaded, so a hook could not be the chokepoint). A kind outside the
-vocabulary (a runtime-filed one) gets an empty card; an empty path throws.
+(`string | number | boolean | Array<string|number>`), each **derived
+from the document's own data and never authored**, so it cannot drift
+from the value it repeats. The card is DATA on the declaration — no
+derivation function survives: a `fields:` entry with `index: <key>`
+writes that key (with its `default` when the field is absent), `dated:
+{ indexed: true }` writes `keys.date`, and `keyworded` writes `keys.word`
+(every derived keyword, lowercased — the leaf unless `leaf: false`, the
+`keywords` field, and the title with and without its article when the
+kind is also `titled`). One method derives it, `DocumentKind.cardOf(path,
+data)`, called by the write funnel (below) and by the pack installer's row
+builder; `StoredDocument` stays kind-agnostic. An empty path throws.
 
-Declared today, each with its reader: `release → {publishedAt, pinned,
+Declared today, each with its reader: `release → {date, pinned,
 releaseId}` (the press — [press.md](./press.md)), `recipe → {output}`
-(`recipeFor`), and `word` for every typed-word kind (emote, recipe,
-archetype, operation, help-concept, formation, placement, topic). ⚠ A key
-nobody reads is a declaration to delete.
+(`recipeFor`), `dyestuff → {material}`, and `word` for every `keyworded`
+kind (emote, recipe, archetype, operation, help-concept, formation,
+placement, topic, herd, `kind`). ⚠ A key nobody reads is a declaration to
+delete.
+
+⭐ **A document is NAMED through its kind's words** —
+`DocumentCatalogue.named(text, among?)` hands a catalogue's documents to
+`GrammarApi.nameAmong` with `keywordsOf` as their keywords (the one naming rule
+— [mql.md](./mql.md) § Match-quality scoring), path order the tiebreak;
+the controller's `named` prompts on a tie or refuses `no-such-name`.
+`party adopt wedge`, `operate … for <op>` and the press's `callUp` name
+this way.
 
 **One index serves every key**: `{kind: 1, 'keys.$**': 1}`, a compound
 wildcard, authored in `schema/documents.yaml` beside `{path: 1}` (unique)
@@ -187,8 +285,9 @@ order?: 'asc' | 'desc', limit?}`: `eq` for equality, `min`/`max` an
 inclusive range, `order` reads in the key's order (an unbounded ordered
 read constrains the key with `$exists`, so a document with no value for
 it is not returned), `prefix` keeps the read under one path (a path
-range, never a regex), `limit` caps. `findByKey('release', 'publishedAt',
-{order: 'desc', limit: 30})` is the press, newest first.
+range, never a regex), `limit` caps. `findByKey('release', 'date',
+{order: 'desc', limit: 30})` is the press, newest first (the release's
+date is game seconds, `publishedAtS`).
 
 ## ⭐⭐ Resident by construction — `DocumentCatalogue`
 
@@ -227,8 +326,11 @@ only what the thing IS (no statics). The per-path families extend
 `lib/document/DocumentCatalogue` (its `parse` is the installer's validator
 too); its per-kind memory is a hard-private static slot, so a catalogue
 stood up again reads the same memory. **A memory, never a roster**: a path
-enters when something names it. Each kind names its catalogue in
-`DocumentKinds` (`catalogue:`), which is how the go-live finds it.
+enters when something names it. Each kind names its service in its
+declaration (`catalogued.by`), which is how the go-live finds it —
+`DocumentApi.catalogueFor(kind)` — and how a document's meaning is checked
+(the service's `parse`, read off its class when the service is not
+resident).
 
 ⚠ Why not statics on the value classes (W5d, at review): that is where the
 build first put these lookups — tagged `@internal` to get under
@@ -243,7 +345,7 @@ discoverable, documented, and part of the author surface.
 | `peek(path)` (sync) | resident or `null`, starting nothing — for a reader whose honest answer to "not read" is "not mine to read" |
 | `remember(path, value)` | the one way a value enters (unit fixtures use it too) |
 | `all()` / `byWord(word)` | the lazy dictionary, only for a kind a player names by a typed word or a verb lists: one `listOfKind`, or one `findByKey(kind, 'word', {eq})` (a resident leaf answers first) |
-| `forget(paths?)` | the go-live: the catalogue forgets those paths (or all). The installer and a CMS save reach it as `DocumentApi.catalogueFor(kind)` — by the `catalogue:` path the kind declares |
+| `forget(paths?)` | the go-live: the catalogue forgets those paths (or all). The installer and a CMS save reach it as `DocumentApi.catalogueFor(kind)` — by the `catalogued.by` path the kind declares |
 
 (The sync door is named `need`, not `require`: `lint:imports` reads a
 `require(` declaration as a dynamic require.)
@@ -471,7 +573,7 @@ and the transport derives everything from them:
 |---|---|
 | `getRegisterPrefix()` | `/trade/ranching/herds` |
 | `getRegisterOwner()` | `/trade/ranching` |
-| `getRegisterKind()` | `herd` (a `DocumentKinds` entry — a register cannot invent a vocabulary) |
+| `getRegisterKind()` | `herd` (a declared kind that is `filed: register` — a register files only a kind declared for it) |
 
 ⭐ **What stops a class declaring itself registrar of your home
 directory is structural, not an allowlist:**
@@ -524,10 +626,15 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
   dictionary's warm).
 - `DocumentApi.findByKey(kind, key, q)` — documents of a kind found by one
   key of their card (above).
+- `DocumentApi.kinds()` — the `DocumentKindCatalogue` (every declared
+  kind); `DocumentApi.catalogueFor(kind)` — the service a kind declares.
+- `DocumentApi.pagesOf(path)` — any non-secret document as paper (above);
+  `DocumentApi.callUp(reader, word)` — a release or a paper of your own,
+  named by the one rule.
 - `DocumentApi.save(path, kind, data)` → find-or-create. **Access-gated**,
-  **owner-stamped from context**, **provenance-recorded** (below). For
-  `kind: 'command-view'` it also runs the schema check and reloads the
-  view (below).
+  **owner-stamped from context**, **provenance-recorded** (below), and
+  through the one write funnel (below) — so a `command-view` save is
+  schema-checked by its service and goes live through its `forget`.
 - `DocumentApi.delete(path)` → the same gate as `save`; no provenance row
   (a deletion is not authorship); returns whether a row existed. The
   emote catalogue's `delete` rides it.
@@ -539,6 +646,9 @@ A thin gated forwarding shell over a hot-reloadable logic singleton at
 - ⚠⚠ `DocumentApi.saveBerth(ship, landingPath)` — a ship's own line on a
   landing's `berth-roll`, truth read off her; `DocumentApi.berthRollOf`
   reads the roll. See *`berth-roll`* above.
+- The other filing transports — `saveAsBusiness`, `saveInstrument`,
+  `saveMap`, `saveStreamToken`, `freezeEdition` — each the one writer of
+  the kinds declared `filed:` by its name.
 
 The acting **owner is always derived from `ExecutionContextApi`** (the
 in-world command-frame giver, or a transport's `tagActingAuthor` stamp),
@@ -575,21 +685,45 @@ the wizard-axis cleanup, 2026-11-05, a save that changed that set ran a
 code-naming gate, `codeFieldsChanged`, requiring `AccessApi.isWizard`;
 it was deleted with the template gate — see [access.md § The code-trust
 lockdown](./access.md). A validator is still a gate, which is why
-a view's validators are its titleholder's to change and nobody else's.) Every command-view save is validated against the command schema
-at the chokepoint and then `CommandApi.reload(path)` puts it live — the
-CMS edits `look.yaml`'s help and `help look` changes without a restart.
+a view's validators are its titleholder's to change and nobody else's.)
+The kind is `catalogued` by `CommandLogic` (`/platform/idea/api/command`,
+`shipped: { in-tree: cmd }`): its `parse` validates the view against the
+command schema in the funnel, and its `forget` reloads the view — the CMS
+edits `look.yaml`'s help and `help look` changes without a restart.
 The installer writes through `PersistApi`, bootstrap-exempt like
 templates.
 
-### ⭐ Every save runs the installer's validator (failure-model, 2026-11)
+### ⭐⭐ The one write funnel (naming overhaul D-A4)
 
-`DocumentApi.save` runs the same per-kind validator the installer runs
-(`PackApi.validateDocument`, over `PackLogic`'s one table), after the title
-gate: a row a pack could not ship is not stored by a save either. A
-failure is refused to the author as `invalid-document { path, why }`. A
-kind with no validator is stored as parsed. The title refusal is a
-`Refusal` too — `document-access-denied { path }` (its `message` keeps the
-gate's sentence for a REST caller).
+Every writer — the plain `save` after its title gate, and each filing
+transport after its own authority check and path scheme — ends in one
+private `writeDocument` in `DocumentLogic`, the only code that constructs
+or saves a `StoredDocument`. In order:
+
+1. the kind is declared — else **`document-kind-undeclared`** (nothing is
+   written that the nightly reset would silently wipe);
+2. the writer matches `filed`: a plain `save` of a filed kind is refused
+   **`document-filed`**, naming the transport (title on the path is not
+   enough to write somebody's herd record); a transport writing a kind it
+   does not file is a defect (a throw);
+3. the data fits the kind's `fields:` — else **`invalid-document { path,
+   why }`**;
+4. the meaning check — the service's `parse`, when the kind is
+   `catalogued` (the same check the installer runs);
+5. the ledger — `ledgerFailures` against the stored row: an immutable kind
+   is written once, a growing field keeps every earlier entry, else
+   **`ledger-altered`**;
+6. a declaration edit is vetted against the documents of its kind —
+   **`kind-in-use`** when they would no longer fit its `fields:`, when a
+   newly `unique` word would name two of them, or when its `filed` would
+   change while any exist; deleting a declaration is refused the same way
+   while documents of it that no pack shipped remain;
+7. a `unique` kind's words must name no other document;
+8. the card is derived, the row saved, and the service told to `forget`
+   the path — the edit is live on the next read.
+
+The title refusal is a `Refusal` too — `document-access-denied { path }`
+(its `message` keeps the gate's sentence for a REST caller).
 
 ### Provenance
 
@@ -621,12 +755,11 @@ releases.** Four things keep it narrow, and each is load-bearing:
 4. **It pins the `kind`**, so it cannot write anything else.
 
 ⚠ And because the tree is a **shared store**, the complement matters as
-much: `kind: 'release'` is a tag anyone who can write a document can
-apply, so **every read of the release set re-verifies what the transport
-guarantees** (`Release.publishedByOwner` — the owner must resolve to a
-live publisher, at a path under that publisher's feed). Without it, a
-document written through the ordinary `save` path by whoever owns the
-covering branch would ride the ticker as a release.
+much. Since the naming overhaul the kind is declared `filed: release`, so
+a plain `save` of a release is refused outright (`document-filed`); the
+read still **re-verifies what the transport guarantees** (`Release.publishedByOwner` — the owner must resolve to a
+live publisher, at a path under that publisher's feed) — defense in
+depth, for a row written before the trait existed or by the installer.
 
 ## Scripts as a `kind`
 
@@ -663,7 +796,9 @@ drives the editor treatment:
   and persists via `DocumentApi.save` under the doc's existing kind (no
   live re-hydration consumer yet — that lands with dorm).
 
-Author-tier read gate (like content). Wired end-to-end: the REST
+A `secret` kind (the stream tokens) never appears in the tree, nor in any
+`list` / prefix scan — it is read by exact path only. Author-tier read
+gate (like content). Wired end-to-end: the REST
 `parseBackend` admits `'document'`, and the client explorer lists the
 `documents` root.
 
@@ -716,3 +851,11 @@ pack-installed kinds, and releases ride it today.
   Api's data: every Api's `static needs` stand at boot (`AppBootstrap`),
   and the readying setters, `onCreate` loads and caller `StuffApi.ready`s
   went.
+- 2026-11-22 — naming overhaul (`build/naming-overhaul`), Stage A: the
+  closed `DocumentKinds` table is deleted; kinds are free-text
+  declarations at `<root>/kinds/<kind>` read into `DocumentKind` (ten
+  traits + `fields:`) and served by `DocumentKindCatalogue`
+  (`DocumentApi.kinds()`); one write funnel; filed records, enforced
+  ledgers, secret kinds; every document a title, a game-time date and a
+  page; the reset keeps the collection; the Idea-or-document limb 1
+  restated in trait terms. Decisions cited in code as `D-A*`.

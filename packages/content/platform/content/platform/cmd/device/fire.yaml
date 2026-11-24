@@ -46,18 +46,19 @@ args:
     type: object
     required: false
     prepositions: [in, at]
-    default: "reachable:[mixin.BurnerMixin]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[mixin.BurnerMixin]"
+    scope: ["~peers", "~person"]
     requires: [BurnerMixin]
     validators:
       - /lib/command/validators/canReach
-  # ⭐ HOW LONG to hold it — `for 30 minutes`, `for 2 hours` (the world
-  # clock's own grammar). Optional: a minute.
-  # ⚠ `greedy: true` — "2 hours" is two tokens and one duration.
+  # ⭐ HOW LONG to hold it — `for 30 minutes`, `for 2 hours`, `for a day`:
+  # the one duration slot, in game seconds (naming overhaul D-C6).
+  # Optional: a minute. A hold under a minute will not do.
   - name: hold
-    type: string
+    type: duration
     required: false
-    greedy: true
+    default: "1 minute"
+    min: "1 minute"
     prepositions: [for]
 # ⭐ The air, set as the firing begins — the draught ladder's words. An
 # OPTION, never a positional arg, so it can never swallow the kiln: `fire

@@ -41,7 +41,9 @@ export class MqlGroupProvider implements GroupProvider {
     // an unresolvable group is an empty membership, which is what the
     // arbitrary-viewer version degraded to anyway.
     try {
-      return MqlApi.resolveMany(id, { commandGiver: null, scope: 'online' })
+      // ⭐ Over every player avatar in the world — the avatar row's
+      // instances (naming overhaul D-B10: the `online` scope left MQL).
+      return MqlApi.resolveMany(id, { commandGiver: null, scope: '/platform/agent/Avatar' })
         .stuff;
     } catch {
       return [];

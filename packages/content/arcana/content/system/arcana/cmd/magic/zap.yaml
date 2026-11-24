@@ -24,11 +24,11 @@ args:
   - name: item
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: [VisibleMixin, ChargedMixin]
   - name: target
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     prepositions: [at, on]
     requires: any

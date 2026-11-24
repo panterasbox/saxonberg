@@ -44,7 +44,7 @@ describe('harvest', () => {
   });
   it('the tool still has its default', () => {
     expect(bind('inventory/harvest.yaml', 'harvest wheat')).toMatchObject({
-      tool: 'reachable:[capability.reaping],reachable:[capability.cutting]',
+      tool: '~reachable:[capability.reaping],~reachable:[capability.cutting]',
     });
   });
   it('⛔ the old form binds nothing', () => {

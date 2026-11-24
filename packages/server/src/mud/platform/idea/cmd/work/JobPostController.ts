@@ -272,7 +272,7 @@ export default class JobPostController extends JobControllerBase {
     const item =
       MqlApi.resolveMany(rawItem, {
         commandGiver: context.commandGiver,
-        scope: "reachable",
+        scope: "~reachable",
       }).stuff[0] ?? null;
     if (!item) {
       const kind = this.kindOf(rawItem, context);
@@ -338,7 +338,7 @@ export default class JobPostController extends JobControllerBase {
       const thing =
         MqlApi.resolveMany(subjectRaw, {
           commandGiver: context.commandGiver,
-          scope: "reachable",
+          scope: "~reachable",
         }).stuff[0] ?? null;
       if (thing === null || MixinApi.isFloor(thing)) {
         const placePath =
@@ -370,7 +370,7 @@ export default class JobPostController extends JobControllerBase {
     const thing =
       MqlApi.resolveMany(subjectRaw, {
         commandGiver: context.commandGiver,
-        scope: "reachable",
+        scope: "~reachable",
       }).stuff[0] ?? null;
     if (thing === null) {
       const kind = this.kindOf(subjectRaw, context);
@@ -424,7 +424,7 @@ export default class JobPostController extends JobControllerBase {
     if (trimmed.length === 0) return "";
     const hit = MqlApi.resolveMany(trimmed, {
       commandGiver: context.commandGiver,
-      scope: "reachable",
+      scope: "~reachable",
     }).stuff[0];
     const path = hit?.getTemplatePath() ?? "";
     if (path.length > 0) return path;

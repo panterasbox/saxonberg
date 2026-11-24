@@ -223,8 +223,7 @@ export function NamedMixin<TBase extends MixinConstructor>(Base: TBase) {
         : [];
       const name = this.getName().toLowerCase().trim();
       if (!name) return out;
-      const space = name.indexOf(' ');
-      const bare = space > 0 && GrammarApi.ARTICLES.has(name.slice(0, space)) ? name.slice(space + 1) : name;
+      const bare = GrammarApi.withoutArticle(name);
       for (const word of [name, bare]) if (!out.includes(word)) out.push(word);
       return out;
     }

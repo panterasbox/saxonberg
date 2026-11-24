@@ -2,8 +2,12 @@
 
 MQL is the query language the dispatcher runs against `type: object` /
 `type: objects` YAML fields. It replaces the original keyword-scoring
-matcher with a real grammar: seeds, chain operators, set ops, filter
-expressions, scope-as-MQL evaluation, pronoun memory.
+matcher with a real grammar: one root (the asker, `me`), relations
+(`~name`), chain operators, set ops, filter expressions, scope-as-MQL
+evaluation, pronoun memory. ⭐ MQL finds **runtime Stuff** and nothing
+else; everything a player names that is not Stuff (a spell, a recipe, a
+ship in a register) is named by the same keyword rule through
+`GrammarApi.nameAmong` (§ Match-quality scoring).
 
 This doc is the **developer reference** — pipeline, modules, internals,
 extension seams. For the player/author-facing grammar reference, see
@@ -20,6 +24,7 @@ dispatch (the `scope:` field, `$focus`, `updates_focus`), see
     → giver.getAffordances() ⋯ by verb   ─ verb lookup (keeps source)
     → CommandApi.assemble()              ─ binds tokens to YAML, expands shell vars
     → CommandApi.resolveModel()          ─ MQL on type:object[s] fields
+        (a typed query's head word first passes ShellApi.expandQueryAliases)
         for each MQL field:
           for each scope in def.scope:
             MqlApi.resolveOne / resolveMany(query, { commandGiver, scope })
@@ -45,20 +50,28 @@ packages/server/src/mud/api/
     lexer.ts                 ← raw text → Token stream
     parser.ts                ← Token stream → AST
     resolver.ts              ← AST + context → MqlMatch[]
-    scope-walk.ts            ← named-scope candidate pools, scoring
-    predicates.ts            ← bareword filter registry (living, online, …)
-    pronoun-memory.ts        ← per-Focused-giver stash for it/him/her/them/$$
-    online-provider.ts       ← injection seam for online holders
-    online-wire.ts           ← optional ConnectionApi wire-up
+    relations.ts             ← the built-in relation table (~here, ~peers, …)
+    scope-walk.ts            ← candidate pools, facets, attribution (the
+                               score itself is GrammarApi's)
+    predicates.ts            ← bareword filter registry (living, mine, …)
+    pronoun-memory.ts        ← per-Focused-giver stash read by ~it/~them/
+                               ~him/~her/~last
     via-augment.ts           ← TS declaration merging for MqlMatchVia
+  grammar.ts                 ← GrammarApi: the keyword tiers, scoreAll,
+                               rank, name (the naming rule's one home)
   __tests__/
     mql.test.ts              ← end-to-end resolver
+    mql.relations.test.ts    ← relations, @id, home paths, the listing
     mql.lexer.test.ts
     mql.parser.test.ts
     mql.desugar.test.ts
+    grammar.test.ts / grammar.name.test.ts
     path-trie.test.ts
     path-pattern.test.ts
 ```
+
+(`online-provider.ts` / `online-wire.ts` are deleted with the `online`
+seed — naming overhaul D-B10.)
 
 `mql.ts` is the only security-decorated entry point. The internal
 modules under `mql/` are pipeline stages, not Apis — they're plain
@@ -78,9 +91,14 @@ interface MqlContext {
   attention?: number;                  // code-only perception term
 }
 
-interface MqlOne   { stuff: Stuff | null; via?: MqlMatchVia; }
-interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; vias?: (MqlMatchVia | undefined)[]; }
+interface MqlOne   { stuff: Stuff | null; via?: MqlMatchVia; relations?: RelationInfo[]; relationTie?: RelationTie; }
+interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; vias?: (MqlMatchVia | undefined)[]; relations?; relationTie?; }
 ```
+
+`relations` is the fact a `thing:~` listing carries (it binds nothing);
+`relationTie` says a name two of one holder's sets share (a contact list
+and a group both called `bookclub`) — the binder prompts, a script
+refuses (§ Relations).
 
 Both methods route through the same internal `resolve()` in
 `resolver.ts`; the difference is wrapping. `resolveOne` picks the
@@ -88,7 +106,7 @@ top-scored match (or `null`); `resolveMany` returns the full sorted
 list.
 
 `scope` on `MqlContext` is a **string**, not a structured policy. The
-dispatcher takes the YAML `scope:` array (`['$focus', 'reachable']`),
+dispatcher takes the YAML `scope:` array (`['$focus', '~reachable']`),
 expands each entry through `ShellApi.expandVariables`, and tries each
 in order until one returns a non-empty result. From `MqlApi`'s point
 of view it's one fragment per call.
@@ -155,7 +173,7 @@ lexer. Three transforms:
    `QuantityNode` (formal `:{N}`).
 
 The pass is **bypassed** when the input contains any formal-MQL
-signal character (`:`, `[`, `,`, `'`, `{`). The `looksFormal()` guard
+signal character (`:`, `[`, `,`, `'` at a token start, `{`, `~`, `@`). The `looksFormal()` guard
 keeps dev-typed queries from getting their intent silently rewritten.
 
 The desugar **return shape** is now structured (not just a string):
@@ -198,9 +216,17 @@ Tokenizes raw query text into a stream of typed `Token`s.
 Reserved character set:
 
 ```
-,  :  (  )  [  ]  {  }  .  -  #  $  *  /  '
+,  :  (  )  [  ]  {  }  .  -  #  $  *  /  '  ~  @
 =  !=  >  <  >=  <=
 ```
+
+⭐ **`~` and `@`** (naming overhaul D-B1): `~name` lexes as `tilde` then
+the bareword; a bare `~` is the tilde alone; `~/x` is one `homePath`
+token; `@abc123` is one `playerId` token (a bare `@` is a lex error).
+`$$` still lexes — only so the parser can refuse it with *"'$$' is gone —
+your last result is '~last'"*. MQL gives `::` no meaning: the command
+line splits `source::verb` before MQL sees the source
+([command-parsing.md](./command-parsing.md)).
 
 `{`, `}`, and `*` (at top level — `*` inside a path is consumed by
 the path scan) gained dedicated token kinds when the formal-quantity
@@ -240,10 +266,15 @@ Recursive descent over the token stream into the AST defined in
 query        = sublist ("," sublist)*
 sublist      = chain ("-" chain)*
 chain        = seed (":" chainElement)*
-seed         = pronoun | keywords | literal | path
-             | stuffId | "$$" | "(" query ")"
+seed         = "me" | keywords | literal | path | stuffId
+             | "~" name            ; ≡ me:~name
+             | "~" | homePath      ; your home: /home/<you>[/…]
+             | "@" id              ; a player's loaded avatar
+             | "(" query ")"
 chainElement = transform | keywords | predicate | ordinal
              | bracket | group | quantity | seed-shaped
+             | "~" name            ; the set the left side keeps under name
+             | "~"                 ; list what the left side answers
 transform    = "i" | "I" | "e" | "E"
 ordinal      = "#" int
 bracket      = "[" bracketBody "]"
@@ -274,6 +305,8 @@ Positional rules the parser enforces (not reflected in the grammar):
   implementation yet. Parsed into `QuantityNode { value:
   { kind: 'count' | 'all' } }`.
 - Multi-bareword runs (`red rose`) collapse into one `KeywordsNode`.
+- `@id`, a bare `~` and `~/x` are **head-only**: after a `:` they are a
+  parse error (`x:~/y`). A head `~name` parses as `me:~name`.
 - The `.X` detail-drill operator is gone; `.` is reserved for
   namespaced atoms inside bracket bodies (`prop.X`, `mixin.X`). The
   parser detects the old `.X` form at chain position and gives a
@@ -322,39 +355,127 @@ the formal path always sees the hint slot empty.
 No operator or seed is permission-gated (content-packs wave 3):
 **resolving an MQL query is never a permission.** What an actor may
 *do* with a resolved target is the verb's own gate — reachability
-(`attack online:<name>` is refused because the target is not reachable,
-not because `online` was typed) and title. See [Resolving is not
+(`attack @<id>` is refused because the target is not reachable, not
+because a player address was typed) and title. See [Resolving is not
 permission](#resolving-is-not-permission).
 
-#### Seeds
+#### Seeds — the root and the anchors (naming overhaul Stage B)
+
+⭐⭐ **Every query is the asker's.** There is one root, `me`, and every
+other way to reach something at a distance is a **relation** the asker or
+a thing keeps. The fourteen reserved seed words (`here`, `peers`,
+`reachable`, `inventory`, `person`, `horizon`, `online`, `it`/`him`/`her`/
+`them`, `$$`, …) are gone from the grammar; a bare `here` is an ordinary
+keyword unless a query alias rewrites it (§ Query aliases).
 
 | Seed | AST node | Yields |
 |---|---|---|
 | `bareword` (or multi-word `red rose`) | `KeywordsNode` | scope-walk + scoring |
-| `'literal'` | `LiteralNode` | exact name/keyword match (whitespace preserved) |
-| `me` | `PronounNode` | the giver |
-| `here` | `PronounNode` | the giver's **place** — `Containable.getEnclosingPlace()` (past a boat, a cart, a bed; controller-liquidity D7). `me:e` keeps `getContainer()` |
-| `peers` / `reachable` / `person` / `inventory` / `online` | name-promoted `KeywordsNode` | the corresponding scope-walk pool |
+| `'literal'` | `LiteralNode` | exact keyword match (whitespace preserved) |
+| `me` | `PronounNode` | the giver — the root |
+| `~name` | `RelationNode` under `me` | ≡ `me:~name` — one of YOUR relations (§ Relations) |
+| `~` · `~/x` | `HomePathNode` | the path seed `/home/<asker>[/x]` (head only) |
+| `@<id>` | `PlayerNode` | the loaded avatar whose identity path is `/platform/agent/Avatar/<id>` (D17's identity, never lineage); nothing for an unknown or unloaded id (head only) |
 | `world` | name-promoted `KeywordsNode` | ⚠ **refused** unless the run carries a registry-read grant — see *The registry-read grant* |
-| `it` / `him` / `her` / `them` | `PronounNode` | pronoun memory read |
-| `$$` | `LastResultNode` | pronoun memory `last` slot |
 | `/path/with/*globs` | `PathNode` | template-path glob seed (PathTrie) |
 | `#abc123` | `StuffIdNode` | direct stuff id lookup |
 | `(query)` | `GroupNode` | grouping |
 
-Seed-shaped chain elements split by whether the seed is
-**element-derivable**:
+Mid-chain, the **fixed pools** — `me`, `world`, paths, stuff ids and
+groups — **intersect** with the prior set (score and `via` preserved;
+`intersectWithSeed`). A relation step **flat-maps** instead (below). The
+old element-derivable seed words (`x:peers`, `x:reachable`,
+`x:inventory`) and their per-seed exclusion rules are gone with the words.
 
-- `peers`, `reachable`, `inventory`, and the transforms `:i` / `:I`
-  / `:e` / `:E` are element-derivable. Mid-chain they **flat-map**
-  over the prior set: for each `x in prior`, compute `seed(x)` and
-  union the results.
-- `me`, `here`, `online`, `world`, paths, stuff ids, `$$`, and
-  groups are **fixed pools**. Mid-chain they **intersect** with the
-  prior set. `reachable:online` is "of the giver's reachable set,
-  which are online."
+#### ⭐⭐ Relations — `~name` and `thing:~` (naming overhaul D-B1–D-B6)
 
-⭐ **`peers` descends ONE level into an open container** (see § Reach is
+`holder:~name` asks the Stuff on its left for the set it keeps under
+`name`; a head `~name` asks you. Several things on the left: each is
+asked, the sets are unioned and deduped, and every match carries
+**`via.relation = { holder, name, meaning }`** (so `contacts remove`
+knows which list without re-reading the typed words). Synchronous: a
+holder answers from what is resident and never loads — an unloaded member
+is simply absent.
+
+**Built-ins come first and can never be masked** — one table,
+`api/mql/relations.ts`, each entry `{ name, meaning, whose, members }`,
+one answer each (no relation has two faces):
+
+| relation | `whose` | the set |
+|---|---|---|
+| `~here` | anyone | the **place** the left side stands in — `getEnclosingPlace()`, past a boat, a cart or a bed; ONE thing (`me:e` is what immediately holds you) |
+| `~inventory` | anyone | what is carried — the asker's whole tree, nearest first (hand · ready · packed); asked of another, read from OUTSIDE (what they hold and wear, one level into open things) |
+| `~buildings` | anyone | (of a place) the buildings whose door is at hand from it — the landing row |
+| `~peers` | self | what stands where you are, one level into open things there, and the vessel you sit in |
+| `~reachable` | self | carried, standing here, and the place's surface — `PerceptionApi.reach`, on-person first |
+| `~person` | self | your body, your apps, installed gear (+ apps), carried items (+ apps) |
+| `~horizon` | self | what you can see from here that is not here |
+| `~contacts` | self | every loaded person you keep — on any of your contact lists or in any managed group you belong to (not the party, which is `~party`). Was `~all` until naming-overhaul review: the name promised every built-in at once |
+| `~it` · `~them` · `~him` · `~her` · `~last` | self | the pronoun-memory slots (§ Pronoun memory) |
+
+`self` answers only when the left side is the asker — asked of anyone
+else it is empty, visibly (`@bob:~peers` is nothing).
+
+**Holders** compose **`RelatingMixin`** (`lib/relation/Relating.ts`):
+`relationsFor(asker)`, `relatedBy(name, asker)` (empty = no such set;
+more than one = a name two of its sets share) and `groupRefOf(name,
+asker)` (the durable `GroupRef` a set stands for — what `notify` stores).
+It composes ONCE beneath every contributor, which chain with `super`.
+Shipped holders: contact lists (one relation per label, owner-only —
+`~friends`), the party (`~party`), your managed groups (one per group,
+resident on you through `ContactsMixin`, beside your lists — `~bookclub`), a warren
+(`~rooms`, its live members), a charter book (`~ships`), a travel card
+(`~nodes`, the tpa pack), an aether host (`~apps`). A list named like a
+built-in is warned about when made, and never reached by a query.
+
+**`thing:~` lists, binds nothing.** The result has no matches and carries
+`relations: [{ holder, name, meaning, builtin }]` — the built-ins that
+apply, then the holder's own. Only a slot declaring `lists: relations`
+takes it (`query`'s, which prints it); every other slot and option refuses
+`names-relations`, pointing at `query <what you typed>`.
+
+**A tie** — `relatedBy` handing back two sets of one name — rides
+`relationTie`; the binder asks *which?* (the sets' meanings) and keeps the
+chosen set's matches. A script never prompts: the tie is the refusal.
+
+##### Why relations look like this
+
+- **One root, because of immersion** (lens 3a): a thing you have no
+  relation to is not a thing you can name. `/path`, `#id` and `@id` are
+  the second mode — names you must know exactly, answered by an index,
+  like an absolute path beside a relative one.
+- **A sigil, never a reserved word.** A list called `friends` can then
+  never collide with a thing keyworded `friends`, and `~here` never with a
+  thing keyworded `here`. Rejected first: one `:members` word with
+  per-list step words (`me:friends`) — every list name anyone made would
+  have become a reserved word.
+- **Built-ins win so nothing can be hidden**: a player cannot keep their
+  inventory out of other people's queries with a list named `inventory`.
+  Making such a list is a warning, not a refusal — a soft limit.
+- **Each holder answers per asker.** Contact lists are owner-only; two
+  holders may mean very different things by one `~foo`, and that is the
+  design.
+- **A verb that names a person reaches them through its view's default
+  scope** (`dm` scopes `["~here", "~contacts"]`) — never a binder special
+  case.
+- **`~` is also *home* in the shell's path arguments** (`cd ~`). That is a
+  path and never MQL; inside a query a home path is valid at the head only.
+
+#### Query aliases (D-B7)
+
+A **query alias** rewrites the HEAD word of a typed query when the whole
+query is that word or it is followed by `:` (`ShellApi.expandQueryAliases`,
+called by the binder for every typed `object`/`objects` slot and for a
+`source::verb` source — never for a view's authored `scope:` or
+`default:`). Entries are `?name` keys in the alias table (`alias set
+--query here ~here`). The defaults, each removable with `alias unset
+--query`, ship as `static defaultAliases` on the mixin that owns the
+thing: `here` → `~here` (`MobileMixin`), and `it`/`them`/`him`/`her` →
+`~it`/`~them`/`~him`/`~her` (`FocusedMixin`). Those five are the whole
+default set; `inventory`, `peers`, `reachable` typed bare are keywords.
+See [shell-alias.md](./shell-alias.md).
+
+⭐ **`~peers` descends ONE level into an open container** (see § Reach is
 one rule) standing in the
 room — the glass rack's coupes, the floor stock's kegs, a crate's limes —
 so a bare noun can name what is plainly in front of you without a
@@ -364,42 +485,21 @@ a candidate that reach then refuses (nor hide one it would allow). A shut
 `Sealable` and anything that is somebody stay opaque. See
 [perception.md](./perception.md) § *`canReach`*.
 
-**Set-aware exclusion is per seed.** `peers` and `inventory` exclude
-the prior set from the union — their per-element definitions
-already exclude the focal Stuff (peers excludes the focal by
-definition; `inventory(x)` is `x`'s contents, not `x`), and without
-the exclusion the union cross-pollinates: `(bob, joe):peers` would
-pull bob in via `peers(joe)` and vice versa. The exclusion gives the
-expected "peers of these people, minus these people" answer.
-
-`reachable` does **not** exclude the prior set, because its
-per-element definition INCLUDES the focal (you can reach yourself —
-see {@link candidatesForReachable}). Excluding the prior set there
-would silently drop legitimate self-reachable matches:
-`(bob, joe):reachable` keeps bob and joe in the result.
-
-For fixed-pool seeds (intersection), the prior set's `via`
-attribution is preserved — intersection only decides membership.
-For element-derivable seeds (flat-map), each derived match takes
-its `via` from the candidate's via (e.g., detail subcandidates
-carry `via.detailPath`); the
-prior `via` is replaced by the derived origin, and score is
-inherited from the prior match (same convention as
-{@link applyTransform}).
-
-The dispatch lives in `mql/resolver.ts:applyColon`:
-`ELEMENT_DERIVABLE_SEEDS` routes through `flatMapBySeed` (which
-calls `candidatesForElementDerivable` to anchor the seed walk on
-each prior Stuff); everything else in `NAMED_SEED_KEYWORDS` and the
-seed-shaped chain element kinds (`pronoun`, `path`, `stuffId`,
-`lastResult`, `group`) routes through `intersectWithSeed`.
+The dispatch lives in `mql/resolver.ts:applyColon`: `:~name` routes
+through `flatMapRelation` (built-in first, else `RelatingMixin.relatedBy`),
+`:~` through `listRelations`, the place steps through `flatMapPlaceStep`,
+and the fixed pools (`pronoun`, `path`, `stuffId`, `group`, `world`)
+through `intersectWithSeed`.
 
 #### Chain operators
 
 | Operator | Effect | Notes |
 |---|---|---|
 | `:keyword` | narrow current set by keyword | auto-extends with detail names at current via depth |
-| `:predicate` | narrow by predicate (`living`, `online`, `mine`, …) | reserved by name match |
+| `:predicate` | narrow by predicate (`living`, `mine`, `here`, …) | reserved by name match |
+| `:~name` | the set each prior element keeps under `name` | flat-map; built-in first (§ Relations) |
+| `:~` | list what each prior element answers; binds nothing | a `relations` fact |
+| `:exits` · `:to` · `:from` | the place steps | flat-map; `:to` live-only |
 | `:i` | descend one level (no via: immediate contents; with via: immediate child details) | via-aware |
 | `:I` | descend deep (no via: `getDeepContents()`; with via: every detail descendant from the tip, DFS) | via-aware |
 | `:e` | ascend one level (no via: container; with via: pop one detail level) | via-aware |
@@ -424,12 +524,12 @@ without rolling their own loop. Returns `null` when the receiver is
 already at the root.
 | `:[N]`, `:[N..M]`, `:[N..]`, `:[-N]` | ordinal index / range | 1-based |
 | `:[expr]` | filter expression | bracketed body that isn't pure-numeric |
-| `:seed` | intersect with the seed's candidate pool | seed-shaped chain elements |
+| `:seed` | intersect with the seed's candidate pool | fixed pools: `me`, `world`, paths, ids, groups |
 
 The chain narrows; it never broadens. `bookcase:rose` is empty
 because rose isn't a detail of the bookcase. To re-anchor across
 buckets, the dispatcher's scope try-list (`scope: ['$focus',
-'reachable']`) is the right tool — fall back to a broader scope when
+'~reachable']`) is the right tool — fall back to a broader scope when
 the narrow one comes up empty.
 
 The detail-keyword extension in `:keyword` is what makes drill-additive
@@ -437,20 +537,18 @@ focus chains resolve coherently:
 
 | Step | Result |
 |---|---|
-| `here` | (room, no via). Keyword space = room's perceptible keywords + top-level detail names. |
-| `here:bookcase` | (room, via=[bookcase]). Detail name "bookcase" matched; keyword space at this depth is bookcase detail's display + child detail names. |
-| `here:bookcase:book` | (room, via=[bookcase, book]). Child detail "book" matched. |
+| `~here` | (room, no via). Keyword space = room's perceptible keywords + top-level detail names. |
+| `~here:bookcase` | (room, via=[bookcase]). Detail name "bookcase" matched; keyword space at this depth is bookcase detail's display + child detail names. |
+| `~here:bookcase:book` | (room, via=[bookcase, book]). Child detail "book" matched. |
 
-##### `:members` and the keyed-member locator (residences D16)
+##### `:~rooms` and the keyed-member locator (residences D16)
 
-`:members` is a reserved single-word chain element beside the
-element-derivable seeds: it flat-maps each prior element that is
-`instanceof Warren` to `getMembers()` (live members only — a sync
-query cannot materialize a dormant holding; the locator is the
-operator/author surface and a drive admits first), deduped by
-`stuffId`, score carried from the prior match. A non-Warren prior
-element contributes nothing. Holding programmes are warren-shaped one
-level down, so `warren:members:members` walks institution → holding →
+A **Warren** is a relation holder: `warren:~rooms` is its **live**
+members (`getMembers()` — a sync query cannot materialize a dormant
+holding; the locator is the operator/author surface and a drive admits
+first). The reserved chain word `:members` and `flatMapMembers` are
+deleted (naming overhaul B2). Holding programmes are warren-shaped one
+level down, so `warren:~rooms:~rooms` walks institution → holding →
 rooms.
 
 Two filter atoms complete the locator, beside `name`/`id` in
@@ -482,8 +580,8 @@ Dedup is automatic at the boundary of every set operation — `A, A`
 yields `A` once.
 
 Set intersection has no dedicated character — it falls out of mid-chain
-seed-shaped tokens whose right side is a fixed-pool seed (per the
-element-derivable / fixed-pool split above). `(A):(B)` between two
+seed-shaped tokens whose right side is a fixed-pool seed (`me`, `world`,
+a path, an id, a group). `(A):(B)` between two
 grouped fixed-pool seeds is intersection by virtue of the chain rule.
 
 #### Stable ordering
@@ -498,11 +596,19 @@ order).
 
 #### Match-quality scoring — keyword tiers (the name is not special)
 
-Lives in `scope-walk.ts:scoreCandidate`. ⭐⭐ **The scorer reads ONE list —
-the candidate's keywords** (controllers-are-io D22, one-resolution slate
-§ 4). There is no name field on a candidate: a thing's name is one of its
-keywords (`NamedMixin.getKeywords` folds the name and its bare form, so
-*the One Ring* answers to `one ring`). The tiers (`TIER_*` exports):
+⭐⭐ **The rule lives in `GrammarApi` (`api/grammar.ts`), not in MQL**
+(naming overhaul D-C1): the tiers (`GrammarApi.TIER_PHRASE` ·
+`TIER_WORDS` · `TIER_PREFIX` · `TIER_PARTIAL`), `scoreTier`, `scoreAll`,
+`rank`, `name` and the public `pluralWord`. `scope-walk.ts` keeps what is
+MQL's — the candidates, the facets, the attribution — and asks
+`GrammarApi.scoreAll(lists, words)` for the scores **once per pool** (every
+Api static pushes a security frame, so a per-candidate call would put one
+on every candidate in a crowd; the pure per-list rule is a module function
+in `grammar.ts`). ⭐⭐ **The scorer reads ONE list — the candidate's
+keywords** (controllers-are-io D22, one-resolution slate § 4). There is no
+name field on a candidate: a thing's name is one of its keywords
+(`NamedMixin.getKeywords` folds the name and its bare form, so *the One
+Ring* answers to `one ring`). The tiers:
 
 - **100 — a keyword IS the phrase** (`look clay` at the pit is the lumps,
   keyworded `clay`; the pit answers to `clay pit`)
@@ -515,8 +621,24 @@ keywords (`NamedMixin.getKeywords` folds the name and its bare form, so
 run 28: `shelf consign "plant pot"` once sold the aether imPLANT). The
 whole-phrase cut and the tier cascade are one rule now: the highest tier
 present cuts every tier below it, and anything at 40+ answers every word.
-`scoreTier(score)` (3 · 2 · 1 · 0) is what the binder compares ACROSS
-scope tries (`MqlMany.tiers`; see [command-spec.md § scope](./command-spec.md)).
+`GrammarApi.scoreTier(score)` (3 · 2 · 1 · 0) is what the binder compares
+ACROSS scope tries (`MqlMany.tiers`; see [command-spec.md §
+scope](./command-spec.md)).
+
+⭐⭐ **The same rule names what is not Stuff.** `GrammarApi.nameAmong(text,
+entries)` takes a holder's entries (`{ value, keywords, title }`) — a
+quay in a harbor, a spell, a reading channel, a recipe, a document by its
+kind's words, a list label — strips a leading article, reads a leading
+ordinal, treats a quoted phrase as phrase-tier only, lets an entry answer
+to its plurals, ranks by these tiers, and answers `{ kind: 'one' }` ·
+`{ kind: 'tie', tie, titles }` · `{ kind: 'none', offered }`. ⚠ One
+difference from MQL: **a partial names nothing** — some words matching
+nothing is `none` (`reef bend` is no knot), where MQL keeps partials as
+its own fallback. It never prompts and never refuses; the I/O half is
+`CommandController.named(context, answer, noun, what)` — the value, a
+prompt among the titles on a tie (a script: refused), or the
+`no-such-name` row listing what could have been named. A hand-rolled
+matcher anywhere else is what `lint:hand-matchers` counts, at a hard zero.
 
 ⭐ **Every drive finding that once made a NAME tier keeps its outcome by
 keyword data**, each asserted in `scope-walk.score.test.ts` on the real
@@ -539,7 +661,8 @@ drive (2026-10-18): `get "latex cup"` also picked up a coagulating pan
 keyworded *latex pan*.
 
 ⚠⚠ **The scorer was inert for every `scope:word` query until 2026-09-22.**
-A scope seed (`reachable` / `inventory` / `peers` — the default arg
+A scope seed (then `reachable` / `inventory` / `peers`, now `~reachable` …
+— the default arg
 shape of most verbs) stamps each candidate 100, and the keyword narrow
 (`filterByKeywords`) kept `max(prior, keyword)` — always 100 — so every
 `reachable:net` tied and the `top` policy fell to **pool order**
@@ -597,25 +720,36 @@ keywords. `look bob` resolves iff the room view shows the viewer "Bob".
 Ordinal disambiguation (`stranger:[2]`) is an index into the snapshot and
 carries no identity. See [belief.md](./belief.md).
 
-Built-in scopes:
+A view's **scope entry** (one part of a comma-union, after `$focus`
+expansion) becomes a pool by these rules (`candidatesForScopePart`):
 
-| Scope | Members |
+| Scope part | Pool |
 |---|---|
+| a bare built-in — `~reachable`, `~peers`, `~inventory`, `~person`, `~horizon`, `~here` | that built-in's own pool, asked of the giver — detail subcandidates included (`sea`, a sign's `inscription`) |
+| a query that **ends in a relation** (`~reachable:[class.CharterBook]:~ships`), or `@id` | the query's MATCHES are the candidates — nothing else, no neighborhood walk |
 | `me` | `[giver]` |
-| `here` | the giver's place (its details among its keywords) + exits/doors |
-| `peers` | the place's contents and the vessel the giver sits in, minus the giver, one level into the open things there |
-| `inventory` | the giver's whole carried tree, never into another body, nearest first (hand · ready · packed) |
-| `person` | the **on-person** pool: the giver + their own apps + installed slot occupants (+ each occupant's apps) + carried inventory (+ each carried attuned host's apps). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
-| `reachable` | `person` + `here` + `peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
-| `online` | every connected interactive's holder Stuff |
+| a `/path` · `#id` | the instances it names |
 | `world` | every Stuff — ⚠ gated; see below |
+| empty | the `~reachable` backstop |
+| anything else (`$focus` expanded, a drilled focus `~here:bookcase`, a `[class.X]` anchor) | the slow path — § Scope-as-MQL evaluation |
+
+The pools the built-ins read:
+
+| Pool | Members |
+|---|---|
+| `~here` | the giver's place — ONE thing (its details among its keywords). ⚠ There is no scope word `here` and no "place surface" scope any more: a view says what it meant (`~here`, `~here:exits`, `~here:~buildings`, `me:e`, `~peers`) |
+| `~peers` | the place's contents and the vessel the giver sits in, minus the giver, one level into the open things there |
+| `~inventory` | the giver's whole carried tree, never into another body, nearest first (hand · ready · packed) |
+| `~person` | the **on-person** pool: the giver + their own apps + installed slot occupants (+ each occupant's apps) + carried inventory (+ each carried attuned host's apps). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
+| `~reachable` | `~person` + the place's surface (the place, its ways and their doors, the buildings on its landing) + `~peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
 
 ### ⭐⭐ Reach is one list and ONE rule (controller-liquidity W20; size-and-carrying D17, 2026-11-11)
 
-`here` · `inventory` · `person` · `peers` · `reachable` are **filters over
+`~inventory` · `~person` · `~peers` · `~reachable` are **filters over
 `PerceptionApi.reach`** — the one definition of what the giver can lay
-hands on, each thing tagged with its pool (`here` = `around` + `here`:
-the holders themselves, then their surface). The scope walk decides no
+hands on, each thing tagged with its pool (reach's `here` pool = `around`
++ `here`: the holders themselves, then their surface — still part of
+`~reachable`, though the relation `~here` is the place alone). The scope walk decides no
 WHICH; it turns each reached thing into a candidate (the keyword face,
 the facets). ⭐ **There are no rungs any more** (`ReachDepth`, `depth:`,
 `--top`/`--open`/`--deep`, `MqlContext.depth` and the binder's
@@ -641,11 +775,11 @@ binder BINDS the apple in your shut box (it is the nearest thing you
 perceive that answers) and the verb's `canReach` validator refuses it in
 the object's words — **after** binding, and only for a thing the giver
 perceives (the validator `mustNotBeShutAway` folded into `canReach`'s
-wording). `reachable` as a scope word is exactly `canReach`'s membership
-pool (`reach.sameSet.test.ts`, `reach.oneRule.test.ts`). A **mid-chain**
-anchor (`bob:inventory`, `crate:person`) is read from OUTSIDE — what it
-holds and wears, its top level and one level into the open things there
-(`candidatesHeldBy`), the same set whoever asks.
+wording). `~reachable` as a scope is exactly `canReach`'s membership
+pool (`reach.sameSet.test.ts`, `reach.oneRule.test.ts`). Asked of
+another (`@bob:~inventory`, `crate:~inventory`) the carried set is read
+from OUTSIDE — what it holds and wears, its top level and one level into
+the open things there (`candidatesHeldBy`), the same set whoever asks.
 
 ### ⭐⭐⭐ MQL names; the acts perceive (size-and-carrying D23, 2026-11-11)
 
@@ -661,7 +795,7 @@ perceives clause and `visibleInside`'s viewer filter are gone, and so is
 `MqlContext.attention` (a detection consumer — the `wary` brain — names
 with MQL, then `PerceptionApi.perceives(viewer, x, attention)`). The asker
 reaches the resolver only (a) through the words that are the asker's
-(`me`, `here`, `me:e`, `it`/`them`, the giver-anchored seeds, `:mine`) and
+(`me`, a head `~name`, the `self` relations, `me:e`, `:mine`, `:here`) and
 (b) as an argument to the OBJECT's own methods — what a thing answers to
 is `Stuff.perceivedKeywordsFor(viewer)` (the recognition face for a
 being, the thing's own `getKeywords(viewer)` otherwise), which detail ids
@@ -768,13 +902,14 @@ per-cache subscribers was rejected as the alternative: it taxes every
 object creation with N predicate dispatches, and a subscriber's answer
 to *"what existed before I subscribed?"* is the scan itself.
 
-`here` deliberately does NOT include peers; that's `peers`' job. The
-split lets `get` declare the surgical scope it actually wants
-(`peers`) without picking up the room itself or its exits.
+`~here` is the place and nothing else; what stands in it is `~peers`.
+The split lets `get` declare the surgical scope it actually wants
+(`~peers`) without picking up the room itself or its exits.
 
 ##### Doors and exits — both candidates, each as itself
 
-The `here` pool (`PerceptionApi.reach`'s `here` section) emits boundaries
+The place's surface (`PerceptionApi.reach`'s `here` section, inside
+`~reachable` — and a slow-path anchor's neighborhood) emits boundaries
 and exits through the same generic candidate path (harbors review 3
 retired the asymmetry; ⚠ since W20 a boundary is offered only on a way the
 viewer can see, as `canReach` always had it):
@@ -798,9 +933,10 @@ viewer can see, as `canReach` always had it):
 There is no `via.exit`. A verb that needs the boundary on a way asks
 `MqlApi.effectiveTarget` (the bound thing, else — when the bound thing is
 an exit — that exit's boundary, `exit.getBoundary()`), so `open north`
-reaches the door standing in the north way; movement verbs scope to ways (`here:exits`), so a word can only
-mean one. The place steps `:exits` / `:to` / `:from` (`flatMapPlaceStep`,
-reserved chain words like `:members`; `:to` is live-only) are in
+reaches the door standing in the north way; movement verbs scope to ways
+(`me:e:exits`, `~here:exits`), so a word can only mean one. The place
+steps `:exits` / `:to` / `:from` (`flatMapPlaceStep`, reserved chain
+words; `:to` is live-only) are in
 [mql-grammar.md](../mql-grammar.md#places-and-the-ways-between-them).
 
 Collisions between a door's keywords and an exit's direction (a
@@ -811,10 +947,12 @@ keyword lists.
 
 #### Scope-as-MQL evaluation
 
-When the YAML's `scope:` fragment isn't a recognized named seed (or
-comma-union of them), the resolver parses it as an MQL query, resolves
-it, and walks each resulting `(Stuff, via)` anchor's neighborhood for
-candidates. That's what makes a focus like `"here:bookcase:book"`
+When the YAML's `scope:` fragment isn't recognized by the fast path
+above (a bare built-in, a relation-ended query, `me`, a path, an id,
+`world`), the resolver parses it as an MQL query (inner scope
+`~reachable`), resolves it, and walks each resulting `(Stuff, via)`
+anchor's neighborhood for candidates. That's what makes a focus like
+`"~here:bookcase:book"`
 evaluate cleanly as a scope — the candidate pool is the book detail's
 children, if any. The fast path stays as the common case; arbitrary
 fragments go through the slow path.
@@ -835,24 +973,22 @@ neighborhood, not the host's contents.
 
 ## `MqlMatchVia` — sub-feature attribution
 
-Tells callers which path produced the match — Detail name, Exit, or
-direct hit. The base shape is intentionally empty; subsystems augment
-via TypeScript declaration merging. v1 ships two augmentations,
-collected in `mql/via-augment.ts`:
+Tells callers which path produced the match — a Detail name, a held
+substance, a kept relation, or a direct hit. The base shape is
+intentionally empty; subsystems augment via TypeScript declaration
+merging. `mql/via-augment.ts` collects the resolver's own:
 
 ```ts
 declare module './types' {
   interface MqlMatchVia {
     detailPath?: string[];   // names walked through the host's Detailed descriptors
-    exit?: Exit;             // exit reference for direction matches
+    relation?: { holder: Stuff; name: string; meaning: string };  // the kept set (D-B6)
   }
 }
 ```
 
-Phase 7 plans to move the `detailPath?` declaration into
-`lib/description/Detailed.ts` and the `exit?` declaration into
-`lib/spatial/Exit.ts`. The augment file is a temporary collector to
-keep the resolver from depending on subsystem files.
+`lib/bulk/Bulkable.ts` adds `bulk?: { affordance }`. There is no `exit`
+augmentation: a direction binds the Exit itself as the match's `stuff`.
 
 ### Adding a new via key
 
@@ -873,6 +1009,7 @@ one.
 |---|---|---|---|
 | `detailPath?: string[]` | names walked through `Detailed` descriptors | the detail facet of `scope-walk.candidateFor`, the chain detail-tree steps | controllers that drill into details |
 | `bulk?: { affordance }` | the slot a held-substance match landed on | the bulk facet of `candidateFor`, the `:b` transform | the bulk verbs |
+| `relation?: { holder, name, meaning }` | the kept set a match was reached through | `flatMapRelation` (every `:~name` step, built-ins too) | `contacts remove` (which list); the binder's tie prompt (the meaning tells two sets of one name apart) |
 
 ### The mixed-path consensus rule
 
@@ -893,10 +1030,11 @@ from it instead of resolving a second time.
 
 ## Pronoun memory (`mql/pronoun-memory.ts`)
 
-Per-Focused-giver stash for the dynamic pronouns (`it`, `him`, `her`,
-`them`) plus the `last` slot returned by `$$`. Updated post-resolve
-by `CommandApi.resolveModel`; read by the resolver when those
-seeds appear in a chain.
+Per-Focused-giver stash behind the built-in relations `~it`, `~him`,
+`~her`, `~them` and `~last` (`$$` is gone — it is `~last`). Updated
+post-resolve by `CommandApi.resolveModel`; read by the relation table's
+`stash(slot)` entries. The typed words `it`/`him`/`her`/`them` reach it
+through the default query aliases (§ Query aliases).
 
 ```ts
 type PronounSlot = 'it' | 'him' | 'her' | 'them' | 'last';
@@ -914,8 +1052,8 @@ Key semantics:
 - **Empty results don't touch the stash.** The last successful query
   stays referenced.
 - **Pronoun-input fragments don't update either.** A query like `look
-  it` doesn't overwrite the slot with the literal string `"it"` —
-  that would lose the original anchor.
+  it` (or `look ~it`) doesn't overwrite the slot with the pronoun
+  string — that would lose the original anchor.
 - **Single-stuff results route to the gendered slot AND `last`.** The
   dispatcher passes a `slotFor` routing function that maps the matched
   Stuff to its gendered slot via `GenderedMixin.getPronouns()`. Stuff
@@ -924,8 +1062,8 @@ Key semantics:
   single-stuff anchor to route by gender.
 
 Pronoun memory lives on `FocusedMixin`. NPCs without `FocusedMixin`
-have no stash; pronoun seeds in their queries resolve to empty match
-lists. The dispatcher gates `update` on `MixinApi.isFocused(giver)`.
+have no stash; the pronoun relations in their queries resolve to empty
+match lists. The dispatcher gates `update` on `MixinApi.isFocused(giver)`.
 
 The `#`-private slots in `PronounMemory` are fine because the class
 isn't a Stuff and never crosses the call-security proxy. (See
@@ -962,9 +1100,9 @@ after `perceived`. MQL is universal; perceiving is the act's job.
 
 There are **no permission tiers** (content-packs wave 3 deleted them
 along with the `core` group and the "author tier" — see
-[access.md](./access.md)). Every seed, scope, namespace filter and
-predicate resolves for every giver: a guest may type `flower:online`,
-`reachable:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
+[access.md](./access.md)). Every seed, relation, scope, namespace filter and
+predicate resolves for every giver: a guest may type `~contacts:flower`,
+`~reachable:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
 answer — the same answer anyone gets, which the verb then shows through
 `PerceptionApi.perceived`, exactly as `look` is fogged. ⚠ **The one thing
 that is gated is not a permission tier**: `world:` reads every object
@@ -972,14 +1110,14 @@ the realm has ever made, and what gates it is *cost*, not privilege —
 which is why the exception is an office with a receipt rather than a
 tier. What that guest may
 then *do* with a match is decided where it always was — by the verb:
-`attack online:<name>` fails on reachability, `teleport` on title over
+`attack @<id>` fails on reachability, `teleport` on title over
 the destination's extent, a mutation on the covering parcel's holder.
 Enumeration is not capability; capability is title over a resource.
 
 **Nor is resolving feasibility.** The same split holds for the physical
 question. A view's `scope:` is a search hint — the try-list is tried in
 order and the first non-empty result wins — never a guarantee: explicit
-MQL bypasses it, and `eat online:bob:i:cake` resolves the cake wherever
+MQL bypasses it, and `eat @<id>:i:cake` resolves the cake wherever
 it is. So the **per-verb validator is the contract**, and it must assume
 nothing about how the target was named. `canReach`
 (`lib/command/validators/canReach.ts`) is the exemplar — a membership
@@ -1003,7 +1141,7 @@ it any more.
 per-candidate `perceives` gate, and that gate is gone with it — MQL names
 the same things for everyone. A detection consumer names with MQL and then
 perceives at its own attention: the `wary` sentry brain resolves
-`peers:living` and keeps what `PerceptionApi.perceives(host, x, alertness)`
+`~peers:living` and keeps what `PerceptionApi.perceives(host, x, alertness)`
 admits (see [stealth.md](./stealth.md)).
 
 ## System mode (`commandGiver: null`)
@@ -1015,7 +1153,7 @@ giver is the engine's own viewer-blind enumeration for registry
 sweeps and fixture indexes (`AttendantLogic.allPoints`,
 `EmploymentLogic.allBusinesses`, and the rest of the pair list):
 
-- the viewer-free seeds resolve (`/path` globs, `#id`, `online`) with
+- the viewer-free seeds resolve (`/path` globs, `#id`, `@<id>`) with
   **no perception gate** and baseline (`getPresentation`) names —
   omniscient, not fogged;
 - ⭐ **`world` is NOT among them.** A null giver says *nobody is
@@ -1025,10 +1163,12 @@ sweeps and fixture indexes (`AttendantLogic.allPoints`,
   more: every one of those reads was `world:[mixin.X]`, which is
   `StuffApi.findByMixin` with extra steps, so they ask the registry
   directly and MQL is back to being only a query engine;
-- the giver-anchored seeds (`me`/`here`/`peers`/`reachable`/`person`/
-  `inventory`) and the bareword predicates (`visible`/`mine`/`here`
-  all read the giver) **throw** a clear resolver error — nothing
-  guesses a viewer;
+- the root `me` — and so every head `~name`, which is `me:~name` — a home
+  path, and the bareword predicates that read the giver (`mine`/`here`)
+  **throw** a clear resolver error — nothing guesses a viewer. ⚠ The
+  connected-player listing that once rode the `online` seed is
+  `PlayerApi.connectedAvatars()`, and an `mql:` group resolves over
+  `/platform/agent/Avatar`;
 - namespace filters (`[mixin.X]`/`[class.X]`) work — nothing gates
   them for anyone.
 
@@ -1040,8 +1180,8 @@ express (the exemption is commented at both loops).
 ## Predicate registry (`mql/predicates.ts`)
 
 Bareword filters that can appear in chain position
-(`:living`, `:online`, `:mine`, `:here`, `:visible`, `:loose`, `:held`,
-`:worn`, `:carried`). Each is a check function — no tier (there are none) — and
+(`:living`, `:mine`, `:here`, `:visible`, `:loose`, `:held`,
+`:worn`, `:carried`; `:online` left with the `online` seed). Each is a check function — no tier (there are none) — and
 ⭐ each DELEGATES to a method the model already answers
 ([architecture.md § MQL is a VIEW](../architecture.md)):
 
@@ -1054,7 +1194,7 @@ Bareword filters that can appear in chain position
 | `carried` | on the holder and not worn — a hand, a pocket, hung from a worn host — so `contents`/`worn` still partition everything (size and carrying W7-k) |
 
 ⭐ The room listing `look`, `sense` and the inspection card share is one
-query — `here:i:visible:[not mixin.AdornmentMixin] - me` (the card adds
+query — `~here:i:visible:[not mixin.AdornmentMixin] - me` (the card adds
 `:carried`) — replacing three verbatim hand-rolled filters
 (mql-predicate-parity slate). The orphan guard stays in
 `getLooseContents(items)` (see [perception.md](./perception.md)).
@@ -1077,40 +1217,34 @@ Unknown barewords in chain position fall back to keyword filtering —
 predicates are reserved by *name match* on this published list, not
 by parser keywords. Adding a predicate is a one-line append.
 
-## Online-holders provider seam
+## `online` is retired (naming overhaul D-B10)
 
-The `online` seed and the `:online` predicate need to
-enumerate connected `Interactive`s back to their holder Stuff.
-Importing `ConnectionApi` from anywhere on the eager
-`command.ts → MqlApi` chain forces the
-`ConnectionManager → Interactive → Idea` cycle to deadlock when test
-files lead with `import { Idea }`. The two-step indirection:
-
-- `mql/online-provider.ts` — module-private setter; consumed by the
-  resolver and predicates.
-- `mql/online-wire.ts` — imports `ConnectionApi`, registers the
-  provider. **Not** imported by any module on the eager chain.
-
-Production wires once at boot via `AppBootstrap`; tests that need
-live online data import `online-wire` directly. Without the wire,
-`online` queries resolve cleanly but yield no matches.
+The `online` seed, scope and predicate are gone, and with them the
+`online-provider` / `online-wire` seam that kept `ConnectionApi` off the
+eager import chain. A view that scoped to `online` says what it meant:
+`dm` → `["~here", "~contacts"]`; the money and invite verbs → `["~reachable",
+"~contacts"]`; the add/invite/office verbs → `["~peers", "~contacts"]`; the speech
+verbs → `["~peers"]`. A stranger elsewhere is reached by `@<id>` (`who` and
+the profile card print it, withheld under a disguise that masks
+identity). Engine code that needs the connected players asks
+`PlayerApi.connectedAvatars()`.
 
 ## Scope-as-MQL and `$focus`
 
 The dispatcher expands `$focus` (and any stored vars) in YAML
 `scope:` strings via `ShellApi.expandVariables` before calling
-`MqlApi`. So when a YAML declares `scope: ['$focus', 'reachable']`:
+`MqlApi`. So when a YAML declares `scope: ['$focus', '~reachable']`:
 
 1. `$focus` expands to the giver's current focus fragment (defaults
-   to `"here"` if none).
+   to `"~here"` if none).
 2. The resolver runs with `scope: <expanded>`.
 3. If the fragment isn't a recognized named seed, the scope-as-MQL
    slow path kicks in: parse + resolve the fragment, walk each
    resulting `(Stuff, via)` anchor's neighborhood for candidates.
 4. If that produces no candidates / no scoring matches, the
-   dispatcher tries the next entry (`reachable`).
+   dispatcher tries the next entry (`~reachable`).
 
-That's how a focus like `"here:bookcase:book"` resolves coherently
+That's how a focus like `"~here:bookcase:book"` resolves coherently
 both as a query (drill chain that lands on the book detail) and as a
 scope (candidate pool = book's child details).
 
@@ -1138,9 +1272,13 @@ Common extension points and where they live:
 
 - **Add a predicate.** Append to `MQL_PREDICATES` in
   `mql/predicates.ts`. Write the check function.
-- **Add a named scope.** Add a `candidatesForX(giver)` builder in
-  `mql/scope-walk.ts`, dispatch on the new name in the resolver's
-  scope handler (`candidatesForScope`, fast path).
+- **Add a relation.** Almost always a holder's: compose `RelatingMixin`
+  beneath the mixin or class that keeps the set and answer
+  `relationsFor` / `relatedBy` (and `groupRefOf` when the set is a durable
+  group), chaining to `super`. A **built-in** is a row in
+  `api/mql/relations.ts` (`name`, `meaning`, `whose`, `members`) — one
+  answer, no second face; it is a kernel change and masks every holder's
+  set of that name.
 - **Add a via key.** TypeScript-declaration-merge a new optional
   field onto `MqlMatchVia` in the owning subsystem (or the
   `via-augment.ts` collector during transition), produce it in the
@@ -1165,13 +1303,13 @@ Documented decisions worth not re-litigating:
   (CLAUDE.md).
 - **No sort operations** (`:sort.X`). Distinct syntactic shape; can
   be added without grammar churn.
-- **No named groups** (`@@group`). Authored or player-saved object
-  groups. Out.
-- **No disambiguation prompts.** Depends on the future prompt stack.
-  MQL exposes the contract (`MqlMany.stuff.length > 1` in a
-  single-cardinality field); the prompt UX is built later.
-- **No locale / translation.** Reserved keywords (`me`, `here`,
-  `living`, etc.) are English. Architecture allows for it later.
+- **No ad-hoc named groups** (`@@group`). A named set is a relation a
+  holder keeps (`~friends`, `~bookclub`, `~party`); MQL mints none.
+- **MQL never prompts.** It exposes the contract (several matches in a
+  single-cardinality field; `relationTie`) and the binder asks.
+- **No locale / translation.** Reserved words (`me`, `world`, the
+  built-in relation names, `living`, etc.) are English. Architecture
+  allows for it later.
 - **English-only natural-language layer.** Article stripping and
   ordinal-prefix work on English forms only.
 
@@ -1199,7 +1337,11 @@ query language can see it and the abstraction carries it.
 ## Cross-references
 
 - [../mql-grammar.md](../mql-grammar.md) — user-facing grammar
-  reference: every seed, every operator, with examples.
+  reference: every anchor and relation, every operator, with examples.
+- [shell-alias.md](./shell-alias.md) — query aliases (`?name`).
+- [contacts.md](./contacts.md) · [social-graph.md](./social-graph.md) ·
+  [grouping.md](./grouping.md) — the holders behind `~friends`,
+  `notify ~bookclub`, and the durable `GroupRef` a relation stands for.
 - [command-spec.md](./command-spec.md) — how to write a YAML view
   that uses MQL fields.
 - [command-routing.md](./command-routing.md) — the dispatch pipeline
@@ -1221,3 +1363,18 @@ removed, `visible` a class word, the head ordinal on `MqlMany.ordinal`)
 and moved perception to the surfaces (`PerceptionApi.perceived`,
 `lint:perceived-surfaces`). The flip (W7) made `:held` a hand slot and
 `:worn` a non-hand slot on a carrier.
+
+## History — naming overhaul (2026-11-22)
+
+`build/naming-overhaul`, Stage B and C. B0 made the affordance selector
+`source::verb`; B1 added `~`/`@`, the built-in relation table and
+`RelatingMixin`; B2 the holders (contact lists, parties, groups, warrens,
+charter books, travel cards, aether hosts; `:members` deleted); B3a
+respelled every view's scopes and defaults as relations, retired the seed
+words, `$$` and `online`, and added query aliases; B3b split `here` — 116
+slots now say what they meant, and the empty scope is the `~reachable`
+backstop; B4 moved `notify` and `contacts` onto relations. C0 moved the
+keyword tiers into `GrammarApi` and added `GrammarApi.nameAmong` +
+`CommandController.named`; C1–C7 drove every hand-rolled matcher onto it
+(`lint:hand-matchers` at zero). Decisions cited in code as `D-B*` /
+`D-C*`.

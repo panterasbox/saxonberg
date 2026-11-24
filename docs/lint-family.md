@@ -1537,6 +1537,48 @@ that needs types, and a typed lint is a deferred seam.
   speech, conferral, membership, money given, verbs that run others); and a
   ratchet on the declaring classes, **1** (`title buy`).
 
+### ⭐⭐ `lint:hand-matchers` — one naming rule (naming overhaul, 2026-11-21)
+
+A player's words name a thing by ONE rule: `GrammarApi`'s keyword tiers,
+reached through MQL for runtime Stuff and through `GrammarApi.nameAmong` for
+everything else (a quay in a book, a list label, a reading channel, an
+offer not yet made). Every hand-rolled matcher is a second rule that
+disagrees somewhere — `the` stripped here and not there, `plant` finding
+`implant`, a plural one verb hears and the next does not.
+
+`check-hand-matchers.ts` counts four shapes per named function, over the
+kernel's `lib/` and `platform/` (controllers included) and every pack's
+`src/` — never `api/grammar.ts` or `api/mql/**`: **article strips**,
+**hand compares** (a lowered word compared against names, keywords,
+labels), **duration parses** (a unit-word regex or word table outside
+`CommandDefinition`), and **word-keyed indexes** (`map.set(word.toLowerCase(), …)`).
+Pinned at C0: **36 · 92 · 6 · 14**. The naming-overhaul waves lower them;
+C7 sets every one to zero.
+
+⭐ **The undercount guard** (§ Four ways a census lies): `MUST_FIND` names
+twelve grounding sites the census must find by name, and the gate fails
+when it is blind to one. The first draft missed `SpellCatalogue`'s index
+(the key reached the map through a variable) and the Interpreter's
+`(s|m|h|d)` short form; both widened the rule. Its second draft overcounted
+(`getKeywords`' dedup `.has`, a calendar's `{day}` placeholder), and those
+were cut — **an index is BUILT by a write**, and a parse reads digits.
+
+**Exemptions are a reviewed table** in the script (file + symbol + why):
+hail's matchers (signalling-slate), `help search` and `who --country`
+(a search is not a name), the stream verbs' wall-clock parser. Never an
+`@internal`.
+
+`lint:controller-resolution` gained the controller half the same day:
+**raw re-reads** and **via reads off the declared facets** plus lowered model
+words. ⭐ Both measure RE-RESOLUTION in the controller — a `.raw` lowered,
+compared or tested here; an undeclared facet read off a bound arg's `.via` —
+never the words handed to the object's own naming method (D-C4) or a whole
+`.via` handed on. **All six counts reached 0 at C7 (2026-11-22)** and hold
+there; the census is now a hard line. Its exemptions are tables in the two
+scripts, each with its reason: the keyword substrate, parsers, name
+validation, prepositions, the binder, uniqueness indexes, hail, searches,
+emote verb keys, and contacts' offline fallback.
+
 ### `lint:get-or-create` — `singleton` already does it (2026-09)
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read

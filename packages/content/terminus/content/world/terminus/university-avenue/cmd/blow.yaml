@@ -15,7 +15,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     # ⭐ The thing that offers this verb, by what it IS (controllers-are-io
     # D8d, `requires: affords`) — not a bare `any` the controller narrows.
     requires: [affords]

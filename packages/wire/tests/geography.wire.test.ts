@@ -101,7 +101,7 @@ async function horizonAt(where: string, who = handle): Promise<string> {
     // The arrival `look` (as a client sends on entering) stands up what the
     // horizon will name; the query that follows reads it complete (D9).
     await s.prose('look');
-    return plain(await s.prose('query horizon'));
+    return plain(await s.prose('query ~horizon'));
   } finally {
     s.close();
   }
@@ -200,7 +200,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
       await s.cmd('up');
       await s.drainProse();
       await s.prose('look');
-      high = plain(await s.prose('query horizon'));
+      high = plain(await s.prose('query ~horizon'));
     } finally {
       s.close();
     }
@@ -281,7 +281,7 @@ suite('geography — the drive', { timeout: 300_000 }, () => {
     try {
       await s.drainProse();
       await s.prose('look');
-      await s.cmd('query horizon');
+      await s.cmd('query ~horizon');
       const frames = JSON.stringify(s.framesOf('sense.survey'));
       expect(frames.length).toBeGreaterThan(20);
       expect(frames).not.toMatch(/bearingDeg/);

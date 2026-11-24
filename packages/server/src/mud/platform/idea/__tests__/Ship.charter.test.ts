@@ -374,21 +374,18 @@ describe('⭐ a course for a node is laid from beyond hail; the keeper is asked 
 });
 
 describe('the charter book (P23)', () => {
-  it('⭐ aboard, it lets the ship it is in; at a desk, the listed one the word names', async () => {
+  it('⭐ aboard, it lets the ship it is in; at a desk, the one it lists (a NAMED ship is the view\'s `~ships`)', async () => {
     const hold = makeStuffAtPath(() => new Shore(), '/test/hesper/hold');
     const book = makeStuffAtPath(() => new CharterBook(), '/test/hesper/thing/charter-book');
     ContainmentApi.move(book, hold);
     vi.spyOn(NavigationApi, 'structureAt').mockImplementation((async (p: string) => (p.startsWith('/test/hesper/') ? ship : null)) as never);
-    expect(await book.shipFor(null)).toBe(ship);
-    expect(await book.shipFor('hesper')).toBe(ship);
-    expect(await book.shipFor('kittiwake')).toMatch(/lets the Hesper, and no other/);
+    expect(await book.shipFor()).toBe(ship);
 
     const desk = makeStuffAtPath(() => new CharterBook(), '/test/harbor/thing/charter-book');
     desk.setShips([SHIP]);
     desk.setRatePerDay(2);
     desk.setRates({ [SHIP]: 3 });
-    expect(await desk.shipFor('the hesper')).toBe(ship);
+    expect(await desk.shipFor()).toBe(ship);
     expect(desk.rateFor(ship)).toBe(3);
-    expect(await desk.shipFor('corrigan')).toMatch(/does not let a ship called 'corrigan'/);
   });
 });

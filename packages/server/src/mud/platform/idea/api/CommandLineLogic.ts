@@ -272,31 +272,61 @@ function classify(tokens: Lexeme[]): RawToken[] {
 function formatCommand(cmd: ParsedCommand): string {
   const tokens = cmd.rawTokens.map(formatToken);
   const head = cmd.rawTokens[0];
-  // ⭐ `verb@source`: a token 0 that already carries this scope is
+  // ⭐ `source::verb`: a token 0 that already carries this scope is
   // emitted verbatim (round-trip). A synthesized command — an alias
-  // expansion — whose token 0 lacks it re-emits `verb@scope`, the
-  // scope quoted when it needs to be (`wind@"pocket watch"`).
+  // expansion — whose token 0 lacks it re-emits `source::verb`, the
+  // source quoted when it needs to be (`"pocket watch"::wind`).
   if (cmd.scope !== undefined && head?.kind === 'word' && tokens.length > 0) {
-    const split = splitVerbScope(head.value);
-    if (split.scope !== cmd.scope) {
-      tokens[0] = `${quoteIfNeeded(split.verb)}@${quoteIfNeeded(cmd.scope)}`;
-    }
+    const split = splitVerbScope(head.raw, head.value);
+    tokens[0] =
+      split.scope === cmd.scope
+        ? head.raw
+        : `${quoteIfNeeded(cmd.scope)}::${quoteIfNeeded(split.verb)}`;
   }
   return tokens.join(' ');
 }
 
 /**
- * Split a verb token at its first `@`. A leading `@` is not a split (an
- * `@`-word is a word); an `@` at index > 0 is: `wind@me:watch` →
- * `{verb: 'wind', scope: 'me:watch'}`. An empty scope (`wind@`) is no
- * scope.
+ * Split a verb token at its first `::` outside quotes (naming overhaul
+ * D-B8): `watch::wind` → `{verb: 'wind', scope: 'watch'}`,
+ * `me:i:watch::wind`, `"pocket watch"::wind`. MQL gives `::` no meaning, so
+ * no real query contains one; a quoted name protects a literal. A token
+ * with an empty side is not a split. Read off the RAW token, so a quoted
+ * source keeps its own colons.
  */
-function splitVerbScope(value: string): { verb: string; scope?: string } {
-  const at = value.indexOf('@');
-  if (at <= 0) return { verb: value };
-  const scope = value.slice(at + 1);
-  if (scope.length === 0) return { verb: value.slice(0, at) };
-  return { verb: value.slice(0, at), scope };
+function splitVerbScope(token: string, value: string): { verb: string; scope?: string } {
+  // A leading `\` is the alias bypass, and belongs to the verb.
+  const bypass = /^\\+/.exec(token)?.[0] ?? '';
+  const raw = token.slice(bypass.length);
+  let quote: string | null = null;
+  for (let i = 0; i < raw.length - 1; i++) {
+    const c = raw[i]!;
+    if (quote !== null) {
+      if (c === '\\') i++;
+      else if (c === quote) quote = null;
+      continue;
+    }
+    if (c === '"' || c === "'") {
+      quote = c;
+      continue;
+    }
+    if (c === ':' && raw[i + 1] === ':') {
+      const scope = unquote(raw.slice(0, i));
+      const verb = unquote(raw.slice(i + 2));
+      if (scope.length === 0 || verb.length === 0) return { verb: value };
+      return { verb: bypass === '' ? verb : `\\${verb}`, scope };
+    }
+  }
+  return { verb: value };
+}
+
+/** A token's text with one pair of surrounding quotes removed. */
+function unquote(text: string): string {
+  const t = text.trim();
+  if (t.length >= 2 && (t[0] === '"' || t[0] === "'") && t[t.length - 1] === t[0]) {
+    return t.slice(1, -1).replace(/\\(.)/g, '$1');
+  }
+  return t;
 }
 
 function formatToken(t: RawToken): string {
@@ -381,9 +411,11 @@ function parsePipelineImpl(input: string): ParsedPipeline {
     const verbToken = rawTokens[0];
     const head =
       verbToken && verbToken.kind === 'word' ? verbToken.value : '';
-    // ⭐ `verb@source` — only the verb token is ever split; the raw
+    // ⭐ `source::verb` — only the verb token is ever split; the raw
     // token stays as typed so `format()` round-trips.
-    const { verb, scope } = splitVerbScope(head);
+    const { verb, scope } = verbToken && verbToken.kind === 'word'
+      ? splitVerbScope(verbToken.raw, verbToken.value)
+      : { verb: head, scope: undefined };
     const cmd: ParsedCommand = {
       verb,
       rawTokens,

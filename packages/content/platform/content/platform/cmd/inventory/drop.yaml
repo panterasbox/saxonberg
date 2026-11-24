@@ -22,7 +22,7 @@ args:
   - name: targets
     type: objects
     required: true
-    scope: "inventory"
+    scope: "~inventory"
     requires: ContainableMixin
     validators:
       - /lib/command/validators/mustBeInInventory

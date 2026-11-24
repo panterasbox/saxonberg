@@ -35,5 +35,5 @@ subcommands:
       - name: card
         type: object
         required: true
-        scope: "inventory"
+        scope: "~inventory"
         requires: CredentialWalletMixin

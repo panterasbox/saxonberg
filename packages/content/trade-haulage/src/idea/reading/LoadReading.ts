@@ -113,9 +113,9 @@ export default class LoadReading extends Reading {
     if (named && MixinApi.isHaulable(named)) {
       return named as unknown as Stuff & { getDraftLoad(): { rawValue(): number } };
     }
-    const reachable = MqlApi.resolveMany('reachable', {
+    const reachable = MqlApi.resolveMany('~reachable', {
       commandGiver: context.commandGiver,
-      scope: 'reachable',
+      scope: '~reachable',
     }).stuff;
     const hit = reachable.find((s) => MixinApi.isHaulable(s));
     return (hit as unknown as Stuff & { getDraftLoad(): { rawValue(): number } } | undefined) ?? null;

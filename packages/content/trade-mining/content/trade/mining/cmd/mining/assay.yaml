@@ -58,12 +58,12 @@ args:
     # `assay` now means the whole batch you are carrying, which is the
     # amortized trip the economics are built around.
     required: false
-    default: "reachable:[mixin.SampledMixin]"
+    default: "~reachable:[mixin.SampledMixin]"
     # `assay the ore`: the binder folds the article into the next word
     # (controller-liquidity D3), so `the` never binds a thing of its own —
     # it once matched the first thing in reach and refused with a sentence
     # about an aether implant.
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: [SampledMixin]
   # ⭐ The default resolves the carried KIT as well as the bench —
   # correct, and the point: they are two rungs of one capability and
@@ -78,6 +78,6 @@ args:
     # trips "too many arguments" and the command dies as an unknown
     # shape — with everything upstream of it already correct.
     prepositions: [at, on, with]
-    default: "reachable:[capability.assay-scale]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[capability.assay-scale]"
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]

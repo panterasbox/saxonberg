@@ -31,6 +31,6 @@ args:
     type: object
     required: false
     prepositions: [at, in]
-    default: "reachable:[class.CharcoalPit]"
-    scope: ["here", "peers", "person"]
+    default: "~reachable:[class.CharcoalPit]"
+    scope: ["~peers", "~person"]
     requires: [BurnerMixin]

@@ -19,7 +19,8 @@ import type { AnyConstructor } from '../../../api/mixin';
 import { Template } from '../../../lib/stuff/Template';
 import { StuffApi } from '../../../api/stuff';
 import { TemplatePathPrefixes } from '../../../lib/paths';
-import { NameBank, type NamePools } from '../../../lib/species/NameBank';
+import type { NamePools } from '../../../lib/species/NameBank';
+import NameBankCatalogue from '../NameBankCatalogue';
 
 interface CladeShape {
   getRank?(): CladeRank;
@@ -244,7 +245,7 @@ export class SpeciesLogic extends ApiLogic {
   /** See {@link SpeciesApi.resolveNamePools}. */
   @CallSecurity(SpeciesApiCallers)
   public async resolveNamePools(paths: readonly string[]): Promise<NamePools> {
-    const pools = await NameBank.resolve(paths);
+    const pools = await StuffApi.singletonSync('/platform/idea/NameBankCatalogue', () => new NameBankCatalogue()).resolve(paths);
     if (pools.missing.length === 0) return pools;
     // A path with no bank is a content gap an author sees in `errors`.
     // Imported here: a top-level import closes a cycle through Thing.

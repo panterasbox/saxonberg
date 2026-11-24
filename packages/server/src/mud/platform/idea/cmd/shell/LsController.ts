@@ -147,7 +147,13 @@ export default class LsController extends CommandController<LsModel> {
       const shown = recursive ? doc.path : segs.slice(0, baseSegments + 1).join('/');
       if (shown && shown !== basePath && !seen.has(shown)) {
         seen.add(shown);
-        lines.push(shown);
+        // ⭐ A document prints its title beside its path (its kind's
+        // `titled` field) when the title says more than the leaf.
+        const title = shown === doc.path
+          ? DocumentApi.kinds().byName(doc.getKind())?.titleOf(doc.path, doc.getData()) ?? ''
+          : '';
+        const leaf = shown.slice(shown.lastIndexOf('/') + 1);
+        lines.push(title !== '' && title !== leaf ? `${shown}  — ${title}` : shown);
       }
     }
   }

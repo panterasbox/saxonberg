@@ -5,6 +5,7 @@
  * module, as every mixin is (it shared `Sealable.ts` until the review).
  */
 
+import { GrammarApi } from '../../api/grammar';
 import type { NestingConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -113,7 +114,7 @@ export function ThrottleableMixin<TBase extends NestingConstructor<Stuff & Seala
     }
 
     public workOpening(said: string, by: Stuff): { shut: boolean; words: string } | null {
-      const t = said.trim().toLowerCase().replace(/^(a|an|the)\s+/, '').replace(/\s+(open|way)$/, '');
+      const t = GrammarApi.withoutArticle(said).toLowerCase().replace(/\s+(open|way)$/, '');
       const pct = /^(\d+(?:\.\d+)?)\s*%$/.exec(t);
       const n = Number(t);
       const f =

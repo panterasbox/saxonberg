@@ -183,9 +183,9 @@ describe("Avatar.installDefaultLoadout", () => {
   // Avatar IS a CommandGiver; the cast just recovers that from the
   // fixture's erased type).
   function reachableFrom(avatar: Avatar): Stuff[] {
-    return MqlApi.resolveMany("reachable", {
+    return MqlApi.resolveMany("~reachable", {
       commandGiver: avatar as unknown as Stuff & CommandGiver,
-      scope: "reachable",
+      scope: "~reachable",
     }).stuff;
   }
 

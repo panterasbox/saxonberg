@@ -18,7 +18,7 @@ args:
   - name: target
     type: object
     required: false
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     requires: [VisibleMixin, PosturedMixin]
     # `sit on the ground` is the form a person actually types. Without
     # `prepositions`, CommandLogic binds `on` AS the target and the

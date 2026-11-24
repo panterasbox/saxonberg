@@ -32,8 +32,8 @@ args:
     type: object
     required: false
     prepositions: [with, using]
-    default: "person:[capability.winning]"
-    scope: ["reachable"]
+    default: "~person:[capability.winning]"
+    scope: ["~reachable"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

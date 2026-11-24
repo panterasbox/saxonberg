@@ -196,7 +196,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from "fs";
 import { basename, join, relative, sep } from "path";
 import YAML from "yaml";
 import ts from "typescript";
-import {
+import { shippedDirOf,
   CONTENT,
   MUD,
   SERVER_SRC,
@@ -553,7 +553,7 @@ function recipeFiles(contentDir: string): string[] {
   const out: string[] = [];
   if (!existsSync(contentDir)) return out;
   for (const pack of readdirSync(contentDir).sort()) {
-    const dir = join(contentDir, pack, "content", "recipes");
+    const dir = join(contentDir, pack, "content", shippedDirOf("recipe"));
     if (existsSync(dir)) out.push(...walkYamlFiles(dir));
   }
   return out;

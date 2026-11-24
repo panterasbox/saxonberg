@@ -908,6 +908,16 @@ export interface FieldDefinition {
    */
   values?: string[];
   /**
+   * ⭐ A `type: duration` slot's bounds (naming overhaul D-C6): its smallest
+   * step (`granularity` — a hire is let by the `day`), and its least and
+   * greatest values written as durations (`min: 1 day`). A value off the
+   * step or out of bounds is the one refusal `bad-duration`. Refused on
+   * every other type (load-time).
+   */
+  granularity?: 'minute' | 'hour' | 'day';
+  min?: string;
+  max?: string;
+  /**
    * Cardinality constraint for `objects` fields. Ignored on other
    * field types. Defaults to `{ min: 0, max: Infinity }`.
    */
@@ -937,6 +947,12 @@ export interface FieldDefinition {
    * See {@link OnFilteredPolicy}.
    */
   onFiltered?: OnFilteredPolicy;
+  /**
+   * ⭐ `relations` — the slot accepts a relation listing (`thing:~`, naming
+   * overhaul D-B4) and is handed it as `relations` on the bound set; any
+   * other slot refuses one with `names-relations`. Only `query`'s.
+   */
+  lists?: 'relations';
   /**
    * Optional JSON Schema fragment for `type: 'struct'` fields. Run
    * by ajv during the structured-input coercion step; failure yields
@@ -987,7 +1003,7 @@ export interface FieldDefinition {
    * `scope: ['$focus', 'reachable']` so a drilled player searches
    * the focus first with the room as fallback. Verbs that should
    * ignore drill declare a non-`$focus` fragment (e.g.
-   * `scope: 'inventory'` for `drop`, `scope: 'peers'` for `get`).
+   * `scope: '~inventory'` for `drop`, `scope: '~peers'` for `get`).
    *
    * Default when omitted: `['$focus']` — the drill chain IS the
    * scope. The resolver's empty-scope fallback to `reachable`
@@ -1165,6 +1181,10 @@ export interface OptionDefinition {
   type: 'boolean' | FieldType;
   /** The closed set of words this option accepts — see `FieldDefinition.values`. */
   values?: string[];
+  /** A duration's step and bounds — see `FieldDefinition.granularity`. */
+  granularity?: 'minute' | 'hour' | 'day';
+  min?: string;
+  max?: string;
   /** Optional JSON Schema fragment — see `FieldDefinition.schema`. */
   schema?: Record<string, unknown>;
   /** Cardinality / onExcess / onShortage — see `FieldDefinition`. */
@@ -1475,7 +1495,7 @@ export interface AssembleSuccess {
 /**
  * Per-call options for {@link CommandApi.assemble}.
  *
- * `scopeSource` — ⭐ the source a `verb@source` named. It fills the
+ * `scopeSource` — ⭐ the source a `source::verb` named. It fills the
  * FIRST positional object slot whose `requires:` it satisfies: nothing
  * typed there → the source is bound; a typed word that matches the
  * source → the source wins the slot; a typed word that does not → the
@@ -1511,7 +1531,7 @@ export type AssembleResult =
    * suggestion the client offers to run.
    */
   | { error: 'shape'; summary: string; missing?: string; quoteHint?: string; quoteLine?: string }
-  | { error: 'bind'; summary: string }
+  | { error: 'bind'; summary: string; refusal?: { reason: string; facts: Record<string, string> } }
   | { error: 'unknown-subcommand'; subcommand: string; available: string[] };
 
 const LOGIC_PATH = '/platform/idea/api/command';

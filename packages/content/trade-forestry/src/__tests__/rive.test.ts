@@ -46,7 +46,7 @@ function bind(text: string): Record<string, unknown> {
   return r.model as Record<string, unknown>;
 }
 
-const FROE = 'reachable:[capability.riving]';
+const FROE = '~reachable:[capability.riving]';
 
 describe('rive — through the binder', () => {
   it('`rive bole` binds the target and defaults the froe by CAPABILITY', () => {

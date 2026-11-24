@@ -24,7 +24,8 @@ examples:
 options:
   scope:
     short: s
-    type: string
+    type: enum
+    values: [frames, wiki, forums]
     field: scope
     description: "Which corpus: frames (default), wiki, or forums"
 args:

@@ -334,7 +334,7 @@ Reported 2026-08-02, not yet diagnosed.
 character that is demonstrably online in a second live session.
 Reproduced with a randomised handle and with a plain one (`grover`), so
 it is not name tokenisation. The subcommand's `target` arg is
-`type: object`, `scope: "online"`.
+`type: object`, then `scope: "online"` (the seed retired with naming-overhaul B3b; `["~peers", "~contacts"]` now).
 
 If it reproduces outside the e2e harness, the consequence is large: this
 is governance's **only** handoff verb, so no seat can ever be filled and
@@ -358,7 +358,7 @@ to fix in governance**: two builds have had to route around it.
 `dm <name>` against a second connected session is refused the same
 way — `controller-rejected: insufficient`, zero candidates from the
 `online` scope — by the founder's display name as well as the handle.
-`dm`, `contacts` and `wizard` all bind through `scope: "online"`,
+`dm`, `contacts` and `wizard` all bound through `scope: "online"` (retired since — they scope to relations),
 so direct messages to another player do not work over the wire. The
 climate drive routes its comms check through a channel post instead.
 

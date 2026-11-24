@@ -11,7 +11,8 @@ export default class WikiProtectController extends WikiControllerBase {
   protected async run(model: WikiModel, context: CommandContext): Promise<void> {
     const page = await this.requirePage(model, context);
     if (!page) return;
-    const raw = (model.level ?? '').trim().toLowerCase();
+    // Canonicalized by the view (type: enum).
+    const raw = model.level ?? '';
     if (raw !== 'none' && !WikiPage.isProtection(raw)) {
       return this.fail(
         context,

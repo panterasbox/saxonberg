@@ -1,0 +1,8 @@
+# A body module — one reusable piece of a body (a limb, a head, a torso):
+# a subtree of parts with relative keys and tissue weights
+# (lib/species/BodyModule.ts, organism-biology D1). A body plan names its
+# modules by path, so each is read on use.
+title: Body module
+traits:
+  shipped: { dir: body-modules }
+  catalogued: { by: /platform/idea/BodyModuleCatalogue, load: per-path }

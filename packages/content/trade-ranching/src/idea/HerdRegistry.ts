@@ -49,6 +49,7 @@
  * See [docs/subsystems/ranching.md].
  */
 
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import {
@@ -73,7 +74,6 @@ import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import Herdbook from '../thing/Herdbook';
 import type Livestock from '../agent/Livestock';
 import { HeadSeed } from '../lib/HeadSeed';
-import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import type { LostPart } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
@@ -386,20 +386,19 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
 
   /** The herd answering to `needle` — its id or its name, either case. */
   public async named(needle: string): Promise<HerdRecord | null> {
-    const want = needle.trim().toLowerCase();
-    if (!want) return null;
-    const herds = await this.all();
-    for (const herd of herds) {
-      if (herd.herdId.toLowerCase() === want) return herd;
-      if (herd.name.toLowerCase() === want) return herd;
-    }
-    // ⭐ A keeper says *draft 1 from calves*, not *from "the Delight
-    // calves"*: a WORD of the name answers when exactly one herd has it —
-    // two herds sharing the word is ambiguous, and ambiguity is a miss.
-    const byWord = herds.filter((h) =>
-      h.name.toLowerCase().split(/\s+/).includes(want),
+    // ⭐ By the one rule (naming overhaul D-C4): its id, its name, a word of
+    // it (*draft 1 from calves*), with or without the article or a trailing
+    // "herd" — two herds sharing the word are ambiguous, and ambiguity is a
+    // miss here (the keeper names one).
+    const answer = GrammarApi.nameAmong(
+      needle,
+      (await this.all()).map((h) => ({
+        value: h,
+        keywords: [h.herdId, h.name, `${h.name} herd`, `${h.name} flock`].map((k) => k.toLowerCase()),
+        title: h.name,
+      })),
     );
-    return byWord.length === 1 ? (byWord[0] as HerdRecord) : null;
+    return answer.kind === 'one' ? answer.one : null;
   }
 
   /**

@@ -58,7 +58,7 @@
  *   pnpm lint:placement-words --lint   CI gate (exit 1 on any violation)
  */
 
-import { CONTENT, walkYamlFiles } from "./pack-roots";
+import { shippedDirOf, CONTENT, walkYamlFiles } from "./pack-roots";
 import { existsSync, readFileSync, readdirSync } from "fs";
 import { join, relative } from "path";
 import YAML from "yaml";
@@ -91,7 +91,7 @@ export function members(contentDir: string = CONTENT): Member[] {
     if (!existsSync(root)) continue;
     for (const file of walkYamlFiles(root)) {
       const rel = file.split("\\").join("/");
-      if (!rel.includes("/content/placements/")) continue;
+      if (!rel.includes(`/content/${shippedDirOf("placement")}/`)) continue;
       let raw: unknown;
       try {
         raw = YAML.parse(readFileSync(file, "utf8"));

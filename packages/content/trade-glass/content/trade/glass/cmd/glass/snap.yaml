@@ -13,5 +13,5 @@ args:
   - name: sheet
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: TintedMixin

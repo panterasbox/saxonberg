@@ -16,6 +16,7 @@ const word = (key: string, formClass: FormWord['formClass'], capacityL: number, 
   seats: [],
   greenScale: 1,
   discipline: 'pottery',
+  keywords: [],
   ...extra,
 });
 

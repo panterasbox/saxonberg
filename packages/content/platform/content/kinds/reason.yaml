@@ -1,0 +1,4 @@
+title: Refusal reason
+traits:
+  shipped: { dir: reasons }
+  catalogued: { by: /platform/idea/ReasonCatalogue, load: per-path }

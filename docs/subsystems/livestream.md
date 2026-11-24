@@ -24,7 +24,7 @@ retired.
 |---|---|---|
 | `BroadcastMixin` | `lib/livestream/Broadcast.ts`, composed on every `Avatar` inside the spine | The stream's state and every transition; the allowlisted `show()`. `Mixins.Broadcast`, `MixinApi.isBroadcastHost`. |
 | `StandbyReason` · `LowerThirdPanel` | `lib/livestream/` (`@internal` value objects) | A reason row and a panel row, validated. |
-| `standby-reason` · `lower-third-panel` · `stream-token` | `DocumentKinds` | Reasons and panels are platform-pack rows (`/platform/standby-reasons/<key>`, `/platform/lower-third-panels/<key>`); tokens are runtime-written (`/platform/stream-tokens/<sha256>`, `onVanish: keep`). |
+| `standby-reason` · `lower-third-panel` · `stream-token` | kind declarations (`/platform/kinds/<kind>`) | Reasons and panels are platform-pack rows (`/platform/standby-reasons/<key>`, `/platform/lower-third-panels/<key>`); tokens are runtime-written (`/platform/stream-tokens/<sha256>`, `onVanish: keep`). |
 | `StreamApi` ↔ `StreamLogic` | `api/stream.ts`, `platform/idea/api/StreamLogic.ts` | Tokens (`issueToken`/`resolveToken`), the away grammar (`interpretAway`, `parseDuration`), the rows (`standbyReasons`, `lowerThirdPanels`), per-streamer channel reads, the streamer's numbers. |
 | `Events.StreamShowChanged` · `Events.PlayerFirstArrival` | `lib/events.ts` | `{ playerId, show }` on every change; a first arrival for the ticker. |
 | `BroadcastFeed` | `backend/BroadcastFeed.ts` | Routes each streamer's show to the sockets opened with THEIR token; adds the world facts; remembers control sockets. |

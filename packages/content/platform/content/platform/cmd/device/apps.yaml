@@ -32,7 +32,7 @@ args:
     prepositionRequired: true
     prepositions:
       - "on"
-    scope: "person"
+    scope: "~person"
     requires: AetherHostMixin
 subcommands:
   install:
@@ -48,7 +48,7 @@ subcommands:
         prepositionRequired: true
         prepositions:
           - "on"
-        scope: "person"
+        scope: "~person"
         requires: AetherHostMixin
   uninstall:
     controller: /platform/idea/cmd/device/AppsUninstallController
@@ -63,5 +63,5 @@ subcommands:
         prepositionRequired: true
         prepositions:
           - "on"
-        scope: "person"
+        scope: "~person"
         requires: AetherHostMixin

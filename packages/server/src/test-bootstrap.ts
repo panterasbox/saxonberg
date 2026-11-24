@@ -55,6 +55,8 @@ import { blankDefaultWall } from "./mud/lib/biome/__tests__/root-biome";
 import { PartyApi } from "./mud/api/party";
 import { ContainmentApi } from "./mud/api/containment";
 import { MessageApi } from "./mud/api/message";
+import { DocumentApi } from "./mud/api/document";
+import { DocumentKind } from "./mud/lib/document/DocumentKind";
 
 let installed = false;
 
@@ -236,6 +238,24 @@ function installAddressIndexStandIn(): void {
  * shipped files: a disk read, no database.
  */
 function rememberKernelDocuments(): void {
+  // ⭐ Every pack's kind declarations, resident as `DocumentApi`'s need
+  // leaves them in a running world — so a suite's writes meet the same
+  // "is this kind declared?" a world's do.
+  const packs = join(dirname(fileURLToPath(import.meta.url)), "../../content");
+  for (const pack of readdirSync(packs)) {
+    const dir = join(packs, pack, "content", "kinds");
+    if (!existsSync(dir)) continue;
+    const pm = YAML.parse(readFileSync(join(packs, pack, "pack.yaml"), "utf8")) as { root?: string; id: string };
+    const root = pm.root ?? `/${pm.id}`;
+    for (const f of readdirSync(dir)) {
+      if (!f.endsWith(".yaml")) continue;
+      const name = f.slice(0, -".yaml".length);
+      DocumentApi.kinds().remember(
+        `${root}/kinds/${name}`,
+        new DocumentKind(name, (YAML.parse(readFileSync(join(dir, f), "utf8")) ?? {}) as Record<string, unknown>),
+      );
+    }
+  }
   const root = join(
     dirname(fileURLToPath(import.meta.url)),
     "../../content/platform/content",

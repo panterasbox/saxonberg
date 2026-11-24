@@ -188,7 +188,8 @@ subcommands:
         type: string
         required: true
       - name: direction
-        type: string
+        type: enum
+        values: [up, down]
         required: true
   mature:
     controller: /platform/idea/cmd/social/ForumMatureController

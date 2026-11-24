@@ -186,21 +186,18 @@ describe('the release write transport', () => {
 
   it('⚠ AC 15 / risk 3 — a release forged through the ordinary save path never reaches the window', async () => {
     installPublisher();
-    // Whoever owns the covering branch CAN write a `kind: 'release'`
-    // document through `save` — the store is kind-agnostic by design. What
-    // they cannot do is make it a release: `save` stamps the acting author
-    // as owner, and the board only counts a release its owner actually
-    // publishes, under that owner's own feed branch.
-    await asAuthor(() =>
+    // ⭐ A release is `filed: release` (naming overhaul A2): whoever owns
+    // the covering branch can no longer write one through `save` at all —
+    // the plain save refuses a filed kind, naming the press.
+    const refused = await asAuthor(() =>
       DocumentApi.save(`${FEED}/sneaky`, RELEASE_DOCUMENT_KIND, {
         releaseId: 'sneaky',
         headline: 'not through here',
         publishedAt: Date.now(),
       }),
-    );
-    const docs = await DocumentApi.listOfKind(RELEASE_DOCUMENT_KIND);
-    expect(docs).toHaveLength(1);
-    expect(docs[0]!.getOwner()).toBe('/platform/agent/Avatar/staff');
+    ).then(() => null, (e: unknown) => e as { reason?: string });
+    expect(refused?.reason).toBe('document-filed');
+    expect(await DocumentApi.listOfKind(RELEASE_DOCUMENT_KIND)).toHaveLength(0);
 
     const board = StuffApi.findByTemplatePath<PressBoard>('/platform/idea/PressBoard')!;
     await board.warm();

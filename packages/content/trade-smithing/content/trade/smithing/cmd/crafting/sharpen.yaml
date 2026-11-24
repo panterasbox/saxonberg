@@ -18,7 +18,7 @@ args:
   - name: blade
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: KeenMixin
   # ⭐ WHICH TOOL, declared rather than hunted for. The default asks
   # `[capability.whetstone]` — *the thing that can do this job* — rather than
@@ -35,8 +35,8 @@ args:
     # refused, naming `open …` / `remove …`). A tool on the ground is picked
     # up first. (`reachable` for a day widened every hand tool to the room.
     # Naming one still reaches it.)
-    default: "person:[capability.whetstone]"
-    scope: ["here", "peers", "person"]
+    default: "~person:[capability.whetstone]"
+    scope: ["~peers", "~person"]
     requires: [ToolMixin]
     validators:
       - /lib/command/validators/canReach

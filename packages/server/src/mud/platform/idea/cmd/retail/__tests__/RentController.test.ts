@@ -27,6 +27,7 @@ import Place from '../../../../../lib/stuff/Place';
 import { makeStuff, makeStuffAtPath, withRootContext } from '../../../../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { GrammarApi } from '../../../../../api/grammar';
 
 class Canoe extends HirableMixin(Good) {}
 
@@ -69,7 +70,7 @@ async function rent(av: Avatar, book: HireBook, boat: Stuff, days?: string): Pro
   await withRootContext(null, 'rent.test', () => {
     ExecutionContextApi.tagActingAuthor(av);
     return TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new RentController()).execute(
-      { boat: { stuff: boat as never, raw: 'canoe' }, days, book: { stuff: book as never, raw: '' } } as never,
+      { boat: { stuff: boat as never, raw: 'canoe' }, ...(days ? { span: GrammarApi.parseDuration(days) } : {}), book: { stuff: book as never, raw: '' } } as never,
       ctx,
     ));
   });
@@ -133,12 +134,13 @@ describe('rent — a boat by the day (harbors B3)', () => {
     expect(book.getLong()).not.toMatch(/past its day/);
   });
 
-  it('⚠ refused before any money moves: a kind the house does not let; a boat out already; a span that is not days', async () => {
+  it('⚠ refused before any money moves: a kind the house does not let; a boat out already', async () => {
     const none = shed({});
     expect(rejection(await rent(hirer(), none.book, none.canoe))).toBe('not-let');
     StuffApi.clearAll();
     const { book, canoe } = shed();
-    expect(rejection(await rent(hirer(), book, canoe, 'a while'))).toBe('bad-days');
+    // (A span that is not whole days is the VIEW's refusal now —
+    // durationSlot.binder.test, naming overhaul D-C6.)
     await rent(hirer(), book, canoe);
     settle.mockClear();
     expect(rejection(await rent(hirer(), book, canoe))).toBe('out-on-hire');

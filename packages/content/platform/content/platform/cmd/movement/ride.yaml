@@ -14,7 +14,7 @@ validators:
 args:
   - name: target
     type: object
-    scope: ["$focus", "reachable"]
+    scope: ["$focus", "~reachable"]
     required: true
     requires: MountableMixin
     validators:

@@ -95,6 +95,8 @@ export interface SpellDescriptor {
    */
   spellId: string;
   name: string;
+  /** Other words a player may name the working by (naming overhaul D-C5). */
+  keywords?: string[];
   verb: MagicVerb;
   noun: MagicNoun;
   /**

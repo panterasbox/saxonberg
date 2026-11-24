@@ -20,7 +20,7 @@ options:
   to:
     short: t
     type: object
-    scope: "online"
+    scope: ["~peers"]
     field: target
     description: "Address an explicit target. The shout still reaches all hearers in range; the target is marked."
     requires: class:Agent

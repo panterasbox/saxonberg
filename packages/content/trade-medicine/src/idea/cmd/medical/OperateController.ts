@@ -53,12 +53,21 @@ export default class OperateController extends CommandController<OperateModel> {
     const ops = await ConditionApi.operations().all();
     const body = target as Stuff & Vitals;
     const kit = model.kit.stuff as Stuff;
+    // The operation, named by its keywords through the one rule (naming
+    // overhaul D-C5 rule 3); the body then decides everything else.
+    const typed = (model.for ?? '').trim();
+    let wanted: string | null = null;
+    if (typed) {
+      const pick = await this.named(context, await ConditionApi.operations().named(typed), 'operation', typed);
+      if (!pick) return;
+      wanted = pick.value.key;
+    }
     const band = MixinApi.isAdvancing(giver)
       ? await giver.competenceBandFor('medicine')
       : CompetenceBand.FLOOR;
     // ⭐⭐ The body decides (organism-biology D8, W7): which operation, on
     // which wound or part, and every refusal — this controller words none.
-    const answer = body.operable(model.for ?? null, ops, {
+    const answer = body.operable(wanted, ops, {
       band,
       capabilities: MixinApi.isTool(kit) ? kit.getCapabilities() : [],
       self,

@@ -55,7 +55,8 @@ export default class RecallController extends CommandController<RecallModel> {
       return this.fail(context, 'Recall what? Give me something to look for.', 'terms-required');
     }
 
-    const raw = (model.scope ?? 'frames').toLowerCase();
+    // `frames` / `wiki` / `forums` — canonicalized by the view (type: enum).
+    const raw = model.scope ?? 'frames';
     if (!RECALL_SCOPES.includes(raw as RecallScope)) {
       return this.fail(
         context,

@@ -43,7 +43,7 @@ class TestActor extends ContainerMixin(
 function resolve(actor: Stuff, query: string): Stuff[] {
   return MqlApi.resolveMany(query, {
     commandGiver: actor as unknown as Stuff & CommandGiver,
-    scope: 'reachable',
+    scope: '~reachable',
   }).stuff;
 }
 

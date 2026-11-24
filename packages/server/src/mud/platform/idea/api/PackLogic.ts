@@ -21,12 +21,8 @@ import { Appearance } from '../../../lib/identification/Appearance';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { Collections } from '../../../lib/persistence/Collections';
-import {
-  DOCUMENT_KINDS,
-  type DeclaredDocumentKind,
-  type DocumentKindSpec,
-  type DocumentVanishPolicy,
-} from '../../../lib/document/DocumentKinds';
+import { DocumentKind, type DocumentVanishPolicy } from '../../../lib/document/DocumentKind';
+import type DocumentKindCatalogue from '../DocumentKindCatalogue';
 import { StoredDocument } from '../../../lib/document/StoredDocument';
 import { TOPIC_ROOTS } from '@saxonberg/types';
 import { PersistApi } from '../../../api/persist';
@@ -93,7 +89,6 @@ import { ConditionApi } from '../../../api/condition';
 import { PartyApi } from '../../../api/party';
 import { MaterialApi } from '../../../api/material';
 import { ContainmentApi } from '../../../api/containment';
-import { SpeciesApi } from '../../../api/species';
 import { MessageApi } from '../../../api/message';
 
 const PackApiCallers = SecurityPolicies.FromModule('/api/pack#PackApi');
@@ -166,64 +161,6 @@ interface DocumentFile {
   relFile: string;
 }
 
-/**
- * Document kinds whose reader is not yet un-gated: the vocabulary
- * declares them (indexes + reset policy), but their files are still read
- * by another strategy or not at all. One set
- * drives the reader, the flat-key check and `strategyForKey` alike, so
- * no kind is ever claimed by two strategies.
- */
-const GATED_DOCUMENT_KINDS: ReadonlySet<DeclaredDocumentKind> = new Set<DeclaredDocumentKind>([]);
-
-/**
- * Per-kind shape validation at `read`: what the retired seeders checked
- * before inserting, moved to the pack boundary so a malformed file fails
- * the pack before any write. A kind with no entry is stored as parsed.
- */
-const DOCUMENT_VALIDATORS: Record<string, (data: Record<string, unknown>, path: string) => void> = {
-  emote: (d, p) => void Emote.fromData(d, p),
-  recipe: (d, p) => void Recipe.fromData(d, p),
-  archetype: (d, p) => void Archetype.fromData(d, p),
-  'pump-mechanism': (d, p) => void BulkableApi.pumpMechanisms().parse(d, p),
-  form: (d, p) => void CraftingApi.forms().parse(d, p),
-  joint: (d, p) => void CraftingApi.joints().parse(d, p),
-  dirt: (d, p) => void MaterialApi.dirtKinds().parse(d, p),
-  cleanser: (d, p) => void MaterialApi.cleansers().parse(d, p),
-  fabric: (d, p) => void MaterialApi.fabrics().parse(d, p),
-  'maturation-profile': (d, p) => void BulkableApi.maturationProfiles().parse(d, p),
-  'fraction-schedule': (d, p) => void BulkableApi.fractionSchedules().parse(d, p),
-  operation: (d, p) => void ConditionApi.operations().parse(d, p),
-  formation: (d, p) => void PartyApi.formations().parse(d, p),
-  placement: (d, p) => void ContainmentApi.placements().parse(d, p),
-  shape: (d, p) => void ContainmentApi.shapes().parse(d, p),
-  'body-module': (d, p) => void SpeciesApi.modules().parse(d, p),
-  reason: (d, p) => void CommandApi.reasons().parse(d, p),
-  topic: (d) => {
-    if (typeof d.label !== 'string' || d.label === '') throw new Error('a topic needs a label');
-  },
-  'help-concept': (d) => {
-    if (typeof d.title !== 'string' || d.title === '') throw new Error('a help concept needs a title');
-  },
-  'standby-reason': (d, p) => void StandbyReason.fromData(p.slice(p.lastIndexOf('/') + 1), d),
-  'lower-third-panel': (d, p) => void LowerThirdPanel.fromData(p.slice(p.lastIndexOf('/') + 1), d),
-  'command-view': (d) => {
-    const trail = CommandApi.validateCommandView(d);
-    if (trail !== null) throw new Error(`does not conform to the command schema:\n${trail}`);
-  },
-};
-
-/**
- * A command view's document path is the VIEW KEY's path (no `root`
- * join): every view lives in a `cmd/` dir of its tree —
- * `platform/cmd/perception/look.yaml` → `/platform/cmd/perception/look`,
- * `world/<sphere>/<locality>/cmd/<verb>.yaml` → `/world/…/cmd/<verb>`,
- * `trade/<industry>/cmd/<verb>.yaml` → `/trade/…/cmd/<verb>` — ONE rule,
- * no engine special case. The dispatcher's key, so `CommandApi.reload`
- * finds it by the same string.
- */
-function commandViewPathOf(relKey: string): string {
-  return `/${relKey}`;
-}
 
 /**
  * Is this path (as `content/`-relative segments) a command VIEW? A file
@@ -231,17 +168,77 @@ function commandViewPathOf(relKey: string): string {
  * which is the controller-template mirror (`<root>/idea/cmd/<Name>Controller`,
  * a template row, not a view).
  */
-function isViewPath(parts: readonly string[]): boolean {
+function isInTreePath(parts: readonly string[], dirName: string): boolean {
   const dirs = parts.slice(0, -1);
-  const at = dirs.lastIndexOf('cmd');
+  const at = dirs.lastIndexOf(dirName);
   return at >= 0 && dirs[at - 1] !== 'idea';
 }
 
-/** The declared kinds the document reader/strategies serve today. */
-function activeDocumentKinds(): DocumentKindSpec[] {
-  return (Object.keys(DOCUMENT_KINDS) as DeclaredDocumentKind[])
-    .filter((k) => !GATED_DOCUMENT_KINDS.has(k))
-    .map((k) => DOCUMENT_KINDS[k]);
+/**
+ * ⭐ The kinds the installer reads by — every SHIPPED declaration: the
+ * bootstrap `kind`, every discoverable pack's `content/kinds/`, the packs a
+ * run names from outside the shipped tree, and any kind declared at runtime
+ * (the resident kind catalogue). Kinds are free text; this is read, never
+ * listed. First declaration of a leaf wins here — a second claimant fails
+ * its pack at the flat-key check (`kind` is unique).
+ */
+function activeDocumentKinds(): DocumentKind[] {
+  if (declaredKindsCache) return declaredKindsCache;
+  const byName = new Map<string, DocumentKind>([[DocumentKind.BOOTSTRAP_NAME, DocumentKind.BOOTSTRAP]]);
+  const fromPack = (pack: ResolvedPack): void => {
+    const dir = join(pack.contentRoot, 'kinds');
+    if (!existsSync(dir)) return;
+    for (const file of walkFiles(dir, 'yaml')) {
+      const name = basename(file).replace(/\.yaml$/, '');
+      if (byName.has(name)) continue;
+      try {
+        byName.set(name, new DocumentKind(name, readYamlObject(pack, file, 'kind declaration')));
+        kindDeclarers.set(name, pack.manifest.id);
+      } catch (err) {
+        throw new PackStepError('read', `pack '${pack.manifest.id}': ${(err as Error).message}`);
+      }
+    }
+  };
+  for (const pack of [...extraKindPacks, ...discoverUnfiltered()]) fromPack(pack);
+  const resident = StuffApi.findByTemplatePath<DocumentKindCatalogue>(KIND_CATALOGUE);
+  for (const k of resident?.declared() ?? []) if (!byName.has(k.getName())) byName.set(k.getName(), k);
+  declaredKindsCache = [...byName.values()].filter((k) => k.shipped() !== null);
+  return declaredKindsCache;
+}
+
+/** Where the kind declarations are served. */
+const KIND_CATALOGUE = '/platform/idea/DocumentKindCatalogue';
+
+/** The shipped declarations, read once per installer run (`beginKindRun`). */
+let declaredKindsCache: DocumentKind[] | null = null;
+
+/** Which pack declared each shipped kind (filled beside `declaredKindsCache`). */
+const kindDeclarers = new Map<string, string>();
+
+/** Packs a run names from outside the shipped tree, whose `kinds/` also count. */
+let extraKindPacks: ResolvedPack[] = [];
+
+/** Start an installer run: re-read the declarations (with `packs`' own). */
+function beginKindRun(packs: readonly ResolvedPack[] = []): void {
+  kindDeclarers.clear();
+  extraKindPacks = [...packs];
+  declaredKindsCache = null;
+}
+
+/**
+ * The dirs that are not template rows: the four non-document dirs, and
+ * every shipped kind's dir (`lib/paths.ts` `NON_TEMPLATE_DIRS` + the
+ * declarations — a runtime-only kind reserves nothing).
+ */
+function nonTemplateDirs(): ReadonlySet<string> {
+  const out = new Set(NON_TEMPLATE_DIRS);
+  for (const k of activeDocumentKinds()) {
+    const shipped = k.shipped();
+    // An in-tree kind's dir (`cmd`) at the top of a tree is views too.
+    const dir = shipped?.dir ?? shipped?.inTree;
+    if (dir) out.add(dir);
+  }
+  return out;
 }
 
 /**
@@ -901,6 +898,21 @@ function discover(packRoots?: string[]): ResolvedPack[] {
   return ordered.filter((p) => filter.has(p.manifest.id));
 }
 
+/**
+ * Every shipped pack, ordered, ignoring `SAXONBERG_PACKS` — the kind
+ * declarations every pack ships are read whether or not this boot installs
+ * the pack (a declared kind reserves its dir everywhere).
+ */
+function discoverUnfiltered(packRoots?: string[]): ResolvedPack[] {
+  // No SAXONBERG_PACKS filter — but the test-only gate still applies: a live
+  // world never reads a fixture pack's kind declarations.
+  const all = discoverAll(packRoots);
+  const refused = new Set(testOnlyRefusals(all).map((p) => p.manifest.id));
+  const ordered = all.filter((p) => !refused.has(p.manifest.id));
+  registerSources(ordered);
+  return ordered;
+}
+
 // --- content walk ----------------------------------------------------------
 
 /** Map a content file to its template path: `content/stuff/thing/x.yaml` → `/stuff/thing/x`. */
@@ -956,75 +968,96 @@ function readYamlObject(pack: ResolvedPack, file: string, what: string): Record<
 }
 
 /**
- * Read one declared document kind's files from `content/<contentDir>/`.
- * A `.yaml` file's object becomes `data` (the file's place under the
- * kind's dir IS its name — `aromas/smoke/peat-smoke.yaml` is stored at
- * `<root>/aromas/smoke/peat-smoke`; nothing in the file names it); an
- * `.msh` file becomes
- * `data: { source }` verbatim (the retired ScriptSeeder's shape). Never a
- * glob over `content/` — each kind's dir is enumerated by the table.
+ * Read one shipped kind's files: `content/<dir>/` for a kind shipped by
+ * dir, or every `<inTree>/` dir anywhere in a tree (command views' `cmd`,
+ * keyed by the content-relative path). A `.yaml` file's object becomes
+ * `data` (the file's place under the kind's dir IS its name —
+ * `aromas/smoke/peat-smoke.yaml` is stored at `<root>/aromas/smoke/peat-smoke`;
+ * nothing in the file names it); an `.msh` file becomes `data: { source }`.
+ * The shape is checked here against the declaration's `fields:`; the
+ * meaning is the kind's service's (`meaningFailures`, before any write).
  */
-function readDocumentKind(pack: ResolvedPack, spec: DocumentKindSpec): DocumentFile[] {
+function readDocumentKind(pack: ResolvedPack, kind: DocumentKind): DocumentFile[] {
+  const shipped = kind.shipped();
+  if (shipped === null) return [];
   const out: DocumentFile[] = [];
-  const dir = join(pack.contentRoot, spec.contentDir);
   const root = pack.manifest.root;
   const files: Array<{ file: string; relKey: string }> = [];
-  for (const file of walkFiles(dir, spec.ext)) {
-    if (spec.kind === 'command-view' && basename(file) === 'command.schema.json') continue;
-    if (spec.kind === 'command-view' && relative(dir, file).split(/[\\/]/).includes('__tests__')) continue;
-    const rel = relative(dir, file).replace(new RegExp(`\\.${spec.ext}$`), '');
-    files.push({ file, relKey: rel.split(/[\\/]/).join('/') });
-  }
-  if (spec.kind === 'command-view') {
-    // Every tree's own command views: `content/<tree>/**/cmd/<verb>.yaml`
-    // (the platform's `platform/cmd/<category>/`, a locality's
-    // `world/<…>/cmd/`, an industry's `trade/<…>/cmd/`), keyed by the
-    // content-relative path — the same rule for every tree (the template
-    // walk skips these dirs).
+  if (shipped.dir !== undefined) {
+    const dir = join(pack.contentRoot, shipped.dir);
+    for (const file of walkFiles(dir, shipped.ext)) {
+      const rel = relative(dir, file).replace(new RegExp(`\\.${shipped.ext}$`), '');
+      files.push({ file, relKey: rel.split(/[\\/]/).join('/') });
+    }
+  } else if (shipped.inTree !== undefined) {
+    // Every tree's own `<inTree>/` dirs (`platform/cmd/<category>/`, a
+    // locality's `world/<…>/cmd/`, an industry's `trade/<…>/cmd/`) — the
+    // same rule for every tree (the template walk skips these dirs).
     for (const e of readdirSync(pack.contentRoot, { withFileTypes: true })) {
       if (!e.isDirectory() || e.name.startsWith('.')) continue;
-      if (nonTemplateDirs().has(e.name)) continue;
-      for (const file of walkFiles(join(pack.contentRoot, e.name), 'yaml')) {
+      if (e.name !== shipped.inTree && nonTemplateDirs().has(e.name)) continue;
+      for (const file of walkFiles(join(pack.contentRoot, e.name), shipped.ext)) {
         const rel = relative(pack.contentRoot, file).split(/[\\/]/).join('/');
-        if (!isViewPath(rel.split('/'))) continue;
+        if (!isInTreePath(rel.split('/'), shipped.inTree)) continue;
         if (rel.split('/').includes('__tests__')) continue;
-        files.push({ file, relKey: rel.replace(/\.yaml$/, '') });
+        files.push({ file, relKey: rel.replace(new RegExp(`\\.${shipped.ext}$`), '') });
       }
     }
   }
   for (const { file, relKey } of files) {
-    const name = basename(relKey);
-    const key =
-      spec.kind === 'command-view' ? commandViewPathOf(relKey) : `/${spec.contentDir}/${relKey}`;
-    const path = spec.kind === 'command-view' ? commandViewPathOf(relKey) : root + key;
+    // A kind shipped by dir lives under the pack root; an in-tree kind's
+    // path is its content-relative key (the dispatcher's key).
+    const key = shipped.dir !== undefined ? `/${shipped.dir}/${relKey}` : `/${relKey}`;
+    const path = shipped.dir !== undefined ? root + key : key;
     let data: Record<string, unknown>;
-    if (spec.ext === 'yaml') {
-      data = readYamlObject(pack, file, `${spec.kind} document`);
-      try {
-        DOCUMENT_VALIDATORS[spec.kind]?.(data, path);
-      } catch (err) {
+    if (shipped.ext === 'yaml') {
+      data = readYamlObject(pack, file, `${kind.getName()} document`);
+      const shape = kind.fieldFailures(data);
+      if (shape.length > 0) {
         throw new Error(
-          `PackApi: pack '${pack.manifest.id}': ${spec.kind} document at ${file}: ${(err as Error).message}`,
+          `PackApi: pack '${pack.manifest.id}': ${kind.getName()} document at ${file}: ${shape.join('; ')}`,
         );
       }
     } else {
       data = { source: readFileSync(file, 'utf-8') };
     }
-    out.push({
-      key,
-      path,
-      data,
-      relFile: relative(pack.root, file),
-    });
+    out.push({ key, path, data, relFile: relative(pack.root, file) });
   }
   return out;
 }
 
-/** Classify a pack's `content/` tree by subdir convention. */
-/** The non-template kind dirs (`lib/paths.ts` `NON_TEMPLATE_DIRS`, enumerated by kind). */
-function nonTemplateDirs(): ReadonlySet<string> {
-  return NON_TEMPLATE_DIRS;
+/**
+ * ⭐ The meaning check, before any write: every shipped document of a
+ * catalogued kind goes through its service's `parse` (`DocumentApi.checkMeaning`
+ * — the store's own check) — shape is the declaration's `fields:`, meaning
+ * is the catalogue's. A failure fails the shipping pack.
+ */
+async function meaningFailures(packs: ReadPack[]): Promise<Map<string, PackFailure>> {
+  const failures = new Map<string, PackFailure>();
+  for (const kind of activeDocumentKinds()) {
+    if (kind.servedBy() === null) continue;
+    for (const rp of packs) {
+      const id = rp.pack.manifest.id;
+      if (failures.has(id)) continue;
+      for (const f of (rp.content.documents.get(kind.getName()) ?? []) as DocumentFile[]) {
+        try {
+          await DocumentApi.checkMeaning(kind, f.data, f.path);
+        } catch (err) {
+          // @quiet not silent: the error becomes the pack's recorded `read` failure (named, with the file).
+          failures.set(id, {
+            step: 'read',
+            error: `PackApi: pack '${id}': ${kind.getName()} document at ${f.relFile}: ${(err as Error).message}`,
+            file: f.relFile,
+          });
+          break;
+        }
+      }
+    }
+  }
+  return failures;
 }
+
+/** Classify a pack's `content/` tree by subdir convention. */
 
 function readContent(pack: ResolvedPack): PackContent {
   const domain: DomainFile[] = [];
@@ -1189,9 +1222,9 @@ function readContent(pack: ResolvedPack): PackContent {
 
   // Document kinds — one enumerated reader per declared, un-gated kind.
   const documents = new Map<string, DocumentFile[]>();
-  for (const spec of activeDocumentKinds()) {
-    const files = readDocumentKind(pack, spec);
-    if (files.length > 0) documents.set(spec.kind, files);
+  for (const kind of activeDocumentKinds()) {
+    const files = readDocumentKind(pack, kind);
+    if (files.length > 0) documents.set(kind.getName(), files);
   }
 
   const quantityYaml = join(pack.contentRoot, 'quantity', 'quantity-tags.yaml');
@@ -1785,9 +1818,9 @@ const descriptorBankStrategy: KindStrategy<DescriptorBankFile> = {
 };
 
 /** The record key of a document row: its path with the pack root stripped (command views: identity). */
-function rowKeyOf(spec: DocumentKindSpec, root: string, r: Record<string, unknown>): string {
+function rowKeyOf(kind: DocumentKind, root: string, r: Record<string, unknown>): string {
   const path = String(r.path ?? '');
-  if (spec.kind === 'command-view') return path;
+  if (kind.shipped()?.dir === undefined) return path;
   return path.startsWith(`${root}/`) ? path.slice(root.length) : path;
 }
 
@@ -1797,35 +1830,38 @@ function rowKeyOf(spec: DocumentKindSpec, root: string, r: Record<string, unknow
  * The preimage is
  * `{ data }` only — `owner`/`path`/`kind`/`sourcePack` are bookkeeping.
  */
-function documentStrategy(spec: DocumentKindSpec, root: string): KindStrategy<DocumentFile> {
-  const words = spec.words;
+function documentStrategy(kind: DocumentKind, root: string): KindStrategy<DocumentFile> {
+  const name = kind.getName();
+  const shipped = kind.shipped()!;
   return {
     kind: 'document',
-    documentKind: spec.kind,
+    documentKind: name,
     collection: Collections.Documents,
-    noun: `${spec.kind} document`,
+    noun: `${name} document`,
     policy: 'three-way',
-    onVanish: spec.onVanish,
-    ext: spec.ext,
+    onVanish: shipped.vanish,
+    ext: shipped.ext,
     recordKeyOf: (f) => f.key,
-    recordKeyOfRow: (r) => rowKeyOf(spec, root, r),
+    recordKeyOfRow: (r) => rowKeyOf(kind, root, r),
     // ⭐ A document's identity is its PATH — for every kind (the unique
     // path index says so). Nothing adopts a row at another path.
-    dbKeyQuery: (f) => ({ kind: spec.kind, path: f.path }),
-    stampedQuery: () => ({ kind: spec.kind }),
+    dbKeyQuery: (f) => ({ kind: name, path: f.path }),
+    stampedQuery: () => ({ kind: name }),
     rowOf: (f, packId) => ({
       path: f.path,
       owner: root,
-      kind: spec.kind,
+      kind: name,
       data: f.data,
-      // The catalogue card, derived here as `StoredDocument.save` derives
-      // it: the installer writes before any persistence hook is loaded.
-      keys: StoredDocument.cardOf(spec.kind, f.path, f.data),
+      // The catalogue card, derived from the declaration as the store's
+      // write funnel derives it: the installer writes rows directly.
+      keys: kind.cardOf(f.path, f.data),
       sourcePack: packId,
     }),
     canonicalBody: (r) => canonical({ data: r.data ?? {} }),
-    // A typed word means one thing across the install set (D3).
-    flatKeysOf: words ? (f) => words({ path: f.path, data: f.data }) : undefined,
+    // ⭐ A `unique` kind's word means one thing across the install set (an
+    // emote, a formation, a kind's own name); any other kind's words may be
+    // shared and prompt on a tie instead.
+    flatKeysOf: kind.isUnique() ? (f) => kind.keywordsOf(f.path, f.data) : undefined,
     exportBody: (r) => (r.data ?? {}) as Record<string, unknown>,
   };
 }
@@ -2901,10 +2937,10 @@ function kindsOf(content: PackContent): Array<KindPlanInput<unknown>> {
   ];
   // Every active document kind, files or none: a kind whose files ALL
   // vanished must still be planned so its stamped rows are reaped.
-  for (const spec of activeDocumentKinds()) {
+  for (const kind of activeDocumentKinds()) {
     out.push({
-      strategy: documentStrategy(spec, content.root) as KindStrategy<unknown>,
-      files: content.documents.get(spec.kind) ?? [],
+      strategy: documentStrategy(kind, content.root) as KindStrategy<unknown>,
+      files: content.documents.get(kind.getName()) ?? [],
     });
   }
   return out;
@@ -2915,7 +2951,7 @@ function emptyContent(root: string): PackContent {
   return {
     root,
     domain: [],
-    documents: new Map(activeDocumentKinds().map((s) => [s.kind, []])),
+    documents: new Map(activeDocumentKinds().map((k) => [k.getName(), []])),
     quantityYaml: null,
     descriptorBanks: [],
     settings: [],
@@ -2940,9 +2976,10 @@ function strategyForKey(key: string, content: PackContent): KindStrategy<unknown
   if (key.startsWith('/subjects/')) {
     return subjectStrategy(content.subjects) as KindStrategy<unknown>;
   }
-  for (const spec of activeDocumentKinds()) {
-    if (key.startsWith(`/${spec.contentDir}/`)) {
-      return documentStrategy(spec, root) as KindStrategy<unknown>;
+  for (const kind of activeDocumentKinds()) {
+    const dir = kind.shipped()?.dir;
+    if (dir !== undefined && key.startsWith(`/${dir}/`)) {
+      return documentStrategy(kind, root) as KindStrategy<unknown>;
     }
   }
   return domainStrategy as KindStrategy<unknown>;
@@ -3003,6 +3040,55 @@ interface ReadPack {
 }
 
 /**
+ * ⭐ A kind belongs to the pack that declares it (naming overhaul D-A5): a
+ * pack that ships documents of a kind must declare the kind itself or
+ * depend — through its `package.json`, transitively — on the pack that
+ * does. Otherwise its documents would install only when the declarer
+ * happens to be in the set, and go dark the day it is not. A kind declared
+ * at runtime (the resident catalogue) has no declaring pack and is not
+ * checked, and neither is a kind the platform declares (pack zero is always
+ * installed). Returns the failures by packId; runs before any write.
+ */
+function kindDeclarerFailures(packs: ReadPack[]): Map<string, PackFailure> {
+  const failures = new Map<string, PackFailure>();
+  const depsOf = new Map<string, readonly string[]>();
+  for (const p of discoverUnfiltered()) depsOf.set(p.manifest.id, p.manifest.dependsOn ?? []);
+  for (const rp of packs) depsOf.set(rp.pack.manifest.id, rp.pack.manifest.dependsOn ?? []);
+  const reaches = (from: string, to: string): boolean => {
+    const seen = new Set<string>();
+    const stack = [from];
+    while (stack.length > 0) {
+      const id = stack.pop()!;
+      if (id === to) return true;
+      if (seen.has(id)) continue;
+      seen.add(id);
+      stack.push(...(depsOf.get(id) ?? []));
+    }
+    return false;
+  };
+  for (const rp of packs) {
+    const id = rp.pack.manifest.id;
+    for (const [kind, files] of rp.content.documents) {
+      if (files.length === 0) continue;
+      const declarer = kindDeclarers.get(kind);
+      // The platform is pack zero — always installed — so its kinds are everyone's.
+      if (declarer === undefined || declarer === PLATFORM_PACK || reaches(id, declarer)) continue;
+      const relFile = (files[0] as { relFile?: string }).relFile;
+      failures.set(id, {
+        step: 'kind-declarer',
+        error:
+          `PackApi: pack '${id}' ships '${kind}' documents (${relFile ?? kind}) but neither ` +
+          `declares the kind nor depends on '${declarer}', which does. Add ` +
+          `@saxonberg/content-${declarer} to its package.json dependencies.`,
+        ...(relFile !== undefined ? { file: relFile } : {}),
+      });
+      break;
+    }
+  }
+  return failures;
+}
+
+/**
  * The install-set uniqueness check (A17.2): every kind with a flat key
  * namespace (the banks — later kinds plug in by giving their strategy a
  * `flatKeyOf`) must see each key claimed once across the whole install
@@ -3055,12 +3141,13 @@ function flatKeyFailures(packs: ReadPack[]): Map<string, PackFailure> {
 async function storeWordFailures(packs: ReadPack[]): Promise<Map<string, PackFailure>> {
   const failures = new Map<string, PackFailure>();
   const inSet = new Set(packs.map((rp) => rp.pack.manifest.id));
-  for (const spec of activeDocumentKinds()) {
-    if (!spec.words) continue;
+  for (const kind of activeDocumentKinds()) {
+    if (!kind.isUnique()) continue;
+    const spec = { kind: kind.getName() };
     const claims = new Map<string, Array<{ packId: string; file: DocumentFile }>>();
     for (const rp of packs) {
       for (const f of (rp.content.documents.get(spec.kind) ?? []) as DocumentFile[]) {
-        for (const word of spec.words({ path: f.path, data: f.data })) {
+        for (const word of kind.keywordsOf(f.path, f.data)) {
           const list = claims.get(word) ?? [];
           list.push({ packId: rp.pack.manifest.id, file: f });
           claims.set(word, list);
@@ -3667,69 +3754,26 @@ function soldPredicateFor(
   };
 }
 
-/** `/platform/cmd/perception/look` → `platform/cmd/perception/look.yaml`: the key is the path. */
-function viewKeyOfDocPath(docPath: string): string {
-  return `${docPath.replace(/^\//, '')}.yaml`;
-}
-
 /**
- * The per-document-kind go-live: what a change to rows of `kind` must
- * drop or re-warm so the edit reaches the next read without a restart.
- * A module-private switch, one case per kind as its reader lands;
- * `msh` needs nothing (`ScriptLogic` reads by path per call and drops
- * its AST cache on the CMS write path).
+ * ⭐ The go-live: the service that reads `kind` forgets the touched paths
+ * (every path when none are named), so the edit reaches the next read
+ * without a restart — its own `forget` decides how (a catalogue drops the
+ * path, the recipes re-warm, the command views reload). Only a RESIDENT
+ * service is told: one nothing has stood up holds nothing to forget, and at
+ * boot the install runs before the manifest clones the catalogues.
  */
 async function invalidateDocumentKind(
   kind: string,
   changedPaths: string[] = [],
   deletedPaths: string[] = [],
 ): Promise<void> {
-  // ⭐ The catalogue serving the kind forgets the touched paths, so the
-  // next use re-reads (the topics re-read on their next warm).
-  DocumentApi.catalogueFor(kind)?.forget([...changedPaths, ...deletedPaths]);
-  switch (kind) {
-    case 'command-view':
-      // Per path: a changed view re-reads from the store; a deleted one
-      // drops its cache entry (the next getCommand falls to disk).
-      for (const p of changedPaths) await CommandApi.reload(p);
-      for (const p of deletedPaths) CommandApi.invalidate(viewKeyOfDocPath(p));
-      return;
-    case 'msh':
-      return;
-    case 'emote':
-      // Only a RESIDENT catalogue is dropped: at boot the install runs
-      // before BootstrapManager clones it, and minting it here would
-      // race the manifest clone. A resident one re-warms lazily.
-      if (StuffApi.findByTemplatePath(TemplatePaths.soulCatalogue)) {
-        await SoulApi.invalidateCache();
-      }
-      return;
-    case 'recipe': {
-      // The recipe read surface is SYNC, so a resident catalogue is
-      // re-warmed here rather than dropped.
-      const cat = StuffApi.findByTemplatePath<RecipeCatalogue>('/platform/idea/RecipeCatalogue');
-      if (cat) await cat.warm();
-      return;
-    }
-    case 'archetype': {
-      // Same shape as the recipe kind: a sync read surface, re-warmed.
-      const cat = StuffApi.findByTemplatePath<ArchetypeCatalogue>('/platform/idea/ArchetypeCatalogue');
-      if (cat) await cat.warm();
-      return;
-    }
-    case 'name-bank':
-      // Banks are cached by key on first resolve; the edit must reach
-      // the next char-gen suggest.
-      NameBank.clearCache();
-      return;
-    case 'blueprint': {
-      const cat = StuffApi.findByTemplatePath<BlueprintCatalogue>('/platform/idea/BlueprintCatalogue');
-      if (cat) await cat.invalidateCache();
-      return;
-    }
-    default:
-      return;
-  }
+  const by = activeDocumentKinds().find((k) => k.getName() === kind)?.servedBy() ?? null;
+  if (by === null) return;
+  const live = StuffApi.findByTemplatePath(by) as unknown as
+    | { forget(paths?: readonly string[]): void | Promise<void> }
+    | undefined;
+  const touched = [...changedPaths, ...deletedPaths];
+  await live?.forget(touched.length > 0 ? touched : undefined);
 }
 
 /**
@@ -3848,7 +3892,9 @@ async function reconcilePack(
       const files = content.documents.get(kind) ?? [];
       const pathOf = (key: string): string =>
         files.find((f) => f.key === key)?.path ??
-        (kind === 'command-view' ? key : content.root + key);
+        (activeDocumentKinds().find((k) => k.getName() === kind)?.shipped()?.dir === undefined
+          ? key
+          : content.root + key);
       await invalidateDocumentKind(
         kind,
         [...c.inserted, ...c.updated].map(pathOf),
@@ -4034,6 +4080,7 @@ export class PackLogic extends ApiLogic {
   ): Promise<PackReconcileResult[]> {
     const packs = discover(packRoots);
     if (packs.length > 0) requireConnection(packs[0]!.manifest.id);
+    beginKindRun(packs);
     await reportTestOnlyRefusals(testOnlyRefusals(discoverAll(packRoots)));
 
     // Read every pack first: the flat-key check needs the whole install
@@ -4048,7 +4095,9 @@ export class PackLogic extends ApiLogic {
       }
     }
     const flat = flatKeyFailures(read);
+    for (const [id, f] of kindDeclarerFailures(read)) if (!flat.has(id)) flat.set(id, f);
     for (const [id, f] of await storeWordFailures(read)) if (!flat.has(id)) flat.set(id, f);
+    for (const [id, f] of await meaningFailures(read)) if (!flat.has(id)) flat.set(id, f);
     const set = installSetOf(read);
 
     // One read window for the whole install: every pack's stamped rows
@@ -4075,12 +4124,6 @@ export class PackLogic extends ApiLogic {
     return packs.map((p) => results.get(p.manifest.id)!);
   }
 
-  /** See {@link PackApi.validateDocument}. */
-  @CallSecurity(PackApiCallers)
-  public validateDocument(kind: string, data: Record<string, unknown>, path: string): void {
-    DOCUMENT_VALIDATORS[kind]?.(data, path);
-  }
-
   /** See {@link PackApi.registerSources}. */
   @CallSecurity(PackApiCallers)
   public registerSources(packRoots?: string[]): void {
@@ -4096,12 +4139,15 @@ export class PackLogic extends ApiLogic {
   ): Promise<PackReconcileResult> {
     const pack = resolveOne(packId, packRoot);
     requireConnection(packId);
+    beginKindRun([pack]);
     const rp = readPack(pack);
     // An explicit root overrides discovery entirely: its siblings are the
     // explicit install set, or nothing.
     const siblings = packRoot && !packRoots ? [] : siblingsOf(pack, packRoots);
     const flat = flatKeyFailures([...siblings, rp]);
+    for (const [id, sf] of kindDeclarerFailures([rp])) if (!flat.has(id)) flat.set(id, sf);
     for (const [id, sf] of await storeWordFailures([...siblings, rp])) if (!flat.has(id)) flat.set(id, sf);
+    for (const [id, sf] of await meaningFailures([rp])) if (!flat.has(id)) flat.set(id, sf);
     const f = flat.get(packId);
     if (f) throw new PackStepError(f.step, f.error, f.file);
     // An operator at the keyboard: sync throws rather than recording.
@@ -4124,6 +4170,7 @@ export class PackLogic extends ApiLogic {
   @CallSecurity(PackApiCallers)
   public async status(packId?: string, packRoots?: string[]): Promise<PackStatusReport[]> {
     const discovered = discover(packRoots);
+    beginKindRun(discovered);
     const refused = new Set(testOnlyRefusals(discoverAll(packRoots)).map((p) => p.manifest.id));
     const manifests = new Map(discovered.map((p) => [p.manifest.id, p.manifest]));
     const resolved = new Map(discovered.map((p) => [p.manifest.id, p]));
@@ -4209,6 +4256,7 @@ export class PackLogic extends ApiLogic {
   public async diff(packId: string, path?: string, packRoot?: string): Promise<PackDiffReport> {
     const pack = resolveOne(packId, packRoot);
     requireConnection(packId);
+    beginKindRun([pack]);
     const record = await loadRecord(packId);
     const content = readContent(pack);
     const keys = path ? [path] : (record?.conflicts ?? []).map((c) => c.path);
@@ -4243,6 +4291,7 @@ export class PackLogic extends ApiLogic {
   ): Promise<PackReconcileResult | null> {
     const pack = resolveOne(packId, packRoot);
     requireConnection(packId);
+    beginKindRun([pack]);
     const record = await loadRecord(packId);
     if (!record) throw new Error(`PackApi: pack '${packId}' has no install record`);
     const content = readContent(pack);

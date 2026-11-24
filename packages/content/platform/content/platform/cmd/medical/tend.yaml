@@ -17,5 +17,5 @@ args:
   - name: patient
     type: object
     required: true
-    scope: "reachable"
+    scope: "~reachable"
     requires: VitalsMixin

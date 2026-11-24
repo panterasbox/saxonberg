@@ -92,11 +92,11 @@ export class Lock {
   opensFor(mover: Stuff): boolean {
     if (!this.keyway) return false;
     const holder =
-      MqlApi.resolveMany("person", {
+      MqlApi.resolveMany("~person", {
         // The mover at a lock is a Character (a CommandGiver); the
         // static type at this seam is only `Stuff`.
         commandGiver: mover as Stuff & CommandGiver,
-        scope: "person",
+        scope: "~person",
       }).stuff.find(
         (s): s is Stuff & CredentialWallet =>
           MixinApi.isCredentialWallet(s) &&
@@ -186,11 +186,11 @@ function addToKeychain(
   master: boolean,
 ): void {
   const wallet =
-    MqlApi.resolveMany("person", {
+    MqlApi.resolveMany("~person", {
       // Key holders are Characters (CommandGivers); the static type
       // at this seam is only `Stuff`.
       commandGiver: holder as Stuff & CommandGiver,
-      scope: "person",
+      scope: "~person",
     }).stuff.find(
       (s): s is Stuff & CredentialWallet =>
         MixinApi.isCredentialWallet(s) && s.hasCredential("key"),

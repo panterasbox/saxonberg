@@ -282,7 +282,7 @@ export const SocialNotificationsPanel: React.FC<
       <FieldLabel>{fieldLabel}</FieldLabel>
       {options.map((opt) =>
         cmdButton(
-          `notify set ${rule.groupRef} --${flag} ${opt}`,
+          `notify set ${rule.subject} --${flag} ${opt}`,
           opt,
           current === opt,
           `${flag}-${opt}`,
@@ -320,25 +320,25 @@ export const SocialNotificationsPanel: React.FC<
             <Row data-testid={`rule-${rule.groupRef}`} key={rule.groupRef}>
               <RowHead>
                 {cmdButton(
-                  `notify move ${rule.groupRef} --above ${rules[i - 1]?.groupRef ?? ""}`,
+                  `notify move ${rule.subject} --above ${rules[i - 1]?.subject ?? ""}`,
                   "▲",
                   false,
                   `up-${rule.groupRef}`,
                 )}
                 {cmdButton(
-                  `notify move ${rule.groupRef} --below ${rules[i + 1]?.groupRef ?? ""}`,
+                  `notify move ${rule.subject} --below ${rules[i + 1]?.subject ?? ""}`,
                   "▼",
                   false,
                   `down-${rule.groupRef}`,
                 )}
                 <RuleLabel>{rule.label}</RuleLabel>
-                {rule.label !== rule.groupRef && (
-                  <RefSub>{rule.groupRef}</RefSub>
+                {rule.label !== rule.subject && (
+                  <RefSub>{rule.subject}</RefSub>
                 )}
                 {rule.reserved && <ReservedTag>(default)</ReservedTag>}
                 <Spacer />
                 {cmdButton(
-                  `notify remove ${rule.groupRef}`,
+                  `notify remove ${rule.subject}`,
                   "remove",
                   false,
                   `remove-${rule.groupRef}`,
@@ -352,14 +352,14 @@ export const SocialNotificationsPanel: React.FC<
                     key={tok}
                     $color={paletteColor(tok)}
                     $active={rule.color === tok}
-                    data-testid={`notify set ${rule.groupRef} --color ${tok}`}
+                    data-testid={`notify set ${rule.subject} --color ${tok}`}
                     aria-label={`color ${tok}`}
                     onMouseEnter={() =>
-                      onCommandPreview(`notify set ${rule.groupRef} --color ${tok}`)
+                      onCommandPreview(`notify set ${rule.subject} --color ${tok}`)
                     }
                     onMouseLeave={() => onCommandPreview(null)}
                     onClick={() =>
-                      onCommandClick(`notify set ${rule.groupRef} --color ${tok}`)
+                      onCommandClick(`notify set ${rule.subject} --color ${tok}`)
                     }
                   />
                 ))}
@@ -376,13 +376,13 @@ export const SocialNotificationsPanel: React.FC<
               <Field>
                 <FieldLabel>boost</FieldLabel>
                 {cmdButton(
-                  `notify set ${rule.groupRef} --boost`,
+                  `notify set ${rule.subject} --boost`,
                   "on",
                   rule.boostInDense,
                   `boost-on`,
                 )}
                 {cmdButton(
-                  `notify set ${rule.groupRef} --no-boost`,
+                  `notify set ${rule.subject} --no-boost`,
                   "off",
                   !rule.boostInDense,
                   `boost-off`,
@@ -417,7 +417,7 @@ export const SocialNotificationsPanel: React.FC<
             <FieldLabel>add group</FieldLabel>
             <AddInput
               data-testid="social-add-input"
-              placeholder="contacts label, managed:guild, …"
+              placeholder="~friends, ~bookclub, …"
               value={addRef}
               onChange={(e) => setAddRef(e.target.value)}
               onKeyDown={(e) => {

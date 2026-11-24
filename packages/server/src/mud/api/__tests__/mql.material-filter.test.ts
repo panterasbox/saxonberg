@@ -94,7 +94,7 @@ beforeEach(() => {
   room = makeStuff(() => new TestRoom());
   const giver = makeStuff(() => new TestGiver());
   ContainmentApi.move(giver as never, room as never);
-  ctx = { commandGiver: giver as never, scope: 'here' };
+  ctx = { commandGiver: giver as never, scope: '~here' };
 
   bar = thing(STEEL);
   pig = thing(CAST_IRON);
@@ -118,23 +118,23 @@ afterEach(() => StuffApi.clearAll());
 
 describe('[material.X] — the tag a thing is made of', () => {
   it('⭐ matches on an authored material tag', () => {
-    expect(ids(resolve('peers:[material.forgeable]', ctx))).toEqual([bar.stuffId]);
+    expect(ids(resolve('~peers:[material.forgeable]', ctx))).toEqual([bar.stuffId]);
   });
 
   it('⭐⭐ spans EVERY part, not just the bulk default', () => {
     // The axe is oak in bulk. Asking the bulk default alone would say
     // "wood" and miss the iron head — useless to every caller that has
     // ever wanted this filter.
-    const metal = new Set(ids(resolve('peers:[material.metal]', ctx)));
+    const metal = new Set(ids(resolve('~peers:[material.metal]', ctx)));
     expect(metal.has(axe.stuffId)).toBe(true);
     expect(metal.has(bar.stuffId)).toBe(true);
     expect(metal.has(pig.stuffId)).toBe(true);
     // …and it is still honestly wood as well.
-    expect(ids(resolve('peers:[material.wood]', ctx))).toEqual([axe.stuffId]);
+    expect(ids(resolve('~peers:[material.wood]', ctx))).toEqual([axe.stuffId]);
   });
 
   it('⭐ the metal chain’s own question: what here cannot be forged', () => {
-    const brittle = new Set(ids(resolve('peers:[material.brittle]', ctx)));
+    const brittle = new Set(ids(resolve('~peers:[material.brittle]', ctx)));
     expect(brittle.has(pig.stuffId)).toBe(true);
     expect(brittle.has(bar.stuffId)).toBe(false);
     // ⚠ The axe IS caught — its head is cast. That is correct and is
@@ -143,16 +143,16 @@ describe('[material.X] — the tag a thing is made of', () => {
   });
 
   it('⚠⚠ MADE OF, never CONTAINS — a waterskin is leather', () => {
-    expect(ids(resolve('peers:[material.organic]', ctx))).toContain(skin.stuffId);
+    expect(ids(resolve('~peers:[material.organic]', ctx))).toContain(skin.stuffId);
     // What is in its bulk slot is a different question with a different
     // owner; folding it in here would be a lie that reads like a
     // convenience.
-    expect(ids(resolve('peers:[material.water]', ctx))).toEqual([]);
+    expect(ids(resolve('~peers:[material.water]', ctx))).toEqual([]);
   });
 
   it('⚠ no Material — and no material CONCEPT — are both FALSE, never a throw', () => {
-    expect(() => resolve('peers:[material.metal]', ctx)).not.toThrow();
-    const metal = new Set(ids(resolve('peers:[material.metal]', ctx)));
+    expect(() => resolve('~peers:[material.metal]', ctx)).not.toThrow();
+    const metal = new Set(ids(resolve('~peers:[material.metal]', ctx)));
     // Tangible, nobody authored a material on it.
     expect(metal.has(blank.stuffId)).toBe(false);
     // Not Tangible at all — the `isTangible` guard, not an exception.
@@ -160,15 +160,15 @@ describe('[material.X] — the tag a thing is made of', () => {
   });
 
   it('⚠ an unknown tag matches nothing, quietly', () => {
-    expect(ids(resolve('peers:[material.unobtainium]', ctx))).toEqual([]);
+    expect(ids(resolve('~peers:[material.unobtainium]', ctx))).toEqual([]);
   });
 
   it('composes with the other atoms, and with not', () => {
-    const out = resolve('peers:[material.ferrous and not material.brittle]', ctx);
+    const out = resolve('~peers:[material.ferrous and not material.brittle]', ctx);
     expect(ids(out)).toEqual([bar.stuffId]);
   });
 
   it('⚠ an unknown NAMESPACE still names the ones that exist', () => {
-    expect(() => resolve('peers:[substance.steel]', ctx)).toThrow(/material/);
+    expect(() => resolve('~peers:[substance.steel]', ctx)).toThrow(/material/);
   });
 });

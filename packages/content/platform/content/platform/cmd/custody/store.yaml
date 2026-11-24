@@ -46,8 +46,8 @@ subcommands:
         type: object
         required: false
         prepositions: [at, in]
-        default: "reachable:[mixin.StoreBookMixin]"
-        scope: ["here", "peers", "person"]
+        default: "~reachable:[mixin.StoreBookMixin]"
+        scope: ["~peers", "~person"]
         requires: [StoreBookMixin]
   deposit:
     controller: /platform/idea/cmd/custody/StoreDepositController
@@ -58,15 +58,15 @@ subcommands:
       - name: thing
         type: object
         required: true
-        scope: [inventory]
+        scope: ["~inventory"]
         requires: [ContainableMixin]
       - name: book
         prepositionRequired: true
         type: object
         required: false
         prepositions: [in, at, with]
-        default: "reachable:[mixin.StoreBookMixin]"
-        scope: ["here", "peers", "person"]
+        default: "~reachable:[mixin.StoreBookMixin]"
+        scope: ["~peers", "~person"]
         requires: [StoreBookMixin]
   withdraw:
     controller: /platform/idea/cmd/custody/StoreWithdrawController
@@ -82,6 +82,6 @@ subcommands:
         type: object
         required: false
         prepositions: [from, at]
-        default: "reachable:[mixin.StoreBookMixin]"
-        scope: ["here", "peers", "person"]
+        default: "~reachable:[mixin.StoreBookMixin]"
+        scope: ["~peers", "~person"]
         requires: [StoreBookMixin]

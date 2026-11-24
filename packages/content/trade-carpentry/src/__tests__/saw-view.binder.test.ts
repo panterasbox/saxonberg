@@ -49,7 +49,7 @@ function bind(text: string): Record<string, unknown> {
   return r.model as Record<string, unknown>;
 }
 
-const SAWS = 'reachable:[capability.sawing]';
+const SAWS = '~reachable:[capability.sawing]';
 
 describe('saw — the view binds what a sawyer says', () => {
   it('`saw bole` binds the log and defaults the saw by CAPABILITY', () => {

@@ -49,6 +49,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../../../lib/security/__tests__/test-setup';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { GrammarApi } from '../../../../../api/grammar';
 
 const FEED = '/stuff/idea/material/_mould/feed';
 const AGENT = '/stuff/idea/material/_mould/agent';
@@ -123,7 +124,7 @@ async function fire(hold?: string): Promise<CommandContext> {
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
     await TestHarnessApi.actAs(context.commandGiver, () => makeStuff(() => new FireController()).execute(
-      { kiln: { stuff: kiln, raw: 'kiln' }, hold } as never,
+      { kiln: { stuff: kiln, raw: 'kiln' }, ...(hold ? { hold: GrammarApi.parseDuration(hold) } : {}) } as never,
       context,
     ));
   });
@@ -302,11 +303,6 @@ describe('⭐⭐ the cure is the stock, the heat and the time', () => {
     expect(materialPathOf(cast)).toBe(SCORCHED);
   });
 
-  it('`for <how long>` that is not a duration is refused, and the stock stays', async () => {
-    const m = mould();
-    ContainmentApi.move(m as never, kiln as never);
-    charge(m, 0.03);
-    expect(declinedFor(await fire('a while'))).toBe('bad-duration');
-    expect(m.getContents()).toHaveLength(1);
-  });
+  // (`for <how long>` that is not a duration is the VIEW's refusal now —
+  // durationSlot.binder.test, naming overhaul D-C6.)
 });

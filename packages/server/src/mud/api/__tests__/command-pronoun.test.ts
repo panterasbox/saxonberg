@@ -6,8 +6,8 @@
  *
  *   - Successful resolution populates the giver's pronoun memory.
  *   - Gender routing lands he/she/they/it stuff in the right slot.
- *   - Multi-cardinality results route to `them`.
- *   - Subsequent queries with `it`/`him`/...  resolve through the
+ *   - Multi-cardinality results route to `~them`.
+ *   - Subsequent queries with `~it`/`~him`/...  resolve through the
  *     stash.
  *   - Dynamic-pronoun queries that fire `updates_focus: extend`
  *     substitute the original fragment for the pronoun string when
@@ -64,7 +64,7 @@ function lookCommand(): CommandDefinition {
       '  - name: target',
       '    type: object',
       '    required: false',
-      '    scope: "reachable"',
+      '    scope: "~reachable"',
       '    updates_focus: extend',
     ].join('\n'),
     '<test>'
@@ -238,7 +238,7 @@ describe('Dispatcher pronoun-memory integration', () => {
       cmd,
       'look it'
     );
-    const r = await CommandApi.resolveAndValidate({ target: 'it' }, ctx2);
+    const r = await CommandApi.resolveAndValidate({ target: '~it' }, ctx2);
     expect('resolved' in r).toBe(true);
     if ('resolved' in r) {
       const target = r.resolved.target as MqlOneResult;
@@ -246,15 +246,15 @@ describe('Dispatcher pronoun-memory integration', () => {
     }
   });
 
-  it("look it after look rose substitutes the stored fragment, not 'it'", async () => {
+  it("look it after look rose substitutes the stored fragment, not '~it'", async () => {
     const cmd = lookCommand();
     await CommandApi.resolveAndValidate(
       { target: 'rose' },
       makeContext(giver, location as unknown as Place, cmd, 'look rose')
     );
-    // From initial focus 'here', `look rose` targets a peer (no
+    // From initial focus '~here', `look rose` targets a peer (no
     // detail-path continuation), so focus REPLACES with `rose`
-    // rather than appending. The chain `here:rose` would not
+    // rather than appending. The chain `~here:rose` would not
     // resolve through the substrate's chain step.
     expect(giver.getFocus()).toBe('rose');
 
@@ -264,7 +264,7 @@ describe('Dispatcher pronoun-memory integration', () => {
     // same Stuff + empty via, so the same-anchor `equal` branch
     // leaves focus alone.
     await CommandApi.resolveAndValidate(
-      { target: 'it' },
+      { target: '~it' },
       makeContext(giver, location as unknown as Place, cmd, 'look it')
     );
     expect(giver.getFocus()).toBe('rose');
@@ -301,10 +301,10 @@ describe('Dispatcher pronoun-memory integration', () => {
       makeContext(giver, location as unknown as Place, cmd, 'look rose')
     );
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
-    // Now `look it` — fragment for `it` should still be "rose", not
+    // Now `look it` — fragment for `~it` should still be "rose", not
     // "it" (preserving the original anchor).
     await CommandApi.resolveAndValidate(
-      { target: 'it' },
+      { target: '~it' },
       makeContext(giver, location as unknown as Place, cmd, 'look it')
     );
     expect(giver.getPronounMemory().readFragment('it')).toBe('rose');
@@ -324,7 +324,7 @@ describe('Dispatcher pronoun-memory integration', () => {
         '  - name: target',
         '    type: object',
         '    required: false',
-        '    scope: ["$focus", "reachable"]',
+        '    scope: ["$focus", "~reachable"]',
         '    updates_focus: extend',
       ].join('\n'),
       '<test>'

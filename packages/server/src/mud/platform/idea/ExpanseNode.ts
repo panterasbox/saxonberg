@@ -35,6 +35,7 @@
  *   A node that authors none falls back to `expanse.arrivalNm`.
  */
 
+import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { NamedMixin } from '../../lib/description/Named';
@@ -96,9 +97,11 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
   public namesRiver(heading: string): boolean {
     const river = this.river;
     if (river === null) return false;
-    const key = (river.split('/').pop() ?? '').toLowerCase();
+    const key = river.split('/').pop() ?? '';
     if (key === '') return false;
-    const words = heading.trim().toLowerCase().replace(/^the\s+/, '').split(/\s+/);
+    // The heading's words (the rule's tokenizer), against the river's key
+    // and the closed few words that name the bar itself.
+    const words = GrammarApi.tokenize(heading);
     return words.includes(key) && !words.some((w) => w === 'bar' || w === 'mouth' || w === 'sea');
   }
 
@@ -204,20 +207,16 @@ export default class ExpanseNode extends SphericalCoordinatesMixin(
   }
 
   /**
-   * Does this node answer to `word` — a word of its name, its whole name,
-   * an alternate name, or its row key? How `course <node>` resolves a node
-   * against its own expanse (never through MQL: a node is not in the
+   * ⭐ The words this node answers to (naming overhaul D-C5 rule 2) — its
+   * whole name, its words, its row key and its alternate names; how
+   * `course <node>` names a node against its own expanse through the one
+   * rule (`Expanse.nodeNamed`), never through MQL (a node is not in the
    * room).
    */
-  public answersTo(word: string): boolean {
-    const w = word.trim().toLowerCase().replace(/^the\s+/, '');
-    if (w === '') return false;
-    const name = this.getName().toLowerCase();
-    const bare = name.replace(/^the\s+/, '');
-    if (w === name || w === bare) return true;
-    if (bare.split(/\s+/).includes(w)) return true;
+  public nameKeywords(): string[] {
     const key = (this.getTemplatePath() ?? '').split('/').pop() ?? '';
-    if (w === key.toLowerCase()) return true;
-    return this.getAlternateNames().some((a) => a.value.toLowerCase() === w);
+    return [this.getName(), key, key.replace(/-/g, ' '), ...this.getAlternateNames().map((a) => a.value)]
+      .filter((w) => w !== '')
+      .map((w) => w.toLowerCase());
   }
 }

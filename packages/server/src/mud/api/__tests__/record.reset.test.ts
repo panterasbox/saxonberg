@@ -34,13 +34,15 @@ const ALL = Object.keys(RESET_DISPOSITIONS) as Collections[];
 /** One representative row in every collection the world persists into. */
 function seedTheWorld(): void {
   for (const name of ALL) {
-    db.seed(name, [{ marker: `row-in-${name}` }]);
+    // `documents`' representative is a published release — every row in
+    // the collection is of a declared kind, and the collection is kept.
+    db.seed(
+      name,
+      name === Collections.Documents
+        ? [{ kind: RELEASE_DOCUMENT_KIND, marker: 'a published release' }]
+        : [{ marker: `row-in-${name}` }],
+    );
   }
-  // Plus the one row the survivors list names, in the collection that
-  // is otherwise wiped — the whole point of `wipe-except`.
-  db.seed(Collections.Documents, [
-    { kind: RELEASE_DOCUMENT_KIND, marker: 'a published release' },
-  ]);
 }
 
 function rowsIn(name: Collections): Array<Record<string, unknown>> {
@@ -113,7 +115,7 @@ describe('an enforced run', () => {
     seedTheWorld();
   });
 
-  it('leaves published releases, and nothing else in `documents`', async () => {
+  it('leaves published releases in `documents` (the collection is kept)', async () => {
     await RecordApi.wipe({ dryRun: false });
 
     const left = rowsIn(Collections.Documents);

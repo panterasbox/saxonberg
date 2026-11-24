@@ -320,14 +320,16 @@ export function StandMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
     }
 
     public speciesNamed(word: string): StandSpecies | null {
-      const w = word.trim().toLowerCase();
-      if (!w) return null;
-      return (
-        this.mix.find((sp) => sp.name.toLowerCase() === w) ??
-        this.mix.find((sp) => `${sp.name.toLowerCase()}s` === w) ??
-        this.mix.find((sp) => sp.speciesPath.toLowerCase().endsWith(`/${w}`)) ??
-        null
+      // ⭐ By the one rule (naming overhaul D-C5 rule 4): its name (and its
+      // plural), its row key; a tie takes the first in the mix.
+      const answer = GrammarApi.nameAmong(
+        word,
+        this.mix.map((sp) => {
+          const key = sp.speciesPath.split('/').pop() ?? '';
+          return { value: sp, keywords: [sp.name, key, key.replace(/-/g, ' ')].filter((k) => k !== '').map((k) => k.toLowerCase()), title: sp.name };
+        }),
       );
+      return answer.kind === 'one' ? answer.one : answer.kind === 'tie' ? answer.tie[0]! : null;
     }
 
     public thickestSpecies(): StandSpecies | null {

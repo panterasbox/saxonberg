@@ -3,7 +3,7 @@
  * depositor, on printed terms** (storage-and-ice D6). Written as the
  * EXISTING `warehouse-receipt` document kind under the bailee business's
  * own branch (`<business>/warehouse-receipts/<id>`), so the closed
- * `BUSINESS_DOCUMENT_KINDS` stays at three; the record shape widens.
+ * The business-filed kinds stay at three; the record shape widens.
  *
  * Pooled goods are owned in COMMON: a receipt is a claim on a line by pool
  * key, not on particular blocks, and a shortfall is shared pro rata. The

@@ -32,12 +32,14 @@
  * scan `getHostedApps()` directly.
  */
 
+import { GrammarApi, type NameAnswer } from '../../api/grammar';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { CommandApi, type CommandContributions } from '../../api/command';
 import { StuffApi } from '../../api/stuff';
 import { Final, Unshadowable } from '../security/decorators';
 import type { AetherHosted } from './AetherHosted';
+import { RelatingMixin, type HeldRelation, type RelatedSet } from '../relation/Relating';
 
 /** How what arrives through a host shows to its bearer (D9). */
 export type AetherManifestation = 'known' | 'read';
@@ -97,6 +99,12 @@ export interface AetherHost {
    * installed answers `already`.
    */
   installByKey(key: string): Promise<AppInstallResult>;
+  /**
+   * ⭐ The apps a player's words name (naming overhaul D-C5 rule 5) — by
+   * its key and its running name, through the one rule — among the
+   * `installed` ones, or every one the host could run (`any`). Paths.
+   */
+  appNamed(text: string, among: 'installed' | 'any'): NameAnswer<string>;
 }
 
 /** What `installByKey` did. */
@@ -111,7 +119,7 @@ function appKeyOf(path: string): string {
 }
 
 export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
-  class AetherHostMixin extends Base implements AetherHost {
+  class AetherHostMixin extends RelatingMixin(Base) implements AetherHost {
     static _mixinName = 'AetherHostMixin';
 
     /**
@@ -233,6 +241,17 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.installedApps.some((p) => appKeyOf(p) === key);
     }
 
+    /** ⭐ `device:~apps` — the apps running on it (naming overhaul D-B5); anyone may ask. */
+    public relationsFor(asker: Stuff | null): HeldRelation[] {
+      return [{ name: 'apps', meaning: 'the apps installed and running on it' }, ...super.relationsFor(asker)];
+    }
+
+    public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
+      const below = super.relatedBy(name, asker);
+      if (name !== 'apps') return below;
+      return [{ name, meaning: 'the apps installed and running on it', members: [...this._hostedApps] }, ...below];
+    }
+
     availableApps(): readonly string[] {
       return this.offersApps.filter((p) => !this.installedApps.includes(p));
     }
@@ -242,16 +261,28 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     async installByKey(key: string): Promise<AppInstallResult> {
-      const k = key.trim().toLowerCase();
-      const installed = this.installedApps.find((p) => appKeyOf(p) === k);
-      if (installed !== undefined) {
-        return { ok: true, app: await this.installApp(installed), already: true };
-      }
-      const offered = this.offersApps.find((p) => appKeyOf(p) === k);
-      if (offered === undefined) {
-        return { ok: false, offered: this.availableApps().map(appKeyOf) };
-      }
-      return { ok: true, app: await this.installApp(offered), already: false };
+      // A path (named by the controller) or a key (a script's exact word).
+      const path =
+        [...this.installedApps, ...this.offersApps].find((p) => p === key || appKeyOf(p) === key) ?? null;
+      if (path === null) return { ok: false, offered: this.availableApps().map(appKeyOf) };
+      const already = this.installedApps.includes(path);
+      return { ok: true, app: await this.installApp(path), already };
+    }
+
+    appNamed(text: string, among: 'installed' | 'any'): NameAnswer<string> {
+      const pool = among === 'installed' ? [...this.installedApps] : [...new Set([...this.installedApps, ...this.offersApps])];
+      return GrammarApi.nameAmong(
+        text,
+        pool.map((p) => {
+          const running = this._hostedApps.find((a) => a.getTemplatePath() === p);
+          const name = running ? running.getAppName() : appKeyOf(p);
+          return {
+            value: p,
+            keywords: [appKeyOf(p), appKeyOf(p).replace(/-/g, ' '), name].map((k) => k.toLowerCase()),
+            title: name,
+          };
+        }),
+      );
     }
   }
   return AetherHostMixin;

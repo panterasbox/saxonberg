@@ -17,7 +17,6 @@
  * `mixin.ts` / `errors.ts` / `quantity.ts`.
  */
 
-import { DOCUMENT_KINDS } from "./document/DocumentKinds";
 
 /** Exact platform template paths — direct singleton / class lookups. */
 export const TemplatePaths = {
@@ -255,19 +254,17 @@ export const TemplatePathPrefixes = {
 export const ReservedTemplatePrefixes = ["/platform/idea/api/"] as const;
 
 /**
- * The `content/` subdirs that are NOT the template kind: every other
- * declared kind's directory (settings, subjects, descriptor-banks,
- * quantity, and each `DOCUMENT_KINDS` yaml `contentDir`). ENUMERATED by
- * kind, never guessed: a new kind adds itself here through its spec. Every
- * OTHER top-level `content/` dir is a template tree — and may carry a
- * locality's / industry's own `cmd/` views at any depth.
+ * The `content/` subdirs that are NOT the template kind and are not
+ * document kinds either: settings, subjects, descriptor banks, quantity.
+ * ⭐ Every shipped document kind's dir is reserved by its DECLARATION
+ * (`<root>/kinds/<kind>`'s `shipped.dir`) — the installer unions the two; a
+ * runtime-only kind reserves nothing. Every OTHER top-level `content/` dir
+ * is a template tree — and may carry a locality's / industry's own `cmd/`
+ * views at any depth.
  */
 export const NON_TEMPLATE_DIRS: ReadonlySet<string> = new Set([
   "settings",
   "subjects",
   "descriptor-banks",
   "quantity",
-  ...Object.values(DOCUMENT_KINDS)
-    .filter((spec) => spec.ext === "yaml")
-    .map((spec) => spec.contentDir),
 ]);

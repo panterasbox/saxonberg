@@ -17,7 +17,7 @@ options:
   to:
     short: t
     type: object
-    scope: "online"
+    scope: ["~peers", "~contacts"]
     field: audience
     description: "Address the introduction to a particular person (the whole room still hears, and everyone learns the name)."
     requires: class:Agent
@@ -26,6 +26,6 @@ args:
   - name: subject
     type: object
     required: false
-    scope: "reachable"
+    scope: "~reachable"
     requires: class:Agent
     onExcess: prompt

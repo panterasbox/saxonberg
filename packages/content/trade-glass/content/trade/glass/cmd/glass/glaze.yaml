@@ -14,11 +14,11 @@ args:
   - name: pane
     type: object
     required: true
-    scope: ["reachable"]
+    scope: ["~reachable"]
     requires: TintedMixin
   - name: window
     type: object
     required: true
     prepositions: [in, into]
-    scope: ["here", "peers", "person"]
+    scope: ["~here", "~here:exits", "~here:~buildings", "~peers", "~person"]
     requires: any

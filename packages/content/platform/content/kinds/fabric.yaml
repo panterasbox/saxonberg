@@ -1,0 +1,4 @@
+title: Fabric
+traits:
+  shipped: { dir: fabrics }
+  catalogued: { by: /platform/idea/FabricCatalogue, load: per-path }

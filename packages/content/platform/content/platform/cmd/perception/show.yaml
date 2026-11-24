@@ -36,5 +36,5 @@ args:
     type: object
     required: false
     prepositions: [on]
-    scope: ["inventory", "reachable"]
+    scope: ["~inventory", "~reachable"]
     requires: [DisplayMixin]

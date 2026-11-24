@@ -80,7 +80,7 @@ describe('null-environment regressions', () => {
     expect(giver.getContainer()).toBeNull();
     const result = MqlApi.resolveMany('foo', {
       commandGiver: giver as never,
-      scope: 'reachable',
+      scope: '~reachable',
     });
     expect(result.stuff).toEqual([]);
   });

@@ -178,7 +178,7 @@ describe("work verbs", () => {
 
   /**
    * The `job` subcommand's own controller, with `board` bound as the
-   * view's default binds it (`reachable:[class.JobBoard]` from the giver)
+   * view's default binds it (`~reachable:[class.JobBoard]` from the giver)
    * — a controller test skips the binder, so it does the binder's one job.
    */
   const JOB = {
@@ -192,9 +192,9 @@ describe("work verbs", () => {
     return {
       execute(model, c) {
         const sub = (model.subcommand as keyof typeof JOB | undefined) ?? "browse";
-        const stuff = MqlApi.resolveOne("reachable:[class.JobBoard]", {
+        const stuff = MqlApi.resolveOne("~reachable:[class.JobBoard]", {
           commandGiver: c.commandGiver as never,
-          scope: "reachable",
+          scope: "~reachable",
         }).stuff;
         const bound = stuff ? { raw: "board", stuff } : undefined;
         return TestHarnessApi.actAs(c.commandGiver, () => makeStuff(() => new JOB[sub]()).execute({ board: bound, ...model } as never, c));
@@ -520,9 +520,9 @@ describe("work verbs", () => {
     );
     // ⭐ The board is what `job.yaml`'s `board` arg DEFAULTS to — the
     // query the view declares, asked here directly.
-    const found = MqlApi.resolveOne('reachable:[class.JobBoard]', {
+    const found = MqlApi.resolveOne('~reachable:[class.JobBoard]', {
       commandGiver: courier as never,
-      scope: 'reachable',
+      scope: '~reachable',
     }).stuff;
     expect(found).toBe(board);
   });
