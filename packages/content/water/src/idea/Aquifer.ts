@@ -77,7 +77,7 @@ export default class Aquifer extends NamedMixin(SingletonMixin(Idea)) implements
   static hydrationSource: HydrationSource = { name: 'documents (water-ledger)', required: false };
 
   static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    if (!(host instanceof Aquifer)) return { status: 'skipped', reason: 'not a aquifer' };
+    if (!(host instanceof Aquifer)) return { status: 'skipped', reason: 'not-its-kind' };
     try {
       const data = await (await WaterLedger.get()).read(host);
       if (data) host.takeLedger(data);

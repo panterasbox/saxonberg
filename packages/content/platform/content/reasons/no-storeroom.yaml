@@ -1,0 +1,5 @@
+# An end-let refused because the house has no store to box the tenant's
+# things into (persistence-model D11) — without one they would be lost.
+facts: {}
+says: "There's nowhere to box the tenant's things — the house has no store."
+topic: act.deed

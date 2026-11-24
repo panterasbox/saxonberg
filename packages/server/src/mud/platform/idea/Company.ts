@@ -33,7 +33,7 @@ export default class Company extends CapTableMixin(BusinessEntity) {
   static hydrationSource: HydrationSource = { name: 'documents (cap-table)', required: false };
 
   static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    if (!(host instanceof Company)) return { status: 'skipped', reason: 'not a company' };
+    if (!(host instanceof Company)) return { status: 'skipped', reason: 'not-its-kind' };
     try {
       const doc = await DocumentApi.read(host.capTablePaperPath());
       const table = (doc?.getData() as { capTable?: CapTableData | null } | undefined)?.capTable;

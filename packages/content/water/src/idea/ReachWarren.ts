@@ -142,7 +142,7 @@ export default class ReachWarren extends ZoneMintingMixin(LaunchableMixin(Single
   static hydrationSource: HydrationSource = { name: 'documents (water-ledger)', required: false };
 
   static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    if (!(host instanceof ReachWarren)) return { status: 'skipped', reason: 'not the reach warren' };
+    if (!(host instanceof ReachWarren)) return { status: 'skipped', reason: 'not-its-kind' };
     try {
       const data = await (await WaterLedger.get()).read(host);
       if (data) host.takeLedger(data);

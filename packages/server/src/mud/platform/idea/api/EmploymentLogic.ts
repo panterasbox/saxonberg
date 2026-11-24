@@ -1098,7 +1098,10 @@ async function placeOffShift(business: BusinessStuff, actor: Stuff): Promise<str
   const here = actor.getContainer();
   if (called) {
     if (here?.getTemplatePath() === called) return called;
-    const dest = StuffApi.findByTemplatePath<Stuff>(called) ?? (await StuffApi.singleton<Stuff>(called).catch(() => null));
+    const dest = await StuffApi.singleton<Stuff>(called).catch((err: unknown) => {
+      console.warn(`EmploymentLogic: '${called}' did not stand up for a visit:`, err);
+      return null;
+    });
     if (!dest || !MixinApi.isContainer(dest) || dest.isThing()) return null;
     actor.teleport(dest as Stuff & Container);
     return called;

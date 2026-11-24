@@ -465,7 +465,6 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (lying > floor * (1 + 1e-9)) {
             return { ok: false, reason: 'no-room', facts: { container: self as Stuff, item, dims: box } };
           }
-          return null;
         }
       }
       // ⭐ Every side closed is the strictest case — an open side only ever

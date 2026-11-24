@@ -40,10 +40,10 @@ export default class Building extends SingletonMixin(BuildingBase) {
   };
 
   static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    if (!(host instanceof Building)) return { status: 'skipped', reason: 'not a building' };
+    if (!(host instanceof Building)) return { status: 'skipped', reason: 'not-its-kind' };
     try {
       const ridden = await host.rideEntrance();
-      return ridden ? { status: 'hydrated' } : { status: 'skipped', reason: 'its entrance keeps nothing' };
+      return ridden ? { status: 'hydrated' } : { status: 'skipped', reason: 'nothing-kept' };
     } catch (err) {
       // ⚠ Never throw: a throw unregisters the half-built building.
       return { status: 'unreachable', reason: String(err) };

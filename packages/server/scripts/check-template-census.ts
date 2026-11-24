@@ -261,6 +261,10 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // ⭐ A government's `shipRegister` — the register row it
     // keeps; a rowless one is a polity whose yard sells a ship into nothing.
     'shipRegister',
+    // ⭐ A letting warren's `storeroom` (persistence-model D11) — the
+    // office whose locker a former tenant's things are boxed into; a
+    // rowless one is an end-let that refuses for ever.
+    'storeroom',
   ] as const) {
     push(f, data[f]);
   }

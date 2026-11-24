@@ -105,10 +105,10 @@ export default class HullBook extends ForSaleMixin(Good) {
   static hydrationSource: HydrationSource = { name: 'documents (hull-sale)', required: false };
 
   static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    if (!(host instanceof HullBook)) return { status: 'skipped', reason: 'not a hull book' };
+    if (!(host instanceof HullBook)) return { status: 'skipped', reason: 'not-its-kind' };
     try {
       const paper = await host.salePaper();
-      if (paper === null) return { status: 'skipped', reason: 'no house to keep its paper' };
+      if (paper === null) return { status: 'skipped', reason: 'nothing-kept' };
       const doc = await DocumentApi.read(paper.path);
       const sold = (doc?.getData() as { sold?: HullSale[] } | undefined)?.sold;
       if (Array.isArray(sold)) host.sold = sold.map((x) => ({ ...x }));

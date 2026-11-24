@@ -57,7 +57,7 @@ export default class WaterLedger extends RegistrarMixin(SingletonMixin(Idea)) {
 
   /** A shared commons record is never culled. */
   public canEvict(): VetoResult {
-    return { ok: false, reason: 'the water ledger is a shared commons record' };
+    return { ok: false, reason: 'an aquifer is a shared commons record' };
   }
 
   /** Where `subject`'s history is filed. */

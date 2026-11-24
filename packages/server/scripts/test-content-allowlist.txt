@@ -27,8 +27,6 @@ packages/server/src/mud/lib/banking/__tests__/settlement.test.ts
 packages/server/src/mud/lib/banking/__tests__/wallet.routing.test.ts
 packages/server/src/mud/lib/banking/__tests__/withdraw.liquidity.test.ts
 packages/server/src/mud/lib/behavior/__tests__/Behaved.dispositions.test.ts
-packages/server/src/mud/lib/chattel/__tests__/Estate.test.ts
-packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts
 packages/server/src/mud/lib/chronicle/__tests__/ChronicleEntry.test.ts
 packages/server/src/mud/lib/config/__tests__/AppSettings.test.ts
 packages/server/src/mud/lib/credential/__tests__/Credential.test.ts
@@ -49,7 +47,6 @@ packages/server/src/mud/lib/residency/__tests__/SpawnBlessing.test.ts
 packages/server/src/mud/lib/sandbox/__tests__/escape/eval.escape.test.ts
 packages/server/src/mud/lib/script/__tests__/demo-content.test.ts
 packages/server/src/mud/lib/security/__tests__/FromModule.test.ts
-packages/server/src/mud/lib/spatial/__tests__/Container.skip-rule.test.ts
 packages/server/src/mud/lib/standing/__tests__/CreditRouting.test.ts
 packages/server/src/mud/platform/__tests__/AccessRegistry.canAtPath.test.ts
 packages/server/src/mud/platform/__tests__/Business.test.ts

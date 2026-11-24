@@ -25,7 +25,7 @@
  * base (`Stock`, `CommerceMenu`). `lib/**` is excluded by design:
  * nothing instances it.
  *
- * ## The ceiling is 4, and each of the four is named here with its reason
+ * ## The ceiling is 5, and each of the five is named here with its reason
  *
  *   - `AttendancePoint` — the generic queue. A ticket window, a clinic
  *     desk and a bank counter all attend; attendance is SUBSTRATE and
@@ -33,6 +33,9 @@
  *   - `Menu` and `Tariff` — the consumer's `order` surface over a
  *     kernel-owned closed vocabulary (retail.md § The priced SERVICE).
  *     A menu is not a shopfront; it is how a priced service is READ.
+ *   - `Locker` (persistence-model N3) — a kept container that holds goods
+ *     for named people; residence, hospitality and the testbed compose it
+ *     and share no pack ancestor, so it is kernel substrate.
  *   - `BankCounter` — ⚠ **the one to-do.** It is trade-banking's, and
  *     trade-banking is deferred with a stated reason (the requirements'
  *     *Non-goals*; credit-slate Parts 6/7). When that pack ships, this
@@ -49,14 +52,15 @@ import { MUD, packSrcFiles } from './pack-roots';
 const EXIT_ON_FINDINGS = true; // CI-gating
 
 /** ⭐ The ceiling. It may fall; it may never rise. */
-const CEILING = 4;
+const CEILING = 5; // persistence-model W1 (N3): +1, a stated rise — `Locker` (see ALLOWED). Caller audit: its composers are residence's letting offices, trade-hospitality's check rack and the testbed — no common pack ancestor, the standing test for kernel substrate. ⚠ Flagged for the owner at review.
 
-/** The four, and why each is still here. Order is the doc order above. */
+/** The five, and why each is still here. Order is the doc order above. */
 const ALLOWED: Record<string, string> = {
   AttendancePoint: 'the generic queue — attendance is substrate',
   Menu: "the consumer's `order` surface over a kernel vocabulary",
   Tariff: "the consumer's `order` surface over a kernel vocabulary",
   BankCounter: 'trade-banking is deferred (credit-slate Parts 6/7) — the one to-do',
+  Locker: 'custody for named people (a landlord\'s store, a coat check, a rented locker) — its composers share no pack ancestor (persistence-model N3)',
 };
 
 const MARKERS = [

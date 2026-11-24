@@ -121,7 +121,7 @@ export default class Gate extends GateBase implements Ledgered {
   static hydrationSource: HydrationSource = { name: 'documents (water-ledger)', required: false };
 
   static async hydrateFromSource(host: Stuff): Promise<HydrateOutcome> {
-    if (!(host instanceof Gate)) return { status: 'skipped', reason: 'not a gate' };
+    if (!(host instanceof Gate)) return { status: 'skipped', reason: 'not-its-kind' };
     try {
       const data = await (await WaterLedger.get()).read(host);
       if (data) host.takeLedger(data);
