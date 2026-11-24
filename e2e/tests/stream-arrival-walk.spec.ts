@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import type { BrowserContext, Page } from '@playwright/test';
-import { openWorldAs, openWorldAsFounder, runCommand, uniqueHandle } from './helpers';
+import { openWorldAs, runCommand, uniqueHandle } from './helpers';
 
 /**
  * ⭐⭐ The stream-arrival walk — the half the wire drive cannot see: a real
@@ -55,7 +55,9 @@ test.describe('stream arrival, in a browser', () => {
 
     // ── staging, by playing: a broadcaster files and runs the program ──
     const caster = await openWorldAs(browser, 'sa-walk-caster', { linked: { twitch: TWITCH } });
-    const founder = await openWorldAsFounder(browser);
+    // The Prime Minister sets the featured program — a staged seat (the seat
+    // moves to whoever is seated last, so the walk seats its own).
+    const founder = await openWorldAs(browser, 'sa-walk-pm', { offices: ['prime-minister'] });
     try {
       for (const line of [
         'apps install broadcast',
@@ -80,6 +82,13 @@ test.describe('stream arrival, in a browser', () => {
       const visitorCtx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
       await stubCarriers(visitorCtx);
       const v = await visitorCtx.newPage();
+      await v.route('**/auth/status', async (route) => {
+        const res = await route.fetch();
+        const body = (await res.json()) as Record<string, unknown>;
+        // Twitch reads as configured, so its real button is the one clicked.
+        const providers = Array.isArray(body.providers) ? (body.providers as string[]) : [];
+        await route.fulfill({ response: res, json: { ...body, providers: [...new Set([...providers, 'twitch'])] } });
+      });
       await v.goto(`${CLIENT_URL}/?from=twitch`);
       await expect(v.getByTestId('start-screen')).toBeVisible({ timeout: 30_000 });
       await expect.poll(() => playerSrc(v), { timeout: 30_000 }).toContain(`channel=${TWITCH}`);
@@ -103,13 +112,6 @@ test.describe('stream arrival, in a browser', () => {
 
       // ── 5–7: sign in with Twitch, create, arrive watching ──
       const newcomer = uniqueHandle('sa-walk-new');
-      await v.route('**/auth/status', async (route) => {
-        const res = await route.fetch();
-        const body = (await res.json()) as Record<string, unknown>;
-        // Twitch reads as configured, so its real button is the one clicked.
-        const providers = Array.isArray(body.providers) ? (body.providers as string[]) : [];
-        await route.fulfill({ response: res, json: { ...body, providers: [...new Set([...providers, 'twitch'])] } });
-      });
       await v.route('**/auth/twitch', (route) =>
         route.fulfill({
           status: 302,
@@ -126,9 +128,12 @@ test.describe('stream arrival, in a browser', () => {
       expect(await v.locator('body').innerText()).not.toMatch(/aspir/i);
       await expect(confirm).toContainText(`embody confirm --watch ${PROGRAM} --twitch`);
       // Fill what is missing, through the controls the stage offers.
-      for (const id of ['chargen-option-human', 'chargen-option-female', 'chargen-option-they']) {
-        const el = v.getByTestId(id);
-        if (await el.isVisible().catch(() => false)) await el.click();
+      for (const label of ['Human', 'Female', 'they/them', 'use this name']) {
+        const el = v.getByRole('button', { name: label, exact: true });
+        if (await el.isVisible().catch(() => false)) {
+          await el.click();
+          await v.waitForTimeout(500);
+        }
       }
       await expect(confirm).toBeEnabled({ timeout: 30_000 });
       await confirm.click();

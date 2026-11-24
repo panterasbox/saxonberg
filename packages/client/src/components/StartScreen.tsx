@@ -465,6 +465,7 @@ export const StartScreen: React.FC = () => {
             ) : (
               <Tip key={p.key} tip={hoverDoc(p.enabled ? "Not configured on this server" : "Coming soon")}><Action
                 disabled
+                data-testid={`provider-${p.key}`}
               >
                 <ProviderMark provider={p.key} />
                 {p.label}

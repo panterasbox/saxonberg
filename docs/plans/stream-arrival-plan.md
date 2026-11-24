@@ -1419,7 +1419,15 @@ included. Six runs, and what each found — every checkpoint below has been red 
 
 Every step is `instant` except the two restarts (`staged`). **There is no soak drive.**
 
-**The browser walk** — `e2e/tests/stream-arrival-walk.spec.ts`; result below when it lands.
+**The browser walk** — `e2e/tests/stream-arrival-walk.spec.ts` (Chromium, 1440×900 and 390×844,
+the carriers' players stubbed with a boot id): **green** (2026-11-23), against a server started with
+`AUTH_MODE=test SAXONBERG_TEST_WORLD=1`. A real sign-in navigation out and back through
+`/auth/test-return` resumes the video **docked with no click**; creation shows no *aspiration* and
+confirm both shows and sends `embody confirm --watch <program> --twitch`; the lounge opens in watch
+with the player in the stage's **slot**; off air the offline tile carries the next show; no
+sideways scroll at phone width. What its runs found: the disabled provider buttons carried no test
+id, so the ORDER was invisible when a provider is unconfigured (fixed — they carry it); the rest
+were the walk's own staging (its own Prime Minister seat; the test-world flag).
 
 **The three real carrier embeds by hand** — not yet done (they need a live channel on each
 carrier); owed before go-live, with the founder's own channels.
