@@ -1,6 +1,6 @@
 /**
  * ProgramScheduleController — `program schedule <name> <line…>`: one free
- * line saying when the next show is; `clear` removes it (stream arrival
+ * line saying when the next show is; `--clear` removes it (stream arrival
  * D10, D11).
  */
 
@@ -10,8 +10,8 @@ import { ProgramControllerBase, type ProgramModel } from './ProgramControllerBas
 
 export default class ProgramScheduleController extends ProgramControllerBase {
   async execute(model: ProgramModel, context: CommandContext): Promise<void> {
-    const line = (model.line ?? '').trim();
-    const schedule = line.toLowerCase() === 'clear' ? '' : line;
+    // `--clear` says no next show; the line is otherwise the schedule.
+    const schedule = model.clear ? '' : (model.line ?? '').trim();
     const answer = await StreamApi.amendProgram(this.nameOf(model), { schedule });
     if (!answer.ok) return this.refuse(context, answer);
     const said = answer.program.getSchedule();

@@ -539,7 +539,9 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
   // ─────────────────────────── internals ───────────────────────────
 
   private room(): Stuff | null {
-    return (this as unknown as { getAdornedTo?(): Stuff | null }).getAdornedTo?.() ?? null;
+    // Ask the predicate, not the member (lint:duck-typing).
+    const me = this as unknown as Stuff;
+    return MixinApi.isAdornment(me) ? me.getAdornedTo() : null;
   }
 
   /**
@@ -557,9 +559,11 @@ export default class IceSheet extends IceSheetBase implements Cuttable {
     const room = this.room();
     if (room === null || !MixinApi.isShore(room)) return null;
     const pick = room.waterFor();
-    if (!('key' in pick)) return null;
+    // The union's refusal arm, read by its field rather than probed with `in`.
+    if ((pick as { refusal?: string }).refusal !== undefined) return null;
+    const { citation } = pick as { key: string; citation: string };
     const cat = this.catalogue();
-    const ref = cat !== null ? cat.currentWaterRef(pick.citation, room) : pick.citation;
+    const ref = cat !== null ? cat.currentWaterRef(citation, room) : citation;
     if (!ref) return null;
     this.reachRef = ref;
     if (cat !== null) void cat.iceAt(ref, nowS()).catch(() => undefined);

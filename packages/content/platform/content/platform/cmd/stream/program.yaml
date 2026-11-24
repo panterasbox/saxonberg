@@ -81,15 +81,20 @@ subcommands:
     help: |
       One free line saying when the next show is — give its time zone, so
       a reader anywhere can work it out. The front page shows it while the
-      program is off the air. `program schedule <name> clear` removes it.
+      program is off the air. `--clear` removes it.
     args:
       - name: name
         type: string
         required: true
       - name: line
         type: string
-        required: true
+        required: false
         greedy: true
+    options:
+      clear:
+        type: boolean
+        field: clear
+        description: "Say no next show"
   channel:
     controller: /platform/idea/cmd/stream/ProgramChannelController
     description: "Attach your own channel on twitch, youtube or kick (`program channel cafe-hour twitch`)"
