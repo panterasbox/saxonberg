@@ -199,6 +199,17 @@ export class DocumentApi {
     return logic().checkMeaning(kind, data, path);
   }
 
+  /**
+   * ⭐ May `actor` write a document at `path`? The ORDINARY save's gate,
+   * asked without writing: a person's own `/home/<self>/` branch, else the
+   * title over the path. A transport that writes on an owner's behalf (a
+   * program's title, stream arrival D11) asks this for the owner's pen, so
+   * there is one rule for whose pen it is. `actor` must be who is acting.
+   */
+  static mayWrite(actor: Stuff | null, path: string): Promise<boolean> {
+    return logic().mayWrite(actor, path);
+  }
+
   /** The stored document at `path`, or null. Callers read its getters. */
   static read(path: string): Promise<StoredDocument | null> {
     return logic().read(path);

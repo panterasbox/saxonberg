@@ -1087,6 +1087,12 @@ export class DocumentLogic extends ApiLogic {
     return checkMeaningImpl(kind, data, path);
   }
 
+  /** See {@link DocumentApi.mayWrite}. The save's own gate, asked without a write. */
+  @CallSecurity(DocumentApiCallers)
+  public async mayWrite(actor: Stuff | null, path: string): Promise<boolean> {
+    return (await gateMutation(actor, path)) === null;
+  }
+
   /** See {@link DocumentApi.read}. */
   @CallSecurity(DocumentApiCallers)
   public async read(path: string): Promise<StoredDocument | null> {

@@ -44,7 +44,6 @@ import type {
   BroadcastTokenScope,
 } from '../../../lib/livestream/Broadcast';
 import { MixinApi } from '../../../api/mixin';
-import { AccessApi } from '../../../api/access';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import ProgramCatalogue from '../ProgramCatalogue';
 import {
@@ -907,14 +906,16 @@ function homeOf(actor: Avatar): string {
 }
 
 /**
- * ⭐ **Whose pen** (D11): may `actor` write under `owner`? The shipped title
- * gate, asked of a path inside the owner's branch — it answers a player's
- * own home and a committee's branch alike, so nobody here asks what kind
- * of owner it is.
+ * ⭐ **Whose pen** (D11): may `actor` write under `owner`? The document
+ * store's own write gate, asked of a path inside the owner's branch — it
+ * answers a player's own home and a committee's branch alike, so nobody
+ * here asks what kind of owner it is.
  */
 async function holdsPen(actor: Avatar, owner: string, name: string): Promise<boolean> {
   if (!owner.startsWith('/')) return false;
-  return AccessApi.canAtPath(actor as unknown as Stuff, 'write-document', `${owner}/programs/${name}`);
+  // The ordinary save's own gate (your home, else the title), asked of a
+  // path inside the owner's branch — one rule for whose pen it is.
+  return DocumentApi.mayWrite(actor as unknown as Stuff, `${owner}/programs/${name}`);
 }
 
 /**

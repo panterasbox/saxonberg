@@ -19,7 +19,6 @@ import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StreamApi } from '../../../../api/stream';
 import { DocumentApi } from '../../../../api/document';
-import { AccessApi } from '../../../../api/access';
 import { PlayerApi } from '../../../../api/player';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { StoredDocument } from '../../../../lib/document/StoredDocument';
@@ -128,7 +127,7 @@ beforeEach(() => {
     const p = [ada, bo].find((x) => x.key === id && x.resident !== false);
     return p ? (avatarOf(p) as never) : undefined;
   }) as never);
-  vi.spyOn(AccessApi, 'canAtPath').mockImplementation(async (subject, _action, path) => {
+  vi.spyOn(DocumentApi, 'mayWrite').mockImplementation(async (subject, path) => {
     const key = (subject as unknown as { _key?: string } | null)?._key;
     if (!key) return false;
     return [...(pens.get(key) ?? [])].some((p) => path === p || path.startsWith(`${p}/`));
