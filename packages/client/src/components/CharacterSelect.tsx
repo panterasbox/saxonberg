@@ -164,6 +164,14 @@ const Inner = styled.div`
   min-height: 0;
 `;
 
+/** Room for the dock under the roster; empty (no gap) when nothing plays. */
+const DockSpace = styled.div<{ $first?: boolean }>`
+  margin: ${(p) => (p.$first ? `0 0 ${tokens.space.lg}` : `${tokens.space.lg} 0 0`)};
+  &:empty {
+    display: none;
+  }
+`;
+
 const TwoColumn = styled.div`
   display: grid;
   grid-template-columns: 1fr;
@@ -850,6 +858,11 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
         </span>
         <SendsAs>sends as embody</SendsAs>
       </MakeNewRow>
+      {/* ⭐ The dock (review 11-24): a small slot in the page's own
+          column, under what you act on — never in the header band. */}
+      <DockSpace>
+        <PlayerDock />
+      </DockSpace>
     </div>
   );
 
@@ -912,14 +925,16 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
           </Meters>
 
           <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
-          {/* ⭐ The dock: the video's one place on every screen before the
-              world, top right (review 11-24) — the page makes room. */}
-          <PlayerDock />
         </HeaderInner>
       </HeaderBand>
 
       <Inner>
         {showDetailOnly ? (
+          <>
+          {/* On a phone the detail stands alone; the dock comes first. */}
+          <DockSpace $first>
+            <PlayerDock />
+          </DockSpace>
           <CharacterDetail
             entry={selected!}
             onSendCommand={onSendCommand}
@@ -927,6 +942,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
               roster.length > 1 ? () => setSelectedId(null) : undefined
             }
           />
+          </>
         ) : showListOnly ? (
           listColumn
         ) : (

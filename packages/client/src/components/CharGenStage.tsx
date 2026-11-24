@@ -91,6 +91,23 @@ const StageInner = styled.div`
 
   @media (min-width: 1080px) {
     grid-template-columns: minmax(0, 1fr) 300px 320px;
+    > * {
+      grid-row: 1 / span 2;
+    }
+  }
+`;
+
+/** The dock's cell: right column, above the log, on a desktop; first on a phone. */
+const DockCell = styled.div`
+  min-width: 0;
+  &:empty {
+    display: none;
+  }
+  @media (min-width: 1080px) {
+    && {
+      grid-column: 3;
+      grid-row: 1;
+    }
   }
 `;
 
@@ -116,6 +133,12 @@ const PlateColumn = styled.div`
  */
 const LogColumn = styled.div`
   min-width: 0;
+  @media (min-width: 1080px) {
+    && {
+      grid-column: 3;
+      grid-row: 2;
+    }
+  }
   display: flex;
   flex-direction: column;
   gap: ${tokens.space.sm};
@@ -894,6 +917,12 @@ export function CharGenStage({
       </StageTopBar>
       <StageBody>
         <StageInner>
+          {/* ⭐ The dock (review 11-24): its own cell — the top of the right
+              column on a desktop, the FIRST thing on a phone, so the video
+              stays in view while the form is filled. */}
+          <DockCell>
+            <PlayerDock />
+          </DockCell>
           <FormColumn>
             <ArticlesPanel>
               <ArticlesTitle>
@@ -992,9 +1021,6 @@ export function CharGenStage({
           </PlateColumn>
 
           <LogColumn>
-            {/* ⭐ The dock: the video's one place on every screen before
-                the world, top right (review 11-24) — the page makes room. */}
-            <PlayerDock />
             <LogHeader>
               what you are typing
               <LogCount data-testid="chargen-log-count">{sentCount}</LogCount>
