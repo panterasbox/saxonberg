@@ -708,4 +708,56 @@ take the line up first and ring a `Ringable` bell.
 
 ## Drive record
 
-*(appended at build time)*
+*2026-11-23, build-3, a fresh `saxonberg_build3`, the world on `WIRE_PORT=2016`.*
+
+**Wire drive — `packages/wire/tests/which.dirty.wire.test.ts`: 12/12 green on
+the fourth run.** Steps 1–11a as the requirements read, with two staged: step 8
+in the PASSAGE, and step 10 on the starting kit's phone (every test character
+carries a Hollis Pal, so no clone was needed). Step 11 typed **372** listed verbs
+across the sessions that listed them; none was "I don't understand".
+
+**What the drive found, every item fixed in a commit on the MR:**
+
+1. **A source is not its verb's object** (run 1). `which` bound each source as
+   its verb's first object, as the radial does, so the hearth printed *"heat:
+   the hearth isn't something you take to the fire"*. `evaluateAffordance` got
+   `bindTarget`; `which` evaluates with nothing bound, and only verb-level
+   refusals grey a verb.
+2. **Next door, only someone you can address** (run 2; the census could not see
+   it, because it is the WALK, not a contribution). On the plaza, `which` listed
+   the shop counter's `buy`, the bank counter's `bank` and the hearth's
+   `stoke`/`heat` as *nearby*, and the line accepted them. Now only an agent
+   contributes `peers` across an exit — `peerScopesOf`'s own sentence.
+3. **A gift read as "something"** (run 2). A caster's `cast`/`spells` are pushed
+   with the spell catalogue as their source. Now every non-app `self` entry is
+   on the usual line.
+4. **Drive defects, not product ones:** the buyer already carries a phone
+   (step 4); the consignment shelf refuses `put … on`, so step 4 drops the
+   notebook; session handles carry a prefix (11a); a bare verb may prompt (11);
+   ⚠ and typing each listed verb BARE changed the state under test — `unequip`
+   stripped the body and the phone's `wield` was gone by its turn — so step 11
+   types `<verb> --which-probe`. A known verb then fails on its shape and does
+   nothing; an unknown one is still *I don't understand*.
+
+**B2 — can each checkpoint fail?** Steps 1, 2, 3, 4, 6, 11 and 11a each went
+red on a real defect in runs 1–3 before going green. Steps 5, 7, 8, 9 and 10
+were not broken on purpose.
+
+**Browser walk — `e2e/tests/which-walk.spec.ts`: green (steps 12–16).** It found
+two things about the layout, not the build:
+- in a 1280-wide window the card column shows cards as titles, and a card
+  flowing past is displaced to the Recent trail. The walk pins `which` at
+  once and runs at 1920×1080;
+- `full` is the stage and covers the terminal.
+
+Step 14 shows the pinned card following the player: `buy` leaves when they walk
+out and returns when they walk back, with nothing typed.
+
+**Soak drive:** none — no step depends on the clock.
+
+⚠ **Seen, not changed — for review:** the phone gives `wield`, `unwield`,
+`equip`, `unequip` to whoever carries it (`Wieldable`/`Wearable` on `Good`'s
+chain, offered outward); clothing worn gives `tear, label, wear, remove, equip,
+unequip, repair, salvage, name`. Each is a verb a thing in your hands or on your
+body can take, so the audit judged them right — but they are the bulk of a
+`which` reply, and the owner may want them on the common line.

@@ -153,17 +153,18 @@ suite("what you carry", () => {
     buyer = await keep(await Session.open(handle, { startLocation: SHOP }));
   }, 180_000);
 
-  it("4. [instant · player] a bought notebook is named by the hand it is in; set on the shelf, by where it now is", async () => {
+  it("4. [instant · player] a bought notebook is named by the hand it is in; set down, it no longer gives the article's verbs", async () => {
     const bought = await say(buyer, "buy notebook");
     expect(bought.status, bought.w).toBe("ok");
     const held = await say(buyer, "which");
     note(buyer, held.lines);
     expect(held.w).toMatch(/— the notebook (in your (left|right) hand|you're carrying)/);
     expect(held.w).toMatch(/and anything you're carrying: .*\bring\b/);
-    const put = await say(buyer, "put notebook on shelf");
+    // (The testbed shelf is a consignment shelf — `put … on` is refused there.)
+    const dropped = await say(buyer, "drop notebook");
+    expect(dropped.status, dropped.w).toBe("ok");
     const down = await say(buyer, "which");
     note(buyer, down.lines);
-    if (put.status === "ok") expect(down.w).toMatch(/the notebook on the shelf|the notebook here/);
     // Set down, it is no longer a source of the article's verbs (the audit):
     // nothing names it as carried.
     expect(down.w).not.toMatch(/the notebook (in your|you're carrying)/);
@@ -220,7 +221,11 @@ suite("listed ⇒ accepted", () => {
         // A bare verb may ask for its object ("Arm what?") — asked, it was ACCEPTED.
         let w = "";
         try {
-          const { result, prompt } = await s.cmdOrPrompt(verb);
+          // ⭐ Typed with an option nothing takes: a verb the line knows fails on
+          // its SHAPE (and does nothing — typing `unequip` bare once stripped
+          // the body and lost the phone whose verbs were next); a verb it does
+          // not know is "I don't understand".
+          const { result, prompt } = await s.cmdOrPrompt(`${verb} --which-probe`);
           w = squash(await result.said());
           record.push(`${s.handle}: ${verb} → ${prompt ? "prompt" : result.status} · ${w.slice(0, 160)}`);
         } catch (err) {

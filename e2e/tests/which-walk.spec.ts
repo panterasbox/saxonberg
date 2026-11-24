@@ -49,11 +49,18 @@ async function whichCard(page: Page, matching: RegExp, timeout = 30_000): Promis
 test.describe('the which build, in a browser', () => {
   test('⭐⭐ the which card: matches the reply, widens, follows when pinned, a click types', async ({ browser }) => {
     test.setTimeout(240_000);
-    const a = await openWorldAs(browser, 'which-walk', { startLocation: PLAZA });
+    // A desktop-sized window: a narrow one shows the card column as titles.
+    const a = await openWorldAs(browser, 'which-walk', {
+      startLocation: PLAZA,
+      contextOptions: { viewport: { width: 1920, height: 1080 } },
+    });
     const page = a.page;
 
-    // 12 — the card appears beside the reply, its verbs the reply's.
+    // 12 — the card appears beside the reply, its verbs the reply's. Pinned
+    // at once: a flowing card is displaced to the Recent trail when the
+    // column has no room, and pinned is how a player keeps it (and live).
     const reply = await sayAwaiting(page, 'which', /and the usual:/);
+    await sayAwaiting(page, 'client-card pin which', /./);
     const card = await whichCard(page, /the usual/);
     expect(reply).toMatch(/What you can type here/);
     expect(card).not.toMatch(/\bbuy\b/);
@@ -62,15 +69,27 @@ test.describe('the which build, in a browser', () => {
     await sayAwaiting(page, 'east', /./);
     await sayAwaiting(page, 'which', /the counter here/);
     await whichCard(page, /\bbuy\b/);
+    // The card's own width, as the client lays it out.
+    const size = async (): Promise<string | null> =>
+      page.getByTestId('which-body').last().locator('xpath=ancestor::*[@data-card-size][1]').getAttribute('data-card-size');
+    for (let i = 0; i < 4 && (await size()) !== 'unit'; i++) {
+      await sayAwaiting(page, 'client-card shrink which', /./);
+    }
+    expect(await size()).toBe('unit');
     const unit = await whichCard(page, /counter/);
     expect(unit).not.toMatch(/the counter here/);
     await sayAwaiting(page, 'client-card grow which', /./);
+    expect(await size()).toBe('medium');
     await whichCard(page, /the counter here/);
-    await sayAwaiting(page, 'client-card grow which', /./);
+    // `full` is the stage: the card covers the terminal, so read the card.
+    await runCommand(page, 'client-card grow which');
+    await expect.poll(size, { timeout: 20_000 }).toBe('full');
     await expect(page.getByTestId('which-help-buy').last()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText('Buy something').or(page.getByTestId('which-help-buy')).first()).toBeVisible();
+    await runCommand(page, 'client-card shrink which');
+    await expect.poll(size, { timeout: 20_000 }).toBe('medium');
 
-    // 14 — pinned, it follows: out of the shop `buy` goes, back in it returns.
-    await sayAwaiting(page, 'client-card pin which', /./);
+    // 14 — pinned (since step 12), it follows: out of the shop `buy` goes, back in it returns.
     await sayAwaiting(page, 'west', /./);
     await expect.poll(async () => (await whichCard(page, /./)).includes('buy'), { timeout: 30_000 }).toBe(false);
     await sayAwaiting(page, 'east', /./);
