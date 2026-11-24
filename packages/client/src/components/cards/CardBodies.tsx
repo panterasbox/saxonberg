@@ -1311,7 +1311,14 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
     case 'which':
-      return <WhichBody answer={payload.answer} size={card.size ?? 'unit'} onSendCommand={onSendCommand} />;
+      return (
+        <WhichBody
+          answer={payload.answer}
+          size={card.size ?? 'unit'}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      );
     case 'terminal':
       // A terminal card's body is the terminal itself; the terminal
       // column renders it (client-surface D6). In the feed it says what

@@ -76,6 +76,16 @@ function sourcePhrase(s: WhichSource): string {
 interface Clicks {
   type: (verb: string) => void;
   send: (command: string) => void;
+  /**
+   * ⭐ Every link shows its command in the status bar on hover (owner,
+   * standing rule) — what it SENDS, or the text it TYPES.
+   */
+  hover: (command: string) => { onMouseEnter: () => void; onMouseLeave: () => void };
+}
+
+/** The word a player types for a group's source — its first kind's handle. */
+function sourceWord(s: WhichSource): string {
+  return s.handle.split(",")[0]!.trim();
 }
 
 function VerbChips({ verbs, clicks }: { verbs: readonly string[]; clicks: Clicks }): React.ReactElement {
@@ -84,7 +94,7 @@ function VerbChips({ verbs, clicks }: { verbs: readonly string[]; clicks: Clicks
       {verbs.map((v, i) => (
         <React.Fragment key={v}>
           {i > 0 ? ", " : null}
-          <VerbButton type="button" data-testid={`which-verb-${v}`} onClick={() => clicks.type(v)}>
+          <VerbButton type="button" data-testid={`which-verb-${v}`} onClick={() => clicks.type(v)} {...clicks.hover(`${v} `)}>
             {v}
           </VerbButton>
         </React.Fragment>
@@ -113,6 +123,7 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
               title={v.description}
               data-testid={`which-verb-${v.verb}`}
               onClick={() => clicks.type(v.verb)}
+              {...clicks.hover(`${v.verb} `)}
             >
               {v.verb}
             </VerbButton>
@@ -135,7 +146,7 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
                 <Muted>
                   {v.verb} — {v.description}{" "}
                 </Muted>
-                <SourceButton type="button" data-testid={`which-help-${v.verb}`} onClick={() => clicks.send(`help ${v.verb}`)}>
+                <SourceButton type="button" data-testid={`which-help-${v.verb}`} onClick={() => clicks.send(`help ${v.verb}`)} {...clicks.hover(`help ${v.verb}`)}>
                   <Muted>(help)</Muted>
                 </SourceButton>
               </div>
@@ -143,7 +154,12 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
           : null}
       </td>
       <td>
-        <SourceButton type="button" data-testid="which-source" onClick={() => clicks.send(`which #${g.source.id}`)}>
+        <SourceButton
+          type="button"
+          data-testid="which-source"
+          onClick={() => clicks.send(`which ${sourceWord(g.source)}`)}
+          {...clicks.hover(`which ${sourceWord(g.source)}`)}
+        >
           {wide ? sourcePhrase(g.source) : g.source.handle}
         </SourceButton>
       </td>
@@ -163,7 +179,7 @@ function Collisions({ answer, clicks }: { answer: WhichAnswer; clicks: Clicks })
           <strong>{c.verb}</strong>
           {c.meanings.map((m) => (
             <div key={m.scope}>
-              <VerbButton type="button" data-testid={`which-scope-${m.scope}`} onClick={() => clicks.type(m.scope)}>
+              <VerbButton type="button" data-testid={`which-scope-${m.scope}`} onClick={() => clicks.type(m.scope)} {...clicks.hover(`${m.scope} `)}>
                 {m.scope}
               </VerbButton>{" "}
               <Muted>
@@ -181,13 +197,22 @@ export function WhichBody({
   answer,
   size,
   onSendCommand,
+  onCommandPreview,
 }: {
   answer: WhichAnswer;
   size: WidthClass;
   onSendCommand: (text: string) => void;
+  onCommandPreview?: (command: string | null) => void;
 }): React.ReactElement {
   const seed = useStore((s) => s.seedPrimaryDraft);
-  const clicks: Clicks = { type: (verb) => seed(`${verb} `), send: onSendCommand };
+  const clicks: Clicks = {
+    type: (verb) => seed(`${verb} `),
+    send: onSendCommand,
+    hover: (command) => ({
+      onMouseEnter: () => onCommandPreview?.(command),
+      onMouseLeave: () => onCommandPreview?.(null),
+    }),
+  };
 
   if (answer.relations) {
     const wide = size === "medium" || size === "full";
@@ -197,7 +222,7 @@ export function WhichBody({
           {answer.relations.map((r) => (
             <tr key={r.name}>
               <td>
-                <VerbButton type="button" onClick={() => clicks.type(`~${r.name}`)}>
+                <VerbButton type="button" onClick={() => clicks.type(`~${r.name}`)} {...clicks.hover(`~${r.name} `)}>
                   ~{r.name}
                 </VerbButton>
               </td>
@@ -216,7 +241,7 @@ export function WhichBody({
   return (
     <div data-testid="which-body">
       {narrowed ? (
-        <SourceButton type="button" data-testid="which-everything" onClick={() => onSendCommand("which")}>
+        <SourceButton type="button" data-testid="which-everything" onClick={() => onSendCommand("which")} {...clicks.hover("which")}>
           <Muted>← everything</Muted>
         </SourceButton>
       ) : null}

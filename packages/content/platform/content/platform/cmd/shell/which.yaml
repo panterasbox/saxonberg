@@ -18,6 +18,17 @@ help: |
   reach is read as that thing; a word that names nothing here is read as
   a verb.
 
+  It says only what you asked. Two options ask for more:
+
+    which --clashes        the words that mean more than one command here
+                           — each meaning, who gives it, and the
+                           `thing::verb` that picks it
+    which counter --to     what you can do TO the counter (your verbs that
+                           ask something of it)
+
+  `which <verb>` always says where that verb comes from, and when one word
+  means two commands here, how to pick each.
+
   `which ~` lists the `~` words you can type — `~here`, `~inventory`,
   your contact lists and groups — each with what it means. `which ~
   <thing>` lists the ones a thing keeps (a charter book's `~ships`).
@@ -32,9 +43,20 @@ examples:
     note: What the counter lets you do
   - cmd: which fish
     note: What gives you `fish` here
+  - cmd: which --clashes
+    note: Words that mean two commands here
+  - cmd: which counter --to
+    note: What you can do to the counter
   - cmd: which ~
     note: The ~ words you can type
 fallthrough: true
+options:
+  clashes:
+    type: boolean
+    description: "Also list the words that mean more than one command here, and how to pick each"
+  to:
+    type: boolean
+    description: "With a thing: also list what you can do to it"
 args:
   # `which counter` / `which fish` — one word, read as a thing first (the
   # model decides; a thing and a verb cannot be two shapes, which D6).

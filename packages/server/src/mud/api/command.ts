@@ -462,6 +462,16 @@ export type ModelData = Record<string, FieldValue | undefined>;
  * whose row words it — `gives-nothing` (a thing that gives you no verbs),
  * `nothing-gives-verb` (a verb nothing here gives), `no-such-verb`.
  */
+/**
+ * What `which` was asked for beyond its answer (owner, review: nothing
+ * extra is volunteered). `clashes` — the words that mean more than one
+ * command here; `to` — for `which <thing>`, what you can do to it.
+ */
+export interface WhichOptions {
+  clashes?: boolean;
+  to?: boolean;
+}
+
 export type WhichResult =
   | { ok: true; facts: WhichAnswer }
   | { ok: false; reason: 'gives-nothing'; facts: { thing: string } }
@@ -2235,8 +2245,8 @@ export class CommandApi {
    * ⚠ Like `resolveAffordances` it is a read, never a gate: every verb it
    * lists is one the line accepts now, and the line re-checks everything.
    */
-  static which(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
-    return logic().which(viewer, what);
+  static which(viewer: Stuff & CommandGiver, what?: string, opts?: WhichOptions): Promise<WhichResult> {
+    return logic().which(viewer, what, opts);
   }
 
   /**

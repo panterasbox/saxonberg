@@ -3005,6 +3005,9 @@ export interface SubscriptionSources {
  */
 export interface WhichSubscriptionParams {
   what?: string;
+  /** The options the card was asked with (`which --clashes`, `which counter --to`). */
+  clashes?: boolean;
+  to?: boolean;
 }
 
 // ============================================================================

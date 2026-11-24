@@ -103,7 +103,7 @@ import {
   type AssembleOptions,
   type ResolveModelOptions,
 } from '../../../api/command';
-import type { OnFilteredPolicy, WhichResult, WhichRelationsResult } from '../../../api/command';
+import type { OnFilteredPolicy, WhichOptions, WhichResult, WhichRelationsResult } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
 import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
@@ -2383,8 +2383,8 @@ export class CommandLogic extends ApiLogic {
 
   /** See {@link CommandApi.which}. */
   @CallSecurity(CommandApiCallers)
-  public which(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
-    return whichImpl(viewer, what);
+  public which(viewer: Stuff & CommandGiver, what?: string, opts?: WhichOptions): Promise<WhichResult> {
+    return whichImpl(viewer, what, opts);
   }
 
   /** See {@link CommandApi.whichRelations}. */
@@ -2967,9 +2967,38 @@ function collisionsOf(verbs: string[], givers: Givers, viewer: Stuff): WhichColl
 }
 
 /** See {@link CommandApi.which}. */
-async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<WhichResult> {
+/**
+ * ⭐ Verbs of yours that ask something SPECIFIC of `target` — their object
+ * slot requires a mixin a plain thing does not have (owner, review: the
+ * radial's list of everything that does not refuse it is mostly `go` and
+ * `walk`). `which <thing> --to`.
+ */
+async function actsOnOf(target: Stuff, viewer: Stuff & CommandGiver): Promise<string[]> {
+  // ⚠ Loaded at use: `Thing` is on the chain this module is part of.
+  const { default: Thing } = await import('../../../lib/stuff/Thing');
+  const plain = (name: string): boolean => MixinApi.hasMixin(Thing as never, name as never);
+  const radial = await CommandApi.resolveAffordances(target, viewer);
+  const out: string[] = [];
+  for (const v of radial?.verbs ?? []) {
+    if (v.source !== 'actor' || v.state === 'disabled') continue;
+    const def = [...commands.values()].find((d) => d.getPrimaryVerb() === v.verb);
+    const slot = def?.args.find((a) => a.type === 'object' || a.type === 'objects');
+    const raw = slot?.requires;
+    const names = (raw === undefined ? [] : Array.isArray(raw) ? raw : [raw])
+      .flatMap((x) => String(x).split('|'))
+      .map((x) => x.trim())
+      .filter((x) => x !== '' && x !== 'any' && x !== 'affords');
+    if (names.some((n) => !plain(n))) out.push(v.verb);
+  }
+  return out;
+}
+
+/** See {@link CommandApi.which}. */
+async function whichImpl(viewer: Stuff & CommandGiver, what?: string, opts: WhichOptions = {}): Promise<WhichResult> {
   const { usual, sources, givers } = whichSources(viewer);
   const word = what?.trim() ?? '';
+  // The flags as typed, so the answer's command re-asks exactly this.
+  const flags = `${opts.clashes ? ' --clashes' : ''}${opts.to ? ' --to' : ''}`;
 
   if (word === '') {
     const common = await commonVerbs();
@@ -2984,15 +3013,15 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
       if (own.length > 0) entries.push({ entry, verbs: own });
     }
     const answer: WhichAnswer = {
-      ask: { mode: 'all', command: 'which' },
+      ask: { mode: 'all', command: `which${flags}` },
       groups: await whichGroups(entries, viewer),
       usual: { verbs: usual },
     };
     if (commonSeen.length > 0) answer.common = { verbs: commonSeen, sources: commonSources };
     // Verbs more than one thing gives — the ones a bare line could mean twice.
     // (The common line's verbs are on every article by design; not listed.)
-    const clashes = collisionsOf([...givers.keys()], givers, viewer);
-    if (clashes.length > 0) answer.collisions = clashes;
+    // Asked for, never volunteered (owner: `which` does not decide for you).
+    if (opts.clashes) answer.collisions = collisionsOf([...givers.keys()], givers, viewer);
     return { ok: true, facts: answer };
   }
 
@@ -3001,7 +3030,7 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
   if (found.ok) {
     const named = found.named;
     const subjectIds = named.map((s) => s.stuffId);
-    const command = named.length === 1 ? `which #${named[0]!.stuffId}` : `which ${word}`;
+    const command = named.length === 1 ? `which${flags} #${named[0]!.stuffId}` : `which${flags} ${word}`;
     if (named.length === 1 && named[0]!.stuffId === viewer.stuffId) {
       return { ok: true, facts: { ask: { mode: 'thing', command, what: word, subjectIds }, groups: [], usual: { verbs: usual } } };
     }
@@ -3016,18 +3045,10 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
       ask: { mode: 'thing', command, what: word, subjectIds },
       groups: await whichGroups(entries, viewer),
     };
-    // ⭐ Related (owner, review): what else here gives the same verbs, and
-    // what you can do TO it — the radial's own answer, the usable verbs.
-    const theirs = [...new Set(entries.flatMap((e) => e.verbs))];
-    const clashes = collisionsOf(theirs, givers, viewer);
-    if (clashes.length > 0) answer.collisions = clashes;
-    if (named.length === 1) {
-      const radial = await CommandApi.resolveAffordances(named[0]!, viewer);
-      const actsOn = (radial?.verbs ?? [])
-        .filter((v) => v.source === 'actor' && v.state !== 'disabled')
-        .map((v) => v.verb);
-      if (actsOn.length > 0) answer.actsOn = actsOn;
-    }
+    // ⭐ Related, each asked for (owner, review): its words that mean another
+    // command here too (`--clashes`), and what you can do TO it (`--to`).
+    if (opts.clashes) answer.collisions = collisionsOf([...new Set(entries.flatMap((e) => e.verbs))], givers, viewer);
+    if (opts.to && named.length === 1) answer.actsOn = await actsOnOf(named[0]!, viewer);
     return { ok: true, facts: answer };
   }
 
@@ -3039,7 +3060,7 @@ async function whichImpl(viewer: Stuff & CommandGiver, what?: string): Promise<W
   const own = usual.filter((v) => v === verb);
   if (entries.length > 0 || own.length > 0) {
     const answer: WhichAnswer = {
-      ask: { mode: 'verb', command: `which ${verb}`, what: word },
+      ask: { mode: 'verb', command: `which${flags} ${verb}`, what: word },
       groups: await whichGroups(entries, viewer),
     };
     if (own.length > 0) answer.usual = { verbs: own };
@@ -4965,6 +4986,7 @@ function applyContainmentDeltaImpl(
   const local: Stuff[] = [to];
   if (
     MixinApi.isOpenContainer(to) &&
+    !MixinApi.isForSale(to) &&
     MixinApi.isContainable(to) &&
     to.getContainer() !== null
   ) {
@@ -4985,7 +5007,9 @@ function applyContainmentDeltaImpl(
     const siblings: Stuff[] = [];
     for (const direct of (scope as Stuff & Container).getContents()) {
       siblings.push(direct);
-      if (MixinApi.isOpenContainer(direct) && !moved.includes(direct)) {
+      // ⚠ Not into a seller's stock (the which drive): goods on a counter are
+      // the house's until bought, and offered nothing to anyone.
+      if (MixinApi.isOpenContainer(direct) && !moved.includes(direct) && !MixinApi.isForSale(direct)) {
         for (const inner of direct.getContents()) siblings.push(inner);
       }
     }

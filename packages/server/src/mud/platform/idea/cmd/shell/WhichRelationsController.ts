@@ -34,13 +34,13 @@ export default class WhichRelationsController extends CommandController<WhichRel
   execute(model: WhichRelationsModel, context: CommandContext): void {
     const answer = CommandApi.whichRelations(context.commandGiver, model.thing?.stuff ?? undefined);
     if (!answer.ok) return this.refuse(context, answer);
-    const prose = Mml.fromMarkup(`\n${WhichRelationsController.lines(answer.facts).join('\n')}\n`);
+    const prose = Mml.fromMarkup(WhichRelationsController.lines(answer.facts).join('\n'));
     MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(prose).send();
     // The same one card, on the ~ words — a snapshot (no params): a friend
     // arriving is nothing this source hears (which D9).
     CardApi.open(context, 'which', {
       key: 'which',
-      title: answer.facts.ask.command,
+      title: answer.facts.keeper ? `which ~ ${answer.facts.keeper.handle}` : 'which ~',
       prose,
       payload: { kind: 'which', answer: answer.facts },
     });

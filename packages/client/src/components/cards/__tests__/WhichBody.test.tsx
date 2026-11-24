@@ -59,7 +59,8 @@ describe("WhichBody", () => {
     expect(useStore.getState().primarySeed?.text).toBe("buy ");
     expect(send).not.toHaveBeenCalled();
     fireEvent.click(screen.getAllByTestId("which-source")[0]!);
-    expect(send).toHaveBeenCalledWith("which #c1");
+    // A source click sends a word a player could type, never an id.
+    expect(send).toHaveBeenCalledWith("which counter");
   });
 
   it("the usual verbs are one collapsed row; a narrowed card offers everything", () => {
@@ -73,5 +74,18 @@ describe("WhichBody", () => {
     );
     fireEvent.click(screen.getByTestId("which-everything"));
     expect(send).toHaveBeenCalledWith("which");
+  });
+
+  it("⭐ every link shows its command in the status bar on hover", () => {
+    const preview = vi.fn();
+    render(<WhichBody answer={answer} size="full" onSendCommand={() => undefined} onCommandPreview={preview} />);
+    fireEvent.mouseEnter(screen.getAllByTestId("which-verb-buy")[0]!);
+    expect(preview).toHaveBeenLastCalledWith("buy ");
+    fireEvent.mouseEnter(screen.getAllByTestId("which-source")[0]!);
+    expect(preview).toHaveBeenLastCalledWith("which counter");
+    fireEvent.mouseEnter(screen.getByTestId("which-help-buy"));
+    expect(preview).toHaveBeenLastCalledWith("help buy");
+    fireEvent.mouseLeave(screen.getByTestId("which-help-buy"));
+    expect(preview).toHaveBeenLastCalledWith(null);
   });
 });

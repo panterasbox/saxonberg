@@ -15,6 +15,8 @@ import type { WhichAnswer, WhichGroup, WhichSource } from '@saxonberg/types';
 
 interface WhichModel extends CommandModel {
   what?: string;
+  clashes?: boolean;
+  to?: boolean;
 }
 
 export default class WhichController extends CommandController<WhichModel> {
@@ -82,19 +84,25 @@ export default class WhichController extends CommandController<WhichModel> {
   }
 
   async execute(model: WhichModel, context: CommandContext): Promise<void> {
-    const answer = await CommandApi.which(context.commandGiver, model.what);
+    const opts = { clashes: model.clashes === true, to: model.to === true };
+    const answer = await CommandApi.which(context.commandGiver, model.what, opts);
     if (!answer.ok) return this.refuse(context, answer);
-    const prose = Mml.fromMarkup(`\n${WhichController.lines(answer.facts).join('\n')}\n`);
+    const prose = Mml.fromMarkup(WhichController.lines(answer.facts).join('\n'));
     MessageApi.scene(context.commandGiver).topic('shell.result').toSelf(prose).send();
     // ⭐ The one `which` card, kept current while kept: the params are the
     // word the answer's own command re-asks (`#<id>` for one thing).
-    const what = answer.facts.ask.command.replace(/^which\s*/, '');
+    // The card is titled by what the player TYPED (never an id); its
+    // subscription re-asks the answer's own command (`#id` for one thing).
+    const typed = ['which', opts.clashes ? '--clashes' : '', opts.to ? '--to' : '', model.what ?? '']
+      .filter((x) => x !== '')
+      .join(' ');
+    const what = answer.facts.ask.subjectIds?.length === 1 ? `#${answer.facts.ask.subjectIds[0]}` : model.what;
     CardApi.open(context, 'which', {
       key: 'which',
-      title: answer.facts.ask.command,
+      title: typed,
       prose,
       payload: { kind: 'which', answer: answer.facts },
-      params: what === '' ? {} : { what },
+      params: { ...(what ? { what } : {}), ...opts },
     });
   }
 }

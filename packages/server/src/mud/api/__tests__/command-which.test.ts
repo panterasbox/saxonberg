@@ -301,16 +301,27 @@ describe('which — what can I type here (W1)', () => {
       const a = await ask('draught');
       const c = a.collisions?.find((x) => x.verb === 'draught');
       expect(c?.meanings.map((m) => m.scope).sort()).toEqual(['dial::draught', 'vent::draught']);
-      const all = await ask();
-      expect(all.collisions?.some((x) => x.verb === 'draught')).toBe(true);
+      // Bare `which` volunteers nothing; `--clashes` asks.
+      expect((await ask()).collisions).toBeUndefined();
+      const asked = await CommandApi.which(me as never, undefined, { clashes: true });
+      expect(asked.ok && asked.facts.collisions?.some((x) => x.verb === 'draught')).toBe(true);
     });
 
-    it('which <thing> carries what you can do to it', async () => {
-      stubRadial();
+    it('which <thing> --to: what you can do to it, only verbs that ask something of it', async () => {
+      // The radial offers `look` (any visible thing) and `switch` (a Switchable).
+      vi.spyOn(CommandApi, 'resolveAffordances').mockResolvedValue({
+        verbs: [
+          { verb: 'look', description: 'look', state: 'enabled', source: 'actor' },
+          { verb: 'switch', description: 'switch', state: 'enabled', source: 'actor' },
+        ],
+        composition: [],
+      } as never);
       lever();
-      const a = await ask('lever');
-      expect(a.actsOn?.length ?? 0).toBeGreaterThan(0);
-      expect(a.actsOn).toContain('look');
+      expect((await ask('lever')).actsOn).toBeUndefined();
+      const r = await CommandApi.which(me as never, 'lever', { to: true });
+      if (!r.ok) throw new Error(r.reason);
+      expect(r.facts.actsOn).toContain('switch');
+      expect(r.facts.actsOn).not.toContain('look');
     });
   });
 });
