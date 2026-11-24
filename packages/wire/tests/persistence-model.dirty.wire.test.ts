@@ -106,7 +106,7 @@ suite('6 — a refused save', () => {
       expect(r.refused.length, JSON.stringify(r)).toBe(1);
       expect(r.refused[0]).toContain('/platform/agent/Avatar/');
       expect(r.captured).toBe(1);
-      const told = squash(plain(await ada.listen(1_500)));
+      const told = squash(plain(await ada.listen(1_500, { sinceDrain: true })));
       expect(told).toMatch(/Something went wrong saving you just now/);
     } finally {
       await failSavesOf(adaHandle, false);
@@ -139,8 +139,10 @@ suite('4/11 — restart: staged places as authored, kept containers as left', ()
     expect(stop?.killed ?? false, 'the shutdown sweep finished inside its grace').toBe(false);
     ada = await Session.open(adaHandle, { startLocation: PLAZA });
     expect((await ada.cmd(`go ${EXITS.plaza.hall}`)).status).toBe('ok');
+    const inLockers = squash(plain(await ada.prose('look in lockers')));
+    const who = squash(plain(await ada.prose('score')));
     const r = await ada.cmd('rack reclaim notebook');
-    expect(r.status, squash(plain(await r.said()))).toBe('ok');
+    expect(r.status, `${squash(plain(await r.said()))} | lockers: ${inLockers} | me: ${who.slice(0, 200)}`).toBe('ok');
     // What was dropped on the hall floor did not survive the restage: the
     // shelf's three authored notebooks are all the hall has.
     const loose = squash(plain(await ada.prose('look')));
