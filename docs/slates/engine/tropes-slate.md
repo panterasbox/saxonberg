@@ -9,6 +9,7 @@
 > hard-coded writers onto tropes · activity credit onto the rows the acts load
 > **Left (roster):** § 6 — twelve ready, five waiting on one small fact each, the helping and
 > deception families waiting on facts the world does not record.
+> **Requirements:** [tropes-requirements](../../requirements/tropes-requirements.md) (drafted 2026-11-24).
 > **Size:** a build, probably two (the substrate with a first roster; the author surfaces)
 
 ## 0. The ask
@@ -449,6 +450,24 @@ build, with today's behavior as the regression check.
 absences across roots on game-clock windows, the helping and deception families, the narration a
 player sees. **Neither:** rope's `ropework` literal onto knot rows (a small sweep), the transfusion's
 unreachable revival deed (a defect fix).
+
+## 10. Reuse ledger for the plan (survey 2026-11-24)
+
+| concept | already does it | this build |
+|---|---|---|
+| trait ledger + write | `Dispositioned.imprintSignature/imprintDeed` → `disposition_events`; `Advancement.creditSignature` grafts `dispositionValence` | **reuse** — tropes write through it |
+| regard write | `BeliefStore.adjustRegard/setRegard` | **reuse** |
+| renown write | `RenownApi.append` | **reuse** |
+| Discipline credit as data | recipes `discipline:`/`difficulty:` (`recordCraftEvidence`); joint rows `competence.discipline` (4 of 14 set); 27 reading rows | **reuse**; knot rows get `competence.discipline: ropework`, Rope.ts:783/:1111 + RopeJack.ts:349 read it |
+| act signature shape | `lib/advancement/ActSignature.ts` | **check** — may be the act payload's ancestor; check `api/event.ts` too before anything new |
+| actor resolution | `ExecutionContextApi.getActor` (execution-context.ts:738); `captureActor`/`runAsCaptured`; `runRoot` (:1186) allows a null caller, 52 sites, 2 `runRoot(null…)` | **generalize** — `runRoot` refuses with no actor or named system; siblings add sites (organism-biology 5, stream-arrival 1) |
+| chokepoints | `postTransaction` (BankingLogic:2245, knows actor); `transferChattel` (Chattel.ts:105, no actor); `inflict`/`die` (ConditionLogic:232/:361, `getActingAuthor` not `getActor`); scheduler end (SchedulerRegistry `endedBy`, no actor); contract `breachClaim`/`fulfillImpl` (ContractLogic:446/:782, no actor) | **instrument** — each fires its act and learns its actor |
+| witnesses | combat computes them in the moment (CombatLogic ~5549), discards them | **generalize** — captured once per root's act bundle |
+| dialogue effects | `DialogueConversation` `regard` effect (:385); 23 effects in 8 lounge agent rows | **replace** with a `beat` effect |
+| hand-written writers to delete | Blood.ts:101/113 + DonationBank.ts:403/413; ContractLogic:472 (dial 15); CombatLogic:5549 (dials −20/+2); Bonded.ts:848; PetController:83 | **move onto tropes**; IntroduceController:138 — plan decides (meeting mechanics vs characterization) |
+| ratchet gate pattern | `const CEILING` in script (`check-create-sites.ts:44`, `check-counters.ts:55`, ceiling-0 `check-contribution-keys.ts:38`) | **reuse** — census of `creditDeed`/`creditSignature` with a literal Discipline (~100 today, ceiling = count) and of trait/regard/renown writes outside the trope matcher (ceiling 0) |
+| trope / beat / event bus | none | **genuinely new**: act record, beat detectors, trope rows + matcher, `/system/narrative` pack |
+| player reads | `traits`, `chronicle`, `competence`, `standing`, `profile` | **reuse** — show the trope tag |
 
 ## Cross-references
 
