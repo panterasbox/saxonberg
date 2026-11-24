@@ -1,5 +1,5 @@
 /**
- * PressRoom — the three terminal states, over a stubbed fetch.
+ * Latest — the three terminal states, over a stubbed fetch.
  *
  * The states are the whole contract: **rows**, an **honest empty line**,
  * or **nothing at all**. A visitor must never see an error string or a
@@ -20,7 +20,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { PressRoom } from "../PressRoom";
+import { Latest } from "../Latest";
 import type { PublicReleaseRow } from "@saxonberg/types";
 
 function row(overrides: Partial<PublicReleaseRow> = {}): PublicReleaseRow {
@@ -68,13 +68,13 @@ function respond(body: unknown, ok = true): void {
   } as unknown as Response);
 }
 
-describe("PressRoom", () => {
+describe("Latest", () => {
   it("renders the rows it is given", async () => {
     respond([
       row({ releaseId: "a", headline: "First" }),
       row({ releaseId: "b", headline: "Second", pinned: true }),
     ]);
-    render(<PressRoom />);
+    render(<Latest />);
     expect(await screen.findByText("First")).toBeTruthy();
     expect(screen.getByText("Second")).toBeTruthy();
     // The publisher is the speaker, and it is attributed.
@@ -85,13 +85,13 @@ describe("PressRoom", () => {
     respond([
       row({ kind: "repost", source: "/compact/executive" }),
     ]);
-    render(<PressRoom />);
+    render(<Latest />);
     expect(await screen.findByText("via /compact/executive")).toBeTruthy();
   });
 
   it("says so honestly when there is nothing published", async () => {
     respond([]);
-    render(<PressRoom />);
+    render(<Latest />);
     expect(
       await screen.findByText("Nothing has been published yet."),
     ).toBeTruthy();
@@ -99,28 +99,28 @@ describe("PressRoom", () => {
 
   it("renders NOTHING when the server is down — no error, no spinner", async () => {
     fetchMock.mockRejectedValue(new Error("connection refused"));
-    const { container } = render(<PressRoom />);
+    const { container } = render(<Latest />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     await waitFor(() => expect(container.innerHTML).toBe(""));
   });
 
   it("renders nothing on a non-200 as well", async () => {
     respond({ error: "nope" }, false);
-    const { container } = render(<PressRoom />);
+    const { container } = render(<Latest />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     await waitFor(() => expect(container.innerHTML).toBe(""));
   });
 
   it("renders nothing on a body that is not a list", async () => {
     respond({ not: "an array" });
-    const { container } = render(<PressRoom />);
+    const { container } = render(<Latest />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalled());
     await waitFor(() => expect(container.innerHTML).toBe(""));
   });
 
   it("⚠ sends NO credentials, and asks once", async () => {
     respond([row()]);
-    render(<PressRoom />);
+    render(<Latest />);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(String(url)).toContain("/api/press/releases");
@@ -133,7 +133,7 @@ describe("PressRoom", () => {
 
   it("aborts in flight on unmount rather than setting state after teardown", async () => {
     respond([row()]);
-    const { unmount } = render(<PressRoom />);
+    const { unmount } = render(<Latest />);
     const init = fetchMock.mock.calls[0]![1] as RequestInit;
     expect(init.signal?.aborted).toBe(false);
     unmount();
@@ -145,7 +145,7 @@ describe("PressRoom", () => {
       row({ releaseId: "a", headline: "Stuck", pinned: true }),
       row({ releaseId: "b", headline: "Ordinary", pinned: false }),
     ]);
-    render(<PressRoom />);
+    render(<Latest />);
     await screen.findByText("Stuck");
     // A pinned release sorts above newer ones, so the fact has to be
     // legible — an accent rail alone reads as inconsistent styling.
@@ -155,7 +155,7 @@ describe("PressRoom", () => {
   it("⚠ offers NO expand control when the body already fits", async () => {
     stubClamp(false);
     respond([row({ body: "Two lines at most." })]);
-    render(<PressRoom />);
+    render(<Latest />);
     await screen.findByText("Something happened");
     // The body is shown in full...
     expect(screen.getByText("Two lines at most.")).toBeTruthy();
@@ -167,7 +167,7 @@ describe("PressRoom", () => {
   it("offers one when the body genuinely overflows, and expands on click", async () => {
     stubClamp(true);
     respond([row({ body: "A long body that runs past the clamp." })]);
-    render(<PressRoom />);
+    render(<Latest />);
     const more = await screen.findByRole("button", { name: /Read more/ });
     expect(more.getAttribute("aria-expanded")).toBe("false");
 
@@ -183,7 +183,7 @@ describe("PressRoom", () => {
     // itself as a control was the one element that wasn't one.
     stubClamp(true);
     respond([row({ body: "A long body that runs past the clamp." })]);
-    render(<PressRoom />);
+    render(<Latest />);
     const more = await screen.findByRole("button", { name: /Read more/ });
     expect(more.tagName).toBe("BUTTON");
   });

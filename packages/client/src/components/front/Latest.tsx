@@ -30,12 +30,12 @@
 
 import React from "react";
 import styled, { css } from "styled-components";
-import { SERVER_URL } from "../config";
-import { tokens } from "./ui";
-import { MmlRenderer } from "./MmlRenderer";
+import { SERVER_URL } from "../../config";
+import { tokens } from "../ui";
+import { MmlRenderer } from "../MmlRenderer";
 import type { PublicReleaseRow } from "@saxonberg/types";
-import { Tip } from "./tooltip/Tip";
-import { controlDoc } from "./doc/docs";
+import { Tip } from "../tooltip/Tip";
+import { controlDoc } from "../doc/docs";
 
 const Panel = styled.section`
   display: flex;
@@ -196,7 +196,7 @@ function formatDate(epochMs: number): string {
   }
 }
 
-export const PressRoom: React.FC = () => {
+export const Latest: React.FC = () => {
   const [feed, setFeed] = React.useState<Feed>({ state: "loading" });
   const [expanded, setExpanded] = React.useState<Record<string, boolean>>({});
   const toggle = (id: string): void =>
