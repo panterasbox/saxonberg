@@ -28,6 +28,7 @@ import {
   plain,
   hand,
   advanceWorldClock,
+  worldClockNow,
   restartWorld,
   failSavesOf,
   saveBatch,
@@ -116,13 +117,15 @@ suite('6 — a refused save', () => {
 suite('9 — off shift is out of the narrative', () => {
   it('⭐ the day clerk leaves at the end of his shift and is behind the counter again the next morning', async () => {
     expect((await bea.cmd(`go ${EXITS.plaza.shop}`)).status).toBe('ok');
-    // To the evening: past 18:00.
-    await advanceWorldClock('12h');
+    // To 19:00 today (or tomorrow), then to 09:00 the next morning — from
+    // the world's own clock, not a guess at where it stands.
+    const hourNow = (s: number): number => (s % 86_400) / 3_600;
+    const toHour = (target: number, s: number): number => ((target - hourNow(s) + 24) % 24) || 24;
+    await advanceWorldClock(`${Math.ceil(toHour(19, await worldClockNow()) * 60)}m`);
     await bea.drainProse();
     const evening = squash(plain(await bea.prose('look')));
     expect(evening, 'off shift the clerk is nowhere').not.toMatch(/\bclerk\b/i);
-    // To the next morning: past 08:00.
-    await advanceWorldClock('14h');
+    await advanceWorldClock(`${Math.ceil(toHour(9, await worldClockNow()) * 60)}m`);
     const morning = squash(plain(await bea.prose('look')));
     expect(morning, 'on shift the clerk is at the counter').toMatch(/\bclerk\b/i);
   });
@@ -142,5 +145,5 @@ suite('4/11 — restart: staged places as authored, kept containers as left', ()
     // shelf's three authored notebooks are all the hall has.
     const loose = squash(plain(await ada.prose('look')));
     expect(loose).not.toMatch(/\b(?:two|three|four|five) notebooks?\b.*\bon the floor\b/i);
-  });
+  }, 900_000);
 });

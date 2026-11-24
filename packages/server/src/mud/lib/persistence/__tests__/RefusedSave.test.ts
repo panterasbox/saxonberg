@@ -58,7 +58,9 @@ beforeEach(() => {
     diagnosed.push(d as { channel?: string; path: string });
   });
   vi.spyOn(MessageApi, 'scene').mockImplementation((() => {
-    const scene = { toSelf: () => scene, send: () => void told++ };
+    // ⚠ A scene with no topic throws on send (the drive found it): the mock insists.
+    let topic = '';
+    const scene = { topic: (t: string) => ((topic = t), scene), toSelf: () => scene, send: () => { if (!topic) throw new Error('Scene.send() requires a topic'); told++; } };
     return scene;
   }) as unknown as typeof MessageApi.scene);
   vi.spyOn(console, 'error').mockImplementation(() => undefined);

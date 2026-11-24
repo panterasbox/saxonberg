@@ -1389,7 +1389,7 @@ function reportSaveFailure(scope: string, owner: string, error: unknown): void {
     : Mml.compose`Something went wrong saving this place just now — what changed here may not be kept. The operators have been told.`;
   for (const body of told) {
     try {
-      MessageApi.scene(body).toSelf(line).send();
+      MessageApi.scene(body).topic('shell.error').toSelf(line).send();
     } catch (err) {
       // @quiet a body that cannot be told now is told by the diagnostic above.
       console.warn('PersistableLogic: telling a body of a refused save failed:', err);
