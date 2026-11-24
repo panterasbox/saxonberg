@@ -961,10 +961,10 @@ function beginCoverImpl(
  * belongs to the thing that owns the state.
  *
  * On an off→on transition the assignee is put at their station (the
- * seat's `station`, else the house's first operating location); on
- * on→off, at the house's `offstage`. A house that authors no `offstage`
- * moves nobody off, which is what every house without a `shifts` brain
- * did before this existed.
+ * seat's `station`, else the house's first operating location). Off
+ * shift, a house with `offShift: out` takes the hand out of the narrative
+ * (a null container — `placeOffShift`, persistence-model D15) unless a
+ * visit window calls them somewhere; any other house moves nobody off.
  *
  * ⚠ This replaced the `shifts` brain, which polled `shiftState()` every
  * 30 s on eleven rows to notice an HOURLY flip — 22 timer fires a minute

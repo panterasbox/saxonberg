@@ -11,6 +11,7 @@
  */
 
 import { GrammarApi } from '../../api/grammar';
+import { AccessApi } from "../../api/access";
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import type { Container } from "../spatial/Container";
@@ -236,6 +237,7 @@ export function HeldGoodsMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public async resolveHeldFor(actor: Stuff, keyword: string): Promise<(Stuff & Containable) | null> {
+      AccessApi.requireActor(actor);
       const held = this.goodsHeldHere();
       const mine: Array<Stuff & Containable> = [];
       for (const item of held) if (await this.mayDisposeOf(actor, item)) mine.push(item);

@@ -142,8 +142,6 @@ describe('when an envelope applies at all', () => {
     expect(env(bare as unknown as Location).envelopeApplies()).toBe(
       false,
     );
-    // ⚠ This is also why `Offstage` needs no decree and gets no
-    // `if (room is Offstage)`: it extends `Place` directly.
   });
 
   it('a room that DECLARES its temperature wins outright — the bespoke case stays a row', () => {

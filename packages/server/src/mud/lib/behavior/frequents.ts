@@ -21,10 +21,10 @@
  * ⚠ It never works a shift's hours: an employed host that is on shift is
  * left alone (the roster tick owns where a working hand stands).
  *
- * Moving: it WALKS (`ctx.goTo` — one visible step a beat). Coming out of,
- * or going back to, a house's offstage is staged the way the roster tick
- * stages a shift (`BrainMoves.goTo`), because offstage is outside the
- * fiction and no route reaches it.
+ * Moving: it WALKS (`ctx.goTo` — one visible step a beat). A hand who is
+ * out of the narrative (off shift at an `offShift: out` house) is not
+ * walked in: the roster tick brings them in at the window's opening,
+ * through `callsAt` (persistence-model D15) — no route reaches nowhere.
  */
 
 import { MixinApi } from '../../api/mixin';
