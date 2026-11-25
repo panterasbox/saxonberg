@@ -88,6 +88,12 @@ export default class WhichController extends CommandController<WhichModel> {
 
   async execute(model: WhichModel, context: CommandContext): Promise<void> {
     const opts = { clashes: model.clashes === true };
+    // ⭐ A name that bound nothing in reach is refused, never read as no
+    // name at all (the walk: `which cat`, the cat next door, answered
+    // everything as though `which` had been typed bare).
+    if (model.thing && model.thing.stuff === null) {
+      return this.refuse(context, { ok: false, reason: 'not-in-reach', facts: { name: model.thing.raw } });
+    }
     const thing = model.thing?.stuff ?? undefined;
     const answer = await CommandApi.which(context.commandGiver, {
       ...opts,

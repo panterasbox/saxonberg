@@ -711,7 +711,9 @@ rung itself contributes is the *anything you're carrying* line. Each verb's
 state is `evaluateAffordance`'s, the same validator words the radial shows.
 Each kind of question is its own typed slot (owner, review — a string slot
 that resolves things is an antipattern, antipatterns.md § A string slot that
-names things): `which <thing>` is an `object` arg the binder names, and
+names things): `which <thing>` is an `object` arg the binder names (within
+`~reachable`; a name that binds nothing is `not-in-reach`, never read as bare
+`which`, and the card names a next-door source without a link to ask it), and
 `which --verb <verb>` a string option — who gives it, each meaning and its
 `thing::verb` when one word is two commands (two different VIEWS; the same
 view from many things is one command), or `nothing-gives-verb` (never what

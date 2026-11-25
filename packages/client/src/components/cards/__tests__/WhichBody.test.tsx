@@ -65,6 +65,17 @@ describe("WhichBody", () => {
     expect(send).toHaveBeenCalledWith("which counter");
   });
 
+  it("a source next door is named, not a link: nothing there is in reach to ask about", () => {
+    const send = vi.fn();
+    const nearby: WhichAnswer = {
+      ...answer,
+      groups: [{ ...answer.groups[0]!, key: "cat|nearby|talk", source: { id: "k1", handle: "cat", name: "the cat", place: "nearby" } }],
+    };
+    render(<WhichBody answer={nearby} size="medium" onSendCommand={send} />);
+    expect(screen.queryByTestId("which-source")).toBeNull();
+    expect(screen.getByTestId("which-source-nearby").textContent).toBe("the cat nearby");
+  });
+
   it("the usual verbs are one collapsed row; a narrowed card offers everything", () => {
     const send = vi.fn();
     const { rerender } = render(<WhichBody answer={answer} size="unit" onSendCommand={send} />);

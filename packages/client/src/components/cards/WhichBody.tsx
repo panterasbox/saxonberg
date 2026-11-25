@@ -217,14 +217,21 @@ function GroupRow({ g, size, clicks }: { g: WhichGroup; size: WidthClass; clicks
       </td>
       <td>
         <Icon name={reachIcon(g).name} label={reachIcon(g).label} size={13} style={{ marginRight: 4, verticalAlign: "-2px" }} />
-        <SourceButton
-          type="button"
-          data-testid="which-source"
-          onClick={() => clicks.send(`which ${sourceWord(g.source)}`)}
-          {...clicks.hover(`which ${sourceWord(g.source)}`)}
-        >
-          {wide ? sourcePhrase(g.source) : g.source.handle}
-        </SourceButton>
+        {g.source.place === "nearby" ? (
+          // ⭐ Next door is not within reach, so there is nothing for
+          // `which <thing>` to ask about: the name, no link (the walk
+          // found `which cat` for the cat next door).
+          <span data-testid="which-source-nearby">{wide ? sourcePhrase(g.source) : g.source.handle}</span>
+        ) : (
+          <SourceButton
+            type="button"
+            data-testid="which-source"
+            onClick={() => clicks.send(`which ${sourceWord(g.source)}`)}
+            {...clicks.hover(`which ${sourceWord(g.source)}`)}
+          >
+            {wide ? sourcePhrase(g.source) : g.source.handle}
+          </SourceButton>
+        )}
       </td>
     </tr>
   );

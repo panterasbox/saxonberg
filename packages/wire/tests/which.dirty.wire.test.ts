@@ -123,11 +123,16 @@ suite("the read — what you can type here", () => {
     expect(counter.w).toMatch(/nothing kept by the counter/);
   });
 
-  it("7. [instant · player] a verb nothing here gives is one line; a non-verb is called one", async () => {
+  it("7. [instant · player] a verb nothing here gives is one line; a non-verb is called one; a name out of reach is refused", async () => {
     const fish = await say(ann, "which --verb fish");
     expect(fish.w).toMatch(/Nothing here gives you `?fish`?\. \(`?help fish`? has its shape\.\)/);
     const flurb = await say(ann, "which --verb flurb");
     expect(flurb.w).toMatch(/no verb 'flurb'/);
+    // A name with nothing in reach is refused, never answered as bare
+    // `which` (the walk: `which cat` for the cat next door).
+    const none = await say(ann, "which zebra");
+    expect(none.w).toMatch(/There is no 'zebra' within reach to ask about\./);
+    expect(none.w).not.toMatch(/What you can type here/);
   });
 
   it("9. [instant · player] `query me:~` and `look me:~` are refused, pointing at `which ~`", async () => {
