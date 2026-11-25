@@ -284,6 +284,38 @@ governance earn a place in the narrative later is open (§ 8); today they are no
   *"kernel — it knows what happened."* The kernel still knows the **facts**; the **reading** is the
   installed roster's. The doc's wording is updated at the build's sweep.
 
+### 3.11 ⭐⭐ Motives — what makes a person that person **[LEAN — the owner, 2026-11-24]**
+
+> The owner: *"there's a buncha weird things in the bar that predate most of the other code here
+> based on conversations that had no answers to things like how to model what dave's motivations
+> are … their motives are the characters, like that's a content authoring question about what makes
+> Dave's Bar Dave's Bar and not just any other row that implements the same Bar classes."*
+
+The **character** half of § 1's frame. The lounge's regard numbers are numbers standing in for
+motives nobody could write down: Dave's `warm` branch opens at regard ≥ 30 (*"Not everybody gets the
+real me"*; the door north — *"Earn it"*), and today you earn it by clicking agreeable lines (+2 for
+*"Yippee-ki-yay"*, +3 for *"I'd like that, Dave"*) — flattery, not anything you did.
+
+- **Motives are authored on the person, in beats and tropes:**
+
+  | part | what | Dave, roughly |
+  |---|---|---|
+  | **wants** | what they are trying to bring about | to *keep a thing* — the bar stocked, open, and his |
+  | **what they notice, and how they read it** | the person's own social tropes | warms to people who keep his word for him (the keeper seat, the sheet bought), cools to trouble in his bar |
+  | **taste** | small preferences that color without deciding | a Die Hard man |
+
+- **Regard derives from the incidents a person witnessed or learned of, read through their motives**
+  (§ 3.6) — two bartenders seeing the same act may regard it differently, and that difference is the
+  characterization. *"Earn it"* then means earn it.
+- **Character, not morality** — a person's motives ship with the content that authors them, so the
+  lounge depends on no roster pack (§ 3.10) and the backstop holds.
+- **General:** any Cast person may carry motives; an Extra (a role) has none. A bar whose people have
+  no motives is *any bar*.
+- **Later:** motives may also drive what an NPC chooses to do — behavior's business.
+- **Lands in build 2** with derived regard; the lounge cast (Dave, Augie, Mara, Remy, Sloane) and
+  the university's Katie are designed in their own conversation, each read as a character. ⛔ The
+  lounge is never a convenient consumer of build 1.
+
 ## 4. ⭐⭐ Beats — the plot vocabulary **[DECIDED as a first cut — the owner, 2026-11-24: *"better than what we had before but we'll have to keep refining it"*]**
 
 A trope's plot is written in **beats** with roles, never in ledger rows. Re-derived from the census
@@ -337,8 +369,9 @@ A trope's plot is written in **beats** with roles, never in ledger rows. Re-deri
   player, to the speaker*; a charity box, *money given to me is a give*. The matcher reads beats
   detected or asserted alike, so a confession asserted today can complete a redemption over a break
   the world detected last week.
-- **The lounge's 23 dialogue regard numbers** are mostly *slight* and *honor* — the player's choice is
-  the beat; the speaker's reaction is their regard, derived (§ 3.6).
+- **Dialogue regard numbers** are mostly *slight* and *honor* — the player's choice is the beat; the
+  speaker's reaction is their regard. In the lounge the reaction is the cast's **motives** (§ 3.11), build 2;
+  build 1 converts only the placeholder clerk and officer.
 - **Acts fire only at the engine's chokepoints**, gated by call security; feature code never fires
   one, so no review inventories acts. An act records what changed, never what it meant.
 - ⛔ No `EventApi` bus for this (a bus with one listener is pointless).
@@ -414,7 +447,7 @@ names borrow TV Tropes' where players know them (§ 7), every definition is ours
 | **Pet the Dog** | carer · animal | `provide` — comfort to an animal | carer: warmth; the animal: regard (bond) | `PetController` constant |
 | **The Bad Meal** | feeder · animal | `provide` food that sickens it | the animal: regard down — no trait | `Bonded.ts` penalty |
 | **Making an Acquaintance** | introducer · introduced | `tell` — introducing oneself | introduced: regard up | `IntroduceController` bump |
-| **The Confession** · **The Slight** · **The Courtesy** | speaker · listener | asserted `confess` · `slight` · `honor` | the listener's regard; confession: honesty | the lounge's 23 dialogue numbers |
+| **The Confession** · **The Slight** · **The Courtesy** | speaker · listener | asserted `confess` · `slight` · `honor` | the listener's regard; confession: honesty | the placeholder clerk's and officer's dialogue numbers |
 
 ⚠ *Pet the Dog* reads `provide` as comfort, not only food or water — a refinement of the beat (§ 4).
 
@@ -481,6 +514,8 @@ refused automated fetches, so its pages were not read directly) found:
 ## 8. Open
 
 - Refining the beat vocabulary (§ 4) — a first cut.
+- Motives (§ 3.11): their exact shape; the lounge cast's design conversation; whether they move to a slate of their own beside identity's dossier.
+- **The dialogue-number census** — regard numbers authored in dialogue rows are a data smell outside the code ratchet; counted, burned down by build 2.
 - Regard's derivation — its cost and whether it is its own build (§ 3.6).
 - Witnesses: who could perceive the place, captured at the act — perception, light and concealment
   decide it; the shape of the capture.
@@ -521,7 +556,7 @@ Rulings for build 1:
 
 ### Build 2
 
-The author surfaces (§ 5) · attended time as a cost (§ 3.8) · regard derived (§ 3.6) · the knowing
+Motives and the lounge cast (§ 3.11) · the author surfaces (§ 5) · attended time as a cost (§ 3.8) · regard derived (§ 3.6) · the knowing
 beats, `befall`, `take`/`return`, `flee`, `protect` · the ~100-site credit sweep · collusion (§ 4b).
 
 ## 10. Reuse ledger for the plan (survey 2026-11-24)
@@ -540,7 +575,7 @@ beats, `befall`, `take`/`return`, `flee`, `protect` · the ~100-site credit swee
 | actor resolution | `ExecutionContextApi.getActor` (execution-context.ts:738); `captureActor`/`runAsCaptured`; `runRoot` (:1186) allows a null caller, 52 sites, 2 `runRoot(null…)` | **generalize** — `runRoot` refuses with no actor or named system; siblings add sites (organism-biology 5, stream-arrival 1) |
 | chokepoints | `postTransaction` (BankingLogic:2245, knows actor); `transferChattel` (Chattel.ts:105, no actor); `inflict`/`die` (ConditionLogic:232/:361, `getActingAuthor` not `getActor`); scheduler end (SchedulerRegistry `endedBy`, no actor); contract `breachClaim`/`fulfillImpl` (ContractLogic:446/:782, no actor) | **instrument** — each fires its act and learns its actor |
 | witnesses | combat computes them in the moment (CombatLogic ~5549), discards them | **generalize** — captured once per root's act bundle |
-| dialogue effects | `DialogueConversation` `regard` effect (:385); 23 effects in 8 lounge agent rows | **replace** with a `beat` effect |
+| dialogue effects | `DialogueConversation` `regard` effect (:385); 23 effects in 8 agent rows (15 lounge) | **replace** with a `beat` effect — the clerk and officer in build 1; the lounge and Katie with motives in build 2 |
 | hand-written writers to delete | Blood.ts:101/113 + DonationBank.ts:403/413; ContractLogic:472 (dial 15); CombatLogic:5549 (dials −20/+2); Bonded.ts:848; PetController:83 | **move onto tropes**; IntroduceController:138 — plan decides (meeting mechanics vs characterization) |
 | ratchet gate pattern | `const CEILING` in script (`check-create-sites.ts:44`, `check-counters.ts:55`, ceiling-0 `check-contribution-keys.ts:38`) | **reuse** — census of `creditDeed`/`creditSignature` with a literal Discipline (~100 today, ceiling = count) and of trait/regard/renown writes outside the trope matcher (ceiling 0) |
 | trope / beat / event bus | none | **genuinely new**: beat detectors, trope rows + matcher, `/system/narrative` pack — the act is the existing ledgers plus an id and a cause (§ 3.3), not a new record |

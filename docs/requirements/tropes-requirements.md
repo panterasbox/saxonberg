@@ -3,7 +3,8 @@
 **Kind:** feature
 **Leads from:** kernel. **First consumer:** the hand-written characterization that ships today — the
 blood gift, combat's unlawful kill and fair duel, the broken contract, the bad hand-feeding, petting,
-introductions, and the lounge cast's 23 dialogue regard numbers — moved onto tropes in this build,
+introductions, and the placeholder dialogue's regard numbers (the terminal clerk, the counting-house
+officer) — moved onto tropes in this build,
 with today's behavior as the regression check. **The adopting consumer:** every trade and job
 designed after it.
 
@@ -32,7 +33,8 @@ The census of every act a body can perform (slate § 2), by kind of interaction:
 - **Harm**: the accountability ledger records consent and blame, with no witnesses.
 - **Exchange, promises, institutions**: the bank ledger (accounts, not people), chattel, contracts, a
   dozen institutional books.
-- **Speech**: chat history; 23 hand-written regard numbers in dialogue.
+- **Speech**: chat history; 23 hand-written regard numbers in dialogue — 15 of them in the lounge
+  cast, where regard gates content (Dave's `warm` branch and the door north at regard ≥ 30).
 - **No record ties one act's rows together**; the engine knows each act's cause while it runs and
   throws it away. Harm, death and chattel name their actor by *authorship*, which is the
   out-of-fiction labor plane — a defect.
@@ -74,6 +76,9 @@ matcher; the roster pack; and the gate. The ledgers, the reads and the player ve
   before the first trade adopts tropes.
 - **The beats whose facts are missing** — `take`, `return`, `flee`, `protect`, `discover`, `tell`
   beyond introductions, `befall` → build 2, with their tropes (§ 6 *Later*).
+- **The lounge cast's motives and Dave's Bar's regard** → build 2, with derived regard: each of
+  the cast read as a character — wants, what they notice and how they read it, taste — designed in
+  its own conversation (slate § 3.11).
 - **The remaining ~100 Discipline-by-name sites** → build 2's sweep, driven by this build's ratchet.
 - **Collusion and Sybil rings pumping a trait** → inherited from measurement.md's open flank;
   recorded in the slate (§ 4b).
@@ -96,9 +101,12 @@ matcher; the roster pack; and the gate. The ledgers, the reads and the player ve
 
 ## Collisions
 
-- **Dave's Bar and the lounge cast** (Augie, Dave, Sloane, Mara, Remy and others): 23 dialogue regard
-  numbers become asserted beats. The same choices must move the same people's regard the same way.
-  The lounge comes to depend on the roster pack — allowed, as the lounge is not load-bearing.
+- ⛔ **Dave's Bar, the lounge cast, and the university's Katie are NOT touched.** Their regard
+  numbers stand in for motives nobody could yet write down; they are redesigned as the cast's
+  **motives** with derived regard in build 2 (slate § 3.11), never as a convenient consumer here.
+  The lounge is the backstop, so it will depend on no roster pack.
+- **The terminal clerk and the counting-house officer** (placeholder content): their dialogue regard
+  numbers become asserted beats — the proof that a dialogue choice can assert one.
 - **The blood bank**: the gift, answering the call, and the applause move to tropes.
 - **Combat**: the unlawful kill and the fair duel move to tropes and gain the chooser's trait half.
 - **The work board**: breach and fulfilment.
@@ -164,12 +172,12 @@ The full pass is slate § 4b. In short:
 | 10 | instant · player | Tie a knot; `competence`. | Ropework credited from the knot's own row; same as today. |
 | 11 | short · staged | Treat a wounded stranger (a staged NPC patient). | *Tending the Stranger*: the helper's compassion, the patient's regard; the patient is on the record. |
 | 12 | instant · player | Pet a kept animal five times; hand-feed one something that sickens it. | *Pet the Dog*, each smaller; *The Bad Meal*: the animal's regard down, no trait. |
-| 13 | instant · player | Introduce yourself to a lounge NPC; take a courteous choice, a rude one, and a confession. | Regard moves as before; the confession fires *The Confession*. |
+| 13 | instant · player | Introduce yourself to the terminal clerk; take a courteous choice, a rude one, and a confession. | Regard moves as before; the confession fires *The Confession*. |
 | 14 | instant · staged | An NPC gives a good to a player. | The NPC is characterized like a player. |
 | 15 | short · staged | Start work that finishes later while the player idles; read who it is attributed to. | The finish is the end of the player's act, attributed to the player, its cause the original choice. |
 | 16 | instant · staged | Remove the roster pack; give blood. | Nothing characterizes anyone; every trade still works. |
 | 17 | instant · staged | **Restart the world.** `traits`, `chronicle`, `standing`, `competence` for the drive's characters. | Every write is back, tagged with its trope; a look-back trope still completes across the restart. |
-| 18 | instant · player | Look at the bank, the work board, the forge and the lounge in their own light. | Lit and described as before (no new places). |
+| 18 | instant · player | Look at the bank, the work board, the forge and the terminal in their own light; talk to Dave in the lounge. | Lit and described as before (no new places); Dave's dialogue and regard exactly as today. |
 
 ### Soak drive
 
@@ -183,13 +191,14 @@ The full pass is slate § 4b. In short:
 - Every trait, regard and renown change a player can cause names the trope that made it, and every
   trait change traces to the act behind it.
 - The replaced behaviors (blood gift, answering the call, unlawful kill, fair duel, contract breach,
-  bad meal, petting, introductions, lounge dialogue) move the same people the same direction, at
+  bad meal, petting, introductions, the placeholder dialogue) move the same people the same direction, at
   about the same size.
 - Killing in plain sight changes the killer's character, not only the witnesses' opinion.
 - Failing at hard work and then finishing it makes a character more patient, in any trade.
 - A work act that finishes later belongs to the choice that began it, and to the person who made it.
 - A trope added as rows only works with no code change.
 - A dialogue choice asserting a beat fires tropes exactly as a detected one would.
+- The lounge and Dave's Bar behave exactly as today.
 - NPCs are characterized by their acts.
 - With the roster pack absent, nothing characterizes anyone and every trade still runs.
 - After a restart, every trope write is there, and a trope that looks back still completes.
