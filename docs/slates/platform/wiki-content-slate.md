@@ -8,8 +8,8 @@
 > ([content-packs.md](../../subsystems/content-packs.md)); the `wiki-starter` pack (~22 pages); guests
 > reading in the client, editing requiring a character; real-world anchors
 > ([real-world-anchors-slate](./real-world-anchors-slate.md)).
-> **Left:** ⭐ **the in-client reader first** (§ 8 — the `read` mode, its contents card, the
-> `portal` namespace, help as a portal) · ⭐ **pages live in the pack, Mongo holds only what players
+> **Left:** ⭐ **the in-client reader first** (§ 8 — the `wiki` mode: the wiki's docked panel
+> card and the page as the full card; the `portal` namespace, help as a portal) · ⭐ **pages live in the pack, Mongo holds only what players
 > write** (§ 10 — so no boot, reset or test world writes the corpus) · the corpus, 600–800 pages by
 > portal (§ 9) · pages shipped by the pack that adds the thing · `wiki-starter` for cross-cutting
 > concepts, the guides and the portals · `/finalize` graduating the player-facing version into the
@@ -72,19 +72,35 @@ arcs.
 - **Not a static export** — that would survive downtime, but goes stale between exports, cannot run
   the live panel, and spends CI minutes.
 
-## 5. The build **[DECIDED — the owner, 2026-11-24: in-client reader first]**
+## 5. Two builds **[DECIDED — the owner, 2026-11-24]**
+
+*"We'll want two builds, one for the actual content and one for everything else. The content I'll
+probably wait on till the last minute to do before I start broadcasting."*
+
+### Build 1 — the wiki reader (everything but the corpus)
 
 1. **Pages live in the pack** (§ 10) — first, because every later step adds pages and this is what
    stops them costing every boot.
-2. **The `read` mode** (§ 8) — the contents card, the structured listing, the `portal` namespace,
-   help as a portal, back and forward.
-3. **The content pass** (§ 9) — portals first, then the demo-facing pages, then the long tail; an
-   agent per pack or portal, reviewed in batches.
-4. **`/finalize`'s wiki step** (done with this slate) and a check that each page's subject still
+2. **The `wiki` mode** (§ 8) — the rail word, the docked panel card, the page as the full card, the
+   structured listing, back and forward, the tooltip excerpt on wiki links.
+3. **The `portal` namespace, the front page and the twelve portal pages** (§ 8c) — they are the mode's
+   first minute, so they ship with it; a portal's membership is tags, so it fills as the content
+   build adds pages. **Help as a portal** (§ 8d).
+4. **The existing 116 pages tagged into portals**, so the mode is usable on day one.
+5. **`/finalize`'s wiki step** (done with this slate) and a check that each page's subject still
    resolves.
-5. **Then the public route** — level-0 pages, the shared renderer converting to HTML, link-preview
-   tags, caching, a rate limit; registered before the client's catch-all — and **the read intent**,
-   the deep link that opens a page in the client's read mode.
+
+### Build 2 — the corpus (§ 9), last, before the broadcast
+
+The 600–800 pages, portal by portal — an agent per pack or portal, reviewed in batches. Waits on
+build 1 only for the portals and tags; nothing else. Timed by the owner to land just before
+broadcasting starts, so the pages describe the platform as it is then.
+
+### Later — the public route
+
+Level-0 pages over the same renderer, link-preview tags, caching, a rate limit, registered before the
+client's catch-all; and **the read intent** — the deep link that opens a page in the client's wiki
+mode. Not in either build.
 
 ## 6. The lens pass
 
@@ -106,12 +122,12 @@ nobody reads.)*
 
 1. **The URL shape** — beside the deep links' `/go/…`, or its own path (public-route step).
 2. **The public route's cache** — how long, and invalidated by a page edit (public-route step).
-3. **Read on the phone** — whether the contents card is a drawer from the left, as chat's channel
+3. **Read on the phone** — whether the wiki's panel card is a drawer from the left, as chat's channel
    list is (modes-slate § 6b).
 4. **A changed pack page under a player's edit** (§ 10) — the note is decided; whether the edit's
    author is also told (their inbox) is not.
 
-## 8. ⭐⭐⭐ The reader — a `read` mode **[DECIDED — the owner, 2026-11-24]**
+## 8. ⭐⭐⭐ The reader — a `wiki` mode **[DECIDED — the owner, 2026-11-24]**
 
 The owner: *"if you wanna know what you can do here the wiki is the best place for it at this stage
 of development … I mostly care about readers right now, not writers."* Content in the world is thin
@@ -128,8 +144,9 @@ browse, no outline-as-navigation for a reader (an outline row opens that section
 
 It passes [modes-slate § 2](../client/modes-slate.md)'s test: an information space no other mode has
 (the encyclopedia — the article, where you are in it, what links where) and the place someone spends
-the most time at this stage. *"I'm here to read."* Named **`read`** (the owner; the verb test). Out of
-fiction like `build`. ⚠ An in-world book, newspaper or release could later open on the same surface —
+the most time at this stage. Named **`wiki`** (the owner, after the prototype: *"it doesn't really
+fit the names of the other modes"* — the verb test bends for a surface everybody already knows how
+to use; the wordmark inside is **Saxopedia**, a working name). Out of fiction like `build`. ⚠ An in-world book, newspaper or release could later open on the same surface —
 the name leaves the door open; **not in this build**.
 
 The five questions:
@@ -142,7 +159,7 @@ The five questions:
    exists — `wiki <page>`, `wiki list`, `recall --scope wiki`, `wiki links` — so all of it can be
    typed (bus primacy, unchanged).
 4. **In and out** —
-   - **in:** the rail's `read` button; any wiki term in a tooltip or in help (the excerpt's *read
+   - **in:** the rail's `wiki` button; any wiki term in a tooltip or in help (the excerpt's *read
      more*); and *"what can I do here?"* at the front door and in the lounge;
    - **out:** a page about a place, a trade or a verb offers the way to it (*go there*, *try `fell`*)
      — an **offer** the player clicks, never a switch (modes-slate § 5), and the click lands in
@@ -150,22 +167,40 @@ The five questions:
 5. **The first minute** — **the front page**: what Saxonberg is and how to get around it, then the
    portals as a grid, each with its icon and one line (icons first — each icon with its own tip).
 
-### 8b. The layout, in the design language (modes-slate § 6a)
+### 8b. The layout — the shipped stage, nothing new **[DECIDED — the owner, 2026-11-24: "this looks good, we can work with this"]**
 
-- **The article is the subject** and opens at **full**; steps **unit · medium · full · max**, the same
-  top pair as every mode. At max a long article gets the whole screen as a stream does.
-- **The support slot holds the contents card** — read's answer to explore's navigation card, 22rem,
-  only ever that card (rule 8):
-  - **search** at the top (`recall --scope wiki`, as the card's field already composes);
-  - **the portals**, each opening to the **A–Z of its pages**, the page you are on marked;
-  - **this page's outline**, which for a reader *scrolls to* a section — the edit-a-section click
-    stays on the article for someone who may edit.
-- **The priority list**: article → terminal → contents card → other cards. The terminal holds its
-  floor (rule 2); the contents card falls off before it does.
-- **Back and forward** are the reader's own history of pages read — the player's navigation, as the
-  scroll is, never something the server did not say. Each step re-issues the read command.
-- **Related and *what links here*** sit at the article's foot (the frame already carries `related`;
-  backlinks are `wiki links`).
+Prototype: https://claude.ai/artifact/1MnyeFFZzxAG8jtTNYqsSy (v2 — drawn from `Frame.tsx`, `Rail.tsx`,
+`ModeStage.tsx`, `Card.tsx`, `StatusBar.tsx` and the tokens; ⚠ v1 invented its own layout and was
+rejected: *"this has to fit inside the existing client"*).
+
+The wiki mode is **the desktop frame unchanged** — top bar, the rail of mode words (`wiki` added), the
+stage, the status bar — with two things in the stage:
+
+- **The panel (22rem) holds the wiki's docked card** — the wiki's answer to explore's navigation card, only
+  ever that card (modes-slate § 6a rule 8). Docked, it shows its title and body only:
+  - **search** (`recall --scope wiki`, suggestions as you type, Enter for all results);
+  - **back · forward** — the reader's own history of pages read, each step re-issuing the read
+    command; never something the server did not say;
+  - **Main page · Random page · Recently changed · Pages people want** (`wiki wanted`);
+  - **On this page** — the open page's outline, which for a reader *scrolls to* a section and follows
+    the scroll; the edit-a-section click stays on the page for someone who may edit;
+  - **the portals**, each with its count.
+- **The page is a card** at the **full** step by default — the shipped full step: the card takes the
+  stage, the terminal drops to a strip at the column's x, other cards wait beside it as chips. Its
+  grow/shrink control moves it to an ordinary card in the feed beside a full-height terminal
+  (`client-card grow`/`shrink`) — the same steps as every mode.
+- **The page itself** is a standard wiki page, so nobody needs teaching: breadcrumb (portal), title,
+  page name, revision and editor, a lead, an infobox (a subject page's values marked *read from the
+  world*), the live architecture panel, sections, portals at the foot, **Related** and **What links
+  here** (`wiki links`). Red links for wanted pages; a red page lists who mentions it.
+- **Hover is the client's**: the command a link sends shows in the status bar (the one preview
+  surface), and a wiki link gets **the shipped tooltip** with the page's opening (the excerpt).
+- **Every click echoes in the terminal**, and typing `wiki glass` or `help pay` moves the page.
+- ⭐ **The finding**: the mode needs **no new stage shape** — it is the panel's card plus a default
+  step. Whether the wiki is *a mode* or *an arrangement of a more abstract document layout* is left to
+  the next document that wants the same shape (help, the law code, the press); the stage already
+  is that layout.
+- **The phone** has its own shell (`PhoneShell`) and is not designed here — § 7.
 
 ### 8c. What the server must express
 
@@ -177,7 +212,7 @@ The five questions:
   by being listed by hand, so the A–Z cannot go stale.
 - **A listing publishes a structured twin**, as the page already does on `publication.wiki`: `wiki
   list` (and a portal's membership) sends prose to the scroll and a `wiki-listing` frame —
-  handle · title · one-line summary · icon · portal — that the contents card reads. A card built by
+  handle · title · one-line summary · icon · portal — that the wiki's panel card reads. A card built by
   parsing prose is rejected.
 - **The one-line summary** is the page's opening sentence (the excerpt already renders the opening
   section) — no new authored field.
@@ -187,9 +222,9 @@ The five questions:
 ### 8d. ⭐ Help is a portal **[DECIDED — the owner]**
 
 Help leans systems (verbs, collections, Apis — generated); the wiki leans concepts, processes and
-guides; § 2 says they cross-link and never duplicate. **Help appears as one portal in read mode** —
+guides; § 2 says they cross-link and never duplicate. **Help appears as one portal in wiki mode** —
 its topics listed by help's own categories and **rendered by help**, never copied into wiki pages. One
-place to browse; two sources, each still the truth for its half. A help topic opened in read mode
+place to browse; two sources, each still the truth for its half. A help topic opened in wiki mode
 links out to the wiki pages about its concepts, and a wiki page about a verb links to its help topic.
 
 ### 8e. Writers stay thin
