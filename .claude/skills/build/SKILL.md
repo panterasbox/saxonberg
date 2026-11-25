@@ -64,7 +64,8 @@ not on it, it is not a stop:
 2. **A credential or permission you do not have** and cannot obtain.
 3. **An irreversible act outside the plan's scope** — dropping data
    that is not a dev DB, force-pushing a branch you do not own, merging
-   (the merge is always the user's).
+   (a build merges only through `/merge`, after `/finalize`, when every
+   check passes — never from inside the build or review).
 4. **No compliant path exists** — every route to the plan's goal
    requires one of the sign-off exceptions above. Rare; and it usually
    means a host-placement decision upstream was wrong, so re-plan that

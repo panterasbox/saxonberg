@@ -372,9 +372,11 @@ during the suite, catch up and re-verify now. Report the nine-check table.
 broken"* — /finalize was: it stopped after the suite while master moved under
 it, and recorded the walk as waived).
 
-Push the sweep commit when it's ready — no need to ask. The one
-thing you never do on your own is merge: surface what you did and
-hand back to the user for the merge.
+Push the sweep commit when it's ready — no need to ask. ⭐ Then run
+`/merge` yourself: under the owner's standing go-ahead (2026-11-25) a
+build whose nine checks all pass is merged by its own session, without
+waiting to be told. Anything ✗ or ? stops there and goes to the owner.
+Never merge a sibling's MR, and never tell a sibling to merge.
 
 > ⛔⛔ **Never say "ready" while a check is still pending — not even
 > "ready once it passes."** In a conversation about finishing a build,
@@ -385,8 +387,8 @@ hand back to the user for the merge.
 > pending and how long. If the owner asks to merge while anything is
 > pending, **stop and say so before calling the merge tool**: name the
 > check, and ask whether to wait or merge without it. Their earlier
-> "merge" is not consent to merge unverified. `tools/hooks/guard-merge`
-> and the owner's `/merge` skill back this — the hook puts the merge to the owner as a
+> "merge" — and the standing go-ahead — is not consent to merge
+> unverified. `tools/hooks/guard-merge` and the `/merge` skill back this — the hook puts the merge to the owner as a
 > permission prompt unless `.suite/green` matches the branch's source —
 > but the sentence is yours to get right first.
 
