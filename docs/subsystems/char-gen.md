@@ -88,7 +88,7 @@ unchanged. See [command-routing.md](./command-routing.md).
 
 The accumulator (`Login.ts:52`) carries the picks plus presentation
 scratch: `speciesKey`/`speciesPath`/`speciesCommonName`, `sex`, `name`,
-`surname`, `pronouns`, `aspiration`, the current name `suggestion`, the
+`surname`, `pronouns`, the current name `suggestion`, the
 caller's `realName`/`accountName` (from `resolveNames` — the OAuth/Twitch
 display name, surfaced so the client can show "signed in as …"). It is
 pure data; all validation and mutation lives in the controller.
@@ -105,7 +105,6 @@ const FIELDS: Record<CharGenField, FieldHandler> = {
   sex:     { … },
   name:    { … },   // kind: 'text', carries a hint
   pronouns:{ … },
-  aspiration: { … },
 };
 ```
 
@@ -118,8 +117,9 @@ switch to adapt the mismatch. **A new field is now one entry here and
 nothing else**, which `EmbodyController.test.ts` asserts by adding one
 and finding it on the wire.
 
-`CharGenField` is `'species' | 'sex' | 'name' | 'pronouns' |
-'aspiration'` — **server-internal**, the local table's index type. It is
+`CharGenField` is `'species' | 'sex' | 'name' | 'pronouns'` (aspiration
+was removed by stream arrival, 2026-11-24 — who you were before you came
+is the lineage slate's, not a pick at intake) — **server-internal**, the local table's index type. It is
 not on the wire. A `FieldHandler` knows how to: name its renderer
 (`kind`) and heading (`label`), decide if the field is `applicable` to
 the current draft (sex only applies to a sexed species), report whether
@@ -132,7 +132,7 @@ an optional `hint`, `validate` a value, and `job apply` it to the draft.
 - **`embody <field> <value>`** → `FIELDS[field].validate` then `job apply`,
   then re-emit the full state. This is **live-fire**: each field-set is
   its own command, applied and reflected immediately.
-- **`embody confirm`** → its own stanza and controller
+- **`embody confirm [--watch <program> --<carrier>]`** → its own stanza and controller
   (`EmbodyConfirmController`, controller-liquidity W7c: committing is a
   different act from editing the draft; any other first word falls
   through to the edit). It gates on `computeMissing(draft, cfg)` (the
@@ -284,11 +284,11 @@ lineage a rewrite.
 Despite being called layout-agnostic, the payload **names every field
 twice**:
 
-- `CharGenField` is a **closed union of five** (`species | sex | name |
-  pronouns | aspiration`);
+- `CharGenField` is a **closed union of four** (`species | sex | name |
+  pronouns`);
 - `CharGenStatePayload` carries **one option array per field**
-  (`speciesOptions`, `sexOptions`, `pronounOptions`,
-  `aspirationOptions`), and `CharGenPicks` one key per field.
+  (`speciesOptions`, `sexOptions`, `pronounOptions`), and `CharGenPicks`
+  one key per field.
 
 So **every new char-gen concept is a `types` change plus a client
 change** — which is exactly the cost lineage would pay, repeatedly.
@@ -452,7 +452,9 @@ sequence, in order:
    the FIRST snapshot — the moment the character becomes durable).
 4. **Set sex** on the live avatar (species-constrained, so applied after
    the species is in place to avoid hydration-order coupling).
-5. **Dress in the aspiration's themed outfit** — best-effort: each
+5. **Dress in the one plain starting outfit** (`startingOutfit` in
+   `char-gen.yaml`; the same for a player and a guest — stream arrival
+   removed the aspiration's themed outfits) — best-effort: each
    garment is cloned, moved onto the avatar (`ContainmentApi.move`), and
    its body-plan slot claims occupied (`occupyAll`), narrowed
    with `MixinApi.isContainable`/`isWearable`/`isSlotted`. Missing
@@ -531,10 +533,11 @@ single internal hyphen/apostrophe, no digits/spaces).
 `PersonaMixin` (`lib/character/Persona.ts`) carries the **claimed
 self-narrative** layer — two persistent fields on `Character` (so PCs
 and any future storied NPC have them): `bio` (free-form authored prose)
-and `aspiration` (the closed-choice of who you're becoming). The
-aspiration seeds the starter `bio`, selects the themed outfit, **and
-seeds the chronicle's `claim` prologue** (a parallel `claimSeeds` field,
-distinct from `bioSeed`) at commit. `Persona` also affords the
+— and the chronicle face. ⭐ Char-gen leaves the bio **empty** and seeds
+**no** `claim` prologue (stream arrival, 2026-11-24: `aspiration` is gone
+from creation, the character, the profile, help and the wiki; origins are
+the lineage slate's to supply). The only founding entry is the deed
+*"Embodied as {name}."* `Persona` also affords the
 **`chronicle`** self-view verb (the partitioned bio → prologue → deeds
 readout — see [chronicle.md](./chronicle.md)). `Persona` is **not** for
 witnessed deeds (those are chronicle `deed`s), perceived body description
@@ -624,3 +627,13 @@ role shipped as the `chronicle` verb, see [chronicle.md](./chronicle.md)),
 vitals/language, the lounge and onboarding flow, and the name sanitizer
 (the denylist is a seeded stub today). (Breadcrumbs were renamed and
 shipped as the chronicle identity ledger.)
+
+## History — stream arrival (2026-11-24, MR !655)
+
+`aspiration` left creation entirely (field, payload, `PersonaMixin`, the
+themed outfits, the bio seed and the claim prologue); a new character and a
+guest arrive in one plain `startingOutfit`. `embody confirm` takes `--watch
+<program> --<carrier>` so a visitor who came from a stream arrives watching
+it ([connection.md § Arriving watching](./connection.md)), and the creation
+page was restyled into the front page's design language with the video's
+dock in its own grid cell ([client-shell.md](./client-shell.md)).

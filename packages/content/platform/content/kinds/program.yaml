@@ -1,0 +1,10 @@
+# A program — a broadcast's standing record at `/platform/programs/<name>`
+# (stream arrival D10): its title, the owner whose pen edits it, a caption,
+# a one-line schedule, the feeds PROVEN at attach, and the player in its
+# chair. Written only by its transport: the owner holds the pen on the title,
+# never on a feed (you file; you do not hold the pen).
+title: Program
+traits:
+  filed: program
+  catalogued: { by: /platform/idea/ProgramCatalogue, load: per-path }
+  titled: { field: title }

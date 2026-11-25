@@ -44,12 +44,12 @@ it; a slate that straddles two goes where its *first build* would land.
 
 <!-- BEGIN GENERATED — ./tools/slate-index -->
 
-**462 slates in 7 folders.** Open a folder: its
+**463 slates in 7 folders.** Open a folder: its
 README lists every slate in it by status, with size and what is left.
 
 | folder | what is in it | unbuilt | partial | done? | no block |
 |---|---|---|---|---|---|
-| [tech-debt/](./tech-debt/README.md) | refactors, sweeps, census-and-ratchet gates, performance, test tooling | 13 | 37 | 1 | 0 |
+| [tech-debt/](./tech-debt/README.md) | refactors, sweeps, census-and-ratchet gates, performance, test tooling | 14 | 37 | 1 | 0 |
 | [engine/](./engine/README.md) | the world's systems: bodies, senses, combat, movement, physics, NPCs, the command language | 49 | 73 | 3 | 3 |
 | [trades/](./trades/README.md) | industries and their supply chains: what is made, from what, by whom | 28 | 57 | 4 | 0 |
 | [society/](./society/README.md) | governance, law, money, institutions, education, faith, standing | 42 | 32 | 0 | 0 |

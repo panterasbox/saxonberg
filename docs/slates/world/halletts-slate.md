@@ -3,6 +3,9 @@
 > **Status: UNBUILT — DESIGN CAPTURED 2026-11-20** from a design conversation with the owner. All names
 > **provisional** until the peoples conversation (place-names slate criteria: unowned · unique · one
 > typable keyword · derived · coherent with Terminus's register).
+> **Shipped by stream arrival (MR !655, 2026-11-24):** a placeholder — Hallett's **booth** off the
+> University Avenue crossing (`terminus` pack): a broadcast desk (`rodney` + `program`) and an on-air
+> sign whose light is derived → [livestream.md](../../subsystems/livestream.md)
 > **Left:** the Dial (the street) and its plat · Hallett's (the building) — the front window desk and the
 > piano, the rest of the building · the lease from the Halletts · the show as the first broadcaster and its
 > crew · the founder's home · the inherited record library.

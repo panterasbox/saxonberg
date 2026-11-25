@@ -47,9 +47,9 @@ Each overlay reads ONE streamer's feed. In the game, a streamer types
 **`stream token`** and gets a token, shown once; set it as
 `VITE_BROADCAST_TOKEN` with `VITE_SAXONBERG_WS` (e.g. `ws://localhost:2010`)
 in `packages/rodney/.env.local`. Issuing again rotates it — the old one stops
-working. The server's env `BROADCAST_TOKEN` still opens the founder's feed
-during the changeover (it names the first id in `STREAMER_PLAYER_IDS`); move
-to `stream token` the first week.
+working. (The server's env `BROADCAST_TOKEN` and `STREAMER_PLAYER_IDS` are
+retired: every overlay token is a player's own. The game verb is `rodney`
+since stream arrival — `rodney token`.)
 
 The feed carries the streamer's own show — the phase (offline, starting,
 live, standby, ending), the standby reason, the timers, the topic and agenda,

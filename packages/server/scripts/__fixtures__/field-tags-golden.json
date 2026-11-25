@@ -883,9 +883,7 @@
   },
   "PersonaMixin": {
     "authorable": [
-      "_aspiration",
       "_bio",
-      "aspiration",
       "bio"
     ],
     "runtime": [],

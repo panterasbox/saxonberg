@@ -322,6 +322,15 @@ nothing. Two details that are easy to get wrong:
   `livestream-viewer` may answer for `watch`; it must not answer for
   `explore`, or one mode's vocabulary leaks into another.
 
+- ⭐ **`cockpit.sessionMode` — the visit's mode** (stream arrival,
+  2026-11-24). A character who arrives watching (`play … --watch`, `embody
+  confirm --watch`, a guest's socket words — see
+  [connection.md § Arriving watching](./connection.md)) is put in `watch`
+  for THIS visit through a **transient** key; the stored `cockpit.mode` is
+  never written. `getCockpitMode` reads the session mode first, then the
+  stored mode, then the legacy migration, then `explore`. Any explicit
+  `cockpit mode <name>` clears the session mode (`CockpitModeController`).
+
 `snapshotClientState` emits both axes **resolved**. A raw snapshot would
 hand a legacy client `cockpit.mode: null` and make the *client* decide
 what that means — the one thing the client may not own.
@@ -543,8 +552,12 @@ surface; this section is just the embed's cockpit half.
   `{platform:'youtube', videoId}` | `{platform:'youtube', channelId}` (the
   `@handle`/`UC…` durable form, rendered `live_stream?channel=<channelId>`).
 - **Client** — `components/embed/StreamEmbed.tsx` takes a single
-  `WatchTarget | null` and renders **one** sandboxed iframe (no picker) or
-  an empty placeholder. The watch stage's focal region reads
+  `WatchTarget | null` and registers a **`PlayerSlot`** (or an empty
+  placeholder); the iframe itself is the ONE `StreamPlayer` mounted above
+  every screen, which follows the slot, so changing layout never reloads
+  the video (stream arrival — see [client-shell.md](./client-shell.md)).
+  The watch stage's video focal claims a definite 16:9 height (a focal
+  sized to its content left the video 0×0). The watch stage's focal region reads
   `clientState['cockpit.watch']` (on a phone, the video sits above the
   game terminal). The Twitch iframe's `parent` is
   `window.location.hostname` (correct-by-construction, never hard-coded);

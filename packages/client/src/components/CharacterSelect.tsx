@@ -32,29 +32,35 @@
  * zero is a measurement; "never taken out" is the truth.
  */
 
+import { PlayerDock } from "./embed/PlayerDock";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import type { CharGenRosterEntry } from "@saxonberg/types";
 import { useStore } from "../store/index";
+import { arrivalWatching, watchSuffix } from "../services/arrival";
 import { signOut } from "../services/auth";
 import { useIsCompact } from "../lib/style/useIsCompact";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
+import {
+  Screen as FrontScreen,
+  SectionLabel as FrontSectionLabel,
+  Panel as FrontPanel,
+} from "./front/Bands";
 import { Figure, UnbuiltGround } from "./ui";
 import { Seal } from "./frame/Seal";
 import type { FigureState } from "./ui";
 import { Tip } from "./tooltip/Tip";
 import { hoverDoc } from "./doc/docs";
 
-const Screen = styled.div`
+/*
+ * ⭐ The front page's parts (stream arrival D6): select is built of the
+ * same screen, label and panel as the front page, so the funnel reads as
+ * one place — extended here only where its layout differs.
+ */
+const Screen = styled(FrontScreen)`
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  max-width: 100vw;
-  overflow-x: hidden;
-  background: ${tokens.color.surfaceSunken};
-  color: ${tokens.color.fg};
-  font-family: ${tokens.font.family};
 `;
 
 /**
@@ -158,6 +164,14 @@ const Inner = styled.div`
   min-height: 0;
 `;
 
+/** Room for the dock under the roster; empty (no gap) when nothing plays. */
+const DockSpace = styled.div<{ $first?: boolean }>`
+  margin: ${(p) => (p.$first ? `0 0 ${tokens.space.lg}` : `${tokens.space.lg} 0 0`)};
+  &:empty {
+    display: none;
+  }
+`;
+
 const TwoColumn = styled.div`
   display: grid;
   grid-template-columns: 1fr;
@@ -184,12 +198,7 @@ const Subhead = styled.p`
   color: ${tokens.color.fgMuted};
 `;
 
-const SectionLabel = styled.div`
-  font-family: ${tokens.font.engraved};
-  font-size: ${tokens.font.label};
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: ${tokens.color.sectionLabel};
+const SectionLabel = styled(FrontSectionLabel)`
   margin-bottom: ${tokens.space.md};
 `;
 
@@ -414,15 +423,8 @@ const CharacterMeta = styled.div`
   line-height: 1.5;
 `;
 
-const Panel = styled.div`
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+const Panel = styled(FrontPanel)`
   gap: ${tokens.space.xl};
-  padding: ${tokens.space.xl};
-  background: ${tokens.color.surface};
-  border: 1px solid ${tokens.color.border};
-  border-radius: ${tokens.radius.md};
 `;
 
 const HatchedCard = styled(UnbuiltGround)`
@@ -647,7 +649,11 @@ function CharacterDetail({
   onSendCommand: (text: string) => void;
   onBack?: () => void;
 }) {
-  const enterCmd = `play ${entry.playerId}`;
+  // ⭐ While the arrival video plays, Enter arrives WATCHING it (stream
+  // arrival D4) — the one builder makes the preview and the send alike.
+  const listing = useStore((s) => s.front?.show ?? null);
+  const closed = useStore((s) => s.playerClosed);
+  const enterCmd = `play ${entry.playerId}${watchSuffix(arrivalWatching(listing, closed))}`;
   return (
     <Panel data-testid="roster-detail">
       {onBack ? (
@@ -852,6 +858,11 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
         </span>
         <SendsAs>sends as embody</SendsAs>
       </MakeNewRow>
+      {/* ⭐ The dock (review 11-24): a small slot in the page's own
+          column, under what you act on — never in the header band. */}
+      <DockSpace>
+        <PlayerDock />
+      </DockSpace>
     </div>
   );
 
@@ -919,6 +930,11 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
 
       <Inner>
         {showDetailOnly ? (
+          <>
+          {/* On a phone the detail stands alone; the dock comes first. */}
+          <DockSpace $first>
+            <PlayerDock />
+          </DockSpace>
           <CharacterDetail
             entry={selected!}
             onSendCommand={onSendCommand}
@@ -926,6 +942,7 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
               roster.length > 1 ? () => setSelectedId(null) : undefined
             }
           />
+          </>
         ) : showListOnly ? (
           listColumn
         ) : (

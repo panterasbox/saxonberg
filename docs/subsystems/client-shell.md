@@ -1164,28 +1164,37 @@ is a real feature with server work and wants its own requirements.
 
 `components/StartScreen.tsx` renders the `unauthenticated` phase — no
 diegetic metaphor (the lounge is the first room; this is the app's front
-door). It carries the pitch, the three chambers (Make / Fund / Play), a
-**data-shaped provider list** (Google, Twitch and Kick as co-equal login
-providers, each disabled when `/auth/status` reports it unconfigured),
-the **guest** control with its terms, the {@link PressRoom}, and a
-**dev-only** no-OAuth login (`import.meta.env.DEV`). Logout returns here
-(a real logged-out state, never a reload to a dead page).
+door). ⭐ **Its layout is the design's**,
+[docs/design/front-page/front-page.dc.html](../design/front-page/front-page.dc.html)
+(stream arrival, 2026-11-24 — the owner rejected the old bands with new
+content). Five full-width bands, each with a 1180px inner (`front/Bands.tsx`):
 
-The composition is **full-bleed horizontal bands** — a hero band
-carrying the seal, wordmark, headline and the sign-in column together,
-then a chambers band, then the press room and the facts row beneath it.
-The bands run edge to edge; only their contents are width-capped
-(`BandInner`), so the page reads as a civic document rather than a
-centred card on a page. Sign-in is a fixed 350px column inside the hero
-band, and every provider is the same seal red with a white monochrome
-mark — **Google gets no visual precedence**, because giving one
-identity provider a distinct treatment states a partnership that does
-not exist.
+1. **the host bar** — the Pantera's Box mark and *A Pantera's Box
+   community ↗*;
+2. **identity** — the seal, SAXONBERG, and *"…you'd be joining before
+   1.0."*;
+3. **above the fold** — on the left, *What you're signing up for*: the
+   three chambers (Make / Fund / Play) as sentences; on the right (≤360px),
+   **sign-in** (the came-from line, the providers, the guest row and its
+   line, who is on, the reset notice when stated, the dev login) and under
+   it **the show** as a small 16:9 thumbnail — present, not the headliner.
+   `wrap-reverse`, so on a phone sign-in and the show come first;
+4. **Latest** (the press room's headlines) beside **Coming up** (the
+   featured program's next show);
+5. **the footer** — links with real destinations only: panterasbox.com,
+   *the show on <carrier>* for each feed, the source.
 
-Compact is a **reflow**, not a different composition — the bands stack
-to one column, sign-in above the fold, the press room as the scroll —
-so it is plain CSS rather than a `useIsCompact` branch. The mobile bar
-is the case that genuinely needs the hook; this is not.
+⚠ **Absent, never sampled**: the chambers' WANTED · FUNDING NOW · NEEDS
+blocks and the mock's Acting-PM line have no source yet, so they are not
+rendered. The show band is absent when `GET /api/front` carries no `show`.
+
+The providers are **ordered by where the visitor came from** (`?from=` or
+the referrer; *You came from Twitch.* / *Kick.* / *the stream.* / *YouTube —
+sign in with the Google account you watch on.*) and neutral otherwise,
+each disabled when `/auth/status` reports it unconfigured; every provider
+is the same seal red with a white monochrome mark — no provider gets visual
+precedence. The guest is a plain bordered row under them, never in the
+show.
 
 ⚠ The app ships a document reset (`styles/GlobalReset.ts`), mounted
 **outside** `React.StrictMode` for the same styled-components reason
@@ -1218,6 +1227,33 @@ the component and there must never be one; `App.test.tsx` and
 
 The press room is **never awaited**: the sign-in and guest controls
 paint whether it loads, is empty, or is gone.
+
+## ⭐⭐ One stream player, and the dock (stream arrival)
+
+There is **one** carrier iframe in the client: `embed/StreamPlayer.tsx`,
+mounted ONCE above the phase switch (a sibling of the screen in `App`), so
+no phase, layout or slot change ever reloads the video. It is
+`position: fixed` and takes its rectangle from whichever **`PlayerSlot`**
+is registered (`store/playerSlice.ts` — the slot, `muted`, `closed`,
+`front`); its `src` is one function of (target, muted), so only a different
+video or the sound control reloads it. **With no slot it renders nothing.**
+
+⭐⭐ **The DOCK is a place each page lays out, never a box over content.**
+The owner (review, 2026-11-24): *"docked just means it's on the same place
+on every page, but you still have to do a content pass to make room for
+it."* `embed/PlayerDock.tsx` is a 16:9 slot (≤ 22rem) each pre-world screen
+places in its own body: the front page's show thumbnail, under the roster
+list (first, on a phone's single-character detail), and creation's own grid
+cell (top of the right column on a desktop, first on a phone). In the world
+the watch stage's focal registers the slot; there is no dock while
+exploring. A slot says which it is (`place: dock | slot`).
+
+What plays before the world is the **arrival** (`services/arrival.ts`,
+decided once per tab): the door and carrier the visitor came with × the
+front page's program's feed on that carrier, only while it is live and
+the visitor has not closed it. It starts muted on every load. Sign-in is
+a real navigation away and back; the video resumes in the dock with no
+click.
 
 ## Character select
 

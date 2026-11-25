@@ -6,7 +6,7 @@
  *
  * The async preload returns the archwizard-axis boolean directly; the
  * dispatcher threads it back to the sync body via the `preloaded`
- * argument. Mirrors `requiresWizard` / `requiresStreamer`.
+ * argument. Mirrors `requiresWizard` / `requiresProgram`.
  */
 
 import type { CommandValidator } from '../../../api/command';

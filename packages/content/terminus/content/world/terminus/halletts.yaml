@@ -1,0 +1,10 @@
+# Hallett's — the old station's front-window booth (stream arrival D20;
+# halletts-slate § 2, names provisional). Its own small zone, as the
+# colorman's and the pump house are, so the avenue's named `halletts` door is
+# a boundary crossing with a known inverse. Only the booth is built; the
+# Dial, the lease, the piano and the rest of the building are the Hallett's
+# content build's.
+class: /platform/idea/location/CartesianZone
+data:
+  name: Hallett's
+  cellSize: 3.0

@@ -1,0 +1,7 @@
+# `program channel … <channel>` naming a channel the attacher's account does not prove (stream arrival D13).
+facts:
+  carrier: text
+  stated: text
+  proven: text
+says: "'{{ stated }}' is not your {{ carrier }} channel — your account proves '{{ proven }}'. A feed is only ever your own channel."
+topic: act.deed

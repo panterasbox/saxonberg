@@ -66,6 +66,7 @@ const DECLARED = [
   'cockpit.savedArrangements',
   'cockpit.inputModes',
   'cockpit.watch',
+  'cockpit.sessionMode',
   'cockpit.tuned',
   'cockpit.shelf',
   'stream.state',
@@ -76,6 +77,7 @@ const DECLARED = [
 const TRANSIENT = [
   'cockpit.inputModes',
   'cockpit.watch',
+  'cockpit.sessionMode',
   'cockpit.tuned',
   'stream.state',
   'stream.foreground',
@@ -92,13 +94,13 @@ const walked = (
 ): ClientStateSchemaEntry[] => host.walkedSchema();
 
 describe('⭐ the client-state schema', () => {
-  it('our client declares exactly the eighteen keys', () => {
+  it('our client declares exactly the nineteen keys', () => {
     expect(walked(makeStuff(() => new ClientHostFixture())).map((e) => e.key).sort()).toEqual(
       [...DECLARED].sort(),
     );
   });
 
-  it('five keys are transient and the rest persist', () => {
+  it('six keys are transient and the rest persist', () => {
     const transient = walked(makeStuff(() => new ClientHostFixture()))
       .filter((e) => e.transient === true)
       .map((e) => e.key)

@@ -2,7 +2,9 @@
  * StreamEmbed — the platform-agnostic video embed for the livestream-
  * viewer layout.
  *
- * Renders the viewer's `watch`-selected target as a sandboxed iframe. The
+ * Renders the stage for the viewer's `watch`-selected target. ⭐ The iframe
+ * itself is the one `StreamPlayer` above every screen (stream arrival D3);
+ * this registers its `PlayerSlot` where the video goes. The
  * target is a single server-authoritative `WatchTarget` (the per-viewer
  * `cockpit.watch` clientState) — there is no picker; the `watch` verb is
  * the one control.
@@ -29,6 +31,7 @@ import React from "react";
 import styled from "styled-components";
 import type { WatchTarget } from "@saxonberg/types";
 import { tokens } from "../ui";
+import { PlayerSlot } from "./PlayerSlot";
 
 const Wrap = styled.div`
   display: flex;
@@ -93,54 +96,8 @@ const Caption = styled.div`
   padding: ${tokens.space.xs} ${tokens.space.sm};
 `;
 
-const IFRAME_SANDBOX =
-  "allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox";
-
 interface StreamEmbedProps {
   target: WatchTarget | null;
-}
-
-function iframeFor(target: WatchTarget): JSX.Element {
-  if (target.platform === "twitch") {
-    return (
-      <iframe
-        title="Twitch stream"
-        src={`https://player.twitch.tv/?channel=${encodeURIComponent(
-          target.channel,
-        )}&parent=${window.location.hostname}`}
-        sandbox={IFRAME_SANDBOX}
-        allow="autoplay; fullscreen"
-      />
-    );
-  }
-  if (target.platform === "kick") {
-    // Muted autoplay so the embed starts under every browser autoplay
-    // policy; the Kick player renders offline channels gracefully.
-    return (
-      <iframe
-        title="Kick stream"
-        src={`https://player.kick.com/${encodeURIComponent(
-          target.channel,
-        )}?autoplay=true&muted=true`}
-        sandbox={IFRAME_SANDBOX}
-        allow="autoplay; fullscreen"
-      />
-    );
-  }
-  const src =
-    "videoId" in target
-      ? `https://www.youtube.com/embed/${encodeURIComponent(target.videoId)}`
-      : `https://www.youtube.com/embed/live_stream?channel=${encodeURIComponent(
-          target.channelId,
-        )}`;
-  return (
-    <iframe
-      title="YouTube stream"
-      src={src}
-      sandbox={IFRAME_SANDBOX}
-      allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-    />
-  );
 }
 
 export function StreamEmbed({ target }: StreamEmbedProps): JSX.Element {
@@ -150,7 +107,10 @@ export function StreamEmbed({ target }: StreamEmbedProps): JSX.Element {
       <Stage>
         <Screen>
           {target ? (
-            iframeFor(target)
+            // ⭐ The slot, not the iframe (stream arrival D3): the one
+            // player above every screen follows this box, so changing
+            // layout never reloads the video.
+            <PlayerSlot />
           ) : (
             <Placeholder>
               Nothing on the screen — use the watch command to put a

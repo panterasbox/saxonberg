@@ -57,7 +57,7 @@ export class BroadcastFeed {
   /** Overlay sockets → the player whose show they receive. */
   private connections: Map<string, string> = new Map();
 
-  /** Control sockets → the player whose `stream` they may run. */
+  /** Control sockets → the player whose `rodney` they may run. */
   private controls: Map<string, string> = new Map();
 
   /** The panel rows each overlay socket was given at connect (P7). */
@@ -220,7 +220,8 @@ export class BroadcastFeed {
           type: 'stream-event',
           kind: 'new-player',
           name,
-          fromStream: arrivedFrom === 'stream',
+          // Any door — a carrier's tagged link or Rodney's (stream arrival D7).
+          fromStream: arrivedFrom !== null,
         };
         for (const socketId of this.connections.keys()) this.send(socketId, envelope);
       },

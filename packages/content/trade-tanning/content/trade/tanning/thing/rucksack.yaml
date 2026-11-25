@@ -1,7 +1,7 @@
 # A rucksack (size and carrying D27/D15) — an expedition's pack, worn on
 # the back: what is in it is PACKED (take it off to get at it). Its
-# straps take things clipped `from` them. A purchase — no aspiration
-# starts with one.
+# straps take things clipped `from` them. A purchase — nobody starts
+# with one.
 class: /platform/thing/equipment/Pack
 data:
   shortDescription: canvas rucksack

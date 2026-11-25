@@ -27,7 +27,7 @@ describe("App", () => {
   it("states the guest terms honestly", () => {
     render(<App />);
     const warning = screen.getByTestId("guest-warning").textContent ?? "";
-    expect(warning).toMatch(/nothing you make is kept/i);
+    expect(warning).toMatch(/a guest keeps nothing/i);
     expect(warning).not.toMatch(/save your progress/i);
   });
 

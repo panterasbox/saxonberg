@@ -2,8 +2,9 @@
 
 > **Status: DESIGNED IN CONVERSATION, UNBUILT** (2026-11-24) — the owner: *"I actually really like
 > where all this is going let's start writing it up."*
-> **Left:** the trope definition (roles · facts · writes) · the closed fact vocabulary, declared by the
-> model operations that produce facts · the detector · the first roster (§ 6) · the author surfaces —
+> **Left:** the beat vocabulary and who holds its pen (§ 3a) · each beat's detection over acts · the
+> act list fired at its chokepoints behind a call-security gate, and *no work starts anonymous* (§ 3b) · the trope definition (cast ·
+> plot of beats · writes) · the detector · the first roster (§ 6) · the author surfaces —
 > *could fire here*, *has fired here*, the gap report · the escalation to a quest · moving today's
 > hard-coded writers onto tropes · activity credit onto the rows the acts load
 > **Left (roster):** § 6 — twelve ready, five waiting on one small fact each, the helping and
@@ -94,7 +95,198 @@ equation … unlike traits, it's wide and there's a huge catalog to choose from 
   matched on an event stream, needing no quest around it. So the slate's *"a tended bar … not a
   quest"* still has tropes firing.
 
+## 3a. ⭐⭐⭐ Character and plot — casting and beats **[DECIDED in shape — the owner, 2026-11-24]**
+
+> The owner: *"casting the trope is one axis and we described that fairly okay. it needs more work but
+> there's something there we can work with. but all this shit you just describe isn't casting because
+> it isn't character, it's plot. and plot needs its own language … these different patterns and
+> primitives are plot beats and we need to start thinking of them this way because it's how they
+> actually serve the narrative / trope."*
+
+A trope has two halves, and each needs its own language:
+
+- **character — the cast:** the roles, and who or what can fill them;
+- **plot — the beats:** what has to happen, in what order, and what must not.
+
+⚠ **This supersedes § 3's *"cast a trope"* and § 4's *facts*.** Content never asserts a trope (below),
+and authors never write in facts.
+
+### Four layers, each written by someone different
+
+| layer | the language of | written by | example |
+|---|---|---|---|
+| **primitives** | what can change in the world | the engine, once each, at its chokepoint | moved · money moved · harmed · engagement ended |
+| ⭐ **beats** | plot — a unit of story | the plot vocabulary's authors (a gated pen); each beat's detection is defined once, in primitives | *harm* · *aid* · *give* · *exchange* · *take* · *return* · *promise* · *keep* · *break* · *flee* · *yield* · *spare* · *confess* · *threaten* |
+| **tropes** | character + plot — a cast and a short plot of beats | template authors | *the good Samaritan* · *the broken promise* |
+| **quests** | several tropes sharing a cast, with stakes and a frame | content authors cast them | *a Vendetta* |
+
+**A beat**, written once **[LEAN — the shape]**:
+
+```yaml
+beat: aid
+roles: [helper, helped]
+means: the helper relieves the helped's harm
+# detection, never seen by authors: in one act, the helper ends or eases a
+# harm condition on the helped
+```
+
+**A trope**, written in beats and roles — never in primitives **[LEAN — the shape]**:
+
+```yaml
+trope: good-samaritan
+cast:
+  victim: { can: be-harmed }
+  helper: { can: act }
+  rule:   helper and victim are strangers
+plot:
+  - harm:  { harmed: victim }
+  - aid:   { helper: helper, helped: victim, within: an hour }
+  - never: exchange { from: victim, to: helper }   # no payment
+writes: helper (compassion, generosity); witnesses (regard for the helper)
+```
+
+⭐ **Propp's 31 functions are the reference for the beat vocabulary** — literally a closed set of plot
+beats with roles. Thompson's motifs and TV Tropes are the reference at the trope level (§ 7).
+
+### Where beats come from — primitives at the chokepoints **[LEAN]**
+
+The owner's challenge: *"at some point something has to say 'this trope happened' for a catalog of
+dozens to hundreds of tropes … once the objects are minted they have a life of their own. the content
+author can only do so much."* Nobody authors the facts a beat reads. The engine already insists that
+state changes go through **one primitive each**, so whatever an object does in its own life, it does
+through about a dozen places — each written once, generically:
+
+| primitive | the one chokepoint (to verify each) | carries |
+|---|---|---|
+| moved | `ContainmentApi.move` | the thing, from, to |
+| title changed | the chattel transfer every transfer passes | the thing, from whom, to whom |
+| money moved | `postTransaction` | from whom, to whom, how much |
+| harmed | `ConditionApi.inflict` | victim, condition, consented |
+| died | `ConditionApi.die` | who; the killer when known |
+| engagement ended | the scheduler | who, what kind, completed or why abandoned |
+| crossed | `traverse` | who, which way |
+| spoke / emoted | the message composer | who, to whom, on what channel |
+| created / destroyed | `StuffApi.clone` / `destruct` | the thing, by whom |
+
+- **Grouped into acts.** A primitive alone does not say what it meant (money moving is a gift or a
+  sale), so every primitive is tagged with its **act** and its **actor** — the execution context
+  already has a root and a causing command (`ExecutionContextApi.runRoot`, `causingCommandId`) and
+  knows who is acting, for a typed command, a script, a scheduled tick or an NPC's beat alike. At the
+  act's end, its **bundle** goes to the beat detectors, with the witnesses captured once from who
+  could perceive the place. *Exchange* is money one way and title the other in one act; *give* is
+  value one way and nothing back; *take* is a good into hands whose title is someone else's;
+  *return* is the same good back to its titled owner.
+- **Most of § 6's "small missing facts" dissolve.** The movement primitive sees cash change hands and
+  sees the taker; only the engagement end and the message composer need a fact added.
+- ⛔ **No `EventApi`** — a bus with one listener is pointless; a chokepoint hands its fact straight
+  to the detectors.
+- ⛔ **Nothing is persisted for tropes.** A primitive is an in-memory observation handed over at the
+  moment; some are stored already for their own reasons (harm, contracts, money), which tropes do not
+  need. What persists is only what a trope **writes** — the trait claim, the regard change — tagged
+  with the trope. Partial matches for multi-beat tropes stay in memory, with windows on the game
+  clock; anything that must survive days is quest-sized, and a quest keeps a durable cursor.
+- The owner's reading of this layer: *"some kind of high level scripting language done as a macro
+  recorder but with the scripts written in reverse … its weird. its not bad."* — which is why it
+  stays BELOW the language authors use.
+
+### ⭐⭐ The two author questions, in these terms **[LEAN]**
+
+1. **"I want this trope to run — what do I write?"** The trope's page shows its **cast** and its
+   **plot**, and the gap report reads both against a place — **per role**, who here can fill it
+   (*a victim who can be harmed: the patrons ✔*); **per beat**, can anything here make it happen,
+   because each beat knows the primitives and capabilities behind its detection (*aid: nothing here
+   relieves a harm condition ✘ — a medic, a kit, a priced treatment would*). The author writes the
+   missing **stage**, never the plot.
+2. **"I wrote this content — what tropes does it play?"** Content has one tool per axis:
+   - **casting (character)** — bind a trope's roles to your people and things (*Mara is the captor;
+     the warehouse basement is the prison*);
+   - ⭐ **beats (plot), wherever the world cannot see them** — **content asserts beats, never
+     tropes.** A dialogue node does not say *this is the redemption trope*; it says *this choice is a
+     confession beat, by the player, to the speaker* (replacing today's raw `regard:` effect). A
+     charity box says *money given to me is a give beat, with me as its cause*; a temple, *a death
+     here is a desecration beat*. The matcher only ever matches beats — detected by the world or
+     asserted by an author — so a confession asserted in dialogue, after a *break* the world
+     detected last week, can complete a redemption that no author named.
+
+### Open
+
+- **Who holds the pen on the beat vocabulary** — the kernel (a closed list), or a gated set of
+  template authors who may add beats.
+- **The chokepoint table is unverified** — each must be checked to cover every path (consent recorded
+  everywhere it is needed?).
+- ~~The execution context must attribute the right actor~~ → settled in § 3b (no work starts anonymous).
+- **Cost** — build a primitive only for the kinds some beat is listening to; act bundles are small.
+- **Lies and intent stay outside detection** — only asserted beats reach them.
+
+## 3b. ⭐⭐⭐ The act — who did it, and what changed **[DECIDED — the owner, 2026-11-24]**
+
+The owner: *"is there a generic way to solve the execution context problem so async doesnt matter it
+just works"* — and, of the act: *"I dont see any way to do this that isn't just
+'WhateverApi.fireAct('foo')' instrumented whereever it needs to go. the problem is creating an act
+vocabulary where that kind of instrumentation is honest and contained so not every code review needs
+to take an inventory of acts and it's not constantly changing or being reevaluated."* All four rulings
+below: *"yes to all four."*
+
+⚠ This settles § 3a's *primitives* into **acts**: the same records, now fired explicitly and gated.
+
+### Who is acting — no work starts anonymous **[DECIDED]**
+
+- **The resolver is `ExecutionContextApi.getActor()`** — *who is acting* — not `getActingAuthor()`,
+  which answers *who authored this* for provenance and fails closed on a forced or cross-actor chain.
+  `getActor` holds through a forced chain (an NPC's forced command is the NPC acting).
+- **Most of it already works.** Node's AsyncLocalStorage carries the context across every `await`;
+  the places that start work fresh already capture the actor and restore it (`captureActor` /
+  `runAsCaptured`): `ScheduleApi`, the engagement scheduler, the world clock, the sandbox. NPC brains
+  act as themselves (`Behaved` runs a brain's act inside `runAsSelf`).
+- ⭐ **The rule, made structural:** *no work starts without an actor or a named system.* `runRoot`
+  requires a captured actor or a named system and refuses otherwise — about nine call sites, raw timers
+  already banned — so "it just works" is a guarantee, not a convention.
+- **To verify first:** prompt resume (a doc comment says the command frame is gone after a resume;
+  `getActor` reads a different frame and may survive — unchecked), a reaction triggered by a message,
+  and the REST/CMS boundary.
+
+### Acts — fired at the chokepoints, and only there **[DECIDED]**
+
+- **`ActApi.fire(kind, payload)`, called only by the engine's chokepoints** — the single primitive
+  each state change already goes through: `ContainmentApi.move`, the chattel transfer, `postTransaction`,
+  `ConditionApi.inflict`, `ConditionApi.die`, `traverse`, the engagement end, the message composer,
+  `StuffApi.clone` / `destruct`, the contract outcome. New feature code keeps calling `move` as it
+  always has, and the act fires — **a code review never inventories acts, because feature code never
+  fires them.**
+- ⭐ **Contained by call security, not by discipline:** `ActApi.fire` is gated
+  `@CallSecurity(FromModule([…the chokepoint modules]))`; a call from anywhere else throws. Adding an
+  act means adding a chokepoint — a rare change already scrutinized as architecture.
+- ⭐ **An act records what CHANGED, never what it MEANT.** *Money moved from X to Y* is as true next
+  year as today, so the list is never re-evaluated when tropes or beats change — every
+  reinterpretation happens above it. Closer to physics than to plot; that is what keeps it stable.
+- **A closed list, in one kernel file, each kind with a fixed payload** — who acted · the
+  counterparty or recipient · the thing · the amount · consent · the place. It grows only with
+  chokepoints.
+
+| act | fired by |
+|---|---|
+| moved | `ContainmentApi.move` |
+| title changed | the chattel transfer |
+| money moved | `postTransaction` |
+| harmed | `ConditionApi.inflict` |
+| died | `ConditionApi.die` |
+| crossed | `traverse` |
+| engagement ended (completed, or why abandoned) | the engagement scheduler |
+| spoke / emoted | the message composer |
+| created / destroyed | `StuffApi.clone` / `destruct` |
+| contract outcome | the contract's settle and breach |
+
+- **One root's acts belong together** — a command, a captured continuation, an NPC's beat. The group
+  needs no name of its own: *the acts of one root* (the owner accepted). That grouping is what lets a
+  beat read *money one way, title the other, in one go*.
+- **Asserted beats are not acts.** A dialogue node's `beat:` arrives through the dialogue's own
+  effect applier, a separate content path; acts stay purely the engine's record of what changed.
+- In memory only, handed to the beat detectors as the root ends — nothing persisted for them (§ 3a).
+
 ## 4. What a trope declares **[LEAN]**
+
+> ⚠ Superseded in part by § 3a: a trope declares a **cast** and a **plot of beats**; *facts* are the
+> primitives below the beats, never written by authors.
 
 | part | *the good Samaritan* | for the author |
 |---|---|---|
@@ -237,6 +429,26 @@ refused automated fetches, so its pages were not read directly) found:
 - Whether NPCs' acts write trait evidence too.
 - How a player learns a trope fired — [narration-slate](./narration-slate.md) (salience, *acts never
   axes*).
+
+## 9. The path to a first build **[LEAN — proposed 2026-11-24, not ruled]**
+
+The owner: *"I actually wanna build this sooner than later especially if we have things that are
+already doing shit 'the wrong way'."* The wrong-way writers are the first consumer — the blood gift's
+constant, combat's −20/+2 regard, the contract breach's −15, the bad-feeding penalty, dialogue's raw
+`regard:` numbers — so moving them onto tropes proves the design and deletes the wrong way in one
+build, with today's behavior as the regression check.
+
+| wave | what | proves |
+|---|---|---|
+| 1 | *no work starts anonymous*; the act list fired at ~6 chokepoints the first roster needs | acts carry the right actor and group by root |
+| 2 | the first dozen beat detectors — **kernel code** for now (*give · exchange · take · return · harm · kill · yield · spare · promise · keep · break · confess*) | beats read correctly from one root's acts |
+| 3 | trope rows and the matcher, **one-root tropes only**; writes tagged with their trope; repetition diminishing | tropes write traits, regard and renown |
+| 4 | the wrong-way writers moved onto tropes, their hand-written writes deleted; dialogue `regard:` → `beat:` | the fair fight, murder in plain sight, the broken promise, the word kept, the gift, the bad meal, a confession |
+
+**Second build:** the author surfaces (could fire · has fired · the gap report), sequences and
+absences across roots on game-clock windows, the helping and deception families, the narration a
+player sees. **Neither:** rope's `ropework` literal onto knot rows (a small sweep), the transfusion's
+unreachable revival deed (a defect fix).
 
 ## Cross-references
 

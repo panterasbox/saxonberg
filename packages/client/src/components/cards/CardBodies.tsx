@@ -1153,7 +1153,7 @@ export function CardBody(props: CardBodyProps): React.ReactElement {
     );
   }
   // ⭐ The stream controls (broadcast-ready D10): every chip a real
-  // `stream …` command, the body read off the `stream.state` key.
+  // `rodney …` command, the body read off the `stream.state` key.
   if (card.cardId === 'stream') {
     return (
       <StreamControls

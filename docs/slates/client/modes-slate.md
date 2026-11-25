@@ -3,7 +3,8 @@
 > **Status: DESIGNING** — opened 2026-11-21 with the owner. What ships: the mode axis
 > (`chat · explore · watch · build · govern`, [cockpit.md](../../subsystems/cockpit.md) § The mode
 > axis), one stage per mode, the rail's mode buttons, *a mode is a view, never a gate*, no
-> auto-switch. Explore is mid-build (the navigation card, MR !640).
+> auto-switch. Explore is mid-build (the navigation card, MR !640). Stream arrival (MR !655) lands a
+> visitor IN watch mode for the visit (`cockpit.sessionMode`), the first mode a link opens.
 > **Left:** the full mode list · the design queue · each mode's definition (five questions) · the
 > handoff from explore into a mode · the shared cards Learn produces
 > **Size:** a roadmap — each mode is its own slate and build; watch is first
@@ -25,6 +26,7 @@ finishes *"I'm here to ___"*.
 | **explore** | getting around, then looking closely at where you are | in build |
 | **watch** | watching a live performance | [watch-slate](./watch-slate.md) |
 | **learn** | the curriculum: instruction, reading, labs, assessment | on campus or off |
+| **wiki** | the wiki (Saxopedia): browsing what the game is and what it does, help as one portal | out of fiction; bends the verb test (owner); [wiki-content-slate § 8](../platform/wiki-content-slate.md) |
 | **craft** | working at a bench: recipe, materials, tools, the work in progress | |
 | **govern** | the Compact's floor: bills, votes, elections | shipped as a value, unlaid |
 | **steward** | the place your title or grant covers | was "home" — see § 4 |
@@ -65,6 +67,10 @@ discussed what it is yet"*):
 1. **Explore** — finish the navigation card; then the perception half and the handoff (§ 5).
 2. **Watch** — the Twitch arrival funnel. Deadline: the Twitch launch after New Year.
    *Then the prompt design pass (§ 6a), before chat.*
+2a. **Wiki** — **[DECIDED — the owner, 2026-11-24]**, ahead of the public wiki route: while the
+   world is thin and placeholder the wiki is the gateway (*"if you wanna know what you can do here
+   the wiki is the best place for it at this stage"*). The page is the full card, the wiki's docked
+   card the panel — no new stage shape; see [wiki-content-slate § 8](../platform/wiki-content-slate.md).
 3. **Learn** — sooner than it looked. The first session runs lounge → dorm → orientation, so
    Learn is the mode a new player reaches right after explore; and it produces the cards
    everything else reuses (§ 6). The cockpit slate's study / classroom / tutor modes fold into it.

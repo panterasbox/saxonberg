@@ -1,0 +1,5 @@
+# A program short name nobody has filed (stream arrival D10).
+facts:
+  name: text
+says: "There is no program called '{{ name }}'. `program create {{ name }}` makes one."
+topic: act.deed

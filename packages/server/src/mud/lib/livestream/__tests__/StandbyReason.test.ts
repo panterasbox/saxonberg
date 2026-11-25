@@ -1,7 +1,7 @@
 /**
- * StandbyReason — the reason row and the `stream away` operand grammar
+ * StandbyReason — the reason row and the `rodney away` operand grammar
  * (broadcast-ready D2, D10), read through `StreamApi`. The duration cases
- * moved here from the retired StreamController test with the parser.
+ * moved here from the retired RodneyController test with the parser.
  */
 
 import "../../../../test-bootstrap";

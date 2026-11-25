@@ -115,7 +115,7 @@ describe('BroadcastMixin', () => {
     expect(s.getStreamPhase()).toBe('offline');
   });
 
-  it('keeps the shipped `stream away 15m` working with no stream started', () => {
+  it('keeps the shipped `rodney away 15m` working with no stream started', () => {
     expect(s.goStandby(BATHROOM, 15 * 60_000).ok).toBe(true);
     expect(s.show().awayUntil).toBeGreaterThan(Date.now());
     expect(s.goLive().ok).toBe(true);
