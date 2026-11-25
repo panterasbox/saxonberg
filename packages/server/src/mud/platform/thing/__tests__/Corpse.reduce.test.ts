@@ -13,6 +13,7 @@ import '../../../../test-bootstrap';
 import { beforeEach, describe, it, expect, afterEach } from 'vitest';
 import Corpse from '../Corpse';
 import { StuffApi } from '../../../api/stuff';
+import { Quantity } from '../../../lib/quantity';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { standMaterials, TEST_TISSUES } from '../../../lib/material/__tests__/materials';
 
@@ -57,5 +58,21 @@ describe('Corpse — the reducing carcass', () => {
     body.markLineTaken(HIDE);
     expect(body.getTakenTissues()).toEqual([LOIN]);
     expect(body.getTakenLines()).toEqual([HIDE]);
+  });
+
+  it('⭐ the carcass shrinks as the cuts come off, and its whole stays recoverable', async () => {
+    const body = makeStuff(() => new Corpse());
+    body.setMass(Quantity.of(500, 'kg'));
+    const ledger = (await body.butcherPlanFor(body, [])).facts;
+    expect(ledger.takenKg).toBe(0);
+    ledger.take({ cut: HIDE, tissues: [] }, 40);
+    ledger.take({ cut: '/x/loin', tissues: [LOIN] }, 25);
+    expect(body.getMass().rawValue()).toBe(435);
+    // The next butchering sees what is off, so the body's shares stay of the whole.
+    const next = (await body.butcherPlanFor(body, [])).facts;
+    expect(next.takenKg + body.getMass().rawValue()).toBe(500);
+    // A carcass never weighs less than nothing.
+    next.take({ cut: '/x/rest', tissues: [SHANK] }, 9_999);
+    expect(body.getMass().rawValue()).toBe(0);
   });
 });

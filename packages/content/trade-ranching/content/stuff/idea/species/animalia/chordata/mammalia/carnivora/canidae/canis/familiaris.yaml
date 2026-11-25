@@ -20,7 +20,13 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/dog, strength: 10 }]
   binomial: Canis familiaris
-  commonNames: ["dog", "collie", "sheepdog", "hound", "bitch"]
+  commonNames: ["dog", "collie", "sheepdog", "hound"]
+  # ⭐ A dog's forms (D8, W7): a bitch is the female's word; a male
+  # carries the part castration takes.
+  variants:
+    sex:
+      female: { commonNames: [bitch] }
+      male: { body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
   # ⭐ A canid (size and carrying W6): a dog's mouth is a hand.
   _bodyPlanPath: /stuff/idea/species/BodyPlan/canid
   _parentCladePath: /stuff/idea/species/animalia
@@ -54,19 +60,16 @@ data:
   handlingRange: { floor: 0.2, ceiling: 1 }
   biddability: 0.9
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 25, litter: 5 }
-  production: []
-  # ⭐⭐ **It authors NO yield, and the absence IS the refusal.**
-  #
-  # An empty `butcheryYield` is not a gap and not a TODO: it says *there is
-  # nothing here worth cutting*, and the kitchen's `butcher` already says
-  # so in the world's own voice. This is why no verb anywhere needs a
-  # `instanceof Livestock` guard or a list of animals you may not eat — the
-  # species answers, and the answer is a fact about the animal rather than
-  # a rule somebody wrote down.
-  #
-  # ⚠ Which also means a working dog is refused for a DIFFERENT reason
-  # from a named one. The collie in the yard has no yield; Moss has a
-  # name. Two refusals, and they do not read alike.
+  # ⭐ The season, on the body (organism-biology D9): a mature female in
+  # her species' breeding band is in season, and an entire male in rut —
+  # conditions the thermal reconcile carries and relieves, which `breed`
+  # and `assess` read. The band is `breeding`'s, never re-authored here.
+  phenology:
+    - { condition: /platform/idea/Condition/reproduction/in-season, trigger: { season: breeding, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/rut, trigger: { season: breeding, sex: male, stage: adult, entire: true } }
+  # ⭐ What comes off a dog derives from its body, as for any animal
+  # (organism-biology D5). A named dog is refused by its name; the code
+  # legislates no list of animals you may not eat.
   longDescription: >-
     A rough-coated collie with one ear up, lying flat with its chin on
     its paws and its eyes on the stock. It has not blinked in a while.

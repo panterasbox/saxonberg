@@ -1,0 +1,61 @@
+# head-canid — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W5: comesOffAs — what each material of this module leaves a carcass as.
+parts:
+- key: ''
+  severable: true
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.012}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.021}
+- key: mouth
+  senses: [{modality: taste}]
+  parent: ''
+  serves: [manipulation]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.003}
+- key: brain
+  parent: ''
+  governs: [consciousness]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.003}
+- key: eye.left
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 250}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+- key: eye.right
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 250}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+- key: ear.left
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.0005}
+- key: ear.right
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.0005}
+- key: nose
+  parent: ''
+  serves: [smell]
+  senses: [{modality: smell}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0005}
+integument:
+  skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.006, form: hide}
+  coat:
+    material: /stuff/idea/material/tissue/fur
+    depthM: 0.015
+    loft: 0.85
+    cycle: {daylightFrom: 0, daylightTo: 0.45, thick: 1.6}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/bone, cut: /trade/ranching/thing/bone}
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/organic/rawhide, cut: /trade/ranching/thing/hide}

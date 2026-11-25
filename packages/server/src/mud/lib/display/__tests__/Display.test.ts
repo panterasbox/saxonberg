@@ -9,6 +9,7 @@
  */
 
 import '../../../../test-bootstrap';
+import { setFlatSenses } from '../../species/__tests__/flat-body';
 import { CommandController } from '../../command/CommandController';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
@@ -126,7 +127,7 @@ class Actor extends EmployedMixin(
 function makeActor(name: string, attuned: boolean): Actor {
   seq += 1;
   const biped = makeStuffAtPath(() => new BodyPlan(), `/stuff/idea/species/BodyPlan/display-${seq}`);
-  biped.setSensoryPorts([{ modality: 'vision', count: 2, position: 'frontal' }]);
+  setFlatSenses(biped, [{ modality: 'vision', count: 2, position: 'frontal' }]);
   biped.setSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
   const species = makeStuffAtPath(() => new Species(), `/stuff/idea/species/animalia/display-${seq}`);
   species.setBodyPlan(biped);

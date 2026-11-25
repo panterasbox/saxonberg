@@ -1,0 +1,10 @@
+# organism-biology D5: a named organ tissue, so a module can say what it
+# comes off a carcass as (the gut).
+extends: /stuff/idea/material/tissue/organ
+data:
+  smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 80 }]
+  name: intestine
+  keywords: [intestine, gut, organ]
+  appearance: a grey length of gut, lying in loops
+  density: 1040
+  toughness: 2

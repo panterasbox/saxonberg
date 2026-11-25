@@ -1,0 +1,15 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/HideHorn
+data:
+  smells: [{ aroma: /base-library/aromas/hide, strength: 60 }]
+  name: fur
+  keywords: [fur, coat, hair]
+  appearance: a dense coat of fur
+  density: 60
+  specificHeat: 1500
+  thermalConductivity: 0.04
+  waterAbsorptionCapacity: 30
+  hardness: 1
+  toughness: 3
+  tags: ["tissue", "animal", "fur", "coat", "insulating", "once-living"]

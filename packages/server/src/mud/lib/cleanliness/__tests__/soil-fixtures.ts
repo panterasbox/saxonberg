@@ -18,6 +18,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 import { MaterialApi } from '../../../api/material';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 /**
  * Keep the dirt documents as a Soilable host (or the act soiling with them)
@@ -57,7 +58,7 @@ export function soilBody(): Creature {
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.arm.left.hand', parent: 'body.torso', serves: ['manipulation'], tissues: [] },
     { key: 'body.arm.right.hand', parent: 'body.torso', serves: ['manipulation'], tissues: [] },

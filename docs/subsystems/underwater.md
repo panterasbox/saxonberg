@@ -544,9 +544,9 @@ that has lain in a collecting water since before the last high water.
 Arrival times are runtime — a restart forgets which tide a plank came in
 on, and it waits one more.
 
-**Life by the water** — breathing is a **rate**: `BodyPlan.breathing:
-[{medium, apparatus, intake}]` with per-stage overrides
-(`Species.breathingByStage`), `getBreathableMedia()` derived (intake ≥ 1);
+**Life by the water** — breathing is a **rate**, derived from the organs
+(organism-biology D10: a part's `breathes: [{medium, apparatus, intake}]`,
+each stage its own plan), `getBreathableMedia()` derived (intake ≥ 1);
 gills in water take the water's oxygen against the stage's habitat
 (`habitatByStage`), so a trout in foul water suffocates; the bullfrog
 dives and surfaces on its own breath (the kernel `surfaces` brain);

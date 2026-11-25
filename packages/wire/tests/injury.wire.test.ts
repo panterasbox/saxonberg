@@ -96,7 +96,7 @@ afterAll(() => {
 
 suite('the boot survives the shape changes', () => {
   it('⭐⭐ both body plans stood up — `governs` is now validated at registration', async () => {
-    // `setBodyParts` now throws on an unknown `governs` / `serves` key.
+    // `BodyPlan.setModules` now throws on an unknown `governs` / `serves` key.
     // That is the point (a typo used to produce an organ that ran nothing
     // and failed silently forever) and it is also a boot risk: a plan
     // that throws takes every species wearing it down with it. If the

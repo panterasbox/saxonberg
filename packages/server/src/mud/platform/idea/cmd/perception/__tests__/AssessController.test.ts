@@ -33,6 +33,7 @@ import BodyPlan from '../../../species/BodyPlan';
 import Species from '../../../species/Species';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { setFlatParts } from '../../../../../lib/species/__tests__/flat-body';
 
 let captured: string;
 function captureBody(): void {
@@ -258,7 +259,7 @@ describe('AssessController — the weight in words (nutrition-and-fitness W3)', 
 function anatomical(path: string): Creature {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('assess-biped');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

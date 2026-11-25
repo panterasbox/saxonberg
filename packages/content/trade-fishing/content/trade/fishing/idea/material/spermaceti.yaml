@@ -1,0 +1,21 @@
+# organism-biology D4: the waxy oil of a sperm whale's head organ (W10).
+class: /platform/idea/material/FatOilWax
+data:
+  smells: [{ aroma: /base-library/aromas/wax/beeswax, strength: 40 }]
+  burning: [{ aroma: /base-library/aromas/smoke/wax-smoke, strength: 40 }]
+  name: spermaceti
+  keywords: [spermaceti, wax, head-oil]
+  appearance: a white, waxy oil that sets pearly as it cools
+  density: 850
+  specificHeat: 2100
+  heatOfCombustion: 41
+  autoignitionTemperature: 530
+  thermalConductivity: 0.2
+  meltingPoint: 318
+  latentHeatOfFusion: 160000
+  smokePoint: 480
+  boilingPoint: 630
+  hardness: 2
+  toughness: 1
+  electricalConductivity: 1.0e-14
+  tags: ["organic", "wax", "spermaceti", "candle-stock", "once-living"]

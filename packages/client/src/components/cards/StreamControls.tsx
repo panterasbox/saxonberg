@@ -153,7 +153,7 @@ export function StreamControls({
   if (!state) {
     return (
       <Body data-testid="stream-controls">
-        <Muted>Rodney's controls load from the game.</Muted>
+        <Muted>Rodney&apos;s controls load from the game.</Muted>
         <Row>{control("Load", "rodney", "stream-load")}</Row>
       </Body>
     );

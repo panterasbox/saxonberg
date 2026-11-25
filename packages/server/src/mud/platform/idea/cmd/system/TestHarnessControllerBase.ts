@@ -31,6 +31,7 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
+import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { TestHarnessApi } from '../../../../api/test-harness';
@@ -49,6 +50,24 @@ export interface TestHarnessModel extends CommandModel {
   alive?: boolean;
   /** `ship`'s fourth word: a frame citation after `at <frame>`. */
   cite?: string;
+  /** The body a `body*` / `afflict` subcommand acts on (organism-biology D16). */
+  target?: MqlOneResult;
+  /**
+   * `body … perceiving <other>`: the body whose perception of `other` is
+   * read — a handle (`#id`, a path, a name), never an MQL bind, because
+   * the point is often a body the wizard cannot see (a concealed hider).
+   */
+  other?: string;
+  /** A part key (`body.head.eye.left`). */
+  part?: string;
+  /** `body-sever`'s third word: what sealed the stump (`heat` | `corrosion`). */
+  sealedBy?: string;
+  /** A mechanism channel (`body-wound`'s enum slot). */
+  channel?: string;
+  /** A number: a wound's magnitude, a condition's stage, a daylength fraction. */
+  amount?: string;
+  /** A condition's template path (`afflict`). */
+  condition?: string;
 }
 
 export abstract class TestHarnessControllerBase extends CommandController<TestHarnessModel> {
@@ -106,6 +125,23 @@ export abstract class TestHarnessControllerBase extends CommandController<TestHa
         'the global field. Name one with --at <place>.',
       'test-no-locality',
     );
+  }
+
+  /**
+   * The bound body of a `body*` subcommand, as the harness's handle
+   * (`#<stuffId>`): the binder resolved the object, the Api names it by id.
+   */
+  protected static bodyOf(model: TestHarnessModel): string {
+    const stuff = model.target?.stuff as Stuff | null | undefined;
+    if (stuff) return `#${stuff.stuffId}`;
+    // ⭐ What the wizard typed, when it bound no thing (organism-biology
+    // walk: a player's character name is not a name a stranger can see by,
+    // so the bind came back null and the subcommand crashed reading
+    // `stuffId`). The harness resolves a handle itself — `#id`, a path, a
+    // resident character's name.
+    const raw = model.target?.raw?.trim();
+    if (raw) return raw;
+    throw new Error('testharness: name a body');
   }
 
   protected static say(context: CommandContext, text: string): void {

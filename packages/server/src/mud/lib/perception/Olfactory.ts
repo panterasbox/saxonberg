@@ -52,6 +52,9 @@ const SEPARATION: Record<CompetenceBandName, number> = {
   proficient: 4,
   expert: Infinity,
 };
+/** What the smell capacity leaves of the nose (D11). */
+const NOSE_FACTOR: Record<string, number> = { full: 1, impaired: 0.5, failing: 0.25, lost: 0 };
+
 const ACUITY: Record<string, number> = { keen: 10, normal: 1, dull: 0.1, none: 0 };
 
 export interface NoseOptions {
@@ -182,7 +185,10 @@ export function OlfactoryMixin<TBase extends MixinConstructor<Stuff>>(Base: TBas
       const profile = MixinApi.isOrganism(self)
         ? self.getSpecies()?.getOlfactoryProfile()
         : null;
-      return ACUITY[profile?.acuity ?? 'normal'] ?? 1;
+      // ⭐ …times what is left of the nose (organism-biology D11): a wounded
+      // one smells less, a lost one nothing.
+      const nose = MixinApi.isVitals(self) ? NOSE_FACTOR[self.capacityAsStands('smell')] ?? 1 : 1;
+      return (ACUITY[profile?.acuity ?? 'normal'] ?? 1) * nose;
     }
 
     /** A freeze ends at the next read: neither rising nor falling happened. */

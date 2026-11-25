@@ -78,6 +78,11 @@ data:
   # ⭐ (dairy D12) An ox is a castrated bull — every head in this register
   # is male, and the dairy's milk tap refuses a bull in his own voice.
   femaleFraction: 0
+  # ⭐ (organism-biology D8) …and every one of them cut as a calf: the
+  # register draws its founding stock neutered, so a drafted ox is a steer
+  # grown, not a bull — and a calf cut in the byre and `herd enter`ed here
+  # is counted beside them.
+  neuteredFraction: 1
   holderRef: organization:/world/terminus/hearts-delight/idea/farm-business
   # ⚠ The FLATS, not the bench — the ground with the water rights and the
   # ploughing to do. The bench is sheep country and the flock book says

@@ -9,6 +9,7 @@
  */
 
 import "../../../test-bootstrap";
+import { setFlatSenses } from '../../lib/species/__tests__/flat-body';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { StuffApi } from '../stuff';
@@ -47,7 +48,7 @@ function makeAvatarLike(): Stuff {
     makeStuff(() => new BodyPlan()),
     '/stuff/idea/species/BodyPlan/biped-test',
   );
-  biped.setSensoryPorts([
+  setFlatSenses(biped, [
     { modality: 'vision', count: 2, position: 'frontal' },
     { modality: 'hearing', count: 2, position: 'lateral' },
   ]);

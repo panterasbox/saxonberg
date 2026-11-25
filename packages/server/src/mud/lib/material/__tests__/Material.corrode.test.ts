@@ -24,6 +24,7 @@ import {
 import type { Trauma } from '../../../platform/idea/Condition';
 import Metal from '../../../platform/idea/material/Metal';
 import { standMaterials, TEST_TISSUES } from './materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 beforeEach(() => {
   standMaterials(TEST_TISSUES); // body-plan tissues (load-on-use W8)
@@ -53,7 +54,7 @@ function bodied(): Creature {
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

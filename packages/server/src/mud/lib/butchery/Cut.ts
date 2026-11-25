@@ -38,6 +38,8 @@ export type CutDepth = (typeof CUT_DEPTHS)[number];
 /** The narrowed surface `MixinApi.isCut` threads into a call site. */
 export interface Cut {
   getTissues(): readonly string[];
+  /** How big one piece is, kg (D5), or null — one piece per part. */
+  getPortionKg(): number | null;
   getCutting(): CutDepth;
   getDifficulty(): Difficulty;
   getSpeciesPath(): string | null;
@@ -59,7 +61,19 @@ export function CutMixin<TBase extends MixinConstructor>(Base: TBase) {
       difficulty: { persistent: true, authorable: true },
       _speciesPath: { persistent: true, ref: 'identity:constituent' },
       damaged: { persistent: true },
+      portionKg: { persistent: true, authorable: true },
     };
+
+    /**
+     * ⭐ How big one piece of it is, kg (organism-biology D5): a line comes
+     * off in as many pieces as parts carry it, or as many portions as its
+     * mass makes, whichever is more. `null` = one piece per part.
+     */
+    public portionKg: number | null = null;
+
+    public getPortionKg(): number | null {
+      return this.portionKg;
+    }
 
     /**
      * The tissue materials this cut takes off the carcass. ⭐ Two entries
@@ -141,7 +155,7 @@ export function CutMixin<TBase extends MixinConstructor>(Base: TBase) {
         const work = material.getWork();
         flat += work;
         count += 1;
-        const share = species?.tissueShareOf(path) ?? 0;
+        const share = species?.bodyFor()?.tissueShareOf(path) ?? 0;
         if (share > 0) {
           weighted += work * share;
           weight += share;

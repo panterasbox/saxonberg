@@ -51,6 +51,7 @@ import {
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { rememberFabric, forgetFabrics, fabricPath } from '@saxonberg/server/mud/lib/material/__tests__/fabrics';
+import { setFlatParts } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 /**
  * A body with hands and a head.
@@ -101,7 +102,7 @@ function keeperBodyPlan(): BodyPlan {
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.arm.left.hand' },
     { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.arm.right.hand' },
   ]);
-  p.setBodyParts([
+  setFlatParts(p, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.head', parent: 'body.torso', tissues: [] },
     { key: 'body.arm.left', parent: 'body.torso', tissues: [] },

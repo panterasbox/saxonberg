@@ -59,10 +59,6 @@ data:
     # ⭐ Where it feeds (B8): the surface — the one fish here a float
     # rig is FOR; legered bait under a mullet shoal takes nothing.
     feedsAt: surface
-  butcheryYield:
-    - { cut: /trade/fishing/thing/fillet, units: 2 }
-    - { cut: /trade/fishing/thing/roe, units: 1 }
-    - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A grey mullet, thick-lipped and silver-grey, the kind that noses along a harbour wall.
   nameBanks: []

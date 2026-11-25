@@ -41,6 +41,8 @@
  * presentation) stays separate and composes orthogonally.
  */
 
+import type { Body } from './Body';
+import type { BodyVariant } from '../../platform/idea/species/Species';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
@@ -54,10 +56,29 @@ import { ConditionApi } from '../../api/condition';
 import { SpeciesApi } from '../../api/species';
 import { AccessApi } from '../../api/access';
 
+/** The part whose loss before maturity makes a male neutered (D8). */
+const NEUTERING_PART = 'gonads';
+
 const SECONDS_PER_GAME_DAY = 86_400;
 
 export interface Organism {
   getSpecies(): Species | null;
+  /**
+   * ⭐⭐ The body of THIS organism (organism-biology D1, S3) — its
+   * species' body for its kind, sex and stage. Every anatomy reader asks
+   * here, never `getSpecies()?.getBodyPlan()`. A method, so a timed
+   * shadow (polymorph) can answer a different body. `null` with no
+   * resolvable species or plan.
+   */
+  getBody(): Body | null;
+  /** ⭐ Which form of its species this body is: its sex and life stage (D8). */
+  getVariant(): BodyVariant;
+  /**
+   * ⭐ The words this body answers to now (D8) — its species' words for its
+   * form, the most specific first (a calf, a bull, a cow). Read late, so a
+   * calf that grows up answers to its adult name with nothing re-stamped.
+   */
+  getCommonNames(): readonly string[];
   /**
    * The species row this body CITES — whether or not that row is
    * resident (`getSpecies()` answers only for a resident one). A body
@@ -269,6 +290,35 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       return StuffApi.findByTemplatePath<Species>(this._speciesPath) ?? null;
     }
 
+    public getBody(): Body | null {
+      return this.getSpecies()?.bodyFor(this.getVariant()) ?? null;
+    }
+
+    public getVariant(): BodyVariant {
+      const sex = this.getSex();
+      const stage = this.getLifeStage();
+      return this.isNeutered(sex) ? { sex, stage, neutered: true } : { sex, stage };
+    }
+
+    /**
+     * ⭐ Neutered is DERIVED (D8): a male whose gonads came off before he
+     * was mature — a steer, an ox. Castration is an operation that takes a
+     * part; nothing writes a flag. A bull cut late stays a bull in his ways.
+     */
+    private isNeutered(sex: string | null): boolean {
+      if (sex !== 'male') return false;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isVitals(self)) return false;
+      const at = self.partLostAt(NEUTERING_PART);
+      if (at === null) return false;
+      const mature = this.getSpecies()?.getAgeCurve()?.matureAt;
+      return !(typeof mature === 'number' && mature > 0) || at < mature;
+    }
+
+    public getCommonNames(): readonly string[] {
+      return this.getSpecies()?.getCommonNames(this.getVariant()) ?? [];
+    }
+
     public getSpeciesPath(): string | null {
       return this._speciesPath;
     }
@@ -289,7 +339,10 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public getBornAt(): number { return this.bornAt; }
     public setBornAt(value: number): void {
-      this.bornAt = Number.isFinite(value) && value > 0 ? value : 0;
+      // ⚠ Zero alone is "no birthday": a body may be born BEFORE the world's
+      // clock began (a negative stamp) — a three-year-old ox in a world a
+      // week old.
+      this.bornAt = Number.isFinite(value) ? value : 0;
     }
 
     public getDiedAt(): number { return this.diedAt; }
@@ -305,7 +358,7 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
      * is a real answer.
      */
     public getAgeDays(): number {
-      if (this.bornAt <= 0) return 0;
+      if (this.bornAt === 0) return 0;
       const end = this.diedAt > 0 ? this.diedAt : nowSeconds();
       if (end <= 0) return 0;
       return Math.max(0, (end - this.bornAt) / SECONDS_PER_GAME_DAY);
@@ -322,7 +375,8 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
     public setAge(value: number): void {
       const now = nowSeconds();
       if (now <= 0) return;
-      this.bornAt = Math.max(1, now - Math.max(0, value) * SECONDS_PER_GAME_DAY);
+      const at = now - Math.max(0, value) * SECONDS_PER_GAME_DAY;
+      this.bornAt = at === 0 ? -1 : at;
     }
 
     /**
@@ -457,7 +511,8 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       // chose to follow them — so this always fires on the dog called Moss.
       if (MixinApi.isNamed(self) && (self.getName() ?? '') !== '') return 'named-animal';
       // ⭐ An empty yield is authored: nothing here worth the killing.
-      if (species.getButcheryYield().length === 0) return 'no-yield';
+      // ⭐ D5: what comes off derives from the body — nothing named, nothing to take.
+      if ((this.getBody()?.yieldLines().length ?? 0) === 0) return 'no-yield';
       return null;
     }
 

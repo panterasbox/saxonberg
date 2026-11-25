@@ -6830,6 +6830,7 @@ fact; a refusal on a *no* answer reports a consequence.
 |---|---|
 | A reconcile-on-read getter (`getTemperature`, a mould's `getContents`, a body's `getReserve`) that integrates state to now, reached by the light walk, the sound gather, the smell fold or a card's projection | The walk holds the world still (`ExecutionContextApi.holdWorldStill`) and the getter answers **as banked** inside it; a thing's state advances at **its own changes** and on **its own game-clock wake** (`MouldMixin.wakeAtS` is the shape) |
 | A size read or a sight gate that integrates a BODY (a crossing's fit check reconciled every bystander's metabolism) | Read the stored stock (`reserves['flesh']`, `this.conditions`) — the `withBodyComposition` precedent; a body integrates at its own acts and deliberate reads |
+| A vital-sign getter that integrates the body to now and stamps (the core temperature did, until organism-biology W6b) — so a body nobody looked at never cooled, and every `look` moved it | The getter **projects**: the reconcile's own slices run on a probe and the read returns what the reconcile WOULD store, writing nothing; the reconcile is the only writer, and a resident body arms a game-clock wake at its next threshold crossing (`ThermalRegulation.thermalWakeAtS`, capped at one game hour) — see [thermal.md § Reading a body never changes it](./subsystems/thermal.md) |
 
 **Why.** Whatever the room reads for everyone runs as often as people
 look, so the world comes to depend on WHO LOOKED: a mould watched every

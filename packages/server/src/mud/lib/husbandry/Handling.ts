@@ -217,7 +217,7 @@ export function HandlingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
     private speciesHandlingRange(): { floor: number; ceiling: number } | null {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return null;
-      return self.getSpecies()?.getHandlingRange() ?? null;
+      return self.getSpecies()?.getHandlingRange(self.getVariant()) ?? null;
     }
 
     public handle(quality = 1): number {

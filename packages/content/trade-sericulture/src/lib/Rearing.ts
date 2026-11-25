@@ -61,6 +61,8 @@ import { AppApi } from '@saxonberg/server/mud/api/app';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
+import Species from '@saxonberg/server/mud/platform/idea/species/Species';
+import { LarvalClock, AGE_END_DD, MOULT_SHARE } from './LarvalClock';
 
 export const REARING_MIXIN = 'RearingMixin';
 
@@ -142,13 +144,6 @@ export interface Rearing {
 const BASE_K = 283;
 /** Degree-days from laying (or from a wintered lot's waking) to hatch. */
 const HATCH_DD = 150;
-/**
- * ⭐ The end of each age, in degree-days since hatch — about 23 days at
- * 25 °C in all, the fifth age the longest by far.
- */
-const AGE_END_DD = [52, 97, 157, 232, 352] as const;
-/** The last tenth of ages I–IV is a moult: asleep, eating nothing. */
-const MOULT_SHARE = 0.1;
 /** Leaf one worm eats over its whole life, kg. */
 const LEAF_KG_PER_WORM = 0.025;
 /** ⭐ The share of that leaf each age eats — the fifth eats three quarters. */
@@ -176,6 +171,16 @@ const FRESHNESS_WORTH: Record<string, number> = {
 const TAIL_SHARE = 0.2;
 /** Where each tail stack sits, in standard deviations from the mean. */
 const TAIL_SD = 1.4;
+
+/** The silkworm's species — its larva's body carries the silk gland (D10). */
+const BOMBYX = '/stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori';
+/**
+ * ⭐ The shipped larva's silk-gland share of its body (organism-biology
+ * D10) — the reference the strains' shell means are calibrated against, so
+ * the shipped worm spins exactly what it did. `silk-gland.test.ts` pins it
+ * to the real modules.
+ */
+export const GLAND_SHARE_REFERENCE = 0.25;
 
 const COCOONS_ROW = '/trade/sericulture/thing/cocoons';
 const FRASS_ROW = '/trade/sericulture/thing/frass';
@@ -544,6 +549,7 @@ export function RearingMixin<TBase extends MixinConstructor<RearingBase>>(Base: 
       const total = Math.max(0, Math.round(this.liveWorms() * (1 - this.pebrineLoad)));
       const phenotype =
         this.lotGeneticMg *
+        this.glandFactor() *
         (0.6 + 0.4 * clamp01(this.fifthAgeSat)) *
         (this.spunWithoutBrush ? NO_BRUSH_FACTOR : 1);
       const tail = Math.round(total * TAIL_SHARE);
@@ -571,6 +577,20 @@ export function RearingMixin<TBase extends MixinConstructor<RearingBase>>(Base: 
         .finally(() => {
           this._minting = false;
         });
+    }
+
+    /**
+     * ⭐⭐ The cocoon is spun from the worm's own gland (D10): its share of
+     * the fifth-age body against the shipped reference — 1 for the shipped
+     * larva, more for a breed with a bigger gland. The species not resident
+     * reads 1 (unmodelled is the ordinary case).
+     */
+    private glandFactor(): number {
+      const species = StuffApi.findByTemplatePath<Species>(BOMBYX);
+      const body = species instanceof Species ? species.bodyFor({ stage: 'newborn' }) : null;
+      if (!body) return 1;
+      const share = body.resolvedTissues().filter((t) => t.partKey.endsWith('.silk-gland')).reduce((a, t) => a + t.share, 0);
+      return share > 0 ? share / GLAND_SHARE_REFERENCE : 1;
     }
 
     private async mintSpin(
@@ -614,21 +634,14 @@ export function RearingMixin<TBase extends MixinConstructor<RearingBase>>(Base: 
 
 // ---------- module-private ----------
 
-/** Which age (1–5) a degree-day count since hatch falls in. */
+/** Which age (1–5) a degree-day count since hatch falls in — the one law (LarvalClock). */
 function ageAt(dd: number): number {
-  for (let i = 0; i < AGE_END_DD.length; i++) {
-    if (dd < AGE_END_DD[i]!) return i + 1;
-  }
-  return 5;
+  return new LarvalClock(dd).age();
 }
 
 /** In the last tenth of ages I–IV, the worms sleep and shed. */
 function inMoult(dd: number): boolean {
-  const age = ageAt(dd);
-  if (age >= 5) return false;
-  const start = age === 1 ? 0 : AGE_END_DD[age - 2]!;
-  const end = AGE_END_DD[age - 1]!;
-  return dd >= end - (end - start) * MOULT_SHARE;
+  return new LarvalClock(dd).inMoult();
 }
 
 function materialHasTag(s: Stuff, tag: string): boolean {

@@ -1,0 +1,9 @@
+# ⭐ An operation that takes a part, on a body without it — a cow named for
+# castration, or a steer already cut (organism-biology D8, W7). The body
+# refuses; nothing checks a class.
+facts:
+  self: text?
+  patient: thing
+  label: text
+says: "{% if self %}You have{% else %}{{ patient | cap }} has{% endif %} nothing for {{ label }} to take."
+topic: act.deed

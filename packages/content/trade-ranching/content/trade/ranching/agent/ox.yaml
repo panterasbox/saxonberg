@@ -15,5 +15,10 @@ data:
     square and entirely still with a look of enormous patience.
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/artiodactyla/bovidae/bos/taurus
   lifecycleState: alive
+  # ⭐ An ox is cattle, male, cut young and grown (organism-biology D8) —
+  # authored as what it IS, so the variant names it, weighs it and steadies
+  # it: no bare Livestock that only says "ox" in its keywords.
+  sex: male
+  lostParts: [{ part: body.torso.gonads, atAgeDays: 60 }]
   mass: 700
   handling: 0.8

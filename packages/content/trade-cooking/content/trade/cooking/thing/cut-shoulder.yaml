@@ -15,6 +15,9 @@ data:
   longDescription: >-
     A heavy wedge of a joint with the blade bone still in it, the grain running every which way.
   _materialPath: /stuff/idea/material/tissue/muscles/shoulder
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 8
   tissues:
     - /stuff/idea/material/tissue/muscles/shoulder
   cutting: bone-in

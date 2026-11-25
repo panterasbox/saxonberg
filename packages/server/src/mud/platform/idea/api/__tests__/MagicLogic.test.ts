@@ -50,6 +50,7 @@ import {
 import { installV1QuantityMarshallers } from "../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { standBlankConditions } from "../../../../lib/vitals/__tests__/conditions";
 import { standMaterials, TEST_TISSUES } from "../../../../lib/material/__tests__/materials";
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
 class GlowlightOrb extends LightSourceMixin(Good) {}
 const SPELL_PATH_PREFIX = '/stuff/idea/magic/Spell/';
@@ -146,7 +147,7 @@ function makeBodiedTarget(): Creature {
   plan.setSlots([
     { name: "torso", accepts: "WearableMixin", capacity: 4, covers: ["body.torso"] },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: "body.torso",
       parent: null,

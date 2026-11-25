@@ -15,6 +15,9 @@ data:
   longDescription: >-
     A flat slab of layered lean and fat off the wall of the abdomen.
   _materialPath: /stuff/idea/material/tissue/muscles/belly
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 7.6
   tissues:
     - /stuff/idea/material/tissue/muscles/belly
   cutting: boneless

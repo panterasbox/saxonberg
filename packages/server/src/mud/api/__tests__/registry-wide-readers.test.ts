@@ -15,8 +15,17 @@ import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
-/** ⭐ The ceiling. Lower it as each pair goes; never raise it. */
-const HIGH_WATER = 12;
+/**
+ * ⭐ The ceiling. Lower it as each pair goes; never raise it.
+ *
+ * ⚠ Raised once, 12 → 13 (organism-biology, for the owner's review): the
+ * test world's `testharness daylight-pin` fans out to every living body
+ * (D9 — a pin is a setter, applied at once). CALLER AUDIT: the one caller
+ * is a `@TestOnly` staging verb in a test world, never production; the
+ * population (every living body) is genuinely global; and the alternative
+ * was the bespoke `getAllObjects()` scan `lint:world-scan` forbids.
+ */
+const HIGH_WATER = 13;
 
 function pairs(): string[] {
   const src = readFileSync(

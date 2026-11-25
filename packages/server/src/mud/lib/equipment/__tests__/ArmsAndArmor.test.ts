@@ -19,6 +19,7 @@ import {
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 afterEach(() => StuffApi.clearAll());
 
@@ -147,7 +148,7 @@ describe('Weapon — delivery half', () => {
     plan.setSlots([
       { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand' },
     ]);
-    plan.setBodyParts([{ key: 'body.hand', parent: null, tissues: [] }]);
+    setFlatParts(plan, [{ key: 'body.hand', parent: null, tissues: [] }]);
     stampTemplatePathForTest(plan, planPath);
     const species = makeStuff(() => new Species());
     species.setBodyPlan(plan);

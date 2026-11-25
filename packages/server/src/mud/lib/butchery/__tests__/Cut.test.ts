@@ -14,6 +14,7 @@ import { Texture } from '../Texture';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 afterEach(() => StuffApi.clearAll());
 
@@ -88,7 +89,7 @@ describe('CutMixin — the claim', () => {
     );
     plan.setName('test-weights');
     // A loin is nine times the tenderloin, as on a real carcass.
-    plan.setBodyParts([
+    setFlatParts(plan, [
       {
         key: 'body.torso',
         parent: null,

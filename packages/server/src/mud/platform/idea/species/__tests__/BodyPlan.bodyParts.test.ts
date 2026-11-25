@@ -9,6 +9,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import BodyPlan, { BodyPart } from '../BodyPlan';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 const VALID: BodyPart[] = [
   {
@@ -35,8 +36,8 @@ describe('BodyPlan.bodyParts', () => {
 
   it('accepts a valid part tree and round-trips it', () => {
     const plan = makeStuff(() => new BodyPlan());
-    plan.setBodyParts(VALID);
-    expect(plan.getBodyParts().map((p) => p.key)).toEqual([
+    setFlatParts(plan, VALID);
+    expect(plan.getBody().getParts().map((p) => p.key)).toEqual([
       'body.torso',
       'body.arm.left',
       'body.torso.heart',
@@ -46,29 +47,28 @@ describe('BodyPlan.bodyParts', () => {
   it('rejects a duplicate key', () => {
     const plan = makeStuff(() => new BodyPlan());
     expect(() =>
-      plan.setBodyParts([
+      setFlatParts(plan, [
         { key: 'body.torso', parent: null, tissues: [] },
         { key: 'body.torso', parent: null, tissues: [] },
       ]),
-    ).toThrow(/duplicate key/);
+    ).toThrow(/two parts expand to the key 'body.torso'/);
   });
 
   it('rejects a parent edge that names no known part', () => {
     const plan = makeStuff(() => new BodyPlan());
     expect(() =>
-      plan.setBodyParts([
+      setFlatParts(plan, [
         { key: 'body.arm.left', parent: 'body.torso', tissues: [] },
       ]),
-    ).toThrow(/is not a known part/);
+    ).toThrow(/which this body does not have/);
   });
 
-  it('rejects a part missing its tissues array', () => {
+  it('⭐ W1: a part with no tissues is a weightless part, not an error', () => {
+    // A tree's sapwood carries a gland and no mass of its own (D2); a
+    // module part's tissues default to none.
     const plan = makeStuff(() => new BodyPlan());
-    expect(() =>
-      plan.setBodyParts([
-        { key: 'body.torso', parent: null } as unknown as BodyPart,
-      ]),
-    ).toThrow(/missing 'tissues'/);
+    setFlatParts(plan, [{ key: 'body.torso', parent: null } as unknown as BodyPart]);
+    expect(plan.getBody().getPart('body.torso')?.tissues).toEqual([]);
   });
 });
 
@@ -77,23 +77,23 @@ describe('BodyPlan — slot↔part relations (C)', () => {
 
   it('queries slots by the part they attach at / cover', () => {
     const plan = makeStuff(() => new BodyPlan());
-    plan.setBodyParts(VALID);
+    setFlatParts(plan, VALID);
     plan.setSlots([
       { name: 'grip', accepts: 'WieldableMixin', bodyPart: 'body.arm.left' },
       { name: 'shirt', accepts: 'WearableMixin', covers: ['body.torso'] },
       // Non-anatomical affordance — neither bodyPart nor covers.
       { name: 'saddle', accepts: 'SlottableMixin' },
     ]);
-    expect(plan.getSlotsAt('body.arm.left').map((s) => s.name)).toEqual(['grip']);
-    expect(plan.getSlotsCovering('body.torso').map((s) => s.name)).toEqual([
+    expect(plan.getBody().getSlotsAt('body.arm.left').map((s) => s.name)).toEqual(['grip']);
+    expect(plan.getBody().getSlotsCovering('body.torso').map((s) => s.name)).toEqual([
       'shirt',
     ]);
-    expect(plan.getSlotsAt('body.torso')).toHaveLength(0);
+    expect(plan.getBody().getSlotsAt('body.torso')).toHaveLength(0);
   });
 
   it('rejects a slot bodyPart / covers that names no known part', () => {
     const plan = makeStuff(() => new BodyPlan());
-    plan.setBodyParts(VALID);
+    setFlatParts(plan, VALID);
     expect(() =>
       plan.setSlots([
         { name: 'x', accepts: 'WearableMixin', bodyPart: 'body.tail' },
@@ -112,11 +112,11 @@ describe('BodyPlan — slot↔part relations (C)', () => {
     plan.setSlots([
       { name: 'grip', accepts: 'WieldableMixin', bodyPart: 'body.arm.left' },
     ]);
-    plan.setBodyParts(VALID); // body.arm.left present → ok
-    expect(plan.getSlotsAt('body.arm.left')).toHaveLength(1);
+    setFlatParts(plan, VALID); // body.arm.left present → ok
+    expect(plan.getBody().getSlotsAt('body.arm.left')).toHaveLength(1);
     // Re-set parts WITHOUT body.arm.left → the existing slot ref dangles.
     expect(() =>
-      plan.setBodyParts([{ key: 'body.torso', parent: null, tissues: [] }]),
+      setFlatParts(plan, [{ key: 'body.torso', parent: null, tissues: [] }]),
     ).toThrow(/is not a known part/);
   });
 });

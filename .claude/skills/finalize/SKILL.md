@@ -165,6 +165,28 @@ here is clock-hungry: span steps are the soak lane's, after merge. Merge master 
 what the drive meets), drop the worktree's own database, boot ONE world
 on a worktree-unique `WIRE_PORT`, and run them against it.
 
+⭐⭐ **The drive and the walk are the LAST things the sweep runs** — after
+the final merge of master and after the last change of this branch's own
+(a review fix, a doc-driven code tweak, an owner ask during the sweep).
+Order: merge master → drive → walk → suite (or the suite first; it is
+recorded by fingerprint either way). A change of this branch's own after
+the drive re-drives; a later merge of master is judged by `/merge` § 1b
+(does it touch what the drive exercises?), never assumed either way.
+
+**Record the run** the moment it is green — `/merge` checks 6–7 read this
+line and nothing else (the plan holding the drive record is retired by § 4
+before the merge, so a record in the plan cannot be found at merge time):
+
+```bash
+printf '%s %s %s drive %s walk %s\n' "$(tools/source-fingerprint)" \
+  "$(git rev-parse --short HEAD)" "$(date -Iseconds)" "<passed>/<total>" "<passed>/<total>" \
+  > .suite/drive-green
+```
+
+Run it from a clean, pushed tree (the fingerprint is the committed tree).
+`.suite/` is ignored, so the record stays local to the worktree, as
+`.suite/green` does.
+
 - **Record present.** Read it. Confirm every step of the script was
   actually run, and that anything it found was fixed rather than
   noted.
@@ -351,6 +373,10 @@ Commit message rules:
   (the model name changes; do not hardcode one).
 
 ### 7. Stop
+
+Before handing back: `.suite/green` and `.suite/drive-green` both carry the
+fingerprint of the pushed head. If a change of this branch's own landed
+after either, run what it staled — that is the sweep, not `/merge`'s job.
 
 ⛔⛔⛔ **Before you say "done", run `/merge`'s nine checks yourself**
 (`.claude/skills/merge/SKILL.md` § 1) — fetch master AGAIN (it moves while

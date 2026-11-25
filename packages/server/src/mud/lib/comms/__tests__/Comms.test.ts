@@ -7,6 +7,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { setFlatSenses } from '../../species/__tests__/flat-body';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import Species from '../../../platform/idea/species/Species';
@@ -60,7 +61,7 @@ function makeAttuned(
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/biped-comms-test-${bodyPlanSeq}`,
   );
-  biped.setSensoryPorts([
+  setFlatSenses(biped, [
     { modality: 'vision', count: 2, position: 'frontal' },
     { modality: 'hearing', count: 2, position: 'lateral' },
   ]);

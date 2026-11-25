@@ -1,0 +1,14 @@
+# fluke-cetacean — the tail a whale drives itself with (organism-biology
+# D13): the swim gait is here.
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  gait: [swim]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.05}
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.01}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.002, form: skin}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/muscle, cut: /trade/fishing/thing/whale-meat}

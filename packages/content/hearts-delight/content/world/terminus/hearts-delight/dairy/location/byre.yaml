@@ -39,6 +39,10 @@ data:
     # creamery's rennet (dairy D8). The block and the knife are why.
     - /trade/cooking/thing/butcher-block
     - /trade/cooking/thing/boning-knife
+    # ⭐ …and the bull calves it KEEPS it cuts, with the stockman's knife
+    # on the peg (organism-biology W7): `operate calf for castration with
+    # knife`. A steer grows into an ox, and the ox register is next door.
+    - /trade/ranching/thing/stock-knife
   cast:
     - /world/terminus/hearts-delight/agent/dairywoman
     - /world/terminus/hearts-delight/agent/dairy-lad

@@ -37,6 +37,7 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import type { Trauma } from '../../Condition';
 import { rememberFabric, fabricPath } from '../../../../lib/material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 let seq = 0;
 
@@ -97,7 +98,7 @@ function bodied(): Creature {
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,
@@ -276,7 +277,7 @@ describe('⭐⭐ ONE insulation number — the fold reads the garment\u2019s rea
     const c = bodied();
     const g = realGarment(c, wool(), 1.5);
     expect(c.bodyInsulation().rawValue()).toBeCloseTo(
-      g.getClo().rawValue() * c.getSpecies()!.getBodyPlan()!.getPartSurfaceFraction('body.torso'),
+      g.getClo().rawValue() * c.getSpecies()!.getBodyPlan()!.getBody().getPartSurfaceFraction('body.torso'),
       3,
     );
   });

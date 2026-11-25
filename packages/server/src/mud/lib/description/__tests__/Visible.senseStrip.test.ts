@@ -15,6 +15,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { setFlatSenses } from '../../species/__tests__/flat-body';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { buildAllModalities } from '../../perception/modalities/__tests__/test-helpers';
 import {
@@ -56,7 +57,7 @@ function makeViewerWithSensorium(channels: SenseChannel[]): Stuff {
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/test-${channels.join('-') || 'sessile'}`,
   );
-  bodyPlan.setSensoryPorts(
+  setFlatSenses(bodyPlan, 
     channels.map((ch) => ({
       modality: ch,
       count: 1,

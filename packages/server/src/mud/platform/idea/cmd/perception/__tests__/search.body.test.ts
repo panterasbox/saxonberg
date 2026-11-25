@@ -37,6 +37,7 @@ import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../.
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import Garment from '../../../../thing/equipment/Garment';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { setFlatParts } from '../../../../../lib/species/__tests__/flat-body';
 
 class Room extends ContainerMixin(ContainableMixin(Idea)) {}
 class Searcher extends BeliefStoreMixin(
@@ -118,7 +119,7 @@ describe('search <body> — what the pockets cover (D24a)', () => {
     plan.setBaseMass(70);
     plan.setBaseStature(1.75);
     plan.setSlots([{ name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body'] }]);
-    plan.setBodyParts([{ key: 'body', parent: null, tissues: [] }]);
+    setFlatParts(plan, [{ key: 'body', parent: null, tissues: [] }]);
     stampTemplatePathForTest(plan, '/stuff/idea/species/BodyPlan/search-biped');
     species = makeStuff(() => new Species());
     species.setBodyPlan(plan);

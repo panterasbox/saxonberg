@@ -8,6 +8,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect } from 'vitest';
 import SenseController from '../SenseController';
 import type { MqlOneResult } from '../../../../../api/mql';
@@ -76,7 +77,7 @@ function makeFixture(channels: SenseChannel[]): { giver: ReceivingGiver; locatio
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/test-sense-${channels.join('-') || 'sessile'}`,
   );
-  bp.setSensoryPorts(
+  setFlatSenses(bp, 
     channels.map((ch) => ({
       modality: ch,
       count: 1,

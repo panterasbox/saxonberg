@@ -1,0 +1,10 @@
+# The silkworm pupa's plan (organism-biology D10) — the body in the
+# cocoon: still, sealed, becoming a moth.
+class: /platform/idea/species/BodyPlan
+data:
+  name: silkworm-pupa
+  thermalStrategy: ectotherm
+  slots: []
+  defaultLocomotionMode: null
+  modules:
+    - { module: /trade/sericulture/body-modules/torso-pupa, as: [body.torso] }

@@ -45,6 +45,7 @@
  * - **`respiration`** — moving air. Governed by the lungs.
  * - **`clearance`** — processing what is in the blood. Governed by the
  *   liver. The pharma seam.
+ * - **`filtration`** — cleaning the blood. Sustained by the kidneys.
  */
 export const BODY_CAPACITIES = [
   'consciousness',
@@ -53,6 +54,23 @@ export const BODY_CAPACITIES = [
   'circulation',
   'respiration',
   'clearance',
+  /**
+   * ⭐ Cleaning the blood (organism-biology D6). SUSTAINED by the kidneys:
+   * any surviving one suffices (the third rule — `max` — beside `governs`'
+   * min and `serves`' mean), so losing one leaves it full and losing both
+   * is the anatomy death floor.
+   */
+  'filtration',
+  /**
+   * ⭐ The senses (organism-biology D11), SERVED by their organs — two eyes,
+   * so one lost is impaired and both lost is blind. `vision` costs the
+   * perceived band and the sight; `smell` scales the nose's acuity;
+   * `hearing` ships as a capacity `assess` shows, with no multiplier (the
+   * `clearance` precedent, stated).
+   */
+  'vision',
+  'hearing',
+  'smell',
 ] as const;
 
 /** One of {@link BODY_CAPACITIES}. */
@@ -87,7 +105,7 @@ export type FunctionBand = (typeof FUNCTION_BANDS)[number];
  * So the vocabulary is the two tuples and their types, and the two things
  * that would have been statics live where they are used:
  *
- * - **validation** — `BodyPlan.setBodyParts` checks membership against the
+ * - **validation** — `BodyPlan.setModules` checks membership against the
  *   tuple directly, which is one `includes` and no indirection;
  * - **band ordering** — `FUNCTION_BANDS` is ordered worst-last, so `worse`
  *   is `indexOf` and `atLeast` is `<=`, both inline on `VitalsMixin` where

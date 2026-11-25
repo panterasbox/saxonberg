@@ -1,0 +1,26 @@
+# leg-fore-quadruped — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W5: comesOffAs — what each material of this module leaves a carcass as.
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.012}
+  - {tissue: /stuff/idea/material/tissue/muscles/shoulder, weight: 0.035}
+  - {tissue: /stuff/idea/material/tissue/muscles/shank, weight: 0.011}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.006}
+  gait: [walk, swim]
+integument:
+  skin: {material: /stuff/idea/material/organic/rawhide, weight: 0.004, form: hide}
+  coat:
+    material: /stuff/idea/material/tissue/fur
+    depthM: 0.015
+    loft: 0.85
+    cycle: {daylightFrom: 0, daylightTo: 0.45, thick: 1.6}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/bone, cut: /trade/ranching/thing/bone}
+- {tissue: /stuff/idea/material/tissue/muscles/shoulder, cut: /trade/cooking/thing/cut-shoulder}
+- {tissue: /stuff/idea/material/tissue/muscles/shank, cut: /trade/cooking/thing/cut-shank}
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/organic/rawhide, cut: /trade/ranching/thing/hide}

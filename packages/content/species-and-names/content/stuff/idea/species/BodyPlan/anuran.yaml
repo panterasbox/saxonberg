@@ -1,0 +1,16 @@
+# The anuran plan — a frog (organism-biology W7). ⭐ An ECTOTHERM: its core
+# floats to the water and the air, sluggish when chilled and torpid past
+# its floor, and it carries no coat. It replaces the quadruped plan the
+# bullfrog borrowed, which put fur on a frog. W8's metamorphosis adds the
+# tadpole's and the froglet's plans; this is the adult's.
+class: /platform/idea/species/BodyPlan
+data:
+  name: anuran
+  thermalStrategy: ectotherm
+  slots: []
+  defaultLocomotionMode: walk
+  modules:
+    - { module: /species-and-names/body-modules/torso-anuran, as: [body.torso] }
+    - { module: /species-and-names/body-modules/head-anuran, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/leg-fore-anuran, as: [body.leg.frontLeft, body.leg.frontRight], at: body.torso, innervatedBy: [body.torso.spine] }
+    - { module: /species-and-names/body-modules/leg-hind-anuran, as: [body.leg.rearLeft, body.leg.rearRight], at: body.torso, innervatedBy: [body.torso.spine] }

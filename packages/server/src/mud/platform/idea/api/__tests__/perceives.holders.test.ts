@@ -41,6 +41,7 @@ import type { SlotSpec } from '../../../../lib/slot/Slotted';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 /** A body that carries (size and carrying W8: the capability is the carrier classes'). */
 class CarrierBody extends CarryingMixin(Creature) {}
@@ -101,7 +102,7 @@ describe('perceives — the holder rules (D24)', () => {
     plan.setBaseMass(70);
     plan.setBaseStature(1.75);
     plan.setSlots(SLOTS);
-    plan.setBodyParts(PARTS);
+    setFlatParts(plan, PARTS);
     stampTemplatePathForTest(plan, PLAN);
     species = makeStuff(() => new Species());
     species.setBodyPlan(plan);

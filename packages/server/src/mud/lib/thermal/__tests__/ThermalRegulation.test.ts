@@ -34,7 +34,7 @@ function advance(c: Creature, gameSec: number, chunkSec = 3000): void {
   while (remaining > 0) {
     const s = Math.min(chunkSec, remaining);
     real += (s / SCALE) * 1000;
-    c.getVitalSign("coreTemperature"); // force the lazy reconcile
+    c.reconcileThermalRegulation(); // the body's own wake (D17: a read no longer advances it)
     remaining -= s;
   }
 }
@@ -91,7 +91,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
 
   it("within the band: core pins at setpoint at zero reserve cost", () => {
     const c = body({ ambientK: 310 });
-    core(c); // seed
+    c.reconcileThermalRegulation(); // seed
     const satBefore = sat(c);
     advance(c, 1800);
     expect(core(c)).toBeCloseTo(310, 1);
@@ -106,7 +106,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
     // basal metabolism, and at 270 K a naked body is 32 K under its
     // floor and simply cannot hold: see the sibling test below.
     const c = body({ ambientK: 290 });
-    core(c);
+    c.reconcileThermalRegulation();
     const satBefore = sat(c);
     advance(c, 600);
     expect(core(c)).toBeCloseTo(310, 0); // held while affordable
@@ -121,7 +121,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
     // to death in a snowdrift** — the wrong death twice over, because
     // cold kills by cooling you and hypothermia is rescuable.
     const c = body({ ambientK: 270 }); // 32 K under a naked body's floor
-    core(c);
+    c.reconcileThermalRegulation();
     const satBefore = sat(c);
     advance(c, 600);
     expect(core(c)).toBeLessThan(309); // losing, not holding
@@ -131,7 +131,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
 
   it("above the band: hydration falls (sweating to hold)", () => {
     const c = body({ ambientK: 330 });
-    core(c);
+    c.reconcileThermalRegulation();
     const hydBefore = hyd(c);
     advance(c, 600);
     expect(hyd(c)).toBeLessThan(hydBefore);
@@ -140,7 +140,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
   it("out of fuel in the cold: core drifts down → hypothermia spawns", () => {
     const c = body({ ambientK: 250 });
     c.adjustReserve("satiation", Quantity.of(-100, "%")); // empty the tank
-    core(c);
+    c.reconcileThermalRegulation();
     advance(c, 3600, 1200); // a game-hour, in sub-far-past chunks
     expect(core(c)).toBeLessThan(301); // drifted below survivableMin
     expect(
@@ -158,7 +158,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
     // divided the identity again, twelve times over a winter.
     const c = body({ ambientK: 250 });
     c.setLifecycleState("undead");
-    core(c);
+    c.reconcileThermalRegulation();
     advance(c, 6 * 3600, 1200);
     expect(core(c)).toBeLessThan(301);
     expect(
@@ -173,7 +173,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
 
   it("an ectotherm's core floats to the effective ambient (no setpoint)", () => {
     const c = body({ ambientK: 300, ecto: true });
-    core(c);
+    c.reconcileThermalRegulation();
     advance(c, 3600, 1200);
     // Not pinned at 310 — it has drifted toward the cooler ambient.
     expect(core(c)).toBeLessThan(309);
@@ -181,7 +181,7 @@ describe("ThermalRegulationMixin — Option-C dead-band", () => {
 
   it("a cold ectotherm falls into torpor (alive, immobile)", () => {
     const c = body({ ambientK: 270, ecto: true });
-    core(c);
+    c.reconcileThermalRegulation();
     advance(c, 3600, 1200);
     expect(core(c)).toBeLessThan(301);
     expect(

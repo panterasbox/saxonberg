@@ -1,0 +1,9 @@
+# abomasum — a calf's fourth stomach (organism-biology D5): a part of a
+# NEWBORN's body only, so the vell comes off a calf and not a cow. The
+# source of rennet (dairy D8).
+parts:
+- key: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/abomasum, weight: 0.004}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/abomasum, cut: /trade/cooking/thing/vell}

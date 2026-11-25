@@ -26,6 +26,7 @@ import { Scope } from '../../lib/script/Scope';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { setFlatParts } from '../../lib/species/__tests__/flat-body';
 
 const ids = (xs: readonly Stuff[]): string[] => xs.map((x) => x.stuffId).sort();
 
@@ -48,7 +49,7 @@ describe('MQL is universal; perception is the surface’s (D23)', () => {
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
     { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
     ]);
-    plan.setBodyParts([
+    setFlatParts(plan, [
       { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.hand.left', parent: 'body.torso', tissues: [], serves: ['manipulation'] },
     { key: 'body.hand.right', parent: 'body.torso', tissues: [], serves: ['manipulation'] },

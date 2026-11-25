@@ -30,6 +30,7 @@ import BodyPlan from '../../species/BodyPlan';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../Condition';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 class MobileCreature extends MobileMixin(Creature) {
   static _mixinName = 'MobileCreature';
@@ -45,7 +46,7 @@ let planSeq = 0;
 function walker(): MobileCreature {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-walker');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     {
       key: 'body.arm.left',

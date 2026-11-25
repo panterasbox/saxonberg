@@ -197,9 +197,9 @@ export class LocomotionLogic extends ApiLogic {
     // NPC brain never did, and a species-less NPC would otherwise stop
     // walking silently. Anatomy is preloaded first, so "no plan" here is
     // a body that has none, not a cold cache.
-    const bodyPlan = actor.getSpecies()?.getBodyPlan();
-    if (!bodyPlan) return true;
-    const planModes = bodyPlan.getLocomotionModes();
+    const body = actor.getBody();
+    if (!body) return true;
+    const planModes = body.gaits();
     return required.some((m) => planModes.includes(m));
   }
 

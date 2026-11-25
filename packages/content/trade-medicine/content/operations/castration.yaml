@@ -1,0 +1,22 @@
+# Castration (organism-biology D8, W7) — the operation that takes a male's
+# gonads. A farm's job done with a farm's knife, not a surgeon's: the
+# instrument is any `cutting` tool, the calf may stand held, and nothing
+# numbs it. It severs the part through the one sever (the part on the
+# ground, the wound it leaves). ⛔ It addresses a healthy PART, so it is
+# matched only when named — `operate bull` on a bleeding bull stops the
+# bleed and never castrates. No season is authored: a cut in fly season
+# pays what any open wound costs.
+key: castration
+label: castration
+addresses:
+  part: gonads
+instrument: cutting
+competence:
+  discipline: medicine
+  band: novice
+bloodCostL: 0.05
+baseDurationS: 60
+anaesthesia: none
+posture: any
+resolution: severance
+difficulty: moderate

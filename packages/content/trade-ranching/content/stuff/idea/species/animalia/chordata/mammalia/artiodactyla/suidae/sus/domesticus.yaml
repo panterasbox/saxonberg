@@ -10,8 +10,19 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/hog, strength: 40 }]
   binomial: Sus domesticus
-  commonNames: ["pig", "sow", "boar", "hog", "piglet", "swine"]
-  maleNames: [boar]
+  commonNames: ["pig", "hog", "swine"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [sow] }
+      male: { commonNames: [boar], body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    # ⭐ A boar cut young is a barrow (review: the survey found a boar had
+    # no gonads, so castration refused him); the bull's shape.
+    neutered: { commonNames: [barrow, hog] }
+    stage:
+      newborn: { commonNames: [piglet] }
   # ⭐⭐ Its OWN plan: a pig is a third fat with twice a sheep's belly, and
   # `BodyPlan/swine` says so by extending quadruped's topology and
   # restating the shares. Not a dial on a sheep.
@@ -37,39 +48,13 @@ data:
   adultMass: 120
   ageCurve: { weanedAt: 20, matureAt: 130, agedAt: 900, senescentAt: 1300 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 38, litter: 8 }
-  production: []
-  # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
-  #
-  # Until the carcass-chain build the game had two `butcher` verbs with two
-  # yield models: the stockyard's read a hardcoded table of five fractions
-  # that was the same for a hen and a bullock, and the kitchen's read this
-  # field, which these five rows did not author. So an animal gave
-  # different things depending on which verb you typed at it, and neither
-  # answer was its own.
-  #
-  # ⭐ `fraction` is a share of LIVE weight, so size pays off; the shares
-  # are roughly the real ones (a carcass dresses out around 60 %, a hide is
-  # about 7 %, fat around 5 %, bone most of the rest). `units` is how many
-  # pieces that mass arrives in. `conditioned: false` says *this line does
-  # not care how fat the beast was* — and it is a real fact: a hide and a
-  # skeleton are the size the animal IS, not the shape it is in.
-  #
-  # ⚠ The missing third is blood and gut contents, which stay unmodelled.
-  butcheryYield:
-  # ⭐⭐ A pig is a BELLY animal: four bellies off one sow and no shank
-  # worth naming. ⚠ And its fat is LEAF FAT rather than suet — a
-  # ruminant's hard kidney fat and a pig's are not the same thing, and the
-  # chandler can only use one of them.
-  - { cut: /trade/cooking/thing/cut-shoulder, units: 2 }
-  - { cut: /trade/cooking/thing/cut-loin,     units: 2 }
-  - { cut: /trade/cooking/thing/cut-belly,    units: 4 }
-  - { cut: /trade/cooking/thing/cut-leg,      units: 2 }
-  - { cut: /trade/cooking/thing/cut-rib,      units: 2 }
-  - { cut: /stuff/thing/items/offal,        units: 3, fraction: 0.12 }
-  - { cut: /trade/ranching/thing/leaf-fat,     units: 2, fraction: 0.08 }
-  - { cut: /trade/cooking/thing/gut,          units: 2, fraction: 0.03 }
-  - { cut: /trade/ranching/thing/hide,         units: 1, fraction: 0.06, conditioned: false }
-  - { cut: /trade/ranching/thing/bone,         units: 2, fraction: 0.10, conditioned: false }
+  # ⭐ The season, on the body (organism-biology D9): a mature female in
+  # her species' breeding band is in season, and an entire male in rut —
+  # conditions the thermal reconcile carries and relieves, which `breed`
+  # and `assess` read. The band is `breeding`'s, never re-authored here.
+  phenology:
+    - { condition: /platform/idea/Condition/reproduction/in-season, trigger: { season: breeding, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/rut, trigger: { season: breeding, sex: male, stage: adult, entire: true } }
   longDescription: >-
     A long-backed sow with a straight tail and small clever eyes, working
     the ground over with her snout in a way that is clearly systematic.

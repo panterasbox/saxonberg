@@ -1,4 +1,5 @@
 import "../../../test-bootstrap";
+import { setFlatSenses } from '../../lib/species/__tests__/flat-body';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { MessageApi } from '../message';
 import { StuffApi } from '../stuff';
@@ -41,7 +42,7 @@ function makeActor(channels: string[]): Stuff {
     makeStuff(() => new BodyPlan()),
     `/stuff/idea/species/BodyPlan/scene-modality-${channels.join('-') || 'sessile'}`,
   );
-  bp.setSensoryPorts(
+  setFlatSenses(bp, 
     channels.map((ch) => ({
       modality: ch as never,
       count: 1,

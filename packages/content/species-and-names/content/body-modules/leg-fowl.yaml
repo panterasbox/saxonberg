@@ -1,0 +1,17 @@
+# leg-fowl — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W5: comesOffAs — what each material of this module leaves a carcass as.
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.018}
+  - {tissue: /stuff/idea/material/tissue/muscles/leg, weight: 0.045}
+  - {tissue: /stuff/idea/material/tissue/muscles/shank, weight: 0.025}
+  gait: [walk]
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/muscles/leg, cut: /trade/cooking/thing/cut-thigh}
+- {tissue: /stuff/idea/material/tissue/muscles/shank, cut: /trade/cooking/thing/cut-drumstick}

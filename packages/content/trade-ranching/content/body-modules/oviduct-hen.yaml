@@ -1,0 +1,18 @@
+# oviduct-hen — a gland (organism-biology D2): the part that makes
+# eggs. The tap is today's, keyed as it always was, so a
+# stored tap state restores by its key; the store stays on the tap host.
+parts:
+- key: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.015}
+  produces:
+  - key: eggs
+    yieldRow: /trade/ranching/thing/egg
+    perGameDay: 0.8
+    behaviour: accrue
+    windowDays: 10
+    yieldShape: count
+    broodAfterDays: 4
+    # ⭐ In milk / in lay is the BODY's (organism-biology D9): its phenology
+    # carries the condition, and the tap runs only while it does.
+    activeIn: /platform/idea/Condition/reproduction/laying

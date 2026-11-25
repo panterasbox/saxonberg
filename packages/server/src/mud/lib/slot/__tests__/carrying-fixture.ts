@@ -30,6 +30,7 @@ import type { Container } from '../../spatial/Container';
 import { ContainmentApi } from '../../../api/containment';
 import { material } from '../../spatial/__tests__/size-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
+import { setFlatGaits, setFlatParts } from '../../species/__tests__/flat-body';
 
 /** An acting body that carries (Mobile, a Combatant, a Sensor) — what a player's is. */
 export class Body extends CarryingMixin(Actor) {}
@@ -58,7 +59,6 @@ export function handsSpecies(spec: BodySpec = {}): { species: Species; plan: str
   plan.setName(`carrying-w4-${n}`);
   plan.setBaseMass(spec.mass ?? 70);
   plan.setBaseStature(spec.stature ?? 1.75);
-  plan.setLocomotionModes(['walk', 'run', 'sneak']);
   const hands = spec.hands !== false;
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body'] },
@@ -78,7 +78,7 @@ export function handsSpecies(spec: BodySpec = {}): { species: Species; plan: str
         ]
       : []),
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body', parent: null, tissues: [] },
     ...(hands
       ? [
@@ -87,6 +87,8 @@ export function handsSpecies(spec: BodySpec = {}): { species: Species; plan: str
         ]
       : []),
   ]);
+  // W3: gaits ride a part of their own, given after the parts.
+  setFlatGaits(plan, ['walk', 'run', 'sneak']);
   const path = `/stuff/idea/species/BodyPlan/carrying-w4-${n}`;
   stampTemplatePathForTest(plan, path);
   const species = makeStuff(() => new Species());

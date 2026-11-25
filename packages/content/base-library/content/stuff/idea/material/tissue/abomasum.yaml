@@ -1,0 +1,7 @@
+# organism-biology D5: a named organ tissue, so a module can say what it
+# comes off a carcass as (a calf's vell).
+extends: /stuff/idea/material/tissue/intestine
+data:
+  name: abomasum
+  keywords: [abomasum, stomach, organ]
+  appearance: a small, pale fourth stomach

@@ -18,6 +18,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 const SlottableThingBase = SlottableMixin(Good);
 class SlottableThing extends SlottableThingBase {}
@@ -29,7 +30,7 @@ function anatomicalCreature(): Creature {
   plan.setSlots([
     { name: 'grip', accepts: 'SlottableMixin', bodyPart: 'body.arm.left.hand' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,
@@ -85,9 +86,11 @@ describe('VitalsMixin — anatomy resolver', () => {
   it('reads per-part tissue composition', () => {
     const creature = anatomicalCreature();
     const arm = creature.getPart('body.arm.left');
-    expect(arm?.tissues).toEqual([
-      { tissuePath: '/stuff/idea/material/tissue/muscle', share: 0.198675 },
-    ]);
+    // ⭐ W1: a body's shares sum to 1 by construction — the fixture's four
+    // parts sum to 0.774834, so each reads as its share of that whole.
+    expect(arm?.tissues.length).toBe(1);
+    expect(arm?.tissues[0]?.tissuePath).toBe('/stuff/idea/material/tissue/muscle');
+    expect(arm?.tissues[0]?.share).toBeCloseTo(0.198675 / 0.774834, 9);
   });
 
   it('returns [] for a body with no species/bodyplan', () => {
@@ -112,9 +115,9 @@ describe('VitalsMixin — anatomy resolver', () => {
   it('⭐ interiority is a PREDICATE — a governing organ is inside you', () => {
     const creature = anatomicalCreature();
     const plan = creature.getSpecies()!.getBodyPlan()!;
-    expect(plan.isInterior('body.torso.heart')).toBe(true);
-    expect(plan.isInterior('body.arm.left.hand')).toBe(false);
-    expect(plan.isInterior('body.torso')).toBe(false);
+    expect(plan.getBody().isInterior('body.torso.heart')).toBe(true);
+    expect(plan.getBody().isInterior('body.arm.left.hand')).toBe(false);
+    expect(plan.getBody().isInterior('body.torso')).toBe(false);
   });
 
   it('⭐⭐ a CONDUIT is interior even though it governs nothing — the spine', () => {
@@ -125,7 +128,7 @@ describe('VitalsMixin — anatomy resolver', () => {
     // be covered by a garment, and colder for having no sleeve.
     const plan = makeStuff(() => new BodyPlan());
     plan.setName('test-spined');
-    plan.setBodyParts([
+    setFlatParts(plan, [
       { key: 'body.torso', parent: null, tissues: [] },
       { key: 'body.torso.spine', parent: 'body.torso', tissues: [] },
       {
@@ -135,14 +138,14 @@ describe('VitalsMixin — anatomy resolver', () => {
         tissues: [],
       },
     ]);
-    expect(plan.isInterior('body.torso.spine')).toBe(true);
-    expect(plan.isInterior('body.arm.left')).toBe(false);
+    expect(plan.getBody().isInterior('body.torso.spine')).toBe(true);
+    expect(plan.getBody().isInterior('body.arm.left')).toBe(false);
   });
 
   it('⚠ a typo in `governs` THROWS at registration — never an inert organ', () => {
     const plan = makeStuff(() => new BodyPlan());
     expect(() =>
-      plan.setBodyParts([
+      setFlatParts(plan, [
         { key: 'body.torso', parent: null, tissues: [] },
         {
           key: 'body.torso.heart',
@@ -157,7 +160,7 @@ describe('VitalsMixin — anatomy resolver', () => {
   it('`governs` accepts a CAPACITY as well as a vital sign', () => {
     const plan = makeStuff(() => new BodyPlan());
     expect(() =>
-      plan.setBodyParts([
+      setFlatParts(plan, [
         { key: 'body.torso', parent: null, tissues: [] },
         {
           key: 'body.torso.lungs',
@@ -172,7 +175,7 @@ describe('VitalsMixin — anatomy resolver', () => {
   it('⚠ `serves` is capacities ONLY — a vital sign is not a thing a limb is for', () => {
     const plan = makeStuff(() => new BodyPlan());
     expect(() =>
-      plan.setBodyParts([
+      setFlatParts(plan, [
         { key: 'body.torso', parent: null, tissues: [] },
         {
           key: 'body.leg.left',
@@ -181,12 +184,12 @@ describe('VitalsMixin — anatomy resolver', () => {
           tissues: [],
         },
       ]),
-    ).toThrow(/serves unknown capacity 'heartRate'/);
+    ).toThrow(/serves or sustains unknown capacity 'heartRate'/);
   });
 
   it('⭐ `serves` does NOT make a part interior — a hand must stay coverable', () => {
     const plan = makeStuff(() => new BodyPlan());
-    plan.setBodyParts([
+    setFlatParts(plan, [
       { key: 'body.torso', parent: null, tissues: [] },
       {
         key: 'body.arm.left.hand',
@@ -195,15 +198,15 @@ describe('VitalsMixin — anatomy resolver', () => {
         tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', share: 0.02649 }],
       },
     ]);
-    expect(plan.isInterior('body.arm.left.hand')).toBe(false);
+    expect(plan.getBody().isInterior('body.arm.left.hand')).toBe(false);
     // …and therefore it still carries a share of the external surface.
-    expect(plan.getPartSurfaceFraction('body.arm.left.hand')).toBeGreaterThan(0);
+    expect(plan.getBody().getPartSurfaceFraction('body.arm.left.hand')).toBeGreaterThan(0);
   });
 
   it('interior parts carry NO share of the external surface', () => {
     const creature = anatomicalCreature();
     const plan = creature.getSpecies()!.getBodyPlan()!;
-    expect(plan.getPartSurfaceFraction('body.torso.heart')).toBe(0);
+    expect(plan.getBody().getPartSurfaceFraction('body.torso.heart')).toBe(0);
   });
 
   it('canOccupy honours the anatomy gate (coarse part→slot coupling)', () => {

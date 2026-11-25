@@ -25,6 +25,11 @@ class: /platform/idea/species/Species
 data:
   binomial: Betula pendula
   commonNames: ["birch", "silver birch", "white birch"]
+  # ⭐ What this species' body adds to its plan, for every form (D1, D2):
+  # the gland its tap comes from.
+  body:
+    add:
+      - { module: /trade/forestry/body-modules/sapwood-birch, as: [body.sapwood] }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
   _parentCladePath: /stuff/idea/species/plantae
   _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
@@ -35,45 +40,6 @@ data:
   lifespanMax: 80
   circadianBand: aperiodic
   diet: photosynthesis
-  production:
-    # ⭐⭐ Sap is a VOLUME, so `yieldRow` names the MATERIAL and the
-    # vessel is the object — exactly like milk. There is no "bucket of
-    # sap" row, because minting the bucket with the sap would be the
-    # faucet shape for containers.
-    #
-    # ⭐ `perGameDay: 3` is PER SPILE (`productionFactor` multiplies by
-    # the spiles set), so a two-spile mature birch runs about six litres
-    # a game day at full vigour — a pail a day, which is roughly honest
-    # for a real birch in full run and is a playable number at a 40 L
-    # pan and 2% yield.
-    #
-    # ⭐⭐⭐ `rising: true` is the load-bearing term. Spring and autumn
-    # CROSS THE SAME DAYLENGTH BAND and are not the same season for a
-    # tree: sap runs on the way up and not on the way down. Without it a
-    # birch would run twice a year, which is the kind of wrongness
-    # nothing in the game would ever have reported.
-    #
-    # ⭐ The climate build made the winter real, and this row moved
-    # rather than any code: the band was 0.40–0.50 — LATE WINTER at 42°,
-    # which now averages under 278 K, so the birch would never have run
-    # at all. A birch runs AFTER the maple, from the thaw into April, so
-    # the band is the weeks either side of the equinox (0.49–0.57 rising,
-    # days ≈ 355–40) and the 278 K floor does real work: a valley birch
-    # opens near the equinox, one up at Rejection's 450 m a fortnight
-    # later, and a cold year holds them all back.
-    - key: sap
-      yieldRow: /stuff/idea/material/food/birch-sap
-      perGameDay: 3
-      behaviour: accrue
-      windowDays: 4
-      yieldShape: volume
-      window:
-        kind: weather
-        daylightFrom: 0.49
-        daylightTo: 0.57
-        rising: true
-        minK: 278
-        maxK: 300
   longDescription: >-
     A slender birch with papery white bark peeling in ribbons and a
     crown of small restless leaves.

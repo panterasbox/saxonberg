@@ -148,6 +148,13 @@ const RegistryWideReaders = SecurityPolicies.AnyOf(
   // `world:[mixin.X]` typed by somebody the executive has said may read
   // the world. See `CompactApi.readWorldAs`.
   SecurityPolicies.FromTemplate('/platform/idea/api/mql'),
+  // ⭐ A daylight pin fans out to every living body at once (a test
+  // world's staging verb, organism-biology D9 — a weather pin's shape):
+  // each brings its core current and reads its seasons under the new day.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/test-harness',
+    'pinDaylight',
+  ),
 );
 
 export class StuffApi {

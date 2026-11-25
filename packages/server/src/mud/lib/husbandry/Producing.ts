@@ -56,6 +56,7 @@
  * no common pack ancestor, which is CLAUDE.md's promotion test.
  */
 
+import { DaylengthBand } from '../time/DaylengthBand';
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Mixins } from '../mixin';
 import { StuffApi } from '../../api/stuff';
@@ -342,11 +343,46 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
      */
     protected _tapAir: { k: number; atS: number } | null = null;
 
+    /**
+     * ⭐ The taps this body has: its GLANDS' (organism-biology D2). A gland
+     * is a part — the udder on a female's body, the oviduct on a hen's, a
+     * tree's sapwood — so a bull has no milk tap at all, and a tap's key
+     * is the key it always had (`tapState` restores by it).
+     */
     public taps(): readonly TapSpec[] {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return [];
+      return (self.getBody()?.producers() ?? []).map((p) => p.spec);
+    }
+
+    /**
+     * ⭐ How well the gland behind `key` can make it (D2): its part's
+     * function band — full 1, impaired ½, failing or lost 0 — on a body
+     * that takes wounds; 1 on one that does not (a hive, a tree).
+     */
+    protected glandFactor(key: string): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self) || !MixinApi.isVitals(self)) return 1;
+      const gland = self.getBody()?.producers().find((p) => p.spec.key === key);
+      if (!gland) return 1;
+      const band = self.functionAt(gland.partKey);
+      return band === 'full' ? 1 : band === 'impaired' ? 0.5 : 0;
+    }
+
+    /**
+     * Does another form of this species have a gland for `key` (a cow's
+     * udder, asked of a bull)? The refusal is then *wrong sex*, in her
+     * voice, rather than *no such thing*.
+     */
+    protected anotherFormGives(key: string): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
       const species = self.getSpecies() as Species | null;
-      return species?.getProduction() ?? [];
+      if (!species) return false;
+      const stage = self.getLifeStage();
+      return Object.keys(species.getVariants().sex ?? {}).some((sex) =>
+        (species.bodyFor({ sex, stage })?.producers() ?? []).some((p) => p.spec.key === key),
+      );
     }
 
     /**
@@ -366,6 +402,34 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (flesh === undefined) return 1;
       // Full at "in good flesh" and above; nothing at the emaciated end.
       return clamp01((flesh - 12) / 43);
+    }
+
+    /**
+     * ⭐ Stage how much a tap holds (organism-biology B33) — the staging
+     * setter a drive reaches through `testharness stage` (which is
+     * `@TestOnly`): a fleece of a year's growth without the year. The
+     * production clock is reconciled first and restamped to now; a coat
+     * that reads this tap re-banks its fill. Nothing in play sets a
+     * standing — it grows or it is taken.
+     */
+    public setTapStanding(key: string, units: number): void {
+      this.reconcileProduction();
+      const prior = this.tapState[key];
+      const standing = Number.isFinite(units) && units > 0 ? units : 0;
+      this.tapState = {
+        ...this.tapState,
+        [key]: {
+          lastTaken: 0,
+          driedOff: false,
+          worst: 1,
+          brooding: false,
+          fullSince: 0,
+          ...prior,
+          standing,
+        },
+      };
+      const self = this as unknown as Stuff;
+      if (MixinApi.isThermalRegulation(self)) self.reconcileThermalRegulation();
     }
 
     public standingIn(key: string): number {
@@ -432,29 +496,25 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       if (state?.brooding === true) {
         return { open: false, reason: 'brooding' };
       }
+      // ⭐⭐ The body says whether it is in milk (organism-biology D9): a
+      // tap `activeIn` a condition runs only while the body carries it —
+      // one schedule, the species' phenology or the freshening act.
+      if (tap.activeIn && !this.carriesCondition(tap.activeIn)) {
+        return { open: false, reason: tap.activeIn.endsWith('/laying') ? 'not-laying' : 'not-lactating' };
+      }
 
       const spec: TapWindowSpec = tap.window ?? { kind: 'always' };
       switch (spec.kind) {
         case 'always':
-        case 'event':
-          // `event` is opened and closed by `freshen`/dry-off, both of
-          // which are answered above. Open otherwise.
           return OPEN;
         case 'biome':
           return this.biomeWindowOpen(tap)
             ? OPEN
             : { open: false, reason: 'no-forage' };
-        case 'photoperiod': {
-          const day = daylightFraction(this as unknown as Stuff);
-          if (day === null) return OPEN;
-          return inBand(day, spec.daylightFrom, spec.daylightTo)
-            ? OPEN
-            : { open: false, reason: seasonSide(day, spec.daylightFrom) };
-        }
         case 'weather': {
           const day = daylightFraction(this as unknown as Stuff);
           if (day !== null) {
-            if (!inBand(day, spec.daylightFrom, spec.daylightTo)) {
+            if (!new DaylengthBand(spec as { daylightFrom: number; daylightTo: number }).contains(day)) {
               return {
                 open: false,
                 reason: seasonSide(day, spec.daylightFrom),
@@ -497,7 +557,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             day !== null &&
             spec.daylightFrom !== undefined &&
             spec.daylightTo !== undefined &&
-            !inBand(day, spec.daylightFrom, spec.daylightTo)
+            !new DaylengthBand(spec as { daylightFrom: number; daylightTo: number }).contains(day)
           ) {
             return { open: false, reason: seasonSide(day, spec.daylightFrom) };
           }
@@ -683,13 +743,8 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public givesTap(key: string): boolean {
-      const tap = this.taps().find((t) => t.key === key);
-      if (!tap?.sex) return true;
-      const self = this as unknown as Stuff;
-      if (!MixinApi.isOrganism(self)) return true;
-      const sex = self.getSex();
-      // ⚠ The tri-state rule: an unrecorded sex is open, not closed.
-      return sex === null || sex === tap.sex;
+      // ⭐ A body gives what it has a gland for (D2): a bull has no udder.
+      return this.taps().some((t) => t.key === key);
     }
 
     public dryOff(key: string): void {
@@ -697,6 +752,25 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       const state = this.tapState[key];
       if (!state) return;
       this.tapState = { ...this.tapState, [key]: { ...state, driedOff: true } };
+      this.endActiveIn(key);
+    }
+
+    /** Does the body carry the condition at `path` (a tap's `activeIn`)? */
+    private carriesCondition(path: string): boolean {
+      const self = this as unknown as Stuff;
+      return MixinApi.isVitals(self) && self.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === path);
+    }
+
+    /**
+     * ⭐ Drying off ends the lactation (D9): the tap's `activeIn` condition
+     * is relieved — the one write path besides the freshening at the draft.
+     */
+    private endActiveIn(key: string): void {
+      const self = this as unknown as Stuff;
+      const path = this.taps().find((t) => t.key === key)?.activeIn;
+      if (!path || !MixinApi.isVitals(self)) return;
+      const held = self.getConditions().find((c) => c.kind === 'affliction' && c.templatePath === path);
+      if (held) self.relieve(held);
     }
 
     public freshen(key: string): void {
@@ -736,6 +810,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         const days = elapsed / SECONDS_PER_GAME_DAY;
         const factor = this.productionFactor();
         const next: Record<string, TapState> = { ...this.tapState };
+        const driedNow: string[] = [];
         for (const tap of this.taps()) {
           const state = next[tap.key] ?? seedState(nowS);
           const sinceTaken =
@@ -753,7 +828,9 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
           // the `Stand` growth-factor form. Honest-cheap, and stated:
           // a jump across a season boundary bills the whole interval at
           // the boundary's own answer.
-          const open = this.tapWindow(tap.key).open ? 1 : 0;
+          // ⭐ …and a wounded gland makes less (D2): the window's open
+          // fraction times the part's own function.
+          const open = (this.tapWindow(tap.key).open ? 1 : 0) * this.glandFactor(tap.key);
 
           if (tap.behaviour === 'expire') {
             // ⚠ She dries off. The SLOPE: production stops for this
@@ -761,6 +838,7 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
             // costs a season, never an animal.
             if (sinceTaken > tap.windowDays) {
               next[tap.key] = { ...state, standing: 0, driedOff: true };
+              driedNow.push(tap.key);
               continue;
             }
             if (state.driedOff) {
@@ -861,6 +939,8 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
         }
         this.tapState = next;
         this.productionStamp = nowS;
+        // ⭐ An untaken lactation dries off as surely as a drying-off does (D9).
+        for (const key of driedNow) this.endActiveIn(key);
       } finally {
         this._reconcilingProduction = false;
       }
@@ -893,10 +973,12 @@ export function ProducingMixin<TBase extends MixinConstructor<Stuff>>(
       _what: string | null,
     ): Promise<TapPlan | TapRefusal> {
       const tap = this.taps().find((t) => t.key === key);
-      if (!tap) return { ok: false, reason: 'no-such-tap' };
-      // ⭐ Is this the animal that gives it, before is it the season?
-      if (!this.givesTap(key)) {
-        return { ok: false, reason: 'wrong-sex', facts: { key } };
+      // ⭐ Is this the animal that gives it, before is it the season? A
+      // bull has no udder; the species' cow does — so *wrong sex*.
+      if (!tap) {
+        return this.anotherFormGives(key)
+          ? { ok: false, reason: 'wrong-sex', facts: { key } }
+          : { ok: false, reason: 'no-such-tap' };
       }
       await this.bringTapAirCurrent();
       const window = this.tapWindow(key);
@@ -1247,14 +1329,6 @@ function airPlaceOf(host: Stuff): (Stuff & Atmospheric) | null {
   return null;
 }
 
-/**
- * Is `day` inside `[from, to]`? ⚠ A WRAPPING band is legal — the
- * `breedsAtDaylight` shape — so a winter season authored `[0.9, 0.1]`
- * reads as one band rather than an empty one.
- */
-function inBand(day: number, from: number, to: number): boolean {
-  return from <= to ? day >= from && day <= to : day >= from || day <= to;
-}
 
 /**
  * Which side of a closed season we are on, in the only terms a player
@@ -1263,7 +1337,9 @@ function inBand(day: number, from: number, to: number): boolean {
  * sentence ("the run is over for the year") land at the right moment.
  */
 function seasonSide(day: number, from: number): TapClosedReason {
-  return day < from ? 'before-season' : 'after-season';
+  return new DaylengthBand({ daylightFrom: from, daylightTo: from }).sideOf(day) === 'before'
+    ? 'before-season'
+    : 'after-season';
 }
 
 /** Game-seconds now, or null when no world clock (pre-boot / tests). */

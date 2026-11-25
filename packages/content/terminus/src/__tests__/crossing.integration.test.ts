@@ -33,6 +33,7 @@ import {
 } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
 import TemplateApplier from "@saxonberg/server/mud/platform/idea/TemplateApplier";
 import { standMaterials } from "@saxonberg/server/mud/lib/material/__tests__/materials";
+import { standShippedModules } from "@saxonberg/server/mud/lib/species/__tests__/shipped-modules";
 import { rememberDisciplines } from "@saxonberg/server/mud/lib/advancement/__tests__/discipline-fixtures";
 
 const PH = TemplateApplier.templatePath;
@@ -188,6 +189,8 @@ vi.setConfig({ testTimeout: 30000 });
 describe("University Avenue crossing standup (real seeds)", () => {
   beforeEach(async () => {
     StuffApi.clearAll();
+    // ⭐ A real body plan is a list of module documents (organism-biology W1).
+    standShippedModules();
     installStore(docs());
     await AppSettings.warm();
     // The discipline dictionary is CraftingApi's need — the boot stands it

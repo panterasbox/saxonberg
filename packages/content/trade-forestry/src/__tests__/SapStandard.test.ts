@@ -41,6 +41,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { setFlatTaps } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 const DAY = 86_400;
 const SPECIES_PATH = '/stuff/idea/species/_test/sap-tree';
@@ -198,7 +199,7 @@ describe('a tree you tap', () => {
     makeStuffAtPath(
       () => {
         const sp = new Species();
-        sp.setProduction(SAP);
+        setFlatTaps(sp, SAP);
         return sp;
       },
       SPECIES_PATH,
@@ -274,7 +275,7 @@ describe('a tree you tap', () => {
 
   it('⭐ a tap that names a BLADE refuses the auger and takes the knife (paint D17)', async () => {
     const gum: TapSpec[] = [{ ...SAP[0]!, key: 'gum', instrument: 'cutting' }];
-    StuffApi.findByTemplatePath<Species>(SPECIES_PATH)!.setProduction(gum);
+    setFlatTaps(StuffApi.findByTemplatePath<Species>(SPECIES_PATH)!, gum);
     const t = tree();
     const bored = await t.planTap(handsWith([{ spile: true }]) as never, 'gum', auger(), null, null);
     expect(bored.ok).toBe(false);
@@ -427,7 +428,7 @@ describe('⭐⭐ a maple on freeze–thaw (the climate build)', () => {
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction([
+      setFlatTaps(sp, [
         { ...SAP[0]!, window: { kind: 'freeze-thaw' } },
       ]);
       return sp;

@@ -1,0 +1,49 @@
+# torso-fowl — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W3: two kidneys, each SUSTAINING filtration (any one suffices), their
+# share taken from the torso's flesh.
+# ⭐ W5: comesOffAs — what each material of this module leaves a carcass as.
+parts:
+- key: ''
+  senses: [{modality: touch}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.1}
+  - {tissue: /stuff/idea/material/tissue/muscles/breast-white, weight: 0.24}
+  - {tissue: /stuff/idea/material/food/animal-fat, weight: 0.05}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.293}
+- key: heart
+  parent: ''
+  governs: [heartRate]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.003}
+- key: lungs
+  parent: ''
+  governs: [respiratoryRate]
+  breathes: [{medium: air, apparatus: lungs, intake: 1}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.005}
+- key: liver
+  parent: ''
+  governs: [clearance]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.008}
+- key: kidney.left
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+- key: kidney.right
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.02}
+  under: {material: /stuff/idea/material/textile/down, depthM: 0.01, loft: 0.97}
+  coat: {material: /stuff/idea/material/tissue/feather, depthM: 0.015, loft: 0.9}
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/muscles/breast-white, cut: /trade/cooking/thing/cut-breast}
+- {tissue: /stuff/idea/material/tissue/flesh, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/tissue/kidney, cut: /stuff/thing/items/offal}
+- {tissue: /stuff/idea/material/tissue/feather, cut: /trade/ranching/thing/feathers}
+- {tissue: /stuff/idea/material/textile/down, cut: /trade/ranching/thing/down}

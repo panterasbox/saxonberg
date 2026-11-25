@@ -85,6 +85,7 @@
  * CLAUDE.md § Instanceable Lives in `platform/<branch>/`.
  */
 
+import type { MarkupAugmenter } from '../../api/mml';
 import Thing from '../../lib/stuff/Thing';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { OrganismMixin } from '../../lib/species/Organism';
@@ -102,6 +103,7 @@ import type { FieldMeta } from '../../lib/mixin';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { PresentationForm } from '../../lib/description/NounPhrase';
 import { MixinApi } from '../../api/mixin';
+import { Quantity } from '../../lib/quantity';
 import {
   ButcherableMixin,
   type ButcherPlan,
@@ -137,11 +139,42 @@ const CorpseBase = PostmortemMixin(
   ),
 );
 
+/**
+ * ⭐ A skinned carcass says so (organism-biology D5): once the line its skin
+ * came off as is taken, the body is bare.
+ */
+function skinnedAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!(host instanceof Corpse) || !MixinApi.isOrganism(host)) return text;
+  const body = host.getBody();
+  if (!body) return text;
+  const taken = new Set(host.getTakenLines());
+  const off = (layer: 'skin' | 'coat'): boolean =>
+    body.yieldLines().some(
+      (l) =>
+        l.integument &&
+        l.parts.some((k) => {
+          const m = body.integumentAt(k)?.[layer]?.material ?? '';
+          // ⚠ A line with tissues is marked taken BY TISSUE (the ledger's
+          // take), so a whole-line mark alone missed every pelt and plume.
+          return m !== '' && l.tissues.includes(m) && (taken.has(l.row) || !host.hasTissue(m));
+        }),
+    );
+  // ⭐ A plucked or fleeced carcass shows its skin (requirements drive 4):
+  // the coat came off and the skin did not.
+  const line = off('skin') ? 'It has been skinned.' : off('coat') ? 'Its coat is off; the bare skin shows.' : null;
+  if (line === null) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export default class Corpse extends CorpseBase {
+  /** A skinned carcass says so (D5). */
+  static markupAugmenters: MarkupAugmenter[] = [skinnedAugmenter];
+
   static fieldMeta: FieldMeta = {
     conditionAtDeath: { persistent: true, authorable: true },
     takenTissues: { persistent: true },
     takenLines: { persistent: true },
+    takenKg: { persistent: true },
     // ⛔ spoiler 2: whose body it is — the very fact #105 hides from a
     // stranger (the blood-stain precedent, Soilable.stains).
     ofIdentityPath: { persistent: true, spoiler: 2 },
@@ -197,6 +230,9 @@ export default class Corpse extends CorpseBase {
 
   /** See {@link takenTissues}. */
   public takenLines: string[] = [];
+
+  /** ⭐ What has come off this carcass, kg — it weighs that much less. */
+  public takenKg: number = 0;
 
   public getTakenTissues(): readonly string[] {
     return this.takenTissues;
@@ -262,9 +298,20 @@ export default class Corpse extends CorpseBase {
       facts: {
         fleshPct: this.getConditionAtDeath(),
         stillOn,
-        take: (line) => {
+        takenKg: this.takenKg,
+        take: (line, kg) => {
           if (line.tissues.length) this.markTissuesTaken(line.tissues);
           else this.markLineTaken(line.cut);
+          // ⭐ The carcass shrinks as the cuts come off it (requirements
+          // drive step 2): its mass is what is left; `takenKg` keeps the
+          // whole recoverable for the yield's shares.
+          const off = Number.isFinite(kg) && kg > 0 ? kg : 0;
+          if (off > 0) {
+            const now = this.getMass().rawValue();
+            const left = Math.max(0, now - off);
+            this.takenKg += now - left;
+            this.setMass(Quantity.of(left, 'kg'));
+          }
         },
       },
       onComplete: () => {

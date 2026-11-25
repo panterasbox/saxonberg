@@ -43,6 +43,7 @@ import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignat
 import { standShippedConditions } from '../../../../../lib/vitals/__tests__/conditions';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { setFlatParts } from '../../../../../lib/species/__tests__/flat-body';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
 // `isDressing`, not `instanceof Bandage`.
@@ -479,7 +480,7 @@ describe('TreatController — the treatment matches the condition', () => {
     // it is, and that fact lives on the body plan, not on the trauma.
     const plan = makeStuff(() => new BodyPlan());
     plan.setName('treat-biped');
-    plan.setBodyParts([
+    setFlatParts(plan, [
       { key: 'body.torso', parent: null, tissues: [] },
       {
         key: 'body.torso.liver',
