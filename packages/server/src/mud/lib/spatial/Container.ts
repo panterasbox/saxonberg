@@ -449,16 +449,21 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       const interior = interiorOf(self);
       if (interior === null) return null;
       // ⭐⭐ Ground takes ground (persistence-model D14): a place that closes
-      // no side is bounded by its FLOOR — what lies there, agents excluded,
+      // no side is bounded by its FLOOR — what lies there, bodies excluded,
       // plus the arrival, against its area. A body is never refused by it,
-      // and never counted, so a crowd changes nothing.
-      if (self.isPlace() && !item.isAgent()) {
+      // and never counted, so a crowd changes nothing. ⚠ A BODY, not an
+      // agent: a corpse is the body that just died where it stood, so it
+      // takes no ground the living body did not (organism-biology drive: a
+      // grown whale died in a cluttered yard, its corpse was refused, and the
+      // death half-failed with the body gone).
+      const isBody = (s: Stuff): boolean => s.isAgent() || MixinApi.isOrganism(s);
+      if (self.isPlace() && !isBody(item)) {
         const open = this.bounds();
         if (open !== null && !open.closed.width && !open.closed.depth && !open.closed.height) {
           const floor = open.interior.width * open.interior.depth;
           let lying = box.footprintWithin(open.interior);
           for (const c of this.getContents()) {
-            if (c.stuffId === item.stuffId || c.isAgent()) continue;
+            if (c.stuffId === item.stuffId || isBody(c)) continue;
             const cb = MixinApi.isShaped(c) ? c.getFitBox() : null;
             if (cb !== null) lying += cb.footprintWithin(open.interior);
           }
