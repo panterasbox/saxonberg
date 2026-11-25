@@ -20,6 +20,7 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 /**
  * A load-bearing Creature that is also a Sensor — needed wherever a
@@ -73,7 +74,7 @@ export function bearerOf<T extends Creature>(
   const plan = makeStuff(() => new BodyPlan());
   plan.setName(`test-bearer-${n}`);
   plan.setBaseMass(baseMass);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

@@ -6,6 +6,7 @@
 // the face is `@TestOnly`, so outside a test world none of this is
 // reachable at all. See docs/testing.md § The soak lane.
 
+import { Mixins } from '../../../lib/mixin';
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
@@ -39,7 +40,13 @@ import { GoogleProfile } from '../../../lib/identity/GoogleProfile';
 import { Refusal } from '../../../lib/errors';
 import { PersistedRecord } from '../../../lib/persistence/PersistedRecord';
 import type { ContentEntry, MixinSlice } from '../../../lib/persistence/PersistenceSlice';
-import Condition from '../Condition';
+import Condition, { HARM_DEFAULTS, type Trauma, type AfflictionRecord } from '../Condition';
+import { ConditionApi, type InflictSpec, type InflictOutcome } from '../../../api/condition';
+import { PerceptionApi } from '../../../api/perception';
+import { CelestialApi } from '../../../api/celestial';
+import { BODY_CAPACITIES } from '../../../lib/vitals/BodyCapacity';
+import { CHANNELS, type Channel } from '../../../lib/material/Channel';
+import type { Vitals } from '../../../lib/vitals/Vitals';
 import Species from '../species/Species';
 import ShipRegister from '../ShipRegister';
 import Ship from '../Ship';
@@ -227,6 +234,49 @@ export interface AfflictReport {
   readonly condition: string;
   /** How the body reads after it: conscious, unconscious or dead. */
   readonly consciousness: string;
+}
+
+/**
+ * What `testharness body` reads (organism-biology D16): the body of one
+ * individual as a drive needs to assert on it — its stage, sex and names,
+ * the conditions it carries, its core temperature, what it can still do,
+ * the parts it has lost, and (with `perceiving`) whether it perceives
+ * another.
+ */
+export interface BodyReport {
+  readonly body: string;
+  readonly species: string | null;
+  readonly stage: string | null;
+  readonly sex: string | null;
+  readonly alive: boolean;
+  readonly keywords: readonly string[];
+  readonly conditions: readonly { templatePath: string; stage: number }[];
+  readonly traumas: readonly { type: string; site: string; severity: number; mechanism: string | null }[];
+  readonly coreK: number | null;
+  /** The body's insulation as it stands, clo (worn + its own coat at fill). */
+  readonly clo: number | null;
+  readonly capacities: Readonly<Record<string, string>>;
+  readonly missing: readonly string[];
+  readonly massKg: number | null;
+  /** Present iff `perceiving` was named: does this body perceive it? */
+  readonly perceives?: boolean;
+}
+
+/** What a `testharness body-wound` / `body-sever` landed. */
+export interface BodyWoundReport {
+  readonly body: string;
+  readonly site: string;
+  readonly type: string;
+  readonly severity: number;
+  readonly afflicted: boolean;
+  readonly missing: readonly string[];
+}
+
+/** What `testharness daylight-pin` / `daylight-unpin` left. */
+export interface DaylightPinReport {
+  readonly pin: number | null;
+  /** How many living bodies read their seasons under the new day (the fan-out). */
+  readonly bodies: number;
 }
 
 /** What `testharness standing-history` did (db-performance drive 2). */
@@ -430,13 +480,22 @@ export class TestHarnessLogic extends ApiLogic {
    * whatever going under does (its hands let go, D13) happens now.
    */
   @CallSecurity(TestHarnessApiCallers)
-  public async afflict(handle: string, conditionPath: string, stage = 1): Promise<AfflictReport> {
+  public async afflict(handle0: string, conditionPath: string, stage = 1): Promise<AfflictReport> {
     // The stage is the logic's to judge, not the verb's (lint:controller-decisions).
-    if (!(Number.isFinite(stage) && stage > 0)) throw new Error(`testharness afflict: a stage is a number above 0 (got ${stage})`);
-    const body = this.residentCharacter(handle, 'afflict');
+    // ⭐ Stage 0 RELIEVES (organism-biology D16): the staged twin of a
+    // condition's clearing, so a drive can take a cow out of milk.
+    if (!(Number.isFinite(stage) && stage >= 0)) throw new Error(`testharness afflict: a stage is a number, 0 to relieve (got ${stage})`);
+    const body = await this.bodyByHandle(handle0, 'afflict');
+    const handle = body.getPresentation();
     const row = await StuffApi.singleton<Stuff>(conditionPath).catch(() => null);
     if (!(row instanceof Condition)) throw new Error(`testharness afflict: '${conditionPath}' is not a condition`);
     if (!MixinApi.isVitals(body)) throw new Error(`testharness afflict: '${handle}' has no vitals`);
+    if (stage === 0) {
+      for (const c of [...body.getConditions()]) {
+        if (c.kind === 'affliction' && c.templatePath === conditionPath) body.relieve(c);
+      }
+      return { character: handle, condition: conditionPath, consciousness: body.getConsciousness() };
+    }
     const toxin = row.getToxinBehavior();
     if (toxin !== null && MixinApi.isMetabolic(body)) {
       // Bring the body current FIRST, or the dose is cleared at once by the
@@ -460,6 +519,143 @@ export class TestHarnessLogic extends ApiLogic {
     };
   }
 
+  /** See {@link TestHarnessApi.bodyReport}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async bodyReport(handle: string, otherHandle: string | null): Promise<BodyReport> {
+    const body = await this.bodyByHandle(handle, 'body');
+    const other = otherHandle === null ? null : await this.bodyByHandle(otherHandle, 'body');
+    const organism = MixinApi.isOrganism(body) ? body : null;
+    const vitals = MixinApi.isVitals(body) ? body : null;
+    const capacities: Record<string, string> = {};
+    if (vitals) for (const k of BODY_CAPACITIES) capacities[k] = vitals.capacity(k);
+    let coreK: number | null = null;
+    let clo: number | null = null;
+    if (vitals && MixinApi.isThermalRegulation(body)) {
+      coreK = vitals.getVitalSign('coreTemperature').rawValue();
+      clo = Math.round(body.insulationClo() * 1000) / 1000;
+    }
+    const conditions = (vitals?.getConditions() ?? [])
+      .filter((c): c is AfflictionRecord => c.kind === 'affliction')
+      .map((c) => ({ templatePath: c.templatePath, stage: c.stage }));
+    const traumas = (vitals?.getConditions() ?? [])
+      .filter((c): c is Trauma => c.kind === 'trauma')
+      .map((t) => ({ type: t.type, site: t.site, severity: t.severity, mechanism: t.mechanism ?? null }));
+    const report: BodyReport = {
+      body: body.getPresentation(),
+      species: organism?.getSpecies()?.getTemplatePath() ?? null,
+      stage: organism?.getLifeStage() ?? null,
+      sex: organism?.getSex() ?? null,
+      alive: organism?.isAlive() ?? false,
+      keywords: MixinApi.isPerceptible(body) ? [...body.getKeywords()] : [],
+      conditions,
+      traumas,
+      coreK,
+      clo,
+      capacities,
+      missing: vitals?.getMissingParts().map((p) => p.key) ?? [],
+      massKg: MixinApi.isTangible(body) ? body.getMass().rawValue() : null,
+    };
+    if (other === null) return report;
+    return { ...report, perceives: PerceptionApi.perceives(body, other) };
+  }
+
+  /** See {@link TestHarnessApi.woundBody}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async woundBody(handle: string, part: string, channel: string, magnitude: number): Promise<BodyWoundReport> {
+    const body = await this.bodyByHandle(handle, 'body-wound');
+    if (!MixinApi.isVitals(body)) throw new Error(`testharness body-wound: '${body.getPresentation()}' has no vitals`);
+    if (!(Number.isFinite(magnitude) && magnitude > 0)) {
+      throw new Error(`testharness body-wound: a magnitude is a number above 0 (got ${magnitude})`);
+    }
+    if (body.getPart(part) === null) {
+      throw new Error(`testharness body-wound: '${body.getPresentation()}' has no part '${part}'`);
+    }
+    if (!(CHANNELS as readonly string[]).includes(channel)) {
+      throw new Error(`testharness body-wound: '${channel}' is not a channel — ${CHANNELS.join(', ')}`);
+    }
+    const c = channel as Channel;
+    const spec: InflictSpec =
+      c === 'shock'
+        ? { mechanism: 'shock', site: part, current: Quantity.of(magnitude, 'A') }
+        : c === 'corrosion'
+          ? { mechanism: 'corrosion', site: part, energy: magnitude, corrosiveTo: [], bare: true }
+          : { mechanism: c, site: part, energy: magnitude };
+    const out = ConditionApi.inflict(body, spec);
+    return this.woundReport(body, out);
+  }
+
+  /**
+   * See {@link TestHarnessApi.severBodyPart}: the REAL avulsion — a
+   * `tearing` insult at the sever severity, so the wound, the sever and
+   * whatever a sever does in play all happen. Never a woundless loss.
+   */
+  @CallSecurity(TestHarnessApiCallers)
+  public async severBodyPart(handle: string, part: string, sealedByWord: string | null = null): Promise<BodyWoundReport> {
+    // ⭐ What sealed the stump is the logic's to judge, not the controller's
+    // (one act per controller): `heat` or `corrosion`, else a usage error.
+    if (sealedByWord !== null && sealedByWord !== 'heat' && sealedByWord !== 'corrosion') {
+      throw new Error('testharness body-sever: a stump is sealed by `heat` or `corrosion`');
+    }
+    const sealedBy: 'heat' | 'corrosion' | null = sealedByWord;
+    const body = await this.bodyByHandle(handle, 'body-sever');
+    if (!MixinApi.isVitals(body)) throw new Error(`testharness body-sever: '${body.getPresentation()}' has no vitals`);
+    const p = body.getPart(part);
+    if (p === null) throw new Error(`testharness body-sever: '${body.getPresentation()}' has no part '${part}'`);
+    if (!p.severable) throw new Error(`testharness body-sever: '${part}' is not a part that comes off`);
+    const energy = HARM_DEFAULTS.SEVER_SEVERITY / HARM_DEFAULTS.SEVERITY_PER_ENERGY;
+    if (sealedBy !== null) {
+      // ⭐ A sealed stump (D7): a burn at the site, and the part taken with
+      // its seal recorded (heat or a caustic) — it never regrows.
+      const out = ConditionApi.inflict(body, { mechanism: 'heat', site: part, energy });
+      body.severPart(part, { sealed: sealedBy });
+      return this.woundReport(body, out);
+    }
+    const out = ConditionApi.inflict(body, { mechanism: 'tearing', site: part, energy });
+    return this.woundReport(body, out);
+  }
+
+  /** See {@link TestHarnessApi.killBody}: the single death transition. */
+  @CallSecurity(TestHarnessApiCallers)
+  public async killBody(handle: string): Promise<{ body: string; alive: boolean }> {
+    const body = await this.bodyByHandle(handle, 'body-kill');
+    if (!MixinApi.isOrganism(body)) throw new Error(`testharness body-kill: '${body.getPresentation()}' is not a living thing`);
+    const name = body.getPresentation();
+    await ConditionApi.die(body, 'staged');
+    return { body: name, alive: body.isAlive() };
+  }
+
+  /** See {@link TestHarnessApi.pinDaylight}. */
+  @CallSecurity(TestHarnessApiCallers)
+  public pinDaylight(fraction: number | null): DaylightPinReport {
+    if (fraction !== null && !(Number.isFinite(fraction) && fraction >= 0 && fraction <= 1)) {
+      throw new Error(`testharness daylight-pin: a fraction of the day that is light, 0 to 1 (got ${fraction})`);
+    }
+    CelestialApi.pinDaylightFraction(fraction);
+    // ⭐ A pin is a setter and fans out (organism-biology D9), the way a
+    // weather pin is applied at once: every living body brings its core
+    // current and reads its seasons under the new day — the den, the rut,
+    // the milk — with no clock advanced and nobody looking.
+    let bodies = 0;
+    for (const o of StuffApi.findByMixin(Mixins.Vitals)) {
+      if (!MixinApi.isVitals(o) || !MixinApi.isOrganism(o) || !o.isLivingBody()) continue;
+      if (MixinApi.isThermalRegulation(o)) o.reconcileThermalRegulation();
+      o.reconcilePhenology();
+      bodies++;
+    }
+    return { pin: fraction, bodies };
+  }
+
+  private woundReport(body: Stuff & Vitals, out: InflictOutcome): BodyWoundReport {
+    return {
+      body: body.getPresentation(),
+      site: out.trauma.site,
+      type: out.trauma.type,
+      severity: out.trauma.severity,
+      afflicted: out.afflicted,
+      missing: body.getMissingParts().map((p) => p.key),
+    };
+  }
+
   /**
    * See {@link TestHarnessApi.setSpecies}: a staged body of another kind —
    * the species set and the mass re-seeded from it (the frame the species
@@ -467,7 +663,7 @@ export class TestHarnessLogic extends ApiLogic {
    */
   @CallSecurity(TestHarnessApiCallers)
   public async setSpecies(handle: string, speciesPath: string): Promise<SpeciesReport> {
-    const body = this.residentCharacter(handle, 'species');
+    const body = await this.bodyByHandle(handle, 'species');
     const species = await StuffApi.singleton<Stuff>(speciesPath).catch(() => null);
     if (!(species instanceof Species)) throw new Error(`testharness species: '${speciesPath}' is not a species`);
     if (!MixinApi.isOrganism(body) || !MixinApi.isTangible(body)) {
@@ -511,6 +707,25 @@ export class TestHarnessLogic extends ApiLogic {
     // forget: re-warm it, as a recipe go-live would.
     if (kind === 'recipe') await CraftingApi.recipes().warm();
     return { path, kind };
+  }
+
+  /**
+   * A body by handle (organism-biology D16): `#<stuffId>` for one live
+   * instance, a `/`-path for a template's live instance, else a resident
+   * character's name.
+   */
+  private async bodyByHandle(handle: string, verb: string): Promise<Stuff> {
+    if (handle.startsWith('#')) {
+      const hit = StuffApi.findById(handle.slice(1));
+      if (!hit || hit.isDestroyed()) throw new Error(`testharness ${verb}: nothing has the id '${handle.slice(1)}'`);
+      return hit;
+    }
+    if (handle.startsWith('/')) {
+      const hit = await StuffApi.singleton<Stuff>(handle).catch(() => null);
+      if (!hit || hit.isDestroyed()) throw new Error(`testharness ${verb}: nothing loads at '${handle}'`);
+      return hit;
+    }
+    return this.residentCharacter(handle, verb);
   }
 
   /** See {@link TestHarnessApi.failSavesOf}. */

@@ -58,6 +58,7 @@ import type {
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
+import { setFlatCarcass } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 const REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
 const SHEEP_PATH = '/stuff/idea/species/_test/sheep';
@@ -146,19 +147,18 @@ function sheepSpecies(): Species {
   const s = makeStuffAtPath(() => new Species(), SHEEP_PATH) as Species;
   s.setCommonNames(['sheep', 'ewe', 'ram']);
   s.setSentient(false);
-  s.setButcheryYield([
-    { cut: '/stuff/thing/items/stew-meat', units: 12, fraction: 0.4 },
-    { cut: '/trade/ranching/thing/hide', units: 1, fraction: 0.08, conditioned: false },
+  setFlatCarcass(s, [
+    { cut: '/stuff/thing/items/stew-meat', share: 0.4 },
+    { cut: '/trade/ranching/thing/hide', share: 0.08, unconditioned: true },
   ]);
   return s;
 }
 
-/** The collie — no yield at all, which IS the refusal. */
+/** A species with no body at all — nothing comes off, which IS the refusal. */
 function dogSpecies(): Species {
   const s = makeStuffAtPath(() => new Species(), DOG_PATH) as Species;
   s.setCommonNames(['dog', 'collie']);
   s.setSentient(false);
-  s.setButcheryYield([]);
   return s;
 }
 
@@ -445,9 +445,7 @@ describe('the three refusals do not read alike', () => {
     ) as Species;
     person.setSentient(true);
     // ⭐ Authors a yield, so the refusal cannot be the empty-yield one.
-    person.setButcheryYield([
-      { cut: '/stuff/thing/items/stew-meat', units: 4, fraction: 0.4 },
-    ]);
+    setFlatCarcass(person, [{ cut: '/stuff/thing/items/stew-meat', share: 0.4 }]);
     const somebody = await head('/stuff/idea/species/_test/person');
     ContainmentApi.move(somebody, yard);
 

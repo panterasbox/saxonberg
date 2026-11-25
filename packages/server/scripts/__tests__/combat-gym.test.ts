@@ -59,6 +59,7 @@ import type { CombatHookContext } from "../../src/mud/lib/combat/CombatHookConte
 import type { InflictSpec } from "../../src/mud/api/condition";
 import type { Combatant } from '../../src/mud/lib/combat/Combatant';
 import type { Stuff } from '../../src/mud/lib/stuff/Stuff';
+import { setFlatParts } from '../../src/mud/lib/species/__tests__/flat-body';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class GymFighter extends Character {}
@@ -176,7 +177,7 @@ function makeFighter(
     { name: "grip", accepts: "WieldableMixin", covers: ["body.arm.right"] },
     { name: "offgrip", accepts: "WieldableMixin" },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: "body.torso",
       parent: null,

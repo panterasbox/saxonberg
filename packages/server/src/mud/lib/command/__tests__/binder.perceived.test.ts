@@ -32,6 +32,7 @@ import type { Stuff } from '../../stuff/Stuff';
 import type { Affordance } from '../CommandGiver';
 import type { MqlOneResult } from '../../../api/mql';
 import { TestHarnessApi } from '../../../api/test-harness';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 const PLAN = '/stuff/idea/species/BodyPlan/binder-biped';
 class Knife extends WieldableMixin(SlottableMixin(Thing)) {}
@@ -119,7 +120,7 @@ describe('the binder binds what the giver perceives (D23)', () => {
       { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
       { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
     ]);
-    plan.setBodyParts([
+    setFlatParts(plan, [
       { key: 'body', parent: null, tissues: [] },
       { key: 'body.hand.left', parent: 'body', tissues: [], serves: ['manipulation'] },
       { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },

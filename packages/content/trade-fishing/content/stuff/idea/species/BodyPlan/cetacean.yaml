@@ -1,0 +1,13 @@
+# The cetacean plan (organism-biology D13) — a toothed whale: a great head,
+# a body in blubber, two flippers and a fluke. ⭐ Composed from four modules
+# and nothing else: the whale is rows.
+class: /platform/idea/species/BodyPlan
+data:
+  name: cetacean
+  slots: []
+  defaultLocomotionMode: swim
+  modules:
+    - { module: /trade/fishing/body-modules/torso-cetacean, as: [body.torso] }
+    - { module: /trade/fishing/body-modules/head-cetacean, as: [body.head], at: body.torso }
+    - { module: /trade/fishing/body-modules/flipper-cetacean, as: [body.flipper.left, body.flipper.right], at: body.torso }
+    - { module: /trade/fishing/body-modules/fluke-cetacean, as: [body.fluke], at: body.torso }

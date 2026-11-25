@@ -48,6 +48,8 @@ export interface HeadSample {
    * runt. A herd whose members were identical would be a glob.
    */
   frame: number;
+  /** ⭐ A male cut young (D8) — founding stock of a book that authors `neuteredFraction`. */
+  neutered: boolean;
 }
 
 /** How the herd was founded — the parameters every head is drawn against. */
@@ -58,6 +60,11 @@ export interface HerdShape {
   meanAgeDays: number;
   /** Fraction female, `[0, 1]`. A dairy herd is nearly all; a flock less. */
   femaleFraction: number;
+  /**
+   * ⭐ Fraction of the MALES cut young, `[0, 1]` (organism-biology D8) — an
+   * ox register is all steers; a flock's wethers. Absent reads 0.
+   */
+  neuteredFraction?: number;
 }
 
 /**
@@ -79,6 +86,7 @@ export class HeadSeed {
       flesh?: number;
       handling?: number;
       ageDays?: number;
+      sex?: string;
     },
   ): HeadSample {
     const key = `${shape.herdId}#${index}`;
@@ -95,10 +103,17 @@ export class HeadSeed {
       ),
       sex: Seeded.unit(h, 0x4) < shape.femaleFraction ? 'female' : 'male',
       frame: round2(Seeded.unit(h, 0x5) * 2 - 1),
+      neutered: false,
     };
+    seeded.neutered = seeded.sex === 'male' && Seeded.unit(h, 0x6) < (shape.neuteredFraction ?? 0);
     if (!overlay) return seeded;
+    // ⭐ A head refiled into another book keeps its sex (D8): the overlay
+    // wins, or the ox register would redraw a steer as a cow.
+    const sex = overlay.sex === 'male' || overlay.sex === 'female' ? overlay.sex : seeded.sex;
     return {
       ...seeded,
+      sex,
+      neutered: sex === 'male' && seeded.neutered,
       flesh: overlay.flesh ?? seeded.flesh,
       handling: overlay.handling ?? seeded.handling,
       ageDays: overlay.ageDays ?? seeded.ageDays,

@@ -14,6 +14,7 @@
  */
 
 import "../../../../test-bootstrap";
+import { setFlatBreathing } from '../../species/__tests__/flat-body';
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
 import { rememberDisciplines } from '../../advancement/__tests__/discipline-fixtures';
 import { Character } from '../../character/Character';
@@ -115,13 +116,16 @@ function bodyWith(config: {
     () => new BodyPlan(),
     `/test/respiration/bodyplan-${speciesSeq}`,
   );
-  if (config.breathableMedia) {
-    bp.setBreathing(config.breathableMedia.map((medium) => ({
+  // ⭐ W8 (D10): breathing derives from organs — the plan carries the
+  // fixture's specs on one breathing organ; `respires: false` is a body
+  // with parts and no such organ.
+  if (config.respires === false) setFlatBreathing(bp, []);
+  else if (config.breathing) setFlatBreathing(bp, config.breathing);
+  else if (config.breathableMedia) {
+    setFlatBreathing(bp, config.breathableMedia.map((medium) => ({
       medium, apparatus: medium === 'water' ? 'gills' : 'lungs', intake: 1,
     })));
   }
-  if (config.breathing) bp.setBreathing(config.breathing);
-  if (config.respires !== undefined) bp.setRespires(config.respires);
   const sp = makeStuffAtPath(
     () => new Species(),
     `/test/respiration/species-${speciesSeq}`,

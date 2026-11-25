@@ -5,6 +5,7 @@
  * draft term can be read through the real `getBorneBurden` surface.
  */
 
+import { setFlatGaits } from '../../species/__tests__/flat-body';
 import { Creature } from '../../creature/Creature';
 import { Vessel } from '../../stuff/Vessel';
 import { SensorMixin } from '../../message/Sensor';
@@ -43,6 +44,7 @@ export function haulingBearer(baseMass = 70): HaulingBearer {
 /** A hauling bearer whose body plan admits `walk` (for the locomotion gates). */
 export function walkingHaulingBearer(baseMass = 70): HaulingBearer {
   const b = haulingBearer(baseMass);
-  b.getSpecies()?.getBodyPlan()?.setLocomotionModes(['walk']);
+  const walkPlan = b.getSpecies()?.getBodyPlan();
+  if (walkPlan) setFlatGaits(walkPlan, ['walk']);
   return b;
 }

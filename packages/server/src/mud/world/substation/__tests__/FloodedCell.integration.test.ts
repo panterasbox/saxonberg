@@ -38,6 +38,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import type { Trauma } from '../../../platform/idea/Condition';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { standMaterials, TEST_TISSUES } from '../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../lib/species/__tests__/flat-body';
 
 let seq = 0;
 
@@ -100,7 +101,7 @@ function makeBody(cell: FloodedCell): Creature {
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     {

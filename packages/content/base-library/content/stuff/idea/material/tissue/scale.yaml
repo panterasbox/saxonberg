@@ -1,0 +1,15 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/HideHorn
+data:
+  smells: [{ aroma: /base-library/aromas/flesh, strength: 40 }]
+  name: scale
+  keywords: [scale, scales]
+  appearance: small overlapping scales with a dull sheen
+  density: 1400
+  specificHeat: 1500
+  thermalConductivity: 0.3
+  waterAbsorptionCapacity: 5
+  hardness: 20
+  toughness: 3
+  tags: ["tissue", "animal", "scale", "coat", "once-living"]

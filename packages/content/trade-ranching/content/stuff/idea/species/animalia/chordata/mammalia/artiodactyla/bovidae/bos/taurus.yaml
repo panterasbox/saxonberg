@@ -15,8 +15,36 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/cattle, strength: 20 }]
   binomial: Bos taurus
-  commonNames: ["cow", "cattle", "heifer", "bull", "calf", "ox", "beast"]
-  maleNames: [bull, ox]
+  commonNames: ["cow", "cattle", "beast"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [cow, heifer], body: { add: [{ module: /trade/ranching/body-modules/udder-cattle, as: [body.torso.udder], at: body.torso }] } }
+      male: { commonNames: [bull], handlingRange: { floor: 0.05, ceiling: 0.8 }, body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    # ⭐ A male cut young (D8, W7) — derived from the lost part, never
+    # authored: a steer, and grown, an ox. Heavier than a bull of his age
+    # and steadier in hand, which is why oxen pulled the plough.
+    neutered:
+      commonNames: [steer, bullock]
+      massFactor: 1.15
+      biddability: 0.6
+      handlingRange: { floor: 0.3, ceiling: 1 }
+      stage:
+        adult: { commonNames: [ox, oxen] }
+        aged: { commonNames: [ox, oxen] }
+        senescent: { commonNames: [ox, oxen] }
+    stage:
+      # ⭐ A calf is not a small cow: a big head and long legs on a short
+      # body, scaled on the same modules (renormalized, so the shares
+      # still sum to one).
+      newborn:
+        commonNames: [calf]
+        body:
+          # ⭐ …and a fourth stomach worth taking: the vell (D5).
+          add: [{ module: /trade/ranching/body-modules/abomasum, as: [body.torso.abomasum], at: body.torso }]
+          scale: { body.head: 1.6, body.leg.frontLeft: 1.25, body.leg.frontRight: 1.25, body.leg.rearLeft: 1.25, body.leg.rearRight: 1.25 }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
@@ -45,82 +73,16 @@ data:
   feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 60, matureAt: 300, agedAt: 1800, senescentAt: 2600 }
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 120, litter: 1 }
-  production:
-    # ⭐⭐ Milk is a VOLUME, so `yieldRow` names the MATERIAL and the
-    # vessel is the object — there is no "pail of milk" row any more,
-    # because minting the pail along with the milk was a faucet shape
-    # for containers. Bring a pail; what it will not hold goes on the
-    # straw, and that is the one line in the build that teaches what a
-    # vessel is for.
-    #
-    # ⭐ `window: event` is a LACTATION, not a season: it opens when she
-    # freshens and closes when she dries off. A cow is near-aseasonal,
-    # and authoring a photoperiod band for her would be false.
-    #
-    # ⚠ Her ceiling is `perGameDay x windowDays`, and that is why milk
-    # carries no finer judgment at the act: she fills exactly as the
-    # window closes, so there is no interval in which she sits full. See
-    # the feedback-law table on `TapSpec`.
-    - key: milk
-      yieldRow: /stuff/idea/material/food/milk
-      perGameDay: 22
-      behaviour: expire
-      windowDays: 0.6
-      yieldShape: volume
-      window: { kind: event }
-      # ⭐ (dairy D12) A bull is not milked — read against the head's own
-      # sex, refused in her voice. And a cow that has dried off RESTS
-      # before she comes back into milk: the dry period starts when she is
-      # returned to the herd, and a redraft inside it is still dry.
-      sex: female
-      restDays: 3
-  # ⭐⭐ **What comes off this animal, and it is the ANIMAL's answer.**
-  #
-  # Until the carcass-chain build the game had two `butcher` verbs with two
-  # yield models: the stockyard's read a hardcoded table of five fractions
-  # that was the same for a hen and a bullock, and the kitchen's read this
-  # field, which these five rows did not author. So an animal gave
-  # different things depending on which verb you typed at it, and neither
-  # answer was its own.
-  #
-  # ⭐ `fraction` is a share of LIVE weight, so size pays off; the shares
-  # are roughly the real ones (a carcass dresses out around 60 %, a hide is
-  # about 7 %, fat around 5 %, bone most of the rest). `units` is how many
-  # pieces that mass arrives in. `conditioned: false` says *this line does
-  # not care how fat the beast was* — and it is a real fact: a hide and a
-  # skeleton are the size the animal IS, not the shape it is in.
-  #
-  # ⚠ The missing third is blood and gut contents, which stay unmodelled.
-  butcheryYield:
-  # ⭐⭐ A bullock names every joint, and the tenderloin among them — on
-  # seven hundred kilos of animal it is a real cut rather than a mouthful.
-  # ⚠ Nothing here states a share for a joint: the SAME rows off a ewe and
-  # an ox weigh what each animal's muscles weigh, which is why AC12 holds
-  # with no number authored twice.
-  #
-  # ⭐⭐⭐ And the ox's own prose is the best evidence the law is right: it
-  # has "a yoke-worn patch across the shoulders", written long before any
-  # of this. The hardest-worked muscle in the game is on the animal whose
-  # shoulder the row already calls worn — so its shoulder is the toughest
-  # cut in the world and its tenderloin the prize.
-  - { cut: /trade/cooking/thing/cut-shoulder,   units: 4 }
-  - { cut: /trade/cooking/thing/cut-leg,        units: 4 }
-  - { cut: /trade/cooking/thing/cut-loin,       units: 4 }
-  - { cut: /trade/cooking/thing/cut-tenderloin, units: 2 }
-  - { cut: /trade/cooking/thing/cut-rib,        units: 4 }
-  - { cut: /trade/cooking/thing/cut-neck,       units: 2 }
-  - { cut: /trade/cooking/thing/cut-belly,      units: 3 }
-  - { cut: /trade/cooking/thing/cut-shank,      units: 4 }
-  - { cut: /trade/cooking/thing/cut-chop,       units: 6 }
-  - { cut: /stuff/thing/items/offal,          units: 3, fraction: 0.12 }
-  - { cut: /trade/ranching/thing/suet,           units: 2, fraction: 0.05 }
-  - { cut: /trade/cooking/thing/gut,            units: 2, fraction: 0.02 }
-  # ⭐ The vell — a calf's fourth stomach, and the source of rennet (dairy
-  # D8). Only off a young head: an animal weaned onto grass has stopped
-  # making the enzyme worth taking, so the line closes at `weanedAt`.
-  - { cut: /trade/cooking/thing/vell,           units: 1, fraction: 0.004, maxAgeDays: 60 }
-  - { cut: /trade/ranching/thing/hide,           units: 1, fraction: 0.07, conditioned: false }
-  - { cut: /trade/ranching/thing/bone,           units: 4, fraction: 0.12, conditioned: false }
+  # ⭐ The season, on the body (organism-biology D9): a mature female in
+  # her species' breeding band is in season, and an entire male in rut —
+  # conditions the thermal reconcile carries and relieves, which `breed`
+  # and `assess` read. The band is `breeding`'s, never re-authored here.
+  phenology:
+    # ⭐ A cow (a nanny) is in milk by FRESHENING — an act: the draft brings
+    # it on past her rest, drying off ends it. Never the schedule's.
+    - { condition: /platform/idea/Condition/reproduction/lactating, trigger: { event: true, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/in-season, trigger: { season: breeding, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/rut, trigger: { season: breeding, sex: male, stage: adult, entire: true } }
   longDescription: >-
     A deep-bodied cow with a hip bone you could hang a hat on, chewing
     steadily and entirely unbothered by you. Nothing on the farm is

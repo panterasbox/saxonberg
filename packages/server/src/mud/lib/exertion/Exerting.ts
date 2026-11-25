@@ -504,7 +504,12 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
           loadFactor += dial(AppSettingKeys.exertionLoadPowerPerRatio, 1 / 6) * over;
         }
       }
-      return dial(AppSettingKeys.exertionWalkW, 300) * mode.getCostMultiplier() * loadFactor;
+      // ⭐ A slow body pays more to cross (organism-biology D9): every band
+      // of suppressed expression — a chilled trout's `sluggish`, a dose —
+      // adds its share of the traverse. A body with none pays nothing more.
+      const bands = MixinApi.isVitals(self) ? self.expressionSuppression() : 0;
+      const slowFactor = 1 + Math.max(0, bands) * dial(AppSettingKeys.exertionSuppressedPowerPerBand, 0.5);
+      return dial(AppSettingKeys.exertionWalkW, 300) * mode.getCostMultiplier() * loadFactor * slowFactor;
     }
 
     public exertTraverse(mode: LocomotionMode): void {

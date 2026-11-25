@@ -1,0 +1,60 @@
+# head-cetacean — a sperm whale's head (organism-biology D13): a third of
+# the animal, most of it the spermaceti organ above the skull; the melon in
+# front of it; a narrow jaw set with teeth. Eyes, ears; no nose that smells.
+parts:
+- key: ''
+  severable: true
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.04}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.04}
+- key: spermaceti-organ
+  parent: ''
+  tissues:
+  - {tissue: /trade/fishing/idea/material/spermaceti, weight: 0.12}
+- key: melon
+  parent: ''
+  tissues:
+  - {tissue: /trade/fishing/idea/material/blubber, weight: 0.04}
+- key: jaw
+  parent: ''
+  severable: true
+  serves: [manipulation]
+  senses: [{modality: taste}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.03}
+  - {tissue: /stuff/idea/material/tissue/ivory, weight: 0.004}
+- key: brain
+  parent: ''
+  governs: [consciousness]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0002}
+- key: eye.left
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 300}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0001}
+- key: eye.right
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 300}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0001}
+- key: ear.left
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0002}
+- key: ear.right
+  parent: ''
+  serves: [hearing]
+  senses: [{modality: hearing}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0002}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.005, form: skin}
+comesOffAs:
+- {tissue: /trade/fishing/idea/material/spermaceti, cut: /trade/fishing/thing/spermaceti}
+- {tissue: /trade/fishing/idea/material/blubber, cut: /trade/fishing/thing/blubber}
+- {tissue: /stuff/idea/material/tissue/ivory, cut: /trade/fishing/thing/whale-tooth}

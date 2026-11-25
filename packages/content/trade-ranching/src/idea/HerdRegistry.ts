@@ -74,6 +74,7 @@ import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import Herdbook from '../thing/Herdbook';
 import type Livestock from '../agent/Livestock';
 import { HeadSeed } from '../lib/HeadSeed';
+import type { LostPart } from '@saxonberg/server/mud/lib/vitals/Vitals';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -162,6 +163,11 @@ export interface HerdRecord {
    * reads as the old literal ({@link DEFAULT_FEMALE_FRACTION}).
    */
   femaleFraction?: number;
+  /**
+   * ⭐ The share of MALE founding head cut young (organism-biology D8) —
+   * the ox register's 1. Absent reads 0.
+   */
+  neuteredFraction?: number;
   /** Heads currently drafted out into their own objects. */
   drafted: DraftedHead[];
   /**
@@ -254,6 +260,20 @@ export interface HeadOverlay {
    * returning and redrafting cannot launder a dry cow.
    */
   driedOffAt?: Record<string, number>;
+  /**
+   * ⭐⭐ The parts this head has lost (organism-biology D8): written at
+   * return, seeded at the draft through the delta half — never
+   * `ConditionApi.sever`, which would mint fresh gonads and a fresh wound
+   * at every draft. A steer stays a steer; a head that lost an eye keeps
+   * the loss.
+   */
+  lostParts?: LostPart[];
+  /**
+   * ⭐ Its sex, written explicitly — a head refiled into another book takes
+   * a new index there, and a head is seeded from `(herd, index)`, so the
+   * overlay must carry what the old index decided (D8).
+   */
+  sex?: 'male' | 'female';
 }
 
 /** The female share a record filed before `femaleFraction` existed reads. */
@@ -405,6 +425,49 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
       this.pathOf(herd.herdId),
       { ...herd },
     );
+    // ⭐ The book on the wall says what the herd IS (D8) — told by every
+    // write, read by `look`.
+    const book = herd.bookPath ? StuffApi.findByTemplatePath(herd.bookPath) : null;
+    if (book instanceof Herdbook) book.noteComposition(await this.compositionOf(herd));
+  }
+
+  /**
+   * ⭐⭐ **What the book says the herd is** (organism-biology D8): every
+   * head counted by what its form is called — *two oxen*, *one steer*,
+   * *forty ewes and a ram* — read from the seed and the overlay with no
+   * head minted. A neutered head is one the book remembers cut young (its
+   * lost parts), or founding stock of a book that cuts its males.
+   */
+  public async compositionOf(herd: HerdRecord): Promise<string | null> {
+    const species = await this.loadSpecies(herd.speciesPath);
+    if (!species || herd.tally <= 0) return null;
+    const mature = species.getAgeCurve()?.matureAt ?? 0;
+    const counts = new Map<string, { n: number; plural: string }>();
+    for (let i = 0; i < herd.tally; i++) {
+      const overlay = herd.overlay[String(i)];
+      const s = HeadSeed.sample(
+        {
+          herdId: herd.herdId,
+          meanAgeDays: this.meanAgeOf(herd, i),
+          femaleFraction: herd.femaleFraction ?? DEFAULT_FEMALE_FRACTION,
+          ...(herd.neuteredFraction ? { neuteredFraction: herd.neuteredFraction } : {}),
+        },
+        i,
+        overlay,
+      );
+      const cut = overlay?.lostParts?.find((l) => l.part.endsWith('.gonads'));
+      const neutered = s.sex === 'male' && (cut ? !(mature > 0) || cut.atAgeDays < mature : !overlay?.lostParts && s.neutered);
+      const names = species.getCommonNames({ sex: s.sex, stage: species.lifeStageAt(s.ageDays), ...(neutered ? { neutered } : {}) });
+      const name = names[0] ?? herd.name;
+      // A form may author its irregular plural right after its name (`ox, oxen`).
+      const next = names[1];
+      const plural = next && next.startsWith(name) && next.length > name.length ? next : GrammarApi.pluralize(this as unknown as Stuff, name);
+      const c = counts.get(name) ?? { n: 0, plural };
+      c.n += 1;
+      counts.set(name, c);
+    }
+    const parts = [...counts.entries()].map(([name, c]) => `${this.countWord(c.n)} ${c.n === 1 ? name : c.plural}`);
+    return `By the book: ${GrammarApi.joinList(parts)}.`;
   }
 
   // ---------- the boundary acts ----------
@@ -601,6 +664,54 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     return true;
   }
 
+  /**
+   * ⭐⭐ **Move a drafted head from one register to another** — `herd enter`
+   * (organism-biology D8). Nothing moved a head between books before, and
+   * it is not `return` (which gives a head back to its own). The source's
+   * tally falls as at a cull; the head takes the next index in the
+   * destination, still drafted, and ⚠ its overlay there carries its
+   * seeded traits EXPLICITLY — sex first, then handling, flesh, its birth
+   * and what it has lost — because a head is seeded from `(herd, index)`
+   * and the ox register would otherwise redraw the steer as a cow.
+   * Refuses: no actor (checked here — `requireActor` lets null through),
+   * an actor who may not keep the source OR the destination (`cull`'s
+   * precedent), another species, the same book, a head not drafted.
+   */
+  public async refile(
+    fromId: string,
+    index: number,
+    toId: string,
+    by: Stuff | null,
+    traits: HeadOverlay,
+  ): Promise<RefileAnswer> {
+    if (!by) return { ok: false, reason: '/trade/ranching/reasons/no-actor' };
+    // who is acting must be who is named (call-security pass D5)
+    AccessApi.requireActor(by);
+    const from = await this.read(fromId);
+    const to = await this.read(toId);
+    if (!from || !to) return { ok: false, reason: '/trade/ranching/reasons/no-herd' };
+    if (fromId === toId) return { ok: false, reason: '/trade/ranching/reasons/same-herd', facts: { herd: to.name } };
+    if (!from.drafted.some((d) => d.index === index)) return { ok: false, reason: '/trade/ranching/reasons/not-drafted' };
+    if (from.speciesPath !== to.speciesPath) return { ok: false, reason: '/trade/ranching/reasons/wrong-species', facts: { herd: to.name } };
+    if (!(await this.mayKeep(by, from)) || !(await this.mayKeep(by, to))) {
+      return { ok: false, reason: '/trade/ranching/reasons/not-keeper-of', facts: { herd: (await this.mayKeep(by, from)) ? to.name : from.name } };
+    }
+    const at = to.tally;
+    await this.update({
+      ...from,
+      tally: Math.max(0, from.tally - 1),
+      drafted: from.drafted.filter((d) => d.index !== index),
+    });
+    const fresh = (await this.read(toId)) ?? to;
+    await this.update({
+      ...fresh,
+      tally: fresh.tally + 1,
+      drafted: [...fresh.drafted, { index: at }],
+      overlay: { ...fresh.overlay, [String(at)]: { ...traits, note: `entered from ${from.name}` } },
+    });
+    return { ok: true, index: at, herd: fresh };
+  }
+
   /** `actor` writes head `index` as served at `atS` — the keeper's column. */
   public async serve(
     actor: Stuff,
@@ -783,6 +894,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
         herdId: herd.herdId,
         meanAgeDays: this.meanAgeOf(herd, index),
         femaleFraction: herd.femaleFraction ?? DEFAULT_FEMALE_FRACTION,
+        ...(herd.neuteredFraction ? { neuteredFraction: herd.neuteredFraction } : {}),
       },
       index,
       overlay,
@@ -805,8 +917,11 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     } catch {
       /* the species keeps no sexes; the head stays unrecorded */
     }
-    animal.answerToSpecies(species, sample.sex);
     animal.setAge(sample.ageDays);
+    // ⭐ What the book remembers it lost, or — founding stock of a book that
+    // cuts its males — the gonads it lost as a calf (D8). The delta half
+    // only: no wound, no part on the floor.
+    animal.seedLostParts(overlay?.lostParts ?? (sample.neutered ? this.foundingLosses(animal, sample.ageDays) : null));
     animal.setHandling(sample.handling);
     const since = overlay?.fleshAt ?? herd.founded;
     const condition = HeadSeed.replay(sample.flesh, since, fed, sample.frame);
@@ -814,10 +929,19 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     if (flesh) animal.adjustReserve('flesh', Quantity.of(condition - flesh.current.rawValue(), '%'));
     animal.reconcileProduction();
     animal.restoreDryPeriods(species, overlay?.driedOffAt, this.nowSeconds() ?? 0);
+    animal.freshenAtDraft();
     if (into && MixinApi.isContainer(into)) {
       await ContainmentApi.move(animal as unknown as Stuff & Containable, into as Stuff & Container);
     }
     return animal;
+  }
+
+  /** A neutered founding head's loss: its gonads, at weaning or its age if younger. */
+  private foundingLosses(animal: Livestock, ageDays: number): LostPart[] | null {
+    const part = animal.getBody()?.getParts().find((p) => p.key.endsWith('.gonads'));
+    if (!part) return null;
+    const weaned = animal.getSpecies()?.getAgeCurve()?.weanedAt ?? 60;
+    return [{ part: part.key, atAgeDays: Math.max(1, Math.min(weaned, ageDays)) }];
   }
 
   /**
@@ -828,7 +952,7 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
   private meanAgeOf(herd: HerdRecord, index: number): number {
     const nowS = this.nowSeconds() ?? 0;
     const bornAt = herd.overlay[String(index)]?.bornAt;
-    if (typeof bornAt === 'number' && bornAt > 0) {
+    if (typeof bornAt === 'number' && bornAt !== 0) {
       return Math.max(0, (nowS - bornAt) / SECONDS_PER_GAME_DAY);
     }
     return herd.foundingMeanAgeDays + Math.max(0, (nowS - herd.founded) / SECONDS_PER_GAME_DAY);
@@ -884,6 +1008,9 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
       d.femaleFraction >= 0 &&
       d.femaleFraction <= 1
         ? { femaleFraction: d.femaleFraction }
+        : {}),
+      ...(typeof d.neuteredFraction === 'number' && d.neuteredFraction > 0 && d.neuteredFraction <= 1
+        ? { neuteredFraction: d.neuteredFraction }
         : {}),
       drafted: Array.isArray(d.drafted) ? (d.drafted as DraftedHead[]) : [],
       ...(typeof d.grazing === 'string' && d.grazing !== '' ? { grazing: d.grazing } : {}),
@@ -999,6 +1126,11 @@ export type DraftRefusalReason =
   | 'mint-failed';
 
 /** What `draftHead` answers: the head, or why not. */
+/** What `refile` answers: the head's new index and book, or a reason row's code. */
+export type RefileAnswer =
+  | { ok: true; index: number; herd: HerdRecord }
+  | { ok: false; reason: string; facts?: Record<string, unknown> };
+
 export type DraftAnswer =
   | { ok: true; animal: Livestock; herd: HerdRecord }
   | { ok: false; reason: 'no-herd'; facts?: undefined }

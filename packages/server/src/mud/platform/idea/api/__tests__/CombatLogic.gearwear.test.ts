@@ -44,6 +44,7 @@ import { CombatSession } from "../../../../lib/combat/CombatSession";
 import EventRegistry from "../../EventRegistry";
 import { EventApi } from "../../../../api/event";
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -77,7 +78,7 @@ function makeFighter(room: TestRoom): TestFighter {
     },
     { name: "grip", accepts: "WieldableMixin", covers: ["body.arm.right"] },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: "body.torso",
       parent: null,

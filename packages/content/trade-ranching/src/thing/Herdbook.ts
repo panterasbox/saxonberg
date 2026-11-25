@@ -68,8 +68,9 @@ const HerdbookBase = FixtureMixin(Thing);
  */
 function grazingAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!(host instanceof Herdbook)) return text;
-  const line = host.grazingLine();
-  if (!line) return text;
+  const lines = [host.compositionLine(), host.grazingLine()].filter((l): l is string => !!l);
+  if (lines.length === 0) return text;
+  const line = lines.join(' ');
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
@@ -89,10 +90,13 @@ export default class Herdbook extends HerdbookBase {
       'trade/ranching/cmd/ranching/draft.yaml',
       // ⭐ Moving the herd is the book's act too (cover build D13).
       'trade/ranching/cmd/ranching/move.yaml',
+      // ⭐ …and writing a head into it from another book (organism-biology D8).
+      'trade/ranching/cmd/ranching/herd.yaml',
     ],
     peers: [
       'trade/ranching/cmd/ranching/draft.yaml',
       'trade/ranching/cmd/ranching/move.yaml',
+      'trade/ranching/cmd/ranching/herd.yaml',
     ],
   };
 
@@ -106,6 +110,7 @@ export default class Herdbook extends HerdbookBase {
     tally: { persistent: true, authorable: true },
     foundingMeanAgeDays: { persistent: true, authorable: true },
     femaleFraction: { persistent: true, authorable: true },
+    neuteredFraction: { persistent: true, authorable: true },
     holderRef: { persistent: true, authorable: true },
     homeExtent: { persistent: true, authorable: true },
     grazing: { persistent: true, authorable: true },
@@ -133,6 +138,9 @@ export default class Herdbook extends HerdbookBase {
    */
   private _grazingLine: string | null = null;
 
+  /** What the book last read of what its herd IS (D8), for `look` — a cache of the record. */
+  private _compositionLine: string | null = null;
+
   public getGrazing(): string { return this.grazing; }
   public setGrazing(value: string): void { this.grazing = value ?? ''; }
   public getGrazingField(): string { return this.grazingField; }
@@ -141,6 +149,16 @@ export default class Herdbook extends HerdbookBase {
   /** The book's line about where its herd is, or `null` before it knows. */
   public grazingLine(): string | null {
     return this._grazingLine;
+  }
+
+  /** The book's line about what its herd is — *two oxen* — or `null` before it knows. */
+  public compositionLine(): string | null {
+    return this._compositionLine;
+  }
+
+  /** Record what the herd is now (the register's `compositionOf`). */
+  public noteComposition(line: string | null): void {
+    this._compositionLine = line;
   }
 
   /** Record that the herd now grazes `fieldName` (`''` = no field). */
@@ -178,6 +196,12 @@ export default class Herdbook extends HerdbookBase {
    */
   protected femaleFraction: number = DEFAULT_FEMALE_FRACTION;
 
+  /**
+   * ⭐ The share of the males cut young (organism-biology D8) — a venue
+   * fact: the ox register authors `1`. Default `0`.
+   */
+  protected neuteredFraction: number = 0;
+
   /** Who owns them — a `ParcelOwner`-shaped principal ref. */
   protected holderRef: string = '';
 
@@ -210,6 +234,11 @@ export default class Herdbook extends HerdbookBase {
       Number.isFinite(value) && value >= 0 && value <= 1
         ? value
         : DEFAULT_FEMALE_FRACTION;
+  }
+
+  public getNeuteredFraction(): number { return this.neuteredFraction; }
+  public setNeuteredFraction(value: number): void {
+    this.neuteredFraction = Number.isFinite(value) && value >= 0 && value <= 1 ? value : 0;
   }
 
   public getHolderRef(): string { return this.holderRef; }
@@ -247,6 +276,7 @@ export default class Herdbook extends HerdbookBase {
       tally: this.tally,
       foundingMeanAgeDays: this.foundingMeanAgeDays,
       femaleFraction: this.femaleFraction,
+      ...(this.neuteredFraction > 0 ? { neuteredFraction: this.neuteredFraction } : {}),
       holderRef: this.holderRef,
       homeExtent: this.homeExtent,
       founded: this.foundedNow(),
@@ -271,6 +301,7 @@ export default class Herdbook extends HerdbookBase {
       herd = { ...herd, bookPath: own };
       await registry.update(herd);
     }
+    this.noteComposition(await registry.compositionOf(herd));
     // ⭐ The authored binding names a FIELD — `<tract>#<fieldKey>`
     // (tracts build D34) — loaded on use.
     let ref = herd.grazing ?? '';

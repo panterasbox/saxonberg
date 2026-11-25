@@ -1,0 +1,13 @@
+# Pregnant — carrying young (organism-biology D9, W7). Staged only:
+# conception is a non-goal of this build. She eats for two — a satiation
+# drain while it lasts.
+class: /platform/idea/Condition
+data:
+  name: pregnant
+  signature:
+    - { kind: reserve, reserve: satiation, pctPerHour: -0.5 }
+  progression: null
+  resolution:
+    by: birth
+  observableSigns: [heavy-bellied, slow]
+  contagion: null

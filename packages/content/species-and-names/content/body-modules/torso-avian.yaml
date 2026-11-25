@@ -1,0 +1,36 @@
+# torso-avian — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+# ⭐ W3: two kidneys, each SUSTAINING filtration (any one suffices), their
+# share taken from the torso's flesh.
+parts:
+- key: ''
+  senses: [{modality: touch}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.1351}
+  - {tissue: /stuff/idea/material/tissue/muscles/breast-red, weight: 0.2702}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.1777}
+- key: heart
+  parent: ''
+  governs: [heartRate]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.0135}
+- key: lungs
+  parent: ''
+  governs: [respiratoryRate]
+  breathes: [{medium: air, apparatus: lungs, intake: 1}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0203}
+- key: kidney.left
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+- key: kidney.right
+  parent: ''
+  sustains: [filtration]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/kidney, weight: 0.0025}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.02}
+  under: {material: /stuff/idea/material/textile/down, depthM: 0.01, loft: 0.97}
+  coat: {material: /stuff/idea/material/tissue/feather, depthM: 0.015, loft: 0.9}

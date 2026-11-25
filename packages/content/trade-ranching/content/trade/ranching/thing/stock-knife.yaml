@@ -1,0 +1,15 @@
+# A stockman's knife (organism-biology D8, W7) — the short curved blade a
+# herdsman keeps for the jobs a farm does with its own hands: cutting the
+# bull calves, trimming a hoof, opening a sack. What `operate <calf> for
+# castration with knife` asks for: a `cutting` tool, nothing a surgeon has.
+class: /platform/thing/Tool
+data:
+  shortDescription: stockman's knife
+  keywords: [knife, "stock knife", "stockman's knife", blade]
+  register: indefinite
+  longDescription: |
+    A short, hooked blade in a horn handle worn smooth, its edge kept keen and its point kept clean. It has cut more bull calves than bread.
+  _materialPath: /stuff/idea/material/alloy/steel
+  capabilities: ["cutting"]
+  epoch: medieval
+  mass: 0.15

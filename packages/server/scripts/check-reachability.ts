@@ -494,7 +494,7 @@ const FAUCETS: Record<string, string> = {
   itemTemplatePath: "a counter's stockLines — the shop clones it to par",
   outputTemplate: "a recipe mints it",
   outputResidue: "a recipe's residue, minted beside the output",
-  cut: "a species' butcheryYield — dressing out clones it",
+  cut: "a body module's carcass map (comesOffAs) — dressing out clones it",
   default: "an archetype fitting's fallback — materialized when the need is unmet",
   costume: "the garments an authored person has on",
   seedTemplatePath: "what a crop drops; cloned at harvest",

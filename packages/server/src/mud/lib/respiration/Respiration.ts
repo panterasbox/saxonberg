@@ -495,16 +495,16 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ How this body breathes now (underwater D21): its species' breathing
-     * at its life stage, else its plan's — a tadpole on gills, the frog on
-     * lungs and its skin.
+     * ⭐⭐ How this body breathes now (organism-biology D10): DERIVED from its
+     * present, working organs (`Body.breathing`) — a tadpole's gills, a
+     * frog's lungs and its skin; a body whose lungs are lost breathes what
+     * is left. A body with no species breathes air, as a person does.
      */
     private breathingNow(): readonly BreathingSpec[] {
       const self = this as unknown as Stuff;
-      const organism = MixinApi.isOrganism(self) ? self : null;
-      const species = organism?.getSpecies() ?? null;
-      const own: readonly BreathingSpec[] = organism && species
-        ? species.breathingFor(organism.getLifeStage())
+      const body = MixinApi.isOrganism(self) ? self.getBody() : null;
+      const own: readonly BreathingSpec[] = body
+        ? body.breathing((key) => this.organWorks(key))
         : [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
       const conferred = this._conferredMedium;
       if (conferred === null) return own;
@@ -545,10 +545,19 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       return Math.max(0, Math.min(1, intake));
     }
 
+    /** ⭐ A body respires when it has an organ that breathes (D10) — derived, never authored. */
     public isRespiring(): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return true;
-      return self.getSpecies()?.getBodyPlan()?.isRespiring() ?? true;
+      return self.getBody()?.respires() ?? true;
+    }
+
+    /** Is the organ at `key` on the body and working (not missing, not lost)? */
+    private organWorks(key: string): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isVitals(self)) return true;
+      const part = self.getPart(key);
+      return !!part && !part.missing && self.functionAt(key) !== 'lost';
     }
 
     /* ──────────────────── medium / supply resolution ──────────────────── */
@@ -1684,11 +1693,11 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       return Math.min(store, this.fullO2StoreL() / 2);
     }
 
-    /** The body's lungs, liters — its plan's, scaled by its mass. */
+    /** The body's lungs, liters — its lungs' own volume (D10), scaled by its mass. */
     private lungVolumeL(): number {
       const self = this as unknown as Stuff;
-      const plan = MixinApi.isOrganism(self) ? self.getSpecies()?.getBodyPlan() : null;
-      const base = plan?.getLungVolumeL() ?? RESPIRATION_DEFAULTS.LUNG_VOLUME_L;
+      const body = MixinApi.isOrganism(self) ? self.getBody() : null;
+      const base = body ? body.lungVolumeL((key) => this.organWorks(key)) : RESPIRATION_DEFAULTS.LUNG_VOLUME_L;
       return base * this.sizeFactor();
     }
 

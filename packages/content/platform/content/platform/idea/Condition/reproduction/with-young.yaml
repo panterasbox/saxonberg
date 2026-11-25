@@ -1,0 +1,12 @@
+# With young — a mother with her young at foot (organism-biology D9, W7).
+# Staged only. `look` and `assess` show it; game law may read it (a doe
+# with a fawn is out of season for the hunter).
+class: /platform/idea/Condition
+data:
+  name: with young
+  signature: []
+  progression: null
+  resolution:
+    by: weaning
+  observableSigns: [young-at-foot, watchful]
+  contagion: null

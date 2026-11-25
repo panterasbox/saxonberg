@@ -82,7 +82,7 @@ import { SOIL_BANDS } from '../cleanliness/Soilable';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import type BodyPlan from '../../platform/idea/species/BodyPlan';
+import type { Body } from '../species/Body';
 
 /** What a body wearing things can be asked. */
 export interface Attired {
@@ -402,13 +402,11 @@ function impressionAugmenter(text: string, host: Stuff, viewer: Stuff): string {
  * body-shaped method on this mixin shares. A weapon rack is `Slotted`
  * too, and it has no anatomy, no impression and no covering stack.
  */
-function bodyPlanOf(host: Stuff): BodyPlan | null {
-  // ⚠ Resolved the way the three walks this replaced resolved it —
-  // `Organism.getSpecies()?.getBodyPlan()` — rather than through a
-  // second mechanism. Two resolution paths for one fact is how the
-  // refactor would have silently changed behaviour at the edges.
+function bodyPlanOf(host: Stuff): Body | null {
+  // ⚠ The ONE resolution: the organism's own body (organism-biology D1),
+  // so a variant's or a stage's parts are the parts every walk sees.
   if (!MixinApi.isOrganism(host)) return null;
-  return host.getSpecies()?.getBodyPlan() ?? null;
+  return host.getBody();
 }
 
 /**
@@ -539,7 +537,7 @@ function readConcealmentOffset(host: Stuff & Slotted & Attired): number {
     COVERING_CONCEALMENT_WEIGHT,
   );
   let weighted = 0;
-  for (const part of plan.getBodyParts()) {
+  for (const part of plan.getParts()) {
     if (plan.isInterior(part.key)) continue;
     const share = plan.getPartSurfaceFraction(part.key);
     if (!(share > 0)) continue;
@@ -767,7 +765,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       const plan = bodyPlanOf(this as unknown as Stuff);
       if (!plan) return [];
       return plan
-        .getBodyParts()
+        .getParts()
         .filter((p) => (p.serves ?? []).includes(capacity))
         .map((p) => p.key);
     }
@@ -875,7 +873,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
     public footSites(): string[] {
       const plan = bodyPlanOf(this as unknown as Stuff);
       if (!plan) return [];
-      const parts = plan.getBodyParts();
+      const parts = plan.getParts();
       const out: string[] = [];
       for (const leg of parts) {
         if (!(leg.serves ?? []).includes('locomotion')) continue;
@@ -888,7 +886,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
     public trunkSite(): string | null {
       const plan = bodyPlanOf(this as unknown as Stuff);
       if (!plan) return null;
-      return plan.getBodyParts().find((p) => p.parent === null)?.key ?? null;
+      return plan.getParts().find((p) => p.parent === null)?.key ?? null;
     }
 
     /** The body's leaf parts — those that govern nothing below them. */
@@ -896,7 +894,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       const plan = bodyPlanOf(this as unknown as Stuff);
       return plan
         ? plan
-            .getBodyParts()
+            .getParts()
             .filter((p) => (p.governs ?? []).length === 0)
             .map((p) => p.key)
         : [];
@@ -932,7 +930,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       const plan = bodyPlanOf(this as unknown as Stuff & Slotted);
       if (!plan) return 1;
       let share = 0;
-      for (const part of plan.getBodyParts()) {
+      for (const part of plan.getParts()) {
         if (plan.isInterior(part.key) || !parts(part.key)) continue;
         share += plan.getPartSurfaceFraction(part.key);
       }
@@ -947,7 +945,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       const plan = bodyPlanOf(self);
       if (!plan) return Quantity.of(0, 'clo');
       let total = 0;
-      for (const part of plan.getBodyParts()) {
+      for (const part of plan.getParts()) {
         if (plan.isInterior(part.key)) continue;
         const share = plan.getPartSurfaceFraction(part.key);
         if (!(share > 0)) continue;
@@ -961,7 +959,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       const plan = bodyPlanOf(self);
       if (!plan) return 0;
       let weighted = 0;
-      for (const part of plan.getBodyParts()) {
+      for (const part of plan.getParts()) {
         if (plan.isInterior(part.key)) continue;
         const share = plan.getPartSurfaceFraction(part.key);
         if (!(share > 0)) continue;
@@ -989,7 +987,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       // a coat outermost on torso and both arms is rained on once.
       const outerShare = new Map<Stuff, number>();
       const bareShare: number[] = [];
-      for (const part of plan.getBodyParts()) {
+      for (const part of plan.getParts()) {
         if (plan.isInterior(part.key)) continue;
         const share = plan.getPartSurfaceFraction(part.key);
         if (!(share > 0)) continue;
@@ -1055,7 +1053,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
       if (!plan) return 1;
       let masked = 0;
-      for (const part of plan.getBodyParts()) {
+      for (const part of plan.getParts()) {
         if (plan.isInterior(part.key)) continue;
         // ⚠ Only the HEAD masks a face. A cloak over the torso hides
         // nothing anybody was reading you by.
@@ -1085,7 +1083,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!plan) return false;
       const asStuff = candidate as unknown as Stuff;
       if (!MixinApi.isWearable(asStuff)) return false;
-      const planPath = plan.getTemplatePath();
+      const planPath = MixinApi.isOrganism(self) ? self.getSpecies()?.getBodyPlanPath() : null;
       if (!planPath) return false;
       const claims = asStuff.getSlotClaim(planPath);
       if (claims.length === 0) return false;

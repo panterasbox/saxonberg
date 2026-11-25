@@ -20,6 +20,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { TRAUMA_BEHAVIOR, HARM_DEFAULTS } from '../../../platform/idea/Condition';
 import type { Trauma } from '../../../platform/idea/Condition';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 const SlottableThingBase = SlottableMixin(Good);
 class SlottableThing extends SlottableThingBase {}
@@ -31,7 +32,7 @@ function anatomicalCreature(): Creature {
   plan.setSlots([
     { name: 'grip', accepts: 'SlottableMixin', bodyPart: 'body.arm.left.hand' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.arm.left', parent: 'body.torso', tissues: [] },
     { key: 'body.arm.left.hand', parent: 'body.arm.left', tissues: [] },

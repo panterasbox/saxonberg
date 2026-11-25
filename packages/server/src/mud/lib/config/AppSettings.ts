@@ -796,6 +796,14 @@ export const AppSettingKeys = {
   responseDepthStepPerOrgan: "response.depth.stepPerOrgan",
   responseBluntRuptureThreshold: "response.blunt.ruptureThreshold",
   /**
+   * ⭐ What fills a part, for a `point` insult (organism-biology D12): the
+   * share of a thrust's residual a SPARSE part (a wing, a fin) and a
+   * HOLLOW one (a swim bladder) delivers to tissue — a blade through a
+   * wing mostly finds air.
+   */
+  responseFillSparse: "response.fill.sparse",
+  responseFillHollow: "response.fill.hollow",
+  /**
    * Cold's residual→severity tail. ⚠ Its own key and NOT its own
    * insulation dials: `response.heat.*` describes the COVERING, not the
    * direction of flow, so heat and cold share the fold and differ only
@@ -1207,6 +1215,13 @@ export const AppSettingKeys = {
    * fallback. See docs/subsystems/concealment.md.
    */
   detectionCapacityPerBand: "detection.capacityPerBand",
+  /**
+   * Detection — the weight of the WATCHED SHARE (organism-biology D11):
+   * `(watchDeg/360 − 190/360) × this` perception points, so a cow's eyes
+   * (330°) watch for what a wolf's (250°) miss; a person's are the
+   * reference and add nothing.
+   */
+  detectionWatchWeight: "detection.watchWeight",
   /**
    * Detection — the active-attention bonus a broad `search` folds into
    * effective perception (on top of the passive baseline). A rank-0 seeker
@@ -2557,6 +2572,10 @@ export const AppSettingKeys = {
   /** Exertion — extra power per unit of load ratio above the light-load
    * floor, as a fraction of the walk. Reproduces the old traversal drain. */
   exertionLoadPowerPerRatio: "exertion.loadPowerPerRatio",
+  /** Exertion — extra power per band of suppressed expression (a chilled,
+   * sluggish body; a drugged one), as a fraction of the traverse: a slow
+   * body pays more to cross (organism-biology D9). */
+  exertionSuppressedPowerPerBand: "exertion.suppressedPowerPerBand",
   /** Exertion — endurance `%` under which a body cannot hold a pace
    * faster than a walk: the run breaks. */
   exertionPaceFloorPct: "exertion.paceFloorPct",
@@ -2822,6 +2841,8 @@ export const AppSettingTiers: Readonly<
   responseDepthReachThreshold: "B",
   responseDepthStepPerOrgan: "B",
   responseBluntRuptureThreshold: "B",
+  responseFillSparse: "B",
+  responseFillHollow: "B",
   responseColdSeverityPerResidual: "B",
   responseCorrosionWearPerContact: "B",
   responseCorrosionShedAbsorptionMax: "B",
@@ -2949,6 +2970,7 @@ export const AppSettingTiers: Readonly<
   concealmentHiddenDefaultLevel: "B",
   concealmentPassiveBaseline: "B",
   detectionCapacityPerBand: "B",
+  detectionWatchWeight: "B",
   concealmentSearchBonus: "B",
   concealmentSearchDepthBonus: "B",
   concealmentSearchSeconds: "B",
@@ -3296,6 +3318,7 @@ export const AppSettingTiers: Readonly<
   exertionTraverseNominalS: "B",
   exertionWalkW: "B",
   exertionLoadPowerPerRatio: "B",
+  exertionSuppressedPowerPerBand: "B",
   exertionPaceFloorPct: "B",
   exertionFreshPct: "B",
   exertionExhaustionFloorPct: "B",

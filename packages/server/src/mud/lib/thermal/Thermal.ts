@@ -301,6 +301,13 @@ export const THERMAL_DEFAULTS = {
    */
   HYPERTHERMIA_ONSET_K: 2.5,
   /**
+   * ⭐ The cold edge's NEAR line for an ectotherm (organism-biology D9):
+   * `sluggish` below `setpoint − SLUGGISH_ONSET_K`, before torpor at
+   * `survivableMin` — the hot edge's shape (an onset, then the far line).
+   * A chilled trout is slow before it is still.
+   */
+  SLUGGISH_ONSET_K: 6,
+  /**
    * Each worn `clo` widens the comfort band downward by this many K.
    *
    * ⭐ **Retuned 2026-09-24 (envelope W1) from `2.5`, to the number the

@@ -1,0 +1,30 @@
+# Organ — the soft, wet tissue of an inner organ (organism-biology D4):
+# the PARENT the named organs extend (kidney, gonad, udder, the eye, the
+# swim bladder, and the gut by way of intestine). Each child states only
+# what it is called and how it looks; the physics is this row's.
+#
+# ⭐ An ordinary row (templates.md § Inheritance — no abstract rows): a
+# module may cite it for an organ it has no name for yet.
+class: /platform/idea/material/Flesh
+data:
+  smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 60 }]
+  name: organ
+  keywords: [organ]
+  appearance: a pale, glistening organ
+  density: 1050
+  specificHeat: 3600
+  thermalConductivity: 0.5
+  hardness: 1
+  toughness: 1
+  electricalConductivity: 0.2
+  waterAbsorptionCapacity: 25
+  spoilActivationEnergy: 80000
+  waterActivity: 0.99
+  # Offal tastes and feeds as the gut does (food/gut): authored ONCE here,
+  # so every organ that extends this row carries it (owner, 2026-11-24 —
+  # a parent that fills the field fills it for every child).
+  tastes: [{ type: umami, amount: 2 }]
+  nutrients: ["protein", "water"]
+  nutrientAmounts:
+    protein: 17000
+  tags: ["tissue", "animal", "organ", "organic", "living", "edible"]

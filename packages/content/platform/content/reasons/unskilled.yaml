@@ -1,0 +1,6 @@
+# The hand is under the operation's competence band (W7).
+facts:
+  label: text
+  band: text
+says: "You do not have the skill for {{ label }} — it wants {{ band }} medicine."
+topic: act.deed

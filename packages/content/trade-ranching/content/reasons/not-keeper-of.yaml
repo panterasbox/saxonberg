@@ -1,0 +1,6 @@
+# The keeper's act (controller-liquidity D9): both books must be yours to
+# write in — the one it leaves and the one it enters (D8).
+facts:
+  herd: text
+says: "{{ herd | cap }} is not yours to write in."
+topic: act.deed

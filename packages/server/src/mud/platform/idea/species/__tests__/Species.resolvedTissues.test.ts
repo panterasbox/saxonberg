@@ -21,6 +21,7 @@ import Species from '../Species';
 import BodyPlan from '../BodyPlan';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 afterEach(() => StuffApi.clearAll());
 
@@ -34,7 +35,7 @@ function speciesWithPlan(): Species {
     '/stuff/idea/species/BodyPlan/test-quad',
   );
   plan.setName('test-quad');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,
@@ -58,12 +59,12 @@ function speciesWithPlan(): Species {
 describe('Species.resolvedTissues', () => {
   it('⭐ resolves the plan as proportions summing to 1', () => {
     const sp = speciesWithPlan();
-    const sum = sp.resolvedTissues().reduce((a, t) => a + t.share, 0);
+    const sum = sp.bodyFor()!.resolvedTissues().reduce((a, t) => a + t.share, 0);
     expect(sum).toBeCloseTo(1, 9);
-    expect(sp.tissueShareOf(FAT)).toBeCloseTo(0.06, 9);
+    expect(sp.bodyFor()!.tissueShareOf(FAT)).toBeCloseTo(0.06, 9);
     // ⭐ A muscle on two parts sums across both — the shoulder comes off
     // both forelegs at once, and so does the loin here.
-    expect(sp.tissueShareOf(LOIN)).toBeCloseTo(0.8, 9);
+    expect(sp.bodyFor()!.tissueShareOf(LOIN)).toBeCloseTo(0.8, 9);
   });
 
   it('⚠ NORMALISES a partial plan, so a test fixture stays honest', () => {
@@ -75,24 +76,24 @@ describe('Species.resolvedTissues', () => {
       '/stuff/idea/species/BodyPlan/test-partial',
     );
     plan.setName('test-partial');
-    plan.setBodyParts([
+    setFlatParts(plan, [
       { key: 'body.torso', parent: null, tissues: [{ tissuePath: LOIN, share: 0.3 }] },
     ]);
     const sp = makeStuff(() => new Species());
     sp._bodyPlanPath = '/stuff/idea/species/BodyPlan/test-partial';
-    expect(sp.tissueShareOf(LOIN)).toBeCloseTo(1, 9);
+    expect(sp.bodyFor()!.tissueShareOf(LOIN)).toBeCloseTo(1, 9);
   });
 
   it('names the parts carrying a tissue', () => {
     const sp = speciesWithPlan();
-    expect(sp.partsCarrying(LOIN)).toEqual(['body.torso', 'body.leg.left']);
-    expect(sp.partsCarrying(FAT)).toEqual(['body.torso']);
-    expect(sp.partsCarrying('/nope')).toEqual([]);
+    expect(sp.bodyFor()!.partsCarrying(LOIN)).toEqual(['body.torso', 'body.leg.left']);
+    expect(sp.bodyFor()!.partsCarrying(FAT)).toEqual(['body.torso']);
+    expect(sp.bodyFor()!.partsCarrying('/nope')).toEqual([]);
   });
 
   it('a species with no plan resolves to nothing rather than throwing', () => {
     const sp = makeStuff(() => new Species());
-    expect(sp.resolvedTissues()).toEqual([]);
-    expect(sp.tissueShareOf(LOIN)).toBe(0);
+    // W1: a species with no plan has no body at all — `null`, not an empty one.
+    expect(sp.bodyFor()).toBeNull();
   });
 });

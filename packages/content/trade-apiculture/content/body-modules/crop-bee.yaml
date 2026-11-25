@@ -1,0 +1,14 @@
+# crop-bee — a gland (organism-biology D2): the part that makes
+# honey. The tap is today's, keyed as it always was, so a
+# stored tap state restores by its key; the store stays on the tap host.
+parts:
+- key: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.01}
+  produces:
+  - key: honey
+    yieldRow: /trade/apiculture/thing/comb
+    perGameDay: 0.5
+    behaviour: accrue
+    windowDays: 400
+    window: {kind: biome}

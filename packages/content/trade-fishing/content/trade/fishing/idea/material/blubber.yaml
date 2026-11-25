@@ -1,0 +1,25 @@
+# organism-biology D4: a whale's fat layer, cited by the cetacean torso's
+# `under` integument (W10) and rendered by `render-blubber` into whale oil.
+class: /platform/idea/material/Fat
+data:
+  smells: [{ aroma: /base-library/aromas/flesh/raw-meat, strength: 300 }]
+  burning: [{ aroma: /base-library/aromas/smoke/oil-smoke, strength: 500 }]
+  name: blubber
+  keywords: [blubber, fat]
+  appearance: thick slabs of pinkish-white blubber
+  density: 930
+  thermalConductivity: 0.2
+  specificHeat: 2200
+  smokePoint: 470
+  heatOfCombustion: 39
+  autoignitionTemperature: 530
+  meltingPoint: 300
+  latentHeatOfFusion: 150000
+  hardness: 1
+  toughness: 2
+  spoilActivationEnergy: 50000
+  waterActivity: 0.6
+  nutrients: [fat]
+  nutrientAmounts:
+    fat: 70000
+  tags: [solid, fat, blubber, animal, organic, once-living]

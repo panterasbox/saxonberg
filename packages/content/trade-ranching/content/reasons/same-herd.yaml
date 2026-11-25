@@ -1,0 +1,5 @@
+# Entering a head into the book it is already in (organism-biology D8).
+facts:
+  herd: text
+says: "It is already in {{ herd }}."
+topic: act.deed

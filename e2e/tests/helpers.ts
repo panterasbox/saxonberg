@@ -188,7 +188,9 @@ export async function enterWorld(
   await page.goto('/');
   const roster = page.getByTestId('roster-screen');
   const input = commandInput(page);
-  await expect(roster.or(input).first()).toBeVisible();
+  // ⚠ 30 s, not the 5 s default: a loaded world answers its first page
+  // slowly (organism-biology walk, a second login at load 14).
+  await expect(roster.or(input).first()).toBeVisible({ timeout: 30_000 });
 
   // Enter the world, resiliently. Clicking "Play" sends `play <id>` over
   // the WebSocket; if the socket isn't open yet the command is dropped

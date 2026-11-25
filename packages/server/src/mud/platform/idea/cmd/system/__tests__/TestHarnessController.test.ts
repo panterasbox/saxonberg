@@ -22,6 +22,12 @@ import TestHarnessAfflictController from '../TestHarnessAfflictController';
 import TestHarnessSpeciesController from '../TestHarnessSpeciesController';
 import TestHarnessRemoveController from '../TestHarnessRemoveController';
 import TestHarnessStandingHistoryController from '../TestHarnessStandingHistoryController';
+import TestHarnessBodyController from '../TestHarnessBodyController';
+import TestHarnessBodyWoundController from '../TestHarnessBodyWoundController';
+import TestHarnessBodySeverController from '../TestHarnessBodySeverController';
+import TestHarnessBodyKillController from '../TestHarnessBodyKillController';
+import TestHarnessDaylightPinController from '../TestHarnessDaylightPinController';
+import TestHarnessDaylightUnpinController from '../TestHarnessDaylightUnpinController';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { CommandApi } from '../../../../../api/command';
@@ -82,6 +88,12 @@ describe('testharness controllers', () => {
     species: TestHarnessSpeciesController,
     vanish: TestHarnessRemoveController,
     'standing-history': TestHarnessStandingHistoryController,
+    body: TestHarnessBodyController,
+    'body-wound': TestHarnessBodyWoundController,
+    'body-sever': TestHarnessBodySeverController,
+    'body-kill': TestHarnessBodyKillController,
+    'daylight-pin': TestHarnessDaylightPinController,
+    'daylight-unpin': TestHarnessDaylightUnpinController,
   } as const;
   const run = (m: Record<string, unknown>) => {
     const Ctrl = BY_WORD[m.subcommand as keyof typeof BY_WORD];
@@ -212,15 +224,54 @@ describe('testharness controllers', () => {
       expect(set).not.toHaveBeenCalled();
     });
 
-    it('`afflict <name> <condition> [stage]` forwards, and reports how the body reads', async () => {
+    it('`afflict <body> <condition> [stage]` forwards the bound body, and reports how it reads', async () => {
       const aff = vi
         .spyOn(TestHarnessApi, 'afflict')
         .mockResolvedValue({ character: 'Mara', condition: '/c/x', consciousness: 'unconscious' });
-      await run({ subcommand: 'afflict', op: 'Mara', value: '/c/x', cite: '2' });
-      expect(aff).toHaveBeenCalledWith('Mara', '/c/x', 2);
+      const mara = { name: 'Mara', stuffId: 'm1' };
+      await run({ subcommand: 'afflict', target: { stuff: mara }, condition: '/c/x', amount: '2' });
+      expect(aff).toHaveBeenCalledWith('#m1', '/c/x', 2);
       expect(said.join('\n')).toMatch(/unconscious/);
-      await run({ subcommand: 'afflict', op: 'Mara' });
-      expect(rejected()?.reason).toBe('test-usage');
+      // ⭐ Stage 0 relieves (organism-biology D16).
+      await run({ subcommand: 'afflict', target: { stuff: mara }, condition: '/c/x', amount: '0' });
+      expect(aff).toHaveBeenLastCalledWith('#m1', '/c/x', 0);
+      expect(said.join('\n')).toMatch(/relieved of/);
+    });
+
+    it('⭐ the body subcommands forward the BOUND body (organism-biology D16)', async () => {
+      const cow = { name: 'a cow', stuffId: 'c1' };
+      // ⭐ `perceiving` is a HANDLE, not a bind: the body read is often one
+      // the wizard cannot see (a concealed hider).
+      const rep = vi.spyOn(TestHarnessApi, 'bodyReport').mockResolvedValue({ body: 'a cow' } as never);
+      await run({ subcommand: 'body', target: { stuff: cow }, other: '#w1' });
+      expect(rep).toHaveBeenCalledWith('#c1', '#w1');
+      expect(said.join('\n')).toMatch(/Body of a cow/);
+      const wound = { body: 'a cow', site: 'body.torso', type: 'puncture', severity: 2, afflicted: true, missing: [] };
+      const w = vi.spyOn(TestHarnessApi, 'woundBody').mockResolvedValue(wound);
+      await run({ subcommand: 'body-wound', target: { stuff: cow }, part: 'body.torso', channel: 'point', amount: '2' });
+      expect(w).toHaveBeenCalledWith('#c1', 'body.torso', 'point', 2);
+      const sv = vi.spyOn(TestHarnessApi, 'severBodyPart').mockResolvedValue({ ...wound, type: 'avulsion' });
+      await run({ subcommand: 'body-sever', target: { stuff: cow }, part: 'body.leg.frontLeft' });
+      expect(sv).toHaveBeenCalledWith('#c1', 'body.leg.frontLeft', null);
+      // ⭐ A target that bound no thing forwards what was typed — a player's
+      // name a stranger cannot see by (the walk's crash on `stuffId`).
+      await run({ subcommand: 'body-sever', target: { stuff: null, raw: 'Mara' }, part: 'body.leg.frontLeft' });
+      expect(sv).toHaveBeenLastCalledWith('Mara', 'body.leg.frontLeft', null);
+      // ⭐ The third word seals the stump (D7's burned crab).
+      await run({ subcommand: 'body-sever', target: { stuff: cow }, part: 'body.leg.frontLeft', sealedBy: 'heat' });
+      expect(sv).toHaveBeenLastCalledWith('#c1', 'body.leg.frontLeft', 'heat');
+      const k = vi.spyOn(TestHarnessApi, 'killBody').mockResolvedValue({ body: 'a cow', alive: false });
+      await run({ subcommand: 'body-kill', target: { stuff: cow } });
+      expect(k).toHaveBeenCalledWith('#c1');
+      expect(said.join('\n')).toMatch(/a cow is dead/);
+    });
+
+    it('`daylight-pin <fraction>` / `daylight-unpin` hold and release the day', async () => {
+      const pin = vi.spyOn(TestHarnessApi, 'pinDaylight').mockImplementation(async (f) => ({ pin: f, bodies: 0 }));
+      await run({ subcommand: 'daylight-pin', amount: '0.35' });
+      expect(pin).toHaveBeenCalledWith(0.35);
+      await run({ subcommand: 'daylight-unpin' });
+      expect(pin).toHaveBeenLastCalledWith(null);
     });
 
     it('`vanish #<id>` forwards the id; with none, the usage', async () => {
@@ -302,10 +353,23 @@ describe('testharness controllers', () => {
       expect(g.model).toMatchObject({ value: '0', at: '/test/there' });
       const a = bind('testharness afflict Mara /c/anaesthesia 2');
       expect(a.controller).toBe(`${P}TestHarnessAfflictController`);
-      expect(a.model).toMatchObject({ op: 'Mara', value: '/c/anaesthesia', cite: '2' });
+      expect(a.model).toMatchObject({ condition: '/c/anaesthesia', amount: '2' });
       const sp = bind('testharness species Mara /s/gnomus');
       expect(sp.controller).toBe(`${P}TestHarnessSpeciesController`);
       expect(sp.model).toMatchObject({ op: 'Mara', value: '/s/gnomus' });
+    });
+
+    it('⭐ body · body-wound · body-sever · body-kill · daylight-pin (organism-biology D16)', () => {
+      expect(bind('testharness body cow perceiving Mara').controller).toBe(`${P}TestHarnessBodyController`);
+      const w = bind('testharness body-wound wolf body.head.eye.left point 2');
+      expect(w.controller).toBe(`${P}TestHarnessBodyWoundController`);
+      expect(w.model).toMatchObject({ part: 'body.head.eye.left', channel: 'point', amount: '2' });
+      expect(bind('testharness body-sever crab body.claw.left').controller).toBe(`${P}TestHarnessBodySeverController`);
+      expect(bind('testharness body-kill cow').controller).toBe(`${P}TestHarnessBodyKillController`);
+      expect(bind('testharness daylight-pin 0.35').model).toMatchObject({ amount: '0.35' });
+      expect(bind('testharness daylight-unpin').controller).toBe(`${P}TestHarnessDaylightUnpinController`);
+      // ⛔ A channel that is not one is refused by the view's enum slot.
+      expect(() => bind('testharness body-wound wolf body.head bite 2')).toThrow();
     });
 
     it('standing-history', () => {

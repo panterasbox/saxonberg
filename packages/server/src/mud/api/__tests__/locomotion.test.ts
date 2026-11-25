@@ -66,6 +66,7 @@ import BodyPlan from '../../platform/idea/species/BodyPlan';
 import { StuffApi } from '../stuff';
 import { LocomotionLogic } from '../../platform/idea/api/LocomotionLogic';
 import { SecurityError } from '../../lib/security/errors';
+import { setFlatGaits } from '../../lib/species/__tests__/flat-body';
 const OrganismMover = OrganismMixin(MobileMixin(ContainableMixin(Idea)));
 class TestOrganismMover extends OrganismMover {}
 
@@ -525,7 +526,7 @@ describe('LocomotionApi', () => {
         '/stuff/idea/species/bodyplan/test-avian',
       );
       bodyplan.setName('test-avian');
-      bodyplan.setLocomotionModes(['walk', 'fly']);
+      setFlatGaits(bodyplan, ['walk', 'fly']);
       bodyplan.setDefaultLocomotionMode('fly');
 
       const species = makeAtPath(

@@ -1,0 +1,5 @@
+# The kit in hand does not offer the operation's instrument (W7).
+facts:
+  label: text
+says: "That kit cannot perform {{ label }}."
+topic: act.deed

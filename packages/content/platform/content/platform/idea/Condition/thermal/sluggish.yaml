@@ -1,0 +1,16 @@
+# Sluggish — a cold-blooded body chilled, not yet torpid (organism-biology
+# D9, W7). The near threshold of the cold edge: the thermal cascade brings
+# it on below `setpoint − SLUGGISH_ONSET_K` for an ectotherm and clears it
+# on rewarming, exactly as hyperthermia's row comes on before the lethal
+# line. A slow body pays more to cross — the traverse's exertion reads the
+# expression it suppresses — which is where slowness lives in this engine.
+class: /platform/idea/Condition
+data:
+  name: sluggish
+  signature:
+    - { kind: expression, bands: 1 }
+  progression: null
+  resolution:
+    by: warmth
+  observableSigns: [slow, stiff, cold-to-the-touch]
+  contagion: null

@@ -15,6 +15,7 @@
  * semantics, which is a faucet wearing a hat.
  */
 
+import { standShippedConditions } from '../../vitals/__tests__/conditions';
 import '../../../../test-bootstrap';
 import { TapActController } from '../../../platform/idea/cmd/inventory/TapActController';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -31,6 +32,7 @@ import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { CelestialApi } from '../../../api/celestial';
 
 import { EARTH_LIKE } from '../../time/CelestialProfile';
+import { setFlatTaps } from '../../species/__tests__/flat-body';
 
 const DAY = 86_400;
 const SPECIES_PATH = '/stuff/idea/species/_test/beast';
@@ -72,7 +74,7 @@ describe('the taps', () => {
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
     makeStuffAtPath(() => {
       const s = new Species();
-      s.setProduction(TAPS);
+      setFlatTaps(s, TAPS);
       return s;
     }, SPECIES_PATH);
     base = WorldClockApi.getNow().rawValue();
@@ -197,7 +199,7 @@ describe('the window — when a tap is open at all', () => {
     const path = `${SPECIES_2}-${++speciesSeq}`;
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, path);
     const b = makeStuff(() => {
@@ -258,7 +260,7 @@ describe('the window — when a tap is open at all', () => {
         perGameDay: 1,
         behaviour: 'accrue',
         windowDays: 10,
-        window: { kind: 'photoperiod', daylightFrom: 0.5, daylightTo: 1 },
+        window: { kind: 'weather', daylightFrom: 0.5, daylightTo: 1, minK: 0, maxK: 1000 },
       },
     ];
     const summer = findDay((f) => f > 0.55);
@@ -292,7 +294,7 @@ describe('the window — when a tap is open at all', () => {
         perGameDay: 1,
         behaviour: 'accrue',
         windowDays: 10,
-        window: { kind: 'photoperiod', daylightFrom: 0.5, daylightTo: 1 },
+        window: { kind: 'weather', daylightFrom: 0.5, daylightTo: 1, minK: 0, maxK: 1000 },
       },
     ];
     const summer = findDay((f) => f > 0.55);
@@ -320,7 +322,7 @@ describe('the window — when a tap is open at all', () => {
         behaviour: 'accrue',
         windowDays: 10,
         // Deep winter either side of the turn.
-        window: { kind: 'photoperiod', daylightFrom: 0.9, daylightTo: 0.1 },
+        window: { kind: 'weather', daylightFrom: 0.9, daylightTo: 0.1, minK: 0, maxK: 1000 },
       },
     ];
     const mid = findDay((f) => f > 0.45 && f < 0.55);
@@ -410,7 +412,7 @@ describe('the window — when a tap is open at all', () => {
     const path = `${SPECIES_2}-unmodelled`;
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction([
+      setFlatTaps(sp, [
         {
           key: 'sap',
           yieldRow: '/x/sap',
@@ -462,7 +464,7 @@ describe('the window — when a tap is open at all', () => {
     const starvedPath = `${SPECIES_2}-starved`;
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(spec);
+      setFlatTaps(sp, spec);
       return sp;
     }, starvedPath);
     const hive = makeStuff(() => {
@@ -506,14 +508,13 @@ describe('⭐ MILK: no judgment at the act, and the loss visible coming', () => 
       behaviour: 'expire',
       windowDays: 0.6,
       yieldShape: 'volume',
-      window: { kind: 'event' },
     },
   ];
 
   const cow = (): TestBeast => {
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(MILK);
+      setFlatTaps(sp, MILK);
       return sp;
     }, SPECIES_2);
     const b = makeStuff(() => {
@@ -633,7 +634,7 @@ describe("⭐ the HEN's judgment: the clutch choice", () => {
   const hen = (taps: TapSpec[]): TestBeast => {
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, SPECIES_2);
     const b = makeStuff(() => {
@@ -731,7 +732,7 @@ describe("⭐ the FLEECE's judgment: the year it records", () => {
   const sheep = (taps: TapSpec[]): TestBeast => {
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, SPECIES_2);
     const b = makeStuff(() => {
@@ -835,3 +836,54 @@ function dayFraction(d: number): number {
     ) / EARTH_LIKE.dayLengthSeconds
   );
 }
+
+/**
+ * ⭐⭐ ONE lactation schedule (organism-biology D9): a tap `activeIn` a
+ * condition runs only while the body carries it — the species' phenology or
+ * the freshening act brings `lactating` on, and drying off relieves it.
+ */
+describe('⭐⭐ activeIn — the body says whether it is in milk (D9)', () => {
+  const LACTATING = '/platform/idea/Condition/reproduction/lactating';
+  const MILK: TapSpec[] = [
+    { key: 'milk', yieldRow: '/stuff/idea/material/food/milk', perGameDay: 22, behaviour: 'expire', windowDays: 0.6, yieldShape: 'volume', activeIn: LACTATING },
+  ];
+  const cow = (): TestBeast => {
+    const path = `${SPECIES_2}-active`;
+    makeStuffAtPath(() => {
+      const sp = new Species();
+      setFlatTaps(sp, MILK);
+      return sp;
+    }, path);
+    return makeStuff(() => {
+      const x = new TestBeast();
+      x.setLifecycleState('alive');
+      x._speciesPath = path;
+      return x;
+    });
+  };
+  beforeEach(async () => {
+    await standShippedConditions();
+    installV1QuantityMarshallers();
+    makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
+    vi.spyOn(WorldClockApi, 'getNow').mockReturnValue(Quantity.of(T0, 's'));
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⭐ a cow not carrying `lactating` is not in milk — the window says so', () => {
+    const c = cow();
+    expect(c.tapWindow('milk')).toEqual({ open: false, reason: 'not-lactating' });
+  });
+
+  it('⭐ carrying it, she gives; drying off relieves it and shuts her', () => {
+    const c = cow();
+    c.afflict({ kind: 'affliction', templatePath: LACTATING, stage: 0, elapsed: 0 });
+    expect(c.tapWindow('milk').open).toBe(true);
+    c.dryOff('milk');
+    expect(c.getConditions().some((x) => x.kind === 'affliction' && x.templatePath === LACTATING)).toBe(false);
+    expect(c.tapWindow('milk').open).toBe(false);
+  });
+});
+

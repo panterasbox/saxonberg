@@ -17,6 +17,7 @@ import { Quantity } from '../../quantity';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 let seq = 0;
 
@@ -33,7 +34,7 @@ function body(): Creature {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('rain-biped');
   plan.setSlots([{ name: 'body', accepts: 'WearableMixin', covers: ['body.torso'] }]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

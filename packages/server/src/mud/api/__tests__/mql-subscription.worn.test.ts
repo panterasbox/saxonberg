@@ -34,6 +34,7 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../lib/security/__tests__/test-setup';
+import { setFlatParts } from '../../lib/species/__tests__/flat-body';
 
 class TestGarment extends WearableMixin(
   SlottableMixin(ContainableMixin(Good)),
@@ -56,7 +57,7 @@ async function dressedAvatar(): Promise<{
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
     { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body', parent: null, tissues: [] },
     { key: 'body.hand.left', parent: 'body', tissues: [], serves: ['manipulation'] },
     { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },

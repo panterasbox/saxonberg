@@ -29,7 +29,7 @@ import type { Trauma } from '../../Condition';
 import type Condition from '../../Condition';
 import { StuffApi } from '../../../../api/stuff';
 import { Creature, type BmiBand } from '../../../../lib/creature/Creature';
-import type BodyPlan from '../../species/BodyPlan';
+import type { Body } from '../../../../lib/species/Body';
 import { ConditionApi } from '../../../../api/condition';
 
 const TOPIC = 'act.deed';
@@ -199,11 +199,9 @@ export default class AssessController extends CommandController<AssessModel> {
     //     than a competent stranger does.
     //   - **competent** — names the organ.
     //   - **precise** — adds the severity, like any other wound.
-    const plan = MixinApi.isOrganism(target)
-      ? target.getSpecies()?.getBodyPlan()
-      : null;
+    const anatomyBody = MixinApi.isOrganism(target) ? target.getBody() : null;
     const isInterior = (w: Trauma): boolean =>
-      plan?.isInterior(w.site) ?? false;
+      anatomyBody?.isInterior(w.site) ?? false;
     // ⭐⭐ **Naming an interior wound reads REAL competence, not the self
     // shortcut.** `medBand` is forced to `expert` for a self-assess — the
     // shipped fidelity rule, and right for everything you can SEE. It is
@@ -323,7 +321,7 @@ export default class AssessController extends CommandController<AssessModel> {
     // The covering stack is `coveringAt`, which is already the one
     // outside-in walk the resist fold uses, so what is printed here is
     // literally what a blow will go through.
-    const anatomy = this.renderAnatomy(target, plan, named, isSelf);
+    const anatomy = this.renderAnatomy(target, anatomyBody, named, isSelf);
     if (anatomy.length > 0) {
       blocks.push(Mml.unorderedList(anatomy).toString());
     }
@@ -343,14 +341,14 @@ export default class AssessController extends CommandController<AssessModel> {
    */
   private renderAnatomy(
     target: Stuff,
-    plan: BodyPlan | null | undefined,
+    anatomyBody: Body | null,
     named: boolean,
     isSelf: boolean,
   ): Mml[] {
-    if (!plan || !MixinApi.isVitals(target)) return [];
+    if (!anatomyBody || !MixinApi.isVitals(target)) return [];
     const out: Mml[] = [];
     for (const part of target.getParts()) {
-      const interior = plan.isInterior(part.key);
+      const interior = anatomyBody.isInterior(part.key);
       // ⭐⭐ **You know your own anatomy; you cannot read it.** The drive
       // caught this: an untrained self-assess showed ten exterior parts
       // and no brain, spine or liver, because naming an interior part was

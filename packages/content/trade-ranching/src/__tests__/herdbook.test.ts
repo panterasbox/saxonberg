@@ -629,3 +629,75 @@ describe('the herd’s sex mix and dry periods', () => {
     expect((await r.overlayFor('kestrel-flock', 5))?.driedOffAt).toEqual({ milk: 123_456 });
   });
 });
+
+/**
+ * ⭐⭐ The register keeps what a head lost and what it was (organism-biology
+ * D8, W7): a steer is a steer at the next draft, founding stock of a book
+ * that cuts its males is drawn neutered, and `refile` moves a drafted head
+ * between books carrying its sex — or the ox register would redraw it as a
+ * cow — and refuses who may not write in either book.
+ */
+describe('the register keeps the cut (D8)', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+    installStore();
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    StuffApi.clearAll();
+  });
+
+  it('⭐ a book that cuts its males seeds its founding males neutered; a flock none', () => {
+    const oxen = { herdId: 'oxen', meanAgeDays: 900, femaleFraction: 0, neuteredFraction: 1 };
+    expect(Array.from({ length: 10 }, (_, i) => HeadSeed.sample(oxen, i)).every((h) => h.neutered)).toBe(true);
+    const flock = { herdId: 'kestrel-flock', meanAgeDays: 400, femaleFraction: 0.85 };
+    expect(Array.from({ length: 40 }, (_, i) => HeadSeed.sample(flock, i)).some((h) => h.neutered)).toBe(false);
+  });
+
+  it('⭐ the overlay\'s sex wins over the index\'s seed — a refiled head is not redrawn', () => {
+    const dairy = { herdId: 'dairy', meanAgeDays: 900, femaleFraction: 1 };
+    expect(HeadSeed.sample(dairy, 3).sex).toBe('female');
+    expect(HeadSeed.sample(dairy, 3, { sex: 'male' }).sex).toBe('male');
+  });
+
+  it('⭐ lostParts and sex fold into the overlay on return, and a neuteredFraction round-trips', async () => {
+    const r = registry();
+    await r.file({ ...HERD, neuteredFraction: 1 });
+    expect((await r.read('kestrel-flock'))?.neuteredFraction).toBe(1);
+    await asOne(keeper, (who) => r.draft('kestrel-flock', 5, who));
+    await r.returnHead('kestrel-flock', 5, { sex: 'male', lostParts: [{ part: 'body.torso.gonads', atAgeDays: 60 }] });
+    expect(await r.overlayFor('kestrel-flock', 5)).toMatchObject({ sex: 'male', lostParts: [{ part: 'body.torso.gonads', atAgeDays: 60 }] });
+  });
+
+  it('⭐⭐ refile moves a drafted head: out of one tally, into the next index of the other, its traits explicit', async () => {
+    const r = registry();
+    await r.file({ ...HERD, herdId: 'calves', name: 'the calves', tally: 3, homeExtent: '/world/test/a' });
+    await r.file({ ...HERD, herdId: 'oxen', name: 'the oxen', tally: 2, homeExtent: '/world/test/b' });
+    await asOne(keeper, (who) => r.draft('calves', 1, who));
+    const traits = { sex: 'male' as const, lostParts: [{ part: 'body.torso.gonads', atAgeDays: 40 }], handling: 0.5 };
+    const out = await asOne(keeper, (who) => r.refile('calves', 1, 'oxen', who, traits));
+    expect(out).toMatchObject({ ok: true, index: 2 });
+    expect((await r.read('calves'))?.tally).toBe(2);
+    const oxen = await r.read('oxen');
+    expect(oxen?.tally).toBe(3);
+    expect(oxen?.drafted).toEqual([{ index: 2 }]);
+    expect(oxen?.overlay['2']).toMatchObject(traits);
+  });
+
+  it('⚠ refile refuses no actor, a stranger to either book, another species, the same book, an undrafted head', async () => {
+    const r = registry();
+    await r.file({ ...HERD, herdId: 'calves', tally: 3 });
+    await r.file({ ...HERD, herdId: 'oxen', tally: 2 });
+    await r.file({ ...HERD, herdId: 'goats', tally: 2, speciesPath: '/stuff/idea/species/_test/goat' });
+    await asOne(keeper, (who) => r.draft('calves', 1, who));
+    expect(await r.refile('calves', 1, 'oxen', null, {})).toMatchObject({ ok: false, reason: '/trade/ranching/reasons/no-actor' });
+    vi.spyOn(AccessApi, 'heldExtents').mockResolvedValue([]);
+    const stranger = makeStuff(() => new Idea());
+    expect(await TestHarnessApi.actAs(stranger, () => r.refile('calves', 1, 'oxen', stranger, {}))).toMatchObject({ reason: '/trade/ranching/reasons/not-keeper-of' });
+    expect(await asOne(keeper, (who) => r.refile('calves', 1, 'goats', who, {}))).toMatchObject({ reason: '/trade/ranching/reasons/wrong-species' });
+    expect(await asOne(keeper, (who) => r.refile('calves', 1, 'calves', who, {}))).toMatchObject({ reason: '/trade/ranching/reasons/same-herd' });
+    expect(await asOne(keeper, (who) => r.refile('calves', 2, 'oxen', who, {}))).toMatchObject({ reason: '/trade/ranching/reasons/not-drafted' });
+    expect((await r.read('calves'))?.tally).toBe(3); // nothing moved
+  });
+});

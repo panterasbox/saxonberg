@@ -389,7 +389,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public wouldComply(person: Stuff): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const biddability = self.getSpecies()?.getBiddability();
+      const biddability = self.getSpecies()?.getBiddability(self.getVariant());
       if (biddability === null || biddability === undefined) return false;
       return biddability * this.bondWith(person) >= 0.5;
     }

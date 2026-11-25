@@ -28,6 +28,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 class TestGarment extends WearableMixin(
   SlottableMixin(ContainableMixin(ConstructedMixin(Good))),
@@ -44,7 +45,7 @@ function bipedPlan(planMass = 70, planStature = 1.75): BodyPlan {
   plan.setSlots([
     { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

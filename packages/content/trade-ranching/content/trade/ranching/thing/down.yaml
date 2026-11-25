@@ -1,0 +1,11 @@
+# organism-biology D5: what an outside comes off a carcass as — its own
+# word, so `butcher <body> for down` takes it and nothing else.
+class: /platform/thing/Good
+data:
+  shortDescription: fistful of down
+  keywords: [down, fistful, fluff]
+  register: indefinite
+  longDescription: >-
+    The soft underlayer, a fistful of it — what keeps a bird warm and, packed into a quilt, keeps a sleeper warm.
+  _materialPath: /stuff/idea/material/textile/down
+  mass: 0.02

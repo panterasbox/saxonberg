@@ -26,7 +26,7 @@ import { MUD, mudSourceFiles, parseTs, ratchet } from "./pack-roots";
 const REPO_ROOT = join(MUD, "../../../..");
 
 /** Act nulls — measured 2026-11-18 (failure-model W4). */
-export const ACT_NULLS_CEILING = 170;
+export const ACT_NULLS_CEILING = 169; // master merge (naming overhaul) + organism-biology: both fell, re-pinned at the merged floor.
 
 const ACT_TYPE = /\b\w*(Refusal|Plan|Answer|Outcome|Choices)\b/;
 

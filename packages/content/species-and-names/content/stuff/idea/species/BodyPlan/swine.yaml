@@ -21,85 +21,12 @@ extends: /stuff/idea/species/BodyPlan/quadruped
 class: /platform/idea/species/BodyPlan
 data:
   name: swine
-  bodyParts:
-    - key: body.torso
-      parent: null
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0348 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/neck, share: 0.0244 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/rib, share: 0.0348 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/loin, share: 0.0348 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/tenderloin, share: 0.0077 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/belly, share: 0.1 }
-      - { tissuePath: /stuff/idea/material/food/animal-fat, share: 0.28 }
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.2173 }
-    - key: body.head
-      parent: body.torso
-      severable: true
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0084 }
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0209 }
-    - key: body.leg.frontLeft
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0084 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.0244 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0077 }
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
-    - key: body.leg.frontRight
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0084 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/shoulder, share: 0.0244 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0077 }
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
-    - key: body.leg.rearLeft
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0118 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.0293 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0098 }
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
-    - key: body.leg.rearRight
-      parent: body.torso
-      severable: true
-      serves: [locomotion]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0118 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/leg, share: 0.0293 }
-      - { tissuePath: /stuff/idea/material/tissue/muscles/shank, share: 0.0098 }
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
-    - key: body.torso.heart
-      parent: body.torso
-      governs: [heartRate, circulation]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0014 }
-    - key: body.torso.lungs
-      parent: body.torso
-      governs: [respiratoryRate, respiration]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.007 }
-    - key: body.head.brain
-      parent: body.head
-      governs: [consciousness]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0021 }
-    - key: body.torso.spine.upper
-      parent: body.torso
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0042 }
-    - key: body.torso.spine.lower
-      parent: body.torso.spine.upper
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0035 }
-    - key: body.torso.liver
-      parent: body.torso
-      governs: [clearance]
-      tissues:
-      - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0084 }
+  # ⭐ Composed from body modules (organism-biology D1): each entry names
+  # a module document, the absolute key of each instance (`as`) and the
+  # part it hangs from (`at`). The expansion reproduces the keys and the
+  # tissue shares this plan always had.
+  modules:
+    - { module: /species-and-names/body-modules/torso-swine, as: [body.torso] }
+    - { module: /species-and-names/body-modules/head-swine, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/leg-fore-swine, as: [body.leg.frontLeft, body.leg.frontRight], at: body.torso }
+    - { module: /species-and-names/body-modules/leg-hind-swine, as: [body.leg.rearLeft, body.leg.rearRight], at: body.torso }

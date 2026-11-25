@@ -168,7 +168,8 @@ export default class ButcherController extends CraftController<ButcherModel> {
     if (!species) return 'unidentified-species';
     if (SpeciesApi.isSentient(body)) return 'sentient-corpse';
     if (MixinApi.isNamed(body) && (body.getName() ?? '') !== '') return 'named-animal';
-    if (species.getButcheryYield().length === 0) return 'no-yield';
+    // ⭐ D5: what comes off derives from the body — nothing named, nothing to take.
+    if ((body.getBody()?.yieldLines().length ?? 0) === 0) return 'no-yield';
     return 'still-alive';
   }
 
@@ -201,9 +202,14 @@ export default class ButcherController extends CraftController<ButcherModel> {
     giver: Stuff,
   ): { self: Composed; peers: Composed } {
     const notes: string[] = [];
-    if (f.wanting.length) {
-      const wants = f.wanting.map((w) => `${w.stem} (${w.needs === 'saw' ? 'a saw' : 'a cleaver and a block'})`);
+    const tools = f.wanting.filter((w) => w.needs !== 'room');
+    if (tools.length) {
+      const wants = tools.map((w) => `${w.stem} (${w.needs === 'saw' ? 'a saw' : 'a cleaver and a block'})`);
       notes.push(`Still on it, for want of a tool: ${wants.join(', ')}.`);
+    }
+    const room = f.wanting.filter((w) => w.needs === 'room');
+    if (room.length) {
+      notes.push(`Still on it, for want of room here to lay it out: ${room.map((w) => w.stem).join(', ')}.`);
     }
     if (f.alreadyGone.length) notes.push(`Already off it: ${f.alreadyGone.join(', ')}.`);
     return {

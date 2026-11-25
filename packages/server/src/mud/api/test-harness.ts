@@ -25,6 +25,9 @@ import {
   type ShipStageReport,
   type GravityReport,
   type AfflictReport,
+  type BodyReport,
+  type BodyWoundReport,
+  type DaylightPinReport,
   type SpeciesReport,
   type StandingHistoryReport,
   type PurgeReport,
@@ -41,6 +44,9 @@ export type {
   ShipStageReport,
   GravityReport,
   AfflictReport,
+  BodyReport,
+  BodyWoundReport,
+  DaylightPinReport,
   SpeciesReport,
   StandingHistoryReport,
   PurgeReport,
@@ -207,11 +213,62 @@ export class TestHarnessApi {
    * (anaesthesia) dosed to its top band, any other afflicted at `stage` —
    * and read the body once, so going under happens now (its hands let go).
    */
-  @TestOnly('In a test world, afflict a character with `testharness afflict <name> <condition> [stage]`.')
-  public static afflict(handle: string, conditionPath: string, stage?: number): Promise<AfflictReport> {
+  @TestOnly('In a test world, afflict a body with `testharness afflict <body> <condition> [stage]`.')
+  public static afflict(body: string, conditionPath: string, stage?: number): Promise<AfflictReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'afflict', () =>
-      logic().afflict(handle, conditionPath, stage),
+      logic().afflict(body, conditionPath, stage),
     );
+  }
+
+  /**
+   * ⭐ Bodies are named by HANDLE (organism-biology D16), as `stage` and
+   * `vanish` name theirs: `#<stuffId>` for one live instance (what the
+   * `testharness` controllers pass for the body the binder resolved), a
+   * template path, or a resident character's name.
+   *
+   * ⭐ Read one body as a drive asserts on it (organism-biology D16): its
+   * stage, sex, names, conditions, wounds, core temperature, capacities and
+   * lost parts — and, given `other`, whether it perceives `other`.
+   */
+  @TestOnly('In a test world, read a body with `testharness body <target> [perceiving <other>]`.')
+  public static bodyReport(body: string, other: string | null = null): Promise<BodyReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'bodyReport', () => logic().bodyReport(body, other));
+  }
+
+  /** ⭐ Wound one part through `ConditionApi.inflict` — the channel's own fold, as in play. */
+  @TestOnly('In a test world, wound a part with `testharness body-wound <target> <part> <channel> [magnitude]`.')
+  public static woundBody(body: string, part: string, channel: string, magnitude: number): Promise<BodyWoundReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'woundBody', async () =>
+      logic().woundBody(body, part, channel, magnitude),
+    );
+  }
+
+  /**
+   * ⭐ Take a part off by a real avulsion at the sever severity — never a
+   * woundless loss. `sealedBy` (`heat` | `corrosion`) stages the stump a
+   * burn or a caustic sealed, which never regrows (organism-biology D7).
+   */
+  @TestOnly('In a test world, sever a part with `testharness body-sever <target> <part> [heat|corrosion]`.')
+  public static severBodyPart(body: string, part: string, sealedBy: string | null = null): Promise<BodyWoundReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'severBodyPart', async () =>
+      logic().severBodyPart(body, part, sealedBy),
+    );
+  }
+
+  /** ⭐ Kill a body through the single death transition (`ConditionApi.die`). */
+  @TestOnly('In a test world, kill a body with `testharness body-kill <target>`.')
+  public static killBody(body: string): Promise<{ body: string; alive: boolean }> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'killBody', () => logic().killBody(body));
+  }
+
+  /**
+   * ⭐ Hold the length of the day at `fraction` of the rotation (`null`
+   * releases it): a ewe in winter without waiting for one. ⚠ The pin is
+   * the world's: whoever pins, unpins.
+   */
+  @TestOnly('In a test world, pin the daylength with `testharness daylight-pin <fraction>` (and `daylight-unpin`).')
+  public static pinDaylight(fraction: number | null): Promise<DaylightPinReport> {
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'pinDaylight', async () => logic().pinDaylight(fraction));
   }
 
   /** ⭐ A staged body of another species: the species set and the mass re-seeded from it. */

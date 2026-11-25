@@ -15,6 +15,9 @@ data:
   longDescription: >-
     A long clean muscle off the back, trimmed of its sinew. Fine-grained and pale.
   _materialPath: /stuff/idea/material/tissue/muscles/loin
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 5.7
   tissues:
     - /stuff/idea/material/tissue/muscles/loin
   cutting: boneless

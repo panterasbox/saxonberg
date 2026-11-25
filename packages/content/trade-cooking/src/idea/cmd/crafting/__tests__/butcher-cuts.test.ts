@@ -42,6 +42,7 @@ import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
+import { setFlatParts } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 const SPECIES = '/stuff/idea/species/_test/cutbeast';
 const PLAN = '/stuff/idea/species/BodyPlan/_test/cutplan';
@@ -101,24 +102,23 @@ function world(): Species {
   shoulder.setWork(0.8);
   const plan = makeStuffAtPath(() => new BodyPlan(), PLAN);
   plan.setName('cutplan');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,
       tissues: [{ tissuePath: LOIN_M, share: 0.3 }],
+      comesOffAs: [{ tissue: LOIN_M, cut: LOIN_ROW }],
     },
     {
       key: 'body.leg.frontLeft',
       parent: 'body.torso',
       tissues: [{ tissuePath: SHOULDER_M, share: 0.7 }],
+      comesOffAs: [{ tissue: SHOULDER_M, cut: SHOULDER_ROW }],
     },
   ]);
   const sp = makeStuffAtPath(() => new Species(), SPECIES);
   sp._bodyPlanPath = PLAN;
-  sp.setButcheryYield([
-    { cut: LOIN_ROW, units: 1 },
-    { cut: SHOULDER_ROW, units: 1 },
-  ]);
+  // W5: what comes off derives from the body's carcass map (above).
   return sp;
 }
 

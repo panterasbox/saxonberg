@@ -12,6 +12,8 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import RearingTray from '../thing/RearingTray';
 import EggLot from '../thing/EggLot';
+import Silkworm from '../agent/Silkworm';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import Cocoons from '../thing/Cocoons';
 import Strain from '../idea/Strain';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
@@ -30,6 +32,10 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const DAY = 86_400;
+
+class Shelf extends ContainerMixin(Good) {
+  static _mixinName = 'ExemplarTestShelf';
+}
 const BASE = 10_000_000;
 let now = BASE;
 const setNow = (s: number): void => {
@@ -278,6 +284,59 @@ describe('the rearing clock', () => {
     expect(t.rearingLine()).toMatch(/cocoons on it/);
   });
 
+  it('⭐⭐ the tray golden (organism-biology W8): every stack\'s count and shell, to the milligram', async () => {
+    // Pinned from the tray as it stood BEFORE the shell derived from the
+    // worm's silk gland (D10): the gland's share is calibrated so the
+    // shipped strain spins exactly what it did.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      const made =
+        path.endsWith('/cocoons') ? makeStuff(() => new Cocoons()) : makeStuff(() => new Good());
+      stampTemplatePathForTest(made as unknown as Stuff, path);
+      return made;
+    }) as never);
+    const t = tray(298);
+    await hatchOn(t, lot(0, 300));
+    let brushed = false;
+    for (let h = 1; h <= 60 * 2; h++) {
+      setNow((h / 2) * DAY);
+      pin(t as unknown as Stuff, 298);
+      const state = t.getRearingState();
+      if (state === 'feeding' && t.leafOnTray().length === 0) ContainmentApi.move(leaf(20), t);
+      if (state === 'wandering' && !brushed) {
+        ContainmentApi.move(brush(), t);
+        brushed = true;
+      }
+      if (state === 'empty') break;
+    }
+    await new Promise((r) => setTimeout(r, 0));
+    const stacks = t.getContents().filter((s): s is Cocoons & typeof s => s instanceof Cocoons);
+    const golden = stacks
+      .map((s) => ({ band: s.getHeftBand(), count: s.getQuantity(), meanShellMg: Math.round(s.getMeanShellMg()), lotMeanMg: Math.round(s.getLotMeanMg()) }))
+      .sort((a, b) => a.band.localeCompare(b.band));
+    expect(golden).toMatchInlineSnapshot(`
+      [
+        {
+          "band": "heavy",
+          "count": 51,
+          "lotMeanMg": 380,
+          "meanShellMg": 436,
+        },
+        {
+          "band": "light",
+          "count": 51,
+          "lotMeanMg": 380,
+          "meanShellMg": 324,
+        },
+        {
+          "band": "middling",
+          "count": 153,
+          "lotMeanMg": 380,
+          "meanShellMg": 380,
+        },
+      ]
+    `);
+  });
+
   it('underfed in the fifth age: lighter cocoons', async () => {
     vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
       const made =
@@ -310,3 +369,53 @@ describe('the rearing clock', () => {
     expect(middling!.getLotMeanMg()).toBeLessThan(380 * 0.8);
   });
 });
+
+/**
+ * ⭐⭐ The tray is the compression (organism-biology D10): while the rearing
+ * is in a larval age the tray holds ONE exemplar worm, minted only on a
+ * write path (the staging setter here; a put, a get, the tray's wake in
+ * play) — a look mints nothing. A worm taken off reads its age.
+ */
+describe('the exemplar worm', () => {
+  it('⭐⭐ a look mints nothing; a worm taken off a fifth-age tray is a fifth-age larva', async () => {
+    let clones = 0;
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      clones += 1;
+      const made = path.endsWith('/silkworm') ? makeStuff(() => new Silkworm()) : makeStuff(() => new Good());
+      stampTemplatePathForTest(made as unknown as Stuff, path);
+      if (made instanceof Silkworm) made.setShortDescription('silkworm');
+      return made;
+    }) as never);
+    const t = tray(298);
+    await hatchOn(t, lot(0, 300));
+    for (let h = 1; h <= 40 && t.getRearingState() !== 'feeding'; h++) {
+      setNow((h / 2) * DAY);
+      pin(t as unknown as Stuff, 298);
+      t.reconcileRearing();
+    }
+    expect(t.getRearingState()).toBe('feeding');
+    // Reads alone: nothing minted.
+    t.getShortDescription();
+    t.rearingLine();
+    t.getContents();
+    expect(clones).toBe(0);
+    // The staging setter is a write path: one exemplar.
+    t.setDegreeDays(300);
+    await new Promise((r) => setTimeout(r, 0));
+    const worms = t.getContents().filter((s): s is Silkworm => s instanceof Silkworm);
+    expect(worms).toHaveLength(1);
+    expect(clones).toBe(1);
+    t.getShortDescription();
+    t.rearingLine();
+    expect(clones).toBe(1); // still nothing from a look
+    const before = t.eggCount;
+    const shelf = makeStuff(() => new Shelf());
+    ContainmentApi.move(worms[0]!, shelf);
+    expect(worms[0]!.larvalAge()).toBe(5);
+    expect(worms[0]!.getShortDescription()).toMatch(/fifth-age/);
+    expect(t.eggCount).toBe(before - 1);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(clones).toBe(2); // the tray stands its next exemplar
+  });
+});
+

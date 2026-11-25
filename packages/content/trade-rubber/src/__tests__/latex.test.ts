@@ -37,6 +37,7 @@ import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persiste
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import EventRegistry from '@saxonberg/server/mud/platform/idea/EventRegistry';
 import { EventApi } from '@saxonberg/server/mud/api/event';
+import { setFlatTaps } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 const ROOT = fileURLToPath(new URL('../../../', import.meta.url));
 const row = (rel: string): Record<string, unknown> =>
@@ -97,11 +98,13 @@ beforeEach(() => {
   if (!StuffApi.findByTemplatePath('/platform/idea/WorldClockRegistry')) {
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
   }
-  const production = (row('trade-rubber/content/stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/euphorbiaceae/hevea/brasiliensis.yaml')
-    .production) as TapSpec[];
+  // ⭐ organism-biology W3: the tap is the sapwood gland's, in its module.
+  const production = (parse(readFileSync(fileURLToPath(new URL('../../content/body-modules/sapwood-hevea.yaml', import.meta.url)), 'utf8')) as {
+    parts: { produces: TapSpec[] }[];
+  }).parts[0]!.produces;
   makeStuffAtPath(() => {
     const sp = new Species();
-    sp.setProduction(production);
+    setFlatTaps(sp, production);
     return sp;
   }, HEVEA);
   makeStuffAtPath(() => {

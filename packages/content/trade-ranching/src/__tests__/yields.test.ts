@@ -1,158 +1,77 @@
 /**
- * The three animals yield named JOINTS, and the arithmetic is the
- * animal's own.
- *
- * ⭐⭐⭐ **AC12 as arithmetic, not as prose.** The same `shoulder` row off
- * a ewe and off a bullock weighs what each animal's shoulder weighs,
- * because the share is the body plan's and the scale is the animal's. No
- * number is authored twice, and that is the whole claim of the share
- * model.
+ * ⭐⭐ What comes off a farm animal DERIVES from its body (organism-biology
+ * D5): its plan's modules name what each tissue leaves a carcass as. The
+ * same `shoulder` row off a ewe and a bullock weighs what each animal's
+ * shoulder weighs, because the share is the body's and the scale the
+ * animal's — and no row authors a list.
  */
 
-import '@saxonberg/server/test-bootstrap';
-import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
-import { readFileSync } from 'fs';
+import { describe, it, expect } from 'vitest';
+import { readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
 
-// ⚠ Read the ROW off disk, the `verb-gates.test.ts` way: this test is
-// about what the content says, and standing the species up would test the
-// resolver instead.
-const SPECIES_DIR =
-  '../../content/stuff/idea/species/animalia/chordata/mammalia/artiodactyla';
+const CONTENT = fileURLToPath(new URL('../../../', import.meta.url));
+const ROOTS: Record<string, string> = { 'species-and-names': '/species-and-names', 'trade-ranching': '/trade/ranching' };
 
-interface YieldLine {
-  cut: string;
-  units: number;
-  fraction?: number;
-  conditioned?: boolean;
+/** A document path → its file, for the two packs whose modules the farm uses. */
+function moduleFile(path: string): string {
+  for (const [pack, root] of Object.entries(ROOTS)) {
+    if (path.startsWith(`${root}/body-modules/`)) return `${CONTENT}${pack}/content/body-modules/${path.slice(root.length + 14)}.yaml`;
+  }
+  throw new Error(`no pack ships ${path}`);
 }
 
-interface SpeciesRow {
-  data: {
-    butcheryYield?: YieldLine[];
-    tissueShares?: Record<string, number>;
-    _bodyPlanPath?: string;
-  };
+function yaml<T>(file: string): T {
+  return YAML.parse(readFileSync(file, 'utf8')) as T;
 }
 
-function row(rel: string): SpeciesRow {
-  const file = fileURLToPath(new URL(rel, import.meta.url));
-  return YAML.parse(readFileSync(file, 'utf8')) as SpeciesRow;
+/** Every row a plan's modules (plus any added) leave a carcass as. */
+function rowsOf(planFile: string, added: string[] = []): Set<string> {
+  const plan = yaml<{ data: { modules: { module: string }[] } }>(planFile);
+  const out = new Set<string>();
+  for (const m of [...plan.data.modules.map((x) => x.module), ...added]) {
+    const doc = yaml<{ comesOffAs?: { cut: string }[] }>(moduleFile(m));
+    for (const e of doc.comesOffAs ?? []) out.add(e.cut.split('/').pop()!);
+  }
+  return out;
 }
 
-let ewe: SpeciesRow;
-let cow: SpeciesRow;
-let sow: SpeciesRow;
+const PLAN = (name: string): string => `${CONTENT}species-and-names/content/stuff/idea/species/BodyPlan/${name}.yaml`;
 
-beforeAll(() => {
-  vi.spyOn(console, 'warn').mockImplementation(() => undefined);
-});
-
-beforeEach(() => {
-  ewe = row(`${SPECIES_DIR}/bovidae/ovis/aries.yaml`);
-  cow = row(`${SPECIES_DIR}/bovidae/bos/taurus.yaml`);
-  sow = row(`${SPECIES_DIR}/suidae/sus/domesticus.yaml`);
-});
-
-const CUTS = '/trade/cooking/thing/cut-';
-
-function cuts(r: SpeciesRow): string[] {
-  return (r.data.butcheryYield ?? [])
-    .map((l) => l.cut)
-    .filter((c) => c.startsWith(CUTS))
-    .map((c) => c.slice(CUTS.length));
-}
-
-describe('⭐⭐ the three animals yield named joints', () => {
-  it('a ewe gives shoulder, leg, loin, rib, neck, belly and shank', () => {
-    expect(cuts(ewe).sort()).toEqual(
-      ['belly', 'leg', 'loin', 'neck', 'rib', 'shank', 'shoulder'].sort(),
-    );
-  });
-
-  it('⚠ and NOT a tenderloin — a sheep\'s is a mouthful', () => {
-    // ⭐ The species deciding which joints are worth naming, not the
-    // mechanism. The cow names it; the ewe does not.
-    expect(cuts(ewe)).not.toContain('tenderloin');
-    expect(cuts(cow)).toContain('tenderloin');
-  });
-
-  it('⭐ a bullock names every joint, chops among them', () => {
-    expect(cuts(cow)).toContain('chop');
-    expect(cuts(cow).length).toBeGreaterThan(cuts(ewe).length);
-  });
-
-  it('⭐ a pig is a BELLY animal and names no shank', () => {
-    expect(cuts(sow)).toContain('belly');
-    expect(cuts(sow)).not.toContain('shank');
-    const belly = (sow.data.butcheryYield ?? []).find((l) =>
-      l.cut.endsWith('cut-belly'),
-    );
-    const eweBelly = (ewe.data.butcheryYield ?? []).find((l) =>
-      l.cut.endsWith('cut-belly'),
-    );
-    expect(belly!.units).toBeGreaterThan(eweBelly!.units);
-  });
-});
-
-describe('⭐⭐⭐ no number is authored twice', () => {
-  it('NO claiming line authors a fraction', () => {
-    // ⚠ The share derives from the muscles the cut claims; an authored
-    // `fraction` beside it is a second copy that drifts, and the
-    // derivation silently wins. `lint:anatomy` clause (c) is the gate.
-    for (const r of [ewe, cow, sow]) {
-      for (const line of r.data.butcheryYield ?? []) {
-        if (line.cut.startsWith(CUTS)) {
-          expect(line.fraction).toBeUndefined();
-        }
-      }
+describe('the farm animals yield named joints, from their bodies', () => {
+  it('a ewe and a bullock give shoulder, leg, loin, rib, neck, belly and shank', () => {
+    const rows = rowsOf(PLAN('quadruped'));
+    for (const cut of ['cut-shoulder', 'cut-leg', 'cut-loin', 'cut-rib', 'cut-neck', 'cut-belly', 'cut-shank']) {
+      expect(rows.has(cut), cut).toBe(true);
     }
   });
 
-  it('⚠ and the NON-claiming lines still author theirs', () => {
-    // A hide, the offal, the bone and the gut are not muscles, so the
-    // body plan says nothing about them and the row must.
-    for (const r of [ewe, cow, sow]) {
-      for (const line of r.data.butcheryYield ?? []) {
-        if (!line.cut.startsWith(CUTS) && !line.cut.endsWith('/gut')) {
-          expect(typeof line.fraction).toBe('number');
-        }
-      }
+  it('a quadruped gives its hide, its bones and its offal', () => {
+    const rows = rowsOf(PLAN('quadruped'));
+    for (const r of ['hide', 'bone', 'offal', 'gut', 'suet']) expect(rows.has(r), r).toBe(true);
+  });
+
+  it('⭐ a sow gives LEAF FAT; a ewe and a cow give SUET', () => {
+    expect(rowsOf(PLAN('swine')).has('leaf-fat')).toBe(true);
+    expect(rowsOf(PLAN('swine')).has('suet')).toBe(false);
+    expect(rowsOf(PLAN('quadruped')).has('suet')).toBe(true);
+  });
+
+  it('⭐ the vell comes off a calf\'s own part — no adult plan names it', () => {
+    expect(rowsOf(PLAN('quadruped')).has('vell')).toBe(false);
+    expect(rowsOf(PLAN('quadruped'), ['/trade/ranching/body-modules/abomasum']).has('vell')).toBe(true);
+  });
+
+  it('⭐ no species row authors a yield list — the field is gone', () => {
+    for (const rel of [
+      'mammalia/artiodactyla/bovidae/bos/taurus.yaml',
+      'mammalia/artiodactyla/bovidae/ovis/aries.yaml',
+      'mammalia/artiodactyla/suidae/sus/domesticus.yaml',
+    ]) {
+      const file = `${CONTENT}trade-ranching/content/stuff/idea/species/animalia/chordata/${rel}`;
+      expect(existsSync(file)).toBe(true);
+      expect((yaml<{ data: Record<string, unknown> }>(file).data).butcheryYield, rel).toBeUndefined();
     }
-  });
-});
-
-describe('⭐⭐ a pig has its OWN body, not a sheep\'s with a dial', () => {
-  it('the sow names BodyPlan/swine; the ewe and the cow name quadruped', () => {
-    // ⭐ A pig is a third fat with twice a sheep's belly, which the plan
-    // says by `extends:`-ing quadruped's topology and restating the
-    // shares. ⚠⚠ It was nearly a `Species.tissueShares` override, and
-    // `lint:unconsumed-seams` refused it twice — correctly. The second
-    // look was better: a pig's body IS a different body.
-    expect(sow.data._bodyPlanPath).toBe('/stuff/idea/species/BodyPlan/swine');
-    expect(ewe.data._bodyPlanPath).toBe('/stuff/idea/species/BodyPlan/quadruped');
-    expect(cow.data._bodyPlanPath).toBe('/stuff/idea/species/BodyPlan/quadruped');
-  });
-
-  it('⚠ and NO species authors a share override — the field is gone', () => {
-    for (const r of [ewe, cow, sow]) {
-      expect((r.data as { tissueShares?: unknown }).tissueShares).toBeUndefined();
-    }
-  });
-});
-
-describe('⚠ the fat is not the same fat', () => {
-  it('a ewe and a cow give SUET; a sow gives LEAF FAT', () => {
-    const fatOf = (r: SpeciesRow): string =>
-      (r.data.butcheryYield ?? []).find(
-        (l) => l.cut.includes('suet') || l.cut.includes('leaf-fat'),
-      )!.cut;
-    expect(fatOf(ewe)).toContain('suet');
-    expect(fatOf(cow)).toContain('suet');
-    // ⭐ A ruminant's hard kidney fat takes a candle; a pig's renders to
-    // lard and does not. The chandler refuses it by TAG, with nothing
-    // anywhere checking for a pig.
-    expect(fatOf(sow)).toContain('leaf-fat');
   });
 });

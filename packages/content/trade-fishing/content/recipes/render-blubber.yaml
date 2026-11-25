@@ -1,0 +1,26 @@
+# ⭐ Render blubber to oil (organism-biology D13) — the try-pot's work:
+# strips of blubber held over a fire until the oil runs out of them. Whale
+# oil carries the `lamp-oil` tag, so a lamp burns it with no code.
+name: Render Blubber
+keywords:
+- render-blubber
+- render
+- whale-oil
+inputSlots:
+- slot: blubber
+  category: blubber
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities:
+- pot
+outputTemplate: /trade/fishing/thing/oil-jar
+outputMaterial: /trade/fishing/idea/material/whale-oil
+outputApplication: bulk
+outputPortionL: 1
+requiresHeatK: 373
+maxHeatK: 500
+difficulty: easy
+discipline: cooking
+soils:
+- { kind: /platform/dirt/grease, amount: 0.4, where: hands }

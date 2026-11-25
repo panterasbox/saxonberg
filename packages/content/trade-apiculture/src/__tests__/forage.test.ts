@@ -44,6 +44,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import { setFlatTaps } from '@saxonberg/server/mud/lib/species/__tests__/flat-body';
 
 const DAY = 86_400;
 const SPECIES_PATH =
@@ -64,7 +65,7 @@ function singleton<T extends Stuff>(path: string, factory: () => T): T {
 function beeSpecies(): Species {
   return singleton(SPECIES_PATH, () => {
     const s = new Species();
-    s.setProduction([
+    setFlatTaps(s, [
       {
         key: 'honey',
         yieldRow: '/trade/apiculture/thing/comb',

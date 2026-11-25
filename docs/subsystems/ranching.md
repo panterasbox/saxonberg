@@ -311,11 +311,14 @@ one is false of a person.
 > kernel, on `Species.production[]`.
 >
 > ⭐ **The window predicate this doc asked for exists.**
-> `TapSpec.window` is declared data (`always · event · photoperiod ·
-> biome · weather`), so a new season is a row — and the idiom is this
-> doc's own: *a photoperiod season, not a date, and the refusal names
-> the reason.* ⚠ Milk's window is `event` (a lactation is not a season);
-> the hen's is `photoperiod`; the hive's is `biome`; sap's is `weather`.
+> `TapSpec.window` is declared data (`always · biome · weather ·
+> freeze-thaw`), so a new season is a row — and the idiom is this doc's
+> own: *a photoperiod season, not a date, and the refusal names the
+> reason.* ⭐ An animal's milk and eggs are the BODY's since
+> organism-biology W7 (D9): the tap is `activeIn` a condition
+> (`lactating`, `laying`) that the species' phenology carries — or, for a
+> cow, the freshening act — so a winter ewe does not read *in milk*; the
+> hive's window is `biome`; sap's is `weather`.
 >
 > **The mechanism, the act, the window kinds and the host-placement
 > table now live in [taps.md](./taps.md).** What stays here is what is
@@ -405,7 +408,15 @@ so nobody is actually dairying and the harshness is theoretical.
 ## Breeding (D26) and slaughter (D28)
 
 **Breeding is a photoperiod SEASON, not a date.** A ewe's window is
-stated in daylength and the calendar decides when that happens, so
+stated in daylength and the calendar decides when that happens. ⭐ Since
+organism-biology W7 (D9) the season is a condition ON her: the species'
+phenology carries `in-season` while the day sits in its `breeding` band,
+an entire male's `rut` likewise, and `breed` reads the conditions (a
+steer standing by her serves nobody — and a herd's own males on the field
+count only the entire ones, `tally × (1 − female) × (1 − neuteredFraction)`).
+A boar cut young is a barrow and a cockerel a capon; the herd-scale acts
+(cut this year's calves, milk the herd) are
+[population-biology-slate](../slates/engine/population-biology-slate.md)'s. So
 **lambing in spring is a consequence of the calendar** rather than a
 flavour decision. The refusal names the daylength, because *"the days are
 still too long, she will not take"* is something a player can act on.

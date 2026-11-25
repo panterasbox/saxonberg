@@ -1,0 +1,12 @@
+# The silkworm larva's plan (organism-biology D10) — a caterpillar: a head,
+# a soft body and the silk gland. The same worm is a pupa and a moth on
+# their own plans (`Species.development`).
+class: /platform/idea/species/BodyPlan
+data:
+  name: silkworm-larva
+  thermalStrategy: ectotherm
+  slots: []
+  defaultLocomotionMode: walk
+  modules:
+    - { module: /trade/sericulture/body-modules/torso-larva, as: [body.torso] }
+    - { module: /trade/sericulture/body-modules/head-larva, as: [body.head], at: body.torso }

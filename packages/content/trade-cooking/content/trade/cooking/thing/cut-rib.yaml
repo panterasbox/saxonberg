@@ -15,6 +15,9 @@ data:
   longDescription: >-
     A rack of ribs with the meat between them, fine-grained and threaded with fat.
   _materialPath: /stuff/idea/material/tissue/muscles/rib
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 5.7
   tissues:
     - /stuff/idea/material/tissue/muscles/rib
   cutting: bone-in

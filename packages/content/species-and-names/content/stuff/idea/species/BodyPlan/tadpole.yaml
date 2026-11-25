@@ -1,0 +1,14 @@
+# The tadpole plan (organism-biology D10) — a bullfrog's first body: a
+# round torso on gills, a head, and a tail to swim with; no legs. The
+# same creature becomes a froglet and a frog on their own plans
+# (`Species.development`); this is the body it starts in.
+class: /platform/idea/species/BodyPlan
+data:
+  name: tadpole
+  thermalStrategy: ectotherm
+  slots: []
+  defaultLocomotionMode: swim
+  modules:
+    - { module: /species-and-names/body-modules/torso-tadpole, as: [body.torso] }
+    - { module: /species-and-names/body-modules/head-tadpole, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/tail-tadpole, as: [body.tail], at: body.torso }

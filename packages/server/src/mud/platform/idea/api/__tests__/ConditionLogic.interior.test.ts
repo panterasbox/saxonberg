@@ -29,6 +29,7 @@ import {
 } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 let seq = 0;
 
@@ -40,7 +41,7 @@ function torsoWithOrgans(): Creature {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('test-torso');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

@@ -1,0 +1,6 @@
+# An operation that wants the patient lying still, on one who is not (W7).
+facts:
+  self: text?
+  patient: thing
+says: "{% if self %}You are{% else %}{{ patient | cap }} is{% endif %} not lying still."
+topic: act.deed

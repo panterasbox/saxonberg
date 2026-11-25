@@ -1,0 +1,7 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+extends: /stuff/idea/material/tissue/organ
+data:
+  name: udder
+  keywords: [udder, udder, organ]
+  appearance: a pale, glistening udder

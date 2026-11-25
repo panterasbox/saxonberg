@@ -61,12 +61,19 @@ import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import type HerdRegistry from '../idea/HerdRegistry';
 import { DEFAULT_FEMALE_FRACTION } from '../idea/HerdRegistry';
+import type { HeadOverlay, RefileAnswer } from '../idea/HerdRegistry';
 import type Species from '@saxonberg/server/mud/platform/idea/species/Species';
 import type { SlaughterRefusal } from '@saxonberg/server/mud/lib/species/Organism';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 /** The register this head was drafted out of (the Herdbook's own constant). */
 const HERD_REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
+
+/** Her season and his (organism-biology D9) — conditions the species' phenology carries. */
+const IN_SEASON = '/platform/idea/Condition/reproduction/in-season';
+const RUT = '/platform/idea/Condition/reproduction/rut';
+/** In milk (D9) — brought on by freshening at the draft, relieved by drying off. */
+export const LACTATING = '/platform/idea/Condition/reproduction/lactating';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -350,6 +357,7 @@ export default class Livestock extends LivestockBase {
       const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
       await registry.cull(by, herdId, index, {
         note: 'slaughtered',
+        ...this.bookTraits(),
         ...(flesh !== undefined ? { flesh } : {}),
         handling,
       });
@@ -374,7 +382,10 @@ export default class Livestock extends LivestockBase {
     if (here && MixinApi.isContainer(here)) {
       for (const other of here.getContents()) {
         if (other.stuffId === this.stuffId || !MixinApi.isOrganism(other)) continue;
-        if (other.isAlive() && other.getSex() === 'male' && other.getSpecies() === kind) {
+        // ⭐ …and a male standing by her is one in RUT (D9): a steer or a
+        // yearling does not serve. A species with no rut on its schedule
+        // reads any live male, as before.
+        if (other.isAlive() && other.getSex() === 'male' && other.getSpecies() === kind && this.ready(other)) {
           return null;
         }
       }
@@ -383,26 +394,46 @@ export default class Livestock extends LivestockBase {
       const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
       const herd = await registry.read(this.herdId);
       const female = herd?.femaleFraction ?? DEFAULT_FEMALE_FRACTION;
-      if (herd && herd.tally * (1 - female) >= 1) return null;
+      // ⭐ A steer serves nobody (review): the entire males are the males
+      // less the share cut young.
+      const entire = 1 - (herd?.neuteredFraction ?? 0);
+      if (herd && herd.tally * (1 - female) * entire >= 1) return null;
     }
     return 'no-male';
   }
 
+  /** Does this head carry the condition at `path`? */
+  public carries(path: string): boolean {
+    return this.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === path);
+  }
+
+  /** A male of her kind standing by: in rut, if his species schedules one. */
+  private ready(male: Stuff): boolean {
+    const ruts = this.getSpecies()?.getPhenology().some((e) => e.condition === RUT) ?? false;
+    if (!ruts) return true;
+    return MixinApi.isVitals(male) && male.getConditions().some((c) => c.kind === 'affliction' && c.templatePath === RUT);
+  }
+
   /**
-   * ⭐ Let the head answer to what it IS: the species' common names join
-   * the generic row's keywords, less the names only a male goes by when
-   * she is female (a cow is not a bull; a bull still answers to `cow`,
-   * which is what the room calls him).
+   * ⭐⭐ **A head answers to what it IS NOW** (organism-biology D8): the
+   * generic row's words, then its species' words for its form — a calf, a
+   * bull, a cow — read LATE, at every bind. Nothing is stamped at draft,
+   * which is what lets a calf come to answer to its adult name with no
+   * re-draft. A word only the other sex goes by is not hers (`milk bull`
+   * in a byre with a cow in it finds the bull or nothing).
    */
-  public answerToSpecies(species: Species | null, sex: string): void {
-    if (!species) return;
-    const notHers = sex === 'female' ? new Set(species.getMaleNames()) : new Set<string>();
-    const names = species.getCommonNames().filter((n) => !notHers.has(n)).map((n) => n.toLowerCase());
-    if (names.length === 0) return;
-    const existing = this.getKeywords().map((k) => k.toLowerCase());
-    this.setKeywords([...new Set([...existing, ...names])]);
-    const primary = names[0];
-    if (primary) this.setShortDescription(primary);
+  override getKeywords(viewer?: Stuff): string[] {
+    const own = super.getKeywords(viewer);
+    const words = this.getCommonNames().map((n) => n.toLowerCase());
+    return [...new Set([...own.map((k) => k.toLowerCase()), ...words])];
+  }
+
+  /**
+   * ⭐ What the head is called, read late for the same reason: the row's
+   * `head of stock` stands only for a head with no species words.
+   */
+  override getShortDescription(): string {
+    return this.getCommonNames()[0]?.toLowerCase() ?? super.getShortDescription();
   }
 
   /**
@@ -416,11 +447,41 @@ export default class Livestock extends LivestockBase {
     nowS: number,
   ): void {
     if (!driedOffAt || !species) return;
-    for (const tap of species.getProduction()) {
+    for (const tap of this.taps()) {
       const at = driedOffAt[tap.key];
       if (typeof at !== 'number' || !(tap.restDays && tap.restDays > 0)) continue;
       if (nowS - at < tap.restDays * SECONDS_PER_GAME_DAY) this.dryOff(tap.key);
     }
+  }
+
+  /**
+   * ⭐⭐ **Freshening at the draft** (organism-biology D9): a mature female
+   * whose milk runs by the ACT (her species schedules `lactating` as an
+   * `event`) is in milk when she comes out of the book — unless she is
+   * still inside her rest (`restoreDryPeriods` has dried her). The draft
+   * is the stand-in for calving, as the shipped rest already was.
+   */
+  public freshenAtDraft(): void {
+    const schedule = this.getSpecies()?.getPhenology() ?? [];
+    if (!schedule.some((e) => e.condition === LACTATING && e.trigger.event)) return;
+    if (this.getSex() === 'male' || !this.isMature() || this.carries(LACTATING)) return;
+    const milk = this.taps().filter((t) => t.activeIn === LACTATING);
+    if (milk.length === 0 || milk.every((t) => this.isDriedOff(t.key))) return;
+    this.afflict({ kind: 'affliction', templatePath: LACTATING, stage: 0, elapsed: 0 });
+  }
+
+  /**
+   * ⭐ What the book must carry beyond the seed (organism-biology D8): the
+   * parts lost and the sex, so a steer is still a steer at the next draft
+   * and a refiled head is not redrawn by its new index.
+   */
+  public bookTraits(): HeadOverlay {
+    const sex = this.getSex();
+    const lost = this.getLostParts();
+    return {
+      ...(sex === 'male' || sex === 'female' ? { sex } : {}),
+      ...(lost.length > 0 ? { lostParts: lost } : {}),
+    };
   }
 
   /**
@@ -458,6 +519,7 @@ export default class Livestock extends LivestockBase {
       handling: Math.round(this.getHandling() * 100) / 100,
       ageDays: Math.round(this.getAgeDays() * 10) / 10,
       ...(driedOffAt ? { driedOffAt } : {}),
+      ...this.bookTraits(),
     });
     if (!ok) return { ok: false, reason: 'not-in-book' };
     const read = this.stockmanRead();
@@ -478,9 +540,12 @@ export default class Livestock extends LivestockBase {
     const spec = species?.getBreeding() ?? null;
     if (!species || !spec) return { ok: false, reason: 'no-breeding' };
     if (!this.isMature()) return { ok: false, reason: 'not-mature', stage: this.getLifeStage() ?? 'youngster' };
-    const where = MixinApi.isContainable(by) ? by.getContainer() : null;
-    const daylight = where ? await CelestialApi.daylightFractionAt(where) : 0.5;
-    if (!species.breedsAtDaylight(daylight)) {
+    // ⭐⭐ Her season is a condition on HER (organism-biology D9): the
+    // species' phenology brings `in-season` on in its breeding band, and
+    // this reads it — the daylength is read here only for the words.
+    if (!this.carries(IN_SEASON)) {
+      const where = MixinApi.isContainable(by) ? by.getContainer() : null;
+      const daylight = where ? await CelestialApi.daylightFractionAt(where) : 0.5;
       return { ok: false, reason: 'out-of-season', longDays: daylight > spec.daylightTo };
     }
     if (!this.herdId) return { ok: false, reason: 'not-in-herd' };
@@ -496,6 +561,28 @@ export default class Livestock extends LivestockBase {
   }
 
   /** Bind this object to the record it was drafted out of. */
+  /**
+   * ⭐ `herd enter <animal> in <herd>` (organism-biology D8): this drafted
+   * head is written into another register by `by`, and answers to its new
+   * book from then on. The register decides (`HerdRegistry.refile`); the
+   * head carries what the new book must not redraw — its sex, its handling
+   * and flesh, its birth, what it has lost.
+   */
+  public async enterHerd(toId: string, by: Stuff | null): Promise<RefileAnswer> {
+    if (!this.herdId || this.headIndex < 0) return { ok: false, reason: '/trade/ranching/reasons/not-drafted' };
+    const registry = await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
+    const flesh = this.getReserve('flesh')?.current.rawValue();
+    const bornAt = this.getBornAt();
+    const answer = await registry.refile(this.herdId, this.headIndex, toId, by, {
+      ...this.bookTraits(),
+      handling: Math.round(this.getHandling() * 100) / 100,
+      ...(flesh !== undefined ? { flesh: Math.round(flesh * 10) / 10 } : {}),
+      ...(bornAt !== 0 ? { bornAt } : {}),
+    });
+    if (answer.ok) this.bindToHerd(toId, answer.index);
+    return answer;
+  }
+
   public bindToHerd(herdId: string, index: number): void {
     this.herdId = herdId;
     this.headIndex = index;

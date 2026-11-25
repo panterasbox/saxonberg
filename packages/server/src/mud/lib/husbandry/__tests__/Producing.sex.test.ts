@@ -15,6 +15,7 @@ import { Quantity } from '../../../lib/quantity';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
+import { setFlatTaps } from '../../species/__tests__/flat-body';
 
 const DAY = 86_400;
 const SPECIES_PATH = '/stuff/idea/species/_test/milker';
@@ -26,7 +27,6 @@ const TAPS: TapSpec[] = [
     perGameDay: 20,
     behaviour: 'expire',
     windowDays: 1,
-    sex: 'female',
     restDays: 3,
   },
   // Wool authors no sex: either gives it.
@@ -59,7 +59,9 @@ describe('a tap has a sex and a rest', () => {
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
     makeStuffAtPath(() => {
       const s = new Species();
-      s.setProduction(TAPS);
+      // ⭐ W3: the udder is a female's part; wool is on every body.
+      setFlatTaps(s, [TAPS[1]!]);
+      setFlatTaps(s, [TAPS[0]!], { sex: 'female' });
       s.setSexDeterminationSystem('xy');
       return s;
     }, SPECIES_PATH);
@@ -88,8 +90,12 @@ describe('a tap has a sex and a rest', () => {
     expect(bull.givesTap('wool')).toBe(true);
   });
 
-  it('an unrecorded sex is open — the tri-state rule', () => {
-    expect(beast(null).givesTap('milk')).toBe(true);
+  it('⭐ W3: an unrecorded sex has the species\' own body — the udder is a female\'s part', () => {
+    // Was the tri-state rule (an unrecorded sex is open). A gland is a part
+    // now (organism-biology D2), and a body of no recorded sex is the
+    // plan's own: wool, no udder.
+    expect(beast(null).givesTap('milk')).toBe(false);
+    expect(beast(null).givesTap('wool')).toBe(true);
   });
 
   it('a bull has no milk to be in or out of', () => {

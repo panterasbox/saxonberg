@@ -1,0 +1,14 @@
+# The froglet plan (organism-biology D10) — the change half made: legs,
+# the tail not yet gone, gills and lungs both doing part of the job.
+class: /platform/idea/species/BodyPlan
+data:
+  name: froglet
+  thermalStrategy: ectotherm
+  slots: []
+  defaultLocomotionMode: swim
+  modules:
+    - { module: /species-and-names/body-modules/torso-froglet, as: [body.torso] }
+    - { module: /species-and-names/body-modules/head-anuran, as: [body.head], at: body.torso }
+    - { module: /species-and-names/body-modules/tail-tadpole, as: [body.tail], at: body.torso }
+    - { module: /species-and-names/body-modules/leg-fore-anuran, as: [body.leg.frontLeft, body.leg.frontRight], at: body.torso, innervatedBy: [body.torso.spine] }
+    - { module: /species-and-names/body-modules/leg-hind-anuran, as: [body.leg.rearLeft, body.leg.rearRight], at: body.torso, innervatedBy: [body.torso.spine] }
