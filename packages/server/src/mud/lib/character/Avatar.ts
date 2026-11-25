@@ -1023,6 +1023,9 @@ export default abstract class Avatar extends AvatarBase {
    * that it is on the air, and builds the target from the feed — nothing raw
    * crosses from the client. On air → this visit is watch mode with the
    * program's video; otherwise the usual mode and a line saying why.
+   *
+   * @nothing no watch was asked (or the body has no client to watch on):
+   * there is no arrival to resolve, and the entry proceeds as usual.
    */
   private async resolveArrival(
     watching: ArrivalWatching | null,

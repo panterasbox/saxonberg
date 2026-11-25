@@ -382,6 +382,9 @@ export default class Login extends LoginBase {
    * roster (the client never sends those; a typist is told). Whether the
    * program is ON THE AIR is the entry's to decide — off air, you arrive as
    * usual and are told why.
+   *
+   * @nothing neither `--watch` nor a carrier flag was given: nothing was
+   * asked, so there is nothing to read. Every malformed ask is a Refusal.
    */
   public async readWatching(opts: {
     watch?: string;
