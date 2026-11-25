@@ -2,7 +2,7 @@
 # PreToolUse(mcp__gitlab__merge_merge_request): no merge on an unverified
 # claim. Before the GitLab merge runs, compare the source fingerprint of
 # the branch checked out here with the one tools/suite records after an
-# unfiltered green run. If they differ, or the branch is not pushed, the
+# green run (one unfiltered run, or one plus `--from` resumes on the same source). If they differ, or the branch is not pushed, the
 # merge is put to the OWNER as a permission prompt with the reason — it
 # is never silently allowed and never hard-refused (the owner may merge
 # anyway, knowingly).
