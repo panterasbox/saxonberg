@@ -1,5 +1,7 @@
 # Tropes — requirements
 
+> ⚠ **NOT AGREED — superseded draft (2026-11-24).** Written before the tropes slate was rewritten around the narrative frame; to be redrafted from [tropes-slate](../slates/engine/tropes-slate.md) § 3 and § 9.
+
 **Kind:** feature
 **Leads from:** kernel. **First consumer:** the hand-written characterization writers that ship today — the blood gift, the killing in front of witnesses, the fair duel, the broken contract, the bad hand-feeding, and the lounge cast's dialogue regard effects — moved onto tropes in this build, with today's behavior as the regression check.
 
