@@ -102,6 +102,7 @@ for f in "$WORKTREE"/packages/*/package.json "$WORKTREE"/packages/content/*/pack
   packages="$packages $d"
 done
 
+all_packages=$packages
 if [ -n "$FROM" ]; then
   trimmed=''; seen=0
   for d in $packages; do
@@ -129,9 +130,16 @@ i=0
 failed=''
 started=$(date +%s)
 start_print=''
-if [ -z "$ONLY$FROM$SHARD" ] && ( cd "$WORKTREE" && tools/source-fingerprint --dirty ); then
+# ⭐ A `--from` resume counts toward the record (2026-11-24, the which
+# build: three green runs were lost to an interruption at package 47).
+# Every package that passes over a clean tree is written to
+# .suite/progress against the source fingerprint. A fresh unfiltered run
+# starts the file over; a `--from` run adds to it. The record is written
+# only when EVERY package has a pass line for this exact fingerprint.
+if [ -z "$ONLY$SHARD" ] && ( cd "$WORKTREE" && tools/source-fingerprint --dirty ); then
   start_print=$(cd "$WORKTREE" && tools/source-fingerprint)
 fi
+[ -z "$FROM" ] && rm -f "$LOGS/progress"
 rm -f "$LOGS/green"
 
 for d in $packages; do
@@ -158,6 +166,7 @@ for d in $packages; do
 
   if [ "$rc" = 0 ]; then
     echo "ok   $(awk '/Tests +[0-9]+ passed/{print $0; exit}' "$log" | sed 's/^ *//')"
+    [ -n "$start_print" ] && printf '%s %s\n' "$start_print" "$name" >> "$LOGS/progress"
   else
     echo "FAIL (rc=$rc)"
     failed="$failed $name"
@@ -169,15 +178,26 @@ mins=$(( ($(date +%s) - started) / 60 ))
 if [ -z "$failed" ]; then
   echo "suite: all $total package(s) pass. ${mins}m."
   # ⭐ The merge guard's evidence (tools/hooks/guard-merge): recorded only
-  # for an UNFILTERED run over a clean source tree whose commit did not
-  # move while it ran. A narrowed or dirty run proves less than "the
-  # suite passed", so it records nothing.
-  if [ -n "$start_print" ] && ( cd "$WORKTREE" && tools/source-fingerprint --dirty ) \
+  # when every package passed over a clean source tree with ONE
+  # fingerprint, whether in one run or a run plus `--from` resumes. An
+  # `--only`/`--shard` or dirty run proves less than "the suite passed",
+  # so it records nothing.
+  covered=1
+  if [ -n "$start_print" ]; then
+    for d in $all_packages; do
+      grep -qx "$start_print $(basename -- "$d")" "$LOGS/progress" 2>/dev/null || { covered=0; break; }
+    done
+  fi
+  if [ -n "$start_print" ] && [ "$covered" = 1 ] && ( cd "$WORKTREE" && tools/source-fingerprint --dirty ) \
      && [ "$(cd "$WORKTREE" && tools/source-fingerprint)" = "$start_print" ]; then
     printf '%s %s %s\n' "$start_print" "$(cd "$WORKTREE" && git rev-parse --short HEAD)" "$(date -Iseconds)" > "$LOGS/green"
     echo "suite: recorded as green for source $start_print (.suite/green)."
   else
-    echo "suite: not recorded for the merge guard (filtered run, modified source, or the commit moved)."
+    if [ -n "$start_print" ] && [ "$covered" = 0 ]; then
+      echo "suite: not recorded yet — a package before --from has no pass for this source (run without --from, or resume from it)."
+    else
+      echo "suite: not recorded for the merge guard (--only/--shard run, modified source, or the commit moved)."
+    fi
   fi
   exit 0
 fi

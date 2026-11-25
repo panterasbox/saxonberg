@@ -209,8 +209,6 @@ export class ConnectionLogic extends ApiLogic {
         previous.onLinkdead?.();
       }
     }
-    target.onConnectionAttached?.(interactive);
-
     // Cross-cutting global event for any observer that doesn't care
     // about a specific holder. Fires once per attach regardless of
     // whether the per-holder Witness hook is implemented.

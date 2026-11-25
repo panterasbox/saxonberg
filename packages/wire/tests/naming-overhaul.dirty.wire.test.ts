@@ -126,8 +126,8 @@ suite("Stage B — reaching from the asker", () => {
     record.push(`bea's id: ${beaId}`);
   }, 120_000);
 
-  it("10. [instant · player] `query me:~` lists your relations with their meanings; `look ~here` and `look here` both show the room", async () => {
-    const { w } = await say(ann, "query me:~");
+  it("10. [instant · player] `which ~` lists your relations with their meanings (the which build moved it off `query me:~`); `look ~here` and `look here` both show the room", async () => {
+    const { w } = await say(ann, "which ~");
     expect(w).toMatch(/~here/);
     expect(w).toMatch(/~inventory/);
     expect(w).toMatch(/~reachable/);

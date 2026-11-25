@@ -552,6 +552,13 @@ export function CommandBar({
   useEffect(() => {
     if (seed) setBaseDraft(seed.text);
   }, [seed]);
+  // ⭐ A click elsewhere typed onto the primary bar (the `which` card's verb).
+  const primarySeed = useStore((s) => (primary ? s.primarySeed : null));
+  useEffect(() => {
+    if (!primarySeed) return;
+    setBaseDraft(primarySeed.text);
+    inputRef.current?.focus();
+  }, [primarySeed]);
   // ⭐ The phone's suggestion strip: only while typing, and a tap replaces
   // the word being typed (the command is still yours to send).
   const suggestions = suggest && baseDraft.trim() ? suggest(baseDraft) : [];

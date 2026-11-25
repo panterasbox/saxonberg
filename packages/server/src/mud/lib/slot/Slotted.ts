@@ -118,6 +118,11 @@ export interface Slotted {
   // Slot universe — overridable. Default reads `staticSlots`.
   getSlotNames(): readonly string[];
   getSlotSpec(name: string): SlotSpec | null;
+  /**
+   * ⭐ A slot in a person's words — `hand:right` is *right hand*, `back` is
+   * *back*. The `<part>:<side>` authoring shape reads side first.
+   */
+  slotWord(slot: string): string;
 
   // Static-slots authoring surface (default-impl backing).
   getStaticSlots(): readonly SlotSpec[];
@@ -321,6 +326,11 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
 
     public getSlotSpec(name: string): SlotSpec | null {
       return this.staticSlots.find(s => s.name === name) ?? null;
+    }
+
+    public slotWord(slot: string): string {
+      const at = slot.indexOf(':');
+      return at < 0 ? slot : `${slot.slice(at + 1)} ${slot.slice(0, at)}`;
     }
 
     public getOccupants(slot: string): ReadonlySet<Stuff & Slottable> {

@@ -90,7 +90,7 @@ describe('the card and the terminal are one payload, rendered once', () => {
     // The rows a command opens, each with the prose its controller emits.
     const proseRows = CARD_IDS.filter((id) => CARDS[id].noProse !== true);
     expect(proseRows.sort()).toEqual(
-      ['help', 'news', 'settings', 'stock', 'subject', 'survey', 'who', 'wiki'].sort(),
+      ['help', 'news', 'settings', 'stock', 'subject', 'survey', 'which', 'who', 'wiki'].sort(),
     );
 
     // …and the rest declare it, which is what the filter honours.

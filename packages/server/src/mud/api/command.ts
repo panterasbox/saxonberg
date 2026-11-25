@@ -25,6 +25,7 @@ import type {
   AffordanceState,
   CompositionEntry,
 } from '@saxonberg/types';
+import type { WhichAnswer } from '@saxonberg/types';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ShadowApi } from './shadow';
@@ -456,6 +457,34 @@ export type ModelData = Record<string, FieldValue | undefined>;
  * the client's own types, spoken here unchanged so the two surfaces
  * cannot drift.
  */
+/**
+ * What {@link CommandApi.which} answers: the `which` read, or the refusal
+ * whose row words it — `gives-nothing` (a thing that gives you no verbs),
+ * `nothing-gives-verb` (a verb nothing here gives), `no-such-verb`.
+ */
+/**
+ * What `which` was asked (owner, review: each kind of question is its own
+ * typed slot, and nothing extra is volunteered). `thing` — the bound object
+ * (`which counter`); `verb` — a verb word (`which --verb buy`); `clashes` —
+ * the words that mean more than one command here. Neither thing nor verb:
+ * everything.
+ */
+export interface WhichAsking {
+  thing?: Stuff;
+  verb?: string;
+  clashes?: boolean;
+}
+
+export type WhichResult =
+  | { ok: true; facts: WhichAnswer }
+  | { ok: false; reason: 'gives-nothing'; facts: { thing: string } }
+  | { ok: false; reason: 'nothing-gives-verb' | 'no-such-verb'; facts: { verb: string } };
+
+/** What {@link CommandApi.whichRelations} answers: the `~` words, or `keeps-nothing`. */
+export type WhichRelationsResult =
+  | { ok: true; facts: WhichAnswer }
+  | { ok: false; reason: 'keeps-nothing'; facts: { thing: string } };
+
 export interface AffordanceResolution {
   verbs: AffordanceEntry[];
   composition: CompositionEntry[];
@@ -948,12 +977,6 @@ export interface FieldDefinition {
    */
   onFiltered?: OnFilteredPolicy;
   /**
-   * ⭐ `relations` — the slot accepts a relation listing (`thing:~`, naming
-   * overhaul D-B4) and is handed it as `relations` on the bound set; any
-   * other slot refuses one with `names-relations`. Only `query`'s.
-   */
-  lists?: 'relations';
-  /**
    * Optional JSON Schema fragment for `type: 'struct'` fields. Run
    * by ajv during the structured-input coercion step; failure yields
    * a friendly error pointing at the offending property.
@@ -1441,30 +1464,6 @@ export interface CommandView {
    * one-element list.
    */
   opens_card?: string | string[];
-}
-
-/**
- * Schema-delivery payload for shell.control. Mirrors
- * the YAML view minus runtime-only bits.
- */
-export interface CommandSchemaPayload {
-  verbs: string[];
-  controller?: string;
-  description: string;
-  /** Authored help prose (see `CommandView.help`). */
-  help?: string;
-  /** Worked invocations (see `CommandView.examples`). */
-  examples?: ExampleDefinition[];
-  args?: PositionalDefinition[];
-  subcommands?: Record<string, SubcommandDefinition>;
-  options?: Record<string, OptionDefinition>;
-  /**
-   * Structured-form-only fields. Surfaces to widget / editor
-   * clients so they know which keys to attach to their structured
-   * payloads.
-   */
-  payload?: Record<string, OptionDefinition>;
-  fallthrough?: boolean;
 }
 
 /** `assemble` success arm. `prep` carries any prepositions consumed
@@ -2203,31 +2202,6 @@ export class CommandApi {
   }
 
   /**
-   * Emit a `shell.control` frame to a
-   * recipient. Stamps `commandId` / `causingCommandId` from the
-   * ambient ExecutionContext when present (so a recency-stack
-   * mutation triggered inside a command is auto-attributed). Skips
-   * silently when the recipient isn't a Sensor — schema delivery is
-   * best-effort.
-   */
-  static emitSchemaDelta(
-    recipient: Stuff,
-    kind: 'reset',
-    payload: CommandSchemaPayload[]
-  ): void {
-    logic().emitSchemaDelta(recipient, kind, payload);
-  }
-
-  /**
-   * Project a `CommandDefinition` to a wire-safe schema payload for
-   * client-side widget rendering. Used by `shell.control ({added,
-   * reset}`.
-   */
-  static getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {
-    return logic().getCommandSchemaPayload(cmd);
-  }
-
-  /**
    * Validate a parsed command **spec** (the YAML view) against
    * `cmd/command.schema.json`. Returns `null` when it conforms, or the
    * full Ajv error trail — every complaint at once, because the audience
@@ -2261,6 +2235,31 @@ export class CommandApi {
     value: unknown,
   ): string | null {
     return logic().validateAgainstJsonSchema(schema, value);
+  }
+
+  /**
+   * ⭐ **What can this viewer type here, and what gives each verb?** — the
+   * `which` read (the which build). The dispatcher's own list of the
+   * viewer's affordances behind the radial's gates (perceived, identified),
+   * grouped by source in the viewer's words, each verb's state as the
+   * radial reports it. `opts.thing` narrows it to one bound thing;
+   * `opts.verb` to where one verb comes from.
+   *
+   * ⚠ Like `resolveAffordances` it is a read, never a gate: every verb it
+   * lists is one the line accepts now, and the line re-checks everything.
+   */
+  static which(viewer: Stuff & CommandGiver, opts?: WhichAsking): Promise<WhichResult> {
+    return logic().which(viewer, opts);
+  }
+
+  /**
+   * ⭐ **Which `~` words can this viewer type?** — `which ~`: every
+   * built-in word with its meaning, then the sets the viewer keeps (lists,
+   * groups, a party) with how many of each are in the world. Given a
+   * `thing`, only the sets that thing keeps (`which ~ book`).
+   */
+  static whichRelations(viewer: Stuff & CommandGiver, thing?: Stuff): WhichRelationsResult {
+    return logic().whichRelations(viewer, thing);
   }
 
   /**

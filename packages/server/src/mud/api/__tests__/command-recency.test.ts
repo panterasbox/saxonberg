@@ -13,6 +13,7 @@ import { StuffApi } from '../../api/stuff';
 import { BoundaryApi } from '../../api/boundary';
 import { describe, it, expect, beforeEach, vi  } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
+import { Agent } from '../../lib/stuff/Agent';
 import Place from '../../lib/stuff/Place';
 import CartesianZone from '../../platform/idea/location/CartesianZone';
 import Location from '../../lib/location/Location';
@@ -85,6 +86,15 @@ const EnvProviderBase = ContainableMixin(Idea);
 class EnvProvider extends EnvProviderBase {
   static commandContributions = {
       peers: ['platform/cmd/system/ping.yaml'],
+    self: [],
+    environment: [],
+  };
+}
+
+/** The same provider as a PERSON — someone you can address next door. */
+class PersonProvider extends ContainableMixin(Agent) {
+  static commandContributions = {
+    peers: ['platform/cmd/system/ping.yaml'],
     self: [],
     environment: [],
   };
@@ -390,26 +400,28 @@ describe('affordance reach — peers one hop away', () => {
     return { here, there };
   }
 
-  it('a peer provider NEXT DOOR reaches you through an open exit', async () => {
+  it('a PERSON next door reaches you through an open exit; a thing next door does not (the which audit)', async () => {
     const { here, there } = twoRooms();
     const exit = makeStuff(
       () => new Exit({ direction: 'north', source: here, destination: there }),
     );
     await here.addExit(exit);
 
-    // The provider is already next door; the giver walks in after.
-    const provider = makeStuff(() => new EnvProvider());
-    ContainmentApi.move(provider, there as never);
+    // Both are already next door; the giver walks in after.
+    const person = makeStuff(() => new PersonProvider());
+    ContainmentApi.move(person, there as never);
+    const thing = makeStuff(() => new EnvProvider());
+    ContainmentApi.move(thing, there as never);
 
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     ContainmentApi.move(giver, here as never);
     giver.getAvailableCommands();
 
-    expect(
-      stackOf(giver).some(
-        (e) => e.source === (provider as never) && e.bucket === 'peers',
-      ),
-    ).toBe(true);
+    const from = (s: unknown): boolean =>
+      stackOf(giver).some((e) => e.source === (s as never) && e.bucket === 'peers');
+    expect(from(person)).toBe(true);
+    // ⭐ A counter or a hearth in the next room gives nothing here.
+    expect(from(thing)).toBe(false);
   });
 
   /**
@@ -462,17 +474,14 @@ describe('affordance reach — peers one hop away', () => {
 /**
  * THE SHIPPED MIXIN, not a synthetic provider.
  *
- * `TangibleMixin` is what puts `throw` in front of a player, and its
- * two buckets are the whole reason a rock works the way the design
- * wants: `environment` so the thing in your hand offers the verb
- * outward, `peers` so the thing at your feet offers it sideways.
- *
- * Pinned against the real mixin because the earlier claim that a
- * grounded item afforded `throw` was justified by watching a
- * controller run — which proves DISPATCH, not a fresh affordance. A
- * stale un-popped stack entry looks exactly the same from a client.
+ * ⭐ A BODY throws (the which audit, 2026-11-23): `TangibleMixin` puts
+ * `throw` on its `self` bucket, so every body with mass types it and the
+ * item argument teaches the rest (*pick up the rock first*). It once rode
+ * `environment` + `peers` — the rock conferring the verb — which made every
+ * body and every bolted-down fixture in a room something on offer to throw.
+ * A rock therefore puts nothing on anyone's stack.
  */
-describe('TangibleMixin affords throw where the design says it should', () => {
+describe('TangibleMixin: a body throws; a rock offers nothing', () => {
   beforeEach(() => {
     CommandApi.clearCache();
   });
@@ -480,7 +489,7 @@ describe('TangibleMixin affords throw where the design says it should', () => {
   const RockBase = TangibleMixin(ContainableMixin(Idea));
   class Rock extends RockBase {}
 
-  it('a rock ON THE GROUND offers `throw` to everyone in the room', () => {
+  it('a rock on the ground or in your hand puts no entry on the stack', () => {
     const room = makeStuff(() => new Place());
     const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
     ContainmentApi.move(giver, room as never);
@@ -488,36 +497,15 @@ describe('TangibleMixin affords throw where the design says it should', () => {
 
     const rock = makeStuff(() => new Rock());
     ContainmentApi.move(rock, room as never);
-
-    const fromRock = stackOf(giver).filter((e) => e.source === (rock as never));
-    expect(fromRock.map((e) => e.bucket)).toContain('peers');
-  });
-
-  it('a rock IN YOUR HAND offers it outward instead', () => {
-    const room = makeStuff(() => new Place());
-    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    ContainmentApi.move(giver, room as never);
-    giver.getAvailableCommands();
-
-    const rock = makeStuff(() => new Rock());
-    ContainmentApi.move(rock, giver as never);
-
-    const fromRock = stackOf(giver).filter((e) => e.source === (rock as never));
-    expect(fromRock.map((e) => e.bucket)).toContain('environment');
-  });
-
-  it('and takes it away when the rock is carried out of the room', () => {
-    const room = makeStuff(() => new Place());
-    const elsewhere = makeStuff(() => new Place());
-    const giver = makeStuff(() => new TestGiver()) as TestGiver & CommandGiver;
-    ContainmentApi.move(giver, room as never);
-    giver.getAvailableCommands();
-
-    const rock = makeStuff(() => new Rock());
-    ContainmentApi.move(rock, room as never);
-    expect(stackOf(giver).some((e) => e.source === (rock as never))).toBe(true);
-
-    ContainmentApi.move(rock, elsewhere as never);
     expect(stackOf(giver).some((e) => e.source === (rock as never))).toBe(false);
+    ContainmentApi.move(rock, giver as never);
+    expect(stackOf(giver).some((e) => e.source === (rock as never))).toBe(false);
+  });
+
+  it('the throw views are on the self bucket — what a body can do', () => {
+    const names = CommandApi.collectContributions(Rock, 'self').map((d) => d.getPrimaryVerb());
+    expect(names).toContain('throw');
+    expect(CommandApi.collectContributions(Rock, 'peers')).toEqual([]);
+    expect(CommandApi.collectContributions(Rock, 'environment')).toEqual([]);
   });
 });

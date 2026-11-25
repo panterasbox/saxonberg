@@ -274,12 +274,7 @@ describe('Traversal Witness hooks (Mobile.traverse)', () => {
 
 describe('HasInteractive Witness hooks (ConnectionApi)', () => {
   class HookableHolder extends HasInteractiveMixin(Idea) {
-    public attaches: Interactive[] = [];
     public linkdead = 0;
-
-    onConnectionAttached?(conn: Interactive): void {
-      this.attaches.push(conn);
-    }
     onLinkdead?(): void {
       this.linkdead++;
     }
@@ -288,16 +283,6 @@ describe('HasInteractive Witness hooks (ConnectionApi)', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
-  });
-
-  it('fires onConnectionAttached on first attach', async () => {
-    const holder = makeStuff(() => new HookableHolder());
-    const interactive = await StuffApi.create(
-      () => new Interactive('sock-1', 'sess-1', { _id: 'u1' } as never)
-    );
-    interactive.transferTo(holder);
-    expect(holder.attaches).toEqual([interactive]);
-    expect(holder.linkdead).toBe(0);
   });
 
   it('fires onLinkdead on last detach', async () => {

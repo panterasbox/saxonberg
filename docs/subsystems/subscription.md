@@ -175,6 +175,17 @@ row — never a new message type and never a kernel list edit.
   then subscribe) on every connection; the `map` card is a client body over
   the sections (`client/src/store/navSlice.ts`).
 
+## What you can type here (the which build)
+
+`WhichSource` (`/platform/idea/WhichSource`, `SUBSCRIPTION_SOURCES.which`)
+keeps a `which` card current. Params `{ what? }` — the word the card asked.
+It wakes on the command stack (the three sealed `CommandGiver` mutators poke it)
+and on a `FieldChangedEvent` on the body, its place, or any source on its stack;
+one flush per beat per holder; it re-reads `CommandApi.which` and pushes
+`{ op: 'replace', key: 'answer', fields: <the whole answer> }` only when the
+answer's JSON changed. A word that names nothing any more answers empty with its
+ask kept. Shape: `WhereaboutsSource`'s.
+
 ## History
 
 - **navigation-server (2026-11)** — the protocol replaced

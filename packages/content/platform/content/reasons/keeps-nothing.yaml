@@ -1,0 +1,5 @@
+# `which ~ <thing>` for a thing that keeps no ~ words (the which build).
+facts:
+  thing: text
+says: "There is nothing kept by {{ thing }} to ask for with ~."
+topic: shell.error

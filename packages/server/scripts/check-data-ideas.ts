@@ -99,7 +99,7 @@ import {
 // this syntax-only census cannot see; its subclasses (`ForumsApp`,
 // `CalendarApp`) carry behavior and are not counted. The plan (P10) said to
 // bring it back as a finding: it is the MR's first item.
-export const DATA_IDEAS_CEILING = 13; // organism-biology W1: −1 (re-pinned at the merged floor). // stream arrival (owner, 2026-11-24): +1, `BroadcastApp` — an App whose body is only its verbs. Each device hosts its own copy, but the fix is the verbs on its app-listing document so an app needs no class (aether-devices.md § Deferred seams); that conversion lowers this back to 13.
+export const DATA_IDEAS_CEILING = 10; // which: −3, re-pinned at the organism-biology merge (measured 10). // organism-biology W1: −1 (re-pinned at the merged floor). // stream arrival (owner, 2026-11-24): +1, `BroadcastApp` — an App whose body is only its verbs. Each device hosts its own copy, but the fix is the verbs on its app-listing document so an app needs no class (aether-devices.md § Deferred seams); that conversion lowers this back to 13.
 
 const IDEA_ROOT = "/lib/stuff/Idea";
 const LOGIC_ROOT = "/lib/stuff/ApiLogic";

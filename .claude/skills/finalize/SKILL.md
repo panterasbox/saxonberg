@@ -294,6 +294,22 @@ to the exact source. ⭐ And if the walk's subject changed since it last ran
 record "only small changes since" in place of a run; waiving a check is the
 owner's call, not yours.
 
+⭐ **The order is catch-up → drive → walk → suite, and the drive obeys the
+same rule as the walk.** `/merge` asks that the drive and walk ran after the
+LAST source commit, and a catch-up merge that brings in source IS one. A
+drive run earlier in the sweep is spent the moment master's source lands on
+the branch (the which build, 2026-11-24: driven at `106a64905`, persistence-
+model merged in after, and `/merge` refused). A master move that is docs
+only (`git diff --stat HEAD...origin/master` touches only `docs/` and `*.md`)
+spends nothing; merge it or leave it.
+
+⛔ **Never wrap `tools/suite` in `timeout`.** Its lock wait counts against
+the timer, so a contended machine kills a passing run (the which build lost
+two that way). If a run is interrupted anyway, resume it with
+`tools/suite --from <package>` on the same commit: the resume records green
+when every package has a pass for that exact source fingerprint
+(`.suite/progress`), so the work already done is not thrown away.
+
 `echo suite > .build-phase` first — the guard in `tools/hooks/` refuses the
 full suite and `lint:family` in any other phase.
 

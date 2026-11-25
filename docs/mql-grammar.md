@@ -51,7 +51,6 @@ me                        you — the root every query starts from
 ~friends:iffy             Iffy, if she is on that list and in the world
 ~contacts                 everyone on your lists or in your groups who is in the world
 @abc123                   the player whose id is abc123, wherever they are
-me:~                      list every relation you can ask for
 ~                         your home (`/home/<you>`); `~/workroom` under it
 me:i                      your immediate contents
 me:I                      everything inside what you carry, recursively
@@ -229,15 +228,14 @@ Most built-ins answer only about YOU: `@abc123:~peers` is empty. `~here`,
 | `<a phone or implant>:~apps` | the apps installed and running on it |
 
 ```
-me:~                      every relation you can ask for, each with a line
-                          saying what it means (`query me:~` prints it)
 ~friends:iffy             Iffy, on your friends list, wherever she is
 dm ~contacts:iffy hi      the same, through anyone you keep
-book:~                    what the charter book can be asked for
 ```
 
-⭐ `thing:~` **lists; it never names anything.** Only `query` prints the
-list; give it to any other verb and it says to try `query`.
+⭐ **The `~` words are listed by `which ~`, not by a query** (the which
+build): `which ~` lists every word you can type with its meaning, and
+`which ~ book` what a charter book keeps. A bare `~` after a name
+(`me:~`) lists nothing — the parser refuses it and points at `which ~`.
 
 ⚠ **A name two of your sets share** — a list and a group both called
 `bookclub` — asks *which?* (*your list, or the group?*). A script never
@@ -972,9 +970,6 @@ me:i:rust
 
 # What bob and joe are each holding
 (bob, joe):~inventory                   (a relation step flat-maps)
-
-# Every relation the charter book here answers
-query ~reachable:[class.CharterBook]:~  (lists; binds nothing)
 
 # Burnable items I'm carrying
 me:i:[mixin.Burnable]

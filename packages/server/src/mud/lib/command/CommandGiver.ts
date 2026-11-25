@@ -18,15 +18,12 @@
  * shadow CANNOT corrupt the recency stack by intercepting these
  * methods.
  *
- * `onConnectionAttached` is intentionally NOT sealed: the worst case
- * if a subclass overrides without `super` is a missed initial reset,
- * which is recoverable when the next move triggers a delta.
- *
- * The client gets one `shell.control` `schema:reset` when
- * `_commandSchemaSubscribed` flips at `onConnectionAttached`. ⭐ Pushes and
- * pops send nothing: a frame per verb per mover per person in the room went
- * to a client that discards them, and it was half of what a crowd cost
- * (controllers-are-io D27).
+ * ⭐ Every mutation pokes `WhichSource` (the which build): what the line
+ * accepts just changed, so a kept `which` card re-reads. A poke with no
+ * subscriber stands nothing up. The client is otherwise sent nothing — the
+ * `shell.control` schema push it never read was retired by the which build
+ * (a frame per verb per mover per person in the room had been half of what
+ * a crowd cost, controllers-are-io D27).
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -52,6 +49,8 @@ import { MqlApi } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { PromptApi, PromptCancelledError } from '../../api/prompt';
 import type { EnvelopeTemplate } from '@saxonberg/types';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
+import { SubscriptionApi } from '../../api/subscription';
 import { MixinApi } from '../../api/mixin';
 import { ShellApi } from '../../api/shell';
 import type { Alias } from '../shell/Alias';
@@ -61,7 +60,6 @@ import { PlayerApi } from '../../api/player';
 import { AccessApi } from '../../api/access';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
-import type { CommandSchemaPayload } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Refusal } from '../errors';
@@ -719,13 +717,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
     private _commandSeq = 0;
 
     /**
-     * Set after the first connection attaches; gates schema-delta
-     * emission so hydration-time pushes don't fire spurious frames
-     * to a not-yet-listening client.
-     */
-    private _commandSchemaSubscribed = false;
-
-    /**
      * Build the `'self'` entry once, at registration. Walks the class
      * chain (concrete first, then mixins prototype-bottom-up) and
      * dedupes by YAML filename so a mixin and its consumer can't
@@ -904,6 +895,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         seq: this._commandSeq++,
       };
       this._commandStack.push(entry);
+      SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, this as unknown as Stuff);
     }
 
     /**
@@ -915,7 +907,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // Remove every entry sourced from `source`, across all
       // buckets. A source contributing to multiple buckets has
       // multiple entries; one detach call clears them all.
+      const before = this._commandStack.length;
       this._commandStack = this._commandStack.filter((e) => e.source !== source);
+      if (this._commandStack.length !== before) SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, this as unknown as Stuff);
     }
 
     /**
@@ -930,40 +924,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       this._commandStack = this._commandStack.filter(
         (e) => e.bucket !== 'environment' && e.bucket !== 'peers',
       );
-    }
-
-    /**
-     * Mark the schema-subscription gate open. The first connection
-     * attach is when client-side schema delivery becomes meaningful —
-     * earlier pushes are pre-subscription bookkeeping.
-     */
-    onConnectionAttached(_conn: Interactive): void {
-      if (this._commandSchemaSubscribed) return;
-      this._commandSchemaSubscribed = true;
-      // Emit a single `shell.control` carrying the full set
-      // — the client uses this as its baseline schema view.
-      this._ensureSelfEntry();
-      const payloads: CommandSchemaPayload[] = [];
-      const seenVerbs = new Set<string>();
-      for (let i = this._commandStack.length - 1; i >= 0; i--) {
-        for (const def of this._commandStack[i]!.commands) {
-          const v = def.getPrimaryVerb();
-          if (seenVerbs.has(v)) continue;
-          seenVerbs.add(v);
-          payloads.push(CommandApi.getCommandSchemaPayload(def));
-        }
-      }
-      CommandApi.emitSchemaDelta(this as unknown as Stuff, 'reset', payloads);
-    }
-
-    /**
-     * Whether the host has subscribed to schema deltas. Read by step-6
-     * emission helpers; tests use it to assert hydration silence.
-     *
-     * @internal
-     */
-    _isSchemaSubscribed(): boolean {
-      return this._commandSchemaSubscribed;
+      SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, this as unknown as Stuff);
     }
 
     /**

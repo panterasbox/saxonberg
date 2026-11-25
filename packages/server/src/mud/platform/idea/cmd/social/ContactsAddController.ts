@@ -9,6 +9,7 @@
 
 import type { CommandContext } from '../../../../api/command';
 import { MqlApi, type MqlOneResult } from '../../../../api/mql';
+import { BUILTIN_RELATION_WORDS } from '../../../../lib/relation/BuiltinRelations';
 import { Mml } from '../../../../api/mml';
 import { GrammarApi } from '../../../../api/grammar';
 import { PlayerApi } from '../../../../api/player';
@@ -26,9 +27,8 @@ export default class ContactsAddController extends ContactsControllerBase {
     // ⭐ A list named for a built-in relation is allowed, and warned about
     // (naming overhaul D-B15): `~inventory` will always mean what you carry,
     // so no query reaches a list called that.
-    const builtins = MqlApi.resolveMany('me:~', { commandGiver: context.commandGiver, scope: '' }).relations ?? [];
     // A list label is stored as typed; a built-in's name is its own key.
-    const builtin = builtins.find((r) => r.builtin && r.name === label);
+    const builtin = BUILTIN_RELATION_WORDS.find((r) => r.name === label);
     if (builtin) {
       ContactsControllerBase.send(
         context,

@@ -355,10 +355,11 @@ class Parser {
       case 'lbrace':
         return this.parseQuantity();
       case 'tilde':
-        // `:~name` asks the left side for a set; `:~` lists what it answers.
+        // `:~name` asks the left side for a set. ⛔ A bare `~` lists
+        // nothing — the ~ words are `which ~`'s to list (the which build).
         this.advance();
         if (this.peekKind('bareword')) return { kind: 'relation', name: this.advance().value };
-        return { kind: 'relations' };
+        throw new MqlParseError("'~' with no name lists nothing — `which ~` lists the ~ words you can type", t.start);
       case 'homePath':
         throw new MqlParseError(
           `a home path ('~${t.value}') is only valid at the start of a query`,

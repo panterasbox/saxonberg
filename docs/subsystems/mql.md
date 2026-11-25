@@ -92,10 +92,9 @@ interface MqlContext {
 }
 
 interface MqlOne   { stuff: Stuff | null; via?: MqlMatchVia; relations?: RelationInfo[]; relationTie?: RelationTie; }
-interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; vias?: (MqlMatchVia | undefined)[]; relations?; relationTie?; }
+interface MqlMany  { stuff: Stuff[];      via?: MqlMatchVia; vias?: (MqlMatchVia | undefined)[]; relationTie?; }
 ```
 
-`relations` is the fact a `thing:~` listing carries (it binds nothing);
 `relationTie` says a name two of one holder's sets share (a contact list
 and a group both called `bookclub`) — the binder prompts, a script
 refuses (§ Relations).
@@ -387,7 +386,7 @@ groups — **intersect** with the prior set (score and `via` preserved;
 old element-derivable seed words (`x:peers`, `x:reachable`,
 `x:inventory`) and their per-seed exclusion rules are gone with the words.
 
-#### ⭐⭐ Relations — `~name` and `thing:~` (naming overhaul D-B1–D-B6)
+#### ⭐⭐ Relations — `~name` (naming overhaul D-B1–D-B6; the listing is `which ~`)
 
 `holder:~name` asks the Stuff on its left for the set it keeps under
 `name`; a head `~name` asks you. Several things on the left: each is
@@ -428,11 +427,14 @@ resident on you through `ContactsMixin`, beside your lists — `~bookclub`), a w
 (`~nodes`, the tpa pack), an aether host (`~apps`). A list named like a
 built-in is warned about when made, and never reached by a query.
 
-**`thing:~` lists, binds nothing.** The result has no matches and carries
-`relations: [{ holder, name, meaning, builtin }]` — the built-ins that
-apply, then the holder's own. Only a slot declaring `lists: relations`
-takes it (`query`'s, which prints it); every other slot and option refuses
-`names-relations`, pointing at `query <what you typed>`.
+**The listing left MQL (the which build).** `thing:~` once listed the
+relations a holder answers, behind a `lists: relations` view key only
+`query` declared — a listing is not runtime Stuff, and MQL finds runtime
+Stuff only. `which ~` / `which ~ <thing>` lists them now
+(`CommandApi.whichRelations`, reading `lib/relation/BuiltinRelations.ts` —
+the built-in words' name · meaning · whose, which `mql/relations.ts` keys
+its members by — and `RelatingMixin.relationsFor`). A bare `:~` is an
+`MqlParseError` whose message names `which ~`.
 
 **A tie** — `relatedBy` handing back two sets of one name — rides
 `relationTie`; the binder asks *which?* (the sets' meanings) and keeps the
@@ -487,7 +489,7 @@ a candidate that reach then refuses (nor hide one it would allow). A shut
 
 The dispatch lives in `mql/resolver.ts:applyColon`: `:~name` routes
 through `flatMapRelation` (built-in first, else `RelatingMixin.relatedBy`),
-`:~` through `listRelations`, the place steps through `flatMapPlaceStep`,
+the place steps through `flatMapPlaceStep`,
 and the fixed pools (`pronoun`, `path`, `stuffId`, `group`, `world`)
 through `intersectWithSeed`.
 
@@ -498,7 +500,6 @@ through `intersectWithSeed`.
 | `:keyword` | narrow current set by keyword | auto-extends with detail names at current via depth |
 | `:predicate` | narrow by predicate (`living`, `mine`, `here`, …) | reserved by name match |
 | `:~name` | the set each prior element keeps under `name` | flat-map; built-in first (§ Relations) |
-| `:~` | list what each prior element answers; binds nothing | a `relations` fact |
 | `:exits` · `:to` · `:from` | the place steps | flat-map; `:to` live-only |
 | `:i` | descend one level (no via: immediate contents; with via: immediate child details) | via-aware |
 | `:I` | descend deep (no via: `getDeepContents()`; with via: every detail descendant from the tip, DFS) | via-aware |

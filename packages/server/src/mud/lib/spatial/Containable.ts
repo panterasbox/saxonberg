@@ -110,6 +110,14 @@ export interface Containable {
   getPlacement(): { host: Stuff & Placing; name: string } | null;
 
   /**
+   * ⭐ Where this is, in `viewer`'s words (the `which` build): *in your
+   * right hand*, *you're wearing*, *you're carrying*, *on the shelf*,
+   * *here*, *in the crate*, *nearby* — or `''` when it is nowhere. Reads
+   * only containment, placement and the viewer's own slots.
+   */
+  whereFor(viewer: Stuff): string;
+
+  /**
    * Where this rests, as a record can keep it — the surface's row and the
    * placement member — or `null` when it rests on nothing. An owner's
    * estate carries it so the room overlay lays a good back on the rack it
@@ -512,6 +520,45 @@ export function ContainableMixin<TBase extends MixinConstructor>(Base: TBase) {
       const host = this._placementHost;
       if (!host) return null;
       return { host, name: this._placementName || Placements.ON };
+    }
+
+    /** See the interface docstring. */
+    whereFor(viewer: Stuff): string {
+      const self = this as unknown as Stuff;
+      const container = this.getContainer();
+      if (container === null) return '';
+      // On the viewer, at any depth: `top` is what sits on the body itself.
+      let top: Stuff = self;
+      let up: Stuff | null = container;
+      for (let i = 0; up !== null && i < 32; i++) {
+        if (up.stuffId === viewer.stuffId) break;
+        top = up;
+        up = MixinApi.isContainable(up) ? up.getContainer() : null;
+      }
+      if (up !== null && up.stuffId === viewer.stuffId) {
+        if (top === self && MixinApi.isSlotted(viewer)) {
+          for (const [slot, occupants] of viewer.getAllOccupants()) {
+            if (![...occupants].some((o) => o.stuffId === self.stuffId)) continue;
+            const accepts = viewer.getSlotSpec(slot)?.accepts;
+            if (accepts === 'WieldableMixin') return `in your ${viewer.slotWord(slot)}`;
+            if (accepts === 'WearableMixin') return "you're wearing";
+          }
+        }
+        return "you're carrying";
+      }
+      const placed = this.getPlacement();
+      if (placed !== null) {
+        const word = placed.name.slice(placed.name.lastIndexOf('/') + 1);
+        return `${word} ${placed.host.handlePhrase().definite()}`;
+      }
+      const here = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+      if (here === null) return 'nearby';
+      if (container.stuffId === here.stuffId) return 'here';
+      const holder = MixinApi.isContainable(container) ? container.getContainer() : null;
+      if (holder !== null && holder.stuffId === here.stuffId) {
+        return `in ${container.handlePhrase().definite()}`;
+      }
+      return 'nearby';
     }
 
     /** See the interface docstring. */

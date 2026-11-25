@@ -305,6 +305,8 @@ export default abstract class Avatar extends AvatarBase {
       // way `forum`/`chat` are gated would contradict the access model
       // the build actually implements.
       "platform/cmd/system/wiki.yaml",
+      // `which` reads what you can type HERE; help and wiki are the reference beside it.
+      "platform/cmd/shell/which.yaml",
       /*
        * ⭐ The news sits beside `help` and `wiki` for the same reason:
        * it is a reference surface a player carries, and bare `press`

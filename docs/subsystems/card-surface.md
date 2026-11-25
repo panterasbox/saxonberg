@@ -376,6 +376,35 @@ required-fields gate meaningless — which is the gate that makes the
 whole "strict taxonomy" claim real. The client names it on the wire as
 `chrome: 'self'`.
 
+### ⭐ A payload a SOURCE keeps current — the `which` card (the which build)
+
+A `payload` row may name a `subscription:` source (`CardSource` payload
+`subscription`). Such a card is live by the same rule as an MQL card — the kind
+is live and the player pinned, placed or roled it — **and** its open carried
+`params` (`CardOpenOptions.params`): an answer the source can re-read. Opened
+without params (`which ~`), it is a snapshot even pinned. The source answers
+asynchronously, so the card is live from the subscribe and its fresh answer
+rides a `card-touched` with the payload when it lands; the source's changes ride
+`subscription-delta`, which the client applies to `card.payload` (the `which`
+source pushes the whole answer under one key, `answer`).
+
+⭐ **One card, retargeted** (R5). `which` is a singleton under the catalogue key
+`which`, so `which counter` (or a click on a source, which sends `which #<id>`)
+after `which` TOUCHES the card that is up: `touchState` replaces its payload and
+params and cancels-and-reopens its subscription under the same id, as `rebind`
+does for the room card — and, unlike a live MQL card's touch, carries the new
+body. The answer carries the command that re-asks it (`ask.command`); a
+refresh re-sends that, never the key.
+
+The `which` card's body (`WhichBody.tsx`) is one row per source, led by an
+icon for how it reaches you (held · here · next door · yours); every verb is
+two links — the verb, typed onto the primary bar (`primarySeed`), never sent,
+and a help icon that runs `help <verb>` — each with its own tooltip (the
+verb's: what gives it, how it reaches you, its view, its category, why it is
+greyed — each fact led by its icon, `TooltipFact.icon`). Every link previews
+its command in the status bar, and no tooltip says what a click does. Titled
+by what was typed, never an id.
+
 ## ⭐ One sweep, and exactly one clock
 
 Lifetime is a **relevance window since last touched**, evicted by ONE

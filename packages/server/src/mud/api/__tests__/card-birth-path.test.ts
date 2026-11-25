@@ -191,6 +191,9 @@ describe('a card is born on the server, or not at all', () => {
         'mud/platform/idea/cmd/shell/CockpitTerminalController.ts:showInTerminal',
         'mud/platform/idea/cmd/shell/ClientLayoutRecallController.ts:applyCardArrangement',
         'mud/platform/idea/cmd/shell/SettingsListController.ts:open',
+        // ⭐ the which build: `which` / `which ~` open the one `which` card.
+        'mud/platform/idea/cmd/shell/WhichController.ts:open',
+        'mud/platform/idea/cmd/shell/WhichRelationsController.ts:open',
         'mud/platform/idea/cmd/social/WhoController.ts:open',
         // ⭐ broadcast-ready D10: bare `rodney` (was `stream`) opens the controls card.
         'mud/platform/idea/cmd/stream/RodneyController.ts:open',
@@ -258,6 +261,8 @@ describe('a card is born on the server, or not at all', () => {
         'studio',
         'subject',
         'survey',
+        // ⭐ What you can type here (the which build).
+        'which',
         'who',
         'wiki',
       ].sort(),

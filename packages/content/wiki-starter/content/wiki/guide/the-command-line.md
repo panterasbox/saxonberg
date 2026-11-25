@@ -74,9 +74,10 @@ hello` reaches her from anywhere.
 
 `who` shows each player's `@` address (`@abc123`); `dm @abc123 hello`
 reaches that one player even before they are on any list of yours.
-`query me:~` lists every `~` word you can use, each with a line saying
-what it means — and `query book:~` asks a thing what it keeps (a charter
-book answers with its `~ships`).
+`which ~` lists every `~` word you can use, each with a line saying
+what it means — and `which ~ book` asks a thing what it keeps (a charter
+book answers with its `~ships`). Plain `which` lists every verb you can
+type where you stand, and what gives you each one.
 
 ## How long {#durations}
 
@@ -84,6 +85,23 @@ A slot that takes a length of time reads it the way you would say it:
 `a week`, `2 hours`, `90 minutes`, `1h30m`. The time is the game's
 clock, not yours. If a verb wants whole days, or at least a minute, it
 says so when you give it something shorter.
+
+## What can I type here: `which` {#which}
+
+`which` lists the verbs you can type where you stand, each with what gives
+it to you — *buy — the counter here*, *fish — the rod in your right hand*.
+Verbs come from things: pick up a rod and `fish` appears; walk away from the
+counter and `buy` goes. Your own body's verbs are counted on the last line
+(`which me` lists them).
+
+- `which counter` — what one thing lets you do.
+- `which --verb fish` — where a verb comes from here, or that nothing does.
+- `which --clashes` — the words that mean two different commands here,
+  and how to pick each (below).
+- `which ~` — the `~` words you can type.
+
+`which` only reads. Typed, it also puts up a card that stays current while
+you keep it; hover a verb on it to see what gives it.
 
 ## Saying which one: `source::verb` {#verb-at-source}
 

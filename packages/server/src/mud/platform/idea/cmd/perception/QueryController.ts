@@ -38,8 +38,6 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MqlApi, type MqlManyResult } from '../../../../api/mql';
 
-/** One relation in a `thing:~` listing, as the binder hands it over. */
-type RelationListing = NonNullable<MqlManyResult['relations']>[number];
 import type { HorizonView } from '../../../../api/perception';
 import { PerceptionApi } from '../../../../api/perception';
 import { MessageApi } from '../../../../api/message';
@@ -75,28 +73,8 @@ interface CarriedTiers {
 }
 
 export default class QueryController extends CommandController<QueryModel> {
-  /** Print a relation listing: one line per relation, built-ins marked. */
-  private relations(raw: string, relations: readonly RelationListing[], context: CommandContext): void {
-    if (relations.length === 0) {
-      MessageApi.scene(context.commandGiver)
-        .topic('sense.survey')
-        .toSelf(Mml.compose`Nothing there can be asked for anything.`)
-        .send();
-      return;
-    }
-    const lines = relations.map((r) => `  ~${r.name} — ${r.meaning}${r.builtin ? '' : ` (${r.holder}'s)`}`);
-    MessageApi.scene(context.commandGiver)
-      .topic('sense.survey')
-      .toSelf(Mml.text(`What ${raw.replace(/:~\s*$/, '')} can be asked for:\n${lines.join('\n')}`))
-      .send();
-  }
-
   execute(model: QueryModel, context: CommandContext): void {
     const raw = model.set?.raw ?? '';
-    // ⭐ `query thing:~` — the relations it answers, each with its meaning
-    // (naming overhaul D-B4). The grammar documents itself.
-    const relations = model.set?.relations;
-    if (relations !== undefined) return this.relations(raw, relations, context);
     // ⭐ What the viewer perceives of what the query names (D23). The binder
     // already filtered the bound set; this is the surface's own guarantee.
     const named = MqlApi.extractStuffs(model.set) ?? [];

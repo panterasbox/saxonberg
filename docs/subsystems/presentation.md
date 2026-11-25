@@ -378,6 +378,16 @@ one by hand, each its own way. Both have one home in `GrammarApi` now:
 
 ---
 
+## Where a thing is, in the viewer's words (the which build)
+
+`Containable.whereFor(viewer)` says where a thing is as the viewer would say it:
+*in your right hand* (a `WieldableMixin` slot, worded by `Slotted.slotWord`
+— `hand:right` is *right hand*), *you're wearing*, *you're carrying*, *on the
+shelf* (its placement word and the host's handle), *here*, *in the crate*,
+*nearby* — or `''`. `AetherHosted.whereFor(viewer)`: `''` for the viewer's own
+app (*your calendar*), *on your phone*, *on the phone here*. `which` names each
+source by its handle (`handlePhrase().bare()`), its definite phrase, and this.
+
 ## Where the pieces live
 
 | piece | file |

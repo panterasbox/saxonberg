@@ -38,6 +38,7 @@
 import { NavCard } from "../nav/NavCard";
 import { SettingsPanel } from "../settings/SettingsPanel";
 import { StreamControls } from "./StreamControls";
+import { WhichBody } from "./WhichBody";
 import { useOnAir } from "../../lib/stream/onAir";
 import React from "react";
 import styled from "styled-components";
@@ -1309,6 +1310,15 @@ function PayloadBody(props: CardBodyProps): React.ReactElement {
       return <HelpTopicBody topic={payload.topic} />;
     case 'survey':
       return <SurveyBody survey={payload.survey} />;
+    case 'which':
+      return (
+        <WhichBody
+          answer={payload.answer}
+          size={card.size ?? 'unit'}
+          onSendCommand={onSendCommand}
+          onCommandPreview={onCommandPreview}
+        />
+      );
     case 'terminal':
       // A terminal card's body is the terminal itself; the terminal
       // column renders it (client-surface D6). In the feed it says what

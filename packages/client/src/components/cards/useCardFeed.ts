@@ -36,6 +36,7 @@ import type {
   SubscriptionDeltaEnvelope,
   CardId,
   StuffDetailRecord,
+  WhichAnswer,
 } from "@saxonberg/types";
 import { useStore } from "../../store/index";
 import { websocketClient } from "../../services/websocket";
@@ -66,6 +67,7 @@ export const CARD_LABEL: Readonly<Record<CardId, string>> = {
   settings: "your settings",
   map: "where you are",
   stream: "the stream controls",
+  which: "what you can type here",
 };
 
 /**
@@ -206,7 +208,12 @@ export function useCardFeed(): void {
     const handleResult = (envelope: Envelope): void => {
       const env = envelope as SubscriptionResultEnvelope;
       const store = useStore.getState();
-      if (!store.cards[env.subscriptionId]) return;
+      const card = store.cards[env.subscriptionId];
+      if (!card) return;
+      if (card.payload?.kind === "which") {
+        if (env.snapshot) store.setCardPayload(env.subscriptionId, { kind: "which", answer: env.snapshot as WhichAnswer });
+        return;
+      }
       store.setCardRecords(env.subscriptionId, (env.snapshot ?? []) as CardRecord[]);
     };
 
@@ -215,10 +222,16 @@ export function useCardFeed(): void {
       const store = useStore.getState();
       const card = store.cards[env.subscriptionId];
       if (!card) return;
-      store.setCardRecords(
-        env.subscriptionId,
-        applyChanges(card.records, env.changes as Change[]),
-      );
+      if (card.payload?.kind === "which") {
+        // ⭐ The which source pushes the whole answer under one key (the which build).
+        const change = (env.changes as Change[]).find((c) => c.key === "answer" && c.op === "replace");
+        if (change) store.setCardPayload(env.subscriptionId, { kind: "which", answer: change.fields as unknown as WhichAnswer });
+      } else {
+        store.setCardRecords(
+          env.subscriptionId,
+          applyChanges(card.records, env.changes as Change[]),
+        );
+      }
       // ⭐ The card remembers which command changed it (navigation-server review).
       store.noteSurfaceChange(`card:${env.subscriptionId}`, env.causes);
     };

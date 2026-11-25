@@ -105,7 +105,6 @@ export const PINNED_VIEW_KEYS: Readonly<Record<ViewSurface, Readonly<Record<stri
     onExcess: "what happens when MQL resolves more than the cardinality",
     onShortage: "what happens when MQL resolves fewer than the cardinality",
     onFiltered: "what happens when a match fails `requires:`",
-    lists: "the slot accepts a relation listing (`thing:~`) — only `query`'s",
   },
   option: {
     requires: "the mixin a bound object must compose (or `any`)",

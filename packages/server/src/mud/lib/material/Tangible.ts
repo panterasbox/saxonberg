@@ -199,25 +199,21 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'TangibleMixin';
 
     /**
-     * **The thing with mass confers the verb.** Anything Tangible is
-     * throwable, so holding one grants `throw` — the tools-confer
-     * pattern (a wand grants `zap`), not a property of the thrower.
+     * ⭐ **A body throws** (the which audit, 2026-11-23). `throw` rides
+     * `self`, so every body with mass — every `Agent` — can type it, and
+     * the item argument teaches the rest: a rock on the floor matches and
+     * `mustBeHeld` says *you'll have to pick up the rock first* (ranged.md
+     * § throw). ⛔ It was `environment` + `peers` — the thing with mass
+     * conferring the verb — and sideways that made every body and every
+     * bolted-down counter in a room a thing on offer to throw; `which`
+     * showed it. `self` is read only off a command giver, so a rock or a
+     * room gives nothing.
      *
-     * It deliberately does NOT ride `ContainerMixin.self`. Container is
-     * "I can hold things", which is the right home for `drop`/`give`
-     * but says nothing about whether what you are holding can be
-     * thrown — and a room is a Container.
+     * It deliberately does NOT ride `ContainerMixin.self`: a room is a
+     * Container.
      */
     static commandContributions: CommandContributions = {
-      self: [],
-      // OUTWARD to whoever holds it…
-      environment: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
-      // …and SIDEWAYS to anyone sharing the room with it, because you
-      // do not have to be holding a rock for throwing it to be on the
-      // table. Whether the throw picks it up first, refuses, or costs a
-      // beat is the CONTROLLER's call — availability and permission are
-      // different questions, and only the first lives here.
-      peers: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
+      self: ['platform/cmd/inventory/throw.yaml', 'platform/cmd/inventory/throw-to.yaml', 'platform/cmd/inventory/throw-at.yaml'],
     };
     /**
      * Field-marshaller binding. `mass` round-trips via the kg-bound

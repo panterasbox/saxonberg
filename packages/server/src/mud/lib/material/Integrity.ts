@@ -194,13 +194,14 @@ export function IntegrityMixin<TBase extends NestingConstructor<Stuff>>(Base: TB
     static _mixinName = 'IntegrityMixin';
 
     /**
-     * ⭐ An article can be tapped and listened to (ceramics M5): a held
-     * mug, a bell on the square, a brick on a stall — outward to whoever
-     * holds it, and sideways to anyone sharing the room with it.
+     * ⭐ An article can be tapped and listened to (ceramics M5): a mug or a
+     * brick you hold — outward to whoever holds it. ⛔ Not `peers` (the
+     * which audit, 2026-11-23): sideways it put `ring` on every rope, loaf
+     * and sack in the room. A bell is struck where it hangs, and says so on
+     * `RingableMixin`.
      */
     static commandContributions: CommandContributions = {
       environment: ['platform/cmd/perception/ring.yaml'],
-      peers: ['platform/cmd/perception/ring.yaml'],
     };
 
     static fieldMeta: FieldMeta = {
