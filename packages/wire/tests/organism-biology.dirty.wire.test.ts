@@ -314,14 +314,26 @@ suite.skipIf(!isOwnedTestWorld())('organism biology — the blocking drive', () 
   });
 
   it('7 · a whale is rows: blubber, spermaceti, teeth and meat', async () => {
-    const whale = await clone(WHALE_AGENT);
-    await stage(whale, 'setAge', 9000);
-    await stage(whale, 'setLifecycleState', 'alive');
-    const whaleBody = await kill(whale);
-    const { out, left } = await leftBy(player, `butcher ${whaleBody}`);
-    note(`7 butcher whale: ${out.slice(0, 200)} | left: ${left.map((r) => (JSON.parse(r) as { displayName?: string }).displayName).join(', ').slice(0, 300)}`);
-    expect(left.join(' ')).toMatch(/blubber/i);
-    expect(left.join(' ')).toMatch(/spermaceti|teeth|ivory/i);
+    // ⚠ A test place is one 4 m cell (16 m² of floor), and ground takes
+    // ground: a GROWN whale's ton-sized blanket pieces cannot lie there,
+    // and the butcher now says so ("for want of room"). A calf, flensed on
+    // the clear floor of the approach (the yard is strewn with steps 1–6),
+    // is the whale that fits — the same rows, no code for the whale.
+    expectOk(await wiz.cmd('go west'));
+    expectOk(await player.cmd('go west'));
+    try {
+      const whale = await clone(WHALE_AGENT);
+      await stage(whale, 'setLifecycleState', 'alive');
+      await stage(whale, 'setAge', 60);
+      const whaleBody = await kill(whale);
+      const { out, left } = await leftBy(player, `butcher ${whaleBody}`);
+      note(`7 butcher whale calf: ${out.slice(0, 240)} | left: ${names(left).slice(0, 300)}`);
+      expect(left.join(' ')).toMatch(/blubber/i);
+      expect(left.join(' ')).toMatch(/spermaceti|teeth|ivory/i);
+    } finally {
+      await wiz.cmd('go east');
+      await player.cmd('go east');
+    }
   });
 
   it('8 · a cow not in milk says so; a lactating cow gives', async () => {
