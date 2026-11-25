@@ -28,6 +28,7 @@ import Thing from '../../platform/thing/Thing';
 import Good from '../../platform/thing/Good';
 import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
+import { setFlatParts } from '../../lib/species/__tests__/flat-body';
 import type { WhichAnswer } from '@saxonberg/types';
 import type { Stuff } from '../../lib/stuff/Stuff';
 
@@ -60,12 +61,14 @@ describe('which — what can I type here (W1)', () => {
       { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.hand.left' },
       { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.hand.right' },
     ]);
-    plan.setBodyParts([
+    stampTemplatePathForTest(plan, PLAN);
+    // A plan is composed of modules now (organism biology); the fixture door
+    // gives it this flat part list.
+    setFlatParts(plan, [
       { key: 'body', parent: null, tissues: [] },
       { key: 'body.hand.left', parent: 'body', tissues: [], serves: ['manipulation'] },
       { key: 'body.hand.right', parent: 'body', tissues: [], serves: ['manipulation'] },
     ]);
-    stampTemplatePathForTest(plan, PLAN);
     const species = makeStuff(() => new Species());
     species.setBodyPlan(plan);
     stampTemplatePathForTest(species, '/stuff/idea/species/test/which-human');
