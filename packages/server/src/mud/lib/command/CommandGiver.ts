@@ -641,6 +641,9 @@ const DEVICE_REFUSAL_ROWS: Readonly<Record<AugmentRefusal, string>> = {
  * Why the DEVICE hosting the app that lent this affordance will not run
  * it now (stream arrival D16), or null — an affordance from anything else,
  * or from an app on a person or on a working device, is never refused.
+ *
+ * @nothing the affordance was not lent by an app on a device, or the device
+ * runs: there is no device refusal, and the match proceeds.
  */
 function lentDeviceRefusal(source: unknown): Refusal | null {
   if (source === 'self' || source === null || typeof source !== 'object') return null;
