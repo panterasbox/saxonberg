@@ -5,7 +5,7 @@
 > writing it up."*
 > **Ruled (§ 3):** one mechanism · credit named by the act's definition · the act is an incident ·
 > tropes look back by asking the ledgers · care is durable · regard is derived · no work starts
-> anonymous · a choice is an allocation (money, goods, attended human time) · the labor plane mints
+> anonymous · spending a conserved resource (money, goods, attended human time) is a real choice · the labor plane mints
 > nothing · ⭐ the kernel holds no moral opinion — the roster is an optional pack (the Nazi test) ·
 > beats, a first cut (§ 4).
 > **Left:** refining the beats · the trope definition's final
@@ -218,10 +218,17 @@ possibly its own build (trait-slate's open question, now ruled in direction).
   restore the actor; brains act inside `runAsSelf`.
 - **To verify:** prompt resume, a reaction triggered by a message, the REST/CMS boundary.
 
-### 3.8 ⭐⭐ A choice is an allocation of something conserved
+### 3.8 ⭐⭐ Spending a conserved resource is a choice
 
-Character shows in what you spend, and on what — and spending reveals character only if it cannot be
-faked. N3's *cost* is read from three resources:
+> The owner: *"I dont want to overstate, there are meaningful choices in the game that have nothing
+> to do with spending a resource. it's just that you were having trouble with those kinds of things as
+> choices and I wanted to identify them as such."*
+
+**Not every choice spends something** — sparing a yielded opponent, keeping or breaking a promise,
+telling the truth, whom to stand beside are choices among alternatives with no resource in them.
+But **how one spends a conserved resource — money, goods, time — is always a real, meaningful
+choice**, and it is the kind easiest to miss. Spending reveals character only if it cannot be faked,
+so where a beat does spend, its *cost* (N3) is read from three resources:
 
 | resource | measured by | read as |
 |---|---|---|
@@ -362,7 +369,7 @@ write is trait-slate's denominator.
 | **2 creative expression** | Ordinary case: rows (a trope, an asserted beat, a telling, a definition's credit). Bespoke: a new detected beat — a kernel change, deliberately. ⚠ Without the author surfaces, authors write tropes blind — fine for a first roster, not past the first trade's adoption. |
 | **3a immersion** | One trope writes both halves; imposed waits are not counted. The telling stays in the fiction while the measurement stays out (§ 3.8); tellings obey measurement.md's reading rules (§ 3.4). |
 | **3b participation** | Farming alone: diminishing repetition and real cost. ⚠ **Collusion and Sybils** — two friends or one human's two characters passing a coin back and forth — measurement.md's named open flank, inherited; *exchange over time* should read a ring as trade. ⚠ An asserted-beat author could assert *honor* for a friend — auditable (every write cites its act), not detected. |
-| **4 values** | ⭐⭐ The kernel holds no moral opinion; every reading is an optional pack's (§ 3.10). Invariant: acts are facts, a choice is an allocation, the labor plane mints nothing. Grain: our roster, a pack. Title: any community's roster. |
+| **4 values** | ⭐⭐ The kernel holds no moral opinion; every reading is an optional pack's (§ 3.10). Invariant: acts are facts, spending a conserved resource is a real choice, the labor plane mints nothing. Grain: our roster, a pack. Title: any community's roster. |
 | **5 continuity** | Acts record physics and survive every epoch; two rosters may read one act differently while sharing the fact. ⭐ Attended time is honest across epochs — a power loom asks less human attention than a hand loom, so earns less diligence, with no rule. |
 | **6 economy** | Produces and consumes nothing; costs compute (matching, look-back queries). Demand first: lineage, and the writers that exist. ⚠ Once traits gate anything economic, farming them is worth money — the real-cost model is the defense and must not be diluted. |
 | **7 governance** | A trope judges a person — criterion: its row; appeal: every write cites its act; entrenchment: the roster is a pack. The intrinsic layer has no adjudication (measurement.md) — you cannot appeal who you are, only see what made it; the social layer is contested per viewer, where appeal belongs. |
