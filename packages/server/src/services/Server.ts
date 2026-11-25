@@ -26,6 +26,7 @@ import { StudioRoutes } from '../backend/StudioRoutes';
 import { HelpRoutes } from '../backend/HelpRoutes';
 import { EmoteRoutes } from '../backend/EmoteRoutes';
 import { PressRoutes } from '../backend/PressRoutes';
+import { FrontRoutes } from '../backend/FrontRoutes';
 import { KickWebhookRoutes } from '../backend/KickWebhookRoutes';
 import { PassportConfig } from './auth/PassportConfig';
 import { AuthRoutes } from './auth/AuthRoutes';
@@ -259,6 +260,7 @@ export class Server {
     // transport. Read-only; same auth/ordering constraints as the routes
     // above (registered before the SPA `*` fallback).
     PressRoutes.setup(this.app);
+    FrontRoutes.setup(this.app);
 
     // In production the server serves the built client from its own
     // origin — set CLIENT_DIST to the client's `dist/`. When it's unset

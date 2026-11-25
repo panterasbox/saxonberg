@@ -110,6 +110,17 @@ const MediumSlot = styled.div`
   border-bottom: 1px solid ${tokens.color.border};
 `;
 
+/**
+ * The focal slot: the watch stage's video over the terminal column. ⚠ Unlike
+ * a medium CARD it has no content of its own to size it — the stream screen
+ * inside sizes itself from its parent's height (a contained 16:9) — so it
+ * claims a definite 16:9 height of the column's measure. Without it the
+ * video's box was 0×0 and the one player sat in the stage invisible.
+ */
+const FocalSlot = styled(MediumSlot)<{ $video: boolean }>`
+  ${(p) => (p.$video ? `height: ${(tokens.width.measure * 9) / 16}rem; max-height: 45vh;` : "")}
+`;
+
 const FullStage = styled.div`
   flex: 1;
   min-width: 0;
@@ -555,9 +566,9 @@ const DesktopStage: React.FC<LayoutProps & { config: StageConfig }> = ({
             {medium ? (
               <MediumSlot data-testid="medium-slot">{renderCard(medium, true)}</MediumSlot>
             ) : config.focal ? (
-              <MediumSlot data-testid="focal-slot">
+              <FocalSlot data-testid="focal-slot" $video={config.focal === "video"}>
                 <Focal kind={config.focal} onCommandClick={onCommandClick} onCommandPreview={onCommandPreview} />
-              </MediumSlot>
+              </FocalSlot>
             ) : null}
             {terminalBits(false)}
           </TerminalColumn>

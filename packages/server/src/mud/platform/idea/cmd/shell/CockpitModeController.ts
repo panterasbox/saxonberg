@@ -148,6 +148,9 @@ export default class CockpitModeController extends CommandController<CockpitMode
     wanted?: string,
   ): string {
     host.setClientState(MODE_KEY, mode);
+    // ⭐ A mode the player CHOSE ends this visit's arrival mode (stream
+    // arrival D4): from here the stored mode is the one that reads.
+    host.setClientState('cockpit.sessionMode', null);
 
     // Resolve AFTER the mode write so the lookup is against the mode
     // we are entering, then pin it so the wire carries a concrete

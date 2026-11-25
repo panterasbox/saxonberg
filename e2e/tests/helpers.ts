@@ -91,8 +91,10 @@ export async function mintSession(
     committees?: string[];
     /** Seat the character in each office (the seat moves). */
     offices?: string[];
-    /** Join the `streamers` group — the `stream` verb's axis (broadcast-ready). */
+    /** A broadcaster: a program named for the handle, created and run by the character (stream arrival A2). */
     streamer?: boolean;
+    /** Synthetic linked carrier accounts (stream arrival A-12). */
+    linked?: { twitch?: string; kick?: string; youtube?: string };
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {
   const handle = opts.handle ?? uniqueHandle('user');
@@ -111,6 +113,7 @@ export async function mintSession(
           ...(opts.committees?.length ? { committees: opts.committees } : {}),
           ...(opts.offices?.length ? { offices: opts.offices } : {}),
           ...(opts.streamer ? { streamer: true } : {}),
+          ...(opts.linked ? { linked: opts.linked } : {}),
         },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
@@ -249,8 +252,10 @@ export async function openWorldAs(
     wizard?: boolean;
     committees?: string[];
     offices?: string[];
-    /** Join the `streamers` group (broadcast-ready). */
+    /** A broadcaster: a program named for the handle, created and run (stream arrival A2). */
     streamer?: boolean;
+    /** Synthetic linked carrier accounts (stream arrival A-12). */
+    linked?: { twitch?: string; kick?: string; youtube?: string };
     /** Reuse a handle already minted by `mintSession` (the seat-then-enter
      *  flow: a character must EXIST before the founder can seat it). */
     handle?: string;
@@ -275,6 +280,7 @@ export async function openWorldAs(
     committees: opts.committees,
     offices: opts.offices,
     streamer: opts.streamer,
+    linked: opts.linked,
   });
   const { context, page } = await enterWorld(
     browser,

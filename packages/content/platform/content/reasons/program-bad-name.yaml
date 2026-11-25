@@ -1,0 +1,5 @@
+# A program short name that is not one (stream arrival D10).
+facts:
+  name: text
+says: "'{{ name }}' is not a program name — two to thirty-two lower-case letters, digits and hyphens, starting and ending with a letter or digit."
+topic: act.deed

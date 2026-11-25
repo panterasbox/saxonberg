@@ -12,10 +12,15 @@
 
 import type { CommandContext } from "../../../../api/command";
 import EmbodyController, { type EmbodyModel } from "./EmbodyController";
+import { Refusal } from "../../../../lib/errors";
 
 export default class EmbodyConfirmController extends EmbodyController {
-  override async execute(_model: EmbodyModel, context: CommandContext): Promise<void> {
+  override async execute(model: EmbodyModel, context: CommandContext): Promise<void> {
     const { login, draft, cfg } = await this.prepare(context);
+    // `--watch <program> --<carrier>` (stream arrival D4) — refused before
+    // anything is committed.
+    const watching = await login.readWatching(model as Parameters<typeof login.readWatching>[0]);
+    if (watching instanceof Refusal) return this.refuse(context, watching);
     const missing = this.missingOf(draft, cfg);
     if (missing.length) {
       this.emitState(login, draft, cfg, {
@@ -31,6 +36,6 @@ export default class EmbodyConfirmController extends EmbodyController {
     }
     // Atomic commit + hand off; commit fires its own final frames, so no
     // state frame here.
-    await this.commit(draft, cfg);
+    await this.commit(draft, cfg, { watching });
   }
 }

@@ -11,8 +11,36 @@ help: |
   You can only `play` a character you own — an unknown or unowned id
   is refused, and you stay at the selection screen. Use `embody`
   instead when you want to create a brand-new character.
+
+  `--watch <program>` with `--twitch`, `--youtube` or `--kick` arrives
+  WATCHING that program's stream on that carrier — in watch mode, for this
+  visit only. It applies only while the program is on the air; otherwise
+  you arrive as usual and are told why. The character-select screen sends
+  this for you while the show's video is playing.
+examples:
+  - cmd: play 3f2a… --watch cafe-hour --twitch
+    note: Enter as that character, already watching the show on Twitch
 args:
+  # ⚠ Not greedy (stream arrival W3): an id has no spaces, and a greedy
+  # id would swallow `--watch` and enter silently in the usual mode.
   - name: playerId
     type: string
     required: true
-    greedy: true
+options:
+  watch:
+    type: string
+    field: watch
+    description: "Arrive watching this program (its short name) — with one carrier flag"
+  twitch:
+    type: boolean
+    field: twitch
+    description: "Watch it on Twitch"
+  youtube:
+    type: boolean
+    field: youtube
+    description: "Watch it on YouTube"
+  kick:
+    type: boolean
+    field: kick
+    description: "Watch it on Kick"
+

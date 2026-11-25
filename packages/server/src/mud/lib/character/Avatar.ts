@@ -76,7 +76,7 @@ import type {
   RoutingRule,
 } from "@saxonberg/types";
 import { DEFAULT_ROUTING, SESSION_SUBSCRIPTIONS, SUBSCRIPTION_SOURCES } from "@saxonberg/types";
-import type { ReleaseRow } from "@saxonberg/types";
+import type { ReleaseRow, WatchTarget, ProgramCarrier } from "@saxonberg/types";
 import type { CommandContributions } from "../../api/command";
 import type Interactive from "../../platform/idea/Interactive";
 import { TemplatePathPrefixes } from "../paths";
@@ -237,6 +237,15 @@ const AvatarBase = PersistableMixin(
   ),
   ),
 );
+
+/**
+ * What an entry was asked to watch (stream arrival D4): a program's short
+ * name and the carrier — never a channel. The server resolves the rest.
+ */
+export interface ArrivalWatching {
+  program: string;
+  carrier: ProgramCarrier;
+}
 
 /**
  * ⭐⭐ **A human's handle in the world, in some phase of play.**
@@ -967,10 +976,14 @@ export default abstract class Avatar extends AvatarBase {
    */
   public async enter(
     interactive: Interactive,
-    opts: { firstArrival?: boolean } = {},
+    opts: { firstArrival?: boolean; watching?: ArrivalWatching | null } = {},
   ): Promise<void> {
     const startingLocation = this.assertStartingLocation();
     this.armSession();
+    // ⭐ ARRIVE watching (stream arrival D4) — decided BEFORE the welcome, so
+    // the first snapshot already says watch and no other mode is painted.
+    // `watching` absent = a reconnect: leave this visit's mode alone.
+    const arrival = 'watching' in opts ? await this.resolveArrival(opts.watching ?? null) : null;
     // ⭐⭐ **No belief read here, and its absence is proved rather than
     // assumed.** This used to call `hydrateBeliefs()`, from before the
     // belief store had a declared source. Since 2026-10-01
@@ -997,10 +1010,64 @@ export default abstract class Avatar extends AvatarBase {
     // reused rather than re-rendering the description here.
     await this.autoLookOnArrival(interactive);
     this.openArrangementGuarded(interactive);
+    if (arrival) await this.sayArrival(arrival);
     this.markSessionStarted(interactive);
     if (opts.firstArrival === true) this.announceFirstArrival(interactive);
     // Whatever waited while you were gone (aether-devices D8).
     await this.flushHeld();
+  }
+
+  /**
+   * Resolve what an entry was asked to watch (stream arrival D4): the
+   * SERVER reads the program, requires a proven feed on that carrier and
+   * that it is on the air, and builds the target from the feed — nothing raw
+   * crosses from the client. On air → this visit is watch mode with the
+   * program's video; otherwise the usual mode and a line saying why.
+   */
+  private async resolveArrival(
+    watching: ArrivalWatching | null,
+  ): Promise<{ target: WatchTarget | null; line: string } | null> {
+    if (!MixinApi.isSaxonbergClient(this)) return null;
+    if (watching === null) {
+      this.arriveWatching(null);
+      return null;
+    }
+    const { StreamApi } = await import('../../api/stream');
+    const carrierLabel =
+      watching.carrier === 'youtube' ? 'YouTube' : watching.carrier === 'kick' ? 'Kick' : 'Twitch';
+    const listing = await StreamApi.programListing(watching.program, watching.carrier);
+    const channel = listing?.feeds[watching.carrier];
+    if (!listing || !channel) {
+      this.arriveWatching(null);
+      return { target: null, line: `That program is not carried on ${carrierLabel} — you arrive as usual.` };
+    }
+    if (!listing.live) {
+      this.arriveWatching(null);
+      return { target: null, line: `${listing.title} is off the air right now — you arrive as usual.` };
+    }
+    const target: WatchTarget =
+      watching.carrier === 'youtube'
+        ? { platform: 'youtube', channelId: channel }
+        : { platform: watching.carrier, channel };
+    this.arriveWatching(target);
+    return { target, line: `Watching ${listing.title} on ${carrierLabel} — for this visit.` };
+  }
+
+  /** After the arrangement: the arrival's line, and the chat follow `watch` makes (best effort). */
+  private async sayArrival(arrival: { target: WatchTarget | null; line: string }): Promise<void> {
+    MessageApi.scene(this).topic('shell.result').toSelf(Mml.fromMarkup(`\n${Mml.escape(arrival.line)}\n`)).send();
+    const t = arrival.target;
+    if (!t) return;
+    try {
+      const { StreamApi } = await import('../../api/stream');
+      const identifier = t.platform === 'youtube' ? ('channelId' in t ? t.channelId : t.videoId) : t.channel;
+      const resolved = await StreamApi.resolveTarget({ form: 'handle', platform: t.platform, identifier } as never);
+      if (resolved.ok) await StreamApi.tune(this, resolved.target);
+    } catch (err) {
+      // @quiet the video plays regardless; following its chat is best effort,
+      // as it is for `watch` (a relay not configured is ordinary in dev).
+      console.warn('Avatar.enter: could not follow the arrival stream\'s chat:', err);
+    }
   }
 
   /**

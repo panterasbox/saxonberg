@@ -167,14 +167,6 @@ test.describe('arrival on a phone', () => {
       await expectNoSidewaysScroll(page, 'intake (name)');
       await page.getByTestId('chargen-next').click();
 
-      // Aspiration — whatever the server offers first.
-      const firstAspiration = page
-        .locator('[data-testid^="chargen-option-"]')
-        .first();
-      await firstAspiration.click();
-      await expectNoSidewaysScroll(page, 'intake (aspiration)');
-      await page.getByTestId('chargen-next').click();
-
       // Review, then into the world.
       const confirm = page.getByTestId('chargen-confirm');
       await expect(confirm).toBeVisible();

@@ -1,7 +1,7 @@
-# `apps install <app>` naming an app the device does not offer (aether-devices D3).
+# `apps install <app>` naming an app the store does not have (aether-devices D3, stream arrival D21).
 facts:
   device: thing
   app: text
   offered: text?
-says: "{{ device | item | cap }} has no app called '{{ app }}'.{% if offered %} {{ offered }}{% endif %}"
+says: "There is no app called '{{ app }}' for {{ device | item }}.{% if offered %} {{ offered }}{% endif %}"
 topic: act.deed

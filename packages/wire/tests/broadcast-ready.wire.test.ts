@@ -7,7 +7,7 @@
  * owner's rehearsal.
  *
  * ⭐ Every overlay fact is read off a REAL broadcast socket opened with the
- * streamer's own `stream token` — the feed exactly as OBS receives it —
+ * streamer's own `rodney token` — the feed exactly as OBS receives it —
  * and every Stream Deck press off a real `?control=` socket.
  *
  * Step 5's restart is staged as logout → login: the streamer's body is
@@ -139,9 +139,9 @@ class TokenSocket {
   }
 }
 
-/** The raw token a `stream token` line printed (shown once). */
+/** The raw token a `rodney token` line printed (shown once). */
 async function issueToken(s: Session, control = false): Promise<string> {
-  const r = await s.cmd(control ? 'stream token --control' : 'stream token');
+  const r = await s.cmd(control ? 'rodney token --control' : 'rodney token');
   expectOk(r);
   const said = plain(await r.said());
   const token = said.split(/\s+/).find((w) => /^[A-Za-z0-9_-]{40,}$/.test(w));
@@ -186,10 +186,10 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     const withRows = await feed.show((s) => s.panels.length > 0, 0, 30_000);
     expect(withRows.panels.map((p) => p.key), 'the lower third rows ride the feed').toContain('join');
 
-    expectOk(await host.cmd('stream agenda the glass trade, paper, questions'));
-    expectOk(await host.cmd('stream segment This week in Saxonberg'));
+    expectOk(await host.cmd('rodney agenda the glass trade, paper, questions'));
+    expectOk(await host.cmd('rodney segment This week in Saxonberg'));
     const mark = feed.heard.length;
-    expectOk(await host.cmd('stream start in 2m'));
+    expectOk(await host.cmd('rodney start in 2m'));
     const starting = await feed.show((s) => s.phase === 'starting', mark);
     expect(starting.agenda.map((a) => a.title)).toEqual(['the glass trade', 'paper', 'questions']);
     expect(starting.topic).toBe('This week in Saxonberg');
@@ -197,7 +197,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     expect(starting.startsAt! - Date.now()).toBeLessThan(125_000);
 
     const mark2 = feed.heard.length;
-    expectOk(await host.cmd('stream live'));
+    expectOk(await host.cmd('rodney live'));
     await feed.show((s) => s.phase === 'live', mark2);
   }, 60_000);
 
@@ -215,7 +215,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
 
   it('step 3 — away for the bathroom: Away, five minutes', async () => {
     const mark = feed.heard.length;
-    expectOk(await host.cmd('stream away bathroom'));
+    expectOk(await host.cmd('rodney away bathroom'));
     const away = await feed.show((s) => s.phase === 'standby', mark);
     expect(away.reason?.key).toBe('bathroom');
     const left = away.awayUntil! - Date.now();
@@ -223,7 +223,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     expect(left).toBeLessThanOrEqual(300_000);
   }, 30_000);
 
-  it('step 4 — the Stream Deck runs `stream away privacy`: no timer; and runs nothing else', async () => {
+  it('step 4 — the Stream Deck runs `rodney away privacy`: no timer; and runs nothing else', async () => {
     const control = await issueToken(host, true);
     deck = await TokenSocket.open('control', control);
 
@@ -232,7 +232,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     expect(refusedLook).toMatchObject({ ok: false, reason: 'stream-only' });
 
     let since = deck.heard.length;
-    deck.send('stream token');
+    deck.send('rodney token');
     expect(await deck.await((e) => e.type === 'control-result', since)).toMatchObject({
       ok: false,
       reason: 'no-token-minting',
@@ -240,7 +240,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
 
     const mark = feed.heard.length;
     since = deck.heard.length;
-    deck.send('stream away privacy');
+    deck.send('rodney away privacy');
     expect(await deck.await((e) => e.type === 'control-result', since)).toMatchObject({ ok: true });
     const privacy = await feed.show((s) => s.reason?.key === 'privacy', mark);
     expect(privacy.phase).toBe('standby');
@@ -270,7 +270,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
 
   it('step 6 — back to Live; the client reports another tab, then another app', async () => {
     let mark = feed.heard.length;
-    expectOk(await host.cmd('stream back'));
+    expectOk(await host.cmd('rodney back'));
     await feed.show((s) => s.phase === 'live', mark);
 
     mark = feed.heard.length;
@@ -282,9 +282,9 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     host.writeClientState('stream.foreground', 'saxonberg');
   }, 30_000);
 
-  it('step 7 — `stream next` ticks the agenda', async () => {
+  it('step 7 — `rodney next` ticks the agenda', async () => {
     const mark = feed.heard.length;
-    expectOk(await host.cmd('stream next'));
+    expectOk(await host.cmd('rodney next'));
     const next = await feed.show((s) => s.current === 1, mark);
     expect(next.agenda[0]!.done).toBe(true);
     expect(next.agenda[1]!.done).toBe(false);
@@ -310,7 +310,7 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     try {
       const mark = feed.heard.length;
       const theirMark = theirs.heard.length;
-      expectOk(await second.cmd('stream away food'));
+      expectOk(await second.cmd('rodney away food'));
       const food = await theirs.show((s) => s.reason?.key === 'food', theirMark);
       expect(food.phase).toBe('standby');
       await new Promise((r) => setTimeout(r, 1_500));
@@ -357,9 +357,9 @@ suite('broadcast-ready — the blocking drive (wire)', () => {
     expect(JSON.stringify(feed.heard.slice(mark))).not.toMatch(/the ore/);
   }, 30_000);
 
-  it('step 11 (short) — `stream end`: Ending, then offline when the outro finishes; the room line clears', async () => {
+  it('step 11 (short) — `rodney end`: Ending, then offline when the outro finishes; the room line clears', async () => {
     const mark = feed.heard.length;
-    expectOk(await host.cmd('stream end'));
+    expectOk(await host.cmd('rodney end'));
     const ending = await feed.show((s) => s.phase === 'ending', mark);
     expect(ending.endsAt! - Date.now()).toBeGreaterThan(30_000);
     await feed.show((s) => s.phase === 'offline', mark, 90_000);

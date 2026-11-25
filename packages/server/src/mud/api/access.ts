@@ -238,17 +238,6 @@ export class AccessApi {
   }
 
   /**
-   * Orthogonal streamer axis. True iff `subject` is an Avatar whose
-   * playerId is in the `'streamers'` group. Gates the livestream
-   * control plane (the `stream` verb). Distinct from the wizard
-   * axis — a streamer drives the broadcast overlay without holding
-   * TypeScript-escape capability.
-   */
-  public static async isStreamer(subject: Stuff | null): Promise<boolean> {
-    return logic().isStreamer(subject);
-  }
-
-  /**
    * Orthogonal archwizard axis — the conferral of the wizard axis. True iff
    * `subject` is in the `'archwizards'` group or holds the Prime
    * Minister's office (derived, never stored). Archwizards confer/revoke
@@ -289,8 +278,8 @@ export class AccessApi {
   /**
    * ⭐⭐ **Re-establish the system groups after they have been deleted.**
    *
-   * The nightly reset wipes `groups`, and the three tag-like system
-   * groups (`wizards`, `archwizards`, `streamers`) live there beside the
+   * The nightly reset wipes `groups`, and the two tag-like system
+   * groups (`wizards`, `archwizards`) live there beside the
    * player ones. They are minted in CODE by `AccessRegistry.onCreate`
    * at boot only, so without this the world comes back with no wizard
    * axis at all and no fix short of a restart. Title-holding groups are

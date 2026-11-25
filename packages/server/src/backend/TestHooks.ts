@@ -1,3 +1,13 @@
+/** Synthetic carrier accounts `test-login` may link (stream arrival A-12). */
+export interface TestLinkedAccounts {
+  /** A Twitch login. */
+  twitch?: string;
+  /** A Kick channel slug. */
+  kick?: string;
+  /** A YouTube channel id (`UC…`), as the step-up writes it. */
+  youtube?: string;
+}
+
 /**
  * TestHooks — every backend seam that exists ONLY to support tests, in
  * one module, out of the business logic.
@@ -45,6 +55,9 @@ import type { PassportGoogleProfile } from '@saxonberg/types';
 import type { Application } from './Application';
 import { ExecutionContextApi } from '../mud/api/execution-context';
 import { User } from '../mud/lib/identity/User';
+import { TwitchProfile } from '../mud/lib/identity/TwitchProfile';
+import { KickProfile } from '../mud/lib/identity/KickProfile';
+import { GoogleProfile } from '../mud/lib/identity/GoogleProfile';
 import { PlayerApi } from '../mud/api/player';
 import { AppApi } from '../mud/api/app';
 import { AppSettingKeys } from '../mud/lib/config/AppSettings';
@@ -118,14 +131,15 @@ export class TestHooks {
   public static async authenticate(
     app: Application,
     handle: string,
-    done: (error: unknown, user?: { id: string }) => void,
+    done: (error: unknown, user?: { id: string; playerId?: string }) => void,
     withCharacter = false,
     startLocation?: string,
     wizard = false,
     parcels: readonly string[] = [],
     committees: readonly string[] = [],
     offices: readonly string[] = [],
-    streamer = false
+    streamer = false,
+    linked: TestLinkedAccounts = {}
   ): Promise<void> {
     if (process.env.AUTH_MODE !== 'test') {
       done(new Error('TestHooks: test authentication is disabled'));
@@ -140,6 +154,11 @@ export class TestHooks {
           // The seam stays Google-shaped — passes provider: 'google'
           // through the same provider-parameterized creation path.
           const id = await app.findOrCreateUserFromProvider('google', profile);
+          // ⭐ Synthetic linked accounts (stream arrival A-12): the fields a
+          // program's feed proof reads, on THIS user — a state nothing else
+          // can stage, since a real Twitch / Kick / YouTube grant is a
+          // provider round trip.
+          await TestHooks.#linkAccounts(id, handle, linked);
           // Optionally provision a ready character so in-world E2E tests
           // skip char-gen. char-gen specs omit this (0 chars → intake).
           if (withCharacter) {
@@ -157,7 +176,9 @@ export class TestHooks {
           return id;
         }
       );
-      done(null, { id: userId });
+      const user = await User.findById(userId);
+      const playerId = user?.playerIds[0];
+      done(null, playerId ? { id: userId, playerId } : { id: userId });
     } catch (error) {
       console.error('TestHooks: error in authenticate:', error);
       done(error);
@@ -219,13 +240,109 @@ export class TestHooks {
     const playerId = user.playerIds[0];
     if (playerId === undefined) return;
     if (wizard) await TestHooks.#joinGroup(playerId, 'wizards', 'member');
-    if (streamer) await TestHooks.#joinGroup(playerId, 'streamers', 'member');
+    if (streamer) await TestHooks.#stageProgram(user, playerId, name);
     if (committees.length > 0) await TestHooks.#seatOnCommittees(playerId, committees);
     for (const office of offices) {
       const r = await CompactApi.assignOfficeForTest(playerId, office);
       if (!r.ok) throw new Error(`TestHooks: '${office}' is not an office`);
     }
     if (parcels.length > 0) await TestHooks.#grantParcels(playerId, parcels);
+  }
+
+  /**
+   * TEST-ONLY: link synthetic carrier accounts to the user — a Twitch login,
+   * a Kick slug, a stepped-up YouTube channel id — exactly the stored fields
+   * the feed proof reads (stream arrival D13). Idempotent per handle.
+   */
+  static async #linkAccounts(
+    userId: string,
+    handle: string,
+    linked: TestLinkedAccounts
+  ): Promise<void> {
+    if (!linked.twitch && !linked.kick && !linked.youtube) return;
+    const user = await User.findById(userId);
+    if (!user) return;
+    const safe = handle.replace(/[^a-z0-9_-]/gi, '').toLowerCase() || 'default';
+    if (linked.twitch) {
+      const p =
+        (await TwitchProfile.findByTwitchUserId(`e2e:${safe}`)) ?? new TwitchProfile();
+      p.twitchUserId = `e2e:${safe}`;
+      p.login = linked.twitch.toLowerCase();
+      p.displayName = linked.twitch;
+      await p.save();
+      user.twitchProfileId = p._id;
+    }
+    if (linked.kick) {
+      const p = (await KickProfile.findByKickUserId(`e2e:${safe}`)) ?? new KickProfile();
+      p.kickUserId = `e2e:${safe}`;
+      p.slug = linked.kick.toLowerCase();
+      p.displayName = linked.kick;
+      await p.save();
+      user.kickProfileId = p._id;
+    }
+    if (linked.youtube && user.googleProfileId) {
+      const p = await GoogleProfile.findById<GoogleProfile>(user.googleProfileId);
+      if (p) {
+        p.youtubeRefreshToken = 'e2e-stepped-up';
+        p.youtubeChannelId = linked.youtube;
+        await p.save();
+      }
+    }
+    await user.save();
+  }
+
+  /**
+   * TEST-ONLY: make the test character a broadcaster the way a player
+   * becomes one (stream arrival A2, C2) — by PLAYING: `apps install
+   * broadcast` on the phone they carry, then `program create <name>`
+   * (taken by an earlier login of the same handle is fine) and `program run
+   * <name>`, typed as the character through the ordinary dispatcher. The
+   * program is named for the handle. Nobody is *the* streamer any more;
+   * this is the state `streamer: true` stands for.
+   */
+  static async #stageProgram(user: User, playerId: string, handle: string): Promise<void> {
+    let avatar = PlayerApi.findAvatarByPlayerId(playerId);
+    if (!avatar) {
+      const loaded = await PlayerApi.loadAvatarsForUser(user);
+      avatar = loaded.find((a) => a.getPlayerId() === playerId);
+    }
+    if (!avatar) throw new Error(`TestHooks: no body for ${playerId} to run a program`);
+    avatar.claimForLogin();
+    const name = TestHooks.programNameFor(handle);
+    const body = avatar;
+    const run = async (line: string): Promise<string | null> => {
+      let status: string | null = null;
+      await ExecutionContextApi.runRoot(body, 'executeCommand', () =>
+        body.executeCommand(line, {
+          onOutcome: (s) => {
+            status = s;
+          },
+        })
+      );
+      return status;
+    };
+    // ⭐ First an instrument (stream arrival D17): the Broadcast app on the
+    // phone the character already carries, installed from the store.
+    const installed = await run('apps install broadcast');
+    if (installed !== 'ok') {
+      throw new Error(`TestHooks: 'apps install broadcast' answered ${String(installed)} for ${playerId}`);
+    }
+    await run(`program create ${name}`);
+    const ran = await run(`program run ${name}`);
+    if (ran !== 'ok') {
+      throw new Error(`TestHooks: 'program run ${name}' answered ${String(ran)} for ${playerId}`);
+    }
+  }
+
+  /** The program a test handle's broadcaster runs: the handle, as a short name. */
+  public static programNameFor(handle: string): string {
+    const slug = handle
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 32)
+      .replace(/-+$/, '');
+    return slug.length >= 2 ? slug : `show-${slug || 'x'}`;
   }
 
   /** Add the character to one managed group by name (the `group` verb's write). */
@@ -764,7 +881,7 @@ export class TestHooks {
 
   /**
    * ⭐ Dress the test character as `embody` dresses a real one — the
-   * first aspiration's outfit from `char-gen.yaml`, worn, and the
+   * one plain outfit from `char-gen.yaml` (`startingOutfit`), worn, and the
    * starting kit (a bound phone in a pocket) handed over. A naked body
    * spends food on cold at room temperature (`ThermalRegulation`'s
    * cold branch), starves in ~4.5 game hours and then loses its core
@@ -782,7 +899,7 @@ export class TestHooks {
     const { default: EmbodyController } = await import(
       '../mud/platform/idea/cmd/charactergen/EmbodyController'
     );
-    const outfit = EmbodyController.loadConfig().aspirations[0]?.outfit ?? [];
+    const outfit = EmbodyController.loadConfig().startingOutfit ?? [];
     // ⭐ The recipe itself is `Character.wearGarments` since the
     // envelope build (W1), where authored NPCs needed the same thing
     // and a second copy would have been the third. This hook still

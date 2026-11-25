@@ -65,6 +65,7 @@ import type { CommandSchemaPayload } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Refusal } from '../errors';
+import type { AugmentRefusal } from '../augmentation/Augment';
 import { ExecutionContextApi, FrameKind, OMNI_SCOPE } from '../../api/execution-context';
 import { ProxyApi } from '../../api/proxy';
 import { MudlogApi } from '../../api/mudlog';
@@ -627,6 +628,30 @@ function compelledBy(giver: Stuff): Compeller | null {
     name: actor == null ? 'nobody' : ((actor as Stuff).getIdentityPath() ?? 'something'),
     sandboxed: (scope !== null && scope !== OMNI_SCOPE) || ExecutionContextApi.getJurisdictionBound() !== null,
   };
+}
+
+/** A device's refusal, as the aether rows word it (aether-devices D8). */
+const DEVICE_REFUSAL_ROWS: Readonly<Record<AugmentRefusal, string>> = {
+  'not-borne': 'aether-none',
+  packed: 'aether-packed',
+  off: 'aether-off',
+  dead: 'aether-dead',
+  'not-yours': 'aether-not-yours',
+};
+
+/**
+ * Why the DEVICE hosting the app that lent this affordance will not run
+ * it now (stream arrival D16), or null — an affordance from anything else,
+ * or from an app on a person or on a working device, is never refused.
+ */
+function lentDeviceRefusal(source: unknown): Refusal | null {
+  if (source === 'self' || source === null || typeof source !== 'object') return null;
+  const s = source as Stuff;
+  if (!MixinApi.isAetherHosted(s)) return null;
+  const host = s.getHost();
+  if (!host || MixinApi.isCommandGiver(host) || !MixinApi.isAugment(host)) return null;
+  const why = host.conferralRefusal();
+  return why === null ? null : new Refusal(DEVICE_REFUSAL_ROWS[why], {});
 }
 
 /**
@@ -1486,7 +1511,26 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // its contribution order. `lint:verb-collisions` reads the same rule.
       const subcommandsFirst = (a: Affordance): number =>
         a.command.hasSubcommands() && !a.command.fallthrough ? 0 : 1;
-      const matches = [...sourced].sort((a, b) => subcommandsFirst(a) - subcommandsFirst(b));
+      const ordered = [...sourced].sort((a, b) => subcommandsFirst(a) - subcommandsFirst(b));
+      // ⭐⭐ **Held, never silent** (stream arrival D16): a verb lent by an
+      // app on a DEVICE whose device will not run right now (off, dead,
+      // packed, not yours) is passed over for the verb's other offer — the
+      // desk, an app on a second device. With no other offer the command
+      // is refused with that device's row, which names the fix. In the
+      // dispatcher, so no app author can forget it; it moves nothing and
+      // chooses nothing the player cannot see with `affordances`.
+      let deviceRefusal: Refusal | null = null;
+      const matches = ordered.filter((a) => {
+        const why = lentDeviceRefusal(a.source);
+        if (why === null) return true;
+        deviceRefusal ??= why;
+        return false;
+      });
+      if (matches.length === 0 && deviceRefusal !== null) {
+        outer.verb = parsed.verb;
+        outer.refuse(deviceRefusal);
+        return outer;
+      }
       // ── ② The chain (unchanged below, but for `scopeSource` riding into
       // `assemble` and each refusal handing to ③ `_otherOffer`).
       if (matches.length === 0) {

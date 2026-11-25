@@ -3,7 +3,8 @@
 > **Status: DESIGNING** — opened 2026-11-21 with the owner. What ships: the mode axis
 > (`chat · explore · watch · build · govern`, [cockpit.md](../../subsystems/cockpit.md) § The mode
 > axis), one stage per mode, the rail's mode buttons, *a mode is a view, never a gate*, no
-> auto-switch. Explore is mid-build (the navigation card, MR !640).
+> auto-switch. Explore is mid-build (the navigation card, MR !640). Stream arrival (MR !655) lands a
+> visitor IN watch mode for the visit (`cockpit.sessionMode`), the first mode a link opens.
 > **Left:** the full mode list · the design queue · each mode's definition (five questions) · the
 > handoff from explore into a mode · the shared cards Learn produces
 > **Size:** a roadmap — each mode is its own slate and build; watch is first

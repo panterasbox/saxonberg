@@ -12,7 +12,6 @@ packages/server/src/mud/api/script.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresArchwizard.ts  3  definition
 packages/server/src/mud/lib/command/validators/requiresGovernor.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresPackInstaller.ts  1  prose
-packages/server/src/mud/lib/command/validators/requiresStreamer.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresTestWorld.ts  1  prose
 packages/server/src/mud/lib/command/validators/requiresWizard.ts  2  definition
 packages/server/src/mud/lib/shell/Author.ts  1  prose

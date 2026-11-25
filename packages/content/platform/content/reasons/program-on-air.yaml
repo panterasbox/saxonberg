@@ -1,0 +1,5 @@
+# `program run` of a different program while your own stream is on air (stream arrival D12).
+facts:
+  name: text
+says: "You are on air with '{{ name }}'. Go off the air before you run a different program."
+topic: act.deed

@@ -25,5 +25,4 @@ import { TemplatePaths } from "../../lib/paths";
 export default class App extends AetherHostedMixin(Idea) {
   /** The Messages row — the app the person's comms looks for. */
   static readonly MESSAGES_PATH = TemplatePaths.messagesApp;
-
 }

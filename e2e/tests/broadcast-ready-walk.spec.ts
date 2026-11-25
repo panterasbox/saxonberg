@@ -113,7 +113,7 @@ test.describe('broadcast-ready, in a browser', () => {
       }
 
       // Off the air: the type and the tell come back.
-      await runCommand(page, 'stream off');
+      await runCommand(page, 'rodney off');
       await expect(phaseOf(page)).toHaveText(/OFFLINE/, { timeout: 15_000 });
       await expect.poll(() => rootFontPx(page)).toBeLessThan(baseFont * 1.05);
       await expect.poll(() => transcript(page), { timeout: 15_000 }).toContain('the secret plans');

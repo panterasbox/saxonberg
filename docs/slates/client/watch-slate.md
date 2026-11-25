@@ -7,8 +7,12 @@
 > ([display.md](../../subsystems/display.md)), the stream phases (`away`, `back`, `segment`,
 > `agenda` — [livestream.md](../../subsystems/livestream.md)), the anonymous guest, sign-in with
 > Twitch and Kick.
-> **Left:** the funnel's server half (the intent link, the follow-up through sign-in, the origin
-> vocabulary, the streamer record) · the video that never stops · the show's own chat and the
+> **Shipped by stream arrival (MR !655, 2026-11-24):** the funnel — the origin words
+> (`?from=twitch|youtube|kick|stream`), the follow-up through sign-in (`via=`), the program as the
+> streamer record, arriving in watch mode for the visit (`--watch`, `cockpit.sessionMode`) — and the
+> video that never stops (one `StreamPlayer`, docked in each page's layout) →
+> [client-shell.md](../../subsystems/client-shell.md), [connection.md](../../subsystems/connection.md)
+> **Left:** the show's own chat and the
 > unaffiliated-stream chat · the agenda state machine · the standby summary · our chat on the
 > overlay (**before the first show**) · the regular's experience
 > **Size:** a build, client-led, with a server half; the funnel first
@@ -202,6 +206,24 @@ At 1440×900 (prototype: claude.ai artifact XY8FivnMEARSNiNxkJ5qcK, private):
   polls, raids, clips, rewards.
 - **Open:** who picks the step (the viewer only, or does the layout step down when a card needs
   room); the step sizes at other screen sizes; the single bar vs a bar per terminal.
+
+## 7b. Reuse ledger for the plan — the stream arrival build (2026-11-23)
+
+the stream-arrival build, MR !655. Every concept the
+build needs, and what already does it:
+
+| concept | already doing it | this build |
+|---|---|---|
+| playing a carrier's video | `StreamEmbed` (one sandboxed iframe, Twitch · YouTube · Kick) | **reuse** — the same player, mounted outside watch mode so it survives every client phase |
+| what is being watched | `cockpit.watch` (`WatchTarget`), the `watch` verb | **reuse** — entering while watching writes the same state the verb writes |
+| the show's on-air state | `BroadcastMixin` phases, the three transports, `/auth/status` | **reuse** — the page reads live / offline from what ships |
+| the show's channel per carrier | four singleton env vars today (streamer-registry-slate) | **generalize** — settings per carrier for the founder's show; the registry replaces them later |
+| where the visitor came from | `?from=stream` → sessionStorage → `Interactive.arrivedFrom` | **generalize** — the value names a carrier; referrer fallback; last method remembered |
+| sign-in | Passport strategies + `*-link`; callbacks to `?auth=success` | **reuse** the strategies and today's trip to the provider; **new** — the return to what the visitor was doing (a separate sign-in window was rejected by the owner) |
+| the mode a character enters in | `getCockpitMode` (explicit → legacy → `explore`) | **reuse** — entering while watching sets `watch` the ordinary way |
+| a new character's clothes, bio, prologue | aspiration's `outfit` / `bioSeed` / `claimSeeds` | **replace** — one plain outfit; empty bio; no prologue |
+| the guest's look | a random aspiration's outfit and bio | **replace** — the plain outfit |
+| the front page | `StartScreen`, `PressRoom` | **rebuild** — the client half of front-page-slate § 4 |
 
 ## 8. Open
 

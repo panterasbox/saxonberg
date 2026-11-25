@@ -2,8 +2,9 @@
  * EmbodyController → chronicle seeding. Drives `commit` UNMOCKED (same
  * orchestration as EmbodyController.commit.test.ts) but with the
  * persistence layer connected to an in-memory store, asserting that a
- * freshly embodied character ends up with BOTH a seeded prologue
- * (`claim` entries from the chosen aspiration) AND a founding `deed`.
+ * freshly embodied character ends up with a founding `deed` and NO
+ * prologue claims — char-gen no longer picks who you were (the
+ * aspiration roster was removed; origins are the lineage slate's).
  *
  * `avatar.enter` is stubbed here, so the first-arrival deed (minted
  * inside `enter`) does NOT fire — only the commit-level seedClaims +
@@ -102,7 +103,6 @@ describe('EmbodyController.commit → chronicle seeding', () => {
       name: 'Bobalu',
       surname: 'Smallberries',
       pronouns: 'she',
-      aspiration: 'healer',
     });
     ctrl = makeStuff(() => new EmbodyConfirmController());
 
@@ -169,7 +169,7 @@ describe('EmbodyController.commit → chronicle seeding', () => {
     StuffApi.clearAll();
   });
 
-  it('a freshly embodied character has >=1 claim AND >=1 founding deed', async () => {
+  it('a freshly embodied character has one founding deed and no claims', async () => {
     await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(
       { rest: 'confirm' } as CommandModel & { rest?: string },
       ctx
@@ -179,8 +179,7 @@ describe('EmbodyController.commit → chronicle seeding', () => {
     const claims = mine.filter((d) => d.kind === 'claim');
     const deeds = mine.filter((d) => d.kind === 'deed');
 
-    // Healer aspiration seeds two claimSeeds in char-gen.yaml.
-    expect(claims.length).toBeGreaterThanOrEqual(1);
+    expect(claims).toHaveLength(0);
     expect(deeds.length).toBeGreaterThanOrEqual(1);
 
     // The founding deed is tagged and ProseApi-rendered with the name.
@@ -188,6 +187,6 @@ describe('EmbodyController.commit → chronicle seeding', () => {
       (d.tags as string[] | undefined)?.includes('embody')
     );
     expect(founding).toBeDefined();
-    expect(String(founding!.text)).toContain('Bobalu');
+    expect(String(founding!.text)).toBe('Embodied as Bobalu.');
   });
 });

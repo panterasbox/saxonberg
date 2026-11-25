@@ -192,7 +192,7 @@ export function SettingsPanel({
   const [settingKey, setSettingKey] = useState("");
   const [settingValue, setSettingValue] = useState("");
   // A streamer is whoever the server has handed the stream controls'
-  // state (`stream` ran this session); nobody else needs the link.
+  // state (`rodney` ran this session); nobody else needs the link.
   const isStreamer = useStore((st) => st.clientState["stream.state"] != null);
   const [varName, setVarName] = useState("");
   const [varValue, setVarValue] = useState("");

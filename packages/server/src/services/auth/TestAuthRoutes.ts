@@ -35,7 +35,8 @@
 
 import type { Express, Request, Response } from 'express';
 import type { Application } from '../../backend/Application';
-import { TestHooks } from '../../backend/TestHooks';
+import { TestHooks, type TestLinkedAccounts } from '../../backend/TestHooks';
+import { AuthRoutes } from './AuthRoutes';
 
 const TEST_AUTH_TOKEN = process.env.TEST_AUTH_TOKEN;
 
@@ -64,6 +65,7 @@ export class TestAuthRoutes {
             committees?: unknown;
             offices?: unknown;
             streamer?: unknown;
+            linked?: unknown;
           }
         | undefined;
       const handle = String(body?.handle ?? 'default');
@@ -114,6 +116,14 @@ export class TestAuthRoutes {
         return;
       }
 
+      // ⭐ Synthetic linked carrier accounts (stream arrival A-12).
+      const linkedRaw = (body?.linked ?? {}) as Record<string, unknown>;
+      const linked: TestLinkedAccounts = {};
+      for (const k of ['twitch', 'kick', 'youtube'] as const) {
+        const v = linkedRaw[k];
+        if (typeof v === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(v)) linked[k] = v;
+      }
+
       void TestHooks.authenticate(
         application,
         handle,
@@ -137,7 +147,11 @@ export class TestAuthRoutes {
               res.status(500).json({ error: 'session establishment failed' });
               return;
             }
-            res.json({ isAuthenticated: true, user: { id: user.id } });
+            res.json({
+              isAuthenticated: true,
+              user: { id: user.id },
+              ...(user.playerId ? { playerId: user.playerId } : {}),
+            });
           });
         },
         withCharacter,
@@ -146,9 +160,51 @@ export class TestAuthRoutes {
         (parcels as string[] | undefined) ?? [],
         (committees as string[] | undefined) ?? [],
         (offices as string[] | undefined) ?? [],
-        // ⭐ The streamer axis (broadcast-ready drive): membership of the
-        // `streamers` group, the same write `group add` makes.
-        body?.streamer === true
+        // ⭐ A broadcaster (stream arrival A2): a program named for the
+        // handle, created and run by the character — typed, not granted.
+        body?.streamer === true,
+        linked
+      );
+    });
+
+    // ⭐ The sign-in RETURN (stream arrival D8): a real navigation back to the
+    // client, the way a provider's callback lands — signed in as
+    // `test-login` signs in, then the SAME `AuthRoutes.finishSignIn`. The
+    // browser walk routes `/auth/<provider>` here with a 302, so the page
+    // really leaves and really comes back. No seam that `fetch`es can test
+    // that the client resumes from its own tab storage. A navigation sends
+    // no header, so a configured token rides the query.
+    app.get('/auth/test-return', (req: Request, res: Response) => {
+      if (TEST_AUTH_TOKEN && req.query.token !== TEST_AUTH_TOKEN) {
+        res.status(403).json({ error: 'forbidden' });
+        return;
+      }
+      const handle = typeof req.query.handle === 'string' ? req.query.handle : 'default';
+      const provider = req.query.provider;
+      if (provider !== 'google' && provider !== 'twitch' && provider !== 'kick') {
+        res.status(400).json({ error: 'provider must be google, twitch or kick' });
+        return;
+      }
+      const withCharacter = req.query.character === '1';
+      void TestHooks.authenticate(
+        application,
+        handle,
+        (err, user) => {
+          if (err || !user) {
+            console.error('TestAuthRoutes: test-return failed:', err);
+            res.status(500).json({ error: 'test-return failed' });
+            return;
+          }
+          req.login(user, (loginErr) => {
+            if (loginErr) {
+              console.error('TestAuthRoutes: req.login failed:', loginErr);
+              res.status(500).json({ error: 'session establishment failed' });
+              return;
+            }
+            AuthRoutes.finishSignIn(res, provider);
+          });
+        },
+        withCharacter
       );
     });
 
