@@ -156,8 +156,12 @@ export type ButcherRefusal = ActRefusal<ButcherRefusalReason, { body: Stuff }>;
 export interface ButcherWant {
   /** The cut row's first keyword. */
   stem: string;
-  /** What it wants: a saw, or a cleaver and a block. */
-  needs: 'saw' | 'cleaver-and-block';
+  /**
+   * What it wants: a saw, or a cleaver and a block — or ROOM: a line that
+   * has nowhere to lie here stays on the carcass (organism-biology drive:
+   * ten ton-sized blanket pieces fill a small yard under the floor rule).
+   */
+  needs: 'saw' | 'cleaver-and-block' | 'room';
 }
 
 /** What the done words need. */
@@ -369,6 +373,11 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         // ⭐ The exemplar IS unit 1 when the line is taken as authored.
         const reuse = clean ? exemplarFor.get(line.cut) : undefined;
         if (reuse) spent.add(line.cut);
+        // ⭐ A line comes off WHOLE or not at all: if the place has no room
+        // for one of its pieces, every piece of it goes back on the carcass
+        // and the line is named as wanting room.
+        const lineCuts: Stuff[] = [];
+        let roomless = false;
         for (let i = 0; i < units; i++) {
           const cut =
             i === 0 && reuse ? reuse : await StuffApi.clone<Stuff>(rowPath, undefined, { madeFrom: body });
@@ -390,13 +399,23 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
           // ⚠⚠ Gut is contaminated at FULL severity whatever the hand.
           spillGut(cut, rowPath.endsWith('/gut') ? 1 : mess);
           if (here && MixinApi.isContainer(here) && MixinApi.isContainable(cut)) {
+            if (here.fitRefusal(cut) !== null) {
+              roomless = true;
+              if (cut !== reuse) await StuffApi.destruct(cut);
+              break;
+            }
             await ContainmentApi.move(cut, here);
           }
-          cuts.push(cut);
+          lineCuts.push(cut);
         }
-        const tookKg = cuts
-          .slice(cuts.length - units)
-          .reduce((a, c) => a + (MixinApi.isTangible(c) ? c.getMass().rawValue() : 0), 0);
+        if (roomless) {
+          for (const c of lineCuts) if (c !== reuse) await StuffApi.destruct(c);
+          if (reuse) spent.delete(line.cut); // the exemplar goes with the discard
+          wanting.push({ stem, needs: 'room' });
+          continue;
+        }
+        cuts.push(...lineCuts);
+        const tookKg = lineCuts.reduce((a, c) => a + (MixinApi.isTangible(c) ? c.getMass().rawValue() : 0), 0);
         carcass.take({ cut: line.cut, tissues: line.tissues }, tookKg);
       }
       await discard();

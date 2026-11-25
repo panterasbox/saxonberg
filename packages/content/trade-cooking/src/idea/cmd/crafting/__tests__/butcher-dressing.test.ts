@@ -235,6 +235,22 @@ describe('the yield is the animal\'s', () => {
     expect(total).toBeLessThan(70 * 0.4);
   });
 
+  it('⭐ a line with no room to lie here stays on the carcass, whole', async () => {
+    // organism-biology drive: a grown whale's blanket pieces filled a small
+    // yard under the floor rule, and the eighth crashed the butchering.
+    species(SHEEP, [{ cut: MEAT, units: 12, fraction: 0.4 }]);
+    const ewe = body(SHEEP, 70, 55);
+    const fit = vi
+      .spyOn(TestRoom.prototype as unknown as { fitRefusal(t: unknown): unknown }, 'fitRefusal')
+      .mockReturnValue({ ok: false, reason: 'no-room', facts: {} });
+    const ctrl = makeStuff(() => new ButcherController());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute(model(ewe), ctx$)))(ctx());
+    fit.mockRestore();
+    // Nothing came off, nothing is left half-made, and the carcass is whole.
+    expect(cutMasses()).toEqual([]);
+    expect(ewe.getMass().rawValue()).toBe(70);
+  });
+
   it('⭐⭐ a bullock gives far more than a ewe — same verb, same hand (AC3)', async () => {
     species(SHEEP, [{ cut: MEAT, units: 12, fraction: 0.4 }]);
     species(COW, [{ cut: MEAT, units: 12, fraction: 0.42 }]);
