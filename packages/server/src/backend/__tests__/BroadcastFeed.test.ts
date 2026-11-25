@@ -208,7 +208,7 @@ describe('BroadcastFeed — one feed per streamer', () => {
     feed.addControl('c1', 'pa');
     expect(feed.controlPlayerOf('c1')).toBe('pa');
     expect(feed.getConnectionCount()).toBe(0);
-    feed.sendControlResult('c1', 'stream back', false, 'error');
+    feed.sendControlResult('c1', 'rodney back', false, 'error');
     expect(of('c1', 'control-result')[0]!.envelope).toMatchObject({ ok: false, reason: 'error' });
     feed.removeConnection('c1');
     expect(feed.controlPlayerOf('c1')).toBeNull();

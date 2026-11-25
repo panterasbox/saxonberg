@@ -1,0 +1,10 @@
+# An app listing — a pack PUBLISHING an app to the one app store (stream
+# arrival D21): `content/apps/<key>.yaml`, naming the App row a device
+# installs (`app:`). The listing's leaf is the word `apps install <key>`
+# types, and it is unique: a second pack listing the same word is refused at
+# install — the collision is settled when the app is published.
+title: App listing
+traits:
+  shipped: { dir: apps }
+  catalogued: { by: /platform/idea/AppStore, load: whole }
+  keyworded: { unique: true }

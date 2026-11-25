@@ -1,0 +1,5 @@
+# `program run` while somebody else is on air with it (stream arrival D12).
+facts:
+  name: text
+says: "'{{ name }}' is on air with somebody else in the chair. It is yours to run once they are off the air."
+topic: act.deed

@@ -1,9 +1,8 @@
 /**
  * WebSocketService — the token doors (broadcast-ready D4, D11): a stream
  * token names one player and one scope; a bad, revoked or wrong-scope
- * token is a 401, never a fallback; the env `BROADCAST_TOKEN` still opens
- * the founder's feed during the changeover, and refuses when there is no
- * founder to name.
+ * token is a 401, never a fallback. The env `BROADCAST_TOKEN` is RETIRED
+ * (stream arrival D15): set, it opens nothing and boot says so.
  */
 
 import "../../../test-bootstrap";
@@ -33,7 +32,6 @@ describe('WebSocketService token doors', () => {
         connects.push({ principal, opts }),
     };
     svc = new WebSocketService(backend as never);
-    (svc as unknown as { configureBroadcast(): void }).configureBroadcast();
     (svc as unknown as { wss: unknown }).wss = {
       handleUpgrade: (_r: unknown, _s: unknown, _h: unknown, cb: (ws: unknown) => void) => cb({}),
     };
@@ -80,19 +78,17 @@ describe('WebSocketService token doors', () => {
     expect(socket.write).toHaveBeenCalledWith(expect.stringContaining('401'));
   });
 
-  it('maps the env BROADCAST_TOKEN to the founder (the first streamer id)', async () => {
-    await upgrade('/ws?broadcast=legacy-env-token-0123456789');
-    expect(connects[0]).toEqual({
-      principal: 'broadcast:p-founder',
-      opts: { kind: 'broadcast', playerId: 'p-founder' },
-    });
-  });
-
-  it('refuses the env token loudly when no streamer is configured', async () => {
-    process.env.STREAMER_PLAYER_IDS = '';
-    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('the retired env BROADCAST_TOKEN opens nothing — it names nobody', async () => {
     await upgrade('/ws?broadcast=legacy-env-token-0123456789');
     expect(connects).toHaveLength(0);
-    expect(err).toHaveBeenCalled();
+    expect(socket.write).toHaveBeenCalledWith(expect.stringContaining('401'));
+  });
+
+  it('a retired stream env name still set is told, loudly, what replaced it', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    (svc as unknown as { warnRetiredStreamEnv(): void }).warnRetiredStreamEnv();
+    const said = warn.mock.calls.map((c) => String(c[0]));
+    expect(said.some((l) => l.includes('BROADCAST_TOKEN') && l.includes('rodney token'))).toBe(true);
+    expect(said.some((l) => l.includes('STREAMER_PLAYER_IDS') && l.includes('program run'))).toBe(true);
   });
 });

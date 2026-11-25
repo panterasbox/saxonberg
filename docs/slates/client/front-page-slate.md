@@ -3,11 +3,15 @@
 > **Status: UNBUILT — DESIGN CAPTURED 2026-11-20, HANDOFF-READY** from a design conversation with the
 > owner, iterated against a prototype. Today's start screen
 > ([client-shell.md § The front door](../../subsystems/client-shell.md)) is the starting point.
-> **Left:** everything in § 6's build list — the public `/front` read, the founder-name and show
-> settings, `acting` on the office read, the demand digest, the books (budget-slate),
-> `/compact/executive` made public, the Saxonberg Post organization with its stakeholders authority,
-> position-level appointment and appointment-mode openings, the show tile and the sign-in follow-up,
-> and the client rebuild of `StartScreen`.
+> **Shipped by stream arrival (MR !655, 2026-11-24):** `StartScreen` rebuilt to the design's layout
+> with the bands whose sources exist, the public read (`GET /api/front`, the show slice), the show
+> setting (`stream.featuredProgram`), the show tile and the sign-in follow-up →
+> [client-shell.md § The front door](../../subsystems/client-shell.md)
+> **Left:** the rest of § 6's build list — the chambers' WANTED · FUNDING NOW · NEEDS blocks and their
+> sources (the demand digest, the books — budget-slate), `acting` on the office read and the
+> Acting-PM line, `/compact/executive` made public, the Saxonberg Post organization with its
+> stakeholders authority, position-level appointment and appointment-mode openings, the footer's
+> Discord / public-record / privacy destinations.
 > **Size:** a build (client-led, with a kernel slice: two press fields, two employment fields, one
 > authority kind, one public read).
 
@@ -51,6 +55,11 @@ setting), never what they say; dropping one is a visible act.
 actually signing up for, because the game asks something of you and it's actual work."* And: *"we're
 trying to get people to log in — why bother if they can just watch the stream from the front page?"*
 
+- ⚠ **Superseded 2026-11-23 (the owner, the stream-arrival build, MR !655):**
+  a visitor who **came from a carrier** sees the show **playing** on that carrier, and after sign-in
+  (the provider's page and back) it resumes by itself on the same stream; the reason below is answered by the funnel itself — the
+  video keeps playing *into* the game, which a carrier cannot do. An untagged visitor still sees the
+  thumbnail tile.
 - **No playable stream on the page.** The show is a **grid thumbnail** (a Twitch directory tile,
   not the headliner) whose action is *sign in to watch it inside Saxonberg*.
 - **The three chambers are real asks, each with what it is after now** — and moderation is the

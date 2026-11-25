@@ -45,6 +45,19 @@ import {
  */
 export class AuthRoutes {
   /**
+   * ⭐ The ONE end of a successful sign-in (stream arrival D2): back to the
+   * client with `via=<provider>`, so the client can remember the method
+   * that WORKED (it only orders the buttons next time). The client keeps
+   * where the visitor was — the carrier, the program, the sound choice — in
+   * its own tab storage, which survives the provider's round trip; nothing
+   * about it rides the redirect, so there is no return-to to open.
+   * `TestAuthRoutes`' `test-return` calls this same method.
+   */
+  public static finishSignIn(res: Response, provider: 'google' | 'twitch' | 'kick'): void {
+    res.redirect(`${process.env.CLIENT_URL ?? ''}/?auth=success&via=${provider}`);
+  }
+
+  /**
    * Setup authentication routes on Express app.
    *
    * @param app - Express application
@@ -68,7 +81,7 @@ export class AuthRoutes {
       }),
       (req: Request, res: Response) => {
         console.info('AuthRoutes: Google OAuth callback success');
-        res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+        AuthRoutes.finishSignIn(res, 'google');
       }
     );
 
@@ -90,7 +103,7 @@ export class AuthRoutes {
       }),
       (req: Request, res: Response) => {
         console.info('AuthRoutes: Twitch OAuth callback success');
-        res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+        AuthRoutes.finishSignIn(res, 'twitch');
       }
     );
 
@@ -115,7 +128,7 @@ export class AuthRoutes {
       }),
       (req: Request, res: Response) => {
         console.info('AuthRoutes: Kick OAuth callback success');
-        res.redirect(`${process.env.CLIENT_URL}/?auth=success`);
+        AuthRoutes.finishSignIn(res, 'kick');
       }
     );
 

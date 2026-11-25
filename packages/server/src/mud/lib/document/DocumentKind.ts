@@ -61,6 +61,7 @@ export const FILING_TRANSPORTS = [
   'instrument',
   'map',
   'stream-token',
+  'program',
   'berth',
   'edition',
 ] as const;

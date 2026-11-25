@@ -1,0 +1,4 @@
+# `play … --watch <program>` / `embody confirm --watch …` without exactly one
+# carrier flag, or a carrier flag with no program (stream arrival D4).
+says: "Name the program and one carrier: `--watch <program> --twitch`, `--youtube` or `--kick`."
+topic: act.deed

@@ -1,0 +1,11 @@
+# A broadcast desk (stream arrival C3) — `program` and `rodney` to whoever is
+# in the hut, with no app (`BroadcastDesk`, peers). ⚠ TEST-ONLY.
+class: /platform/thing/BroadcastDesk
+data:
+  shortDescription: broadcast desk
+  keywords: [desk, "broadcast desk"]
+  register: definite
+  longDescription: >-
+    A plain desk with a microphone on it.
+  fixedInPlace: true
+  mass: 40

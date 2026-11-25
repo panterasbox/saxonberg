@@ -34,9 +34,12 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 import type { CharGenFieldState, DossierRow } from "@saxonberg/types";
 import { useStore } from "../store/index";
+import { arrivalWatching, watchSuffix } from "../services/arrival";
+import { PlayerDock } from "./embed/PlayerDock";
 import { signOut } from "../services/auth";
 import { mediaUrl } from "../config";
 import { tokens } from "./ui/tokens";
+import { SectionLabel as FrontSectionLabel } from "./front/Bands";
 import { UnbuiltGround } from "./ui/UnbuiltGround";
 import { Terminal } from "./Terminal";
 import { CommandBar } from "./CommandBar";
@@ -88,6 +91,23 @@ const StageInner = styled.div`
 
   @media (min-width: 1080px) {
     grid-template-columns: minmax(0, 1fr) 300px 320px;
+    > * {
+      grid-row: 1 / span 2;
+    }
+  }
+`;
+
+/** The dock's cell: right column, above the log, on a desktop; first on a phone. */
+const DockCell = styled.div`
+  min-width: 0;
+  &:empty {
+    display: none;
+  }
+  @media (min-width: 1080px) {
+    && {
+      grid-column: 3;
+      grid-row: 1;
+    }
   }
 `;
 
@@ -113,6 +133,12 @@ const PlateColumn = styled.div`
  */
 const LogColumn = styled.div`
   min-width: 0;
+  @media (min-width: 1080px) {
+    && {
+      grid-column: 3;
+      grid-row: 2;
+    }
+  }
   display: flex;
   flex-direction: column;
   gap: ${tokens.space.sm};
@@ -262,11 +288,10 @@ const FieldGroup = styled.div<{ $muted?: boolean }>`
   opacity: ${(p) => (p.$muted ? 0.45 : 1)};
 `;
 
-const FieldGroupHeading = styled.div`
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: ${tokens.color.fgMuted};
+/* ⭐ The front page's section label (stream arrival D6), so creation's
+   headings read in the same engraved voice as the page that led here. */
+const FieldGroupHeading = styled(FrontSectionLabel)`
+  margin-bottom: 0;
 `;
 
 /* --- Illustrated step: cards + detail card ------------------------ */
@@ -585,6 +610,11 @@ export function CharGenStage({
   onCommandPreview,
 }: CharGenStageProps) {
   const charGenState = useStore((s) => s.charGenState);
+  // ⭐ While the arrival video plays, confirm arrives WATCHING it (stream
+  // arrival D4); the control shows exactly what it sends.
+  const arrivalListing = useStore((s) => s.front?.show ?? null);
+  const playerClosed = useStore((s) => s.playerClosed);
+  const confirmCmd = `embody confirm${watchSuffix(arrivalWatching(arrivalListing, playerClosed))}`;
   /**
    * What the plate column is showing. ⚠ Keyed by FIELD as well as
    * value: the plate follows whichever illustrated field you are
@@ -887,6 +917,12 @@ export function CharGenStage({
       </StageTopBar>
       <StageBody>
         <StageInner>
+          {/* ⭐ The dock (review 11-24): its own cell — the top of the right
+              column on a desktop, the FIRST thing on a phone, so the video
+              stays in view while the form is filled. */}
+          <DockCell>
+            <PlayerDock />
+          </DockCell>
           <FormColumn>
             <ArticlesPanel>
               <ArticlesTitle>
@@ -1015,11 +1051,11 @@ export function CharGenStage({
               $primary
               data-testid="chargen-confirm"
               disabled={!canConfirm}
-              onClick={() => onSendCommand("embody confirm")}
-              onMouseEnter={() => onCommandPreview("embody confirm")}
+              onClick={() => onSendCommand(confirmCmd)}
+              onMouseEnter={() => onCommandPreview(confirmCmd)}
               onMouseLeave={() => onCommandPreview(null)}
             >
-              embody confirm ⏎
+              {confirmCmd} ⏎
             </StageButton>
           </LogColumn>
         </StageInner>

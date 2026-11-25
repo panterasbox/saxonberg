@@ -6,6 +6,9 @@
 > [cockpit.md](../../subsystems/cockpit.md)); the anonymous guest, one button from the front door
 > ([client-shell.md](../../subsystems/client-shell.md)); sign in with Twitch and Kick. No link
 > into the game exists.
+> **Shipped by stream arrival (MR !655, 2026-11-24):** the origin, never a command — `?from=` door
+> words, and the watch arrival (`?watch=<program>&carrier=`, `play … --watch`, the guest's socket
+> words) → [connection.md § Arriving watching](../../subsystems/connection.md)
 > **Left:** the intent route and its closed set · the confirm card · link-only argument rules
 > (watch targets limited to registered streamers) · arriving signed out (guest, or sign in with
 > Twitch) · link previews · the later intents (visit, join, read, claim, invite, open a card)

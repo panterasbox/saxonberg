@@ -23,6 +23,7 @@
  * `StuffApi.singletonSync`. `dest /platform/idea/api/template` reloads it.
  */
 
+import AppStore from '../platform/idea/AppStore';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
@@ -41,6 +42,8 @@ const LOGIC_CLASS_FILE = fileURLToPath(
 );
 
 /** Resolve the HMR-able TemplateLogic singleton (sync). */
+const APP_STORE = '/platform/idea/AppStore';
+
 function logic(): TemplateLogic {
   return StuffApi.singletonSync(
     LOGIC_PATH,
@@ -315,6 +318,15 @@ export class TemplateApi {
    * Throws on missing templatePath, missing Template doc, or
    * hydration failure.
    */
+  /**
+   * ⭐ The app store (stream arrival D21): the apps packs published with an
+   * `app-listing` document, by the listing's word — what `apps` lists and
+   * `apps install` installs.
+   */
+  public static appStore(): AppStore {
+    return StuffApi.singletonSync(APP_STORE, () => new AppStore());
+  }
+
   public static async restoreFromTemplate(stuff: Stuff): Promise<void> {
     return logic().restoreFromTemplate(stuff);
   }

@@ -41,6 +41,7 @@ import type { Berthed } from '../platform/idea/BerthExit';
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
 import { SecurityApi } from './security';
 import type { ServesDocuments } from '../lib/document/DocumentCatalogue';
+import type { ProgramData } from '../lib/livestream/Program';
 import type { ApiNeed } from './security';
 import DocumentKindCatalogue from '../platform/idea/DocumentKindCatalogue';
 import type { DocumentKind } from '../lib/document/DocumentKind';
@@ -196,6 +197,17 @@ export class DocumentApi {
   @CallSecurity(INSTALLER_CALLERS)
   static checkMeaning(kind: DocumentKind, data: Record<string, unknown>, path: string): Promise<void> {
     return logic().checkMeaning(kind, data, path);
+  }
+
+  /**
+   * ⭐ May `actor` write a document at `path`? The ORDINARY save's gate,
+   * asked without writing: a person's own `/home/<self>/` branch, else the
+   * title over the path. A transport that writes on an owner's behalf (a
+   * program's title, stream arrival D11) asks this for the owner's pen, so
+   * there is one rule for whose pen it is. `actor` must be who is acting.
+   */
+  static mayWrite(actor: Stuff | null, path: string): Promise<boolean> {
+    return logic().mayWrite(actor, path);
   }
 
   /** The stored document at `path`, or null. Callers read its getters. */
@@ -460,6 +472,22 @@ export class DocumentApi {
     record: { playerId: string; scope: string; issuedAt: number },
   ): Promise<void> {
     return logic().saveStreamToken(hash, record);
+  }
+
+  /**
+   * ⚠⚠ Write a program's record at `/platform/programs/<name>` (stream
+   * arrival D10) — an ownership bypass, narrow by construction: gated to
+   * `StreamLogic`, the path pinned to a short name, the kind pinned, the
+   * fields typed. `create` inserts and answers `'taken'` for a name already
+   * filed; `update` answers `'missing'` for one that is not.
+   */
+  @CallSecurity(STREAM_TOKEN_TRANSPORT_CALLERS)
+  static saveProgram(
+    name: string,
+    data: ProgramData,
+    mode: 'create' | 'update',
+  ): Promise<'saved' | 'taken' | 'missing'> {
+    return logic().saveProgram(name, data, mode);
   }
 
   /** Revoke a stream token by its hash — the same gate. */

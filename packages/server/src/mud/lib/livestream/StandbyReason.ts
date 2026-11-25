@@ -5,19 +5,19 @@
  * ⭐ A reason is a ROW, not code: `bathroom`, `food`, `water`, `privacy`,
  * `technical` and `generic` ship in the platform pack at
  * `/platform/standby-reasons/<key>`, and a new one is a new file. It is read
- * by PATH when `stream away <word>` names it — never listed, never warmed
+ * by PATH when `rodney away <word>` names it — never listed, never warmed
  * at boot (P7, load on use).
  *
- * The one concept here is the reason and how a `stream away` operand is
- * READ: a bare duration (`stream away 15m`, the shipped grammar) is the
+ * The one concept here is the reason and how a `rodney away` operand is
+ * READ: a bare duration (`rodney away 15m`, the shipped grammar) is the
  * `generic` reason for that long; a word is a reason, optionally followed
  * by a duration that overrides its default. A privacy reason never carries
  * a countdown — a timer would tell the audience how long the private thing
  * takes and push the streamer back before they are ready (lens 4).
  *
  * The duration grammar is shell-style (`15m`, `1h30m`, `90s`; a bare
- * number is minutes) and lives here because `stream start in <dur>` and
- * `stream away <reason> <dur>` both speak it and the reason's default is
+ * number is minutes) and lives here because `rodney start in <dur>` and
+ * `rodney away <reason> <dur>` both speak it and the reason's default is
  * one of its values. The reading, the reads and the duration words are
  * `StreamApi`'s (`interpretAway`, `standbyReasons`, `parseDuration`,
  * `formatDuration`); this module is the value they hand back.
@@ -27,7 +27,7 @@
 
 import type { StreamReason } from '@saxonberg/types';
 
-/** What a `stream away` operand resolved to — or why it did not. */
+/** What a `rodney away` operand resolved to — or why it did not. */
 export type StandbyReading =
   | { ok: true; reason: StandbyReason; durationMs: number | null }
   | { ok: false; refusal: 'unknown-reason' | 'bad-duration'; detail: string };

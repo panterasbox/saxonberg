@@ -54,6 +54,7 @@ import { createCardFeedSlice, type CardFeedSlice } from "./cardFeedSlice";
 import { createNavSlice, type NavSlice } from "./navSlice";
 import { createChangeSlice, type ChangeSlice } from "./changeSlice";
 import { createTooltipSlice, type TooltipSlice } from "./tooltipSlice";
+import { createPlayerSlice, type PlayerSlice } from "./playerSlice";
 import {
   createAffordanceSlice,
   type AffordanceSlice,
@@ -335,6 +336,7 @@ interface StoreState
     NavSlice,
     ChangeSlice,
     TooltipSlice,
+    PlayerSlice,
     AffordanceSlice {
   // Auth state
   auth: AuthState;
@@ -1150,6 +1152,9 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // ⭐ The open tooltip stack — a snapshot per entry, never a card.
   ...createTooltipSlice(set as Parameters<typeof createTooltipSlice>[0]),
+
+  // ⭐ The one stream player: its slot, sound, ✕ and the front page's program.
+  ...createPlayerSlice(set as Parameters<typeof createPlayerSlice>[0]),
 
   // The affordance cache — one answer per subject, read by BOTH the
   // radial and every card body's composition chips. Only touches the

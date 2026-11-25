@@ -24,7 +24,6 @@ data:
   brand: hollis-pal
   on: true
   installedApps: [/platform/idea/app/messages]
-  offersApps: [/platform/idea/app/messages]
   manifestsAs: read
   # The battery (D5) — a grain: 12 Wh at 0.10 W standby is five game days
   # (ten real hours) on a full charge; a 10 W charger fills it in about

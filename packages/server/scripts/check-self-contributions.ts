@@ -11,7 +11,9 @@
  *   1. a **command giver** (`CommandGiverMixin`) — a person's own verbs;
  *   2. a **shadow** (`lib/stuff/Shadow`) — lent to the host it rides;
  *   3. a **hosted update** (`AetherHostedMixin`) — an aether app's verbs,
- *      granted to the implant's host.
+ *      granted to whoever the app serves: its host when the host is a
+ *      person, else whoever BEARS the device (a phone in a pocket lends its
+ *      apps' verbs to the bearer — stream arrival D16).
  *
  * On anything else `self` is **dead**: declared, type-checked, asserted
  * by a unit test that reads the declaration — and never read by the

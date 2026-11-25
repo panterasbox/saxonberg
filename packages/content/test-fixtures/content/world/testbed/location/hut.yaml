@@ -18,3 +18,9 @@ data:
     northeast:
       destination: /world/testbed/location/plaza
       door: /world/testbed/thing/hut-window
+  # ⭐ A broadcaster's corner (stream arrival C3): the desk and the on-air
+  # sign, so a wire drive can stand at a desk without naming a locality.
+  props:
+    - /world/testbed/thing/broadcast-desk
+  adornments:
+    - { template: /world/testbed/thing/on-air-sign, slot: sign:window }

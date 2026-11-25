@@ -705,7 +705,7 @@ export const AppSettingKeys = {
   youtubePollIntervalMs: "youtube.pollIntervalMs",
   /**
    * YouTube overlay-owner live-status poll interval — how often the overlay
-   * forwarding re-resolves the owner's `OVERLAY_YOUTUBE_CHANNEL` to catch a
+   * forwarding re-resolves the runner's program YouTube feed to catch a
    * stream restart. A `search.list` costs ~100 quota units, so this is a
    * conservative default (a slow restart-catch is fine — it's a single
    * channel and a nicety, distinct from the deferred N-channel viewer
@@ -714,7 +714,7 @@ export const AppSettingKeys = {
   youtubeOverlayPollIntervalMs: "youtube.overlayPollIntervalMs",
 
   /**
-   * The stream's outro (broadcast-ready D3) — how long `stream end` holds
+   * The stream's outro (broadcast-ready D3) — how long `rodney end` holds
    * the Ending scene before the stream goes offline on its own. Wall-time
    * milliseconds: the stream is interface tier, outside the fiction.
    */
@@ -724,6 +724,12 @@ export const AppSettingKeys = {
    * re-read while on air (broadcast-ready D16). Wall-time milliseconds.
    */
   streamStatsPollMs: "stream.statsPollMs",
+  /**
+   * ⭐ The program the front page features (stream arrival D14) — a
+   * program's short name, or empty for none. It is the Compact's choice,
+   * not a fact about any program; unset, the page has no show band.
+   */
+  streamFeaturedProgram: "stream.featuredProgram",
 
   /**
    * Kick relay (read-only, webhook transport) dials. `replayWindowSec` is
@@ -2811,6 +2817,7 @@ export const AppSettingTiers: Readonly<
   youtubeOverlayPollIntervalMs: "B",
   streamOutroMs: "B",
   streamStatsPollMs: "B",
+  streamFeaturedProgram: "B",
   kickReplayWindowSec: "B",
   kickDedupTtlSec: "B",
   kickDedupMaxSize: "B",

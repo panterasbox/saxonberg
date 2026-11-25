@@ -83,7 +83,7 @@ describe('TestHooks.provisionCharacter', () => {
     // `templatePath` the identity split retired — so the strongest
     // assertion here is the negative one.
     expect(tmplSave).not.toHaveBeenCalled();
-    // ⭐ One avatar clone, and the first aspiration's outfit HANDED TO
+    // ⭐ One avatar clone, and the one plain outfit HANDED TO
     // THE BODY — the test character is dressed as an enrolled one (a
     // naked body spends food on cold at room temperature; the fishing
     // drive found it collapsing at the seventh game hour).
@@ -95,7 +95,7 @@ describe('TestHooks.provisionCharacter', () => {
     // this hook owns is WHICH outfit, and the assertion follows it
     // there. The wearing itself is `Character.wearGarments`'s own
     // suite.
-    const outfit = EmbodyController.loadConfig().aspirations[0]?.outfit ?? [];
+    const outfit = EmbodyController.loadConfig().startingOutfit ?? [];
     expect(clone).toHaveBeenCalledTimes(1);
     const dressed = (await clone.mock.results[0]!.value) as {
       wearGarments: { mock: { calls: unknown[][] } };

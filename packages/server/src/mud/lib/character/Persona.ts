@@ -1,18 +1,13 @@
 /**
  * PersonaMixin — the *claimed self-narrative* identity layer.
  *
- * Carries two fields:
- *   - `bio` — free-form authored prose about who you are across time.
- *     Editable forever (player edits land in Wave 2 via the registrar/
- *     `records` service). Char-gen seeds it from the chosen aspiration.
- *   - `aspiration` — a closed-choice of who you want to *become* (the
- *     char-gen origin pick: `something-better`, `healer`, `teacher`,
- *     `guardian`, `founder`, `seeker`). Drives the seeded bio + the
- *     themed starting outfit.
+ * Carries `bio` — free-form authored prose about who you are across
+ * time, editable forever — and the chronicle face (claims and deeds).
+ * Char-gen leaves the bio empty: who you were before you came is the
+ * lineage slate's, not a pick at intake.
  *
  * Composed on `Character`, so PCs and any future *storied* NPC carry
- * it. Bundling the two related fields in one mixin (rather than two)
- * is deliberate — they're the same "claimed" layer.
+ * it.
  *
  * What `Persona` is NOT for:
  *   - *witnessed* deeds → breadcrumbs (own substrate, deferred).
@@ -60,8 +55,6 @@ export type ChronicleRefusal = ActRefusal<'their-own'>;
 export interface Persona {
   getBio(): string;
   setBio(value: string): void;
-  getAspiration(): string | null;
-  setAspiration(value: string | null): void;
   recordClaim(fields: ChronicleEntryFields): Promise<void>;
   recordDeed(fields: ChronicleEntryFields): Promise<void>;
   recordChronicleOnce(
@@ -141,14 +134,13 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'PersonaMixin';
     static fieldMeta: FieldMeta = {
       bio: { persistent: true, authorable: true },
-      aspiration: { persistent: true, authorable: true },
     };
 
     /**
      * Self-only verbs Persona affords. `chronicle` is a zero-arg
-     * read-only self-view over the Persona-owned identity (bio +
-     * aspiration-seeded prologue + the character's deeds) — so Persona,
-     * which already owns bio/aspiration, is its conceptual home. The
+     * read-only self-view over the Persona-owned identity (bio + any
+     * authored prologue + the character's deeds) — so Persona, which
+     * already owns the bio, is its conceptual home. The
      * mixin-level static is collected by the command affordance walk
      * (`collectBucketDefs` → `MixinApi.queryMixins`), exactly like
      * `PerceiverMixin`'s self verbs.
@@ -260,25 +252,12 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public bio: string = '';
 
-    /**
-     * Closed-choice origin/aspiration key (or null if unset).
-     */
-    public aspiration: string | null = null;
-
     public getBio(): string {
       return this.bio;
     }
 
     public setBio(value: string): void {
       this.bio = (value ?? '').trim();
-    }
-
-    public getAspiration(): string | null {
-      return this.aspiration;
-    }
-
-    public setAspiration(value: string | null): void {
-      this.aspiration = value === null ? null : value.trim();
     }
 
     /* ────────── the chronicle owner face (the OO sweep) ──────────

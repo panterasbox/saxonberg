@@ -62,14 +62,36 @@ A circle body gets no tuner: the holodeck forces no decision on its user.
 
 An app is an `App` (`platform/idea/App.ts`) — an incorporeal `Idea` bound
 to its host for life. Rows live under `/platform/idea/app/`: `messages`,
-`forums`, `wallet`, `calendar`. An app's **key** is its row's last segment.
+`forums`, `wallet`, `calendar`, `broadcast`. An app's **key** is its row's
+last segment.
 
 - `installApp(path)` is the **one** way software gets onto a host: clone the
   row, host it, record it in `installedApps`. Idempotent by path.
 - `installedApps` persists; `setInstalledApps` reconciles the live set, so a
   host stands its apps up at birth (template phase) and after a reboot
   (restore phase).
-- `offersApps` is what a device's own list offers to `apps install`.
+- ⭐ **The app store is documents a pack PUBLISHES**, never a search of
+  the template table (stream arrival, 2026-11-24 — the owner: *"template
+  paths aren't what make an app an app"*). A pack ships
+  `content/apps/<key>.yaml` (kind `app-listing`, `app: <App row>`); the
+  listing's leaf is the word `apps install <key>` types, and the kind is
+  `keyworded: { unique: true }`, so a second pack listing the same word is
+  refused **at install**. `AppStore` (`platform/idea/AppStore.ts`, a
+  `DocumentCatalogue`, reached as `TemplateApi.appStore()`) reads them;
+  `AetherHostMixin.availableApps()` is async over it. `offersApps` (the
+  per-device offer list) is deleted. Shipped listings: `messages`,
+  `broadcast`.
+- ⭐ **An installed app lends its verbs to whoever bears its device.** An
+  app's `static commandContributions` `self` defs are pushed onto the
+  bearer's container chain under the `environment` bucket by
+  `CommandLogic.lendHostedApps` — one routine beside every `environment`
+  push and pop — so `apps install broadcast on phone` gives the phone's
+  bearer `program` and `rodney`. When the device will not run (`not-borne`,
+  `packed`, `off`, `dead`, `not-yours` — its `conferralRefusal()`), the
+  dispatcher passes the command over to another offer of the same verb,
+  else refuses with the device's row (`aether-none`, `aether-packed`,
+  `aether-off`, `aether-dead`, `aether-not-yours`; `CommandGiver`'s
+  `lentDeviceRefusal`).
 - **Messages** does nothing by itself: it is what the person's comms looks
   for on the host that tunes them. No Messages, no `dm`.
 - The wallet, calendar and forums are installed on the **person**, every
@@ -168,9 +190,19 @@ starting brand (lineage-slate).
 
 ## Deferred seams
 
-- An app that brings its own verb to its bearer — `applyHostedAppDeltaImpl`
-  returns early for a host that is not a command giver.
-- The wallet, calendar and forums as apps on a device.
+- ⭐ **An app's verbs on its `app-listing` document** (owner, 2026-11-24). `BroadcastApp`
+  is a class whose body is only `static commandContributions`, which `lint:data-ideas`
+  counts as metadata (its ceiling rose 13 → 14 for it). The fix: the listing declares
+  the verbs, `lendHostedApps` reads them from the hosted app's listing, and a
+  verbs-only app needs no class — `BroadcastApp` deletes and the ceiling falls back.
+- The wallet, calendar and forums as apps on a device; other apps bringing
+  verbs (a map, a camera) — `lendHostedApps` is the attach point.
+- The app store's economics and publishing — paid apps, who may publish,
+  withdrawal, device compatibility — on the `app-listing` document
+  ([aether-devices-slate](../slates/engine/aether-devices-slate.md)).
+- An app that WITHDRAWS its verbs while its device cannot work (the owner:
+  maybe for some apps, not now) — today every app keeps lending, and the
+  device says why not.
 - The phone as a held, watchable screen (display-manifestation-slate).
 - A power state on the implant — `conferralRefusal()` is where it answers
   (the epoch build).
@@ -194,3 +226,8 @@ starting brand (lineage-slate).
   phones are rubber). The record was the retired plan's § Drive record — `git log
   b8b0fb71d^..07760516f` has each fix. The browser walk is `e2e/tests/aether-devices-walk.spec.ts`;
   the soak drive `packages/wire/tests/aether-devices.soak.wire.test.ts`.
+- **Stream arrival** (MR !655, 2026-11-24) — an installed app lends its verbs to its device's bearer
+  (`CommandLogic.lendHostedApps` + the dispatcher's pass-over and the `aether-*` refusal rows),
+  closing the first deferred seam; the app store became `app-listing` documents a pack publishes
+  (`AppStore`, `TemplateApi.appStore()`), `offersApps` deleted; the first lending app is
+  **Broadcast** (`program` + `rodney`).

@@ -141,7 +141,9 @@ describe('Login', () => {
 
       const ok = await login.playCharacter('pid-1');
       expect(ok).toBe(true);
-      expect(avatar.enter).toHaveBeenCalledWith(interactive);
+      // An explicit, plain entry: `watching: null` clears any visit mode
+      // (stream arrival D4) — never the reconnect shape (no key at all).
+      expect(avatar.enter).toHaveBeenCalledWith(interactive, { watching: null });
       expect(transfer).toHaveBeenCalled();
       expect(destruct).toHaveBeenCalledWith(login);
     });

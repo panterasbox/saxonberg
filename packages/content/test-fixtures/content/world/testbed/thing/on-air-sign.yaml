@@ -1,0 +1,13 @@
+# An on-air sign (stream arrival C3) — lit exactly while somebody in the hut
+# is on the air; derived, never stored (`OnAirSign`). Dark, it adds no light,
+# so the hut stays lit by its window alone. ⚠ TEST-ONLY.
+class: /platform/thing/OnAirSign
+data:
+  shortDescription: on-air sign
+  keywords: [sign, "on-air sign"]
+  register: definite
+  longDescription: >-
+    A red glass box with ON AIR across it.
+  emittedIntensity: 300
+  emittedColorTemperature: 1800
+  mass: 4

@@ -182,6 +182,7 @@ regard bump is a flagged-replaceable demo, so it stays put).
 | `chat.historyCap` | `200` | `ChannelCatalogue.recordHistory` — per-channel in-memory history ring cap. |
 | `chargen.nameMinLength` / `chargen.nameMaxLength` | `2` / `24` | `EmbodyController.validateNameToken` — inclusive name-length bounds. |
 | `status.maxLength` | `100` | `StatusMixin` `sanitizeStatus` — max rendered status one-liner length. |
+| `stream.featuredProgram` | `""` (`content/settings/stream.yaml`) | `StreamLogic.frontListing` — the program the anonymous `GET /api/front` answers with when a link names none; empty → no show band ([livestream.md](./livestream.md)). Tier `B`: `config stream.featuredProgram <name>`. |
 
 Each consumer reads through a local try/catch helper that falls back to the
 historical literal when the cache is unread (pre-warm / tests), so the

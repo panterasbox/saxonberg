@@ -1,0 +1,14 @@
+# The ON AIR sign in Hallett's window (stream arrival D19) — lit exactly
+# while somebody in the booth is on the air. Its light is DERIVED when read
+# (`OnAirSign`); this row authors only how bright it is when lit.
+class: /platform/thing/OnAirSign
+data:
+  shortDescription: on-air sign
+  keywords: [sign, "on-air sign", "on air", "air sign"]
+  register: definite
+  longDescription: >
+    A red glass box hung in the top of the window, ON AIR lettered across its
+    face so the street can read it.
+  emittedIntensity: 400
+  emittedColorTemperature: 1800
+  mass: 4

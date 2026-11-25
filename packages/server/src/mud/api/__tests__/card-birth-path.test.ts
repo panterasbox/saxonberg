@@ -192,8 +192,8 @@ describe('a card is born on the server, or not at all', () => {
         'mud/platform/idea/cmd/shell/ClientLayoutRecallController.ts:applyCardArrangement',
         'mud/platform/idea/cmd/shell/SettingsListController.ts:open',
         'mud/platform/idea/cmd/social/WhoController.ts:open',
-        // ⭐ broadcast-ready D10: bare `stream` opens the controls card.
-        'mud/platform/idea/cmd/stream/StreamController.ts:open',
+        // ⭐ broadcast-ready D10: bare `rodney` (was `stream`) opens the controls card.
+        'mud/platform/idea/cmd/stream/RodneyController.ts:open',
         'mud/platform/idea/cmd/system/GitStatusController.ts:open',
         'mud/platform/idea/cmd/system/HelpControllerBase.ts:open',
         'mud/platform/idea/cmd/system/PressReadController.ts:open',

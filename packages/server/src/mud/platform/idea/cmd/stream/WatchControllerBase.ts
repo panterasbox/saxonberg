@@ -204,8 +204,8 @@ export abstract class WatchControllerBase extends CommandController<WatchModel> 
       );
       return;
     }
-    host.setClientState(WATCH_KEY, target);
-    host.pushClientStateUpdate(WATCH_KEY, target);
+    // ⭐ The one personal writer (stream arrival D4) — an arrival uses it too.
+    host.showPersonalStream(target);
     this.send(context, Mml.fromMarkup(`\nWatching ${label}.\n`));
   }
 

@@ -1,0 +1,5 @@
+# `program create --owner <path>` where the actor does not hold that pen (stream arrival D11).
+facts:
+  owner: text
+says: "You cannot make a program for {{ owner }} — you do not hold its pen."
+topic: act.deed

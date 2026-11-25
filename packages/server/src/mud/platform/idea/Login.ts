@@ -44,7 +44,8 @@ import { SaxonbergClientMixin } from "../../lib/connection/SaxonbergClient";
 import { SensorMixin } from "../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../lib/command/CommandGiver";
 import { GoogleProfile } from "../../lib/identity/GoogleProfile";
-import Avatar from "../../lib/character/Avatar";
+import Avatar, { type ArrivalWatching } from "../../lib/character/Avatar";
+import { Refusal } from "../../lib/errors";
 import type { CommandContributions } from "../../api/command";
 import type {
   MessageFrame,
@@ -92,8 +93,6 @@ export interface CharacterDraft {
   surname?: string;
   /** Chosen pronoun key. */
   pronouns?: string;
-  /** Chosen aspiration key. */
-  aspiration?: string;
   /** Current name suggestion (drives the name fields' pre-fill). */
   suggestion?: { name: string; surname?: string };
 }
@@ -219,7 +218,11 @@ export default class Login extends LoginBase {
     const avatar = await Login.mintRandomGuestAvatar(interactive.getUser());
     interactive.transferTo(avatar);
     console.info(`Login: Guest connected - ${avatar.getFullName()}`);
-    await avatar.enter(interactive, { firstArrival: true });
+    // ⭐ The guest's two words, off the socket (stream arrival D4).
+    await avatar.enter(interactive, {
+      firstArrival: true,
+      watching: interactive.getArrivalWatching(),
+    });
     StuffApi.destruct(this);
   }
 
@@ -252,7 +255,7 @@ export default class Login extends LoginBase {
   /**
    * Mint a randomized guest avatar — the no-char-gen fast path. Mirrors
    * `EmbodyController.commit`'s avatar build, but: every pick is random
-   * (species, a non-intersex sex, an aspiration → bio + themed outfit),
+   * (species, a non-intersex sex), every guest wears the one plain outfit,
    * pronouns are always they/them, and the name is the reserved-word
    * guest name. The roster + sex-set knowledge is read from
    * `EmbodyController` (`loadConfig` / `validSexSet`) so the two paths
@@ -278,7 +281,6 @@ export default class Login extends LoginBase {
     }
 
     const speciesEntry = pickRandom(cfg.species);
-    const aspiration = pickRandom(cfg.aspirations);
     const species = speciesEntry
       ? await StuffApi.singleton<Species>(speciesEntry.path)
       : null;
@@ -304,8 +306,7 @@ export default class Login extends LoginBase {
       startLocation: AppApi.setting(AppSettingKeys.defaultStartLocation),
       name: guestName.name,
       _speciesPath: speciesEntry?.path,
-      aspiration: aspiration?.key,
-      bio: aspiration?.bioSeed ?? "",
+      bio: "",
       longDescription:
         species?.getLongDescription() ||
         (seed.data as Record<string, unknown>).longDescription,
@@ -339,9 +340,9 @@ export default class Login extends LoginBase {
       }
     }
 
-    // Dress in the aspiration's themed outfit — the body's own recipe
+    // Dress in the one plain outfit — the body's own recipe
     // (`Character.wearGarments`), tolerant of content gaps.
-    if (aspiration && species) await avatar.wearGarments(aspiration.outfit);
+    if (species) await avatar.wearGarments(cfg.startingOutfit ?? []);
 
     return avatar;
   }
@@ -373,7 +374,39 @@ export default class Login extends LoginBase {
    * Interactive, starts the avatar's session, and destructs Login.
    * Invoked by `PlayController` for `play <playerId>`.
    */
-  public async playCharacter(playerId: string): Promise<boolean> {
+  /**
+   * ⭐ Read `--watch <program>` and its carrier flag (stream arrival D4) —
+   * the one parse `play` and `embody confirm` share. Nothing asked → null;
+   * a name with no carrier, two carriers, a name that is not a short name,
+   * or a program nobody filed → a refusal, and the player stays at the
+   * roster (the client never sends those; a typist is told). Whether the
+   * program is ON THE AIR is the entry's to decide — off air, you arrive as
+   * usual and are told why.
+   */
+  public async readWatching(opts: {
+    watch?: string;
+    twitch?: boolean;
+    youtube?: boolean;
+    kick?: boolean;
+  }): Promise<ArrivalWatching | null | Refusal> {
+    const program = (opts.watch ?? '').trim().toLowerCase();
+    const carriers = (['twitch', 'youtube', 'kick'] as const).filter((c) => opts[c] === true);
+    if (program === '' && carriers.length === 0) return null;
+    if (program === '' || carriers.length !== 1) return new Refusal('watch-needs-carrier', {});
+    if (!/^[a-z0-9](?:[a-z0-9-]{0,30}[a-z0-9])$/.test(program)) {
+      return new Refusal('no-such-program', { name: program });
+    }
+    const { StreamApi } = await import('../../api/stream');
+    if ((await StreamApi.programListing(program)) === null) {
+      return new Refusal('no-such-program', { name: program });
+    }
+    return { program, carrier: carriers[0]! };
+  }
+
+  public async playCharacter(
+    playerId: string,
+    opts: { watching?: ArrivalWatching | null } = {},
+  ): Promise<boolean> {
     const user = this.interactive.getUser();
     if (!user.playerIds.includes(playerId)) return false;
 
@@ -400,7 +433,9 @@ export default class Login extends LoginBase {
     )) as typeof restored;
     this.interactive.transferTo(avatar);
     console.info(`Login: User connected - ${avatar.getFullName()}`);
-    await avatar.enter(this.interactive);
+    // ⭐ An explicit entry: arriving watching, or plainly (which clears any
+    // visit mode) — never the reconnect shape (D4).
+    await avatar.enter(this.interactive, { watching: opts.watching ?? null });
     StuffApi.destruct(this);
     return true;
   }

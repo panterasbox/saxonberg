@@ -9,16 +9,19 @@
 > forwarding →
 > [streaming.md](../../subsystems/streaming.md),
 > [livestream.md](../../subsystems/livestream.md)
-> **Left:** the `Streamer` record itself (nothing about a streamer is
-> persisted today, on either side) · claim-by-proof over the shipped
-> OAuth links · retiring the four singleton env vars into per-streamer
-> fields · ~~a per-streamer overlay token + feed scope + `StreamState`~~
+> **Shipped by stream arrival (MR !655, 2026-11-24):** the broadcaster's
+> record as a **program** document (`/platform/programs/<name>`, owned by
+> the pen), feeds **claimed by proof** over the linked accounts (Twitch,
+> Kick, and YouTube via the stepped-up `youtubeChannelId`), and the
+> retirement of the singleton env vars and the `streamers` axis →
+> [livestream.md](../../subsystems/livestream.md)
+> **Left:** the VIEWER half meeting the program — `watch <short-name>`,
+> listing someone else's channel, registry-first `watch` resolve · ~~a per-streamer overlay token + feed scope + `StreamState`~~
 > → moved to [broadcast-ready](./broadcast-ready-slate.md) 2026-10-17 ·
 > registry-first resolve so a bare handle stops being an
 > `ambiguous-handle` reject · persisted tunes · the viewer's
 > platform preference when a record affords several · the consenting
-> public directory · the documented REST read for third-party overlays ·
-> the YouTube claim proof (`GoogleProfile` stores no channel)
+> public directory · the documented REST read for third-party overlays
 > **Size:** a build, and the portal half can split off as a second
 
 **Captured 2026-09-23.** The streaming stack was built in two pushes
