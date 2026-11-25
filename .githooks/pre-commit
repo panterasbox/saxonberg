@@ -45,7 +45,27 @@ behind=0
 if git rev-parse --verify --quiet "$upstream" >/dev/null; then
   behind=$(git rev-list --count "HEAD..$upstream" 2>/dev/null || echo 0)
 fi
-dels=$(git diff --cached --diff-filter=D --name-only | grep -c . || true)
+# ⭐ A deletion is EXPLAINED when the path is already gone on master — or,
+# mid-merge, in the commit being merged (MERGE_HEAD): it is master's own
+# deletion arriving, never a stale tree's. The stale-tree failure deletes
+# files that still EXIST upstream, so only unexplained deletions count.
+# (Before 2026-11-24 every master merge that carried master's deletions
+# tripped check 3 and needed SAXONBERG_ALLOW — a false positive each time.)
+all_dels=$(git diff --cached --diff-filter=D --name-only)
+explained_in() { git cat-file -e "$1:$2" 2>/dev/null && return 1 || return 0; }
+unexplained=""
+if [ -n "$all_dels" ]; then
+  ref_master=""; git rev-parse --verify --quiet origin/master >/dev/null && ref_master=origin/master
+  ref_merge=""; git rev-parse --verify --quiet MERGE_HEAD >/dev/null && ref_merge=MERGE_HEAD
+  while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    if [ -n "$ref_merge" ] && explained_in "$ref_merge" "$f"; then continue; fi
+    if [ -n "$ref_master" ] && explained_in "$ref_master" "$f"; then continue; fi
+    unexplained+="$f"$'\n'
+  done <<< "$all_dels"
+fi
+dels=$(printf '%s' "$unexplained" | grep -c . || true)
+explained=$(( $(printf '%s\n' "$all_dels" | grep -c . || true) - dels ))
 
 if [ "$behind" -gt 0 ] && [ "$dels" -gt 0 ]; then
   echo "" >&2
@@ -54,7 +74,7 @@ if [ "$behind" -gt 0 ] && [ "$dels" -gt 0 ]; then
   echo "  signature: on a behind tree, 'add -A' records everything you" >&2
   echo "  are missing as a deletion." >&2
   echo "" >&2
-  git diff --cached --diff-filter=D --name-only | head -10 | sed 's/^/    − /' >&2
+  printf '%s' "$unexplained" | head -10 | sed 's/^/    − /' >&2
   [ "$dels" -gt 10 ] && echo "    … and $((dels - 10)) more" >&2
   die "pull/rebase first, then re-stage by name"
 fi
@@ -62,12 +82,13 @@ fi
 # ── 3. MASS DELETION, even when up to date ──
 if [ "$dels" -gt 10 ]; then
   echo "" >&2
-  echo "  This commit deletes $dels files:" >&2
-  git diff --cached --diff-filter=D --name-only | head -10 | sed 's/^/    − /' >&2
+  echo "  This commit deletes $dels files that still exist on master:" >&2
+  printf '%s' "$unexplained" | head -10 | sed 's/^/    − /' >&2
   echo "    … and $((dels - 10)) more" >&2
   die "if deliberate, re-run with SAXONBERG_ALLOW=1"
 fi
 
 [ "$behind" -gt 0 ] && warn "HEAD is $behind commit(s) behind $upstream — stage by name, not with -A"
 [ "$dels" -gt 0 ] && warn "this commit deletes $dels file(s)"
+[ "$explained" -gt 0 ] && warn "$explained deletion(s) already made on master — carried, not counted"
 exit 0
