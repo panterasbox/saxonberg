@@ -89,6 +89,9 @@ probably wait on till the last minute to do before I start broadcasting."*
 4. **The existing 116 pages tagged into portals**, so the mode is usable on day one.
 5. **`/finalize`'s wiki step** (done with this slate) and a check that each page's subject still
    resolves.
+6. **The server pieces the prototype needs** (§ 8f) — the structured listing and search frames, the
+   tag filter, random and recently changed, backlinks on the page, help's categories as data, and the
+   **live infobox**.
 
 ### Build 2 — the corpus (§ 9), last, before the broadcast
 
@@ -233,6 +236,34 @@ The verbs stay as they are (`wiki edit`, `create`, `history`, `rollback`, …) a
 edit affordances for someone who may edit. **No new authoring surface** in this build — no editor,
 no live preview (wiki.md's decision, unchanged).
 
+### 8f. What the server already does, and what build 1 adds **[DECIDED — audited 2026-11-24]**
+
+Audited against the prototype, feature by feature.
+
+**Ships today:** `wiki <page>` sends a structured frame (title, rev, editor, body, outline, tags,
+related, subject) to the card; red links render for a missing page (today they run `wiki create`); the
+`composition` component reports a subject's live values; the `infobox` component; `<help verb>`
+transcludes a command's help; the tooltip's wiki excerpt; `wiki links`, `wiki wanted`, `wiki history`,
+`wiki list <ns>`; `recall --scope wiki` over a Mongo text index on title and body.
+
+**Build 1 adds:**
+
+- **A structured frame for listings and search.** `wiki list` and `recall --scope wiki` answer in
+  prose only; the panel card's suggestions, the results page and a portal's A–Z read a frame (handle ·
+  title · opening line · portal), beside the prose as the page frame is.
+- **`wiki list` by tag** — a portal is its tag (§ 8c); and each portal's **count** rides the same frame.
+- **Search over both sources** — the pack index in memory and the edited rows (§ 10.7).
+- **What links here on the page** — the frame carries the backlinks; today they are a separate verb.
+- **`wiki random`** and **`wiki recent`** (the latest edit to each page).
+- **Back and forward** are the **client's** history of what this reader read; a click re-sends the read
+  command. There is no `wiki back` — the server does not know what you read before, and must not
+  pretend to.
+- **Help's categories as data**, for the Help portal (`help` alone lists them, in prose).
+- ⭐ **The live infobox.** The shipped `infobox` takes authored values, which breaks § 2 (*pages never
+  restate a number*): every material page would drift the first time a value is tuned. A subject
+  page's infobox **reads its subject's values** as `composition` does; an authored infobox stays for
+  pages with no subject.
+
 ## 9. ⭐⭐ The corpus — 600–800 pages, by portal **[DECIDED in size — the owner: "500 sounds on the low end but still in the ballpark"]**
 
 Today: 116 pages — 84 short material stubs in `base-library`, 22 in `wiki-starter`, about ten across
@@ -253,6 +284,21 @@ the packs.
 | **The platform** | packs, building the world, MQL, the wiki itself | ~40 |
 | **Help** | help's own topics, rendered by help (§ 8d) | — |
 
+- ⭐ **A page per thing a player would search for by name** **[DECIDED — the owner]** — oak, glass,
+  blood, the clinic, a trade, a species. Everything below that is a **section** of its page (a recipe,
+  a step, a variety), never its own page. This is what holds the corpus near 600–800 rather than past a
+  thousand, and a reader's search lands on a page rather than a fragment.
+- ⭐⭐ **Say where you can do it today** **[DECIDED — the owner]** — the wiki describes systems the
+  world does not yet use (a trade with no workshop anyone can reach). **Every page about a mechanic
+  carries a *where to do this* line**: the places in the world that afford it now, linked — or, plainly,
+  *nowhere in the world does this yet*. The stream audience reads the wiki and goes looking; a page that
+  implies a workshop that is not there is the dead box the shelf doctrine forbids (*never
+  default-pin a widget that does not do anything yet*), one surface over. The line is derived where it
+  can be (the places whose content affords the verb) and written where it cannot.
+- **Voice** **[DECIDED — the owner]** — plain words for a player, saying what you can do; no class,
+  file or Api names. **Second person for guides and process pages** (*you fell it, then rive it*);
+  **neutral encyclopedia voice for things** (*oak is a dense hardwood*). The 116 existing pages are
+  brought to this in build 1's tagging pass.
 - **Ownership is § 1's**: a pack ships the pages for what it adds; `wiki-starter` ships the portals,
   the front page, the cross-cutting concepts and the guides.
 - **Agents write from what is true** (§ 2) — the subsystem doc, the rows, the verbs — an agent per
