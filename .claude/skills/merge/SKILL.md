@@ -37,10 +37,34 @@ decides whether the next step happens at all.
 | 3 | **master** | `git fetch origin master`; `git rev-list --left-right --count origin/master...HEAD` | left = 0. If left > 0 **and** `git diff --stat HEAD...origin/master` touches source (anything but `docs/` and `*.md`), it fails: master must be merged in and re-verified first. A docs-only lead passes, and say so |
 | 4 | **full suite** | `tools/source-fingerprint` against the first field of `.suite/green` | equal. Quote the line (sha, time). Absent or different fails, with no exceptions: a `test:near` run, a narrowed run or a run from before the last source commit is **not** the suite |
 | 5 | **lint family** | there is no record. Find the last `lint:family` run in this session and the last source commit | the run came after the last source commit. If you cannot show that, it is **unverified**, which is not a pass |
-| 6 | **drive** | the plan's § Drive record | the blocking drive's last run is green and came after the last source commit; any red step is fixed or explicitly waived by the owner (quote it) |
-| 7 | **walk** | the plan's drive record / `e2e/tests/<feature>-walk.spec.ts` | the walk ran green after the last change to what it walks |
+| 6 | **drive** | `.suite/drive-green` (written by `/finalize` § 2: `<fingerprint> <sha> <time> drive <n>/<m> walk <n>/<m>`) | its fingerprint equals `tools/source-fingerprint` **and** both counts are full (or a red step is explicitly waived by the owner — quote it). If the fingerprint differs, apply **§ 1b** — never fail it on timestamps alone |
+| 7 | **walk** | the same line's `walk` count | as 6 — the walk is recorded with the drive and judged with it |
 | 8 | **soak drive** | the MR description | names the soak drive file for the soak lane |
 | 9 | **MR** | `mcp__gitlab__get_merge_request` | open, not draft, no conflicts, `detailed_merge_status` mergeable; note the pipeline state |
+
+## 1b. When the drive record's fingerprint is behind
+
+A drive and a walk cost the better part of an hour, and master moves
+several times a day while four builds land — so a rule of *"any source
+commit since the drive stales it"* is a rule that never lets a build merge
+(2026-11-24: three `/merge` runs in a row found nothing mergeable). Judge
+the gap instead, and show your working in the table:
+
+1. `git log --format='%h %s' <record sha>..HEAD -- . ':(exclude)docs' ':(exclude)*.md'`
+   — every source commit since the recorded run.
+2. **A commit of this branch's own** (not a merge of master) **stales the
+   record.** The build changed what it drove: ✗, re-drive.
+3. **A merge of master** stales it only if what it brought touches what
+   the drive or walk exercises: `git diff --stat <merge>^1 <merge>` —
+   name the files, and say for each whether the drive's flows go through
+   it (its verbs, the subsystems its steps read, the harness). Untouched
+   → ✔, quote the reasoning in one line. Touched → ✗, re-drive.
+4. Unsure is **?**, which counts as ✗ — say what you would check.
+
+The suite (check 4) is NOT judged this way: it is recorded mechanically,
+and a fingerprint change always re-runs it. Only the drive and the walk,
+which are too slow to re-run on every merge of somebody else's code, get
+this judgement — and it is a judgement you must show, never assume.
 
 ## 2. Report — one table, then one of two endings
 
