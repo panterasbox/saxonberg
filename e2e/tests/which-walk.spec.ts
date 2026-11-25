@@ -75,11 +75,12 @@ test.describe('the which build, in a browser', () => {
     for (let i = 0; i < 4 && (await size()) !== 'unit'; i++) {
       await sayAwaiting(page, 'client-card shrink which', /./);
     }
-    expect(await size()).toBe('unit');
+    await expect.poll(size, { timeout: 20_000 }).toBe('unit');
     const unit = await whichCard(page, /counter/);
     expect(unit).not.toMatch(/the counter here/);
     await sayAwaiting(page, 'client-card grow which', /./);
-    expect(await size()).toBe('medium');
+    // The reply lands before the client re-lays the card: wait for the width.
+    await expect.poll(size, { timeout: 20_000 }).toBe('medium');
     await whichCard(page, /the counter here/);
     // `full` is the stage: the card covers the terminal, so read the card.
     await runCommand(page, 'client-card grow which');
