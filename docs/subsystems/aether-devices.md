@@ -190,6 +190,11 @@ starting brand (lineage-slate).
 
 ## Deferred seams
 
+- ⭐ **An app's verbs on its `app-listing` document** (owner, 2026-11-24). `BroadcastApp`
+  is a class whose body is only `static commandContributions`, which `lint:data-ideas`
+  counts as metadata (its ceiling rose 13 → 14 for it). The fix: the listing declares
+  the verbs, `lendHostedApps` reads them from the hosted app's listing, and a
+  verbs-only app needs no class — `BroadcastApp` deletes and the ceiling falls back.
 - The wallet, calendar and forums as apps on a device; other apps bringing
   verbs (a map, a camera) — `lendHostedApps` is the attach point.
 - The app store's economics and publishing — paid apps, who may publish,
