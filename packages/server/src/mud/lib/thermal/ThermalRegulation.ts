@@ -110,6 +110,8 @@ function shiverAugmenter(text: string, host: Stuff, viewer: Stuff): string {
 export interface ThermalRegulation {
   /** ⭐ Is this body shivering now (the cue's state, for a watcher's `look`)? */
   isShivering(): boolean;
+  /** The body's insulation as it stands, clo — worn plus its own coat at fill; a read. */
+  insulationClo(): number;
   /** ⭐ A held working's warmth on this body, K (underwater D18). */
   setWorkingOffsetK(deltaK: number): void;
   getWorkingOffsetK(): number;
@@ -253,6 +255,15 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     private _reconcileClo: number | null = null;
     /** Each coat tap's fill as of the last reconcile (B23) — transient, re-banked at every re-stamp. */
     private _tapFillBanked: Record<string, number> = {};
+
+    /**
+     * ⭐ The body's insulation as it stands (clo): what it wears plus its own
+     * coat at its fill — a read, never a reconcile. What a shorn sheep has
+     * less of than one in its fleece, whatever the weather does next.
+     */
+    public insulationClo(): number {
+      return this.wornClo();
+    }
 
     /** The body's worn insulation (clo) — the reconcile's one read, else live. */
     private wornClo(): number {

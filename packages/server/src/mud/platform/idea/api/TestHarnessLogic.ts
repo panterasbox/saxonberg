@@ -253,6 +253,8 @@ export interface BodyReport {
   readonly conditions: readonly { templatePath: string; stage: number }[];
   readonly traumas: readonly { type: string; site: string; severity: number; mechanism: string | null }[];
   readonly coreK: number | null;
+  /** The body's insulation as it stands, clo (worn + its own coat at fill). */
+  readonly clo: number | null;
   readonly capacities: Readonly<Record<string, string>>;
   readonly missing: readonly string[];
   readonly massKg: number | null;
@@ -527,8 +529,10 @@ export class TestHarnessLogic extends ApiLogic {
     const capacities: Record<string, string> = {};
     if (vitals) for (const k of BODY_CAPACITIES) capacities[k] = vitals.capacity(k);
     let coreK: number | null = null;
+    let clo: number | null = null;
     if (vitals && MixinApi.isThermalRegulation(body)) {
       coreK = vitals.getVitalSign('coreTemperature').rawValue();
+      clo = Math.round(body.insulationClo() * 1000) / 1000;
     }
     const conditions = (vitals?.getConditions() ?? [])
       .filter((c): c is AfflictionRecord => c.kind === 'affliction')
@@ -546,6 +550,7 @@ export class TestHarnessLogic extends ApiLogic {
       conditions,
       traumas,
       coreK,
+      clo,
       capacities,
       missing: vitals?.getMissingParts().map((p) => p.key) ?? [],
       massKg: MixinApi.isTangible(body) ? body.getMass().rawValue() : null,
