@@ -8,11 +8,12 @@
 > anonymous · spending a conserved resource (money, goods, attended human time) is a real choice · the labor plane mints
 > nothing · ⭐ the kernel holds no moral opinion — the roster is an optional pack (the Nazi test) ·
 > beats, a first cut (§ 4).
-> **Left:** refining the beats · the trope definition's final
-> shape · the roster against the census (§ 6) · the author surfaces (§ 5) · the build path (§ 9) ·
-> regard's derivation cost (§ 3.6).
-> **Requirements:** [tropes-requirements](../../requirements/tropes-requirements.md) — ⚠ a first
-> draft, written before this rewrite; NOT agreed, to be redrafted from this slate.
+> **Path ruled (§ 9):** build 1 = actor and cause · the work record · beats and the matcher · the
+> roster pack · the ratchet; roster § 6.
+> **Left:** refining the beats · the trope definition's final shape · the author surfaces (§ 5) ·
+> regard's derivation (§ 3.6) — build 2.
+> **Requirements:** [tropes-requirements](../../requirements/tropes-requirements.md) — build 1,
+> redrafted from this slate 2026-11-24.
 > **Size:** a build, probably two.
 
 ## 0. The ask
@@ -388,76 +389,57 @@ this trope(s) to run what content do I need to write to get there'."*
 4. Surfaces: the catalog as pages; per content (could · has · gap) in the CMS and an author command
    beside `which`.
 
-## 6. The starting roster **[DRAFT, 2026-11-24]**
+## 6. The roster **[DECIDED for build 1 — the owner, 2026-11-24]**
 
-Grounded in a survey of what the engine records **today** (each producer confirmed in non-test code).
-Names borrow TV Tropes' where players know them (§ 7); every definition is ours. Magnitudes are dials,
-not shown.
+Re-derived against the beats (§ 4). Every trope ships in the **optional roster pack** (§ 3.10);
+names borrow TV Tropes' where players know them (§ 7), every definition is ours, magnitudes are dials
+— the replaced writers' sizes are the starting values.
 
-### Ready — the facts are already recorded
+### Build 1
 
-| trope | roles | fires on | writes | replaces |
+| trope | cast | plot | writes | replaces |
 |---|---|---|---|---|
-| **The Gift** (blood) | giver | a blood donation | giver: generosity up | the `Blood.ts` constant |
-| **Answering the Call** | giver; the need | a donation while the bank's stock is short | giver: compassion up | the same constant's `named` arm |
-| **The Gift** (goods) | giver, receiver | a title transfer, consented, with no sale in the same transaction (`chattel_events`) | giver: generosity up; receiver: regard for the giver up | — |
-| **The Gift** (money) | giver, receiver | `pay` to a person — a `transfer` leg, no sale, no contract | giver: generosity up | — ⚠ intent: a `pay` may be settling a debt |
-| **Murder in Plain Sight** | killer, victim, witnesses | a death, not consented, the killer named (`accountability_events`) | killer: compassion down; witnesses: regard for the killer down | `CombatLogic`'s −20 |
-| **The Fair Fight** | victor, opponent, witnesses | a consented fight won | victor: boldness up; witnesses: regard up | `CombatLogic`'s +2 |
-| **Sparing the Yielded** | victor, the yielded | a fight ended by a yield, the yielded left alive | victor: forgiveness and compassion up | — |
-| **The Broken Promise** | contractor, issuer | a breach by abandonment or expiry (`contract_events`) | contractor: constancy down (fickle); issuer: regard down | `ContractLogic`'s −15 |
-| **The Word Kept** | contractor, issuer | a contract fulfilled | contractor: constancy up; issuer: regard up | — |
-| **Abandoning Ship** | master, those left aboard | abandonment at sea (`Ship.ts`) | master: compassion and constancy down | — |
-| **Pet the Dog** | carer, animal | petting or hand-feeding a creature | carer: warmth and compassion up — ⚠ diminishing with repetition | — |
-| **The Bad Meal** | feeder, animal | hand-feeding that sickens the animal | feeder: regard of the animal down (as today) — no trait: intent unknown | `Bonded.ts`'s penalty |
+| **The Gift** (blood) | giver · the bank | `give` blood | giver: generosity; the applause → renown | `Blood.ts` constant, `DonationBank` renown |
+| **Answering the Call** | giver · the bank | `give` blood while the bank's stock is short | giver: compassion | the same constant's `named` arm |
+| **The Gift** (goods, money) | giver · receiver | `give` — a transfer or payment with no sale in the act | giver: generosity; receiver: regard for the giver | — |
+| **Murder in Plain Sight** | killer · killed · witnesses | `kill`, not consented | killer: compassion down; witnesses: regard for the killer down | `CombatLogic` −20 |
+| **The Fair Fight** | victor · opponent · witnesses | consented `harm`, then the opponent's `yield` | victor: boldness; witnesses: regard up | `CombatLogic` +2 |
+| **Sparing the Yielded** | victor · yielded | `yield`, then `spare` | victor: forgiveness, compassion | — |
+| **The Broken Promise** | promiser · promisee | `promise`, then `break` | promiser: constancy down; promisee: regard down | `ContractLogic` −15 |
+| **The Word Kept** | promiser · promisee | `promise`, then `keep` | promiser: constancy; promisee: regard up | — |
+| **Seeing It Through** | worker | `work` failed at difficulty hard+, then the same kind finished well | patience, diligence | — |
+| **Walking Off the Job** | worker | `work` abandoned | patience, diligence down | — |
+| **Tending the Stranger** | helper · helped | `aid` to someone with no prior tie | helper: compassion; helped: regard up | — |
+| **Abandoning Ship** | master · those aboard | `abandon` at sea | master: compassion, constancy down; those left: regard down | — |
+| **Pet the Dog** | carer · animal | `provide` — comfort to an animal | carer: warmth; the animal: regard (bond) | `PetController` constant |
+| **The Bad Meal** | feeder · animal | `provide` food that sickens it | the animal: regard down — no trait | `Bonded.ts` penalty |
+| **Making an Acquaintance** | introducer · introduced | `tell` — introducing oneself | introduced: regard up | `IntroduceController` bump |
+| **The Confession** · **The Slight** · **The Courtesy** | speaker · listener | asserted `confess` · `slight` · `honor` | the listener's regard; confession: honesty | the lounge's 23 dialogue numbers |
 
-### Ready once one small fact is recorded
+⚠ *Pet the Dog* reads `provide` as comfort, not only food or water — a refinement of the beat (§ 4).
 
-| trope | the missing fact |
+### Later — each waits on a beat or a fact
+
+| trope | waits on |
 |---|---|
-| **The Tip** — generosity up | a tip rides a plain transfer with the memo *"a tip"*; it wants its own ledger category |
-| **Light-Fingered** — honesty down; the owner's regard down when they learn it | picking up a good you hold no title to is allowed and **names no taker** — the taking wants a record |
-| **Returning the Wallet** — honesty up; the owner's regard up | handing a good back to its titled owner (`give` records nothing today) |
-| **Run Away** — boldness down; companions left behind: their regard down | fleeing a fight writes nothing |
-| **Walking Off the Job** — patience and diligence down | an abandoned engagement is held in memory only, never stored |
+| **Light-Fingered** · **Returning the Wallet** | `take` / `return` — holding without title records nothing today |
+| **Run Away** | `flee` — flight from a fight writes nothing |
+| **The Tip** | a tip rides a plain transfer with a memo; it wants its own ledger category |
+| **Robbing the Hive Bare** | the colony's state at the take |
+| **Took a Bullet for Him** · **Mercy Kill** · **Heroic Sacrifice** | `protect`; a consented-death request |
+| **False Friend** and every deception trope | `lie`, `discover` — no record of a false claim or a planted belief |
+| recognition and reversal tropes | `discover`, `tell` beyond introductions |
+| fortune tropes (*rising from ruin*) | `befall` |
 
-### Waiting on facts the world does not record at all
+### What the roster taught (kept from the first draft)
 
-- **The Good Samaritan** — helping a stranger who is hurt: tending, treating, operating and rescue
-  (breathing someone back from drowning) leave no record; the transfusion's revival deed is
-  unreachable (its only caller never says who gave the blood — a defect worth its own fix).
-- **False Friend** and every deception trope — no record of a false claim or a planted belief.
-- **Mercy Kill**, **Took a Bullet for Him**, **Heroic Sacrifice** — need a consented-death request and
-  an interposition fact.
-
-### What the roster taught
-
-1. ⭐ **A fact without a known intent fires no trope.** Harmful food named to its maker, or a trap that
-   catches someone, could be malice or carelessness; the trope may write the victim's regard, never
-   the actor's character. Tropes interpret context — they do not invent it.
-2. **A trope characterizes the actor of an act, never the receiver of a reaction.** Applause already
-   writes renown; it says nothing about the applauded person's character.
-3. **Repetition must diminish** (*Pet the Dog* is a farming vector) — trait-slate's denominator,
-   arriving at the first roster.
-4. **Witnesses must be on the fact.** Today a fight's witnesses are computed in the moment and never
-   stored; a trope that writes the social layer needs them recorded with the fact.
-5. **The ledgers name accounts, not people** — a trope resolves an account to its owner before it can
-   cast a role.
-6. ⚠ **Regard is an overwritten number, not an evidence log.** If tropes become the writers of regard,
-   it may want to become derived from a ledger the way traits are — an open question, not a ruling.
-
-
-### Added by the census and the rulings (2026-11-24)
-
-| trope | roles | fires on | writes | status |
-|---|---|---|---|---|
-| **Seeing It Through** | worker | hard work failed, then the same kind succeeded | patience, diligence up | needs failure recorded (§ 3.2) |
-| **Walking Off the Job** | worker | work begun and abandoned | patience, diligence down | needs abandonment recorded (§ 3.2) |
-| **Tending the Stranger** (the Good Samaritan) | carer, patient | care given to someone the carer has no tie to | compassion up; the patient's regard up | needs the counterparty on the work record (§ 3.5) |
-| **Robbing the Hive Bare** | keeper, colony | taking a colony's stores past what it can winter on | a care/greed reading — ⚠ intent: the keeper may not know | needs the colony's state at the take |
-
-⚠ The tables above are the first draft's and still lean on groups D–G; the roster is re-derived
-against § 2 with the beat vocabulary (§ 4).
+1. **A fact with no known intent fires nothing on the actor's character** — harmful food named to its
+   maker could be malice or carelessness — a rule the roster pack sets, not the kernel (§ 3.10).
+2. **A trope characterizes the chooser, never the receiver of a reaction** — applause writes renown,
+   not the applauded's character.
+3. **Repetition diminishes** — *Pet the Dog* is a farming vector.
+4. **Witnesses must be on the act** — today a fight's witnesses are computed and thrown away.
+5. **The ledgers name accounts, not people** — fixed by § 3.3.
 
 ## 7. Reference material — TV Tropes and the older catalogs
 
@@ -514,20 +496,33 @@ refused automated fetches, so its pages were not read directly) found:
 - Fortune: which happenings with no chooser are plot (a storm that sinks a ship is; a loaf going
   stale is machinery).
 
-## 9. The path to a first build **[OPEN — to re-derive from § 3]**
+## 9. The path **[DECIDED — the owner, 2026-11-24]**
 
-The owner's scope (§ 0): stop the bleeding with a framework trades and jobs adopt as they are
-designed. The shape the rulings point at — to be agreed, not ruled:
+The test (§ 0): **stop the bleeding with a framework trades and jobs adopt as they are designed.**
 
-1. **The actor and the cause** — no work starts anonymous; authorship out of in-fiction attribution;
-   the causing-command id persisted as an act's cause on every ledger row.
-2. **The work record** — credit named by the definition (§ 3.2), failure and abandonment recorded,
-   the counterparty carried; the API takes a definition, never a name, and a ratchet holds the
-   hand-written sites at their count, falling.
-3. **Tropes** — the matcher in the kernel, the rows in an optional roster pack (§ 3.10), look-back by ledger query, writes citing trope and act, tellings
-   to the chronicle; the hand-written writers moved onto tropes and deleted; dialogue `regard:` →
-   asserted beats.
-4. **Deferred:** the author surfaces, regard's derivation (§ 3.6), the remaining credit sweep.
+### Build 1 — the framework, and the bleeding stopped
+
+| wave | what | why build 1 |
+|---|---|---|
+| **1. the actor and the cause** | in-fiction acts resolve the actor, never the author (harm, death, chattel fixed); no work starts anonymous; ledger rows gain the act id, its cause, and people for accounts | everything stands on who chose, and because of what |
+| **2. the work record** | the credit call takes the act's **definition**, never a Discipline name; failure and abandonment recorded; the counterparty carried; rope's knots and the medicine operations onto their rows | this is what a trade adopts — it must exist before the next trade |
+| **3. beats and the matcher** | the detected beats the roster needs — work · give · exchange · harm · kill · spare · yield · promise · keep · break · aid · provide · abandon · tell (introductions only); asserted beats as rows; look-back by ledger query; writes cite trope and act; tellings by the reading rules | the mechanism, all kernel, no opinion |
+| **4. the roster pack** | a new optional pack: the § 6 build-1 roster and the asserted beats; the hand-written writers moved onto it and **deleted** | proves it on real behavior, today's as the regression check |
+| **5. the ratchet** | trait, regard and renown writes outside the matcher at **0**; Discipline credit by name at today's count, falling | stops the bleeding — a new trade cannot do it the old way |
+
+Rulings for build 1:
+
+- **Attended time is build 2** — no build-1 trope reads it; the cap and script counting want their
+  own pass. Until then diligence and patience read outcomes only.
+- **Regard is written as today** — an overwritten number that cannot cite its act — for one build;
+  derived regard is build 2. The gap is stated, not hidden.
+- **Introductions' regard bump moves to the roster** (*Making an Acquaintance*) — any regard number
+  is a reading.
+
+### Build 2
+
+The author surfaces (§ 5) · attended time as a cost (§ 3.8) · regard derived (§ 3.6) · the knowing
+beats, `befall`, `take`/`return`, `flee`, `protect` · the ~100-site credit sweep · collusion (§ 4b).
 
 ## 10. Reuse ledger for the plan (survey 2026-11-24)
 

@@ -1,95 +1,150 @@
-# Tropes — requirements
-
-> ⚠ **NOT AGREED — superseded draft (2026-11-24).** Written before the tropes slate was rewritten around the narrative frame; to be redrafted from [tropes-slate](../slates/engine/tropes-slate.md) § 3 and § 9.
+# Tropes, build 1 — requirements
 
 **Kind:** feature
-**Leads from:** kernel. **First consumer:** the hand-written characterization writers that ship today — the blood gift, the killing in front of witnesses, the fair duel, the broken contract, the bad hand-feeding, and the lounge cast's dialogue regard effects — moved onto tropes in this build, with today's behavior as the regression check.
+**Leads from:** kernel. **First consumer:** the hand-written characterization that ships today — the
+blood gift, combat's unlawful kill and fair duel, the broken contract, the bad hand-feeding, petting,
+introductions, and the lounge cast's 23 dialogue regard numbers — moved onto tropes in this build,
+with today's behavior as the regression check. **The adopting consumer:** every trade and job
+designed after it.
 
-Today, changing who a character *is* — a trait, the regard others hold them in, their renown — means a wizard writes a number into code at one site. That does not scale and it does not design: every site is instrumented by hand, writes half of what it should (combat moves regard, never the killer's character), and nobody can see the whole set. This build puts the framework in place that every later trade and job uses instead: **the engine records what changed; a small kernel vocabulary of plot beats reads those changes; tropes — content rows with a cast and a short plot — turn beats into trait, regard and renown writes.** It also makes the old way unwriteable: a gate counts the hand-written writes and holds them at zero. Seeding slate: [tropes-slate](../slates/engine/tropes-slate.md) (§ 9 build 1; reuse ledger § 10).
+Today, changing who a character *is* — a trait, the regard others hold them in, their renown —
+means a wizard writes a number into code at one site, and choosing a Discipline means writing its
+name into code beside the act. That does not scale, it does not design, and it decides in the kernel
+what is generous or cruel. This build installs the **primitives of plot** the platform owes content:
+every act records who chose, what changed, for whom, at what cost, because of what, and who saw it;
+a small descriptive vocabulary of **beats** reads those acts; **tropes** — rows with a cast, a plot of
+beats, what they write and how they are told — turn beats into characterization. **The kernel holds
+no moral opinion**: the readings live in an optional roster pack. And a gate makes the old way
+unwriteable. Seeding slate: [tropes-slate](../slates/engine/tropes-slate.md) — the narrative frame
+(§ 1), the census (§ 2), the rulings (§ 3), the beats (§ 4), the roster (§ 6), the path (§ 9), the
+reuse ledger (§ 10).
 
 ## What already exists
 
-- **Traits** ([trait.md](../subsystems/trait.md)): 19 opposed pairs, an evidence ledger, derive-on-read positions; players read them with `traits`, `chronicle`, `profile`.
-- **Disciplines** ([advancement.md](../subsystems/advancement.md)): read with `competence`. Credit is already **data** on recipes (185 rows), on some joint rows, and on 27 reading rows. But about 100 code sites credit a Discipline by literal name or module constant — rope's `ropework`, nursing, seamanship, geology, the trade packs' acts.
-- **Regard** ([belief.md](../subsystems/belief.md)): a per-viewer number. Five code sites write a constant (contract breach −15, unlawful kill −20, duel win +2, hand-feeding, petting, introductions), and 23 dialogue effects in the lounge cast's trees write raw numbers. No verb shows a player their regard.
-- **Renown** ([renown.md](../subsystems/renown.md)): read with `standing`. Only the blood gift writes it outside seeding.
-- **Traits are written in exactly one place:** the blood gift's constant (generosity, plus compassion when the bank names a shortage).
-- **The facts a beat reads are already recorded at single chokepoints:** money (the bank ledger), title (chattel), harm and death (conditions, the accountability ledger), contracts (fulfil, breach), engagements (the scheduler). Several do not yet know who is acting.
-- **Nothing named act, beat or trope exists**, and there is no event bus. Quest-modeling, narration, trait and lineage slates all point here and are unbuilt or partial on this question.
-- **In flight:** no sibling branch touches traits, regard, renown or advancement. organism-biology moves one Discipline difficulty onto data; two siblings add `runRoot` sites — the actor rule below must cover them on merge.
+The census of every act a body can perform (slate § 2), by kind of interaction:
 
-**Therefore what is genuinely new here is:** the act record at the chokepoints with a guaranteed actor; the beat vocabulary; trope rows and their matcher; and the gate. The ledgers, the reads and the player verbs are all reused unchanged.
+- **Working matter alone** (smelting, forging, felling, sewing, cooking, the readings — the bulk of
+  the game): earns Discipline credit; about half names it on a row (185 recipes, some joints, 27
+  readings, a few hosts), about 100 places name it in code. Failure is almost never credited,
+  abandonment never recorded.
+- **Taking from the living, caring for a body** (milking, robbing a hive, suturing, operating,
+  feeding): credit only; nothing records who was cared for.
+- **Harm**: the accountability ledger records consent and blame, with no witnesses.
+- **Exchange, promises, institutions**: the bank ledger (accounts, not people), chattel, contracts, a
+  dozen institutional books.
+- **Speech**: chat history; 23 hand-written regard numbers in dialogue.
+- **No record ties one act's rows together**; the engine knows each act's cause while it runs and
+  throws it away. Harm, death and chattel name their actor by *authorship*, which is the
+  out-of-fiction labor plane — a defect.
+- Players already read the results in `traits`, `chronicle`, `competence`, `standing`, `profile`.
+- No sibling build in flight touches traits, regard, renown or advancement; two add places where
+  work starts, which the actor rule must cover when they merge.
+
+**Therefore what is genuinely new here is:** the act's cause and people on the ledgers that already
+exist; the definition-named work record with failure and abandonment; the beat vocabulary; the trope
+matcher; the roster pack; and the gate. The ledgers, the reads and the player verbs are reused.
 
 ## Goals
 
-- Every characterization write — trait, regard, renown — comes from a trope, and each write says which trope made it.
-- A content author can change who a character becomes **by writing rows**: a new trope from existing beats, or a beat asserted in a dialogue choice, with no code.
-- Every act the engine records knows who did it — a typed command, a script, a scheduled tick, an NPC's turn — and work cannot start with nobody acting.
-- The six shipped writers behave as they do today (same direction, same rough size), now through tropes, and their hand-written writes are gone.
-- One trope writes **both** halves: the actor's traits and the witnesses' regard. The killer in plain sight loses compassion as well as the witnesses' regard.
-- Repeating a trope on the same target gives less each time (petting a dog a hundred times is not a hundred kindnesses).
-- New trades and jobs cannot reintroduce hand-written characterization: a gate holds trait, regard and renown writes in code at **zero**, and holds hand-written Discipline credit at **today's count, falling** (rope's `ropework` moves onto the knot rows in this build).
+- **Every act knows who chose and because of what** — a typed command, a script, a scheduled
+  continuation, an NPC's turn — and no work can start with nobody acting. A finished engagement is
+  the end of the act begun at the choice, not a new one.
+- **A trade names its Discipline credit on the definition its act already uses** — a recipe, a
+  joint, a reading, the host's kind, an operation — never in code; failure is credited with its
+  outcome, abandonment recorded, and the person worked on or for is on the record.
+- **Every trait, regard and renown change comes from a trope**, and says which trope made it.
+- **A content author changes who a character becomes by writing rows** — a trope over existing
+  beats, an asserted beat in a dialogue choice, a telling — with no code.
+- **One trope writes both halves**: the killer in plain sight loses compassion as well as the
+  witnesses' regard.
+- **Solitary work characterizes**: failing at hard work and later finishing it makes you more
+  patient, at any trade.
+- **The kernel holds no moral opinion**: without the roster pack installed, nothing characterizes
+  anyone, and no trade or system pack depends on it.
+- **The old way is unwriteable**: no trait, regard or renown write in code can merge; no new
+  Discipline-by-name credit can merge.
 
 ## Non-goals
 
-- **The author surfaces** — *could fire here*, *has fired here*, the gap report → the second tropes build (tropes-slate § 5).
-- **Tropes that span several commands or game days** (sequences, absences, windows on the clock) → the second tropes build. This build matches the acts of **one** command, tick or NPC turn.
-- **The helping and deception families** (the Good Samaritan, False Friend, Mercy Kill) — the world does not record their facts → the second tropes build, each with its missing fact.
-- **Escalating shared-cast tropes into a quest** → [quest-modeling-slate](../slates/world/quest-modeling-slate.md).
-- **Telling a player a trope fired** → [narration-slate](../slates/engine/narration-slate.md). In this build the effect is visible only through the existing `traits` / `chronicle` / `standing` reads.
-- **Moving the remaining ~100 hand-written Discipline credits onto rows** → a sweep build of its own, driven by the ratchet this build installs; tropes-slate records it.
-- **Content adding beats** → stays a closed kernel list for now; who may hold that pen later is a tropes-slate open.
-- **Regard becoming a derived ledger** → trait-slate open; this build keeps regard as it is.
-- **How much one act may write** (trait-slate's denominator) → the dials stay at today's sizes; the question stays in trait-slate.
-- **The transfusion's unreachable revival deed** → its own defect fix (filed as an issue).
+- **Attended human time as a choice's cost** → build 2 (slate § 3.8, § 9). Until then diligence and
+  patience read outcomes only.
+- **Regard derived from remembered incidents** → build 2 (§ 3.6). In this build regard is written as
+  today — an overwritten number that cannot cite its act. Stated, not hidden.
+- **The author surfaces** — *could fire here*, *has fired here*, the gap report → build 2 (§ 5), due
+  before the first trade adopts tropes.
+- **The beats whose facts are missing** — `take`, `return`, `flee`, `protect`, `discover`, `tell`
+  beyond introductions, `befall` → build 2, with their tropes (§ 6 *Later*).
+- **The remaining ~100 Discipline-by-name sites** → build 2's sweep, driven by this build's ratchet.
+- **Collusion and Sybil rings pumping a trait** → inherited from measurement.md's open flank;
+  recorded in the slate (§ 4b).
+- **Telling a player a trope fired beyond the chronicle** → [narration-slate](../slates/engine/narration-slate.md).
+- **Tropes sharing a cast as a quest** → [quest-modeling-slate](../slates/world/quest-modeling-slate.md).
+- **Worldcrafting and governance in the narrative** → nowhere for now, deliberately: the labor plane
+  mints nothing (§ 3.9).
+- **The transfusion's unreachable revival deed** → its own defect fix.
 
 ## Placement
 
-- **The kernel** owns the act record, the actor rule, the beat vocabulary and the matcher — everything that sits at an engine chokepoint, because only the engine may fire an act.
-- **A new system pack at `/system/narrative`** owns the trope rows and their wiki pages. Characterization is true whether or not anyone is taking part, which is the `/system/` test. A realm or trade may ship tropes of its own in its own pack.
-- ⭐ **A second trope needs no code** — rows over the existing beats. A new beat does need a kernel change, deliberately.
+- **The kernel** owns the mechanism: the actor and cause on every ledger, the work record, the beat
+  vocabulary (detected beats are a closed kernel list), the matcher. All descriptive; no opinion.
+- **A new optional roster pack** owns every reading: the build-1 tropes and the asserted beats
+  (*confess · slight · honor*). ⭐ **No load-bearing pack may depend on it** (the Nazi test, slate
+  § 3.10) — a different community may ship a different roster. Its name and root are the plan's.
+- **Trades** own their Discipline credit, on their own definitions.
+- **Does a second instance need code?** A second trope: no — rows. A second asserted beat: no —
+  rows. A new detected beat: yes, a kernel change, deliberately rare.
 
 ## Collisions
 
-- **Dave's Bar / the lounge cast** (Augie, Dave, Sloane, Mara, Remy and others): 23 dialogue regard effects become asserted beats. Their conversations must feel the same — the same choices raise and lower the same people's regard.
-- **The blood bank** (DonationBank and its donors): the gift and *answering the call* move to tropes; the applause stays.
-- **Combat**: the unlawful-kill and duel-win regard moves to tropes, and each gains the actor's trait half.
-- **The work board** (contracts): breach and fulfilment.
-- **Kept animals**: the bad-meal and petting regard; the bond itself stays mechanics.
-- **Introductions**: the bump stays as mechanics of meeting (not characterization) unless the census says otherwise — the plan decides with the gate's census.
+- **Dave's Bar and the lounge cast** (Augie, Dave, Sloane, Mara, Remy and others): 23 dialogue regard
+  numbers become asserted beats. The same choices must move the same people's regard the same way.
+  The lounge comes to depend on the roster pack — allowed, as the lounge is not load-bearing.
+- **The blood bank**: the gift, answering the call, and the applause move to tropes.
+- **Combat**: the unlawful kill and the fair duel move to tropes and gain the chooser's trait half.
+- **The work board**: breach and fulfilment.
+- **Kept animals**: petting and the bad meal; the bond's own mechanics stay.
+- **Introductions**: the regard bump moves to *Making an Acquaintance*.
+- **Every trade with a hand-written credit**: unchanged in behavior; counted by the ratchet. Rope's
+  knots and the medicine operations move onto their rows now.
 
 ## Surface decisions
 
-### What is in a trope row
-A name, a **cast** (roles, each narrowed by what it must be able to do), a **plot** of beats over those roles (including *never* beats — no payment), what it **writes** (traits for named roles, regard from witnesses or a role, renown), and a **reference** to where the idea came from. Names borrow well-known trope names where players know them; every definition is our own writing (TV Tropes' license forbids copying text).
+All settled in the slate; the product-level answers:
 
-### The beat vocabulary, this build
-give · exchange · take · return · harm · kill · yield · spare · promise · keep · break · confess — closed, kernel-defined, each with fixed roles. Authors write in beats and roles, never in the facts beneath them.
-
-### Asserted beats
-Where the world cannot see what happened, content **asserts a beat, never a trope**: a dialogue choice says *this is a confession, by the player, to the speaker*. The matcher treats an asserted beat exactly like a detected one.
-
-### Who counts as a witness
-Whoever could perceive the place when the act happened, captured with the act (today's combat already computes this and throws it away).
-
-### NPCs
-NPC acts fire tropes and write their traits like anyone's. Bodies acting are bodies acting.
-
-### Visibility
-A trope's trait write appears in `traits` and `chronicle` tagged with the trope's name; renown in `standing`. No new verb.
-
-### The starting roster (ships in this build)
-The Gift (blood) · Answering the Call · The Gift (goods) · The Gift (money) · Murder in Plain Sight · The Fair Fight · Sparing the Yielded · The Broken Promise · The Word Kept · Pet the Dog · The Bad Meal · The Confession (asserted). *Abandoning Ship* if its fact proves recorded at the chokepoint; otherwise it moves to the second build.
+- **What an act is** (§ 3.3): one character's choice or one happening of fortune, with who chose,
+  what changed and for whom, what it cost, whether it was free, what it follows from, and who saw it.
+  Machinery (moving, crossing, picking up) is not recorded.
+- **What names credit** (§ 3.2): the definition the act already uses; difficulty authored on it as a
+  default that a model may measure over; failure credited with its outcome.
+- **One mechanism** (§ 3.1): tropes are the only thing that characterizes — a solitary act is a
+  trope with one role.
+- **Beats** (§ 4): descriptive, few, with parameters and a price; detected beats are the kernel's,
+  asserted beats are rows.
+- **Tropes look back by asking the ledgers** (§ 3.4) — nothing is lost on a restart.
+- **Tellings** (§ 3.4): a closing trope keeps its telling in the chronicle, in the fiction; the
+  write is visible, never its value; it is announced only when surprising.
+- **NPCs** are characterized by their acts like anyone.
+- **The roster for this build** (§ 6): The Gift (blood; goods and money) · Answering the Call ·
+  Murder in Plain Sight · The Fair Fight · Sparing the Yielded · The Broken Promise · The Word Kept ·
+  Seeing It Through · Walking Off the Job · Tending the Stranger · Abandoning Ship · Pet the Dog ·
+  The Bad Meal · Making an Acquaintance · The Confession · The Slight · The Courtesy.
 
 ## Lens pass
 
-1. **Pedagogy** — a small closed beat vocabulary is learnable and derivable: a player can work out why giving blood made them more generous. Disciplines are untouched except that rope's credit becomes data.
-2. **Creative expression** — the ordinary case (a new trope, a dialogue confession) is rows only; the bespoke case (a new kind of beat) is a kernel change, deliberately rare. Gap: authors can't yet *see* what would fire in their content — the second build's surfaces.
-3. **Immersion / participation** — one trope writes both halves, so the fiction can't contradict itself (witnesses despise a killer whose character is unchanged). Participation: players can farm a trope — diminishing repetition is the answer; extortion read as a gift is the open intent risk, unaddressed because the matcher only reads what a beat can see.
-4. **Values** — which acts make someone *more compassionate* has no derivable answer; the roster decides it and says so, and every write names the trope that decided it, so it can be argued with.
-5. **Continuity** — acts record what changed, not what it meant, so they survive any re-reading; a gift is a gift in every epoch.
-6. **Economy** — produces no goods; consumes nothing. Who pays: nobody. The demand was there first — lineage needs trait leanings per workplace.
-7. **Governance** — a trope judges a person. Criterion: the trope's row, readable. Appeal: none in this build (gap — narration and the author surfaces are where it becomes contestable). Entrenchment: tier B (whoever ships the pack), since the rows are content.
+The full pass is slate § 4b. In short:
+
+1. **Pedagogy** — traits become derivable; every write cites its trope and act. Cost makes the
+   catalog safe to publish openly.
+2. **Creative expression** — the ordinary case is rows. Gap: authors write tropes blind until build
+   2's surfaces.
+3. **Immersion / participation** — one trope, both halves; tellings stay in the fiction and obey the
+   reading rules. Gap: collusion and alts, inherited.
+4. **Values** — the kernel holds no opinion; the roster is a pack and says what it values.
+5. **Continuity** — acts record what changed, not what it meant; any roster can re-read them.
+6. **Economy** — nothing produced or consumed; once traits gate anything economic, real cost is the
+   only defense against farming.
+7. **Governance** — the criterion is a readable row; every write cites its act; the intrinsic layer
+   has no adjudication by design, the social layer is where appeal belongs.
 
 ## The drive
 
@@ -97,42 +152,52 @@ The Gift (blood) · Answering the Call · The Gift (goods) · The Gift (money) �
 
 | # | pace · assert | step | should see |
 |---|---|---|---|
-| 1 | instant · player | Give blood at the bank in an ordinary week; `traits`, `chronicle`. | Generosity up, the chronicle line names *The Gift*. Same size as today. |
-| 2 | staged · staged | Stage the bank's stock short; give blood. | Generosity and compassion up, named *Answering the Call*; the applause still lands in `standing`. |
-| 3 | instant · player | `give` a good to another player. `traits` for the giver. | Generosity up, *The Gift*; the receiver's regard for the giver up. |
-| 4 | instant · player | Sell the same good for money instead. | No gift fires — an exchange. |
-| 5 | instant · player | `pay` another player with no sale or contract. | *The Gift* (money) fires for the payer. |
-| 6 | short · staged | Two players fight a consented duel to a yield while a third watches; the victor spares the yielded. | *The Fair Fight* (victor's boldness, the watcher's regard up) and *Sparing the Yielded*. |
-| 7 | instant · staged | A player kills an unconsenting NPC with a witness present. | *Murder in Plain Sight*: the killer's compassion down **and** the witness's regard down — the half that never moved before. |
-| 8 | short · player | Claim a job from the board and let it lapse; then claim and fulfil another. | *The Broken Promise* (constancy down, the issuer's regard down); *The Word Kept*. |
-| 9 | instant · player | Pet a kept animal five times. | *Pet the Dog* each time, each smaller than the last. |
-| 10 | instant · staged | Hand-feed an animal something that sickens it. | *The Bad Meal*: the animal's regard down, no trait change. |
-| 11 | instant · player | Talk to a lounge NPC and take the choice that used to raise regard; then one that confesses. | Regard moves as before; the confession fires *The Confession*. |
-| 12 | instant · staged | An NPC performs an act (staged: an NPC gives a good to a player). | The NPC's trait changes like a player's would. |
-| 13 | instant · staged | A scheduled tick acts on its own (an engagement completing while the player is idle). | The act is attributed to the right actor, not to nobody. |
-| 14 | instant · staged | **Restart the world.** `traits`, `chronicle`, `standing` for the drive's characters. | Every write from steps 1–12 comes back, still tagged with its trope. |
-| 15 | instant · player | Look at the bank, the board and the lounge in their own light. | No regression: lit, described as before (no new places in this build). |
+| 1 | instant · player | Give blood in an ordinary week; `traits`, `chronicle`, `standing`. | Generosity up; the applause in standing; same sizes as today. |
+| 2 | instant · staged | Stage the bank short; give blood. | *Answering the Call*: compassion up as well. |
+| 3 | instant · player | `give` a good to another player; then sell the same kind of good. | The gift: the giver's generosity, the receiver's regard. The sale: nothing. |
+| 4 | instant · player | `pay` another player with no sale or contract. | *The Gift* for the payer. |
+| 5 | short · staged | Two players fight a consented duel to a yield, a third watching; the victor spares. | *The Fair Fight* (boldness; the watcher's regard) and *Sparing the Yielded*. |
+| 6 | instant · staged | A player kills an unconsenting NPC with a witness present. | The killer's compassion down **and** the witness's regard down. |
+| 7 | short · player | Claim a job and let it lapse; claim and fulfil another. | *The Broken Promise* and *The Word Kept*. |
+| 8 | short · player | At a forge (or any trade), fail a hard piece of work, then finish one of the same kind. `competence`, `traits`. | The failure credited with its outcome; *Seeing It Through* — patience and diligence. |
+| 9 | instant · player | Start a piece of work and walk away from it. | *Walking Off the Job*. |
+| 10 | instant · player | Tie a knot; `competence`. | Ropework credited from the knot's own row; same as today. |
+| 11 | short · staged | Treat a wounded stranger (a staged NPC patient). | *Tending the Stranger*: the helper's compassion, the patient's regard; the patient is on the record. |
+| 12 | instant · player | Pet a kept animal five times; hand-feed one something that sickens it. | *Pet the Dog*, each smaller; *The Bad Meal*: the animal's regard down, no trait. |
+| 13 | instant · player | Introduce yourself to a lounge NPC; take a courteous choice, a rude one, and a confession. | Regard moves as before; the confession fires *The Confession*. |
+| 14 | instant · staged | An NPC gives a good to a player. | The NPC is characterized like a player. |
+| 15 | short · staged | Start work that finishes later while the player idles; read who it is attributed to. | The finish is the end of the player's act, attributed to the player, its cause the original choice. |
+| 16 | instant · staged | Remove the roster pack; give blood. | Nothing characterizes anyone; every trade still works. |
+| 17 | instant · staged | **Restart the world.** `traits`, `chronicle`, `standing`, `competence` for the drive's characters. | Every write is back, tagged with its trope; a look-back trope still completes across the restart. |
+| 18 | instant · player | Look at the bank, the work board, the forge and the lounge in their own light. | Lit and described as before (no new places). |
 
 ### Soak drive
 
 | # | pace | step | should see |
 |---|---|---|---|
-| S1 | span | A character gives blood every eight weeks for a game year. | Generosity rises and the repeat diminishes as the dial says; no drift. |
-| S2 | span | Pet the same animal daily for a season. | The diminishing curve flattens; the bond still grows by its own mechanics. |
+| S1 | span | Give blood every eight weeks for a game year. | Generosity rises and diminishes as the dial says; no drift. |
+| S2 | span | Pet the same animal daily for a season. | The curve flattens; the bond grows by its own mechanics. |
 
 ## Acceptance criteria
 
-- Every trait, regard and renown change a player can cause in the shipped game names the trope that made it.
-- The six shipped behaviors (blood gift, answering the call, unlawful kill, duel win, contract breach, bad meal) and the lounge dialogue move regard and traits in the same direction and at about the same size as before.
-- Killing in plain sight changes the killer's character, not just the witnesses' opinion.
-- A new trope over existing beats works when only rows are added — demonstrated by one roster trope added last with no code change.
-- A dialogue choice can assert a beat, and it fires tropes exactly as a detected beat would.
-- An NPC's acts characterize the NPC.
-- After a restart, every trope-made write is still there.
-- No new hand-written trait, regard or renown write can be merged; no new hand-written Discipline credit can be merged; rope's knots credit `ropework` from their rows.
+- Every trait, regard and renown change a player can cause names the trope that made it, and every
+  trait change traces to the act behind it.
+- The replaced behaviors (blood gift, answering the call, unlawful kill, fair duel, contract breach,
+  bad meal, petting, introductions, lounge dialogue) move the same people the same direction, at
+  about the same size.
+- Killing in plain sight changes the killer's character, not only the witnesses' opinion.
+- Failing at hard work and then finishing it makes a character more patient, in any trade.
+- A work act that finishes later belongs to the choice that began it, and to the person who made it.
+- A trope added as rows only works with no code change.
+- A dialogue choice asserting a beat fires tropes exactly as a detected one would.
+- NPCs are characterized by their acts.
+- With the roster pack absent, nothing characterizes anyone and every trade still runs.
+- After a restart, every trope write is there, and a trope that looks back still completes.
+- No hand-written trait, regard or renown write can merge; no new Discipline-by-name credit can
+  merge; rope's knots and the medicine operations credit from their rows.
 
 ## Cross-references
 
-- Seeding slate: [tropes-slate](../slates/engine/tropes-slate.md) (§ 9; reuse ledger § 10)
+- Seeding slate: [tropes-slate](../slates/engine/tropes-slate.md)
 - [trait-slate](../slates/engine/trait-slate.md) · [quest-modeling-slate](../slates/world/quest-modeling-slate.md) · [narration-slate](../slates/engine/narration-slate.md) · [lineage-slate](../slates/society/lineage-slate.md)
-- [trait.md](../subsystems/trait.md) · [advancement.md](../subsystems/advancement.md) · [belief.md](../subsystems/belief.md) · [renown.md](../subsystems/renown.md) · [accountability.md](../subsystems/accountability.md) · [measurement.md](../measurement.md)
+- [measurement.md](../measurement.md) (the reading rules, the two layers) · [trait.md](../subsystems/trait.md) · [advancement.md](../subsystems/advancement.md) · [belief.md](../subsystems/belief.md) · [renown.md](../subsystems/renown.md) · [accountability.md](../subsystems/accountability.md) · [chronicle.md](../subsystems/chronicle.md)
