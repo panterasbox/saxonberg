@@ -238,6 +238,14 @@ describe('rot and tar (D13′)', () => {
     expect(bare.effectiveKg()).toBeLessThan(bare.breakingKg());
   });
 
+  it('⭐ #139: the rot clock starts at the making — a rope nobody read through the wet days has rotted', async () => {
+    const r = rope(fiber('hemp', 4));
+    await r.onCreate(); // made now
+    r.wet(1);
+    now += 5 * DAY; // nobody looks
+    expect(r.getRot()).toBeGreaterThan(0);
+  });
+
   it('⭐ a wet coat of pitch sets as it cools', () => {
     const r = rope(fiber('hemp', 4));
     r.layCoat('outside', PITCH, 0.0005);

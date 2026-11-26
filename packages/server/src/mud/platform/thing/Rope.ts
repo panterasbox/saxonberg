@@ -262,6 +262,17 @@ export default class Rope extends CuttableMixin(
   /** Game-seconds rot was last reconciled; `0` = never. */
   public rotAt = 0;
 
+  /**
+   * ⚠ (#139) The rot clock starts at the MAKING, not at the first read: a
+   * rope nobody looked at through six wet days had aged nothing, so which
+   * of two ropes rotted depended on which a query returned first. A
+   * restored rope's own `rotAt` overwrites this stamp.
+   */
+  public override async onCreate(context?: unknown): Promise<void> {
+    await super.onCreate(context);
+    if (this.rotAt === 0) this.rotAt = nowSeconds() ?? 0;
+  }
+
   /** Laid down in a coil, ready to throw (D10). */
   public coiledDown = true;
 
