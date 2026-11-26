@@ -85,4 +85,18 @@ describe('#134 — a freezing can moved to nowhere', () => {
       process.off('unhandledRejection', onRejection);
     }
   });
+
+  it('a restamp that fails says so and never rejects — one object cannot take the world down', async () => {
+    const can = makeStuff(() => {
+      const c = new Can();
+      c.setName('can');
+      return c;
+    });
+    vi.spyOn(can, 'reconcileThermal').mockImplementation(() => {
+      throw new Error('a material read before it was loaded');
+    });
+    const said = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    await expect(can.restamp()).resolves.toBeUndefined();
+    expect(said).toHaveBeenCalled();
+  });
 });
