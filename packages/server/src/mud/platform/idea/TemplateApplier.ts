@@ -128,7 +128,10 @@ export default class TemplateApplier extends Idea {
    * `kind`, a part's name) is never a citation.
    */
   private static pathsIn(raw: unknown): string[] {
-    if (typeof raw === 'string') return raw.length > 0 ? [raw] : [];
+    // ⚠ (#136) A bare word is never a citation at the top level either:
+    // `roof: none` / `enclosure: none` named no row and logged an
+    // `ensureConstituent('none'): no such row` warning per place per boot.
+    if (typeof raw === 'string') return raw.startsWith('/') ? [raw] : [];
     const out: string[] = [];
     const top = Array.isArray(raw)
       ? raw
@@ -147,7 +150,7 @@ export default class TemplateApplier extends Idea {
     };
     for (const v of top) {
       if (typeof v === 'string') {
-        if (v.length > 0) out.push(v);
+        if (v.startsWith('/')) out.push(v);
       } else nested(v, 1);
     }
     return out;
