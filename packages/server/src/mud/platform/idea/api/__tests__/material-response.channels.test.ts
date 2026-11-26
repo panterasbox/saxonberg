@@ -274,10 +274,14 @@ describe('⭐⭐ ONE insulation number — the fold reads the garment\u2019s rea
     // The reconciliation is the INPUT. This is the garment's clo; the
     // covering fold reads it per blow, `bodyInsulation` sums it per body,
     // and the shed damping divides by it. Three readers, one derivation.
+    // ⭐ Worn, the layer also holds still air against the body
+    // (`textiles.clo.enclosedAir`, 0.5 local clo, the soak lane 2026-11-26)
+    // — a wearer's term, so the body's sum carries it and the shelf-true
+    // `getClo()` does not.
     const c = bodied();
     const g = realGarment(c, wool(), 1.5);
     expect(c.bodyInsulation().rawValue()).toBeCloseTo(
-      g.getClo().rawValue() * c.getSpecies()!.getBodyPlan()!.getBody().getPartSurfaceFraction('body.torso'),
+      (g.getClo().rawValue() + 0.5) * c.getSpecies()!.getBodyPlan()!.getBody().getPartSurfaceFraction('body.torso'),
       3,
     );
   });
