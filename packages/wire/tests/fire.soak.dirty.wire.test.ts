@@ -309,15 +309,20 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     // ⚠ (soak lane, 2026-11-26) Picked up first, one length at a time:
     // `put` takes only what you carry, and a count-less `get` takes the
     // yard's whole set, more than two hands.
-    const gotWood = await say(f, 'get 1 cordwood');
-    expect(refusedFor(gotWood), 'no cordwood to pick up in the yard').toBeNull();
     // ⭐⭐ Ceramics ruling A: `char` sets the draught, lights the clamp and
     // holds the watch; the cordwood chars because at 0.45 the heap is
     // starved (completeness ≈ 0.53, below the flaming dial) and every
     // length's own material says what three days of that makes of it.
-    const loaded = await say(f, 'put cordwood in clamp');
-    understood(loaded, 'put cordwood in clamp');
-    expect(refusedFor(loaded), 'the cordwood would not go into the clamp').toBeNull();
+    // ⭐ Four lengths — a clamp is a HEAP, and one length in it is not the
+    // authored scene (it went cold with the hazel unburnt, 2026-11-26).
+    // Drive 11 takes one of the yard's eight for the retort.
+    for (let i = 0; i < 4; i++) {
+      const gotWood = await say(f, 'get 1 cordwood');
+      expect(refusedFor(gotWood), 'no cordwood to pick up in the yard').toBeNull();
+      const loaded = await say(f, 'put cordwood in clamp');
+      understood(loaded, 'put cordwood in clamp');
+      expect(refusedFor(loaded), 'the cordwood would not go into the clamp').toBeNull();
+    }
     const charred = await say(f, 'char 0.45');
     understood(charred, 'char 0.45');
     expect(refusedFor(charred), 'the clamp would not light').toBeNull();
