@@ -238,9 +238,9 @@ describe('rot and tar (D13′)', () => {
     expect(bare.effectiveKg()).toBeLessThan(bare.breakingKg());
   });
 
-  it('⭐ #139: the rot clock starts at the making — a rope nobody read through the wet days has rotted', async () => {
+  it('⭐ #139: the rot clock starts where the rope first stands — a rope nobody read through the wet days has rotted', () => {
     const r = rope(fiber('hemp', 4));
-    await r.onCreate(); // made now
+    ContainmentApi.move(r as never, makeStuffAtPath(() => new Location(), '/test/rope/wet-yard') as never); // made, and lands
     r.wet(1);
     now += 5 * DAY; // nobody looks
     expect(r.getRot()).toBeGreaterThan(0);

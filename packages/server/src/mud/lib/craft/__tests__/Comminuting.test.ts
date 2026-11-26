@@ -475,8 +475,7 @@ describe("⭐ #144 — a long hand grind is the body's share, not a refusal", ()
     const sack = grainLump(15);
     const actor = body(10 * 60); // ten minutes of work in the arms: 2.5 kg
     const answer = await m.millPlanFor(actor, sack);
-    expect(answer.ok).toBe(true);
-    if (!answer.ok) return;
+    if (answer === null || !answer.ok) throw new Error(`refused: ${JSON.stringify(answer)}`);
     expect(answer.durationMs / 1000).toBeLessThanOrEqual(10 * 60 + 1e-6);
     expect(answer.durationMs / 1000).toBeGreaterThan(9 * 60);
     const done = await answer.onComplete();
@@ -489,6 +488,7 @@ describe("⭐ #144 — a long hand grind is the body's share, not a refusal", ()
     const m = mill({ feedTags: ["grain"] });
     const sack = grainLump(1);
     const answer = await m.millPlanFor(body(3600), sack);
-    expect(answer.ok && answer.durationMs).toBeCloseTo((1 / 0.25) * 60 * 1000, 3);
+    if (answer === null || !answer.ok) throw new Error(`refused: ${JSON.stringify(answer)}`);
+    expect(answer.durationMs).toBeCloseTo((1 / 0.25) * 60 * 1000, 3);
   });
 });
