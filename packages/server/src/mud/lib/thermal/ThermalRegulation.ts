@@ -1133,7 +1133,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         rec.elapsed += elapsedSec;
         // Ectotherm cold → torpor (immobilize, NOT lethal); endotherm cold
         // → hypothermia (lethal dwell).
-        if (!ecto && rec.elapsed >= D.THERMAL_LETHAL_SEC) {
+        // ⚠ Neglect kills only a body somebody answers for (`diesOfNeglect`):
+        // the world's cast shivers and is impaired, and lives.
+        if (!ecto && rec.elapsed >= D.THERMAL_LETHAL_SEC && host.diesOfNeglect()) {
           host.beginDying("hypothermia", THERMAL_DEFAULTS.DYING_WINDOW_SEC);
           return;
         }
@@ -1171,7 +1173,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         // survivable maximum — being ill is not the same as dying of it,
         // and a body that sits at 313 K indefinitely is miserable rather
         // than doomed.
-        if (core > band.survivableMax && rec.elapsed >= D.THERMAL_LETHAL_SEC) {
+        if (core > band.survivableMax && rec.elapsed >= D.THERMAL_LETHAL_SEC && host.diesOfNeglect()) {
           host.beginDying("hyperthermia", THERMAL_DEFAULTS.DYING_WINDOW_SEC);
           return;
         }
