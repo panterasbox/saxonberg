@@ -388,6 +388,19 @@ describe('Ship — flooding, settling, sinking (harbors B5)', () => {
     expect(ship.isSettled()).toBe(false);
   });
 
+  it('⭐ #143: a hull left from sound with nobody looking — the helm reads the water first, and she is on the mud', async () => {
+    const ship = await mint('h143');
+    vi.spyOn(ship, 'bottomDepthM').mockResolvedValue(1.5);
+    await ship.reconcileBilge(); // sound, stamped — and nothing reconciles her again
+    const { deck } = await roomsOf(ship);
+    await personIn(deck as unknown as Stuff & Container, people);
+    now = T0 + 40 * DAY; // a neglected season at a mud berth
+    expect(ship.isSettled(), 'nothing has read her yet').toBe(false);
+    const answer = await ship.steer({ toward: 'x' } as never);
+    expect(answer).toEqual({ refused: expect.stringMatching(/settled onto the mud/) });
+    expect(ship.isSettled()).toBe(true);
+  });
+
   it('⭐⭐ AC: nothing fails over a weekend away — a neglected season has her gone', async () => {
     const ship = await mint('wk');
     await ship.reconcileBilge(); // sound, stamped
