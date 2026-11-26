@@ -199,7 +199,7 @@ suite('4 — client state FORKS through the circle door', () => {
      *
      *   - the Duncan Hall dorm room — a KEYED residence, one instance
      *     per unit parcel. A `startLocation` stands the room up but NOT
-     *     its `props:`, so `here:c` is EMPTY, there is no wardrobe
+     *     its `props:`, so `~here:c` is EMPTY, there is no wardrobe
      *     object, and therefore no crossing exit: `go wardrobe` answers
      *     `locomotion-gate-failed / exit-mode / walk`. The fixtures
      *     arrive with provisioning (Katie), which is the residence
@@ -227,7 +227,7 @@ suite('4 — client state FORKS through the circle door', () => {
         'the preference is set outside — the real half of this step',
       ).toMatch(/build/i);
 
-      const nearby = await fen.query('here:c', { fields: ['displayName'] });
+      const nearby = await fen.query('~here:c', { fields: ['displayName'] });
       const crossed = await fen.cmd('go wardrobe');
 
       if (crossed.status !== 'ok') {

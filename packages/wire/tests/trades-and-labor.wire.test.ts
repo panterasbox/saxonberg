@@ -80,7 +80,7 @@ suite('3 — read a help-wanted sign nobody authored as a prop', () => {
   }, 180_000);
 
   it('⚠ and it is nowhere in the room CONTENTS — there is no sign object', async () => {
-    const rows = await store.query('here:i', { fields: ['displayName'] });
+    const rows = await store.query('~here:i', { fields: ['displayName'] });
     const names = rows
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');

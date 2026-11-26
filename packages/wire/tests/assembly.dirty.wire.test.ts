@@ -133,7 +133,7 @@ async function examine(s: Session, keyword: string): Promise<string> {
 
 /** Everything in reach, by name — the room and what you carry. */
 async function inReach(s: Session): Promise<string> {
-  const rows = await s.query('reachable', { fields: 'detail' });
+  const rows = await s.query('~reachable', { fields: 'detail' });
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(', ');
 }
 
@@ -216,7 +216,7 @@ async function buy(s: Session, item: string, n = 1): Promise<void> {
 async function untilRestocked(s: Session, keyword: string, atLeast: number, ms = 120_000): Promise<void> {
   const until = Date.now() + ms;
   while (Date.now() < until) {
-    const rows = await s.query(`here:i:i:[keyword.${keyword}]`, { fields: 'detail' }).catch(() => []);
+    const rows = await s.query(`~here:i:i:[keyword.${keyword}]`, { fields: 'detail' }).catch(() => []);
     const held = (rows as Array<{ displayName?: unknown; quantity?: unknown }>).reduce((n, r) => {
       const q = Number(r.quantity ?? NaN);
       if (Number.isFinite(q)) return n + q;

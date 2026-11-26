@@ -686,7 +686,7 @@ suite('7 — nothing a check decided changed', () => {
     it('6 — the loaded world stops inside 30 s having saved everything, and comes back with all of it', async () => {
       expect(workers.length).toBe(30);
       for (const w of workers) {
-        const here = await w.queryOne('here', ['displayName']);
+        const here = await w.queryOne('~here', ['displayName']);
         const holds = (await w.query('me:i', { fields: ['displayName'] }))
           .map((x) => String((x as { displayName?: string }).displayName ?? ''))
           .sort()
@@ -707,7 +707,7 @@ suite('7 — nothing a check decided changed', () => {
       for (const [h, was] of before) {
         const s = await Session.open(h, {});
         try {
-          const here = await s.queryOne('here', ['displayName']);
+          const here = await s.queryOne('~here', ['displayName']);
           const holds = (await s.query('me:i', { fields: ['displayName'] }))
             .map((x) => String((x as { displayName?: string }).displayName ?? ''))
             .sort()

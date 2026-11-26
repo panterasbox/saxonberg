@@ -314,7 +314,7 @@ async function holds(s: Session, mql: string): Promise<string> {
 async function lookHere(s: Session): Promise<string> {
   await s.drainProse();
   const room = squash(await s.prose('look here'));
-  const floor = await examine(s, 'here:floor');
+  const floor = await examine(s, '~here:floor');
   return `${room} || ${floor}`;
 }
 
@@ -1553,7 +1553,7 @@ suite('⭐⭐ restart — every state reads back (AC 11)', () => {
 
 /** Ids of what matches `kw` here (or a full MQL when it has a colon). */
 async function idsHere(s: Session, kw: string): Promise<string[]> {
-  const q = kw.includes(':') ? kw : `here:i:${kw}`;
+  const q = kw.includes(':') ? kw : `~here:i:${kw}`;
   const rows = await s.query(q, { fields: ['displayName'] }).catch(() => []);
   return rows.map((r) => String((r as { stuffId?: unknown }).stuffId ?? '')).filter((x) => x !== '');
 }

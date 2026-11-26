@@ -71,7 +71,7 @@ suite('who is still standing there', () => {
   const ROOM = APPROACH;
   /** Is this body standing where `witness` is? Asked by id: a stranger reads as "a human". */
   const standing = async (witness: Session, stuffId: string): Promise<boolean> =>
-    (await witness.query('here:i', { fields: 'ref' })).some((r) => r.stuffId === stuffId);
+    (await witness.query('~here:i', { fields: 'ref' })).some((r) => r.stuffId === stuffId);
 
   it('signing out takes the body and what it carried, and logging in brings both back once', async () => {
     const witness = await Session.open(uniqueHandle('crowd-witness'), { startLocation: ROOM });

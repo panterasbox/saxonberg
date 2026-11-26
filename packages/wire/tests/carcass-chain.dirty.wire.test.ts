@@ -282,7 +282,7 @@ async function carried(s: Session): Promise<string> {
 
 /** What is on the floor here. */
 async function hereNames(s: Session): Promise<string> {
-  const rows = await s.query('here:i', { fields: ['displayName'] });
+  const rows = await s.query('~here:i', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
@@ -544,7 +544,7 @@ suite('1–3. a flock, a book, and one head out of it', () => {
   }, 120_000);
 
   it('⭐ 2. the book names a flock and a tally', async () => {
-    // ⚠⚠ `here:i:flockbook` — SCOPED, and the reachability sweep is why.
+    // ⚠⚠ `~here:i:flockbook` — SCOPED, and the reachability sweep is why.
     // That sweep hung two more herdbooks on this shelf (the ox register,
     // which `draft` is afforded by and which was propped nowhere, and the
     // hen tally, because the realm had no chicken at all). `look`'s
@@ -564,7 +564,7 @@ suite('1–3. a flock, a book, and one head out of it', () => {
     // ⭐ The lesson, which is the whole drive discipline in one line:
     // **name what you mean.** A unique keyword costs nothing and a loose
     // read costs the next person who adds an object to the room.
-    const said = await read(k, 'look here:i:flockbook');
+    const said = await read(k, 'look ~here:i:flockbook');
     expect(said).toMatch(/column|number|lambed|ruled/i);
   }, 120_000);
 
@@ -726,7 +726,7 @@ suite('⭐⭐⭐ 6. slaughter — the wave the build turns on', () => {
     // herdbooks hang on that shelf since the reachability sweep, and a
     // loose `look flock book` raises a disambiguation prompt a wire
     // session cannot answer.
-    const said = await read(k, 'look here:i:flockbook');
+    const said = await read(k, 'look ~here:i:flockbook');
     expect(said.length).toBeGreaterThan(20);
   }, 120_000);
 });
@@ -1560,7 +1560,7 @@ suite('⚠ regressions — nothing a player could do before has stopped', () => 
     await ensureDaylight(k);
     await k.drainProse();
     // ⚠ Scoped — the third of three in this file. See checkpoint 2.
-    const book = await read(k, 'look here:i:flockbook');
+    const book = await read(k, 'look ~here:i:flockbook');
     expect(book).toMatch(/column|number|lambed|ruled|eleven|11|nine|10/i);
   }, 180_000);
 

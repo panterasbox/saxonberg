@@ -123,7 +123,7 @@ async function look(s: Session, what = 'here'): Promise<string> {
 }
 
 async function where(s: Session): Promise<string> {
-  return JSON.stringify(await s.query('here', { fields: 'ref' }));
+  return JSON.stringify(await s.query('~here', { fields: 'ref' }));
 }
 
 const dressed = new Set<string>();

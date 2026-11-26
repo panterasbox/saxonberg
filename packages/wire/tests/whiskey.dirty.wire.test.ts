@@ -250,7 +250,7 @@ async function waitForDaylight(s: Session): Promise<void> {
 let stillId = '';
 async function stillRef(s: Session): Promise<string> {
   if (!stillId) {
-    const rows = (await s.query('here:i:[keyword.still]', {
+    const rows = (await s.query('~here:i:[keyword.still]', {
       fields: ['displayName'],
     })) as Array<{ stuffId?: string; displayName?: string }>;
     const pot = rows.find((r) => /pot still/i.test(String(r.displayName ?? '')));
@@ -327,7 +327,7 @@ async function millGristInPortions(): Promise<void> {
   const sacks = await k.query('me:I:[keyword.malt]', { fields: ['displayName'] });
   const sack = (sacks as Array<{ stuffId?: string }>)[0]?.stuffId;
   expect(sack, `no malt carried: ${await carried(k)}`).toBeTruthy();
-  const empties = (await k.query('here:i:[keyword.empty]', {
+  const empties = (await k.query('~here:i:[keyword.empty]', {
     fields: ['displayName'],
   })) as Array<{ stuffId?: string; displayName?: string }>;
   const hopper = empties.find((r) =>
@@ -359,7 +359,7 @@ async function millGristInPortions(): Promise<void> {
 
   // Each grind lands its own sack on the floor; the mash takes its grist
   // from one holder, so tip them into the first.
-  const grist = (await k.query('here:i:[keyword.grist]', {
+  const grist = (await k.query('~here:i:[keyword.grist]', {
     fields: ['displayName'],
   })) as Array<{ stuffId?: string }>;
   expect(grist.length, `no grist after the grind: ${await carried(k)}`).toBeGreaterThan(0);
@@ -409,15 +409,15 @@ suite('⭐ 0. the still-house floor is reachable and furnished', () => {
       );
     }
     // The three vessels and the maltings this build placed.
-    // ⛔⛔ `here:c` — which this file used and which **is not an
+    // ⛔⛔ `~here:c` — which this file used and which **is not an
     // operator**. MQL's descend is `:i` (`mql-grammar.md` § Chain
     // operator); a bareword in chain position FILTERS BY KEYWORD, so
-    // `here:c` asked for things in this room whose keyword is "c" and
+    // `~here:c` asked for things in this room whose keyword is "c" and
     // got the room back. Every name this checkpoint claimed to read was
     // therefore read off one string — the room's own display name — and
     // the assertion could only ever have passed for words that happen to
     // appear in it. Found by the styles drive, which copied the idiom.
-    const names = await k.query('here:i', { fields: ['displayName'] });
+    const names = await k.query('~here:i', { fields: ['displayName'] });
     const all = names
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')

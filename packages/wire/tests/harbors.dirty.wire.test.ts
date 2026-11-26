@@ -469,7 +469,7 @@ const stones: string[] = [];
 
 /** The ids of the `kw` things lying here — so a drive names the one it means (`#<id>`). */
 async function idsHere(s: Session, kw: string): Promise<string[]> {
-  const rows = await s.query(`here:i:${kw}`, { fields: ['displayName'] });
+  const rows = await s.query(`~here:i:${kw}`, { fields: ['displayName'] });
   return rows.map((r) => String((r as { stuffId?: unknown }).stuffId ?? '')).filter((x) => x !== '');
 }
 
@@ -548,7 +548,7 @@ async function act(s: Session, line: string): Promise<{ r: CommandResult; said: 
  * steps 22–23). The underwater drive's `stroke`, verbatim in shape.
  */
 async function cross(s: Session, line: string): Promise<{ r: CommandResult; said: string }> {
-  const where = async (): Promise<string> => JSON.stringify(await s.query('here', { fields: 'ref' }));
+  const where = async (): Promise<string> => JSON.stringify(await s.query('~here', { fields: 'ref' }));
   const before = await where();
   await s.drainProse();
   let r = await s.cmd(line);

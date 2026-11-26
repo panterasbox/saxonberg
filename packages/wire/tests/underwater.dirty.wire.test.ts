@@ -86,7 +86,7 @@ async function breathe(...ss: Session[]): Promise<void> {
  * underwater review), so wait until you are THERE before the next act.
  */
 async function stroke(s: Session, verb: 'descend' | 'ascend'): Promise<Awaited<ReturnType<Session['cmd']>>> {
-  const where = async () => JSON.stringify(await s.query('here', { fields: 'ref' }));
+  const where = async () => JSON.stringify(await s.query('~here', { fields: 'ref' }));
   const before = await where();
   const r = await s.cmd(verb);
   if (r.status !== 'ok') return r;

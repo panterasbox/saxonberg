@@ -152,7 +152,7 @@ describe('1. a new player creates a character', () => {
     a = await Session.embody(aHandle, { name: aName });
     // Coin in hand — disbursed, not minted (the supply line does not move
     // for it; the perpetual's purchase is what moves it).
-    const coins = await a.query('inventory:i:[keyword.coin]');
+    const coins = await a.query('~inventory:i:[keyword.coin]');
     expect(coins.length).toBeGreaterThan(0);
     // The wallet lists the paper, in words, with no digits in the terms.
     const wallet = await a.prose('wallet');
@@ -213,7 +213,7 @@ describe('2. the cash-and-carry', () => {
     // Twenty banked, eight for the crate.
     const bought = await a.prose('buy limes');
     expect(bought).toMatch(/You buy/);
-    expect((await a.query('inventory:i:[keyword.limes]')).length).toBe(1);
+    expect((await a.query('~inventory:i:[keyword.limes]')).length).toBe(1);
     // The shop's book, as its keeper: the crates still up are what it owes
     // the farm — and the one just sold is not on it (the farm was paid).
     expectOk(await founder.cmd(`house appoint me to keeper at ${DISTRIBUTOR}`));

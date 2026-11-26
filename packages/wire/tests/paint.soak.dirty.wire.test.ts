@@ -96,7 +96,7 @@ suite('paint — the soak drive', () => {
     await say(s, 'dip rags in ochre paint');
     await say(s, 'north');
     await say(s, 'north');
-    expect(JSON.stringify(await s.query('here', { fields: 'ref' }))).toContain(SHED);
+    expect(JSON.stringify(await s.query('~here', { fields: 'ref' }))).toContain(SHED);
     await say(s, 'drop rags');
     s.close();
     await days(40);

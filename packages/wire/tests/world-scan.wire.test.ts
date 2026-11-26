@@ -245,7 +245,7 @@ suite('the plumbing', () => {
     // locomotion (`{gate: "exit-mode"}` — a Warren-wired way with no
     // authored `media`), which the old vacuous `if` hid. That is the
     // residence substrate's, tracked at `base-class-narrowing-slate` § L9.
-    const before = await player.queryOne('here', ['displayName']);
+    const before = await player.queryOne('~here', ['displayName']);
     const r = await player.cmd(`walk ${EXITS.plaza.shop}`);
     expect(
       (r.notes ?? []).some(
@@ -256,7 +256,7 @@ suite('the plumbing', () => {
       `\`walk\` stopped being a verb: ${why(r)}`,
     ).toBe(false);
     expect(r.status, `walking the plaza's way east: ${why(r)}`).toBe('ok');
-    const after = await player.queryOne('here', ['displayName']);
+    const after = await player.queryOne('~here', ['displayName']);
     expect(after, 'the walk did not move the player').not.toEqual(before);
 
     // The mode roster (`allModes`) is a path glob; a broken read would
@@ -340,11 +340,11 @@ suite('the plumbing', () => {
     // where).
     const handle = uniqueHandle('scan-return');
     const first = await Session.open(handle, { startLocation: HALL });
-    const before = await first.queryOne('here', ['displayName']);
+    const before = await first.queryOne('~here', ['displayName']);
     first.close();
 
     const second = await Session.open(handle);
-    const after = await second.queryOne('here', ['displayName']);
+    const after = await second.queryOne('~here', ['displayName']);
     second.close();
 
     expect(after).toEqual(before);

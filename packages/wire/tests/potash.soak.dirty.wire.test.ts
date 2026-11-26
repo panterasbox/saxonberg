@@ -190,7 +190,7 @@ async function examine(s: Session, q: string): Promise<string> {
   );
 }
 
-/** The things in a scope (`here:i`, `me:i`, `pit:i`) whose name matches. */
+/** The things in a scope (`~here:i`, `me:i`, `pit:i`) whose name matches. */
 async function named(s: Session, scope: string, name: RegExp): Promise<{ displayName: string; longDescription: string; mass?: { value: number } }[]> {
   const rows = (await s.query(scope, { fields: 'detail' }).catch(() => [])) as unknown as {
     displayName?: string;
@@ -224,7 +224,7 @@ async function inside(s: Session, vessel: string, name: RegExp): Promise<number>
  * hopper, a pot or a kiln; each held thing is read by `#id` instead.
  */
 async function heldIn(s: Session, vessel: RegExp, name: RegExp): Promise<{ id: string; name: string; kg: number }[][]> {
-  const rows = (await s.query('here:i', { fields: 'detail' }).catch(() => [])) as unknown as {
+  const rows = (await s.query('~here:i', { fields: 'detail' }).catch(() => [])) as unknown as {
     displayName?: string;
     contents?: { stuffId?: string; displayName?: string }[];
   }[];
@@ -305,7 +305,7 @@ async function advance(duration: string): Promise<void> {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
       const ok = await probe
-        .query('here', { fields: ['displayName'] })
+        .query('~here', { fields: ['displayName'] })
         .then(() => true)
         .catch(() => false);
       if (ok) break;
@@ -372,7 +372,7 @@ async function brashOf(handle: string, species: string, bundles: number): Promis
   // ⭐ The state, not the line: the trunk is down and the brash is on the ground.
   let brash = 0;
   for (let i = 0; i < 10 && brash < bundles; i++) {
-    brash = await count(s, 'here:i', /brash/i);
+    brash = await count(s, '~here:i', /brash/i);
     if (brash < bundles) await new Promise((r) => setTimeout(r, 2_000));
   }
   expect(brash, `brash after felling ${species}`).toBeGreaterThanOrEqual(bundles);
@@ -615,7 +615,7 @@ suite('⭐ drive 6–8 — the leach, the egg, a second pass, and hard water (AC
 
 /** The two pots and what is in them. */
 async function pots(s: Session): Promise<{ name: string; holds: string[]; liquor: string }[]> {
-  const rows = (await s.query('here:i', { fields: 'detail' }).catch(() => [])) as unknown as {
+  const rows = (await s.query('~here:i', { fields: 'detail' }).catch(() => [])) as unknown as {
     displayName?: string;
     contents?: { displayName?: string; mass?: { value: number } }[];
     longDescription?: string;
@@ -877,7 +877,7 @@ suite('⭐ drive 13–16 — town ash sold, the ash-man\'s round, a wash with po
     let w = await goTo(handle, STORE);
     await advance('15 minutes');
     await w.listen(10_000).catch(() => '');
-    const atStore = await count(w, 'here:i', /ash-man/i);
+    const atStore = await count(w, '~here:i', /ash-man/i);
     w.close();
     expect(atStore, 'the ash-man at his first stop (the general store, 7–9)').toBe(1);
     // The rest of his stops, to the dyehouse (13–15); then what he carries

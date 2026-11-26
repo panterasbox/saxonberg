@@ -138,13 +138,13 @@ suite('the regression step — nothing about an ordinary clone moved', () => {
     // ⚠ The testbed hall's long description names its own fixtures, so a
     // fixture name in `look` would pass on the prose alone. The prose
     // proves the room's `data` applied; the two fixtures are read off the
-    // room's CONTENTS (`here:i`), which only its `props:` put there.
+    // room's CONTENTS (`~here:i`), which only its `props:` put there.
     const player = await standIn(HALL, 'hyd-play');
     open.push(player);
     const said = (await say(player, 'look')).toLowerCase();
     expect(said.length).toBeGreaterThan(40);
     expect(said.replace(/\s+/g, ' '), 'the authored long description').toContain('a plain hall, lit by a lamp');
-    const contents = (await player.query('here:i', { fields: ['displayName'] }))
+    const contents = (await player.query('~here:i', { fields: ['displayName'] }))
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')
       .toLowerCase();

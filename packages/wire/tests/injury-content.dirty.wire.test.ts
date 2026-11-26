@@ -186,7 +186,7 @@ suite('⭐⭐ steps 15-16 — the caustic and the verb that stops it', () => {
     // A consequence with no available response is a punishment, not a
     // system. There was no water source anywhere in newbie-wilds before
     // this build, so a caustic could not have been rinsed off at all.
-    const here = await player.query('reachable', { fields: ['displayName'] });
+    const here = await player.query('~reachable', { fields: ['displayName'] });
     const names = here
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')

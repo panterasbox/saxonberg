@@ -299,7 +299,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ S2 — a curing house’s season', () 
     // ── the refiner's days ── watched in real time (a brain acts on beats,
     // and a jump runs none), the nights jumped. Five working days: a strike
     // a shift, each seeded with a piece and left to cure.
-    const loavesBefore = (await examine(s, 'here:i')).match(/loaf/gi)?.length ?? 0;
+    const loavesBefore = (await examine(s, '~here:i')).match(/loaf/gi)?.length ?? 0;
     let seeded = '';
     for (let day = 0; day < 5; day++) {
       await toHour(7);
@@ -315,8 +315,8 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ S2 — a curing house’s season', () 
     // Four days of curing for the last strike.
     await advanceLiving('4 days', [s]);
     s = await at(s.handle, CURING);
-    const curing = await examine(s, 'here:i');
-    const floor = await examine((s = await at(s.handle, BOILING)), 'here:i');
+    const curing = await examine(s, '~here:i');
+    const floor = await examine((s = await at(s.handle, BOILING)), '~here:i');
     const loaves = `${curing} ${floor}`.match(/loaf/gi)?.length ?? 0;
     note(`  [S2] loaves: ${loavesBefore} → ${loaves}`);
     expect(loaves, 'the refiner cured no loaves in five working days').toBeGreaterThan(loavesBefore);

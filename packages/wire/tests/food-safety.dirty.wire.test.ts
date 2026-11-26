@@ -73,7 +73,7 @@ afterAll(() => cook?.close());
 
 suite('the larder, as shipped', () => {
   it('a carcass hangs there, and a knife to take it apart with', async () => {
-    const rows = await cook.query('peers', { fields: ['displayName'] });
+    const rows = await cook.query('~peers', { fields: ['displayName'] });
     const names = rows
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');

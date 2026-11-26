@@ -121,7 +121,7 @@ suite('the valley is reachable, and the road was promised', () => {
     // `AddressRegistry` walks `/stuff/idea/Locality/` only. A row in the
     // pack would be invisible and every ground seed, reach and address
     // in the valley would read from nothing.
-    const rows = await p.query('here', { fields: ['displayName'] });
+    const rows = await p.query('~here', { fields: ['displayName'] });
     expect(rows.length).toBeGreaterThan(0);
   }, 120_000);
 });
@@ -137,7 +137,7 @@ suite('the farm is somebody’s, and it is finite', () => {
 
   it('⭐ the barn holds a COUNTABLE stock — a source node, not a faucet', async () => {
     expectOk(await p.cmd('go north'));
-    const rows = await p.query('here:i', { fields: ['displayName'] });
+    const rows = await p.query('~here:i', { fields: ['displayName'] });
     const sacks = rows.filter((r) =>
       String((r as { displayName?: string }).displayName ?? '')
         .toLowerCase()
@@ -195,7 +195,7 @@ suite('the mill', () => {
 
   it('⭐⭐⭐ milling produces FLOUR and BRAN, and the input is gone', async () => {
     expectOk(await p.cmd('drop wheat'));
-    const before = await p.query('here:i', { fields: ['displayName'] });
+    const before = await p.query('~here:i', { fields: ['displayName'] });
     // ⚠⚠ `expectOk`, not "the status is defined". The first cut of this
     // checkpoint accepted any dispatch, and it sat green for two review
     // rounds over a `mill` that DECLINED every time — the controller read
@@ -206,7 +206,7 @@ suite('the mill', () => {
     // The water mill claims no slot, so the grind is on the game clock;
     // what this asserts is that the command was accepted and the world
     // is different, not the timing.
-    const after = await p.query('here:i', { fields: ['displayName'] });
+    const after = await p.query('~here:i', { fields: ['displayName'] });
     expect(after.length).toBeGreaterThanOrEqual(before.length - 1);
   }, 180_000);
 

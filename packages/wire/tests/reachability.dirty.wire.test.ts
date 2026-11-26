@@ -222,7 +222,7 @@ async function held(s: Session): Promise<number> {
 
 /** What stands loose in the room, as one lowercase line. */
 async function standing(s: Session): Promise<string> {
-  const rows = await s.query('here:i', { fields: ['displayName'] });
+  const rows = await s.query('~here:i', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ')
@@ -258,7 +258,7 @@ async function expectBought(
 
 /** The room's template path — the state read for a move. */
 async function whereAmI(s: Session): Promise<string> {
-  const rows = await s.query('here', { fields: ['displayName'] });
+  const rows = await s.query('~here', { fields: ['displayName'] });
   return String((rows[0] as { displayName?: string })?.displayName ?? '');
 }
 
@@ -710,7 +710,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // alternation passed on the wrong object. ⭐ A test that passes on
     // something adjacent to what it is about is the exact shape this
     // whole build exists to find.
-    const shelf = await farmer.query('here:i', { fields: ['displayName'] });
+    const shelf = await farmer.query('~here:i', { fields: ['displayName'] });
     const names = shelf
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')
@@ -776,7 +776,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
       // cascade of *no dispatch-response*, which is the SECOND time this
       // file learned it. ⭐ The state change is the honest read anyway:
       // the food left the hand, so it is in the vessel.
-      const inHopper = await k.query('here:i:hopper:i', { fields: ['displayName'] });
+      const inHopper = await k.query('~here:i:hopper:i', { fields: ['displayName'] });
       expect(
         JSON.stringify(inHopper),
         'the rations went into the hopper',
@@ -817,7 +817,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // ⚠ By QUERY and by the row's own name, for the reasons step 15
     // gives: the yard is dark at boot, and a prose alternation can pass
     // on the wrong object.
-    const shelf = await farmer.query('here:i', { fields: ['displayName'] });
+    const shelf = await farmer.query('~here:i', { fields: ['displayName'] });
     const names = shelf
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')
@@ -862,7 +862,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
     // ⭐ And the two rows are STANDING, not merely described — a query,
     // because being mentioned in prose is exactly the thing arm R
     // refuses to count as reachability.
-    const standing = await walker.query('here:i', { fields: ['displayName'] });
+    const standing = await walker.query('~here:i', { fields: ['displayName'] });
     const names = standing
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')
@@ -884,7 +884,7 @@ suite('15–22. rows that shipped and nobody could meet', () => {
       // feet), where `me:i` does not reach. `me:i:jar` bound the glowcap
       // (finalize, run 15) — the test's scope, not a binding regression.
       // Carried, or set down at your feet when the hands were full.
-      const where = /honey/i.test(await carried(k)) ? 'me:I:honey' : 'here:i:honey';
+      const where = /honey/i.test(await carried(k)) ? 'me:I:honey' : '~here:i:honey';
       expect(await look(k, where), 'the jar is not empty').toMatch(
         /honey|cloudy|full/i,
       );

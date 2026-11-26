@@ -150,7 +150,7 @@ suite('⭐ the fuel yard — the coppice is ready, and it is hazel', () => {
     const said = await c.prose('look panel');
     expect(said).toMatch(/The stools are ready to cut\./);
     expect(said).not.toMatch(/seedling/i);
-    const stools = await c.query('here:i:panel:i');
+    const stools = await c.query('~here:i:panel:i');
     expect(stools).toHaveLength(6);
   }, 60_000);
 
@@ -241,11 +241,11 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     // The acorn is the LAST thing the felling mints, so it is the landed
     // predicate — the logs land before it.
     await act(f, 'fell oak with axe', async () => (await f.query('me:i:[keyword.acorn]')).length >= 1);
-    const bole = await f.queryOne('here:i:[keyword.bole]', ['bulkMaterial', 'mass']);
+    const bole = await f.queryOne('~here:i:[keyword.bole]', ['bulkMaterial', 'mass']);
     expect(bole, 'no bole on the floor').not.toBeNull();
     expect((bole as { bulkMaterial?: { templatePath?: string } }).bulkMaterial?.templatePath).toBe(OAK);
     expect((bole as { mass?: { value: number } }).mass?.value).toBe(675);
-    const logs = await f.query('here:i:[keyword.log]');
+    const logs = await f.query('~here:i:[keyword.log]');
     expect(logs).toHaveLength(4);
     const acorn = await f.query('me:i:[keyword.acorn]');
     expect(acorn).toHaveLength(1);
@@ -278,7 +278,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
      * sets, so what is driven is the carry and the mine's own act.
      */
     await walk(f, ['south', 'south', 'southwest', 'south', 'south', 'south', 'west']);
-    const here = await f.queryOne('here', ['displayName']);
+    const here = await f.queryOne('~here', ['displayName']);
     expect(String((here as { displayName?: string })?.displayName)).toMatch(/drift/i);
     const carried = await f.query('me:i:[keyword.timber]');
     expect(carried).toHaveLength(2);
@@ -303,7 +303,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     await walk(f, ['east', 'north', 'north', 'north', 'north', 'north', 'north']);
     expectOk(await f.cmd('get log'));
     await walk(f, ['south', 'south', 'southwest', 'south', 'northeast', 'east']);
-    const here = await f.queryOne('here', ['displayName']);
+    const here = await f.queryOne('~here', ['displayName']);
     expect(String((here as { displayName?: string })?.displayName)).toMatch(/smelter/i);
     const lit = await f.cmd('light log');
     expectOkOr(lit, 'already-burning');
@@ -340,8 +340,8 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
 
   it('12. ⭐⭐ run it out: fell until the clearing refuses in words about the wood; the prose is byte-identical; the ride is untouched', async () => {
     for (let i = 0; i < 12; i += 1) {
-      const before = (await f.query('here:i:[keyword.bole]')).length;
-      await act(f, 'fell oak with axe', async () => (await f.query('here:i:[keyword.bole]')).length > before);
+      const before = (await f.query('~here:i:[keyword.bole]')).length;
+      await act(f, 'fell oak with axe', async () => (await f.query('~here:i:[keyword.bole]')).length > before);
     }
     const refused = await f.cmd('fell oak with axe');
     expectNote(refused, 'refused', { reason: '/trade/forestry/reasons/stand-empty' });
@@ -352,8 +352,8 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     expect(standCount(said, 'Ash')).toBe(4);
     // …until it does not.
     for (let i = 0; i < 4; i += 1) {
-      const before = (await f.query('here:i:[keyword.bole]')).length;
-      await act(f, 'fell ash with axe', async () => (await f.query('here:i:[keyword.bole]')).length > before);
+      const before = (await f.query('~here:i:[keyword.bole]')).length;
+      await act(f, 'fell ash with axe', async () => (await f.query('~here:i:[keyword.bole]')).length > before);
     }
     expectNote(await f.cmd('fell ash'), 'refused', { reason: '/trade/forestry/reasons/stand-empty' });
     expectNote(await f.cmd('fell'), 'refused', { reason: '/trade/forestry/reasons/stand-empty' });

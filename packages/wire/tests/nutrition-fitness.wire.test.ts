@@ -451,7 +451,7 @@ suite('10 · reach', () => {
     // Where H stands, by the place query: H's \`look\` has twice gone
     // unanswered here on one tree while a fresh body's answered in 220 ms
     // (recorded in the drive record); the claim is the arrival, not the room.
-    expect(String((await H.queryOne('here', ['displayName']))?.displayName ?? '')).toMatch(/shaft foot/i);
+    expect(String((await H.queryOne('~here', ['displayName']))?.displayName ?? '')).toMatch(/shaft foot/i);
   }, 120_000);
 });
 
