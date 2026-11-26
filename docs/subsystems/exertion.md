@@ -145,6 +145,15 @@ refuse at the same line, so a spent body cannot start what it could not
 finish; a spent body in a fight keeps exchanging at zero further cost
 with its poise and tempo already reading its endurance.
 
+⭐ **A long act is sized to the body, not refused for its total** (#144,
+the soak lane). A hand act whose WHOLE cost is past the spent line but
+which divides — grain through a quern — takes the share the body can
+finish (*"Your arms give out before the grain does; the rest stays in the
+sack"*), and rest brings the next share. Refusing the whole made any long
+hand act a wall no rest could lift (a fresh body could never mill a 15 kg
+sack). The refusal stays for an act that cannot be divided, and for a body
+already too spent for the least share.
+
 ## ⭐ Feedback — the body as words, at the moment it changes
 
 No hit points, no meter — and a player still needs to know, in real

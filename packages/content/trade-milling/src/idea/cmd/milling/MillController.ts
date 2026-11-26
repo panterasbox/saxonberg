@@ -119,7 +119,13 @@ export default class MillController extends CommandController<MillModel> {
           peers: Mml.compose`${Mml.actor(giver)} sets the stones turning.`,
         };
       case 'ground':
-        return null;
+        // ⭐ (#144) A body's share: the arms gave out before the sack did.
+        return f.partial
+          ? {
+              self: Mml.compose`Your arms give out before the grain does; the rest stays in ${f.sourceName} for when you have your breath back.`,
+              peers: null,
+            }
+          : null;
       case 'recipe':
         return {
           // A solid is swept up off the bed; a grind that fills a vessel

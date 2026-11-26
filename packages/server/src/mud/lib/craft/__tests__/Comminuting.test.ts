@@ -9,7 +9,8 @@
  */
 
 import "../../../../test-bootstrap";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { MixinApi } from "../../../api/mixin";
 import Good from "../../stuff/Good";
 import Material from "../../material/Material";
 import { ComminutingMixin } from "../Comminuting";
@@ -441,5 +442,53 @@ describe("the products table — a mill makes what it is fed", () => {
     // shipped rows author the specific tags, never `grain`.
     expect(m.planComminution({ kg: 1, materialPath: MALT, gradeBand: "" }, 1)
       .productMaterial).toBe(FLOUR);
+  });
+});
+
+describe("⭐ #144 — a long hand grind is the body's share, not a refusal", () => {
+  const GRAIN = "/stuff/idea/material/food/test-grain";
+
+  function grainLump(kg: number): Good {
+    const grain = makeStuffAtPath(() => {
+      const m = new Material();
+      m.setName("grain");
+      m.setDensity(Quantity.of(700, "kg/m³"));
+      m.setTags(["grain"]);
+      return m;
+    }, GRAIN);
+    const g = makeStuff(() => new Good());
+    g.setMaterial(grain);
+    g.setMass(Quantity.of(kg, "kg"));
+    return g;
+  }
+
+  /** A body that can keep up the work for `maxS` game-seconds. */
+  function body(maxS: number) {
+    const actor = makeStuff(() => new Good());
+    vi.spyOn(MixinApi, "isExerting").mockImplementation(((s: unknown) => s === actor) as never);
+    (actor as unknown as { canExert: (w: number, s: number) => boolean }).canExert = (_w, s) => s <= maxS;
+    return actor;
+  }
+
+  it("a sack too big for one sitting grinds what the arms will finish, and the rest stays", async () => {
+    const m = mill({ feedTags: ["grain"] });
+    const sack = grainLump(15);
+    const actor = body(10 * 60); // ten minutes of work in the arms: 2.5 kg
+    const answer = await m.millPlanFor(actor, sack);
+    expect(answer.ok).toBe(true);
+    if (!answer.ok) return;
+    expect(answer.durationMs / 1000).toBeLessThanOrEqual(10 * 60 + 1e-6);
+    expect(answer.durationMs / 1000).toBeGreaterThan(9 * 60);
+    const done = await answer.onComplete();
+    expect(done.ok && done.facts.kind === "ground" && done.facts.partial).toBe(true);
+    expect(sack.isDestroyed()).toBe(false);
+    expect(sack.getMass().rawValue()).toBeCloseTo(12.5, 1);
+  });
+
+  it("a sack within one sitting is the whole act, as before", async () => {
+    const m = mill({ feedTags: ["grain"] });
+    const sack = grainLump(1);
+    const answer = await m.millPlanFor(body(3600), sack);
+    expect(answer.ok && answer.durationMs).toBeCloseTo((1 / 0.25) * 60 * 1000, 3);
   });
 });
