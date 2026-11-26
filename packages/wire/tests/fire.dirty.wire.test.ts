@@ -135,18 +135,16 @@ function misunderstood(r: { notes: readonly unknown[] }): string | null {
 
 /**
  * ⭐ The condenser stands ON the retort — read off `look retort`'s own
- * `On it:` heading (the Placement row's), never assumed. ⚠ (soak repair
- * 2026-11-17) The drive used to `put condenser on retort`, which can
- * never work: the condenser is a 90 kg yard prop and `put` takes only
- * what you carry, so the line failed a validator and passed. The
- * condenser has to be AUTHORED standing on the retort.
+ * `On it:` heading (the Placement row's), never assumed. ⚠ (#145) It is
+ * set up by the player: carried dry it is 20 kg, picked up and `put … on`
+ * the retort (drive 11). At 90 kg it could never be, and every firing ran
+ * bare.
  */
 async function condenserStandsOnRetort(s: Session): Promise<void> {
   const retort = (await s.prose('look retort')).replace(/<[^>]*>/g, '');
   expect(
     retort,
-    'the condenser does not stand on the retort — the fuel yard lists it ' +
-      'loose in `props:`, and a 90 kg prop cannot be `put` from the ground',
+    'the condenser does not stand on the retort — drive 11 puts it there',
   ).toMatch(/On it:[\s\S]*condenser/i);
 }
 
@@ -329,6 +327,13 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     understood(stoked, 'stoke charcoal into retort');
     const lit = await say(f, 'light retort');
     understood(lit, 'light retort');
+    // ⭐ (#145) The chain is set up by hand: the condenser onto the
+    // retort's head, before the charge goes in.
+    const lifted = await say(f, 'get condenser');
+    expect(refusedFor(lifted), 'the condenser could not be picked up').toBeNull();
+    const seated = await say(f, 'put condenser on retort');
+    understood(seated, 'put condenser on retort');
+    expect(refusedFor(seated), 'the condenser would not go on the retort').toBeNull();
 
     // ⭐ Load it with the yard's own cordwood — the SAME charge the
     // clamp takes, which is the point. ⚠ (soak repair 2026-11-17) Picked
@@ -402,8 +407,8 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     // boil there; this line proves the verb routes (the swap itself is
     // Thermal.purify.test.ts's claim). ⚠ (soak repair 2026-11-17) The
     // vessel that holds the tar is the condenser, and it is on the fire
-    // only if it stands on the retort — `put condenser on retort` was a
-    // false pass (a 90 kg prop is never in hand), so READ where it stands.
+    // only if it stands on the retort (drive 11 put it there) — READ where
+    // it stands.
     await condenserStandsOnRetort(f);
   }, 180_000);
 });

@@ -18,7 +18,11 @@ data:
     along its whole length, ending in a tar-black receiver with a tap in
     the bottom of it.
   _materialPath: /stuff/idea/material/element/copper
-  mass: 90
+  # ⚠ (#145) Carried DRY: a copper worm and its wooden jacket, which two
+  # hands can lift (setting the chain up is the player's act — the fuel
+  # yard's comment says so). At 90 kg nobody could ever `put` it on the
+  # retort, and every firing ran bare.
+  mass: 20
   interiorBulk: true
   interiorCapacity: 40
   # Liquid-tight and no more: a condenser is open to the air by design —
