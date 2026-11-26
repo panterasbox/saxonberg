@@ -263,9 +263,12 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ S1 — a cask over three fills', () =>
       gives.push(oak);
       memory.push(mem);
       note(`  [S1] fill ${fill}: oak in the spirit ${oak} OU; the wall remembers ${mem} mg/L`);
-      // Emptied for the next fill.
-      const poured = await say(s, `pour #${cask} into "slop bucket"`);
-      if (!/pour/i.test(poured)) await say(s, `spill #${cask}`);
+      // Emptied for the next fill. ⚠ (#153) Spilled, not poured into the
+      // slop bucket: it holds 10 L and the cask 20, so the pour answered ok
+      // with half the oaked spirit still in the wood, and fill 2 began there.
+      await say(s, `spill #${cask}`);
+      const left = await evalOn(s, TERMINUS, TAG.cask, `JSON.stringify({ left: this.getBulkAmount('interior').rawValue() })`);
+      expect(left, 'the cask was not emptied for the next fill').toEqual({ left: 0 });
     }
     expect(gives[1]!, `the second fill took as much oak: ${gives.join(' → ')}`).toBeLessThan(gives[0]!);
     expect(gives[2]!, `the third fill took as much oak: ${gives.join(' → ')}`).toBeLessThan(gives[1]!);

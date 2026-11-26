@@ -2316,7 +2316,20 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         ) => void;
       }).onMoved;
       if (typeof sup === "function") sup.call(this, from, to);
-      void this.restamp();
+      // ⚠ (#134) Moved to NOWHERE: there is no ambient to drift toward, and
+      // catching the clock up here would run a freeze with no place for what
+      // sets (`DetachedError`). The next placement restamps where it stands.
+      if (to === null) return;
+      // Detached: one object's restamp must never reject unhandled — that
+      // took the whole world down (#134). Said loudly, never swallowed.
+      this.restamp().catch((err: unknown) => {
+        console.error(`ThermalMixin.onMoved: the restamp of ${this.thermalHost.stuffId} failed:`, err);
+        void DiagnosticApi.record({
+          path: null,
+          message: `ThermalMixin.onMoved: restamp failed: ${err instanceof Error ? err.message : String(err)}`,
+          stack: err instanceof Error ? (err.stack ?? null) : null,
+        }).catch(() => undefined);
+      });
     }
 
     // ---------- internal reads ----------
