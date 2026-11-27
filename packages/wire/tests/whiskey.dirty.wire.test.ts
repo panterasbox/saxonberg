@@ -344,17 +344,25 @@ async function millGristInPortions(): Promise<void> {
     expectOk(
       await say(k, `pour #${sack} into #${hopper} --amount ${MALT_PORTION_L}L`),
     );
-    let milling = await say(k, `mill #${hopper} at quern`);
-    if (refusedFor(milling) === 'too-tired') {
-      await rest('8 hours');
-      milling = await say(k, `mill #${hopper} at quern`);
+    // ⭐ (#144) A tired body grinds the share its arms will finish and the
+    // rest stays in the hopper — "Your arms give out before the grain does"
+    // — so she rests and goes again until the portion is through.
+    for (let go = 0; go < 4; go++) {
+      let milling = await say(k, `mill #${hopper} at quern`);
+      if (refusedFor(milling) === 'too-tired') {
+        await rest('8 hours');
+        milling = await say(k, `mill #${hopper} at quern`);
+      }
+      const id = engagementIdOf(milling);
+      // A quern grinds a quarter-kilo a game-minute: a portion is six
+      // minutes of cranking, carried by the clock.
+      await advance('15 minutes');
+      if (id) await k.awaitActivity(id, 120_000);
+      await new Promise((r) => setTimeout(r, 500));
+      const after = await k.listen(1_000);
+      if (!/arms give out/i.test(`${await milling.said()} ${after}`)) break;
+      await rest('1 hour');
     }
-    const id = engagementIdOf(milling);
-    // A quern grinds a quarter-kilo a game-minute: a portion is six
-    // minutes of cranking, carried by the clock.
-    await advance('15 minutes');
-    if (id) await k.awaitActivity(id, 120_000);
-    await new Promise((r) => setTimeout(r, 500));
   }
 
   // Each grind lands its own sack on the floor; the mash takes its grist
