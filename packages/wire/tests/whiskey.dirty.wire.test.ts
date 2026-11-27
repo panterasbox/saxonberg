@@ -286,8 +286,12 @@ async function rest(duration: string): Promise<void> {
  * wash-mash wants 4 L of it in ONE holder, so the sacks are tipped
  * together at the end.
  */
-const MALT_PORTION_L = 2.5;
-const MALT_PORTIONS = 3;
+// ⚠ (soak lane, 2026-11-26) A portion is what ONE sitting finishes: 1.5 L
+// (~0.9 kg, under four minutes, about half a fresh body's endurance). At
+// 2.5 L the arms gave out mid-portion (#144's share), every share cost a
+// rest and a ration, and the rations ran out before the body recovered.
+const MALT_PORTION_L = 1.5;
+const MALT_PORTIONS = 4;
 
 async function millGristInPortions(): Promise<void> {
   // The rations first — a working body eats, and the store is the
@@ -594,6 +598,14 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
     // vat reads.
     // ⚠ (soak repair 2026-11-16) The order is ASSERTED: a mash refused
     // for want of grist used to pass on whatever the vat already read.
+    // ⚠ (soak lane, 2026-11-26) The mash is the house's: somebody on
+    // shift makes it (`no-maker` with nobody tending), so it is ordered in
+    // the working day — ten in the morning, as the hand keeps it.
+    const into = (((await worldClockNow()) % 86_400) + 86_400) % 86_400;
+    if (into < 9 * 3_600 || into > 16 * 3_600) {
+      const ahead = (10 * 3_600 - into + 86_400) % 86_400;
+      await advance(`${Math.round(ahead / 60)} minutes`);
+    }
     const mashed = await say(k, 'order wash-mash');
     expectOk(mashed);
     await settle(k, mashed);

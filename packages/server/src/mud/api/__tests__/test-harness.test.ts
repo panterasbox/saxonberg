@@ -16,6 +16,7 @@ import { SecurityApi } from '../security';
 import { StuffApi } from '../stuff';
 import Material from '../../lib/material/Material';
 import { PersistableApi } from '../persistable';
+import { PersistApi } from '../persist';
 import { GovernmentApi } from '../government';
 import ShipRegister from '../../platform/idea/ShipRegister';
 import Ship from '../../platform/idea/Ship';
@@ -57,6 +58,14 @@ describe('TestHarnessApi', () => {
   });
 
   describe('advanceClock — the line is one game day', () => {
+    // ⚠ The settle waits for no persistence op in flight for 500 ms; a unit
+    // world with no database can leave one in flight after a two-day jump,
+    // and the wait ran into the 5 s timeout (the soak lane's suite,
+    // 2026-11-26). Nothing here asserts the settle beyond its type.
+    beforeEach(() => {
+      vi.spyOn(PersistApi, 'whenQuiet').mockResolvedValue(true);
+    });
+    afterEach(() => vi.restoreAllMocks());
     it('a day or less moves the clock', async () => {
       const a = await TestHarnessApi.advanceClock('20 hours');
       expect(a.after - a.before).toBeCloseTo(20 * 3600, 3);
