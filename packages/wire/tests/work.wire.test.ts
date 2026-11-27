@@ -107,7 +107,7 @@ afterAll(() => {
 
 suite('the boss funds himself and posts a gig', () => {
   it('the plaza has a noticeboard', async () => {
-    const rows = await b.query('peers', { fields: ['displayName'] });
+    const rows = await b.query('~peers', { fields: ['displayName'] });
     expect(
       rows
         .map((r) => String((r as { displayName?: string }).displayName ?? ''))

@@ -64,7 +64,7 @@ async function look(s: Session, what = 'look here'): Promise<string> {
 
 /** Where a session is now: the room's own words, which a moving place changes. */
 async function here(s: Session): Promise<string> {
-  return JSON.stringify(await s.query('here', { fields: 'ref' }));
+  return JSON.stringify(await s.query('~here', { fields: 'ref' }));
 }
 
 /** Wait until the session is somewhere else (a timed swim lands), bounded. */

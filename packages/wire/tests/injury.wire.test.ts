@@ -149,7 +149,7 @@ suite('step 3 — the wolf is there, and it is armed', () => {
     // user; bite/worry moved to the species, where a fact about wolves
     // belongs. If the species row failed to parse, the wolf is unarmed
     // and nothing in the newbie wilds can wound anybody — silently.
-    const wolves = await player.query('reachable', {
+    const wolves = await player.query('~reachable', {
       fields: ['displayName'],
     });
     const names = wolves

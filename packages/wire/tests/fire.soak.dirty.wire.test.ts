@@ -53,6 +53,8 @@ import {
   expectOk,
   engagementIdOf,
   advanceWorldClock,
+  worldClockNow,
+  hand,
 } from '../src/harness';
 
 /**
@@ -291,20 +293,36 @@ suite('⭐⭐⭐ 9. a fire in a sealed cellar warns you, then smothers', () => {
 suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products', () => {
   let f: Session;
   beforeAll(async () => {
+    // ⚠ (soak lane, 2026-11-26) In daylight: the yard is open hill, and at
+    // night `look retort` reads "something" with nothing on it to see.
+    const now = await worldClockNow();
+    const h = (now % 86_400) / 3600;
+    const ahead = (10 - h + 24) % 24;
+    if (ahead > 0.05) await advanceWorldClock(`${Math.round(ahead * 60)} minutes`);
     f = await Session.open(uniqueHandle('collier'), {
       startLocation: FUEL_YARD,
     });
-  }, 180_000);
+  }, 600_000);
   afterAll(() => f?.close());
 
   it('⭐ drive 10 — the clamp chars, by the WOOD’s own transition', async () => {
+    // ⚠ (soak lane, 2026-11-26) Picked up first, one length at a time:
+    // `put` takes only what you carry, and a count-less `get` takes the
+    // yard's whole set, more than two hands.
     // ⭐⭐ Ceramics ruling A: `char` sets the draught, lights the clamp and
     // holds the watch; the cordwood chars because at 0.45 the heap is
     // starved (completeness ≈ 0.53, below the flaming dial) and every
     // length's own material says what three days of that makes of it.
-    const loaded = await say(f, 'put cordwood in clamp');
-    understood(loaded, 'put cordwood in clamp');
-    expect(refusedFor(loaded), 'the cordwood would not go into the clamp').toBeNull();
+    // ⭐ Four lengths — a clamp is a HEAP, and one length in it is not the
+    // authored scene (it went cold with the hazel unburnt, 2026-11-26).
+    // Drive 11 takes one of the yard's eight for the retort.
+    for (let i = 0; i < 4; i++) {
+      const gotWood = await say(f, 'get 1 cordwood');
+      expect(refusedFor(gotWood), 'no cordwood to pick up in the yard').toBeNull();
+      const loaded = await say(f, 'put cordwood in clamp');
+      understood(loaded, 'put cordwood in clamp');
+      expect(refusedFor(loaded), 'the cordwood would not go into the clamp').toBeNull();
+    }
     const charred = await say(f, 'char 0.45');
     understood(charred, 'char 0.45');
     expect(refusedFor(charred), 'the clamp would not light').toBeNull();
@@ -317,14 +335,22 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   }, 300_000);
 
   it('⭐⭐ drive 11 — the retort is HERE, it fires shut, and the condenser fills', async () => {
-    const stoked = await say(f, 'stoke charcoal into retort');
+    // ⚠ (soak lane, 2026-11-26) A basket of charcoal of the collier's own,
+    // stoked by id: the CLAMP answers to `charcoal` too (and after drive 10
+    // it holds charcoal), so `stoke charcoal` bound the wrong thing.
+    const basket = await hand(f, '/trade/fuel/thing/charcoal');
+    const stoked = await say(f, `stoke #${basket} into retort`);
     understood(stoked, 'stoke charcoal into retort');
+    expect(refusedFor(stoked), 'the retort would not take the charcoal').toBeNull();
     const lit = await say(f, 'light retort');
     understood(lit, 'light retort');
 
     // ⚠ The reachability link the plan flagged as most likely to die
     // silently: a Placement member naming no row makes `place` refuse in
-    // the vocabulary's own phrase. `on` is a shipped row.
+    // the vocabulary's own phrase. `on` is a shipped row. ⭐ (#145) Carried
+    // dry, the condenser is picked up first — `put` takes what you hold.
+    const lifted = await say(f, 'get condenser');
+    expect(refusedFor(lifted), 'the condenser could not be picked up').toBeNull();
     const placed = await say(f, 'put condenser on retort');
     understood(placed, 'put condenser on retort');
     expect(refusedFor(placed), 'the condenser will not stand on the retort')
@@ -332,6 +358,8 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
 
     // ⭐ Load it with the yard's own cordwood — the SAME charge the
     // clamp takes, which is the point.
+    const got = await say(f, 'get 1 cordwood');
+    expect(refusedFor(got), 'no cordwood to pick up in the yard').toBeNull();
     const put = await say(f, 'put cordwood in retort');
     understood(put, 'put cordwood in retort');
     // ⚠ `fire IN retort`, with the preposition — the `kiln` arg is
@@ -383,12 +411,12 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
   it('⭐ drive 13 — tar boils to pitch through the shipped arrow', async () => {
     // Zero code: `purifiedByBoiling` is the arrow between two authored
     // materials, and the phase engine fires it once the tar has been held
-    // at its boil. ⭐ There is no `boil` (controllers-are-io D8c): `heat`
-    // sets the vessel on the fire and the pot holds at the boil; this line
-    // proves the verb routes (the swap itself is Thermal.purify.test.ts's
-    // claim).
-    const boiled = await say(f, 'heat condenser');
-    understood(boiled, 'heat condenser');
+    // at its boil. ⭐ There is no `boil` (controllers-are-io D8c) and no
+    // `heat <pot>` (controller liquidity W7c): a vessel is SET ON the fire,
+    // and the condenser is on it when it stands on the retort (drive 11).
+    // READ where it stands (the swap itself is Thermal.purify.test.ts's).
+    const retort = (await f.prose('look retort')).replace(/<[^>]*>/g, '');
+    expect(retort, 'the condenser does not stand on the retort').toMatch(/On it:[\s\S]*condenser/i);
   }, 180_000);
 });
 

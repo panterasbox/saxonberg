@@ -520,6 +520,20 @@ weave does not, so the same wool insulates differently by how it was
 made. `A_covered` comes from the garment's own `slotClaims`, so it
 states its `clo` **with no wearer** (the inspection card needs that).
 
+⭐⭐ **A WORN layer also holds still air against the body**
+(`textiles.clo.enclosedAir`, 0.5 local clo per layer; the soak lane,
+2026-11-26). Most of what clothing is worth is not the cloth: a linen
+shirt's own 0.3 mm derives ~0.04 clo, where the standard tables put a
+shirt near 0.25 clo whole-body — because of the air it traps. Without the
+term a shipped outfit summed to **0.07 clo**, naked by the cold bench (which
+always assumed 0.6 for shirt and trousers and 1.0 for the cast's outfit),
+and once resident bodies integrated continuously every Cast in the realm
+was dead of the cold by morning. The term is the WEARER'S, like the fit
+penalty: `Attired.insulationAt` adds it per worn layer (scaled by the same
+fit factor, and lost as the layer's own wetness rises), and the
+wearer-free `getClo()` — the shelf card, the covering fold — is the cloth
+alone.
+
 ⭐ **Wet cloth is a different object.** Water floods the loft, and the
 loft is where the insulation lived — `k_water` is 23× `k_air`. Wet wool
 retains more than wet linen because `waterAbsorptionCapacity` differs

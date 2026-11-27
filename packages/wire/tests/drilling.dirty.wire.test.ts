@@ -440,7 +440,7 @@ suite("1. the kit comes off the claims office's hire rack", () => {
       refusedFor(liner),
       `a third big thing went somewhere with both hands full: ${JSON.stringify(liner.notes)}`,
     ).not.toBeNull();
-    const onRack = (await k.query('here:I', { fields: ['displayName'] }))
+    const onRack = (await k.query('~here:I', { fields: ['displayName'] }))
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');
     expect(onRack, `the rack still holds: ${onRack}`).toMatch(/liner/i);

@@ -742,7 +742,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     await read(p, 'inventory');
     // What a person does: pick up a cut, put it in the trough, until the
     // field has none left or the trough has six. (⚠ The harness query
-    // `here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —
+    // `~here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —
     // so the count is the acts, not a query.)
     let forked = 0;
     for (let i = 0; i < 6; i++) {

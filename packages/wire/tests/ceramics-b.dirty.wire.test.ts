@@ -131,7 +131,7 @@ async function advance(duration: string): Promise<void> {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
       const ok = await probe
-        .query('here', { fields: ['displayName'] })
+        .query('~here', { fields: ['displayName'] })
         .then(() => true)
         .catch(() => false);
       if (ok) break;

@@ -2432,6 +2432,10 @@ export const AppSettingKeys = {
   /** Textiles — surface share assumed for a garment whose `slotClaims`
    * resolve to no body plan (a fixture, a stock row). */
   textilesCloDefaultCoveredFraction: "textiles.clo.defaultCoveredFraction",
+  /** Textiles — the still air one worn layer holds against the body,
+   * in local clo (the soak lane, 2026-11-26): most of what clothing is
+   * worth, and the fabric-only `t / k` left it out. */
+  textilesCloEnclosedAir: "textiles.clo.enclosedAir",
   /** Textiles — the `waterAbsorptionCapacity` (%) at which a soaked
    * material's loft counts as fully flooded. Wool sits at 33 and linen
    * at 20, so this is what decides how far apart wet wool and wet linen
@@ -3280,6 +3284,7 @@ export const AppSettingTiers: Readonly<
   waterFouledAt: "B",
   textilesCloReferenceSurfaceM2: "B",
   textilesCloDefaultCoveredFraction: "B",
+  textilesCloEnclosedAir: "B",
   textilesCloAbsorptionReference: "B",
   textilesFitLoosenessCloPenalty: "B",
   textilesWindproofWeight: "B",

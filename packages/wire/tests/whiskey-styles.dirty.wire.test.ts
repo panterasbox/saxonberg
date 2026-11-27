@@ -186,17 +186,17 @@ function refusedFor(r: { notes: readonly unknown[] }): string | null {
 /**
  * Everything in the room, by display name, lowercased.
  *
- * ⛔⛔ **`here:i`, not `here:c`.** Two shipped wire drives used `here:c`
+ * ⛔⛔ **`~here:i`, not `~here:c`.** Two shipped wire drives used `~here:c`
  * believing it meant *contents*; it is not an operator at all. MQL's
  * descend is `:i` (`mql-grammar.md` § Chain operator) and a bareword in
- * chain position **filters by keyword** — so `here:c` asked for things
+ * chain position **filters by keyword** — so `~here:c` asked for things
  * in the room whose keyword is "c", got the ROOM back, and every name
  * the assertion claimed to read was read off one string: the room's own
  * display name. It could only ever pass for words that happen to appear
  * in it. This drive copied the idiom and that is how it was found.
  */
 async function hereNames(s: Session): Promise<string> {
-  const rows = await s.query('here:i', { fields: ['displayName'] });
+  const rows = await s.query('~here:i', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ')
@@ -454,7 +454,7 @@ suite.skipIf(!isOwnedTestWorld())(
       // there. ⭐ That is worth knowing about `look` in a dressed room
       // and it is NOT a defect of this build; what the build owes is two
       // casks a player can tell apart, which is what this asserts.
-      const rows = await k.query('here:i', { fields: ['displayName'] });
+      const rows = await k.query('~here:i', { fields: ['displayName'] });
       const names = rows.map((r) =>
         String((r as { displayName?: string }).displayName ?? '').toLowerCase(),
       );

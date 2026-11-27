@@ -175,7 +175,7 @@ suite('the chain — the fuel yard and the smelter are PLACES', () => {
   it('the smelter is one room east, and it is a real place', async () => {
     expectOk(await f.cmd('east'));
     await f.drainProse();
-    const here = await f.queryOne('here', ['displayName']);
+    const here = await f.queryOne('~here', ['displayName']);
     expect(String((here as { displayName?: string })?.displayName)).toMatch(
       /smelter|furnace|slag/i
     );

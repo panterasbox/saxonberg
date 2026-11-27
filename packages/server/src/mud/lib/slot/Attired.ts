@@ -428,6 +428,12 @@ function depthOf(occupant: Stuff): number {
 /** How much insulation a fully loose garment loses to its air gaps. */
 const LOOSENESS_CLO_PENALTY = 0.35;
 
+/**
+ * The still air one worn layer holds against the body, local clo — the
+ * `textiles.clo.enclosedAir` dial's fallback (the soak lane, 2026-11-26).
+ */
+const ENCLOSED_AIR_CLO = 0.5;
+
 /** Band-ranks a fully conspicuous (or fully quiet) covering is worth. */
 const COVERING_CONCEALMENT_WEIGHT = 1.5;
 
@@ -917,7 +923,16 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
         // point is being wearer-free.
         const fit = asStuff.fitOn(self);
         const factor = Math.max(0, 1 - fit.looseness * penalty);
-        clo += asStuff.getClo().rawValue() * factor;
+        // ⭐ And the still air the layer holds against the body (the soak
+        // lane, 2026-11-26) — most of what a garment is worth, and like the
+        // fit it needs the WEARER, so it lands here and never in the
+        // shelf-true `getClo()`. The cloth's own `t / k` is ~0.04 clo for a
+        // linen shirt: a shipped outfit read 0.07 clo (naked, by the cold
+        // bench) and every Cast was dead of the cold by morning. A soaked
+        // layer holds water there instead.
+        const wet = MixinApi.isWet(asStuff) ? asStuff.getWetness() : 0;
+        const enclosed = dial(AppSettingKeys.textilesCloEnclosedAir, ENCLOSED_AIR_CLO) * Math.max(0, 1 - wet);
+        clo += (asStuff.getClo().rawValue() + enclosed) * factor;
       }
       return Quantity.of(clo, 'clo');
     }

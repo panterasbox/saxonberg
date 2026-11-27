@@ -223,7 +223,7 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
 
   it('7. [instant · player] the room card and `look` agree on a way’s state', async () => {
     const at = await session(uniqueHandle('bdcard'), LIT_SIDE);
-    const here = await at.queryOne('here', ['exits']);
+    const here = await at.queryOne('~here', ['exits']);
     const exits = ((here as unknown as { exits?: unknown })?.exits ??
       (here as unknown as { fields?: { exits?: unknown } })?.fields?.exits) as
       | Array<{ direction: string; state: string; crossesZone: boolean; boundary?: { name: string } }>
@@ -240,7 +240,7 @@ suite.skipIf(!isOwnedTestWorld())('the boundary — blocking drive', () => {
     // Lock it (staged) and both read `locked`.
     await stage(DOOR, 'setOpen', false);
     await stage(DOOR, 'setLocked', true);
-    const again = await at.queryOne('here', ['exits']);
+    const again = await at.queryOne('~here', ['exits']);
     const again2 = ((again as unknown as { exits?: unknown })?.exits ??
       (again as unknown as { fields?: { exits?: unknown } })?.fields?.exits) as
       | Array<{ direction: string; state: string }>

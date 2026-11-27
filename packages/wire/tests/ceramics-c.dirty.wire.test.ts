@@ -128,7 +128,7 @@ async function advance(duration: string): Promise<void> {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
       const ok = await probe
-        .query('here', { fields: ['displayName'] })
+        .query('~here', { fields: ['displayName'] })
         .then(() => true)
         .catch(() => false);
       if (ok) break;
@@ -182,12 +182,12 @@ async function held(s: Session): Promise<string> {
  * thrown piece lands in the thrower's hands only while a hand is free.
  */
 async function withMe(s: Session): Promise<string> {
-  const here = await s.query('here:i', { fields: ['displayName'] }).catch(() => []);
+  const here = await s.query('~here:i', { fields: ['displayName'] }).catch(() => []);
   return `${await held(s)} | ${here.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(' | ')}`;
 }
 
 /** The two places a made piece can be: carried, or set down at the maker's feet. */
-const onOrBy = (key: string): string[] => [`me:I:${key}`, `here:i:${key}`];
+const onOrBy = (key: string): string[] => [`me:I:${key}`, `~here:i:${key}`];
 
 /**
  * ⭐ Set down what is in the hands, each by id (size and carrying, MR !576):
@@ -811,7 +811,7 @@ suite('⭐ 18 — glaze', () => {
     // crock answers to "pot" too, and run 37 loaded ashpot into the hot kiln
     // (20b then found no ashpot) — and only ones in reach (on the boards or
     // in hand), not still in the kiln from 17.
-    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:I'))]);
+    const reach = new Set([...(await idsIn(potter, '~here:i')), ...(await idsIn(potter, 'me:I'))]);
     for (const ware of ['mug', 'jar', 'bowl', 'pot']) {
       let piece: string | undefined;
       for (const id of made[ware] ?? []) {
@@ -945,7 +945,7 @@ suite('⭐ 21 — the weeping jar', () => {
       await say(potter, `get #${id} from kiln`);
       await say(potter, `drop #${id}`);
     }
-    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:I'))]);
+    const reach = new Set([...(await idsIn(potter, '~here:i')), ...(await idsIn(potter, 'me:I'))]);
     const jarRows: JarRow[] = [];
     for (const id of made['jar'] ?? []) {
       if (reach.has(id)) jarRows.push({ stuffId: id, longDescription: await detailOf(potter, id) });
@@ -1073,7 +1073,7 @@ suite('⭐ 22 — the filter (W8)', () => {
     // is in it. ⚠ Not the detail's `bulkMaterial`: that is the vessel's own
     // BODY ("earthenware" for every crock, runs 36–38), not what it holds.
     w = await goTo(w, room);
-    const rows = (await w.query('here:i:crock', { fields: 'detail' }).catch(() => [])) as {
+    const rows = (await w.query('~here:i:crock', { fields: 'detail' }).catch(() => [])) as {
       stuffId?: string;
       contents?: { primaryKeyword?: string }[];
       longDescription?: string;
@@ -1137,7 +1137,7 @@ suite('⭐ 23 — breakage and mending', () => {
       await say(potter, `get #${id} from kiln`);
       await say(potter, `drop #${id}`);
     }
-    const reach = new Set([...(await idsIn(potter, 'here:i')), ...(await idsIn(potter, 'me:I'))]);
+    const reach = new Set([...(await idsIn(potter, '~here:i')), ...(await idsIn(potter, 'me:I'))]);
     const allBowls: Row[] = [];
     for (const id of made['bowl'] ?? []) {
       if (!reach.has(id)) continue;
@@ -1174,7 +1174,7 @@ suite('⭐ 23 — breakage and mending', () => {
     novice = await goTo(novice, SQUARE);
     const dropped = await say(potter, `drop #${stoneBowl}`);
     expect(dropped).toMatch(/drop|bowl|shatter|break/i);
-    expect(await examine(potter, 'here:i:sherds'), 'the bowl on stone').toMatch(/sherd|shard|broken/i);
+    expect(await examine(potter, '~here:i:sherds'), 'the bowl on stone').toMatch(/sherd|shard|broken/i);
     await say(novice, `drop "${mug}"`);
     expect(await examine(novice, mug), 'the thick mug on stone').toMatch(/mug/i);
     await say(novice, `get "${mug}"`);
@@ -1182,7 +1182,7 @@ suite('⭐ 23 — breakage and mending', () => {
     potter = await goTo(potter, YARD);
     await say(potter, `drop #${earthBowl}`);
     expect(await examine(potter, `#${earthBowl}`), 'the thin bowl on earth').toMatch(/bowl/i);
-    expect(await examine(potter, 'here:i:sherds')).not.toMatch(/sherd/i);
+    expect(await examine(potter, '~here:i:sherds')).not.toMatch(/sherd/i);
     await say(potter, `get #${earthBowl}`);
   }, 1_800_000);
 

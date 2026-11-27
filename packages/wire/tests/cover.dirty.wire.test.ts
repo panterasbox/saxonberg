@@ -736,7 +736,7 @@ suite.skipIf(!isOwnedTestWorld())('Stage B — grazing', () => {
     expect(mown, 'the home field was mown for hay in the summer').toBe(true);
     // What a person does: pick up a cut, put it in the trough, until the
     // field has none left or the trough has six. (⚠ The harness query
-    // `here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —
+    // `~here:hay` read 0 with twenty cuts lying in plain sight — drive 9 —
     // so the count is the acts, not a query.)
     // ⭐ [staged] What step 16 checks is that hay IN the trough feeds the
     // herd and the trough empties — so the founder puts the field's cuts in

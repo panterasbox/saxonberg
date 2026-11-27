@@ -2226,8 +2226,29 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * trigger (placement/move, ambient shift, seal toggle, bulk
      * transfer) calls — the one `await` in the model, kept off the read
      * path. Seeds `lastAmbientK` at first placement.
+     *
+     * ⚠ (#134, and the size-and-carrying soak boot) It never REJECTS: every
+     * trigger fires it and forgets it (a move, a room's ambient shift, a
+     * seal toggle), so one object's failed restamp — a freeze with no place,
+     * a material read before it was loaded — rejected unhandled and exited
+     * the whole world. A failure is said loudly (the server log and the
+     * diagnostics store) and the body keeps its cached ambient.
      */
     public async restamp(): Promise<void> {
+      try {
+        await this.restampNow();
+      } catch (err: unknown) {
+        console.error(`ThermalMixin.restamp: ${this.thermalHost.stuffId} failed:`, err);
+        void DiagnosticApi.record({
+          path: null,
+          message: `ThermalMixin.restamp: ${err instanceof Error ? err.message : String(err)}`,
+          stack: err instanceof Error ? (err.stack ?? null) : null,
+        }).catch(() => undefined);
+      }
+    }
+
+    /** {@link restamp}'s body — the only path that may throw. */
+    private async restampNow(): Promise<void> {
       // Freeze current T under the OLD ambient first (drift up to now).
       this.reconcileThermal();
 
@@ -2316,7 +2337,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         ) => void;
       }).onMoved;
       if (typeof sup === "function") sup.call(this, from, to);
-      void this.restamp();
+      // ⚠ (#134) Moved to NOWHERE: there is no ambient to drift toward, and
+      // catching the clock up here would run a freeze with no place for what
+      // sets (`DetachedError`). The next placement restamps where it stands.
+      if (to === null) return;
+      // Detached: `restamp` says its own failures loudly and never rejects
+      // (#134); the handler is the belt to that.
+      this.restamp().catch((err: unknown) => {
+        console.error(`ThermalMixin.onMoved: the restamp of ${this.thermalHost.stuffId} failed:`, err);
+      });
     }
 
     // ---------- internal reads ----------

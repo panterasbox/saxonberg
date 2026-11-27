@@ -77,7 +77,7 @@ const TAILOR = 'wire-textiles-tailor';
 let p: Session;
 
 async function peerNames(): Promise<string> {
-  const rows = await p.query('peers', { fields: ['displayName'] });
+  const rows = await p.query('~peers', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
@@ -287,7 +287,7 @@ suite('the dyer’s floor is reachable from the mill road', () => {
       const southeast = await traveller.cmd('southeast');
       expectOk(southeast);
       expectNoNote(southeast, 'locomotion-gate-failed');
-      const atMill = await traveller.queryOne('here', ['displayName']);
+      const atMill = await traveller.queryOne('~here', ['displayName']);
       expect(String((atMill as { displayName?: string })?.displayName)).toMatch(
         /mill/i
       );
@@ -296,7 +296,7 @@ suite('the dyer’s floor is reachable from the mill road', () => {
       expectOk(await traveller.cmd('north'));
       const southwest = await traveller.cmd('southwest');
       expectOk(southwest);
-      const atDye = await traveller.queryOne('here', ['displayName']);
+      const atDye = await traveller.queryOne('~here', ['displayName']);
       expect(String((atDye as { displayName?: string })?.displayName)).toMatch(
         /dye/i
       );

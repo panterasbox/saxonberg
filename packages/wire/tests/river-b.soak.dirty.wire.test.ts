@@ -76,7 +76,7 @@ async function look(s: Session): Promise<string> {
 }
 
 async function here(s: Session): Promise<string> {
-  return JSON.stringify(await s.query('here', { fields: 'ref' }));
+  return JSON.stringify(await s.query('~here', { fields: 'ref' }));
 }
 
 async function moved(s: Session, from: string, seconds = 120): Promise<boolean> {

@@ -262,6 +262,21 @@ export default class Rope extends CuttableMixin(
   /** Game-seconds rot was last reconciled; `0` = never. */
   public rotAt = 0;
 
+  /**
+   * ⚠ (#139) The rot clock starts where the rope first STANDS — its
+   * making lands it somewhere — not at its first read: a rope nobody looked
+   * at through six wet days had aged nothing, so which of two ropes rotted
+   * depended on which a query returned first. A restored rope arrives with
+   * its own `rotAt`. Chains any inner `onMoved` witness first.
+   */
+  public onMoved(from: (Stuff & Container) | null, to: (Stuff & Container) | null): void {
+    const sup = (Object.getPrototypeOf(Rope.prototype) as {
+      onMoved?: (f: (Stuff & Container) | null, t: (Stuff & Container) | null) => void;
+    }).onMoved;
+    if (typeof sup === 'function') sup.call(this, from, to);
+    if (to !== null && this.rotAt === 0) this.rotAt = nowSeconds() ?? 0;
+  }
+
   /** Laid down in a coil, ready to throw (D10). */
   public coiledDown = true;
 

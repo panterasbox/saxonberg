@@ -94,7 +94,7 @@ async function breathe(...ss: Session[]): Promise<void> {
  * underwater review), so wait until you are THERE before the next act.
  */
 async function stroke(s: Session, verb: 'descend' | 'ascend'): Promise<Awaited<ReturnType<Session['cmd']>>> {
-  const where = async () => JSON.stringify(await s.query('here', { fields: 'ref' }));
+  const where = async () => JSON.stringify(await s.query('~here', { fields: 'ref' }));
   const before = await where();
   const r = await s.cmd(verb);
   if (r.status !== 'ok') return r;
@@ -277,8 +277,8 @@ suite('A · the water place', () => {
       expect(buddyDown.length).toBe(down.length);
       // ⭐ Same room by where they ARE — the bed of a silty river may be
       // too dark to see the other diver by (step 10b's premise).
-      expect(JSON.stringify(await buddy.query('here', { fields: 'ref' })))
-        .toEqual(JSON.stringify(await diver.query('here', { fields: 'ref' })));
+      expect(JSON.stringify(await buddy.query('~here', { fields: 'ref' })))
+        .toEqual(JSON.stringify(await diver.query('~here', { fields: 'ref' })));
       // Each step down is a different place: the bed is not the surface.
       expect(new Set(down).size).toBe(down.length);
       expect(down[down.length - 1]).toMatch(/bottom|bed|pitch dark/i);
@@ -355,7 +355,7 @@ suite('C · the line', () => {
     // The gear left on the quay, taken up again for the work.
     // The line, taken up again for this step (the rest stays on the quay:
     // a swimmer carrying all of it is refused — "carrying too much").
-    expectOk(await diver.cmd('get here:i:lifeline'));
+    expectOk(await diver.cmd('get ~here:i:lifeline'));
     expectOk(await diver.cmd(`throw lifeline to ${BUDDY}`));
     const feels = diver.listen(6_000);
     expectOk(await buddy.cmd('tug line'));
@@ -382,7 +382,7 @@ suite('C · the city\'s work', () => {
     // Lead is how a diver takes lift down — the belt the shop sells — and
     // it goes on BEFORE the bags are in your hands (run 37: "your hands
     // are full").
-    expectOk(await diver.cmd('get here:i:belt'));
+    expectOk(await diver.cmd('get ~here:i:belt'));
     const wear = await diver.cmd('wear belt');
     if (wear.status !== 'ok') {
       console.log('[15b] wear refused:', squash(await wear.said()));
@@ -392,7 +392,7 @@ suite('C · the city\'s work', () => {
     for (let t = 0; t < 30 && !/wearing[^.]*belt/i.test(squash(await (await diver.cmd('inventory')).said())); t++) {
       await new Promise((res) => setTimeout(res, 1_000));
     }
-    expectOk(await diver.cmd('get here:i:bag'));
+    expectOk(await diver.cmd('get ~here:i:bag'));
     // The bed is dark; the wand's light (raised in step 10) still follows
     // the diver down.
     await breathe(diver);
@@ -413,7 +413,7 @@ suite('C · the city\'s work', () => {
 
   it('15c · in the lit band a spear takes what the water holds', async () => {
     expectOk(await diver.cmd('climb up'));
-    expectOk(await diver.cmd('get here:i:spear'));
+    expectOk(await diver.cmd('get ~here:i:spear'));
     await breathe(diver);
     expectOk(await diver.cmd('swim basin'));
     expectOk(await stroke(diver, 'descend'));

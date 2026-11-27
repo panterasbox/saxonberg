@@ -21,6 +21,17 @@ settings:
   - key: textiles.clo.defaultCoveredFraction
     value: "0.3"
 
+  # The still air ONE worn layer holds against the body, in local clo
+  # (over the parts it covers). ⭐ Most of what clothing is worth is not
+  # the cloth: a linen shirt's own 0.3 mm is ~0.04 clo, and a shirt is
+  # ~0.25 clo whole-body in the standard tables because of the air it
+  # traps. Without it a shipped outfit read 0.07 clo — naked, by the cold
+  # bench — and every Cast in the world died of the cold by morning (the
+  # soak lane, 2026-11-26). Flooded by the material's wet law, as the loft
+  # is; a loose fit loses it through the fit penalty.
+  - key: textiles.clo.enclosedAir
+    value: "0.5"
+
   # The `waterAbsorptionCapacity` (%) at which a soaked material's loft
   # counts as fully flooded. ⭐ This is what decides how far apart wet
   # wool (33%) and wet linen (20%) end up — set it at or below 33 and

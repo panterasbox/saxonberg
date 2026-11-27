@@ -131,7 +131,7 @@ async function advance(duration: string): Promise<void> {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
       const ok = await probe
-        .query('here', { fields: ['displayName'] })
+        .query('~here', { fields: ['displayName'] })
         .then(() => true)
         .catch(() => false);
       if (ok) break;
@@ -364,7 +364,7 @@ suite('⭐ 10 — make firebrick', () => {
     await goTo(SHED);
     const day = await act('shape clay into firebrick', '9 hours');
     expect(day.said, `the firebricks: ${day.said}`).toMatch(/brick/i);
-    expect(await examine('here:i:firebrick')).toMatch(/green|thumbprint/i);
+    expect(await examine('~here:i:firebrick')).toMatch(/green|thumbprint/i);
     // ⚠ The shaping leaves the lump of clay in both hands; set it down, or
     // the bricks have nowhere to go (size and carrying).
     await say('drop clay');
@@ -377,7 +377,7 @@ suite('⭐ 10 — make firebrick', () => {
     let rows = '';
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
       await advance('7 days');
-      rows = await examine('here:i:firebrick');
+      rows = await examine('~here:i:firebrick');
     }
     expect(rows, 'bone-dry').toMatch(/bone-dry/i);
     await say('get firebricks');

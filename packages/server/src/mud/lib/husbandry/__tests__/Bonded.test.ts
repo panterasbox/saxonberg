@@ -61,13 +61,16 @@ function speciesFeeding(styles: string[]): Species {
 }
 
 /** A scrap of something edible. */
-function scrap(): Stuff {
+function scrap(kg = 0.1, bites: number[] = []): Stuff {
   return {
     stuffId: 'scrap',
-    getMaterial: () => ({ getEdibility: () => true }),
+    getMaterial: () => ({ getEdibility: () => true, getDensity: () => ({ rawValue: () => 1000 }) }),
     // The tests mock `isTangible` true, so the scrap answers what a
     // Tangible does — its mass is what a meal's makeup is read against.
-    getMass: () => ({ rawValue: () => 0.1 }),
+    getMass: () => ({ rawValue: () => kg }),
+    takeBite: async (b: number) => {
+      bites.push(b);
+    },
   } as unknown as Stuff;
 }
 
@@ -363,6 +366,15 @@ describe('⚠⚠ the ladder has a bottom rung', () => {
     a.handling = 0.25;
     for (let i = 0; i < 40; i++) a.handle(0.25);
     expect(a.getHandling()).toBeGreaterThanOrEqual(0.4);
+  });
+
+  it('⭐ #147: a meal is one portion off the food — a dog at a 60 kg carcass leaves the carcass', async () => {
+    const a = animal();
+    const bites: number[] = [];
+    await a.eatFood(scrap(60, bites), null);
+    expect(bites).toHaveLength(1);
+    expect(bites[0]!).toBeGreaterThan(0);
+    expect(bites[0]!).toBeLessThan(5); // a portion, never the body
   });
 
   it('a hand feeds it AND wins it — both factors, one act', async () => {

@@ -211,7 +211,7 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
     expectOk(started);
     await settleAct(q, started);
     expect(
-      await q.query('here:i:[keyword.spoil]'),
+      await q.query('~here:i:[keyword.spoil]'),
       'the spoil stayed in the pit — `spoilTo` did not resolve',
     ).toHaveLength(0);
   }, 120_000);
@@ -241,7 +241,7 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
      * lump of clay held hot banks heat-work and its material's own heat
      * transition makes it terracotta — the same lump, which says so.
      */
-    const clay = await q.query('here:i:[keyword.clay]');
+    const clay = await q.query('~here:i:[keyword.clay]');
     expect(
       clay.length,
       'no clay lump in the pit after spading through the clay band — the ' +
@@ -265,7 +265,7 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
 
   it('6. ⭐⭐ a block comes off the granite, and you CANNOT LIFT IT', async () => {
     await dig(q, 'dig with pick');
-    const blocks = await q.query('here:i:[keyword.block]');
+    const blocks = await q.query('~here:i:[keyword.block]');
     expect(
       blocks.length,
       'no block came off the granite face — the band\u2019s `wins:` row or the ' +
@@ -285,7 +285,7 @@ suite('⭐⭐ the pit above the old workings — one face, worked down', () => {
     // found it; `peers` is the fix and the `DryingRack` precedent.
     expectOk(await q.cmd('get sledge'));
     await dig(q, 'split block with sledge');
-    const pieces = await q.query('here:i:[keyword.piece]');
+    const pieces = await q.query('~here:i:[keyword.piece]');
     expect(
       pieces.length,
       '`split` ran and took nothing off the block',
@@ -420,7 +420,7 @@ suite('⭐ the saltings — the patient source', () => {
     expect(said).not.toMatch(/\bsomething\b/i);
     expect(said).toMatch(/tide|water/i);
     expect(said).toMatch(/pan/i);
-    const pans = await s.query('here:i:[keyword.pan]');
+    const pans = await s.query('~here:i:[keyword.pan]');
     expect(pans, 'the saltings have no pans — check the mouth’s `props:`').toHaveLength(2);
 
     const filled = await s.cmd('fill pan from tide');
@@ -478,7 +478,7 @@ suite('⭐⭐ the turf bank — the fuel or the field', () => {
     // observable is that it comes out wet and says so.
     expectOk(await t.cmd('get spade'));
     await dig(t, 'dig with spade');
-    const turves = await t.query('here:i:[keyword.turf]');
+    const turves = await t.query('~here:i:[keyword.turf]');
     expect(
       turves.length,
       'no turf came off the bank — the peat band\u2019s `wins:` row did not resolve',

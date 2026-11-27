@@ -942,7 +942,7 @@ suite('4–9. the player-facing forms', () => {
       `the chest is shut, said by the reach: ${notesOf(shut)}`,
     ).toBe(true);
     expect(await shut.said()).toMatch(/shut/i);
-    const anywhere = await s.cmd('look here:I:orange');
+    const anywhere = await s.cmd('look ~here:I:orange');
     expect(anywhere.status, `MQL addresses through the lid: ${notesOf(anywhere)}`).toBe('ok');
   }, 180_000);
 

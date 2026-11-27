@@ -88,7 +88,7 @@ suite.skipIf(!isOwnedTestWorld())('size and carrying — the soak drive', () => 
     await walker.drainProse();
     const pack = await hand(walker, '/stuff/thing/gear/backpack');
     for (let i = 0; i < 6; i++) await hand(walker, '/stuff/thing/items/ration-stock');
-    for (let i = 0; i < 2; i++) await hand(walker, '/stuff/thing/vessel/pail', { interiorMaterial: '/stuff/idea/material/liquid/water', interiorAmount: 2 });
+    for (let i = 0; i < 2; i++) await hand(walker, '/stuff/thing/vessel/pail', { interiorMaterial: '/stuff/idea/material/bulk/water', interiorAmount: 2 });
     for (let i = 0; i < 6; i++) await say(`put ration in #${pack}`);
     for (let i = 0; i < 2; i++) await say(`put pail in #${pack}`);
     await say(`wear #${pack}`);

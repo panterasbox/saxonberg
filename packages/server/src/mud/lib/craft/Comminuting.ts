@@ -89,7 +89,12 @@ interface MillCharge {
   gradeBand: string;
   /** Drain this much from the source, or destruct it when null. */
   drainL: number | null;
+  /** Only part of the source goes in (the body's share, #144): the rest stays. */
+  partial?: boolean;
 }
+
+/** The least a tired body grinds rather than being turned down (#144). */
+const LEAST_GRIND_KG = 0.05;
 
 /**
  * ⭐ A powered grind under way — the charge the hopper took and when the
@@ -257,7 +262,7 @@ export interface MillBegin {
  */
 export type MillDone =
   | { kind: 'set-going'; mill: Stuff; sourceName: string }
-  | { kind: 'ground'; mill: Stuff; sourceName: string }
+  | { kind: 'ground'; mill: Stuff; sourceName: string; partial: boolean }
   | { kind: 'recipe'; mill: Stuff; sourceName: string; output: Stuff; caught: boolean };
 
 export type MillAnswer = ActAnswer<MillBegin, MillDone, MillRefusal>;
@@ -557,6 +562,60 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
 
       // ⭐⭐ THE QUERN HOLDS YOUR HANDS — the shipped slot rule. The charge
       // stays in the sack until the grind lands; aborted, nothing moved.
+      // ⭐ (#144) A soft limit: you grind what your arms will finish, and
+      // the rest stays in the sack for after a rest. The whole of a 15 kg
+      // sack is ~770 % of a fresh body's endurance, and refusing the act
+      // outright made a long hand act a wall no rest could lift. Below the
+      // least share the act still refuses `too-tired` (the spent line).
+      const share = this.shareABodyFinishes(actor, charge);
+      if (share !== charge) {
+        return this.handGrind(actor, source, share, extraction, makerPath, sourceName, refuse);
+      }
+      return this.handGrind(actor, source, charge, extraction, makerPath, sourceName, refuse, plan, grindMs);
+    }
+
+    /** The largest share of `charge` `actor`'s body can grind and finish. */
+    private shareABodyFinishes(actor: Stuff, charge: MillCharge): MillCharge {
+      if (!MixinApi.isExerting(actor)) return charge;
+      const fits = (kg: number): boolean => actor.canExert(GRIND_EFFORT_W, this.grindMs(kg) / 1000);
+      if (fits(charge.kg)) return charge;
+      if (!fits(LEAST_GRIND_KG)) return charge; // spent: the act refuses
+      let lo = LEAST_GRIND_KG;
+      let hi = charge.kg;
+      for (let i = 0; i < 40 && hi - lo > 0.005; i++) {
+        const mid = (lo + hi) / 2;
+        if (fits(mid)) lo = mid;
+        else hi = mid;
+      }
+      return {
+        ...charge,
+        kg: lo,
+        drainL: charge.drainL !== null ? (charge.drainL * lo) / charge.kg : null,
+        partial: true,
+      };
+    }
+
+    /** The quern's held-hands act over `charge` (the whole feed, or a body's share). */
+    private handGrind(
+      actor: Stuff,
+      source: Stuff,
+      charge: MillCharge,
+      extraction: number | undefined,
+      makerPath: string,
+      sourceName: string,
+      refuse: (reason: MillRefusalReason) => MillRefusal,
+      planned?: ComminutionPlan,
+      plannedMs?: number,
+    ): MillAnswer {
+      const self = this as unknown as Stuff & Comminuting;
+      const plan =
+        planned ??
+        this.planComminution(
+          { kg: charge.kg, materialPath: charge.materialPath, gradeBand: charge.gradeBand },
+          extraction,
+        );
+      const grindMs = plannedMs ?? this.grindMs(charge.kg);
+      const partial = charge.partial === true;
       return {
         ok: true,
         durationMs: grindMs,
@@ -576,7 +635,7 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
           }
           const payload = await this.takeCharge(source, charge);
           await this.landGrind(plan, makerPath, payload);
-          return { ok: true, facts: { kind: 'ground', mill: self, sourceName } };
+          return { ok: true, facts: { kind: 'ground', mill: self, sourceName, partial } };
         },
       };
     }
@@ -667,7 +726,12 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
           : null;
       if (!source.isDestroyed()) {
         if (charge.drainL !== null && MixinApi.isBulkable(source)) {
-          BulkableApi.slotFor(source, undefined)?.setAmount(Quantity.of(0, 'L'));
+          const slot = BulkableApi.slotFor(source, undefined);
+          const left = charge.partial === true && slot ? Math.max(0, slot.getAmount().rawValue() - charge.drainL) : 0;
+          slot?.setAmount(Quantity.of(left, 'L'));
+        } else if (charge.partial === true && MixinApi.isTangible(source)) {
+          // A body's share off a lump: the rest stays in the source.
+          source.setMass(Quantity.of(Math.max(0, source.getMass().rawValue() - charge.kg), 'kg'));
         } else {
           await StuffApi.destruct(source);
         }

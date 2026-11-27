@@ -220,7 +220,7 @@ suite('⭐ 1. the silk house — a lit loft, its trays in words', () => {
       const loft = await read(s, 'look');
       expect(loft).toMatch(/silk house loft/i);
       expect(loft, 'a LIT loft — not "something"').not.toMatch(/too dark|pitch/i);
-      const here = await names(s, 'here:i');
+      const here = await names(s, '~here:i');
       // The house's own trays, named by what is on them (a house tray when
       // bare) — never "rearing tray", which is a BOUGHT tray's name.
       expect(here).toMatch(/house tray|tray of (silkworms|cocoons)/i);
@@ -294,7 +294,7 @@ suite('⭐ 2. buy in — leaf at the house, the kit in town', () => {
       // The brush is bought either way: carried if a pocket takes it, else
       // set down at the buyer's feet with the hands full (the carry
       // routing's honest outcome). Nothing later uses it.
-      expect(`${kit} | ${await names(s, 'here:i')}`).toMatch(/mounting brush/i);
+      expect(`${kit} | ${await names(s, '~here:i')}`).toMatch(/mounting brush/i);
     } finally {
       s.close();
     }
@@ -345,7 +345,7 @@ suite('⭐ 3–4. a lot on a tray, and leaf on the lot', () => {
       expectOk(await say(s, 'get "mulberry leaves"'));
       const put = await say(s, 'put leaf in tray');
       expect(refusedFor(put)).toBeNull();
-      expect(await names(s, 'here:i:tray:i')).toMatch(/mulberry leaves/i);
+      expect(await names(s, '~here:i:tray:i')).toMatch(/mulberry leaves/i);
       const shelf = await say(s, 'put reel in tray');
       expect(refusedFor(shelf), 'a tray is not a shelf').not.toBeNull();
       // ⚠ (soak repair 2026-11-18, size and carrying) The reel is set down
@@ -402,7 +402,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 8–9. unwind at the basin, unwind ove
       // next run says whether she was dead before the drive got here.
       try {
         const spinner = (await read(s, 'look sefa')).replace(/<[^>]*>/g, '');
-        console.log('DIAG spinner on arrival', await names(s, 'here:i:sefa'), '::', spinner);
+        console.log('DIAG spinner on arrival', await names(s, '~here:i:sefa'), '::', spinner);
       } catch (err) {
         console.log('DIAG spinner on arrival — the read failed:', String(err));
       }
@@ -479,13 +479,13 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
       for (let i = 0; i < 70 && !/bolt of (raw )?silk/i.test(shelf); i++) {
         await advance('5 minutes');
         await s.listen(20_000);
-        shelf = await names(s, 'here:i:counter:i');
+        shelf = await names(s, '~here:i:counter:i');
       }
       if (!/bolt of (raw )?silk/i.test(shelf)) {
         // Diagnose before failing: where did the mill's silk stop?
         const m = await at(MILL);
         try {
-          console.log('DIAG mill', await names(m, 'here:i'));
+          console.log('DIAG mill', await names(m, '~here:i'));
           // ⚠ By the most specific names: in drives 26–27 the bare `crib`
           // query printed the REELER's hands (a student outfit, a skein, the
           // pupae, ten cocoons) and `reeler` printed nothing — the record
@@ -493,9 +493,9 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 16. the mill reels and weaves, and 
           // ⚠ (soak repair 2026-11-17) MQL's literal is `'…'` — a `"` is
           // the SHELL's quote and `s.query` has no shell, so the old
           // `"cocoon crib"` failed the parse and killed the step.
-          console.log('DIAG crib', await names(m, "here:i:'cocoon crib':i"));
-          console.log('DIAG silks', await names(m, "here:i:'silk shelf':i"));
-          console.log('DIAG reeler', await names(m, 'here:i:liss:i'));
+          console.log('DIAG crib', await names(m, "~here:i:'cocoon crib':i"));
+          console.log('DIAG silks', await names(m, "~here:i:'silk shelf':i"));
+          console.log('DIAG reeler', await names(m, '~here:i:liss:i'));
         } finally {
           m.close();
         }
@@ -543,7 +543,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ 10–11. boil the cloth white, and dye
       let look = '';
       for (let i = 0; i < 40 && !/bolt of silk/i.test(look); i++) {
         await advance('10 minutes');
-        look = await names(s, 'here:i:copper:i');
+        look = await names(s, '~here:i:copper:i');
       }
       expect(look, 'the raw silk degums to silk').toMatch(/bolt of silk/i);
       expectOk(await say(s, 'get bolt from copper'));

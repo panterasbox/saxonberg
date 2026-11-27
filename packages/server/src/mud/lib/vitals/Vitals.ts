@@ -896,6 +896,11 @@ export interface Vitals {
    * shipped harm rule), never through an Api.
    */
   beginDying(cause: string, windowSec?: number, blame?: unknown): void;
+  /**
+   * Does this body die of NEGLECT — cold, heat, hunger, thirst left to run
+   * on? Only when somebody is responsible for it. See the implementation.
+   */
+  diesOfNeglect(): boolean;
   /** Is this body in the rescuable interval before death? */
   isDying(): boolean;
   /**
@@ -1618,6 +1623,33 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private dyingRecord(): DyingRecord | null {
       for (const c of this.conditions) if (c.kind === 'dying') return c;
       return null;
+    }
+
+    /**
+     * ⭐⭐ **Neglect kills only a body somebody is responsible for** (the soak
+     * lane, 2026-11-26). Metabolism already drew this line for the far-past
+     * gap (`integratesLongAbsence`): *an NPC in a tavern is protected because
+     * nobody is responsible for feeding it, and starving the world's cast
+     * would be a bug rather than a lesson.* The same is true of the cold, the
+     * heat and the thirst: nothing in the world takes a Cast home at night,
+     * lights its fire or brings it water, so a running world lost every one
+     * of them — the dairywoman dead of the cold in her own byre within a game
+     * day, the rest of the Delight with her.
+     *
+     * So the four NEGLECT deaths (hypothermia, hyperthermia, starvation,
+     * dehydration) run their arc to the dying seam only for a body that
+     * somebody answers for: a person's (it has an interactive) or an OWNED
+     * one (a kept animal — D29's one mortality rule, unchanged). The world's
+     * cast and the strays feel all of it — shivering, hungry, impaired — and
+     * are not killed by it. A blow, a bleed, drowning or a poison still kill
+     * anybody: those are somebody's act or an accident, not neglect.
+     *
+     * @hook Override where a class answers it otherwise; compose via super.
+     */
+    public diesOfNeglect(): boolean {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isHasInteractive(self)) return true;
+      return MixinApi.isChattel(self) && self.isStamped();
     }
 
     public beginDying(

@@ -142,7 +142,7 @@ function refusal(r: CommandResult): string | null {
 
 /** Where the drive's character stands, by the room's display name. */
 async function here(): Promise<string> {
-  const rows = await k.query('here', { fields: ['displayName'] });
+  const rows = await k.query('~here', { fields: ['displayName'] });
   return String((rows[0] as { displayName?: string } | undefined)?.displayName ?? '');
 }
 

@@ -10,7 +10,10 @@ class: /platform/location/PersistentLocale
 data:
   _biomePath: /stuff/idea/biome/outdoor/baseline
   shortDescription: fuel yard
-  keywords: [yard, "fuel yard", coppice, clamp, fuel]
+  # ⚠ (#138) Not `clamp`: the clamp stands in the yard, and a room that
+  # answers to the name of a thing in it ties with it — `look clamp`
+  # prompted the yard against the clamp.
+  keywords: [yard, "fuel yard", coppice, fuel]
   register: definite
   # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
   # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`

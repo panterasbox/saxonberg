@@ -82,7 +82,7 @@ afterAll(() => {
 
 suite('the Terminus registry', () => {
   it('the registrar is at her counter', async () => {
-    const rows = await a.query('peers', { fields: ['displayName'] });
+    const rows = await a.query('~peers', { fields: ['displayName'] });
     const names = rows
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');
@@ -174,7 +174,7 @@ suite('the lounge', () => {
 
 suite('the watchpost', () => {
   it('a watchful sentry, no name', async () => {
-    const rows = await c.query('peers', { fields: ['displayName'] });
+    const rows = await c.query('~peers', { fields: ['displayName'] });
     expect(
       rows
         .map((r) => String((r as { displayName?: string }).displayName ?? ''))

@@ -140,7 +140,7 @@ function refusal(r: CommandResult): string | null {
 
 /** Where the character stands, by the room's display name. */
 async function here(s: Session = k): Promise<string> {
-  const rows = await s.query('here', { fields: ['displayName'] });
+  const rows = await s.query('~here', { fields: ['displayName'] });
   return String((rows[0] as { displayName?: string } | undefined)?.displayName ?? '');
 }
 
@@ -173,7 +173,7 @@ async function lighten(): Promise<void> {
 
 /** What is in reach, by display name. */
 async function inReach(s: Session = k): Promise<string> {
-  const rows = await s.query('reachable', { fields: 'detail' });
+  const rows = await s.query('~reachable', { fields: 'detail' });
   return rows.map((r) => String((r as { displayName?: unknown }).displayName ?? '')).join(', ');
 }
 

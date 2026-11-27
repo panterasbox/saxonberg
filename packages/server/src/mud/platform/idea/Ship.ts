@@ -811,9 +811,12 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
     }
     if (this.wreck !== null || this.settled || this.settling !== null || this.isDestroyed()) return;
     const lps = this.hullLeakLps();
-    if (!(lps > 0)) return;
     const nowS = WorldClockApi.getNow().rawValue();
-    let dueS = (this.bilgeCapacityL() - this.bilgeL) / lps;
+    // ⚠ (#143) A SOUND hull leaks nothing now, but her shell still wears
+    // toward the band where it starts to: the band-crossing watch below is
+    // armed whether or not she leaks yet. (A hull bought sound returned here
+    // and was never reconciled again — she never settled on the mud.)
+    let dueS = lps > 0 ? (this.bilgeCapacityL() - this.bilgeL) / lps : Number.POSITIVE_INFINITY;
     {
       const line = this.hullLine();
       if (line.stampS > 0 && line.perSecond > 0) {
@@ -825,6 +828,7 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
         }
       }
     }
+    if (!Number.isFinite(dueS)) return; // sound, and wearing toward no band
     try {
       WorldClockApi.at(
         Quantity.of(nowS + Math.max(1, dueS), 's'),
@@ -2327,6 +2331,11 @@ export default class Ship extends MaintainableMixin(AnchoringMixin(BilgeMixin(Pe
     if (this.aground && !(await this.floatIfShePasses())) {
       return { refused: 'She is hard aground. Lighten her, wait for the water, or kedge her off.' };
     }
+    // ⚠ (#143) A read before a decision: the water in her is caught up
+    // before `settled` is asked. A hull that wore from sound with nobody
+    // looking had no watch to notice (ships never evict), so the stored
+    // flag was stale and the helm fell through to the harbor's dues.
+    if (this.wreck === null) await this.reconcileBilge();
     if (this.wreck !== null) return { refused: 'She lies on the bottom. She goes nowhere now.' };
     if (this.settled) return { refused: 'She has settled onto the mud with the water in her. Pump her out first.' };
     if (this.settling !== null) return { refused: 'She is settling under you; she will answer no helm.' };

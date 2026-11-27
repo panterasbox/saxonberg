@@ -1605,6 +1605,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         let left = litres;
         let seepL = 0;
         let plainL = 0;
+        let filmTakenL = 0;
         if (leaking) {
           const lost = this.integrateLeak(litres, dt / 3600, poreShare);
           plainL = Math.min(left, lost.plain);
@@ -1623,7 +1624,7 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
               filmL = cap > 0 && density > 0 ? Math.min(poresL, (Math.max(0, freeKg) / density) * 1000) : 0;
               if (filmL > 0) self.wet(((filmL / 1000) * density) / cap);
             }
-            left -= filmL;
+            filmTakenL = filmL;
             seepL = poresL - filmL;
           }
         }
@@ -1632,6 +1633,14 @@ export function BulkableMixin<TBase extends MixinConstructor<Stuff>>(
         // The fill stamp is spent: from here the payload's own clock runs.
         this._interiorFilledAtS = null;
         if (left !== litres) this.interiorAmount = Quantity.of(left, BULK_VOLUME_UNIT);
+        // ⚠ (#146) The film is a draw like any other — through `debitBulk`,
+        // so a fractionating vessel's run counts it. Taken off the slot
+        // directly, a weeping setting pan's skim pour came up short by the
+        // wept litres, the run never reached its residue, and cream never
+        // formed.
+        if (filmTakenL > 1e-12) {
+          this.debitBulk('interior', Math.min(filmTakenL, this._interiorAmount.rawValue()));
+        }
         // ⭐ Through, to what is under it — the one drip (D10), a TRANSFER
         // per slot (it debits this slot itself). Through the pores what is
         // dissolved comes through, what is suspended stays, and the liquid
