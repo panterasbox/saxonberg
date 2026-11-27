@@ -18,7 +18,8 @@
  */
 
 import '../../test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { PersistApi } from '../../mud/api/persist';
 import { TestHooks } from '../TestHooks';
 import { WorldClockApi } from '../../mud/api/worldclock';
 import { ExecutionContextApi } from '../../mud/api/execution-context';
@@ -29,9 +30,17 @@ describe('TestHooks.advanceClock', () => {
   beforeEach(() => {
     WorldClockApi._resetForTesting();
     process.env.AUTH_MODE = 'test';
+    // ⚠ The settle after a jump waits for no persistence op in flight for
+    // 500 ms. In a unit world with no database, whatever the jump fired can
+    // leave one in flight, and the 500 ms wait ran into vitest's 5 s timeout
+    // on whichever test drew it (two to three of eleven, run to run; the
+    // soak lane's suite, 2026-11-26). Nothing here asserts the settle — its
+    // own tests do — so it answers quiet at once.
+    vi.spyOn(PersistApi, 'whenQuiet').mockResolvedValue(true);
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     WorldClockApi._resetForTesting();
     process.env.AUTH_MODE = 'test';
   });
