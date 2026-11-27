@@ -90,6 +90,16 @@ interface HandledHost {
  */
 const HURT_THRESHOLD = 0.45;
 
+/**
+ * ⚠ The blow a badly handled animal lands, per kilogram of it per unit of
+ * risk — on the HARM scale (the soak lane, 2026-11-26), where an authored
+ * trap delivers 1.5–6. A wild 600 kg cow (risk ~0.56) lands ~6, which is
+ * a cracked rib against a rail; a ewe ~0.7, a bruise; a hen nothing. It was
+ * 0.6 — a ewe landed 20, the body's organs bled out from it, and the
+ * carcass-chain knacker died handling his own sheep.
+ */
+const BLOW_PER_KG = 0.02;
+
 export function HandledMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class HandledMixin extends Base {
     /**
@@ -164,7 +174,7 @@ export function HandledMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase)
           // ⭐ The energy is the ANIMAL's: a hen cannot hurt you and a
           // cow can break your ribs against a gate, and the difference
           // is mass rather than a table.
-          energy: mass * risk * 0.6,
+          energy: mass * risk * BLOW_PER_KG,
         });
         prelude = {
           self: Mml.compose`It swings hard into you before you have a hand on it and you go into the rail.`,

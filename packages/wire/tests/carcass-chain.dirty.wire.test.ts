@@ -90,6 +90,7 @@ import {
   isOwnedTestWorld,
   advanceWorldClock,
   worldClockNow,
+  dress,
 } from '../src/harness';
 
 /**
@@ -525,6 +526,11 @@ beforeAll(async () => {
   // about. What it still has to do is keep a body fed across 145 game
   // days, and the thing to eat is what it butchered.
   k = await Session.open(handle, KEEPER);
+  // ⚠ (soak lane, 2026-11-26) Dressed for the yard: a body in the student
+  // shirt and trousers (~0.4 clo) in the farmstead yard's winter (~270 K)
+  // is hypothermic within hours, and the knacker went "not conscious
+  // enough" by the butcher block. A knacker wears a coat.
+  await dress(k);
   await ensureDaylight(k);
   await k.drainProse();
 }, 300_000);
