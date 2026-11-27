@@ -36,6 +36,13 @@ async function say(s: Session, line: string): Promise<string> {
   return squash(await s.prose(line));
 }
 
+/**
+ * ⚠ (soak lane, 2026-11-26) Weeks of world, walked a day per request
+ * (#137): each day drains and settles in seconds, and three weeks of
+ * them ran past the 5-minute default.
+ */
+const STEP_TIMEOUT_MS = 2_400_000;
+
 suite('smell and taste, on the clock', () => {
   it('34. eating a bitter food over game weeks raises its liking', async () => {
     const s = await Session.open(uniqueHandle('bitter'), { startLocation: LOBBY, ...WIZARD });
@@ -51,7 +58,7 @@ suite('smell and taste, on the clock', () => {
     }
     expect(await read()).toBeGreaterThanOrEqual(before);
     s.close();
-  });
+  }, STEP_TIMEOUT_MS);
 
   it('35. food left out goes off unstaged, and reaches the next room', async () => {
     const s = await Session.open(uniqueHandle('left'), { startLocation: LOBBY, ...WIZARD });
@@ -63,7 +70,7 @@ suite('smell and taste, on the clock', () => {
     await next.cmd('go south');
     expect(await say(next, 'analyze aroma')).toMatch(/of rot/);
     next.close();
-  });
+  }, STEP_TIMEOUT_MS);
 
   it('36. a corpse moves through its decay smell unstaged', async () => {
     const s = await Session.open(uniqueHandle('corpse'), { startLocation: LOBBY, ...WIZARD });
@@ -75,7 +82,7 @@ suite('smell and taste, on the clock', () => {
     const back = await Session.open(uniqueHandle('back'), { startLocation: LOBBY, ...WIZARD });
     expect(await say(back, 'measure aroma with gas')).toMatch(/decay/);
     back.close();
-  });
+  }, STEP_TIMEOUT_MS);
 
   it('37. an aversion is still there after a long game time', async () => {
     const handle = uniqueHandle('averse');
@@ -86,5 +93,5 @@ suite('smell and taste, on the clock', () => {
     const back = await Session.open(handle, { startLocation: LOBBY, ...WIZARD });
     expect(await say(back, 'eval --parcel /world/terminus --on me --all return JSON.stringify(this.getAversions())')).toMatch(/kept-food/);
     back.close();
-  });
+  }, STEP_TIMEOUT_MS);
 });
