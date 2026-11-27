@@ -1351,7 +1351,15 @@ suite('17–18. the ground and the dog', () => {
     // ⭐ A COUNT needs neither. It rides `query()` (structured, reliable
     // where prose is not), it cannot be fooled by wording, and it still
     // fails honestly: if nothing arrives, nothing changes.
-    const before = (await k.query('me:i', { fields: ['displayName'] })).length;
+    // ⚠ (soak lane, 2026-11-26) Carried OR at your feet: with the hands
+    // full from the steps before, a bought loaf is set down beside you
+    // ("your hands are full — you set a dog loaf down", size and carrying)
+    // — still bought, still yours.
+    const holdings = async (): Promise<Array<{ displayName?: string }>> => [
+      ...((await k.query('me:I', { fields: ['displayName'] })) as Array<{ displayName?: string }>),
+      ...((await k.query('~here:i', { fields: ['displayName'] })) as Array<{ displayName?: string }>),
+    ];
+    const before = (await holdings()).length;
     // ⚠⚠ Bought INLINE rather than through the helper, so the failure
     // message carries the world's own words. `buyOrWait` answered
     // *bought* while inventory went 6 → 6 — no refusal note of either
@@ -1388,10 +1396,10 @@ suite('17–18. the ground and the dog', () => {
       kinds,
       `and must not reject the command — said="${prose}"`,
     ).not.toMatch(/command-rejected/);
-    const after = await k.query('me:i', { fields: ['displayName'] });
+    const after = await holdings();
     expect(
       after.length,
-      `buying must put something in your hands; inventory went ` +
+      `buying must put something in your hands or at your feet; it went ` +
         `${before} → ${after.length}; notes=[${kinds}] said="${prose}"`,
     ).toBeGreaterThan(before);
     // ⭐ And it is bread of some kind — loose on purpose, for the reason
