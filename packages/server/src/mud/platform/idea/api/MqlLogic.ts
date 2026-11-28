@@ -120,7 +120,7 @@ export class MqlLogic extends ApiLogic {
   @CallSecurity(MqlApiCallers)
   public resolveOne(query: string, ctx: MqlContext): MqlOne {
     const resolved = steadyResolve(query, ctx);
-    const { quantity, scan, isSet, relations, relationTie } = resolved;
+    const { quantity, scan, isSet, relationTie } = resolved;
     // ⭐ One-of-N with a head ordinal picks the nth of the UNIVERSAL list
     // (system semantics). A surface that shows or binds for a viewer uses
     // `resolveMany`, filters by `PerceptionApi.perceived`, then applies
@@ -129,7 +129,6 @@ export class MqlLogic extends ApiLogic {
       resolved.ordinal === undefined ? resolved.matches : nthOf(resolved.matches, resolved.ordinal);
     if (matches.length === 0) {
       const empty: MqlOne = { stuff: null };
-      if (relations) empty.relations = relations;
       if (relationTie) empty.relationTie = relationTie;
       if (isSet) empty.isSet = true;
       if (quantity) empty.quantity = quantity;
@@ -150,12 +149,11 @@ export class MqlLogic extends ApiLogic {
   @CallSecurity(MqlApiCallers)
   public resolveMany(query: string, ctx: MqlContext): MqlMany {
     const tracked = ctx.trackTouched === true ? trackTouched(() => steadyResolve(query, ctx)) : null;
-    const { matches, quantity, scan, isSet, ordinal, relations, relationTie } =
+    const { matches, quantity, scan, isSet, ordinal, relationTie } =
       tracked?.value ?? steadyResolve(query, ctx);
     const stuff: Stuff[] = matches.map((m) => m.stuff);
     const via = consensusVia(matches);
     const out: MqlMany = { stuff };
-    if (relations) out.relations = relations;
     if (relationTie) out.relationTie = relationTie;
     if (isSet) out.isSet = true;
     if (via) out.via = via;

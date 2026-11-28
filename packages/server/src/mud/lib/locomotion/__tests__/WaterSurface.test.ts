@@ -53,7 +53,7 @@ function advance(c: Creature, gameSec: number, chunkSec = 300): void {
   while (remaining > 0) {
     const s = Math.min(chunkSec, remaining);
     real += (s / SCALE) * 1000;
-    c.getVitalSign('coreTemperature');
+    c.reconcileThermalRegulation(); // the body's own wake (organism-biology D17)
     remaining -= s;
   }
 }
@@ -104,8 +104,8 @@ describe('the body reads the water (D10a)', () => {
   it('⭐ near-freezing water cools a body several times faster than air of the same temperature', () => {
     const inAir = body();
     const inWater = body();
-    core(inAir);
-    core(inWater);
+    inAir.reconcileThermalRegulation(); // seed the stamp (a read no longer does)
+    inWater.reconcileThermalRegulation(); // seed the stamp (a read no longer does)
     inAir.setEffectiveAmbientK(274);
     inWater.setEffectiveAmbientK(inWater.exchangeWithWater(274, 0));
     advance(inAir, 1800);
@@ -120,7 +120,7 @@ describe('the body reads the water (D10a)', () => {
 
   it('a summer swim chills nobody', () => {
     const swimmer = body();
-    core(swimmer);
+    swimmer.reconcileThermalRegulation(); // seed the stamp (a read no longer does)
     swimmer.setEffectiveAmbientK(swimmer.exchangeWithWater(292, 0));
     advance(swimmer, 1800);
     expect(core(swimmer)).toBeCloseTo(310, 0);

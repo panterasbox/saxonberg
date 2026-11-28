@@ -107,7 +107,7 @@ suite.skipIf(!isOwnedTestWorld())('6 — a loaded world stops and comes back', (
       sessions.push(s);
       await hand(s, st.holds);
       expect(await s.prose('inventory')).toMatch(new RegExp(st.word, 'i'));
-      where.set(st.handle, String((await s.queryOne('here', 'ref'))?.displayName ?? ''));
+      where.set(st.handle, String((await s.queryOne('~here', 'ref'))?.displayName ?? ''));
     }
 
     // Connected through the stop: the shutdown save is what captures them.
@@ -129,7 +129,7 @@ suite.skipIf(!isOwnedTestWorld())('6 — a loaded world stops and comes back', (
       // No startLocation: the body comes back where it stood.
       const back = await Session.open(st.handle);
       open.push(back);
-      const here = await back.queryOne('here', 'ref');
+      const here = await back.queryOne('~here', 'ref');
       expect(String(here?.displayName ?? ''), `${st.handle} stood in ${st.place}`).toBe(where.get(st.handle));
       expect(await back.prose('inventory'), `${st.handle} held a ${st.word}`).toMatch(new RegExp(st.word, 'i'));
     }

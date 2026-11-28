@@ -705,7 +705,7 @@ export const AppSettingKeys = {
   youtubePollIntervalMs: "youtube.pollIntervalMs",
   /**
    * YouTube overlay-owner live-status poll interval — how often the overlay
-   * forwarding re-resolves the owner's `OVERLAY_YOUTUBE_CHANNEL` to catch a
+   * forwarding re-resolves the runner's program YouTube feed to catch a
    * stream restart. A `search.list` costs ~100 quota units, so this is a
    * conservative default (a slow restart-catch is fine — it's a single
    * channel and a nicety, distinct from the deferred N-channel viewer
@@ -714,7 +714,7 @@ export const AppSettingKeys = {
   youtubeOverlayPollIntervalMs: "youtube.overlayPollIntervalMs",
 
   /**
-   * The stream's outro (broadcast-ready D3) — how long `stream end` holds
+   * The stream's outro (broadcast-ready D3) — how long `rodney end` holds
    * the Ending scene before the stream goes offline on its own. Wall-time
    * milliseconds: the stream is interface tier, outside the fiction.
    */
@@ -724,6 +724,12 @@ export const AppSettingKeys = {
    * re-read while on air (broadcast-ready D16). Wall-time milliseconds.
    */
   streamStatsPollMs: "stream.statsPollMs",
+  /**
+   * ⭐ The program the front page features (stream arrival D14) — a
+   * program's short name, or empty for none. It is the Compact's choice,
+   * not a fact about any program; unset, the page has no show band.
+   */
+  streamFeaturedProgram: "stream.featuredProgram",
 
   /**
    * Kick relay (read-only, webhook transport) dials. `replayWindowSec` is
@@ -789,6 +795,14 @@ export const AppSettingKeys = {
   responseDepthReachThreshold: "response.depth.reachThreshold",
   responseDepthStepPerOrgan: "response.depth.stepPerOrgan",
   responseBluntRuptureThreshold: "response.blunt.ruptureThreshold",
+  /**
+   * ⭐ What fills a part, for a `point` insult (organism-biology D12): the
+   * share of a thrust's residual a SPARSE part (a wing, a fin) and a
+   * HOLLOW one (a swim bladder) delivers to tissue — a blade through a
+   * wing mostly finds air.
+   */
+  responseFillSparse: "response.fill.sparse",
+  responseFillHollow: "response.fill.hollow",
   /**
    * Cold's residual→severity tail. ⚠ Its own key and NOT its own
    * insulation dials: `response.heat.*` describes the COVERING, not the
@@ -1201,6 +1215,13 @@ export const AppSettingKeys = {
    * fallback. See docs/subsystems/concealment.md.
    */
   detectionCapacityPerBand: "detection.capacityPerBand",
+  /**
+   * Detection — the weight of the WATCHED SHARE (organism-biology D11):
+   * `(watchDeg/360 − 190/360) × this` perception points, so a cow's eyes
+   * (330°) watch for what a wolf's (250°) miss; a person's are the
+   * reference and add nothing.
+   */
+  detectionWatchWeight: "detection.watchWeight",
   /**
    * Detection — the active-attention bonus a broad `search` folds into
    * effective perception (on top of the passive baseline). A rank-0 seeker
@@ -2411,6 +2432,10 @@ export const AppSettingKeys = {
   /** Textiles — surface share assumed for a garment whose `slotClaims`
    * resolve to no body plan (a fixture, a stock row). */
   textilesCloDefaultCoveredFraction: "textiles.clo.defaultCoveredFraction",
+  /** Textiles — the still air one worn layer holds against the body,
+   * in local clo (the soak lane, 2026-11-26): most of what clothing is
+   * worth, and the fabric-only `t / k` left it out. */
+  textilesCloEnclosedAir: "textiles.clo.enclosedAir",
   /** Textiles — the `waterAbsorptionCapacity` (%) at which a soaked
    * material's loft counts as fully flooded. Wool sits at 33 and linen
    * at 20, so this is what decides how far apart wet wool and wet linen
@@ -2551,6 +2576,10 @@ export const AppSettingKeys = {
   /** Exertion — extra power per unit of load ratio above the light-load
    * floor, as a fraction of the walk. Reproduces the old traversal drain. */
   exertionLoadPowerPerRatio: "exertion.loadPowerPerRatio",
+  /** Exertion — extra power per band of suppressed expression (a chilled,
+   * sluggish body; a drugged one), as a fraction of the traverse: a slow
+   * body pays more to cross (organism-biology D9). */
+  exertionSuppressedPowerPerBand: "exertion.suppressedPowerPerBand",
   /** Exertion — endurance `%` under which a body cannot hold a pace
    * faster than a walk: the run breaks. */
   exertionPaceFloorPct: "exertion.paceFloorPct",
@@ -2792,6 +2821,7 @@ export const AppSettingTiers: Readonly<
   youtubeOverlayPollIntervalMs: "B",
   streamOutroMs: "B",
   streamStatsPollMs: "B",
+  streamFeaturedProgram: "B",
   kickReplayWindowSec: "B",
   kickDedupTtlSec: "B",
   kickDedupMaxSize: "B",
@@ -2815,6 +2845,8 @@ export const AppSettingTiers: Readonly<
   responseDepthReachThreshold: "B",
   responseDepthStepPerOrgan: "B",
   responseBluntRuptureThreshold: "B",
+  responseFillSparse: "B",
+  responseFillHollow: "B",
   responseColdSeverityPerResidual: "B",
   responseCorrosionWearPerContact: "B",
   responseCorrosionShedAbsorptionMax: "B",
@@ -2942,6 +2974,7 @@ export const AppSettingTiers: Readonly<
   concealmentHiddenDefaultLevel: "B",
   concealmentPassiveBaseline: "B",
   detectionCapacityPerBand: "B",
+  detectionWatchWeight: "B",
   concealmentSearchBonus: "B",
   concealmentSearchDepthBonus: "B",
   concealmentSearchSeconds: "B",
@@ -3251,6 +3284,7 @@ export const AppSettingTiers: Readonly<
   waterFouledAt: "B",
   textilesCloReferenceSurfaceM2: "B",
   textilesCloDefaultCoveredFraction: "B",
+  textilesCloEnclosedAir: "B",
   textilesCloAbsorptionReference: "B",
   textilesFitLoosenessCloPenalty: "B",
   textilesWindproofWeight: "B",
@@ -3289,6 +3323,7 @@ export const AppSettingTiers: Readonly<
   exertionTraverseNominalS: "B",
   exertionWalkW: "B",
   exertionLoadPowerPerRatio: "B",
+  exertionSuppressedPowerPerBand: "B",
   exertionPaceFloorPct: "B",
   exertionFreshPct: "B",
   exertionExhaustionFloorPct: "B",

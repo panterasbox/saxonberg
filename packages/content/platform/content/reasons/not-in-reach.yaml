@@ -1,0 +1,6 @@
+# `which <thing>` naming nothing within reach (the which build). `which` asks
+# about what is in reach, the same reach every verb names a thing in.
+facts:
+  name: text
+says: "There is no '{{ name }}' within reach to ask about."
+topic: shell.error

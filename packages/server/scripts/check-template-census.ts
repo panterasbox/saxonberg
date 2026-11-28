@@ -276,10 +276,11 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   // rowless one exempts nobody and every city craft pays dues.
   // ⭐ A charter book's `ships` — the ships a line's desk lets;
   // a rowless one is a charter for a ship that is not there.
-  // ⭐ An aether host's `installedApps` / `offersApps` (aether-devices D2)
-  // — the app rows it clones at birth and offers to `apps install`; a
-  // rowless one is a phone whose Messages throws at the clone.
-  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships', 'installedApps', 'offersApps'] as const) {
+  // ⭐ An aether host's `installedApps` (aether-devices D2) — the app rows
+  // it clones at birth; a rowless one is a phone whose Messages throws at
+  // the clone. (`offersApps` retired: the app store is the published rows,
+  // stream arrival D21.)
+  for (const f of ['endpoints', 'featured', 'horizon', 'landings', 'exempt', 'ships', 'installedApps'] as const) {
     if (Array.isArray(data[f])) for (const v of data[f] as unknown[]) push(f, v);
   }
   // ⭐ A harbor's `quays[].place` — a rowless one is a berth
@@ -516,43 +517,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
    * `analyze chemistry`, `containsElementOf`, the flat element map —
    * would have been quietly wrong about what the material IS.
    */
-  /**
-   * ⭐ `production[].yieldRow` — a species' TAPS (farmstead D25). Each
-   * names the row a take mints, resolved live at the moment somebody
-   * milks or shears or gathers, so a rowless one is an animal that
-   * produces nothing for a reason no author could find: the take
-   * succeeds, the reserve empties, and nothing appears.
-   *
-   * ⚠ The census gate caught this on the wave that introduced it, which
-   * is exactly what it exists for — a nested path-shaped value in a new
-   * authored field is the shape that went blind once already.
-   */
-  const production = data.production;
-  if (Array.isArray(production)) {
-    for (const tap of production) {
-      if (tap && typeof tap === 'object') {
-        push('production.yieldRow', (tap as Record<string, unknown>).yieldRow);
-      }
-    }
-  }
+  // ⭐ A species' taps moved onto its glands (organism-biology W3): a
+  // body-module part's `produces[].yieldRow`, read with the module's other
+  // citations in DOCUMENT_ROW_CITATIONS['body-modules'] below.
 
-  /*
-   * ⭐ `butcheryYield[].cut` — what a species' carcass yields to a knife.
-   * Each line names the Provision template a cut clones from, resolved
-   * live at the butchering, so a rowless one is an animal that opens onto
-   * nothing: the act reports success and produces no meat, with nothing
-   * anywhere to say why. Exactly the shape of the `composition` gap two
-   * paragraphs down, found the same way — by this gate refusing a new
-   * path-valued field it did not read.
-   */
-  const butchery = data.butcheryYield;
-  if (Array.isArray(butchery)) {
-    for (const line of butchery) {
-      if (line && typeof line === 'object') {
-        push('butcheryYield.cut', (line as Record<string, unknown>).cut);
-      }
-    }
-  }
+  // ⭐ A carcass's rows moved onto the body modules (organism-biology W5):
+  // each `comesOffAs[].cut`, read with the module's other citations in
+  // DOCUMENT_ROW_CITATIONS['body-modules'] below.
 
   /*
    * ⭐ `materialPath` — a reference Idea naming the MATERIAL it is
@@ -951,6 +922,18 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
   if (Array.isArray(data.buildings)) {
     for (const b of data.buildings) push('buildings', b);
   }
+  // ⭐ A species' seasons (organism-biology D9): each `phenology[].condition`
+  // names a Condition row the reconcile afflicts — a rowless one is a body
+  // that throws at hydration (setPhenology ensures it), caught here first.
+  if (Array.isArray(data.phenology)) {
+    for (const e of data.phenology) push('phenology.condition', (e as Record<string, unknown>)?.condition);
+  }
+  // …and its development (D10): each stage's `plan` is a BodyPlan row.
+  if (data.development && typeof data.development === 'object') {
+    for (const d of Object.values(data.development as Record<string, unknown>)) {
+      push('development.plan', (d as Record<string, unknown>)?.plan);
+    }
+  }
   return out;
 }
 
@@ -1170,6 +1153,9 @@ const DOCUMENT_PATH_FIELDS: Readonly<Record<string, string>> = {
   // A garment's fabric (`/platform/fabrics/woven`) — load-on-use W2; a
   // kernel form (`plate`) is a word, so only path-shaped values are checked.
   constructionForm: 'fabrics',
+  // ⭐ A body plan's modules (`/species-and-names/body-modules/torso-quadruped`,
+  // organism-biology D1) — each entry's `module` is a document path.
+  modules: 'body-modules',
 };
 
 /** Every document path a pack ships under `contentDir`: its root + the dir + the file. */
@@ -1209,10 +1195,14 @@ function checkDocumentRefs(rows: Map<string, string>): number {
       for (const entry of Array.isArray(value) ? value : [value]) {
         // ⭐ A named placement region (size and carrying D26) is an object
         // `{ member, name, … }` — its document path is the `member`.
+        // ⭐ …and a body plan's module instance (organism-biology D1) is an
+        // object `{ module, as, at, … }` — its document path is the `module`.
         const path =
           entry !== null && typeof entry === 'object' && 'member' in entry
             ? (entry as { member: unknown }).member
-            : entry;
+            : entry !== null && typeof entry === 'object' && 'module' in entry
+              ? (entry as { module: unknown }).module
+              : entry;
         // A field name another family uses for a WORD (a maturation
         // profile's `mechanism: microbial`) is checked only where it holds
         // a path; a pump naming a bare word fails at its setter instead.
@@ -1251,6 +1241,27 @@ const DOCUMENT_ROW_CITATIONS: Readonly<Record<string, (d: Record<string, unknown
     ...(Array.isArray(d.fractions) ? d.fractions.map((f) => (f as Record<string, unknown>)?.material) : []),
   ],
   dyestuffs: (d) => [d.material],
+  // ⭐ A body module's tissues (organism-biology D1): the material rows a
+  // plan's parts are made of moved off the plan row into its modules, so
+  // the census reads them here or goes blind on every one.
+  // …and its glands' taps (W3): each `produces[].yieldRow` names the row
+  // a take mints, resolved live at the milking — a rowless one is an
+  // animal that produces nothing for a reason no author could find.
+  'body-modules': (d) => (Array.isArray(d.parts) ? d.parts : []).flatMap((p) => {
+    const part = (p ?? {}) as Record<string, unknown>;
+    const tissues = (Array.isArray(part.tissues) ? (part.tissues as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.tissue);
+    const yields = (Array.isArray(part.produces) ? (part.produces as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.yieldRow);
+    // …and the condition a tap runs in (D9): `produces[].activeIn`.
+    const active = (Array.isArray(part.produces) ? (part.produces as unknown[]) : []).map((t) => (t as Record<string, unknown>)?.activeIn);
+    return [...tissues, ...yields, ...active.filter((a) => a !== undefined)];
+  }).concat(
+    // …and its carcass map (W5): each `comesOffAs[].cut` names the row a
+    // butchering clones — a rowless one opens onto nothing, silently.
+    (Array.isArray(d.comesOffAs) ? d.comesOffAs : []).flatMap((e) => [
+      (e as Record<string, unknown>)?.tissue,
+      (e as Record<string, unknown>)?.cut,
+    ]),
+  ),
 };
 
 function checkDocumentCitations(rows: Map<string, string>): number {

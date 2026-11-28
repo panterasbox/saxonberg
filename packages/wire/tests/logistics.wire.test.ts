@@ -50,7 +50,7 @@ let p: Session;
 
 /** Where the traveller is standing, structurally. */
 async function whereAmI(): Promise<string> {
-  const here = await p.queryOne('here', ['displayName']);
+  const here = await p.queryOne('~here', ['displayName']);
   return String((here as { displayName?: string })?.displayName ?? '');
 }
 
@@ -70,7 +70,7 @@ async function go(dir: string): Promise<string> {
 
 /** What is standing here, by name — the structural `look`. */
 async function peerNames(): Promise<string[]> {
-  const rows = await p.query('peers', { fields: ['displayName'] });
+  const rows = await p.query('~peers', { fields: ['displayName'] });
   return rows.map((r) => String((r as { displayName?: string }).displayName ?? ''));
 }
 

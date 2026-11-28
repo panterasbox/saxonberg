@@ -1,10 +1,12 @@
 import "../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect } from 'vitest';
 import BodyPlan from '../BodyPlan';
 import { Idea } from '../../../../lib/stuff/Idea';
 import { MixinApi } from '../../../../api/mixin';
 import { Mixins } from '../../../../lib/mixin';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
+import { setFlatGaits } from '../../../../lib/species/__tests__/flat-body';
 
 describe('BodyPlan', () => {
   it('extends Idea via SingletonMixin', () => {
@@ -22,8 +24,8 @@ describe('BodyPlan', () => {
       { name: 'hand:left', accepts: 'WieldableMixin' },
       { name: 'hand:right', accepts: 'WieldableMixin' },
     ]);
-    bp.setLocomotionModes(['walk']);
-    bp.setSensoryPorts([
+    setFlatGaits(bp, ['walk']);
+    setFlatSenses(bp, [
       { modality: 'vision', count: 2, position: 'frontal' },
     ]);
     expect(bp.getName()).toBe('biped');
@@ -33,18 +35,17 @@ describe('BodyPlan', () => {
       { name: 'hand:left', accepts: 'WieldableMixin' },
       { name: 'hand:right', accepts: 'WieldableMixin' },
     ]);
-    expect(bp.getLocomotionModes()).toEqual(['walk']);
-    expect(bp.getSensoryPorts()).toEqual([
-      { modality: 'vision', count: 2, position: 'frontal' },
-    ]);
+    expect(bp.getBody().gaits()).toEqual(['walk']);
+    // ⭐ W9 (D11): senses derive from organs.
+    expect(bp.getBody().modalities()).toEqual(['vision']);
   });
 
   it('sessile body plan can be all-empty', () => {
     const bp = makeStuff(() => new BodyPlan());
     bp.setName('sessile');
     expect(bp.getSlots()).toEqual([]);
-    expect(bp.getLocomotionModes()).toEqual([]);
-    expect(bp.getSensoryPorts()).toEqual([]);
+    expect(bp.getBody().gaits()).toEqual([]);
+    expect(bp.getBody().modalities()).toEqual([]);
   });
 
   it('setSlots rejects spec missing name', () => {
@@ -81,7 +82,7 @@ describe('BodyPlan', () => {
   describe('getModalities (senses build)', () => {
     it('returns deduped channel list from sensoryPorts', () => {
       const bp = makeStuff(() => new BodyPlan());
-      bp.setSensoryPorts([
+      setFlatSenses(bp, [
         { modality: 'vision', count: 2, position: 'frontal' },
         { modality: 'hearing', count: 2, position: 'lateral' },
         { modality: 'smell', count: 1, position: 'forward' },
@@ -89,7 +90,7 @@ describe('BodyPlan', () => {
         { modality: 'touch', count: 1, position: 'circumferential' },
       ]);
       // Insertion-order preservation via Set.
-      expect(bp.getModalities()).toEqual([
+      expect(bp.getBody().modalities()).toEqual([
         'vision',
         'hearing',
         'smell',
@@ -101,17 +102,17 @@ describe('BodyPlan', () => {
     it('returns [] for a sessile body plan with no ports', () => {
       const bp = makeStuff(() => new BodyPlan());
       bp.setName('sessile');
-      expect(bp.getModalities()).toEqual([]);
+      expect(bp.getBody().modalities()).toEqual([]);
     });
 
     it('dedupes when one channel has multiple ports', () => {
       const bp = makeStuff(() => new BodyPlan());
-      bp.setSensoryPorts([
+      setFlatSenses(bp, [
         { modality: 'vision', count: 2, position: 'frontal' },
         { modality: 'vision', count: 2, position: 'dorsal' },
         { modality: 'hearing', count: 2, position: 'lateral' },
       ]);
-      expect(bp.getModalities()).toEqual(['vision', 'hearing']);
+      expect(bp.getBody().modalities()).toEqual(['vision', 'hearing']);
     });
   });
 

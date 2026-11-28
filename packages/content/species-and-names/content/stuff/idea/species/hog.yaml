@@ -38,12 +38,3 @@ data:
     unbothered eye of an animal that has never had to be clever about
     anything except food.
   nameBanks: []
-  # ⭐ A hog is a great deal of meat, and that is the whole point of one:
-  # eight cuts off a clean job is far more than one sitting, which is what
-  # turns preservation from a curiosity into a decision.
-  butcheryYield:
-    - { cut: /stuff/thing/items/stew-meat, units: 6 }
-    - { cut: /stuff/thing/items/prime-cut, units: 2 }
-    # ⭐ Offal — 10–15% of live weight in the real world, and the cut
-    # that will not keep. It is what you feed an animal today.
-    - { cut: /stuff/thing/items/offal, units: 2 }

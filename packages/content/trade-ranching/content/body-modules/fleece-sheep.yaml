@@ -1,0 +1,9 @@
+# fleece-sheep — a gland (organism-biology D2): the part that makes
+# wool. The tap is today's, keyed as it always was, so a
+# stored tap state restores by its key; the store stays on the tap host.
+parts:
+- key: ''
+  tissues: []
+  produces:
+  - {key: wool, yieldRow: /trade/ranching/thing/fleece, perGameDay: 0.008, behaviour: continuous, windowDays: 0,
+    capUnits: 4}

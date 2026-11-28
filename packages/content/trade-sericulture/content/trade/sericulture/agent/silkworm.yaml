@@ -1,0 +1,14 @@
+# One silkworm (organism-biology D10) — the tray's exemplar while a
+# rearing is in a larval age, and the moth a cocoon stack lets out. Minted
+# only by those write paths (a put, a get, the tray's or the stack's own
+# wake), never by a look.
+class: /trade/sericulture/agent/Silkworm
+data:
+  shortDescription: silkworm
+  keywords: [silkworm, worm, caterpillar, larva]
+  register: indefinite
+  longDescription: >-
+    A fat, pale grey caterpillar as long as a finger, its head rising and
+    falling as it feels for leaf.
+  _speciesPath: /stuff/idea/species/animalia/arthropoda/insecta/lepidoptera/bombycidae/bombyx/mori
+  lifecycleState: alive

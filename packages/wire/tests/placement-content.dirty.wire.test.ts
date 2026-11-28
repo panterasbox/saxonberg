@@ -137,7 +137,7 @@ suite('B — a kitchen gets somewhere cold, for the first time', () => {
   });
 
   it('4. ⭐ the icebox is here, and it is what makes this venue cold', async () => {
-    const peers = await cook.query('peers', { fields: ['displayName'] });
+    const peers = await cook.query('~peers', { fields: ['displayName'] });
     const names = peers
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');
@@ -293,7 +293,7 @@ suite('B — a kitchen gets somewhere cold, for the first time', () => {
 
 suite('C — a ham hangs FROM a hook', () => {
   it('11. ⭐⭐ `put cut on hook` says HANG … FROM', async () => {
-    const peers = await cook.query('peers', { fields: ['displayName'] });
+    const peers = await cook.query('~peers', { fields: ['displayName'] });
     const names = peers
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');

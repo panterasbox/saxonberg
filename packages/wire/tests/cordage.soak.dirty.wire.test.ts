@@ -26,6 +26,7 @@ import {
   advanceWorldClock,
   pinWeather,
   unpinWeather,
+  worldClockNow,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -77,6 +78,11 @@ suite('cordage — the soak drive', () => {
     expectOk(await s.cmd(`drop #${ropeB}`));
     await pinWeather('rain', WALK);
     await advanceWorldClock('6 days');
+    // ⚠ (soak lane, 2026-11-26) Read in DAYLIGHT: at night the walk shows
+    // "something", and neither the wet nor the musty line is there to see.
+    const into = (((await worldClockNow()) % 86_400) + 86_400) % 86_400;
+    const ahead = (11 * 3600 - into + 86_400) % 86_400;
+    if (ahead > 180) await advanceWorldClock(`${Math.round(ahead / 60)} minutes`);
     const lookA = squash(await s.prose(`look #${ropeA}`));
     const lookB = squash(await s.prose(`look #${ropeB}`));
     const [untarredLook, tarredLook] = /tarred/.test(lookA) ? [lookB, lookA] : [lookA, lookB];

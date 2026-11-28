@@ -1,10 +1,10 @@
 # Fish — the body plan of a thing that breathes WATER. One torso, a head,
 # a tail, gills where a lung would be; it swims and nothing else.
 #
-# ⚠ `breathing: gills in water` is the load-bearing line. `Respiration`
-# reads the body plan, not the species, and a plan that left the default
-# would read `['air']` — so a landed fish would be perfectly comfortable
-# in your hand and drown in its bowl. The species test pins it.
+# ⚠ The gills' `breathes: water` (on `torso-fish`) is the load-bearing
+# line: breathing derives from the organs (organism-biology D10), so a
+# landed fish drowns in air and is comfortable in its bowl. The species
+# test pins it.
 #
 # It ships here rather than in the species commons because a pack owns
 # the rows it has a reason for (the `avian` precedent in trade-mining);
@@ -13,41 +13,16 @@
 class: /platform/idea/species/BodyPlan
 data:
   name: fish
+  # ⭐ An ectotherm (organism-biology W7): its core is the water's —
+  # sluggish when chilled, torpid past its floor, never hypothermic.
+  thermalStrategy: ectotherm
   slots: []
-  locomotionModes:
-    - swim
   defaultLocomotionMode: swim
-  breathing:
-    - { medium: water, apparatus: gills, intake: 1 }
-  respires: true
-  sensoryPorts:
-    - { modality: vision, count: 2, position: lateral }
-    - { modality: touch, count: 1, position: circumferential }
-  bodyParts:
-    - key: body.torso
-      parent: null
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.1449 }
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.4832 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.2415 }
-    - key: body.head
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/bone, share: 0.0386 }
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.029 }
-    - key: body.tail
-      parent: body.torso
-      severable: true
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0483 }
-    - key: body.torso.heart
-      parent: body.torso
-      governs: [heartRate]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/muscle, share: 0.0048 }
-    - key: body.torso.gills
-      parent: body.torso
-      governs: [respiratoryRate]
-      tissues:
-        - { tissuePath: /stuff/idea/material/tissue/flesh, share: 0.0097 }
+  # ⭐ Composed from body modules (organism-biology D1): each entry names
+  # a module document, the absolute key of each instance (`as`) and the
+  # part it hangs from (`at`). The expansion reproduces the keys and the
+  # tissue shares this plan always had.
+  modules:
+    - { module: /trade/fishing/body-modules/torso-fish, as: [body.torso] }
+    - { module: /trade/fishing/body-modules/head-fish, as: [body.head], at: body.torso }
+    - { module: /trade/fishing/body-modules/tail-fish, as: [body.tail], at: body.torso }

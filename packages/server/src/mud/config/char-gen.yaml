@@ -1,23 +1,27 @@
 # Char-gen rosters — the closed-choice content the `embody` flow
 # presents. Loaded (cached) by EmbodyController. CONTENT, not code:
-# add a species / aspiration / pronoun by editing this file, no code
-# change. See docs/plans/char-gen-plan.md (Phase B/C).
+# add a species or change the outfit by editing this file, no code
+# change.
 #
 # `species[].path` must point at a real Species template — these live in
 # the `@saxonberg/content-species-and-names` content pack
-# (`content/stuff/idea/species/**`). `aspirations[].outfit` lists garment template
-# paths cloned + worn at commit (missing ones are skipped). `bioSeed`
-# is the starter bio prose seeded onto PersonaMixin. ⭐ Every outfit has
-# pockets (the trousers' and the top's rows); an aspiration that implies a
-# bag gets that bag (size and carrying D29) — nobody starts with a rucksack
-# or a frame pack. A bag with no slot claim (the medic's pouch) is received,
-# not worn: list the belt it hangs from BEFORE it.
+# (`content/stuff/idea/species/**`).
 #
-# `species[].image` / `aspirations[].image` (OPTIONAL) — a resolvable
+# `species[].image` (OPTIONAL) — a resolvable
 # illustration URL surfaced in the char-gen detail card (3:4 portrait).
 # Omitted until image assets exist; the client renders a framed
 # placeholder in the meantime. The asset subsystem owns how these URLs
 # are produced; char-gen only consumes the field.
+
+# ⭐ `startingOutfit` — what EVERY new character (and every guest) wears:
+# garment template paths cloned + worn at commit (a missing one is
+# skipped). One plain outfit for everybody; who you were before you came
+# is the lineage slate's, not char-gen's. ⭐ It has pockets (the trousers'
+# two) — the phone in `startingKit` goes into one.
+startingOutfit:
+  - /stuff/thing/clothes/student-shirt
+  - /stuff/thing/clothes/student-trousers
+  - /stuff/thing/clothes/canvas-shoes
 
 # ⭐ `startingKit` — what EVERY new character is handed after dressing
 # (aether-devices D11): today a Hollis Pal phone, its title BOUND to the
@@ -72,111 +76,3 @@ species:
 # derive from the `Pronouns` enum in @saxonberg/types (single source of
 # truth), with display labels in EmbodyController. Pronouns are free and
 # independent of sex; free-text is deferred (grammar-engine cost).
-
-# Aspirations — what you want to *become*. Each seeds a starter bio +
-# selects a themed starting outfit + a short prologue (`claimSeeds`):
-# author-trusted `claim` entries the chronicle mints at embody, distinct
-# from `bioSeed` (both read the same aspiration, neither touches the
-# other). `order` places each prologue line. (Breadcrumb-seeding is
-# deferred.)
-aspirations:
-  - key: something-better
-    label: Something Better
-    description: A degree, a way up, a life that fits. The striver's road.
-    bioSeed: >-
-      You came here chasing something better than where you started — a
-      degree, a door, a different life. You don't have it all figured out
-      yet. That's rather the point.
-    outfit:
-      - /stuff/thing/clothes/student-shirt
-      - /stuff/thing/clothes/student-trousers
-      - /stuff/thing/clothes/canvas-shoes
-    claimSeeds:
-      - order: 1
-        text: "Left home with little but resolve and a one-way ticket."
-      - order: 2
-        text: "Enrolled at the University, chasing a life that fits."
-  - key: healer
-    label: Healer
-    description: To mend bodies and minds. Nursing, counseling, care.
-    bioSeed: >-
-      You came to learn how to mend — bodies, minds, the small broken
-      things people carry. You've always been the one others come to.
-    outfit:
-      - /stuff/thing/clothes/white-coat
-      - /stuff/thing/clothes/student-trousers
-      - /stuff/thing/clothes/canvas-shoes
-      # ⭐ What the life carries (size and carrying D29 — a grain an author
-      # may change): a belt, and the medic's pouch that hangs from it.
-      - /trade/tanning/thing/belt
-      - /trade/tanning/thing/medics-pouch
-    claimSeeds:
-      - order: 1
-        text: "Was always the one others came to when something broke."
-      - order: 2
-        text: "Came to the University to learn how to mend."
-  - key: teacher
-    label: Teacher
-    description: To pass the torch. Certification, classrooms, kids.
-    bioSeed: >-
-      You want to teach — to be the one who finally makes it click for
-      someone. You remember the teacher who did that for you.
-    outfit:
-      - /stuff/thing/clothes/tweed-jacket
-      - /stuff/thing/clothes/student-trousers
-      - /stuff/thing/clothes/canvas-shoes
-      # A satchel for the books and the marking (D29).
-      - /trade/tanning/thing/satchel
-    claimSeeds:
-      - order: 1
-        text: "Remembers the teacher who finally made it click."
-      - order: 2
-        text: "Came to the University to pass the torch."
-  - key: guardian
-    label: Guardian
-    description: To stand the watch. Service, discipline, protection.
-    bioSeed: >-
-      You came to stand the watch — to be steady when it matters, to put
-      yourself between people and the worst of it.
-    outfit:
-      - /stuff/thing/clothes/field-jacket
-      - /stuff/thing/clothes/student-trousers
-      - /stuff/thing/clothes/canvas-shoes
-      # An empty modular belt — the loadout is the guardian's to
-      # assemble (D29).
-      - /trade/tanning/thing/belt
-    claimSeeds:
-      - order: 1
-        text: "Learned early to stand between people and the worst of it."
-      - order: 2
-        text: "Came to the University to stand the watch."
-  - key: founder
-    label: Founder
-    description: To build something. Business, finance, ventures.
-    bioSeed: >-
-      You're here to build something of your own — a company, a stake, a
-      name on a door. You think in deals and in years.
-    outfit:
-      - /stuff/thing/clothes/blazer
-      - /stuff/thing/clothes/student-trousers
-      - /stuff/thing/clothes/canvas-shoes
-    claimSeeds:
-      - order: 1
-        text: "Thinks in deals and in years."
-      - order: 2
-        text: "Came to the University to build something of one's own."
-  - key: seeker
-    label: Seeker
-    description: To know how it works. Science, computation, the deep questions.
-    bioSeed: >-
-      You came for the questions — how it works, why it works, what's
-      underneath. You'd take the truth over the comfort any day.
-    outfit:
-      - /stuff/thing/clothes/lab-hoodie
-      - /stuff/thing/clothes/student-trousers
-      - /stuff/thing/clothes/canvas-shoes
-    claimSeeds:
-      - order: 1
-        text: "Took the truth over the comfort, always."
-      - order: 2
-        text: "Came to the University for the questions underneath."

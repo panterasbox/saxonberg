@@ -1,0 +1,13 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/HideHorn
+data:
+  name: enamel
+  keywords: [enamel, tooth]
+  appearance: glassy white tooth enamel
+  density: 2900
+  specificHeat: 750
+  thermalConductivity: 0.9
+  hardness: 300
+  toughness: 1
+  tags: ["tissue", "animal", "tooth", "mineral", "once-living"]

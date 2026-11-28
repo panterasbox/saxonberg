@@ -19,6 +19,7 @@ import {
   makeStuff,
   stampTemplatePathForTest,
 } from '../../security/__tests__/test-setup';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 let n = 0;
 
@@ -26,7 +27,7 @@ let n = 0;
 function footedBodyPlan(path: string): BodyPlan {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('demo-biped');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.left.foot', parent: 'body.leg.left', tissues: [] },

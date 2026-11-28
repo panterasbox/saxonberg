@@ -1,0 +1,28 @@
+# head-tadpole — a tadpole's head (organism-biology D10, D11): eyes, a
+# mouth that tastes the water it grazes, no ears yet, no nose that works
+# out of the water.
+parts:
+- key: ''
+  senses: [{modality: taste, media: [water]}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/cartilage, weight: 0.03}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.05}
+- key: brain
+  parent: ''
+  governs: [consciousness]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.002}
+- key: eye.left
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 300}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+- key: eye.right
+  parent: ''
+  serves: [vision]
+  senses: [{modality: vision, watchDeg: 300}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/eye, weight: 0.0005}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.005, form: skin}

@@ -1236,7 +1236,9 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
     // and a fall onto spikes still take the part; a sparring bout does
     // not. The severe avulsion stays — grievously wounded, not maimed.
     if (t.maimAllowed === false) return;
-    host.severPart(t.site);
+    // ⭐ The sever itself is `ConditionApi.sever`, called by `inflict` once
+    // the wound has LANDED (organism-biology D7): the part comes off as a
+    // thing in the world, not just an absence on the body.
   },
   tick: LACERATION_BEHAVIOR.tick,
   mend: LACERATION_BEHAVIOR.mend,

@@ -69,6 +69,10 @@ describe('who detects what', () => {
     const profile = (acuity: string) =>
       vi.spyOn(body, 'getSpecies').mockReturnValue({
         getOlfactoryProfile: () => ({ acuity }),
+        // ⭐ organism-biology W9: the nose is a part — no body here, a whole nose.
+        bodyFor: () => null,
+        lifeStageAt: () => null,
+        getAgeCurve: () => null,
       } as never);
     profile('normal');
     expect(body.nose(signal('grain', 0.5)).isEmpty()).toBe(true);

@@ -39,7 +39,7 @@ import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
 import { SubscriptionApi } from '../../api/subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
-import type { NavSectionName } from '@saxonberg/types';
+import type { NavSectionName, WatchTarget } from '@saxonberg/types';
 import type { HasInteractive } from './HasInteractive';
 import type { ClientState, ClientStateSchemaEntry } from './ClientState';
 import {
@@ -152,6 +152,12 @@ export interface SaxonbergClient extends ClientState {
    * `cockpit.layout`, and only this resolves it.
    */
   getCockpitMode(): CockpitMode;
+
+  /** Put a stream on the viewer's own screen (`cockpit.watch`) — the one writer. */
+  showPersonalStream(target: WatchTarget | null): void;
+
+  /** Arrive watching `target` — watch mode for this visit only; `null` clears it. */
+  arriveWatching(target: WatchTarget | null): void;
 
   /**
    * The arrangement active in a mode (the mode's remembered choice, its
@@ -433,6 +439,26 @@ export function SaxonbergClientMixin<
           'to do". Set by `cockpit mode`. Null means never set: read ' +
           'through `getCockpitMode()`, which migrates a legacy ' +
           '`cockpit.layout` rather than assuming the default.',
+        validator: (v) =>
+          v === null ||
+          (typeof v === 'string' &&
+            (COCKPIT_MODES as readonly string[]).includes(v))
+            ? true
+            : `unknown cockpit mode (known: ${COCKPIT_MODES.join(', ')})`,
+      },
+      {
+        key: 'cockpit.sessionMode',
+        // ⭐ Transient (stream arrival D4): a mode for THIS VISIT only — set
+        // when the character arrives watching a program, read FIRST by
+        // `getCockpitMode()`, never saved. The stored `cockpit.mode` stays
+        // byte-identical, so the next plain visit opens where it did.
+        transient: true,
+        defaultValue: null,
+        description:
+          'The cockpit mode for this visit only (stream arrival) — set ' +
+          'when a character arrives watching a program, read before the ' +
+          'stored `cockpit.mode`, never persisted. A plain `cockpit mode` ' +
+          'clears it.',
         validator: (v) =>
           v === null ||
           (typeof v === 'string' &&
@@ -787,6 +813,11 @@ export function SaxonbergClientMixin<
      */
     public getCockpitMode(): CockpitMode {
       const self = this as unknown as ClientHost;
+      // ⭐ This visit's mode first (stream arrival D4): session → stored →
+      // legacy → explore, so the snapshot, the arrangement and every later
+      // read agree.
+      const session = self.getClientState<CockpitMode | null>('cockpit.sessionMode');
+      if (session !== null && session !== undefined) return session;
       const explicit = self.getClientState<CockpitMode | null>('cockpit.mode');
       if (explicit !== null && explicit !== undefined) return explicit;
       return self.migratedLegacyLayout()?.mode ?? DEFAULT_COCKPIT_MODE;
@@ -1007,6 +1038,34 @@ export function SaxonbergClientMixin<
         [mode]: self.getCockpitArrangement(mode),
       };
       return out;
+    }
+
+    /**
+     * ⭐ Put `target` on the viewer's OWN screen — the personal
+     * `cockpit.watch` write (stream arrival D4), the one writer the `watch`
+     * verb and an arrival share. Writes and pushes; a shared display's
+     * marker is never written here.
+     */
+    public showPersonalStream(target: WatchTarget | null): void {
+      const self = this as unknown as ClientHost;
+      self.setClientState('cockpit.watch', target);
+      self.pushClientStateUpdate('cockpit.watch', target);
+    }
+
+    /**
+     * ⭐ ARRIVE watching (stream arrival D4): the program's video on the
+     * viewer's screen, and watch mode for this visit — before the first
+     * snapshot, so no other mode is ever painted. `null` clears this
+     * visit's mode (a plain entry).
+     */
+    public arriveWatching(target: WatchTarget | null): void {
+      const self = this as unknown as ClientHost;
+      if (target === null) {
+        self.setClientState('cockpit.sessionMode', null);
+        return;
+      }
+      self.showPersonalStream(target);
+      self.setClientState('cockpit.sessionMode', 'watch');
     }
 
     /**

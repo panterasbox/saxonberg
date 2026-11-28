@@ -191,8 +191,10 @@ done)`.
 Routes (`AuthRoutes.ts`):
 
 - `GET /auth/{google,twitch}` — kick off login OAuth.
-- `GET /auth/{provider}/callback` — Passport runs verify, then redirects
-  to `${CLIENT_URL}/?auth=success` (or `?auth=failure`).
+- `GET /auth/{provider}/callback` — Passport runs verify, then
+  `AuthRoutes.finishSignIn` redirects to
+  `${CLIENT_URL}/?auth=success&via=<provider>` (or `?auth=failure`); `via`
+  lets the client remember the method the visitor used.
 - `GET /auth/{provider}/link` + `/link/callback` — **authenticated**
   (`AuthMiddleware.requireAuth`) account linking.
 - `POST /auth/{provider}/unlink` — **authenticated** unlinking.
@@ -300,9 +302,9 @@ hashed and its record read at `/platform/stream-tokens/<sha256>`; a
 match with the right scope is accepted as the per-streamer principal
 `broadcast:<playerId>` (the read-only `BroadcastFeed`, a pure push
 target with **no `Interactive`**) or `control:<playerId>` (pblive's
-Stream Deck, whose only accepted message is one `stream` command run as
-the streamer). The env `BROADCAST_TOKEN` still opens the first
-`STREAMER_PLAYER_IDS` streamer's feed during the changeover. A bad,
+Stream Deck, whose only accepted message is one `rodney` command run as
+the streamer). There is no env door (`BROADCAST_TOKEN` retired with
+stream arrival; boot warns if it is still set). A bad,
 revoked or wrong-scope token is a 401 — never a fallback to a shared
 feed. See [livestream.md § Tokens and the two doors](./livestream.md).
 
@@ -906,6 +908,23 @@ later is a drop, and closing one of several tabs does nothing to the body.
 - **A shade goes too.** It persists nothing, so it comes back the way it does
   after a restart: re-minted from the arc at the place it died. See
   [mortality.md](./mortality.md).
+
+### Arriving watching (stream arrival, 2026-11-24)
+
+A visitor who came from a stream keeps watching it into the world. Three
+words ride the socket URL, each a closed vocabulary validated on the
+`Interactive` and otherwise dropped: `from` — the **door** (`twitch` ·
+`youtube` · `kick` · `stream`, `ARRIVAL_DOORS`) — and, for a guest (who
+runs no command), `watch=<program>` + `carrier=<twitch|youtube|kick>`
+(`arrivalWatching`). A signed-in player says it on the command instead:
+`play <id> --watch <program> --<carrier>` at the roster, `embody confirm
+--watch <program> --<carrier>` at creation. `Login.readWatching` refuses an
+unknown program (`no-such-program`) and a missing or doubled carrier
+(`watch-needs-carrier`) **at the roster**, before anyone enters. The
+character then **arrives** in watch mode on that program's feed for THIS
+visit only — `cockpit.sessionMode`, transient; the stored mode is never
+touched — and is told *"Watching <title> on <carrier> — for this visit."*
+(`Avatar.enter(…, { watching })`). See [cockpit.md](./cockpit.md).
 
 The character-select roster stands up every character a user has in order to
 describe them. The ones not chosen go back when the screen ends

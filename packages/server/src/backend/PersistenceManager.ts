@@ -662,6 +662,11 @@ export class PersistenceManager {
    * jump's backlog on the next until the process is mostly waiting queries.
    */
   public async whenQuiet(quietMs = 500, timeoutMs = 300_000): Promise<boolean> {
+    // ⚠ No database, no backlog: nothing can be in flight, so there is
+    // nothing to wait for. A unit world spent half a second per settle here
+    // and, under a loaded suite, ran clock tests into the 5 s timeout
+    // (three different files, the soak lane's suite runs of 2026-11-26).
+    if (!this.isConnected()) return true;
     const start = Date.now();
     let quietSince: number | null = null;
     for (;;) {

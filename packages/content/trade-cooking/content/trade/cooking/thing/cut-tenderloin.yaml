@@ -15,6 +15,9 @@ data:
   longDescription: >-
     A tapering strip the length of a forearm, taken from inside the loin. There is one on each side of an animal and no more.
   _materialPath: /stuff/idea/material/tissue/muscles/tenderloin
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 2.5
   tissues:
     - /stuff/idea/material/tissue/muscles/tenderloin
   cutting: boneless

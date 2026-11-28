@@ -9,7 +9,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
-import type { CommandGiver } from '../../../lib/command/CommandGiver';
+import type { CommandGiver, RecencyBucket } from '../../../lib/command/CommandGiver';
 import type { Focused } from '../../../lib/command/Focused';
 import { ArrayApi } from '../../../api/array';
 import { ShellApi } from '../../../api/shell';
@@ -33,6 +33,9 @@ import type { StoredDocument } from '../../../lib/document/StoredDocument';
 import { SecurityApi } from '../../../api/security';
 import Ajv, { type ValidateFunction } from 'ajv';
 import { CARD_IDS } from '@saxonberg/types';
+import type { WhichAnswer, WhichCollision, WhichGroup, WhichRelation, WhichSource, WhichVerb } from '@saxonberg/types';
+import type { Relating } from '../../../lib/relation/Relating';
+import { BUILTIN_RELATION_WORDS } from '../../../lib/relation/BuiltinRelations';
 import { SourceTreeApi } from '../../../api/source-tree';
 import type {
   MessageFrame,
@@ -95,13 +98,12 @@ import {
   type PositionalDefinition,
   type SubcommandDefinition,
   type OptionDefinition,
-  type CommandSchemaPayload,
   type AssembleSuccess,
   type AssembleResult,
   type AssembleOptions,
   type ResolveModelOptions,
 } from '../../../api/command';
-import type { OnFilteredPolicy } from '../../../api/command';
+import type { OnFilteredPolicy, WhichAsking, WhichResult, WhichRelationsResult } from '../../../api/command';
 import { GrammarApi } from '../../../api/grammar';
 import { QuantityApi } from '../../../api/quantity';
 import { MessageApi } from '../../../api/message';
@@ -1769,31 +1771,6 @@ export class CommandLogic extends ApiLogic {
       // default never carries one.
       const raw = ShellApi.expandQueryAliases(typedRaw, giver);
 
-      // ⭐ `thing:~` lists relations and binds nothing (D-B4): the slot
-      // that lists (`lists: relations` — `query`'s) is handed the listing;
-      // any other refuses, pointing at `query`.
-      if (/:~\s*$/.test(raw)) {
-        if (def.lists !== 'relations') {
-          context.refuse({ reason: 'names-relations', facts: { query: raw } });
-          return { result: 'failed' };
-        }
-        let listing: MqlMany;
-        try {
-          listing = MqlApi.resolveMany(raw, { commandGiver: giver, scope: '~reachable' });
-        } catch (err) {
-          // @quiet not silent: reported as the slot's `mql-error` note, as every resolve failure is.
-          context.note({
-            kind: 'mql-error',
-            field: fname,
-            stage: 'resolve',
-            detail: err instanceof Error ? err.message : String(err),
-          });
-          return { result: 'failed' };
-        }
-        const bound: MqlManyResult = { stuff: [], raw, relations: listing.relations ?? [] };
-        resolved[fname] = bound;
-        continue;
-      }
 
 
       // Build the scope try-list. The YAML's `scope:` is authoritative
@@ -2068,11 +2045,6 @@ export class CommandLogic extends ApiLogic {
       if (def.type !== 'object' && def.type !== 'objects') continue;
       if (typeof typedRaw !== 'string' || typedRaw.length === 0) continue;
       const raw = ShellApi.expandQueryAliases(typedRaw, giver);
-      // `thing:~` binds nothing (D-B4) — an option never lists.
-      if (/:~\s*$/.test(raw)) {
-        context.refuse({ reason: 'names-relations', facts: { query: raw } });
-        return { result: 'failed' };
-      }
 
       const yamlScopes = (def.scope as string[] | undefined) ?? ['$focus'];
       const tries: string[] = scopeTries(yamlScopes, giver);
@@ -2369,57 +2341,6 @@ export class CommandLogic extends ApiLogic {
     return resolved;
   }
 
-  /** See {@link CommandApi.emitSchemaDelta}. */
-  @CallSecurity(CommandApiCallers)
-  public emitSchemaDelta(
-    recipient: Stuff,
-    kind: 'reset',
-    payload: CommandSchemaPayload[]
-  ): void {
-    if (!MixinApi.isSensor(recipient)) return;
-    const meta: MessageFrame['meta'] = { timestamp: Date.now() };
-    const ctx = ExecutionContextApi.getCurrentCommandContext();
-    if (ctx?.commandId) meta.commandId = ctx.commandId;
-    const causing = ExecutionContextApi.getCurrentCausingCommandId();
-    if (causing) meta.causingCommandId = causing;
-
-    // ⭐ `shell.control` carries every "server changes your interface"
-    // frame — schema deltas, `clear`, layout, mode, style. They are one
-    // subject, so they are one topic; WHICH control it is rides a tag,
-    // the way a log line's level does. This used to be three topics
-    // (`system.commands.{added,removed,reset}`), which put the
-    // discriminator in the tree and minted three keys nobody authored.
-    const frame: MessageFrame = {
-      id: SecurityApi.uuid(),
-      topic: 'shell.control',
-      tags: ['control:schema', `schema:${kind}`],
-      body: '',
-      meta,
-      payload,
-    };
-    (recipient as Stuff & Sensor).onMessage(frame);
-  }
-
-  /** See {@link CommandApi.getCommandSchemaPayload}. */
-  @CallSecurity(CommandApiCallers)
-  public getCommandSchemaPayload(cmd: CommandDefinition): CommandSchemaPayload {
-    const out: CommandSchemaPayload = {
-      verbs: cmd.verbs,
-      // Report the RESOLVED `/`-rooted path dispatch actually clones (the
-      // controller-path refactor), not the raw relative/authored value.
-      controller: cmd.resolvedController ?? cmd.controller,
-      description: cmd.description,
-    };
-    if (cmd.help) out.help = cmd.help;
-    if (cmd.examples && cmd.examples.length > 0) out.examples = cmd.examples;
-    if (cmd.args.length > 0) out.args = cmd.args;
-    if (Object.keys(cmd.subcommands).length > 0) out.subcommands = cmd.subcommands;
-    if (Object.keys(cmd.verbOptions).length > 0) out.options = cmd.verbOptions;
-    if (Object.keys(cmd.payload).length > 0) out.payload = cmd.payload;
-    if (cmd.fallthrough) out.fallthrough = true;
-    return out;
-  }
-
   /** See {@link CommandApi.validateCommandView}. */
   @CallSecurity(CommandApiCallers)
   public validateCommandView(view: unknown): string | null {
@@ -2458,6 +2379,18 @@ export class CommandLogic extends ApiLogic {
     viewer: Stuff & CommandGiver,
   ): Promise<AffordanceResolution | null> {
     return resolveAffordancesImpl(target, viewer);
+  }
+
+  /** See {@link CommandApi.which}. */
+  @CallSecurity(CommandApiCallers)
+  public which(viewer: Stuff & CommandGiver, opts?: WhichAsking): Promise<WhichResult> {
+    return whichImpl(viewer, opts);
+  }
+
+  /** See {@link CommandApi.whichRelations}. */
+  @CallSecurity(CommandApiCallers)
+  public whichRelations(viewer: Stuff & CommandGiver, thing?: Stuff): WhichRelationsResult {
+    return whichRelationsImpl(viewer, thing);
   }
 }
 
@@ -2653,8 +2586,16 @@ async function evaluateAffordance(
   target: Stuff,
   viewer: Stuff & CommandGiver,
   fields: string[],
+  /**
+   * ⭐ Bind `target` as the verb's first object (the radial: *what can I do
+   * with THIS*). `which` passes false — the source GIVES the verb and is not
+   * its object (a hearth gives `heat`; the hearth is not what is heated), so
+   * an object slot is an operand still to choose, and only verb-level
+   * refusals grey a verb (the which drive found the hearth refusing itself).
+   */
+  bindTarget = true,
 ): Promise<AffordanceEntry> {
-  const bound = fields[0];
+  const bound = bindTarget ? fields[0] : undefined;
   const context = CommandApi.createCommandContext({
     commandGiver: viewer,
     location: MixinApi.isContainable(viewer) ? viewer.getContainer() : null,
@@ -2770,6 +2711,413 @@ async function evaluateAffordance(
     state: 'enabled',
     category: cmd.category,
   };
+}
+
+/* ─────────────────── `which` — what can I type here ─────────────────── */
+
+/**
+ * The verbs a thing gives by being an article at all — what the `Good`
+ * rung itself contributes. They collapse into the closing *anything you're
+ * carrying* line rather than repeating under every good.
+ */
+async function commonVerbs(): Promise<Set<string>> {
+  // ⚠ Loaded at use: `Good` sits on the Thing/Place chain this module is
+  // part of, and a static import closes a cycle (Place's mixins undefined).
+  const { default: Good } = await import('../../../lib/stuff/Good');
+  const out = new Set<string>();
+  for (const bucket of ['environment', 'peers'] as const) {
+    for (const def of collectBucketDefs(Good, bucket)) out.add(def.getPrimaryVerb());
+  }
+  return out;
+}
+
+/** Is `thing` on `viewer`, at any depth? */
+function carriedBy(thing: Stuff, viewer: Stuff): boolean {
+  let up: Stuff | null = MixinApi.isContainable(thing) ? thing.getContainer() : null;
+  for (let i = 0; up !== null && i < CONTAINMENT_WALK_CAP; i++) {
+    if (up.stuffId === viewer.stuffId) return true;
+    up = MixinApi.isContainable(up) ? up.getContainer() : null;
+  }
+  return false;
+}
+
+/**
+ * ⭐ The two gates the radial applies, for one source of `viewer`'s verbs:
+ * what is the viewer's own (its body, its apps, what it carries) always
+ * passes; anything else must be perceived, and must be identified for its
+ * own verbs to show (an unidentified wand offers no `recharge`).
+ */
+function sourceShown(source: Stuff, viewer: Stuff): boolean {
+  if (source.stuffId === viewer.stuffId) return true;
+  if (MixinApi.isAetherHosted(source)) {
+    const host = source.getHost();
+    if (host === null) return false;
+    return host.stuffId === viewer.stuffId || sourceShown(host, viewer);
+  }
+  if (!carriedBy(source, viewer) && !PerceptionApi.perceives(viewer, source)) return false;
+  return (
+    !MixinApi.isIdentifiable(source) ||
+    (MixinApi.isBeliefStore(viewer) && viewer.knowsTrueTypeOf(source))
+  );
+}
+
+/** A source in `viewer`'s words. */
+function whichSourceOf(source: Stuff, viewer: Stuff, count = 1): WhichSource {
+  const id = source.stuffId;
+  if (id === viewer.stuffId) return { id, handle: 'me', name: 'you', place: '' };
+  if (MixinApi.isAetherHosted(source)) {
+    const app = source.getAppName();
+    const place = source.whereFor(viewer);
+    const word = app.toLowerCase();
+    return { id, handle: word, name: place === '' ? `your ${word}` : `the ${word} app`, place };
+  }
+  const phrase = source.handlePhrase();
+  const handle = phrase.bare();
+  const name = count > 1 ? phrase.withCount(count).render() : phrase.definite();
+  const here = MixinApi.isContainable(viewer) ? viewer.getContainer() : null;
+  const place =
+    here !== null && here.stuffId === id
+      ? 'where you are'
+      : MixinApi.isContainable(source)
+        ? source.whereFor(viewer)
+        : '';
+  return { id, handle, name, place };
+}
+
+/** One source's verbs, deduped by primary verb, in stack order. */
+interface SourceVerbs {
+  source: Stuff;
+  defs: Map<string, CommandDefinition>;
+  /** The bucket each verb reached the viewer through. */
+  buckets: Map<string, RecencyBucket>;
+}
+
+/**
+ * ⭐ Every verb `viewer` can type, by what gives it — the dispatcher's own
+ * list (`getAffordances()`) behind the radial's gates. The body's
+ * own verbs come back as `usual`; the rest per source.
+ */
+function whichSources(viewer: Stuff & CommandGiver): {
+  usual: string[];
+  sources: SourceVerbs[];
+  /**
+   * ⭐ Every giver of each verb BY DEFINITION — the body included, before
+   * the dedupe. A verb is one command when every giver gives the same view;
+   * two views behind one word is what collides (owner, review).
+   */
+  givers: Givers;
+} {
+  const usual: string[] = [];
+  const givers: Givers = new Map();
+  const give = (verb: string, who: Stuff, def: CommandDefinition): void => {
+    const byDef = givers.get(verb) ?? new Map<string, { def: CommandDefinition; who: Stuff[] }>();
+    const at = byDef.get(def.filePath) ?? { def, who: [] };
+    if (!at.who.some((x) => x.stuffId === who.stuffId)) at.who.push(who);
+    byDef.set(def.filePath, at);
+    givers.set(verb, byDef);
+  };
+  const bySource = new Map<string, SourceVerbs>();
+  const shown = new Map<string, boolean>();
+  for (const a of viewer.getAffordances()) {
+    const verb = a.command.getPrimaryVerb();
+    if (!verb) continue;
+    // ⭐ The body's own: its class's verbs, and any `self` entry that is
+    // not an app — a gift or a conferral (a caster's `cast`, pushed with the
+    // spell catalogue as its source) is a verb of the body, not of a thing.
+    if (a.source.stuffId === viewer.stuffId || (a.bucket === 'self' && !MixinApi.isAetherHosted(a.source))) {
+      if (!usual.includes(verb)) usual.push(verb);
+      give(verb, viewer, a.command);
+      continue;
+    }
+    const id = a.source.stuffId;
+    if (!shown.has(id)) shown.set(id, sourceShown(a.source, viewer));
+    if (!shown.get(id)) continue;
+    give(verb, a.source, a.command);
+    let entry = bySource.get(id);
+    if (!entry) {
+      entry = { source: a.source, defs: new Map(), buckets: new Map() };
+      bySource.set(id, entry);
+    }
+    if (!entry.defs.has(verb)) {
+      entry.defs.set(verb, a.command);
+      entry.buckets.set(verb, a.bucket);
+    }
+  }
+  // A verb the body has is never repeated under another source.
+  const sources: SourceVerbs[] = [];
+  for (const entry of bySource.values()) {
+    for (const verb of usual) entry.defs.delete(verb);
+    if (entry.defs.size > 0) sources.push(entry);
+  }
+  return { usual, sources, givers };
+}
+
+/**
+ * ⭐ The class or mixin whose OWN `commandContributions` lists `cmd` in
+ * `bucket` — the first such in `source`'s chain, concrete class first. A
+ * mixin is a class in the prototype chain, so one walk finds both; an
+ * own-property check keeps an inherited static from claiming it.
+ */
+function contributorOf(source: Stuff, bucket: RecencyBucket, cmd: CommandDefinition): string | undefined {
+  for (let c: unknown = source.constructor; c && c !== Function.prototype; c = Object.getPrototypeOf(c)) {
+    if (!Object.prototype.hasOwnProperty.call(c, 'commandContributions')) continue;
+    const own = getContributions(c)?.[bucket as Bucket];
+    if (!own || !resolveDefs(own).includes(cmd)) continue;
+    const named = c as { _mixinName?: unknown; name?: string };
+    return Object.prototype.hasOwnProperty.call(c, '_mixinName') && typeof named._mixinName === 'string'
+      ? named._mixinName
+      : named.name;
+  }
+  return undefined;
+}
+
+/** The view a definition was loaded from, as a player might name it: `perception/ring`. */
+function viewWord(cmd: CommandDefinition): string {
+  const m = /cmd\/(.+?)\.yaml$/.exec(cmd.filePath);
+  return m ? m[1]! : cmd.getPrimaryVerb();
+}
+
+/** Evaluate one source's verbs as the radial does, with where each came from. */
+async function evaluateGroup(entry: SourceVerbs, viewer: Stuff & CommandGiver, verbs: string[]): Promise<WhichVerb[]> {
+  const out: WhichVerb[] = [];
+  const yours = MixinApi.isAetherHosted(entry.source);
+  for (const verb of verbs) {
+    const cmd = entry.defs.get(verb)!;
+    const bucket = entry.buckets.get(verb) ?? 'peers';
+    const from = contributorOf(entry.source, bucket, cmd);
+    const meta = {
+      ...(from ? { from } : {}),
+      reach: yours || bucket === 'self' ? ('yours' as const) : bucket === 'peers' ? ('beside' as const) : ('held' as const),
+      view: viewWord(cmd),
+    };
+    const e = await evaluateAffordance(cmd, verb, entry.source, viewer, objectFields(cmd), false);
+    // An operand still to choose is not a state `which` reports: typed, the
+    // verb asks for it.
+    if (e.state !== 'pending-operand') {
+      out.push({ ...e, ...meta });
+      continue;
+    }
+    const { operand: _operand, ...open } = e;
+    out.push({ ...open, state: 'enabled', ...meta });
+  }
+  return out;
+}
+
+/** *the shoes, the trousers and the shirt* — a list in a person's words. */
+function andList(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? '';
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+/**
+ * Build the groups for `entries`, ordering by the rarest verb first (which
+ * D3). ⭐ Sources that give the SAME verbs from the SAME place are one group
+ * (owner, review): *tear, wear, … — the shoes, the trousers and the shirt
+ * you're wearing*, not one line per garment; alike things are counted
+ * (*2 notebooks*).
+ */
+async function whichGroups(
+  entries: { entry: SourceVerbs; verbs: string[] }[],
+  viewer: Stuff & CommandGiver,
+): Promise<WhichGroup[]> {
+  const merged = new Map<string, { entry: SourceVerbs; verbs: string[]; members: Stuff[] }>();
+  for (const e of entries) {
+    const words = whichSourceOf(e.entry.source, viewer);
+    const key = `${words.place}|${e.verbs.join(',')}`;
+    const had = merged.get(key);
+    if (had) had.members.push(e.entry.source);
+    else merged.set(key, { entry: e.entry, verbs: e.verbs, members: [e.entry.source] });
+  }
+  const givers = new Map<string, number>();
+  for (const m of merged.values()) for (const v of m.verbs) givers.set(v, (givers.get(v) ?? 0) + m.members.length);
+  const rarity = (verbs: string[]): number => Math.min(...verbs.map((v) => givers.get(v) ?? 0));
+  const ordered = [...merged.entries()].sort((a, b) => rarity(a[1].verbs) - rarity(b[1].verbs));
+  const groups: WhichGroup[] = [];
+  for (const [key, m] of ordered) {
+    // One name per distinct handle, counted: *2 notebooks and the rope*.
+    const byHandle = new Map<string, Stuff[]>();
+    for (const s of m.members) {
+      const h = whichSourceOf(s, viewer).handle;
+      byHandle.set(h, [...(byHandle.get(h) ?? []), s]);
+    }
+    const names = [...byHandle.values()].map((list) => whichSourceOf(list[0]!, viewer, list.length).name);
+    const first = whichSourceOf(m.members[0]!, viewer, m.members.length);
+    groups.push({
+      key,
+      // The short form names every kind in the group: *shoes, trousers, shirt*.
+      source: { ...first, handle: [...byHandle.keys()].join(', '), name: andList(names) },
+      count: m.members.length,
+      ids: m.members.map((s) => s.stuffId),
+      verbs: await evaluateGroup(m.entry, viewer, m.verbs),
+    });
+  }
+  return groups;
+}
+
+/** Each verb's givers, by the view (definition) they give it with. */
+type Givers = Map<string, Map<string, { def: CommandDefinition; who: Stuff[] }>>;
+
+/**
+ * ⭐ A verb that means TWO commands here (owner, review): more than one view
+ * answers the same word. The same view from many things is one command —
+ * the thing you name decides — and is not a collision. Each meaning carries
+ * its own one line (help's), who gives it, and the scope that picks it
+ * (`hearth::fire`; your own and your apps' with `me::`).
+ */
+function collisionsOf(verbs: string[], givers: Givers, viewer: Stuff): WhichCollision[] {
+  const out: WhichCollision[] = [];
+  for (const verb of verbs) {
+    const byDef = givers.get(verb);
+    if (!byDef || byDef.size < 2) continue;
+    // A giver's MEANING is the set of views it gives the word with — one
+    // verb's several shapes (`throw`, `throw … to`, `throw … at`) from one
+    // body are one command. Givers with the same set are one meaning.
+    const viewsOf = new Map<string, { who: Stuff; views: CommandDefinition[] }>();
+    for (const { def, who } of byDef.values()) {
+      for (const g of who) {
+        const at = viewsOf.get(g.stuffId) ?? { who: g, views: [] };
+        at.views.push(def);
+        viewsOf.set(g.stuffId, at);
+      }
+    }
+    const meaningsByKey = new Map<string, { views: CommandDefinition[]; who: Stuff[] }>();
+    for (const { who, views } of viewsOf.values()) {
+      const key = views.map((d) => d.filePath).sort().join('|');
+      const m = meaningsByKey.get(key) ?? { views, who: [] };
+      m.who.push(who);
+      meaningsByKey.set(key, m);
+    }
+    if (meaningsByKey.size < 2) continue;
+    const meanings: WhichCollision['meanings'] = [];
+    for (const { views, who } of meaningsByKey.values()) {
+      const sources = who.map((g) => whichSourceOf(g, viewer));
+      const first = who[0]!;
+      const mine = first.stuffId === viewer.stuffId || (MixinApi.isAetherHosted(first) && sources[0]!.place === '');
+      meanings.push({
+        description: [...new Set(views.map((d) => d.description))].join(' / '),
+        sources,
+        scope: `${mine ? 'me' : sources[0]!.handle}::${verb}`,
+      });
+    }
+    out.push({ verb, meanings });
+  }
+  return out;
+}
+
+/** See {@link CommandApi.which}. */
+/** See {@link CommandApi.which}. */
+async function whichImpl(viewer: Stuff & CommandGiver, opts: WhichAsking = {}): Promise<WhichResult> {
+  const { usual, sources, givers } = whichSources(viewer);
+  // The flags as typed, so the answer's command re-asks exactly this.
+  const flags = opts.clashes ? ' --clashes' : '';
+  const thing = opts.thing;
+  const word = opts.verb?.trim() ?? '';
+
+  // ⭐ `which --clashes` alone answers ITS question and nothing else (owner,
+  // review): the words that mean two commands here — usually none.
+  if (thing === undefined && word === '' && opts.clashes) {
+    return {
+      ok: true,
+      facts: { ask: { mode: 'clashes', command: 'which --clashes' }, groups: [], collisions: collisionsOf([...givers.keys()], givers, viewer) },
+    };
+  }
+
+  if (thing === undefined && word === '') {
+    const common = await commonVerbs();
+    const commonSources: WhichSource[] = [];
+    const commonSeen: string[] = [];
+    const entries: { entry: SourceVerbs; verbs: string[] }[] = [];
+    for (const entry of sources) {
+      const own = [...entry.defs.keys()].filter((v) => !common.has(v));
+      const shared = [...entry.defs.keys()].filter((v) => common.has(v));
+      for (const v of shared) if (!commonSeen.includes(v)) commonSeen.push(v);
+      if (shared.length > 0) commonSources.push(whichSourceOf(entry.source, viewer));
+      if (own.length > 0) entries.push({ entry, verbs: own });
+    }
+    const answer: WhichAnswer = {
+      ask: { mode: 'all', command: `which${flags}` },
+      groups: await whichGroups(entries, viewer),
+      usual: { verbs: usual },
+    };
+    if (commonSeen.length > 0) answer.common = { verbs: commonSeen, sources: commonSources };
+    return { ok: true, facts: answer };
+  }
+
+  // ⭐ A THING, bound by the binder (its perception gate, its tie prompt) —
+  // never a word guessed at (owner, review: a string slot that resolves
+  // things goes around the type system). Read again by a live card by id,
+  // so the radial's gates are asked here too.
+  if (thing !== undefined) {
+    const handle = whichSourceOf(thing, viewer).handle;
+    const ask = { mode: 'thing' as const, command: `which${flags} #${thing.stuffId}`, what: handle, subjectIds: [thing.stuffId] };
+    if (thing.stuffId === viewer.stuffId) {
+      return { ok: true, facts: { ask, groups: [], usual: { verbs: usual } } };
+    }
+    const entries = sourceShown(thing, viewer)
+      ? sources.filter((e) => e.source.stuffId === thing.stuffId).map((entry) => ({ entry, verbs: [...entry.defs.keys()] }))
+      : [];
+    if (entries.length === 0) {
+      return { ok: false, reason: 'gives-nothing', facts: { thing: whichSourceOf(thing, viewer).name } };
+    }
+    const answer: WhichAnswer = { ask, groups: await whichGroups(entries, viewer) };
+    // Asked for (owner, review): its words that mean another command here too.
+    // ⛔ No "what can I do TO it" — a verb's objects play roles (from, into,
+    // with) no answer can guess; designed in command-line-reflection-slate.
+    if (opts.clashes) answer.collisions = collisionsOf([...new Set(entries.flatMap((e) => e.verbs))], givers, viewer);
+    return { ok: true, facts: answer };
+  }
+
+  // ⭐ The word as typed — the view's own `hasVerb` is the matcher.
+  const verb = word;
+  const entries = sources
+    .filter((e) => [...e.defs.values()].some((d) => d.hasVerb(verb)))
+    .map((entry) => ({ entry, verbs: [...entry.defs.entries()].filter(([, d]) => d.hasVerb(verb)).map(([v]) => v) }));
+  const own = usual.filter((v) => v === verb);
+  if (entries.length > 0 || own.length > 0) {
+    const answer: WhichAnswer = {
+      ask: { mode: 'verb', command: `which${flags} --verb ${verb}`, what: word },
+      groups: await whichGroups(entries, viewer),
+    };
+    if (own.length > 0) answer.usual = { verbs: own };
+    const asked = [...new Set([...entries.flatMap((e) => e.verbs), ...own])];
+    const clashes = collisionsOf(asked, givers, viewer);
+    if (clashes.length > 0) answer.collisions = clashes;
+    return { ok: true, facts: answer };
+  }
+  if ([...commands.values()].some((d) => d.hasVerb(verb))) {
+    return { ok: false, reason: 'nothing-gives-verb', facts: { verb } };
+  }
+  return { ok: false, reason: 'no-such-verb', facts: { verb: word } };
+}
+
+/** Members of `holder`'s kept sets under `name` that are in the world now. */
+function keptCount(holder: Stuff & Relating, name: string, asker: Stuff): number {
+  const ids = new Set<string>();
+  for (const set of holder.relatedBy(name, asker)) for (const m of set.members) ids.add(m.stuffId);
+  return ids.size;
+}
+
+/** See {@link CommandApi.whichRelations}. */
+function whichRelationsImpl(viewer: Stuff & CommandGiver, thing?: Stuff): WhichRelationsResult {
+  if (thing !== undefined && thing.stuffId !== viewer.stuffId) {
+    const keeper = whichSourceOf(thing, viewer);
+    const held = MixinApi.isRelating(thing) ? thing.relationsFor(viewer) : [];
+    if (held.length === 0) return { ok: false, reason: 'keeps-nothing', facts: { thing: keeper.name } };
+    const relations = held.map((r) => ({ name: r.name, meaning: r.meaning, count: keptCount(thing as Stuff & Relating, r.name, viewer) }));
+    return {
+      ok: true,
+      facts: { ask: { mode: 'relations', command: `which ~ #${thing.stuffId}`, subjectIds: [thing.stuffId] }, groups: [], relations, keeper },
+    };
+  }
+  // ⭐ Every built-in applies to the asker; then the sets they keep.
+  const relations: WhichRelation[] = BUILTIN_RELATION_WORDS.map((w) => ({ name: w.name, meaning: w.meaning }));
+  if (MixinApi.isRelating(viewer)) {
+    for (const r of viewer.relationsFor(viewer)) {
+      if (relations.some((x) => x.name === r.name)) continue;
+      relations.push({ name: r.name, meaning: r.meaning, count: keptCount(viewer, r.name, viewer) });
+    }
+  }
+  return { ok: true, facts: { ask: { mode: 'relations', command: 'which ~' }, groups: [], relations } };
 }
 
 /* ─────────────────── Matcher helpers ─────────────────── */
@@ -4539,6 +4887,8 @@ function applyContainmentDeltaImpl(
         }
       }
     }
+    // …and what a carried device's apps had lent its old bearers (D16).
+    for (const m of moved) lendHostedApps(m, [from, ...ancestorsOf(from)], 'unlend');
     // And the moved subtree drops whatever the old surroundings gave it.
     for (const m of moved) {
       if (!MixinApi.isCommandGiver(m)) continue;
@@ -4592,6 +4942,9 @@ function applyContainmentDeltaImpl(
     return [...inner, ...ancestors];
   };
   for (const m of moved) {
+    // ⭐ A carried device's APPS lend their verbs to the same receivers,
+    // at the same moment, as the device's own `environment` verbs (D16).
+    lendHostedApps(m, receiversFor(m), 'lend');
     const defs = collectBucketDefs(m.constructor, 'environment');
     if (defs.length === 0) continue;
     for (const anc of receiversFor(m)) {
@@ -4649,26 +5002,41 @@ function applyContainmentDeltaImpl(
   // (the rule this function already states for `inventory` and
   // `environment`). Found by the fishing drive.
   const scopes = peerScopesOf(to);
+  // The rooms the movers actually stand in (the open container's room too).
+  const local: Stuff[] = [to];
   if (
     MixinApi.isOpenContainer(to) &&
+    !MixinApi.isForSale(to) &&
     MixinApi.isContainable(to) &&
     to.getContainer() !== null
   ) {
+    local.push(to.getContainer()!);
     for (const s of peerScopesOf(to.getContainer()!)) if (!scopes.includes(s)) scopes.push(s);
   }
   for (const scope of scopes) {
     if (!MixinApi.isContainer(scope)) continue;
+    /*
+     * ⭐ Next door, only someone you can ADDRESS (the which audit,
+     * 2026-11-23). `peerScopesOf` says why a room one exit away counts at
+     * all — *you can see who is next door well enough to address them* —
+     * and `which` showed the rest leaking through: the plaza offered the
+     * shop counter's `buy` and the hearth's `stoke` from the next room. So
+     * across an exit only an agent contributes, either way round.
+     */
+    const remote = !local.includes(scope);
     const siblings: Stuff[] = [];
     for (const direct of (scope as Stuff & Container).getContents()) {
       siblings.push(direct);
-      if (MixinApi.isOpenContainer(direct) && !moved.includes(direct)) {
+      // ⚠ Not into a seller's stock (the which drive): goods on a counter are
+      // the house's until bought, and offered nothing to anyone.
+      if (MixinApi.isOpenContainer(direct) && !moved.includes(direct) && !MixinApi.isForSale(direct)) {
         for (const inner of direct.getContents()) siblings.push(inner);
       }
     }
     for (const sibling of siblings) {
       if (moved.includes(sibling)) continue;
 
-      const theirs = collectBucketDefs(sibling.constructor, 'peers');
+      const theirs = remote && !sibling.isAgent() ? [] : collectBucketDefs(sibling.constructor, 'peers');
       if (theirs.length > 0) {
         for (const m of moved) {
           if (!MixinApi.isCommandGiver(m)) continue;
@@ -4677,6 +5045,7 @@ function applyContainmentDeltaImpl(
       }
       if (!MixinApi.isCommandGiver(sibling)) continue;
       for (const m of moved) {
+        if (remote && !m.isAgent()) continue;
         const mine = collectBucketDefs(m.constructor, 'peers');
         if (mine.length === 0) continue;
         (sibling as Stuff & CommandGiver).pushCommandSource(m, 'peers', mine);
@@ -4733,6 +5102,8 @@ function applyShadowDeltaImpl(
     if (peerDefs.length === 0) return;
     for (const scope of peerScopesOf(container)) {
       if (!MixinApi.isContainer(scope)) continue;
+      // Next door, only someone you can address (as the containment path).
+      if (scope !== container && !host.isAgent()) continue;
       for (const sibling of (scope as Stuff & Container).getContents()) {
         if ((sibling as Stuff) === host) continue;
         if (!MixinApi.isCommandGiver(sibling)) continue;
@@ -4759,12 +5130,55 @@ function applyShadowDeltaImpl(
   }
 }
 
+/**
+ * ⭐⭐ **An app's verbs reach whoever bears its device** (stream arrival
+ * D16) — the ONE routine for it, called at every site that pushes or pops
+ * a carried thing's `environment` verbs (a containment delta's attach and
+ * detach, the mover's own `self-moved` re-push) and by an install or
+ * uninstall on a device already borne.
+ *
+ * A host that is itself a command giver (a person's own apps) is served
+ * directly by `applyHostedAppDeltaImpl` and is NOT lent through here. For
+ * any other aether host (a phone, a headset) each hosted app's `self`
+ * verbs are pushed onto every command giver in `receivers` — the host's
+ * container chain — with the APP as the source and `environment` as the
+ * bucket, or popped from them. So a phone handed over, dropped, pocketed
+ * or stolen moves its apps' verbs with it. Whether the device will RUN
+ * when one is typed is asked at the match (`CommandGiver._runChain`'s
+ * pass-over), never here: a device off, dead, packed or not yours still
+ * lends the verb so it can SAY why it will not work.
+ */
+function lendHostedApps(
+  host: Stuff,
+  receivers: readonly Stuff[],
+  op: 'lend' | 'unlend',
+  only?: Stuff,
+): void {
+  if (MixinApi.isCommandGiver(host) || !MixinApi.isAetherHost(host)) return;
+  const apps = only
+    ? [{ source: only, defs: collectBucketDefs(only.constructor, 'self') }]
+    : collectHostedAppDefsImpl(host);
+  for (const { source, defs } of apps) {
+    if (op === 'lend' && defs.length === 0) continue;
+    for (const r of receivers) {
+      if (!MixinApi.isCommandGiver(r)) continue;
+      const cg = r as Stuff & CommandGiver;
+      if (op === 'lend') cg.pushCommandSource(source, 'environment', defs);
+      else cg.popCommandSource(source);
+    }
+  }
+}
+
 function applyHostedAppDeltaImpl(
   host: Stuff,
   update: Stuff,
   op: 'host' | 'unhost'
 ): void {
-  if (!MixinApi.isCommandGiver(host)) return;
+  if (!MixinApi.isCommandGiver(host)) {
+    // A device: lend (or take back) the app's verbs from its bearers (D16).
+    lendHostedApps(host, ancestorsOf(host), op === 'host' ? 'lend' : 'unlend', update);
+    return;
+  }
   const cg = host as Stuff & CommandGiver;
   if (op === 'host') {
     // Keep `'self'` at index 0 — seed the giver's own self entry

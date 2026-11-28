@@ -58,9 +58,6 @@ data:
     # ⭐ Where it feeds (B8): the bottom. A float over an eel is a long
     # afternoon; a leger weight is the eel rig.
     feedsAt: bottom
-  butcheryYield:
-    - { cut: /trade/fishing/thing/fillet, units: 2 }
-    - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     An eel, dark above and pale beneath, all muscle and no obvious beginning or end.
   nameBanks: []

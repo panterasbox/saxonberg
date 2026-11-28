@@ -78,6 +78,7 @@ import { MqlApi } from '../../api/mql';
 import { PerceptionApi } from '../../api/perception';
 import type { Containable } from '../spatial/Containable';
 import { CompetenceBand } from '../advancement/CompetenceBand';
+import type { CompetenceBandName } from '../advancement/CompetenceBand';
 import type { Difficulty, Outcome } from '../advancement/ActSignature';
 import type { ActPlan, ActOutcome, ActRefusal, ActChoices } from '../craft/ActPlan';
 import { AccountabilityApi } from '../../api/accountability';
@@ -94,6 +95,46 @@ export type BloodDrawRefusal = ActRefusal<
   'no-tool' | 'no-blood' | 'not-conscious' | 'too-low' | 'wan'
 >;
 import type { Dressing } from './Dressing';
+import type { OperationDescriptor } from './Operation';
+import { Postures } from '../slot/Postured';
+import { DaylengthBand } from '../time/DaylengthBand';
+import { CelestialApi } from '../../api/celestial';
+import { LIFE_STAGES } from '../../platform/idea/species/Species';
+import type { LifeStage } from '../../platform/idea/species/Species';
+
+/** The life stages, young to old, as a plain string list for rank reads. */
+const LIFE_STAGE_ORDER: readonly string[] = LIFE_STAGES;
+
+/**
+ * Why a body will not take the operation asked of it, in the order it asks
+ * (organism-biology D8, W7) — each a reason row in the trade that ships
+ * `operate`. One place refuses; the controller passes the answer on.
+ */
+export type OperableRefusal = {
+  ok: false;
+  reason:
+    | 'no-such-op'
+    | 'nothing-to-operate'
+    | 'no-such-part'
+    | 'not-lying'
+    | 'unskilled'
+    | 'wrong-kit'
+    | 'needs-anaesthesia';
+  facts: Record<string, unknown>;
+};
+
+/** What the hand brings to an operation: its medicine band and its kit's capabilities. */
+export interface OperatingHand {
+  band: CompetenceBandName;
+  capabilities: readonly string[];
+  /** The patient is the one operating (the reason rows say "you"). */
+  self: boolean;
+}
+
+/** The operation a body will take, and what on it the operation is for. */
+export type OperableAnswer =
+  | { ok: true; op: OperationDescriptor; wound?: Trauma; partKey?: string }
+  | OperableRefusal;
 import { MagicGrid } from '../magic/Grid';
 import { MaterialApi } from '../../api/material';
 import { MagicApi } from '../../api/magic';
@@ -223,6 +264,21 @@ export type Consciousness = 'conscious' | 'unconscious' | 'dead';
 export interface BodyPartDelta {
   /** Severed / absent → disables the part's coupled slots. */
   missing?: boolean;
+  /**
+   * ⭐ The body's AGE, in game-days, when it was lost (organism-biology D7)
+   * — an age, not a clock time, so a staged age advance crosses a moult
+   * honestly. Absent = lost before the record began.
+   */
+  lostAtAgeDays?: number;
+  /** ⭐ The stump was sealed by heat or a caustic (D7): it never regrows. */
+  sealed?: 'heat' | 'corrosion';
+}
+
+/** ⭐ A loss a row authors, or a herd replays (D7): which part, at what age, sealed or not. */
+export interface LostPart {
+  part: string;
+  atAgeDays: number;
+  sealed?: 'heat' | 'corrosion';
 }
 
 /** A BodyPlan part merged with this body's instance delta. */
@@ -243,6 +299,9 @@ const VITAL_GOVERNED_CAPACITIES: ReadonlySet<string> = new Set([
   'consciousness',
   'circulation',
   'respiration',
+  // ⭐ organism-biology D6: sustained, not governed — fatal when EVERY
+  // kidney is gone (`hasMissingVitalGovernor` reads both rules).
+  'filtration',
 ]);
 
 const VITAL_UNITS: Record<VitalSign, Unit> = {
@@ -515,7 +574,7 @@ const TREATER_BAND_SCORE: Record<string, number> = {
  */
 function isInteriorWound(target: Stuff & Vitals, w: Trauma): boolean {
   if (!MixinApi.isOrganism(target)) return false;
-  return target.getSpecies()?.getBodyPlan()?.isInterior(w.site) ?? false;
+  return target.getBody()?.isInterior(w.site) ?? false;
 }
 
 /** Pick the most-pressing dressable wound: bleeding first, then severity. */
@@ -837,6 +896,11 @@ export interface Vitals {
    * shipped harm rule), never through an Api.
    */
   beginDying(cause: string, windowSec?: number, blame?: unknown): void;
+  /**
+   * Does this body die of NEGLECT — cold, heat, hunger, thirst left to run
+   * on? Only when somebody is responsible for it. See the implementation.
+   */
+  diesOfNeglect(): boolean;
   /** Is this body in the rescuable interval before death? */
   isDying(): boolean;
   /**
@@ -922,10 +986,49 @@ export interface Vitals {
    * **every descendant** missing (sever the arm and the hand goes with it),
    * then releases whatever was held or worn on the slots that part carried.
    */
-  severPart(key: string): void;
+  severPart(key: string, opts?: { lostAtAgeDays?: number; sealed?: 'heat' | 'corrosion' }): void;
+  /** The subtree roots this body has lost, as a herd records them (D8). */
+  getLostParts(): LostPart[];
+  /**
+   * ⭐ The age (days) at which a part of this NAME (its key's last segment)
+   * was lost, or `null` while it is on the body (D8, W7). Reads the delta
+   * alone — never the body — so the variant it decides can be read first.
+   */
+  partLostAt(name: string): number | null;
+  /** ⭐ The part this body IS, when it is only one part of a body (a severed foreleg); null = a whole body (D7). */
+  getSubtree(): string | null;
+  /**
+   * ⭐ Become only the part `key` and what hangs from it (D7): every other
+   * part missing, every wound elsewhere gone — so every reader of parts
+   * sees just what is there, and none learns the word *subtree*.
+   */
+  restrictToSubtree(key: string): void;
   /** Is this severable part past saving (function lost, or advanced
    * wound-sepsis) — the amputation trigger (D7). */
   isPartUnsalvageable(key: string): boolean;
+  /**
+   * ⭐⭐ **Which operation this body will take, or why not** (organism-
+   * biology D8, W7) — the one place `operate` is decided: the named
+   * operation, else the most urgent the body's wounds call for; the part an
+   * operation takes, matched ⛔ only when NAMED (a bare `operate` never
+   * castrates); then the posture, the hand's band, its kit and the
+   * anaesthesia, in that order.
+   */
+  operable(named: string | null, ops: readonly OperationDescriptor[], hand: OperatingHand): OperableAnswer;
+  /**
+   * ⭐ A capacity's band AS THE BODY STANDS (organism-biology D11) — no
+   * reconcile. What a sight gate reads under every `describeFor`: the
+   * crowded-rooms rule (a room's reading never integrates the viewer).
+   */
+  capacityAsStands(key: BodyCapacity): FunctionBand;
+  /**
+   * ⭐⭐ **The body's seasons** (organism-biology D9): walk its species'
+   * `phenology` and carry each condition while its trigger holds, relieve
+   * it when it stops — the shipped `afflict` / `relieve`, no arm of its
+   * own. Called from ONE place, the thermal reconcile, after its cascade;
+   * never from a read (D17). An `event` entry is its act's to bring on.
+   */
+  reconcilePhenology(): void;
   /**
    * ⭐⭐ **How well one part still works** — the axis a wound costs you.
    *
@@ -1189,6 +1292,8 @@ function missingPartsAugmenter(
   _viewer: Stuff,
 ): string {
   if (!MixinApi.isVitals(host)) return text;
+  // A severed part is not *missing the torso* (D7): it is a foreleg.
+  if (host.getSubtree() !== null) return text;
   const missing = host.getMissingParts();
   if (missing.length === 0) return text;
   const topmost = missing.filter(
@@ -1205,6 +1310,30 @@ function missingPartsAugmenter(
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
+/** What a body says of a wounded sense, to itself (organism-biology D11). */
+const SENSE_WORDS: Record<string, Record<string, string>> = {
+  vision: { impaired: 'Your sight is blurred.', failing: 'You can barely see.', lost: 'You cannot see.' },
+  hearing: { impaired: 'Your hearing is muffled.', failing: 'You can barely hear.', lost: 'You cannot hear.' },
+  smell: { impaired: 'Your sense of smell is dulled.', failing: 'You can barely smell anything.', lost: 'You cannot smell anything.' },
+};
+
+/**
+ * ⭐ D11 — a wounded sense organ is worded when you `look` at YOURSELF:
+ * the eye that is failing is a fact you live with; anyone else's wounds
+ * stay `assess`'s. One line per sense below full, read as the body stands.
+ */
+function sensesAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (host !== viewer || !MixinApi.isVitals(host)) return text;
+  const lines: string[] = [];
+  for (const sense of ['vision', 'hearing', 'smell'] as const) {
+    const said = SENSE_WORDS[sense]?.[host.capacityAsStands(sense)];
+    if (said) lines.push(said);
+  }
+  if (lines.length === 0) return text;
+  const line = lines.join(' ');
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 /** ⭐ D14 — one sentence about a body's most prominent scar, appended to
  * `look`. Never a penalty; the body wears what it survived. */
 function scarsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
@@ -1213,6 +1342,22 @@ function scarsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (scars.length === 0) return text;
   const worst = [...scars].sort((a, b) => b.peak - a.peak)[0]!;
   const line = `A pale scar marks the ${partPhrase(worst.site)}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
+ * ⭐ A shelled body says what its shell is (organism-biology D3): a crab's
+ * look names its carapace's material, read from the outside of its root
+ * part. A hide or bare skin says nothing — every animal has one.
+ */
+function shellAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isOrganism(host)) return text;
+  const body = host.getBody();
+  const root = body?.getParts().find((p) => p.parent === null);
+  const skin = root ? body?.integumentAt(root.key)?.skin : undefined;
+  if (!skin || skin.form !== 'plate') return text;
+  const name = MaterialApi.materials().peek(skin.material)?.getName() ?? skin.material.split('/').pop();
+  const line = `Its shell is ${name}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
 }
 
@@ -1227,7 +1372,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** A lost part is visible on the body; so is a scar (D14). */
     static markupAugmenters: MarkupAugmenter[] = [
       missingPartsAugmenter,
+      sensesAugmenter,
       scarsAugmenter,
+      shellAugmenter,
     ];
 
     /**
@@ -1263,6 +1410,12 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       _bloodVolume: { persistent: true, marshaller: QuantityMarshaller.pathFor('L'), runtimeState: true },
       causeOfDeath: { persistent: true, runtimeState: true },
       bodyPartDeltas: { persistent: true, runtimeState: true },
+      // ⭐ A loss a row authors (organism-biology D7): applied AT MINT only
+      // (a seed), through the delta half — so a claw that regrew is never
+      // severed again by its own row on a restore.
+      lostParts: { authorable: true, seed: true },
+      subtree: { persistent: true, runtimeState: true },
+      formStage: { persistent: true, runtimeState: true },
       conditions: { persistent: true, runtimeState: true },
       scars: { persistent: true, runtimeState: true },
       // ⭐ Blood build D2. The genotype PIN — authored on an NPC whose
@@ -1319,6 +1472,49 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public causeOfDeath: string | null = null;
     public bodyPartDeltas: Record<string, BodyPartDelta> = {};
+
+    /** The losses a row authors (D7) — read once, at mint, by {@link seedLostParts}. */
+    public lostParts: LostPart[] | null = null;
+
+    /**
+     * ⭐ The life stage whose plan this body's state is keyed to (organism-
+     * biology D10) — `''` until first read. When the stage moves onto a
+     * different plan (a tadpole into a froglet), `reconcileForm` remaps
+     * what the body carries onto the new one and stamps this.
+     */
+    public formStage = '';
+
+    /** The part this body IS, when it is a severed part (D7); null = whole. */
+    public subtree: string | null = null;
+
+    public getSubtree(): string | null {
+      return this.subtree;
+    }
+
+    public restrictToSubtree(key: string): void {
+      const self = this as unknown as Stuff;
+      const body = MixinApi.isOrganism(self) ? self.getBody() : null;
+      if (!body) return;
+      const keep = new Set([key]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const p of body.getParts()) {
+          if (!keep.has(p.key) && p.parent !== null && keep.has(p.parent)) {
+            keep.add(p.key);
+            grew = true;
+          }
+        }
+      }
+      const deltas: Record<string, BodyPartDelta> = {};
+      for (const p of body.getParts()) {
+        if (!keep.has(p.key)) deltas[p.key] = { missing: true };
+        else if (this.bodyPartDeltas[p.key]) deltas[p.key] = this.bodyPartDeltas[p.key]!;
+      }
+      this.bodyPartDeltas = deltas;
+      this.conditions = this.conditions.filter((c) => c.kind !== 'trauma' || keep.has(c.site));
+      this.subtree = key;
+    }
     public conditions: ActiveCondition[] = [];
     /** ⭐ Healed-over scars the body keeps (D14) — never a penalty, read by
      * `assess` and `look`. Written at the clear sweep from a wound's `peak`. */
@@ -1427,6 +1623,33 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private dyingRecord(): DyingRecord | null {
       for (const c of this.conditions) if (c.kind === 'dying') return c;
       return null;
+    }
+
+    /**
+     * ⭐⭐ **Neglect kills only a body somebody is responsible for** (the soak
+     * lane, 2026-11-26). Metabolism already drew this line for the far-past
+     * gap (`integratesLongAbsence`): *an NPC in a tavern is protected because
+     * nobody is responsible for feeding it, and starving the world's cast
+     * would be a bug rather than a lesson.* The same is true of the cold, the
+     * heat and the thirst: nothing in the world takes a Cast home at night,
+     * lights its fire or brings it water, so a running world lost every one
+     * of them — the dairywoman dead of the cold in her own byre within a game
+     * day, the rest of the Delight with her.
+     *
+     * So the four NEGLECT deaths (hypothermia, hyperthermia, starvation,
+     * dehydration) run their arc to the dying seam only for a body that
+     * somebody answers for: a person's (it has an interactive) or an OWNED
+     * one (a kept animal — D29's one mortality rule, unchanged). The world's
+     * cast and the strays feel all of it — shivering, hungry, impaired — and
+     * are not killed by it. A blow, a bleed, drowning or a poison still kill
+     * anybody: those are somebody's act or an accident, not neglect.
+     *
+     * @hook Override where a class answers it otherwise; compose via super.
+     */
+    public diesOfNeglect(): boolean {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isHasInteractive(self)) return true;
+      return MixinApi.isChattel(self) && self.isStamped();
     }
 
     public beginDying(
@@ -2279,9 +2502,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private functionScalar(key: string): number {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return 1;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return 1;
-      const parts = plan.getBodyParts();
+      const body = self.getBody();
+      if (!body) return 1;
+      const parts = body.getParts();
       const part = parts.find((p) => p.key === key);
       if (!part) return 1;
 
@@ -2329,12 +2552,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private capacityScalar(key: BodyCapacity): number {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return 1;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return 1;
+      const body = self.getBody();
+      if (!body) return 1;
       let governed = 1;
       let servedSum = 0;
       let servedCount = 0;
-      for (const part of plan.getBodyParts()) {
+      let sustained: number | null = null;
+      for (const part of body.getParts()) {
         if (part.governs?.includes(key)) {
           // ⭐ MIN — one brain. Lose it and the capacity is gone; a second
           // organ governing the same thing is a redundancy an author can
@@ -2346,9 +2570,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           servedSum += this.functionScalar(part.key);
           servedCount += 1;
         }
+        if (part.sustains?.includes(key)) {
+          // ⭐ MAX — two kidneys (organism-biology D6). Any one surviving
+          // suffices: the redundancy an organ pair really has.
+          sustained = Math.max(sustained ?? 0, this.functionScalar(part.key));
+        }
       }
       const served = servedCount > 0 ? servedSum / servedCount : 1;
-      return governed * served;
+      return governed * served * (sustained ?? 1);
+    }
+
+    /** See {@link Vitals.capacityAsStands}. */
+    public capacityAsStands(key: BodyCapacity): FunctionBand {
+      return this.bandOf(this.capacityScalar(key));
     }
 
     public capacity(key: BodyCapacity): FunctionBand {
@@ -2427,13 +2661,26 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private hasMissingVitalGovernor(): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return false;
-      for (const part of plan.getBodyParts()) {
-        if (this.bodyPartDeltas[part.key]?.missing !== true) continue;
+      const body = self.getBody();
+      if (!body) return false;
+      const sustainers = new Map<string, { all: number; missing: number }>();
+      for (const part of body.getParts()) {
+        const missing = this.bodyPartDeltas[part.key]?.missing === true;
+        for (const cap of part.sustains ?? []) {
+          const c = sustainers.get(cap) ?? { all: 0, missing: 0 };
+          c.all += 1;
+          if (missing) c.missing += 1;
+          sustainers.set(cap, c);
+        }
+        if (!missing) continue;
         for (const cap of part.governs ?? []) {
           if (VITAL_GOVERNED_CAPACITIES.has(cap)) return true;
         }
+      }
+      // ⭐ A SUSTAINED vital capacity is lost when every sustainer is gone
+      // (both kidneys), never when one is (D6).
+      for (const [cap, c] of sustainers) {
+        if (VITAL_GOVERNED_CAPACITIES.has(cap) && c.all > 0 && c.missing === c.all) return true;
       }
       return false;
     }
@@ -2441,9 +2688,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     private hasGovernorFor(key: BodyCapacity): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return false;
-      return plan.getBodyParts().some((p) => p.governs?.includes(key));
+      const body = self.getBody();
+      if (!body) return false;
+      return body.getParts().some((p) => p.governs?.includes(key));
     }
 
     /** The `SlotSpec.bodyPart` behind a slot name, or `null`. */
@@ -2595,9 +2842,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public getParts(): ResolvedBodyPart[] {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return [];
-      const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return [];
-      return plan.getBodyParts().map((part) => ({
+      const body = self.getBody();
+      if (!body) return [];
+      return body.getParts().map((part) => ({
         ...part,
         missing: this.bodyPartDeltas[part.key]?.missing ?? false,
       }));
@@ -2607,8 +2854,266 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getParts().find((p) => p.key === key) ?? null;
     }
 
+    /** Re-site a wound aimed at a missing part to its nearest present ancestor; seal on heat/corrosion. */
+    private siteOnPresent(t: Trauma): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const body = self.getBody();
+      if (!body || this.bodyPartDeltas[t.site]?.missing !== true) return;
+      let key: string | null = t.site;
+      let stump: string | null = null;
+      while (key !== null && this.bodyPartDeltas[key]?.missing === true) {
+        stump = key;
+        key = body.getPart(key)?.parent ?? null;
+      }
+      if (stump && (t.mechanism === 'heat' || t.mechanism === 'corrosion')) {
+        this.bodyPartDeltas = { ...this.bodyPartDeltas, [stump]: { ...this.bodyPartDeltas[stump], sealed: t.mechanism } };
+      }
+      if (key !== null) t.site = key;
+    }
+
+    /** See {@link Vitals.partLostAt}. */
+    public partLostAt(name: string): number | null {
+      for (const [key, d] of Object.entries(this.bodyPartDeltas)) {
+        if (d?.missing === true && (key === name || key.endsWith(`.${name}`))) return d.lostAtAgeDays ?? 0;
+      }
+      return null;
+    }
+
+    /** See {@link Vitals.getLostParts}: the topmost missing part of each severed subtree. */
+    public getLostParts(): LostPart[] {
+      const missing = this.getMissingParts();
+      const keys = new Set(missing.map((p) => p.key));
+      return missing
+        .filter((p) => p.parent === null || !keys.has(p.parent))
+        .map((p) => {
+          const d = this.bodyPartDeltas[p.key] ?? {};
+          return { part: p.key, atAgeDays: d.lostAtAgeDays ?? 0, ...(d.sealed ? { sealed: d.sealed } : {}) };
+        });
+    }
+
+    /** ⭐ The authored losses (D7), at mint only: the delta half, never a wound or a mint. */
+    public seedLostParts(value: LostPart[] | null): void {
+      for (const l of value ?? []) {
+        if (!l || typeof l.part !== 'string') continue;
+        this.severPart(l.part, { lostAtAgeDays: Number(l.atAgeDays) || 0, ...(l.sealed ? { sealed: l.sealed } : {}) });
+      }
+    }
+
+    /**
+     * ⭐⭐ **A part that regrows comes back at the moult** (organism-biology
+     * D7): a missing, unsealed subtree root whose part authors `regrows`,
+     * lost before the body's latest moult boundary
+     * (`floor(age / moultEveryDays) × moultEveryDays`), is restored with
+     * its subtree. A crab's claw comes back; a burned stump never does.
+     */
+    private reconcileRegrowth(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const every = self.getSpecies()?.getMoultEveryDays() ?? 0;
+      if (!(every > 0)) return;
+      const age = self.getAgeDays();
+      const lastMoult = Math.floor(age / every) * every;
+      const body = self.getBody();
+      if (!body) return;
+      for (const lost of this.getLostParts()) {
+        if (lost.sealed) continue;
+        if (!body.getPart(lost.part)?.regrows) continue;
+        if (!(lost.atAgeDays < lastMoult)) continue;
+        const subtree = new Set([lost.part]);
+        let grew = true;
+        while (grew) {
+          grew = false;
+          for (const p of body.getParts()) {
+            if (!subtree.has(p.key) && p.parent !== null && subtree.has(p.parent)) {
+              subtree.add(p.key);
+              grew = true;
+            }
+          }
+        }
+        const next = { ...this.bodyPartDeltas };
+        for (const k of subtree) delete next[k];
+        this.bodyPartDeltas = next;
+      }
+    }
+
     public getMissingParts(): ResolvedBodyPart[] {
       return this.getParts().filter((p) => p.missing);
+    }
+
+    /**
+     * ⭐⭐ **The change** (organism-biology D10): one creature, several
+     * bodies. `getBody()` already answers the new stage's body; what needs
+     * the event is the state keyed to the old plan. Deltas on parts the new
+     * body lacks go with them (a tadpole's tail); a wound on such a part
+     * passes to its nearest ancestor the new body has; a slot the new plan
+     * lacks lets go of what it held; the room is told; `formStage` is
+     * stamped. Mass carries — it derives from the curve. The same object,
+     * the same identity, the same record.
+     */
+    private reconcileForm(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const stage = self.getLifeStage() ?? '';
+      if (this.formStage === stage) return;
+      const was = this.formStage;
+      this.formStage = stage;
+      const species = self.getSpecies();
+      if (!was || !species) return; // the first stamp
+      const oldPlan = species.planFor(was as LifeStage);
+      const newPlan = species.planFor((stage || null) as LifeStage | null);
+      if (!oldPlan || !newPlan || oldPlan === newPlan) return;
+      const variant = self.getVariant();
+      const oldBody = species.bodyFor({ ...variant, stage: was as LifeStage });
+      const newBody = self.getBody();
+      if (!oldBody || !newBody) return;
+      const keep = new Set(newBody.getParts().map((p) => p.key));
+      const root = newBody.getParts().find((p) => p.parent === null)?.key ?? null;
+      const landing = (key: string): string | null => {
+        let k: string | null = key;
+        while (k !== null && !keep.has(k)) k = oldBody.getPart(k)?.parent ?? null;
+        return k ?? root;
+      };
+      const deltas: Record<string, BodyPartDelta> = {};
+      for (const [key, d] of Object.entries(this.bodyPartDeltas)) if (keep.has(key)) deltas[key] = d;
+      this.bodyPartDeltas = deltas;
+      for (const c of this.conditions) {
+        if (c.kind !== 'trauma' || keep.has(c.site)) continue;
+        const to = landing(c.site);
+        if (to) c.site = to;
+      }
+      const kept = new Set(newPlan.getSlots().map((s) => s.name));
+      const lost = oldPlan.getSlots().map((s) => s.name).filter((n) => !kept.has(n));
+      if (lost.length > 0) this.releaseSlots(lost);
+      const before = species.getCommonNames({ ...variant, stage: was as LifeStage })[0];
+      const now = self.getCommonNames()[0];
+      if (before && now && before !== now && MixinApi.isContainable(self) && self.getContainer()) {
+        MessageApi.scene(self)
+          .topic('sense.surroundings')
+          .toPeers(Mml.compose`The ${before} is a ${now} now.`)
+          .send();
+      }
+    }
+
+    /** Let go of what the named slots hold — to the hands' own rule, or to the place. */
+    private releaseSlots(names: readonly string[]): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isCarrying(self)) {
+        self.releaseHeld([...names]);
+        return;
+      }
+      if (!MixinApi.isSlotted(self)) return;
+      const destination = MixinApi.isContainable(self) ? self.getContainer() : null;
+      for (const name of names) {
+        for (const occupant of [...self.getOccupants(name)]) {
+          self.vacate(name, occupant);
+          if (destination !== null && MixinApi.isContainable(occupant)) ContainmentApi.move(occupant, destination);
+        }
+      }
+    }
+
+    /** See {@link Vitals.reconcilePhenology}. */
+    public reconcilePhenology(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const species = self.getSpecies();
+      const entries = species?.getPhenology() ?? [];
+      if (!species || entries.length === 0) return;
+      const living = self.isLivingBody();
+      let day: number | null | undefined;
+      let rising: boolean | null | undefined;
+      let core: number | undefined;
+      const variant = self.getVariant();
+      const stageRank = (s: string | null | undefined): number => (s ? LIFE_STAGE_ORDER.indexOf(s) : -1);
+      for (const { condition, trigger: t } of entries) {
+        if (t.event) continue; // its act's to bring on and off
+        const held = this.conditions.find((c) => c.kind === 'affliction' && c.templatePath === condition);
+        let holds = living;
+        if (holds && (t.daylightFrom !== undefined || t.season === 'breeding')) {
+          const band = t.season === 'breeding' ? species.getBreeding() : t;
+          if (!band || band.daylightFrom === undefined || band.daylightTo === undefined) holds = false;
+          else {
+            if (day === undefined) day = CelestialApi.daylightHere(self);
+            if (day !== null) {
+              if (t.rising !== undefined && rising === undefined) {
+                const yesterday = CelestialApi.daylightHere(self, -86_400);
+                rising = yesterday === null ? null : day > yesterday;
+              }
+              holds = new DaylengthBand({ daylightFrom: band.daylightFrom, daylightTo: band.daylightTo, ...(t.rising !== undefined ? { rising: t.rising } : {}) }).holds(day, rising ?? null);
+            }
+          }
+        }
+        if (holds && (t.coreBelowK !== undefined || t.coreAboveK !== undefined)) {
+          if (core === undefined) core = this.getVitalSign('coreTemperature').rawValue();
+          if (t.coreBelowK !== undefined && !(core < t.coreBelowK)) holds = false;
+          if (t.coreAboveK !== undefined && !(core > t.coreAboveK)) holds = false;
+        }
+        if (holds && t.sex && variant.sex && variant.sex !== t.sex) holds = false;
+        if (holds && t.stage && variant.stage && stageRank(variant.stage) < stageRank(t.stage)) holds = false;
+        if (holds && t.entire && variant.neutered) holds = false;
+        if (holds && !held) {
+          this.afflict({ kind: 'affliction', templatePath: condition, stage: 0, elapsed: 0 });
+        } else if (!holds && held) {
+          this.relieve(held);
+        }
+      }
+    }
+
+    /** See {@link Vitals.operable}. */
+    public operable(named: string | null, ops: readonly OperationDescriptor[], hand: OperatingHand): OperableAnswer {
+      const self = this as unknown as Stuff;
+      const who = { ...(hand.self ? { self: 'yes' } : {}), patient: self };
+      const no = (reason: OperableRefusal['reason'], facts: Record<string, unknown> = {}): OperableRefusal =>
+        ({ ok: false, reason, facts });
+      const wanted = named?.trim() || null;
+      if (wanted && !ops.some((o) => o.key === wanted)) return no('no-such-op', { word: wanted });
+      // ⛔ An operation that takes a healthy part is matched only when named.
+      const pool = wanted ? ops.filter((o) => o.key === wanted) : ops.filter((o) => !o.addresses.part);
+      const match = this.operationMatches(pool)[0];
+      if (!match) {
+        const op = pool[0];
+        return op?.addresses.part ? no('no-such-part', { ...who, label: op.label }) : no('nothing-to-operate', who);
+      }
+      const op = match.op;
+      if (op.posture !== 'any' && !(MixinApi.isPosed(self) && self.getPosture() === Postures.Lie)) {
+        return no('not-lying', who);
+      }
+      if (!CompetenceBand.atOrAbove(hand.band, op.competence.band)) {
+        return no('unskilled', { label: op.label, band: op.competence.band });
+      }
+      if (!hand.capabilities.includes(op.instrument)) return no('wrong-kit', { label: op.label });
+      if (op.anaesthesia === 'required' && this.getConsciousness() === 'conscious') return no('needs-anaesthesia');
+      return { ok: true, ...match };
+    }
+
+    /** Every operation in `ops` this body's state calls for, most urgent (worst wound) first. */
+    private operationMatches(ops: readonly OperationDescriptor[]): { op: OperationDescriptor; wound?: Trauma; partKey?: string }[] {
+      const traumas = this.conditions.filter((c): c is Trauma => c.kind === 'trauma' && c.severity > 0);
+      const out: { op: OperationDescriptor; wound?: Trauma; partKey?: string }[] = [];
+      for (const op of ops) {
+        const a = op.addresses;
+        if (a.part) {
+          const name = a.part;
+          const part = this.getParts().find((p) => !p.missing && (p.key === name || p.key.endsWith(`.${name}`)));
+          if (part) out.push({ op, partKey: part.key });
+          continue;
+        }
+        if (a.flag === 'unsalvageable') {
+          for (const site of new Set(traumas.map((t) => t.site))) {
+            if (this.isPartUnsalvageable(site)) out.push({ op, partKey: site });
+          }
+          continue;
+        }
+        for (const t of traumas) {
+          if (a.flag === 'foreign-body' && t.type !== 'foreign-body') continue;
+          if (a.traumaTypes && !a.traumaTypes.includes(t.type)) continue;
+          if (a.minSeverity !== undefined && t.severity < a.minSeverity) continue;
+          if (a.bleeding === true && t.bleeding !== true) continue;
+          if (t.dressed === true && t.type !== 'foreign-body') continue;
+          out.push({ op, wound: t });
+        }
+      }
+      return out.sort((x, y) => (y.wound?.severity ?? 5) - (x.wound?.severity ?? 5));
     }
 
     /**
@@ -2621,11 +3126,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     public isPartUnsalvageable(key: string): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const spec = self
-        .getSpecies()
-        ?.getBodyPlan()
-        ?.getBodyParts()
-        .find((p) => p.key === key);
+      const spec = self.getBody()?.getPart(key);
       if (!spec?.severable) return false;
       const woundHere = this.conditions.some(
         (c) => c.kind === 'trauma' && c.site === key && c.severity > 0,
@@ -2664,12 +3165,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Idempotent: severing an already-missing part is a no-op. Unknown keys
      * are ignored — a body plan that does not have the part cannot lose it.
      */
-    public severPart(key: string): void {
+    public severPart(key: string, opts: { lostAtAgeDays?: number; sealed?: 'heat' | 'corrosion' } = {}): void {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
       const plan = self.getSpecies()?.getBodyPlan();
-      if (!plan) return;
-      const parts = plan.getBodyParts();
+      const body = self.getBody();
+      if (!plan || !body) return;
+      const parts = body.getParts();
       if (!parts.some((p) => p.key === key)) return;
 
       // (1) the part and every descendant — a fixpoint over `parent`, so
@@ -2686,39 +3188,27 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           }
         }
       }
+      const age = opts.lostAtAgeDays ?? (MixinApi.isOrganism(self) ? self.getAgeDays() : undefined);
       for (const k of severed) {
         const delta = this.bodyPartDeltas[k] ?? {};
         delta.missing = true;
+        if (k === key) {
+          if (age !== undefined && age > 0) delta.lostAtAgeDays = age;
+          if (opts.sealed) delta.sealed = opts.sealed;
+        }
         this.bodyPartDeltas[k] = delta;
       }
 
       // (2) release what the lost slots were carrying — a carrier lets go
       // its own way (size and carrying D13: the room hears it).
-      if (MixinApi.isCarrying(self)) {
-        self.releaseHeld(
-          plan
-            .getSlots()
-            .filter((spec) => spec.bodyPart !== undefined && severed.has(spec.bodyPart))
-            .map((spec) => spec.name),
-        );
-        return;
-      }
-      if (!MixinApi.isSlotted(self)) return;
-      const destination = MixinApi.isContainable(self)
-        ? self.getContainer()
-        : null;
-      for (const spec of plan.getSlots()) {
-        if (spec.bodyPart === undefined) continue;
-        if (!severed.has(spec.bodyPart)) continue;
-        for (const occupant of [...self.getOccupants(spec.name)]) {
-          self.vacate(spec.name, occupant);
-          // A body with nowhere to be (mid-construction, a test fixture)
-          // simply drops the reference — the slot is still released.
-          if (destination !== null && MixinApi.isContainable(occupant)) {
-            ContainmentApi.move(occupant, destination);
-          }
-        }
-      }
+      // A body with nowhere to be (mid-construction, a test fixture) simply
+      // drops the reference — the slot is still released.
+      this.releaseSlots(
+        plan
+          .getSlots()
+          .filter((spec) => spec.bodyPart !== undefined && severed.has(spec.bodyPart))
+          .map((spec) => spec.name),
+      );
     }
 
     public isSlotDisabledByAnatomy(slot: string): boolean {
@@ -3170,8 +3660,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return;
       this.seedFromSpecies();
+      this.reconcileForm();
       // A corpse doesn't bleed — nothing left to progress.
       if (self.getLifecycleState() === 'dead') return;
+      this.reconcileRegrowth();
 
       // ⭐⭐ **The burden law runs FIRST, above the clock guard, because
       // it needs no clock.**
@@ -3878,6 +4370,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (condition.kind === 'trauma' || condition.kind === 'shock') {
         this._lastHarmedAt = WorldClockApi.getNow().rawValue();
       }
+      // ⭐ A burn or a caustic aimed at a part the body no longer has
+      // (organism-biology D7) SEALS the stump and lands on the nearest part
+      // it does have — it no longer lands nowhere, silently (P3).
+      if (condition.kind === 'trauma') this.siteOnPresent(condition);
       // ⭐⭐ **Stamp who did this, at the door every driver already uses.**
       //
       // A wound has always recorded its inflicter; an affliction never

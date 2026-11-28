@@ -5,6 +5,7 @@
  */
 
 import "../../../../../../test-bootstrap";
+import { setFlatSenses } from '../../../../../lib/species/__tests__/flat-body';
 import { describe, it, expect, beforeEach } from 'vitest';
 import ListenController from '../ListenController';
 import type { MqlOneResult } from '../../../../../api/mql';
@@ -74,7 +75,7 @@ function makeFixture(): { giver: ReceivingGiver; location: TestLocation } {
     makeStuff(() => new BodyPlan()),
     '/stuff/idea/species/BodyPlan/test-listen',
   );
-  bp.setSensoryPorts([
+  setFlatSenses(bp, [
     { modality: 'hearing', count: 2, position: 'lateral' },
   ]);
   const sp = withTemplatePath(

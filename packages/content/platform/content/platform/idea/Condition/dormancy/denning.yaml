@@ -1,0 +1,15 @@
+# Denning — the winter sleep (organism-biology D9, W7): short days and a
+# cold core, on a species' phenology. The body is under — sedated, so it
+# does not eat and its brain's beat is skipped — and its costs are the
+# cold's own: Q10 at a cold core already slows its metabolism, so nothing
+# here counts the cold twice. Cleared when the days lengthen or it warms.
+class: /platform/idea/Condition
+data:
+  name: denning
+  signature:
+    - { kind: sedation, atStage: 0 }
+  progression: null
+  resolution:
+    by: spring
+  observableSigns: [curled-up, deeply-asleep, slow-breathing]
+  contagion: null

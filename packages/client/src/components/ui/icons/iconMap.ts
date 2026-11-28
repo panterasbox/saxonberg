@@ -81,6 +81,11 @@ import {
   Sun,
   Users,
   Swords,
+  BookOpen,
+  Puzzle,
+  FileCode,
+  Tag,
+  Keyboard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -178,6 +183,17 @@ export const ICONS = {
   "place.time": Clock,
   "ui.open": ChevronDown,
   "ui.closed": ChevronRight,
+  // ── verbs (the which card) ─────────────────────────────────────
+  "verb.help": BookOpen,
+  "verb.mixin": Puzzle,
+  "verb.view": FileCode,
+  "verb.category": Tag,
+  "verb.types": Keyboard,
+  "verb.off": TriangleAlert,
+  "reach.held": Hand,
+  "reach.here": MapPin,
+  "reach.nearby": Signpost,
+  "reach.yours": User,
 } satisfies Record<string, LucideIcon>;
 
 export type IconName = keyof typeof ICONS;

@@ -15,6 +15,9 @@ data:
   longDescription: >-
     A thick ring of the lower leg, bone in the middle and sinew all through it.
   _materialPath: /stuff/idea/material/tissue/muscles/shank
+  # ⭐ One piece of it, kg (organism-biology D5): a carcass gives as many
+  # pieces as parts carry it, or as many portions as its mass makes.
+  portionKg: 5.7
   tissues:
     - /stuff/idea/material/tissue/muscles/shank
   cutting: bone-in

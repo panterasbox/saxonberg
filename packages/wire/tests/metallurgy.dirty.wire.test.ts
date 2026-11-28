@@ -82,7 +82,7 @@ suite('⭐⭐ the fringe is a PLACE, and you walk to it', () => {
     // being a walk rather than a shaft is that this route exists at all:
     // no adit, no cage, no lamp, no permit.
     await walk(p, ['north', 'northeast', 'northeast', 'northeast']);
-    const here = await p.queryOne('here', ['displayName']);
+    const here = await p.queryOne('~here', ['displayName']);
     expect(String((here as { displayName?: string })?.displayName)).toMatch(
       /fringe/i,
     );
@@ -186,7 +186,7 @@ suite('⭐⭐ the smelter is reachable, and `smelt` EXISTS', () => {
     // `ContainerMixin` — so the controller's own guard could never have
     // passed and `ContainmentApi.move(item, furnace as never)` was a
     // cast hiding a hole.
-    const here = await s.queryOne('here', ['displayName']);
+    const here = await s.queryOne('~here', ['displayName']);
     expect(String((here as { displayName?: string })?.displayName)).toMatch(
       /smelter|furnace|slag/i,
     );

@@ -518,7 +518,10 @@ export function FacedMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     static markupAugmenters: MarkupAugmenter[] = [coatAugmenter];
 
     static fieldMeta: FieldMeta = {
-      coats: { persistent: true, authorable: true, runtimeState: true },
+      // ⚠ (#136) A constituent: every coat's material loads with its holder
+      // (mint, go-live and restore). Read cold through `peek`, an unloaded
+      // limewash gave a weathering rate of 0 and never weathered, silently.
+      coats: { persistent: true, authorable: true, runtimeState: true, ref: 'identity:constituent' },
       absorbed: { persistent: true, runtimeState: true },
       wallSpent: { persistent: true, runtimeState: true },
       weatheredToS: { persistent: true, runtimeState: true },

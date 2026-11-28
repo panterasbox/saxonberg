@@ -38,7 +38,16 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { SpeciesApi } from '../../api/species';
 import { ContainmentApi } from '../../api/containment';
+import { MaterialApi } from '../../api/material';
+import { CelestialApi } from '../../api/celestial';
+import { WorldClockApi } from '../../api/worldclock';
+import { EARTH_LIKE } from '../time/CelestialProfile';
+import { DEFAULT_CLIMATE_SITE } from '../weather/WeatherType';
 import type Species from '../../platform/idea/species/Species';
+import type { DressLine } from '../../platform/idea/species/Species';
+import type { Body, YieldLine } from '../species/Body';
+import type { Organism } from '../species/Organism';
+import type { FlawKind } from '../material/Flawed';
 
 /** One line of a species' yield, as the butcher asks the carcass about it. */
 export interface CarcassLine {
@@ -57,8 +66,13 @@ export interface ButcherCarcass {
   fleshPct: number | null;
   /** Is this line still on the body? */
   stillOn(line: CarcassLine): boolean;
-  /** Mark this line taken off the body. */
-  take(line: CarcassLine): void;
+  /**
+   * ⭐ Mark this line taken off the body, and the `kg` that came off with
+   * it: the carcass weighs that much less (organism-biology drive, B39).
+   */
+  take(line: CarcassLine, kg: number): void;
+  /** What has already come off it, kg — so its whole stays the yield's denominator. */
+  takenKg: number;
 }
 
 /** Every line of the species' yield is off the body — it goes. */
@@ -142,8 +156,12 @@ export type ButcherRefusal = ActRefusal<ButcherRefusalReason, { body: Stuff }>;
 export interface ButcherWant {
   /** The cut row's first keyword. */
   stem: string;
-  /** What it wants: a saw, or a cleaver and a block. */
-  needs: 'saw' | 'cleaver-and-block';
+  /**
+   * What it wants: a saw, or a cleaver and a block — or ROOM: a line that
+   * has nowhere to lie here stays on the carcass (organism-biology drive:
+   * ten ton-sized blanket pieces fill a small yard under the floor rule).
+   */
+  needs: 'saw' | 'cleaver-and-block' | 'room';
 }
 
 /** What the done words need. */
@@ -210,8 +228,9 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       }
       const blade = kit.blade;
       if (blade === null) return refuse('no-blade');
-      // ⭐ An empty yield is authored: *nothing here worth cutting*.
-      if (species.getButcheryYield().length === 0) return refuse('no-yield');
+      // ⭐ *Nothing came off*: a body whose materials name no row (D5).
+      const anatomy = body.getBody();
+      if (!anatomy || anatomy.yieldLines(presentOn(body)).length === 0) return refuse('no-yield');
       // ⚠⚠ LAST — the one thing the player can change.
       if (body.isAlive()) return refuse('still-alive');
 
@@ -242,43 +261,60 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
       // ⭐⭐ D15 — the clock started at the kill.
       const agedS = MixinApi.isPostmortem(body) ? (body.sinceDeath() ?? 0) : 0;
       const carcassK = Contamination.hostTemperatureK(body);
-      const liveKg = MixinApi.isTangible(body) ? body.getMass().rawValue() : 0;
+      // ⭐⭐ The carcass's own ledger: the condition it died in, which lines
+      // are still on it, what has come off. Asked FIRST, because the body's
+      // shares are of the WHOLE animal: what it weighs now plus what is
+      // already off it. (`ledgerLines` fills below; the plan reads it only
+      // at completion.)
+      const ledgerLines: CarcassLine[] = [];
+      const ledger = await body.butcherPlanFor(actor, ledgerLines);
+      const carcass = ledger.facts;
+      const liveKg = (MixinApi.isTangible(body) ? body.getMass().rawValue() : 0) + carcass.takenKg;
 
-      // ⭐⭐⭐ What each line CLAIMS, read off one exemplar per line (keyed
-      // by the cut path — `dressOut` drops lines, so never by index, C2).
-      const yieldLines = species.getButcheryYield();
+      // ⭐⭐⭐ What comes off DERIVES from the body (organism-biology D5):
+      // its present parts' materials, each naming the rows it leaves a
+      // carcass as, the outside first. What each line CLAIMS is read off
+      // one exemplar per row — a cut its muscles; any other row the
+      // materials that named it.
+      const anatomy = (body as unknown as Organism).getBody();
+      const present = presentOn(body);
+      const bodyLines = anatomy?.yieldLines(present) ?? [];
       const claims = new Map<string, readonly string[]>();
       const spec = new Map<string, { cutting: string; difficulty: Difficulty }>();
       const exemplarFor = new Map<string, Stuff>();
       const spent = new Set<string>();
-      for (const line of yieldLines) {
-        const exemplar = await StuffApi.clone<Stuff>(line.cut, undefined, { madeFrom: body });
-        exemplarFor.set(line.cut, exemplar);
-        if (MixinApi.isCut(exemplar)) {
-          claims.set(line.cut, exemplar.getTissues());
-          spec.set(line.cut, { cutting: exemplar.getCutting(), difficulty: exemplar.getDifficulty() });
-        }
+      const dressLines: DressLine[] = [];
+      for (const line of bodyLines) {
+        const exemplar = await StuffApi.clone<Stuff>(line.row, undefined, { madeFrom: body });
+        exemplarFor.set(line.row, exemplar);
+        const cut = MixinApi.isCut(exemplar) ? exemplar : null;
+        const claimed = cut && cut.getTissues().length ? [...cut.getTissues()] : line.tissues;
+        claims.set(line.row, claimed);
+        if (cut) spec.set(line.row, { cutting: cut.getCutting(), difficulty: cut.getDifficulty() });
+        dressLines.push({
+          row: line.row,
+          claims: claimed,
+          // ⭐ A cut comes off each part that carries it (two shoulders);
+          // anything else — a hide, the offal, the bones — is ONE lot.
+          parts: cut ? line.parts.length : 1,
+          portionKg: cut?.getPortionKg() ?? null,
+          // ⭐ A hide and a skeleton are the size the animal IS, not the
+          // shape it is in: the outside and bone do not scale by condition.
+          conditioned: !line.integument && !claimed.every((t) => MaterialApi.materials().peek(t)?.hasTag('bone')),
+          coatKg: line.integument && anatomy
+            ? line.tissues.reduce((a, m) => a + anatomy.coatMassKg(m, liveKg, densityOf, present), 0)
+            : 0,
+        });
+        ledgerLines.push({ cut: line.row, tissues: claimed });
       }
       const discard = async (): Promise<void> => {
         for (const [path, ex] of exemplarFor) if (!spent.has(path)) await StuffApi.destruct(ex);
       };
 
-      // ⭐⭐ The carcass's own ledger: the condition it died in, which lines
-      // are still on it, the take.
-      const ledger = await body.butcherPlanFor(
-        actor,
-        yieldLines.map((l) => ({ cut: l.cut, tissues: claims.get(l.cut) ?? [] })),
-      );
-      const carcass = ledger.facts;
       const fleshPct = carcass.fleshPct ?? UNREMARKABLE_FLESH;
-      // ⭐ The age at the kill (dairy D8): `0` = unknown, which keeps every line.
-      const ageAt = MixinApi.isOrganism(body) ? body.getAgeDays() : 0;
-      const dressed = species.dressOut({
-        liveKg,
-        fleshPct,
-        claims,
-        ...(ageAt > 0 ? { ageDays: ageAt } : {}),
-      });
+      const dressed = anatomy
+        ? species.dressOut({ liveKg, fleshPct, lines: dressLines, body: anatomy, present })
+        : [];
 
       // ⭐ The tool is the depth: a knife the floor, a saw the bone-in
       // joints, a cleaver AND a block the chops.
@@ -327,7 +363,9 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         }
         // ⭐⭐⭐ The hand decides JOINT or TRIM.
         const difficulty = spec.get(line.cut)?.difficulty ?? 'standard';
-        const clean = !line.tissues.length || CompetenceBand.rank(band) >= handFor(difficulty);
+        // ⚠ Joint-or-trim is a CUT's question: a hide, the offal, the bones
+        // come off as themselves (a poor hand NICKS a hide instead, D5).
+        const clean = !spec.has(line.cut) || !line.tissues.length || CompetenceBand.rank(band) >= handFor(difficulty);
         const rowPath = clean ? line.cut : TRIM_ROW;
         const units = Math.max(1, Math.round(line.units * (0.5 + 0.5 * skill)));
         const kgEach =
@@ -335,6 +373,11 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         // ⭐ The exemplar IS unit 1 when the line is taken as authored.
         const reuse = clean ? exemplarFor.get(line.cut) : undefined;
         if (reuse) spent.add(line.cut);
+        // ⭐ A line comes off WHOLE or not at all: if the place has no room
+        // for one of its pieces, every piece of it goes back on the carcass
+        // and the line is named as wanting room.
+        const lineCuts: Stuff[] = [];
+        let roomless = false;
         for (let i = 0; i < units; i++) {
           const cut =
             i === 0 && reuse ? reuse : await StuffApi.clone<Stuff>(rowPath, undefined, { madeFrom: body });
@@ -344,18 +387,36 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
           if (MixinApi.isCut(cut)) {
             cut.setSpeciesPath(species.getTemplatePath());
             // ⭐⭐ A wound where this cut came from damages the cut.
-            if (woundedAt(body, line.tissues, species)) cut.setDamaged(true);
+            if (woundedAt(body, line.tissues, anatomy)) cut.setDamaged(true);
+          }
+          // ⭐⭐ The skin comes off with what happened to it (D5).
+          if (i === 0) {
+            const bl = bodyLines.find((l) => l.row === line.cut);
+            if (bl && anatomy) flawThePelt(cut, body, anatomy, bl, bodyLines, carcass, band);
           }
           ageAtKill(cut, agedS, carcassK);
           if (MixinApi.isContaminable(body)) body.transferContaminationTo(cut);
           // ⚠⚠ Gut is contaminated at FULL severity whatever the hand.
           spillGut(cut, rowPath.endsWith('/gut') ? 1 : mess);
           if (here && MixinApi.isContainer(here) && MixinApi.isContainable(cut)) {
+            if (here.fitRefusal(cut) !== null) {
+              roomless = true;
+              if (cut !== reuse) await StuffApi.destruct(cut);
+              break;
+            }
             await ContainmentApi.move(cut, here);
           }
-          cuts.push(cut);
+          lineCuts.push(cut);
         }
-        carcass.take({ cut: line.cut, tissues: line.tissues });
+        if (roomless) {
+          for (const c of lineCuts) if (c !== reuse) await StuffApi.destruct(c);
+          if (reuse) spent.delete(line.cut); // the exemplar goes with the discard
+          wanting.push({ stem, needs: 'room' });
+          continue;
+        }
+        cuts.push(...lineCuts);
+        const tookKg = lineCuts.reduce((a, c) => a + (MixinApi.isTangible(c) ? c.getMass().rawValue() : 0), 0);
+        carcass.take({ cut: line.cut, tissues: line.tissues }, tookKg);
       }
       await discard();
 
@@ -384,7 +445,7 @@ export function ButcherableMixin<TBase extends MixinConstructor<Stuff>>(Base: TB
         ok: true,
         durationMs: 0,
         effortW: 0,
-        facts: { fleshPct: null, stillOn: () => true, take: () => undefined },
+        facts: { fleshPct: null, stillOn: () => true, take: () => undefined, takenKg: 0 },
         onComplete: () => ({ ok: true, facts: { spent: true } }),
       };
     }
@@ -403,15 +464,102 @@ function handFor(difficulty: Difficulty): number {
  * the corpse adopted: a muscle names the part it sits in, a wound sites on
  * a part.
  */
-function woundedAt(body: Stuff, tissues: readonly string[], species: Species): boolean {
+function woundedAt(body: Stuff, tissues: readonly string[], anatomy: Body | null): boolean {
   if (!tissues.length || !MixinApi.isVitals(body)) return false;
   const parts = new Set<string>();
-  for (const t of tissues) for (const k of species.partsCarrying(t)) parts.add(k);
+  for (const t of tissues) for (const k of anatomy?.partsCarrying(t) ?? []) parts.add(k);
   if (!parts.size) return false;
   for (const condition of body.getConditions()) {
     if (condition.kind === 'trauma' && parts.has(condition.site)) return true;
   }
   return false;
+}
+
+/** The length of the day at a body's place, as a fraction (the coat's year, D7). */
+function dayFractionAt(body: Stuff): number | null {
+  let now: number;
+  try {
+    now = WorldClockApi.getNow().rawValue();
+  } catch {
+    // @quiet a unit world has no clock: the coat's year is unknown.
+    return null;
+  }
+  let cursor: Stuff | null = body;
+  for (let i = 0; cursor !== null && i < 16; i++) {
+    if (MixinApi.isAtmospheric(cursor)) break;
+    cursor = MixinApi.isContainable(cursor) ? (cursor.getContainer() as Stuff | null) : null;
+  }
+  const lat = (cursor && MixinApi.isAtmospheric(cursor) ? cursor.climateSite() : DEFAULT_CLIMATE_SITE).latitudeDeg;
+  return CelestialApi.daylightSecondsFor(EARTH_LIKE, lat, now) / EARTH_LIKE.dayLengthSeconds;
+}
+
+/** A material's density, kg/m³, or 0 when it is not resident. */
+function densityOf(path: string): number {
+  return MaterialApi.materials().peek(path)?.getDensity().rawValue() ?? 0;
+}
+
+/** The parts still on a body (not lost) — the butcher's filter (D5). */
+function presentOn(body: Stuff): (partKey: string) => boolean {
+  if (!MixinApi.isVitals(body)) return () => true;
+  const missing = new Set(body.getMissingParts().map((p) => p.key));
+  return (k) => !missing.has(k);
+}
+
+/** A wound's mechanism → what it leaves on a pelt (D5); blunt leaves nothing. */
+const PELT_FLAW: Readonly<Record<string, FlawKind>> = {
+  point: 'holed',
+  edge: 'slashed',
+  heat: 'burned',
+  corrosion: 'burned',
+};
+
+/**
+ * ⭐⭐ The skin comes off with its history (organism-biology D5): a flaw per
+ * wound on a part it covered, sited there (a puncture is the one shipped
+ * `holed`, so a holed skin makes a leaking waterskin for free); a slash
+ * where a cut was taken before the skin; and the skinner's hand — a nick
+ * per band short of the job, on the largest parts first. Derived, never
+ * rolled. Only the SKIN's line: feathers and down carry no wounds.
+ */
+function flawThePelt(
+  pelt: Stuff,
+  body: Stuff,
+  anatomy: Body,
+  line: YieldLine,
+  all: readonly YieldLine[],
+  carcass: ButcherCarcass,
+  band: CompetenceBandName,
+): void {
+  if (!MixinApi.isFlawed(pelt)) return;
+  const skinned = line.parts.filter((k) => {
+    const skin = anatomy.integumentAt(k)?.skin;
+    return !!skin && line.tissues.includes(skin.material);
+  });
+  if (skinned.length === 0) return;
+  if (MixinApi.isVitals(body)) {
+    for (const c of body.getConditions()) {
+      if (c.kind !== 'trauma' || !skinned.includes(c.site)) continue;
+      const kind = PELT_FLAW[c.mechanism ?? ''];
+      if (kind) pelt.addFlaw(kind, true, undefined, c.site);
+    }
+  }
+  for (const other of all) {
+    if (other.integument || carcass.stillOn({ cut: other.row, tissues: other.tissues })) continue;
+    for (const k of other.parts) if (skinned.includes(k)) pelt.addFlaw('slashed', true, undefined, k);
+  }
+  // ⭐ The winter pelt is the better pelt (D7): a coat in its thick season
+  // at the kill grades the skin up.
+  if (MixinApi.isGraded(pelt)) {
+    const cycled = skinned.map((k) => anatomy.integumentAt(k)?.coat).filter((c) => !!c?.cycle);
+    if (cycled.length > 0) {
+      const day = dayFractionAt(body);
+      const winter = cycled.some((c) => anatomy.coatFactor(c!, day) > 1);
+      pelt.setGradeBand(winter ? 'fine' : 'fair');
+    }
+  }
+  const short = handFor('standard') - CompetenceBand.rank(band);
+  const largest = [...skinned].sort((a, b) => anatomy.partArea(b) - anatomy.partArea(a));
+  for (let i = 0; i < short && i < largest.length; i++) pelt.addFlaw('nicked', true, undefined, largest[i]);
 }
 
 /** The cut row's own first keyword — what to call it in a sentence. */

@@ -602,6 +602,34 @@ dressing and instrument. A graded outcome mints an
   (`seeds/lib/advancement/Discipline/medicine.yaml`, `key: medicine`,
   ISCED-F `0913`).
 
+### ⭐⭐ The body decides `operate` (organism-biology D8, W7)
+
+`VitalsMixin.operable(named, ops, hand)` is the ONE place an operation is
+matched and refused: the named operation, else the most urgent the
+body's wounds call for (the old controller's sort); then posture, the
+hand's medicine band, its kit's capability and the anaesthesia — in that
+order, each a reason row (`no-such-op` · `nothing-to-operate` ·
+`no-such-part` · `not-lying` · `unskilled` · `wrong-kit` ·
+`needs-anaesthesia`, platform rows because the body speaks them).
+`OperateController` passes the answer on and words nothing.
+
+- An operation document may name a healthy PART (`addresses.part`) —
+  the body's present part whose key ends in it — and a `posture: lying |
+  any` (default `lying`). ⛔ **A part operation is matched only when
+  NAMED**: a bare `operate bull` on a bleeding bull stops the bleed and
+  never castrates.
+- **Castration** (`trade-medicine/operations/castration.yaml`) takes the
+  `gonads` module a species' `variants.sex.male` adds, with any `cutting`
+  tool (a stockman's knife), the animal standing, unnumbed; it leaves an
+  open cut on the torso. A cow is refused by the body (`no-such-part`).
+- Every severance goes through `ConditionApi.sever` now, so an amputated
+  limb lands in the room as a thing (D7) and the castrated part does too.
+- **Neutered is derived** (`Organism.getVariant`): male, gonads lost
+  before `matureAt` (`Vitals.partLostAt` reads the delta, never the
+  body). The species' `variants.neutered` form names him — a steer, and
+  grown, an ox — and weighs and steadies him; see
+  [ranching.md](./ranching.md) for the register that keeps the cut.
+
 ## The demonstrator — retired into `HazardMixin`
 
 ⚠⚠ **`GlassAlley` is gone** (the base-class narrowing build). It was a

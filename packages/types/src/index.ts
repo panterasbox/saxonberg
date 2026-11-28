@@ -1136,7 +1136,9 @@ export type CardId =
   /** ⭐ Where you are, at zone level — the navigator (map slate, wave-1 stub). */
   | "map"
   /** ⭐ The stream controls (broadcast-ready D10) — opened by bare `stream`. */
-  | "stream";
+  | "stream"
+  /** ⭐ What you can type here, and what gives each verb (the which build). */
+  | "which";
 
 /** Every {@link CardId}. The server validates against this; the client picks from it. */
 export const CARD_IDS: readonly CardId[] = [
@@ -1155,6 +1157,7 @@ export const CARD_IDS: readonly CardId[] = [
   "settings",
   "map",
   "stream",
+  "which",
 ];
 
 /**
@@ -1353,7 +1356,9 @@ export type CardPayload =
   | { kind: 'wikiPage'; page: WikiPageFrame }
   | { kind: 'helpTopic'; topic: HelpTopic }
   | { kind: 'survey'; survey: SurveyFrame }
-  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean };
+  | { kind: 'terminal'; filter: TerminalFilter; barId: string; primary: boolean }
+  /** ⭐ The `which` answer (the which build); kept current by `WhichSource` while live. */
+  | { kind: 'which'; answer: WhichAnswer };
 
 /**
  * ⭐ A way's whole state, in one word (boundary build, 2026-11): `open` —
@@ -1847,6 +1852,8 @@ export interface TooltipHeader {
 
 /** One fact row: a label, a value, and where and when it was learned. */
 export interface TooltipFact {
+  /** ⭐ An icon-map name the row leads with — icons are the visual language. */
+  icon?: string;
   label: string;
   value: string;
   source: TooltipSource;
@@ -2241,6 +2248,97 @@ export interface AffordanceEntry {
    * row is *what is this thing for*, which is the other question.
    */
   source?: 'subject' | 'actor';
+}
+
+/* ─────────────── `which` — what can I type here (the which build) ─────────────── */
+
+/**
+ * ⭐ One thing that gives verbs, in the asker's words. `handle` is the one
+ * word to type for it; `name` the definite phrase (*the rod*, *your
+ * calendar*, *you*); `place` where it is (*in your right hand*, *here*) —
+ * empty for the asker and for what is theirs.
+ */
+export interface WhichSource {
+  id: string;
+  handle: string;
+  name: string;
+  place: string;
+}
+
+/**
+ * The verbs one source gives, with each verb's state as the radial
+ * reports it (the validator's own words when greyed). Alike sources — the
+ * same handle, place and verbs — are one group with a `count`.
+ */
+export interface WhichGroup {
+  /** Stable across re-reads while the same things give the same verbs. */
+  key: string;
+  source: WhichSource;
+  count: number;
+  /** Every alike source's id (the first is `source.id`). */
+  ids: string[];
+  verbs: WhichVerb[];
+}
+
+/**
+ * ⭐ One verb as `which` reports it — the radial's entry, plus where it
+ * comes from (owner, review: the mixin source is the metadata that teaches).
+ */
+export interface WhichVerb extends AffordanceEntry {
+  /** The class or mixin whose `commandContributions` put it on its source. */
+  from?: string;
+  /** How it reaches you: a thing you hold, one beside you, or your own. */
+  reach: 'held' | 'beside' | 'yours';
+  /** The view that defines it — `perception/ring`. */
+  view: string;
+}
+
+/**
+ * ⭐ A word that means more than one COMMAND here — two views answer it
+ * (the same view from many things is one command, and is not this). Per
+ * meaning: help's one line, who gives it, and the scope that picks it
+ * (`hearth::fire`; your own and your apps' with `me::`).
+ */
+export interface WhichCollision {
+  verb: string;
+  meanings: { description: string; sources: WhichSource[]; scope: string }[];
+}
+
+/** One `~` word: what it means, whose it is, and how many it holds now. */
+export interface WhichRelation {
+  name: string;
+  meaning: string;
+  /** Members resident now, when the word is kept by something (a list, a book). */
+  count?: number;
+}
+
+/** What was asked — and the command that asks it again (a card's refresh). */
+export interface WhichAsk {
+  mode: 'all' | 'thing' | 'verb' | 'relations' | 'clashes';
+  command: string;
+  /** The word typed after `which`, when there was one. */
+  what?: string;
+  /** For `thing`: the things the word named. */
+  subjectIds?: string[];
+}
+
+/**
+ * ⭐ The `which` answer: what the asker can type here, grouped by what
+ * gives it. `common` is the closing line of verbs every carried article
+ * gives (*and anything you're carrying: throw, ring*); `usual` the body's
+ * own verbs (*and the usual: look, say, go, … (you)*).
+ */
+export interface WhichAnswer {
+  ask: WhichAsk;
+  groups: WhichGroup[];
+  common?: { verbs: string[]; sources: WhichSource[] };
+  usual?: { verbs: string[] };
+  /** `which ~` / `which ~ <thing>`. */
+  relations?: WhichRelation[];
+  /** For `which ~ <thing>`: whose words these are. */
+  keeper?: WhichSource;
+  /** Words that mean more than one command here, with the scope that picks each. */
+  collisions?: WhichCollision[];
 }
 
 /**
@@ -2765,6 +2863,8 @@ export const SUBSCRIPTION_SOURCES = {
   mapCopy: '/platform/idea/MapCopySource',
   /** ⭐ What you perceive from here, now — a change per section. */
   whereabouts: '/platform/idea/WhereaboutsSource',
+  /** ⭐ What you can type here — the `which` answer, one change (key `answer`). */
+  which: '/platform/idea/WhichSource',
 } as const;
 
 /**
@@ -2909,6 +3009,25 @@ export interface SubscriptionSources {
     snapshot: WhereaboutsSnapshot;
     fields: NavSections[NavSectionName];
   };
+  /** Change key: `answer`, always `replace` — the whole answer re-read. */
+  '/platform/idea/WhichSource': {
+    params: WhichSubscriptionParams;
+    snapshot: WhichAnswer;
+    fields: WhichAnswer;
+  };
+}
+
+/**
+ * What a live `which` card keeps current: the word asked (`which counter`
+ * keeps the counter's answer), or nothing for the whole answer.
+ */
+export interface WhichSubscriptionParams {
+  /** `which <thing>` — the thing the binder named, by id. */
+  thingId?: string;
+  /** `which --verb <verb>`. */
+  verb?: string;
+  /** `which --clashes`. */
+  clashes?: boolean;
 }
 
 // ============================================================================
@@ -3235,6 +3354,50 @@ export const STREAM_PANEL_WHENS: readonly StreamPanelWhen[] = [
   "wiki",
   "client",
 ];
+
+/**
+ * ⭐ The door a visitor came in by (stream arrival D7): the carrier they
+ * watched on (`twitch` · `youtube` · `kick`), or `stream` — Rodney's one
+ * on-screen card and QR, sent to every carrier, which means Twitch unless
+ * the referrer names another. A closed vocabulary; anything else is no door.
+ */
+export type ArrivalDoor = "twitch" | "youtube" | "kick" | "stream";
+
+/** The four door words. */
+export const ARRIVAL_DOORS: readonly ArrivalDoor[] = ["twitch", "youtube", "kick", "stream"];
+
+/** A carrier a program's video may be on (stream arrival). */
+export type ProgramCarrier = "twitch" | "youtube" | "kick";
+
+/** The three carriers, in the order the page and the help name them. */
+export const PROGRAM_CARRIERS: readonly ProgramCarrier[] = ["twitch", "youtube", "kick"];
+
+/**
+ * ⭐ A program's PUBLIC facts (stream arrival D14) — what the front page and
+ * `program show` read. `feeds` are bare channel strings in the form the
+ * embed uses (a Twitch login, a Kick slug, a YouTube `UC…` id), and only
+ * ever ones somebody proved were theirs. `live` is whether the program's
+ * runner is on the air with it now.
+ */
+export interface ProgramListing {
+  /** The short name — what a link names, and what the client sends back. */
+  name: string;
+  title: string;
+  ownerName?: string;
+  live: boolean;
+  feeds: Partial<Record<ProgramCarrier, string>>;
+  /** The schedule line, when the owner wrote one. */
+  nextShow?: string;
+}
+
+/**
+ * The anonymous front-page read, `GET /api/front` (stream arrival D14).
+ * `show` is absent when nothing is featured and the link named nothing
+ * valid — the page then has no show band.
+ */
+export interface FrontResponse {
+  show?: ProgramListing;
+}
 
 /** The running build's identity — null when the deploy did not stamp one. */
 export interface StreamBuild {

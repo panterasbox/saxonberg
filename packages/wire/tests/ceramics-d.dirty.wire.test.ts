@@ -442,7 +442,7 @@ async function clearFloor(only?: RegExp): Promise<void> {
   // `destruct` + `eval --parcel` at Rejection: seated on its committee.
   const gov = await Session.open('founder', { startLocation: FOUNDRY, wizard: true, committees: [R] });
   try {
-    const rows = await gov.query('here', { fields: 'detail' }).catch(() => []);
+    const rows = await gov.query('~here', { fields: 'detail' }).catch(() => []);
     const floor = ((rows[0] as { contents?: { stuffId: string; displayName: string }[] } | undefined)?.contents ?? [])
       .filter((o) => sweeps(o.displayName));
     for (const o of floor) {
@@ -669,7 +669,7 @@ suite('⭐⭐⭐ 28 — a wax impression of a key, cast in brass, opens the key\
     expect(unlocked.said, `unlock: ${unlocked.said}`).toMatch(/unlock/i);
     await say(caster, 'open door');
     const through = await say(caster, 'go north');
-    const here = await caster.query('here', { fields: ['displayName'] });
+    const here = await caster.query('~here', { fields: ['displayName'] });
     expect(
       String((here[0] as { displayName?: unknown } | undefined)?.displayName ?? '') + through,
       'through into the casting yard',

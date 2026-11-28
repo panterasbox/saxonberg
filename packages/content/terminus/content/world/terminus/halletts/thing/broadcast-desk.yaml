@@ -1,0 +1,15 @@
+# The broadcast desk in Hallett's window (stream arrival D18): at it you have
+# `program` and `rodney` with no app. Whose program you may run is that
+# program's pen, never the desk.
+class: /platform/thing/BroadcastDesk
+data:
+  shortDescription: broadcast desk
+  keywords: [desk, "broadcast desk", microphone, mic]
+  register: definite
+  longDescription: >
+    A broad desk of scarred oak facing the window, a microphone on a swing
+    arm, a worn cue sheet pinned under glass. Whoever sits here sits on the
+    avenue.
+  fixedInPlace: true
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 60

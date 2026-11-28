@@ -66,6 +66,7 @@ import CartesianZone from "../../location/CartesianZone";
 import { Postures } from "../../../../lib/slot/Postured";
 import type { Combatant } from '../../../../lib/combat/Combatant';
 import { standMaterials, TEST_TISSUES } from '../../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../../lib/species/__tests__/flat-body';
 
 class TestRoom extends ContainerMixin(Idea) {}
 class TestFighter extends Character {}
@@ -153,7 +154,7 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
     // A sheath at the hip (size and carrying W7 — nothing loose on a body).
     { name: "sidearm", accepts: "WieldableMixin" },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: "body.torso",
       parent: null,

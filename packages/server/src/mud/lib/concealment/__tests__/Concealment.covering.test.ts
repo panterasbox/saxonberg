@@ -34,6 +34,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 class Covering extends WearableMixin(
   SlottableMixin(ContainableMixin(DyedMixin(ConstructedMixin(Good)))),
@@ -52,7 +53,7 @@ function wearer(): Creature {
     { name: 'torso', accepts: 'WearableMixin', capacity: 4, covers: ['body.torso'] },
     { name: 'head', accepts: 'WearableMixin', capacity: 4, covers: ['body.head'] },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.torso',
       parent: null,

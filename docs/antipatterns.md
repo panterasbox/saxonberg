@@ -6830,6 +6830,7 @@ fact; a refusal on a *no* answer reports a consequence.
 |---|---|
 | A reconcile-on-read getter (`getTemperature`, a mould's `getContents`, a body's `getReserve`) that integrates state to now, reached by the light walk, the sound gather, the smell fold or a card's projection | The walk holds the world still (`ExecutionContextApi.holdWorldStill`) and the getter answers **as banked** inside it; a thing's state advances at **its own changes** and on **its own game-clock wake** (`MouldMixin.wakeAtS` is the shape) |
 | A size read or a sight gate that integrates a BODY (a crossing's fit check reconciled every bystander's metabolism) | Read the stored stock (`reserves['flesh']`, `this.conditions`) — the `withBodyComposition` precedent; a body integrates at its own acts and deliberate reads |
+| A vital-sign getter that integrates the body to now and stamps (the core temperature did, until organism-biology W6b) — so a body nobody looked at never cooled, and every `look` moved it | The getter **projects**: the reconcile's own slices run on a probe and the read returns what the reconcile WOULD store, writing nothing; the reconcile is the only writer, and a resident body arms a game-clock wake at its next threshold crossing (`ThermalRegulation.thermalWakeAtS`, capped at one game hour) — see [thermal.md § Reading a body never changes it](./subsystems/thermal.md) |
 
 **Why.** Whatever the room reads for everyone runs as often as people
 look, so the world comes to depend on WHO LOOKED: a mould watched every
@@ -6881,3 +6882,59 @@ batch of rows is the same one call. Re-score only what changed and derive
 decay when the figure is READ. ⚠ Not for a hooked collection (refused) or a
 row whose `_id` you need back (`save`). See persistence.md § `saveMany` and
 participation.md § The pass scores who changed.
+
+## A string slot that names things
+
+```yaml
+# NOT ALLOWED — one string slot the controller turns into a thing (or a
+# verb, or a place) by trying MQL on it and seeing what comes back
+args:
+  - name: what
+    type: string        # `which counter`? `which fish`? the model guesses
+
+# CORRECT — each kind of question is its own typed slot
+args:
+  - name: thing
+    type: object        # the binder names it: reach, perception, the tie prompt
+    scope: ["~reachable"]
+options:
+  verb:
+    type: string        # `which --verb fish` — a word, and only a word
+```
+
+A slot's type is the player's contract: `help` prints it, the binder
+enforces it, and an `object` slot brings everything a player has learned
+about naming things — the perception gate, *which one?* on a tie,
+`2.notebook`, the binder's own refusal. A `string` slot that the
+controller (or its Api) quietly runs through `MqlApi.resolve*` takes all
+of that away and hides it: the player cannot know the word is a query,
+cannot know which kinds it accepts, and gets the guess's answer rather
+than the language's (owner, which review, 2026-11-24: *"there's a reason
+we have a type system and going around it only confuses players. a string
+arg that takes MQL? how would I know that"*). When the guess decides
+between KINDS — a thing or a verb, a thing or a place, a good or a parcel
+— a thing in reach also silently hides the other reading (`which fire`
+with a fire in the room could never ask about the verb).
+
+⭐ The fix is the type system, not a cleverer guess: an `object` slot for
+the thing, and a separate typed slot (an option, a subcommand, an `enum`)
+for each other kind. Naming a thing that is NOT runtime Stuff — a contact
+list, a position, a field, a prescription — is `GrammarApi.nameAmong` over
+that vocabulary, which is the sanctioned rule and not this antipattern.
+
+**Census (2026-11-24, every command view's string args and options whose
+controller resolves them into Stuff):**
+
+| verb | slot | what the controller does | status |
+|---|---|---|---|
+| `which` | `what` | thing in reach, else a verb | **fixed** in the which build: `thing` (object) + `--verb` |
+| `job post` | the item / subject words | `MqlApi.resolveMany` in reach, else read as a kind | open |
+| `journey` | `destination` | a reachable thing's path, else a stop or a literal path | open |
+| `title transfer` | `parcel` | a carried good by `MqlApi.resolveOne` in `~inventory`, else a parcel | open |
+| `call` | `animalName` | matches bonded animals that HEAR it, out of reach by design | judgment: the binder cannot scope by hearing |
+
+The rest of the census — `contacts remove`, `job apply`, `move`
+(ranching), `prescribe`, `route`, `wallet beneficiary`, `wallet use` —
+names non-Stuff vocabularies with `nameAmong`, correctly. No gate yet;
+the census is the meter, and a ratchet is the next step (lint-family.md
+§ census, then ratchet).

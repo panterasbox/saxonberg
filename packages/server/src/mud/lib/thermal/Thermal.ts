@@ -57,6 +57,7 @@ import { PerceptionApi } from "../../api/perception";
 import { StuffApi } from "../../api/stuff";
 import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from "../../api/biome";
+import { WeatherApi } from "../../api/weather";
 import { WorldClockApi, type ClockHandle } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
 import { Decay } from "../Decay";
@@ -300,6 +301,13 @@ export const THERMAL_DEFAULTS = {
    * The lethal dwell still reads `survivableMax`.
    */
   HYPERTHERMIA_ONSET_K: 2.5,
+  /**
+   * ⭐ The cold edge's NEAR line for an ectotherm (organism-biology D9):
+   * `sluggish` below `setpoint − SLUGGISH_ONSET_K`, before torpor at
+   * `survivableMin` — the hot edge's shape (an onset, then the far line).
+   * A chilled trout is slow before it is still.
+   */
+  SLUGGISH_ONSET_K: 6,
   /**
    * Each worn `clo` widens the comfort band downward by this many K.
    *
@@ -560,6 +568,9 @@ const AIR_SCOPE_DEPTH_CAP = 32;
  * {@link enclosingCoolbox} asks what holds you and a bag is what holds
  * it. Asserted in the tests so the limit is visible rather than hidden.
  */
+/** At most this many weather samples across one reconcile's gap (#139). */
+const OPEN_SKY_STRETCHES = 240;
+
 function airScopeOf(host: Stuff): (Stuff & Atmospheric) | null {
   let cursor = ambientScopeOf(host);
   for (let depth = 0; cursor !== null && depth < AIR_SCOPE_DEPTH_CAP; depth++) {
@@ -1356,13 +1367,58 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // would double-own it and, for a pan pinned hot in a warm room,
       // cool it back down. Fall back to the cached ambient the push side
       // maintains.
-      if (scope === null || !scope.envelopeApplies()) {
+      if (scope === null) return flat(this.lastAmbientK);
+      // ⭐⭐ Under the open sky the air IS the weather, and the weather is a
+      // pure function of the place and the time (`WeatherApi.temperatureAt`)
+      // — so the pull side reads it over the whole gap (#139, the soak
+      // lane). The push side alone restamps only the direct contents of an
+      // OCCUPIED sky room at a weather boundary, so ice in a pit, or
+      // anything in a yard nobody stood in, drifted toward the winter it
+      // was last told about all summer and never thawed.
+      const open = this.openSkyTrajectory(scope, fromS, toS);
+      if (open !== null) return this.withEvaporation(open);
+      if (!scope.envelopeApplies()) {
         return flat(this.lastAmbientK);
       }
       // ⭐ A wet body in AIR sits below the air by what evaporation carries
       // off (ceramics M8) — the weeping jar, cooler than its room.
-      const pw = scope.temperatureTrajectory(fromS, toS);
-      const d = this.evaporativeDepressionK(pw.at(toS));
+      return this.withEvaporation(scope.temperatureTrajectory(fromS, toS));
+    }
+
+    /**
+     * The open sky's air over `[fromS, toS]`, sampled from the weather — or
+     * `null` where the sky is not this body's air: a scope that holds its
+     * own air (an envelope), authors its own temperature, has not resolved
+     * where on the world it is yet, or a body in WATER (the push side's
+     * medium read owns that).
+     */
+    private openSkyTrajectory(scope: Stuff & Atmospheric, fromS: number, toS: number): Piecewise | null {
+      if (this.immersedTag !== null) return null;
+      if (scope.getOwnTemperatureK() !== null) return null;
+      const exposure = BiomeApi.exposureOf(scope);
+      if (exposure === null || exposure.holdsAir()) return null;
+      if (!scope.isClimateSiteResolved() || !scope.isWeatherLocalityResolved()) return null;
+      const site = scope.climateSite();
+      const locality = scope.weatherLocality();
+      // An hour a stretch, never more than OPEN_SKY_STRETCHES of them.
+      const step = Math.max(3600, (toS - fromS) / OPEN_SKY_STRETCHES);
+      const stretches = [];
+      for (let a = fromS; a < toS; a += step) {
+        const b = Math.min(toS, a + step);
+        const v = WeatherApi.temperatureAt(site, locality, Quantity.of((a + b) / 2, "s")).rawValue();
+        stretches.push({ fromS: a, toS: b, startValue: v, target: v, tau: 0 });
+      }
+      if (stretches.length === 0) {
+        const v = WeatherApi.temperatureAt(site, locality, Quantity.of(toS, "s")).rawValue();
+        stretches.push({ fromS, toS, startValue: v, target: v, tau: 0 });
+      }
+      return new Piecewise(stretches);
+    }
+
+    /** `pw`, less what evaporation carries off a wet body in air (ceramics M8). */
+    private withEvaporation(pw: Piecewise): Piecewise {
+      const last = pw.stretches[pw.stretches.length - 1];
+      const d = this.evaporativeDepressionK(last ? pw.at(last.toS) : this.lastAmbientK);
       if (!(d > 0)) return pw;
       return new Piecewise(
         pw.stretches.map((st) => ({ ...st, startValue: st.startValue - d, target: st.target - d })),
@@ -2219,8 +2275,29 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * trigger (placement/move, ambient shift, seal toggle, bulk
      * transfer) calls — the one `await` in the model, kept off the read
      * path. Seeds `lastAmbientK` at first placement.
+     *
+     * ⚠ (#134, and the size-and-carrying soak boot) It never REJECTS: every
+     * trigger fires it and forgets it (a move, a room's ambient shift, a
+     * seal toggle), so one object's failed restamp — a freeze with no place,
+     * a material read before it was loaded — rejected unhandled and exited
+     * the whole world. A failure is said loudly (the server log and the
+     * diagnostics store) and the body keeps its cached ambient.
      */
     public async restamp(): Promise<void> {
+      try {
+        await this.restampNow();
+      } catch (err: unknown) {
+        console.error(`ThermalMixin.restamp: ${this.thermalHost.stuffId} failed:`, err);
+        void DiagnosticApi.record({
+          path: null,
+          message: `ThermalMixin.restamp: ${err instanceof Error ? err.message : String(err)}`,
+          stack: err instanceof Error ? (err.stack ?? null) : null,
+        }).catch(() => undefined);
+      }
+    }
+
+    /** {@link restamp}'s body — the only path that may throw. */
+    private async restampNow(): Promise<void> {
       // Freeze current T under the OLD ambient first (drift up to now).
       this.reconcileThermal();
 
@@ -2309,7 +2386,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
         ) => void;
       }).onMoved;
       if (typeof sup === "function") sup.call(this, from, to);
-      void this.restamp();
+      // ⚠ (#134) Moved to NOWHERE: there is no ambient to drift toward, and
+      // catching the clock up here would run a freeze with no place for what
+      // sets (`DetachedError`). The next placement restamps where it stands.
+      if (to === null) return;
+      // Detached: `restamp` says its own failures loudly and never rejects
+      // (#134); the handler is the belt to that.
+      this.restamp().catch((err: unknown) => {
+        console.error(`ThermalMixin.onMoved: the restamp of ${this.thermalHost.stuffId} failed:`, err);
+      });
     }
 
     // ---------- internal reads ----------

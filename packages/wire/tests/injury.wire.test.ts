@@ -96,7 +96,7 @@ afterAll(() => {
 
 suite('the boot survives the shape changes', () => {
   it('⭐⭐ both body plans stood up — `governs` is now validated at registration', async () => {
-    // `setBodyParts` now throws on an unknown `governs` / `serves` key.
+    // `BodyPlan.setModules` now throws on an unknown `governs` / `serves` key.
     // That is the point (a typo used to produce an organ that ran nothing
     // and failed silently forever) and it is also a boot risk: a plan
     // that throws takes every species wearing it down with it. If the
@@ -149,7 +149,7 @@ suite('step 3 — the wolf is there, and it is armed', () => {
     // user; bite/worry moved to the species, where a fact about wolves
     // belongs. If the species row failed to parse, the wolf is unarmed
     // and nothing in the newbie wilds can wound anybody — silently.
-    const wolves = await player.query('reachable', {
+    const wolves = await player.query('~reachable', {
       fields: ['displayName'],
     });
     const names = wolves

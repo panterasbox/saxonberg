@@ -1,0 +1,11 @@
+# Laying — a hen in lay (organism-biology D9, W7), on the long days of her
+# species' phenology. The oviduct's tap is `activeIn` it.
+class: /platform/idea/Condition
+data:
+  name: laying
+  signature: []
+  progression: null
+  resolution:
+    by: season
+  observableSigns: [red-comb, broad-vent]
+  contagion: null

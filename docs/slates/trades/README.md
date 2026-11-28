@@ -10,7 +10,7 @@ block, never this file. Back to [all slates](../README.md).
 | slate | size | status | left |
 |---|---|---|---|
 | [autopsy](./autopsy-slate.md) | tail | UNBUILT | the post-mortem `Operation` row + **evidence as its stake** · the **interior-injury** reading channel · **per-channel readability** · who may open a corpse … |
-| [broadcasting](./broadcasting-slate.md) | build | UNBUILT | stations and receivers · propagation as the light model at another frequency · the station as a business · spectrum law as Tier C … |
+| [broadcasting](./broadcasting-slate.md) | build | UNBUILT | ⭐ the broadcasting build — a full lens conversation and broadcasting economics over the program (§ 7, 2026-11-23) · stations and receivers · propagation as the light model at another frequency · the station as a business … |
 | [cannery-and-bottling](./cannery-and-bottling-slate.md) | build | UNBUILT | acidity as a hurdle (the pH 4.6 line) · the seal as anaerobic · the water bath and the pressure retort · the blown can and the leaker … |
 | [chemical-works](./chemical-works-slate.md) | build | UNBUILT | `trade-chemicals` · sulfuric acid · nitric acid · soda … |
 | [construction](./construction-slate.md) | build | UNBUILT | the `ConstructionSite` as a third kind of `Structure` beside the building and the `Ship` · site KINDS (a building site, a shipyard slip, a bridge site) instanced per project, places budding by phase · the project's ELEMENTS with a derived bill, raised by their trades in a derived order (W7's `maintain` from zero) · completion popping the authored or minted structure into place … |

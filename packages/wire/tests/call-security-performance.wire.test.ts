@@ -393,7 +393,7 @@ suite('steps 5 and 7 — every MR', () => {
         during: async (crowd) => {
           for (const s of crowd) handles.push(s.handle);
           for (const s of crowd) {
-            const where = await s.queryOne('here', 'ref');
+            const where = await s.queryOne('~here', 'ref');
             placeBefore.set(s.handle, String(where?.displayName ?? ''));
           }
           // Each looks, and looks at one of the crowd (recognition: the
@@ -442,7 +442,7 @@ suite('steps 5 and 7 — every MR', () => {
         times.push(performance.now() - t);
       }
       for (const s of back) {
-        const here = await s.queryOne('here', 'ref');
+        const here = await s.queryOne('~here', 'ref');
         expect(String(here?.displayName ?? ''), `${s.handle} stands where they quit`).toBe(
           placeBefore.get(s.handle) ?? '?'
         );

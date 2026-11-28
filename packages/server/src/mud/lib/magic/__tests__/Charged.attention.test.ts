@@ -41,6 +41,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { rememberFabric, forgetFabrics, fabricPath } from '../../material/__tests__/fabrics';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 /** A charged thing worn on a finger — the veil's carrier. */
 class Ring extends BlessableMixin(
@@ -66,7 +67,7 @@ function wearerWithHead(): { body: Wearer; planPath: string } {
     { name: 'head', accepts: 'WearableMixin', capacity: 4, covers: ['body.head'] },
     { name: 'finger:left', accepts: 'SlottableMixin' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     {
       key: 'body.head',
       parent: null,

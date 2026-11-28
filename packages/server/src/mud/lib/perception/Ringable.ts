@@ -13,6 +13,7 @@
  */
 
 import type { MixinConstructor } from '../mixin';
+import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import { WorldClockApi } from '../../api/worldclock';
 
@@ -26,6 +27,15 @@ export interface Ringable {
 export function RingableMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   return class RingableMixin extends Base implements Ringable {
     static _mixinName: string = 'RingableMixin';
+
+    /**
+     * ⭐ A bell is struck where it hangs — `ring` to anyone beside it (the
+     * which audit: the room-wide `ring` moved here off `IntegrityMixin`,
+     * which now gives it only to whoever holds the article).
+     */
+    static commandContributions: CommandContributions = {
+      peers: ['platform/cmd/perception/ring.yaml'],
+    };
 
     /** When it was last struck, game seconds (runtime: who rang is heard, not kept). */
     private _lastRungAtS = Number.NEGATIVE_INFINITY;

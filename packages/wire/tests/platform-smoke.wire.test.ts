@@ -72,7 +72,7 @@ suite('the harness', () => {
   });
 
   it('reads state structurally over mql-query', async () => {
-    const here = await player.queryOne('here', ['displayName']);
+    const here = await player.queryOne('~here', ['displayName']);
     expect(here, 'the one-shot mql-query answered nothing').toBeTruthy();
     const name = (here as { displayName?: string }).displayName;
     expect(typeof name, `here → ${JSON.stringify(here)}`).toBe('string');

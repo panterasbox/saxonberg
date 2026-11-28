@@ -113,7 +113,7 @@ async function advance(duration: string): Promise<void> {
     const until = Date.now() + 600_000;
     while (probe && Date.now() < until) {
       const ok = await probe
-        .query('here', { fields: ['displayName'] })
+        .query('~here', { fields: ['displayName'] })
         .then(() => true)
         .catch(() => false);
       if (ok) break;
@@ -304,7 +304,7 @@ suite('⭐ 1 — win the clay', () => {
     // read "weathered a little" (run 18). They go north to the weathering
     // ground, where a heap is left to weather anyway (step 2). The founder's
     // eval could not move them (`getPlacement()` denied, run 19).
-    if (/clay/i.test(await examine(digger, 'here:i:clay'))) {
+    if (/clay/i.test(await examine(digger, '~here:i:clay'))) {
       await say(digger, 'get clay');
       await say(digger, 'north');
       await say(digger, 'drop clay');
@@ -347,14 +347,14 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     await say(digger, 'north');
     expect(await say(digger, 'drop 6 clay')).toMatch(/drop|clay/i);
     // ⭐ STATE: the heap lies on the ground.
-    expect(await examine(digger, 'here:i:clay')).toMatch(/clay/i);
+    expect(await examine(digger, '~here:i:clay')).toMatch(/clay/i);
     // The indoor heap — the moulding shed holds its own air.
     await say(digger, 'east');
     await say(digger, 'east');
     // Two lumps stay in the shed (the indoor heap, and later the fat batch);
     // one stays in hand for the test bricks.
     expect(await say(digger, 'drop 2 clay')).toMatch(/drop|clay/i);
-    expect(await examine(digger, 'here:i:clay')).toMatch(/unweathered|fresh-dug/i);
+    expect(await examine(digger, '~here:i:clay')).toMatch(/unweathered|fresh-dug/i);
   }, 300_000);
 
   it('two test bricks off one lump: one on the open yard, one under the hack cover', async () => {
@@ -368,7 +368,7 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     const day = await act(digger, 'shape clay into brick', '9 hours');
     // ⭐ STATE, not prose: the day's line lands during the clock jump,
     // before the drive is listening (run 4 began the day and read only that).
-    const made = await examine(digger, 'here:i:brick');
+    const made = await examine(digger, '~here:i:brick');
     expect(made, `the test bricks: ${day}`).toMatch(/brick/i);
     expect(made).toMatch(/green|soft|thumbprint/i);
     await say(digger, 'get 2 bricks');
@@ -380,14 +380,14 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     await say(digger, 'west');
     await say(digger, 'west');
     expect(await say(digger, 'drop 1 brick')).toMatch(/drop|brick/i);
-    expect(await examine(digger, 'here:i:brick')).toMatch(/green/i);
+    expect(await examine(digger, '~here:i:brick')).toMatch(/green/i);
   }, 900_000);
 
   it('5a. ⭐ the green brick on the open yard SLUMPS in the rain', async () => {
     const rained = await untilWeather(digger, RAINING, 60);
     expect(rained, 'no liquid rain at a segment boundary in fifteen game days').toBe(true);
     await advance('2 hours');
-    expect(await examine(digger, 'here:i:brick'), 'the yard brick after rain').toMatch(/slumped/i);
+    expect(await examine(digger, '~here:i:brick'), 'the yard brick after rain').toMatch(/slumped/i);
   }, 3_600_000);
 
   it('5b. ⭐ the brick left wet under the hack cover across the frost burst', async () => {
@@ -422,7 +422,7 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
       .sort((a, b) => b.kg - a.kg)[0]?.id;
     expect(heap, 'the clay in hand').toBeDefined();
     let struck = '';
-    const minted = await stackAfter(digger, 'here:i:bricks', async () => {
+    const minted = await stackAfter(digger, '~here:i:bricks', async () => {
       struck = await act(digger, `shape #${heap} into brick`, '9 hours');
       await toHour(9, 15); // a nine-hour day ends after dark in winter; read by day
     });
@@ -463,14 +463,14 @@ suite('⭐ 2 — weather it (and what the weather does to green ware)', () => {
     for (let month = 0; month < 12; month++) {
       await advance('30 days');
       await toHour(9, 15); // read by day: in the dark a query sees nothing
-      looks = await examine(digger, 'here:i:clay');
+      looks = await examine(digger, '~here:i:clay');
       if (/frost-broken|crumbling/i.test(looks)) break;
     }
     expect(looks, 'the outdoor heap after a winter').toMatch(/frost-broken|crumbling/i);
     expect(looks).not.toMatch(/unweathered/i);
     await say(digger, 'east');
     await say(digger, 'east');
-    expect(await examine(digger, 'here:i:clay'), 'the heap kept in the shed').toMatch(/unweathered|fresh-dug/i);
+    expect(await examine(digger, '~here:i:clay'), 'the heap kept in the shed').toMatch(/unweathered|fresh-dug/i);
     await say(digger, 'west');
     await say(digger, 'west');
   }, 7_200_000);
@@ -531,7 +531,7 @@ suite('⭐ 3 — knead it', () => {
     await toHour(9, 15);
     // The shed's raw lumps are the no-sand batch: nothing was trodden into them.
     await say(digger, 'east');
-    const raw = await examine(digger, 'here:i:clay');
+    const raw = await examine(digger, '~here:i:clay');
     expect(raw, 'the untempered clay in the shed').toMatch(/clay/i);
     await say(digger, 'west');
   }, 120_000);
@@ -545,14 +545,14 @@ suite('⭐ 4 — shape it', () => {
     await say(digger, 'east');
     const beforeMe = await examine(digger, 'me');
     let day = '';
-    const pallet = await stackAfter(digger, 'here:i:bricks', async () => {
+    const pallet = await stackAfter(digger, '~here:i:bricks', async () => {
       day = await act(digger, 'shape clay into brick', '9 hours');
     });
     expect(day, `the day: ${day}`).toMatch(/brick/i);
     expect(pallet?.stuffId, 'the day\'s bricks').toBeDefined();
     dayBricks = [pallet!.stuffId!];
     // ⭐ STATE: green bricks stand on the pallet.
-    expect(await examine(digger, 'here:i:bricks'), 'the pallet').toMatch(/green|thumbprint/i);
+    expect(await examine(digger, '~here:i:bricks'), 'the pallet').toMatch(/green|thumbprint/i);
     // ⭐ STATE: the moulder is muddy.
     const me = await examine(digger, 'me');
     expect(me, `the moulder: ${me}`).toMatch(/mud/i);
@@ -571,7 +571,7 @@ suite('⭐ 4 — shape it', () => {
     // The shed's raw lump — fat, unweathered, no sand.
     expect(await say(digger, 'get 1 clay')).toMatch(/pick up|clay/i);
     let day = '';
-    const fat = await stackAfter(digger, 'here:i:bricks', async () => {
+    const fat = await stackAfter(digger, '~here:i:bricks', async () => {
       day = await act(digger, 'shape clay into brick', '9 hours');
       await toHour(9, 15); // a nine-hour day ends after dark; read by day
     });
@@ -599,7 +599,7 @@ suite('⭐ 6 — dry them', () => {
       rows = await ours();
       // ⚠ Run 29 read NO bricks here after the first five days, at a
       // daylight hour, with the brickmaker alive: say what IS here.
-      if (rows === '') await examine(digger, 'here:i');
+      if (rows === '') await examine(digger, '~here:i');
     }
     expect(rows, 'leather-hard in the hacks').toMatch(/leather-hard|bone-dry/i);
     for (let week = 0; week < 10 && !/bone-dry/i.test(rows); week++) {
@@ -710,7 +710,7 @@ suite('⭐ 8 — reduce the draught: blue brick', () => {
     // ⚠ A nine-hour day ends after dark, and in the dark `get bricks` sees
     // none on the pallet (run 34): fetch them in the morning, as 4 does —
     // and by id, since the shed holds other bricks (run 36).
-    const load = await stackAfter(digger, 'here:i:bricks', async () => {
+    const load = await stackAfter(digger, '~here:i:bricks', async () => {
       await act(digger, 'shape clay into brick', '9 hours');
       await toHour(9, 15);
     });
@@ -793,12 +793,12 @@ suite('⭐ 9 — measure against the statute brick', () => {
     expect(await say(digger, 'get clay'), 'a lump for the old mould').toMatch(/pick up/i);
     // The old table stands on the bank of the flooded pit.
     await say(digger, 'west');
-    expect(await examine(digger, 'here:i:table')).toMatch(/old|mould/i);
+    expect(await examine(digger, '~here:i:table')).toMatch(/old|mould/i);
     // ⚠ Quoted: an object argument binds ONE word, so `at old table into
     // brick` bound the table by `old` and handed "table into brick" to the
     // form (every run from 15 to 36).
     let day = '';
-    const big = await stackAfter(digger, 'here:i:bricks', async () => {
+    const big = await stackAfter(digger, '~here:i:bricks', async () => {
       day = await act(digger, 'shape clay at "old table" into brick', '9 hours');
       await toHour(9, 15); // the day ends after dark; fetch them by daylight (run 34)
     });

@@ -1,0 +1,5 @@
+# `program create` naming a program already filed — first come (stream arrival D10).
+facts:
+  name: text
+says: "There is already a program called '{{ name }}'. Pick another name."
+topic: act.deed

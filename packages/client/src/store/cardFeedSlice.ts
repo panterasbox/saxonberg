@@ -318,6 +318,8 @@ export interface CardFeedSlice {
   ) => void;
   /** A subscription delta landed for a live card. */
   setCardRecords: (instanceId: string, records: CardRecord[]) => void;
+  /** ⭐ A payload card's source pushed a new body (the which build). */
+  setCardPayload: (instanceId: string, payload: CardPayload) => void;
   /** The server's answer to a pin/dismiss/auto. */
   setCardPinnedState: (instanceId: string, pinned: boolean) => void;
   /**
@@ -436,6 +438,13 @@ export const createCardFeedSlice = (
           },
         },
       };
+    }),
+
+  setCardPayload: (instanceId, payload) =>
+    set((s) => {
+      const card = s.cards[instanceId];
+      if (!card) return {};
+      return { cards: { ...s.cards, [instanceId]: { ...card, payload } } };
     }),
 
   setCardRecords: (instanceId, records) =>

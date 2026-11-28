@@ -1,0 +1,17 @@
+# The door between the avenue and Hallett's booth (stream arrival D20): a
+# real door, not an open doorway, so a shut door stops the desk's reach
+# (`peers` reaches one PASSABLE exit away). Unlocked; it stands open, so
+# daylight spills in and a passer-by can see in.
+class: /platform/thing/Door
+extends: /platform/thing/boundaries/door
+data:
+  shortDescription: "Hallett's door"
+  keywords: [door, "booth door", "hallett's door", "halletts door"]
+  register: definite
+  longDescription: >
+    A glazed shop door with a brass handle worn bright, its bell long since
+    taken down. HALLETT'S is painted small on the glass.
+  open: true
+  locked: false
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 30

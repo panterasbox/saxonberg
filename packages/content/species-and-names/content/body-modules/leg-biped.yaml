@@ -1,0 +1,20 @@
+# leg-biped — a body module (organism-biology D1): a subtree of parts with
+# relative keys ('' is the instance's own key) and tissue weights.
+parts:
+- key: ''
+  severable: true
+  serves: [locomotion]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0413}
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.0826}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.023}
+  gait: [walk, swim, stoop, crawl]
+- key: foot
+  parent: ''
+  severable: true
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/bone, weight: 0.0083}
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.0052}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.0052}
+integument:
+  skin: {material: /stuff/idea/material/tissue/skin, weight: 0.008}

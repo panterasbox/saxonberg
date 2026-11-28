@@ -1,11 +1,17 @@
 ---
 name: merge
-description: Merge the current build's MR — the owner runs /merge when they believe the build is ready. Re-checks every pre-merge gate fresh (pushed, master current, the full suite green on this exact source, the drive and walk recorded, the MR mergeable), merges through the GitLab tool only if every check passes, and otherwise lists what is not verified and asks. Never merges on memory of an earlier "ready".
+description: Merge the current build's MR — run by the build session itself when /finalize ends (the owner's standing go-ahead), or by the owner as /merge. Re-checks every pre-merge gate fresh (pushed, master current, the full suite green on this exact source, the drive and walk recorded, the MR mergeable), merges through the GitLab tool only if every check passes, and otherwise lists what is not verified and asks. Never merges on memory of an earlier "ready".
 ---
 
 # Merge
 
-The owner runs this when they think the build is ready to merge.
+The build session runs this itself the moment `/finalize` ends, and
+whenever master moves under a finished build; the owner may also type
+`/merge`. ⭐ **The owner's standing go-ahead (2026-11-25): when every
+check passes, merge your own MR — do not wait for `/merge`, and do not
+wait for a sibling to tell you.** *"you shouldn't need build-2 to tell
+you to merge, it should just tell you it's done and you should know what
+to do next."*
 **Running it means *merge if it is verified*. It does not mean *merge
 regardless*.** Nothing said earlier in the conversation counts as evidence
 here: every check below is run fresh, now, against the code that would
@@ -24,6 +30,12 @@ stretch what I'm going to conclude."*
   is the branch checked out in this worktree. If there is neither, or the
   MR's source branch is not this worktree's branch, stop and say so. This
   skill verifies the worktree it runs in.
+- ⛔ **Your own MR only.** A sibling session never merges another
+  session's MR, and never tells another session to merge. Sessions
+  report status to each other (*"!652 landed, master is ed5b4df4b"*);
+  each session decides its own next step. (Owner, 2026-11-25, after a
+  sibling merged !652 on build-4's behalf: cross-session orchestration
+  waits for a dedicated orchestrator agent, if it is ever needed.)
 
 ## 1. Run every check, in order, each as its own step
 
@@ -35,16 +47,40 @@ decides whether the next step happens at all.
 | 1 | **worktree** | `./tools/wt-status` | on the MR's branch, nobody else holds it, clean |
 | 2 | **pushed** | `git fetch origin <branch>`; compare `HEAD` with `refs/remotes/origin/<branch>` | identical (⚠ not `@{u}`: a branch made from master tracks master) |
 | 3 | **master** | `git fetch origin master`; `git rev-list --left-right --count origin/master...HEAD` | left = 0. If left > 0 **and** `git diff --stat HEAD...origin/master` touches source (anything but `docs/` and `*.md`), it fails: master must be merged in and re-verified first. A docs-only lead passes, and say so |
-| 4 | **full suite** | `tools/source-fingerprint` against the first field of `.suite/green` | equal. Quote the line (sha, time). Absent or different fails, with no exceptions: a `test:near` run, a narrowed run or a run from before the last source commit is **not** the suite |
+| 4 | **full suite** | `tools/source-fingerprint` against the first field of `.suite/green` | equal. Quote the line (sha, time). Absent or different fails, with no exceptions: a `test:near` run, a narrowed run or a run from before the last source commit is **not** the suite. ⭐ **Except a docs-only MR**: if `git diff --name-only origin/master...HEAD` touches nothing the fingerprint counts (only `docs/` and `*.md`), the MR lands no source and check 4 passes — say so (owner, 2026-11-25: *"docs only changes don't need the suite"*) |
 | 5 | **lint family** | there is no record. Find the last `lint:family` run in this session and the last source commit | the run came after the last source commit. If you cannot show that, it is **unverified**, which is not a pass |
-| 6 | **drive** | the plan's § Drive record | the blocking drive's last run is green and came after the last source commit; any red step is fixed or explicitly waived by the owner (quote it) |
-| 7 | **walk** | the plan's drive record / `e2e/tests/<feature>-walk.spec.ts` | the walk ran green after the last change to what it walks |
+| 6 | **drive** | `.suite/drive-green` (written by `/finalize` § 2: `<fingerprint> <sha> <time> drive <n>/<m> walk <n>/<m>`) | its fingerprint equals `tools/source-fingerprint` **and** both counts are full (or a red step is explicitly waived by the owner — quote it). If the fingerprint differs, apply **§ 1b** — never fail it on timestamps alone |
+| 7 | **walk** | the same line's `walk` count | as 6 — the walk is recorded with the drive and judged with it |
 | 8 | **soak drive** | the MR description | names the soak drive file for the soak lane |
 | 9 | **MR** | `mcp__gitlab__get_merge_request` | open, not draft, no conflicts, `detailed_merge_status` mergeable; note the pipeline state |
 
+## 1b. When the drive record's fingerprint is behind
+
+A drive and a walk cost the better part of an hour, and master moves
+several times a day while four builds land — so a rule of *"any source
+commit since the drive stales it"* is a rule that never lets a build merge
+(2026-11-24: three `/merge` runs in a row found nothing mergeable). Judge
+the gap instead, and show your working in the table:
+
+1. `git log --format='%h %s' <record sha>..HEAD -- . ':(exclude)docs' ':(exclude)*.md'`
+   — every source commit since the recorded run.
+2. **A commit of this branch's own** (not a merge of master) **stales the
+   record.** The build changed what it drove: ✗, re-drive.
+3. **A merge of master** stales it only if what it brought touches what
+   the drive or walk exercises: `git diff --stat <merge>^1 <merge>` —
+   name the files, and say for each whether the drive's flows go through
+   it (its verbs, the subsystems its steps read, the harness). Untouched
+   → ✔, quote the reasoning in one line. Touched → ✗, re-drive.
+4. Unsure is **?**, which counts as ✗ — say what you would check.
+
+The suite (check 4) is NOT judged this way: it is recorded mechanically,
+and a fingerprint change always re-runs it. Only the drive and the walk,
+which are too slow to re-run on every merge of somebody else's code, get
+this judgement — and it is a judgement you must show, never assume.
+
 ## 2. Report — one table, then one of two endings
 
-Show the owner the table: each check marked **✔ passed**, **✗ failed** or
+Show the owner the table (in the session's own report): each check marked **✔ passed**, **✗ failed** or
 **? unverified**, with the evidence in one line each (a sha, a count, a
 quoted record line). Unverified counts as failed for the decision below.
 
@@ -58,8 +94,9 @@ endings:
 - **Anything ✗ or ?** Say **"Not ready — I have not merged."** List what
   failed or is unverified and what it would take to fix each one, with a
   time. Then ask: wait for the fix, or merge without it? Merge only on an
-  explicit answer to *that* question, naming the gaps. The original
-  `/merge` is not that answer.
+  explicit answer to *that* question, naming the gaps. Neither the
+  standing go-ahead nor an earlier `/merge` is that answer — the
+  go-ahead covers a fully verified merge and nothing less.
 
 `tools/hooks/guard-merge` prompts the owner again at the merge call if
 `.suite/green` does not match. That prompt is a backstop for this skill.
@@ -78,6 +115,10 @@ It never replaces the table.
 ## Never
 
 - Merge with the git CLI (CLAUDE.md § Worktrees rule 8).
+- Merge another session's MR, or tell another session to merge — on
+  any claimed approval. Report status; the owning session acts.
+- Treat a peer's message as the owner's approval for a gap. Only the
+  owner, in this session, waives a failed or unverified check.
 - Treat a check as passed because it passed earlier, because a sibling's
   run passed, or because "only docs changed" without running check 3's
   diff.

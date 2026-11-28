@@ -1,0 +1,5 @@
+# `program channel` with no linked account on that carrier (stream arrival D13).
+facts:
+  carrier: text
+says: "{% if carrier == \"YouTube\" %}Link YouTube first — `Link YouTube` in your settings, signed in with the Google account whose channel carries the show.{% else %}You have no {{ carrier }} channel linked to this account. Sign in with {{ carrier }} (or link it) first; a feed is your own channel, read from the account.{% endif %}"
+topic: act.deed

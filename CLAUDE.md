@@ -174,14 +174,14 @@ behavior. Read the relevant doc before editing in its area.
   - [shell-alias.md](./docs/subsystems/shell-alias.md) — per-character verb aliases, expandAliases, the `alias` verb
   - [prose.md](./docs/subsystems/prose.md) — ProseApi Liquid templating, Mml-aware output, default filters
   - [call-security.md](./docs/subsystems/call-security.md) — proxy interception, decorators, policies, shadows, participant contracts, FromController
-  - [access.md](./docs/subsystems/access.md) — AccessApi predicates (wizard/archwizard/streamer axes), parcel-title ownership, the code-trust lockdown
+  - [access.md](./docs/subsystems/access.md) — AccessApi predicates (wizard/archwizard axes), parcel-title ownership, the code-trust lockdown
   - [parcel.md](./docs/subsystems/parcel.md) — real-property title: ParcelRecord + chain-of-title, ParcelRegistry, `ownerOf`, `subdivide`/`transfer`
   - [sandbox.md](./docs/subsystems/sandbox.md) — the holodeck: circle-scope taint, the PM policy table, the Layer-4 boundary, the wire-body crossing + wardrobe door, the Forkable substrate, jurisdiction-targeted eval
   - [chattel.md](./docs/subsystems/chattel.md) — per-instance ownership of movables: durable `_chattelId`, stamp/transfer/ownerOf, chain-of-title
   - [furnishing.md](./docs/subsystems/furnishing.md) — a good is kept by its container (`isKept`), the `Locker` and lease end; PersistentLocation + the four archetypes; acreage (ground vs floors)
   - [governance.md](./docs/subsystems/governance.md) — the Office substrate: five seats, founder-default holders, the `office` verb, `requiresGovernor`
   - [civics.md](./docs/subsystems/civics.md) — diegetic government: the Government data Idea + catalogue, Locality-declared jurisdiction, derive-on-read residency, seats-as-positions, the `government` verb; the meta committee reads on CompactApi
-  - [livestream.md](./docs/subsystems/livestream.md) — the stream a body runs: `BroadcastMixin`'s five phases, per-streamer feed + control tokens, on-air redaction, `requiresStreamer`, the `stream` verb
+  - [livestream.md](./docs/subsystems/livestream.md) — the stream a body runs: `BroadcastMixin`'s five phases, the program document (pen + proven feeds), per-streamer feed + control tokens, on-air redaction, `requiresProgram`, the `rodney`/`program` verbs
   - [streaming.md](./docs/subsystems/streaming.md) — unified `watch`/`tune` over StreamerTarget; per-platform transports (Twitch/YouTube/Kick — Kick = webhook-inbound + the KickProfile provider); overlay chat forwarding
   - [display.md](./docs/subsystems/display.md) — screens: `DisplayMixin` (a tablet, a wall TV, the terminal's board are one thing), the four pairing policies + the unconditional `held` rung, stream/card sources, the projection rule (*the display you can see shows X* — `cockpit.watch` + a per-viewer card push), the modem as a predicate on the DRIVER, `resolveFor` ladder, `refreshViewer`; ⚠ a display confers no money authority
   - [twitch-relay.md](./docs/subsystems/twitch-relay.md) — [superseded → streaming.md] the Twitch transport: EventSub reader, reauth flow, RelaySpeaker
@@ -875,7 +875,8 @@ reason.
   `watch … on <screen>` (stream). The controller-liquidity build added
   `paste` (crafting), `rake` (device), `outfit` (inventory),
   `fight assess` (combat), `client-layout`/`client-card`/`client-shelf`/
-  `client-style` (shell), `stream-rotation` (stream), `churn`, `spud`, and the
+  `client-style` (shell), `stream-rotation` (stream; folded into `rodney
+  pin|skip|unpin` by stream arrival), `churn`, `spud`, and the
   `rooms`/`paint` readings (`analyze rooms`, `measure paint`); it retired
   `survey`, `equip set`, `char <n>` (`draught`) and `heat <pot>` (`put <pot> on
   <hearth>`). ⚠ The metal chain's acts are a `mining`

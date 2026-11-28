@@ -189,6 +189,39 @@ async function postTestRoute(path: string, body: unknown): Promise<Response> {
 export async function advanceWorldClock(
   duration: string
 ): Promise<{ before: number; after: number }> {
+  // ⭐ (#137) A soak jump past a game day goes a day at a time. The world
+  // drains every schedule in the skipped interval synchronously, so one
+  // 30–60 day jump held the event loop until the client's header timeout
+  // ended it as `fetch failed`, and every later step ran on a half-advanced
+  // world. A day per request settles (`whenQuiet`) between steps; the
+  // schedules fire in the same order either way.
+  const total = durationSecondsOf(duration);
+  if (total !== null && total > JUMP_STEP_S && process.env.WIRE_SOAK === '1') {
+    let first: number | null = null;
+    let last = { before: 0, after: 0 };
+    for (let left = total; left > 0; left -= JUMP_STEP_S) {
+      last = await advanceWorldClockOnce(`${Math.min(left, JUMP_STEP_S)} seconds`);
+      first ??= last.before;
+    }
+    return { before: first ?? last.before, after: last.after };
+  }
+  return advanceWorldClockOnce(duration);
+}
+
+/** The largest single jump a soak drive asks of the world (#137): a game day. */
+const JUMP_STEP_S = 86_400;
+
+/** `'<n> <unit>'` in game seconds, or null for a form only the server reads. */
+function durationSecondsOf(duration: string): number | null {
+  const m = /^\s*(\d+(?:\.\d+)?)\s*(second|minute|hour|day|week)s?\s*$/i.exec(duration);
+  if (!m) return null;
+  const per: Record<string, number> = { second: 1, minute: 60, hour: 3600, day: 86_400, week: 604_800 };
+  return Number(m[1]) * per[m[2]!.toLowerCase()]!;
+}
+
+async function advanceWorldClockOnce(
+  duration: string
+): Promise<{ before: number; after: number }> {
   // ⛔ Soak mode is the one thing that lets a jump past a game day
   // through: the server refuses a longer one as a SPAN step in a blocking
   // drive. Only `pnpm wire:soak` sets it.

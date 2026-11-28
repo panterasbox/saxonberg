@@ -1,7 +1,7 @@
 /**
  * StreamControls — the `stream` card's body (broadcast-ready D10, W4).
  *
- * ⭐ Every control is a real `stream …` command sent through the ordinary
+ * ⭐ Every control is a real `rodney …` command sent through the ordinary
  * bus, and every one previews the command it sends — the card owns no
  * state of its own. What it shows is the `stream.state` client-state key
  * the server pushes: the streamer's show (phase, reason, timers, topic,
@@ -153,8 +153,8 @@ export function StreamControls({
   if (!state) {
     return (
       <Body data-testid="stream-controls">
-        <Muted>The stream controls load from the game.</Muted>
-        <Row>{control("Load", "stream", "stream-load")}</Row>
+        <Muted>Rodney&apos;s controls load from the game.</Muted>
+        <Row>{control("Load", "rodney", "stream-load")}</Row>
       </Body>
     );
   }
@@ -188,12 +188,12 @@ export function StreamControls({
       </Row>
 
       <Row>
-        {state.phase === "offline" && control("Start", "stream start in 5m", "stream-start")}
+        {state.phase === "offline" && control("Start", "rodney start in 5m", "stream-start")}
         {(state.phase === "starting" || state.phase === "standby") &&
-          control(state.phase === "standby" ? "Back" : "Go live", state.phase === "standby" ? "stream back" : "stream live", "stream-live")}
+          control(state.phase === "standby" ? "Back" : "Go live", state.phase === "standby" ? "rodney back" : "rodney live", "stream-live")}
         {(state.phase === "starting" || state.phase === "live" || state.phase === "standby") &&
-          control("End", "stream end", "stream-end")}
-        {state.phase !== "offline" && control("Off", "stream off", "stream-off")}
+          control("End", "rodney end", "stream-end")}
+        {state.phase !== "offline" && control("Off", "rodney off", "stream-off")}
       </Row>
 
       {state.phase !== "ending" && (
@@ -201,7 +201,7 @@ export function StreamControls({
           <Heading>Away</Heading>
           <Row>
             {reasons.length === 0
-              ? control("Away 15m", "stream away 15m")
+              ? control("Away 15m", "rodney away 15m")
               : reasons.map((r) =>
                   control(
                     r.privacy
@@ -209,7 +209,7 @@ export function StreamControls({
                       : r.defaultDurationMs
                         ? `${r.label} ${durationWord(r.defaultDurationMs)}`
                         : r.label,
-                    `stream away ${r.key}`,
+                    `rodney away ${r.key}`,
                     `stream-away-${r.key}`,
                   ),
                 )}
@@ -229,7 +229,7 @@ export function StreamControls({
             placeholder="the glass trade"
             onChange={(e) => setTopic(e.target.value)}
           />
-          {topic.trim() !== "" && control("Set", `stream segment ${topic.trim()}`)}
+          {topic.trim() !== "" && control("Set", `rodney segment ${topic.trim()}`)}
         </Row>
       </div>
 
@@ -248,8 +248,8 @@ export function StreamControls({
           <Muted>none</Muted>
         )}
         <Row>
-          {state.agenda.length > 0 && control("Next", "stream next", "stream-next")}
-          {state.agenda.length > 0 && control("Clear", "stream agenda clear")}
+          {state.agenda.length > 0 && control("Next", "rodney next", "stream-next")}
+          {state.agenda.length > 0 && control("Clear", "rodney agenda clear")}
         </Row>
         <Row>
           <Field
@@ -258,7 +258,7 @@ export function StreamControls({
             placeholder="glass, paper, Q&A"
             onChange={(e) => setAgenda(e.target.value)}
           />
-          {agenda.trim() !== "" && control("Set", `stream agenda ${agenda.trim()}`)}
+          {agenda.trim() !== "" && control("Set", `rodney agenda ${agenda.trim()}`)}
         </Row>
       </div>
 
@@ -266,11 +266,11 @@ export function StreamControls({
         <Heading>Lower third</Heading>
         {rotationNote && <Muted>{rotationNote}</Muted>}
         <Row>
-          {ROTATION_KEYS.map((k) => control(`pin ${k}`, `stream-rotation pin ${k}`))}
+          {ROTATION_KEYS.map((k) => control(`pin ${k}`, `rodney pin ${k}`))}
         </Row>
         <Row>
-          {ROTATION_KEYS.map((k) => control(`skip ${k}`, `stream-rotation skip ${k}`))}
-          {control("clear", "stream-rotation clear")}
+          {ROTATION_KEYS.map((k) => control(`skip ${k}`, `rodney skip ${k}`))}
+          {control("unpin", "rodney unpin")}
         </Row>
       </div>
 

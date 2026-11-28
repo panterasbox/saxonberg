@@ -35,17 +35,30 @@ import { DocumentApi } from '../../../api/document';
 import { StandbyReason } from '../../../lib/livestream/StandbyReason';
 import { LowerThirdPanel } from '../../../lib/livestream/LowerThirdPanel';
 import type { StandbyReading } from '../../../lib/livestream/StandbyReason';
-import type { StreamPanelRow } from '@saxonberg/types';
+import type { StreamPanelRow, ProgramListing } from '@saxonberg/types';
 import { BROADCAST_TOKEN_SCOPES, BROADCAST_SERVICES } from '../../../lib/livestream/Broadcast';
 import type {
   BroadcastChannels,
   BroadcastHost,
+  BroadcastService,
   BroadcastTokenScope,
 } from '../../../lib/livestream/Broadcast';
 import { MixinApi } from '../../../api/mixin';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import ProgramCatalogue from '../ProgramCatalogue';
+import {
+  Program,
+  PROGRAM_NAME_RE,
+  PROGRAMS_BRANCH,
+  type ProgramData,
+  type ProgramFeeds,
+} from '../../../lib/livestream/Program';
 import { YoutubeRelayReader } from '../../../../backend/YoutubeRelayReader';
 import { KickRelayReader } from '../../../../backend/KickRelayReader';
 import type {
+  ProgramAnswer,
+  ProgramGate,
+  ProgramReason,
   PostResult,
   ResolveResult,
   TuneResult,
@@ -299,8 +312,8 @@ export class StreamLogic extends ApiLogic {
 
   /**
    * See {@link StreamApi.setOverlayReading}. Open (`on=true`) / close the
-   * overlay owner's OWN-channel reads by sentinel-tuning the `OVERLAY_*`
-   * channels — reusing the presence edge so the reader opens, independent of
+   * overlay owner's OWN-channel reads by sentinel-tuning their program's
+   * feeds — reusing the presence edge so the reader opens, independent of
    * any player `tune`. Twitch resolves the login; Kick resolves the slug
    * (persistent bind, no poll); YouTube resolves the current live
    * broadcast + starts a light live-status poll to catch a stream
@@ -360,8 +373,8 @@ export class StreamLogic extends ApiLogic {
   }
 
   /**
-   * ⭐ Read a `stream away` operand (D10): a bare duration is the
-   * `generic` reason for that long (the shipped `stream away 15m`); a word
+   * ⭐ Read a `rodney away` operand (D10): a bare duration is the
+   * `generic` reason for that long (the shipped `rodney away 15m`); a word
    * is a reason row, optionally followed by a duration overriding its
    * default. A privacy reason never carries a countdown. An unknown word
    * that is not a duration refuses naming both readings.
@@ -457,8 +470,8 @@ export class StreamLogic extends ApiLogic {
   }
 
   /**
-   * Re-open a streamer's channel reads after their channels changed
-   * (`stream channel …`) — a no-op when no overlay of theirs is open.
+   * Re-open a streamer's channel reads after their program changed — a
+   * no-op when no overlay of theirs is open.
    */
   @CallSecurity(StreamApiCallers)
   public async refreshOverlayReading(playerId: string): Promise<void> {
@@ -468,14 +481,194 @@ export class StreamLogic extends ApiLogic {
   }
 
   /**
-   * ⭐ The chat channels a streamer's overlay shows: the channels their
-   * body names (`stream channel …`), else — for the founder, the first id
-   * in `STREAMER_PLAYER_IDS` — the `OVERLAY_*` env (D15: nothing changes
-   * for the founder on day one). Handles lower-cased for matching.
+   * ⭐ The chat channels a streamer's overlay shows: the feeds of the
+   * program their body runs (stream arrival D12). Handles lower-cased for
+   * matching.
    */
   @CallSecurity(StreamApiCallers)
   public channelsFor(playerId: string): BroadcastChannels {
     return channelsOf(playerId);
+  }
+
+  // ---- the program (stream arrival D10–D13) -------------------------------
+
+  /** See {@link StreamApi.createProgram}. */
+  @CallSecurity(StreamApiCallers)
+  public async createProgram(
+    name: string,
+    opts: { title?: string; owner?: string },
+  ): Promise<ProgramAnswer> {
+    const actor = actingPlayer();
+    if (!actor) return refused('program-guest', {});
+    if (!PROGRAM_NAME_RE.test(name)) return refused('program-bad-name', { name });
+    const home = homeOf(actor);
+    const owner = (opts.owner ?? '').trim().replace(/\/+$/, '') || home;
+    if (!(await holdsPen(actor, owner, name))) {
+      return refused('program-owner-refused', { owner });
+    }
+    const program = new Program(name, {
+      title: (opts.title ?? '').trim(),
+      owner,
+      ownerName: captionFor(actor, owner),
+      schedule: '',
+      feeds: {},
+      runner: null,
+    });
+    const saved = await DocumentApi.saveProgram(name, program.toData(), 'create');
+    if (saved === 'taken') return refused('program-name-taken', { name });
+    return { ok: true, program: programCatalogue().remember(program.getPath(), program) };
+  }
+
+  /** See {@link StreamApi.amendProgram}. */
+  @CallSecurity(StreamApiCallers)
+  public async amendProgram(
+    name: string,
+    patch: { title?: string; schedule?: string },
+  ): Promise<ProgramAnswer> {
+    const held = await this.heldProgram(name);
+    if (!held.ok) return held;
+    const { actor, program } = held;
+    const next: Partial<ProgramData> = { ownerName: captionFor(actor, program.getOwner()) };
+    if (patch.title !== undefined) next.title = patch.title.trim();
+    if (patch.schedule !== undefined) next.schedule = patch.schedule.trim();
+    return this.rewrite(program.with(next));
+  }
+
+  /** See {@link StreamApi.attachFeed}. */
+  @CallSecurity(StreamApiCallers)
+  public async attachFeed(
+    name: string,
+    carrier: BroadcastService,
+    stated?: string,
+  ): Promise<ProgramAnswer> {
+    const held = await this.heldProgram(name);
+    if (!held.ok) return held;
+    const { actor, program } = held;
+    const proven = await provenChannel(actor, carrier);
+    if (!proven) return refused('no-linked-account', { carrier: carrierLabel(carrier) });
+    const claim = (stated ?? '').trim();
+    if (claim.length > 0 && normalizeChannel(carrier, claim) !== proven) {
+      return refused('not-your-channel', { carrier: carrierLabel(carrier), stated: claim, proven });
+    }
+    const feeds: ProgramFeeds = {
+      ...program.toData().feeds,
+      [carrier]: {
+        channel: proven,
+        provenBy: actor.getIdentityPath() ?? '',
+        provenAt: Date.now(),
+      },
+    };
+    const answer = await this.rewrite(
+      program.with({ feeds, ownerName: captionFor(actor, program.getOwner()) }),
+    );
+    await refreshRunnerReads(program.getRunner());
+    return answer;
+  }
+
+  /** See {@link StreamApi.detachFeed}. */
+  @CallSecurity(StreamApiCallers)
+  public async detachFeed(name: string, carrier: BroadcastService): Promise<ProgramAnswer> {
+    const held = await this.heldProgram(name);
+    if (!held.ok) return held;
+    const feeds: ProgramFeeds = { ...held.program.toData().feeds };
+    delete feeds[carrier];
+    const answer = await this.rewrite(held.program.with({ feeds }));
+    await refreshRunnerReads(held.program.getRunner());
+    return answer;
+  }
+
+  /** See {@link StreamApi.programListing}. */
+  @CallSecurity(StreamApiCallers)
+  public async programListing(
+    name: string,
+    carrier?: BroadcastService,
+  ): Promise<ProgramListing | null> {
+    return namedListing(name, carrier);
+  }
+
+  /** See {@link StreamApi.frontListing}. */
+  @CallSecurity(StreamApiCallers)
+  public async frontListing(
+    watch?: string,
+    carrier?: BroadcastService,
+  ): Promise<ProgramListing | null> {
+    if (watch && carrier && PROGRAM_NAME_RE.test(watch)) {
+      const named = await namedListing(watch, carrier);
+      if (named) return named;
+    }
+    const featured = AppApi.setting(AppSettingKeys.streamFeaturedProgram).trim().toLowerCase();
+    if (!featured) return null;
+    return namedListing(featured);
+  }
+
+  /** See {@link StreamApi.runProgram}. */
+  @CallSecurity(StreamApiCallers)
+  public async runProgram(name: string): Promise<ProgramAnswer> {
+    const held = await this.heldProgram(name);
+    if (!held.ok) return held;
+    const { actor, program } = held;
+    const playerId = actor.getPlayerId() ?? '';
+    const current = actor.getStreamProgram();
+    if (actor.isOnAir() && current !== program.getPath()) {
+      const now = current ? current.slice(current.lastIndexOf('/') + 1) : name;
+      return refused('program-on-air', { name: now });
+    }
+    // ⭐ One chair at a time: the named runner keeps it while they are on
+    // the air with it; otherwise they are replaced.
+    const runner = program.getRunner();
+    if (runner && runner !== playerId) {
+      const other = PlayerApi.findAvatarByPlayerId(runner);
+      if (other && MixinApi.isBroadcastHost(other) && other.getStreamProgram() === program.getPath()) {
+        if (other.isOnAir()) return refused('program-in-use', { name });
+        await other.setStreamProgram(null);
+      }
+    }
+    // Leaving the chair of the program this body ran before.
+    if (current && current !== program.getPath()) await leaveChair(current, playerId);
+    const answer = await this.rewrite(program.with({ runner: playerId }));
+    if (!answer.ok) return answer;
+    await actor.setStreamProgram(program.getPath());
+    if (overlayReads.has(playerId)) {
+      await closeOverlayFor(playerId);
+      await openOverlayFor(playerId, channelsOf(playerId));
+    }
+    return answer;
+  }
+
+  /** See {@link StreamApi.programGate}. */
+  @CallSecurity(StreamApiCallers)
+  public async programGate(host: Stuff): Promise<ProgramGate> {
+    if (!MixinApi.isBroadcastHost(host) || !PlayerApi.isAvatarStuff(host)) return 'no-program';
+    const path = host.getStreamProgram();
+    if (!path) return 'no-program';
+    const name = path.slice(path.lastIndexOf('/') + 1);
+    const program = await readProgram(name);
+    if (!program) return 'no-program';
+    return (await holdsPen(host, program.getOwner(), name)) ? 'ok' : 'not-your-program';
+  }
+
+  /**
+   * The program `name`, read, and the acting player holding its pen — or
+   * the refusal. Every owner write starts here.
+   */
+  private async heldProgram(
+    name: string,
+  ): Promise<{ ok: true; actor: Avatar; program: Program } | Extract<ProgramAnswer, { ok: false }>> {
+    const actor = actingPlayer();
+    if (!actor) return refused('program-guest', {});
+    const program = await readProgram(name);
+    if (!program) return refused('no-such-program', { name });
+    if (!(await holdsPen(actor, program.getOwner(), name))) {
+      return refused('not-your-program', { name });
+    }
+    return { ok: true, actor, program };
+  }
+
+  /** Save an existing program's next record and keep it resident. */
+  private async rewrite(program: Program): Promise<ProgramAnswer> {
+    const saved = await DocumentApi.saveProgram(program.getName(), program.toData(), 'update');
+    if (saved === 'missing') return refused('no-such-program', { name: program.getName() });
+    return { ok: true, program: programCatalogue().remember(program.getPath(), program) };
   }
 
   // ---- resolution helpers (private) --------------------------------------
@@ -677,49 +870,202 @@ function parseDurationMs(input: string): number | null {
   return total > 0 ? total : null;
 }
 
+// ---- the program's helpers (stream arrival D10–D13) -------------------------
+
+const PROGRAM_CATALOGUE = '/platform/idea/ProgramCatalogue';
+
+/** The program register (the same singleton `StreamApi.programs()` answers). */
+function programCatalogue(): ProgramCatalogue {
+  return StuffApi.singletonSync(PROGRAM_CATALOGUE, () => new ProgramCatalogue());
+}
+
+/** A refusal answer. */
+function refused(
+  reason: ProgramReason,
+  facts: Record<string, string>,
+): Extract<ProgramAnswer, { ok: false }> {
+  return { ok: false, reason, facts };
+}
+
+/**
+ * The acting PLAYER — a played, non-guest body — or null. ⭐ Read from the
+ * execution context, never a parameter (P14): nobody can name somebody
+ * else as the one acting.
+ */
+function actingPlayer(): Avatar | null {
+  const actor = ExecutionContextApi.getActor() as Stuff | null;
+  if (!actor || !PlayerApi.isAvatarStuff(actor)) return null;
+  if (actor.getIsGuest() || !actor.getPlayerId()) return null;
+  return actor;
+}
+
+/** A player's own home branch — where their program is owned by default. */
+function homeOf(actor: Avatar): string {
+  const key = actor.getIdentityPath()?.split('/').filter(Boolean).pop() ?? '';
+  return `/home/${key}`;
+}
+
+/**
+ * ⭐ **Whose pen** (D11): may `actor` write under `owner`? The document
+ * store's own write gate, asked of a path inside the owner's branch — it
+ * answers a player's own home and a committee's branch alike, so nobody
+ * here asks what kind of owner it is.
+ */
+async function holdsPen(actor: Avatar, owner: string, name: string): Promise<boolean> {
+  if (!owner.startsWith('/')) return false;
+  // The ordinary save's own gate (your home, else the title), asked of a
+  // path inside the owner's branch — one rule for whose pen it is.
+  return DocumentApi.mayWrite(actor, `${owner}/programs/${name}`);
+}
+
+/**
+ * The owner's caption for a page (D11): the writer's own name when the
+ * owner is their home, else the institution's last word. Re-captured on
+ * every owner write.
+ */
+function captionFor(actor: Avatar, owner: string): string {
+  if (owner === homeOf(actor)) return actor.getName() || actor.getPresentation();
+  return owner.split('/').filter(Boolean).pop() ?? owner;
+}
+
+/** A program by its short name, read (null when there is none). */
+async function readProgram(name: string): Promise<Program | null> {
+  if (!PROGRAM_NAME_RE.test(name)) return null;
+  const path = `${PROGRAMS_BRANCH}/${name}`;
+  const catalogue = programCatalogue();
+  const resident = catalogue.peek(path);
+  if (resident) return resident;
+  try {
+    return await catalogue.ensure(path);
+  } catch {
+    // @quiet no document at that path, or not a program: there is no such
+    // program, and every caller answers `no-such-program` for it.
+    return null;
+  }
+}
+
+/** The carrier as a person says it. */
+function carrierLabel(carrier: BroadcastService): string {
+  return carrier === 'youtube' ? 'YouTube' : carrier === 'kick' ? 'Kick' : 'Twitch';
+}
+
+/** A channel in the form the embed uses: Twitch and Kick lower-cased. */
+function normalizeChannel(carrier: BroadcastService, channel: string): string {
+  return carrier === 'youtube' ? channel.trim() : channel.trim().toLowerCase();
+}
+
+/**
+ * ⭐ The actor's OWN channel on `carrier`, read from their linked account
+ * (D13) — a stored field, no call to the carrier — or null when they have
+ * none: Twitch's login, Kick's slug (empty when the account has no
+ * channel), the stepped-up YouTube channel id.
+ */
+async function provenChannel(actor: Avatar, carrier: BroadcastService): Promise<string | null> {
+  const user = actor.getUser();
+  if (!user) return null;
+  if (carrier === 'twitch') {
+    if (!user.twitchProfileId) return null;
+    const p = await TwitchProfile.findById<TwitchProfile>(user.twitchProfileId);
+    const login = normalizeChannel('twitch', p?.login ?? '');
+    return login.length > 0 ? login : null;
+  }
+  if (carrier === 'kick') {
+    if (!user.kickProfileId) return null;
+    const p = await KickProfile.findById<KickProfile>(user.kickProfileId);
+    const slug = normalizeChannel('kick', p?.slug ?? '');
+    return slug.length > 0 ? slug : null;
+  }
+  if (!user.googleProfileId) return null;
+  const p = await GoogleProfile.findById<GoogleProfile>(user.googleProfileId);
+  if (!p?.hasYoutube()) return null;
+  const id = (p.youtubeChannelId ?? '').trim();
+  return id.length > 0 ? id : null;
+}
+
+/**
+ * ⭐ **On air** (D12): the program's runner is a resident body running THIS
+ * program and on the air. Not resident → off air. Two followed references,
+ * never a scan of who is online.
+ */
+function programIsOnAir(program: Program): boolean {
+  const runner = program.getRunner();
+  if (!runner) return false;
+  const body = PlayerApi.findAvatarByPlayerId(runner);
+  if (!body || !MixinApi.isBroadcastHost(body)) return false;
+  return body.getStreamProgram() === program.getPath() && body.isOnAir();
+}
+
+/** The named program's listing — with `carrier`, only one fed there. */
+async function namedListing(name: string, carrier?: BroadcastService): Promise<ProgramListing | null> {
+  const program = await readProgram(name);
+  if (!program) return null;
+  if (carrier && !program.feedOn(carrier)) return null;
+  return listingOf(program);
+}
+
+/** A program's public facts — the wire listing (D14). */
+function listingOf(program: Program): ProgramListing {
+  const feeds: ProgramListing['feeds'] = {};
+  for (const carrier of program.feedCarriers()) {
+    const feed = program.feedOn(carrier);
+    if (feed) feeds[carrier] = feed.channel;
+  }
+  const out: ProgramListing = {
+    name: program.getName(),
+    title: program.getTitle(),
+    live: programIsOnAir(program),
+    feeds,
+  };
+  if (program.getOwnerName()) out.ownerName = program.getOwnerName();
+  if (program.getSchedule()) out.nextShow = program.getSchedule();
+  return out;
+}
+
+/**
+ * Leave the chair of the program at `path` when `playerId` holds it — no
+ * pen needed to stand up. A program nobody runs keeps its record.
+ */
+async function leaveChair(path: string, playerId: string): Promise<void> {
+  const program = await readProgram(path.slice(path.lastIndexOf('/') + 1));
+  if (!program || program.getRunner() !== playerId) return;
+  const next = program.with({ runner: null });
+  if ((await DocumentApi.saveProgram(next.getName(), next.toData(), 'update')) === 'saved') {
+    programCatalogue().remember(next.getPath(), next);
+  }
+}
+
+/** Re-open a runner's overlay reads after their program's feeds changed. */
+async function refreshRunnerReads(runner: string | null): Promise<void> {
+  if (!runner || !overlayReads.has(runner)) return;
+  await closeOverlayFor(runner);
+  await openOverlayFor(runner, channelsOf(runner));
+}
+
 /** sha256 hex of a raw stream token — what is stored and looked up. */
 function hashToken(raw: string): string {
   return createHash('sha256').update(raw, 'utf8').digest('hex');
 }
 
-/** The founder: the first id in `STREAMER_PLAYER_IDS` (D4, D15). */
-function founderPlayerId(): string | null {
-  const first = (process.env.STREAMER_PLAYER_IDS ?? '').split(',')[0]?.trim();
-  return first ? first : null;
-}
-
-function overlayTwitchLogin(): string {
-  return (process.env.OVERLAY_TWITCH_LOGIN ?? '').trim().toLowerCase();
-}
-
-function overlayYoutubeChannel(): string {
-  return (process.env.OVERLAY_YOUTUBE_CHANNEL ?? '').trim();
-}
-
-function overlayKickChannel(): string {
-  return (process.env.OVERLAY_KICK_CHANNEL ?? '').trim().toLowerCase();
-}
-
-/** See {@link StreamLogic.channelsFor}. */
+/**
+ * See {@link StreamLogic.channelsFor}. ⭐ The feeds of the program the body
+ * runs (stream arrival D12) — a synchronous read, because the program is
+ * resident whenever the body citing it is (its setter loads it). No
+ * environment variable names anybody's channel any more (D15).
+ */
 function channelsOf(playerId: string): BroadcastChannels {
   // An open overlay read knows its channels — including a YouTube channel
   // found through the streamer's own login (D12) rather than named.
   const open = overlayReads.get(playerId);
   if (open) return { ...open.channels };
   const avatar = PlayerApi.findAvatarByPlayerId(playerId);
-  const own = avatar && MixinApi.isBroadcastHost(avatar) ? avatar.getStreamChannels() : {};
+  const path = avatar && MixinApi.isBroadcastHost(avatar) ? avatar.getStreamProgram() : null;
+  const program = path ? programCatalogue().peek(path) : null;
   const out: BroadcastChannels = {};
+  if (!program) return out;
   for (const service of BROADCAST_SERVICES) {
-    const h = own[service]?.trim();
-    if (h) out[service] = h;
+    const channel = program.feedOn(service)?.channel;
+    if (channel) out[service] = channel;
   }
-  if (Object.keys(out).length > 0 || playerId !== founderPlayerId()) return out;
-  const twitch = overlayTwitchLogin();
-  const youtube = overlayYoutubeChannel();
-  const kick = overlayKickChannel();
-  if (twitch) out.twitch = twitch;
-  if (youtube) out.youtube = youtube;
-  if (kick) out.kick = kick;
   return out;
 }
 

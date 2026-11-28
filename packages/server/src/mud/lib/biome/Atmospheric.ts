@@ -1011,7 +1011,26 @@ export function AtmosphericMixin<
         this._detailAtmospheres[detailKey] = value;
         return;
       }
+      const changed = this._atmosphere !== value;
       this._atmosphere = value;
+      // ⭐⭐ The air changed: tell whoever is breathing it (respiration-slate
+      // § 2, decided; organism-biology D17). Every respiring occupant one
+      // containment level deep reassesses — fire-and-forget, each caught,
+      // the `onMoved` shape. Not a scheduler, not a poll: a room whose air
+      // never changes costs nothing.
+      if (changed) this.tellTheBreathers();
+    }
+
+    /** Each respiring occupant reassesses its breath (D17); a failure is said, never thrown. */
+    private tellTheBreathers(): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainer(self)) return;
+      for (const occupant of self.getContents()) {
+        if (!MixinApi.isRespiration(occupant)) continue;
+        void occupant.reassess().catch((err: unknown) => {
+          console.error(`Atmospheric: ${occupant.getPresentation()} could not reassess its breath`, err);
+        });
+      }
     }
 
     // ---------- what the medium carries (the fire build) ----------

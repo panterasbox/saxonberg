@@ -55,14 +55,3 @@ data:
     of the deep wood. It moves low and certain, the way a thing moves when
     it has never once been the prey.
   nameBanks: []
-  # ⭐ What a carcass yields to a knife. A wolf is lean and stringy and
-  # nobody's first choice, but a hungry hunter takes what the wood gives —
-  # three cuts off a good clean job, fewer off a bad one.
-  #
-  # ⚠ The units here are what a CLEAN butchering gives. An unpractised
-  # hand wastes the carcass and gets less, and dirties what it does get.
-  butcheryYield:
-    - { cut: /stuff/thing/items/stew-meat, units: 3 }
-    # ⭐ Offal — 10–15% of live weight in the real world, and the cut
-    # that will not keep. It is what you feed an animal today.
-    - { cut: /stuff/thing/items/offal, units: 1 }

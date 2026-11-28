@@ -411,6 +411,14 @@ doing nothing.
 
 See [card-surface.md](./card-surface.md).
 
+## `which` borrows one line, knowingly (the which build)
+
+`which` is not help: it reports what you can type *here, now*, and changes as
+you move; help documents what a verb *is*. The one borrowing is the `which`
+card's full width, which shows each verb's `description:` — help's own summary
+line — beside a link to `help <verb>`. `which` never reprints a verb's shape;
+its reply points at `help <verb>` instead.
+
 ## History
 
 - **Client surface (2026-10-31)** — `project-author-surface.ts` emits a

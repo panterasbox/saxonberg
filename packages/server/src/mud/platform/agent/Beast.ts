@@ -16,7 +16,7 @@
  * `CasterMixin`, `MemorizedMixin`, `EmployedMixin`, `PersonaMixin`,
  * `CommandGiverMixin`, `AdvancementMixin`, `SoulMixin` and
  * `VocalMixin`: it could cast spells, memorise them, hold a job, claim
- * an aspiration and a written bio, and type commands. ⭐ The tell was in
+ * a written bio, and type commands. ⭐ The tell was in
  * `Extra`'s own docstring, which had grown the sentence *"An animal
  * answers to nobody forever"* — a line about animals living in a class
  * about people, there only because a wolf was standing on it.

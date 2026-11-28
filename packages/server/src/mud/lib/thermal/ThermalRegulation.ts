@@ -31,6 +31,7 @@
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
+import type { MarkupAugmenter } from "../../api/mml";
 import type { Stuff } from "../stuff/Stuff";
 import type { Containable } from "../spatial/Containable";
 import type { Reserved } from "../reserve/Reserved";
@@ -39,13 +40,17 @@ import type { Organism } from "../species/Organism";
 import type { Thermal } from "./Thermal";
 import type { AfflictionRecord } from "../../platform/idea/Condition";
 import { Evaporation } from '../material/Evaporation';
-import { Quantity } from "../quantity";
+import { Quantity, M2K_PER_W_PER_CLO } from "../quantity";
+import { MaterialApi } from "../../api/material";
+import { CelestialApi } from "../../api/celestial";
+import { K_AIR, K_WATER } from "../slot/Wearable";
+import type { IntegumentLayer } from "../../platform/idea/species/BodyPlan";
 import type { Unit } from "../quantity";
 import { MixinApi } from "../../api/mixin";
 import { ExecutionContextApi } from '../../api/execution-context';
 import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
-import { WorldClockApi } from "../../api/worldclock";
+import { WorldClockApi, type ClockHandle } from "../../api/worldclock";
 import { MessageApi } from "../../api/message";
 import { Mml } from "../../api/mml";
 import { AppApi } from "../../api/app";
@@ -82,7 +87,31 @@ type RegulationHost = Stuff &
   Organism &
   Containable;
 
+/**
+ * ⭐ The longest a living body waits between thermal wakes (organism-biology
+ * D17) — one game hour, the mould's `MOULD_SET_STEP_S` shape. It bounds what
+ * the crossing projection holds still (the room, the weather, the reserves).
+ * A constant, not a dial.
+ */
+const THERMAL_WAKE_STEP_S = 3600;
+
+/**
+ * ⭐ A watcher sees a body shiver (organism-biology D3): the third-person
+ * twin of the self-only cue — how *the shorn sheep is colder* is something
+ * a player can see. The body's own `look` stays the cue's.
+ */
+function shiverAugmenter(text: string, host: Stuff, viewer: Stuff): string {
+  if (host === viewer) return text;
+  if (!MixinApi.isThermalRegulation(host) || !host.isShivering()) return text;
+  const line = 'It is shivering.';
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export interface ThermalRegulation {
+  /** ⭐ Is this body shivering now (the cue's state, for a watcher's `look`)? */
+  isShivering(): boolean;
+  /** The body's insulation as it stands, clo — worn plus its own coat at fill; a read. */
+  insulationClo(): number;
   /** ⭐ A held working's warmth on this body, K (underwater D18). */
   setWorkingOffsetK(deltaK: number): void;
   getWorkingOffsetK(): number;
@@ -148,13 +177,31 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
   return class ThermalRegulationMixin extends Base implements ThermalRegulation {
     static _mixinName = "ThermalRegulationMixin";
 
+    /** A watcher sees a body shiver (D3). */
+    static markupAugmenters: MarkupAugmenter[] = [shiverAugmenter];
+
     static fieldMeta: FieldMeta = {
       setpointK: { persistent: true, authorable: true },
       effectiveAmbientK: { persistent: true, runtimeState: true },
       cachedHumidity: { persistent: true, runtimeState: true },
       thermalRegStamp: { persistent: true, runtimeState: true },
       heatLoadJ: { persistent: true, runtimeState: true },
+      // ⭐ The body's next wake on the game clock (organism-biology D17):
+      // persisted, re-armed by its setter — a restart re-arms it and a
+      // wake already past fires at once.
+      thermalWakeAtS: { persistent: true, runtimeState: true },
     };
+
+    /** Game-seconds of this body's next thermal wake, or 0 (D17). */
+    public thermalWakeAtS = 0;
+    /** The live wake — transient, re-armed by the setter. */
+    private _thermalWake: ClockHandle | null = null;
+    /**
+     * ⭐ A scratch copy of what the slice step writes (D17): set while the
+     * read PROJECTS the core, so the projection and the reconcile run the
+     * ONE formula and only the reconcile keeps what it computes.
+     */
+    private _probe: { core: number; heatLoadJ: number; reserves: Record<string, number> } | null = null;
 
     public setpointK: number = THERMAL_DEFAULTS.SETPOINT_K;
     public effectiveAmbientK: number = THERMAL_DEFAULTS.SETPOINT_K;
@@ -183,7 +230,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const D = THERMAL_DEFAULTS;
       const wetBulb = this.wetBulbK(this.effectiveAmbientK, this.cachedHumidity);
       if (wetBulb > D.WET_BULB_CEILING_K) return 0;
-      const clo = MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0;
+      const clo = this.wornClo();
       const damping = D.SHED_BODY_CLO / (D.SHED_BODY_CLO + Math.max(0, clo));
       const capacity = D.HEAT_SHED_W * damping * overS;
       // The water it costs, on the slice's scale; a body runs out of sweat.
@@ -206,12 +253,116 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * three times a slice. Transient; `null` outside a reconcile.
      */
     private _reconcileClo: number | null = null;
+    /** Each coat tap's fill as of the last reconcile (B23) — transient, re-banked at every re-stamp. */
+    private _tapFillBanked: Record<string, number> = {};
+
+    /**
+     * ⭐ The body's insulation as it stands (clo): what it wears plus its own
+     * coat at its fill — a read, never a reconcile. What a shorn sheep has
+     * less of than one in its fleece, whatever the weather does next.
+     */
+    public insulationClo(): number {
+      return this.wornClo();
+    }
 
     /** The body's worn insulation (clo) — the reconcile's one read, else live. */
     private wornClo(): number {
       if (this._reconcileClo !== null) return this._reconcileClo;
       const host = this.regHost;
-      return MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0;
+      return (MixinApi.isAttired(host) ? host.bodyInsulation().rawValue() : 0) + this.coatInsulation();
+    }
+
+    /**
+     * ⭐⭐ **What the body's own coat is worth, in clo** (organism-biology
+     * D3) — counted beside what it wears, never inside `Attired` (a body
+     * with clothes on it). Every exterior part's coat and underlayer, by
+     * the garment's own law (`thickness / k_eff / R_CLO`, the void filled
+     * by the BODY's wetness), weighted by that part's share of the skin.
+     * A coat tied to a tap (the sheep's fleece) is as deep as the fleece
+     * has grown: shear her and it falls to nothing. Bare skin is worth 0,
+     * so no person's numbers move.
+     */
+    private coatInsulation(): number {
+      const host = this.regHost;
+      const body = MixinApi.isOrganism(host) ? host.getBody() : null;
+      if (!body) return 0;
+      const wetness = MixinApi.isWet(host) ? host.getWetness() : 0;
+      const day = this.dayFractionHere();
+      let clo = 0;
+      for (const part of body.getParts()) {
+        const outside = part.integument;
+        if (!outside || (!outside.coat && !outside.under)) continue;
+        const share = body.getPartSurfaceFraction(part.key);
+        if (!(share > 0)) continue;
+        for (const layer of [outside.under, outside.coat]) {
+          if (!layer?.depthM) continue;
+          clo += share * this.layerClo(layer, wetness) * body.coatFactor(layer, day);
+        }
+      }
+      return clo;
+    }
+
+    /** The length of the day where this body stands, as a fraction — the coat's year (D7). */
+    private dayFractionHere(): number | null {
+      return CelestialApi.daylightHere(this.regHost as unknown as Stuff);
+    }
+
+    /**
+     * ⭐ How full a coat's tap stands, 0…1, as BANKED at the last reconcile
+     * (B23). Reading the tap live reconciles production — a write — so the
+     * projection must not, and the reconcile integrates its span with the
+     * coat the body wore across it, then banks the new fill for the next
+     * span: one input for both, so the projection still equals the
+     * reconcile. A fleece grows over months; a wake is never an hour off.
+     */
+    private tapFill(tap: string): number {
+      const banked = this._tapFillBanked[tap];
+      if (banked !== undefined) return banked;
+      // Nothing banked yet (before the first reconcile or re-stamp): a
+      // reconcile may read it live; a projection takes the coat as grown.
+      return this._probe !== null ? 1 : this.bankTapFill(tap);
+    }
+
+    /** Read one coat tap live and bank its fill (a reconcile's write, never a read's). */
+    private bankTapFill(tap: string): number {
+      const host = this.regHost;
+      if (!MixinApi.isProducing(host)) return 1;
+      const cap = host.taps().find((t) => t.key === tap)?.capUnits ?? 0;
+      const fill = cap > 0 ? Math.max(0, Math.min(1, host.standingIn(tap) / cap)) : 1;
+      this._tapFillBanked[tap] = fill;
+      return fill;
+    }
+
+    /** Re-bank every coat tap's fill — at the end of a reconcile, and at every re-stamp. */
+    private bankCoatTaps(): void {
+      const host = this.regHost;
+      const body = MixinApi.isOrganism(host) ? host.getBody() : null;
+      if (!body || !MixinApi.isProducing(host)) return;
+      for (const part of body.getParts()) {
+        for (const layer of [part.integument?.under, part.integument?.coat]) {
+          if (layer?.tap) this.bankTapFill(layer.tap);
+        }
+      }
+    }
+
+    /** One coat layer's clo — the garment's law, the body's wetness. */
+    private layerClo(layer: IntegumentLayer, wetness: number): number {
+      const host = this.regHost;
+      let depth = layer.depthM ?? 0;
+      if (layer.tap && MixinApi.isProducing(host)) depth *= this.tapFill(layer.tap);
+      if (!(depth > 0)) return 0;
+      const material = MaterialApi.materials().peek(layer.material);
+      if (!material) return 0;
+      const loft = layer.loft ?? 0;
+      const kFibre = material.getThermalConductivity().rawValue();
+      const kVoid = MixinApi.hasPorosity(material) ? material.wetProperty(K_AIR, K_WATER, wetness) : K_AIR;
+      const kEff = kFibre * (1 - loft) + kVoid * loft;
+      return kEff > 0 ? depth / kEff / M2K_PER_W_PER_CLO : 0;
+    }
+
+    /** ⭐ Is this body shivering now (the cue's state, for a watcher's `look`)? */
+    public isShivering(): boolean {
+      return this._shiverNoted;
     }
     /** Debounce flags so the reconcile doesn't spam cues per slice. */
     private _shiverNoted = false;
@@ -270,10 +421,154 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
      * straight through.
      */
     public getVitalSign(sign: VitalSign): Quantity<Unit> {
+      // ⭐⭐ Reading is PURE (organism-biology D17): the core this body
+      // would have NOW, projected from its stamp by the same slice
+      // arithmetic — nothing stored, no reserve drawn, nothing afflicted.
+      // A still body is brought current by its own wake, not by a look.
       if (sign === "coreTemperature" && !this._thermalRegReconciling) {
-        this.reconcileThermalRegulation();
+        return Quantity.of(this.projectedCoreK(), "K") as Quantity<Unit>;
       }
       return this.innerVitalSign(sign);
+    }
+
+    /**
+     * ⭐ The core the reconcile WOULD store now (D17): the same guards and
+     * the same slices, run on the probe. Over a long gap it tracks reserve
+     * spending on the probe too, so it equals what the reconcile stores.
+     */
+    private projectedCoreK(): number {
+      const stored = this.innerVitalSign("coreTemperature").rawValue();
+      const nowS = this.regNowSeconds();
+      if (nowS === null || this.thermalRegStamp === 0) return stored;
+      const elapsed = nowS - this.thermalRegStamp;
+      if (!this.wouldIntegrate(elapsed)) return stored;
+      return this.probeFrom(elapsed, stored).core;
+    }
+
+    /** Would a reconcile now integrate `elapsed` (the reconcile's own guards)? */
+    private wouldIntegrate(elapsed: number): boolean {
+      const D = THERMAL_DEFAULTS;
+      const self = this.regHost;
+      if (ExecutionContextApi.worldHeldStill) return false;
+      if (MixinApi.isHasInteractive(self) && self.isLinkdead()) return false;
+      if (elapsed <= 0) return false;
+      if (elapsed > D.MAX_REASONABLE_GAP_SEC && !this.billsTheGap()) return false;
+      return !(elapsed < D.REG_STEP_SEC && !(this.heatLoadJ > 0));
+    }
+
+    /**
+     * ⭐⭐ The far-past guard drops a gap only for a body that had NO wake
+     * armed (D17): absence is not billed. A resident body with a wake
+     * integrates the whole gap — a wake that fires late, after a restart or
+     * a day's clock jump, must still cool the frog through the night. A
+     * player's body is never billed for a gap: its absence is a logout.
+     */
+    private billsTheGap(): boolean {
+      if (MixinApi.isHasInteractive(this.regHost)) return false;
+      return this.thermalWakeAtS !== 0;
+    }
+
+    /** Run `elapsed` seconds of slices on a probe seeded from now's state. */
+    private probeFrom(
+      elapsed: number,
+      core: number,
+      stopAt?: (tS: number, coreK: number) => boolean,
+    ): { core: number; tS: number } {
+      const D = THERMAL_DEFAULTS;
+      this._probe = { core, heatLoadJ: this.heatLoadJ, reserves: {} };
+      const guard = this._thermalRegReconciling;
+      this._thermalRegReconciling = true;
+      // ⭐ What the body wears is read ONCE per probe, as the reconcile does
+      // (`_reconcileClo`): `bodyInsulation` walks every slot, and per slice
+      // it was most of a world's CPU (the organism-biology drive, 2026-11).
+      const clo = this._reconcileClo;
+      if (clo === null) this._reconcileClo = this.wornClo();
+      try {
+        let remaining = elapsed;
+        let steps = 0;
+        let t = 0;
+        while (remaining > 0 && steps < D.REG_MAX_STEPS) {
+          const slice = Math.min(D.REG_STEP_SEC, remaining);
+          this.integrateThermalSlice(slice);
+          remaining -= slice;
+          t += slice;
+          steps++;
+          if (stopAt?.(t, this._probe.core)) return { core: this._probe.core, tS: t };
+        }
+        if (remaining > 0) {
+          this.integrateThermalSlice(remaining);
+          t += remaining;
+        }
+        return { core: this._probe.core, tS: t };
+      } finally {
+        this._probe = null;
+        this._thermalRegReconciling = guard;
+        this._reconcileClo = clo;
+      }
+    }
+
+    /** Set (or clear, `0`) this body's next wake, and arm it on the game clock (D17). */
+    public setThermalWakeAtS(value: number): void {
+      this._thermalWake?.cancel();
+      this._thermalWake = null;
+      this.thermalWakeAtS = Number.isFinite(value) && value > 0 ? value : 0;
+      if (this.thermalWakeAtS === 0) return;
+      this._thermalWake = WorldClockApi.at(
+        Quantity.of(this.thermalWakeAtS, "s"),
+        () => this.thermalWake(),
+        { host: this as unknown as Stuff, tag: "thermal-regulation" },
+      );
+    }
+
+    /** The wake: bring the body current, then arm the next (D17). */
+    private thermalWake(): void {
+      this._thermalWake = null;
+      this.reconcileThermalRegulation();
+      if (this._thermalWake === null) this.armThermalWake();
+    }
+
+    /**
+     * ⭐ Arm the next wake (D17): at the projected next crossing of a
+     * threshold the cascade reads, never more than one game hour away (the
+     * cap bounds what the projection holds still — the room, the weather).
+     * Disarmed for a body that runs no living processes, and while
+     * linkdead (frozen until the reconnect's re-stamp).
+     */
+    private armThermalWake(): void {
+      const self = this.regHost;
+      const nowS = this.regNowSeconds();
+      if (nowS === null) return;
+      // A world with a clock but no event bus (a unit world) cannot hold a
+      // host-bound wake: idle, as the reconcile idles with no clock.
+      // A presence check that never throws: a test world may stand several.
+      if (StuffApi.findAllByTemplatePath('/platform/idea/EventRegistry').length === 0) return;
+      const frozen = MixinApi.isHasInteractive(self) && self.isLinkdead();
+      if (frozen || !self.isLivingBody()) {
+        if (this.thermalWakeAtS !== 0) this.setThermalWakeAtS(0);
+        return;
+      }
+      this.setThermalWakeAtS(nowS + this.secondsToNextCrossing());
+    }
+
+    /** Seconds until the core crosses a threshold the cascade reads, capped at one game hour. */
+    private secondsToNextCrossing(): number {
+      const D = THERMAL_DEFAULTS;
+      const cap = THERMAL_WAKE_STEP_S;
+      const band = this.regHost.getVitalBand("coreTemperature");
+      const lines = [band.survivableMin, band.survivableMax, this.setpointK + D.HYPERTHERMIA_ONSET_K, ...this.extraColdLines()];
+      const side = (k: number): string => lines.map((l) => (k < l ? 0 : 1)).join("");
+      const start = this.innerVitalSign("coreTemperature").rawValue();
+      const was = side(start);
+      // ⭐ ONE walk, stopping at the first slice past a line — not a fresh
+      // integration from zero for every candidate time (that was O(n²)
+      // slices per body per wake, found profiling the drive's world).
+      const hit = this.probeFrom(cap, start, (_t, k) => side(k) !== was);
+      return hit.tS < cap || side(hit.core) !== was ? Math.max(D.REG_STEP_SEC, hit.tS) : cap;
+    }
+
+    /** More cold thresholds the cascade reads — an ectotherm's near cold line (D9). */
+    protected extraColdLines(): number[] {
+      return this.strategy() === "ectotherm" ? [this.setpointK - THERMAL_DEFAULTS.SLUGGISH_ONSET_K] : [];
     }
 
     /**
@@ -348,12 +643,15 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
       if (this.thermalRegStamp === 0) {
         this.thermalRegStamp = nowS;
+        this.bankCoatTaps();
         return;
       }
 
       const self = this.regHost;
       if (MixinApi.isHasInteractive(self) && self.isLinkdead()) {
         this.thermalRegStamp = nowS;
+        // Frozen: no wake until the reconnect's re-stamp (D17).
+        if (this.thermalWakeAtS !== 0) this.setThermalWakeAtS(0);
         return;
       }
 
@@ -362,8 +660,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         this.thermalRegStamp = nowS;
         return;
       }
-      if (elapsed > D.MAX_REASONABLE_GAP_SEC) {
+      if (elapsed > D.MAX_REASONABLE_GAP_SEC && !this.billsTheGap()) {
         this.thermalRegStamp = nowS;
+        this.armThermalWake();
         return;
       }
       // ⭐ Below the model's own step, do nothing YET and do not re-stamp
@@ -377,7 +676,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
 
       this._thermalRegReconciling = true;
       try {
-        this._reconcileClo = MixinApi.isAttired(self) ? self.bodyInsulation().rawValue() : 0;
+        this._reconcileClo = (MixinApi.isAttired(self) ? self.bodyInsulation().rawValue() : 0) + this.coatInsulation();
         this.refreshEffectiveAmbientFromEnvelope();
         let remaining = elapsed;
         let steps = 0;
@@ -389,11 +688,16 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         }
         if (remaining > 0) this.integrateThermalSlice(remaining);
         this.reconcileThermalCascade(elapsed);
+        // ⭐ The body's seasons ride the same reconcile (D9): a living body
+        // wakes at least hourly (D17), so phenology needs no wake of its own.
+        if (MixinApi.isVitals(self)) self.reconcilePhenology();
         this.thermalRegStamp = nowS;
+        this.bankCoatTaps();
       } finally {
         this._thermalRegReconciling = false;
         this._reconcileClo = null;
       }
+      this.armThermalWake();
     }
 
     /**
@@ -434,8 +738,10 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         // a comfortable room was set to exactly 310 K on every slice,
         // whatever had just happened to it.
         this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
-        this._shiverNoted = false;
-        this._sweatNoted = false;
+        if (this._probe === null) {
+          this._shiverNoted = false;
+          this._sweatNoted = false;
+        }
         return;
       }
 
@@ -456,7 +762,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         const covered = Math.min(gap, coverableGap);
         const spend = D.COLD_SPEND_PER_DEGREE * covered * (sliceSec / 60);
         if (this.reserveCurrent("satiation") >= spend && spend > 0) {
-          host.adjustReserve("satiation", Quantity.of(-spend, "%"));
+          this.spendReserve("satiation", spend);
           this.noteShiver();
           if (gap <= coverableGap) {
             // ⚠ The internal load rides on top of the cold branch too, and
@@ -486,7 +792,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       const gap = ambient - highBand;
       const spend = D.HEAT_SPEND_PER_DEGREE * gap * (sliceSec / 60);
       if (this.reserveCurrent("hydration") >= spend && spend > 0) {
-        host.adjustReserve("hydration", Quantity.of(-spend, "%"));
+        this.spendReserve("hydration", spend);
         // Already sweating for the ambient; the internal load rides on
         // top of that and sheds through the same channel.
         this.setCore(setpoint + this.shedAndOffset(sliceSec, ambient));
@@ -514,7 +820,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     protected shedAndOffset(sliceSec: number, ambientK: number): number {
       const host = this.regHost;
       const D = THERMAL_DEFAULTS;
-      if (this.heatLoadJ <= 0) return 0;
+      if (this.heatLoadNow() <= 0) return 0;
 
       const wetBulb = this.wetBulbK(ambientK, this.cachedHumidity);
       const canSweat =
@@ -528,22 +834,20 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         const body = D.SHED_BODY_CLO;
         const damping = body / (body + Math.max(0, clo));
         const shed = Math.min(
-          this.heatLoadJ,
+          this.heatLoadNow(),
           D.HEAT_SHED_W * damping * sliceSec,
         );
         if (shed > 0) {
-          this.heatLoadJ -= shed;
+          this.setHeatLoadNow(this.heatLoadNow() - shed);
           // Each degree's worth of shedding costs what holding a degree
           // against the ambient costs — one scale, not a second one.
           const degrees = shed / this.bodyHeatCapacityJPerK();
           const spend = D.HEAT_SPEND_PER_DEGREE * degrees;
-          if (spend > 0) {
-            host.adjustReserve("hydration", Quantity.of(-spend, "%"));
-          }
-          if (this.heatLoadJ > 0) this.noteSweat();
+          if (spend > 0) this.spendReserve("hydration", spend);
+          if (this.heatLoadNow() > 0) this.noteSweat();
         }
       }
-      return this.heatLoadJ / this.bodyHeatCapacityJPerK();
+      return this.heatLoadNow() / this.bodyHeatCapacityJPerK();
     }
 
     /** `m · c` for this body (J/K); the specific heat defaults to water. */
@@ -781,6 +1085,9 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
       this._ambientOffsetK = eff.rawValue() - (await this.baseAmbientK());
       const nowS = this.regNowSeconds();
       if (nowS !== null) this.thermalRegStamp = nowS;
+      this.bankCoatTaps();
+      // ⭐ Every re-stamp arms the next wake (D17).
+      this.armThermalWake();
     }
 
     // ---------- the cascade → conditions ----------
@@ -807,6 +1114,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         for (const path of [
           TemplatePaths.thermalHypothermia,
           TemplatePaths.thermalTorpor,
+          TemplatePaths.thermalSluggish,
           TemplatePaths.thermalHyperthermia,
         ]) {
           const rec = this.findAffliction(path);
@@ -825,13 +1133,31 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         rec.elapsed += elapsedSec;
         // Ectotherm cold → torpor (immobilize, NOT lethal); endotherm cold
         // → hypothermia (lethal dwell).
-        if (!ecto && rec.elapsed >= D.THERMAL_LETHAL_SEC) {
+        // ⚠ Neglect kills only a body somebody answers for (`diesOfNeglect`):
+        // the world's cast shivers and is impaired, and lives.
+        if (!ecto && rec.elapsed >= D.THERMAL_LETHAL_SEC && host.diesOfNeglect()) {
           host.beginDying("hypothermia", THERMAL_DEFAULTS.DYING_WINDOW_SEC);
           return;
         }
       } else {
         this.clearAffliction(TemplatePaths.thermalHypothermia, core, band.survivableMin);
         this.clearAffliction(TemplatePaths.thermalTorpor, core, band.survivableMin);
+      }
+
+      // ⭐ The cold edge's near line, for an ectotherm (D9): sluggish below
+      // `setpoint − SLUGGISH_ONSET_K` and above the floor; torpor takes over
+      // past it (one expression band, not two). Cleared on rewarming by the
+      // hysteresis margin.
+      if (ecto) {
+        const sluggishLine = this.setpointK - D.SLUGGISH_ONSET_K;
+        if (core < sluggishLine && core >= band.survivableMin) {
+          this.ensureAffliction(TemplatePaths.thermalSluggish);
+        } else if (core < band.survivableMin) {
+          const rec = this.findAffliction(TemplatePaths.thermalSluggish);
+          if (rec) host.relieve(rec);
+        } else {
+          this.clearAffliction(TemplatePaths.thermalSluggish, core, sluggishLine);
+        }
       }
 
       // ⭐⭐ Hot edge. The ROW spawns at `setpoint + HYPERTHERMIA_ONSET_K`
@@ -847,7 +1173,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         // survivable maximum — being ill is not the same as dying of it,
         // and a body that sits at 313 K indefinitely is miserable rather
         // than doomed.
-        if (core > band.survivableMax && rec.elapsed >= D.THERMAL_LETHAL_SEC) {
+        if (core > band.survivableMax && rec.elapsed >= D.THERMAL_LETHAL_SEC && host.diesOfNeglect()) {
           host.beginDying("hyperthermia", THERMAL_DEFAULTS.DYING_WINDOW_SEC);
           return;
         }
@@ -895,15 +1221,39 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     // ---------- helpers ----------
 
     protected readCore(): number {
+      if (this._probe !== null) return this._probe.core;
       return this.innerVitalSign("coreTemperature").rawValue();
     }
     protected setCore(k: number): void {
+      if (this._probe !== null) {
+        this._probe.core = Math.max(0, k);
+        return;
+      }
       const host = this.regHost;
       host.setVitalSign("coreTemperature", Quantity.of(Math.max(0, k), "K"));
     }
 
     protected reserveCurrent(key: string): number {
-      return this.regHost.reserves[key]?.currentValue ?? 0;
+      const real = this.regHost.reserves[key]?.currentValue ?? 0;
+      if (this._probe !== null) return this._probe.reserves[key] ?? real;
+      return real;
+    }
+
+    /** Draw a reserve by `amount` — onto the probe while projecting (D17). */
+    protected spendReserve(key: string, amount: number): void {
+      if (this._probe !== null) {
+        this._probe.reserves[key] = this.reserveCurrent(key) - amount;
+        return;
+      }
+      this.regHost.adjustReserve(key, Quantity.of(-amount, "%"));
+    }
+
+    private heatLoadNow(): number {
+      return this._probe !== null ? this._probe.heatLoadJ : this.heatLoadJ;
+    }
+    private setHeatLoadNow(j: number): void {
+      if (this._probe !== null) this._probe.heatLoadJ = j;
+      else this.heatLoadJ = j;
     }
 
     protected strategy(): "endotherm" | "ectotherm" {
@@ -979,12 +1329,12 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     }
 
     protected noteShiver(): void {
-      if (this._shiverNoted) return;
+      if (this._probe !== null || this._shiverNoted) return;
       this._shiverNoted = true;
       this.emitCue("You're shivering.");
     }
     protected noteSweat(): void {
-      if (this._sweatNoted) return;
+      if (this._probe !== null || this._sweatNoted) return;
       this._sweatNoted = true;
       this.emitCue("You're sweating.");
     }

@@ -64,6 +64,7 @@ import EventRegistry from '../../../EventRegistry';
 import { Stuff as StuffBase } from '../../../../../lib/stuff/Stuff';
 import '../../../WorldClockRegistry';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { setFlatTaps } from '../../../../../lib/species/__tests__/flat-body';
 
 const DAY = 86_400;
 const BASE = 40_000_000;
@@ -265,7 +266,7 @@ describe('the take as an act', () => {
     const speciesPath = freshPath('/stuff/idea/species/_test/tapped');
     makeStuffAtPath(() => {
       const sp = new Species();
-      sp.setProduction(taps);
+      setFlatTaps(sp, taps);
       return sp;
     }, speciesPath);
     const producer = makeStuff(() => {
@@ -376,7 +377,7 @@ describe('the take as an act', () => {
         behaviour: 'accrue',
         windowDays: 4,
         // A band this world is never in.
-        window: { kind: 'photoperiod', daylightFrom: 0.999, daylightTo: 1 },
+        window: { kind: 'weather', daylightFrom: 0.999, daylightTo: 1, minK: 0, maxK: 1000 },
       },
     ]);
     setNow(2 * DAY);

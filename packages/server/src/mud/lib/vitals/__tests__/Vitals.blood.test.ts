@@ -22,6 +22,7 @@ import { standShippedConditions } from './conditions';
 import { ToolMixin } from '../../craft/Tool';
 import { Idea } from '../../stuff/Idea';
 import type { BloodUnit } from '../Blood';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 class TestSyringe extends ToolMixin(Idea) {}
 const syringe = (): TestSyringe => {
@@ -47,7 +48,7 @@ function makeSpecies(
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('blood-plan');
-  plan.setBodyParts([{ key: 'body.torso', parent: null, tissues: [] }]);
+  setFlatParts(plan, [{ key: 'body.torso', parent: null, tissues: [] }]);
   stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/blood-${id}`);
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);

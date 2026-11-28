@@ -79,6 +79,11 @@ import { CombatantMixin } from '../combat/Combatant';
 import { LIGHT_BANDS, type LightBand, type VisibilityDetail } from '../perception/Light';
 import type { Stuff } from '../stuff/Stuff';
 import type { Container } from '../spatial/Container';
+import type { VisionProfile } from '../perception/Light';
+import type { FunctionBand } from '../vitals/BodyCapacity';
+
+/** What a wounded pair of eyes costs the perceived band (D11). */
+const EYE_BAND_COST: Partial<Record<FunctionBand, number>> = { impaired: 1, failing: 2 };
 
 const ActorBase = CombatantMixin(
   PerceptionMixin(MobileMixin(EngagedMixin(SensorMixin(Creature)))),
@@ -94,9 +99,22 @@ export abstract class Actor extends ActorBase {
    */
   public override perceivedBandModifier(raw: LightBand, loc: Stuff & Container): LightBand {
     const band = super.perceivedBandModifier(raw, loc);
-    if (!this.hasCausticAtHead()) return band;
+    // ⭐ A wound costs the sense (organism-biology D11): the eyes' capacity,
+    // as the body stands — impaired one band, failing two.
+    const eyes = EYE_BAND_COST[this.capacityAsStands('vision')] ?? 0;
+    const cost = eyes + (this.hasCausticAtHead() ? 2 : 0);
+    if (cost === 0) return band;
     const at = LIGHT_BANDS.indexOf(band);
-    return LIGHT_BANDS[Math.max(0, at - 2)] ?? band;
+    return LIGHT_BANDS[Math.max(0, at - cost)] ?? band;
+  }
+
+  /**
+   * ⭐⭐ The species' vision reaches perception (organism-biology D11): the
+   * light range and band shift its row declares (retinal chemistry is
+   * declared, not derived). No species, no profile — the human default.
+   */
+  public override getVisionProfile(): VisionProfile | null {
+    return this.getSpecies()?.getVisionProfile() ?? null;
   }
 
   public override canSeeOverride(
@@ -105,6 +123,8 @@ export abstract class Actor extends ActorBase {
     raw: boolean,
   ): boolean {
     const base = super.canSeeOverride(target, detail, raw);
+    // ⭐ Eyes lost: blind (D11).
+    if (base && this.capacityAsStands('vision') === 'lost') return false;
     if (base && (detail === 'detail' || detail === 'fine') && this.hasCausticAtHead()) return false;
     return base;
   }

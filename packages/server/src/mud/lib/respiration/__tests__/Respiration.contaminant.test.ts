@@ -112,4 +112,26 @@ describe('RespirationMixin — the smoke contaminant fold', () => {
     await body.reassess();
     expect(coBurden(body)).toBe(0);
   });
+
+  it('⭐⭐ the air changing tells whoever breathes it — smoke filling a room poisons with no move (D17)', async () => {
+    const r = room('air');
+    const body = makeBody();
+    ContainmentApi.move(body, r);
+    await body.reassess();
+    expect(coBurden(body)).toBe(0);
+    r.setAtmosphere('smoke'); // the room fills — nobody moved, nobody read
+    await new Promise((res) => setTimeout(res, 0)); // the fire-and-forget breath lands
+    expect(coBurden(body)).toBeGreaterThan(0);
+  });
+
+  it('the same air set again tells nobody — a room whose air never changes costs nothing', async () => {
+    const r = room('smoke');
+    const body = makeBody();
+    ContainmentApi.move(body, r);
+    await new Promise((res) => setTimeout(res, 0)); // the fire-and-forget breath lands
+    const before = coBurden(body);
+    r.setAtmosphere('smoke');
+    await new Promise((res) => setTimeout(res, 0)); // the fire-and-forget breath lands
+    expect(coBurden(body)).toBe(before);
+  });
 });

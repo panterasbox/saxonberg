@@ -47,6 +47,8 @@ import {
   expectOk,
   engagementIdOf,
   advanceWorldClock,
+  worldClockNow,
+  hand,
 } from '../src/harness';
 
 /**
@@ -135,18 +137,16 @@ function misunderstood(r: { notes: readonly unknown[] }): string | null {
 
 /**
  * ⭐ The condenser stands ON the retort — read off `look retort`'s own
- * `On it:` heading (the Placement row's), never assumed. ⚠ (soak repair
- * 2026-11-17) The drive used to `put condenser on retort`, which can
- * never work: the condenser is a 90 kg yard prop and `put` takes only
- * what you carry, so the line failed a validator and passed. The
- * condenser has to be AUTHORED standing on the retort.
+ * `On it:` heading (the Placement row's), never assumed. ⚠ (#145) It is
+ * set up by the player: carried dry it is 20 kg, picked up and `put … on`
+ * the retort (drive 11). At 90 kg it could never be, and every firing ran
+ * bare.
  */
 async function condenserStandsOnRetort(s: Session): Promise<void> {
   const retort = (await s.prose('look retort')).replace(/<[^>]*>/g, '');
   expect(
     retort,
-    'the condenser does not stand on the retort — the fuel yard lists it ' +
-      'loose in `props:`, and a 90 kg prop cannot be `put` from the ground',
+    'the condenser does not stand on the retort — drive 11 puts it there',
   ).toMatch(/On it:[\s\S]*condenser/i);
 }
 
@@ -315,20 +315,39 @@ suite('⭐⭐⭐ 9. a fire in a sealed cellar warns you, then smothers', () => {
 suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products', () => {
   let f: Session;
   beforeAll(async () => {
+    // ⚠ (soak lane, 2026-11-26) In daylight: the yard is open hill, and at
+    // night `look retort` reads "something" with nothing on it to see.
+    const now = await worldClockNow();
+    const h = (now % 86_400) / 3600;
+    const ahead = (10 - h + 24) % 24;
+    if (ahead > 0.05) await advanceWorldClock(`${Math.round(ahead * 60)} minutes`);
     f = await Session.open(uniqueHandle('collier'), {
       startLocation: FUEL_YARD,
     });
-  }, 180_000);
+  }, 600_000);
   afterAll(() => f?.close());
 
   // ⛔ Drive 10 — the clamp chars over three game days — is a SPAN and
   // lives in fire.soak.dirty (the soak-harness census).
 
   it('⭐⭐ drive 11 — the retort is HERE, it fires shut, and the condenser fills', async () => {
-    const stoked = await say(f, 'stoke charcoal into retort');
+    // ⚠ (soak lane, 2026-11-26) A basket of charcoal of the collier's own,
+    // stoked by id: the yard's CLAMP answers to `charcoal` too, and `stoke
+    // charcoal` bound it — "That will not burn." — and the retort was never
+    // lit. (Drive 10's charcoal is the soak file's.)
+    const basket = await hand(f, '/trade/fuel/thing/charcoal');
+    const stoked = await say(f, `stoke #${basket} into retort`);
     understood(stoked, 'stoke charcoal into retort');
+    expect(refusedFor(stoked), 'the retort would not take the charcoal').toBeNull();
     const lit = await say(f, 'light retort');
     understood(lit, 'light retort');
+    // ⭐ (#145) The chain is set up by hand: the condenser onto the
+    // retort's head, before the charge goes in.
+    const lifted = await say(f, 'get condenser');
+    expect(refusedFor(lifted), 'the condenser could not be picked up').toBeNull();
+    const seated = await say(f, 'put condenser on retort');
+    understood(seated, 'put condenser on retort');
+    expect(refusedFor(seated), 'the condenser would not go on the retort').toBeNull();
 
     // ⭐ Load it with the yard's own cordwood — the SAME charge the
     // clamp takes, which is the point. ⚠ (soak repair 2026-11-17) Picked
@@ -402,8 +421,8 @@ suite('⭐⭐⭐ 10–19. the clamp, then the retort — and the three products'
     // boil there; this line proves the verb routes (the swap itself is
     // Thermal.purify.test.ts's claim). ⚠ (soak repair 2026-11-17) The
     // vessel that holds the tar is the condenser, and it is on the fire
-    // only if it stands on the retort — `put condenser on retort` was a
-    // false pass (a 90 kg prop is never in hand), so READ where it stands.
+    // only if it stands on the retort (drive 11 put it there) — READ where
+    // it stands.
     await condenserStandsOnRetort(f);
   }, 180_000);
 });

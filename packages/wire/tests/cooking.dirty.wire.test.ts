@@ -65,7 +65,7 @@ let cook: Session;
 
 /** What is standing here, by name. */
 async function peerNames(): Promise<string> {
-  const rows = await cook.query('peers', { fields: ['displayName'] });
+  const rows = await cook.query('~peers', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');

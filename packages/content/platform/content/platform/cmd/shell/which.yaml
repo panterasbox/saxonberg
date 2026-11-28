@@ -1,0 +1,79 @@
+verbs: [which]
+category: shell
+opens_card: which
+controller: /platform/idea/cmd/shell/WhichController
+description: "What you can type here, and what gives you each verb"
+help: |
+  `which` lists the verbs you can type where you stand, grouped by what
+  gives you each one — *fish — the rod in your right hand*, *buy — the
+  counter here*. The most unusual sources come first. Two closing lines
+  gather the rest: *and anything you're carrying* (what every article you
+  hold lets you do) and *and the usual* (how many verbs your own body
+  always has — `which me` lists them). A verb you cannot use right now is
+  listed with the reason, in the words the verb itself would refuse you
+  with.
+
+  `which <thing>` lists what that one thing lets you do — it names a thing
+  the way every other verb does (`which counter`, `which 2.notebook`).
+
+  `which --verb <verb>` says where that verb comes from here — every thing
+  that gives it — or, in one line, that nothing does (`help <verb>` has its
+  shape). When one word means two different commands here, it shows each
+  and the `thing::verb` that picks it.
+
+  It says only what you asked. `which --clashes` asks for something else:
+  only the words that mean more than one command here (usually none), each
+  meaning with who gives it and the `thing::verb` that picks it.
+
+  `which ~` lists the `~` words you can type — `~here`, `~inventory`,
+  your contact lists and groups — each with what it means. `which ~
+  <thing>` lists the ones a thing keeps (a charter book's `~ships`).
+
+  `which` only reads; it never does anything. Typed, it also puts up a
+  card that stays current while you keep it; click a verb on it to put the
+  verb on your command line.
+examples:
+  - cmd: which
+    note: Everything you can type here
+  - cmd: which counter
+    note: What the counter lets you do
+  - cmd: which --verb fish
+    note: What gives you `fish` here
+  - cmd: which --clashes
+    note: Words that mean two commands here
+  - cmd: which ~
+    note: The ~ words you can type
+fallthrough: true
+options:
+  verb:
+    type: string
+    description: "Where this verb comes from here — every thing that gives it"
+  clashes:
+    type: boolean
+    description: "Only the words that mean more than one command here, and how to pick each"
+args:
+  # `which counter` — a thing, bound like any object a verb names (owner:
+  # each kind of question is its own typed slot; a verb is `--verb`).
+  - name: thing
+    type: object
+    required: false
+    scope: ["~reachable"]
+    requires: any
+subcommands:
+  "~":
+    controller: /platform/idea/cmd/shell/WhichRelationsController
+    description: "The ~ words you can type, or the ones a thing keeps"
+    help: |
+      Bare `which ~` lists every `~` word you can type with its meaning,
+      and how many of each of your own lists are in the world now.
+      `which ~ <thing>` lists only the ones that thing keeps.
+    examples:
+      - cmd: which ~ book
+        note: What the charter book keeps
+    args:
+      - name: thing
+        type: object
+        required: false
+        scope: ["~reachable"]
+        # Any thing may be asked what it keeps; one that keeps nothing says so.
+        requires: any

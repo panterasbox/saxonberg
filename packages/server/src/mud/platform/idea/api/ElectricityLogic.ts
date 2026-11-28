@@ -263,10 +263,10 @@ function effectiveVoltage(source: Stuff): Quantity<'V'> {
 /** Body parts that make ground contact (feet). Empty for a non-biped. */
 function footPartsOf(body: Stuff): string[] {
   if (!MixinApi.isOrganism(body)) return [];
-  const plan = body.getSpecies()?.getBodyPlan();
-  if (!plan) return [];
-  return plan
-    .getBodyParts()
+  const anatomy = body.getBody();
+  if (!anatomy) return [];
+  return anatomy
+    .getParts()
     .map((p) => p.key)
     .filter((k) => k.includes('foot'));
 }

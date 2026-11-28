@@ -186,8 +186,6 @@ export type MqlQuantityHint = MqlQuantity;
  */
 export interface MqlOne {
   stuff: Stuff | null;
-  /** `thing:~` — the relations asked for (the query binds nothing). */
-  relations?: RelationInfo[];
   /** A relation name two of one holder's sets share (D-B11). */
   relationTie?: RelationTie;
   via?: MqlMatchVia;
@@ -215,8 +213,6 @@ export interface MqlOne {
  */
 export interface MqlMany {
   stuff: Stuff[];
-  /** `thing:~` — the relations asked for (the query binds nothing). */
-  relations?: RelationInfo[];
   /** A relation name two of one holder's sets share (D-B11). */
   relationTie?: RelationTie;
   /** What the resolve read, when `ctx.trackTouched` asked (crowded-rooms N2). */
@@ -352,18 +348,6 @@ export interface MqlManyResult extends MqlMany {
 /** The one pronoun the grammar keeps (D-B1): the asker. */
 export type PronounName = 'me';
 
-/** One relation a holder answers, as `thing:~` lists it. */
-export interface RelationInfo {
-  /** The holder asked (its display name, for the listing). */
-  holder: string;
-  /** The relation's name, without the sigil. */
-  name: string;
-  /** Its one-line meaning. */
-  meaning: string;
-  /** Whether it is a built-in (always wins) rather than the holder's own set. */
-  builtin: boolean;
-}
-
 /** A name two of one holder's sets share — the binder asks which. */
 export interface RelationTie {
   name: string;
@@ -426,7 +410,6 @@ export type ChainElement =
   | GroupNode
   | QuantityNode
   | RelationNode
-  | RelationsNode
   | PlayerNode
   | HomePathNode;
 
@@ -539,11 +522,6 @@ export interface GroupNode {
 export interface RelationNode {
   kind: 'relation';
   name: string;
-}
-
-/** `:~` — list the relations the left side answers to the asker; binds nothing. */
-export interface RelationsNode {
-  kind: 'relations';
 }
 
 /** `@<id>` — a player address: the loaded avatar of that player id (head only). */

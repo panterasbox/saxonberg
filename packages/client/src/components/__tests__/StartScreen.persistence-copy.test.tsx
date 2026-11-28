@@ -41,11 +41,13 @@ describe("the sign-in panel", () => {
     expect(document.body.textContent ?? "").not.toMatch(RETIRED_PROMISE);
   });
 
-  it("still says what an account IS for", () => {
+  it("still says what signing in IS for", () => {
     render(<StartScreen />);
     // The replacement has to carry the reason to sign in, or removing a
-    // false claim has quietly removed the call to action with it.
-    expect(screen.getByText(/same person twice/i)).toBeTruthy();
+    // false claim has quietly removed the call to action with it. The
+    // design (review 11-24) says it in the identity band and the chambers.
+    expect(screen.getByText(/joining before 1\.0/i)).toBeTruthy();
+    expect(screen.getByText(/What you.re signing up for/i)).toBeTruthy();
   });
 });
 

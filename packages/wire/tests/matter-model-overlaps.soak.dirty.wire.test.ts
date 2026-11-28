@@ -263,9 +263,12 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ S1 — a cask over three fills', () =>
       gives.push(oak);
       memory.push(mem);
       note(`  [S1] fill ${fill}: oak in the spirit ${oak} OU; the wall remembers ${mem} mg/L`);
-      // Emptied for the next fill.
-      const poured = await say(s, `pour #${cask} into "slop bucket"`);
-      if (!/pour/i.test(poured)) await say(s, `spill #${cask}`);
+      // Emptied for the next fill. ⚠ (#153) Spilled, not poured into the
+      // slop bucket: it holds 10 L and the cask 20, so the pour answered ok
+      // with half the oaked spirit still in the wood, and fill 2 began there.
+      await say(s, `spill #${cask}`);
+      const left = await evalOn(s, TERMINUS, TAG.cask, `JSON.stringify({ left: this.getBulkAmount('interior').rawValue() })`);
+      expect(left, 'the cask was not emptied for the next fill').toEqual({ left: 0 });
     }
     expect(gives[1]!, `the second fill took as much oak: ${gives.join(' → ')}`).toBeLessThan(gives[0]!);
     expect(gives[2]!, `the third fill took as much oak: ${gives.join(' → ')}`).toBeLessThan(gives[1]!);
@@ -296,7 +299,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ S2 — a curing house’s season', () 
     // ── the refiner's days ── watched in real time (a brain acts on beats,
     // and a jump runs none), the nights jumped. Five working days: a strike
     // a shift, each seeded with a piece and left to cure.
-    const loavesBefore = (await examine(s, 'here:i')).match(/loaf/gi)?.length ?? 0;
+    const loavesBefore = (await examine(s, '~here:i')).match(/loaf/gi)?.length ?? 0;
     let seeded = '';
     for (let day = 0; day < 5; day++) {
       await toHour(7);
@@ -312,8 +315,8 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ S2 — a curing house’s season', () 
     // Four days of curing for the last strike.
     await advanceLiving('4 days', [s]);
     s = await at(s.handle, CURING);
-    const curing = await examine(s, 'here:i');
-    const floor = await examine((s = await at(s.handle, BOILING)), 'here:i');
+    const curing = await examine(s, '~here:i');
+    const floor = await examine((s = await at(s.handle, BOILING)), '~here:i');
     const loaves = `${curing} ${floor}`.match(/loaf/gi)?.length ?? 0;
     note(`  [S2] loaves: ${loavesBefore} → ${loaves}`);
     expect(loaves, 'the refiner cured no loaves in five working days').toBeGreaterThan(loavesBefore);

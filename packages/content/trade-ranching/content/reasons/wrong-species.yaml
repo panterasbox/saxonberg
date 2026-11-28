@@ -1,0 +1,5 @@
+# A register keeps one kind of animal (organism-biology D8).
+facts:
+  herd: text
+says: "{{ herd | cap }} is not that kind of stock."
+topic: act.deed

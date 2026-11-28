@@ -48,8 +48,24 @@ requirements:
 
 ## The vocabulary
 
-`TapSpec` on `Species.production[]` (kernel, authorable). A tap is a
-species fact, which is already the engine's belief about animals.
+`TapSpec` on a gland part's `produces` (kernel, authorable on a body
+module — organism-biology D2; `Species.production[]` retired). A tap is a
+fact about the organ, which is already the engine's belief about animals.
+
+⭐ **The gland is a part** (organism-biology D2). `ProducingMixin.taps()`
+reads `organism.getBody()?.producers()`, so the udder exists only on the
+body whose sex delta adds it (a bull has no milk tap at all, and `TapSpec`
+lost its `sex` field), the fleece is the sheep's coat, sap and latex sit on
+a tree's `sapwood` part and honey on the bee's `crop`. The feedback law
+(`behaviour`, `windowDays`, `broodAfterDays`, …) is authored on the gland.
+**A wounded gland makes less**: the fill is multiplied by the part's
+function band — full 1, impaired ½, failing or lost 0 (`glandFactor`); a
+hive and a tree take no wounds and fill at 1. ⚠ The store stays
+`ProducingMixin.tapState`, **not** a `Reserve`: a tap also holds
+`driedOff`, `brooding`, `fullSince` and `worst` — the feedback law's whole
+state — so moving the standing alone would leave two records per gland,
+and a `Hive` is not a `Creature`. The tap key is unchanged, so `tapState`
+restores by it.
 
 | field | what it decides |
 |---|---|
@@ -67,18 +83,22 @@ species fact, which is already the engine's belief about animals.
 ### `TapWindowSpec` — a season is DATA
 
 ```
-always | event | photoperiod | biome | weather | freeze-thaw
+always | biome | weather | freeze-thaw
 ```
 
 `ProducingMixin.tapWindow(key)` evaluates it, so **a new season is a row
 and not a code path.**
 
-- **`event`** — opened by `freshen()`, closed by drying off. Milk's
-  shape: a lactation is not a season, and a cow is near-aseasonal.
-- **`photoperiod`** — a daylength band, read through the SYNC twin
-  `CelestialApi.daylightSecondsFor(EARTH_LIKE, latitude, now)` at the
-  host's OWN latitude (since the climate build: its air place's memoized
-  climate site — a reconcile cannot await). ⭐ A wrapping band is legal.
+- ⭐⭐ **`activeIn` replaced `event` and `photoperiod`** (organism-biology
+  D9, W7). An animal's tap names the CONDITION its body must carry —
+  `/platform/idea/Condition/reproduction/lactating` on an udder, `…/laying`
+  on an oviduct — and is shut (`not-lactating` / `not-laying`) without it.
+  ONE schedule says a body is in milk: the species' `phenology` (a ewe in
+  spring, a hen on long days, on her daylength) or, for an `event: true`
+  entry, the ACT — the draft freshens a mature cow past her rest
+  (`Livestock.freshenAtDraft`), and drying off (`dryOff`, or an untaken
+  lactation running out its window) relieves it. A tree carries no
+  conditions, so its windows below stay on the gland.
 - **`biome`** — the HOST answers (`biomeWindowOpen`). A hive reads its
   own forage census, which is the first RGO whose reservoir is somebody
   else's land.
@@ -345,8 +365,9 @@ The design question lives at
 ## Deferred
 
 - **Chicks / incubation** — `TapState.brooding` is the attach point.
-- **The dry-off decision** — `window: {kind: event}` + `freshen()` is
-  the seam; the breeding cycle calls it.
+- **The dry-off decision** — `lactating` by freshening (`event: true` on
+  the species' phenology) + `freshen()` is the seam; the breeding cycle
+  (calving) calls it.
 - ⛔ **The relief** — built in W4 and **cut in review** (scope, and the
   absent-body doctrine). AC 7 unmet; see § The relief above. →
   `standing-instructions-slate`.

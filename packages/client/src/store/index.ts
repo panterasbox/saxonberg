@@ -54,6 +54,7 @@ import { createCardFeedSlice, type CardFeedSlice } from "./cardFeedSlice";
 import { createNavSlice, type NavSlice } from "./navSlice";
 import { createChangeSlice, type ChangeSlice } from "./changeSlice";
 import { createTooltipSlice, type TooltipSlice } from "./tooltipSlice";
+import { createPlayerSlice, type PlayerSlice } from "./playerSlice";
 import {
   createAffordanceSlice,
   type AffordanceSlice,
@@ -335,6 +336,7 @@ interface StoreState
     NavSlice,
     ChangeSlice,
     TooltipSlice,
+    PlayerSlice,
     AffordanceSlice {
   // Auth state
   auth: AuthState;
@@ -877,6 +879,13 @@ interface StoreState
   primaryDraftCarry: string;
   setPrimaryDraftCarry: (text: string) => void;
   /**
+   * ⭐ Text a click put on the PRIMARY bar's command line (the which build:
+   * a verb clicked on the `which` card is typed, never sent). A new
+   * `nonce` re-seeds the same text.
+   */
+  primarySeed: { text: string; nonce: number } | null;
+  seedPrimaryDraft: (text: string) => void;
+  /**
    * Which slot the CommandBar input is currently bound to. Either
    * `BASE_SLOT` or a `promptId` from `prompts`. Set to a new
    * arrival iff `foreground` is true; preserved otherwise.
@@ -1150,6 +1159,9 @@ export const useStore = create<StoreState>((set, get) => ({
 
   // ⭐ The open tooltip stack — a snapshot per entry, never a card.
   ...createTooltipSlice(set as Parameters<typeof createTooltipSlice>[0]),
+
+  // ⭐ The one stream player: its slot, sound, ✕ and the front page's program.
+  ...createPlayerSlice(set as Parameters<typeof createPlayerSlice>[0]),
 
   // The affordance cache — one answer per subject, read by BOTH the
   // radial and every card body's composition chips. Only touches the
@@ -1617,6 +1629,7 @@ export const useStore = create<StoreState>((set, get) => ({
   prompts: [],
   promptDrafts: { [BASE_SLOT]: "" },
   primaryDraftCarry: "",
+  primarySeed: null,
   activeSlot: BASE_SLOT,
   activeSlotByBar: {},
   primaryBarId: null,
@@ -1723,6 +1736,9 @@ export const useStore = create<StoreState>((set, get) => ({
     }),
 
   setPrimaryDraftCarry: (text) => set(() => ({ primaryDraftCarry: text })),
+
+  seedPrimaryDraft: (text) =>
+    set((state) => ({ primarySeed: { text, nonce: (state.primarySeed?.nonce ?? 0) + 1 } })),
 
   setDraft: (slot, text) =>
     set((state) => {

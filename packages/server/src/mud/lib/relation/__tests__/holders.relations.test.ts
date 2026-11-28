@@ -4,6 +4,7 @@
  * of your sets share is a tie.
  */
 import '../../../../test-bootstrap';
+import { CommandApi } from '../../../api/command';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { resolve, resolveWithQuantity } from '../../../api/mql/resolver';
 import { StuffApi } from '../../../api/stuff';
@@ -68,12 +69,13 @@ describe('holders answer relations (B2)', () => {
     expect(ids(resolve('@me1:~inventory', { commandGiver: me, scope: '' }))).toEqual([apple.stuffId]);
   });
 
-  it('me:~ lists your lists and your groups beside the built-ins', async () => {
+  it('which ~ lists your lists and your groups beside the built-ins', async () => {
     vi.spyOn(Group, 'find').mockResolvedValue([
       Object.assign(new Group(), { _id: 'g1', name: 'bookclub', memberIds: ['me1', 'iffy1'] }),
     ] as never);
     await me.refreshGroups();
-    const names = (resolveWithQuantity('me:~', { commandGiver: me, scope: '' }).relations ?? []).map((r) => r.name);
+    const r = CommandApi.whichRelations(me as never);
+    const names = r.ok ? (r.facts.relations ?? []).map((x) => x.name) : [];
     expect(names).toEqual(expect.arrayContaining(['here', 'friends', 'bookclub']));
   });
 

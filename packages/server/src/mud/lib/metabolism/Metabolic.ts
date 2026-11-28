@@ -1376,7 +1376,10 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
           // Accrue dwell-time; progress the lethal ones to the death seam.
           record.elapsed += elapsedSec;
           const lethal = LETHAL_SEC[effect];
-          if (lethal !== undefined && record.elapsed >= lethal) {
+          // ⚠ Hunger and thirst are NEGLECT: they kill only a body somebody
+          // answers for (`Vitals.diesOfNeglect` — a person's, or an owned
+          // one). The world's cast goes hungry and lives (the soak lane).
+          if (lethal !== undefined && record.elapsed >= lethal && self.diesOfNeglect()) {
             (this as unknown as MetabolicHost).beginDying(
               effect,
               METABOLIC_DEFAULTS.DYING_WINDOW_SEC,

@@ -113,6 +113,10 @@ export const CELLAR_DOOR = "/world/testbed/thing/cellar-door";
 export const GATE = "/world/testbed/thing/gate";
 /** The hall's double doors, standing open. */
 export const HALL_DOORS = "/world/testbed/thing/hall-doors";
+/** The broadcast desk in the hut (stream arrival C3): `program` and `rodney` with no app. */
+export const BROADCAST_DESK = "/world/testbed/thing/broadcast-desk";
+/** The on-air sign in the hut — lit while somebody in the hut is on the air. */
+export const ON_AIR_SIGN = "/world/testbed/thing/on-air-sign";
 /** The hut's window onto the plaza (passes light and sight, never a body). */
 export const HUT_WINDOW = "/world/testbed/thing/hut-window";
 /** The hall's shelf (a Fitting) and the like things on it. */

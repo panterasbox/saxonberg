@@ -123,7 +123,7 @@ const say = (line: string): void => {
           // Where each stands, read as a player reads it — FIRST, so step 10
           // has its comparison whatever a later step finds.
           for (const s of crowd) {
-            const where = await s.queryOne('here', 'ref');
+            const where = await s.queryOne('~here', 'ref');
             placeBefore.set(s.handle, String(where?.displayName ?? ''));
           }
           // ── 6: a card you can see. `look` leaves the `here` card live. ──
@@ -214,7 +214,7 @@ const say = (line: string): void => {
         times.push(performance.now() - t);
       }
       for (const s of back) {
-        const here = await s.queryOne('here', 'ref');
+        const here = await s.queryOne('~here', 'ref');
         expect(String(here?.displayName ?? ''), `${s.handle} stands where they quit`).toBe(placeBefore.get(s.handle) ?? '?');
       }
       say(`10: logins after restart p95 ${Math.round(p95(times))} ms`);

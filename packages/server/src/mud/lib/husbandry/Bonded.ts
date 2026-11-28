@@ -389,7 +389,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public wouldComply(person: Stuff): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
-      const biddability = self.getSpecies()?.getBiddability();
+      const biddability = self.getSpecies()?.getBiddability(self.getVariant());
       if (biddability === null || biddability === undefined) return false;
       return biddability * this.bondWith(person) >= 0.5;
     }
@@ -856,7 +856,15 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
         // without it nothing ever climbs from `flighty` to a hand.
         self.handle(FEED_HANDLING_QUALITY);
       }
-      await StuffApi.destruct(food);
+      // ⚠ (#147) It ate ONE portion: that much comes off the food, and only
+      // food no bigger than a portion is gone. A hungry farm dog at a
+      // carcass took one bite and destroyed the whole 60 kg body.
+      if (MixinApi.isTangible(food)) {
+        const portionKg = (EAT_PORTION_LITRES / 1000) * material.getDensity().rawValue();
+        await food.takeBite(portionKg);
+      } else {
+        await StuffApi.destruct(food);
+      }
       return true;
     }
 

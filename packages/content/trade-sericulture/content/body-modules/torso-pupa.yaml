@@ -1,0 +1,22 @@
+# torso-pupa — the pupa in its cocoon (organism-biology D10): no legs, no
+# jaws, a hard case, breathing through its spiracles while it remakes
+# itself into a moth.
+parts:
+- key: ''
+  senses: [{modality: touch}]
+  breathes: [{medium: air, apparatus: tracheae, intake: 1, volumeL: 6}]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/chitin, weight: 0.12}
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.85}
+- key: heart
+  parent: ''
+  governs: [heartRate, circulation]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/muscle, weight: 0.005}
+- key: brain
+  parent: ''
+  governs: [consciousness]
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/flesh, weight: 0.005}
+integument:
+  skin: {material: /stuff/idea/material/tissue/chitin}

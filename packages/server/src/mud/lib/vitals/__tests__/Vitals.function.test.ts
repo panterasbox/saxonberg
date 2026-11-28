@@ -26,6 +26,7 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { standMaterials, TEST_TISSUES } from '../../material/__tests__/materials';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 let seq = 0;
 
@@ -38,7 +39,7 @@ function person(): Creature {
     { name: 'hand:left', accepts: 'WieldableMixin', bodyPart: 'body.arm.left.hand' },
     { name: 'hand:right', accepts: 'WieldableMixin', bodyPart: 'body.arm.right.hand' },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.head', parent: 'body.torso', tissues: [] },
     {

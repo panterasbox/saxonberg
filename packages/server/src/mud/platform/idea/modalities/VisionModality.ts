@@ -21,6 +21,7 @@ import type { Sensor } from '../../../lib/message/Sensor';
 import type { Perception } from '../../../lib/perception/Perception';
 import {
   Light,
+  LIGHT_BANDS,
   REQUIRED_BAND_FOR_DETAIL,
   type LightSourceRef,
 } from '../../../lib/perception/Light';
@@ -191,8 +192,17 @@ export class VisionModality extends Modality {
     // all — never noticed, because until this build nowhere was dark. A
     // night-sighted species sees further into the dark; it does not see
     // in the absence of light (envelope D11).
-    const shifted =
+    let shifted =
       lux > 0 ? Light.applyBandShift(raw, profile.bandShift) : raw;
+    // ⭐⭐ The species' light range (organism-biology D11) — read by no
+    // computation before: a raw band below the viewer's `scotopicMin`
+    // perceives nothing; one above its `photopicMax` dazzles it, held at
+    // `photopicMax` less one band.
+    const rawAt = LIGHT_BANDS.indexOf(raw);
+    if (rawAt < LIGHT_BANDS.indexOf(profile.scotopicMin)) shifted = 'pitch-black';
+    else if (rawAt > LIGHT_BANDS.indexOf(profile.photopicMax)) {
+      shifted = LIGHT_BANDS[Math.max(0, LIGHT_BANDS.indexOf(profile.photopicMax) - 1)] ?? shifted;
+    }
     const final = isPerception(viewer)
       ? viewer.perceivedBandModifier(shifted, loc)
       : shifted;

@@ -90,6 +90,7 @@ import {
   isOwnedTestWorld,
   advanceWorldClock,
   worldClockNow,
+  dress,
 } from '../src/harness';
 
 /**
@@ -282,7 +283,7 @@ async function carried(s: Session): Promise<string> {
 
 /** What is on the floor here. */
 async function hereNames(s: Session): Promise<string> {
-  const rows = await s.query('here:i', { fields: ['displayName'] });
+  const rows = await s.query('~here:i', { fields: ['displayName'] });
   return rows
     .map((r) => String((r as { displayName?: string }).displayName ?? ''))
     .join(' | ');
@@ -525,6 +526,11 @@ beforeAll(async () => {
   // about. What it still has to do is keep a body fed across 145 game
   // days, and the thing to eat is what it butchered.
   k = await Session.open(handle, KEEPER);
+  // ⚠ (soak lane, 2026-11-26) Dressed for the yard: a body in the student
+  // shirt and trousers (~0.4 clo) in the farmstead yard's winter (~270 K)
+  // is hypothermic within hours, and the knacker went "not conscious
+  // enough" by the butcher block. A knacker wears a coat.
+  await dress(k);
   await ensureDaylight(k);
   await k.drainProse();
 }, 300_000);
@@ -544,7 +550,7 @@ suite('1–3. a flock, a book, and one head out of it', () => {
   }, 120_000);
 
   it('⭐ 2. the book names a flock and a tally', async () => {
-    // ⚠⚠ `here:i:flockbook` — SCOPED, and the reachability sweep is why.
+    // ⚠⚠ `~here:i:flockbook` — SCOPED, and the reachability sweep is why.
     // That sweep hung two more herdbooks on this shelf (the ox register,
     // which `draft` is afforded by and which was propped nowhere, and the
     // hen tally, because the realm had no chicken at all). `look`'s
@@ -564,7 +570,7 @@ suite('1–3. a flock, a book, and one head out of it', () => {
     // ⭐ The lesson, which is the whole drive discipline in one line:
     // **name what you mean.** A unique keyword costs nothing and a loose
     // read costs the next person who adds an object to the room.
-    const said = await read(k, 'look here:i:flockbook');
+    const said = await read(k, 'look ~here:i:flockbook');
     expect(said).toMatch(/column|number|lambed|ruled/i);
   }, 120_000);
 
@@ -726,7 +732,7 @@ suite('⭐⭐⭐ 6. slaughter — the wave the build turns on', () => {
     // herdbooks hang on that shelf since the reachability sweep, and a
     // loose `look flock book` raises a disambiguation prompt a wire
     // session cannot answer.
-    const said = await read(k, 'look here:i:flockbook');
+    const said = await read(k, 'look ~here:i:flockbook');
     expect(said.length).toBeGreaterThan(20);
   }, 120_000);
 });
@@ -1345,7 +1351,15 @@ suite('17–18. the ground and the dog', () => {
     // ⭐ A COUNT needs neither. It rides `query()` (structured, reliable
     // where prose is not), it cannot be fooled by wording, and it still
     // fails honestly: if nothing arrives, nothing changes.
-    const before = (await k.query('me:i', { fields: ['displayName'] })).length;
+    // ⚠ (soak lane, 2026-11-26) Carried OR at your feet: with the hands
+    // full from the steps before, a bought loaf is set down beside you
+    // ("your hands are full — you set a dog loaf down", size and carrying)
+    // — still bought, still yours.
+    const holdings = async (): Promise<Array<{ displayName?: string }>> => [
+      ...((await k.query('me:I', { fields: ['displayName'] })) as Array<{ displayName?: string }>),
+      ...((await k.query('~here:i', { fields: ['displayName'] })) as Array<{ displayName?: string }>),
+    ];
+    const before = (await holdings()).length;
     // ⚠⚠ Bought INLINE rather than through the helper, so the failure
     // message carries the world's own words. `buyOrWait` answered
     // *bought* while inventory went 6 → 6 — no refusal note of either
@@ -1382,10 +1396,10 @@ suite('17–18. the ground and the dog', () => {
       kinds,
       `and must not reject the command — said="${prose}"`,
     ).not.toMatch(/command-rejected/);
-    const after = await k.query('me:i', { fields: ['displayName'] });
+    const after = await holdings();
     expect(
       after.length,
-      `buying must put something in your hands; inventory went ` +
+      `buying must put something in your hands or at your feet; it went ` +
         `${before} → ${after.length}; notes=[${kinds}] said="${prose}"`,
     ).toBeGreaterThan(before);
     // ⭐ And it is bread of some kind — loose on purpose, for the reason
@@ -1560,7 +1574,7 @@ suite('⚠ regressions — nothing a player could do before has stopped', () => 
     await ensureDaylight(k);
     await k.drainProse();
     // ⚠ Scoped — the third of three in this file. See checkpoint 2.
-    const book = await read(k, 'look here:i:flockbook');
+    const book = await read(k, 'look ~here:i:flockbook');
     expect(book).toMatch(/column|number|lambed|ruled|eleven|11|nine|10/i);
   }, 180_000);
 

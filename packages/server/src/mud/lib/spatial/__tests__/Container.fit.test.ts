@@ -7,6 +7,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
+import { MixinApi } from '../../../api/mixin';
 import { Placements } from '../Placement';
 import {
   installShapes, material, thing, place, Item, OpenBox, Chest, Surface,
@@ -83,6 +84,22 @@ describe('Container — fit', () => {
     expect(field.fitRefusal(whale)).toBeNull();
     ContainmentApi.move(whale, field);
     expect(whale.getContainer()).toBe(field);
+  });
+
+  it('⭐ ground takes ground — a full floor refuses a thing, never a body, living or dead', () => {
+    const field = place(3, 'open', 'none');
+    const pine = material(PINE, 500);
+    // Nine 1 m² slabs cover the 3 m cell's 9 m² floor.
+    for (let i = 0; i < 9; i++) {
+      ContainmentApi.move(thing(() => new Item(), { material: pine, kg: 20, box: { width: 1, depth: 1, height: 0.05 } }), field);
+    }
+    const crate = thing(() => new Item(), { material: pine, kg: 20, box: { width: 1, depth: 1, height: 0.5 } });
+    expect(field.fitRefusal(crate)?.reason).toBe('no-room');
+    // A carcass is the body that just died there: it takes no ground (organism-biology).
+    const carcass = thing(() => new Item(), { material: material(BONE, 1000), kg: 600, box: { width: 1, depth: 2.5, height: 1.4 } });
+    const organism = MixinApi.isOrganism.bind(MixinApi);
+    vi.spyOn(MixinApi, 'isOrganism').mockImplementation(((s: unknown) => s === carcass || organism(s as never)) as never);
+    expect(field.fitRefusal(carcass)).toBeNull();
   });
 
   it('a normal room takes a creature-sized thing and a large prop', () => {

@@ -21,9 +21,9 @@ import {
 } from '../../lib/connection/Cards';
 
 describe('the card catalogue', () => {
-  it('ships exactly fifteen cards, and the list and the map agree', () => {
-    expect(CARD_IDS.length).toBe(15);
-    expect(Object.keys(CARDS).length).toBe(15);
+  it('ships exactly sixteen cards, and the list and the map agree', () => {
+    expect(CARD_IDS.length).toBe(16);
+    expect(Object.keys(CARDS).length).toBe(16);
     expect([...CARD_IDS].sort()).toEqual(Object.keys(CARDS).sort());
   });
 
@@ -62,7 +62,8 @@ describe('the card catalogue', () => {
     const unpinnedAndLive = CARD_IDS.filter(
       (id) => !CARDS[id].pinnedByDefault && CARDS[id].live,
     );
-    expect(unpinnedAndLive).toEqual(['subject']);
+    // ⭐ `which` (the which build): live while kept, born unpinned.
+    expect(unpinnedAndLive).toEqual(['subject', 'which']);
   });
 
   /**
@@ -72,7 +73,7 @@ describe('the card catalogue', () => {
    */
   it('at least one row is live, and it is `subject` (the stock sheet joins it)', () => {
     const live = CARD_IDS.filter((id) => CARDS[id].live);
-    expect(live).toEqual(['subject', 'stock']);
+    expect(live).toEqual(['subject', 'stock', 'which']);
     // A live card's source must be MQL — there is nothing else to wake.
     expect(CARDS.subject.source.kind).toBe('mql');
     expect(CARDS.stock.source.kind).toBe('mql');
@@ -109,8 +110,8 @@ describe('the card catalogue', () => {
       if (src.kind === 'payload') producers.push(src.producer);
     }
     // The navigator left the payload tier (navigation-server D1): its body is a subscription.
-    expect(producers.length).toBe(6);
-    expect(new Set(producers).size).toBe(6);
+    expect(producers.length).toBe(7);
+    expect(new Set(producers).size).toBe(7);
   });
 
   it('exactly one row takes a subject, and it resolves behind the gate', () => {
@@ -182,7 +183,7 @@ describe('the card catalogue', () => {
         `${retired} should have been retired`,
       ).toBe(false);
     }
-    // …and the union really is the fifteen we expect, by name.
+    // …and the union really is the sixteen we expect, by name.
     expect([...CARD_IDS].sort()).toEqual(
       (
         [
@@ -202,6 +203,7 @@ describe('the card catalogue', () => {
           'terminal',
           'who',
           'wiki',
+          'which',
         ] as CardId[]
       ).sort(),
     );

@@ -229,8 +229,12 @@ keypair-unit-tested, so no dev tunnel is needed).
 ## The `watch` embed
 
 `watch` writes `cockpit.watch` (`WatchTarget | null`, transient clientState)
-and pushes it; the client mirrors it and renders **one** sandboxed iframe (no
-picker — the verb is the control). Most forms resolve with **no external
+and pushes it; the client mirrors it and plays it in **the one** sandboxed
+iframe it has — the `StreamPlayer` mounted above every screen, which follows
+whatever slot a layout registers (stream arrival; see
+[client-shell.md](./client-shell.md)) — no picker, the verb is the control.
+⭐ Every page load starts **muted**; a NEW target the player types unmutes,
+and the arrival's own target (the stream they came from) stays as it was. Most forms resolve with **no external
 call** (Twitch handle, Kick slug — `player.kick.com/<slug>`, muted
 autoplay, renders offline channels gracefully — YouTube URL / videoId /
 `UC…` channelId), so watching works even when the chat relay is
@@ -271,10 +275,10 @@ input).
 ## Overlay chat forwarding (each streamer's own chat)
 
 ⭐ **Per streamer** (broadcast-ready D5/D15). A streamer's channels are the
-handles on their body (`stream channel twitch <login>` etc.); for the
-founder — the first id in `STREAMER_PLAYER_IDS` — the `OVERLAY_TWITCH_LOGIN`
-/ `OVERLAY_YOUTUBE_CHANNEL` / `OVERLAY_KICK_CHANNEL` env seeds them while the
-body names none. `BroadcastFeed` drives `StreamApi.setOverlayReading(playerId,
+**feeds of the program their stream runs** (`program run <name>`; each feed
+proven from the attacher's own linked account at `program channel` — stream
+arrival, 2026-11-24). There is no env seed any more: the `OVERLAY_*` names
+retired. `BroadcastFeed` drives `StreamApi.setOverlayReading(playerId,
 on)` on THAT streamer's 0→1 / 1→0 overlay-socket edge (and
 `refreshOverlayReading` when their channels change or their body logs in),
 which **sentinel-tunes** their channels under `overlay:<playerId>`. The relay
@@ -396,3 +400,7 @@ plan: `docs/requirements/stream-tuning-requirements.md`,
 provider** landed on `feature/kick-relay` (vocabulary → provider →
 client/verifier → relay wiring → docs; the first webhook-inbound
 transport).
+
+**Stream arrival (2026-11-24, MR !655)** — the overlay's channels became the
+program's proven feeds (the `OVERLAY_*` env retired); `watch` plays in the
+client's one `StreamPlayer`, muted on load.

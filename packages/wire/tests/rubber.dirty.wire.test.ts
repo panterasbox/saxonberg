@@ -351,7 +351,7 @@ suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the s
     await new Promise((r) => setTimeout(r, 3_000));
     await s.drainProse();
     // The root is milled away, so a hand is free: the pail back off the floor.
-    await say(s, 'get here:i:pail');
+    await say(s, 'get ~here:i:pail');
     // Two pails answer to "pail": find the one holding the milk.
     const pails = await s.query('me:i:pail', { fields: 'detail' });
     const texts = pails.map((p) => String((p as { longDescription?: unknown }).longDescription ?? ''));
@@ -372,7 +372,7 @@ suite('⭐ 12 — dandelion rubber: seed on the shelf, roots wet-milled at the s
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(t, 'pan');
     expect(pan, 'the pan has set').toMatch(/set/i);
-    const got = await say(t, 'get here:i:pan:i:sheet');
+    const got = await say(t, 'get ~here:i:pan:i:sheet');
     expect(got).toMatch(/sheet/i);
     const sheet = await examine(t, 'me:i:sheet');
     expect(sheet, 'raw rubber from the dandelion').toMatch(/raw rubber|tacky|stiff/i);
@@ -426,7 +426,7 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     await advanceWorldClock('17 minutes');
     await new Promise((r) => setTimeout(r, 4_000));
     await s.drainProse();
-    const milled = await say(s, 'get here:i:tub:i:stock');
+    const milled = await say(s, 'get ~here:i:tub:i:stock');
     expect(milled, `get stock: ${milled}`).toMatch(/stock|compound|rubber/i);
     // ⚠ `put` takes from your hands into something standing in the room:
     // charge the mould on the floor, THEN carry it into the oven.
@@ -441,20 +441,20 @@ suite('⭐⭐ 14–17 — sulfur, heat and time decide what comes out (AC 2, 3)'
     await s.drainProse();
     // ⚠ `get` has no `from`: the whole tail is one greedy object list, so
     // `get boots from boot-mould` took every pair in reach. Name the
-    // inside with MQL's chain (`here:i` is the room's THINGS; a bare
-    // `here:x` would be a detail of the room).
-    await say(s, 'get here:i:oven:i:boot-mould');
+    // inside with MQL's chain (`~here:i` is the room's THINGS; a bare
+    // `~here:x` would be a detail of the room).
+    await say(s, 'get ~here:i:oven:i:boot-mould');
     await say(s, 'drop boot-mould');
     // ⭐ A cure that never reached its rung leaves the STOCK in the mould —
     // nothing was cast, because the piece never became rubber.
     if (!expectCast) {
       await s.drainProse();
-      const stock = await examine(s, 'here:i:boot-mould:i:stock');
-      await say(s, 'get here:i:boot-mould:i:stock');
+      const stock = await examine(s, '~here:i:boot-mould:i:stock');
+      await say(s, 'get ~here:i:boot-mould:i:stock');
       await say(s, 'drop stock');
       return stock;
     }
-    const got = await say(s, 'get here:i:boot-mould:i:boots');
+    const got = await say(s, 'get ~here:i:boot-mould:i:boots');
     expect(got, `get boots: ${got}`).toMatch(/boots/i);
     await s.drainProse();
     return examine(s, 'me:i:boots');
@@ -580,7 +580,7 @@ suite('⭐⭐ 7–11 — the stove house, the trees and the latex (AC 4, 1)', ()
     await new Promise((r) => setTimeout(r, 3_000));
     const pan = await examine(s, 'pan');
     expect(pan).toMatch(/set/i);
-    const got = await say(s, 'get here:i:pan:i:sheet');
+    const got = await say(s, 'get ~here:i:pan:i:sheet');
     expect(got).toMatch(/sheet/i);
     const sheet = await examine(s, 'sheet');
     expect(sheet).toMatch(/raw rubber|tacky|stiff/i);

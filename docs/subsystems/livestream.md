@@ -2,8 +2,9 @@
 
 The livestream subsystem is the server half of the **Rodney** overlay
 (`packages/rodney`) and of a streamer's own controls: **the stream a
-played body is running** (`BroadcastMixin`), the `stream` verb that runs
-it, the per-streamer **broadcast feed** that pushes an allowlisted show to
+played body is running** (`BroadcastMixin`), the **program** it runs (a
+document at `/platform/programs/<name>`), the `rodney` and `program` verbs,
+the per-streamer **broadcast feed** that pushes an allowlisted show to
 the streamer's OBS browser sources, the **control door** pblive's Stream
 Deck uses, and the two things that protect the people a broadcast shows —
 **redaction** and the **on-air marker**. Built by broadcast-ready
@@ -15,8 +16,7 @@ retired.
 > message to every online player — a comms concept. The "broadcast"
 > here is the **livestream**: an out-of-band, read-only projection to
 > overlay clients. They share an English word, not a namespace — which is
-> also why the mixin is `BroadcastMixin` (the stream a body carries) and
-> the streamer AXIS is `AccessApi.isStreamer` (the `streamers` group).
+> also why the mixin is `BroadcastMixin` (the stream a body carries).
 
 ## The pieces
 
@@ -25,7 +25,11 @@ retired.
 | `BroadcastMixin` | `lib/livestream/Broadcast.ts`, composed on every `Avatar` inside the spine | The stream's state and every transition; the allowlisted `show()`. `Mixins.Broadcast`, `MixinApi.isBroadcastHost`. |
 | `StandbyReason` · `LowerThirdPanel` | `lib/livestream/` (`@internal` value objects) | A reason row and a panel row, validated. |
 | `standby-reason` · `lower-third-panel` · `stream-token` | kind declarations (`/platform/kinds/<kind>`) | Reasons and panels are platform-pack rows (`/platform/standby-reasons/<key>`, `/platform/lower-third-panels/<key>`); tokens are runtime-written (`/platform/stream-tokens/<sha256>`, `onVanish: keep`). |
-| `StreamApi` ↔ `StreamLogic` | `api/stream.ts`, `platform/idea/api/StreamLogic.ts` | Tokens (`issueToken`/`resolveToken`), the away grammar (`interpretAway`, `parseDuration`), the rows (`standbyReasons`, `lowerThirdPanels`), per-streamer channel reads, the streamer's numbers. |
+| `StreamApi` ↔ `StreamLogic` | `api/stream.ts`, `platform/idea/api/StreamLogic.ts` | Tokens (`issueToken`/`resolveToken`), the away grammar (`interpretAway`, `parseDuration`), the rows (`standbyReasons`, `lowerThirdPanels`), the program statics (`createProgram`, `amendProgram`, `attachFeed`, `detachFeed`, `runProgram`, `programGate`, `programListing`, `frontListing`, `programs()`), the streamer's numbers. |
+| `program` kind · `Program` · `ProgramCatalogue` | `content/kinds/program.yaml`, `lib/livestream/Program.ts`, `platform/idea/ProgramCatalogue.ts` | A broadcast's standing record at `/platform/programs/<name>`: title, owner (a titled path) + `ownerName`, a one-line `schedule`, proven `feeds`, the `runner`. Written only by `StreamLogic` through `DocumentApi.saveProgram` (filing transport `program`). |
+| `requiresProgram` | `lib/command/validators/requiresProgram.ts` | `rodney`'s gate: the giver's stream runs a program and the giver still holds its pen. |
+| `FrontRoutes` | `backend/FrontRoutes.ts` | Anonymous `GET /api/front`: the named program (`?watch=&carrier=`), else the featured one (`stream.featuredProgram`). |
+| `BroadcastApp` · `BroadcastDesk` · `OnAirSign` | `platform/idea/BroadcastApp.ts`, `platform/thing/` | What affords `rodney` + `program`: the app on a phone you carry ([aether-devices.md](./aether-devices.md)), or a desk you sit at (`peers`). The sign's light is derived. |
 | `Events.StreamShowChanged` · `Events.PlayerFirstArrival` | `lib/events.ts` | `{ playerId, show }` on every change; a first arrival for the ticker. |
 | `BroadcastFeed` | `backend/BroadcastFeed.ts` | Routes each streamer's show to the sockets opened with THEIR token; adds the world facts; remembers control sockets. |
 | token doors | `WebSocketService` + `Backend` + `Application` | `?broadcast=<token>` (overlay) and `?control=<token>` (pblive); neither becomes an `Interactive`. |
@@ -40,16 +44,17 @@ retired.
 standby · ending`), `streamReason` (the reason row as resolved at `stream
 away` — stored whole, so a restart needs no read to show it),
 `streamStartsAt` / `streamAwayUntil` / `streamEndsAt` (epoch ms),
-`streamTopic`, `streamAgenda` + `streamAgendaIndex`, `streamChannels`
-(`{ twitch?, youtube?, kick? }`), `streamTokenHashes` (the live token per
-scope). Transient: the outro timer, the last verb, the rotation's
+`streamTopic`, `streamAgenda` + `streamAgendaIndex`, `streamProgram` (the
+program whose chair this stream holds — `program run`; cleared, quietly, if
+the program is gone or the pen lost), `streamTokenHashes` (the live token
+per scope). The body no longer carries channels: they are the program's. Transient: the outro timer, the last verb, the rotation's
 pin/skip, the controls card's extras.
 
 **On air** = `starting`, `live` or `ending` — the phases redaction covers.
 Every transition refuses BY NAME on an illegal move (`not-streaming`,
 `ending`, `already-on-air`, `no-agenda`, `agenda-done`, `unknown-panel`);
-the controller renders the refusal. ⭐ `stream away` is legal from
-`offline` too, so the shipped `stream away 15m` still means what it meant.
+the controller renders the refusal. ⭐ `rodney away` is legal from
+`offline` too.
 
 ⏱ **Wall time, deliberately.** Deadlines are epoch ms and the outro is
 `ScheduleApi` milliseconds (`stream.outroMs`, default 60 s): the stream is
@@ -83,33 +88,36 @@ via `loadControls`, never to the feed.
 
 ## Tokens and the two doors
 
-`stream token` mints 32 random bytes, shows them once, and stores only the
+`rodney token` mints 32 random bytes, shows them once, and stores only the
 sha256 at `/platform/stream-tokens/<hex>` (`{ playerId, scope, issuedAt }`)
 through the narrow `DocumentApi.saveStreamToken` transport (gated to
 `StreamLogic`); issuing again revokes the previous one (rotation).
-`stream token --control` does the same for the `control` scope.
+`rodney token --control` does the same for the `control` scope.
 
 - `?broadcast=<token>` — hash, read the path, require `scope: overlay` →
   principal `broadcast:<playerId>`; the feed sends the resident streamer's
   snapshot at once, or **nothing** until they load (never a synthesized
-  phase). The env `BROADCAST_TOKEN` still opens the founder's feed during
-  the changeover — the first id in `STREAMER_PLAYER_IDS` — and is refused
-  loudly when that list is empty.
+  phase). There is no env door: `BROADCAST_TOKEN` and the other four
+  stream env names (`STREAMER_PLAYER_IDS`, `OVERLAY_TWITCH_LOGIN`,
+  `OVERLAY_YOUTUBE_CHANNEL`, `OVERLAY_KICK_CHANNEL`) retired with stream
+  arrival, and boot warns if one is still set.
 - `?control=<token>` — `scope: control` → principal `control:<playerId>`.
   Its only accepted message is a `command` whose line parses to ONE
-  command with the verb literally `stream` (no `verb@source`, no emote),
-  never `stream token`, never through an alias named `stream`; the
+  command with the verb literally `rodney` (no `verb@source`, no emote),
+  never `rodney token`, never through an alias named `rodney`; the
   streamer's body must be online; it runs as them through the ordinary
-  dispatcher (`requiresStreamer` still gates) and every answer is echoed
-  as `control-result` so the Stream Deck lights ✓ or ⚠.
+  dispatcher (`requiresProgram` still gates) and every answer is echoed
+  as `control-result` so the Stream Deck lights ✓ or ⚠. A deck still
+  sending `stream …` is refused `rodney-only`; an alias named `rodney`,
+  `alias-shadows-rodney`.
 
 A bad, revoked or wrong-scope token is a 401 with a warning — never a
 fallback to a shared feed.
 
 ## Chat on the overlay
 
-Each streamer's own channels — `stream channel <service> <handle>`, else
-for the founder the `OVERLAY_*` env — are read under a per-streamer relay
+The channels are **the program's feeds** — the program the streamer's
+stream runs (`program run`) — read under a per-streamer relay
 sentinel (`overlay:<playerId>`), opened on that streamer's first overlay
 socket and closed on their last. A relayed line reaches the overlays of
 the streamer whose channel it is and no other. YouTube is found under the
@@ -130,30 +138,61 @@ streamer's own login when they have stepped up (see
   `broadcasting`; the room says *"A broadcast reaches this place."* when
   anyone in it is on air. A statement, not a gate.
 
-## Authorization — the streamer axis
+## The program — who may run a stream
 
-The verb is afforded by `BroadcastMixin` (every played body) and gated by
-`requiresStreamer` — `AccessApi.isStreamer`, membership of the
-`streamers` managed group, seeded from `STREAMER_PLAYER_IDS`. A second
-streamer is `group add streamers <player>`, a token, and their own Rodney
-browser source: no code.
+⭐ **Nobody is *the* streamer; the unit is the program.** A program is a
+document at `/platform/programs/<name>` (kind `program`): a short name
+(first come, never changes), a title, an **owner** — a titled path whose
+pen edits it (a player's own home, or an institution's branch with
+`--owner`) — a one-line schedule, and its feeds. **The pen is the document
+store's own write gate, `DocumentApi.mayWrite`** (own `/home/<key>/`
+first, else `AccessApi.canAtPath`) asked of `<owner>/programs/<name>`.
 
-## The `stream` verb
+A **feed is proven at attach**, never typed: `program channel <name>
+<carrier>` reads the attacher's OWN linked account — `TwitchProfile.login`,
+`KickProfile.slug`, or `GoogleProfile.youtubeChannelId` after *Link
+YouTube* — and records who proved it. A program with no feed is still a
+program.
 
-`start [in <dur>]` · `live` · `away <reason> [<dur>]` / `away <dur>` ·
-`back` · `end` · `off` · `segment <title>` · `agenda <a, b, …>` / `agenda
-clear` · `next` · `channel <twitch|youtube|kick> [<handle>]` · `token
-[--control]`, one controller per subcommand over `StreamControllerBase`
-(controller-liquidity D13, at the merge with broadcast-ready). The lower
-third is steered by its own verb, **`stream-rotation pin|skip <panel>` /
-`stream-rotation clear`** — a non-diegetic compound name, because a
-command is `verb subcommand target`, never deeper (controller-liquidity
-W16; it was `stream rotation …`). `BroadcastMixin` affords both, and
-both are gated `requiresStreamer`. Bare
-`stream` prints the phase and opens the controls card (`opens_card:
-stream`). Shipped reasons: `bathroom` 5m, `food` 15m, `water` 3m,
-`privacy` (no timer, ever), `technical` (no timer), `generic` (what a
-bare duration means).
+`program run <name>` puts the giver's stream in its chair (`runner`;
+`streamProgram` on the body). **`requiresProgram`** then gates `rodney`:
+the stream runs a program and the giver still holds its pen. A second
+broadcaster is a second program — no group, no env, no code.
+
+## The `rodney` and `program` verbs
+
+`rodney` drives the overlay (named for what it drives — stream arrival
+D22; it was `stream`): `start [in <dur>]` · `live` · `away <reason>
+[<dur>]` / `away <dur>` · `back` · `end` · `off` · `segment <title>` ·
+`agenda <a, b, …>` / `agenda clear` · `next` · `token [--control]` ·
+`pin <panel>` · `skip <panel>` · `unpin` (the lower third, flat — the
+`stream-rotation` verb is gone). One controller per subcommand. Bare
+`rodney` prints the phase and opens the controls card. Shipped reasons:
+`bathroom` 5m, `food` 15m, `water` 3m, `privacy` (no timer, ever),
+`technical` (no timer), `generic` (what a bare duration means).
+
+`program`: `create <name> [--title …] [--owner <path>]` · `retitle` ·
+`schedule <name> <text>` / `--clear` · `channel <name> <carrier>` /
+`--clear` · `run <name>` · `about <name>`. Bare `program` shows the
+program your stream runs.
+
+⭐ **Neither verb is on the body.** They are afforded by the **Broadcast
+app** on a device you bear (`apps install broadcast on phone` — an app's
+verbs are lent to whoever carries its device, see
+[aether-devices.md](./aether-devices.md)), or by a **broadcast desk**
+(`peers`). Hallett's booth, off the University Avenue crossing in
+Terminus, has the desk and an **on-air sign** whose light is DERIVED —
+lit while anyone in the booth is a broadcast host on air — never switched
+(`OnAirSign` overrides `getEmittedFlux` and `getLong`). The testbed hut has
+both.
+
+## The front page's show
+
+`stream.featuredProgram` (Tier B setting, `config stream.featuredProgram
+<name>`) names the program the anonymous `GET /api/front` answers with,
+unless a link named one (`?watch=<name>&carrier=<c>`). The answer carries
+the title, owner name, live flag, next show and the PROVEN feeds only;
+nothing is shown when no program is named or featured.
 
 ## The client and the overlay
 
@@ -168,8 +207,10 @@ drops, and renders the panel rows (`packages/rodney/README.md`,
 
 ## Cross-references
 
-- [access.md](./access.md) — the `isStreamer` predicate, `streamers`
-  group, `requiresStreamer` validator.
+- [document-store.md](./document-store.md) — the `program` kind and its
+  filing transport; `DocumentApi.mayWrite`, the pen.
+- [aether-devices.md](./aether-devices.md) — the Broadcast app, and how an
+  installed app lends its verbs.
 - [connection.md](./connection.md) — the WS upgrade path the broadcast
   principal short-circuits.
 - [comms.md](./comms.md) — the in-world `broadcast` ESP verb (the
@@ -202,3 +243,11 @@ drops, and renders the panel rows (`packages/rodney/README.md`,
   waited on the panel listing (it is sent at once now). Unproven on the wire,
   left to the owner's rehearsal: the Elgato cut, real Twitch/YouTube chat,
   OBS scene switching, a real process restart.
+- **Stream arrival (2026-11-24, MR !655)** — the unit became the
+  **program** (a document, owned through the pen, feeds proven at attach);
+  `stream` → **`rodney`** + **`program`**; `requiresStreamer`, the
+  `streamers` group, `stream-rotation`, `stream channel` and the five env
+  names retired; the verbs moved off the body onto the Broadcast app and
+  the broadcast desk; Hallett's booth and its derived on-air sign;
+  `stream.featuredProgram` + `GET /api/front`. Drive:
+  `packages/wire/tests/stream-arrival.wire.test.ts`.

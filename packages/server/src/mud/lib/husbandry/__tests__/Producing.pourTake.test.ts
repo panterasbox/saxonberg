@@ -29,6 +29,7 @@ import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { rememberShippedDirt } from '../../cleanliness/__tests__/soil-fixtures';
+import { setFlatTaps } from '../../species/__tests__/flat-body';
 
 const DAY = 86_400;
 const SPECIES_PATH = '/stuff/idea/species/_test/pour-cow';
@@ -92,7 +93,7 @@ describe('the hand on the milk', () => {
     makeStuffAtPath(() => new WorldClockRegistry(), '/platform/idea/WorldClockRegistry');
     makeStuffAtPath(() => {
       const s = new Species();
-      s.setProduction(TAPS);
+      setFlatTaps(s, TAPS);
       return s;
     }, SPECIES_PATH);
     makeStuffAtPath(() => {

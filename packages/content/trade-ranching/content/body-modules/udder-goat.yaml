@@ -1,0 +1,20 @@
+# udder-goat — a gland (organism-biology D2): the part that makes
+# milk. The tap is today's, keyed as it always was, so a
+# stored tap state restores by its key; the store stays on the tap host.
+parts:
+- key: ''
+  tissues:
+  - {tissue: /stuff/idea/material/tissue/udder, weight: 0.025}
+  produces:
+  - key: milk
+    yieldRow: /stuff/idea/material/food/goat-milk
+    perGameDay: 3
+    behaviour: expire
+    windowDays: 0.6
+    yieldShape: volume
+    # ⭐ In milk / in lay is the BODY's (organism-biology D9): its phenology
+    # carries the condition, and the tap runs only while it does.
+    activeIn: /platform/idea/Condition/reproduction/lactating
+    restDays: 3
+comesOffAs:
+- {tissue: /stuff/idea/material/tissue/udder, cut: /stuff/thing/items/offal}

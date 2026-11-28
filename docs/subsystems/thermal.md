@@ -430,7 +430,43 @@ Composes on `Creature` outer of `ThermalMixin`/`MetabolicMixin`, inner of
 (the `getReserve` analogue) — and it stays **SYNC** because the reconcile
 reads a **cached effective ambient** (`effectiveAmbientK`), never a live
 biome call. Every cockpit poll, condition cascade, and `getConditionBand`
-read sees a reconciled core temp.
+read sees the core the reconcile WOULD store now — a projection, never a
+write (next section).
+
+### ⭐⭐ Reading a body never changes it; bodies wake on the game clock (organism-biology D17)
+
+The core used to integrate **on read**: `getVitalSign('coreTemperature')`
+ran the slices and stamped. So a body nobody looked at never cooled — a
+frog left in a cold pond overnight was as warm at dawn as at dusk — and
+every `look` moved the body it looked at.
+
+- **The read projects.** `getVitalSign` runs the reconcile's own guards
+  (`wouldIntegrate`) and its own slices on a **probe** — the core, the
+  heat load and the reserves the slice spends, held aside — and returns
+  the probe's core. Nothing is stamped, spent or cued. ⭐ One formula: the
+  same `integrateThermalSlice` runs for both, routed through
+  `readCore`/`setCore`/`reserveCurrent`/`spendReserve`, so the projection
+  equals what the reconcile stores (a unit test pins this).
+- **The reconcile is the only writer**, and at its end it **arms a wake**:
+  `thermalWakeAtS`, a host-bound `WorldClockApi.at` (tag
+  `thermal-regulation`) at the next projected crossing of a threshold the
+  cascade reads (survivable min/max, the hyperthermia onset, plus
+  `extraColdLines()` for subclasses), **never more than one game hour
+  away** — the cap bounds what the projection holds still (the room, the
+  weather). The wake reconciles, which re-arms.
+- ⭐⭐ **The far-past guard drops a gap only for a body with NO wake
+  armed** (`billsTheGap`). Absence is still not billed — a body stood up
+  from a save with no wake keeps its core — but a resident body whose
+  wake fires late (a restart, a day's clock jump) integrates the whole
+  gap. ⚠ A player's body is **never** billed for a gap: its absence is a
+  logout.
+- **Linkdead disarms** and does not re-arm; the body is frozen until the
+  reconnect's re-stamp. A body that is not living (`isLivingBody`) arms
+  nothing. A world with a clock but no event bus (a unit world) arms
+  nothing either, as the reconcile idles with no clock.
+- ⚠ **A test that relied on a read advancing state** now calls
+  `reconcileThermalRegulation()` — the thermal suites' `advance` helpers
+  do. Seeding the stamp is a reconcile, not a read.
 
 The per-slice reconcile (mirroring metabolism's skeleton) branches on the
 thermoneutral dead-band:
@@ -452,6 +488,22 @@ wind-chill (cold) / heat-index (hot) transforms read through the
 surrounding-medium conductivity. Worn `clo` widens the comfort band
 downward. A body in water reads the water instead — see *Immersion*
 below.
+
+### ⭐⭐ Under the open sky the pull side reads the weather (#139)
+
+The air over an open-sky scope IS the weather, and the weather is a pure
+function of the place and the time (`WeatherApi.temperatureAt(site,
+locality, t)`), so `ambientTrajectory` samples it across the reconcile's
+gap — an hour a stretch, at most 240 — for an air scope that does not hold
+its own air, authors no `_temperature`, has resolved where on the world it
+is, and holds no body in WATER (the push side's medium read owns that).
+The push side alone restamped only the direct contents of an OCCUPIED sky
+room at a weather boundary, so ice in a temper pit, or anything in a yard
+nobody stood in, drifted all summer toward the winter it was last told
+about (the soak lane, 2026-11-26: the temper pit stayed frozen in the warm
+season; the mere never froze in winter). An envelope room keeps its own
+trajectory, and a scope still resolving its site keeps the cached ambient
+for that one read.
 
 ### ⭐⭐ Worn insulation is SURFACE-WEIGHTED PER PART, and `clo` DERIVES
 
@@ -484,6 +536,20 @@ weave does not, so the same wool insulates differently by how it was
 made. `A_covered` comes from the garment's own `slotClaims`, so it
 states its `clo` **with no wearer** (the inspection card needs that).
 
+⭐⭐ **A WORN layer also holds still air against the body**
+(`textiles.clo.enclosedAir`, 0.5 local clo per layer; the soak lane,
+2026-11-26). Most of what clothing is worth is not the cloth: a linen
+shirt's own 0.3 mm derives ~0.04 clo, where the standard tables put a
+shirt near 0.25 clo whole-body — because of the air it traps. Without the
+term a shipped outfit summed to **0.07 clo**, naked by the cold bench (which
+always assumed 0.6 for shirt and trousers and 1.0 for the cast's outfit),
+and once resident bodies integrated continuously every Cast in the realm
+was dead of the cold by morning. The term is the WEARER'S, like the fit
+penalty: `Attired.insulationAt` adds it per worn layer (scaled by the same
+fit factor, and lost as the layer's own wetness rises), and the
+wearer-free `getClo()` — the shelf card, the covering fold — is the cloth
+alone.
+
 ⭐ **Wet cloth is a different object.** Water floods the loft, and the
 loft is where the insulation lived — `k_water` is 23× `k_air`. Wet wool
 retains more than wet linen because `waterAbsorptionCapacity` differs
@@ -511,6 +577,22 @@ wetness, and it scales the wind-chill term down by
 oiled thing simply is one*. A jumper under an open coat does not break a
 wind, and a soaked shell stops working.
 
+### ⭐ A body's own coat (organism-biology D3)
+
+A body's integument `coat` and `under` layers (fur, feather, down, the
+fleece) insulate by the **same law as a garment** — `thickness / k_eff /
+R_CLO`, the void filled through `material.wetProperty` with the **body's**
+wetness, so wet fur loses most of its worth for the same reason wet wool
+does. `ThermalRegulationMixin.coatInsulation()` sums each exterior part's
+coat by its share of the skin and adds it to `bodyInsulation()` at the
+reconcile's one clo read. It is counted **beside** what the body wears,
+never inside `Attired` (whose concept is *a body with clothes on it*). A
+coat's depth follows its `cycle` (a daylength band and a thickness factor
+— the winter coat, derived on read, nothing persisted) and, for a coat that
+is also a tap (the sheep's fleece), how full that tap stands: shear her and
+the term falls to nothing, and she reads colder. Bare skin is worth 0, so
+no person's numbers moved.
+
 ### ⭐⭐ Immersion — the place says who is in its water
 
 "In the water" is derived from **support**, never a flag
@@ -537,6 +619,22 @@ or **torpor** (ectotherm — alive but immobile, read by
 `requiresConscious`) below `survivableMin`; **hyperthermia** above
 `survivableMax`. Lethal dwell → `setCauseOfDeath` + `setLifecycleState
 ('dead')`. Seeds: `seeds/lib/thermal/conditions/`.
+
+⭐ **The cold edge has a near line too, for an ectotherm** (organism-
+biology D9): `sluggish` below `setpoint − SLUGGISH_ONSET_K` (6 K) and
+above the floor, torpor past it (which relieves sluggish — one band, not
+two) — the hot edge's shape, an onset and then the far line. A slow body
+pays more to cross: `traversePowerW` multiplies by `1 + bands ×
+exertion.suppressedPowerPerBand`. The fish, the crustacean and the frog's
+own `anuran` plan are ectotherms; `trade-fishing`'s ectotherm test holds
+each at the edges of the water its row tolerates.
+
+⭐⭐ **A body's seasons ride this reconcile** (D9): after the cascade it
+calls `VitalsMixin.reconcilePhenology()`, which carries or relieves each
+condition on the species' `phenology` schedule (the den, the rut, in
+season, in milk, in lay). The hourly wake (D17) is why phenology needs no
+wake of its own; `testharness daylight-pin` fans out to every living body
+at once.
 
 ### Q10 (the metabolism edit)
 

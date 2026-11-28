@@ -168,7 +168,7 @@ suite('the wake — a service somebody is paid for (steps 14, 19, 20)', () => {
   it('⭐⭐ the infirmary is REACHABLE from the street', async () => {
     // Counting-House Row had a bank, a store and a realty office and
     // nowhere at all to be seen to.
-    const here = await patient.query('here', { fields: ['displayName'] });
+    const here = await patient.query('~here', { fields: ['displayName'] });
     const names = here
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');
@@ -216,7 +216,7 @@ suite('the necropolis — a body can be read and buried (step 21)', () => {
   afterAll(() => mourner?.close());
 
   it('the burial ground exists, with ground open in it', async () => {
-    const rows = await mourner.query('peers', { fields: ['displayName'] });
+    const rows = await mourner.query('~peers', { fields: ['displayName'] });
     const names = rows
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ');

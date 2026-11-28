@@ -233,7 +233,7 @@ async function advance(seconds: number): Promise<void> {
   try {
     const until = Date.now() + 300_000;
     while (probe && Date.now() < until) {
-      const ok = await probe.query('here', { fields: ['displayName'] }).then(() => true).catch(() => false);
+      const ok = await probe.query('~here', { fields: ['displayName'] }).then(() => true).catch(() => false);
       if (ok) break;
     }
   } finally {

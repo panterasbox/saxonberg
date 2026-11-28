@@ -1,6 +1,7 @@
 /**
  * The control principal's one verb (broadcast-ready D11): pblive's
- * Stream Deck may run `stream …` as its streamer and nothing else.
+ * Stream Deck may run `rodney …` as its streamer and nothing else. The
+ * verb was `stream` until stream arrival D22; that is refused now.
  */
 
 import "../../test-bootstrap";
@@ -47,41 +48,47 @@ describe('handleControlCommand', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  it('runs `stream away food` as the streamer and lights ✓', async () => {
-    await handleControlCommand('c1', 'pa', cmd('stream away food'));
-    expect(ran).toEqual(['stream away food']);
-    expect(results).toEqual([{ command: 'stream away food', ok: true }]);
+  it('runs `rodney away food` as the streamer and lights ✓', async () => {
+    await handleControlCommand('c1', 'pa', cmd('rodney away food'));
+    expect(ran).toEqual(['rodney away food']);
+    expect(results).toEqual([{ command: 'rodney away food', ok: true }]);
   });
 
   it('echoes a refusal from the dispatcher as ⚠', async () => {
     outcome = 'error';
-    await handleControlCommand('c1', 'pa', cmd('stream back'));
+    await handleControlCommand('c1', 'pa', cmd('rodney back'));
     expect(results[0]).toMatchObject({ ok: false, reason: 'error' });
   });
 
-  it('refuses any verb but `stream`', async () => {
-    for (const line of ['look', 'eval 1+1', 'say stream away', '"stream" away']) {
+  it('refuses any verb but `rodney` — the old `stream` included', async () => {
+    for (const line of ['look', 'eval 1+1', 'say rodney away', 'stream away 15m', '"rodney" away']) {
       await handleControlCommand('c1', 'pa', cmd(line));
     }
     expect(ran.filter((r) => !r.startsWith('"'))).toEqual([]);
-    expect(results.slice(0, 3).every((r) => !r.ok && r.reason === 'stream-only')).toBe(true);
+    expect(results.slice(0, 4).every((r) => !r.ok && r.reason === 'rodney-only')).toBe(true);
   });
 
-  it('refuses `stream token` — a control token mints nothing', async () => {
-    await handleControlCommand('c1', 'pa', cmd('stream token --control'));
+  it('runs `rodney away 15m`', async () => {
+    await handleControlCommand('c1', 'pa', cmd('rodney away 15m'));
+    expect(ran).toEqual(['rodney away 15m']);
+    expect(results).toEqual([{ command: 'rodney away 15m', ok: true }]);
+  });
+
+  it('refuses `rodney token` — a control token mints nothing', async () => {
+    await handleControlCommand('c1', 'pa', cmd('rodney token --control'));
     expect(ran).toEqual([]);
     expect(results[0]).toMatchObject({ ok: false, reason: 'no-token-minting' });
   });
 
-  it('refuses when the streamer has an alias that shadows `stream`', async () => {
-    alias = 'stream';
-    await handleControlCommand('c1', 'pa', cmd('stream away food'));
+  it('refuses when the streamer has an alias that shadows `rodney`', async () => {
+    alias = 'rodney';
+    await handleControlCommand('c1', 'pa', cmd('rodney away food'));
     expect(ran).toEqual([]);
-    expect(results[0]).toMatchObject({ ok: false, reason: 'alias-shadows-stream' });
+    expect(results[0]).toMatchObject({ ok: false, reason: 'alias-shadows-rodney' });
   });
 
   it('refuses when the streamer is offline', async () => {
-    await handleControlCommand('c1', 'pz', cmd('stream away food'));
+    await handleControlCommand('c1', 'pz', cmd('rodney away food'));
     expect(results[0]).toMatchObject({ ok: false, reason: 'streamer-offline' });
   });
 

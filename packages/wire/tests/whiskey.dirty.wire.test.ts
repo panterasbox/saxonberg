@@ -250,7 +250,7 @@ async function waitForDaylight(s: Session): Promise<void> {
 let stillId = '';
 async function stillRef(s: Session): Promise<string> {
   if (!stillId) {
-    const rows = (await s.query('here:i:[keyword.still]', {
+    const rows = (await s.query('~here:i:[keyword.still]', {
       fields: ['displayName'],
     })) as Array<{ stuffId?: string; displayName?: string }>;
     const pot = rows.find((r) => /pot still/i.test(String(r.displayName ?? '')));
@@ -286,8 +286,12 @@ async function rest(duration: string): Promise<void> {
  * wash-mash wants 4 L of it in ONE holder, so the sacks are tipped
  * together at the end.
  */
-const MALT_PORTION_L = 2.5;
-const MALT_PORTIONS = 3;
+// ⚠ (soak lane, 2026-11-26) A portion is what ONE sitting finishes: 1.5 L
+// (~0.9 kg, under four minutes, about half a fresh body's endurance). At
+// 2.5 L the arms gave out mid-portion (#144's share), every share cost a
+// rest and a ration, and the rations ran out before the body recovered.
+const MALT_PORTION_L = 1.5;
+const MALT_PORTIONS = 4;
 
 async function millGristInPortions(): Promise<void> {
   // The rations first — a working body eats, and the store is the
@@ -327,7 +331,7 @@ async function millGristInPortions(): Promise<void> {
   const sacks = await k.query('me:I:[keyword.malt]', { fields: ['displayName'] });
   const sack = (sacks as Array<{ stuffId?: string }>)[0]?.stuffId;
   expect(sack, `no malt carried: ${await carried(k)}`).toBeTruthy();
-  const empties = (await k.query('here:i:[keyword.empty]', {
+  const empties = (await k.query('~here:i:[keyword.empty]', {
     fields: ['displayName'],
   })) as Array<{ stuffId?: string; displayName?: string }>;
   const hopper = empties.find((r) =>
@@ -344,22 +348,30 @@ async function millGristInPortions(): Promise<void> {
     expectOk(
       await say(k, `pour #${sack} into #${hopper} --amount ${MALT_PORTION_L}L`),
     );
-    let milling = await say(k, `mill #${hopper} at quern`);
-    if (refusedFor(milling) === 'too-tired') {
-      await rest('8 hours');
-      milling = await say(k, `mill #${hopper} at quern`);
+    // ⭐ (#144) A tired body grinds the share its arms will finish and the
+    // rest stays in the hopper — "Your arms give out before the grain does"
+    // — so she rests and goes again until the portion is through.
+    for (let go = 0; go < 4; go++) {
+      let milling = await say(k, `mill #${hopper} at quern`);
+      if (refusedFor(milling) === 'too-tired') {
+        await rest('8 hours');
+        milling = await say(k, `mill #${hopper} at quern`);
+      }
+      const id = engagementIdOf(milling);
+      // A quern grinds a quarter-kilo a game-minute: a portion is six
+      // minutes of cranking, carried by the clock.
+      await advance('15 minutes');
+      if (id) await k.awaitActivity(id, 120_000);
+      await new Promise((r) => setTimeout(r, 500));
+      const after = await k.listen(1_000);
+      if (!/arms give out/i.test(`${await milling.said()} ${after}`)) break;
+      await rest('1 hour');
     }
-    const id = engagementIdOf(milling);
-    // A quern grinds a quarter-kilo a game-minute: a portion is six
-    // minutes of cranking, carried by the clock.
-    await advance('15 minutes');
-    if (id) await k.awaitActivity(id, 120_000);
-    await new Promise((r) => setTimeout(r, 500));
   }
 
   // Each grind lands its own sack on the floor; the mash takes its grist
   // from one holder, so tip them into the first.
-  const grist = (await k.query('here:i:[keyword.grist]', {
+  const grist = (await k.query('~here:i:[keyword.grist]', {
     fields: ['displayName'],
   })) as Array<{ stuffId?: string }>;
   expect(grist.length, `no grist after the grind: ${await carried(k)}`).toBeGreaterThan(0);
@@ -409,15 +421,15 @@ suite('⭐ 0. the still-house floor is reachable and furnished', () => {
       );
     }
     // The three vessels and the maltings this build placed.
-    // ⛔⛔ `here:c` — which this file used and which **is not an
+    // ⛔⛔ `~here:c` — which this file used and which **is not an
     // operator**. MQL's descend is `:i` (`mql-grammar.md` § Chain
     // operator); a bareword in chain position FILTERS BY KEYWORD, so
-    // `here:c` asked for things in this room whose keyword is "c" and
+    // `~here:c` asked for things in this room whose keyword is "c" and
     // got the room back. Every name this checkpoint claimed to read was
     // therefore read off one string — the room's own display name — and
     // the assertion could only ever have passed for words that happen to
     // appear in it. Found by the styles drive, which copied the idiom.
-    const names = await k.query('here:i', { fields: ['displayName'] });
+    const names = await k.query('~here:i', { fields: ['displayName'] });
     const all = names
       .map((r) => String((r as { displayName?: string }).displayName ?? ''))
       .join(' | ')
@@ -586,6 +598,14 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐⭐ 4. the cut', () => {
     // vat reads.
     // ⚠ (soak repair 2026-11-16) The order is ASSERTED: a mash refused
     // for want of grist used to pass on whatever the vat already read.
+    // ⚠ (soak lane, 2026-11-26) The mash is the house's: somebody on
+    // shift makes it (`no-maker` with nobody tending), so it is ordered in
+    // the working day — ten in the morning, as the hand keeps it.
+    const into = (((await worldClockNow()) % 86_400) + 86_400) % 86_400;
+    if (into < 9 * 3_600 || into > 16 * 3_600) {
+      const ahead = (10 * 3_600 - into + 86_400) % 86_400;
+      await advance(`${Math.round(ahead / 60)} minutes`);
+    }
     const mashed = await say(k, 'order wash-mash');
     expectOk(mashed);
     await settle(k, mashed);

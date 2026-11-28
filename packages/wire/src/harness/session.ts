@@ -53,6 +53,7 @@ import type {
   StuffRefRecord,
   StuffDetailRecord,
   StuffDetailFocusRecord,
+  ArrivalDoor,
 } from '@saxonberg/types';
 import { countProseRead } from './registry';
 import { assertPacksPresent } from './world';
@@ -222,8 +223,10 @@ export interface SessionOptions {
   committees?: string[];
   offices?: string[];
   parcels?: string[];
-  /** Join the `streamers` group (broadcast-ready) — the `stream` verb's axis. */
+  /** A broadcaster: a program named for the handle, created and run by the character (stream arrival A2). */
   streamer?: boolean;
+  /** Synthetic linked carrier accounts on the test user (stream arrival A-12). */
+  linked?: { twitch?: string; kick?: string; youtube?: string };
 }
 
 async function login(
@@ -252,6 +255,7 @@ async function login(
       ...(opts.committees?.length ? { committees: opts.committees } : {}),
       ...(opts.offices?.length ? { offices: opts.offices } : {}),
       ...(opts.streamer ? { streamer: true } : {}),
+      ...(opts.linked ? { linked: opts.linked } : {}),
     }),
   });
   let res: Response | null = null;
@@ -439,30 +443,77 @@ export class Session {
     return [];
   }
 
-  /** Hand a roster-parked session off into the world. */
-  async play(playerId: string): Promise<void> {
-    await this.enterWorld(playerId);
+  /**
+   * ⭐ A GUEST, the way the front page makes one (stream arrival D4): `POST
+   * /auth/guest`, then the socket — with the door and the guest's two
+   * arrival words on its URL, since a guest runs no command. The guest mint
+   * happens on connect; arrival is probed with `look`.
+   */
+  static async guest(
+    door: { from?: ArrivalDoor; watch?: string; carrier?: string } = {}
+  ): Promise<Session> {
+    await assertPacksPresent();
+    const res = await fetch(`${SERVER_URL()}/auth/guest`, { method: 'POST' });
+    if (!res.ok) throw new Error(`wire: /auth/guest answered ${res.status}`);
+    const cookie = (res.headers.getSetCookie?.() ?? []).map((c) => c.split(';')[0]).join('; ');
+    if (!cookie) throw new Error('wire: /auth/guest set no session cookie');
+    const s = new Session();
+    s.handle = 'guest';
+    s.cookie = cookie;
+    const q = new URLSearchParams();
+    if (door.from) q.set('from', door.from);
+    if (door.watch) q.set('watch', door.watch);
+    if (door.carrier) q.set('carrier', door.carrier);
+    const url = q.toString() ? `${WS_URL()}/?${q}` : WS_URL();
+    s.ws = new WebSocket(url, { headers: { cookie } });
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error(`wire: guest socket never opened at ${url}`)), FRAME_TIMEOUT_MS);
+      s.ws.once('open', () => {
+        clearTimeout(timer);
+        resolve();
+      });
+      s.ws.once('error', (err) => {
+        clearTimeout(timer);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      });
+    });
+    s.ws.on('message', (data) => s.receive(String(data)));
+    await s.settle();
+    const deadline = Date.now() + FRAME_TIMEOUT_MS;
+    for (;;) {
+      const look = await s.cmd('look');
+      if (look.status === 'ok') break;
+      if (Date.now() > deadline) throw new Error(`wire: the guest never arrived — look answers ${look.status}`);
+      await pause(250);
+    }
+    s.proseFrames.length = 0;
+    return s;
+  }
+
+  /** Hand a roster-parked session off into the world (`suffix`: `--watch …`, stream arrival D4). */
+  async play(playerId: string, suffix = ''): Promise<void> {
+    await this.enterWorld(playerId, suffix);
     this.proseFrames.length = 0;
   }
 
   /**
    * ⭐ ARRIVE: log in with NO character and walk char-gen itself —
    * `embody species …`, `embody name …`, `embody pronouns …`,
-   * `embody aspiration …`, `embody confirm` — the way a real newcomer
+   * `embody confirm` — the way a real newcomer
    * does (economic bootstrap: the Arrival Note is written at `embody
    * confirm`, so a drive of it cannot skip intake). `confirm` hands the
    * socket off to the new avatar and destructs the Login, so its
    * envelope has nowhere to land — the arrival is probed with `look`,
    * exactly as `play` is. The picks default to a human named after the
-   * handle, `they`, the striver's road.
+   * handle, `they`.
    */
   static async embody(
     handle: string,
-    picks: { species?: string; name?: string; pronouns?: string; aspiration?: string } = {},
-    door: { from?: 'stream' } = {}
+    picks: { species?: string; name?: string; pronouns?: string } = {},
+    door: { from?: ArrivalDoor; confirm?: string; linked?: SessionOptions['linked'] } = {}
   ): Promise<Session> {
     await assertPacksPresent();
-    const cookie = await login(handle, { withCharacter: false });
+    const cookie = await login(handle, { withCharacter: false, ...(door.linked ? { linked: door.linked } : {}) });
     const s = new Session();
     s.handle = handle;
     // `from` is the door the client came in by — the show's tagged link
@@ -492,14 +543,15 @@ export class Session {
       `embody sex female`,
       `embody name ${given}`,
       `embody pronouns ${picks.pronouns ?? 'they'}`,
-      `embody aspiration ${picks.aspiration ?? 'something-better'}`,
     ]) {
       const r = await s.cmd(text);
       if (r.status !== 'ok') {
         throw new Error(`wire: '${text}' answered ${r.status} for '${handle}' — ${JSON.stringify(r.notes)}`);
       }
     }
-    s.ws.send(JSON.stringify({ type: 'command', payload: { text: 'embody confirm' } }));
+    // `door.confirm` — what follows `embody confirm` (`--watch <program>
+    // --<carrier>`, stream arrival D4), exactly as the client sends it.
+    s.ws.send(JSON.stringify({ type: 'command', payload: { text: `embody confirm${door.confirm ?? ''}` } }));
     await s.settle();
     const deadline = Date.now() + FRAME_TIMEOUT_MS;
     for (;;) {
@@ -533,9 +585,9 @@ export class Session {
    * which waits for the socket to go quiet so the handoff's own frames
    * cannot be mistaken for the probe's answer.
    */
-  private async enterWorld(playerId: string): Promise<void> {
+  private async enterWorld(playerId: string, suffix = ''): Promise<void> {
     this.ws.send(
-      JSON.stringify({ type: 'command', payload: { text: `play ${playerId}` } })
+      JSON.stringify({ type: 'command', payload: { text: `play ${playerId}${suffix}` } })
     );
     await this.settle();
     // ⚠ `cmd` clears the prose buffer, so what entering said (the welcome,

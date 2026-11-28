@@ -1,0 +1,18 @@
+# Whale meat (organism-biology D13) — dark, dense, almost black with blood.
+class: /platform/thing/Cut
+data:
+  shortDescription: slab of whale meat
+  keywords: [meat, whale-meat, slab]
+  register: indefinite
+  longDescription: A slab of meat so dark red it is nearly black, dense and close-grained as beef.
+  _materialPath: /stuff/idea/material/tissue/muscle
+  # ⭐ One piece of it, kg (organism-biology D5): a whale comes off in
+  # pieces, never one ten-tonne lot — and at FLENSING scale, never a
+  # thousand hand-sized ones: the drive's grown whale made ~1,000 objects
+  # at 40 kg a strip and stalled the world (B38).
+  portionKg: 500
+  tissues:
+    - /stuff/idea/material/tissue/muscle
+  cutting: boneless
+  difficulty: easy
+  mass: 20

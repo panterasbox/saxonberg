@@ -137,7 +137,7 @@ ceiling never withholds a path; it is only ever collapsed.
 | the type | `TooltipDoc` & co., `packages/types` |
 | blocks + builders | `components/doc/blocks.tsx` · `docs.ts` (`controlDoc`, `frameDoc`, `thingDoc`, `helpDoc`, `wayDoc`, `detailDoc`, `commandDoc`, `hoverDoc`, `termOf`) |
 | the anchor | `components/tooltip/Tip.tsx` (`<Tip tip={…}>child</Tip>`), `useTip.ts` |
-| the positioner | `components/tooltip/useFloat.ts` over `@floating-ui/react-dom`. The one positioner; the gutter menu and the tab-strip confirmation use it too |
+| the positioner | `components/tooltip/useFloat.ts` over `@floating-ui/react-dom`. The one positioner; the gutter menu and the tab-strip confirmation use it too. ⚠ It measures room against the VIEWPORT (`boundary: documentElement`), never the anchor's scroll container: the box is fixed and portaled to the body, and measuring the container made a tooltip in a short card flip and shift back ONTO its own anchor, eating the click (the which walk, 2026-11-24) |
 | the stack | `store/tooltipSlice.ts`; `TooltipLayer.tsx`, mounted once around every screen in `App.tsx` |
 | the sources | `services/tooltipSource.ts`; `websocketClient.query()` / `.wikiExcerpt()` |
 | the gate | `src/__tests__/noNativeTitle.test.ts` — **no native `title` hover text anywhere in the client** (ceiling 0; an `<iframe title>` is an accessible name and is never counted) |

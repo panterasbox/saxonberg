@@ -15,8 +15,18 @@ class: /platform/idea/species/Species
 data:
   smells: [{ aroma: /base-library/aromas/animal/goat, strength: 40 }]
   binomial: Capra hircus
-  commonNames: ["goat", "nanny", "billy", "kid"]
-  maleNames: [billy]
+  commonNames: ["goat"]
+  # ⭐ What each form is called (organism-biology D8): a word under one sex
+  # is that sex's alone; the first word of the most specific form is what
+  # the body is called. Read late, so a calf grows into its adult name.
+  variants:
+    sex:
+      female: { commonNames: [nanny], body: { add: [{ module: /trade/ranching/body-modules/udder-goat, as: [body.torso.udder], at: body.torso }] } }
+      male: { commonNames: [billy], body: { add: [{ module: /species-and-names/body-modules/gonads, as: [body.torso.gonads], at: body.torso }] } }
+    neutered: { commonNames: [wether], handlingRange: { floor: 0.3, ceiling: 1 } }
+    stage:
+      # ⭐ A young one has a fourth stomach worth taking: the vell (D5).
+      newborn: { commonNames: [kid], body: { add: [{ module: /trade/ranching/body-modules/abomasum, as: [body.torso.abomasum], at: body.torso }] } }
   _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
   _parentCladePath: /stuff/idea/species/animalia
   _defaultMaterialPath: /stuff/idea/material/tissue/flesh
@@ -43,34 +53,16 @@ data:
   feedingStyle: [graze, trough]
   ageCurve: { weanedAt: 30, matureAt: 150, agedAt: 1000, senescentAt: 1500 }
   breeding: { daylightFrom: 0, daylightTo: 0.44, gestationDays: 60, litter: 2 }
-  production:
-    # ⭐ The cow's shape at a goat's scale (dairy D13). `sex: female` and a
-    # three-day rest, as the cow's.
-    - key: milk
-      yieldRow: /stuff/idea/material/food/goat-milk
-      perGameDay: 3
-      behaviour: expire
-      windowDays: 0.6
-      yieldShape: volume
-      window: { kind: event }
-      sex: female
-      restDays: 3
-  # The ewe's joints (a goat breaks down the way a sheep does), and the vell
-  # off a kid, as the calf's.
-  butcheryYield:
-  - { cut: /trade/cooking/thing/cut-shoulder,  units: 2 }
-  - { cut: /trade/cooking/thing/cut-leg,       units: 2 }
-  - { cut: /trade/cooking/thing/cut-loin,      units: 2 }
-  - { cut: /trade/cooking/thing/cut-rib,       units: 2 }
-  - { cut: /trade/cooking/thing/cut-neck,      units: 1 }
-  - { cut: /trade/cooking/thing/cut-belly,     units: 2 }
-  - { cut: /trade/cooking/thing/cut-shank,     units: 4 }
-  - { cut: /stuff/thing/items/offal,         units: 2, fraction: 0.10 }
-  - { cut: /trade/ranching/thing/suet,          units: 1, fraction: 0.04 }
-  - { cut: /trade/cooking/thing/gut,           units: 1, fraction: 0.02 }
-  - { cut: /trade/cooking/thing/vell,          units: 1, fraction: 0.004, maxAgeDays: 30 }
-  - { cut: /trade/ranching/thing/hide,          units: 1, fraction: 0.08, conditioned: false }
-  - { cut: /trade/ranching/thing/bone,          units: 2, fraction: 0.12, conditioned: false }
+  # ⭐ The season, on the body (organism-biology D9): a mature female in
+  # her species' breeding band is in season, and an entire male in rut —
+  # conditions the thermal reconcile carries and relieves, which `breed`
+  # and `assess` read. The band is `breeding`'s, never re-authored here.
+  phenology:
+    # ⭐ A cow (a nanny) is in milk by FRESHENING — an act: the draft brings
+    # it on past her rest, drying off ends it. Never the schedule's.
+    - { condition: /platform/idea/Condition/reproduction/lactating, trigger: { event: true, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/in-season, trigger: { season: breeding, sex: female, stage: adult } }
+    - { condition: /platform/idea/Condition/reproduction/rut, trigger: { season: breeding, sex: male, stage: adult, entire: true } }
   longDescription: >-
     A rangy brown nanny with a beard, a slot-eyed stare and a working jaw.
     She has already eaten something you were going to need.

@@ -1192,7 +1192,6 @@ export class SecurityApi {
     'setHolder',
     'addInteractive',
     'removeInteractive',
-    'onConnectionAttached',
     'onLinkdead',
     // The socket's close code, recorded on the holder for `onLinkdead` to
     // consume (sign-out vs drop). Without it a body that disconnected INSIDE

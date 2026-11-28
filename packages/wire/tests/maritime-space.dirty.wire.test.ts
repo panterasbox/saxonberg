@@ -166,7 +166,7 @@ beforeAll(async () => {
     name: `Mate${Math.random().toString(36).replace(/[^a-z]/g, '').slice(0, 5)}`,
   });
   try {
-    expect((await mate.query('inventory:i:[keyword.coin]')).length).toBeGreaterThan(0);
+    expect((await mate.query('~inventory:i:[keyword.coin]')).length).toBeGreaterThan(0);
   } finally {
     mate.close();
   }

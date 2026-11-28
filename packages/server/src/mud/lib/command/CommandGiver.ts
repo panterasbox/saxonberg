@@ -18,15 +18,12 @@
  * shadow CANNOT corrupt the recency stack by intercepting these
  * methods.
  *
- * `onConnectionAttached` is intentionally NOT sealed: the worst case
- * if a subclass overrides without `super` is a missed initial reset,
- * which is recoverable when the next move triggers a delta.
- *
- * The client gets one `shell.control` `schema:reset` when
- * `_commandSchemaSubscribed` flips at `onConnectionAttached`. ⭐ Pushes and
- * pops send nothing: a frame per verb per mover per person in the room went
- * to a client that discards them, and it was half of what a crowd cost
- * (controllers-are-io D27).
+ * ⭐ Every mutation pokes `WhichSource` (the which build): what the line
+ * accepts just changed, so a kept `which` card re-reads. A poke with no
+ * subscriber stands nothing up. The client is otherwise sent nothing — the
+ * `shell.control` schema push it never read was retired by the which build
+ * (a frame per verb per mover per person in the room had been half of what
+ * a crowd cost, controllers-are-io D27).
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -52,6 +49,8 @@ import { MqlApi } from '../../api/mql';
 import { MessageApi } from '../../api/message';
 import { PromptApi, PromptCancelledError } from '../../api/prompt';
 import type { EnvelopeTemplate } from '@saxonberg/types';
+import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
+import { SubscriptionApi } from '../../api/subscription';
 import { MixinApi } from '../../api/mixin';
 import { ShellApi } from '../../api/shell';
 import type { Alias } from '../shell/Alias';
@@ -61,10 +60,10 @@ import { PlayerApi } from '../../api/player';
 import { AccessApi } from '../../api/access';
 import type { CommandController } from './CommandController';
 import { CommandDefinition } from './CommandDefinition';
-import type { CommandSchemaPayload } from '../../api/command';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Refusal } from '../errors';
+import type { AugmentRefusal } from '../augmentation/Augment';
 import { ExecutionContextApi, FrameKind, OMNI_SCOPE } from '../../api/execution-context';
 import { ProxyApi } from '../../api/proxy';
 import { MudlogApi } from '../../api/mudlog';
@@ -629,6 +628,33 @@ function compelledBy(giver: Stuff): Compeller | null {
   };
 }
 
+/** A device's refusal, as the aether rows word it (aether-devices D8). */
+const DEVICE_REFUSAL_ROWS: Readonly<Record<AugmentRefusal, string>> = {
+  'not-borne': 'aether-none',
+  packed: 'aether-packed',
+  off: 'aether-off',
+  dead: 'aether-dead',
+  'not-yours': 'aether-not-yours',
+};
+
+/**
+ * Why the DEVICE hosting the app that lent this affordance will not run
+ * it now (stream arrival D16), or null — an affordance from anything else,
+ * or from an app on a person or on a working device, is never refused.
+ *
+ * @nothing the affordance was not lent by an app on a device, or the device
+ * runs: there is no device refusal, and the match proceeds.
+ */
+function lentDeviceRefusal(source: unknown): Refusal | null {
+  if (source === 'self' || source === null || typeof source !== 'object') return null;
+  const s = source as Stuff;
+  if (!MixinApi.isAetherHosted(s)) return null;
+  const host = s.getHost();
+  if (!host || MixinApi.isCommandGiver(host) || !MixinApi.isAugment(host)) return null;
+  const why = host.conferralRefusal();
+  return why === null ? null : new Refusal(DEVICE_REFUSAL_ROWS[why], {});
+}
+
 /**
  * Mixin that adds command execution and a per-giver recency stack.
  */
@@ -689,13 +715,6 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
 
     /** Monotonic sequence allocator for stack entries. */
     private _commandSeq = 0;
-
-    /**
-     * Set after the first connection attaches; gates schema-delta
-     * emission so hydration-time pushes don't fire spurious frames
-     * to a not-yet-listening client.
-     */
-    private _commandSchemaSubscribed = false;
 
     /**
      * Build the `'self'` entry once, at registration. Walks the class
@@ -876,6 +895,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
         seq: this._commandSeq++,
       };
       this._commandStack.push(entry);
+      SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, this as unknown as Stuff);
     }
 
     /**
@@ -887,7 +907,9 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // Remove every entry sourced from `source`, across all
       // buckets. A source contributing to multiple buckets has
       // multiple entries; one detach call clears them all.
+      const before = this._commandStack.length;
       this._commandStack = this._commandStack.filter((e) => e.source !== source);
+      if (this._commandStack.length !== before) SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, this as unknown as Stuff);
     }
 
     /**
@@ -902,40 +924,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       this._commandStack = this._commandStack.filter(
         (e) => e.bucket !== 'environment' && e.bucket !== 'peers',
       );
-    }
-
-    /**
-     * Mark the schema-subscription gate open. The first connection
-     * attach is when client-side schema delivery becomes meaningful —
-     * earlier pushes are pre-subscription bookkeeping.
-     */
-    onConnectionAttached(_conn: Interactive): void {
-      if (this._commandSchemaSubscribed) return;
-      this._commandSchemaSubscribed = true;
-      // Emit a single `shell.control` carrying the full set
-      // — the client uses this as its baseline schema view.
-      this._ensureSelfEntry();
-      const payloads: CommandSchemaPayload[] = [];
-      const seenVerbs = new Set<string>();
-      for (let i = this._commandStack.length - 1; i >= 0; i--) {
-        for (const def of this._commandStack[i]!.commands) {
-          const v = def.getPrimaryVerb();
-          if (seenVerbs.has(v)) continue;
-          seenVerbs.add(v);
-          payloads.push(CommandApi.getCommandSchemaPayload(def));
-        }
-      }
-      CommandApi.emitSchemaDelta(this as unknown as Stuff, 'reset', payloads);
-    }
-
-    /**
-     * Whether the host has subscribed to schema deltas. Read by step-6
-     * emission helpers; tests use it to assert hydration silence.
-     *
-     * @internal
-     */
-    _isSchemaSubscribed(): boolean {
-      return this._commandSchemaSubscribed;
+      SubscriptionApi.poke(SUBSCRIPTION_SOURCES.which, this as unknown as Stuff);
     }
 
     /**
@@ -1486,7 +1475,26 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
       // its contribution order. `lint:verb-collisions` reads the same rule.
       const subcommandsFirst = (a: Affordance): number =>
         a.command.hasSubcommands() && !a.command.fallthrough ? 0 : 1;
-      const matches = [...sourced].sort((a, b) => subcommandsFirst(a) - subcommandsFirst(b));
+      const ordered = [...sourced].sort((a, b) => subcommandsFirst(a) - subcommandsFirst(b));
+      // ⭐⭐ **Held, never silent** (stream arrival D16): a verb lent by an
+      // app on a DEVICE whose device will not run right now (off, dead,
+      // packed, not yours) is passed over for the verb's other offer — the
+      // desk, an app on a second device. With no other offer the command
+      // is refused with that device's row, which names the fix. In the
+      // dispatcher, so no app author can forget it; it moves nothing and
+      // chooses nothing the player cannot see with `affordances`.
+      let deviceRefusal: Refusal | null = null;
+      const matches = ordered.filter((a) => {
+        const why = lentDeviceRefusal(a.source);
+        if (why === null) return true;
+        deviceRefusal ??= why;
+        return false;
+      });
+      if (matches.length === 0 && deviceRefusal !== null) {
+        outer.verb = parsed.verb;
+        outer.refuse(deviceRefusal);
+        return outer;
+      }
       // ── ② The chain (unchanged below, but for `scopeSource` riding into
       // `assemble` and each refusal handing to ③ `_otherOffer`).
       if (matches.length === 0) {

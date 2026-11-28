@@ -165,6 +165,28 @@ here is clock-hungry: span steps are the soak lane's, after merge. Merge master 
 what the drive meets), drop the worktree's own database, boot ONE world
 on a worktree-unique `WIRE_PORT`, and run them against it.
 
+⭐⭐ **The drive and the walk are the LAST things the sweep runs** — after
+the final merge of master and after the last change of this branch's own
+(a review fix, a doc-driven code tweak, an owner ask during the sweep).
+Order: merge master → drive → walk → suite (or the suite first; it is
+recorded by fingerprint either way). A change of this branch's own after
+the drive re-drives; a later merge of master is judged by `/merge` § 1b
+(does it touch what the drive exercises?), never assumed either way.
+
+**Record the run** the moment it is green — `/merge` checks 6–7 read this
+line and nothing else (the plan holding the drive record is retired by § 4
+before the merge, so a record in the plan cannot be found at merge time):
+
+```bash
+printf '%s %s %s drive %s walk %s\n' "$(tools/source-fingerprint)" \
+  "$(git rev-parse --short HEAD)" "$(date -Iseconds)" "<passed>/<total>" "<passed>/<total>" \
+  > .suite/drive-green
+```
+
+Run it from a clean, pushed tree (the fingerprint is the committed tree).
+`.suite/` is ignored, so the record stays local to the worktree, as
+`.suite/green` does.
+
 - **Record present.** Read it. Confirm every step of the script was
   actually run, and that anything it found was fixed rather than
   noted.
@@ -272,6 +294,22 @@ to the exact source. ⭐ And if the walk's subject changed since it last ran
 record "only small changes since" in place of a run; waiving a check is the
 owner's call, not yours.
 
+⭐ **The order is catch-up → drive → walk → suite, and the drive obeys the
+same rule as the walk.** `/merge` asks that the drive and walk ran after the
+LAST source commit, and a catch-up merge that brings in source IS one. A
+drive run earlier in the sweep is spent the moment master's source lands on
+the branch (the which build, 2026-11-24: driven at `106a64905`, persistence-
+model merged in after, and `/merge` refused). A master move that is docs
+only (`git diff --stat HEAD...origin/master` touches only `docs/` and `*.md`)
+spends nothing; merge it or leave it.
+
+⛔ **Never wrap `tools/suite` in `timeout`.** Its lock wait counts against
+the timer, so a contended machine kills a passing run (the which build lost
+two that way). If a run is interrupted anyway, resume it with
+`tools/suite --from <package>` on the same commit: the resume records green
+when every package has a pass for that exact source fingerprint
+(`.suite/progress`), so the work already done is not thrown away.
+
 `echo suite > .build-phase` first — the guard in `tools/hooks/` refuses the
 full suite and `lint:family` in any other phase.
 
@@ -336,6 +374,10 @@ Commit message rules:
 
 ### 7. Stop
 
+Before handing back: `.suite/green` and `.suite/drive-green` both carry the
+fingerprint of the pushed head. If a change of this branch's own landed
+after either, run what it staled — that is the sweep, not `/merge`'s job.
+
 ⛔⛔⛔ **Before you say "done", run `/merge`'s nine checks yourself**
 (`.claude/skills/merge/SKILL.md` § 1) — fetch master AGAIN (it moves while
 the suite runs), compare `.suite/green` with `tools/source-fingerprint`,
@@ -346,9 +388,11 @@ during the suite, catch up and re-verify now. Report the nine-check table.
 broken"* — /finalize was: it stopped after the suite while master moved under
 it, and recorded the walk as waived).
 
-Push the sweep commit when it's ready — no need to ask. The one
-thing you never do on your own is merge: surface what you did and
-hand back to the user for the merge.
+Push the sweep commit when it's ready — no need to ask. ⭐ Then run
+`/merge` yourself: under the owner's standing go-ahead (2026-11-25) a
+build whose nine checks all pass is merged by its own session, without
+waiting to be told. Anything ✗ or ? stops there and goes to the owner.
+Never merge a sibling's MR, and never tell a sibling to merge.
 
 > ⛔⛔ **Never say "ready" while a check is still pending — not even
 > "ready once it passes."** In a conversation about finishing a build,
@@ -359,8 +403,8 @@ hand back to the user for the merge.
 > pending and how long. If the owner asks to merge while anything is
 > pending, **stop and say so before calling the merge tool**: name the
 > check, and ask whether to wait or merge without it. Their earlier
-> "merge" is not consent to merge unverified. `tools/hooks/guard-merge`
-> and the owner's `/merge` skill back this — the hook puts the merge to the owner as a
+> "merge" — and the standing go-ahead — is not consent to merge
+> unverified. `tools/hooks/guard-merge` and the `/merge` skill back this — the hook puts the merge to the owner as a
 > permission prompt unless `.suite/green` matches the branch's source —
 > but the sentence is yours to get right first.
 

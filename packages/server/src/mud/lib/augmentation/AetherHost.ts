@@ -22,8 +22,10 @@
  *
  * `installApp(path)` is the ONE way software gets onto any host: it
  * clones the row, hosts it and records it — the default loadout uses it
- * too. `offersApps` is what this host's own list offers to `apps
- * install`; empty on a person by authoring. `manifestsAs` is how what
+ * too. What `apps install` offers is the ONE app store (stream arrival
+ * D21: the apps packs PUBLISHED with an `app-listing` document,
+ * `TemplateApi.appStore()`) — not a list on each device; a person's own
+ * wallet, calendar and forums are never in it. `manifestsAs` is how what
  * arrives through this host shows: `known` (straight to the mind — an
  * implant, a born-tuned body) or `read` (off a screen — a phone, D9).
  *
@@ -89,22 +91,23 @@ export interface AetherHost {
   uninstallApp(key: string): boolean;
   /** Is the app keyed `key` installed? (Reads the record.) */
   hasApp(key: string): boolean;
-  /** The app row paths this host's own list offers and does not yet run. */
-  availableApps(): readonly string[];
+  /** The store's app row paths this host does not yet run (stream arrival D21). */
+  availableApps(): Promise<readonly string[]>;
   /** How what arrives through this host shows to its bearer. */
   getManifestsAs(): AetherManifestation;
   /**
-   * Install the offered app whose key is `key` (`apps install <key>`).
-   * An unknown key answers with what this host offers; an app already
-   * installed answers `already`.
+   * Install the app at a path, or keyed `key`, that this host runs or the
+   * store offers (`apps install <key>`). An unknown key answers with what
+   * the store offers; an app already installed answers `already`.
    */
   installByKey(key: string): Promise<AppInstallResult>;
   /**
    * ⭐ The apps a player's words name (naming overhaul D-C5 rule 5) — by
    * its key and its running name, through the one rule — among the
-   * `installed` ones, or every one the host could run (`any`). Paths.
+   * `installed` ones, or every one the host could run (`any`: the installed
+   * ones and the store's `offered` paths, which the caller reads). Paths.
    */
-  appNamed(text: string, among: 'installed' | 'any'): NameAnswer<string>;
+  appNamed(text: string, among: 'installed' | 'any', offered?: readonly string[]): NameAnswer<string>;
 }
 
 /** What `installByKey` did. */
@@ -142,8 +145,8 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
       installedApps: { persistent: true },
       // ⚠ Authored fields must be declared to be APPLIED: the template
       // phase writes only declared persistent fields (the drive found
-      // every authored host field silently unset).
-      offersApps: { persistent: true },
+      // every authored host field silently unset). (`offersApps` retired:
+      // the app store, stream arrival D21.)
       manifestsAs: { persistent: true },
     };
 
@@ -151,9 +154,6 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Persisted: the app row paths installed on this host. */
     installedApps: string[] = [];
-
-    /** Authored: the app row paths this host's own list offers. */
-    offersApps: string[] = [];
 
     /** Authored: how what arrives through this host shows (D9). */
     manifestsAs: AetherManifestation = 'known';
@@ -243,17 +243,19 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** ⭐ `device:~apps` — the apps running on it (naming overhaul D-B5); anyone may ask. */
     public relationsFor(asker: Stuff | null): HeldRelation[] {
-      return [{ name: 'apps', meaning: 'the apps installed and running on it' }, ...super.relationsFor(asker)];
+      return [{ name: 'apps', meaning: 'the apps installed and running' }, ...super.relationsFor(asker)];
     }
 
     public relatedBy(name: string, asker: Stuff | null): RelatedSet[] {
       const below = super.relatedBy(name, asker);
       if (name !== 'apps') return below;
-      return [{ name, meaning: 'the apps installed and running on it', members: [...this._hostedApps] }, ...below];
+      return [{ name, meaning: 'the apps installed and running', members: [...this._hostedApps] }, ...below];
     }
 
-    availableApps(): readonly string[] {
-      return this.offersApps.filter((p) => !this.installedApps.includes(p));
+    async availableApps(): Promise<readonly string[]> {
+      const { TemplateApi } = await import('../../api/template');
+      const store = await TemplateApi.appStore().published();
+      return store.map((a) => a.path).filter((p) => !this.installedApps.includes(p));
     }
 
     getManifestsAs(): AetherManifestation {
@@ -262,15 +264,16 @@ export function AetherHostMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     async installByKey(key: string): Promise<AppInstallResult> {
       // A path (named by the controller) or a key (a script's exact word).
+      const offered = await this.availableApps();
       const path =
-        [...this.installedApps, ...this.offersApps].find((p) => p === key || appKeyOf(p) === key) ?? null;
-      if (path === null) return { ok: false, offered: this.availableApps().map(appKeyOf) };
+        [...this.installedApps, ...offered].find((p) => p === key || appKeyOf(p) === key) ?? null;
+      if (path === null) return { ok: false, offered: offered.map(appKeyOf) };
       const already = this.installedApps.includes(path);
       return { ok: true, app: await this.installApp(path), already };
     }
 
-    appNamed(text: string, among: 'installed' | 'any'): NameAnswer<string> {
-      const pool = among === 'installed' ? [...this.installedApps] : [...new Set([...this.installedApps, ...this.offersApps])];
+    appNamed(text: string, among: 'installed' | 'any', offered: readonly string[] = []): NameAnswer<string> {
+      const pool = among === 'installed' ? [...this.installedApps] : [...new Set([...this.installedApps, ...offered])];
       return GrammarApi.nameAmong(
         text,
         pool.map((p) => {

@@ -425,9 +425,12 @@ doc-sweep checklist, retirement decisions, the commit.
 
 ### 6. Merge
 
-**Activity.** Merge the MR. Clear context. This is the **only**
-step gated on the user — the merge is always the user's call, never
-done autonomously.
+**Activity.** Merge the MR. Clear context. ⭐ **The build session merges
+its own MR** through `/merge` once `/finalize` ends and every check
+passes — the owner's standing go-ahead (2026-11-25). Any check failed
+or unverified goes to the owner, who alone may waive it. Sessions
+report status to each other and never merge, or ask to merge, a
+sibling's MR.
 
 > ⚠ **Merge on ORIGIN, through the GitLab tool — never the git CLI.**
 > Not a preference: a CLI merge does the join in a *worktree*, which

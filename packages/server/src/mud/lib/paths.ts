@@ -112,6 +112,7 @@ export const TemplatePaths = {
   // row path (`installApp`); the key is the last segment.
   messagesApp: "/platform/idea/app/messages",
   forumsApp: "/platform/idea/app/forums",
+  broadcastApp: "/platform/idea/app/broadcast",
   calendarApp: "/platform/idea/app/calendar",
   // The unified credential wallet app — one hosted holder for every
   // credential kind (payment, travel, …).
@@ -179,6 +180,7 @@ export const TemplatePaths = {
   thermalHypothermia: "/platform/idea/Condition/thermal/hypothermia",
   thermalHyperthermia: "/platform/idea/Condition/thermal/hyperthermia",
   thermalTorpor: "/platform/idea/Condition/thermal/torpor",
+  thermalSluggish: "/platform/idea/Condition/thermal/sluggish",
 
   // Respiration anoxia condition — the affliction the drain accrues
   // dwell-time on toward the death seam (asphyxiation: drowning/vacuum).

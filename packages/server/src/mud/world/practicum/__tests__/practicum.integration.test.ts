@@ -54,6 +54,7 @@ import {
 } from "../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 import { standMaterials, TEST_TISSUES } from '../../../lib/material/__tests__/materials';
+import { setFlatParts } from '../../../lib/species/__tests__/flat-body';
 /** A light source standing in for the arcane library's GlowlightMote — the executor clones whatever the row's `locus` names. */
 class GlowlightOrb extends LightSourceMixin(Good) {}
 /** An energized locus standing in for the arcane library's SparkLocus, the same way. */
@@ -171,7 +172,7 @@ function casterIn(room: Location): MagicTester {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName("practicum-biped");
   plan.setSlots([]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: "body.torso", parent: null, tissues: [] },
     { key: "body.leg.left", parent: "body.torso", tissues: [] },
     {

@@ -48,6 +48,7 @@ import {
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Trauma } from '../../../platform/idea/Condition';
 import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
+import { setFlatParts } from '../../species/__tests__/flat-body';
 
 let n = 0;
 let bodyplanPath = '';
@@ -68,7 +69,7 @@ const FEET = ['body.leg.left.foot', 'body.leg.right.foot'];
 function footedBodyPlan(): BodyPlan {
   const plan = makeStuff(() => new BodyPlan());
   plan.setName('demo-biped');
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.left.foot', parent: 'body.leg.left', tissues: [] },

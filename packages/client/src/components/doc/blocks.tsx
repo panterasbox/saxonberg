@@ -154,7 +154,10 @@ export function FactRows({ facts }: { facts: readonly TooltipFact[] }): React.Re
     <FactTable data-testid="doc-facts">
       {facts.map((f) => (
         <React.Fragment key={`${f.label}:${f.value}`}>
-          <FactLabel>{f.label}</FactLabel>
+          <FactLabel>
+            {f.icon ? <Icon name={f.icon} label={f.label} size={12} decorative style={{ marginRight: 4, verticalAlign: "-2px" }} /> : null}
+            {f.label}
+          </FactLabel>
           <FactValue>
             {f.value}
             {sourceLine(f) ? <FactSource>{sourceLine(f)}</FactSource> : null}

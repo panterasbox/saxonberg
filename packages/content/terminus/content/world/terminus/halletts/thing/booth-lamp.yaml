@@ -1,0 +1,9 @@
+# The booth lamp — a steady light over the desk, so Hallett's reads at night
+# (stream arrival D20; the colorman's shop-lamp shape).
+class: /generic-objects/thing/SconceLamp
+extends: /stuff/thing/fixture/sconce-lamp
+data:
+  shortDescription: desk lamp
+  keywords: [lamp, light, "desk lamp"]
+  on: true
+  emittedIntensity: 1200

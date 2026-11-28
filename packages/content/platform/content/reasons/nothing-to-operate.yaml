@@ -1,0 +1,5 @@
+# No wound on the body that any (or the named) operation addresses (W7).
+facts:
+  self: text?
+says: "{% if self %}You have{% else %}They have{% endif %} nothing that operation would help."
+topic: act.deed

@@ -122,7 +122,9 @@ describe('dig.yaml / split.yaml — the arg gates', () => {
     // In your HANDS — `environment`, to the holder (`self` is read only off a
     // command giver; lint:self-contributions).
     expect(verbs(Spade, 'environment')).toContain('dig');
-    expect(verbs(Spade, 'self')).toEqual([]);
+    // (A body's own `throw` rides `TangibleMixin.self` since the which audit;
+    // `self` is read only off a command giver, so the spade gives nothing there.)
+    expect(verbs(Spade, 'self')).not.toContain('dig');
     // ⭐⭐ **And so does the WORKING — two rungs, and the drive is why.** It
     // was the instrument alone at first, and a player who walked into a quarry
     // empty-handed got *"I don't understand 'dig'"* rather than a refusal

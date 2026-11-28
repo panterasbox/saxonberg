@@ -48,14 +48,9 @@ const SCOPE = '/home/transport-tester';
  */
 class FakeHost extends Idea {
   public linkdeadCount = 0;
-  public attachedCount = 0;
 
   public onLinkdead(): void {
     this.linkdeadCount++;
-  }
-
-  public onConnectionAttached(): void {
-    this.attachedCount++;
   }
 
   public leaveIntent = false;
@@ -125,19 +120,6 @@ describe('sandbox-escape: transport direction', () => {
     ).toThrow(SecurityError);
   });
 
-  it('DENIES the socket-attach hook outbound too', async () => {
-    const fieldHost = await mintIn(null, () => new FakeHost());
-
-    expect(() =>
-      ExecutionContextApi.runRoot(
-        null,
-        'in-circle',
-        () => fieldHost.onConnectionAttached(),
-        { circleScope: SCOPE }
-      )
-    ).toThrow(SecurityError);
-  });
-
   it('ALLOWS the engine reaching INTO a circle (the crossing needs it)', async () => {
     const vessel = await mintIn(SCOPE, () => new FakeHost());
 
@@ -147,7 +129,6 @@ describe('sandbox-escape: transport direction', () => {
     ExecutionContextApi.runRoot(null, 'connection-layer', () => {
       vessel.setLeaveIntent(true);
       vessel.onLinkdead();
-      vessel.onConnectionAttached();
     });
 
     expect(

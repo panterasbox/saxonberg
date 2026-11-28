@@ -1,0 +1,14 @@
+# sapwood-hevea — a gland (organism-biology D2): the part that makes
+# latex. The tap is today's, keyed as it always was, so a
+# stored tap state restores by its key; the store stays on the tap host.
+parts:
+- key: ''
+  tissues: []
+  produces:
+  - key: latex
+    yieldRow: /stuff/idea/material/organic/latex
+    perGameDay: 0.3
+    behaviour: accrue
+    windowDays: 2
+    yieldShape: volume
+    window: {kind: weather, daylightFrom: 0, daylightTo: 1, minK: 291, maxK: 309}

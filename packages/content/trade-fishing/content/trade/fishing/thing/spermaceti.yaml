@@ -1,0 +1,20 @@
+# Spermaceti (organism-biology D13) — the waxy oil of the head's great
+# organ, bailed out of the case: the finest candles, the best lamp light.
+class: /platform/thing/Cut
+data:
+  shortDescription: tub of spermaceti
+  keywords: [spermaceti, wax, head-matter, tub]
+  register: indefinite
+  longDescription: A heavy tub of white, pearly wax that softens in the hand and smells faintly of the sea.
+  _materialPath: /trade/fishing/idea/material/spermaceti
+  # ⭐ One piece of it, kg (organism-biology D5): a whale comes off in
+  # pieces, never one ten-tonne lot — and at FLENSING scale, never a
+  # thousand hand-sized ones: the drive's grown whale made ~1,000 objects
+  # at 40 kg a strip and stalled the world (B38).
+  # The case is bailed by the tub.
+  portionKg: 100
+  tissues:
+    - /trade/fishing/idea/material/spermaceti
+  cutting: boneless
+  difficulty: easy
+  mass: 5

@@ -78,7 +78,7 @@ async function say(s: Session, text: string): Promise<string> {
 
 /** The name of the room a session is in — never its prose, which names neighbors. */
 async function roomName(s: Session): Promise<string> {
-  const ref = (await s.query('here', { fields: 'ref' })) as Array<{ displayName?: string }>;
+  const ref = (await s.query('~here', { fields: 'ref' })) as Array<{ displayName?: string }>;
   return ref[0]?.displayName ?? '';
 }
 

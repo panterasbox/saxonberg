@@ -1,0 +1,15 @@
+# organism-biology D4: a named tissue, so a module can cite it and (W5)
+# name what it leaves a carcass as. Nothing cites it before its wave.
+class: /platform/idea/material/Stone
+data:
+  name: shell
+  keywords: [shell]
+  appearance: a chalky shell, rough to the touch
+  density: 2700
+  specificHeat: 880
+  thermalConductivity: 0.5
+  hardness: 30
+  toughness: 2
+  electricalConductivity: 1.0e-10
+  waterAbsorptionCapacity: 2
+  tags: [tissue, animal, solid, mineral, shell]

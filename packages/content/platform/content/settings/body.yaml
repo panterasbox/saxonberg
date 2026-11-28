@@ -123,6 +123,13 @@ settings:
   - key: exertion.loadPowerPerRatio
     value: "0.1667"
 
+  # Extra power per band of suppressed expression — a sluggish, chilled
+  # body (or a drugged one) pays this much more of the traverse per band
+  # to cross: slowness lives in the exertion, not in a pace dial
+  # (organism-biology D9).
+  - key: exertion.suppressedPowerPerBand
+    value: "0.5"
+
   # Endurance % under which a body cannot hold a pace faster than a
   # walk: the run breaks.
   - key: exertion.paceFloorPct

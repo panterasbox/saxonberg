@@ -3,7 +3,7 @@
  * acceptance crux of social-inspection). Asserts the three tiers:
  *
  *  - **stranger** (not recognized): perceived physicality + always-outward
- *    standing show; the persona (name surface, aspiration, bio, chronicle)
+ *    standing show; the persona (name surface, bio, chronicle)
  *    is withheld entirely.
  *  - **recognized**: the persona unlocks.
  *  - **self**: everything, plus the standing digest; no observer
@@ -63,7 +63,6 @@ function makeTarget(): Stuff {
     getSex: () => 'female',
     getPronouns: () => 'she',
     getStatus: () => 'watching the road',
-    getAspiration: () => 'healer',
     getBio: () => 'A wandering healer.',
     // The viewer-aware naming face (base Stuff methods) — the fakes
     // mirror the registered face.
@@ -137,7 +136,6 @@ describe('ProfileLogic.composeCard redaction', () => {
     expect(card.recognized).toBe(false);
     // Persona hidden.
     expect(card.nameSurface).toBeUndefined();
-    expect(card.aspiration).toBeUndefined();
     expect(card.bio).toBeUndefined();
     expect(card.chronicle).toBeUndefined();
     // Observable physicality shown.
@@ -160,7 +158,6 @@ describe('ProfileLogic.composeCard redaction', () => {
     expect(card.recognized).toBe(true);
     expect(card.nameSurface?.name).toBe('Mara');
     expect(card.nameSurface?.surname).toBe('Voss');
-    expect(card.aspiration).toBe('healer');
     expect(card.bio).toBe('A wandering healer.');
   });
 

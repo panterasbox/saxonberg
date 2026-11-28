@@ -88,6 +88,25 @@ Two objects come out of a player's death because two different things have
 to happen to them: a body has to lie there and rot so it can be examined,
 and an identity has to keep playing.
 
+## ⭐⭐ Neglect kills only a body somebody answers for
+
+The four NEGLECT deaths — hypothermia, hyperthermia, starvation and
+dehydration — run their arc to the dying seam only when
+`Vitals.diesOfNeglect()` is true: a person's body (it has an interactive),
+or an OWNED one (a stamped chattel — a kept animal, D29's one mortality
+rule). The world's cast and the strays feel all of it — shivering, hungry,
+thirsty, impaired — and are not killed by it. A blow, a bleed, drowning
+and a poison still kill anybody: those are somebody's act or an accident.
+
+⭐ It is metabolism's own line (`integratesLongAbsence`: *starving the
+world's cast would be a bug rather than a lesson*) carried to the short
+gaps, because nothing in the world takes a Cast home at night, lights its
+fire or brings it water. Found by the soak lane (2026-11-26): once resident
+bodies integrated continuously, a running world lost its whole cast — the
+Delight's dairywoman dead of the cold in her own byre within a game day,
+and, at the rates measured, every Cast without an eating brain would have
+died of thirst within about four.
+
 ## The dying clock
 
 Crossing a lethal threshold no longer kills — it opens a window, and the

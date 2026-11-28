@@ -108,6 +108,9 @@ describe("MetabolicMixin cascade — reserves → conditions", () => {
 
   it("death-spiral: collapsed + starving progresses to death", () => {
     const c = makeStuff(() => new Creature());
+    // Somebody's body (a person's, or an owned one): neglect kills only
+    // what somebody answers for (`Vitals.diesOfNeglect`).
+    vi.spyOn(c, "diesOfNeglect").mockReturnValue(true);
     c.adjustReserve("endurance", Q(-100)); // collapsed (can't exert)
     c.adjustReserve("satiation", Q(-100)); // starving
     c.getReserve("endurance"); // seed
@@ -121,8 +124,20 @@ describe("MetabolicMixin cascade — reserves → conditions", () => {
     expect(c.getConditionBand()).toBe("dead");
   });
 
+  it("⭐ the world's cast goes hungry and thirsty, and lives — neglect kills only a body somebody answers for", () => {
+    const c = makeStuff(() => new Creature());
+    expect(c.diesOfNeglect()).toBe(false); // nobody's: no interactive, no owner
+    c.adjustReserve("satiation", Q(-100));
+    c.adjustReserve("hydration", Q(-100));
+    c.getReserve("endurance"); // seed
+    advance(c, 200_000); // far past both lethal accruals
+    expect(c.isDying()).toBe(false);
+    expect(c.getConditionBand()).not.toBe("dead");
+  });
+
   it("dehydration progresses faster than starvation", () => {
     const c = makeStuff(() => new Creature());
+    vi.spyOn(c, "diesOfNeglect").mockReturnValue(true);
     c.adjustReserve("satiation", Q(-100));
     c.adjustReserve("hydration", Q(-100));
     c.getReserve("endurance"); // seed

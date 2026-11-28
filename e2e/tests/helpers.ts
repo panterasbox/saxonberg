@@ -91,8 +91,10 @@ export async function mintSession(
     committees?: string[];
     /** Seat the character in each office (the seat moves). */
     offices?: string[];
-    /** Join the `streamers` group — the `stream` verb's axis (broadcast-ready). */
+    /** A broadcaster: a program named for the handle, created and run by the character (stream arrival A2). */
     streamer?: boolean;
+    /** Synthetic linked carrier accounts (stream arrival A-12). */
+    linked?: { twitch?: string; kick?: string; youtube?: string };
   } = {}
 ): Promise<{ state: SessionState; handle: string }> {
   const handle = opts.handle ?? uniqueHandle('user');
@@ -111,6 +113,7 @@ export async function mintSession(
           ...(opts.committees?.length ? { committees: opts.committees } : {}),
           ...(opts.offices?.length ? { offices: opts.offices } : {}),
           ...(opts.streamer ? { streamer: true } : {}),
+          ...(opts.linked ? { linked: opts.linked } : {}),
         },
         headers: TEST_AUTH_TOKEN ? { 'x-test-auth': TEST_AUTH_TOKEN } : {},
       });
@@ -185,7 +188,9 @@ export async function enterWorld(
   await page.goto('/');
   const roster = page.getByTestId('roster-screen');
   const input = commandInput(page);
-  await expect(roster.or(input).first()).toBeVisible();
+  // ⚠ 30 s, not the 5 s default: a loaded world answers its first page
+  // slowly (organism-biology walk, a second login at load 14).
+  await expect(roster.or(input).first()).toBeVisible({ timeout: 30_000 });
 
   // Enter the world, resiliently. Clicking "Play" sends `play <id>` over
   // the WebSocket; if the socket isn't open yet the command is dropped
@@ -249,8 +254,10 @@ export async function openWorldAs(
     wizard?: boolean;
     committees?: string[];
     offices?: string[];
-    /** Join the `streamers` group (broadcast-ready). */
+    /** A broadcaster: a program named for the handle, created and run (stream arrival A2). */
     streamer?: boolean;
+    /** Synthetic linked carrier accounts (stream arrival A-12). */
+    linked?: { twitch?: string; kick?: string; youtube?: string };
     /** Reuse a handle already minted by `mintSession` (the seat-then-enter
      *  flow: a character must EXIST before the founder can seat it). */
     handle?: string;
@@ -275,6 +282,7 @@ export async function openWorldAs(
     committees: opts.committees,
     offices: opts.offices,
     streamer: opts.streamer,
+    linked: opts.linked,
   });
   const { context, page } = await enterWorld(
     browser,

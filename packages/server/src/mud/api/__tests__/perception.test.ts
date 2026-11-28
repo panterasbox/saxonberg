@@ -11,6 +11,7 @@
  */
 
 import "../../../test-bootstrap";
+import { setFlatSenses } from '../../lib/species/__tests__/flat-body';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PerceptionApi } from '../perception';
 import { PerceptionLogic } from '../../platform/idea/api/PerceptionLogic';
@@ -46,7 +47,7 @@ function makeBipedSapiens(): Stuff {
     makeStuff(() => new BodyPlan()),
     '/stuff/idea/species/BodyPlan/biped',
   );
-  biped.setSensoryPorts([
+  setFlatSenses(biped, [
     { modality: 'vision', count: 2, position: 'frontal' },
     { modality: 'hearing', count: 2, position: 'lateral' },
     { modality: 'smell', count: 1, position: 'frontal' },
@@ -166,7 +167,7 @@ describe('PerceptionApi', () => {
         makeStuff(() => new BodyPlan()),
         '/stuff/idea/species/BodyPlan/duplicate',
       );
-      biped.setSensoryPorts([
+      setFlatSenses(biped, [
         { modality: 'vision', count: 2, position: 'frontal' },
         { modality: 'vision', count: 0, position: 'dorsal' },
       ]);

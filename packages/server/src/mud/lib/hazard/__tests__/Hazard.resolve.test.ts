@@ -65,6 +65,7 @@ import type { ConcealmentLevel } from '../../concealment/ConcealmentLevel';
 import type { MqlOneResult } from '../../../api/mql';
 import type { CommandContext } from '../../../api/command';
 import { TestHarnessApi } from '../../../api/test-harness';
+import { setFlatGaits, setFlatParts } from '../../species/__tests__/flat-body';
 
 let n = 0;
 let real = 0;
@@ -102,7 +103,6 @@ function footedBodyPlan(): BodyPlan {
   const plan = makeStuff(() => new BodyPlan());
   // A biped walks: `Mobile.traverse` runs the body-plan gate for every
   // mover, so the plan must say so.
-  plan.setLocomotionModes(['walk']);
   plan.setName('demo-biped');
   plan.setSlots([
     {
@@ -111,13 +111,15 @@ function footedBodyPlan(): BodyPlan {
       covers: ['body.leg.left.foot', 'body.leg.right.foot'],
     },
   ]);
-  plan.setBodyParts([
+  setFlatParts(plan, [
     { key: 'body.torso', parent: null, tissues: [] },
     { key: 'body.leg.left', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.left.foot', parent: 'body.leg.left', tissues: [] },
     { key: 'body.leg.right', parent: 'body.torso', tissues: [] },
     { key: 'body.leg.right.foot', parent: 'body.leg.right', tissues: [] },
   ]);
+  // W3: gaits ride a part of their own, given after the parts.
+  setFlatGaits(plan, ['walk']);
   stampTemplatePathForTest(plan, bodyplanPath);
   return plan;
 }

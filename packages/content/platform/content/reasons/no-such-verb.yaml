@@ -1,0 +1,5 @@
+# `which flurb` — a word that names nothing here and is no verb (the which build).
+facts:
+  verb: text
+says: "Nothing here answers to '{{ verb }}', and there is no verb '{{ verb }}'."
+topic: shell.error

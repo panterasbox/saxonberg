@@ -20,6 +20,7 @@
  * template resolves to one instance via `StuffApi.singleton(path)`.
  */
 
+import type { Body, BodyDelta } from '../../../lib/species/Body';
 import { type OdorTag } from '../../../lib/perception/Aroma';
 import type { PalateProfile } from '../../../lib/metabolism/Palate';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -37,6 +38,7 @@ import type { NaturalAttackSpec } from '../../../lib/combat/NaturalAttack';
 import { NaturalAttack } from '../../../lib/combat/NaturalAttack';
 import type { FieldMeta } from '../../../lib/mixin';
 import type { Season } from '../../../lib/time/CelestialProfile';
+import { ConditionApi } from '../../../api/condition';
 import { SpeciesApi } from '../../../api/species';
 
 import type { BoundaryRole } from '../../../lib/security/BoundaryRole';
@@ -44,67 +46,21 @@ import { PerceptionApi } from '../../../api/perception';
 import { MaterialApi } from '../../../api/material';
 /** A suggested character name (given + optional surname). */
 /**
- * One line of a species' butchery yield: a cut template and how many a
- * clean butchering gives. A messy one gives fewer; nothing gives more.
- *
- * ⭐⭐ **Two shapes, and the absence of `fraction` is what picks one.**
- *
- *  - **Counted** (`fraction` absent) — *this animal gives three cuts*.
- *    The shipped shape, and the honest one for a species nobody has
- *    weighed: the six fish, the wolf, the hog, the pony.
- *  - **Dressed** (`fraction` present) — *this cut is 40 % of live
- *    weight, in twelve joints*. What a stockman actually knows, and the
- *    only shape in which **the size and the condition of the animal can
- *    pay off**: a thin ewe dresses out light, a bullock dresses out
- *    heavy, and both read off one line.
- *
- * A species may mix them line by line. The arithmetic is
- * {@link Species.dressOut}.
+ * ⭐ One line to dress (organism-biology D5): a row the body's materials
+ * came off as, what it CLAIMS (a cut its muscles; any other row the
+ * materials that named it), how many parts carry it, and its piece size.
  */
-/**
- * One tissue of one part, as a share of the whole body — the output of
- * {@link Species.resolvedTissues}. The plan's topology with this
- * species' proportions applied.
- */
-export interface ResolvedTissue {
-  /** The `BodyPart.key` this tissue sits in. */
-  partKey: string;
-  /** Material templatePath, e.g. `/stuff/idea/material/tissue/muscles/loin`. */
-  tissuePath: string;
-  /** Share of the whole body's mass, `(0, 1]`. */
-  share: number;
-}
-
-export interface ButcheryYield {
-  /** Template path of the Provision a cut produces. */
-  cut: string;
-  /** Units a clean butchering yields (a rounded-down share on a poor one). */
-  units: number;
-  /**
-   * Share of the animal's LIVE weight this line takes, `(0, 1]`. Absent
-   * ⇒ the counted shape: the units are the whole statement and no mass
-   * is derived.
-   */
-  fraction?: number;
-  /**
-   * Does body condition scale this line? Default **true**, because most
-   * of what comes off an animal is flesh and fat. ⭐ `false` is the
-   * interesting case and it is a real fact: **a hide and a skeleton are
-   * the size the animal is, not the shape it is in.** A starved ewe has
-   * the same bones as a finished one.
-   *
-   * Meaningless without `fraction` (a counted line has no mass to
-   * scale).
-   */
-  conditioned?: boolean;
-  /**
-   * ⭐ **This line comes off a YOUNG body only** (dairy D8): the vell — a
-   * calf's fourth stomach, the source of rennet — is only worth taking
-   * before the animal is weaned onto grass. Game-days; a body older than
-   * this yields nothing on the line. Absent ⇒ every age. An age the
-   * caller does not know keeps the line (unmodelled is open).
-   */
-  maxAgeDays?: number;
+export interface DressLine {
+  row: string;
+  claims: readonly string[];
+  /** The present parts carrying the claim — the floor on the piece count. */
+  parts: number;
+  /** One piece's size (a cut row's `portionKg`), or null. */
+  portionKg: number | null;
+  /** Does condition scale it? A hide and a skeleton are the size the animal IS. */
+  conditioned: boolean;
+  /** A coat's own mass, kg (`Body.coatMassKg`) — it has depth, not a tissue share. Kept at any weight. */
+  coatKg?: number;
 }
 
 /**
@@ -244,6 +200,16 @@ export interface VitalBand {
  * thing.
  */
 const BIRTH_MASS_FRACTION = 0.07;
+
+/**
+ * ⭐ The von Bertalanffy constants (organism-biology D8), derived — no row
+ * authors them. The raw curve reaches 95 % of its asymptote at `matureAt`
+ * (`k·matureAt = GROWTH_K_T`), and `b` puts the NORMALIZED curve (raw over
+ * raw-at-maturity) at {@link BIRTH_MASS_FRACTION} at birth:
+ * `(1 − b)³ / 0.95 = 0.07` and `b·e^(−kT) = 1 − 0.95^(1/3)`.
+ */
+const GROWTH_B = 1 - Math.cbrt(BIRTH_MASS_FRACTION * 0.95);
+const GROWTH_K_T = Math.log(GROWTH_B / (1 - Math.cbrt(0.95)));
 
 export interface AgeCurveSpec {
   /** Game-days from birth to weaning — off the mother, on solid feed. */
@@ -465,6 +431,16 @@ export interface TapSpec {
    */
   window?: TapWindowSpec;
   /**
+   * ⭐⭐ **The condition the body must carry for this tap to run**
+   * (organism-biology D9) — `/platform/idea/Condition/reproduction/
+   * lactating` on an udder, `…/laying` on an oviduct. ONE schedule says a
+   * body is in milk: the species' phenology (or the freshening act) brings
+   * the condition on, and the tap reads it. Shut: `not-lactating` /
+   * `not-laying`. (The `photoperiod` and `event` window kinds it replaced
+   * are gone.)
+   */
+  activeIn?: string;
+  /**
    * What a take produces, and therefore **whether a vessel is needed** —
    * derived from the shape, never a second flag.
    *
@@ -504,12 +480,6 @@ export interface TapSpec {
    */
   takeMs?: number;
   /**
-   * ⭐ **The sex that gives this** (dairy D12). A bull is not milked and a
-   * cockerel lays nothing — a species fact about the tap, read against the
-   * host's own sex. Absent ⇒ either sex (wool, honey, sap).
-   */
-  sex?: 'female' | 'male';
-  /**
    * ⭐ Game-days a dried-off `expire` tap RESTS before it may come back
    * (dairy D12) — a cow's dry period. Absent ⇒ no rest modelled.
    */
@@ -527,16 +497,6 @@ export interface TapSpec {
 export type TapWindowSpec =
   /** Always open. The default when `window` is absent. */
   | { kind: 'always' }
-  /**
-   * Opened by an event and closed by one: `freshen()` opens, drying off
-   * closes. Milk's own shape — a lactation is not a season.
-   */
-  | { kind: 'event' }
-  /**
-   * Open while daylength sits inside a band, as a fraction of the
-   * rotation. A wrapping band is legal (`breedsAtDaylight`'s shape).
-   */
-  | { kind: 'photoperiod'; daylightFrom: number; daylightTo: number }
   /** The HOST answers — a hive's forage radius. `biomeWindowOpen`. */
   | { kind: 'biome' }
   /**
@@ -584,6 +544,10 @@ export type TapClosedReason =
   | 'dried-off'
   | 'brooding'
   | 'no-forage'
+  /** ⭐ The body does not carry the tap's `activeIn` condition (D9): not in milk. */
+  | 'not-lactating'
+  /** ⭐ …nor in lay. */
+  | 'not-laying'
   /**
    * ⭐ Not a season at all (dairy D12): the tap is the other sex's. Never
    * answered by `tapWindow` — `planTap` asks it first, so the host's own
@@ -600,6 +564,35 @@ export type TapClosedReason =
  * authors** — the window is stated in daylength, and the calendar
  * decides when that happens.
  */
+/**
+ * ⭐⭐ When a body carries a condition on a schedule (organism-biology D9):
+ * a conjunction of the terms it authors. A term the world does not model
+ * (no clock, no sex recorded, no age curve) reads as HOLDING — the taps'
+ * tri-state rule. `stage` is *at or past* that stage (an aged cow still
+ * milks). `season: breeding` is the species' own `breeding` band, never
+ * re-authored. `event: true` is brought on and off by an ACT (freshening,
+ * drying off), never by the reconcile.
+ */
+export interface PhenologyTrigger {
+  daylightFrom?: number;
+  daylightTo?: number;
+  rising?: boolean;
+  season?: 'breeding';
+  coreBelowK?: number;
+  coreAboveK?: number;
+  sex?: string;
+  stage?: LifeStage;
+  /** Entire (not neutered) — a steer has no rut. */
+  entire?: boolean;
+  event?: boolean;
+}
+
+/** One scheduled condition: carried while its trigger holds, relieved when it stops. */
+export interface PhenologyEntry {
+  condition: string;
+  trigger: PhenologyTrigger;
+}
+
 export interface BreedingSpec {
   /**
    * The daylength band, as a fraction of the rotation, in which this
@@ -629,6 +622,68 @@ export const LIFE_STAGES = [
 ] as const;
 
 export type LifeStage = (typeof LIFE_STAGES)[number];
+
+/**
+ * ⭐ Which form of a species one body is (organism-biology D8): its sex and
+ * its life stage. The key every variant-aware read takes — `bodyFor`,
+ * `getCommonNames`, the handling dials, `massAt`. Absent members mean
+ * *the species' own*, so `{}` is the plan's body with the species' words.
+ */
+export interface BodyVariant {
+  sex?: string | null;
+  stage?: LifeStage | null;
+  /**
+   * ⭐ Castrated before maturity (D8, W7) — derived on the body (male, its
+   * gonads lost before `matureAt`), never authored: a steer, an ox.
+   */
+  neutered?: boolean;
+}
+
+/**
+ * ⭐ How one form of a species differs from the species (D8): it overrides
+ * the species' own fields BY THEIR OWN NAMES — so no reader learns a second
+ * vocabulary — and changes the body.
+ */
+export interface VariantSpec {
+  /** Words this form answers to, most specific first (`bull`, `calf`). */
+  commonNames?: string[];
+  /** This form's own biddability (an ox is steadier than a bull). */
+  biddability?: number;
+  /** This form's own handling range. */
+  handlingRange?: HandlingRange;
+  /** This form's adult mass as a factor of the species' (a bull outweighs a cow). */
+  massFactor?: number;
+  /** Modules this form adds and scales on the plan (an udder; a calf's big head). */
+  body?: BodyDelta;
+}
+
+/**
+ * The neutered form (D8, W7): a male's form overridden once more, its own
+ * words by life stage (a steer grows into an ox), its sex form's words
+ * replaced rather than added to (an ox is not a bull).
+ */
+export interface NeuteredSpec extends VariantSpec {
+  stage?: Partial<Record<LifeStage, VariantSpec>>;
+}
+
+/**
+ * ⭐⭐ One stage of a species that changes its body (organism-biology D10):
+ * the plan the stage is built on, and its mass as a factor of the curve's
+ * (≤ 1 across a change — mass is never created). A tadpole, a froglet, a
+ * frog; a larva, a pupa, a moth. The stage's names are
+ * `variants.stage.<stage>.commonNames` (D8).
+ */
+export interface DevelopmentStage {
+  plan: string;
+  massFactor?: number;
+}
+
+/** A species' forms: by sex, castration, and life stage. */
+export interface SpeciesVariants {
+  sex?: Record<string, VariantSpec>;
+  neutered?: NeuteredSpec;
+  stage?: Partial<Record<LifeStage, VariantSpec>>;
+}
 
 /**
  * Per-species vital baselines + survivable bands. Keyed by the
@@ -687,10 +742,18 @@ export default class Species extends SingletonMixin(
   protected commonNames: string[] = [];
 
   /**
-   * The {@link commonNames} only a male answers to (`bull`, `ram`, `billy`): a cow
-   * is not a bull, and `milk bull` must not find her.
+   * ⭐ This species' forms (organism-biology D8): what a male, a female, a
+   * newborn is called, how it handles, what it weighs, how its body
+   * differs. Words under one sex are that sex's alone — a cow is not a
+   * bull, and `milk bull` must not find her — which retired `maleNames`.
    */
-  protected maleNames: string[] = [];
+  protected variants: SpeciesVariants = {};
+
+  /** One `Body` per variant key, built on first read; reset when the plan's body changes. */
+  private bodies: { of: Body | null; byKey: Map<string, Body> } = { of: null, byKey: new Map() };
+
+  /** ⭐ Its development (D10): a stage that changes the body names its own plan. */
+  protected development: Partial<Record<LifeStage, DevelopmentStage>> = {};
 
   /** Path to the BodyPlan singleton. */
   public _bodyPlanPath: string | null = null;
@@ -765,11 +828,34 @@ export default class Species extends SingletonMixin(
    */
   protected ageCurve: AgeCurveSpec | null = null;
 
-  /** What this species produces while you keep it (D25). Empty = nothing. */
-  protected production: TapSpec[] = [];
+  /**
+   * ⭐ How this species' body differs from its plan, for every form
+   * (organism-biology D1): modules it adds (a tree's sapwood, a sheep's
+   * fleece, a bee's crop) and instances it scales. Applied before a
+   * form's own. Absent on most rows: the plan's body is the species'.
+   */
+  protected body: BodyDelta | null = null;
+
+  /**
+   * ⭐ How often a body of this species moults, game-days (organism-biology
+   * D7) — a crab sheds its shell and a lost claw comes back at the next
+   * one. `0` = it does not moult.
+   */
+  protected moultEveryDays: number = 0;
 
   /** When and how it breeds (D26), or `null` for a species that does not. */
   protected breeding: BreedingSpec | null = null;
+
+  /**
+   * ⭐ What holds this body up where the square-cube law would not
+   * (organism-biology D12): `[{ limit, by }]` — a whale's water, a dragon's
+   * magic. Read by `lint:scaling` (a species over a limit must say) and the
+   * dossier; never a runtime refusal.
+   */
+  protected pays: { limit: string; by: string }[] = [];
+
+  /** ⭐ This species' schedule of conditions (D9) — the season, the rut, the milk, the den. */
+  protected phenology: PhenologyEntry[] = [];
 
   /**
    * `'diurnal'`, `'nocturnal'`, `'crepuscular'`, `'cathemeral'`,
@@ -917,47 +1003,17 @@ export default class Species extends SingletonMixin(
    */
   protected feedingStyle: FeedingStyle[] | null = null;
 
-  /**
-   * ⭐ **What a carcass of this species yields to a knife** — a list of
-   * `{ cut, units }`, where `cut` is the template path of the Provision a
-   * clean butchering produces and `units` is how many a clean one gives.
-   *
-   * It lives here because the Species row is already the field guide for
-   * the animal — `diet`, `lifespanMax`, `naturalAttacks`, `vitalProfile`,
-   * and `sentient` are all here — so a new huntable animal is ONE row and
-   * a second butcher is content. A separate butchery Idea would have been
-   * a row in strict 1:1 with this one plus a second catalogue to warm, for
-   * no gain.
-   *
-   * ⭐ **Empty is not a gap; it is a statement.** An empty yield means
-   * *there is nothing here worth cutting* — the right answer for a rat, a
-   * canary and a beetle, and authored rather than crashed.
-   */
-  protected butcheryYield: ButcheryYield[] = [];
 
 
 
 
-  /**
-   * Memo for {@link resolvedTissues}. ⚠ Ordinary internal state, so
-   * TypeScript `private` rather than `#`: a `Species` is a Stuff behind
-   * the call-security proxy, and a `#` slot is unreachable from a method
-   * dispatched through it.
-   */
-  private resolvedTissuesCache: ResolvedTissue[] | null = null;
+
 
   /**
    * What this species needs of a water (fishing D4). `null` — not in
    * any water: the cat, the pig, the collie. See {@link Habitat}.
    */
   protected habitat: Habitat | null = null;
-
-  /**
-   * ⭐ How this species breathes at a stage, where it differs from its
-   * plan's (underwater D21): a tadpole on gills, a froglet on gills and
-   * lungs both, the adult on its plan. Unset stages take the plan's.
-   */
-  protected breathingByStage: Partial<Record<LifeStage, BreathingSpec[]>> = {};
 
   /** ⭐ What water a stage needs, where it differs from {@link habitat} (D21). */
   protected habitatByStage: Partial<Record<LifeStage, Habitat>> = {};
@@ -1046,8 +1102,9 @@ export default class Species extends SingletonMixin(
     baseMass: { persistent: true, authorable: true },
     stature: { persistent: true, authorable: true },
     commonNames: { persistent: true },
-    maleNames: { persistent: true },
+    variants: { persistent: true },
     _bodyPlanPath: { persistent: true, ref: 'identity:constituent' },
+    development: { persistent: true, authorable: true },
     _parentCladePath: { persistent: true, ref: 'identity:constituent' },
     _defaultMaterialPath: { persistent: true, ref: 'identity:constituent' },
     lifecycleStates: { persistent: true },
@@ -1078,8 +1135,11 @@ export default class Species extends SingletonMixin(
     feedingStyle: { persistent: true, authorable: true },
     adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
-    production: { persistent: true, authorable: true },
+    body: { persistent: true },
+    moultEveryDays: { persistent: true, authorable: true },
     breeding: { persistent: true, authorable: true },
+    phenology: { persistent: true, authorable: true },
+    pays: { persistent: true, authorable: true },
     circadianBand: { persistent: true },
     diet: { persistent: true },
     visionProfile: { persistent: true },
@@ -1088,7 +1148,6 @@ export default class Species extends SingletonMixin(
     palate: { persistent: true },
     nameBanks: { persistent: true },
     sentient: { persistent: true },
-    butcheryYield: { persistent: true, authorable: true },
     // ⭐ Level 0: natural history a player is MEANT to learn — the whole
     // pedagogy claim of the fishery is that where a species is found is
     // derivable from what it needs (fishing D4). The game shows the
@@ -1096,7 +1155,6 @@ export default class Species extends SingletonMixin(
     // number, and a wiki panel printing the tolerances is the field
     // guide the angler is supposed to have read.
     habitat: { persistent: true, authorable: true },
-    breathingByStage: { persistent: true, authorable: true },
     habitatByStage: { persistent: true, authorable: true },
 
     // ── What you learn by meeting it ──
@@ -1158,115 +1216,149 @@ export default class Species extends SingletonMixin(
     this.stature = value;
   }
 
-  public getCommonNames(): readonly string[] { return this.commonNames; }
+  /**
+   * ⭐ The words a body of this species answers to (D8) — with a variant,
+   * its form's words first, most specific first (stage, then sex), then the
+   * species' own; less any word that belongs only to the OTHER sex (a
+   * word authored under `variants.sex.<other>` and not the species' own or
+   * this sex's). Without a variant, the species' own words. The first is
+   * what the body is called.
+   */
+  public getCommonNames(variant?: BodyVariant): readonly string[] {
+    if (!variant) return this.commonNames;
+    const forms = this.formsOf(variant).reverse();
+    const words = [...forms.flatMap((f) => f.commonNames ?? []), ...this.commonNames];
+    const others = new Set<string>();
+    // ⭐ A neutered body is not called what an entire one is (an ox is not
+    // a bull): its sex form's own words go, unless the neutered form says them.
+    const neutered = variant.neutered && variant.sex ? this.variants.neutered : undefined;
+    if (neutered) {
+      const kept = new Set([...(neutered.commonNames ?? []), ...Object.values(neutered.stage ?? {}).flatMap((f) => f?.commonNames ?? [])]);
+      for (const w of this.variants.sex?.[variant.sex!]?.commonNames ?? []) if (!kept.has(w)) others.add(w);
+    }
+    // A body of no recorded sex excludes nothing (as the stamp never did).
+    if (variant.sex) {
+      for (const [sex, spec] of Object.entries(this.variants.sex ?? {})) {
+        if (sex === variant.sex) continue;
+        for (const w of spec.commonNames ?? []) if (!this.ownOrSexWord(w, variant.sex)) others.add(w);
+      }
+    }
+    return [...new Set(words)].filter((w) => !others.has(w));
+  }
+
+  /** Is `w` one of the species' own words, or one of `sex`'s? */
+  private ownOrSexWord(w: string, sex: string | null | undefined): boolean {
+    if (this.commonNames.includes(w)) return true;
+    return !!sex && (this.variants.sex?.[sex]?.commonNames ?? []).includes(w);
+  }
   public setCommonNames(value: string[]): void { this.commonNames = value; }
-  public getMaleNames(): readonly string[] { return this.maleNames; }
-  public setMaleNames(value: string[]): void { this.maleNames = value; }
+  /** This species' forms (D8). */
+  public getVariants(): SpeciesVariants { return this.variants; }
+
+  /**
+   * Name this species' forms. ⭐ Async (the `setModules` shape): every
+   * module a form's body adds is ensured, so a variant's body can be built
+   * on a read. A path naming no module throws (P3).
+   */
+  public async setVariants(value: SpeciesVariants | null): Promise<void> {
+    const v = value ?? {};
+    const forms = [
+      ...Object.values(v.sex ?? {}),
+      ...(v.neutered ? [v.neutered, ...Object.values(v.neutered.stage ?? {})] : []),
+      ...Object.values(v.stage ?? {}),
+    ] as VariantSpec[];
+    await this.ensureDeltas(forms.map((f) => f.body));
+    this.applyVariants(v);
+  }
+
+  /**
+   * ⭐ Load what body deltas cite (D1, D3): every module they add, then
+   * every material those modules' parts and outsides are made of, and every
+   * material an integument override names — with this species as holder,
+   * so a form's body never meets an unloaded tissue on a read.
+   */
+  private async ensureDeltas(deltas: readonly (BodyDelta | null | undefined)[]): Promise<void> {
+    const catalogue = SpeciesApi.modules();
+    const modulePaths = new Set(deltas.flatMap((d) => (d?.add ?? []).map((r) => r.module)));
+    const modules = await Promise.all([...modulePaths].map((p) => catalogue.ensure(p)));
+    const materials = new Set<string>();
+    for (const m of modules) {
+      for (const part of m.parts) for (const t of part.tissues) materials.add(t.tissue);
+      for (const i of [m.integument, ...m.parts.map((p) => p.integument)]) {
+        for (const layer of [i?.skin, i?.under, i?.coat]) if (layer) materials.add(layer.material);
+      }
+    }
+    for (const d of deltas) {
+      for (const i of Object.values(d?.integument ?? {})) {
+        for (const layer of [i.skin, i.under, i.coat]) if (layer) materials.add(layer.material);
+      }
+    }
+    const holder = this.getIdentityPath() ?? null;
+    await Promise.all([...materials].map((p) => StuffApi.ensureConstituent(p, holder)));
+  }
+
+  /** Name this species' forms when the modules they add are already resident (a fixture; the setter above). */
+  public applyVariants(value: SpeciesVariants | null): void {
+    this.variants = value ?? {};
+    this.bodies = { of: null, byKey: new Map() };
+  }
+
+  /**
+   * The forms that apply to `variant`, least specific first: sex, the
+   * neutered form (only on a body with a sex), the stage, then the neutered
+   * form's own stage (a steer's adult is an ox).
+   */
+  private formsOf(variant: BodyVariant | undefined): VariantSpec[] {
+    const out: VariantSpec[] = [];
+    if (variant?.sex) {
+      const s = this.variants.sex?.[variant.sex];
+      if (s) out.push(s);
+    }
+    const neutered = variant?.neutered && variant.sex ? this.variants.neutered : undefined;
+    if (neutered) out.push(neutered);
+    if (variant?.stage) {
+      const st = this.variants.stage?.[variant.stage];
+      if (st) out.push(st);
+      const ns = neutered?.stage?.[variant.stage];
+      if (ns) out.push(ns);
+    }
+    return out;
+  }
 
   public isSentient(): boolean { return this.sentient; }
   public setSentient(value: boolean): void { this.sentient = value; }
 
-  /** What a carcass yields to a knife; empty ⇒ nothing worth cutting. */
-  public getButcheryYield(): readonly ButcheryYield[] {
-    return this.butcheryYield;
-  }
-  /**
-   * ⚠ **Refuses a nonsense `fraction` rather than dropping it**, for
-   * `setFeedingStyle`'s reason: a line authored `fraction: 40` (percent,
-   * not share) would otherwise dress a 70 kg ewe out at 2,800 kg of meat
-   * and nothing would say a word. A share outside `(0, 1]` is a typo
-   * every time.
-   */
-  public setButcheryYield(value: ButcheryYield[]): void {
-    if (!Array.isArray(value)) {
-      this.butcheryYield = [];
-      return;
-    }
-    for (const line of value) {
-      if (line.fraction === undefined) continue;
-      if (
-        !Number.isFinite(line.fraction) ||
-        line.fraction <= 0 ||
-        line.fraction > 1
-      ) {
-        throw new RangeError(
-          `Species.butcheryYield: '${line.cut}' authors fraction ` +
-            `${String(line.fraction)} — a share of live weight in (0, 1], ` +
-            `not a percentage.`,
-        );
-      }
-    }
-    this.butcheryYield = value;
-  }
 
 
 
   /**
-   * ⭐⭐ **Every tissue of every part of a body of this species, as a
-   * share of the whole body** — the plan's topology with this species'
-   * proportions applied, normalised so the shares sum to 1.
+   * ⭐⭐ **The body of one of these** (organism-biology D1, S2) — the
+   * plan's modules with this species' adjustments applied. Every anatomy
+   * question is asked of it: which parts, what tissues as shares of the
+   * whole (butchery's read), what is interior, which senses.
    *
-   * This is what butchery reads: a cut's mass is the summed share of the
-   * muscles it claims, times the carcass's own mass.
-   *
-   * ⚠ **A per-SPECIES share override is deferred to the wave that reads
-   * it.** The plan had it here, and `lint:unconsumed-seams` was right to
-   * refuse: an authored field whose only reader is a derived method in
-   * its own file is a seam one wave ahead of its consumer, and this repo
-   * has paid for that three times. It lands with the butcher's cut
-   * masses, where a pig being a third fat changes something a player can
-   * see. ⚠ Normalising by the
-   * plan's own total is what lets a one-part test fixture stay honest —
-   * shipped rows sum to 1 already (`lint:anatomy` clause (a)) and the
-   * division is identity there.
-   *
-   * ⚠⚠ **Not `Vitals.bodyPartDeltas`.** That resolver merges a
-   * per-INSTANCE delta (this animal is missing a leg) over the structure;
-   * a share override is a fact about the KIND. Routing species data
-   * through an instance mixin would have every beast and every corpse in
-   * the world carry a copy of a fact about its species.
+   * With a variant (W2), its forms' body deltas apply — a calf's big head,
+   * a cow's udder — memoized per sex and stage; with none, or a form that
+   * changes no body, the plan's own body. `null` for a species with no
+   * resolvable plan.
    */
-  public resolvedTissues(): ResolvedTissue[] {
-    if (this.resolvedTissuesCache) return this.resolvedTissuesCache;
-    const plan = this.getBodyPlan();
-    const parts = plan?.getBodyParts() ?? [];
-    const raw: ResolvedTissue[] = [];
-    let total = 0;
-    for (const part of parts) {
-      for (const t of part.tissues ?? []) {
-        raw.push({ partKey: part.key, tissuePath: t.tissuePath, share: t.share });
-        total += t.share;
-      }
+  public bodyFor(variant?: BodyVariant): Body | null {
+    const plan = this.planFor(variant?.stage ?? null);
+    if (!plan) return null;
+    const base = plan.getBody();
+    const deltas = [this.body, ...this.formsOf(variant).map((f) => f.body)].filter((d): d is BodyDelta => !!d);
+    if (deltas.length === 0) return base;
+    // ⭐ Memoized against the DEFAULT plan's body (a module change resets
+    // it); a stage on its own plan carries that plan in its key.
+    const home = this.getBodyPlan()?.getBody() ?? base;
+    if (this.bodies.of !== home) this.bodies = { of: home, byKey: new Map() };
+    const key = `${plan.getTemplatePath() ?? ''}|${variant?.sex ?? ''}|${variant?.stage ?? ''}|${variant?.neutered && variant.sex ? 'n' : ''}`;
+    let body = this.bodies.byKey.get(key);
+    if (!body) {
+      body = plan.bodyWith(deltas);
+      this.bodies.byKey.set(key, body);
     }
-    if (!(total > 0)) {
-      this.resolvedTissuesCache = [];
-      return this.resolvedTissuesCache;
-    }
-    // Normalise to proportions of the plan, then apply this species'
-    // targets and rescale the remainder so the sum is 1 again.
-    const normalised = raw.map((t) => ({ ...t, share: t.share / total }));
-    this.resolvedTissuesCache = normalised;
-    return normalised;
-  }
-
-  /** This species' share of body mass made up of `tissuePath`, over all parts. */
-  public tissueShareOf(tissuePath: string): number {
-    let sum = 0;
-    for (const t of this.resolvedTissues()) {
-      if (t.tissuePath === tissuePath) sum += t.share;
-    }
-    return sum;
-  }
-
-  /** The part keys carrying `tissuePath` on this species' plan. */
-  public partsCarrying(tissuePath: string): string[] {
-    const out: string[] = [];
-    for (const t of this.resolvedTissues()) {
-      if (t.tissuePath === tissuePath && !out.includes(t.partKey)) {
-        out.push(t.partKey);
-      }
-    }
-    return out;
+    return body;
   }
 
   /**
@@ -1292,67 +1384,35 @@ export default class Species extends SingletonMixin(
   public dressOut(args: {
     liveKg: number;
     fleshPct?: number;
-    /**
-     * ⭐⭐ **What each cut row CLAIMS**, keyed by the row's path — supplied
-     * by the caller, which reads it off one cloned exemplar per line.
-     *
-     * ⚠ Passed in rather than resolved here, and deliberately: resolving
-     * a template would make this method async and impure, and it is the
-     * one piece of arithmetic in the chain that a test can call with
-     * numbers and no world. The butcher has the exemplars in hand anyway.
-     */
-    claims?: ReadonlyMap<string, readonly string[]>;
-    /**
-     * The body's age in game-days — a line authoring `maxAgeDays` comes
-     * off only a body younger than that. Absent ⇒ every line is kept.
-     */
-    ageDays?: number;
+    /** ⭐ The lines the body gave (D5) — its materials' rows, with their claims. */
+    lines: readonly DressLine[];
+    /** The body they came off, and the parts still on it. */
+    body: Body;
+    present?: (partKey: string) => boolean;
   }): DressedLine[] {
     const liveKg = Number.isFinite(args.liveKg) ? Math.max(0, args.liveKg) : 0;
     const finish = finishFactor(
       Number.isFinite(args.fleshPct ?? NaN) ? (args.fleshPct as number) : 55,
     );
     const out: DressedLine[] = [];
-    const age = Number.isFinite(args.ageDays ?? NaN) ? (args.ageDays as number) : null;
-    for (const line of this.butcheryYield) {
-      if (
-        age !== null &&
-        line.maxAgeDays !== undefined &&
-        Number.isFinite(line.maxAgeDays) &&
-        age > line.maxAgeDays
-      ) {
-        continue;
-      }
-      const units = Math.max(1, Math.round(line.units));
-      const claimed = args.claims?.get(line.cut) ?? [];
-      // ⭐⭐⭐ **A claiming line's share DERIVES from the muscles it
-      // takes**, so `fraction` stops being a second copy of a fact the
-      // body plan already states. A line claiming nothing (a hide, the
-      // offal, the blood) keeps its authored share — those are not
-      // muscles and the plan says nothing about them.
-      const derived = claimed.length
-        ? claimed.reduce((a, t) => a + this.tissueShareOf(t), 0)
-        : undefined;
-      const fraction = derived ?? line.fraction;
-      if (fraction === undefined) {
-        out.push({ cut: line.cut, units, kgEach: null, tissues: claimed });
-        continue;
-      }
-      // ⚠ A claimed line is never `conditioned: false`: the share came
-      // from muscle, and muscle is exactly what condition moves.
-      const scale =
-        derived === undefined && line.conditioned === false ? 1 : finish;
-      const kg = liveKg * fraction * scale;
-      // ⭐ Below the threshold the line yields NOTHING, which is the
-      // honest answer rather than a gram of suet: there is nothing worth
-      // taking off a animal that small. The retired stockyard controller
-      // used the same figure for the same reason.
-      if (kg < 0.05) continue;
+    for (const line of args.lines) {
+      // ⭐⭐⭐ A line's share DERIVES from what it claims, over the parts
+      // still on the body — never authored, never a second copy of a fact
+      // the body already states.
+      const share = line.claims.reduce((a, t) => a + args.body.tissueShareAmong(t, args.present), 0);
+      const kg = liveKg * share * (line.conditioned ? finish : 1) + (line.coatKg ?? 0);
+      // ⭐ Below five grams the line yields NOTHING — there is nothing
+      // worth taking. (A crab's meat is grams; a gram of suet is not.) A
+      // coat is kept at any weight: a fistful of down is a fistful.
+      if (!(kg >= 0.005) && !((line.coatKg ?? 0) > 0)) continue;
+      const byPortion = line.portionKg && line.portionKg > 0 ? Math.round(kg / line.portionKg) : 0;
+      const units = Math.max(1, line.parts, byPortion);
       out.push({
-        cut: line.cut,
+        cut: line.row,
         units,
-        kgEach: Math.round((kg / units) * 100) / 100,
-        tissues: claimed,
+        // A piece that weighs anything weighs at least a gram.
+        kgEach: Math.max(0.001, Math.round((kg / units) * 100) / 100),
+        tissues: line.claims,
       });
     }
     return out;
@@ -1386,38 +1446,6 @@ export default class Species extends SingletonMixin(
       if (h) out[stage as LifeStage] = h;
     }
     this.habitatByStage = out;
-  }
-
-  /**
-   * ⭐ How a body of this species breathes at `stage` (underwater D21):
-   * the stage's own breathing, else the plan's.
-   */
-  public breathingFor(stage: LifeStage | null): readonly BreathingSpec[] {
-    // A body with no age to read is taken as grown (an authored frog is an adult).
-    const own = this.breathingByStage[stage ?? 'adult'];
-    return own ?? this.getBodyPlan()?.getBreathing() ?? [{ medium: 'air', apparatus: 'lungs', intake: 1 }];
-  }
-
-  public getBreathingByStage(): Partial<Record<LifeStage, BreathingSpec[]>> {
-    return { ...this.breathingByStage };
-  }
-
-  public setBreathingByStage(value: Partial<Record<LifeStage, BreathingSpec[]>> | null): void {
-    const out: Partial<Record<LifeStage, BreathingSpec[]>> = {};
-    for (const [stage, specs] of Object.entries(value ?? {})) {
-      if (!(LIFE_STAGES as readonly string[]).includes(stage)) {
-        throw new TypeError(`Species.setBreathingByStage: '${stage}' is not a life stage`);
-      }
-      if (!Array.isArray(specs)) continue;
-      out[stage as LifeStage] = specs.map((b) => {
-        const intake = Number(b.intake);
-        if (typeof b.medium !== 'string' || b.medium === '' || !Number.isFinite(intake) || intake < 0 || intake > 1) {
-          throw new RangeError(`Species.setBreathingByStage: a bad breathing entry at '${stage}'`);
-        }
-        return { medium: b.medium, apparatus: String(b.apparatus ?? 'lungs'), intake };
-      });
-    }
-    this.breathingByStage = out;
   }
 
   /**
@@ -1521,6 +1549,42 @@ export default class Species extends SingletonMixin(
     return StuffApi.findByTemplatePath<BodyPlan>(this._bodyPlanPath) ?? null;
   }
 
+  /**
+   * ⭐ The plan a body at `stage` is built on (D10): the stage's own, where
+   * its development names one, else the species' plan. A frog's tadpole is
+   * not the frog's plan with a tail; it is the tadpole's.
+   */
+  public planFor(stage: LifeStage | null): BodyPlan | null {
+    const own = stage ? this.development[stage]?.plan : undefined;
+    if (own) return StuffApi.findByTemplatePath<BodyPlan>(own) ?? this.getBodyPlan();
+    return this.getBodyPlan();
+  }
+
+  /** This species' development (D10). */
+  public getDevelopment(): Partial<Record<LifeStage, DevelopmentStage>> { return { ...this.development }; }
+  /**
+   * Name the development. ⭐ Async: every stage's plan is ensured, with
+   * this species as holder, so a body at any stage builds on a read. A
+   * stage that is not a life stage, or a plan path that names no plan,
+   * throws (P3).
+   */
+  public async setDevelopment(value: Partial<Record<LifeStage, DevelopmentStage>> | null): Promise<void> {
+    const out: Partial<Record<LifeStage, DevelopmentStage>> = {};
+    for (const [stage, d] of Object.entries(value ?? {})) {
+      if (!(LIFE_STAGES as readonly string[]).includes(stage)) throw new TypeError(`Species.setDevelopment: '${stage}' is not a life stage`);
+      if (!d || typeof d.plan !== 'string' || d.plan === '') throw new TypeError(`Species.setDevelopment: '${stage}' names no plan`);
+      out[stage as LifeStage] = { plan: d.plan, ...(typeof d.massFactor === 'number' && d.massFactor > 0 ? { massFactor: d.massFactor } : {}) };
+    }
+    const holder = this.getIdentityPath() ?? null;
+    await Promise.all(Object.values(out).map((d) => StuffApi.ensureConstituent(d!.plan, holder)));
+    this.applyDevelopment(out);
+  }
+  /** Name the development when its plans are already resident (a fixture; the setter above). */
+  public applyDevelopment(value: Partial<Record<LifeStage, DevelopmentStage>> | null): void {
+    this.development = { ...(value ?? {}) };
+    this.bodies = { of: null, byKey: new Map() };
+  }
+
   public setBodyPlan(value: BodyPlan | null): void {
     this._bodyPlanPath = value?.getTemplatePath() ?? null;
   }
@@ -1577,33 +1641,57 @@ export default class Species extends SingletonMixin(
     this.reproductiveMode = value;
   }
 
-  public getProduction(): readonly TapSpec[] { return this.production; }
-  public setProduction(value: TapSpec[]): void {
-    // ⭐ What a take dirties is DERIVED by the tap act (an animal's floor,
-    // a liquid's splash — `Producing.soilTheTaker`), never authored here.
-    this.production = Array.isArray(value) ? value : [];
+  /** How often a body of this species moults, game-days; 0 = never (D7). */
+  public getMoultEveryDays(): number { return this.moultEveryDays; }
+  public setMoultEveryDays(value: number): void {
+    this.moultEveryDays = Number.isFinite(value) && value > 0 ? value : 0;
+  }
+
+  /** How this species' body differs from its plan (D1), or `null`. */
+  public getBodyDelta(): BodyDelta | null { return this.body; }
+
+  /**
+   * Name how this species' body differs from its plan. Async (the
+   * `setModules` shape): every module it adds is ensured, so its body can
+   * be built on a read; a path naming no module throws (P3).
+   */
+  public async setBody(value: BodyDelta | null): Promise<void> {
+    await this.ensureDeltas([value]);
+    this.applyBody(value);
+  }
+
+  /** Name how this species' body differs when the modules it adds are already resident (a fixture; the setter above). */
+  public applyBody(value: BodyDelta | null): void {
+    this.body = value ?? null;
+    this.bodies = { of: null, byKey: new Map() };
   }
 
   public getBreeding(): BreedingSpec | null { return this.breeding; }
-  public setBreeding(value: BreedingSpec | null): void {
-    this.breeding = value ?? null;
+
+  /** What pays for this body past the square-cube limits (D12). */
+  public getPays(): readonly { limit: string; by: string }[] { return this.pays; }
+  public setPays(value: { limit: string; by: string }[] | null): void {
+    this.pays = (value ?? []).filter((p) => p && typeof p.limit === 'string' && typeof p.by === 'string');
   }
 
+  /** The species' schedule of conditions (D9). */
+  public getPhenology(): readonly PhenologyEntry[] { return this.phenology; }
   /**
-   * ⭐ Is `daylightFraction` inside this species' breeding window?
-   *
-   * ⚠ A band, not a date, and it wraps: a short-day breeder's window is
-   * `[0, 0.42]` and a long-day breeder's is `[0.55, 1]`, so the test is
-   * a plain interval — but a species authoring `from > to` means a
-   * window that crosses the solstice, and that is a real shape too.
+   * Name the schedule. ⭐ Async (the `setVariants` shape): every condition
+   * it names is ensured, so a schedule naming no row throws at hydration
+   * (P3) rather than going silently inert.
    */
-  public breedsAtDaylight(daylightFraction: number): boolean {
-    const b = this.breeding;
-    if (!b) return false;
-    const { daylightFrom: from, daylightTo: to } = b;
-    return from <= to
-      ? daylightFraction >= from && daylightFraction <= to
-      : daylightFraction >= from || daylightFraction <= to;
+  public async setPhenology(value: PhenologyEntry[] | null): Promise<void> {
+    const entries = (value ?? []).filter((e) => e && typeof e.condition === 'string' && e.trigger && typeof e.trigger === 'object');
+    await Promise.all(entries.map((e) => ConditionApi.conditions().ensure(e.condition)));
+    this.applyPhenology(entries);
+  }
+  /** Name the schedule when its condition rows are already resident (a fixture; the setter above). */
+  public applyPhenology(value: PhenologyEntry[] | null): void {
+    this.phenology = [...(value ?? [])];
+  }
+  public setBreeding(value: BreedingSpec | null): void {
+    this.breeding = value ?? null;
   }
 
   public getAdultMass(): number { return this.adultMass; }
@@ -1626,24 +1714,36 @@ export default class Species extends SingletonMixin(
   }
 
   /**
-   * ⭐ What one of these weighs at `ageDays` — the adult mass walked back
-   * down the maturation curve, or `0` when the species does not say.
+   * ⭐ What one of these weighs at `ageDays` — the adult mass (times the
+   * form's `massFactor`: a bull outweighs a cow) walked back down the
+   * growth curve, or `0` when the species does not say.
    *
-   * Growth is linear from {@link BIRTH_MASS_FRACTION} of adult at birth
-   * to the whole of it at `matureAt`, and flat thereafter. A real growth
-   * curve is sigmoid; this is the honest cheap version, and the shape
-   * that matters is the one it gets right — **a calf is not a cow, and
-   * killing one early costs you the difference.** With no curve authored
-   * the species has no maturation to walk, so the adult mass stands.
+   * ⭐⭐ **Von Bertalanffy** (organism-biology D8): `W∞ (1 − b·e^(−kt))³`,
+   * the curve that falls out of a body that builds tissue in proportion to
+   * its surface and burns it in proportion to its mass. It is fast while
+   * young and slows toward its asymptote — so a half-grown animal is
+   * heavier than the old straight line said, and the last stretch to full
+   * size is slow. Nothing new is authored: `b` puts birth at
+   * {@link BIRTH_MASS_FRACTION}, `k` comes from `matureAt`, and the curve
+   * is normalized to reach the adult mass exactly at `matureAt` and stay
+   * there — **an adult weighs what its row says**. With no curve authored
+   * the species does not age, so the adult mass stands.
    */
-  public massAt(ageDays: number): number {
-    const adult = this.adultMass;
+  public massAt(ageDays: number, variant?: BodyVariant): number {
+    let adult = this.adultMass;
+    // ⭐ A stage on its own plan weighs its share of the curve (D10): a
+    // tadpole is not a frog's mass with a tail.
+    const stageFactor = variant?.stage ? this.development[variant.stage]?.massFactor : undefined;
+    if (typeof stageFactor === 'number' && stageFactor > 0) adult *= stageFactor;
+    for (const f of this.formsOf(variant)) if (typeof f.massFactor === 'number' && f.massFactor > 0) adult *= f.massFactor;
     if (adult <= 0) return 0;
     const curve = this.ageCurve;
     if (!curve || curve.matureAt <= 0) return adult;
     if (ageDays >= curve.matureAt) return adult;
-    const grown = Math.max(0, ageDays) / curve.matureAt;
-    return adult * (BIRTH_MASS_FRACTION + (1 - BIRTH_MASS_FRACTION) * grown);
+    const t = Math.max(0, ageDays);
+    const k = GROWTH_K_T / curve.matureAt;
+    const raw = (x: number): number => Math.pow(1 - GROWTH_B * Math.exp(-k * x), 3);
+    return adult * (raw(t) / raw(curve.matureAt));
   }
 
   public getAgeCurve(): AgeCurveSpec | null { return this.ageCurve; }
@@ -1667,7 +1767,8 @@ export default class Species extends SingletonMixin(
   }
 
   /** See {@link HandlingRange}. `null` — the species does not participate. */
-  public getHandlingRange(): HandlingRange | null {
+  public getHandlingRange(variant?: BodyVariant): HandlingRange | null {
+    for (const f of this.formsOf(variant).reverse()) if (f.handlingRange) return f.handlingRange;
     return this.handlingRange;
   }
 
@@ -1687,7 +1788,8 @@ export default class Species extends SingletonMixin(
   }
 
   /** How readily this species does what it is asked, `0..1`, else `null`. */
-  public getBiddability(): number | null {
+  public getBiddability(variant?: BodyVariant): number | null {
+    for (const f of this.formsOf(variant).reverse()) if (typeof f.biddability === 'number') return f.biddability;
     return this.biddability;
   }
 

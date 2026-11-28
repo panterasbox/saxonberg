@@ -66,10 +66,6 @@ data:
     # above is the HAND rung (it comes up for what you drop), not where
     # a hook finds it.
     feedsAt: bottom
-  butcheryYield:
-    - { cut: /trade/fishing/thing/fillet, units: 2 }
-    - { cut: /trade/fishing/thing/roe, units: 1 }
-    - { cut: /stuff/thing/items/offal, units: 1 }
   longDescription: >-
     A carp, deep-bodied and bronze-scaled, with a soft mouth that works at the surface when it thinks something is coming.
   nameBanks: []

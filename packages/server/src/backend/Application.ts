@@ -62,6 +62,12 @@ export interface ConnectOptions {
   playerId?: string;
   clientIp?: string;
   arrivedFrom?: string | null;
+  /**
+   * The guest's arrival words (stream arrival D4): `watch=<program>` and
+   * `carrier=<carrier>` off the socket URL — a guest runs no command, so
+   * this is the only request that can say it. Read once, at the guest mint.
+   */
+  arrivalWatch?: { program: string; carrier: string } | null;
 }
 
 export type ProviderProfile =
@@ -228,11 +234,11 @@ export class Application {
       console.error('Application: Backend not initialized');
       return;
     }
-    const { kind = 'player', playerId, clientIp, arrivedFrom = null } = opts;
+    const { kind = 'player', playerId, clientIp, arrivedFrom = null, arrivalWatch = null } = opts;
 
     // ⭐ Token sockets (broadcast-ready D4/D11) never become an
     // Interactive: an overlay is a push target for ONE streamer's feed,
-    // a control socket may run that streamer's `stream` and nothing else.
+    // a control socket may run that streamer's `rodney` and nothing else.
     if (kind === 'broadcast' || kind === 'control') {
       if (!playerId) {
         console.error(`Application: ${kind} connection with no player - socketId=${socketId}`);
@@ -280,6 +286,7 @@ export class Application {
       // The door this connection came in by (D7) — `stream` when the
       // client was opened from the show's tagged link.
       interactive.setArrivedFrom(arrivedFrom);
+      interactive.setArrivalWatching(arrivalWatch);
 
       const login = await StuffApi.create(() => new Login(interactive));
       await login.enter();
