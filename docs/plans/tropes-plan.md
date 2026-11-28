@@ -954,6 +954,33 @@ Each wave ends at a commit, staged by name, pushed. `pnpm test:near` + the touch
    in `C/platform/content/platform/cmd/inventory/give.yaml`.
 7. `S/lib/behavior/Behaved.ts`: the `actId` plant (D25).
 
+✅ **W1 done (`12c43ab43`).** Build notes, for the reviewer who has forgotten:
+- ⭐ **D3a (decided in the build) — a fourth claim, `{ boundary: '<name>' }`.** Naming a
+  *system* is a privilege (protective checks admit it for any claim; the compulsion gate skips
+  it; ScheduleApi makes its schedules omni). Something outside the fiction that acts for no
+  in-world person — an anonymous CMS request, a login before any body, a unit test — needed a
+  claim that is *somebody* (so the work is not anonymous) but neither an actor nor a system:
+  `getActor()` and `actingSystem()` both answer `null`. Decided by P14 (nothing decides
+  invisibly) and the nearest pattern (the old "nobody acting" had exactly these semantics).
+- `captureContinuation()` returns `null` when nobody is acting; `{ continuation: null }`
+  throws at the root.
+- `propagateAttribution: false` now severs the **act** (command, actId, author), never **who
+  is acting**; it throws only when nobody is. Avatar upkeep (autosave, the sign-out recheck)
+  runs as the avatar itself (`runAsSelf`).
+- Socket roots act as the body the socket drives (`Backend.actingFor`); account/OAuth roots
+  name `'auth'`, connect/disconnect `'connection'`, relays `'<platform>-relay'`, the sandbox's
+  choreography `'sandbox'` (its ceremonies run as the body), `runScoped`/`runGoverned` carry
+  the continuation. The two scope apertures (`asAuthorityQuery`, `boundary.project`) carry the
+  running act instead of discarding the actor — a fix, they used to drop it.
+- Tests: `test-bootstrap` plants `{ boundary: 'test' }` before each test
+  (`ExecutionContextApi._actAsTestForTesting`; `assertTestOnly` now recognizes
+  `src/test-bootstrap`); 253 test roots were codemodded to name it. Four tests that asserted
+  "nobody acting" were rewritten to assert the rule.
+- D7: the gift is decided by the good — `Chattel.handedOver(from, to, { lend })` — not by
+  `GiveController` (`lint:controller-mutations` would have risen). The `terms` basis carries no
+  ref (no build-1 reader).
+- `lint:duck-typing` fell 461 → 459 (the D4 sites stopped probing the author).
+
 **Acceptance:** unit tests — a scheduled callback, a durative completion, an emission and a
 world-clock callback each read the originating `actId` and actor; a nested command reads its
 parent as `causeId`; `runRoot` with an empty claim throws; a bank leg between two players carries
