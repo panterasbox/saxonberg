@@ -696,6 +696,17 @@ value class turns them into the 0..1 terms the drivers use:
 light; `oxygen` has no shipped source and is new. (W3 only — nothing
 landed.)
 
+⚠ **Revised by the lens pass (2026-11-28, lens 1 chose it).** Rows also
+state `temperatureC`, the mean the thing sat at. Rot and mold are
+biological and slow toward nothing in the cold, and corrosion slows too,
+so a glacier, a cold deep lake and a Baltic wreck preserve wood where a
+warm swamp eats it. The fold multiplies each mechanism's driver by a
+warmth term, Q10-shaped (rate ×2 per 10 °C; microbial rot and mold stop
+at ≤ 0 °C, corrosion slows by the same law but never quite stops). This
+is also the axis D7 declined `MaturationClock` for lacking, so revisit
+that one line: with a temperature, the environment could feed it. Decide
+at W3 by whichever is simpler, and record which.
+
 `seedHistory` awaits
 `MaterialApi.decayEnvironments().ensure(path)` per stay — load on use, by
 the authored reference; no boot entry, no roster. Starting values:
@@ -1493,6 +1504,70 @@ Read first, in this order:
     (the clean/content split); `e2e/tests/paint-walk.spec.ts`
 16. `lib/structure/__tests__/Structure.condition.test.ts:124` — read it;
     never edit it
+
+## Lens pass on the buildable plan (2026-11-28)
+
+Run once the plan was buildable, at the owner's request.
+
+1. **Pedagogy.** What's derivable: corrosion needs water and oxygen and
+   salt speeds it; rot needs wet, oxygen and warmth; anoxic, acid peat
+   preserves iron. Dominant Discipline: **appraisal**, through the probe
+   and `analyze condition`. ⚠ The thin spot is that no player *decision*
+   pays off the science yet. With no clock, knowing that salt speeds rust
+   changes nothing you do; the payoff is reading finds, and later
+   choosing where to look ([stratigraphy-and-finds-slate](../slates/world/stratigraphy-and-finds-slate.md)).
+   ⭐ Named-work test:
+   - *Titanic*'s rusticles (deep salt water): passes.
+   - The Vasa (preserved because the Baltic is too fresh and cold for
+     shipworm): half passes. Cold is fixed by `temperatureC` (D5,
+     revised); shipworm stays out with organisms.
+   - Ötzi and any glacier find: **failed until D5's revision**, because
+     the rows had no temperature.
+   - *The Dig* (Sutton Hoo: the ship's timbers rotted to nothing, leaving
+     the rivets in place in the sand): **unmakeable**. A fully rotted part
+     still exists as a failed line; the ghost of a thing, an imprint in
+     a place, is the finds slate's.
+2. **Expression.** Constant: the mechanisms, the ladder arithmetic, the
+   susceptibilities' physics. Variable: every state, every history, new
+   environment rows. ⚠ The mechanism list is closed in the kernel, so an
+   author cannot add one (see 5).
+3a. **Immersion.** The build's whole job, and it holds for goods.
+   Remaining unbacked prose:
+   - place fabric (the estuary's rusted rails and staging), kept as
+     holding's shell, deliberately;
+   - the bog sword's "blade dark, grip tanned dark", which is new prose
+     this build writes. Peat blackens iron and tans leather, and no model
+     holds a stain, so the row's prose should say only what the state
+     says (its color is ordinary description, no different from any
+     row's color words). W5 keeps the prose to appearance and does not
+     claim chemistry the model lacks.
+3b. **Participation.** Thin, honestly: the wire brush is free on a rack
+   and nobody sells or employs around decay. The smith and tinker
+   restore through shipped `repair` and `fit`, and replacement hafts sell
+   at the Terminus general store. The trade side waits for a clock
+   (sealants, re-tarring).
+4. **Values.** Law 2 holds by construction. ⭐ A real undecidable choice
+   appears: **restore it or keep it as found**. Scouring a find destroys
+   the evidence of its history; a museum wants it as found, and a user
+   wants it working. Nothing imposes either, which is right (P15: `brush`
+   is the act you choose, and no default scours).
+5. **Continuity.** The ladder reads the same in every epoch, and
+   galvanized steel and stainless are materials with low susceptibility.
+   Wire brush → sandblasting → electrolysis is the same act with a
+   different tool. ⚠ **Gap:** the mechanism list is pre-industrial.
+   Rubber perishing (ozone and oxidation cracking; the rubber pack has
+   shipped) and polymer UV embrittlement have no mechanism, so an
+   Engine-band author cannot author a perished tire. Deferred seam →
+   decomposition-slate (a mechanism row, or a kernel member, decided
+   with the live clock).
+6. **Economy.** Produces repair demand (hafts, smith's time) from
+   authored state, not an invented need. ⚠ **The bog sword returns at
+   every restart** (floor stock on a staged place), so it is a free
+   sword source, like the hire rack. Acceptable at today's scale because
+   the world resets nightly, but it is grain: a find that is
+   one-per-world wants the finds slate's "found once" rule.
+7. **Governance.** Nothing judges a person. Who owns a find is salvage
+   law's (non-goal).
 
 ## Drive record
 
