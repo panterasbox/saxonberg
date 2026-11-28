@@ -334,6 +334,60 @@ Each item cites the slate's § 10 reuse-ledger row, or says *genuinely new* and 
 
 ---
 
+## ⭐⭐⭐ Convergence and divergence (2026-11-28)
+
+**C1 — what already does it, and the two this plan had missed:**
+
+- ⭐⭐ **Reactions already key "the act" on the command id.** `ReactionRegistry` aggregates emotes
+  `inReactionTo: <commandId>`, credits the act's speaker, and writes renown receptions
+  (reactions.md). That is the same identity as D1's `actId` — and `CombatNarration` **mints its own
+  command id** for dramatic beats in a detached scheduler root, which contradicts D1's *a deferred
+  continuation keeps the originating act*. ⇒ **Converge:** after W1, a reaction's `inReactionTo` IS
+  the act id, and combat narration reacts to the act it narrates (`getCurrentAct()`), not a fresh
+  id. W1 owns it; reactions.md gains the line at the sweep.
+- **Participation already records one row per command** (`participation_events`, kind
+  `command`) — the seed of build 2's attended time. ⇒ Not used in build 1; recorded as the attach
+  point (Deferred seams).
+- Shipped and reused as planned: the five ledgers, `Subcheck`/`creditSignatureImpl` under
+  `Exercise`, the chronicle for tellings, `PerceptionApi.perceives` for witnesses, belief's
+  identity learning for `tell`, the dialogue effect applier for `assert`.
+
+**C2 — unifying, or adding a head? The survivors after build 1:**
+
+| two doors to one job | retired by |
+|---|---|
+| `recordExercise` + `creditDeed` + `creditSignature` | `lint:discipline-by-name`'s falling count; the ~100-site sweep (build 2) |
+| dialogue effects `assert` + `regard` | the lounge's motives (build 2); `lint:characterization` counts `regard` |
+| regard writes: the matcher + two named residuals | motives (lounge), and the bond (stays — mechanics) |
+| `getCurrentAct()` + `getCurrentCausingCommandId()` | the second becomes a read of the first (N3); whether both stay public — api-normalization Part 8 |
+| `ActSignature` as `creditSignature`'s legacy parameter | dies with `creditSignature` |
+
+Real unifications, each with its old heads deleted in this build: three continuation captures →
+one (N2); `imprintSignature` + `imprintDeed` → `imprintFromTrope` (N13); combat's own witness loop
+(`roomBelievers`) → the accountability row's witnesses (D8); hand-written readings → tropes.
+
+**C3 — generic names:** `Exercise` (named for advancement's evidence, D32) · `occurrences()`
+(a row describing itself) · none found that hides a duplicate. ⚠ **The word *beat* means three
+things:** the narrative beat (this build), the dialogue node's `beat:` line text, and combat's /
+behavior's tick (`BehaviorBeat`). The `assert` effect sits on a dialogue node whose text key is
+`beat:` — a reader will trip. **Kept** (the narrative meaning is the right one and the slate's
+vocabulary); help and the `beat` kind's header say which beat, and the vocabulary collision is
+logged for the dialogue format's next pass.
+
+**C4 — look-alikes:** `TropeCatalogue` + `BeatCatalogue` (two document catalogues, two kinds —
+intended: different pens, slate § 4) · `ExerciseActivity` beside `DurativeActivity` (two engagement
+protocols — intended: one says what the engagement *is*, the other how it *runs*) · detected beats
+(code) vs asserted beats (rows) — intended, the pen split.
+
+**C5 — deliberate divergence:** `yielded` / `spared` land in the harm ledger rather than a new
+fight ledger (no new collection; it already holds `abandonment`) · the roster's readings live in a
+pack, not beside the kernel's mechanism (the Nazi test) · `NarrativeApi` is new rather than folded
+into `AccountabilityApi` or `RenownApi` (each owns one ledger; the matcher spans five).
+
+**C6 — fault lines logged** (api-normalization-slate Part 8): Disciplines' home with the tech
+tree; `NarrativeApi` as the quest layer's home; the two current-act reads; catalogue doors on
+topical Apis.
+
 ## Plan-level decisions
 
 ### The actor and the cause (wave 1)
@@ -578,6 +632,11 @@ protocol `ExerciseActivity`; the beat `attempt` (succeeded · failed · abandone
 **D31 — `NarrativeApi` keeps its name.** The kernel side is descriptive and narrative; the pack is
 `morality-commons` because the roster is prescriptive. The quest layer, the next rung up the
 narrative ladder, lands beside the trope matcher in the same Api.
+
+**D33 — Reactions and combat narration converge on the act id (C1).** After W1 a reaction's
+`inReactionTo` is the act's `actId`; `CombatNarration` reacts to the act it narrates instead of
+minting a fresh command id. W1, with a test that a reaction to a combat beat aggregates on the
+attack's act.
 
 **D14 — Three beats are not durable in build 1, and the catalogue refuses to look back at them.**
 `provide`, `tell` and asserted beats have no ledger; each is handed to the matcher by its one

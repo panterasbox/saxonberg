@@ -146,6 +146,31 @@ thing doing an old job), P12 (a new name for an existing call) or P13
 - ⚠ **Names** — every new name checked against the existing vocabulary
   (subsystem docs, the command categories, other Apis) for a collision.
 
+## ⭐⭐⭐ Convergence and divergence
+
+The owner asks this of every plan before the build (2026-11-28: *"what's
+already here and are we making a new thing or should we be unifying on
+some common concept. or if we're converging somewhere are we really
+unifying or are we making a multiheaded beast"*). Not a lens: the lenses
+judge the product, and this judges the code — but when labor worldcrafts
+on the code, the code's shape **is** the product. Answer each:
+
+- **C1 — What already does this?** For every new thing, the shipped
+  concept it sits beside, found by reading the subsystem docs, not
+  recalled. (Memory: *look for the shipped convergence*.)
+- **C2 — Unifying, or adding a head?** Every *replaces X*: is X deleted
+  in this build? List every survivor — two doors to one job — with the
+  ratchet or build that retires it. A survivor with no retirement is a
+  multiheaded beast.
+- **C3 — Generic names.** Any name that only says "a state / record /
+  activity of a thing" — what already carries that shape?
+- **C4 — Look-alikes.** What will look like a sibling after this build
+  (two catalogues, two protocols, two effects)? Intended, or debt?
+- **C5 — Deliberate divergence.** Where the plan chooses NOT to unify,
+  the reason in one line.
+- **C6 — Fault lines.** Anything the Api pass should revisit, logged in
+  api-normalization-slate Part 8.
+
 ## Plan-level decisions
 
 The engineering decisions, numbered (D1, D2…) so waves and commits
