@@ -118,6 +118,29 @@ words *genuinely new* and what was searched to establish that. A hook
 with one implementer, or an Api with one concept in it, is a method in
 the wrong place (review question P1).
 
+## ⭐⭐⭐ The surface, by kind
+
+The code shape in one place, so review's opening questions are answered
+before the build (the owner, 2026-11-28: *"this is where we spend the
+most time fixing things in code review so I'm trying to figure out how
+we get ahead of this stuff in planning"*). One table per kind, every
+entry with its **host** and a **one-line reason it is not P1 (a new
+thing doing an old job), P12 (a new name for an existing call) or P13
+(a concept on the wrong host)**:
+
+- **Api statics** — each new static, with its signature, on which Api;
+  and any new Api (why no existing one owns the concept).
+- **Mixin methods** — each new method, on which mixin, and the host set
+  that mixin already has. Any new mixin, with its hosts.
+- **Protocols / interfaces** — who implements, who asks.
+- **Value classes** — what concept each one is, where it is built.
+- **Documents, kinds and catalogues** — and why a document, not an Idea.
+- **Fields, per host row/class** — and the share of hosts for which the
+  field is empty (the quiet form of P2).
+- **Retired** — every member, constant and dial deleted.
+- ⚠ **Names** — every new name checked against the existing vocabulary
+  (subsystem docs, the command categories, other Apis) for a collision.
+
 ## Plan-level decisions
 
 The engineering decisions, numbered (D1, D2…) so waves and commits

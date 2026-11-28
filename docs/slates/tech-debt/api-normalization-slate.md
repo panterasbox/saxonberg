@@ -611,3 +611,27 @@ so anywhere.
 merge**: it is mechanical, it needs no boundary ruling, and every fix
 makes the live-authoring loop strictly better. The sizing question can
 keep waiting; this one has a right answer today.
+
+## Part 8 — Fault lines noted by builds (a running log)
+
+The owner, 2026-11-28: keep notes here as builds find places the layer will want revisiting at the
+normalization pass (*"like when this thing is basically in beta at least"*). One entry per fault
+line: what was found, what the build did, what the pass should reconsider.
+
+- **Disciplines had no Api (tropes build 1, 2026-11-28).** `DisciplineCatalogue` was reached only
+  through `CraftingApi`'s neighborhood; but Disciplines are advancement's — nursing, seamanship and
+  finance are Disciplines too. The tropes build opens **`AdvancementApi`** with one door,
+  `disciplines()`. ⚠ An Api with one concept is a P1 smell, accepted because the concept's home is
+  right; the pass should decide whether the **tech tree** shares it, and whether advancement joins
+  the influence/standing cluster (6.2) — traits, transcripts, competence and renown are all
+  measurement of a person.
+- **`NarrativeApi` (tropes build 1).** Opened for the trope matcher; named for the ladder, so the
+  **quest** layer lands beside it rather than in a new Api.
+- **Two "what is happening now" reads (tropes build 1).** `getCurrentCausingCommandId()` (which
+  typed command a client matches output to) and the new `getCurrentAct()` (which choice this is,
+  and its cause). The first is implemented as a read of the second; the pass should ask whether
+  both stay public.
+- **Catalogue doors on topical Apis.** `CraftingApi.joints()`, and now `NarrativeApi.tropes()` /
+  `beats()`, `AdvancementApi.disciplines()` — the pattern is spreading without a rule for which Api
+  owns a catalogue's door.
+
