@@ -4,10 +4,10 @@ This plan executes
 [cast-in-winter-requirements](../requirements/cast-in-winter-requirements.md).
 **Kind:** feature. **Lead end:** kernel. It replaces the body's comfort band
 with a heat budget solved in closed form, makes bodies and herds warm the room
-they share, makes null timeless by one rule, gives every NPC three needs in the
-deliberation it already has, declares supply on houses and a town's commons,
-settles an unwatched NPC by arithmetic, authors the supply and warming places
-the shipped cast needs, and then deletes `Vitals.diesOfNeglect`.
+they share, makes null timeless by one rule, lets every NPC fend for itself (cold, heat, thirst, hunger) in the
+deliberation it already has, declares amenities on houses and towns,
+settles an unwatched NPC by arithmetic, authors the amenities and warming
+places the shipped cast needs, and then deletes `Vitals.diesOfNeglect`.
 
 Paths: `S/` = `packages/server/src/mud/`, `C/` = `packages/content/`.
 
@@ -44,7 +44,8 @@ Planning found these. None is absorbed silently; each states the plan default.
    **Plan default:** W8 verifies; if an Oven answers no room heat, the creamery
    floor gains a `/stuff/thing/Hearth` and the dairy's warmth names that room.
 5. **"Supply is declared by places."** The plan puts the *declaration* on the
-   house and the town (D11) and lets a place supply through what stands in it
+   house and the town (D11, where the key is named `amenities`) and lets a place
+   provide through what stands in it
    (its `props:`), so no key is added to every Location. A kind of place
    carries supply by `extends:` on the place row's props and the house row.
    **✅ Decided (owner, 2026-11-28): house + commons.**
@@ -216,22 +217,231 @@ Every item, with its reuse-ledger row. The P9–P14 line for each is in
 | N4 | `clock` on `FieldMeta`; `Stuff.rebaseClocks(deltaS)` `@hook`; `Containable.outOfStorySinceS`; the walker in `ContainmentLogic.move`; `lint:clock-fields` | *null is timeless* — genuinely new as a rule (the ledger says so) |
 | N5 | `AbortReason` member `left-story` | **genuinely new.** Searched `AbortReasonRegistry` in `packages/types`; W4 confirms no existing member means "the actor is no longer anywhere" |
 | N6 | `Creature.isWatched()` and `Creature.comeIntoView()` | *watched / unwatched* — reuse: `Behaved._hasAudience` moves here and is deleted there |
-| N7 | `presence` and `home` fields on `lib/npc/NPC`; `Business.offShift` gains `here` | *off shift*, *a role whose body is fresh* — reuse |
-| N8 | `Supply` value object (`S/lib/npc/Supply.ts`); `supply` on `Business`, `commons` on `Locality` | *supply on places* — extend the declarations; no document kind. *the commons* — reuse, marked |
-| N9 | Needs on `lib/npc/NPC` (methods, not a mixin): levels, `useSupply`, kit on and off, `settleUnwatched` | *one deliberation*, *outdoor kit*, *reconcile on read* |
-| N10 | One brain, `/lib/behavior/needs`; `eats` is deleted; `stokes` reads supply | *eating* — fold; *keeping a fire* — reuse, widened; *one deliberation* — reuse |
+| N7 | `Presence` value (`S/lib/npc/Presence.ts`) as ONE `presence` field on `lib/npc/NPC`. `Business.offShift` is **deleted** | *off shift*, *a role whose body is fresh* — reuse, collapsed into one declaration (C2) |
+| N8 | `Amenities` value (`S/lib/npc/Amenities.ts`); one `amenities` field on `Business` and on `Locality` (a town's are its commons) | *supply on places* — extend the declarations; no document kind. *the commons* — reuse, marked |
+| N9 | On `lib/npc/NPC` (methods, not a mixin): `discomfort(kind)`, `seeTo(kind)`, `useAmenity(kind)`, `dress()`, `hangUp()`, `settleUnwatched()` | *one deliberation*, *outdoor kit*, *reconcile on read* |
+| N9a | `Character.putOn(garment)` — the one seating call, extracted from `wearGarments` | *outdoor kit* — reuse: the ledger asked whether a kept container plus `wear` covers it. It does |
+| N10 | One brain, `/lib/behavior/fends`; `eats` is deleted; `stokes` stays as the house's fire work and loses its `fire`/`fuel` config to `amenities` | *eating* — fold; *keeping a fire* — reuse, widened; *one deliberation* — reuse |
 | N11 | `Burner.tendedUntil(fromS, toS, fuel)` | *keeping a fire* — generalize (the same stoke arithmetic over a span) |
 | N12 | `Vitals.refreshBody()` | *a role whose body is fresh* — the Extra rung's body half |
-| N13 | `testharness body` budget lines; subcommands `presence`, `air-pin`, `herd` | owed tooling (workflow § staged) |
-| N14 | `lint:supply` | genuinely new gate; searched `S/package.json` `lint:*` |
+| N13 | `testharness body` budget lines; subcommands `presence`, `air-pin`, `air-unpin`, `herd` | owed tooling (workflow § staged) |
+| N14 | `lint:amenities` | genuinely new gate; searched `S/package.json` `lint:*` |
 | N15 | Rows: `coat-pegs` fixture, warming places, a business kind parent, test fixtures, reason rows, setting keys | content |
 | — | The death report | *the death report* — reuse `DiagnosticApi.record`; nothing new |
-| — | `Vitals.diesOfNeglect`, `integratesLongAbsence`, `billsTheGap`, `MAX_REASONABLE_GAP_SEC` body guards | *the backstop* — **delete** |
+| — | `Vitals.diesOfNeglect`; the NPC-sparing part of `integratesLongAbsence` / `billsTheGap` (D8); `eats.ts`; `Business.offShift`; `stokes`' `fire`/`fuel` config; the band constants | *the backstop* — **delete**; the rest are the specific things this build generalizes (P1) |
 | — | Act identity per turn | *act identity* — coordinate (D18) |
 
 **No new Api, logic singleton, registry, document kind, Mongo collection,
-module category or exported helper.** No new mixin: N9 lives on the one class
-that would compose it.
+module category, verb or exported helper.** No new mixin: N9 lives on the one
+class that would compose it. Two value classes (`Amenities`, `Presence`).
+
+## ⭐⭐⭐ The surface, by kind
+
+The whole code shape in one place. Each entry: its host, and why it is not a
+new thing doing an old job (P1), a new name for an existing call (P12) or a
+concept on the wrong host (P13).
+
+**Api statics.** None. No new Api. `DiagnosticApi.record`,
+`ContainmentApi.move`, `StuffApi.singleton` and `ExecutionContextApi.runRoot`
+are called as they stand.
+
+**Mixin and class methods.**
+
+| method | on | host set today | not P1 / P12 / P13 because |
+|---|---|---|---|
+| `heatBudget()` (private solver), `sustainedEffort()` `@hook` | `ThermalRegulationMixin` | `Creature` | replaces `integrateThermalSlice`, which is deleted; the hook has two implementers (`Employed`, `NPC`) |
+| `roomHeatExchange()` | `ThermalRegulationMixin`; `Herdbook` | `Creature`; the ranching book | the shipped protocol's third and fourth implementers, no new protocol |
+| `reconcileEnvelope(untilS?)` | `AtmosphericMixin` | every place with an envelope | one optional parameter on the shipped method, not a second reconcile |
+| `rebaseClocks(deltaS)` `@hook` | `Stuff` | everything | five implementers at birth (Vitals, Memorized, Soilable, Thermal, ThermalRegulation); nothing shifted a stamp before |
+| `isWatched()`, `comeIntoView()` | `Creature` | every body | `isWatched` is `Behaved._hasAudience` moved down and deleted there |
+| `refreshBody()` | `VitalsMixin` | `Creature`, `Corpse` | no reset of a body to its kind's baseline exists; chargen builds one, it does not reset one |
+| `putOn(garment)` | `Character` | players and NPCs | cut out of `wearGarments`; must be `wear`'s own model call if there is one (D14) |
+| `discomfort(kind)`, `seeTo(kind)`, `useAmenity(kind)`, `dress()`, `hangUp()`, `settleUnwatched()`, `defaultPresence()` | `lib/npc/NPC` | Cast, Extra, seven locality NPC classes | the NPC's own decisions; `useAmenity` calls the shipped drink / buy / eat model calls and adds none |
+| `tendedUntil(fromS, toS, fuel)` | `Burner` | every firebox | `stoke` over a span; it calls `stoke` |
+| `getAmenities` / `setAmenities` | `Business`, `Locality` | houses; towns | field accessors |
+| `getPresence` / `setPresence` | `lib/npc/NPC` | as above | field accessors |
+
+No new mixin.
+
+**Protocols.** `RoomHeatExchanging` (shipped): implemented by `SpaceHeating`,
+`Store`, and now `ThermalRegulation` and `Herdbook`; asked by
+`AtmosphericMixin` only. `BrainStatics` (shipped): `fends` implements it.
+
+**Value classes.**
+
+| class | concept | built |
+|---|---|---|
+| `Amenities` (`S/lib/npc/Amenities.ts`) | where a hand's cold, thirst and hunger are answered, for a house or a town | by `setAmenities` at hydrate |
+| `Presence` (`S/lib/npc/Presence.ts`) | how an NPC is simulated and where it is off shift | by `setPresence` at hydrate, over the rung's default |
+
+`Discomfort` is a closed string union in `NPC.ts`, not a class.
+
+**Documents, kinds, catalogues.** None. Both values are fields on rows that
+code reads by field, so neither is a Document and neither is an Idea.
+
+**Fields.**
+
+| field | host | empty on what share of hosts |
+|---|---|---|
+| `presence` | NPC rows | authored on about 10 of 117 (the lounge cast, night hands, any with a home); the rest take the rung default, which is a real answer, not an empty one |
+| `borrowed` | NPC (runtime) | empty off shift and for every indoor hand; it is state, not a declaration |
+| `amenities` | `Business` rows | W8 authors it on about 45 of 75 (every house with an outdoor slot or a fire); the rest fall to the town's |
+| `amenities` | `Locality` rows | authored on each town, about 8; none on a wilderness locality |
+| `effort` | `Position` | authored on about 6 heavy seats; the rest take the setting |
+| `housed` | `Herdbook` rows | authored on the 2 Delight books; false on any other herd, which is a true answer |
+| `outOfStorySinceS` | every `Containable` (runtime) | zero on everything in the story; that is its meaning |
+| `clock` | `FieldMeta` entries | present on every stamp field by the gate |
+| `arms` slot, `neck` covers | the biped plan | n/a (one row) |
+| `thermal.*`, `fending.*`, `employment.shiftEffort` | settings | n/a |
+
+**Retired** (deleted in this build, each `rg`-checked in its wave's
+acceptance):
+
+- `integrateThermalSlice`, `probeFrom`, `_probe`, `_reconcileClo`,
+  `maxCoverableGapK`, `wornInsulationKelvin`, `billsTheGap` (the NPC half)
+- constants `BAND_HALF_WIDTH_K`, `COLD_SPEND_PER_DEGREE`, `CLO_TO_KELVIN`,
+  `WIND_CHILL_PER_MS`, `REG_STEP_SEC`, `REG_MAX_STEPS`
+- `Vitals.diesOfNeglect` and its three call-site conditions
+- `Metabolic.integratesLongAbsence` as it spares an unowned NPC (D8)
+- `Behaved._hasAudience`
+- `Business.offShift`, `getOffShift`, `setOffShift`, and the key on 11 rows
+- `S/lib/behavior/eats.ts`, its tests, its spec on 2 rows
+- `stokes`' `fire` and `fuel` config keys, and their use on the potter's row
+
+**The command layer.** No new verb, view, controller, option or affordance
+for players. A player sees the difference only in the world: the cast dress,
+move, drink, eat and can be found dead; `look`'s body line and the cues read
+off the new budget. Changed surfaces:
+
+| surface | change | player sees it |
+|---|---|---|
+| `testharness` view + controllers | subcommands `presence`, `air-pin`, `air-unpin`, `herd`; `body` prints budget lines | no (withheld outside test worlds) |
+| the `rooms` reading row (`analyze rooms`) | one line: occupants' heat | yes, a new line |
+| `wear` / `outfit` | none in the view; a sleeved garment now claims `arms` | yes: the arms show as covered |
+| `help` topics | `warmth`, `authoring cast` gain text | yes |
+| `DrinkController`, `BuyController`, `EatController`, `WearController` | ⚠ none planned. If W6 finds any of them *deciding* (not just IO), the decision moves to the model in W6 and is listed in the MR as a finding | no |
+
+**Names.** Each checked against `docs/subsystems/`, the command categories in
+CLAUDE.md, `S/api/` and the content row keys.
+
+| name | check | verdict |
+|---|---|---|
+| `Amenities` / `amenities` | no hit in any subsystem doc, class or key | free. Replaces the draft's `Supply` (collides with `SupplyState`, `lib/supply/`, water-supply, `suppliedBy`) and `commons` (CLAUDE.md's word for `/stuff`) |
+| `fends` (brain), `fending.*` (settings) | no hit | free. Replaces `needs` (settlement-model's sixteen needs, build-4's `house-needs`, wellbeing-slate) |
+| `Discomfort`, `discomfort()` | no hit in code or subsystem docs | free |
+| `seeTo` | no hit | free; chosen over `relieve`, which is Vitals' verb for ending an affliction |
+| `useAmenity` | no hit | free |
+| `dress`, `hangUp`, `putOn` | `dress()` is the soak drives' own helper name (a test function, same meaning); `putOn` no hit | acceptable; W6 confirms no model method named `dress` exists |
+| `borrowed` | no field of that name | free |
+| `Presence` / `presence` | ⚠ "presence" is used in prose for social presence relay (social-graph.md) and the `presence` form of a noun phrase (presentation.md) | **collision in prose, and one in code**: an archetype's need can be `{ presence: <who> }` (`S/lib/archetype/Archetype.ts:169`), a different key on a different row kind. No NPC field or row key is named `presence`. Kept because it is the requirements' own word; ⚠ the owner may prefer another (`staging` is taken by staging-slate; `attendance` is the attendant queue's) |
+| `isWatched`, `comeIntoView` | `watch` is the stream verb; `isWatched` no hit | acceptable: a predicate, not a verb |
+| `left-story` | W4 reads `AbortReasonRegistry` | free unless a member already means it, then reuse that |
+| `housed`, `effort`, `rebaseClocks`, `outOfStorySinceS`, `tendedUntil`, `refreshBody` | no hits (`Voyaging.rebase` is a different method on a different host) | free |
+| `air-pin`, `herd` (harness) | `weather-pin`, `daylight-pin` are the pattern | fits |
+
+## ⭐⭐⭐ Convergence and divergence
+
+**C1 — What already does this?**
+
+| new | sits beside | answer |
+|---|---|---|
+| the heat budget | the comfort band; `Thermal`'s Newton cooling; the room envelope | replaces the band. Shares `Decay.toward` with the other two (C4) |
+| body room heat | hearths and cold stores answering `roomHeatExchange` | joins them |
+| `Amenities` | `parLines`, `purchases`, `fulfills`, `stockLines`, `suppliedBy` | none of those says where a hand's own discomfort is answered (D11). Fuel restock stays `parLines`' |
+| `fends` | `eats`, `feeds`, `stokes`, `frequents`, `homes` | `eats` folds in. `feeds` is an animal's ingest from a Feeder and stays. `stokes` is work, not a body task, and stays (D12). `frequents` is a timed visit and stays (D17) |
+| `dress()` | `Costumed`, `Wardrobe`, `wearGarments` | D14 |
+| `Presence` | `Business.offShift`, the rung, `calledToAt` | D17 |
+| timeless null | linkdead freeze, the player's away guard, `Thermal.onMoved`'s null skip, `Battery`'s limbo return | generalizes the last two; the first two are the player's and stay (D8) |
+| `isWatched` | `_hasAudience`, the beat's nightly dial, the thermal wake | one predicate for all three |
+| the death report | `DiagnosticApi`, the chronicle, the corpse | uses all three as shipped |
+
+**C2 — Unifying, or adding a head?** Every *replaces*, and whether the old
+one is gone when this build merges:
+
+| replaced | gone in this build? | survivor and its retirement |
+|---|---|---|
+| comfort band | yes (W1) | none |
+| `_hasAudience` | yes (W5) | none |
+| `Business.offShift` | yes (W5) | none |
+| `eats` | yes (W6) | none |
+| `stokes` config for the fire | yes (W6) | none |
+| `diesOfNeglect` | yes (W9) | none |
+| the NPC long-absence skip | yes (W4) | the **player's** away guard survives on purpose; retired by absent-body-slate's build |
+| three ways to dress | one seating call, one NPC decision (W6) | `Costumed` survives as stocking only → the agents pass of row-composition-slate. `Wardrobe` is not a head (player's saved names over the same call) |
+| four knobs for off shift | one `presence` (W5) | `calledToAt` survives as a brain's timed call (C5) |
+| slices for body heat | yes for heat (W1) | metabolism's slices survive → C4 |
+
+**C3 — Generic names.** `Supply` and `needs` were generic and already
+carried; both are renamed (Names table). `Presence` is the remaining generic
+word; its prose collisions are listed there. `Amenities` says what it is.
+
+**C4 — Look-alikes after this build.**
+
+- **Body heat in closed form, metabolism in 60 s slices.** Two reconcile
+  shapes on one body. **Debt, not intended.** Converting metabolism (digestion
+  buffer, coupled recovery, toxin clearance, 2,054 lines) is its own build;
+  doing it here would double this one. What this build does to stop it
+  spreading: D15 asks metabolism only "step to your next threshold", through
+  one method, so the settle does not care which shape is underneath.
+  Destination: **thermal-slate**, as "one reconcile shape for the body's
+  stocks"; the sweep adds the line.
+- **A thing cools by Newton (`ThermalMixin`); a body keeps a budget
+  (`ThermalRegulationMixin`).** **Intended.** A thing has no heat source and
+  no regulation, so its budget is the body's regime 3 with zero production:
+  the same equation and the same primitive (`Decay.toward`), with fewer
+  terms. A body composes both mixins already (`Thermal` for what it is made
+  of, regulation for being alive). They are not unified because a mug has no
+  setpoint to defend.
+- **The room envelope and the body budget** are both "steady state plus time
+  constant". **Intended**: they are coupled through one protocol (the body's
+  conductance is the room's gain) and share the primitive.
+- **`Amenities` on a house and on a town.** One class, one key, two hosts.
+  Intended: it is what makes "the town is the fallback" one walk.
+- **`stokes` and `fends`** are two implicit brains on every NPC. Intended
+  (work vs body); if a third implicit brain is ever wanted, that is the
+  moment to make "a rung's standing brains" a declared list, not before.
+- **`presenceGated = false` brains keep a nightly beat while `fends` is
+  settled by arithmetic.** Two answers to "what happens unwatched". **Debt**:
+  destination unobserved-economy-slate.
+
+**C5 — Deliberate divergence.**
+
+- Players are not settled, dressed or given a presence: a player is their own
+  chooser.
+- Animals get no presence and no amenities (owner, conflict 3).
+- `Wardrobe` is not folded into `dress()`: names versus weather.
+- `calledToAt` is not folded into `Presence`: a brain's hours versus a
+  standing answer.
+- A place gets no `amenities` key (owner, conflict 5).
+- The far-past guard on `Combustible` is left: a thing's, out of scope.
+
+**C6 — Fault lines for the Api pass.** api-normalization-slate Part 8 is on
+`origin/build/tropes`, not on master, so this plan carries the entries and
+**the `/finalize` sweep copies them into Part 8** once that slate change has
+landed (or adds Part 8's first cast-in-winter entries if it has not):
+
+- **A body has no single "bring me current".** Thermal, metabolism,
+  respiration, conditions, faculty and memory each have their own
+  `reconcileX`, and `comeIntoView` calls them in a fixed order by hand. The
+  pass should ask whether a body reconciles through one door.
+- **The envelope reads `roomHeatExchange` by shape**, now with four
+  implementers, one of them in a pack. It wants a declared predicate
+  (`MixinApi.isRoomHeatExchanging`) or a registered protocol.
+- **Programmatic drink, buy and eat.** `useAmenity` needs the model call
+  under each controller. W6 records what it found: where a clean model call
+  existed, and where a controller had to give one up.
+- **`DiagnosticApi` is being used for a world event** (a death), on the
+  `content-error` channel. It is the right reader today; the pass should ask
+  whether "the world reports something to whoever maintains this row" is
+  diagnostics' job or its own surface.
+- **Stamps read `WorldClockApi.getNow()` directly in about forty mixins.**
+  The `clock` field meta now names them; a later pass could give them one
+  read.
+- **Chokepoints that stamp only "now".** Any record W7 finds unable to carry
+  the event's own game time (D15).
+- **`runRoot` for an act settled late.** This build is the first caller that
+  opens a root frame for a choice made at an earlier game time. The pass
+  should ask whether the act context wants an explicit "as of".
 
 ## Plan-level decisions
 
@@ -295,7 +505,7 @@ so `ThermalRegulationMixin` gets a `@hook sustainedEffort(): number` (default
 0, a multiple of rest). Two implementers: `EmployedMixin` returns the seat's
 effort while `isFulfilling()` (`Position.effort`, optional number; default from
 setting `employment.shiftEffort`, start 1.0, i.e. 2 met), and `NPC` returns 0
-while it is at a warming place. W8 authors `effort` on the heavy seats (hewer,
+while it is away from its station warming itself. W8 authors `effort` on the heavy seats (hewer,
 cane cutter, ice crew, setter: 2.0).
 
 **D4 — The calibration is ISO 11079 and ASHRAE 55.** Two tables in the bench:
@@ -397,9 +607,10 @@ conditions, `Caster`) and deletes only the part that spares an unowned NPC.
 Where one branch serves both, it is narrowed to the player, never removed.
 `Combustible`'s is a thing's and is left (noted in Deferred seams). Linkdead
 freezing is unchanged.
-Metabolism keeps its 60 s slices; its `MAX_STEPS` collapse now runs for long
-unwatched gaps, so W4 replaces the collapse with exact stepping to the next
-*event* (D15 never asks it to cross more than one).
+Metabolism keeps its 60 s slices in this build (C4 says why and where that
+debt goes); its `MAX_STEPS` collapse would now run for long unwatched gaps,
+so W4 replaces the collapse with exact stepping to the next *event* (D15
+never asks it to cross more than one).
 
 **D9 — Watched is one predicate on the body.** `Creature.isWatched()`: a body
 with a live session stands in this body's room (itself included). It is
@@ -412,101 +623,157 @@ body leaves, nothing is torn down eagerly: the next wake finds itself
 unwatched and does not re-arm, and the beat does the same (D10).
 
 **D10 — An unwatched NPC's brain does not beat.** In `Behaved._scheduleBeat`,
-a host that is not watched and whose `presence` is not `live` schedules
+a host that is not watched and whose presence is not `live` schedules
 nothing; `comeIntoView()` restarts it. The `presenceGated = false` brains
 (`cellars`, `feeds`, `homes`, `restocks`' unwatched leg) are the exception the
 shipped design already made: a host that composes one keeps the nightly beat
 for those brains only. W5 lists them and leaves them; moving unwatched
 production into arithmetic is unobserved-economy-slate's.
 
-**D11 — Supply is a value on the house and the town.** `Supply` parses
+**D11 — Amenities: one value, on the house and on the town.** What a house
+gives its hands, and what a town gives everyone, is one shape under one key.
+`Amenities` parses
 
 ```yaml
-supply:
+amenities:
   warmth: <place path | here>
-  fire:   <burner row path>        # the house fire to keep
-  fuel:   <keyword>                # optional, as stokes' config
+  fire:   <burner row path>        # the house fire a hand keeps (stokes)
+  fuel:   <keyword>                # what that fire is fed, when not tagged fuel
   water:  <thing row path>
   food:   <thing row path>         # a Stock counter
-  kit:    <thing row path>         # a kept container of garments
+  pegs:   <thing row path>         # a kept container of the house's garments
 ```
 
-on `Business.supply`, and the same shape minus `kit`/`fire` on
-`Locality.commons`. An entry is either an absolute path of a standing thing or
-place, or a **kind** (a row path such as `/stuff/thing/fixture/coat-pegs`)
-that resolves to the thing in the hand's station place, then the house's
-operating locations, whose template path is that row or `extends:` it. That
-is what lets a business kind parent row carry supply for every instance, and
-a second dairy inherit it. `Supply.resolve(need, hand)` walks house → the
-commons of the Locality the hand's station addresses (longest prefix,
-`AddressableMixin`) → null. Paths load on use (`StuffApi.singleton`); nothing
-is searched and nothing boots.
+on `Business.amenities` and on `Locality.amenities` (a town's are its commons;
+`fire`, `fuel` and `pegs` are refused there at hydrate). An entry is either
+the absolute path of a standing thing or place, or a **kind** (a row path such
+as `/stuff/thing/fixture/coat-pegs`) that resolves to the thing in the hand's
+station place, then the house's operating locations, whose template path is
+that row or `extends:` it. That is what lets a business kind parent row carry
+amenities for every instance, and a second dairy inherit them.
+`Amenities.resolve(kind, hand)` walks house → the Locality the hand's station
+addresses (longest prefix, `AddressableMixin`) → null. Paths load on use
+(`StuffApi.singleton`); nothing is searched and nothing boots.
 
-**D12 — Three needs, one brain.** `NPC` answers `needLevel(need): Urgency` for
-`cold`, `thirst`, `hunger`:
+Why this is not a shipped house key (C1): `parLines` are what the house keeps
+*in stock to sell or work with*, by category and level, restocked by a buyer;
+`purchases` says a seat may spend the house's money; `fulfills` says which
+disciplines a seat serves; `stockLines` belong to a counter. None says *where
+a hand's own cold, thirst and hunger are answered*. Amenities point at
+fixtures and places that already exist and carry no quantity. The seam between
+them is kept clean: **fuel is restocked through `parLines`**, never through
+amenities (W8 adds a fuel par line where a supplier ships).
 
-| need | wanted | pressing | critical |
+The name was checked (C3). `Supply` is taken three times over
+(`lib/supply/SupplyState.ts`, the water-supply subsystem, `suppliedBy`), and
+`commons` is CLAUDE.md's word for the `/stuff` namespace. `amenities` appears
+in no subsystem doc, no class, no row key. The product word "the commons"
+stays in prose for a town's amenities.
+
+**D12 — Three discomforts, one brain.** The word "needs" is taken (the
+settlement model's sixteen needs, build-4's `house-needs`, wellbeing-slate's
+"the body's needs"), so the code says what the body feels. `Discomfort` is
+the closed union `cold | heat | thirst | hunger`. `NPC.discomfort(kind)`
+answers an `Urgency`:
+
+| kind | wanted | pressing | critical |
 |---|---|---|---|
 | cold | shivering | core below setpoint − 1 K | below `survivableMin` + 1 K |
+| heat | sweating in borrowed layers | core above setpoint + 1 K | above onset + 1 K |
 | thirst | hydration < 50 % | < 30 % | < 15 % |
 | hunger | satiation < 50 % and a meal hour | < 30 % | < 15 % |
 
-Thresholds are settings (`needs.*`). `/lib/behavior/needs` is `kind: body`,
-`claims: ['body']`; its `urgency` is the worst level with its `because`
-("rubs her hands and makes for the fire"); its `act` calls
-`host.tendNeed(need)`: walk to the supply (`BrainMoves`), `useSupply`, walk
-back to the station. `NPC.onCreate` adds the spec
-`{brain: /lib/behavior/needs, trigger: candidate}` when the row does not list
-it, so no row authors it. `stokes` is added the same way and reads
-`supply.fire`/`supply.fuel` when its config names none; its presence gate
-stays (unwatched tending is D15's). `eats.ts` is deleted; its
-purse-chooses-the-loaf rule moves into `useSupply('hunger')` unchanged, with
-`spendFraction` a setting; the two rows drop their spec.
+Thresholds are settings (`fending.*`). `/lib/behavior/fends` ("fends for
+itself") is `kind: body`, `claims: ['body']`; its `urgency` is the worst
+discomfort with its `because` ("rubs her hands and makes for the fire"); its
+`act` calls `host.seeTo(kind)`: `dress()` first (D14); if that does not
+answer it, walk to the amenity (`BrainMoves`), `useAmenity`, walk back to the
+station. `NPC.onCreate` adds the spec
+`{brain: /lib/behavior/fends, trigger: candidate}` when the row does not list
+it, so no row authors it. `eats.ts` is deleted; its purse-chooses-the-loaf
+rule moves into `useAmenity('hunger')` unchanged, with `spendFraction` a
+setting; the two rows drop their spec.
 
-**D13 — `useSupply` is the one effect, called by both paths.** On `NPC`:
+**`stokes` stays, and stays separate (C1, C5).** Keeping the house fire is
+*work for the house* (`kind: work`): the smith's forge is for the mend, the
+potter's stove for the ware, and neither is lit because the hand is cold.
+`fends` is `kind: body`. The arbiter ranks the two kinds differently, and a
+single brain could not be both. What changes: `stokes` no longer has two
+places to name its fire. Its `fire` and `fuel` config keys are **retired**;
+it reads `amenities.fire` / `amenities.fuel` of the hand's house, and with
+neither it tends the first burner in the room as now. The potter's row moves
+its two values onto the pottery house. `NPC.onCreate` adds the `stokes` spec
+the same way as `fends`; it is idle for a hand whose room has no burner. Its
+presence gate stays (unwatched tending is D15's).
+
+**D13 — `useAmenity` is the one effect, called by both paths.** On `NPC`:
 
 - `thirst`: draw from the fixture by the call `DrinkController` makes on the
   model, to full. The fixture's own supply chain is debited by that call.
 - `hunger`: buy by the call `BuyController` makes on the `Stock` (the hand's
   account pays the house through the bank chokepoint), then eat by
-  `EatController`'s model call. No counter stock or no money: the need stays
-  and the hand says the hungry line (shipped behavior).
+  `EatController`'s model call. No counter stock or no money: the discomfort
+  stays and the hand says the hungry line (shipped behavior).
 - `cold`: be at the warm place until the core is back at the setpoint.
-- A supply that resolves to nothing: the need stays. That is the honest path
-  to step 9.
+- An amenity that resolves to nothing: the discomfort stays. That is the
+  honest path to step 9.
 
 W6 names the three model calls after reading the controllers. If any decision
 lives in a controller, it moves to the model first (P5) in that wave.
 
-**D14 — Weather kit is dressed from the peg and goes back.** At shift start,
-and on each `cold`/heat deliberation while on shift, `NPC.dressForPost()`
-asks the budget, at the station's air, whether the body holds its setpoint
-without shivering. If not, it takes from `supply.kit` the garment that adds
-the most insulation and fits a free slot, moves it to itself and wears it (the
-model call `wear` makes), and repeats until it holds or the peg is empty.
-If the body is shedding (regime 1 with sweat) it takes kit off, most
-insulating first, and hangs it back. Kit worn is remembered as
-`kitWorn: string[]` of chattel ids (persistent; survives restart). Before
-leaving the story (`placeOffShift`) and at `refreshBody`, `returnKit()` hangs
-every remembered piece back. Kit garments are stamped to the house
-(`ChattelApi`) when the peg is first stocked from its row. Each on and off is
-an `act.deed` line to the room.
+**D14 — One way to dress (C2).** Three things touch what a body wears today
+or would have after the first draft of this plan: `Costumed` (the row's
+clothes, once), a kit path, and the player's `Wardrobe`. They become one
+seating call and one decision.
+
+- **One seating call.** `Character.wearGarments(paths)` today clones each
+  garment and seats it by its claim. The seating half becomes
+  `Character.putOn(garment)`; `wearGarments` is "clone, then `putOn`". W6
+  reads `WearController`: if `wear` already calls a model method that seats
+  by claim, `putOn` **is** that method and `wearGarments` calls it; there is
+  one, either way.
+- **`Costumed` is stocking, not dressing.** It mints the NPC's *own* clothes
+  onto it once, as `props:` mints what it carries. It makes no later
+  decision. It survives as that; its retirement, with the student parent, is
+  the agents pass of row-composition-slate (a requirements non-goal here).
+- **One decision, `NPC.dress()`.** It asks the budget, at the air the NPC is
+  about to stand in, whether the body holds its setpoint without shivering
+  or sweating. Too cold: `putOn` the garment that adds the most insulation
+  and fits, from what it may wear: its own clothes that it carries, then the
+  house's on `amenities.pegs`. Too warm: take off the most insulating
+  outer piece: one of its own goes into its carry, one of the house's back on
+  the peg. Repeat until it holds or nothing is left. There is no kit-specific
+  wear path: a Cast that carries its own jumper through July puts it back on
+  in October by the same method.
+- **The house's pieces go back.** `borrowed: string[]` (chattel ids,
+  persistent) remembers what came off a peg. `hangUp()` returns every one;
+  `placeOffShift` calls it before the hand leaves the story and
+  `refreshBody` calls it for a role. The peg's garments are stamped to the
+  house when the peg is first stocked from its row.
+- **`Wardrobe` is not a dressing mechanism.** It is a player's saved *names*
+  for sets of keywords, replayed through the same `wear`. It composes on
+  `Avatar` only and is untouched. An NPC decides from the weather and has no
+  names to save (C5).
+
+Each on and off is an `act.deed` line to the room. `dress()` runs at shift
+start and inside `seeTo('cold' | 'heat')`.
 
 **D15 — An unwatched NPC is settled by events.** `NPC.settleUnwatched()` runs
 at the head of the NPC's `reconcileMetabolism` and
 `reconcileThermalRegulation` overrides (reentry-guarded), so every read of an
 NPC sees settled state, not only an arrival. From its last settle time to now:
 
-1. If it was on shift and `supply.fire` resolves in its room: compute
+1. If it was on shift and `amenities.fire` resolves in its room: compute
    `t_out = fire.tendedUntil(from, now, looseFuelHere)` without mutating;
    `room.reconcileEnvelope(t_out)`; apply the fuel consumption and, if
    `t_out < now`, put the fire out; then `room.reconcileEnvelope()`.
-2. Loop: ask the three stocks' solvers for the next time a need reaches
-   `pressing` (heat: D2's crossing solve against the room's log; thirst and
-   hunger: metabolism stepped to its next threshold). Advance all three
-   clocks to that instant. Call `useSupply(need)`. For `cold`, the body's air
-   becomes the warm place's (read off that place's own log) until the core
-   recovers, then the station's again. Kit is re-decided at each event (D14).
+2. Loop: ask the stocks' solvers for the next time a discomfort reaches
+   `pressing` (heat and cold: D2's crossing solve against the room's log;
+   thirst and hunger: metabolism stepped to its next threshold). Advance all
+   clocks to that instant. Call `seeTo(kind)`'s effect half: `dress()`, then
+   `useAmenity(kind)`. For `cold`, the body's air becomes the warm place's
+   (read off that place's own log) until the core recovers, then the
+   station's again.
 3. Stop at `now`. If the last cold event was still warming, the body is moved
    to the warm place (`teleport`, as a shift move is); otherwise it is at its
    station.
@@ -514,45 +781,101 @@ NPC sees settled state, not only an arrival. From its last settle time to now:
    the real time of death, the body left where it was, and D16's report.
 
 It never estimates: every stock is advanced by the same solver the watched
-path uses, and every debit is `useSupply`. The loop is bounded by events (a
+path uses, and every debit is `useAmenity`. The loop is bounded by events (a
 drink every few hours, a meal a day, a warm-up cycle per chill), a few dozen
 per game day.
+
+⭐ **A settled act is the NPC's act, on the ordinary records (measurement.md
+A17, A18; the Standard Model contract).** Buying bread, drawing water and
+burning the house's fuel are in-fiction choices. Settling them late does not
+change whose they are or where they are written:
+
+- **Chooser.** Each settled event runs in its own root frame with **the NPC
+  as the actor** (`ExecutionContextApi.runRoot` under tropes' actor rule;
+  `runAsSelf` until tropes merges). It is never attributed to the player
+  whose arrival triggered the settle, to the author of the row, or to a
+  system. The triggering command is not its cause: the frame is a new root,
+  so `causeId` is empty, as it is for a brain's own turn.
+- **Act id.** Each event plants its own `metadata.actId` by the call
+  `Behaved._runAct` uses (tropes D1/D25). One id per event, not one per
+  settle: six hours with two drinks and a loaf is three acts.
+- **Same records.** `useAmenity` is the only writer on both paths, so a
+  settled purchase is a `postTransaction` row in `bank_ledger` (the hand
+  pays, the house is paid) and a title move in `chattel_events`, a settled
+  drink is the fixture's own draw, and settled fuel is `Burner.stoke`. There
+  is no adjustment row, no bulk debit, no write that the watched path does
+  not also make. ⛔ A "settlement" entry of any kind is a defect.
+- **Descriptive only (A18).** The records say what changed. Nothing here
+  writes a trait, a regard or a reading of the hand.
+- **When it happened.** The record's game time is the event's instant inside
+  the gap, not the moment of the settle, wherever the record carries a game
+  time. W7 checks each chokepoint; one that stamps only "now" is logged as a
+  fault line (C6), not worked around.
+
+What proves it: W7's agreement test compares the *rows*, not only the
+balances (same collections, same kinds, same parties, an act id on each);
+drive step 8 reads the hand's ledger after the six hours and finds the bread
+purchases as ordinary purchases by the hand, each with its own act id, and no
+row whose actor is empty, the player or a system.
 
 **D16 — A neglect death is reported once.** At `ConditionApi.die` for the
 causes hypothermia, hyperthermia, starvation and dehydration, when the body
 has no live session, `DiagnosticApi.record({ path: <the body's template path>,
 channel: 'content-error', severity: 'error', message: … })` naming the cause,
-the place, the house and which supply resolved to nothing. The corpse stays.
+the place, the house and which amenity resolved to nothing. The corpse stays.
 No new log.
 
-**D17 — Presence.** On `lib/npc/NPC`: `presence: 'live' | 'watched' | 'role'`
-(authored; default from `defaultPresence()`: `Cast` → `watched`, `Extra` →
-`role`) and `home: <place path>` (optional).
+**D17 — Presence is one declaration (C2).** Where an NPC is and how it is
+simulated was about to be said in four places: a new `presence`, a new
+`home`, the house's `offShift`, and the Extra rung. It is one field on
+`lib/npc/NPC`, parsed by the `Presence` value:
 
-- `live`: always wakes and beats; never taken out of the story.
-- `watched`: D9/D10/D15. Off shift: walks to `home` if authored, else out.
-- `role`: as `watched` on shift; at each shift start `refreshBody()` (full
-  reserves, setpoint core, neglect conditions cleared, costume re-applied) and
-  it is always out off shift.
+```yaml
+presence: watched                              # the short form: just `as`
+presence: { as: watched, offShift: /world/…/cottage }
+```
 
-`Business.offShift` accepts `out` (now the default when absent) and `here`
-(hands stay); the eleven explicit `out` rows keep working. `placeOffShift`
-reads: house `here` → nobody moves; NPC `live` → nobody moves; a
-`calledToAt` window → there; `home` → walk there by `BrainMoves` when watched,
-`teleport` when not; else `returnKit()`, the departure line, null. The lounge
-cast are authored `presence: live` in W8.
+- `as`: `live` · `watched` · `role`.
+  - `live`: always wakes and beats; never leaves the story.
+  - `watched`: D9/D10/D15.
+  - `role`: as `watched` on shift; at each shift start `refreshBody()` (full
+    reserves, setpoint core, neglect conditions cleared, its own clothes
+    re-stocked) after `hangUp()`.
+- `offShift`: `out` · `here` · a place path (its home: it walks there by
+  `BrainMoves` when watched, `teleport` when not). A `role` is always `out`.
+- **Defaults come from the rung, and the rung is not a knob**:
+  `NPC.defaultPresence()` is overridden by `Cast` (`watched`, `out`) and
+  `Extra` (`role`, `out`). An author who writes nothing gets the rung's.
 
-Animals (owner, 2026-11-28, conflict 3): **no route and no refresh**. An
+**`Business.offShift` is deleted in this build.** Its one value, `out`, is
+now every rung's default, so the eleven rows drop the key and
+`getOffShift`/`setOffShift` go; `lint:instanceable`'s applier refusal catches
+a leftover key. A house whose hands should be there at night says so on the
+hands: `presence: { offShift: here }` on each, or once on the parent row they
+`extends:`. ⚠ The requirements say "a house … says so"; this moves the
+sentence from the house row to the hands' rows so there is one place to look.
+
+`placeOffShift` reads the hand, in this order: `as: live` → nobody moves;
+`offShift: here` → nobody moves; a `calledToAt` window open → there; a place
+→ home; else `hangUp()`, the departure line, null. The lounge cast are
+authored `presence: live` in W8.
+
+`calledToAt` (the `frequents` brain's visit hours) survives beside this on
+purpose (C5): it is a *timed* call a brain declares with its own hours, not a
+standing answer, and it already enters through the same ladder.
+
+Animals (owner, 2026-11-28, conflict 3): **no presence and no refresh**. An
 unowned animal lives by the same physics and dies of neglect where it is,
-reported by D16. When it comes into view it is settled like any unwatched
-body, so a stray's death is found when someone looks.
+reported by D16. When it comes into view it is reconciled like any body, so
+a stray's death is found when someone looks.
 
-**D18 — Tropes.** The `needs` and `stokes` turns run through `_runAct` and
-carry the act id with no code here. `settleUnwatched` wraps each
-`useSupply` in `ExecutionContextApi.runAsSelf`; when tropes has merged,
-it plants one `metadata.actId` per settled event by the same call `_runAct`
-uses. Whichever branch merges second takes a three-line conflict in
+**D18 — Tropes.** The `fends` and `stokes` turns run through `_runAct` and
+carry the act id with no code here. The settled events take theirs as D15
+states. Whichever branch merges second takes a small conflict in
 `Behaved._runAct`/`_scheduleBeat`; D10's edit is in `_scheduleBeat` only.
+If this build merges first, D15's "plants its own act id" is one line added
+at the catch-up merge, and W7's row comparison gains the `actId` column then;
+the MR says which state it merged in.
 
 **D19 — Sleeves.** The biped plan gains
 `{ name: arms, accepts: WearableMixin, capacity: 4, covers: [body.arm.left, body.arm.right] }`
@@ -568,22 +891,23 @@ atomic already. W3 checks every other humanoid plan that copies biped's slots.
 | heat budget, `sustainedEffort` hook, `roomHeatExchange` | `ThermalRegulationMixin` (on `Creature`) | Every creature has a heat budget and warms its room. True of every living and dead body; an ectotherm answers with no production. No narrowing guard |
 | `isWatched`, `comeIntoView` | `Creature` | Every body can be seen or not. A player's own body is watched by itself, so nothing changes for it |
 | `refreshBody` | `VitalsMixin` | "This body can be set to its kind's baseline." Meaningful for any body; called only by a role |
-| `presence`, `home`, needs, kit, `settleUnwatched` | `lib/npc/NPC` (class body) | Claims it for Cast and Extra and the six locality NPC subclasses (Tinker, TicketClerk, Realtor, Walter, Editor, Katie, Pilot). All are people with posts. Not on `Character` (a player has no route), not on `Behaved` (a cat has no house) |
+| `presence` (one field), `borrowed`, `discomfort`/`seeTo`/`useAmenity`/`dress`/`hangUp`/`settleUnwatched` | `lib/npc/NPC` (class body) | Claims it for Cast and Extra and the locality NPC subclasses (Tinker, TicketClerk, Realtor, Walter, Editor, Katie, Pilot). All are people with posts. Not on `Character` (a player has no presence to declare), not on `Behaved` (a cat has no house) |
+| `putOn` | `Character` (beside `wearGarments`, which it is cut from) | Every character can have a garment seated on it. True; players reach it through `wear` |
 | `Position.effort` | `Position` value | Every seat has an effort; the default is honest for most (light work) |
-| `supply` | `Business` | Every house may supply its hands. Most will answer yes once authored (36 outdoor slots, every heated shop). Not on `Organization` (a government or a company with no premises supplies nothing) |
-| `commons` | `Locality` | Every town may have public water, food and warmth. A locality with none answers none, and its cast then has nothing: correct, and `lint:supply` says so |
+| `amenities` | `Business` | Every house may provide for its hands. Most will answer yes once authored (36 outdoor slots, every heated shop). Not on `Organization` (a government or a company with no premises provides nothing) |
+| `amenities` | `Locality` | Every town may have public water, food and warmth. A locality with none answers none, and its cast then has nothing: correct, and `lint:amenities` says so. The same key and value as the house's, so there is one shape to learn |
 | `housed`, `roomHeatExchange` | `Herdbook` (trade-ranching) | Every herd is in or out. True |
 | `outOfStorySinceS` | `ContainableMixin` | Everything containable can be out of the story. True by definition of null |
 | `clock` | `FieldMeta` | A declaration, not a capability |
 | `tendedUntil` | `Burner` | Every burner can be tended over a span. True |
 | `arms` slot | the biped plan row | Every biped has arms to cover |
-| `kit` flag on garments | none | Kit is decided by the peg it hangs on and its title, not by a field on every garment |
+| a flag on garments for the house's pieces | none | A piece is the house's by the peg it hangs on and its title, not by a field on every garment |
 
-Rejected hosts, recorded so review does not re-open them: a `supply:` key on
-`Location` (most places would answer nothing; conflict 5); needs on `Actor`
-(animals and players would answer "no"); presence on `Employed` (a route is
-about the body, and `live` cast have no shift); a `NeedingMixin` (one
-composer).
+Rejected hosts, recorded so review does not re-open them: an `amenities:`
+key on `Location` (most places would answer nothing; conflict 5); discomforts
+on `Actor` (animals and players would answer "no"); presence on `Employed` (it
+is about the body, and `live` cast have no shift); presence split across the
+house and the hand (two places to look, C2); a mixin for N9 (one composer).
 
 ## Convention conformance
 
@@ -596,38 +920,48 @@ Checked at plan time against `CLAUDE.md` and the tree.
 - **Paths**: kernel code under `S/lib/thermal`, `S/lib/npc`, `S/lib/behavior`;
   content rows under `/stuff/thing/...` (generic-objects), `/world/...`
   (venues), `/platform/...` (settings, views). No pack gains a root.
-- **Module scope declares**: the default `needs`/`stokes` specs are added in
+- **Module scope declares**: the default `fends`/`stokes` specs are added in
   `NPC.onCreate`, not at module scope.
 - **Import boundary**: trade-ranching imports `RoomHeatExchange` by
   `@saxonberg/server/mud/lib/thermal/RoomHeatExchange`; W2 adds it to the
   server `exports` map if absent.
-- **Module categories**: one value object (`Supply`, named for its concept, in
-  `lib/npc/`), one brain, no helper functions, no new `lib/` folder.
+- **Module categories**: two value objects (`Amenities`, `Presence`, each named
+  for its concept, in `lib/npc/`), one brain, no helper functions, no new
+  `lib/` folder.
 - **Verbs on objects**: every new act is a method on the body, the burner or
   the book. No `XApi.verb(host)`.
-- **P3 refuse / skip / throw**: a supply that resolves to nothing is a skip
-  with the need standing, and a death is reported (D16). A `supply` entry
-  naming a row that does not exist throws at hydrate (`setSupply`) and fails
-  `lint:supply`. A walk with no route is a `content-error` diagnostic and the
-  need stands. `rebaseClocks` on a non-finite Δ throws.
+- **P3 refuse / skip / throw**: an amenity that resolves to nothing is a skip
+  with the discomfort standing, and a death is reported (D16). An `amenities`
+  entry naming a row that does not exist throws at hydrate (`setAmenities`)
+  and fails `lint:amenities`. A leftover `offShift` on a Business row is
+  refused by the applier. A walk with no route is a `content-error`
+  diagnostic and the discomfort stands. `rebaseClocks` on a non-finite Δ throws.
 - **P4 no duck typing**: `Herdbook implements RoomHeatExchanging` by import.
   The envelope's shipped shape read (`roomHeatExchange?.()`) stays as it is
   (storage-and-ice D5); this build adds implementers, not casts.
   `BodyRegulation → Employed` goes through the `sustainedEffort` hook, not a
   narrowing.
-- **P5 the mixin decides**: the `needs` brain picks nothing; `NPC` decides
-  level, supply and effect. Controllers are untouched except where W6 moves a
+- **P5 the mixin decides**: the `fends` brain picks nothing; `NPC` decides
+  level, amenity and effect. Controllers are untouched except where W6 moves a
   decision out of one.
 - **P6 persistence per content**: the coat pegs are a kept container in each
-  place (a `Locker`-class row); kit is live content, stocked once from the
-  row. `kitWorn` keys on chattel ids. `outOfStorySinceS` and `presence`
+  place (a `Locker`-class row); the house's garments are live content, stocked
+  once from the row. `borrowed` keys on chattel ids. `outOfStorySinceS` and `presence`
   ride the host's own record. No class persists what it hosts.
-- **P7 load on use**: supply resolves by authored reference; the commons by
-  the hand's own address; no roster of supplies, no boot entry.
-- **P8 names**: `Supply` (the common word; nothing ships with it), `needs`
-  (one brain, one word), `left-story`, `housed`, `effort`, `presence`, `home`
-  (`homes` brain reads its own `home` config; W5 checks the two do not
-  collide on one row).
+- **P7 load on use**: an amenity resolves by authored reference; the town's by
+  the hand's own address; no roster of amenities, no boot entry.
+- **P8 names**: every new name was checked against the subsystem docs, the
+  command categories, the Api list and the row keys; the table is in *The
+  surface, by kind* § Names. Two first-draft names were collisions and are
+  gone: `Supply` and `needs`.
+- **P15 a fork is an option, not an imposition**: this build adds no player
+  verb and changes no player verb's behavior, so there is no fork to hand the
+  player. The harness subcommands take their one varying input as an argument
+  (`herd <book> in|out`, `air-pin <K> --at`). The author-facing forks are all
+  options with a default: `presence` (default by rung), `amenities` (default:
+  the town's), `effort` (default: the setting). Nothing asks the owner
+  "X or Y"; the only defaults chosen here are the two rung defaults, which the
+  requirements set.
 - **P9–P14, per item:**
 
 | item | P9 predictable | P10 doc? | P11 no dest. branch | P12 no synonym | P13 right mixin | P14 nothing invisible |
@@ -638,10 +972,11 @@ Checked at plan time against `CLAUDE.md` and the tree.
 | N4 clocks | not a command | `clock` is meta on fields | the walker is inside `move`; no caller branches | no new move | Containable = "can be in a container" | ⚠ `move` now ends engagements and shifts stamps; both are stated in spatial.md and the leaver's line is shown |
 | N5 `left-story` | the abort line names it | vocabulary member | n/a | W4 confirms | n/a | no |
 | N6 watched | not a command | n/a | n/a | replaces `_hasAudience` | Creature | no |
-| N7 presence | row keys; `help authoring cast` | fields on the NPC | n/a | n/a | NPC | off-shift move has a line |
-| N8 supply | row keys; `lint:supply` | ⭐ a value on two rows that code reads by field, not a table read by name: not a Document, and not an Idea class | resolve is inside `Supply` | n/a | Business / Locality | no default supply; nothing resolves → nothing |
-| N9 needs on NPC | a watcher reads the `because` line | n/a | `useSupply` asks the supply by its own protocol | n/a | NPC | choice among kit garments is by one stated rule and is shown |
-| N10 `needs` brain | brain `summary` | n/a | n/a | `eats` deleted | brain | implicit spec is documented in behavior.md and visible in the studio's composed row |
+| N7 `Presence` | one row key; `help authoring cast` | a value on the NPC row that code reads by field: not a Document | `placeOffShift` reads one value in one ladder | replaces `Business.offShift`, deleted | NPC | off-shift move has a line; defaults are the rung's and are stated in identity.md |
+| N8 `Amenities` | one row key on two row kinds; `lint:amenities` | ⭐ a value on two rows that code reads by field, not a table read by name: not a Document, and not an Idea class | resolve is inside `Amenities`; no caller asks "house or town?" | not `parLines`/`purchases`/`fulfills` (D11) | Business / Locality | no default amenity; nothing resolves → nothing |
+| N9 fending on NPC | a watcher reads the `because` line | n/a | `useAmenity` asks the fixture by its own protocol | `seeTo`, not `relieve` (Vitals' word for an affliction) | NPC | the garment choice is by one stated rule and each piece on or off is a line |
+| N9a `putOn` | it is what `wear` does | n/a | n/a | ⚠ must BE `wear`'s model call if one exists (D14), never a second | Character, beside `wearGarments` | no |
+| N10 `fends` brain | brain `summary` | n/a | n/a | `eats` deleted; `stokes` is a different kind of task (D12) | brain | implicit spec is documented in behavior.md and visible in the studio's composed row |
 | N11 `tendedUntil` | n/a | n/a | n/a | it is `stoke` over a span; calls `stoke` | Burner | no |
 | N12 `refreshBody` | n/a | n/a | n/a | n/a | Vitals | the role route is authored |
 | N13 harness | the view's help text | n/a | n/a | subcommands, one word each | n/a | no |
@@ -671,7 +1006,8 @@ Goal: the staging tools exist and the bench states the published target.
 - `testharness air-pin <K> [--at <place>]` / `air-unpin`: holds a Locality's
   outdoor air temperature (beside the weather pin, same persistence). Skip if
   W0 finds the weather pin can already carry a temperature.
-- `testharness presence <npc>`: prints route, watched, last settle, kit worn.
+- `testharness presence <npc>`: prints its presence, watched, last settle, and
+  what it has borrowed.
 - Re-pin `S/lib/thermal/__tests__/Thermal.cold.gym.test.ts` to D4's three
   tables, with real garment rows, not clo overrides. It fails now; mark the
   two tables `it.fails` with the reason so the gym job stays green until W1
@@ -751,56 +1087,65 @@ sign-out, a clock advance and login read the same body for the old reason
 before.
 Commit: `build(cast-in-winter W4): out of the story is out of time`.
 
-### W5 — Watched, and the presence routes (D9, D10, D17 less needs)
+### W5 — Watched, and presence (D9, D10, D17)
 
 Files: `S/lib/creature/Creature.ts`, `S/lib/behavior/Behaved.ts`
 (`_hasAudience` → `isWatched`, `_scheduleBeat`), the place base's
-`onContainableAdded`, `S/lib/npc/NPC.ts` (`presence`, `home`,
-`defaultPresence`), `S/platform/agent/Extra.ts`, `S/lib/vitals/Vitals.ts`
-(`refreshBody`), `Business.ts` (`offShift: here`), `EmploymentLogic.ts`
-(`placeOffShift`, shift-start refresh), `ThermalRegulation.ts` (wake only when
+`onContainableAdded`, `S/lib/npc/Presence.ts`, `S/lib/npc/NPC.ts` (`presence`,
+`defaultPresence`), `S/platform/agent/{Cast,Extra}.ts`, `S/lib/vitals/Vitals.ts`
+(`refreshBody`), `Business.ts` (**delete** `offShift` and its accessors),
+the eleven Business rows that author it (drop the key; grep all of
+`packages/content`, review B4), `EmploymentLogic.ts` (`placeOffShift` reads
+the hand; shift-start refresh), `ThermalRegulation.ts` (wake only when
 watched or live), behavior.md, employment.md, identity.md, residency.md.
 
-⚠ The off-shift default flips for 64 houses in this wave. Before committing,
-run the wire flows of the trades whose hands serve at night and fix by
-authoring `offShift: here` or a roster hour, never by reverting the default.
+⚠ Off shift now means out of the story for the hands of 64 more houses.
+Before committing, run the wire flows of the trades whose hands serve at
+night and fix by authoring `presence: { offShift: here }` on those hands (or
+their parent row) or a roster hour, never by reverting the default.
 
 Acceptance: unit: an unwatched Cast holds no wake and no beat handle; a
 player entering arms both; an Extra's body is at baseline at shift start; a
-Cast with `home` is at home off shift; a `live` Cast never leaves.
+Cast whose `offShift` names a place is there off shift; a `live` Cast never
+leaves; `rg offShift packages/server/src/mud/platform/idea/Business.ts` is
+empty.
 `lint:idle-cadence` unchanged or lower.
 Commit: `build(cast-in-winter W5): fidelity follows attention`.
 
-### W6 — Supply and the needs (D11–D14)
+### W6 — Amenities and fending (D11–D14)
 
-Files: `S/lib/npc/Supply.ts`, `Business.ts`, `Locality.ts`, `NPC.ts`
-(`needLevel`, `tendNeed`, `useSupply`, `dressForPost`, `returnKit`),
-`S/lib/behavior/needs.ts`, `stokes.ts`, delete `eats.ts` and its tests, the
-two `eats` rows, `C/generic-objects/content/stuff/thing/fixture/coat-pegs.yaml`,
-`C/platform/content/settings/needs.yaml`, reason and line rows,
-`S/scripts/lint-supply.ts`, test-fixtures rows (a house with full supply, a
-house with none, a testbed commons). behavior.md (the `eats` section becomes
-the hunger need), a new `docs/subsystems/needs.md` (leave the CLAUDE.md index
-line to the sweep).
+Files: `S/lib/npc/Amenities.ts`, `Business.ts`, `Locality.ts`,
+`S/lib/character/Character.ts` (`putOn`, cut from `wearGarments`), `NPC.ts`
+(`discomfort`, `seeTo`, `useAmenity`, `dress`, `hangUp`, `borrowed`),
+`S/lib/behavior/fends.ts`, `stokes.ts` (config keys retired; the potter's row
+moves its two values to the pottery house), delete `eats.ts` and its tests,
+the two `eats` rows,
+`C/generic-objects/content/stuff/thing/fixture/coat-pegs.yaml`,
+`C/platform/content/settings/fending.yaml`, reason and line rows,
+`S/scripts/lint-amenities.ts`, test-fixtures rows (a house with every
+amenity, a house with none, a testbed Locality with public ones).
+behavior.md (the `eats` section becomes the hunger discomfort), a new
+`docs/subsystems/amenities.md` (leave the CLAUDE.md index line to the sweep).
 
-`lint:supply`: every `supply`/`commons` path resolves to a row; a `kit`
-resolves to a kept container; every roster slot whose station is under open
-sky has a `warmth` that resolves (house or commons) and is not itself under
-open sky.
+`lint:amenities`: every `amenities` path resolves to a row; `pegs` resolves
+to a kept container; `fire`/`fuel`/`pegs` do not appear on a Locality; every
+roster slot whose station is under open sky has a `warmth` that resolves
+(house or town) and is not itself under open sky.
 
 Acceptance: wire flow on the testbed, watched: a chilled hand walks to the
-fire and back; a thirsty one drinks; a hungry one buys and eats; a hand with
-no house supply uses the commons; kit goes on in the cold and back on the peg
-at shift end; a fire is laid and lit from supply. Each checkpoint is made to
-fail once (B2).
-Commit: `build(cast-in-winter W6): needs in the deliberation, supply on the house`.
+fire and back; a thirsty one drinks; a hungry one buys and eats; a hand whose
+house declares nothing uses the town's; pieces go on in the cold and the
+house's are back on the peg at shift end; a fire is laid and lit from the
+house's declaration; `rg "wearGarments|putOn" S/lib` shows one seating
+implementation. Each checkpoint is made to fail once (B2).
+Commit: `build(cast-in-winter W6): amenities on the house, fending in the deliberation`.
 
 ### W7 — Settling the unwatched (D15, D16)
 
 Files: `NPC.ts` (`settleUnwatched` and the two reconcile overrides),
 `S/lib/fire/Burner.ts` (`tendedUntil`), `Metabolic.ts` (step to next
 threshold), `S/platform/idea/api/ConditionLogic` or wherever `die` lands (the
-report), needs.md, mortality.md, diagnostics.md.
+report), amenities.md, mortality.md, diagnostics.md.
 
 Acceptance (unit, arithmetic): six unwatched winter hours at a supplied post
 leave the hand alive, the fuel lower by burn rate × lit hours within one
@@ -808,19 +1153,25 @@ item, water drawn equal to drain ÷ per-drink, money down by the meals due;
 the **agreement test**: the same six hours run watched (a silent observer
 body in the room, beats driven) and unwatched end within tolerance of each
 other on core (±0.5 K), reserves (±5 points), fuel and water (±1 unit), and
-place; a hand with no supply and no warm place is dead at the solver's time
-of death and one diagnostic row exists; seven days is fewer than 500 events.
+place; ⭐ **and on the records** (D15, A17): the two runs write rows of the
+same collections and kinds with the same parties, every settled event has
+the hand as its actor and its own act id (the `actId` column once tropes has
+merged), and no row exists on the settled side that the watched side has no
+twin of; a hand with no amenity and no warm place is dead at the solver's
+time of death and one diagnostic row exists; seven days is fewer than 500
+events.
 Commit: `build(cast-in-winter W7): an unwatched hand is settled honestly`.
 
 ### W8 — Content
 
-Every row below, then `lint:supply` at zero.
+Every row below, then `lint:amenities` at zero.
 
-- **Commons.** `Locality` rows for Terminus's districts get `commons:` — water
-  the market standpipe, food the bread counter, warmth a new public warming
-  room. The lounge bar's free water is the lounge locality's `commons.water`.
+- **The commons.** `Locality` rows for Terminus's districts get `amenities:` —
+  water the market standpipe, food the bread counter, warmth a new public
+  warming room. The lounge bar's free water is the lounge locality's
+  `amenities.water`.
 - **A business kind parent** `/stuff/idea/business/dairy` with
-  `supply: { kit: /stuff/thing/fixture/coat-pegs, water: /stuff/thing/fixture/water-butt, warmth: … }`;
+  `amenities: { pegs: /stuff/thing/fixture/coat-pegs, water: /stuff/thing/fixture/water-butt, warmth: … }`;
   the Delight dairy `extends:` it. This row is the second-instance proof.
 - **The Delight dairy.** Byre: `enclosure:` (whitewashed brick) and `roof:`
   authored, the door a real boundary shut at night, coat pegs stocked
@@ -828,11 +1179,13 @@ Every row below, then `lint:supply` at zero.
   books `housed: true`. Hesper Vane gets a roster slot (station the byre),
   the lad's slot a station. Warmth per conflict 4. Costumes: both swap the
   field jacket for the work shirt.
-- **Lit fires.** The shop hearths stay unlit in their rows; `supply.fire` on
+- **Lit fires.** The shop hearths stay unlit in their rows; `amenities.fire` on
   each house whose station holds a Hearth or Brazier, and fuel props where
   the census shows none (chandlery, colorman, lower-towpath stove,
-  goods-yards brazier).
-- **Lounge cast** `presence: live`. Houses that serve at night: `offShift: here`.
+  goods-yards brazier). Where a fuel supplier ships, the house also gets a
+  fuel `parLines` entry so the fire's fuel is restocked by the shipped route.
+- **Lounge cast** `presence: live`. Hands that serve at night:
+  `presence: { offShift: here }`.
 - **Warming places for the 36 outdoor slots.** Existing where the census
   found one; authored where it did not. Each new place is an enclosed `Hall`
   with a Hearth or Brazier, fuel, coat pegs, a light source, and an exit to
@@ -851,7 +1204,7 @@ Every row below, then `lint:supply` at zero.
 | 15 | sawmill | sawmill | **new**: a saw-pit shed |
 | 16 | public-works yard | public works | **new**: the works office |
 | 17–18 | Hollow Mere shore ×2 | ice company | **new**: a warming shanty by the shed, the realm's coldest post; `effort: 2.0` |
-| 19 | market square | market | **new**: the public warming room (also the commons') |
+| 19 | market square | market | **new**: the public warming room (also the town's) |
 | 20–21 | valley-road towpath, Mayfield Row street | painter's round | colorman's shop (light its hearth) |
 | 22–23 | ashery, glasshouse | Rejection ashery, glasshouse | the lean-to: enclose it and light its hearth |
 | 24–25 | fringe-claim, fuel-yard | fringe outfit, fuel yard | the-dry (lit) |
@@ -865,9 +1218,9 @@ Every row below, then `lint:supply` at zero.
   re-checks both with `testharness body` at the winter pin and adds them if
   the census was wrong.
 - **Water and food** on every house in the table: a water butt or pump at the
-  post or warming place, else the commons by silence. Bread is the market's.
+  post or warming place, else the town's by silence. Bread is the market's.
 
-Acceptance: `lint:supply` zero; every new place walked at night with a light
+Acceptance: `lint:amenities` zero; every new place walked at night with a light
 (step 15, R5); `lint:biome-sky` not higher.
 Commit per pack is fine; the wave's last is
 `build(cast-in-winter W8): the world supplies its cast`.
@@ -884,7 +1237,9 @@ Commit per pack is fine; the wave's last is
 3. **Only then** delete `diesOfNeglect`, its three call-site conditions and
    its interface member; unowned animals lose the spare in the same commit (conflict 3: they die of neglect, reported).
 4. Docs: thermal.md, vitals.md, metabolism.md, mortality.md; strike §§ 1, 2, 4
-   from backstops-owed-slate (leave the sweep to compact it).
+   from backstops-owed-slate (leave the sweep to compact it). List C6's
+   fault lines, with what W6 and W7 actually found, in the MR description
+   for the sweep to carry into api-normalization-slate Part 8.
 5. The browser walk `e2e/tests/cast-in-winter-walk.spec.ts`: steps 3, 4, 5, 12.
 
 Acceptance: the blocking drive green; `rg diesOfNeglect` empty; the full
@@ -901,10 +1256,10 @@ Commit: `build(cast-in-winter W9): the backstop comes out`.
 | sleeves | `wear`, `outfit` | the garment | `slotClaims` naming `arms`; the plan's slot | plan loads with the species | `wear` binds the garment as before |
 | timeless null | none | `ContainmentApi.move` | `clock` meta | n/a | n/a |
 | watched | none | place arrival hook | none | n/a | n/a |
-| presence | none | roster tick | `presence`, `home`, `offShift` | `home` loads on use (`StuffApi.singleton`) | n/a |
-| needs | none (the NPC's own) | implicit spec from `NPC.onCreate`; ⚠ a locality NPC subclass that overrides `onCreate` must call `super` | `needs.*` settings | brain resolves by path at wire time | n/a |
-| supply | none | `Business.supply`, `Locality.commons` | W8 rows | each path loads on use; ⚠ a supply place nobody stands in must stand up when a hand is settled there (`singleton`, not `findByTemplatePath`) | `setSupply` validates keys |
-| kit | `wear` (model call) | the pegs in the station place | pegs row + stocked garments | pegs are a prop | n/a |
+| presence | none | roster tick | the one `presence` key | an `offShift` place loads on use (`StuffApi.singleton`) | `setPresence` refuses an unknown `as` or a `role` with a home |
+| fending | none (the NPC's own) | implicit spec from `NPC.onCreate`; ⚠ a locality NPC subclass that overrides `onCreate` must call `super` | `fending.*` settings | brain resolves by path at wire time | n/a |
+| amenities | none | `Business.amenities`, `Locality.amenities` | W8 rows | each path loads on use; ⚠ a warm place nobody stands in must stand up when a hand is settled there (`singleton`, not `findByTemplatePath`) | `setAmenities` validates keys |
+| dressing | `wear`'s own model call (`putOn`) | the pegs in the station place; the NPC's own carried clothes | pegs row + stocked garments | pegs are a prop | n/a |
 | death report | `errors` | `ConditionApi.die` | none | n/a | n/a |
 | harness tools | `testharness body|presence|air-pin|air-unpin|herd` | the harness's existing withholding | view keys | view document | each subcommand's args have defaults or are required with a refusal that says so (instrumentation.md's silent-arg warning) |
 
@@ -919,7 +1274,7 @@ Commit: `build(cast-in-winter W9): the backstop comes out`.
 | A watcher sees the hand warm itself; a Cast drinks and eats in a day | W6, W8; steps 4, 5 |
 | Back after hours: cast where physics puts them, supplies used | W7; step 8 |
 | A post that cannot keep you: found dead, reported | W7, W9; step 9 |
-| A hot day: no winter layers | W6 (D14); step 11 |
+| A hot day: no winter layers | W6 (D14, the `heat` discomfort); step 11 |
 | Back from off shift no hungrier, colder or older; goods unaged; pegs full | W4, W5, W6; steps 7, 7a |
 | Empty room is in the story; out of the story is not | W4, W5; steps 7a, 8 |
 | A newcomer feels it and fixes it with the offered coat | W1, W3; step 12 |
@@ -932,8 +1287,9 @@ Nothing is unmapped.
 **Unit** (colocated `__tests__/`, each importing `test-bootstrap` where it
 touches the runtime): the budget's regimes and crossings; the bench tables
 (gym job); room heat; the rebase walker per clock family (one parametrized
-test over the census list, so a new clock without a case fails); `Supply`
-resolution; need levels; kit on and off; the settle arithmetic and the
+test over the census list, so a new clock without a case fails); `Amenities`
+resolution and `Presence` parsing with rung defaults; discomfort levels;
+`dress()` on and off and `hangUp()`; the settle arithmetic and the
 watched/unwatched agreement test; the death report.
 
 **Only the drive can prove**: the walk to the fire and back as a player sees
@@ -950,8 +1306,8 @@ it; restart; light; the newcomer's path.
 | 5 drink and eat | short | `clock-advance` in hours, player at the post then at the square |
 | 6 fire kept | short | `vanish` the fuel items; `measure` air |
 | 7, 7a off shift | short | clock to shift end and start; `testharness presence`, `body`; the milk's freshness by `look`/`smell` |
-| 8 nobody watching | short | walk away, `clock-advance 6h`, walk back; `testharness presence` and counts |
-| 9 no supply | staged | the fixture Cast; `clock-advance 12h`; `errors` |
+| 8 nobody watching | short | walk away, `clock-advance 6h`, walk back; `testharness presence` and counts; ⭐ the hand's bank ledger shows each loaf as an ordinary purchase by the hand with its own act id, and no row by the player, a system or nobody (D15) |
+| 9 nothing provided | staged | the fixture Cast; `clock-advance 12h`; `errors` |
 | 10 sleeves | instant | `wear`; the insulation reading |
 | 11 summer | staged | `air-pin 305`, clear |
 | 12 newcomer | short | a new character; `air-pin` |
@@ -962,7 +1318,7 @@ it; restart; light; the newcomer's path.
 Blocking: 1–15 and 7a. Soak (`cast-in-winter.soak.wire.test.ts`, named in the MR, never
 run by the build): 16, 17, 18. Staged twins: 16 → steps 8 and 9 plus W7's
 seven-day arithmetic test; 17 → step 11 plus a unit test stepping the air pin
-from 268 to 290 K and asserting kit comes off piece by piece; 18 → step 6
+from 268 to 290 K and asserting the layers come off piece by piece; 18 → step 6
 plus W7's no-fuel settle test. Log the drive's own bodies out across any
 advance they are not part of.
 
@@ -981,7 +1337,7 @@ advance they are not part of.
   walks in is N event loops. Budget: under 5 ms for a 20-hand place after a
   game day. If it is over, settle lazily per body on first perception, not on
   arrival, and say so in the MR.
-- **The off-shift flip (W5)** will break drives that expect a hand at night.
+- **Off shift out by default (W5)** will break drives that expect a hand at night.
   That is the requirement; fix by content.
 - **Rebase and wall-clock fields.** `BehaviorBeat.startedAt` and
   `_intention.since` are `Date.now()`; they are not game clocks and are not
@@ -1005,8 +1361,13 @@ advance they are not part of.
 - **Unwatched production** (`cellars`, `restocks`, `feeds` keep a nightly
   beat) → unobserved-economy-slate; the attach point is `settleUnwatched`'s
   event loop.
+- **One reconcile shape for the body's stocks** (metabolism off 60 s slices,
+  onto events) → thermal-slate (C4); the attach point is the one
+  "step to your next threshold" method W4 adds.
+- **The Api pass's fault lines** → api-normalization-slate Part 8, copied
+  from C6 by the sweep.
 - **Homes and sleep** → sleep-slate, household-lifecycle-slate; the attach
-  point is `NPC.home` and `placeOffShift`.
+  point is `presence.offShift` and `placeOffShift`.
 - **Enclosed air derived from fit** → textiles-slate § insulation.
 - **`Combustible`'s far-past guard** and the remaining thing-side gap guards →
   a line in soak-lane-slate.
