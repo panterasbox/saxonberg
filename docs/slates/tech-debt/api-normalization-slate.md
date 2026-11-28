@@ -618,13 +618,13 @@ The owner, 2026-11-28: keep notes here as builds find places the layer will want
 normalization pass (*"like when this thing is basically in beta at least"*). One entry per fault
 line: what was found, what the build did, what the pass should reconsider.
 
-- **Disciplines had no Api (tropes build 1, 2026-11-28).** `DisciplineCatalogue` was reached only
-  through `CraftingApi`'s neighborhood; but Disciplines are advancement's — nursing, seamanship and
-  finance are Disciplines too. The tropes build opens **`AdvancementApi`** with one door,
-  `disciplines()`. ⚠ An Api with one concept is a P1 smell, accepted because the concept's home is
-  right; the pass should decide whether the **tech tree** shares it, and whether advancement joins
-  the influence/standing cluster (6.2) — traits, transcripts, competence and renown are all
-  measurement of a person.
+- **Disciplines have no Api (tropes build 1, 2026-11-28).** The Api OO sweep retired
+  `AdvancementApi` (advancement lives on `AdvancementMixin`), and `DisciplineCatalogue` is stood as
+  `CraftingApi`'s `needs`. The tropes build puts the catalogue's door beside it,
+  `CraftingApi.disciplines()`, rather than open an Api for one method. ⚠ Disciplines are not
+  crafting's — nursing, seamanship and finance are Disciplines too. The owner: when the **tech
+  tree** is built, Disciplines may unify with it under a home that is *not* advancement. The pass
+  should decide that home.
 - **`NarrativeApi` (tropes build 1).** Opened for the trope matcher; named for the ladder, so the
   **quest** layer lands beside it rather than in a new Api.
 - **Two "what is happening now" reads (tropes build 1).** `getCurrentCausingCommandId()` (which

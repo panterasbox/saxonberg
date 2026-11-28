@@ -1,7 +1,7 @@
 # Tropes, build 1 — implementation plan
 
 Builds the **primitives of plot**: every act's actor, cause and people on the ledgers that already
-exist; a work record whose credit is named by the act's definition; a closed vocabulary of
+exist; a exercise record whose credit is named by the act's definition; a closed vocabulary of
 descriptive **beats**; a **trope matcher** that turns beats into trait, regard and renown writes;
 an optional **roster pack** that holds every reading; and the gates that make the old way
 unwriteable. Executes [tropes-requirements](../requirements/tropes-requirements.md) (closed
@@ -189,7 +189,7 @@ Every fact below was read in the file named, on `reqs/tropes` at `c1751c31a` (4 
 ## ⭐⭐⭐ The surface, by kind
 
 The code shape in one place (the owner, 2026-11-28 — review's opening questions answered here). ⚠
-**The names `work` / `credit` (WorkCredit, creditWork, WorkActivity, the `work` beat) are under
+**The names `attempt` / `credit` (Exercise, recordExercise, ExerciseActivity, the `attempt` beat) are under
 review** with the owner — see D32 once it lands; the shape below does not change with the names.
 
 **Api statics**
@@ -198,7 +198,7 @@ review** with the owner — see D32 once it lands; the shape below does not chan
 |---|---|---|
 | `occurred(...occurrences)` | `NarrativeApi` (new) | the one orchestration across five ledgers and three write doors; no existing Api owns more than one ledger. Named for the narrative ladder — quests land here later (D31) |
 | `tropes()`, `beats()` | `NarrativeApi` | catalogue doors, the `CraftingApi.joints()` shape |
-| `disciplines()` | `AdvancementApi` (new) | Disciplines are advancement's (the owner); an Api with one door is a logged fault line, not a hidden one (D30) |
+| `disciplines()` | `CraftingApi` | Disciplines have no Api today (the Api OO sweep retired `AdvancementApi`; advancement lives on `AdvancementMixin`), and `CraftingApi` already stands the catalogue in its `needs`. A door beside what it already declares; a fault line logged for the tech tree (D30) |
 | `getCurrentAct()` | `ExecutionContextApi` | the existing causing-command read becomes a read of it (N3) |
 | `captureContinuation()` / `runAsContinuation()` | `ExecutionContextApi` | replace three partial captures, which are deleted (N2) |
 | `runRoot(…, { acting })` | `ExecutionContextApi` | a required option on the existing call, not a new one (N1) |
@@ -207,7 +207,7 @@ review** with the owner — see D32 once it lands; the shape below does not chan
 
 | method | on | host set |
 |---|---|---|
-| `creditWork(credit, result)` | `AdvancementMixin` | `Character` — same hosts as `creditDeed`, which only falls |
+| `recordExercise(credit, result)` | `AdvancementMixin` | `Character` — same hosts as `creditDeed`, which only falls |
 | `imprintFromTrope(write)` | `DispositionedMixin` | `Character` — replaces `imprintSignature` + `imprintDeed` |
 
 **Protocols / interfaces**
@@ -215,11 +215,11 @@ review** with the owner — see D32 once it lands; the shape below does not chan
 | protocol | implemented by | asked by |
 |---|---|---|
 | `BeatSource { occurrences() }` | the five ledger row classes | their writers, at save |
-| `WorkActivity` | work engagements, opt-in | the scheduler, at an engagement's end |
+| `ExerciseActivity` | work engagements, opt-in | the scheduler, at an engagement's end |
 
 **Value classes** (`lib/`, never template-instanced): `Beat` vocabulary + `BeatOccurrence`
 (`lib/narrative/Beat.ts`, versioned — D29) · `Trope` (`lib/narrative/Trope.ts`, over a document) ·
-`WorkCredit` (`lib/advancement/`, built only by `DisciplineCatalogue.creditFrom`, an instance method).
+`Exercise` (`lib/advancement/`, built only by `DisciplineCatalogue.exerciseFrom`, an instance method).
 
 **Documents and catalogues:** kinds `trope` and `beat` (asserted beats), each with a catalogue
 singleton; documents because nothing writes them at runtime (P10).
@@ -248,11 +248,11 @@ Each item cites the slate's § 10 reuse-ledger row, or says *genuinely new* and 
 | N1 | `RunRootOpts.acting` (required) on `runRoot` / `runRootGuarded` | **generalizes** *actor resolution* — no new call, a required field on the existing one |
 | N2 | `ExecutionContextApi.captureContinuation()` / `runAsContinuation()` and the `ContinuationClaim` type — **replaces** `captureActor` / `runAsCaptured`, `ScheduleApi`'s private `Attribution`, and `SchedulerRegistry`'s two maps | **generalizes** *the cause* + *actor resolution*; the three specifics are deleted (P1 ⭐) |
 | N3 | `ExecutionContextApi.getCurrentAct()` → `{ actId, causeId }` | **generalizes** *the cause*. One line on the difference: `getCurrentCausingCommandId()` answers *which typed command should a client match this output to* (commands only); `getCurrentAct()` answers *which choice is this, and what caused it* (a brain's turn has one too). After W1 the first is implemented as a read of the second's command case — one stack walk, two questions |
-| N4 | fields on existing rows: `actId`, `causeId` (five ledgers); `fromParty`, `toParty`, `heldBefore` (bank); `basis`, `txId` (chattel); `witnesses` and kinds `yielded`, `spared` (accountability); `definition`, `counterparty`, `ending`, `beat` (transcript); `trope`, `actId`, `counterparty` (disposition); `act` (operation rows) | *chokepoints*, *witnesses*, *the work record* — **generalize**; ⛔ no new collection |
-| N5a | **`AdvancementApi`** (new, `S/api/advancement.ts`) with one door, `disciplines()`, to the existing `DisciplineCatalogue`, and `creditFrom` on it (D30) | **reuses** the catalogue; a new Api because Disciplines are advancement's, not crafting's (the owner); a fault line logged in api-normalization-slate Part 8 |
-| N5 | `WorkCredit` value class, `S/lib/advancement/WorkCredit.ts` — the authored half of an `ActSignature`: a definition path plus `Subcheck`s without their outcome. One shape: `creditWork` adds the outcome and writes through the same `creditSignatureImpl`. Built in one place, `DisciplineCatalogue.creditFrom` (an instance method on the existing singleton — no new static) | **generalizes** *Discipline credit as data* / *act signature shape* |
-| N6 | `AdvancementMixin.creditWork(credit, result)` | **generalizes** *the work record*; `creditDeed` / `creditSignature` stay only as the ratchet's falling count |
-| N7 | `WorkActivity` protocol in `S/lib/activity/Engaged.ts` (an engagement names the work it is); its narrowing `isWorkActivity` is an unexported function in `SchedulerRegistry.ts` beside `isDurativeActivity` | **generalizes** *chokepoints* (scheduler end) — *genuinely new* as a protocol; searched `lib/activity`, the 11 engagement classes: nothing lets the scheduler ask what work an engagement is |
+| N4 | fields on existing rows: `actId`, `causeId` (five ledgers); `fromParty`, `toParty`, `heldBefore` (bank); `basis`, `txId` (chattel); `witnesses` and kinds `yielded`, `spared` (accountability); `definition`, `counterparty`, `ending`, `beat` (transcript); `trope`, `actId`, `counterparty` (disposition); `act` (operation rows) | *chokepoints*, *witnesses*, *the exercise record* — **generalize**; ⛔ no new collection |
+| N5a | `CraftingApi.disciplines()` — the door to the existing `DisciplineCatalogue`, and `exerciseFrom` on it (D30) | **reuses** the catalogue and the Api that already stands it |
+| N5 | `Exercise` value class, `S/lib/advancement/Exercise.ts` — the authored half of an `ActSignature`: a definition path plus `Subcheck`s without their outcome. One shape: `recordExercise` adds the outcome and writes through the same `creditSignatureImpl`. Built in one place, `DisciplineCatalogue.exerciseFrom` (an instance method on the existing singleton — no new static) | **generalizes** *Discipline credit as data* / *act signature shape* |
+| N6 | `AdvancementMixin.recordExercise(credit, result)` | **generalizes** *the exercise record*; `creditDeed` / `creditSignature` stay only as the ratchet's falling count |
+| N7 | `ExerciseActivity` protocol in `S/lib/activity/Engaged.ts` (an engagement names the work it is); its narrowing `isExerciseActivity` is an unexported function in `SchedulerRegistry.ts` beside `isDurativeActivity` | **generalizes** *chokepoints* (scheduler end) — *genuinely new* as a protocol; searched `lib/activity`, the 11 engagement classes: nothing lets the scheduler ask what work an engagement is |
 | N8 | `S/lib/narrative/Beat.ts` — the detected-beat vocabulary, the `BeatOccurrence` value, the `BeatSource` interface | *genuinely new* (*trope / beat / event bus*: none). Searched for `Beat`, `Trope`, `Narrative`, `Incident`: only `lib/behavior/BehaviorBeat` (an NPC's deliberation tick, unrelated) |
 | N9 | `occurrences()` on the five ledger row classes (implementing `BeatSource`) — named so it cannot be confused with `NarrativeApi.beats()`, the asserted-beat catalogue door | **generalizes** *chokepoints* — five implementers of one protocol |
 | N10 | `S/lib/narrative/Trope.ts` value class + document kind `trope` + `S/platform/idea/TropeCatalogue.ts` | *genuinely new* — a trope is metadata nothing writes (P10): a document, not an Idea |
@@ -261,7 +261,7 @@ Each item cites the slate's § 10 reuse-ledger row, or says *genuinely new* and 
 | N13 | `DispositionedMixin.imprintFromTrope` — **replaces** `imprintSignature` / `imprintDeed` | **reuses** *trait ledger + write*; the old two are deleted with their one caller |
 | N14 | dialogue effect `assert` — **replaces** `regard` for the clerk and officer | **replaces** *dialogue effects* (the `regard` effect stays for the lounge and Katie, counted by the gate) |
 | N15 | pack `morality-commons`, root `/morality` (content only) | *genuinely new* — slate § 10's `/system/narrative` is superseded by § 3.10 (not a system pack) |
-| N16 | `lint:characterization`, `lint:credit-by-name`, `lint:tropes` | **reuses** *ratchet gate pattern* |
+| N16 | `lint:characterization`, `lint:discipline-by-name`, `lint:tropes` | **reuses** *ratchet gate pattern* |
 | — | **retired:** `ActSignature.dispositionValence`, the `creditSignature` graft, `BLOOD_GIFT_SIGNATURE`, `BLOOD_GIFT_RENOWN`, dials `combatRegardUnlawfulKill`, `combatRegardDuelWin`, `contractBreachRegardPenalty`, constants `PET_REGARD`, `ILL_FROM_HAND_REGARD`, `REGARD_INTRODUCE_BUMP` | *act signature shape*, *hand-written writers to delete* |
 
 ### Every § 10 ledger row, accounted for
@@ -273,7 +273,7 @@ Each item cites the slate's § 10 reuse-ledger row, or says *genuinely new* and 
 | renown write | reused (`RenownApi.append`), called by the matcher, D18 |
 | Discipline credit as data | N5/N6, D9; knot rows, operation rows, the gather row, W2 |
 | act signature shape | valence slot retired, D23 |
-| the work record | N4 transcript fields, D9–D12 |
+| the exercise record | N4 transcript fields, D9–D12 |
 | the cause | N2/N3, D1–D2 |
 | the telling | reused (`recordDeed` / `recordChronicleOnce`), D19 |
 | a pub/sub bus | ⛔ not used; the matcher is called directly by the five ledger writers, D15 |
@@ -294,9 +294,9 @@ Each item cites the slate's § 10 reuse-ledger row, or says *genuinely new* and 
 | N2 continuation claim | no player surface | n/a | one capture, one restore | replaces three, adds none | execution context carries context | restores exactly what it captured |
 | N3 `getCurrentAct` | none | n/a | a read | adds the parent to an existing read | same | a read |
 | N4 row fields | none; `give` passing title is said in `give`'s help (D7) | rows of existing ledgers | writers state facts they hold | no | each field is about its ledger's own subject (see Host placement) | stamped from context, never chosen |
-| N5 `WorkCredit` | none | built only from an authored row | n/a | replaces a `Subcheck` built in code | advancement: what an act credits | no default discipline: a row without one credits nothing |
-| N6 `creditWork` | `competence` shows the same rows | n/a | one call for every definition family | the definition-taking form of `creditDeed`; the old one only falls | `AdvancementMixin`: *"append evidence"* | no |
-| N7 `WorkActivity` | none | n/a | scheduler asks the engagement, never its class | no | an engagement says what it is | records only the chooser's own stop (D10) |
+| N5 `Exercise` | none | built only from an authored row | n/a | replaces a `Subcheck` built in code | advancement: what an act credits | no default discipline: a row without one credits nothing |
+| N6 `recordExercise` | `competence` shows the same rows | n/a | one call for every definition family | the definition-taking form of `creditDeed`; the old one only falls | `AdvancementMixin`: *"append evidence"* | no |
+| N7 `ExerciseActivity` | none | n/a | scheduler asks the engagement, never its class | no | an engagement says what it is | records only the chooser's own stop (D10) |
 | N8 `Beat` | published vocabulary; help topic `beats` | detected list is code (each has detection); asserted are documents | n/a | "beat" collides with dialogue's node text and combat's clock — see Risks R9 | new subsystem `narrative` | descriptive only |
 | N9 `occurrences()` | none | pure computation on a row | the row decides its beats | no | a ledger row describing itself | pure |
 | N10 trope + catalogue | readable rows; the telling is the player surface | ✅ document kind, value class in `lib/` | n/a | no | n/a | a trope with an unreadable step is refused at install |
@@ -418,23 +418,23 @@ build-1 trope reads one there, and build 2's derived regard puts each witness's 
 own belief store. `roomBelievers` in `CombatLogic` stays until **W4**, where the regard loop that
 uses it is deleted.
 
-### The work record (wave 2)
+### The exercise record (wave 2)
 
-**D9 — The credit call takes a `WorkCredit`, which only a definition can make.**
-`WorkCredit` (`S/lib/advancement/WorkCredit.ts`) is a frozen value: `{ definition: string (the
+**D9 — The credit call takes a `Exercise`, which only a definition can make.**
+`Exercise` (`S/lib/advancement/Exercise.ts`) is a frozen value: `{ definition: string (the
 row's path), lines: CreditLine[], beat: 'work' | 'aid' }`, where `CreditLine` is
 `Omit<Subcheck, 'outcome'>` — the authored half of what `ActSignature` already carries, not a
-second shape (P12). It is built in exactly one place: **`DisciplineCatalogue.creditFrom(path,
+second shape (P12). It is built in exactly one place: **`DisciplineCatalogue.exerciseFrom(path,
 data)`**, an instance method on the existing catalogue singleton
 (`/platform/idea/DisciplineCatalogue`, which already stands at boot as `CraftingApi`'s declared
-need, `S/api/crafting.ts:564`; reached through a new door **`AdvancementApi.disciplines()`** (D30), the
+need, `S/api/crafting.ts:564`; reached through a new door **`CraftingApi.disciplines()`** (D30), the
 `CraftingApi.joints()` shape — an Api static, so a pack's setter never looks a singleton up by
 path), which also refuses a discipline key no row
 defines. A catalogue's `parse` or a row class's setter calls it with the row's own data; nothing
 else constructs one. No static is added, so `lint:lib-statics` (334) does not move — caller
 audit: the callers are the four definition families below, each a parse or a setter.
-A definition exposes its credit: `Recipe.getCredit()`, `JointDescriptor.credit`,
-`OperationDescriptor.credit`, `Gather.getCredit()`. `AdvancementMixin.creditWork(credit,
+A definition exposes its credit: `Recipe.getExercise()`, `JointDescriptor.credit`,
+`OperationDescriptor.credit`, `Gather.getExercise()`. `AdvancementMixin.recordExercise(credit,
 { outcome, difficulty?, counterparty?, ending? })` turns the lines into `Subcheck`s and writes
 through the existing `creditSignatureImpl`, adding `definition`, `counterparty` (identity path),
 `ending` and `beat` to the row(s). `ActSignature` survives only as `creditSignature`'s legacy
@@ -452,7 +452,7 @@ parameter until the sweep. Build 1 moves:
   those controllers `ensure`s its own row. W2 has a test that `operate` lists exactly the five
   rows it lists today;
 - **glass** — ⭐ the definition is **the gather's own row** (`…/trade/glass/thing/gather.yaml`
-  gains `credit: { discipline: glasswork, difficulty: hard }`, read by a `Gather` setter). It
+  gains `exercises: { discipline: glasswork, difficulty: hard }`, read by a `Gather` setter). It
   exists from the first dip, so a gather that chills as a `gather` or a `bubble` still has a
   credit, and the failure and the later success share one `definition` — which is what *Seeing
   It Through*'s `same: [definition]` needs. **This is the one `hard` row** drive step 8 uses
@@ -460,14 +460,14 @@ parameter until the sweep. Build 1 moves:
   `Gather.ts:280/:353` credit from it. `Blowpipe.formingDiscipline()` stops hard-coding
   `glasswork` and reads a `discipline` field authored on `blowpipe.yaml`. The shared
   `FormCatalogue` and the form rows are **not** touched.
-- A row that names no discipline yields no `WorkCredit` and credits nothing (today's behavior for
+- A row that names no discipline yields no `Exercise` and credits nothing (today's behavior for
   an undisciplined recipe).
 
 **D10 — Failure is credited; abandonment is recorded, by the scheduler, when the actor's own act
 ended the work.** Failure: every moved site passes its real outcome (`Set`'s computed outcome,
 the chilled gather's `failure`); nothing invents a failure where the model has none.
-Abandonment: an engagement that is work implements `WorkActivity` — `workCredit(): WorkCredit |
-null` and `workCounterparty(): Stuff | null` — narrowed by `isWorkActivity(e)`, an **unexported
+Abandonment: an engagement that is work implements `ExerciseActivity` — `workCredit(): Exercise |
+null` and `workCounterparty(): Stuff | null` — narrowed by `isExerciseActivity(e)`, an **unexported
 function in `SchedulerRegistry.ts`** beside `isDurativeActivity`. `SchedulerRegistry.terminate`
 records one transcript row with `ending: 'abandoned'` when **the one acting as it ends is the
 engagement's own actor** (`ExecutionContextApi.getActor() === e.actor`, the wave-1 read) — for
@@ -486,10 +486,10 @@ evidence — recorded, not credited.
 **D11 — The counterparty is on the row; care is a beat the definition names.** `counterparty` is
 the identity path of the person or animal worked on or for (a patient; later a customer). A
 definition whose act relieves another's harm says `beat: aid` in its credit (the operation rows
-do); everything else is `work`. The transcript row keeps it, so `TranscriptEntry.occurrences()`
+do); everything else is `attempt`. The transcript row keeps it, so `TranscriptEntry.occurrences()`
 needs nothing else.
 
-**D12 — Difficulty: the row's default, a model's measurement over it.** `creditWork`'s optional
+**D12 — Difficulty: the row's default, a model's measurement over it.** `recordExercise`'s optional
 `difficulty` is the override; a site passes it only when it measures one (a wound's severity in
 `Set`). A site with no measurement passes none and gets the authored value.
 
@@ -507,7 +507,7 @@ formidable, `success+` is success or critical. No other operator exists in build
 
 | beat | roles | derived from | params |
 |---|---|---|---|
-| `work` | worker · *for* | a transcript row, `beat: work` | `definition`, `discipline`, `difficulty`, `outcome`, `ending` |
+| `attempt` | worker · *for* | a transcript row, `beat: attempt` | `definition`, `discipline`, `difficulty`, `outcome`, `ending` |
 | `aid` | helper · helped | a transcript row, `beat: aid`, with a counterparty | same |
 | `give` | giver · receiver | a chattel `transfer` with `basis: unrequited` whose actor is the from-party; a bank leg of category `transfer` between two different non-empty parties | `what` (`goods` / `money` / `blood`), `amount`, `share`, `receiverNeed` |
 | `exchange` | the parties | a chattel `transfer` with `basis: sale`; a bank leg of category `sales` | `amount` |
@@ -534,10 +534,21 @@ a **version** and its header says so; a test pins the closed list, so adding, re
 a detected beat fails until the vocabulary's version is bumped in the same change. The build adds
 exactly the D13 list and no other.
 
-**D30 — Disciplines get their own door: `AdvancementApi.disciplines()` (the owner, 2026-11-28).**
-Disciplines are advancement's, not crafting's. A new `S/api/advancement.ts` (forwarding shell, ends
-`SecurityApi.decorateApiClass`, `static needs` per the standing rule) with one door. It may later
-share with the tech tree; logged in api-normalization-slate Part 8.
+**D30 — The Discipline catalogue's door is `CraftingApi.disciplines()`, for now (the owner,
+2026-11-28).** No new Api for one method. `AdvancementApi` was retired by the Api OO sweep —
+advancement lives on `AdvancementMixin` — and `CraftingApi` already declares the catalogue in its
+`needs`, so the door goes beside what it already stands. Disciplines want a real home with the
+**tech tree**, which will be something other than advancement; logged in api-normalization-slate
+Part 8.
+
+**D32 — Exercise, not work or credit (the owner, 2026-11-28).** *Work* already means the labor market
+(the `work` command category, `job`, employment) and sits beside the labor plane; *credit* means money
+owed (credit.md) and provenance's credit routing, and implies a reward. What the record holds is
+advancement's own idea — **evidence that a Discipline was exercised**. So: a definition row's field
+`exercises:`; value class `Exercise`; `AdvancementMixin.recordExercise(exercise, outcome)`; engagement
+protocol `ExerciseActivity`; the beat `attempt` (succeeded · failed · abandoned); the gate
+`lint:discipline-by-name`. Where older prose in this plan still says a definition's *credit*, read
+*what it exercises*; the code uses the D32 names only.
 
 **D31 — `NarrativeApi` keeps its name.** The kernel side is descriptive and narrative; the pack is
 `morality-commons` because the roster is prescriptive. The quest layer, the next rung up the
@@ -577,7 +588,7 @@ uses):
 
 | earlier beat | read |
 |---|---|
-| `work`, `aid` | `TranscriptEntry.find({ owner: <person>, definition: <same> })` — the `{ owner }` index |
+| `attempt`, `aid` | `TranscriptEntry.find({ owner: <person>, definition: <same> })` — the `{ owner }` index |
 | `promise` | `ContractEvent.findByContractId(<same contractId>)` |
 | `harm`, `yield` | `AccountabilityEvent.find({ sessionId: <same> })` |
 
@@ -623,12 +634,12 @@ the axis is past its floor band (`traitPosition`). Otherwise the chronicle is th
 |---|---|
 | `S/lib/narrative/Beat.ts` | named vocabulary + value object (new subsystem folder `narrative`) |
 | `S/lib/narrative/Trope.ts` | value class over a document |
-| `S/lib/advancement/WorkCredit.ts` | value class |
+| `S/lib/advancement/Exercise.ts` | value class |
 | `S/platform/idea/TropeCatalogue.ts`, `BeatCatalogue.ts` | catalogue singletons (the `DocumentCatalogue` family) |
 | `S/api/narrative.ts` | Api — forwarding shell, ends `SecurityApi.decorateApiClass` |
 | `S/platform/idea/api/NarrativeLogic.ts` | Api logic singleton at `/platform/idea/api/narrative` |
 | `C/platform/content/kinds/trope.yaml`, `beat.yaml` | kind declarations |
-| `packages/server/scripts/check-characterization.ts`, `check-credit-by-name.ts`, `check-tropes.ts` | lint scripts |
+| `packages/server/scripts/check-characterization.ts`, `check-discipline-by-name.ts`, `check-tropes.ts` | lint scripts |
 
 `NarrativeApi`'s surface: `occurred(...occurrences)`, `tropes()` (the catalogue door, the
 `CraftingApi.joints()` shape), `beats()` (the asserted-beat catalogue door; the rows' own method is `occurrences()`). No free helper, no
@@ -664,10 +675,10 @@ title: Seeing It Through
 cast:
   worker: { is: person }
 plot:
-  - beat: work
+  - beat: attempt
     roles: { worker: worker }
     where: { difficulty: hard+, outcome: failure }
-  - beat: work
+  - beat: attempt
     roles: { worker: worker }
     where: { outcome: success+ }          # success or critical (D13)
     same: [definition]
@@ -695,7 +706,7 @@ The 18 rows and what each replaces, with today's sizes as the starting dials:
 | `the-broken-promise` | `break`, after `promise` on the same contract | promiser constancy − (new); promisee regard −15 |
 | `the-word-kept` | `keep`, after `promise` | promiser constancy; promisee regard + (new) |
 | `seeing-it-through` | above | patience, diligence |
-| `walking-off-the-job` | `work`, `ending: abandoned` | patience −, diligence − |
+| `walking-off-the-job` | `attempt`, `ending: abandoned` | patience −, diligence − |
 | `tending-the-stranger` | `aid`, helped `stranger-to: helper` | helper compassion; helped regard + |
 | `abandoning-ship` | `abandon` | master compassion −, constancy −; those aboard regard − |
 | `pet-the-dog` | `provide` `kind: comfort`, provided an animal | carer warmth; animal regard +6; `repeat.per: animal`; `keep: once-per-other` |
@@ -745,14 +756,14 @@ Risks R3.
   `BeliefStore` itself (**ceiling 2**, the two files of D27, named in the script with the build
   that retires each); and, as data, `verb: regard` effects in content rows (**ceiling 16** —
   the lounge's 15 and Katie's 1; may only fall).
-- **`lint:credit-by-name`** (`check-credit-by-name.ts`) — three checks, by the TypeScript AST
+- **`lint:discipline-by-name`** (`check-discipline-by-name.ts`) — three checks, by the TypeScript AST
   (not a regex): (1) the count of `.creditDeed(` and `.creditSignature(` call sites (**ceiling =
   the count after wave 2**, about 108 minus the ~20 moved; may only fall) — a count of calls, so
-  a signature built in a `const` and passed through is still counted; (2) `new WorkCredit(`
-  outside `DisciplineCatalogue` (**0**); (3) every `.creditFrom(path, data)` call: `data` must not
+  a signature built in a `const` and passed through is still counted; (2) `new Exercise(`
+  outside `DisciplineCatalogue` (**0**); (3) every `.exerciseFrom(path, data)` call: `data` must not
   be an object literal, **nor an identifier whose declaration in that file is initialized from
   an object literal** (the `const x = {…}` pass-through), nor a spread of one — it must trace to
-  a parameter or a field (the row's data). The set of files calling `creditFrom` is listed in the
+  a parameter or a field (the row's data). The set of files calling `exerciseFrom` is listed in the
   script with a ceiling (4 after W2); a new one is a new definition family, reviewed.
 - **`lint:tropes`** (`check-tropes.ts`) — every trope and beat document in the repo parses
   (through the catalogues' `parse`, read off disk as the installer does); every `assert` effect
@@ -775,14 +786,14 @@ A ceiling here rises only by the lint family's rule: a caller audit, never a quo
 | `witnesses` | `AccountabilityEvent` only | every harm row had an audience (possibly empty) | ✅ — and deliberately **not** on bank, chattel, contract or transcript rows, where nearly every row would answer "nobody read this" (the P2 quiet form) |
 | kinds `yielded`, `spared` | `AccountabilityKind` | the ledger records how a fight ended, not only harm | it already holds `abandonment`; `deriveBlame` reads only `death` / `harm`, so the new kinds are inert there — verify the other readers |
 | `definition`, `ending`, `beat` | `TranscriptEntry` | every evidence row came from some definition | rows from un-moved sites carry `''` until the sweep — a falling count the ratchet measures, not a permanent "no" |
-| `counterparty` | `TranscriptEntry` | some work is done on or for someone | ⚠ most rows (solitary work) will be empty. It stays here because the slate rules it (§ 3.5, *the work record carries its counterparty*) and the alternative is a new care ledger, which is forbidden. Recorded as a known quiet-form answer |
+| `counterparty` | `TranscriptEntry` | some work is done on or for someone | ⚠ most rows (solitary work) will be empty. It stays here because the slate rules it (§ 3.5, *the exercise record carries its counterparty*) and the alternative is a new care ledger, which is forbidden. Recorded as a known quiet-form answer |
 | `trope`, `actId` | `DispositionEntry` | every trait row was written by a trope | true of every `deed` after this build; `claim` rows (dossier seeds) carry `''` |
 | `counterparty` | `DispositionEntry` | some trait writes were toward someone | written only when the trope declares `repeat.per`; most rows carry `''`. Accepted: it is the only readable source for per-other repetition, and the alternative (the chronicle `key`) has no window |
 | `act` | operation rows | every operation is performed by some verb | defaults to `operate`; five of the rows are |
 | `credit` | the `gather` thing row | a gather is worked from its first dip | one row |
-| `creditWork` | `AdvancementMixin` (on `Character`) | everyone who can advance can be credited from a definition | same host set as `creditDeed` |
+| `recordExercise` | `AdvancementMixin` (on `Character`) | everyone who can advance can be credited from a definition | same host set as `creditDeed` |
 | `imprintFromTrope` | `DispositionedMixin` (on `Character`) | same hosts as the methods it replaces | no change |
-| `WorkActivity` | an engagement class, opt-in | only work engagements implement it | no guard, no default: a combat or dialogue engagement simply is not one |
+| `ExerciseActivity` | an engagement class, opt-in | only work engagements implement it | no guard, no default: a combat or dialogue engagement simply is not one |
 | `occurrences()` | the five row classes | each ledger's rows can describe themselves | a row that is no beat returns `[]` — e.g. an escrow hold. Honest: most bank legs are not gifts, but every one is asked once at write time and the function is three comparisons |
 | `Trope`, asserted `Beat` | documents | — | P10 |
 | `TropeCatalogue`, `BeatCatalogue`, `NarrativeLogic` | kernel singletons | the kernel holds mechanism and no reading | with no rows installed they hold nothing |
@@ -805,14 +816,14 @@ re-plans (B1).
 - **Import boundary** — `lib/narrative/*` imports nothing outside `src/mud`; row classes import
   only `lib/narrative/Beat` types. Trade packs touched (cordage, medicine, glass) import the
   kernel by package specifier only.
-- **Verbs on objects** — writes are the host's own methods (`creditWork`, `imprintFromTrope`,
+- **Verbs on objects** — writes are the host's own methods (`recordExercise`, `imprintFromTrope`,
   `adjustRegard`); `NarrativeApi.occurred` takes occurrences, never a world object as its first
   parameter (`lint:object-verbs`).
 - **P3 refuse / skip / throw** — a trope that cannot be read is a `TypeError` at install; an
   unknown asserted beat is a build failure (`lint:tropes`) and a stated skip at runtime only when
   no roster is installed; a role-filler with no ledger is a skip by the ledger's own rule; an
   empty `acting` throws; a matcher failure is a recorded diagnostic.
-- **P4 no duck typing** — `BeatSource`, `WorkActivity` and `WorkCredit` are declared kernel
+- **P4 no duck typing** — `BeatSource`, `ExerciseActivity` and `Exercise` are declared kernel
   types; packs name them by import. No `?.()` on an undeclared name.
 - **P5 the mixin decides** — controllers lose their constants and gain nothing: `PetController`,
   `IntroduceController`, `GiveController` call the object and render. What an act means is
@@ -821,7 +832,7 @@ re-plans (B1).
   matcher's witness cache is per-act memory and is never needed after a restart (D16).
 - **P7 load on use** — `TropeCatalogue` loads `whole` on the first occurrence; `BeatCatalogue`
   by word on the first `assert`. No boot entry.
-- **P8 names** — `WorkCredit` (what it is), `WorkActivity` (an interface; the `-ity` noun, not an
+- **P8 names** — `Exercise` (what it is), `ExerciseActivity` (an interface; the `-ity` noun, not an
   adjective), `NarrativeApi` (the subsystem), `Trope`, `Beat`. The word *beat* collides in prose
   with dialogue's node text and combat's clock — Risks R9.
 - **American English** throughout rows and help.
@@ -867,14 +878,14 @@ a `give`'s `unrequited`; harm and death name `getActor()` under a forced NPC com
 `getActingAuthor()` is null). **Commit:** `feat(tropes): W1 — the actor and the cause on every
 ledger`.
 
-### W2 — the work record  (D9–D12)
+### W2 — the exercise record  (D9–D12)
 
 **Goal:** the credit call takes the act's definition; failure and abandonment are on the record.
 
-1. `S/lib/advancement/WorkCredit.ts`; `TranscriptEntry` fields + `transcripts.yaml`;
-   `AdvancementMixin.creditWork`; the fold's row→evidence mapping skips `ending: abandoned`.
-2. `S/lib/activity/Engaged.ts` (`WorkActivity`), `SchedulerRegistry.terminate`.
-3. Definitions: `DisciplineCatalogue.creditFrom`; `Recipe.getCredit()`; `S/lib/craft/Joint.ts` +
+1. `S/lib/advancement/Exercise.ts`; `TranscriptEntry` fields + `transcripts.yaml`;
+   `AdvancementMixin.recordExercise`; the fold's row→evidence mapping skips `ending: abandoned`.
+2. `S/lib/activity/Engaged.ts` (`ExerciseActivity`), `SchedulerRegistry.terminate`.
+3. Definitions: `DisciplineCatalogue.exerciseFrom`; `Recipe.getExercise()`; `S/lib/craft/Joint.ts` +
    `JointCatalogue.parse` (`difficulty`, `credit`); `S/lib/vitals/Operation.ts` +
    `OperationCatalogue.parse` (`act`, `credit`) and `forAct`; `Gather`'s `credit` setter.
 4. Sites: `recordCraftEvidence` and the `fit` credit in `CraftingLogic`; `Rope.ts:798/:1126`;
@@ -979,7 +990,7 @@ No new verb and no new affordance. The five links, per capability:
 | a trope fires | every existing verb that reaches one of the eight writers | existing | `morality-commons` `content/tropes/` | `TropeCatalogue` `whole`, on the first occurrence in the process | n/a |
 | an asserted beat | `talk` → a choice | the NPC's existing dialogue affordance | the `assert` effect on the row + `content/beats/` | `BeatCatalogue.byWord` at the effect | the effect's `beat` is required; `lint:tropes` checks it |
 | credit from a definition | every moved act's own verb | existing | `credit` / `competence` / `difficulty` on the definition row | the definition is already loaded by the act (that is the rule) | a definition with no discipline credits nothing — say so in each catalogue's parse doc |
-| abandonment | whatever the actor does that ends their own work — cancelling it, starting something else, walking off | existing | none | n/a | only engagements that implement `WorkActivity`, and only when the one acting is the engagement's actor (D10) |
+| abandonment | whatever the actor does that ends their own work — cancelling it, starting something else, walking off | existing | none | n/a | only engagements that implement `ExerciseActivity`, and only when the one acting is the engagement's actor (D10) |
 | `give` passes title (default) · `--lend` keeps it | `give` | existing; the view gains `--lend` | none | n/a | giver must be the stamped owner; otherwise custody only; both stated in help |
 | the telling | `chronicle` | existing | the trope's `telling` | with the trope | n/a |
 
@@ -1159,8 +1170,8 @@ in this plan:
 - **Regard that cites its act** — `adjustRegard` is called from one place (the matcher) plus the
   two named residuals; build 2 replaces that call.
 - **Attended time as price** — `BeatOccurrence.price` has the slot; nothing fills `attention`.
-- **The ~90 remaining credit-by-name sites** — `lint:credit-by-name`'s falling ceiling; per-act
-  credit on host kinds (`credit: { <act>: … }`) is the shape the sweep will need and is not built.
+- **The ~90 remaining credit-by-name sites** — `lint:discipline-by-name`'s falling ceiling; per-act
+  credit on host kinds (`exercises: { <act>: … }`) is the shape the sweep will need and is not built.
 - **`take` / `return` / `flee` / `protect` / `discover` / `befall`** — vocabulary entries only
   when their facts exist.
 - **The author surfaces** — the first reader that wants an `{ actId }` index and a

@@ -8,7 +8,7 @@
 > anonymous · spending a conserved resource (money, goods, attended human time) is a real choice · the labor plane mints
 > nothing · ⭐ the kernel holds no moral opinion — the roster is an optional pack (the Nazi test) ·
 > beats, a first cut (§ 4).
-> **Path ruled (§ 9):** build 1 = actor and cause · the work record · beats and the matcher · the
+> **Path ruled (§ 9):** build 1 = actor and cause · the exercise record · beats and the matcher · the
 > roster pack · the ratchet; roster § 6.
 > **Left:** refining the beats · the trope definition's final shape · the author surfaces (§ 5) ·
 > regard's derivation (§ 3.6) — build 2.
@@ -216,7 +216,7 @@ the bad hand-feeding and petting (`Bonded.ts`, `PetController`), introductions
   recognition starts. *Light-Fingered* fires when the owner finds out.
 - **Durable on the ledgers that already exist** — bank ledger, chattel, contracts, accountability,
   and the transcript as the record of work. Each row gains the act id, its cause, and the people
-  involved as **people, not accounts**; the work record gains its definition and finished/abandoned.
+  involved as **people, not accounts**; the exercise record gains its definition and finished/abandoned.
   ⛔ No new collection.
 
 ### 3.4 Tropes look back by asking the ledgers; every write cites its act; endings are told
@@ -235,7 +235,7 @@ the bad hand-feeding and petting (`Bonded.ts`, `PetController`), introductions
 
 ### 3.5 Care is durable
 
-Care is plot — a choice, at a cost, for another's sake. The work record carries its **counterparty**,
+Care is plot — a choice, at a cost, for another's sake. The exercise record carries its **counterparty**,
 so the patient is on it, care tropes can look back, and *the Good Samaritan* comes into reach.
 
 ### 3.6 Regard is derived from remembered incidents **[DECIDED in direction; cost open]**
@@ -271,7 +271,7 @@ so where a beat does spend, its *cost* (N3) is read from three resources:
 | resource | measured by | read as |
 |---|---|---|
 | **money** | the bank ledger | the amount, **and** its share of what the chooser held — the kernel records both; the trope decides which it reads |
-| **goods and inputs** — ore, timber, a loaf, blood | chattel and the work record's inputs | the same: absolute and share of holdings |
+| **goods and inputs** — ore, timber, a loaf, blood | chattel and the exercise record's inputs | the same: absolute and share of holdings |
 | ⭐ **the human's time** | real, attended time and the decisions in it (participation's command buckets are the start) | equal for everyone — an hour is an hour |
 
 - **An imposed wait costs nothing.** A three-hour forge or a week at sea asks nothing of the human
@@ -360,18 +360,18 @@ A trope's plot is written in **beats** with roles, never in ledger rows. Re-deri
 
 1. **A beat is one incident read in story terms**, with roles; the chooser is always one of them (N1,
    N3). It is **descriptive** — it never asserts intent or worth (§ 3.10).
-2. **Few beats, with parameters** — one `work` with outcome and difficulty, not three. Tropes narrow
+2. **Few beats, with parameters** — one `attempt` with outcome and difficulty, not three. Tropes narrow
    by parameter, so one trope spans every trade.
 3. **Every occurrence carries its audience** (N4) — who saw it at the time; a later `discover` adds
    who learned of it.
 4. **Every occurrence carries its price** (§ 3.8).
-5. **Animacy:** `work` is the only beat toward matter; every other beat has a character — a person or
+5. **Animacy:** `attempt` is the only beat toward matter; every other beat has a character — a person or
    an animal — on the other side.
 
 | beat | roles | means | detected from |
 |---|---|---|---|
-| **work** | worker · *for whom* | made, mended or read something — kind (its definition), difficulty, outcome: finished well · failed · abandoned | the work record (A) |
-| **take-from** | taker · source | took a yield from a living thing — milk, wool, comb, a catch, sap | the work record on a living host (B) |
+| **attempt** | worker · *for whom* | made, mended or read something — kind (its definition), difficulty, outcome: finished well · failed · abandoned | the exercise record (A) |
+| **take-from** | taker · source | took a yield from a living thing — milk, wool, comb, a catch, sap | the exercise record on a living host (B) |
 | **provide** | provider · provided | met another's need — fed, watered, sheltered | feeding and watering (C) |
 | **aid** | helper · helped | relieved another's harm — treated, sutured, rescued, transfused | the care record with its patient (C) |
 | **protect** | protector · protected · threat | put themselves between harm and another | defend / intervene (D) |
@@ -420,8 +420,8 @@ trope: seeing-it-through
 cast:
   worker: { can: act }
 plot:
-  - work: { by: worker, difficulty: hard+, outcome: failure }
-  - work: { by: worker, same-kind, outcome: success }
+  - attempt: { by: worker, difficulty: hard+, outcome: failure }
+  - attempt: { by: worker, same-kind, outcome: success }
 writes: worker (patience, diligence)
 telling: "{worker} failed at {kind}, and went back to it until it came right."
 reference: …
@@ -477,8 +477,8 @@ names borrow TV Tropes' where players know them (§ 7), every definition is ours
 | **Sparing the Yielded** | victor · yielded | `yield`, then `spare` | victor: forgiveness, compassion | — |
 | **The Broken Promise** | promiser · promisee | `promise`, then `break` | promiser: constancy down; promisee: regard down | `ContractLogic` −15 |
 | **The Word Kept** | promiser · promisee | `promise`, then `keep` | promiser: constancy; promisee: regard up | — |
-| **Seeing It Through** | worker | `work` failed at difficulty hard+, then the same kind finished well | patience, diligence | — |
-| **Walking Off the Job** | worker | `work` abandoned | patience, diligence down | — |
+| **Seeing It Through** | worker | `attempt` failed at difficulty hard+, then the same kind finished well | patience, diligence | — |
+| **Walking Off the Job** | worker | `attempt` abandoned | patience, diligence down | — |
 | **Tending the Stranger** | helper · helped | `aid` to someone with no prior tie | helper: compassion; helped: regard up | — |
 | **Abandoning Ship** | master · those aboard | `abandon` at sea | master: compassion, constancy down; those left: regard down | — |
 | **Pet the Dog** | carer · animal | `provide` — comfort to an animal | carer: warmth; the animal: regard (bond) | `PetController` constant |
@@ -577,7 +577,7 @@ The test (§ 0): **stop the bleeding with a framework trades and jobs adopt as t
 | wave | what | why build 1 |
 |---|---|---|
 | **1. the actor and the cause** | in-fiction acts resolve the actor, never the author (harm, death, chattel fixed); no work starts anonymous; ledger rows gain the act id, its cause, and people for accounts | everything stands on who chose, and because of what |
-| **2. the work record** | the credit call takes the act's **definition**, never a Discipline name; failure and abandonment recorded; the counterparty carried; rope's knots and the medicine operations onto their rows | this is what a trade adopts — it must exist before the next trade |
+| **2. the exercise record** | the credit call takes the act's **definition**, never a Discipline name; failure and abandonment recorded; the counterparty carried; rope's knots and the medicine operations onto their rows | this is what a trade adopts — it must exist before the next trade |
 | **3. beats and the matcher** | the detected beats the roster needs — work · give · exchange · harm · kill · spare · yield · promise · keep · break · aid · provide · abandon · tell (introductions only); asserted beats as rows; look-back by ledger query; writes cite trope and act; tellings by the reading rules | the mechanism, all kernel, no opinion |
 | **4. the roster pack** | a new optional pack: the § 6 build-1 roster and the asserted beats; the hand-written writers moved onto it and **deleted** | proves it on real behavior, today's as the regression check |
 | **5. the ratchet** | trait, regard and renown writes outside the matcher at **2 named residuals** (the lounge's dialogue effect until motives; the hand-fed bond, which is mechanics), falling to 0; Discipline credit by name at today's count, falling | stops the bleeding — a new trade cannot do it the old way |
@@ -605,7 +605,7 @@ beats, `befall`, `take`/`return`, `flee`, `protect` · the ~100-site credit swee
 | renown write | `RenownApi.append` | **reuse** |
 | Discipline credit as data | recipes `discipline:`/`difficulty:` (`recordCraftEvidence`); joint rows `competence.discipline` (4 of 14 set); 27 reading rows | **reuse**; knot rows get `competence.discipline: ropework`, Rope.ts:783/:1111 + RopeJack.ts:349 read it |
 | act signature shape | `lib/advancement/ActSignature.ts` — a type only, built in code; `dispositionValence` used once (blood) | **retire the valence slot** (§ 3.1); the Discipline half stays, its definition named by the act (§ 3.2) |
-| the work record | transcripts: owner, discipline, difficulty, outcome, when (`creditSignatureImpl`, Advancement.ts:123) | **generalize** — gains act id, cause, definition, counterparty, finished/abandoned |
+| the exercise record | transcripts: owner, discipline, difficulty, outcome, when (`creditSignatureImpl`, Advancement.ts:123) | **generalize** — gains act id, cause, definition, counterparty, finished/abandoned |
 | the cause | `causingCommandId`, replanted on deferred roots by `ScheduleApi`; never persisted | **persist** on every ledger row as the act's cause (§ 3.3) |
 | the telling | chronicles: deed/claim, template/text, `who[]`, `where` | **reuse** — a closing trope writes its telling (§ 3.4) |
 | a pub/sub bus | `api/event.ts` (`EventApi`, in-memory listeners) | ⛔ not for acts (§ 4) |

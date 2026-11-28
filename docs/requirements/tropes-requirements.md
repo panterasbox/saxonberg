@@ -43,7 +43,7 @@ The census of every act a body can perform (slate § 2), by kind of interaction:
   work starts, which the actor rule must cover when they merge.
 
 **Therefore what is genuinely new here is:** the act's cause and people on the ledgers that already
-exist; the definition-named work record with failure and abandonment; the beat vocabulary; the trope
+exist; the definition-named exercise record with failure and abandonment; the beat vocabulary; the trope
 matcher; the roster pack; and the gate. The ledgers, the reads and the player verbs are reused.
 
 ## Goals
@@ -94,7 +94,7 @@ matcher; the roster pack; and the gate. The ledgers, the reads and the player ve
 
 ## Placement
 
-- **The kernel** owns the mechanism: the actor and cause on every ledger, the work record, the beat
+- **The kernel** owns the mechanism: the actor and cause on every ledger, the exercise record, the beat
   vocabulary (detected beats are a closed kernel list), the matcher. All descriptive; no opinion.
 - **A new optional roster pack, `morality-commons` at the root `/morality`** (slate § 1a — the trope
   is the platform's first prescriptive unit; everything below it is descriptive) owns every reading: the build-1 tropes and the asserted beats
