@@ -43,9 +43,13 @@ does not want.
 - **Lens 3a/3b:** a cast that dies silently is a broken fiction. A cast that cannot die
   is a different broken fiction, and possibly the "attention company's answer". When
   *should* an NPC die of the cold, and who notices?
-- **The backstop's future:** keep it as a floor? Make it loud (a diagnostic line, or a
-  mudlog to the parcel's committee, every time it saves somebody)? Remove it once the
-  cast lives honestly?
+- **The backstop's future — [DECIDED, the owner, 2026-11-27]:** *"they should just die if
+  it's not hurting anything but if it blocks other work then leave the backstop in."* It
+  blocks other work, so it stays for now: the drives need a living cast (the distillery
+  hand who makes the mash, the dairy's staff, every shopkeeper and roster), and so will
+  the shared demo instance. It comes OUT when the cast lives honestly (the physics and
+  content questions above). Until then, the rule is: a backstop that blocks nothing is
+  removed so the breakage shows.
 
 ## 2. ⭐⭐ Clothing insulation: the trapped-air number was picked
 
