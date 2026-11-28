@@ -114,11 +114,15 @@ first winter). The reuse ledger is at the end of that slate.
   and uses its outfit needs as evidence.
 - **NPC trade and production while nobody watches** → unobserved-economy-slate.
   Reconcile debits what a body consumed. It doesn't run the body's work.
-- **A logged-out player's body** → absent-body-slate. Players are unchanged.
-  Today a logged-out body is in null, so the timeless rule freezes it, which
-  is what ships now. The decided direction (2026-09-30) is that logout becomes
-  sleep where you left. When that builds, players stay in the story and leave
-  null.
+- **A logged-out player's body** → absent-body-slate. Players are unchanged,
+  and they are never in null. A signed-out body is saved and destructed, then
+  materialized at login, and its away-time guard stays. A dropped connection
+  leaves the body standing linkdead where it was. The timeless rule touches
+  neither.
+- **Unowned animals' needs** (a stray that forages and drinks) → the
+  husbandry and vocations slates. Removing the rule un-spares them too, and
+  the owner decided (2026-11-28) to let them die: honestly, where they stand,
+  reported like a Cast.
 - **The harm energy scale, the quern share, the condenser, restamp failure, and
   room-versus-thing name ties** → stay in backstops-owed-slate §§ 3, 5–8.
 - **Seasonal routines beyond clothing** (holidays, a winter trade calendar) →

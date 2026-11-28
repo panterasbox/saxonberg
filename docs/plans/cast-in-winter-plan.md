@@ -11,9 +11,8 @@ the shipped cast needs, and then deletes `Vitals.diesOfNeglect`.
 
 Paths: `S/` = `packages/server/src/mud/`, `C/` = `packages/content/`.
 
-> ⚠ **Read "Requirements conflicts" (next section) before W0.** Four of them
-> change what a drive step can mean. They are flagged for the owner; each has a
-> plan default so the build does not stall.
+> ⚠ **Read "Requirements conflicts" (next section) before W0.** They change
+> what some drive steps mean. The owner decided all of them on 2026-11-28.
 
 ## Requirements conflicts
 
@@ -23,7 +22,7 @@ Planning found these. None is absorbed silently; each states the plan default.
    `Herdbook` props in the byre (`dairy-book` tally 6, `calf-register` tally 3),
    grazing a field of the pasture by reference. Nothing is "in" the byre and
    nothing can be "moved out". Drive step 1 and the second acceptance criterion
-   assume bodies. **Plan default (D6):** the herd's book answers the room-heat
+   assume bodies. **✅ Decided (owner, 2026-11-28), D6:** the herd's book answers the room-heat
    protocol for the head it holds while the herd is *in*; "in" is a new stated
    fact on the book. Step 1's "move the cattle out" is turning the herd out.
 2. **Hesper Vane holds no shift.** She is the dairy's appointing authority and
@@ -34,10 +33,12 @@ Planning found these. None is absorbed silently; each states the plan default.
 3. **The rule being deleted also spares every unowned animal** (3 `Beast`, 3
    `KeptAnimal`, 3 `DraftAnimal`, 3 `WorkingAnimal`, 2 `Livestock`, 6 `Fish`,
    the silkworm, plus zone `stocks:` spawns). The requirements name only Cast
-   and Extra. Nothing feeds or waters a stray. **Plan default (D17):** an
-   unowned animal is a *role* body (fresh when it comes into view), the same
-   declared route an Extra takes; an owned animal is unchanged (it already
-   dies of neglect). ⚠ This is a product call the owner should confirm.
+   and Extra. Nothing feeds or waters a stray. **✅ Decided (owner,
+   2026-11-28): let them die.** An unowned animal is not spared and gets no
+   fresh-body route: it dies of neglect where it is, and its death is reported
+   like a Cast's (D16). What feeds a stray is content's job. Expect reported
+   deaths in soak until that content exists. Each one is a finding for the
+   owning trade, not a defect to hide (D17).
 4. **"The creamery hearth is their fire"** — `creamery/thing/hearth` is class
    `Oven`, which does not compose `SpaceHeatingMixin`, so it warms no room.
    **Plan default:** W8 verifies; if an Oven answers no room heat, the creamery
@@ -46,13 +47,16 @@ Planning found these. None is absorbed silently; each states the plan default.
    house and the town (D11) and lets a place supply through what stands in it
    (its `props:`), so no key is added to every Location. A kind of place
    carries supply by `extends:` on the place row's props and the house row.
-   If the owner wants a `supply:` key on place rows, that is a host-placement
-   change to make now, not in review.
-6. **A logged-out player's carried goods stop aging.** The requirements say
-   players are unchanged, and that null is timeless for the whole held
-   subtree. Both cannot hold for a carried pail of milk: today it sours while
-   its carrier is logged out. The plan follows the timeless rule (the newer,
-   more general ruling). The body is unchanged; its goods now wait.
+   **✅ Decided (owner, 2026-11-28): house + commons.**
+6. **~~A logged-out player's carried goods stop aging.~~ Withdrawn: players
+   are never in null.** (The owner, 2026-11-28: *"they dont live in null
+   they're destructed."*) A signed-out body is saved and **destructed**, then
+   materialized from its record at the next login. A dropped connection
+   leaves the body standing where it was, linkdead (connection.md § a drop
+   lingers, a sign-out leaves). Neither is in null, so the timeless rule never
+   touches a player or what a player carries, and players are unchanged. The
+   requirements' line saying a logged-out body sits in null was wrong and has
+   been corrected.
 7. **Counts.** The census finds 75 `Business` rows, 11 with `offShift: out`
    (one is a test fixture), 117 Cast/Extra rows, and 36 outdoor roster slots.
    The requirements' 89/10/79 are stale; nothing depends on them.
@@ -379,11 +383,20 @@ they are re-armed by `rebaseClocks`.
 Not rebased, deliberately: records (bank, contracts, employment), places, and
 anything unloaded (it is still in its place). An empty room is in the story.
 
-**D8 — The far-past guards go.** With D7 an absent body is frozen by where it
-is, not by a gap test. Delete the `MAX_REASONABLE_GAP_SEC` branch in
-`Metabolic`, `ThermalRegulation` (`billsTheGap`), `Respiration`, `Vitals`
-conditions and `Caster`, and `integratesLongAbsence`. `Combustible`'s is a
-thing's and is left (noted in Deferred seams). Linkdead freezing is unchanged.
+**D8 — The NPC's long-absence skip goes; the player's guard stays.** With D7
+an off-shift NPC is frozen by where it is (null), and an unwatched one is
+settled by D15, so the rule that drops long gaps for bodies nobody owns
+(`integratesLongAbsence` and whatever branch of the `MAX_REASONABLE_GAP_SEC`
+guards exists only to spare them) is deleted. ⛔ **The guard that protects a
+signed-out player stays exactly as it is.** A player is never in null. Their
+body is destructed at sign-out and materialized from its record at login, and
+that guard is what stops a week offline being billed as a week of hunger
+(connection.md, metabolism.md § until absent-body builds). W4 reads each
+guard (`Metabolic`, `ThermalRegulation` `billsTheGap`, `Respiration`, `Vitals`
+conditions, `Caster`) and deletes only the part that spares an unowned NPC.
+Where one branch serves both, it is narrowed to the player, never removed.
+`Combustible`'s is a thing's and is left (noted in Deferred seams). Linkdead
+freezing is unchanged.
 Metabolism keeps its 60 s slices; its `MAX_STEPS` collapse now runs for long
 unwatched gaps, so W4 replaces the collapse with exact stepping to the next
 *event* (D15 never asks it to cross more than one).
@@ -529,8 +542,10 @@ reads: house `here` → nobody moves; NPC `live` → nobody moves; a
 `teleport` when not; else `returnKit()`, the departure line, null. The lounge
 cast are authored `presence: live` in W8.
 
-Animals: `Beast` and the kept-animal base call `refreshBody()` in
-`comeIntoView()` when nobody owns them (not a stamped chattel). See conflict 3.
+Animals (owner, 2026-11-28, conflict 3): **no route and no refresh**. An
+unowned animal lives by the same physics and dies of neglect where it is,
+reported by D16. When it comes into view it is settled like any unwatched
+body, so a stray's death is found when someone looks.
 
 **D18 — Tropes.** The `needs` and `stokes` turns run through `_runAct` and
 carry the act id with no code here. `settleUnwatched` wraps each
@@ -730,9 +745,10 @@ a 12 h clock advance reads the same core, satiation, hydration, wound stage
 and age; a pail of milk it carried reads the same freshness and temperature;
 the same pail left on the floor of an empty place has aged 12 h; an engaged
 body moved to null has no engagement and the room got the abort line; a
-restart while out of the story keeps the stamp. Players: logout and login
-across a clock advance reads the same body (the old guard's test, now passing
-for the new reason).
+restart while out of the story keeps the stamp. Players are unchanged:
+sign-out, a clock advance and login read the same body for the old reason
+(the player's guard, D8), and a dropped connection lingers linkdead as
+before.
 Commit: `build(cast-in-winter W4): out of the story is out of time`.
 
 ### W5 — Watched, and the presence routes (D9, D10, D17 less needs)
@@ -866,7 +882,7 @@ Commit per pack is fine; the wave's last is
    Mere, clear, pre-dawn): every outdoor Cast holds its core watched, and
    `settleUnwatched` over the night leaves all alive. Fix by content.
 3. **Only then** delete `diesOfNeglect`, its three call-site conditions and
-   its interface member; the animal rule (D17) lands in the same commit.
+   its interface member; unowned animals lose the spare in the same commit (conflict 3: they die of neglect, reported).
 4. Docs: thermal.md, vitals.md, metabolism.md, mortality.md; strike §§ 1, 2, 4
    from backstops-owed-slate (leave the sweep to compact it).
 5. The browser walk `e2e/tests/cast-in-winter-walk.spec.ts`: steps 3, 4, 5, 12.
@@ -979,7 +995,8 @@ advance they are not part of.
   formula values by more than the tolerance; if `lint:clock-fields`' census
   is over 80 fields; if any locality's cast cannot be kept alive at its pin
   with period-honest supply (that is a physics conversation, per the slate).
-- **Owner decisions pending**: conflicts 1, 3, 5, 6.
+- **Owner decisions**: ✅ all taken 2026-11-28 (conflicts 1, 3, 5 decided;
+  6 withdrawn).
 
 ## Deferred seams
 
@@ -996,7 +1013,8 @@ advance they are not part of.
 - **The student costume parent** → row-composition-slate's agents pass; W8's
   costume edits are its evidence.
 - **Animal needs** (a stray that forages and drinks) → vocations or
-  husbandry slate, with D17's role default as the thing to replace.
+  husbandry slate. Until then unowned animals die of neglect, loudly, and
+  each reported death is that trade's finding.
 
 ## Critical files
 
