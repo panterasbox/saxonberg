@@ -14,6 +14,69 @@ Paths: `S/` = `packages/server/src/mud/`, `C/` = `packages/content/`.
 > ⚠ **Read "Requirements conflicts" (next section) before W0.** They change
 > what some drive steps mean. The owner decided all of them on 2026-11-28.
 
+## ⛔ Sequencing: the agents pass comes first (owner, 2026-11-28)
+
+The owner's rule: *anything done to every agent in the game needs
+discussion, even if it is correct.* The first version of this plan added
+`fends` and `stokes` as **implicit** behavior on every NPC from
+`NPC.onCreate`. That is invisible to an author reading a row and impossible
+to remove, which is "enable authors, never impose" broken in code.
+
+**Decided:** no implicit behavior. Looking after your own body is declared
+once on a **person kind** row that every NPC inherits, where it's visible and
+an author can override it. Keeping the house fire is declared on the **role
+kinds** that tend fires. Those kinds come from the **agents pass of the
+template taxonomy refactor**, which runs before this build and retires
+`/stuff/agent/costume/student`.
+
+- **W0–W5 do not depend on it** and may proceed in parallel. They cover the
+  heat budget, room heat, sleeves, timeless null, watched and presence.
+- **W6 and later wait** for the agents pass to merge. The `fends` and
+  `stokes` specs then go on its kind rows, not in `NPC.onCreate`. Every
+  "`NPC.onCreate` adds the spec" below is superseded by this section.
+
+### Exception cases W6 must resolve (owner review, 2026-11-28)
+
+Defaults are given so the build doesn't stall. ⚠ marks the ones to put to
+the owner when W6 starts.
+
+1. **Posts players depend on** (Gus at the crossing, doormen, the ticket
+   clerk, patrols, enforcers: about 17 rows). `fends` yields to the post's
+   work below *severe*. A severe need is covered by the house's proprietor
+   (`reconcileCover`), and a post with no cover says why it is empty.
+2. **An NPC engaged with a player** (dialogue, combat, a service queue).
+   `fends` never preempts an engagement below *critical*.
+3. **The lounge cast** (`as: live`): the bar is their amenity, so they never
+   leave the lounge to meet a need. ⚠
+4. **The Mercenary** has no house. ⚠ The open question is whether the hiring
+   party's leader supplies it, or it fends from the nearest amenity and can
+   die in the wilds.
+5. **NPCs not on a roster, or in a place with no town amenities** (Hollow
+   Mere, Rejection, Waponi Woo, the wilds). `lint:amenities` checks **every**
+   NPC, not just rostered posts under open sky: each one's needs must resolve
+   somewhere, or the row must say why not.
+6. **Ship crew:** the ship is the house; its amenities are aboard.
+7. **`stokes` tends its own house's declared fire only.** The "first burner
+   in the room" fallback is deleted, so a visitor never feeds another
+   house's fire from that house's fuel.
+8. **`stokes` only on role kinds that tend a fire.** It isn't a universal
+   spec.
+9. **Species:** W1 reads every NPC species' vital profile (sapiens,
+   sensitivus, semiorcus, khazadicus, infernalis). If any differs, the bench
+   calibrates it too.
+10. **A confined NPC** (the prison, when built) can't walk to supply; the
+    confining house supplies it. This is recorded for moderation-slate; no
+    content in this build.
+11. **The act vocabulary.** ⚠ `fends` emits drank / ate / warmed-up acts with
+    act ids. The vocabulary is "closed, versioned, changed deliberately", and
+    adding these changes what the Compact counts. Put the new act kinds to the
+    owner, coordinated with tropes.
+12. **Drives** assert an NPC's state and presence, not a fixed position.
+    Wherever a drive needs a hand at its station, it stages the hand's needs
+    met first.
+13. **A sandbox copy** resolves amenities inside its own circle scope and
+    never draws on the real town's supply.
+
 ## Requirements conflicts
 
 Planning found these. None is absorbed silently; each states the plan default.
@@ -397,9 +460,10 @@ word; its prose collisions are listed there. `Amenities` says what it is.
   conductance is the room's gain) and share the primitive.
 - **`Amenities` on a house and on a town.** One class, one key, two hosts.
   Intended: it is what makes "the town is the fallback" one walk.
-- **`stokes` and `fends`** are two implicit brains on every NPC. Intended
-  (work vs body); if a third implicit brain is ever wanted, that is the
-  moment to make "a rung's standing brains" a declared list, not before.
+- **`stokes` and `fends`** ~~are two implicit brains on every NPC~~ —
+  **superseded (owner, 2026-11-28):** both are declared on kind rows from the
+  agents pass. `fends` goes on the person kind, `stokes` on the fire-tending
+  role kinds. Nothing is implicit (see § Sequencing).
 - **`presenceGated = false` brains keep a nightly beat while `fends` is
   settled by arithmetic.** Two answers to "what happens unwatched". **Debt**:
   destination unobserved-economy-slate.
@@ -1257,7 +1321,7 @@ Commit: `build(cast-in-winter W9): the backstop comes out`.
 | timeless null | none | `ContainmentApi.move` | `clock` meta | n/a | n/a |
 | watched | none | place arrival hook | none | n/a | n/a |
 | presence | none | roster tick | the one `presence` key | an `offShift` place loads on use (`StuffApi.singleton`) | `setPresence` refuses an unknown `as` or a `role` with a home |
-| fending | none (the NPC's own) | implicit spec from `NPC.onCreate`; ⚠ a locality NPC subclass that overrides `onCreate` must call `super` | `fending.*` settings | brain resolves by path at wire time | n/a |
+| fending | none (the NPC's own) | declared on the agents pass's person kind row, inherited by every NPC row (§ Sequencing); no implicit spec | `fending.*` settings | brain resolves by path at wire time | n/a |
 | amenities | none | `Business.amenities`, `Locality.amenities` | W8 rows | each path loads on use; ⚠ a warm place nobody stands in must stand up when a hand is settled there (`singleton`, not `findByTemplatePath`) | `setAmenities` validates keys |
 | dressing | `wear`'s own model call (`putOn`) | the pegs in the station place; the NPC's own carried clothes | pegs row + stocked garments | pegs are a prop | n/a |
 | death report | `errors` | `ConditionApi.die` | none | n/a | n/a |
