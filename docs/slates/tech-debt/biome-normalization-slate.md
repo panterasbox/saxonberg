@@ -11,22 +11,17 @@
 > sky bit. `SkyExposedBiome` retires. The rest of this slate (dressing,
 > air, granularity) is untouched.
 
-> **Status: PARTIAL** — the substrate ships and works: the `Biome` Idea,
-> the outward-walking chain resolver (containment → zone → universe), the
-> `SkyExposedBiome` subclass that gates weather, rain, soil and (with the
-> envelope build) the sun, per-Detail overrides, and `_extendsBiomePath`
-> chaining biome row to biome row →
-> [biome.md](../../subsystems/biome.md). What has **not** happened is a
-> pass over the catalogue itself: it is **twelve rows**, it is doing
-> **three different jobs**, and the drift toward *room classes by another
-> name* has already started.
-> **Left:** the granularity doctrine (what a biome is a claim about, and
-> the test that decides it) · splitting the three jobs — atmospheric
-> field · sky exposure · sensory dressing · the catalogue pass itself
-> (which biomes a realm actually needs, and what the shipped world is
-> missing) · whether `_extendsBiomePath` is blessed or generalized into
-> the platform's absent template inheritance · one latitude, one climate
-> (the per-zone `celestialProfile` hook is shipped and unexercised)
+> **Status: DESIGNED** — the design conversation was held 2026-11-28 with the owner (§ *The design*
+> below). What a biome IS is decided: a kind of country or kind of water, never a room; indoors is
+> construction; mountains are Landforms; the old air tree becomes `CelestialBody`; anthromes sit
+> beside biomes; danger is the mana field. ⚠ Everything from § *The catalogue, as it stands* down
+> predates that conversation and is **superseded where it disagrees** (the test *"a biome is a claim
+> about the AIR"* above all — the air is no longer a biome).
+> **Left:** the build — the biome and anthrome rows and their pack · the old air tree re-cut as
+> `CelestialBody` (medium and free fall as place states, temperature derived underground) · the
+> Landform sibling and `Structure` made abstract (with [mountain-slate](../world/mountain-slate.md)) ·
+> the slope sequence and band derivation · the drainage-basin list · the dressing moved to country
+> scale. ⚠ How a species list becomes animals and plants you can find is **NOT this design's** — § D12.
 > **Size:** a build
 
 Captured 2026-09-24, out of the envelope build's design conversation.
@@ -34,43 +29,183 @@ The user's framing: *"we haven't even had a conversation about
 granularity or how narrow biomes get vs just being room classes by
 another name."*
 
-## ⭐⭐ The conversation still to have (owner, 2026-11-28)
+## ⭐⭐⭐ The design (owner, 2026-11-28) **[DECIDED]**
 
-The design is owed, and it is to be held with the master agent rather
-than in a build lane. It is wanted by **hunting and foraging**
-([hunting-slate](../trades/hunting-slate.md) — *the wild population as a
-record*; [discovery-slate](../engine/discovery-slate.md) — *biome-authored
-tables with derived, depleting stock*), and it needs real depth. Each
-thread below is a starting point, and none of them is an answer yet:
+Held with the master agent, as the owner asked (*"if it's not gonna end in a build we should slate the
+conversation for elsewhere"*). The owner's method, and the order it was argued in: *"start with what we
+even mean by 'biome' and relate that to other game systems … then we can talk about what's unique
+about Saxonberg … what I don't want to do is start with whatever is in the /biome/ tree right now and
+try to work backwards."*
 
-- ⛔ **A biome is not only outdoor, sky-exposed content.** The owner:
-  *"if you're only thinking about biome in terms of outdoor sky-exposed
-  content then you're doing it wrong. OR, maybe I'm the one thinking
-  about it wrong and indoor taxonomies are modelled by something else
-  entirely and still have to live in the context of an outdoor biome."*
-  Settle which of the two it is first, because every other thread hangs
-  on it.
-- **Is "what grows and lives here" a claim about the biome or about the
-  ground?** The ground half has substantial shipped records already:
-  `GroundCharacter` + soil ([soil.md](../../subsystems/soil.md)), the
-  wood's stand ([forestry.md](../../subsystems/forestry.md)), the reach's
-  fishery ([fishing.md](../../subsystems/fishing.md)), the `Deposit`
-  ([mining.md](../../subsystems/mining.md)) — and
-  [field-substrate-slate](../engine/field-substrate-slate.md)'s RGO spine.
-- **The inheritance choice is this design's to make.** The
-  template-taxonomy passes after the `/location/` → `/place/` rename
-  (!673) run agents → places → things → ideas. Biome rows sit in the
-  ideas pass, which will **carry out** whatever this slate decides
-  between `_extendsBiomePath` and row `extends:`. It will not re-parent
-  biomes on its own (build-2, 2026-11-28). ⚠ § *`_extendsBiomePath` and
-  the inheritance question* below predates `extends:`: row inheritance
-  has shipped since 2026-09-25 ([templates.md](../../subsystems/templates.md)),
-  so the question is now *does the biome chain become `extends:`*, not
-  *should the platform have inheritance*.
-- **Mountaineering rides this conversation.** The owner wants that
-  thread tossed in →
-  [mountain-slate](../world/mountain-slate.md) (the biome by altitude,
-  mountain weather, the body at height, mountaineering as a discipline).
+⚠ **Corrects the note this section replaced:** `_extendsBiomePath` was retired on 2026-09-25 — biome
+rows already use the ordinary `extends:` ([biome.md](../../subsystems/biome.md) § *The parent link is
+the TEMPLATE's*). Only the per-read resolve stays biome's (it names the ancestor that supplied each
+value). There was no inheritance choice left to make.
+
+### What players already expect (the survey)
+
+Every game teaches the word, and players arrive knowing it:
+
+| game | what a biome is there |
+|---|---|
+| Minecraft | a region set by temperature and rainfall — terrain, plants, spawns, rain or snow, colors, music; **cave biomes** and Nether biomes since the cave update |
+| Terraria | derived from the blocks around you, so players create and spread them; the dungeon counts (built, but about what it is made of) |
+| Valheim | large regions in a progression order, each a danger tier; Mountain needs frost protection |
+| RimWorld | the world tile's climate, plants, animals, diseases — and ⭐ **indoors is a different concept**: a room has computed stats and a role from its furniture |
+| Dwarf Fortress | derived from elevation, rainfall, temperature, drainage, savagery and alignment; three cavern layers underground |
+| No Man's Sky, Breath of the Wild | a hazard (cold, heat, toxic air) met by gear — and **interiors shelter you from it** |
+| Stardew, Pokémon | a list of what is found here, by season or time or method |
+| 4X games | muddled with terrain types and their yields |
+| Diku MUDs (our lineage) | room **sector types** — `inside` and `city` beside `forest` and `underwater`: room classes by another name |
+
+**The expectations distilled:** a biome is a recognizable kind of country, large and shared; it decides
+what lives and grows there; it sets the environmental challenge; climate drives it; caves and
+underwater count; **built interiors never do** — no game has an office biome. Plain English agrees: a
+large community of living things shaped by a common climate.
+
+### D1 · A biome is a kind of country or a kind of water
+
+Shaped by climate; a reusable type, **never a specific place**. Temperate oak wood, moor, salt marsh,
+alpine meadow, temperate coastal sea, estuary.
+
+### D2 · The nesting — biome ⊃ Locality ⊃ Structures ⊃ place
+
+- **A Locality says which biome it lies in** — the Weeping Moor is *a* moor. A Locality is a specific
+  instance; the biome is the type.
+- ⭐ **Indoors is never a biome.** Indoors or outdoors is each place's own walls and roof
+  ([construction.md](../../subsystems/construction.md)); a building moderates the country outside it,
+  which the envelope already computes. What a room is *for* (a granary, a kitchen) is a separate idea
+  again — closer to RimWorld's room role.
+- **Who cites a biome:** a Locality, and a Landform's slope sequence (D5). A place only as an exception
+  (a walled garden).
+
+### D3 · Caves, the water's depth bands and the tide line are habitats within a biome
+
+Ecology's answer, not games': a cave is a place in the moor or the mountain whose conditions (dark,
+damp, steady temperature) do the work. A cellar is a Structure's place with cave-like conditions. Deep
+sea is the dark bands of a marine biome.
+
+### D4 · Big water is a biome; rivers are within the land
+
+- **The sea, an estuary, a large lake** are biomes — classed by salinity, then temperature, then depth
+  and light.
+- **A river, a stream, a pond** runs through many land biomes and is a habitat within the land's.
+- ⭐ **Freshwater species follow the drainage basin.** By real biogeography, freshwater life (fish,
+  mussels, crayfish, many water plants) cannot cross a watershed divide, so which of them can be in a
+  river comes down its **basin**, not the land around it. The basins already ship
+  ([watershed.md](../../subsystems/watershed.md)).
+- Where land meets water (shore, mudflat, marsh edge) a place sits in both lists.
+
+### D5 · A mountain is a Landform; its places climb through a stack of biomes
+
+- **Altitudinal zonation** — foothill wood → conifer → treeline → alpine meadow → rock → snow; about
+  6.5 K colder per kilometer.
+- **Each biome row states its climate range.** The mountain's Locality **names the sequence** of biomes
+  on its slopes, bottom to top — **one per side** where there is a rain shadow. **Which band a place is
+  in is derived** from its temperature (latitude, weather and — with the lapse rate — height).
+  *Names authored, placement derived*: warm the climate and the treeline climbs by itself.
+- **Aspect** (a south face sits higher), **the body at height** (thin air, cold) and **danger** are
+  conditions, never a label.
+
+### D6 · Structure becomes abstract; Building, Ship and **Landform** are siblings
+
+- A `Structure` is *a set of places that together are one thing seen from outside* — what the sea
+  sights. Since the paint build `Building` is the subtype with an outside; a mountain is not one.
+- **Landform** — mountain, volcano, sea stack, headland, cliff, island, a cave system: members, an
+  appearance from afar, no outside to paint, no storeys.
+- ⭐ **A place belongs to at most one built structure and at most one Landform; nothing nests.**
+  Innermost wins within a family; across families they are two different questions — the boiling
+  house kitchen is in the boiling house *and* on Waponi Woo. The owner: buildings and ships never nest,
+  and nesting is refused without real use cases.
+- ⭐ **One owner per fact:** elevation is the ground's; a Landform's landmark height is **derived** from
+  its highest member place, never authored (today's peak authors `heightM: 1100`).
+- **Drops [mountain-slate](../world/mountain-slate.md) § 1's horizon-feature split.** Waponi Woo's peak
+  becomes the first Landform; Gannet Rock is probably a Landform with a Building (the light) on it.
+
+### D7 · What a biome row carries
+
+- **its climate range** — land: mean temperature and rainfall (the biome chart); water: temperature
+  and salinity;
+- **its names** — the species that belong there, plants, animals and fungi;
+- **what it is like at the scale of a country** — birdsong, wind and curlews, heather smell. ⚠ Room
+  scale stays in the room's prose: the cafeteria-gravy failure was the *scale*, not the idea.
+- **Nothing else** — no temperature (derived), no danger (mana), nothing about buildings.
+- Inheritance is the ordinary `extends:` (temperate oak wood extends temperate broadleaf forest). How
+  lists merge under `extends:` is the build's.
+- ⭐ **An author's mistake shows instead of being refused** (soft limits): an oak wood at a tundra
+  latitude stands, its climate range disagreeing with the derived climate where an author can see it.
+
+### D8 · The old air tree becomes **CelestialBody**
+
+The owner: *"what about zero-g content or space content? … Atmosphere might not always be the best
+word."* Applying the rest of the design to today's `Biome` rows:
+
+| job | where it goes |
+|---|---|
+| temperature | **derived** everywhere — climate under the sky, walls and roof indoors, and ⭐ **underground from the ground's annual mean** (a cave or mine authors none) |
+| sky exposure | construction (shipped) |
+| water as the medium | a state of a place (the water pack's water places) |
+| free fall | a state of a place ([worlds-slate](../world/worlds-slate.md) § 8: orbit is free fall, not zero gravity) |
+| **what remains** | **the celestial body** — radius and mass (gravity derived), day, year, suns and moons, and **its atmosphere** (the gas and its sea-level pressure); the root is interplanetary space |
+
+So `atmosphere` becomes a property of a body, the way astronomers use it. A station is a Structure
+whose spin gravity is a local override with a cause; a sealed habitat gets its air from its walls and
+life support. Worlds-slate § 2's *"a body is a biome"* becomes *a body is a CelestialBody*. ⚠ Not
+`Environment` or `Setting` (the shell owns both words) and not `Body` (a creature's).
+
+### D9 · Towns are Localities in a biome — and anthromes sit beside biomes
+
+- **A town is not a biome.** What makes it different is physical facts its places report — paved and
+  built ground, shelter, stores, refuse, warmth, light at night — **never zoning**: land use is a legal
+  permission on a parcel, and a lot zoned residential that is still forest is forest.
+- ⭐ **Anthromes** (anthropogenic biomes — Ellis and Ramankutty's map of the land by what *people* made
+  of it: dense settlements, villages, croplands, rangelands, wildlands) are a **second axis beside the
+  biome, not a combined tree**. A place has both: a farm in two biomes shares one anthrome.
+- An anthrome row carries **names** like a biome's: settlement (rats, mice, pigeons, sparrows, pavement
+  weeds), farmland (field weeds, rooks, hares), pasture. A place's possible species are its biome's
+  plus its anthrome's.
+- ⭐ **Authored, not derived** (the owner: *"you can't really express it without authoring all the
+  supporting machinery … no one's actually doing any real work"*). A Locality states its anthrome beside
+  its biome; a place may override (a city park); nothing derives it and nothing checks it. If the
+  economy ever runs for real, an author's drift report is the most it earns — not a rule.
+
+### D10 · Danger is the mana field, never a biome's label
+
+The owner: danger *"mostly is going to come from mana nodes which is something a biome needs to express
+but it's not specific to any one biome."* The field is the mana design pack's
+([mana-economy-design-pack](../engine/mana-economy-design-pack.md) § 13c–13f): a painted grade on a
+zone or Locality, seeded nodes, bound beasts drawn to strong ground.
+
+### D11 · No magic biomes; the field shows through what lives there
+
+- **Enchanted or blighted land is an ordinary biome where the field runs high or low.** Mana-dependent
+  species (the bestiary, glowing fungi, whatever the arcana packs add) are listed in biomes like any
+  species; where they are met depends on the field.
+- ⭐ **A player tells the field by indicator species and instruments** — a dowser's survey, an
+  `analyze` reading — **never a UI label**. The knowledge can be taught and sold.
+- How the field changes weather, crops or people is the mana pack's, not this design's.
+
+### D12 · ⚠ What this design deliberately does NOT decide — hunting and foraging's
+
+The owner: *"we're making assumptions here I don't know if we want to be making and I don't want to
+poison the well for when we actually do get to hunting and foraging."* **A biome names species; how
+names become the plants and animals you can find is theirs**, open, with no lean attached:
+
+- how a list of names becomes a count, and what a species declares about what it needs;
+- how a stock is kept and recovers;
+- what size of area a population is counted over;
+- which pack owns the population record;
+- whether an individual is made when you meet it.
+
+⛔ **The shipped fishing trade is not a precedent for any of it.** The owner: *"I'm willing to throw the
+entire fishing trade in the garbage if any of it doesn't hold up for the general hunting and foraging
+architecture."* Fishing is rebuilt to match whatever hunting and foraging decide.
+
+### D13 · Sequencing
+
+Biome before hunting and foraging (the owner). They need the names and the places; biome needs nothing
+from them. If their design wants something different, a second pass on biome is cheap — these
+decisions are about what things are, not how they are counted.
 
 ---
 

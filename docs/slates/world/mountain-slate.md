@@ -13,9 +13,13 @@
 > retrofitted
 > **Size:** a build
 
-⭐ **Designed with the biome conversation** (owner, 2026-11-28) →
-[biome-normalization-slate](../tech-debt/biome-normalization-slate.md)
-§ *The conversation still to have*.
+⭐⭐ **Designed with the biome conversation** (owner, 2026-11-28) →
+[biome-normalization-slate](../tech-debt/biome-normalization-slate.md) § *The design* D5–D6:
+**a mountain is a Landform** (a sibling of `Building` and `Ship` under an abstract `Structure`, which
+**supersedes § 1's horizon-feature split**); its places climb through a stack of biomes the mountain's
+Locality names (one sequence per side), each place's band derived from its temperature; the landmark
+height is derived from the highest member place; a place may be on one Landform and in one building
+at once, and nothing nests.
 
 **Sits on:** [expanse.md](../../subsystems/expanse.md) (landmarks, sight by
 curvature, `Sighted`) · [construction.md](../../subsystems/construction.md)
@@ -30,7 +34,7 @@ curvature, `Sighted`) · [construction.md](../../subsystems/construction.md)
 [cover-slate](../trades/cover-slate.md) (mountain pasture) ·
 [mining.md](../../subsystems/mining.md).
 
-## 1. ⭐ The horizon feature — split it out of `Structure`
+## 1. ⭐ The horizon feature — ⚠ SUPERSEDED by the biome design D6 (Landform, not a split)
 
 **What shipped:** a landmark at sea is a `Structure` with `landmark: true`
 and a `heightM`, found through the node its extent covers (`expanse.md`:

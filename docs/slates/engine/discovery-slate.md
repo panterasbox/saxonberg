@@ -380,6 +380,11 @@ is trying to answer another's question, so they compose cleanly.
 
 ### ⭐⭐⭐ The authoring unit: BIOME, with overrides
 
+> ⭐ **2026-11-28 → [the biome design](../tech-debt/biome-normalization-slate.md) § D12:** a biome (and
+> an anthrome beside it) NAMES species; how names become what you find — counts, stock and recovery,
+> the area a population covers, the owning pack, making an individual on encounter — is left open for
+> this design, with no lean. ⛔ The shipped fishing trade is not a precedent; it is rebuilt to match.
+
 Per-room tables mean ten thousand hand-tagged rooms. **The answer already
 ships twice** — `Biome`'s **outward-walking chain resolution** and Zone's
 **field inheritance**:
