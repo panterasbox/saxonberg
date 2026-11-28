@@ -16,7 +16,12 @@ import { MixinApi } from "../../../api/mixin";
 import type { Organization } from "../../../lib/employment/Organization";
 
 type OrganizationStuff = Stuff & Organization;
-import { TemplatePaths } from "../../../lib/paths";
+import { TemplatePaths, TemplatePathPrefixes } from "../../../lib/paths";
+import { User } from "../../../lib/identity/User";
+import { Refusal } from "../../../lib/errors";
+import { ConvictionApi } from "../../../api/conviction";
+import { GrammarApi, type NameAnswer } from "../../../api/grammar";
+import { OFFICE_APPARATUS } from "../../../lib/governance/Office";
 import type {
   OfficeHolderResult,
   OfficeRosterRow,
@@ -26,6 +31,7 @@ import type OfficeRegistry from "../OfficeRegistry";
 import type {
   CommitteeView,
   CommitteeChannelView,
+  CompactCharacterView,
 } from "../../../api/compact";
 
 const CompactApiCallers = SecurityPolicies.FromModule(
@@ -71,6 +77,169 @@ async function isFounderImpl(subject: Stuff | null): Promise<boolean> {
   const playerId = playerIdOfQuick(subject);
   if (playerId === null) return false;
   return reg.isFounder(playerId);
+}
+
+// ─────────────────────── the Compact character ───────────────────────
+// (front-page-sources D1–D6) Every account takes part in the Compact
+// through one character. The designation is one field on the account's
+// own `User` row, read through `User.compactCharacterId()`.
+
+/**
+ * The account behind `subject`: the body's own account pointer, else the
+ * account of the session driving it (a `Login` has no body, only a
+ * session), else — a body with a durable id and nobody connected — the
+ * account row that lists it. An anonymous session has no account.
+ */
+async function accountOf(subject: Stuff): Promise<User | null> {
+  if (PlayerApi.isAvatarStuff(subject)) {
+    const own = subject.getUser();
+    if (own) return own.anonymous ? null : own;
+  }
+  if (MixinApi.isHasInteractive(subject)) {
+    for (const interactive of subject.getInteractives()) {
+      const user = interactive.getUser();
+      return user.anonymous ? null : user;
+    }
+  }
+  const playerId = playerIdOfQuick(subject);
+  return playerId === null ? null : accountOfPlayer(playerId);
+}
+
+/** The account row that lists `playerId` (the live body's pointer first). */
+async function accountOfPlayer(playerId: string): Promise<User | null> {
+  const live = PlayerApi.findAvatarByPlayerId(playerId)?.getUser();
+  if (live && !live.anonymous) return live;
+  const [row] = await User.find<User>({ playerIds: playerId });
+  return row ?? null;
+}
+
+/** A character's name: its body's while it is here, else its record's. */
+async function characterName(playerId: string): Promise<string> {
+  const live = PlayerApi.findAvatarByPlayerId(playerId);
+  if (live) return live.getFullName();
+  return (await PlayerApi.storedNameOf(playerId)) ?? playerId;
+}
+
+/** The durable subject key a character's standing and positions are under. */
+function identityPathOf(playerId: string): string {
+  return `${TemplatePathPrefixes.avatar}${playerId}`;
+}
+
+/**
+ * ⭐ The lock (D4): why the account's Compact character may not change now,
+ * or `null` when it may. Seated — the EXPLICIT holder of an office (a
+ * hand-off row; the founder default follows the designation, so it is not
+ * a lock) — or holding a conviction position, which is an open vote.
+ * The future character-deletion act asks the same question (D2).
+ */
+async function compactLockOf(playerId: string): Promise<Refusal | null> {
+  const name = await characterName(playerId);
+  const reg = lookupOfficeRegistry();
+  if (reg) {
+    for (const office of OFFICE_APPARATUS) {
+      const held = await reg.holderOf(office.getKey());
+      if (held.kind === "explicit" && held.holderPlayerId === playerId) {
+        return new Refusal("compact-seated", {
+          name,
+          office: office.getDisplayName(),
+        });
+      }
+    }
+  }
+  const open = await ConvictionApi.positionsOf(identityPathOf(playerId));
+  if (open.length > 0) return new Refusal("compact-vote-open", { name });
+  return null;
+}
+
+/**
+ * ⭐ The account's character the player's words name, by the one naming
+ * rule (`GrammarApi.nameAmong`): its name, or its id. Only the account's
+ * own characters are entries — an offline character is not runtime stuff,
+ * so this is never MQL (D3). `null` for a session with no account.
+ */
+async function ownCharacterNamedImpl(
+  subject: Stuff,
+  words: string
+): Promise<NameAnswer<string> | null> {
+  const user = await accountOf(subject);
+  if (!user || user.playerIds.length === 0) return null;
+  const entries = [];
+  for (const id of user.playerIds) {
+    const name = await characterName(id);
+    entries.push({ value: id, keywords: [name.toLowerCase(), id], title: name });
+  }
+  return GrammarApi.nameAmong(words, entries);
+}
+
+/**
+ * ⭐ D6 — after a designation every live object for the account agrees.
+ * `Avatar.user` is a runtime pointer, and two sessions (or a body already
+ * in the world when a second login connected) can each hold their own
+ * `User` object for one account, so the new value is stamped on all of
+ * them — the account's bodies, and the sessions driving them.
+ */
+function restampLiveAccounts(saved: User, also: Stuff): void {
+  const users = new Set<User>();
+  const collect = (holder: Stuff): void => {
+    if (PlayerApi.isAvatarStuff(holder)) {
+      const own = holder.getUser();
+      if (own) users.add(own);
+    }
+    if (MixinApi.isHasInteractive(holder)) {
+      for (const interactive of holder.getInteractives()) {
+        users.add(interactive.getUser());
+      }
+    }
+  };
+  collect(also);
+  for (const id of saved.playerIds) {
+    const body = PlayerApi.findAvatarByPlayerId(id);
+    if (body) collect(body);
+  }
+  for (const user of users) {
+    if (user === saved) continue;
+    if (String(user._id ?? "") !== String(saved._id ?? "")) continue;
+    if (saved.compactPlayerId !== undefined) {
+      user.setCompactCharacter(saved.compactPlayerId);
+    }
+  }
+}
+
+async function compactCharacterOfImpl(
+  subject: Stuff | null
+): Promise<CompactCharacterView | null> {
+  if (subject === null) return null;
+  const user = await accountOf(subject);
+  const playerId = user?.compactCharacterId() ?? null;
+  if (playerId === null) return null;
+  return { playerId, name: await characterName(playerId) };
+}
+
+async function designateImpl(
+  subject: Stuff,
+  target: string
+): Promise<CompactCharacterView | Refusal> {
+  const user = await accountOf(subject);
+  if (!user || user.playerIds.length === 0) {
+    return new Refusal("compact-no-account", {});
+  }
+  if (!user.playerIds.includes(target)) {
+    return new Refusal("compact-not-yours", { name: target });
+  }
+  const name = await characterName(target);
+  const current = user.compactCharacterId();
+  if (current === target) return new Refusal("compact-unchanged", { name });
+  if (current !== null) {
+    const lock = await compactLockOf(current);
+    if (lock) return lock;
+  }
+  user.setCompactCharacter(target);
+  await user.save();
+  restampLiveAccounts(user, subject);
+  console.info(
+    `[CompactLogic] account ${String(user._id ?? "")} took part in the Compact as ${target} (was ${current ?? "none"})`
+  );
+  return { playerId: target, name };
 }
 
 // ──────────────────────── the committee half ───────────────────────
@@ -282,6 +451,42 @@ export class CompactLogic extends ApiLogic {
     const reg = lookupOfficeRegistry();
     if (!reg) return "(founder unset)";
     return reg.founderLabel();
+  }
+
+  /** See {@link CompactApi.compactCharacterOf}. */
+  @CallSecurity(CompactApiCallers)
+  public async compactCharacterOf(
+    subject: Stuff | null
+  ): Promise<CompactCharacterView | null> {
+    return compactCharacterOfImpl(subject);
+  }
+
+  /** See {@link CompactApi.isCompactCharacter}. */
+  @CallSecurity(CompactApiCallers)
+  public async isCompactCharacter(subject: Stuff | null): Promise<boolean> {
+    if (subject === null) return false;
+    const playerId = playerIdOfQuick(subject);
+    if (playerId === null) return false;
+    const user = await accountOf(subject);
+    return user !== null && user.compactCharacterId() === playerId;
+  }
+
+  /** See {@link CompactApi.ownCharacterNamed}. */
+  @CallSecurity(CompactApiCallers)
+  public async ownCharacterNamed(
+    subject: Stuff,
+    words: string
+  ): Promise<NameAnswer<string> | null> {
+    return ownCharacterNamedImpl(subject, words);
+  }
+
+  /** See {@link CompactApi.designateCompactCharacter}. */
+  @CallSecurity(CompactApiCallers)
+  public async designateCompactCharacter(
+    subject: Stuff,
+    playerId: string
+  ): Promise<CompactCharacterView | Refusal> {
+    return designateImpl(subject, playerId);
   }
 
   /** See {@link CompactApi.assignOffice}. */

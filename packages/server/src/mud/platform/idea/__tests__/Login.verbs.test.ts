@@ -29,13 +29,14 @@ describe('⭐ Login affords exactly the pre-world verb set', () => {
    * (controller-liquidity W16). Same affordance, same mixin, same reach
    * before a body — only the word moved.
    */
-  it('the self bucket is embody, play, cockpit (+ its client-… verbs) and prompt — and nothing else', () => {
+  it('the self bucket is embody, play, compact, cockpit (+ its client-… verbs) and prompt — and nothing else', () => {
     expect(selfVerbs()).toEqual([
       'client-card',
       'client-layout',
       'client-shelf',
       'client-style',
       'cockpit',
+      'compact',
       'embody',
       'play',
       'prompt',

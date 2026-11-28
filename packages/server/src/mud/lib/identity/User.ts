@@ -40,6 +40,7 @@ export class User extends Document implements IUser {
     twitchProfileId: { persistent: true },
     kickProfileId: { persistent: true },
     playerIds: { persistent: true },
+    compactPlayerId: { persistent: true },
   };
 
   /**
@@ -97,6 +98,45 @@ export class User extends Document implements IUser {
    * Appended on character creation; removed on character deletion.
    */
   playerIds: string[] = [];
+
+  /**
+   * The character this account takes part in the Compact through, as the
+   * player chose it with `compact character` — or unset, which means the
+   * first character. Read it through {@link compactCharacterId}, never
+   * directly: a stored id that is no longer one of `playerIds` is not an
+   * answer (front-page-sources D1).
+   */
+  compactPlayerId?: string;
+
+  /**
+   * ⭐ The account's **Compact character** — the one character it takes
+   * part in the Compact through: it shows the account's labor and capital
+   * standing, casts the account's vote, and alone may hold a Compact
+   * office. The chosen one while it is still on the account, else the
+   * first character, else none. Derived on every read and never written
+   * by one, so an account that never chose has its first character, and a
+   * designation that went stale can never strand an account.
+   */
+  public compactCharacterId(): string | null {
+    const chosen = this.compactPlayerId ?? '';
+    if (chosen.length > 0 && this.playerIds.includes(chosen)) return chosen;
+    return this.playerIds[0] ?? null;
+  }
+
+  /**
+   * Make `playerId` the account's Compact character. Throws on an id the
+   * account does not own — the act's own checks run first
+   * (`CompactApi.designateCompactCharacter`), so reaching this with a
+   * stranger's id is a programming error. Does not save.
+   */
+  public setCompactCharacter(playerId: string): void {
+    if (!this.playerIds.includes(playerId)) {
+      throw new Error(
+        `User.setCompactCharacter: ${playerId} is not one of this account's characters`,
+      );
+    }
+    this.compactPlayerId = playerId;
+  }
 
   /**
    * The at-least-one-provider invariant predicate — true iff the

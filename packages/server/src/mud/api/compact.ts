@@ -40,6 +40,8 @@ import { CompactLogic } from "../platform/idea/api/CompactLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from "./security";
 import { AccessApi } from "./access";
+import type { Refusal } from "../lib/errors";
+import type { NameAnswer } from "./grammar";
 
 export type { OfficeHolderResult, OfficeRosterRow, OfficeAssignResult };
 
@@ -68,6 +70,16 @@ export type CommitteeView =
       templatePath: string;
       subdivisionPath: string;
     };
+
+/**
+ * An account's Compact character (front-page-sources D1): the one
+ * character the account takes part in the Compact through.
+ */
+export interface CompactCharacterView {
+  playerId: string;
+  /** The character's name — its body's while here, else its record's. */
+  name: string;
+}
 
 /** A committee's chat channel, by well-known name. */
 export interface CommitteeChannelView {
@@ -268,6 +280,69 @@ export class CompactApi {
    */
   public static _resetOfficeRegistryRefForReload(): void {
     logic()._resetOfficeRegistryRefForReload();
+  }
+
+  // ──────────────────── the Compact character (D1–D6) ────────────────────
+  // Every account takes part in the Compact through ONE character: it
+  // shows the account's labor and capital standing, casts the account's
+  // vote, and alone may hold a Compact office. The first character by
+  // default; `compact character` chooses another.
+
+  /**
+   * The Compact character of `subject`'s account — `subject` being a body
+   * or a pre-world `Login`. `null` for a guest, an NPC, or an account with
+   * no character. Public read: the Compact character is the account's
+   * public face.
+   */
+  public static async compactCharacterOf(
+    subject: Stuff | null
+  ): Promise<CompactCharacterView | null> {
+    return logic().compactCharacterOf(subject);
+  }
+
+  /**
+   * Is `subject` (a body) its account's Compact character? The question a
+   * ballot verb asks before it casts the account's vote (D5). Fails closed.
+   */
+  public static async isCompactCharacter(
+    subject: Stuff | null
+  ): Promise<boolean> {
+    return logic().isCompactCharacter(subject);
+  }
+
+  /**
+   * Which of `subject`'s account's own characters the player's words name
+   * — by name or by id, through the one naming rule — for the
+   * `compact character` verb to bind. `null` for a session with no
+   * account behind it.
+   */
+  public static async ownCharacterNamed(
+    subject: Stuff,
+    words: string
+  ): Promise<NameAnswer<string> | null> {
+    return logic().ownCharacterNamed(subject, words);
+  }
+
+  /**
+   * Narrow-entry mutation: make `playerId` the Compact character of the
+   * acting account. Refuses a guest (`compact-no-account`), a character
+   * not on the account (`compact-not-yours`), no change
+   * (`compact-unchanged`), and — the lock — a current Compact character
+   * that holds a handed-off Compact seat (`compact-seated`) or an open vote
+   * (`compact-vote-open`). Gated to the `compact character` verb's
+   * controller.
+   */
+  @CallSecurity(
+    SecurityPolicies.FromModule(
+      "/platform/idea/cmd/governance/CompactCharacterController"
+    )
+  )
+  public static async designateCompactCharacter(
+    subject: Stuff,
+    playerId: string
+  ): Promise<CompactCharacterView | Refusal> {
+    AccessApi.requireActor(subject);
+    return logic().designateCompactCharacter(subject, playerId);
   }
 
   // ─────────────────────── the committee reads ───────────────────────

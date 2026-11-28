@@ -164,6 +164,23 @@ async function positionOfImpl(
   };
 }
 
+/** Every position one subject holds — the `{subject}` prefix of the index. */
+async function positionsOfImpl(
+  subject: string,
+  nowMs: number
+): Promise<ConvictionPosition[]> {
+  if (!active() || subject.length === 0) return [];
+  const rows = await Position.find({ subject });
+  return rows.map((p) => ({
+    subject: p.subject,
+    stock: p.stock,
+    target: p.target,
+    yea: p.yea,
+    nay: p.nay,
+    conviction: convictionFraction(p, nowMs),
+  }));
+}
+
 /**
  * Tally held conviction on `{stock, target}`: `Σ standingOf(holder,
  * stock).scalar × convictionFraction × (yea − nay)` over every position.
@@ -279,6 +296,15 @@ export class ConvictionLogic extends ApiLogic {
     nowMs: number
   ): Promise<ConvictionPosition | null> {
     return positionOfImpl(subject, stock, target, nowMs);
+  }
+
+  /** See {@link ConvictionApi.positionsOf}. */
+  @CallSecurity(ConvictionApiCallers)
+  public async positionsOf(
+    subject: string,
+    nowMs: number
+  ): Promise<ConvictionPosition[]> {
+    return positionsOfImpl(subject, nowMs);
   }
 
   /** See {@link ConvictionApi.tally}. */

@@ -1,0 +1,6 @@
+# `compact character <name>` naming the character that already is the
+# account's Compact character (front-page-sources D4).
+facts:
+  name: text
+says: "{{ name }} is already your Compact character."
+topic: shell.error

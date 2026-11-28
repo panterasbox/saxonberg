@@ -138,7 +138,13 @@ export default class Login extends LoginBase {
    * from them.)
    */
   static commandContributions: CommandContributions = {
-    self: ["platform/cmd/charactergen/embody.yaml", "platform/cmd/charactergen/play.yaml"],
+    self: [
+      "platform/cmd/charactergen/embody.yaml",
+      "platform/cmd/charactergen/play.yaml",
+      // ⭐ The Compact character is chosen at character select as well as in
+      // the game — one command, learned once (front-page-sources D3).
+      "platform/cmd/governance/compact.yaml",
+    ],
     peers: [],
     environment: [],
   };
@@ -456,6 +462,9 @@ export default class Login extends LoginBase {
       ...this.rosterFigures(a),
     }));
     const payload: CharGenRosterPayload = { characters };
+    // ⭐ Which card is the account's face in the Compact (front-page-sources D13).
+    const compactPlayerId = this.interactive.getUser().compactCharacterId();
+    if (compactPlayerId) payload.compactPlayerId = compactPlayerId;
     const account = this.accountFigures(avatars);
     if (account) payload.account = account;
     // The roster header names the PERSON — this screen's subject is the

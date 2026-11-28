@@ -1,0 +1,6 @@
+# `compact character <name>` naming no character on the acting account
+# (front-page-sources D4). Only your own account's characters can be named.
+facts:
+  name: text
+says: "You have no character called '{{ name }}'. Name one of your own characters, by name or by id."
+topic: shell.error

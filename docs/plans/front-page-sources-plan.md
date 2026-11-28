@@ -252,6 +252,14 @@ no new hook, no new module category, no new exported helper function.** One new 
   payload `{ compactPlayerId }`; the client stores it. No controller asks whether the giver is a
   `Login`.
 
+- **D6a — (build) the words are named by the one rule, not a hand compare.** `lint:hand-matchers`
+  refused D3's "playerId, then exact name" match. The binder is now `CompactApi.ownCharacterNamed
+  (subject, words)` → `GrammarApi.nameAmong` over the account's own characters (keywords: name,
+  id), named in the controller with `this.named` (so a tie prompts and an unknown word is
+  `no-such-name`, listing your characters); `designateCompactCharacter(subject, playerId)` then
+  takes an id and keeps `compact-not-yours` as its own guard. One more static on `CompactApi` than
+  S2 listed. *Chosen by:* CLAUDE.md's naming rule (nearest pattern: `office`'s `officeNamed`).
+
 ### Offices seat characters
 
 - **D7 — the founder default resolves to the founder account's Compact character.** `OfficeRegistry`
@@ -529,6 +537,17 @@ back; designate by id and by name; each refusal by its reason; a held position l
 one unlocks; the payload carries the id. `compact` and `compact character` dispatch for a `Login`
 and for a body.
 **Commit:** `feat(compact): the Compact character — one per account, chosen with compact character`
+
+✅ **W0 done.** `User.compactPlayerId` + `compactCharacterId()`/`setCompactCharacter()`; the
+`compact` view (governance) afforded from `Persona` and `Login`; `CompactApi.compactCharacterOf` ·
+`isCompactCharacter` · `ownCharacterNamed` · `designateCompactCharacter` over `CompactLogic`
+(account found from the body's pointer, else its session, else the `users` row; the lock reads
+explicit `office_holders` rows and `ConvictionApi.positionsOf`); the roster payload carries
+`compactPlayerId`. Decided: D6a (naming by `nameAmong`). Surprises: S4 needed no `Position`
+finder — `Position.find({ subject })` is the index's prefix; the two controllers needed seed
+templates in `content/platform/idea/cmd/governance/` (`controller-seeds.integrity`); `Login.test`'s
+fake `User` had to become a real one (the roster calls a method on it). `lint:family` is refused
+by the phase hook in `build`; the wave ran every `lint:*` individually instead (all green).
 
 ### W1 — offices seat characters
 **Implements** D7–D11. **Files:** `platform/idea/OfficeRegistry.ts`; `lib/governance/Office.ts`

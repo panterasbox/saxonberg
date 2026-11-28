@@ -1,0 +1,48 @@
+verbs: [compact]
+category: governance
+controller: /platform/idea/cmd/governance/CompactController
+description: "Show, or choose, the character your account takes part in the Compact through"
+help: |
+  Every account takes part in the Compact — the real institution that
+  governs this platform — through exactly one of its characters: its
+  Compact character. That character shows your account's Make and Fund
+  standing (the labor and capital every one of your characters earns
+  toward), casts your account's one vote, and is the only one of your
+  characters that may be handed a Compact office. Your other characters
+  keep their own play standing, and other players are never told they are
+  yours.
+
+  Your Compact character is your first character until you choose
+  another. Bare `compact` shows which one it is.
+
+  `compact character <character>` chooses another — name one of your own
+  characters by name or by id. Type it here in the game or at the
+  character-select screen; the screen's "Make this my Compact character"
+  sends the same line.
+
+  It cannot change while your Compact character holds a Compact office
+  that was handed to it, or while it has a vote open: you cannot switch
+  faces to step out from under a seat or a vote. The refusal says which.
+examples:
+  - cmd: compact
+    note: Show which of your characters is your Compact character
+  - cmd: compact character Odile Marsh
+    note: Take part in the Compact as Odile Marsh from now on
+subcommands:
+  character:
+    controller: /platform/idea/cmd/governance/CompactCharacterController
+    description: "Choose which of your characters is your Compact character"
+    help: |
+      Make one of your own characters your account's Compact character —
+      name it by name (any case) or by its id. Refused when it already is,
+      when no character of yours has that name, and while your current
+      Compact character holds a handed-off Compact office or has a vote
+      open.
+    examples:
+      - cmd: compact character Odile Marsh
+        note: Choose Odile Marsh
+    args:
+      - name: character
+        type: string
+        required: true
+        greedy: true

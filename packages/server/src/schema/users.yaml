@@ -24,6 +24,13 @@ invariants:
     `playerIds` is the authoritative list of characters this account may
     select; the WebSocket upgrade validates against it.
   - >-
+    `compactPlayerId` is the character the account takes part in the
+    Compact through, when the player chose one with `compact character`.
+    It is read only through `User.compactCharacterId()`, which answers the
+    stored id while it is still in `playerIds`, else the first character —
+    so an account that never chose needs no row change, and a stale id
+    strands nobody. Unindexed: it is read off an account already in hand.
+  - >-
     REFUSE under the sandbox: identity is field-real, and an account
     minted inside a circle would be an account.
 sandbox: refuse

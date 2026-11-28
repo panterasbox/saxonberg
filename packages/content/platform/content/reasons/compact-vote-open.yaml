@@ -1,0 +1,6 @@
+# The lock (front-page-sources D4/D5): the current Compact character holds
+# a conviction position — an open vote — so the account may not switch faces.
+facts:
+  name: text
+says: "{{ name }} has a vote open, so your Compact character cannot change until that vote is dropped."
+topic: shell.error

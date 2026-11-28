@@ -128,6 +128,20 @@ export class ConvictionApi {
   }
 
   /**
+   * Every position `subject` holds, across every stock and target, each
+   * with its derived conviction at `now` — empty when it holds none. A
+   * held position is an open vote (conviction voting is continuous: a
+   * stake stands until it is dropped), so this is the read that says
+   * whether a person has one open (front-page-sources D4/D5).
+   */
+  public static async positionsOf(
+    subject: string,
+    now?: number
+  ): Promise<ConvictionPosition[]> {
+    return logic().positionsOf(subject, now ?? Date.now());
+  }
+
+  /**
    * Tally held conviction on `{stock, target}` — the per-house bill number:
    * `Σ standingOf(holder, stock).scalar × conviction × (yea − nay)`.
    */

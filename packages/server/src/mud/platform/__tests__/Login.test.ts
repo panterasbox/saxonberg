@@ -14,12 +14,13 @@ import { StuffApi } from '../../api/stuff';
 import { PlayerApi } from '../../api/player';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
-import type { User } from '../../lib/identity/User';
+import { User } from '../../lib/identity/User';
 import type Avatar from '../../lib/character/Avatar';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 
 function fakeUser(id: string, playerIds: string[] = []): User {
-  return { _id: id, playerIds } as User;
+  // A real User: the roster reads the account's Compact character off it.
+  return Object.assign(new User(), { _id: id, playerIds });
 }
 
 function fakeAvatar(playerId: string): Avatar {

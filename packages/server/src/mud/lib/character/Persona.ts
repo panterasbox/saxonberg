@@ -162,6 +162,11 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
         // roster ungated. Homing it on AuthorMixin would wrongly hide the
         // public roster from non-authors.
         'platform/cmd/governance/office.yaml',
+        // The `compact` verb (governance) — which of your characters your
+        // account takes part in the Compact through. Universal for the
+        // reason `office` is, and also contributed by `Login`, so character
+        // select and the game type the same command (front-page-sources D3).
+        'platform/cmd/governance/compact.yaml',
         // The `government` verb (civics — the FICTION's governments,
         // a different category than the Compact's `governance`) is likewise
         // universal: the jurisdiction chain over where you stand and your

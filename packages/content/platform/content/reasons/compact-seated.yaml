@@ -1,0 +1,7 @@
+# The lock (front-page-sources D4): the current Compact character holds a
+# Compact office that was handed to it, so the account may not switch faces.
+facts:
+  name: text
+  office: text
+says: "{{ name }} holds the seat of {{ office }}, so your Compact character cannot change while that seat is theirs. Once the seat is vacated, you can choose again."
+topic: shell.error

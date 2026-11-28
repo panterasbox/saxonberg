@@ -4888,6 +4888,12 @@ export interface CharGenRosterPayload {
   accountName?: string;
   /** The account-level figures. Absent when none could be derived. */
   account?: AccountStandingPayload;
+  /**
+   * The account's **Compact character** — the one character it takes part
+   * in the Compact through, whose card carries the account's figures.
+   * Absent only for an account with no character.
+   */
+  compactPlayerId?: string;
 }
 
 /**

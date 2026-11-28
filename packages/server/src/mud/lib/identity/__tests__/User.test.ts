@@ -36,12 +36,13 @@ describe('User', () => {
       expect(MixinApi.getAllPersistentFields(User)).toContain('playerIds');
     });
 
-    it('should be exactly the provider FKs + playerIds', () => {
+    it('should be exactly the provider FKs + playerIds + the Compact character', () => {
       expect(MixinApi.getAllPersistentFields(User)).toEqual([
         'googleProfileId',
         'twitchProfileId',
         'kickProfileId',
         'playerIds',
+        'compactPlayerId',
       ]);
     });
   });
@@ -100,6 +101,38 @@ describe('User', () => {
       const user = new User();
       user.playerIds.push('slot-1', 'slot-2');
       expect(user.playerIds).toEqual(['slot-1', 'slot-2']);
+    });
+  });
+
+  describe('the Compact character (front-page-sources D1)', () => {
+    it('is the first character when the account never chose', () => {
+      const user = new User();
+      user.playerIds.push('a', 'b');
+      expect(user.compactCharacterId()).toBe('a');
+    });
+
+    it('is the chosen character while it is on the account', () => {
+      const user = new User();
+      user.playerIds.push('a', 'b');
+      user.setCompactCharacter('b');
+      expect(user.compactCharacterId()).toBe('b');
+    });
+
+    it('falls back to the first character when the chosen one left the account', () => {
+      const user = new User();
+      user.playerIds.push('a', 'b');
+      user.compactPlayerId = 'gone';
+      expect(user.compactCharacterId()).toBe('a');
+    });
+
+    it('is null for an account with no character', () => {
+      expect(new User().compactCharacterId()).toBeNull();
+    });
+
+    it("refuses to designate a character the account does not own", () => {
+      const user = new User();
+      user.playerIds.push('a');
+      expect(() => user.setCompactCharacter('stranger')).toThrow();
     });
   });
 });
