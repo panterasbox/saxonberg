@@ -433,6 +433,92 @@ realistic (beetles are about 400,000 species), but two moves take most of the cr
 | something built — golem, construct | the `constructa` root, outside Animalia (the tutor-bot is the precedent) |
 | something bodiless — wraith, specter | a root of its own; its identity is its binding |
 
+## 18. ⭐⭐⭐ Beasts in the story — where they live, where they came from, and the arc **[DECIDED — the owner, 2026-11-28]**
+
+Out of the biome design ([biome-normalization-slate](../tech-debt/biome-normalization-slate.md)
+§ *The design*) and the field's worldcrafting ([mana pack](../engine/mana-economy-design-pack.md)
+§ 13i). § 13's three questions each become a part of the story.
+
+### 18a. What pays for it decides where it lives
+
+| family | paid by | so it lives | the ground's story |
+|---|---|---|---|
+| relicts (leshy) | the place | at a node, or in old life | the guardian of the uncut wood |
+| specters (wraith, noonwraith) | the place they haunt | on charged ground — a death's scar | the battlefield where the dead walk |
+| apex bound (the wyrm) | the field | at a mass's core | the thing on the mountain |
+| regenerators (troll, hydra) | their own food | near prey — flocks, travelers, a village | the troll under the bridge, eating the sheep |
+| vampires | other people's blood | among people | the village where people go pale |
+| the cursed (werewolf) | the host's reserve | wherever the host lives | someone you know is the beast |
+| constructs (golem) | a binder or a stored charge | wherever its maker put it | the guardian of the ruin |
+
+Only the first three need the field; the rest put the danger among people.
+
+### 18b. Where it came from is an incident
+
+Every bound beast's origin is in the history channel (mana pack § 13i): a specter needs a death, a
+cursed host a curse (an act with an actor — *who laid it* is the hook), a construct a maker, a date
+and its word, a vampire a first bite. A relict's grove is setting. Authored origins are claims; played
+ones are acts. **The investigation is reading the past** — the field guide, witnesses, the death log.
+
+### 18c. What cuts it is the preparation
+
+Fire or acid · silver or a ward · watching (attention erodes a veil) · erasing the word · destroying
+the anchor · starving the payer · ⭐ luring a field-bound beast off its ground, where it is weaker.
+
+### 18d. ⭐⭐⭐ A quest is an ARC — a causal chain across systems, never a series of fights
+
+The owner: *"our whole design philosophy is being able to take any genres and remix them however we
+want and have the narrative just work mechanically, if you observe the rules of the engine … it's just
+a series of fights and that's not what a quest is."*
+
+**Beasts interact only through what they share** — the field's supply at a node, food, ground — so
+one change is felt by the rest:
+
+- **displacement** — a mine draws a seam down; the wyrm falls below its draw, seeks the field (mana
+  pack 13f) and comes down toward the valley's old grove, where the leshy is. The village sees attacks;
+  the cause is a mining claim three miles off;
+- **cascades** — the troll was eating the wyverns as well as the sheep; kill it and the wyverns
+  multiply and take calves (Yellowstone's wolves, run backwards);
+- **competition** — two bound beasts on one node; the newcomer drives the old one out, and the old one
+  is what raids;
+- **people are links** — the vampire thins the village, the blood bank runs short, the cursed host is
+  somebody's brother.
+
+**So a quest's arc is a causal chain** — economy → field → beasts → people — **that players uncover
+and choose where to cut**: kill the wyrm, close the mine, restore the node, lure it somewhere harmless,
+make a deal. Each cut's consequences spread and become the next act. **A fight is one intervention,
+not the arc.**
+
+- ⭐ **It survives any genre** — the rule is shared supplies, shortage moves, removal changes the
+  others, every change an incident with a cause: a reactor leak with mutated critters (sci-fi), a
+  drought-driven wyvern (western), the vampire and the village (horror). Same machinery, other rows.
+- **It is readable because every link is recorded** — the tropes build records who chose, what
+  changed and because of what; tropes look back and name the story (*the real monster*, *unintended
+  consequences*). Players cannot be told a false story.
+
+### 18e. ⭐⭐ Authors set up tension, never outcomes
+
+An author arranges a **loaded situation** — two beasts on one weakening node, a claim about to break
+into a seam, a troll whose diet holds the wyverns in check — and players knock the dominoes over. What
+happens is derived; one setup plays differently by where it is cut. **A good hunting ground is a good
+setup.** A second ground is rows: causes, beasts from the biome's list, prose.
+
+### 18f. The catalog, and who owns what
+
+A contract's common shape — investigate · identify · prepare · confront · resolve — varied by tropes:
+*kill it with fire* · *the silver bullet* · *lure it off its ground* · *starve it out* · *find the
+word / break the anchor* · *cure or kill* (lifting a curse vs killing a person — spare and kill beats
+write character) · *the real monster* (the cause was a person) · *tribute* (the village has been
+paying the beast). Variety comes from family × cause × place × who is affected × trope.
+
+- Tropes and quests are **rows in an optional, non-load-bearing pack** (like morality-commons).
+- The missing beats (*discover*, *befall*) are **tropes build 2's**; quests as tropes sharing a cast
+  are [quest-modeling-slate](./quest-modeling-slate.md)'s.
+- ⭐ **A requirement on hunting and foraging**, not a decision about how they count: whatever
+  population model they choose must let a shortage move a beast, a removed predator change its prey,
+  and two beasts compete for one supply — or the arc cannot exist.
+- A bigger bestiary adds **kinds of links** more than kinds of fights.
+
 ## 16. The lens pass
 
 1. **Pedagogy** — ⭐ real ethology (the bear rules); the armor grid as a type chart; the field
