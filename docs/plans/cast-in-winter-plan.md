@@ -984,8 +984,8 @@ Checked at plan time against `CLAUDE.md` and the tree.
 - **Paths**: kernel code under `S/lib/thermal`, `S/lib/npc`, `S/lib/behavior`;
   content rows under `/stuff/thing/...` (generic-objects), `/world/...`
   (venues), `/platform/...` (settings, views). No pack gains a root.
-- **Module scope declares**: the default `fends`/`stokes` specs are added in
-  `NPC.onCreate`, not at module scope.
+- **Module scope declares**: nothing is added at module scope. The
+  `fends` and `stokes` specs are rows on the agents pass's kinds (§ Sequencing).
 - **Import boundary**: trade-ranching imports `RoomHeatExchange` by
   `@saxonberg/server/mud/lib/thermal/RoomHeatExchange`; W2 adds it to the
   server `exports` map if absent.
