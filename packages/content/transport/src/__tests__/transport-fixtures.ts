@@ -10,13 +10,13 @@
 import { vi } from 'vitest';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import LocationGraphRegistry from '@saxonberg/server/mud/platform/idea/LocationGraphRegistry';
-import { KnowledgeGraph } from '@saxonberg/server/mud/lib/location/KnowledgeGraph';
+import { KnowledgeGraph } from '@saxonberg/server/mud/lib/place/KnowledgeGraph';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Locale from '@saxonberg/server/mud/platform/location/Locale';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
+import Locale from '@saxonberg/server/mud/platform/place/Locale';
 import { LocomotionMode } from '@saxonberg/server/mud/platform/idea/LocomotionMode';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';

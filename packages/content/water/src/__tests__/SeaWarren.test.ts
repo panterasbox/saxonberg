@@ -10,7 +10,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import SeaWarren from '../idea/SeaWarren';
-import SeaPatch from '../location/SeaPatch';
+import SeaPatch from '../place/SeaPatch';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 const SEA = '/sea';
@@ -133,7 +133,7 @@ describe('SeaWarren (river D30)', () => {
     const clone = vi.mocked(StuffApi.clone);
     await w.launchPlaceFor(deck('hesper'));
     const call = clone.mock.calls.find((c) => String(c[0]).endsWith('/water'))!;
-    expect(order).toEqual(['wake /system/water/location/sea/patch/1']);
-    expect(call[2]).toEqual({ zoneFrom: '/system/water/location/sea/patch/1/water' });
+    expect(order).toEqual(['wake /system/water/place/sea/patch/1']);
+    expect(call[2]).toEqual({ zoneFrom: '/system/water/place/sea/patch/1/water' });
   });
 });

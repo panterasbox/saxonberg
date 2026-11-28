@@ -15,8 +15,8 @@ import { describe, it, expect, beforeEach, vi  } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import { Agent } from '../../lib/stuff/Agent';
 import Place from '../../lib/stuff/Place';
-import CartesianZone from '../../platform/idea/location/CartesianZone';
-import Location from '../../lib/location/Location';
+import CartesianZone from '../../platform/idea/place/CartesianZone';
+import Location from '../../lib/place/Location';
 import Exit from '../../lib/boundary/Exit';
 import Door from '../../platform/thing/Door';
 import {

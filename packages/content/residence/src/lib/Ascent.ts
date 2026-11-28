@@ -17,7 +17,7 @@
 
 import { AppApi } from "@saxonberg/server/mud/api/app";
 import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
-import { CirculationWarren } from "@saxonberg/server/mud/lib/location/CirculationWarren";
+import { CirculationWarren } from "@saxonberg/server/mud/lib/place/CirculationWarren";
 
 /** The holding that fails the gate: its extent, its leaf, its condition band. */
 export interface AscentRefusal {

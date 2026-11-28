@@ -35,7 +35,7 @@ import { BistateMixin, type BistateInternal } from '../Bistate';
  * and **nothing named either file**, so `fold chair` answered *"I don't
  * understand 'fold'"* for every player since. The one foldable thing in
  * the realm — the avenue's camp chair, propped at
- * `university-avenue/location/crossing.yaml:123` — has been sittable and
+ * `university-avenue/place/crossing.yaml:123` — has been sittable and
  * unfoldable its whole life.
  */
 const FOLD = [

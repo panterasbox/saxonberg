@@ -14,7 +14,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Place from '../Place';
 import Locality from '../../../platform/idea/Locality';
 import AddressRegistry from '../../../platform/idea/AddressRegistry';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import { AddressApi } from '../../../api/address';
 import { ZoneApi } from '../../../api/zone';
 import { StuffApi } from '../../../api/stuff';

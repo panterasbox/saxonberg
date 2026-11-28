@@ -20,8 +20,8 @@ import { openWorldAs, runCommand } from './helpers';
 
 const SQUARE = '/world/terminus/market/square';
 const BANK = '/world/terminus/wharfside/bank';
-const HEADGATE = '/world/terminus/hearts-delight/ditch/location/headgate';
-const SEZNICK_BATH = '/world/terminus/mayfield-row/seznick-house/location/bathroom';
+const HEADGATE = '/world/terminus/hearts-delight/ditch/place/headgate';
+const SEZNICK_BATH = '/world/terminus/mayfield-row/seznick-house/place/bathroom';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 
 async function transcript(page: Page): Promise<string> {

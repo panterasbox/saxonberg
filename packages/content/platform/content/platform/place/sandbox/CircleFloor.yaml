@@ -1,0 +1,30 @@
+# /platform/place/sandbox/CircleFloor — the generic circle entry room (the holodeck
+# floor). Every circle's lazily-materialized entry space clones from
+# this template inside the circle-scoped root, so the room and its
+# return passage are circle-born and die with the discard. Skinnable
+# later; deliberately spare prose now — the point of the floor is what
+# you build on it. See docs/subsystems/sandbox.md.
+class: /platform/place/sandbox/CircleFloor
+data:
+  # ⭐ An INHERENT glow, and the one place in the realm that honestly has
+  # one: the circle's floor is itself the light source. Does not follow
+  # the sun, because it is not the sun.
+  ambientSource: glow
+  name: the circle floor
+  keywords: [bare, circle, floor]
+  shortDescription: bare circle floor
+  register: indefinite
+  longDescription: >
+    A quiet, evenly lit expanse with no walls worth mentioning — the
+    raw floor of your circle. Anything could stand here. Nothing does,
+    yet. The way out is simply out.
+  # "Evenly lit" has to be true mechanically, not just in the prose: a
+  # room with no light reads `pitch-black`, and its occupants stop being
+  # recognizable to each other.
+  #
+  # Ambient rather than a fixture, because the fiction says the light
+  # has no source — which is exactly what an ambient value models. A
+  # glow OBJECT would also have listed itself in the room's contents and
+  # been minted circle-born in every circle, for nothing.
+  ambientIntensity: 60
+  ambientColorTemperature: 5000

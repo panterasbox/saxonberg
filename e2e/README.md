@@ -124,7 +124,7 @@ mitigations:
   `TestAuthRoutes` → `Application.provisionTestCharacter`. Tests that need
   a *known* or *shared* room use it to bypass the Warren entirely:
   `multiplayer.spec.ts` pins both avatars to Dave's Bar (a stable
-  singleton, `/world/lounge/location/bar`) so they spawn already co-located, and
+  singleton, `/world/lounge/place/bar`) so they spawn already co-located, and
   `commands.spec.ts`'s movement test pins to the bar then walks `south`
   to the lounge. These specs are therefore immune to lounge churn.
 - **Resetting locally.** Most specs are single-avatar or client-only and

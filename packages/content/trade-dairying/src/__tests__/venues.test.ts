@@ -92,7 +92,7 @@ describe('the venues are rows', () => {
   });
 
   it('the cheese room is cold enough to ripen, and the creamery hearth is lit', () => {
-    expect(readRow(`${DELIGHT}/creamery/location/cheese-room`).data._temperature).toBe(284);
+    expect(readRow(`${DELIGHT}/creamery/place/cheese-room`).data._temperature).toBe(284);
     expect(readRow(`${DELIGHT}/creamery/thing/hearth`).data.lit).toBe(true);
   });
 });

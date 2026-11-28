@@ -13,7 +13,7 @@ Four findings a reviewer should know first:
 
 1. **No verb sows a FIELD.** `plant`/`sow` (`platform/cmd/inventory/plant.yaml`)
    require a `CultivableMixin` target; `Field`
-   (`trade-farming/src/location/Field.ts`) composes `SwardMixin(SoilMixin(…))`
+   (`trade-farming/src/place/Field.ts`) composes `SwardMixin(SoilMixin(…))`
    and **no plant slot** — its own header says so. `Improvable.isPlantable`
    (D54, *"newly plotted ground is NOT plantable"*) has **no caller** outside
    its own class; `farmstead.dirty.wire.test.ts` never plants. So the sward
@@ -96,7 +96,7 @@ in their place (every cut heading survives with a note, per the
 - `### Irrigation` → *Cost check (2026-07-31): the finite-but-regenerating source is a named deferral* (619–628, 10) — by the water pack: flow is a **takeable volume**, `StorageNode` carries a level, rights are *volume per window + priority date* (`watershed.md § Flow is a TAKEABLE volume`, `§ Storage and control`, `§ Rights`); the household tap stays deliberately unlimited (`§ What this build deliberately did NOT do`). `UnboundedSource.ts:20` still calls the regenerating well deferred. Note left; the irrigation-rung paragraph KEPT
 - `## Buildable-now — the staple loop (v1)` body (983–1017, 35) — by the three builds, in a different shape: no `till` (clearing is `grub`/`plough`), `sow` is an alias on `plant.yaml`, many crops not one, the survey ladder not *one soil probe*, and the *"hard prerequisite"* sun→light driver was not needed (rooms author `ambientIntensity`; the field's sward reads photoperiod) and is still open. Heading + note left
 - `### Wave B0` (1109–1114, 6) — a plan checkpoint; history. Heading removed; note left under `## Stage B`
-- `### Wave B2` · `### Wave B3` · `### Wave B4` · `### Wave B5` (1127–1170, 44) — by the farmstead build: B2's spherical fields → `plot` breaks a keyed `Field` out of a holding's yard (`PlotController`, `Field.groundSpot`; `soil.md § Field`, `§ plot`); B3's exemplar → `hearts-delight` shipped as a **static authored farm** (its README) with the campus farm as the managed exemplar, farmer row on `introduces`/`idles`; B4's switchover **did not happen** and is superseded by that ruling (the trade-farming floor + Wen still stand at target via the distribution sweep — `trade-farming/…/location/farm.yaml`, `farm-hand.yaml`; the README calls the counter an honest faucet); B5's drives ran (`packages/wire/tests/farmstead.dirty.wire.test.ts`) and the docs exist. One merged heading + note left
+- `### Wave B2` · `### Wave B3` · `### Wave B4` · `### Wave B5` (1127–1170, 44) — by the farmstead build: B2's spherical fields → `plot` breaks a keyed `Field` out of a holding's yard (`PlotController`, `Field.groundSpot`; `soil.md § Field`, `§ plot`); B3's exemplar → `hearts-delight` shipped as a **static authored farm** (its README) with the campus farm as the managed exemplar, farmer row on `introduces`/`idles`; B4's switchover **did not happen** and is superseded by that ruling (the trade-farming floor + Wen still stand at target via the distribution sweep — `trade-farming/…/place/farm.yaml`, `farm-hand.yaml`; the README calls the counter an honest faucet); B5's drives ran (`packages/wire/tests/farmstead.dirty.wire.test.ts`) and the docs exist. One merged heading + note left
 
 ### Kept (UNBUILT)
 - the canonical status block (re-stamped) · the framing paragraph · *See also* (all 19 links resolve; none pointed at a cut section)

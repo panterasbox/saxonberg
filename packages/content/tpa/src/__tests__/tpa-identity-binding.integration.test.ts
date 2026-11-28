@@ -67,9 +67,9 @@ class Traveller extends AetherHostMixin(AetherMixin(
 
 const docs: Doc[] = [
   { path: PH, class: PH, data: {} },
-  { path: D_ROOM, class: "/platform/location/Void", data: { shortDescription: "the departure hall" } },
-  { path: R_ROOM, class: "/platform/location/Void", data: { shortDescription: "the arrival hall" } },
-  { path: OFF_ROOM, class: "/platform/location/Void", data: { shortDescription: "the shuttered hall" } },
+  { path: D_ROOM, class: "/platform/place/Void", data: { shortDescription: "the departure hall" } },
+  { path: R_ROOM, class: "/platform/place/Void", data: { shortDescription: "the arrival hall" } },
+  { path: OFF_ROOM, class: "/platform/place/Void", data: { shortDescription: "the shuttered hall" } },
   {
     path: DEPART,
     class: "/system/tpa/thing/TpaTerminal",

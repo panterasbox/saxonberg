@@ -15,7 +15,7 @@ import RopeEnd from '../RopeEnd';
 import Good from '../Good';
 import Material from '../../../lib/material/Material';
 import Fiber from '../../idea/material/Fiber';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { Character } from '../../../lib/character/Character';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

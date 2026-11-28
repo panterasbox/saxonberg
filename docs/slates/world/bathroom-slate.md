@@ -1,7 +1,7 @@
 # Bathroom slate — presence without function
 
 > **Status: PARTIAL** — the bathroom ROOM shipped as one of furnishing's
-> four archetypes (`/stuff/location/room/bathroom` + the `bathroom`
+> four archetypes (`/stuff/place/room/bathroom` + the `bathroom`
 > capability archetype: toilet prose · basin real water · tub a real
 > affordance — [furnishing.md § The LOD
 > ladder](../../subsystems/furnishing.md)); the substrates it rides

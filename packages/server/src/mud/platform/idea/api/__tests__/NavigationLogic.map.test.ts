@@ -18,7 +18,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { NavigationApi } from '../../../../api/navigation';
 import { DocumentApi } from '../../../../api/document';
 import { StuffApi } from '../../../../api/stuff';
-import type { MapClaim, MapDocument } from '../../../../lib/location/MapClaim';
+import type { MapClaim, MapDocument } from '../../../../lib/place/MapClaim';
 
 const VIEWER = '/platform/agent/Avatar/mapper';
 const LOCALITY = 'test/mapville';

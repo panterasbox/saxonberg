@@ -6,7 +6,7 @@
 #
 # Its own ground is water and rock; nobody lives here. The zone carries the
 # height (the rooms' water reads the line's at its km) and nothing else.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: the Kestrel gorge
   cellSize: 12.0

@@ -60,7 +60,7 @@ const STALL_BUSINESS_SEED = MarketStalls.STALL_BUSINESS_SEED;
 const MARKET_BUSINESS = '/world/terminus/market/business';
 
 const BANK = '/test/stall/thing/bank-counter';
-const SQUARE = '/test/stall/location/square';
+const SQUARE = '/test/stall/place/square';
 const STALLS = '/test/stall/thing/stalls';
 const TORCH = '/test/stall/thing/torch';
 

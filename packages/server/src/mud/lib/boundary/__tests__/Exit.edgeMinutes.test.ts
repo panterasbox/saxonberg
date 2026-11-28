@@ -14,8 +14,8 @@ import { MobileMixin } from '../../spatial/Mobile';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import { ContainmentApi } from '../../../api/containment';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
 

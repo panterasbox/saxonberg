@@ -123,7 +123,7 @@ export abstract class JobControllerBase<
     );
   }
 
-  /** The last path segment, for prose ("/world/lounge/location/bar" → "bar"). */
+  /** The last path segment, for prose ("/world/lounge/place/bar" → "bar"). */
   protected leafOf(path: string): string {
     const leaf = path.split("/").filter(Boolean).pop();
     return leaf ?? "somewhere";

@@ -9,7 +9,7 @@
 # (`/world/terminus/counting-houses` → the managed `terminus` group; see
 # mud/config/parcels.yaml). Goodkin owns its *branch* by corpo affiliation on
 # the BankCounter fixture, not by zone title — the city owns the street.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Counting-Houses
   cellSize: 3.0

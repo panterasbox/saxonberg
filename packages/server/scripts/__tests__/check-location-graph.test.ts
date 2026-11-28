@@ -4,7 +4,7 @@
  * ceilings.
  *
  * ⭐ The rules themselves are pinned beside the value class
- * (`lib/location/__tests__/GraphInvariants.test.ts`); this file tests
+ * (`lib/place/__tests__/GraphInvariants.test.ts`); this file tests
  * the half that reads the world — which is where a gate usually goes
  * wrong, by enumerating what it should derive.
  */
@@ -12,7 +12,7 @@
 import "../../src/test-bootstrap";
 import { describe, expect, it } from "vitest";
 import { CEILINGS, scanLocationGraph } from "../check-location-graph";
-import { GRAPH_RULES, type GraphRule } from "../../src/mud/lib/location/GraphInvariants";
+import { GRAPH_RULES, type GraphRule } from "../../src/mud/lib/place/GraphInvariants";
 
 const scan = scanLocationGraph();
 
@@ -32,13 +32,13 @@ describe("the derivation — a place, a kind, a zone", () => {
    * does not.
    */
 
-  it("⭐⭐ finds places whose path has NO `/location/` segment", () => {
+  it("⭐⭐ finds places whose path has NO `/place/` segment", () => {
     // The property the by-class walk exists for. Several shipped place
     // rows predate the `<root>/<branch>/` pattern, so a gate
     // enumerating by path infix would skip them silently — which is how
     // a gate becomes a gate-shaped comment.
     const offPattern = scan.nodes.filter(
-      (n) => !n.identity.includes("/location/"),
+      (n) => !n.identity.includes("/place/"),
     );
     expect(offPattern.length).toBeGreaterThan(0);
   });

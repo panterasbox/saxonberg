@@ -185,7 +185,7 @@ Added 2026-10-17 from [stewardship-doctrine.md](../../stewardship-doctrine.md)
 *Shipped from this list: the before-and-after in words (`soilPhrase`, the
 bleach green whitening by day), sorting (an unfast dye bleeds onto the
 co-wash in `CraftingApi.wash`), the bathhouse beside the gym (`market/
-bathhouse/location/gym`; the bar is content), and the refusal of any meter
+bathhouse/place/gym`; the bar is content), and the refusal of any meter
 — [cleanliness.md](../../subsystems/cleanliness.md).*
 
 ---

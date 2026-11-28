@@ -75,12 +75,12 @@ const TERMINALS = [
   "/world/terminus/terminal/thing/departure-terminal-c",
 ];
 const ROOMS = [
-  "/world/terminus/terminal/location/hall",
-  "/world/terminus/terminal/location/arrival-gate",
-  "/world/terminus/terminal/location/departure-gate-a",
-  "/world/terminus/terminal/location/departure-gate-b",
-  "/world/terminus/terminal/location/departure-gate-c",
-  "/world/terminus/terminal/location/office",
+  "/world/terminus/terminal/place/hall",
+  "/world/terminus/terminal/place/arrival-gate",
+  "/world/terminus/terminal/place/departure-gate-a",
+  "/world/terminus/terminal/place/departure-gate-b",
+  "/world/terminus/terminal/place/departure-gate-c",
+  "/world/terminus/terminal/place/office",
 ];
 
 /**
@@ -103,18 +103,18 @@ const STUBS: Doc[] = [
     class: "/system/tpa/thing/TpaTerminal",
     data: { seatIn: "/world/test/lounge-room", keywords: ["lounge"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/lounge-room", class: "/platform/location/Void", data: { shortDescription: "the lounge" } },
+  { path: "/world/test/lounge-room", class: "/platform/place/Void", data: { shortDescription: "the lounge" } },
   {
     path: "/world/newbie-wilds/crossroads/terminal",
     class: "/system/tpa/thing/TpaTerminal",
     data: { seatIn: "/world/test/crossroads-room", keywords: ["crossroads"], directionality: "both", routes: [] },
   },
-  { path: "/world/test/crossroads-room", class: "/platform/location/Void", data: { shortDescription: "the crossroads" } },
+  { path: "/world/test/crossroads-room", class: "/platform/place/Void", data: { shortDescription: "the crossroads" } },
   // The terminal office lists the clerk under props (a bare-`Thing` stub keeps the
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
   { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", data: { shortDescription: "the clerk" } },
-  { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/Void", data: { shortDescription: "University Avenue" } },
+  { path: "/world/terminus/university-avenue/place/crossing", class: "/platform/place/Void", data: { shortDescription: "University Avenue" } },
 ];
 
 /**
@@ -179,7 +179,7 @@ describe("Terminus content standup (real seeds)", () => {
   it("wires the cross-branch exit from the arrival gate to the EU crossing", async () => {
     await boot();
     const arrivalGate = StuffApi.findByTemplatePath(
-      "/world/terminus/terminal/location/arrival-gate",
+      "/world/terminus/terminal/place/arrival-gate",
     )!;
     expect(MixinApi.isExitable(arrivalGate)).toBe(true);
     const exits = (
@@ -188,22 +188,22 @@ describe("Terminus content standup (real seeds)", () => {
       }
     ).getExits();
     const dests = [...exits.values()].map((e) => e.getDestinationTemplatePath());
-    expect(dests).toContain("/world/terminus/university-avenue/location/crossing");
-    expect(dests).toContain("/world/terminus/terminal/location/hall");
+    expect(dests).toContain("/world/terminus/university-avenue/place/crossing");
+    expect(dests).toContain("/world/terminus/terminal/place/hall");
   });
 
   it("declares every intra-zone connection explicitly on both sides", async () => {
     await boot();
-    const HALL = "/world/terminus/terminal/location/hall";
+    const HALL = "/world/terminus/terminal/place/hall";
     // Each neighbour's OWN template declares its explicit exit back to the hall
     // (getExits() is the explicit map — grid-derived exits aren't in it). The
     // template is self-describing: read the room, know what it connects to.
     const backExit: Record<string, string> = {
-      "/world/terminus/terminal/location/arrival-gate": "south",
-      "/world/terminus/terminal/location/departure-gate-a": "west",
-      "/world/terminus/terminal/location/departure-gate-b": "east",
-      "/world/terminus/terminal/location/departure-gate-c": "north",
-      "/world/terminus/terminal/location/office": "down",
+      "/world/terminus/terminal/place/arrival-gate": "south",
+      "/world/terminus/terminal/place/departure-gate-a": "west",
+      "/world/terminus/terminal/place/departure-gate-b": "east",
+      "/world/terminus/terminal/place/departure-gate-c": "north",
+      "/world/terminus/terminal/place/office": "down",
     };
     for (const [room, dir] of Object.entries(backExit)) {
       const exits = explicitExits(StuffApi.findByTemplatePath(room)!);

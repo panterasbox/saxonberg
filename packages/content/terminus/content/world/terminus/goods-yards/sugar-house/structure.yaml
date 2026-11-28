@@ -1,7 +1,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/goods-yards/sugar-house
-  entrance: /world/terminus/goods-yards/sugar-house/location/ground/boiling-floor
+  entrance: /world/terminus/goods-yards/sugar-house/place/ground/boiling-floor
   shortDescription: sugar house
   register: definite
   keywords: [house, "sugar house", refinery, chimney]
@@ -12,4 +12,4 @@ data:
     floor shares its west wall.
   heightM: 9
   storeys:
-    - { key: ground, extent: /world/terminus/goods-yards/sugar-house/location/ground }
+    - { key: ground, extent: /world/terminus/goods-yards/sugar-house/place/ground }

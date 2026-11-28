@@ -53,12 +53,12 @@ function brandKeys(): Set<string> {
 
 describe("Dave's Bar — the rail is bought, never populated (libations D14)", () => {
   // ⭐ The EFFECTIVE props. Dave's Bar `extends`
-  // `/trade/hospitality/location/bar`, so the stations, the tools and
+  // `/trade/hospitality/place/bar`, so the stations, the tools and
   // the stools come from the parent and this row states five lines.
   // Reading the raw row here would assert the bar had no glass rack.
   const INHERIT = inheritanceIndex();
   const populates = (): string[] => {
-    const eff = effectiveRow('/world/lounge/location/bar', INHERIT.rows, INHERIT.rules);
+    const eff = effectiveRow('/world/lounge/place/bar', INHERIT.rows, INHERIT.rules);
     return ((eff.data.props ?? []) as (string | { template: string })[]).map(
       (p) => (typeof p === "string" ? p : p.template),
     );
@@ -83,7 +83,7 @@ describe("Dave's Bar — the rail is bought, never populated (libations D14)", (
     // `on:` for a surface, `from:` for a hook, and a member a pack
     // ships tomorrow with no kernel change. It was `onto:`, which named
     // a PREPOSITION rather than a relation.
-    const entry = (loadLounge("location/bar.yaml").data?.props as { template?: string; on?: string }[]).find(
+    const entry = (loadLounge("place/bar.yaml").data?.props as { template?: string; on?: string }[]).find(
       (p) => typeof p === "object" && p.template === "/world/lounge/thing/house-tablet",
     );
     expect(entry?.on).toBe("/trade/hospitality/thing/back-bar");
@@ -155,10 +155,10 @@ describe("Dave's Bar — the player path to the keeper seat", () => {
 
 describe("Dave's Bar — the office", () => {
   it("the bar declares a concealed, one-way north exit into the office", () => {
-    const exits = loadLounge("location/bar.yaml").data?.exits as
+    const exits = loadLounge("place/bar.yaml").data?.exits as
       | Record<string, Record<string, unknown>>
       | undefined;
-    expect(exits?.north?.destination).toBe("/world/lounge/location/office");
+    expect(exits?.north?.destination).toBe("/world/lounge/place/office");
     // Phase 3: `hidden: true` was raised to an authored concealment band
     // (the vocabulary that subsumed the flag) + a hint, so the office is
     // discoverable via `search`.
@@ -170,11 +170,11 @@ describe("Dave's Bar — the office", () => {
   });
 
   it("the office exists and wires a plain south exit back to the bar", () => {
-    expect(existsSync(`${LOUNGE_DIR}location/office.yaml`)).toBe(true);
-    const exits = loadLounge("location/office.yaml").data?.exits as
+    expect(existsSync(`${LOUNGE_DIR}place/office.yaml`)).toBe(true);
+    const exits = loadLounge("place/office.yaml").data?.exits as
       | Record<string, Record<string, unknown>>
       | undefined;
-    expect(exits?.south?.destination).toBe("/world/lounge/location/bar");
+    expect(exits?.south?.destination).toBe("/world/lounge/place/bar");
     // Visible (not hidden) — you can always find the way out.
     expect(exits?.south?.hidden).toBeUndefined();
   });
@@ -185,7 +185,7 @@ describe("Dave's Bar — neon adornments", () => {
   const SIGNS = ["thing/neon-veshko.yaml", "thing/neon-aevex.yaml"];
 
   it("the bar declares both neon signs as adornments", () => {
-    const adornments = loadLounge("location/bar.yaml").data?.adornments as
+    const adornments = loadLounge("place/bar.yaml").data?.adornments as
       | { template: string }[]
       | undefined;
     const templates = (adornments ?? []).map((a) => a.template);

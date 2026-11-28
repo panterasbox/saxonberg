@@ -15,7 +15,7 @@ import { makeBody, wornBag, wornGarment, pack, tool } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Quantity } from '../../quantity';
 import Good from '../../../platform/thing/Good';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 
 const POCKET = { member: '/platform/placements/in', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 };
 

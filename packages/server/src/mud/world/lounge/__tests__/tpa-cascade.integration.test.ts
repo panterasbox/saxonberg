@@ -73,7 +73,7 @@ const TPA_SRC = fileURLToPath(
 // Repointed: the lounge routes to the Terminus arrival gate (the standalone
 // University Avenue terminal is retired — Phase 6).
 const TERMINUS_TERMINAL = "/world/terminus/terminal/thing/arrival-terminal";
-const TERMINUS_ROOM = "/world/terminus/terminal/location/arrival-gate";
+const TERMINUS_ROOM = "/world/terminus/terminal/place/arrival-gate";
 
 const fastTravelDocs: Doc[] = [
   {
@@ -101,7 +101,7 @@ const fastTravelDocs: Doc[] = [
   },
   {
     path: TERMINUS_ROOM,
-    class: "/platform/location/Void",
+    class: "/platform/place/Void",
     data: { shortDescription: "the Terminus arrival gate" },
   },
 ];

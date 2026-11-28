@@ -11,7 +11,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { LOAD_BEARING_DEFAULTS } from '../LoadBearing';
 import { makeBody, tool, hold, wornBag, pack, handsOf } from '../../slot/__tests__/carrying-fixture';
 

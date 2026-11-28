@@ -54,7 +54,7 @@ declareFile({
   packs: ['hinkley-hills', 'terminus', 'generic-objects', 'trade-ranching'],
 });
 
-const LANE = '/world/terminus/hinkley-hills/location/lane';
+const LANE = '/world/terminus/hinkley-hills/place/lane';
 
 let keeper: Session;
 

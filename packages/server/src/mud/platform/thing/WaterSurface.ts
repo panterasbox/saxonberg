@@ -23,7 +23,7 @@ import FloorBase from './Floor';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { Slottable } from '../../lib/slot/Slottable';
 import type { FieldMeta } from '../../lib/mixin';
-import type { WaterPlace } from '../../lib/location/WaterPlace';
+import type { WaterPlace } from '../../lib/place/WaterPlace';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { LocomotionApi } from '../../api/locomotion';

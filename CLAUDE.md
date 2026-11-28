@@ -988,8 +988,8 @@ deliberately share their base's name** (the import aliases it as
 `<Name>Base`; the module registry keys on class identity, not name):
 `platform/thing/Thing`, `platform/thing/Good`, `platform/thing/Vessel`,
 `platform/idea/modalities/Modality`,
-`platform/location/Location`,
-`platform/location/Locale`, `platform/idea/Exit`,
+`platform/place/Location`,
+`platform/place/Locale`, `platform/idea/Exit`,
 `platform/idea/material/Material`, `platform/idea/Biome`,
 `platform/idea/Structure`, `platform/idea/Building`, `platform/thing/Boundary`
 (a way's curtain or grating; `Door` and `Window` extend it) (`Ship` extends the

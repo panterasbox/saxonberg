@@ -5,7 +5,7 @@
 # cells their rows author, and which inherits from the lot it stands on.
 # Nothing stands in this row's own instance: a room joins a copy, never
 # the row.
-class: /platform/idea/location/MintedZone
+class: /platform/idea/place/MintedZone
 data:
   name: a valley farmstead
   # Covered by a Locality, so a walk here files claims on your map

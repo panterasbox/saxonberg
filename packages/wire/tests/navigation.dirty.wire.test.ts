@@ -138,7 +138,7 @@ suite('navigation card — the wire drive', () => {
   it('0 · a fresh player in the lounge: the lounge is on their map, and so is the way out of it', async () => {
     // Every lounge is a bud of ONE row with no identity of its own; it is
     // still a place, filed under its row (owner, review).
-    const LOUNGE = '/world/lounge/location/lounge';
+    const LOUNGE = '/world/lounge/place/lounge';
     // The ordinary spawn — the warren's own lounge, not a stray clone of its row.
     const s0 = await Session.open(uniqueHandle('navc-fresh'));
     open.push(s0);

@@ -15,7 +15,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Tract from '../location/Tract';
+import Tract from '../place/Tract';
 import Field from '../thing/Field';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -34,7 +34,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
 const EXTENT = '/world/_test/farm';
-const BENCH = `${EXTENT}/location/bench`;
+const BENCH = `${EXTENT}/place/bench`;
 const SEED = 4242;
 
 let seq = 0;

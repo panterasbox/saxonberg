@@ -13,11 +13,11 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { Stuff } from '../../stuff/Stuff';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Structure from '../../../platform/idea/Structure';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
-import { attachGraph } from '../../location/__tests__/attachments-fixture';
+import { attachGraph } from '../../place/__tests__/attachments-fixture';
 
 const TOWN = '/world/_land';
 

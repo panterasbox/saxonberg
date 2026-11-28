@@ -9,7 +9,7 @@
 # lobby and the street both resolved to `/world/terminus/mayfield-row`,
 # so the pair threw.
 #
-# This is the same rule, and the same fix, that `seznick-house/location`
+# This is the same rule, and the same fix, that `seznick-house/place`
 # already documents for the units' front doors one floor up: *a landing
 # serving four units cannot spend four compass points on them.* A
 # building's street door is the same problem at the other end of the
@@ -25,7 +25,7 @@
 # flux by it.
 #
 # Found by booting the metal-chain build against a real database.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Seznick House
   cellSize: 3.0

@@ -26,4 +26,4 @@ requires:
     - { extent: /stuff/thing/traps, holder: { organization: /compact/trade } }
     - { extent: /stuff/thing/surface, holder: { organization: /compact/trade } }
     - { extent: /stuff/idea/exits, holder: { organization: /compact/trade } }
-    - { extent: /stuff/location/room, holder: { organization: /compact/trade } }
+    - { extent: /stuff/place/room, holder: { organization: /compact/trade } }

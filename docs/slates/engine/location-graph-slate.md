@@ -142,16 +142,16 @@ write path is per-template.
 **One row per location:**
 
 ```
-{ identity:    "/world/terminus/university-avenue/location/crossing"  // unique — see §5
-  template:    "/platform/location/Crossing"        // the EDGE LABEL
+{ identity:    "/world/terminus/university-avenue/place/crossing"  // unique — see §5
+  template:    "/platform/place/Crossing"        // the EDGE LABEL
   zone:        "/world/terminus/university-avenue"  // indexed
   address:     "terminus/city/university-avenue/crossing"   // display only
   coords:      { x: 0, y: 0, z: 0 }
-  edges: [ { dir: "south", to: "…/terminal/location/arrival-gate", minutes: 1 },
-           { dir: "north", to: "…/location/campus-gate",
+  edges: [ { dir: "south", to: "…/terminal/place/arrival-gate", minutes: 1 },
+           { dir: "north", to: "…/place/campus-gate",
                            door: "…/thing/campus-gate-door" },
            { dir: "in",    to: null, deferred: "/system/residence/…/warren",
-                           label: "/platform/location/DormRoom" } ]
+                           label: "/platform/place/DormRoom" } ]
   crossesZone: true      // derived, indexed
   published:   true      // from the parcel — indexed
   origin:      "template" | "plan" | "live"
@@ -164,7 +164,7 @@ write path is per-template.
   // ⭐⭐⭐ TPA routes are EDGES, with a fare, a wait, and a per-player gate
   tpa: { role: "arrival" | "departure" | "both",
          boardLabel: "Terminus",
-         routes: [ { to: "…/hinkley-hills/location/stop",
+         routes: [ { to: "…/hinkley-hills/place/stop",
                      fare: 2, advanceMode: "scheduled",
                      departures: ["06:00","18:00"] } ] }
 }

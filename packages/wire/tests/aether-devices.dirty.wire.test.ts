@@ -68,7 +68,7 @@ declareFile({
 
 const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const ANAESTHESIA = '/platform/idea/Condition/metabolism/anaesthesia';
 const RUCKSACK = '/trade/tanning/thing/rucksack';
 

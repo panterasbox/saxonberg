@@ -19,7 +19,7 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import { installShapes, material } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, pack, wornGarment, garment } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import { SIZE_DEFAULTS } from '../../../../lib/spatial/Dimensions';
 
 const pouch = () => pack('pouch', 0.1, [0.15, 0.05, 0.15]);

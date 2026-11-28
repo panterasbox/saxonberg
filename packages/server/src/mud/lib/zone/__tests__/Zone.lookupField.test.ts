@@ -5,7 +5,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ZoneApi } from '../../../api/zone';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import FolderZone from '../../../platform/idea/FolderZone';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import { Zone } from '../Zone';
 import { makeStuff,
   EXIT_KIND_TEST_ROWS,
@@ -85,7 +85,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -103,7 +103,7 @@ describe('Zone.lookupField', () => {
       },
       {
         path: '/narnia/castle',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -119,7 +119,7 @@ describe('Zone.lookupField', () => {
     installInMemoryStore([
       {
         path: '/narnia/castle',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -136,7 +136,7 @@ describe('Zone.lookupField', () => {
       },
       {
         path: '/eternal/university',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -167,7 +167,7 @@ describe('Zone.lookupField', () => {
       },
       {
         path: '/outer/middle/inner',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -287,7 +287,7 @@ describe('Zone.lookupAncestorField — override seam for barrier subclasses', ()
       },
       {
         path: '/zone/sub',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);

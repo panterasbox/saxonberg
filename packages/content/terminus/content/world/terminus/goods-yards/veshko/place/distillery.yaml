@@ -1,0 +1,71 @@
+# The Veshko distillery — a `warehouse` instance (the distilling pack's
+# exemplar row, repeated: template inheritance does not exist): racking,
+# the stock the zone's `stocks:` fills, the hand. The stills that make it
+# are the distillery build's; today the floor stands at target through the
+# sweep, which is the sanctioned faucet.
+# An ordinary location, not a PersistentLocation: that class is the
+# FURNISHING archetypes' base. A trade floor's durability lives on its
+# persistable fixtures (the Stock, the racking, the counter) — the
+# consigned goods and their listings ride those, never the room; the
+# `populates` set below is the placement and respawns each boot.
+# ⭐ (sugar D20) A PersistentLocale: a rum wash fermenting in its vat and
+# a charged still survive a restart.
+class: /platform/place/PersistentHall
+data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone, so without it this floor was in no grid
+  # and inherited nothing from one. See the zone row beside it.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  shortDescription: Veshko distillery floor
+  keywords: [distillery, floor, yard, veshko]
+  register: definite
+  longDescription: |
+    A hangar of a floor: column stills in a row behind a chain-link fence, forklifts, and pallets of grey-labelled Volk under sodium light. Everything is stencilled.
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the yard, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
+  exits:
+    # ⭐ The back door onto the goods yards — the one room the D11
+    # switchover cost. The hand does not travel; a HAULER comes in this
+    # way to collect what the hand crated and posted about.
+    north:
+      destination: /world/terminus/goods-yards/yard
+      media: [ground]
+      edgeMinutes: 2
+    # ⭐ (sugar build) Through the east wall, the Sugar House — whose
+    # molasses is this still's rum (W3). The yard has no compass point
+    # left to spare, and next door is where a distiller wants it.
+    east:
+      destination: /world/terminus/goods-yards/sugar-house/place/ground/boiling-floor
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    # ⭐ The works board, ON the floor — and it is for PEOPLE.
+    #
+    # ⚠ It shipped with a different reason: the hand was going to post
+    # what wanted moving instead of travelling. The hand WALKS instead
+    # (D11's literal reading, once the floor had a door), so nothing on
+    # this board is posted by an NPC. It is where the outfit's own
+    # proprietor posts carriage, and it is what a hauler standing here
+    # reads — including `jobs --origin here`, the backhaul.
+    - /trade/haulage/thing/works-board
+    - /trade/distilling/thing/racking
+    - /world/terminus/goods-yards/veshko/thing/stock
+    # ⭐ (sugar W3) The pot still the yard's rum now comes out of — molasses
+    # from the Sugar House next door, fermented here and run here.
+    - /trade/distilling/thing/still
+    - /trade/distilling/thing/mash-tun
+    - /trade/distilling/thing/standpipe
+    - { template: /trade/distilling/thing/vat, count: 2 }
+    - /trade/distilling/thing/slop-bucket
+    - /trade/distilling/thing/wash-bucket
+    - { template: /trade/distilling/thing/empty-spirit-bottle, count: 6 }
+    - { template: /stuff/thing/items/dry-log, count: 6 }
+  cast:
+    - /world/terminus/goods-yards/veshko/agent/hand
+    - /world/terminus/goods-yards/veshko/agent/distiller

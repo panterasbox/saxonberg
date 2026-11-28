@@ -37,7 +37,7 @@ import { Template } from '../../stuff/Template';
 import { Idea } from '../../stuff/Idea';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import { Dose } from '../Dose';
 import { MarkedMixin, MARK_FORMS } from '../../description/Marked';
 import { ConsumableMixin } from '../Consumable';

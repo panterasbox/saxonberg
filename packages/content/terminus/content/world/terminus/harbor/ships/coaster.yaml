@@ -4,7 +4,7 @@
 # ⭐ A zone that is COPIED (zone-instancing D12): her rooms stand in a copy
 # of it, `<this row>/corrigan`, made by her warren as every ship's are — the
 # row's own instance holds no room.
-class: /platform/idea/location/MintedZone
+class: /platform/idea/place/MintedZone
 data:
   name: Corrigan
   cellSize: 4.0

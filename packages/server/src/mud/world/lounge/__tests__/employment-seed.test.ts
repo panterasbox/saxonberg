@@ -54,7 +54,7 @@ class Staff extends EmployedMixin(ContainableMixin(Idea)) {
 class BarRoom extends ContainerMixin(Idea) {
   static _mixinName = 'EmploymentSeedBar';
 }
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 
 /** Stand a staff member behind the bar — the "here" leg of `isFulfilling`. */
 function behindBar(path: string): Staff {
@@ -121,7 +121,7 @@ describe("Dave's Bar — Business seed integrity", () => {
     // every Saturday and Sunday the only person who could serve anybody was
     // Dave, covering his own bar unpaid.
     expect(sloane!.schedule).toHaveLength(3);
-    expect(doc.data.operatingLocations).toContain('/world/lounge/location/bar');
+    expect(doc.data.operatingLocations).toContain('/world/lounge/place/bar');
   });
 });
 

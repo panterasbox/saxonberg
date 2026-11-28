@@ -46,12 +46,12 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const CROSSING = '/world/terminus/university-avenue/location/crossing';
+const CROSSING = '/world/terminus/university-avenue/place/crossing';
 const MARKET = '/world/terminus/market/square';
 /** The lounge's SATELLITE row — cloned per landing, named by nothing. */
-const LOUNGE_SATELLITE = '/world/lounge/location/lounge';
+const LOUNGE_SATELLITE = '/world/lounge/place/lounge';
 /** The lounge's BAR — one place, so its row IS its handle. */
-const LOUNGE_BAR = '/world/lounge/location/bar';
+const LOUNGE_BAR = '/world/lounge/place/bar';
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 

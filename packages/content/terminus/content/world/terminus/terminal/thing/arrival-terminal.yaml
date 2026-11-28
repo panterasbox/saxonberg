@@ -6,7 +6,7 @@
 # No advanceMode → the FastTravelMixin default `manual` applies.
 class: /system/tpa/thing/TpaTerminal
 data:
-  seatIn: /world/terminus/terminal/location/arrival-gate
+  seatIn: /world/terminus/terminal/place/arrival-gate
   shortDescription: Teleport Authority terminal
   keywords: [terminal, terminus, arrival, teleport, authority]
   register: indefinite

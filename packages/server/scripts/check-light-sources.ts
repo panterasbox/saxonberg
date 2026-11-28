@@ -180,52 +180,52 @@ export const UNDECLARED_INTERIOR_AMBIENT_CEILING =
  * also authors as a detail you can look at.
  */
 export const SKYLIT_INTERIORS: readonly string[] = [
-  '/world/terminus/goods-yards/sugar-house/location/ground/boiling-floor', // the roof louvre the copper's steam goes up through — the sugar build's live walk found the house dark at noon
-  '/world/terminus/goods-yards/sugar-house/location/ground/curing-house', // small shuttered windows high in the end wall
-  '/world/terminus/goods-yards/sugar-house/location/ground/store', // a barred window over the counter
-  '/world/terminus/waponi-woo/boiling-house/location/curing-house', // slatted openings under the eaves, for the drain's air
+  '/world/terminus/goods-yards/sugar-house/place/ground/boiling-floor', // the roof louvre the copper's steam goes up through — the sugar build's live walk found the house dark at noon
+  '/world/terminus/goods-yards/sugar-house/place/ground/curing-house', // small shuttered windows high in the end wall
+  '/world/terminus/goods-yards/sugar-house/place/ground/store', // a barred window over the counter
+  '/world/terminus/waponi-woo/boiling-house/place/curing-house', // slatted openings under the eaves, for the drain's air
   '/world/terminus/rejection/hanging-wood/lean-to', // open along its front to the ashery clearing — daylight under the eaves
-  '/world/terminus/hearts-delight/location/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
-  '/world/terminus/hearts-delight/paper-mill/location/vat-house', // the vat stands by the window: a vatman holds every sheet up to it (paper W2)
-  '/world/terminus/hearts-delight/paper-mill/location/loft', // louvered on every side for the air, and the light comes with it (paper W2)
-  '/world/terminus/market/bathhouse/location/vestibule', // high misted windows over the boot bench
-  '/world/terminus/market/bathhouse/location/baths', // high misted windows over the tubs
-  '/world/terminus/market/bathhouse/location/gym', // one high window over the barbell
-  '/world/terminus/wharfside/lavoir/location/laundry', // a low doorway onto the open lavoir, its only light
-  '/world/terminus/eternal/duncan-hall/location/lobby', // a fanlight over solid, shut front doors — the only daylight the room gets
+  '/world/terminus/hearts-delight/place/mill-house', // little windows at the top of the wheel shaft — the light the dust hangs in
+  '/world/terminus/hearts-delight/paper-mill/place/vat-house', // the vat stands by the window: a vatman holds every sheet up to it (paper W2)
+  '/world/terminus/hearts-delight/paper-mill/place/loft', // louvered on every side for the air, and the light comes with it (paper W2)
+  '/world/terminus/market/bathhouse/place/vestibule', // high misted windows over the boot bench
+  '/world/terminus/market/bathhouse/place/baths', // high misted windows over the tubs
+  '/world/terminus/market/bathhouse/place/gym', // one high window over the barbell
+  '/world/terminus/wharfside/lavoir/place/laundry', // a low doorway onto the open lavoir, its only light
+  '/world/terminus/eternal/duncan-hall/place/lobby', // a fanlight over solid, shut front doors — the only daylight the room gets
   '/world/terminus/eternal/duncan-hall/unit/room', // a narrow window over the desk
-  '/world/terminus/mayfield-row/seznick-house/location/main', // a sash window onto the row
-  '/world/terminus/mayfield-row/seznick-house/location/hall', // a fanlight over the door — about an hour of it each morning
+  '/world/terminus/mayfield-row/seznick-house/place/main', // a sash window onto the row
+  '/world/terminus/mayfield-row/seznick-house/place/hall', // a fanlight over the door — about an hour of it each morning
   '/world/terminus/hinkley-hills/house/indoors/hall', // a tall sash window beside the door
   '/world/terminus/hinkley-hills/house/indoors/kitchen', // a small window over the sink
   '/world/terminus/hinkley-hills/house/indoors/scullery', // a small window over the stone sink (water-supply W4)
-  '/world/terminus/goods-yards/brewing/location/floor', // high shuttered windows above the coppers
-  '/world/terminus/goods-yards/vintner/location/floor', // square windows under the eaves, in thick green glass
-  '/world/terminus/hearthworks/location/cookhouse', // a wide unglazed window over the wash bench
-  '/world/terminus/hearthworks/location/smithy', // a shuttered opening above the bellows — a smith must see the colour of the iron
-  '/world/terminus/hearthworks/location/woodshed', // ⭐ the GAPS between the boards, which is what keeps the wood dry
-  '/trade/cooking/location/kitchen', // a window over the work bench
-  '/trade/distilling/location/warehouse', // roof lights along the ridge
-  '/stuff/location/room/bedroom', // a window with a catch that sticks
-  '/stuff/location/room/living', // a window taking up most of one wall
-  '/stuff/location/room/bathroom', // a small frosted window, high up
+  '/world/terminus/goods-yards/brewing/place/floor', // high shuttered windows above the coppers
+  '/world/terminus/goods-yards/vintner/place/floor', // square windows under the eaves, in thick green glass
+  '/world/terminus/hearthworks/place/cookhouse', // a wide unglazed window over the wash bench
+  '/world/terminus/hearthworks/place/smithy', // a shuttered opening above the bellows — a smith must see the colour of the iron
+  '/world/terminus/hearthworks/place/woodshed', // ⭐ the GAPS between the boards, which is what keeps the wood dry
+  '/trade/cooking/place/kitchen', // a window over the work bench
+  '/trade/distilling/place/warehouse', // roof lights along the ridge
+  '/stuff/place/room/bedroom', // a window with a catch that sticks
+  '/stuff/place/room/living', // a window taking up most of one wall
+  '/stuff/place/room/bathroom', // a small frosted window, high up
   // ⭐ Blueprint rooms that extend the three above —
   // the same window, inherited.
   '/world/terminus/hinkley-hills/house/indoors/bedroom', // the generic bedroom's window
   '/world/terminus/hinkley-hills/house/indoors/living', // the generic living room's window
-  '/world/terminus/hearts-delight/farmstead/location/house', // the generic bedroom's window
-  '/world/terminus/mayfield-row/seznick-house/location/bathroom', // the generic bathroom's frosted window
+  '/world/terminus/hearts-delight/farmstead/place/house', // the generic bedroom's window
+  '/world/terminus/mayfield-row/seznick-house/place/bathroom', // the generic bathroom's frosted window
   '/world/terminus/hinkley-hills/house/indoors/bathroom', // the same frosted window, and a copper
-  '/world/terminus/hearts-delight/creamery/location/floor', // high north-facing louvred windows — light without sun on the milk
-  '/world/terminus/hearts-delight/creamery/location/cheese-room', // an iron grating at the top of the cellar wall
-  '/world/terminus/hearts-delight/dairy/location/byre', // the wide byre door, propped open — milking is done by daylight
-  '/world/terminus/hearts-delight/brickfield/location/moulding-shed', // its whole south side open to the yard — moulding is done by daylight
-  '/world/terminus/hearts-delight/brickfield/location/potters-shop', // the big window over the wheel, and the door
-  '/world/terminus/goods-yards/rubber-works/location/ground/works/floor', // tall iron-framed windows down the yard wall
-  '/world/terminus/goods-yards/rubber-works/location/ground/wing/store', // a small barred window high in the end wall
-  '/world/terminus/goods-yards/rubber-works/location/loft/loft', // a dormer in the slope of the roof
-  '/world/terminus/goods-yards/rubber-works/location/tower/tower', // a window in each wall
-  '/world/terminus/rejection/location/foundry', // a row of high dusty windows along the moulding floor — a founder reads the melt's colour by it
+  '/world/terminus/hearts-delight/creamery/place/floor', // high north-facing louvred windows — light without sun on the milk
+  '/world/terminus/hearts-delight/creamery/place/cheese-room', // an iron grating at the top of the cellar wall
+  '/world/terminus/hearts-delight/dairy/place/byre', // the wide byre door, propped open — milking is done by daylight
+  '/world/terminus/hearts-delight/brickfield/place/moulding-shed', // its whole south side open to the yard — moulding is done by daylight
+  '/world/terminus/hearts-delight/brickfield/place/potters-shop', // the big window over the wheel, and the door
+  '/world/terminus/goods-yards/rubber-works/place/ground/works/floor', // tall iron-framed windows down the yard wall
+  '/world/terminus/goods-yards/rubber-works/place/ground/wing/store', // a small barred window high in the end wall
+  '/world/terminus/goods-yards/rubber-works/place/loft/loft', // a dormer in the slope of the roof
+  '/world/terminus/goods-yards/rubber-works/place/tower/tower', // a window in each wall
+  '/world/terminus/rejection/place/foundry', // a row of high dusty windows along the moulding floor — a founder reads the melt's colour by it
 ];
 
 /**
@@ -233,7 +233,7 @@ export const SKYLIT_INTERIORS: readonly string[] = [
  * floor that is itself a light. These do NOT follow the sun.
  */
 export const INHERENT_GLOWS: readonly string[] = [
-  '/platform/location/sandbox/CircleFloor', // ⭐ the circle's floor IS the light. Does not follow the sun, because it is not the sun.
+  '/platform/place/sandbox/CircleFloor', // ⭐ the circle's floor IS the light. Does not follow the sun, because it is not the sun.
 ];
 
 /**

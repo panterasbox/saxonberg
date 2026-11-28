@@ -1,6 +1,6 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach, vi } from "vitest";
-import Location from "../../location/Location";
+import Location from "../../place/Location";
 import Good from "../../stuff/Good";
 import { AdornmentMixin } from "../Adornment";
 import { StuffApi } from "../../../api/stuff";

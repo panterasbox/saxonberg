@@ -1,0 +1,5 @@
+class: /fixture/place/Yard
+data:
+  shortDescription: the fixture yard
+  props:
+    - /fixture/thing/propped

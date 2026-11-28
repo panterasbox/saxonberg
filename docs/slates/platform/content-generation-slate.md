@@ -51,7 +51,7 @@ two live objects at one path, so **the successor and the predecessor
 cannot coexist**. Succession is atomic by necessity, not by taste.
 
 ⭐⭐ **And the payoff for code generation is large: the ruin needs no
-generation at all.** `/stuff/location/Ruin` is a template a human writes
+generation at all.** `/stuff/place/Ruin` is a template a human writes
 once, reviewed, in the content tree. The generator only *mints* from it.
 
 ---

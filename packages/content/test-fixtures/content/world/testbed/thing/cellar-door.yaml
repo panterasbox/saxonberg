@@ -13,6 +13,6 @@ data:
   locked: true
   keyway: testbed-cellar
   lockTechnology: pin-tumbler
-  freeFrom: /world/testbed/location/cellar
+  freeFrom: /world/testbed/place/cellar
   _materialPath: /stuff/idea/material/wood/oak
   mass: 45

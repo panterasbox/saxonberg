@@ -12,7 +12,7 @@
 # — the depot's one product (D8) — has real economic work to do on the
 # day it opens, which is the difference between a service and a shipped
 # building nobody needs.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: valley crossroads
   keywords: [crossroads, valley]
@@ -51,14 +51,14 @@ data:
     # exit being invented. ⚠ Authored on BOTH sides: the far half is in
     # the `hearts-delight` pack and neither pack reaches into the other.
     south:
-      destination: /world/terminus/hearts-delight/location/valley-gate
+      destination: /world/terminus/hearts-delight/place/valley-gate
       media: [ground]
       edgeMinutes: 10
       wheelPassable: true
     # ⭐ The eastern road, up into the hills to Hollow Mere (the ice trade's
     # venue — storage-and-ice). ⚠ Placeholder geography.
     east:
-      destination: /world/terminus/hollow-mere/location/road
+      destination: /world/terminus/hollow-mere/place/road
       media: [ground]
       edgeMinutes: 30
   props:

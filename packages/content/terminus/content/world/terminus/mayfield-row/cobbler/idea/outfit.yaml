@@ -35,7 +35,7 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/mayfield-row/cobbler/location/shop
+    - /world/terminus/mayfield-row/cobbler/place/shop
     - /world/terminus/mayfield-row/cobbler/thing/slate
   # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
   offShift: out

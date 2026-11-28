@@ -5,7 +5,7 @@
 # finite `air` reserve because it is the room you deliberately run a
 # fire in — a lit range behind a closed door burns incomplete (D12's
 # lesson, at home).
-class: /platform/location/PersistentRoom
+class: /platform/place/PersistentRoom
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:

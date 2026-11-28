@@ -20,7 +20,7 @@
 import { LettingWarren, type LetAnswer } from '@saxonberg/content-residence/src/lib/LettingWarren';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import type { Attachment } from '@saxonberg/server/mud/lib/place/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -31,7 +31,7 @@ import type { LockType } from '@saxonberg/server/mud/lib/lock/Lock';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import FloorStairExit from './FloorStairExit';
 import DormDoor from './DormDoor';
-import DormRoom from '../location/DormRoom';
+import DormRoom from '../place/DormRoom';
 import DormThemes from './DormThemes';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -71,9 +71,9 @@ export default class DormWarren extends DormWarrenBase {
   /** The one dorm-room template every unit clones from (the D1 scope). */
   static readonly DORMROOM_TEMPLATE = DormRoom.SCOPE;
   /** The one corridor template every floor clones from. */
-  static readonly CORRIDOR_TEMPLATE = '/world/terminus/eternal/duncan-hall/location/corridor';
+  static readonly CORRIDOR_TEMPLATE = '/world/terminus/eternal/duncan-hall/place/corridor';
   /** The building's ground-floor landing (the fixed seed room). */
-  static readonly LOBBY_PATH = '/world/terminus/eternal/duncan-hall/location/lobby';
+  static readonly LOBBY_PATH = '/world/terminus/eternal/duncan-hall/place/lobby';
   /** The degenerate one-room holding programme row (D16 step 2). */
   static readonly PROGRAMME_PATH = '/world/terminus/eternal/duncan-hall/idea/dorm-programme';
   /** The parent parcel the unit parcels subdivide under. */

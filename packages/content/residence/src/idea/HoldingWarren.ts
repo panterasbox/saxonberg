@@ -48,12 +48,12 @@
  * plan is the *initial* mint, never the closed set.
  */
 
-import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
-import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
+import { FloorplanWarren } from '@saxonberg/server/mud/lib/place/FloorplanWarren';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/place/ZoneMinting';
 import {
   Floorplan,
   type FloorplanRoom,
-} from '@saxonberg/server/mud/lib/location/Floorplan';
+} from '@saxonberg/server/mud/lib/place/Floorplan';
 import type Door from '@saxonberg/server/mud/platform/thing/Door';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';

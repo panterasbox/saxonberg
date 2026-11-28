@@ -3,7 +3,7 @@
 # ⭐ What can be seen from up here is not this room's to say: its zone
 # (`estuary/headland`) carries the HEIGHT and names what it overlooks,
 # and `look ~horizon` derives the rest (maritime R11).
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: headland
   keywords: [headland, point, cliff, height]

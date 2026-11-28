@@ -22,14 +22,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import Place from '../Place';
-import Location from '../../location/Location';
-import Locale from '../../location/Locale';
-import SphericalLocation from '../../../platform/location/SphericalLocation';
-import SphericalLocale from '../../../platform/location/SphericalLocale';
-import PersistentLocation from '../../../platform/location/PersistentLocation';
-import Void from '../../../platform/location/Void';
-import Crossing from '../../../platform/location/Crossing';
-import CircleFloor from '../../../platform/location/sandbox/CircleFloor';
+import Location from '../../place/Location';
+import Locale from '../../place/Locale';
+import SphericalLocation from '../../../platform/place/SphericalLocation';
+import SphericalLocale from '../../../platform/place/SphericalLocale';
+import PersistentLocation from '../../../platform/place/PersistentLocation';
+import Void from '../../../platform/place/Void';
+import Crossing from '../../../platform/place/Crossing';
+import CircleFloor from '../../../platform/place/sandbox/CircleFloor';
 import Floor from '../../../platform/thing/Floor';
 import Material from '../../material/Material';
 import { StuffApi } from '../../../api/stuff';
@@ -112,7 +112,7 @@ describe('ensureFloor — the default', () => {
     installStore([
       {
         path: '/test/room/plain',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
@@ -170,7 +170,7 @@ describe('ensureFloor — authored wins', () => {
       },
       {
         path: '/test/room/authored',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: {
           shortDescription: 'a weeping cell',
           coordinates: [0, 0, 0],
@@ -195,7 +195,7 @@ describe('ensureFloor — the opt-out', () => {
     installStore([
       {
         path: '/test/room/void',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: { shortDescription: 'nowhere', noDefaultFloor: true },
       },
     ]);
@@ -213,7 +213,7 @@ describe('ensureFloor — the opt-out', () => {
     installStore([
       {
         path: '/test/room/midair',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: {
           shortDescription: 'open air',
           coordinates: [0, 0, 40],
@@ -237,7 +237,7 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
     installStore([
       {
         path: '/test/room/spec',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: {
           shortDescription: 'a byre',
           coordinates: [0, 0, 0],
@@ -266,7 +266,7 @@ describe('ensureFloor — the `floor:` spec (rung 2)', () => {
       },
       {
         path: '/test/room/tpl',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: {
           shortDescription: 'a parlour',
           floor: { template: '/test/floor/boards' },
@@ -284,7 +284,7 @@ describe('11 · a spill pools in a room that had no floor before', () => {
     installStore([
       {
         path: '/test/room/spill',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: { shortDescription: 'a plain cell', coordinates: [0, 0, 0] },
       },
     ]);
@@ -336,7 +336,7 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       },
       {
         path: '/test/room/street',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: {
           shortDescription: 'a street',
           coordinates: [0, 0, 0],
@@ -346,7 +346,7 @@ describe('⚠⚠ onGrade through the CLONE PIPELINE — the drive\u2019s finding
       },
       {
         path: '/test/room/gallery',
-        class: '/platform/location/Location',
+        class: '/platform/place/Location',
         data: { shortDescription: 'a gallery', coordinates: [0, 0, -4] },
       },
     ]);

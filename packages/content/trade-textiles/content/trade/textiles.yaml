@@ -1,7 +1,7 @@
 # The Mill Floor — the textile trade's ground.
 #
 # ⚠ The zone sits at the INDUSTRY ROOT (`/trade/textiles`) rather than at
-# `/trade/textiles/location`: a class row must be at
+# `/trade/textiles/place`: a class row must be at
 # `<root>/<branch>/<leaf>` (`lint:instanceable`'s invariant 7), so a row
 # AT the branch directory is illegal — and the industry root is where a
 # zone covering the whole trade belongs anyway. `trade-farming` records
@@ -13,7 +13,7 @@
 # with no coords is in NO GRID and inherits nothing — no address, no
 # Locality, no atmosphere override. Every trade floor in the repo was in
 # that state once.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: textiles-mill
   cellSize: 4.0

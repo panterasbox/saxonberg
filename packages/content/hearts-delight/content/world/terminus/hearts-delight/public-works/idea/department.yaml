@@ -38,5 +38,5 @@ data:
       supplier: /world/terminus/counting-houses/distributor/idea/business
       exemplar: /trade/fuel/thing/lamp-oil-cask
   operatingLocations:
-    - /world/terminus/hearts-delight/public-works/location/yard
+    - /world/terminus/hearts-delight/public-works/place/yard
     - /world/terminus/hearts-delight/public-works/thing/store

@@ -6,7 +6,7 @@
 # ⭐ KEPT: the house's boats are sold where they lie, so
 # the shingle is a record — a sold boat is not laid down again at the next
 # restart (`PersistentShore`; no bollards here, so nothing re-ties twice).
-class: /platform/location/PersistentShore
+class: /platform/place/PersistentShore
 data:
   shortDescription: put-in
   keywords: [put-in, landing, gravel, shingle]

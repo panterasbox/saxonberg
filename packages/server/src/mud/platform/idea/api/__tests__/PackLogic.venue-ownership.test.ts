@@ -37,8 +37,8 @@ afterEach(() => {
   cleanupPacks();
 });
 
-const BAR_REL = 'studio/x/location/bar.yaml';
-const BAR = '/studio/x/location/bar';
+const BAR_REL = 'studio/x/place/bar.yaml';
+const BAR = '/studio/x/place/bar';
 const KEEPER_REL = 'studio/x/agent/keeper.yaml';
 const KEEPER = '/studio/x/agent/keeper';
 

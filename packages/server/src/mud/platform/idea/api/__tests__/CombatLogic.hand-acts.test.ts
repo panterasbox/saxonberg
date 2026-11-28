@@ -26,7 +26,7 @@ import { installShapes } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, hold, wornBag, pack, wornGarment } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
 import EventRegistry from '../../EventRegistry';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import PutController from '../../cmd/inventory/PutController';
 import GetController from '../../cmd/inventory/GetController';
 import OpenController from '../../cmd/boundary/OpenController';

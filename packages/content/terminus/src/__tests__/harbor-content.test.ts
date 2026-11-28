@@ -48,7 +48,7 @@ describe('the Port of Terminus', () => {
     expect(harbor.quays.map((q) => q.place)).toEqual([TOWN, '/world/terminus/harbor/fish-quay', '/world/terminus/harbor/yard/quay', '/world/terminus/wharfside/bank']);
     for (const q of harbor.quays) {
       const row = rowAt(q.place);
-      expect(row.class, q.place).toBe('/system/transport/location/HarborQuay');
+      expect(row.class, q.place).toBe('/system/transport/place/HarborQuay');
       const d = row.data as { harbor: string; props: Array<string | { template: string }>; frameSite: { frame: string } };
       expect(d.harbor).toBe(HARBOR);
       expect(d.props.some((p) => (typeof p === 'string' ? p : p.template) === '/platform/thing/bollard')).toBe(true);
@@ -74,7 +74,7 @@ describe('the Port of Terminus', () => {
 
   it('⭐ the office is a hailable room sited by the river with no landing, the book on its desk, the harbormaster in it', () => {
     const row = rowAt(OFFICE);
-    expect(row.class).toBe('/system/transport/location/HarborOffice');
+    expect(row.class).toBe('/system/transport/place/HarborOffice');
     const d = row.data as { harbor: string; frameSite: { landing: boolean }; props: string[]; cast: string[] };
     expect(d.harbor).toBe(HARBOR);
     expect(d.frameSite.landing).toBe(false);
@@ -121,7 +121,7 @@ describe('the line’s regulars (harbors A2)', () => {
       expect(d.extent).toBe(`${SHIPS}/${kind}`);
       expect(d.expanse).toBe('/stuff/idea/WaterExpanse/greywater');
       // ⭐ Her rooms are a copy her warren stands (zone-instancing D12).
-      expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/location/MintedZone');
+      expect(rowAt(`${SHIPS}/${kind}`).class).toBe('/platform/idea/place/MintedZone');
       expect((row.data as { warren?: string }).warren).toBe('/platform/idea/ShipWarren/authored');
       const deck = data(d.entrance) as { props: Array<string | { template: string; count?: number; as?: string; on?: string }>; exits: Record<string, { kind?: string }> };
       expect(deck.props).toContain(`${SHIPS}/${kind}/thing/helm`);
@@ -177,7 +177,7 @@ describe('the line’s regulars (harbors A2)', () => {
     ]);
     expect((data('/world/terminus/harbor/yard/idea/business') as { operatingLocations: string[] }).operatingLocations).toContain('/world/terminus/harbor/yard/thing/hull-book');
     expect((data('/world/terminus/harbor/yard/shed') as { props: string[] }).props).toContain('/world/terminus/harbor/yard/thing/hull-book');
-    expect(rowAt('/world/terminus/harbor/yard/quay').class).toBe('/system/transport/location/HarborQuay');
+    expect(rowAt('/world/terminus/harbor/yard/quay').class).toBe('/system/transport/place/HarborQuay');
     expect(harbor.quays.map((q) => q.place)).toContain('/world/terminus/harbor/yard/quay');
     // The smack's company is kept, appointed by whoever holds a majority of
     // its sixty-four units, and held by nobody until a buyer founds it
@@ -187,7 +187,7 @@ describe('the line’s regulars (harbors A2)', () => {
       appointingAuthority: { kind: 'owners' },
       capTable: { units: 64, transfer: 'free', rows: [] },
     });
-    const deck = data('/stuff/location/ship/smack/deck') as { props: Array<string | Record<string, string>> };
+    const deck = data('/stuff/place/ship/smack/deck') as { props: Array<string | Record<string, string>> };
     expect(deck.props).toContainEqual({ template: '/stuff/thing/flag/terminus-city', on: 'flagstaff' });
     expect(data('/stuff/idea/corpo/Brand/flag-terminus-city').government).toBe('terminus-city');
   });
@@ -251,7 +251,7 @@ describe('the line’s regulars (harbors A2)', () => {
     expect((data('/stuff/thing/bilge-well') as { props: string[] }).props).toContain('/stuff/thing/bilge-pump');
     expect((data('/world/terminus/hesper/thing/pump') as { props: string[] }).props).toContain('/stuff/thing/bilge-pump');
     expect(rowAt('/stuff/thing/bilge-pump').class).toBe('/platform/thing/Pump');
-    for (const deck of ['/world/terminus/hesper/deck', '/stuff/location/ship/smack/deck', '/world/terminus/harbor/ships/ketch/deck', '/world/terminus/harbor/ships/coaster/deck']) {
+    for (const deck of ['/world/terminus/hesper/deck', '/stuff/place/ship/smack/deck', '/world/terminus/harbor/ships/ketch/deck', '/world/terminus/harbor/ships/coaster/deck']) {
       expect((data(deck) as { props: unknown[] }).props, deck).toContain('/platform/thing/sounding-rod');
     }
   });
@@ -269,7 +269,7 @@ describe('the line’s regulars (harbors A2)', () => {
           if (statSync(dir(sub)).isDirectory()) walk(sub);
           else if (e.endsWith('.yaml')) {
             const row = rowAt(sub.replace(/\.yaml$/, ''));
-            if (String(row.class).startsWith('/platform/location/')) rooms.push(sub.replace(/\.yaml$/, ''));
+            if (String(row.class).startsWith('/platform/place/')) rooms.push(sub.replace(/\.yaml$/, ''));
           }
         }
       };

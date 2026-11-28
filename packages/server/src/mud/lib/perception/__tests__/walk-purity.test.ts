@@ -16,8 +16,8 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Good from '../../stuff/Good';
-import Location from '../../location/Location';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import Syrup from '../../../platform/idea/material/Syrup';
 import { MouldMixin } from '../../mould/Mould';
 import { DurableMixin } from '../../material/Durable';

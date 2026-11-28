@@ -19,7 +19,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeBody, wornBag } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Holder from '../../stuff/Holder';
 import type { Stuff } from '../../stuff/Stuff';
 

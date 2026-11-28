@@ -39,8 +39,8 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import { BrainMoves } from '@saxonberg/server/mud/lib/behavior/BrainMoves';
 
-const FLOOR = '/world/test/silk-house/location/floor';
-const WALK = '/world/test/silk-house/location/walk';
+const FLOOR = '/world/test/silk-house/place/floor';
+const WALK = '/world/test/silk-house/place/walk';
 const COUNTER = '/world/test/silk-house/thing/counter';
 const LEAF = '/trade/sericulture/idea/material/mulberry-leaf';
 const BRUSH = '/trade/sericulture/idea/material/brushwood';

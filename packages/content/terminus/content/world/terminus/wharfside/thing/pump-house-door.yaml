@@ -18,6 +18,6 @@ data:
   lockTechnology: pin-tumbler
   # ⭐ The thumb-turn side (boundary build): from inside the house it opens
   # with no key, so whoever is in there is never locked in.
-  freeFrom: /world/terminus/wharfside/pumphouse/location/house
+  freeFrom: /world/terminus/wharfside/pumphouse/place/house
   _materialPath: /stuff/idea/material/wood/oak
   mass: 45

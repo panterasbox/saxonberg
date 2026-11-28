@@ -14,7 +14,7 @@
 # would be false at both ends.
 #
 # Cells are 20 m — a road room is a stretch of country, not a parlour.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Delight Road
   cellSize: 20.0

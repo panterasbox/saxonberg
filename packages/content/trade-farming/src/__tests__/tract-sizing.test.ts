@@ -5,7 +5,7 @@
  */
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import Tract from '../location/Tract';
+import Tract from '../place/Tract';
 import HoldingWarren from '@saxonberg/content-residence/src/idea/HoldingWarren';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
@@ -29,7 +29,7 @@ function holding(): HoldingWarren {
 }
 
 function copyOn(h: HoldingWarren, lot = LOT): Tract {
-  const t = makeStuffAtPath(() => new Tract(), '/trade/farming/location/tract');
+  const t = makeStuffAtPath(() => new Tract(), '/trade/farming/place/tract');
   h.addMember(t as never);
   t.setPersistenceKey(`${lot}/bench`, true);
   t.setShare(0.3);

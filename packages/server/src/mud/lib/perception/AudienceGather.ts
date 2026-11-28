@@ -45,8 +45,8 @@ import type { Sensor } from '../message/Sensor';
 import { MAX_HOPS, EXIT_TAU } from './Modality';
 import { MixinApi } from '../../api/mixin';
 import { MEDIA } from '../biome/Medium';
-import { Traversal } from '../location/Traversal';
-import type { Leg } from '../location/Traversal';
+import { Traversal } from '../place/Traversal';
+import type { Leg } from '../place/Traversal';
 import { StuffApi } from '../../api/stuff';
 import { MessageApi } from '../../api/message';
 
@@ -147,7 +147,7 @@ function gatherLegs(loc: Stuff & Container): Array<Leg<Stuff & Container>> {
 
 /**
  * The outward sound walk, on the shared skeleton
- * (`lib/location/Traversal.ts` — *one traversal, or none*).
+ * (`lib/place/Traversal.ts` — *one traversal, or none*).
  *
  * ⭐⭐ **This is the push-down case, and it is why the skeleton has an
  * `enter` hook at all.** The three modalities fold a signal UP from

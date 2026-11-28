@@ -27,7 +27,7 @@ import { ChattelApi } from '../../api/chattel';
 import ChattelRegistry from '../idea/ChattelRegistry';
 import { TemplatePaths } from '../../lib/paths';
 import { DiagnosticApi } from '../../api/diagnostics';
-import Location from '../../lib/location/Location';
+import Location from '../../lib/place/Location';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import {
   makeStuff,

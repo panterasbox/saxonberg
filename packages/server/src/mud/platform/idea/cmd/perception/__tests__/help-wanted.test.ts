@@ -43,7 +43,7 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 
-const SHOP = '/stuff/test/sign/location/shop';
+const SHOP = '/stuff/test/sign/place/shop';
 const COUNTER = '/stuff/test/sign/thing/counter';
 const BIZ = '/stuff/test/sign/idea/business';
 const ALICE = '/platform/agent/Avatar/alice';
@@ -206,7 +206,7 @@ describe('⭐⭐ the sign is derived — a venue with an open seat cannot fail t
       const r = new Room();
       r.setName('elsewhere');
       return r;
-    }, '/stuff/test/sign/location/elsewhere');
+    }, '/stuff/test/sign/place/elsewhere');
     expect(await EmploymentApi.noticesAt(elsewhere as unknown as Stuff)).toEqual([]);
     expect(await EmploymentApi.noticesAt(null)).toEqual([]);
   });

@@ -360,7 +360,7 @@ describe('trade-distilling — the sweep stands the floor at target from the shi
     });
     stampTemplatePathForTest(stock, `${ROOT}/thing/floor-stock`);
     vi.spyOn(ZoneApi, 'resolveZoneForPath').mockResolvedValue({
-      getTemplatePath: () => `${ROOT}/location/floor`,
+      getTemplatePath: () => `${ROOT}/place/floor`,
       lookupField: async () => undefined,
     } as never);
     vi.spyOn(StuffApi, 'loadClassByPath').mockResolvedValue(SpiritBottle);

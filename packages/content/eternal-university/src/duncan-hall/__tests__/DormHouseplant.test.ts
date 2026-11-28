@@ -29,7 +29,7 @@ import { fileURLToPath } from 'url';
 import { ModuleApi } from '@saxonberg/server/mud/api/module';
 import YAML from 'yaml';
 import DormWarren from '../idea/DormWarren';
-import DormRoom from '../location/DormRoom';
+import DormRoom from '../place/DormRoom';
 import Desk from '../thing/Desk';
 import Footlocker from '../thing/Footlocker';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
@@ -193,11 +193,11 @@ function seedDomain(): void {
   );
   addSeed(
     DormWarren.CORRIDOR_TEMPLATE,
-    `${SEEDS}world/terminus/eternal/duncan-hall/location/corridor.yaml`,
+    `${SEEDS}world/terminus/eternal/duncan-hall/place/corridor.yaml`,
   );
   addSeed(
     DormWarren.LOBBY_PATH,
-    `${SEEDS}world/terminus/eternal/duncan-hall/location/corridor.yaml`,
+    `${SEEDS}world/terminus/eternal/duncan-hall/place/corridor.yaml`,
   );
   /*
    * ⭐ The sandbox's door. A circle belongs to the player who owns it, so

@@ -21,7 +21,7 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import { standShippedConditions } from '../../../../../lib/vitals/__tests__/conditions';
 import { standMaterials, TEST_TISSUES } from '../../../../../lib/material/__tests__/materials';
 import { makeBody, wornBag } from '../../../../../lib/slot/__tests__/carrying-fixture';
-import Location from '../../../../../lib/location/Location';
+import Location from '../../../../../lib/place/Location';
 import type { CommandContext } from '../../../../../api/command';
 import type { Trauma } from '../../../Condition';
 import { TestHarnessApi } from '../../../../../api/test-harness';

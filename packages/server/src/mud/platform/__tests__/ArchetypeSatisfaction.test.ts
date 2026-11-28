@@ -36,7 +36,7 @@ import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import { Archetype } from '../../lib/archetype/Archetype';
 import Vat from '../thing/Vat';
 import YAML from 'yaml';
-import Locale from '../location/Locale';
+import Locale from '../place/Locale';
 import Chair from '../thing/Chair';
 import Oven from '../thing/Oven';
 import Good from '../thing/Thing';

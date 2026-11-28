@@ -2,7 +2,7 @@
 # cleanest. `dig sand` here wins a load whose iron is low (clear ware).
 # The grade is the ground's, read by `analyze iron` on what you win; the
 # prose does not state a number.
-class: /trade/quarrying/location/OpenWorking
+class: /trade/quarrying/place/OpenWorking
 data:
   shortDescription: clean sand face
   keywords: [face, pit, sand, working, clean]

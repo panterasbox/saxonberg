@@ -1,7 +1,7 @@
 # Nesbit's landing — the far-bank end of the ferry (the river build, D31): a
 # gravel hard with a bell on a post, and a track up through the willows to
 # the Delight road.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: Nesbit's landing
   keywords: [landing, nesbit, hard, ferry]

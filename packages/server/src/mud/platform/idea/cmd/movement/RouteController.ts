@@ -51,8 +51,8 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { AppSettingKeys } from '../../../../lib/config/AppSettings';
 import { WorldClockApi } from '../../../../api/worldclock';
-import type { MapClaim, MapDocument } from '../../../../lib/location/MapClaim';
-import type { RoutePlan, RouteOutcome } from '../../../../lib/location/RoutePlan';
+import type { MapClaim, MapDocument } from '../../../../lib/place/MapClaim';
+import type { RoutePlan, RouteOutcome } from '../../../../lib/place/RoutePlan';
 
 const TOPIC = 'sense.survey';
 

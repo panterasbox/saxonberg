@@ -16,7 +16,7 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 import { installShapes } from './size-fixture';
 import { makeBody, tool, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import canReach from '../../command/validators/canReach';
 
 const COAT: PlacementEntry[] = [

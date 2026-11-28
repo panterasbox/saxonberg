@@ -18,5 +18,5 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/rejection/location/foundry
-    - /world/terminus/rejection/location/foundry-yard
+    - /world/terminus/rejection/place/foundry
+    - /world/terminus/rejection/place/foundry-yard

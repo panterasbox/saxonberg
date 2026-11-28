@@ -33,9 +33,9 @@ describe('Waponi Woo', () => {
       readFileSync(join(CONTENT, '../../world-seed/content/stuff/idea/WaterExpanse/greywater/waponi-woo.yaml'), 'utf8'),
     );
     expect(node.data.kind).toBe('place');
-    expect(node.data.destination).toBe(`${W}/location/landing`);
+    expect(node.data.destination).toBe(`${W}/place/landing`);
     expect(node.data.focus.theta).toBe(180);
-    const landing = row(`${W}/location/landing`);
+    const landing = row(`${W}/place/landing`);
     // ⭐ The way aboard is the ship's, named for her and put here while she
     // lies made fast; the landing authors what she makes fast to.
     expect(landing.data.exits.aboard).toBeUndefined();

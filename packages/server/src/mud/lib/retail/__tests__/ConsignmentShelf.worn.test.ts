@@ -13,7 +13,7 @@ import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
 import Good from '../../../platform/thing/Good';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { Vessel } from '../../stuff/Vessel';
 import { DetailedMixin } from '../../description/Detailed';
 import { PersistableMixin } from '../../persistence/Persistable';

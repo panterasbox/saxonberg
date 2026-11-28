@@ -14,8 +14,8 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../lib/location/Location';
-import CartesianZone from '../../platform/idea/location/CartesianZone';
+import Location from '../../lib/place/Location';
+import CartesianZone from '../../platform/idea/place/CartesianZone';
 import Biome from '../../lib/biome/Biome';
 import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';

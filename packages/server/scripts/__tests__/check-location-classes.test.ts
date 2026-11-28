@@ -27,13 +27,13 @@ import {
   type Row,
 } from '../check-location-classes';
 
-const FURNISHABLE = '/platform/location/PersistentLocation';
-const MINTED = '/platform/location/Location';
-const SINGLETON = '/platform/location/Locale';
+const FURNISHABLE = '/platform/place/PersistentLocation';
+const MINTED = '/platform/place/Location';
+const SINGLETON = '/platform/place/Locale';
 
 /** The real roster entries the script ships, used as the "listed" cases. */
-const A_FURNISHED = 'generic-objects/content/stuff/location/room/bedroom.yaml';
-const A_MINTED = 'platform/content/platform/location/venue.yaml';
+const A_FURNISHED = 'generic-objects/content/stuff/place/room/bedroom.yaml';
+const A_MINTED = 'platform/content/platform/place/venue.yaml';
 
 const r = (file: string, cls: string): Row => ({
   file,
@@ -51,10 +51,10 @@ describe('check-location-classes.classify (PersistentLocation)', () => {
   it('an unrostered row on PersistentLocation is unexpected', () => {
     const out = classify([
       r(A_FURNISHED, FURNISHABLE),
-      r('trade-distilling/content/trade/distilling/location/warehouse.yaml', FURNISHABLE),
+      r('trade-distilling/content/trade/distilling/place/warehouse.yaml', FURNISHABLE),
     ]);
     expect(out.unexpected).toEqual([
-      'trade-distilling/content/trade/distilling/location/warehouse.yaml',
+      'trade-distilling/content/trade/distilling/place/warehouse.yaml',
     ]);
   });
 
@@ -115,29 +115,29 @@ describe('check-location-classes.classifyMinted (the cross-branch trap)', () => 
  * every room that was inside it silently falls back to the enclosing
  * zone, re-arming the non-cardinal throw those boundaries exist to
  * prevent. It happened to `seznick-house/rooms.yaml` when the branch
- * sort moved its rooms to `location/`.
+ * sort moved its rooms to `place/`.
  */
 describe('check-location-classes.orphanedZones', () => {
-  const ZONE = '/platform/idea/location/CartesianZone';
-  const ROOM = '/platform/location/PersistentLocation';
+  const ZONE = '/platform/idea/place/CartesianZone';
+  const ROOM = '/platform/place/PersistentLocation';
 
   it('a zone with rows under it is fine', () => {
-    const files = ['p/seznick-house/location.yaml', 'p/seznick-house/location/hall.yaml'];
-    const rows = [r('p/seznick-house/location.yaml', ZONE), r('p/seznick-house/location/hall.yaml', ROOM)];
+    const files = ['p/seznick-house/place.yaml', 'p/seznick-house/place/hall.yaml'];
+    const rows = [r('p/seznick-house/place.yaml', ZONE), r('p/seznick-house/place/hall.yaml', ROOM)];
     expect(orphanedZones(rows, files)).toEqual([]);
   });
 
   it('⭐ a zone whose directory moved out from under it is caught', () => {
-    const files = ['p/seznick-house/rooms.yaml', 'p/seznick-house/location/hall.yaml'];
-    const rows = [r('p/seznick-house/rooms.yaml', ZONE), r('p/seznick-house/location/hall.yaml', ROOM)];
+    const files = ['p/seznick-house/rooms.yaml', 'p/seznick-house/place/hall.yaml'];
+    const rows = [r('p/seznick-house/rooms.yaml', ZONE), r('p/seznick-house/place/hall.yaml', ROOM)];
     expect(orphanedZones(rows, files)).toEqual(['p/seznick-house/rooms']);
   });
 
   it('a zone governs its whole SUBTREE, not just direct children', () => {
     // The locality zones are all like this after the branch sort: no
     // .yaml sits directly in `duncan-hall/`, only in its branch dirs.
-    const files = ['p/w/duncan-hall.yaml', 'p/w/duncan-hall/location/lobby.yaml'];
-    const rows = [r('p/w/duncan-hall.yaml', ZONE), r('p/w/duncan-hall/location/lobby.yaml', ROOM)];
+    const files = ['p/w/duncan-hall.yaml', 'p/w/duncan-hall/place/lobby.yaml'];
+    const rows = [r('p/w/duncan-hall.yaml', ZONE), r('p/w/duncan-hall/place/lobby.yaml', ROOM)];
     expect(orphanedZones(rows, files)).toEqual([]);
   });
 
@@ -165,21 +165,21 @@ describe('check-location-classes.orphanedZones', () => {
  *      "no zone anywhere".
  */
 describe('the coords/named-door gates, and the ancestry they derive', () => {
-  const ZONE = { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] as Array<[string, string]> };
+  const ZONE = { file: 'p/content/test/x.yaml', cls: '/platform/idea/place/CartesianZone', coords: false, exits: [] as Array<[string, string]> };
 
   it('⚠ a cartesian row with coords and NO covering zone is caught', () => {
     expect(
       unzonedCoords([
-        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/Locale', coords: true, exits: [] },
+        { file: 'p/content/trade/t/place/floor.yaml', cls: '/platform/place/Locale', coords: true, exits: [] },
       ]),
-    ).toEqual(['p/content/trade/t/location/floor.yaml']);
+    ).toEqual(['p/content/trade/t/place/floor.yaml']);
   });
 
   it('…and the same row IS fine once a zone covers it', () => {
     expect(
       unzonedCoords([
-        { file: 'p/content/trade/t/location.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] },
-        { file: 'p/content/trade/t/location/floor.yaml', cls: '/platform/location/Locale', coords: true, exits: [] },
+        { file: 'p/content/trade/t/place.yaml', cls: '/platform/idea/place/CartesianZone', coords: false, exits: [] },
+        { file: 'p/content/trade/t/place/floor.yaml', cls: '/platform/place/Locale', coords: true, exits: [] },
       ]),
     ).toEqual([]);
   });
@@ -187,8 +187,8 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
   it('⚠ a NON-CARDINAL exit between two rows one zone covers is caught', () => {
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
-      { file: 'p/content/test/x/b.yaml', cls: '/platform/location/Locale', coords: false, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/place/Locale', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
+      { file: 'p/content/test/x/b.yaml', cls: '/platform/place/Locale', coords: false, exits: [] as Array<[string, string]> },
     ];
     expect(sameZoneNamedExits(rows)).toHaveLength(1);
     expect(sameZoneNamedExits(rows)[0]).toContain("'out'");
@@ -198,8 +198,8 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     expect(
       sameZoneNamedExits([
         ZONE,
-        { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: false, exits: [['north', '/test/x/b']] },
-        { file: 'p/content/test/x/b.yaml', cls: '/platform/location/Locale', coords: false, exits: [] },
+        { file: 'p/content/test/x/a.yaml', cls: '/platform/place/Locale', coords: false, exits: [['north', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/platform/place/Locale', coords: false, exits: [] },
       ]),
     ).toEqual([]);
   });
@@ -211,8 +211,8 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
     // be resolved.
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
-      { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/place/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] as Array<[string, string]> },
+      { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/place/MineRoom', coords: false, exits: [] as Array<[string, string]> },
     ];
     expect(sameZoneNamedExits(rows)).toHaveLength(1);
   });
@@ -234,9 +234,9 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
      */
     expect(
       sameZoneNamedExits([
-        { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] },
-        { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/location/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] },
-        { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] },
+        { file: 'p/content/test/x.yaml', cls: '/platform/idea/place/CartesianZone', coords: false, exits: [] },
+        { file: 'p/content/test/x/a.yaml', cls: '/trade/mining/place/AuthoredWorking', coords: false, exits: [['out', '/test/x/b']] },
+        { file: 'p/content/test/x/b.yaml', cls: '/trade/mining/place/MineRoom', coords: false, exits: [] },
       ]),
     ).toHaveLength(1);
   });
@@ -249,7 +249,7 @@ describe('the coords/named-door gates, and the ancestry they derive', () => {
 describe('check-location-classes.unplottedLocations', () => {
   const ZONE = {
     file: 'p/content/test/x.yaml',
-    cls: '/platform/idea/location/CartesianZone',
+    cls: '/platform/idea/place/CartesianZone',
     coords: false,
     exits: [] as Array<[string, string]>,
   };
@@ -257,14 +257,14 @@ describe('check-location-classes.unplottedLocations', () => {
   it('⭐ a cartesian room with no coords does not plot', () => {
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: false, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/place/Locale', coords: false, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual(['p/content/test/x/a.yaml']);
   });
 
   it('⚠ coords with NO covering zone does not plot either — it is not a grid', () => {
     const rows = [
-      { file: 'p/content/test/lone.yaml', cls: '/platform/location/Locale', coords: true, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/lone.yaml', cls: '/platform/place/Locale', coords: true, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual(['p/content/test/lone.yaml']);
   });
@@ -272,7 +272,7 @@ describe('check-location-classes.unplottedLocations', () => {
   it('coords under a covering zone is the passing shape', () => {
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/a.yaml', cls: '/platform/location/Locale', coords: true, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/a.yaml', cls: '/platform/place/Locale', coords: true, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual([]);
   });
@@ -287,7 +287,7 @@ describe('check-location-classes.unplottedLocations', () => {
     expect(WARREN_PLACED.length).toBeGreaterThan(0);
     const rows = WARREN_PLACED.map((file) => ({
       file,
-      cls: '/trade/mining/location/MineRoom',
+      cls: '/trade/mining/place/MineRoom',
       coords: false,
       exits: [] as Array<[string, string]>,
     }));
@@ -297,7 +297,7 @@ describe('check-location-classes.unplottedLocations', () => {
     expect(
       unplottedLocations([
         ...rows,
-        { file: 'p/content/test/x/unlisted.yaml', cls: '/trade/mining/location/MineRoom', coords: false, exits: [] },
+        { file: 'p/content/test/x/unlisted.yaml', cls: '/trade/mining/place/MineRoom', coords: false, exits: [] },
       ]),
     ).toEqual(['p/content/test/x/unlisted.yaml']);
   });
@@ -310,17 +310,17 @@ describe('check-location-classes.unplottedLocations', () => {
     // it was written. This pins the shape at the row level.
     const rows = [
       ZONE,
-      { file: 'p/content/test/x/inline.yaml', cls: '/platform/location/Locale', coords: true, exits: [] as Array<[string, string]> },
+      { file: 'p/content/test/x/inline.yaml', cls: '/platform/place/Locale', coords: true, exits: [] as Array<[string, string]> },
     ];
     expect(unplottedLocations(rows)).toEqual([]);
   });
 });
 
 describe('check-location-classes.wayEdges — every way inside a zone is true to the grid', () => {
-  const ZONE: Row = { file: 'p/content/test/x.yaml', cls: '/platform/idea/location/CartesianZone', coords: false, exits: [] };
+  const ZONE: Row = { file: 'p/content/test/x.yaml', cls: '/platform/idea/place/CartesianZone', coords: false, exits: [] };
   const TRACK = '/platform/idea/exits/track';
   const room = (name: string, xyz: [number, number, number], exits: Row['exits'] = []): Row => ({
-    file: `p/content/test/x/${name}.yaml`, cls: '/platform/location/Locale', coords: true, exits, xyz,
+    file: `p/content/test/x/${name}.yaml`, cls: '/platform/place/Locale', coords: true, exits, xyz,
   });
 
   it('adjacent cells through opposite sides pass, door or none', () => {
@@ -370,7 +370,7 @@ describe('check-location-classes.wayEdges — every way inside a zone is true to
     expect(wayEdges([
       ZONE,
       room('a', [0, 0, 0], [['north', '/test/y/b']]),
-      { file: 'p/content/test/y/b.yaml', cls: '/platform/location/Locale', coords: true, exits: [], xyz: [5, 9, 0] },
+      { file: 'p/content/test/y/b.yaml', cls: '/platform/place/Locale', coords: true, exits: [], xyz: [5, 9, 0] },
     ])).toEqual([]);
   });
 });
@@ -378,9 +378,9 @@ describe('check-location-classes.wayEdges — every way inside a zone is true to
 
 
 describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => {
-  const MZ = '/platform/idea/location/MintedZone';
+  const MZ = '/platform/idea/place/MintedZone';
   const HW = '/system/residence/idea/HoldingWarren';
-  const ROOM = '/platform/location/PersistentLocation';
+  const ROOM = '/platform/place/PersistentLocation';
   const zone = (mintedBy?: string): Row => ({
     file: 'p/content/test/t/house.yaml',
     cls: MZ,
@@ -413,7 +413,7 @@ describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => 
     expect(
       copyDeclarations([
         zone('/test/t/other'),
-        { file: 'p/content/test/t/other.yaml', cls: '/platform/location/Locale', coords: true, exits: [] },
+        { file: 'p/content/test/t/other.yaml', cls: '/platform/place/Locale', coords: true, exits: [] },
         room(true),
       ]).join('\n'),
     ).toMatch(/mints no zones/);
@@ -433,7 +433,7 @@ describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => 
   });
 
   it('3: a plan whose extent is not a copied zone', () => {
-    const plain: Row = { ...zone(), cls: '/platform/idea/location/CartesianZone' };
+    const plain: Row = { ...zone(), cls: '/platform/idea/place/CartesianZone' };
     expect(copyDeclarations([plain, prog(ok), room(true)]).join('\n')).toMatch(/not a copied zone/);
   });
 
@@ -452,7 +452,7 @@ describe('check-location-classes.copyDeclarations (zone-instancing D10)', () => 
       cls: '/platform/idea/Ship',
       coords: false,
       exits: [],
-      fields: { warren: '/test/warren', extent: '/stuff/location/room' },
+      fields: { warren: '/test/warren', extent: '/stuff/place/room' },
     };
     expect(unplottedPlanRows([kind, { file: room, cls: ROOM, coords: false, exits: [] }])).toEqual([room]);
     expect(unplottedPlanRows([kind, { file: room, cls: ROOM, coords: true, exits: [] }])).toEqual([]);

@@ -90,8 +90,8 @@ function bindHeld(giver: unknown, kw: string): { stuff: never; raw: string } {
 }
 
 
-const FLOOR = '/trade/winemaking/location/_cellars-test-floor';
-const COUNTER_ROOM = '/trade/distribution/location/_cellars-test-counter';
+const FLOOR = '/trade/winemaking/place/_cellars-test-floor';
+const COUNTER_ROOM = '/trade/distribution/place/_cellars-test-counter';
 const SHELF = '/trade/distribution/thing/_cellars-test-shelf';
 const OUTFIT = '/trade/winemaking/idea/_cellars-test-outfit';
 const BANK = '/stuff/test/cellars/bank-counter';

@@ -43,5 +43,5 @@ data:
         board: /world/terminus/wharfside/thing/harbor-board
         bank: /world/terminus/wharfside/bank
         anchor: /world/terminus/wharfside/water/thing/lost-anchor
-        basin: /world/terminus/wharfside/water/location/basin
+        basin: /world/terminus/wharfside/water/place/basin
         reward: 30

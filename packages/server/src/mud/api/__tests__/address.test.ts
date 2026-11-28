@@ -17,7 +17,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Place from '../../lib/stuff/Place';
 import Locality from '../../platform/idea/Locality';
 import { Vessel } from '../../lib/stuff/Vessel';
-import CartesianZone from '../../platform/idea/location/CartesianZone';
+import CartesianZone from '../../platform/idea/place/CartesianZone';
 import { AddressApi } from '../address';
 import { ContainmentApi } from '../containment';
 import { StuffApi } from '../stuff';

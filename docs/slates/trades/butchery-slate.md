@@ -349,7 +349,7 @@ wasted work piled on top of the catch-up.
 
 `butchery.dirty.wire.test.ts` and `carcass-chain.dirty.wire.test.ts` each
 drafted a head out of the **same persisted Delight flock** and worked in
-the **same yard** (`/world/terminus/hearts-delight/location/farmstead-yard`).
+the **same yard** (`/world/terminus/hearts-delight/place/farmstead-yard`).
 There is one file now — `carcass-chain.dirty.wire.test.ts` — and this
 section is kept because the reasoning is why.
 

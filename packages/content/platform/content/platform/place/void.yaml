@@ -1,0 +1,21 @@
+# The void — the one place with no coordinates (`Void`). No Named, no Visible, no
+# Exitable. Avatars resolved into here by Login at first; the look
+# command renders this as the bare minimum (just whatever Mml.location
+# emits, no description body) until the look command grows a more
+# elegant fallback for non-Visible Locations — see roadmap "Command
+# system polish".
+#
+# ⭐ `noDefaultFloor` — the one place in the shipped world that opts out of
+# the floor every Location otherwise gets. The void is not a place you are
+# standing in; it is where a body waits before it is anywhere. The opt-out
+# was documented in three places for two builds while no code read it, and
+# this row is what makes it true. Mid-air and mid-water rooms will use the
+# same field: *a place with no floor is a place you cannot stand.*
+class: /platform/place/Void
+# ⭐ The opt-out below reaches the instance because the row has `data`.
+# It once needed a `hydratorClass` line to say so, and without one every
+# key was silently discarded — the opt-out would have been dead text of
+# exactly the kind it replaces. `lint:instanceable` invariant 6 caught
+# that in the same commit; the invariant retired with the field.
+data:
+  noDefaultFloor: true

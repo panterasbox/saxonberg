@@ -45,7 +45,7 @@ data:
     - brain: /lib/behavior/frequents
       trigger: candidate
       config:
-        place: /world/lounge/location/bar
+        place: /world/lounge/place/bar
         sit: stool
         visits:
           - { days: [5], hours: [19, 22] }

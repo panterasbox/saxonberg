@@ -25,7 +25,7 @@ import { CommandLineApi } from '../command-line';
 import { SubscriptionApi } from '../subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import { ContainmentApi } from '../containment';
-import Locale from '../../platform/location/Locale';
+import Locale from '../../platform/place/Locale';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';

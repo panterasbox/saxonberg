@@ -19,5 +19,5 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/hearts-delight/creamery/location/floor
-    - /world/terminus/hearts-delight/creamery/location/cheese-room
+    - /world/terminus/hearts-delight/creamery/place/floor
+    - /world/terminus/hearts-delight/creamery/place/cheese-room

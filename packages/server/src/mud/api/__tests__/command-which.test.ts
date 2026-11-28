@@ -23,7 +23,7 @@ import { WieldableMixin } from '../../lib/slot/Wieldable';
 import { RingableMixin } from '../../lib/perception/Ringable';
 import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
-import Location from '../../lib/location/Location';
+import Location from '../../lib/place/Location';
 import Thing from '../../platform/thing/Thing';
 import Good from '../../platform/thing/Good';
 import { makeStuff, stampTemplatePathForTest } from '../../lib/security/__tests__/test-setup';

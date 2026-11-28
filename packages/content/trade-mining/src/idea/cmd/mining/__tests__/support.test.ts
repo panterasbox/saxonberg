@@ -24,9 +24,9 @@ import DriftController from '../DriftController';
 import TimberSet from '../../../../thing/TimberSet';
 import MineWarren from '../../../MineWarren';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
-import MineRoom from '../../../../location/MineRoom';
+import MineRoom from '../../../../place/MineRoom';
 import Ore from '../../../../thing/Ore';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -65,10 +65,10 @@ const GRANITE = '/stuff/idea/material/rock/granite';
 const MALACHITE = '/stuff/idea/material/mineral/malachite';
 const QUARTZ = '/stuff/idea/material/mineral/quartz';
 const TYPE_ROWS = {
-  face: '/world/fx-mine/location/face',
-  junction: '/world/fx-mine/location/junction',
-  stope: '/world/fx-mine/location/stope',
-  fall: '/world/fx-mine/location/fall',
+  face: '/world/fx-mine/place/face',
+  junction: '/world/fx-mine/place/junction',
+  stope: '/world/fx-mine/place/stope',
+  fall: '/world/fx-mine/place/fall',
 };
 
 /** The harness actor, plus the reserve labour is paid out of and a body

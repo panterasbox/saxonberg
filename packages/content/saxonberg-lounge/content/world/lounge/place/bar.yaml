@@ -1,0 +1,195 @@
+# Dave's Bar — the singleton external-neighbor shell one exit north of
+# the lounge host. NOT a Warren member: never cloned, budded, drained,
+# or reaped. The Warren wires the back-exit (south, to the host) when it
+# designates or migrates the host; the south exit is therefore NOT
+# declared here.
+#
+# ⭐⭐ It EXTENDS `/trade/hospitality/place/bar` — the trade's bundle
+# is the base and this row is the patch. The back-bar and well, the six
+# tools on the well, the stations, the glass rack and the six stools all
+# come from the parent; what is written below is what makes this bar
+# Dave's. Edit the trade's bundle and every bar in the realm gets it.
+#
+# SingletonMixin pins it to one instance (the host-fixture wiring resolves
+# it via StuffApi.singleton). `props:` furnishes it each boot — plus the
+# cast. NO bottles: the rail is stocked by
+# the keeper BUYING against the par sheet (idea/business.yaml), and what
+# she bought persists as chattel of the business across a reboot. Crafting
+# needs no venue flag: the bar "works" because the maker + matter are
+# present/reachable here.
+class: /world/lounge/place/Bar
+extends: /trade/hospitality/place/bar
+data:
+  # ⚠ `coords:` is the MEMBERSHIP operation — `setCoords` is the only way
+  # an authored row joins a zone. The bar is one cell north of the lounge
+  # grid's origin: the lounge room a newcomer arrives in sits at 0,0,0 (the
+  # Warren places its host one cell south of here), and the office is one
+  # cell north, which is what the door has always said.
+  coords:
+    x: 0
+    y: 1
+    z: 0
+  shortDescription: Dave's Bar
+  keywords: [bar, "dave's"]
+  register: proper
+  illustration: location/bar.png
+  longDescription: |
+    A narrow, warm room that smells of citrus peel and old wood. The bar itself is a single slab of something dark and scarred, lit from beneath so the bottles ranked behind it throw long colored shadows up the wall. Stools wait in a patient row. Behind the taps a chalkboard menu has been wiped and rewritten so many times it's gone soft and grey. Neon signs and brass tap handles wash the far wall in an amber haze — a wall crowded with framed photographs, a chipped mug on a high shelf, and a few curling, signed dollar bills.
+
+    The lounge is back through the doorway to the south.
+  # Examine-on-demand (the barfly look-closely layer). The room `look`
+  # names these; the stories are latent until pulled (`look at the
+  # photos`, `look at the signs`). The corpo legibility surface ties the
+  # branded bottles + Remy's gossip to the wall; the photo wall + the
+  # mug + the bills carry the bar's attributed, un-fakeable history.
+  details:
+    signs:
+      # ⚠ NOT `tap`/`taps`. The beer tap claims those (`Tap.ts` sets
+      # keywords `[tap, taps, beer-tap]`, primary `tap`), and it is the
+      # fixture a keeper actually operates — `put keg on tap`, and the
+      # `tap` capability the pint recipe requires. With `tap` on both,
+      # `look tap` returned this WALL DECORATION instead of the tap, the
+      # same divergence the stools' claim on `rail` caused. The handles
+      # handles belong to the tap, which claims `handle` itself.
+      keywords: [sign, signs, neon, light, lights]
+      description: |
+        The glow is corporate. Each neon sign and brass tap handle carries a maker's mark, and Dave chose every one — which makes the far wall a map of his politics. A Veshko sign hums beside an Aevex one that's never quite forgiven it; a cheap proud Hollis light buzzes a few feet from the cool Vionne script it's spent years undercutting. Read the wall and you can read the whole avenue's quarrels, lit up in amber and rose.
+    photos:
+      keywords: [photo, photos, photograph, photographs, wall, picture, pictures, frame, frames]
+      description: |
+        Decades of regulars, going yellow in their frames. A younger Dave mid-impression, caught with one arm flung wide and the whole room laughing. A broad half-orc — Augie, unmistakably — behind the bar with a clipboard under one arm and a grin like he owns the place, though he never did. Empty stools photographed on purpose, the way you photograph people who aren't coming back.
+    mug:
+      # ⚠ NOT `shelf` — the back-bar owns it, and that is the shelf anyone
+      # in here actually reaches for. This one is scenery.
+      keywords: [mug, tankard, brass, plate]
+      description: |
+        A chipped pewter mug sits alone on a high shelf, a little brass plate screwed beneath it with a name worn past reading. Nobody washes it. Nobody moves it. The bar keeps its own, and this is how it remembers them.
+    bills:
+      keywords: [bill, bills, dollar, dollars, note, notes, money]
+      description: |
+        Signed bills tacked up behind the rail, gone soft with smoke and years — first dollars, dares paid off, a couple of IOUs in Dave's own hand that he plainly never meant to collect. Every one is somebody's small story, kept where they can see it kept.
+    slab:
+      # ⚠ NOT `counter` — the bar counter is a real OBJECT in this room
+      # (`/world/lounge/thing/bar-counter`) and it owns the words you act
+      # with (`bar`, `counter`); this detail owns the words you look
+      # closely with. The object for doing, the detail for reading.
+      keywords: [slab, woodwork, wood, scar, scars, rings]
+      description: |
+        Up close the dark slab is a ledger of its own — water rings inside water rings, a constellation of old cigarette burns, initials gouged in by somebody who got told off for it. Sanded smooth, never replaced. A newer bar would have thrown it out years ago; that's rather the point.
+    stools:
+      # ⚠ NOT `rail`. The back-bar claims it (`back-bar.yaml` keywords),
+      # and the whole build calls that shelf the rail — `house stock`
+      # reports it, Mara's beat shelves onto it, the room text says "the
+      # rail is stocked by BUYING". With `rail` on both, the room card's
+      # own "the back-bar" button sent `look rail` and showed you the
+      # STOOLS: what you can name, see and touch had diverged.
+      keywords: [stool, stools, seat, seats, leather]
+      description: |
+        Worn leather, each one shaped a little differently by the body that owns it — and on a quiet night one at the end of the rail sits empty on purpose, kept for whichever of the staff is off-shift and drinking here anyway. Where else would they go.
+  # The way into Dave's office — now a DISCOVERABLE secret door (D1/Phase 3
+  # closes the documented dead-end). Authored `concealment: hidden` (the
+  # concealment vocabulary that subsumed the old `hidden: true` flag) plus a
+  # `hint` (the "tell" the passive room `look` surfaces to direct attention
+  # without revealing the door). The exit stays absent from `getObviousExits`
+  # (`isConcealed()` is still true) — so the landing exit-count assertion is
+  # unchanged, and the office is unreachable — UNTIL a viewer `search`es the
+  # bar and discovers it (a sticky per-viewer DISCOVERY belief), after which
+  # `obviousExitsFor`/the MQL scope-walk list it and `go north` works.
+  # `bidirectional: false` (the office declares its own plain south exit
+  # back out; the bar->lounge south exit is wired imperatively by the
+  # Warren and not declared here).
+  exits:
+    north:
+      destination: /world/lounge/place/office
+      concealment: hidden
+      hint: A hairline seam runs up the north wall behind the taps, and a thread of cooler air leaks from it — as though a door were pretending to be a wall.
+      bidirectional: false
+  # The corpo battlefield, lit. Branded neon signs attached as non-
+  # portable wall fixtures (AdornableMixin.applyAdornments): each carries
+  # a corpo mark and emits light, so rival Veshko (amber) and Aevex
+  # (cool blue) literally glow against each other over the back-bar —
+  # the fault line the `signs` detail + Remy's gossip describe.
+  adornments:
+    - { template: /world/lounge/thing/neon-veshko, slot: sign:veshko }
+    - { template: /world/lounge/thing/neon-aevex, slot: sign:aevex }
+    # The slab's own light — see the row. Without it the room is `dim`.
+    - { template: /world/lounge/thing/under-bar-light, slot: lamp:under-bar }
+  # The crafting fixtures stock the rail; the cast spawns here on
+  # hydration too. Each cast member is an NPC template + behavior data;
+  # the `shifts` brain sorts them by the game clock — whoever's on shift
+  # stays, the rest step out back. The staff are ordinary `Cast` — what
+  # lets the one on shift fulfil an `order` is the house's `fulfills`
+  # SEAT, not anything they compose.
+  props:
+    # ⭐⭐ FIVE LINES. Everything else — the back-bar and the well, the six
+    # tools on it, the tap and the ice bin and the basin and the glass
+    # rack, the six stools — comes from the parent
+    # (`/trade/hospitality/place/bar`). This row says only what makes
+    # this bar THIS bar.
+    #
+    # The WORKS BOARD: Mara posts what the rail is short of without
+    # leaving her own bar — the keeper stopped travelling, she did not
+    # start walking, and *"Saxonberg and the Lounge joining the map"* is
+    # a stated non-goal so she could not have walked anywhere.
+    #
+    # The RECEIVING BENCH: an order lands here rather than on the
+    # back-bar, and that is mechanical rather than decorative. A gig is
+    # refused when its condition ALREADY HOLDS, and a short line usually
+    # still has something on the shelf — so an order aimed at the shelf
+    # would be refused precisely when the bar most wanted it. The bench
+    # is empty by construction, because she clears it every beat.
+    - /trade/haulage/thing/works-board
+    - /trade/haulage/thing/receiving-bench
+    # ⭐⭐ TWO BANDAGES, behind the rail — and ⚠ a CORRECTION to the
+    # reachability sweep's own plan, which listed this row for deletion.
+    #
+    # `/world/lounge/thing/bandage`'s own header says it is *"stocked in
+    # the glass alley (where you get cut) so the treat loop is playable
+    # in-world."* It was not stocked anywhere, and there is no glass
+    # alley: the lounge is four rooms and none of them is one. So the
+    # canonical first-aid dressing that `treat` CONSUMES
+    # existed and no player could ever hold one — which means deleting it
+    # would have deleted the only dressing in the realm and taken the
+    # treat loop with it.
+    #
+    # ⭐ Behind a bar is where a first-aid tin actually lives, and a bar
+    # is where the broken glass is. Two, because a dressing is consumed:
+    # one is a demonstration, two is a supply.
+    #
+    # ⚠ `as:` on both, not two bare repeats. `lint:census` clause (e)
+    # refuses a pure repeat — *the same path twice in one list with no
+    # `as` is `count: N` written longhand, and a repeat with no identity
+    # is an entry no child row can ever replace* — and it said so on the
+    # first run after these went in. Named, a child row (another bar, a
+    # richer tin) can substitute either one.
+    - { template: /world/lounge/thing/bandage, as: dressing-1, on: /trade/hospitality/thing/back-bar }
+    - { template: /world/lounge/thing/bandage, as: dressing-2, on: /trade/hospitality/thing/back-bar }
+    # ⭐ The house tablet REPLACES the parent's, in place, because both
+    # carry `as: tablet`. Without that identity the merge would have to
+    # guess between appending (two tablets on one back-bar) and
+    # replacing the whole list (no back-bar at all) — which is exactly
+    # why `as` had to ship with `extends:`.
+    - { template: /world/lounge/thing/house-tablet, as: tablet, on: /trade/hospitality/thing/back-bar }
+    # The Attendant service point — the bar as an instance of the
+    # storefront-attention substrate (scrum / zero-wait: the feel is
+    # unchanged, the lease is earned). `order` consults it before serving.
+    - /world/lounge/thing/bar-counter
+    # Propped behind the bar — on the back-bar, not loose in the room.
+    - { template: /world/lounge/thing/bar-menu, on: /trade/hospitality/thing/back-bar }
+    # ⭐ THREE MUGS on the back-bar (size and carrying D29): the first thing
+    # a new player picks up. `get mug` goes to a hand, a second thing to the
+    # other, and a mug will not go in a trouser pocket — so the first wall
+    # is met after the player has watched hands and pockets work. Named
+    # (`as:`), not repeated, for `lint:census` clause (e).
+    - { template: /trade/hospitality/thing/mug, as: mug-1, on: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/mug, as: mug-2, on: /trade/hospitality/thing/back-bar }
+    - { template: /trade/hospitality/thing/mug, as: mug-3, on: /trade/hospitality/thing/back-bar }
+  cast:
+    - /world/lounge/agent/mara
+    - /world/lounge/agent/remy
+    - /world/lounge/agent/sloane
+    - /world/lounge/agent/augie
+    # Dave is cast here but rarely HERE: the roster's `owner` seat puts him
+    # out front for an hour of an evening and parks him out back the rest
+    # of the time ("Dave keeps to the back these days").
+    - /world/lounge/agent/dave

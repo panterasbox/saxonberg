@@ -51,10 +51,10 @@ declareFile({
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const BANK = '/world/terminus/wharfside/bank';
-const SHOP = '/world/terminus/wharfside/diving/location/shop';
+const SHOP = '/world/terminus/wharfside/diving/place/shop';
 const MOUTH = '/world/terminus/estuary/estuary-mouth';
 const STRAND = '/world/terminus/estuary/strand';
-const MERE = '/world/terminus/hollow-mere/location/pool';
+const MERE = '/world/terminus/hollow-mere/place/pool';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 

@@ -60,8 +60,8 @@ async function liveCopyAt(path: string): Promise<Zone | null> {
   if (bucket.length === 0) return null;
   // Through the class loader (the module instance every row's class comes from).
   const MintedZone = (await StuffApi.loadClassByPath(
-    '/platform/idea/location/MintedZone',
-  )) as typeof import('../location/MintedZone').default;
+    '/platform/idea/place/MintedZone',
+  )) as typeof import('../place/MintedZone').default;
   for (const s of bucket) {
     if (s instanceof MintedZone && !s.isDestroyed() && s.isCopy()) return s;
   }

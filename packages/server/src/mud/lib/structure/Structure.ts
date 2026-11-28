@@ -56,7 +56,7 @@
  * Structure is only ever a thing standing in the world. The plan a warren
  * copies (an `extent` of room rows and an `entrance`) lives on whoever
  * owns it — a holding's programme row, a ship kind's own row — and is
- * read by `lib/location/Floorplan.ts`; there is no blueprint row.
+ * read by `lib/place/Floorplan.ts`; there is no blueprint row.
  *
  * ⛔ It does not name an address (member rooms keep their own), and it is
  * not a Parcel (a parcel is title in a gated collection; a structure is

@@ -21,7 +21,7 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
-import type { MapClaim } from '../location/MapClaim';
+import type { MapClaim } from '../place/MapClaim';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { NavigationApi } from '../../api/navigation';

@@ -20,7 +20,7 @@ import { Creature } from '../../creature/Creature';
 import { CarryingMixin } from '../../slot/Carrying';
 import Species from '../../../platform/idea/species/Species';
 import BodyPlan from '../../../platform/idea/species/BodyPlan';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Thing from '../../../platform/thing/Thing';
 import Holder from '../../stuff/Holder';
 import { SealableMixin } from '../../spatial/Sealable';

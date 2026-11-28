@@ -90,19 +90,19 @@ describe('TemplateApi.saveTemplate', () => {
 
   it('persists a domain doc via PersistenceManager with no bypass flag', async () => {
     await TemplateApi.saveTemplate(
-      '/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: {} });
+      '/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: {} });
     expect(save).toHaveBeenCalledTimes(1);
     const [, doc] = save.mock.calls[0]!;
     expect((doc as Record<string, unknown>).__bypassTemplateCheck).toBeUndefined();
     expect((doc as Doc).path).toBe('/narnia/castle');
-    expect((doc as Doc).class).toBe('/platform/idea/location/CartesianZone');
+    expect((doc as Doc).class).toBe('/platform/idea/place/CartesianZone');
   });
 
   it('updates an existing template by _id when one exists at that path', async () => {
     await TemplateApi.saveTemplate(
-      '/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: { foo: 1 } });
+      '/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: { foo: 1 } });
     await TemplateApi.saveTemplate(
-      '/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: { foo: 2 } });
+      '/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: { foo: 2 } });
     expect(save).toHaveBeenCalledTimes(2);
     const [, secondDoc] = save.mock.calls[1]!;
     expect((secondDoc as Doc)._id).toBeDefined();
@@ -132,14 +132,14 @@ describe('TemplateApi.validateFolderLeafSave', () => {
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: 'narnia/castle',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
       })
     ).rejects.toThrow(TemplateError);
   });
 
   it('rejects docs missing path, or naming neither class nor parent', async () => {
     await expect(
-      TemplateApi.validateFolderLeafSave({ class: '/platform/idea/location/CartesianZone' })
+      TemplateApi.validateFolderLeafSave({ class: '/platform/idea/place/CartesianZone' })
     ).rejects.toThrow(/string 'path'/);
     // A row states a class OR names a parent; neither is a row that
     // clones into nothing.
@@ -174,7 +174,7 @@ describe('TemplateApi.validateFolderLeafSave', () => {
 
   it('accepts a class-less doc that names a parent, and takes its class', async () => {
     await TemplateApi.saveTemplate('/narnia/castle', {
-      class: '/platform/idea/location/CartesianZone',
+      class: '/platform/idea/place/CartesianZone',
       data: {},
     });
     await expect(
@@ -187,49 +187,49 @@ describe('TemplateApi.validateFolderLeafSave', () => {
   });
 
   it('accepts a Zone template saved under another Zone template', async () => {
-    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: {} });
+    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: {} });
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/narnia/castle/library',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
       })
     ).resolves.toBeUndefined();
   });
 
   it('accepts a leaf template saved beneath a Zone folder', async () => {
-    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: {} });
+    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: {} });
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/narnia/castle/foyer',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
       })
     ).resolves.toBeUndefined();
   });
 
   it('rejects a leaf save when descendants already exist', async () => {
-    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: {} });
+    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: {} });
     await TemplateApi.saveTemplate(
-      '/narnia/castle/foyer', { class: '/platform/location/Locale', data: {} });
+      '/narnia/castle/foyer', { class: '/platform/place/Locale', data: {} });
     await TemplateApi.saveTemplate(
-      '/narnia/castle/library', { class: '/platform/location/Locale', data: {} });
+      '/narnia/castle/library', { class: '/platform/place/Locale', data: {} });
 
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/narnia/castle',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
       })
     ).rejects.toThrow(/child template/i);
   });
 
   it('rejects saves under a non-Zone ancestor', async () => {
-    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: {} });
+    await TemplateApi.saveTemplate('/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: {} });
     await TemplateApi.saveTemplate(
-      '/narnia/castle/foyer', { class: '/platform/location/Locale', data: {} });
+      '/narnia/castle/foyer', { class: '/platform/place/Locale', data: {} });
 
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/narnia/castle/foyer/tapestry',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
       })
     ).rejects.toThrow(/leaf template/i);
   });
@@ -240,19 +240,19 @@ describe('TemplateApi.validateFolderLeafSave', () => {
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/stuff/idea/species/animalia/foo',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
       })
     ).resolves.toBeUndefined();
   });
 
   it('allows upgrading a parent path to a Zone template above an existing leaf', async () => {
     await TemplateApi.saveTemplate(
-      '/orphanage/playroom', { class: '/platform/location/Locale', data: {} });
+      '/orphanage/playroom', { class: '/platform/place/Locale', data: {} });
 
     await expect(
       TemplateApi.validateFolderLeafSave({
         path: '/orphanage',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
       })
     ).resolves.toBeUndefined();
   });
@@ -286,7 +286,7 @@ describe('TemplateApi.validateReservedPath', () => {
       TemplateApi.validateReservedPath({ path: '/platform/idea/SoulCatalogue' })
     ).resolves.toBeUndefined();
     await expect(
-      TemplateApi.validateReservedPath({ path: '/world/lounge/location/bar' })
+      TemplateApi.validateReservedPath({ path: '/world/lounge/place/bar' })
     ).resolves.toBeUndefined();
   });
 });
@@ -302,15 +302,15 @@ describe('TemplateApi.validateFolderLeafDelete', () => {
 
   it('allows deleting a leaf template', async () => {
     const id = await TemplateApi.saveTemplate(
-      '/narnia/foyer', { class: '/platform/location/Locale', data: {} });
+      '/narnia/foyer', { class: '/platform/place/Locale', data: {} });
     await expect(TemplateApi.validateFolderLeafDelete(id)).resolves.toBeUndefined();
   });
 
   it('rejects deleting a Zone template that has descendants', async () => {
     const zoneId = await TemplateApi.saveTemplate(
-      '/narnia/castle', { class: '/platform/idea/location/CartesianZone', data: {} });
+      '/narnia/castle', { class: '/platform/idea/place/CartesianZone', data: {} });
     await TemplateApi.saveTemplate(
-      '/narnia/castle/foyer', { class: '/platform/location/Locale', data: {} });
+      '/narnia/castle/foyer', { class: '/platform/place/Locale', data: {} });
 
     await expect(TemplateApi.validateFolderLeafDelete(zoneId)).rejects.toThrow(
       /descendant/i
@@ -319,7 +319,7 @@ describe('TemplateApi.validateFolderLeafDelete', () => {
 
   it('allows deleting a Zone template with no descendants', async () => {
     const id = await TemplateApi.saveTemplate(
-      '/empty-zone', { class: '/platform/idea/location/CartesianZone', data: {} });
+      '/empty-zone', { class: '/platform/idea/place/CartesianZone', data: {} });
     await expect(TemplateApi.validateFolderLeafDelete(id)).resolves.toBeUndefined();
   });
 

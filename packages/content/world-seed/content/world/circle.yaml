@@ -8,7 +8,7 @@
 # this early (snow weather runs 6 K under a clear sky). The `bare` sub-zone
 # is offset −6 K under a CLEAR pin, so its mere sees the same temperatures
 # with no snow on it: black ice beside snow-ice, one variable apart.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Circle
   cellSize: 3.0

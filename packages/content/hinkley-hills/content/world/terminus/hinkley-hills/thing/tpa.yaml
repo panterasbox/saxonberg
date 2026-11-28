@@ -7,7 +7,7 @@
 # premise of a commuter suburb.
 class: /system/tpa/thing/TpaTerminal
 data:
-  seatIn: /world/terminus/hinkley-hills/location/arrival
+  seatIn: /world/terminus/hinkley-hills/place/arrival
   shortDescription: Teleport Authority post
   keywords: [authority, post, terminal, tpa, hinkley, teleport]
   register: indefinite

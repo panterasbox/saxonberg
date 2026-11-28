@@ -25,12 +25,12 @@ data:
   rosterSlots:
     - positionKey: potter
       assignee: /world/terminus/hearts-delight/brickfield/agent/potter
-      station: /world/terminus/hearts-delight/brickfield/location/potters-shop
+      station: /world/terminus/hearts-delight/brickfield/place/potters-shop
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
   banksAt: goodkin
   # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
   offShift: out
   operatingLocations:
-    - /world/terminus/hearts-delight/brickfield/location/potters-shop
+    - /world/terminus/hearts-delight/brickfield/place/potters-shop
     - /world/terminus/hearts-delight/brickfield/thing/ware-shelf

@@ -26,7 +26,7 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import { installShapes, material } from '../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, wornGarment, garment } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 
 /** D26's coat: two patch pockets, a buttoned breast pocket, a covered inner one. */
 const COAT: PlacementEntry[] = [

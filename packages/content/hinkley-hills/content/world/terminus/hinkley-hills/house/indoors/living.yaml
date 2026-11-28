@@ -1,6 +1,6 @@
 # A Hinkley house's living room — the generic living room, as a room of
 # the house programme.
-extends: /stuff/location/room/living
+extends: /stuff/place/room/living
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:

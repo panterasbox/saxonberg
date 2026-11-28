@@ -55,10 +55,10 @@ describe("AppApi", () => {
 
   it("setting returns the seeded/stored value", async () => {
     await warmWith(pm, {
-      [AppSettingKeys.evacuationFallback]: "/platform/location/void",
+      [AppSettingKeys.evacuationFallback]: "/platform/place/void",
     });
     expect(AppApi.setting(AppSettingKeys.evacuationFallback)).toBe(
-      "/platform/location/void",
+      "/platform/place/void",
     );
   });
 

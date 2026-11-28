@@ -22,7 +22,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { NavigationApi } from '../../../../api/navigation';
 import { DocumentApi } from '../../../../api/document';
 import LocationGraphRegistry from '../../LocationGraphRegistry';
-import type { MapClaim } from '../../../../lib/location/MapClaim';
+import type { MapClaim } from '../../../../lib/place/MapClaim';
 import { seedKernelContentStore } from '../../../../lib/security/__tests__/test-setup';
 
 const VIEWER = '/platform/agent/Avatar/p1';

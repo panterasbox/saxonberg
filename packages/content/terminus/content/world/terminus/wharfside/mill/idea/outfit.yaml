@@ -65,7 +65,7 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/wharfside/mill/location/floor
+    - /world/terminus/wharfside/mill/place/floor
     - /world/terminus/wharfside/mill/thing/stock
     # ⚠ AFTER the room: index 0 is where the house stands its people.
     # The counter is the one a sale settles at (lint:shopfronts).

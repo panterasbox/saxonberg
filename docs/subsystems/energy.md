@@ -89,7 +89,7 @@ drive). It runs on the first real read (the dusk settle, or `analyze grid`).
 - **`ElectricLight`** — `GridPowered(LightSource(Switchable(…)))`: emits only
   while on AND powered.
 - **`ColdStore`** (`/system/energy/thing/ColdStore`) + **`ColdRoom`**
-  (`/system/energy/location/ColdRoom`) — ⭐ the cold-storage build's active
+  (`/system/energy/place/ColdRoom`) — ⭐ the cold-storage build's active
   cooler, a Thing and a Location composing the one `ClimateControlMixin`
   (the Thing≡Location proof; see [thermal.md § The active twin](./thermal.md)).
   A fridge/freezer is a `ColdStore` row (it ships a colder freezer

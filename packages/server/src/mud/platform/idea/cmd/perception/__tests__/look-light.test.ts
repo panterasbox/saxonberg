@@ -35,8 +35,8 @@ import type { Mml } from '../../../../../api/mml';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/location/Location';
-import CartesianZone from '../../../location/CartesianZone';
+import Location from '../../../../../lib/place/Location';
+import CartesianZone from '../../../place/CartesianZone';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { PerceptionMixin } from '../../../../../lib/perception/Perception';
@@ -52,7 +52,7 @@ import { installV1QuantityTagTables } from '../../../../../lib/persistence/__tes
 import { buildAllModalities } from '../../../../../lib/perception/modalities/__tests__/test-helpers';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 
-const ROOM = '/stuff/test/light/location/cellar';
+const ROOM = '/stuff/test/light/place/cellar';
 const ALICE = '/platform/agent/Avatar/light-alice';
 const DESCRIPTION = 'Barrels stand in ranks against the far wall.';
 

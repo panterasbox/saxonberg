@@ -144,7 +144,7 @@ const SQUARE = join(CONTENT, 'world/terminus/market/square.yaml');
 const LANE = join(
   PACKS,
   'hinkley-hills', 'content', 'world', 'terminus', 'hinkley-hills',
-  'location', 'lane.yaml',
+  'place', 'lane.yaml',
 );
 
 describe('the road walk — each road reads as its own prose', () => {

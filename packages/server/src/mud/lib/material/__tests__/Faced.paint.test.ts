@@ -16,7 +16,7 @@ import PigmentPaint from '../../../platform/idea/material/PigmentPaint';
 import { BulkableMixin } from '../../bulk/Bulkable';
 import { MarkedMixin } from '../../description/Marked';
 import Building from '../../../platform/idea/Building';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

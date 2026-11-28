@@ -63,11 +63,11 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import Species, { FEEDER_KINDS } from '@saxonberg/server/mud/platform/idea/species/Species';
-import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Tract from '@saxonberg/content-trade-farming/src/place/Tract';
 import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 // ⚠ A cycle (the book imports the register), safe because the book is
 // only read inside a method, never while either module evaluates.

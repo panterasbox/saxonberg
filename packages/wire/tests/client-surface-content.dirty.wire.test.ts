@@ -26,7 +26,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 
 interface Seg {
   shape: string;

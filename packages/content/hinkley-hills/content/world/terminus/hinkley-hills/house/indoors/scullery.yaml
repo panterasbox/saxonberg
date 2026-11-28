@@ -2,7 +2,7 @@
 # boarded rather than walled, where the copper sink and the washing go. Its
 # lead run is BARE on the outside wall, which is the honest reason it is the
 # pipe that freezes: the kitchen's run sits behind the range and does not.
-class: /platform/location/PersistentRoom
+class: /platform/place/PersistentRoom
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:

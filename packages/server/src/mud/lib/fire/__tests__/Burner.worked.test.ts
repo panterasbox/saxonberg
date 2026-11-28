@@ -23,8 +23,8 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import Good from '../../stuff/Good';
 import { ThermalMixin } from '../../thermal/Thermal';
 import { LightSourceMixin } from '../../perception/LightSource';

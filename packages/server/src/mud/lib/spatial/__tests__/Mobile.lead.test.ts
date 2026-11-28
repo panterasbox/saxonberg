@@ -6,8 +6,8 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { buildAllModes } from '../../locomotion/__tests__/test-helpers';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import Exit from '../../boundary/Exit';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

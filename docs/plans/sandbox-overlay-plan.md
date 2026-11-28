@@ -230,7 +230,7 @@ time.
 - The server log is at `process.env.WIRE_SERVER_LOG` (`runner/boot.ts:125`),
   readable from a test (`harness/world.ts:72` does).
 - Wardrobes: `/platform/thing/sandbox/wardrobe` is a `props:` entry of
-  `packages/content/terminus/…/seznick-house/location/bedroom.yaml`
+  `packages/content/terminus/…/seznick-house/place/bedroom.yaml`
   (pack `terminus`), the dorm room, and the generic bedroom archetype.
   An unowned door "opens onto whoever walks through it"
   (`SandboxCrossing.linkForEnterer` :150–159). ⚠ `e2e/tests/sandbox.spec.ts`
@@ -934,7 +934,7 @@ reserve override that accumulates on the world's ledger every run, and
 each run mints new test characters (`DIRTY_REASON` says so).
 
 Two players, as the requirements ask: `ada = Session.open(uniqueHandle('ada'),
-{ startLocation: '/world/terminus/mayfield-row/seznick-house/location/bedroom' })`
+{ startLocation: '/world/terminus/mayfield-row/seznick-house/place/bedroom' })`
 and `bo = Session.open(uniqueHandle('bo'), { startLocation: <any world
 location, e.g. the terminal hall> })`; a third, `founder`, only to fund
 Ada (`reserve override 500 to ${ada.handle} "wire: overlay drive"`),

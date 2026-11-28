@@ -1,7 +1,7 @@
 # The paddock — north of the yard through a narrow gate (size and
 # carrying W6, drive 18): 0.8 m wide, so a person passes and a mule
 # with panniers does not.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: overgrown paddock
   keywords: [paddock, field, overgrown]

@@ -10,7 +10,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hose from '../thing/Hose';
 import LineEnd from '@saxonberg/server/mud/platform/thing/LineEnd';
 import Rope from '@saxonberg/server/mud/platform/thing/Rope';
-import Location from '@saxonberg/server/mud/platform/location/Location';
+import Location from '@saxonberg/server/mud/platform/place/Location';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';

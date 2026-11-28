@@ -27,7 +27,7 @@ import { SubscriptionApi } from '../../../api/subscription';
 import EventRegistry from '../../../platform/idea/EventRegistry';
 import Interactive from '../../../platform/idea/Interactive';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import Tablet from '../../../platform/thing/Tablet';
 import { makeBody, withHands } from '../../slot/__tests__/carrying-fixture';
 // ⭐ `Tablet` is the SHIPPED `Display` — two rows name it (the lounge's

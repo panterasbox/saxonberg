@@ -56,7 +56,7 @@ describe('the campus farm', () => {
     // system's (`/system/ground/idea/GroundCharacter`, moved out of the
     // farming trade by the ground build — dirt is there whether or not
     // anybody is farming it); everything else is the platform's.
-    expect(classes).toContain('/trade/farming/location/SingletonTract');
+    expect(classes).toContain('/trade/farming/place/SingletonTract');
     expect(classes).toContain('/system/ground/idea/GroundCharacter');
     for (const cls of classes) {
       expect(
@@ -73,13 +73,13 @@ describe('the campus farm', () => {
     // that only grows crops must not fail a byre slot. A mixed farm
     // answers both, which gives this unit two bindings to prove.
     const yard = parse(
-      readFileSync(`${FARM_DIRS[0]}/location/yard.yaml`, 'utf8'),
+      readFileSync(`${FARM_DIRS[0]}/place/yard.yaml`, 'utf8'),
     ) as { data: { props: string[] } };
     // ⭐ The farmstead is the yard AND the home field its business works:
     // the plough lives at the field's headland (cover build), where it is
     // used, so traction is answered there.
     const field = parse(
-      readFileSync(`${FARM_DIRS[1]}/location/home-field.yaml`, 'utf8'),
+      readFileSync(`${FARM_DIRS[1]}/place/home-field.yaml`, 'utf8'),
     ) as { data: { props: string[] } };
     const props = [...yard.data.props, ...field.data.props].join(' ');
     // byre: shelter, enclosure, water, feed, muck
@@ -149,7 +149,7 @@ describe('the college ground', () => {
     const data = read(`${PACK}content/world/terminus/eternal/campus-field/idea/ground.yaml`)
       .data as { pins: Record<string, Record<string, unknown>>; bands: unknown[] };
     const field = read(
-      `${PACK}content/world/terminus/eternal/campus-field/location/home-field.yaml`,
+      `${PACK}content/world/terminus/eternal/campus-field/place/home-field.yaml`,
     ).data as { groundSpotX: number; groundSpotY: number };
 
     // The pin sits on the home field's OWN spot: the ground nearest the

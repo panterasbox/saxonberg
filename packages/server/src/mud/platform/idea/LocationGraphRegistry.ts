@@ -37,11 +37,11 @@ import { NavigationApi } from '../../api/navigation';
 import { MixinApi } from '../../api/mixin';
 import { Mixins } from '../../lib/mixin';
 import { Template } from '../../lib/stuff/Template';
-import { KnowledgeGraph } from '../../lib/location/KnowledgeGraph';
-import { PlatPlan } from '../../lib/location/PlatPlan';
-import { CirculationWarren } from '../../lib/location/CirculationWarren';
+import { KnowledgeGraph } from '../../lib/place/KnowledgeGraph';
+import { PlatPlan } from '../../lib/place/PlatPlan';
+import { CirculationWarren } from '../../lib/place/CirculationWarren';
 import Place from '../../lib/stuff/Place';
-import { type CopyRoom, PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/location/PlaceNode';
+import { type CopyRoom, PlaceNode, type StoredEdge, type NodeTravel } from '../../lib/place/PlaceNode';
 import type { AttachmentKind, SkylineEntry, SkylineQuery } from '../../api/navigation';
 import { AddressApi } from '../../api/address';
 import { AppApi } from '../../api/app';
@@ -52,7 +52,7 @@ import {
   GraphInvariants,
   type GraphFinding,
   type GraphNode,
-} from '../../lib/location/GraphInvariants';
+} from '../../lib/place/GraphInvariants';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext, Stuff } from '../../lib/stuff/Stuff';
 
@@ -900,7 +900,7 @@ export default class LocationGraphRegistry extends Idea {
    * Every location row, split by what it is.
    *
    * ⚠⚠ Enumerated **by CLASS**, never by path infix. Place rows are not
-   * all under a `/location/` segment — several predate the
+   * all under a `/place/` segment — several predate the
    * `<root>/<branch>/` pattern — so an infix filter would skip them
    * silently, which is how a gate becomes a gate-shaped comment. The
    * class verdict is computed once per class and cached.

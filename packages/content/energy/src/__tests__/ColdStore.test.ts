@@ -11,7 +11,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import ColdStore from '../thing/ColdStore';
-import ColdRoom from '../location/ColdRoom';
+import ColdRoom from '../place/ColdRoom';
 import { Piecewise } from '@saxonberg/server/mud/lib/Trajectory';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

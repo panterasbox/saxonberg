@@ -20,7 +20,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Tract, { type FieldSpec } from '../location/Tract';
+import Tract, { type FieldSpec } from '../place/Tract';
 import Field from '../thing/Field';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import {

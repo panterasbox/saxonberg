@@ -24,11 +24,11 @@ import { NavigationLogic } from '../platform/idea/api/NavigationLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 import type { MapCopySnapshot } from '@saxonberg/types';
-import type { CopyRoom, PlaceNode } from '../lib/location/PlaceNode';
-import type { GraphFinding } from '../lib/location/GraphInvariants';
-import type { MapClaim, MapDocument } from '../lib/location/MapClaim';
-import type { RouteOutcome } from '../lib/location/RoutePlan';
-import type { TravelProfileSpec } from '../lib/location/TravelProfile';
+import type { CopyRoom, PlaceNode } from '../lib/place/PlaceNode';
+import type { GraphFinding } from '../lib/place/GraphInvariants';
+import type { MapClaim, MapDocument } from '../lib/place/MapClaim';
+import type { RouteOutcome } from '../lib/place/RoutePlan';
+import type { TravelProfileSpec } from '../lib/place/TravelProfile';
 import type { ReachResult } from '../platform/idea/api/NavigationLogic';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { GeoPosition } from '../lib/expanse/GeoPosition';
@@ -106,20 +106,20 @@ function logic(): NavigationLogic {
   );
 }
 
-export type { PlaceNode, StoredEdge, NodeTravel } from '../lib/location/PlaceNode';
+export type { PlaceNode, StoredEdge, NodeTravel } from '../lib/place/PlaceNode';
 export type {
   GraphEdge,
   GraphFinding,
   GraphNode,
   GraphRule,
-} from '../lib/location/GraphInvariants';
+} from '../lib/place/GraphInvariants';
 export type {
   MapChannel,
   MapClaim,
   MapClaimKind,
   MapDocument,
-} from '../lib/location/MapClaim';
-export { MAP_CHANNELS } from '../lib/location/MapClaim';
+} from '../lib/place/MapClaim';
+export { MAP_CHANNELS } from '../lib/place/MapClaim';
 
 export class NavigationApi {
   /**
@@ -584,7 +584,7 @@ export class NavigationApi {
 
 /*
  * ⭐ Re-exported so a caller needs ONE import to speak to the router.
- * The types are the `lib/location/` core's; this is the author-facing
+ * The types are the `lib/place/` core's; this is the author-facing
  * door onto them.
  */
 export type {
@@ -595,8 +595,8 @@ export type {
   RouteAssumption,
   RouteSource,
   RouteRefusalReason,
-} from '../lib/location/RoutePlan';
-export type { TravelProfileSpec } from '../lib/location/TravelProfile';
+} from '../lib/place/RoutePlan';
+export type { TravelProfileSpec } from '../lib/place/TravelProfile';
 export type { ReachResult } from '../platform/idea/api/NavigationLogic';
 
 SecurityApi.decorateApiClass(NavigationApi);

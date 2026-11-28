@@ -26,7 +26,7 @@ import { AppSettingKeys } from '../../config/AppSettings';
 import { Template } from '../../stuff/Template';
 import { CirculatingMixin } from '../Circulating';
 import Good from '../../stuff/Good';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';

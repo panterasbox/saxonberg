@@ -138,7 +138,7 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
   });
 
   it("the terminal resolves [city, realm] — sparse inheritance on real content", async () => {
-    const gate = seedData("world/terminus/terminal/location/arrival-gate.yaml");
+    const gate = seedData("world/terminus/terminal/place/arrival-gate.yaml");
     expect(gate._address).toBe("terminus/city/arrival-gate");
     const chain = await GovernmentApi.governmentChainAt(String(gate._address));
     expect(chain.map((g) => g.key)).toEqual(["terminus-city", "terminus-realm"]);
@@ -153,9 +153,9 @@ describe("the civics flagship (authored seeds, end-to-end)", () => {
     // The cross-zone exit pair, declared on both sides.
     const exits = office.exits as Record<string, { destination: string }>;
     expect(exits.west!.destination).toBe(
-      "/world/terminus/terminal/location/arrival-gate"
+      "/world/terminus/terminal/place/arrival-gate"
     );
-    const gate = seedData("world/terminus/terminal/location/arrival-gate.yaml");
+    const gate = seedData("world/terminus/terminal/place/arrival-gate.yaml");
     const gateExits = gate.exits as Record<string, { destination: string }>;
     expect(gateExits.east!.destination).toBe(
       "/world/terminus/registry/office"

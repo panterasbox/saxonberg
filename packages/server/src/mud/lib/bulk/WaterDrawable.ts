@@ -25,7 +25,7 @@
 import type { Stuff } from '../stuff/Stuff';
 import type { MixinConstructor } from '../mixin';
 import type { ActOutcome, ActRefusal } from '../craft/ActPlan';
-import type { WaterDraw } from '../location/WaterSource';
+import type { WaterDraw } from '../place/WaterSource';
 import { MixinApi } from '../../api/mixin';
 import { BulkableApi } from '../../api/bulk';
 import { BiomeApi } from '../../api/biome';

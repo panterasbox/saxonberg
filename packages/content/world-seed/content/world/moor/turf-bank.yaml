@@ -18,7 +18,7 @@
 # ⚠ The mere next door carries a fishing REACH, so draining here touches water
 # somebody fishes — which is the same externality one step further out, and it
 # is recorded for the watershed too.
-class: /trade/quarrying/location/Turbary
+class: /trade/quarrying/place/Turbary
 data:
   floor: { material: /stuff/idea/material/organic/peat }
   shortDescription: turf bank

@@ -61,14 +61,14 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const YARD = '/world/terminus/wharfside/tannery/location/yard';
-const KNACKERS = '/world/terminus/wharfside/knackers/location/yard';
-const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
-const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
-const DISTILLERY = '/world/terminus/goods-yards/veshko/location/distillery';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
-const STEPS = '/world/terminus/eternal/duncan-hall/location/steps';
+const YARD = '/world/terminus/wharfside/tannery/place/yard';
+const KNACKERS = '/world/terminus/wharfside/knackers/place/yard';
+const BYRE = '/world/terminus/hearts-delight/dairy/place/byre';
+const CHANDLERY = '/world/terminus/wharfside/chandlery/place/floor';
+const DISTILLERY = '/world/terminus/goods-yards/veshko/place/distillery';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
+const STEPS = '/world/terminus/eternal/duncan-hall/place/steps';
 const ORCUS =
   '/stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/orcus';
 const WIZARD = { wizard: true, committees: ['/world/terminus'] };

@@ -6,7 +6,7 @@
 #
 # No ownerGroup this cycle: it collects nothing (no operator), and the
 # newbie-wilds build will stamp its own owner group. Generic classes only.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Last Counted Mile
   cellSize: 3.0

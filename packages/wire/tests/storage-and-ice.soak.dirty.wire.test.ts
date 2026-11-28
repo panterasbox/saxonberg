@@ -77,14 +77,14 @@ declareFile({
 const DAY = 86_400;
 const YEAR_DAYS = 360;
 
-const ROAD = '/world/terminus/hollow-mere/location/road';
-const SHORE = '/world/terminus/hollow-mere/location/shore';
-const POOL = '/world/terminus/hollow-mere/location/pool';
-const PLATFORM = '/world/terminus/hollow-mere/icehouse/location/platform';
-const HOUSE = '/world/terminus/hollow-mere/icehouse/location/house';
-const SMALL_HOUSE = '/world/terminus/hollow-mere/small-house/location/house';
-const SHED = '/world/terminus/hollow-mere/shed/location/shed';
-const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
+const ROAD = '/world/terminus/hollow-mere/place/road';
+const SHORE = '/world/terminus/hollow-mere/place/shore';
+const POOL = '/world/terminus/hollow-mere/place/pool';
+const PLATFORM = '/world/terminus/hollow-mere/icehouse/place/platform';
+const HOUSE = '/world/terminus/hollow-mere/icehouse/place/house';
+const SMALL_HOUSE = '/world/terminus/hollow-mere/small-house/place/house';
+const SHED = '/world/terminus/hollow-mere/shed/place/shed';
+const SAWMILL = '/world/terminus/hearts-delight/place/sawmill';
 const ESTUARY_STRAND = '/world/terminus/estuary/strand';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const GENERAL_STORE = '/world/terminus/general-store/shop-floor';

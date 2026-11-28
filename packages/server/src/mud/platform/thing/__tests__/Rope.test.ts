@@ -15,7 +15,7 @@ import Good from '../Good';
 import Tool from '../Tool';
 import Fiber from '../../idea/material/Fiber';
 import Resin from '../../idea/material/Resin';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import WorldClockRegistry from '../../idea/WorldClockRegistry';
 import { Character } from '../../../lib/character/Character';
 import { StuffApi } from '../../../api/stuff';

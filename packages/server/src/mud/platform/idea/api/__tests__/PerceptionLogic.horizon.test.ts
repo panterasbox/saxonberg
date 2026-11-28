@@ -1,7 +1,7 @@
 import '../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import CartesianZone from '../../location/CartesianZone';
-import Location from '../../../../lib/location/Location';
+import CartesianZone from '../../place/CartesianZone';
+import Location from '../../../../lib/place/Location';
 import Thing from '../../../thing/Thing';
 import Structure from '../../Structure';
 import Ship from '../../Ship';
@@ -19,7 +19,7 @@ import { GeoPosition } from '../../../../lib/expanse/GeoPosition';
 import { MqlApi } from '../../../../api/mql';
 import { PerceptionApi } from '../../../../api/perception';
 import { ContainmentApi } from '../../../../api/containment';
-import { attachGraph } from '../../../../lib/location/__tests__/attachments-fixture';
+import { attachGraph } from '../../../../lib/place/__tests__/attachments-fixture';
 import { makeStuff, makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 /**

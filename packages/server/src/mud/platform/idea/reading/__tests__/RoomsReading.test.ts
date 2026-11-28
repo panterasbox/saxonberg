@@ -27,10 +27,10 @@ import RoomsReading from '../RoomsReading';
 import { withRow } from './row';
 import { driveAnalyze } from './drive';
 import ArchetypeCatalogue from '../../ArchetypeCatalogue';
-import Locale from '../../../location/Locale';
+import Locale from '../../../place/Locale';
 import { BiomeApi } from '../../../../api/biome';
-import PersistentLocation from '../../../location/PersistentLocation';
-import { FloorplanWarren } from '../../../../lib/location/FloorplanWarren';
+import PersistentLocation from '../../../place/PersistentLocation';
+import { FloorplanWarren } from '../../../../lib/place/FloorplanWarren';
 import Chair from '../../../thing/Chair';
 import { DocumentApi } from '../../../../api/document';
 import { MessageApi } from '../../../../api/message';
@@ -58,7 +58,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { Idea } from '../../../../lib/stuff/Idea';
 import type { Container } from '../../../../lib/spatial/Container';
 import type { Containable } from '../../../../lib/spatial/Containable';
-import { WayIndexMixin } from '../../../../lib/location/WayIndex';
+import { WayIndexMixin } from '../../../../lib/place/WayIndex';
 import { AppApi } from '../../../../api/app';
 
 const ARCHETYPE_DIR = fileURLToPath(

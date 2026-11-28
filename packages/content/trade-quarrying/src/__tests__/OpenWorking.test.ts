@@ -24,10 +24,10 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import OpenWorkingLocation from '../location/OpenWorking';
+import OpenWorkingLocation from '../place/OpenWorking';
 import { LIFT_M, OPEN_WORKING_MIXIN, type OpenWorking } from '../lib/OpenWorking';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';

@@ -177,7 +177,7 @@ describe('⭐ the gas country is a ROW', () => {
   });
 
   it('the burnt ground is a site, a showing and a register entry — zero code', () => {
-    const flat = data(`${REJECTION}location/gas-flat.yaml`);
+    const flat = data(`${REJECTION}place/gas-flat.yaml`);
     expect((flat.props ?? []) as string[]).toContain(
       '/world/terminus/rejection/thing/gas-blow',
     );
@@ -188,7 +188,7 @@ describe('⭐ the gas country is a ROW', () => {
     const paths = (counter.surfaceWorkings as Array<{ path: string }>).map(
       (w) => w.path,
     );
-    expect(paths).toContain('/world/terminus/rejection/location/gas-flat');
+    expect(paths).toContain('/world/terminus/rejection/place/gas-flat');
     // ⭐ Four sites now, and `rejection` still ships no TypeScript.
     expect(paths.length).toBeGreaterThanOrEqual(4);
   });

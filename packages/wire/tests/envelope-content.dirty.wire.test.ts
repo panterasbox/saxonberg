@@ -33,7 +33,7 @@ declareFile({
 });
 
 /** A funded street: the avenue association pays for this one. */
-const CROSSING = '/world/terminus/university-avenue/location/crossing';
+const CROSSING = '/world/terminus/university-avenue/place/crossing';
 /** ⭐ Lamps standing, NOBODY PAYING — Mayfield Row is outside the city. */
 const MAYFIELD = '/world/terminus/mayfield-row/street';
 

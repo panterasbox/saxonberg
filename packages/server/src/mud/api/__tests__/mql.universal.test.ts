@@ -19,7 +19,7 @@ import { StuffApi } from '../stuff';
 import { Creature } from '../../lib/creature/Creature';
 import Species from '../../platform/idea/species/Species';
 import BodyPlan from '../../platform/idea/species/BodyPlan';
-import Location from '../../lib/location/Location';
+import Location from '../../lib/place/Location';
 import Thing from '../../platform/thing/Good';
 import { Expression } from '../../lib/script/Expression';
 import { Scope } from '../../lib/script/Scope';

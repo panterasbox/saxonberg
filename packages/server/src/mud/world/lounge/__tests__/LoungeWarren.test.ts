@@ -10,7 +10,7 @@ import { withSaveMany } from '../../../lib/persistence/__tests__/pm-fake';
 import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import LoungeWarren from '../idea/LoungeWarren';
-import Lounge from '../location/Lounge';
+import Lounge from '../place/Lounge';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { HasInteractiveMixin } from '../../../lib/connection/HasInteractive';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -45,12 +45,12 @@ function installLoungeStore(): Doc[] {
     { path: LoungeWarren.WARREN_PATH, class: '/world/lounge/idea/LoungeWarren', data: {} },
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
-      class: '/world/lounge/location/Lounge',
+      class: '/world/lounge/place/Lounge',
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
-      class: '/world/lounge/location/Bar',
+      class: '/world/lounge/place/Bar',
       data: { shortDescription: "Dave's Bar" },
     },
   ].map((d, i) => ({ _id: String(i + 1), ...d }));

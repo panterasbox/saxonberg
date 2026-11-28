@@ -36,7 +36,7 @@ import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import {
   makeStuffAtPath,
 } from '../../../../../lib/security/__tests__/test-setup';
-import type { MapClaim, MapDocument } from '../../../../../lib/location/MapClaim';
+import type { MapClaim, MapDocument } from '../../../../../lib/place/MapClaim';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 

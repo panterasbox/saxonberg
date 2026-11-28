@@ -20,7 +20,7 @@ import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { PlacingMixin } from '../../spatial/Placing';
 import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';

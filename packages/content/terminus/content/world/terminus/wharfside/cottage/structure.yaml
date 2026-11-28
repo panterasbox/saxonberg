@@ -4,7 +4,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/wharfside/cottage
-  entrance: /world/terminus/wharfside/cottage/location/room
+  entrance: /world/terminus/wharfside/cottage/place/room
   shortDescription: cottage
   register: definite
   keywords: [cottage, house, building, "towpath cottage"]

@@ -25,7 +25,7 @@ Batch-wide findings first:
 ## docs/slates/world/bathroom-slate.md — 141 → 144 · Status UNBUILT → PARTIAL
 
 The stamp said *"no bathroom content, state or fixture exists"*; the
-residences build shipped exactly that. `packages/content/generic-objects/content/stuff/location/room/bathroom.yaml`
+residences build shipped exactly that. `packages/content/generic-objects/content/stuff/place/room/bathroom.yaml`
 (a `PersistentLocation` row with `props:` toilet · basin · tub),
 `content/archetypes/bathroom.yaml` (the capability archetype:
 `bulkSource: water` + `presence: toilet`), and the three fixture rows under
@@ -238,7 +238,7 @@ documented. One cut.
 ## docs/slates/engine/distance-perception-slate.md — 96 → 96 · Status UNBUILT → UNBUILT
 
 Unbuilt, and the seeding facts still hold: `lib/perception/Modality.ts:77-90`
-(`MAX_HOPS = 2`, `EXIT_TAU = 1.0`), `platform/location/Crossing.ts:3-7`
+(`MAX_HOPS = 2`, `EXIT_TAU = 1.0`), `platform/place/Crossing.ts:3-7`
 (the bespoke dynamic `tower` detail — *there is no `ClockTower` Stuff*),
 `ScryableMixin` per `perceiver.md`. None of the four patterns has code:
 no `vista` / `distantDescription` / `landmark` anywhere under

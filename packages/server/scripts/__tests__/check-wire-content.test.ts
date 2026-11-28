@@ -29,7 +29,7 @@ describe("placeholderIn", () => {
   });
 
   it("⭐ the testbed is the suite's own and is not placeholder", () => {
-    expect(placeholderIn("const PLAZA = '/world/testbed/location/plaza';")).toBeNull();
+    expect(placeholderIn("const PLAZA = '/world/testbed/place/plaza';")).toBeNull();
     expect(placeholderIn("committees: ['/world/testbed']")).toBeNull();
   });
 
@@ -41,7 +41,7 @@ describe("placeholderIn", () => {
     const src = [
       `/** Used to stand at ${W}/terminus/market. */`,
       "// and /corpo/goodkin's counter",
-      `const P = '/world/testbed/location/plaza'; // not ${W}/lounge any more`,
+      `const P = '/world/testbed/place/plaza'; // not ${W}/lounge any more`,
     ].join("\n");
     expect(placeholderIn(src)).toBeNull();
   });

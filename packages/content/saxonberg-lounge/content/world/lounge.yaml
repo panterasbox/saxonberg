@@ -17,7 +17,7 @@
 # Ownership (`/world/lounge` → the managed `lounge` group) lives in the
 # gated `parcels` collection, never on this editable zone template — the
 # governing security invariant.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: lounge
   # ⭐ Where the lounge sits in the address namespace — the Locality

@@ -22,7 +22,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
-import Location from '@saxonberg/server/mud/lib/location/Location';
+import Location from '@saxonberg/server/mud/lib/place/Location';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -30,7 +30,7 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { GroundPointMixin, GROUND_POINT_MIXIN } from '../lib/GroundPoint';
 import Deposit, { type FluidBody } from '../idea/Deposit';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 
 class TestFixture extends GroundPointMixin(Thing) {}
 

@@ -21,8 +21,8 @@ import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import ColumnWarren from '../idea/ColumnWarren';
 import ColumnExit from '../idea/exits/ColumnExit';
-import Band from '../location/Band';
-import Pool from '@saxonberg/server/mud/platform/location/Pool';
+import Band from '../place/Band';
+import Pool from '@saxonberg/server/mud/platform/place/Pool';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { Actor } from '@saxonberg/server/mud/lib/creature/Actor';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
@@ -38,12 +38,12 @@ import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { WaterRead } from '@saxonberg/server/mud/lib/location/WaterSource';
+import type { WaterRead } from '@saxonberg/server/mud/lib/place/WaterSource';
 
 interface Doc extends Record<string, unknown> { _id?: string }
 
 const PH = TemplateApplier.templatePath;
-const SURFACE = '/world/fx-water/location/basin';
+const SURFACE = '/world/fx-water/place/basin';
 const SLOT = {
   name: 'ground:1', accepts: 'SlottableMixin', capacity: 1000, postures: ['sit', 'lie', 'kneel', 'stand'],
 };
@@ -68,13 +68,13 @@ function seedContent(): void {
   add(TemplatePaths.defaultFloor, '/platform/thing/Floor', { staticSlots: [SLOT] });
   add(TemplatePaths.waterSurface, '/platform/thing/WaterSurface', { staticSlots: [SLOT] });
   for (const band of ['lit', 'dark']) {
-    add(`/system/water/location/band/${band}`, '/system/water/location/Band', {
+    add(`/system/water/place/band/${band}`, '/system/water/place/Band', {
       shortDescription: `${band} water`,
       noDefaultFloor: true,
       longDescription: `the ${band} water`,
     });
   }
-  add('/system/water/location/band/bed', '/system/water/location/Band', { shortDescription: 'the bottom' });
+  add('/system/water/place/band/bed', '/system/water/place/Band', { shortDescription: 'the bottom' });
 }
 
 function installStore(): void {

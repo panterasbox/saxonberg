@@ -118,7 +118,7 @@ function contentRows(): Row[] {
     ),
     ...yamlDir('platform', 'platform/idea/persistence/QuantityMarshaller', '/platform/idea/persistence/QuantityMarshaller'),
     ...yamlDir('platform', 'platform/idea/material', '/platform/idea/material'),
-    ...yamlDir('platform', 'platform/location', '/platform/location'),
+    ...yamlDir('platform', 'platform/place', '/platform/place'),
     ...yamlDir('base-library', 'stuff/idea/material/wood', '/stuff/idea/material/wood'),
     ...yamlDir('base-library', 'stuff/idea/material/bulk', '/stuff/idea/material/bulk'),
     ...yamlDir('base-library', 'stuff/idea/material/glass', '/stuff/idea/material/glass'),

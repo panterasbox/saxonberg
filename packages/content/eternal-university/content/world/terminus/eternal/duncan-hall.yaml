@@ -5,7 +5,7 @@
 #
 # Cell size in meters per CartesianZone convention (3.0 default —
 # see CartesianZone.cellSize doc).
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Duncan Hall
   cellSize: 3.0

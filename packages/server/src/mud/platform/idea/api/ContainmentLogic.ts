@@ -13,7 +13,7 @@ import type { PlacementChoice } from '../../../lib/spatial/PlacementOffers';
 import type { Slotted } from '../../../lib/slot/Slotted';
 import type { Slottable } from '../../../lib/slot/Slottable';
 import type { VetoResult } from '../../../lib/errors';
-import type { Warren } from '../../../lib/location/Warren';
+import type { Warren } from '../../../lib/place/Warren';
 import { CommandApi } from '../../../api/command';
 import { MixinApi } from '../../../api/mixin';
 import { SubscriptionApi } from '../../../api/subscription';
@@ -332,7 +332,7 @@ export class ContainmentLogic extends ApiLogic {
   public async resolveLanding(
     ref: string
   ): Promise<{ container: Stuff & Container; warren: Warren | null }> {
-    const { Warren } = await import('../../../lib/location/Warren');
+    const { Warren } = await import('../../../lib/place/Warren');
     const cls = await StuffApi.classForRef(ref);
     if ((cls.prototype as object) instanceof Warren) {
       const warren = await StuffApi.singleton<Warren>(ref);

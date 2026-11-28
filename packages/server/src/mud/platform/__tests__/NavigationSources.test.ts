@@ -15,7 +15,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Idea } from '../../lib/stuff/Idea';
 import { SensorMixin } from '../../lib/message/Sensor';
 import { PerceiverMixin } from '../../lib/description/Perceiver';
-import { CartographerMixin } from '../../lib/location/Cartographer';
+import { CartographerMixin } from '../../lib/place/Cartographer';
 import { makeStuff, makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import { StuffApi } from '../../api/stuff';
 import { SubscriptionApi } from '../../api/subscription';

@@ -1,8 +1,8 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import LightReading from '../LightReading';
-import CartesianZone from '../../location/CartesianZone';
-import Location from '../../../../lib/location/Location';
+import CartesianZone from '../../place/CartesianZone';
+import Location from '../../../../lib/place/Location';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';

@@ -1,0 +1,16 @@
+# A let unit's bathroom (Mayfield Row) — the generic bathroom, all
+# built-ins, as a room of the Seznick unit plan.
+extends: /stuff/place/room/bathroom
+data:
+  # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
+  coords:
+    x: -1
+    y: 1
+    z: 0
+  # What it is made of (construction.md: walls and roof), like the house's
+  # other rooms.
+  enclosure: { material: /stuff/idea/material/ceramic/brick, thicknessM: 0.23 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.01 }
+  exits:
+    south:
+      destination: /world/terminus/mayfield-row/seznick-house/place/bedroom

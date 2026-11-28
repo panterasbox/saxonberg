@@ -103,9 +103,9 @@ function installStore(): void {
   // Each smack is a copy of her kind's zone, named under its row by her
   // serial (zone-instancing D11).
   add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
-  add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
-  add(DECK, '/platform/location/Compartment', { coords: { x: 0, y: 0, z: 0 }, shortDescription: 'smack deck', floorM: 1.8, exits: { down: { destination: HOLD } } });
-  add(HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
+  add(ROOMS, '/platform/idea/place/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
+  add(DECK, '/platform/place/Compartment', { coords: { x: 0, y: 0, z: 0 }, shortDescription: 'smack deck', floorM: 1.8, exits: { down: { destination: HOLD } } });
+  add(HOLD, '/platform/place/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(WELL, '/platform/thing/BilgeWell', { shortDescription: 'bilge well' });
   add(PUMP, '/platform/thing/Pump', { shortDescription: 'bilge pump', throughputLps: 0.6, strokeS: 20 });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });

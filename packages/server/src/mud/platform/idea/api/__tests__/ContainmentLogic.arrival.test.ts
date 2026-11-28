@@ -24,7 +24,7 @@ import { Actor } from '../../../../lib/creature/Actor';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Containable } from '../../../../lib/spatial/Containable';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import Holder from '../../../../lib/stuff/Holder';
 
 const TROUSERS: PlacementEntry[] = [
