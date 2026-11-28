@@ -489,6 +489,22 @@ surrounding-medium conductivity. Worn `clo` widens the comfort band
 downward. A body in water reads the water instead — see *Immersion*
 below.
 
+### ⭐⭐ Under the open sky the pull side reads the weather (#139)
+
+The air over an open-sky scope IS the weather, and the weather is a pure
+function of the place and the time (`WeatherApi.temperatureAt(site,
+locality, t)`), so `ambientTrajectory` samples it across the reconcile's
+gap — an hour a stretch, at most 240 — for an air scope that does not hold
+its own air, authors no `_temperature`, has resolved where on the world it
+is, and holds no body in WATER (the push side's medium read owns that).
+The push side alone restamped only the direct contents of an OCCUPIED sky
+room at a weather boundary, so ice in a temper pit, or anything in a yard
+nobody stood in, drifted all summer toward the winter it was last told
+about (the soak lane, 2026-11-26: the temper pit stayed frozen in the warm
+season; the mere never froze in winter). An envelope room keeps its own
+trajectory, and a scope still resolving its site keeps the cached ambient
+for that one read.
+
 ### ⭐⭐ Worn insulation is SURFACE-WEIGHTED PER PART, and `clo` DERIVES
 
 Both halves changed in the textiles build, and both were the same
