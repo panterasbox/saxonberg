@@ -34,6 +34,44 @@ The user's framing: *"we haven't even had a conversation about
 granularity or how narrow biomes get vs just being room classes by
 another name."*
 
+## ⭐⭐ The conversation still to have (owner, 2026-11-28)
+
+The design is owed, and it is to be held with the master agent rather
+than in a build lane. It is wanted by **hunting and foraging**
+([hunting-slate](../trades/hunting-slate.md) — *the wild population as a
+record*; [discovery-slate](../engine/discovery-slate.md) — *biome-authored
+tables with derived, depleting stock*), and it needs real depth. Each
+thread below is a starting point, and none of them is an answer yet:
+
+- ⛔ **A biome is not only outdoor, sky-exposed content.** The owner:
+  *"if you're only thinking about biome in terms of outdoor sky-exposed
+  content then you're doing it wrong. OR, maybe I'm the one thinking
+  about it wrong and indoor taxonomies are modelled by something else
+  entirely and still have to live in the context of an outdoor biome."*
+  Settle which of the two it is first, because every other thread hangs
+  on it.
+- **Is "what grows and lives here" a claim about the biome or about the
+  ground?** The ground half has substantial shipped records already:
+  `GroundCharacter` + soil ([soil.md](../../subsystems/soil.md)), the
+  wood's stand ([forestry.md](../../subsystems/forestry.md)), the reach's
+  fishery ([fishing.md](../../subsystems/fishing.md)), the `Deposit`
+  ([mining.md](../../subsystems/mining.md)) — and
+  [field-substrate-slate](../engine/field-substrate-slate.md)'s RGO spine.
+- **The inheritance choice is this design's to make.** The
+  template-taxonomy passes after the `/location/` → `/place/` rename
+  (!673) run agents → places → things → ideas. Biome rows sit in the
+  ideas pass, which will **carry out** whatever this slate decides
+  between `_extendsBiomePath` and row `extends:`. It will not re-parent
+  biomes on its own (build-2, 2026-11-28). ⚠ § *`_extendsBiomePath` and
+  the inheritance question* below predates `extends:`: row inheritance
+  has shipped since 2026-09-25 ([templates.md](../../subsystems/templates.md)),
+  so the question is now *does the biome chain become `extends:`*, not
+  *should the platform have inheritance*.
+- **Mountaineering rides this conversation.** The owner wants that
+  thread tossed in →
+  [mountain-slate](../world/mountain-slate.md) (the biome by altitude,
+  mountain weather, the body at height, mountaineering as a discipline).
+
 ---
 
 ## The catalogue, as it stands
