@@ -112,6 +112,13 @@ hard-coded: no — that is the blood gift's constant.)
 - ⭐ **The roster's governance path:** it starts at [measurement.md](../../measurement.md) **tier B**
   (whoever ships the pack — us) and is meant to become **tier C**, amendable by the polity through
   the Compact. Not build 1 — but nothing in build 1 may close it off.
+- ⭐⭐ **The line is also the boundary of the Standard Model** (the owner, 2026-11-28;
+  [standard-model.md](../../standard-model.md) § *The Standard Model as the Compact's measurement
+  contract*). Acts and beats are the public read/write surface the Compact measures; tropes are read
+  over it. **Build-1 consequence: the beat vocabulary is public contract** — closed, versioned,
+  changed deliberately, never casually as "a kernel change". The honesty guarantees are proposed
+  tier A (measurement.md A17, A18), and consumer influence measured along the roster's axis is an
+  open constitutional item ([compact-political-science.md](../../compact-political-science.md)).
 - **Names mark the line:** the trope rows live under the root **`/morality`**, in the pack
   **`morality-commons`** (our community's morality, one of possible others). The kernel's
   descriptive side — acts, beats, the matcher — keeps **narrative** names.

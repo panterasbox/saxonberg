@@ -601,6 +601,8 @@ process for changing them.
 | A14 | **The sandbox boundary is symmetric.** Nothing crosses into or out of a circle | the Layer-4 boundary; `pnpm lint:boundary` |
 | A15 | ⚠ **The evidence firewall.** Kernel omniscience never becomes diegetic evidence | [enforcement-slate](./slates/society/enforcement-slate.md) — *judgment call, see the audit* |
 | A16 | ⭐ **Every reconcile-on-read consumer tolerates a backward clock** — re-stamp, integrate nothing | convention only; see *the clock finding* below. **Game time is NOT monotonic**, and this row is what makes that survivable |
+| A17 | ⭐ **An in-fiction act is attributed to its chooser, never its author.** Authorship is the out-of-fiction labor plane; who *did* it comes from the actor, and no work starts with nobody acting | proposed 2026-11-28 ([tropes-slate](./slates/engine/tropes-slate.md) § 3.7, the Standard Model contract in [standard-model.md](./standard-model.md)); the tropes build's `runRoot` actor rule |
+| A18 | ⭐ **An act records what changed, never what it meant.** The record below the trope is descriptive; every reading is above it, in content | proposed 2026-11-28 (tropes-slate § 1a, § 3.10); the tropes build's characterization gate |
 
 ⭐ Note what these have in common: **each is the reason some claim the
 platform makes is believable at all.** Drop A1 and a fortune means

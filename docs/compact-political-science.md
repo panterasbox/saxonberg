@@ -469,6 +469,14 @@ allocation (Art. IV §2 says outright that it *remains to be
 specified*), and the whole question of whether contribution-weighted
 governance is defensible at all.
 
+**[OPEN — the owner, 2026-11-28] How consumer influence is measured.** Art. III §1 measures it as
+*engaged consumption = engagement × regard*. The owner's direction is a successor: a consumer's
+**own choices** — what they spend of money, goods and time, and on what — qualified and quantified
+along a **moral axis the Compact agrees on**. That axis is the trope roster
+([tropes-slate § 1a](./slates/engine/tropes-slate.md)), whose pen moves from whoever ships it
+(tier B) to the polity (tier C). Not yet a constitutional amendment; recorded here so the
+constitution's next revision takes it up.
+
 ---
 
 ## Course-readiness

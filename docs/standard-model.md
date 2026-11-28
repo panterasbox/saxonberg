@@ -437,6 +437,49 @@ that exists in the vision now. The periodic table is the imagined
 molecules are expressions of an underlying table, not separate
 inventions.
 
+## ⭐⭐⭐ The Standard Model as the Compact's measurement contract **[the owner, 2026-11-28]**
+
+> The owner: *"the public interface exposed by our simulation, the read/write surface that every
+> single decision has to conform to … the way I see this game at the highest level is it's an engine
+> for making decisions collectively in a digital environment. and the entire simulation that we've
+> been building all year is just the substrate for making decisions that can be measured and given
+> correct attribution. thats why its so important the simulation is honest, and that starts with the
+> public interfaces being honest."*
+
+The particle metaphor above says what the Standard Model is **made of**. This section says what it
+is **for**.
+
+- **It is the public read/write surface every decision conforms to** — and therefore the contract
+  that guarantees the [Compact](./compact-political-science.md) a surface it can **measure** to
+  decide collectively. Capital and labor have organized for a long time; the Compact's new body is
+  the **consumer**, and a consumer voice in decisions can be afforded only if the simulation
+  measures a consumer's own choices honestly enough to qualify and quantify them along a moral axis
+  the Compact itself agrees on.
+- ⭐ **Its boundary is the line between description and prescription.** Everything up to and
+  including the *beat* — who chose, what changed and for whom, what it cost, because of what, who
+  saw — is the Standard Model: descriptive, attributable, guaranteed. The **trope** is the first
+  prescriptive unit, and it is **not** in the Standard Model: tropes are the morality read *over*
+  it, and their pen belongs, in time, to the Compact
+  ([tropes-slate § 1a](./slates/engine/tropes-slate.md)). The platform guarantees the measurement;
+  the polity writes the morality.
+- **Honesty is a contract term, not a style.** A record that attributes an act to whoever wrote the
+  code instead of whoever chose it, or that lets work start with nobody acting, is a breach of this
+  contract — the consumer chamber would be counting the wrong thing. The guarantees are tier A in
+  [measurement.md](./measurement.md) (A17, A18).
+- **The act and beat vocabulary is part of the contract**: closed, versioned, changed deliberately.
+  Adding a detected beat changes what the Compact can measure.
+- ⭐ **What is portable.** The Standard Model is not so abstract that any game could use it directly
+  — it is built for an experience sculpted by text over pixels, and a Roblox- or Unreal-shaped game
+  would find large gaps in what is modelled for its interfaces. But the **ideas** — honest,
+  attributed decisions; a descriptive vocabulary of what people do to and for each other (*gave,
+  sold, harmed, promised, kept, broke, aided*); a morality written above it by the governed — and
+  the constitution behind the Compact **translate to any sufficiently digitized community**. The
+  trades, the physics, light and supply chains are this game's; none of them is what makes the
+  thing tick.
+- ⭐ **That is why the project is open source** (AGPL-3, [measurement.md](./measurement.md) B7):
+  so nobody can take claim over the core features — the Compact, and the honest measurement
+  surface under it.
+
 ---
 
 ## The honest edge
