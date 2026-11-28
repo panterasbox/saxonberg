@@ -1615,7 +1615,56 @@ thing), so these are **design rules**:
    the realm that conducts like silver.
 8. **The lured wyrm** *(off-field weakening)*: a hunter's tale, and then a hunt that tests it.
 
-### 13i. The lens pass
+### 13i. ⭐⭐⭐ Worldcrafting the field for story — causes, not a painted field **[DECIDED — the owner, 2026-11-28]**
+
+The owner: *"sometimes you want it like a nicely marbled piece of steak and sometimes you want veins
+or even masses of fat, different narratives need different distributions so it all needs to be
+worldcraftable."* Designed with the tropes build (build-1) consulted; the bestiary half is
+[bestiary-slate](../world/bestiary-slate.md) § 18.
+
+**The shapes stories want** — marbled (a little everywhere: the fey country), veins (the old road
+that follows the line, the river that runs wild), masses (the dragon's mountain, the crater), absences
+(the cold-iron town, the land where magic died), scars (the battlefield where the dead walk, the well
+gone bad), spreading (the blight creeping out from the mine).
+
+⭐ **Every shape has a cause the world can tell** — nothing makes mana (13c), so no distribution is
+painted from nowhere. Worldcrafting authors **causes**; the field and its shape derive from them, and
+the cause is the story. **Two kinds:**
+
+- **Setting** — timeless, authored geography: the regional grade (marbling), seams and veins in the
+  rock, intrusions (masses), old life (the uncut wood). Authored the way a biome is.
+- **History** — dated **incidents** in the same shape as the tropes build's acts (an act id, a
+  where, a when, a cause): *a star fell here, year 212* · *the battle of the ford, year 340, three
+  hundred dead* · *the town grounded, year 401*. **Authored history is seeded rows marked as claims**
+  (the dossier pattern); **live history is real acts** — a smelter's years of work, a seam drawn
+  down, a charged creature's death, a grounding. **One channel**, so a story cannot tell an authored
+  past from a played one: a battle players fight next month haunts its field exactly as an authored
+  one does.
+
+**The physics supplies the effect where it can** — the author writes the battle, not the field: the
+charged dead return their mana to the ground they touch (13c); a strike's halo is its meteorite's;
+a smelter's scar is its years of work; grounding drains.
+
+⛔ **Stories read incidents, never the field, and never write mana** (build-1: *"tropes only write
+characterization"*). *The cursed village* is a trope looking back over incidents whose `where` falls
+in that place, its telling naming the cause; a change to the ground is someone's act or a named
+system's work.
+
+**Spreading waits on fortune as an event** (*befall* — tropes build 2).
+
+**Leans carried from the same conversation, not yet ruled:**
+- **a place's level is COMPUTED** — grade + the halos of nearby causes + what water carried
+  downstream — changing only by draws and recovering by the cause's kind; nothing simulated over
+  geological time (real ore halos are fossil shapes);
+- **a halo's reach is real distance**, shaped by the country rock's conductivity — never steps
+  between rooms, which would tie reach to how an author cut the places (and makes prospecting by soil
+  and stream sediment a real skill);
+- **supply and draw share one scale** — τ per day — so an author placing a cause knows what it
+  sustains;
+- **author tools** — the field map, a sustain report (which listed bound creatures each place can
+  support), the combat gym's profile per creature.
+
+### 13j. The lens pass
 
 | lens | verdict |
 |---|---|
@@ -1628,7 +1677,7 @@ thing), so these are **design rules**:
 | 6 economy | ✅ Demand existed first (caster recovery, device stores). Charged goods are produced by residence time. The extractor pays in time, the landholder collects rent. |
 | 7 governance | Only through title (parcel) and polity quotas (tier C). The engine judges no person. |
 
-### 13j. What this closes, and what it leaves
+### 13k. What this closes, and what it leaves
 
 - **Closes** Open question 1 (what sets a place's mana density) and 11f's *"does the place's field
   deplete"*, and turns Open question 6 into a decision (seams finite; the griefer is answered by
