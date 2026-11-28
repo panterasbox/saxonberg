@@ -18,13 +18,42 @@ them without adding to the census.
 
 Path shorthand used below: `~/` is `/world/terminus/`, `^/` is `/world/`.
 
+## ⛔ Framing: the bar is the reference venue (owner, 2026-11-28)
+
+> *"the only content I'm sure on is the bar and that's still incomplete. but
+> it runs 24/7 and the NPCs have a schedule… I use the bar to work out things
+> down to the smallest detail and once I get it functional there and telling
+> the story I want to tell then we can start expanding out to other venues.
+> that's how I need this framed."*
+
+Everything outside the lounge and Dave's Bar is **placeholder**. It stays to
+give test coverage, and the systems are what's tested, not the venues
+(lounge-and-bar memory). So this pass makes **no workplace design decision
+for any placeholder venue**:
+
+- **Placeholder houses are moved mechanically.** Each seat's duties and kit
+  are exactly what its holders' rows did and wore before, with `while: held`
+  wherever the behavior ran regardless of shift. Each such line is marked
+  `# placeholder: preserved as found`, so the venue's later design pass can
+  find it. The resolved-row diff is the proof that nothing changed.
+- **The bar is moved the same way in this pass.** Its staff's existing
+  behaviors and schedules move onto the bar's seats as found. The bar's real
+  shift and duty design (it runs 24/7, its NPCs keep a schedule, its economy
+  still needs its story) is the bar's own work. It is likely shaped by the
+  narrative building blocks build-1 is making, and not this pass's.
+- **No question about a placeholder workplace goes to the owner.** Where the
+  plan needs a call that only matters to a placeholder venue, the default is
+  "preserve as found" and it's recorded here, not asked.
+
+That decides RC1 and RC2 below.
+
 ## Requirements conflicts
 
 Planning found six places where the requirements and the code disagree. None
 is absorbed. Each has a default the build follows, and each is on the list of
 decisions for the owner at the end of this doc.
 
-**RC1. "Duties run on shift" against "nothing visible changes".** No engine
+**RC1. "Duties run on shift" against "nothing visible changes".** ✅ **Decided by the framing:** `while: held` for the 27, so behavior is preserved as found everywhere, the bar included. Real shift semantics come when the bar is designed. Soak step 12 checks the 8 brains that already gate on shift, and the rest by `rows:diff`. No engine
 gate ties a work brain to a shift today. Of the 35 work brains that move to a
 seat, 8 refuse off shift by their own check (`stokes`, `pots`, `sets`,
 `moulds`, `relines`, `banks`, `supplies`, `doorman`); the other 27 run
@@ -40,7 +69,7 @@ alternative is to let all 35 stop at shift end now, which roughly halves
 unwatched production in every 12-hour house and is a balance change, not a
 refactor.
 
-**RC2. People who were undressed get dressed.** Fourteen person rows extend
+**RC2. People who were undressed get dressed.** ✅ **Decided:** dress them. A body with no clothes is a defect, not a workplace design (lens 3a; the climate slate's naked-Cast finding). Removal markers would only preserve a bug. Fourteen person rows extend
 nothing today and wear nothing: the infirmary nurse, the six testbed Extras,
 and seven bespoke-class rows (Gus, the sellsword, Katie, the Editor, Walter,
 Ricky, the ticket clerk). The census in the requirements says they "get the
