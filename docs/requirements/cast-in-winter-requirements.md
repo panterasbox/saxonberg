@@ -115,6 +115,10 @@ first winter). The reuse ledger is at the end of that slate.
 - **NPC trade and production while nobody watches** → unobserved-economy-slate.
   Reconcile debits what a body consumed. It doesn't run the body's work.
 - **A logged-out player's body** → absent-body-slate. Players are unchanged.
+  Today a logged-out body is in null, so the timeless rule freezes it, which
+  is what ships now. The decided direction (2026-09-30) is that logout becomes
+  sleep where you left. When that builds, players stay in the story and leave
+  null.
 - **The harm energy scale, the quern share, the condenser, restamp failure, and
   room-versus-thing name ties** → stay in backstops-owed-slate §§ 3, 5–8.
 - **Seasonal routines beyond clothing** (holidays, a winter trade calendar) →
@@ -186,6 +190,40 @@ its author gives it a home, and then it walks there); **an Extra is a role**.
 Fidelity, and its compute cost, then grows with the players actually in the
 world, not with the content. A world with no players mostly idles and is still
 honest the moment anyone looks.
+
+### Out of the story is out of time (owner, 2026-11-28)
+Null, the environment of anything that has left the fiction, is **timeless**.
+A thing in null, and everything it holds, has no clock while it's there:
+- it doesn't get cold or hungry;
+- it doesn't heal, age, grow, mature or spoil.
+
+When it comes back it resumes exactly as it left. This is one rule for the
+whole held subtree, not a choice each subsystem makes. It follows the 11-23
+ruling: *"outside the narrative is just null, you're nowhere"*, and nowhere
+has no weather, no night and no hunger.
+
+Today it holds only by accident. A body in null reads the air as body
+temperature, and an unowned body skips long gaps, a skip this build removes.
+Meanwhile a carried pail of milk sours in null because spoilage runs on the
+clock wherever the thing is. Without this rule, a Cast coming back on shift
+would be billed for a night it spent nowhere.
+
+What it does and doesn't cover:
+- **A room nobody is in is not null.** An unwatched body is in the story:
+  time passes there and is reconciled when someone looks. Only out of the
+  story stops time. The two must never be treated as the same.
+- **Records keep running.** Wages, contracts, deadlines, hires and reputation
+  are not things in null, so they run on social time. A deadline that lapses
+  while a hand is off shift lapsed honestly.
+- **Places keep running.** A business's production, a maturing cask and a
+  field are in places, so time passes for them. So does anything unloaded
+  from memory: it is still in its place, and it catches up when loaded.
+- **Leaving the story ends what you were doing.** An act in progress ends
+  with a reason when the actor leaves. It isn't carried frozen into null.
+- **The house's kit goes back on the peg first.** Dressing from supply runs
+  both ways, so the next shift, or a fresh-bodied Extra, finds the pegs full.
+- **Goods carried out of the story wait with their carrier.** A haulier who
+  goes off shift mid-round resumes the round, cargo unchanged.
 
 ### Reconcile tells the truth, including death
 A watched body coming back into view is exactly where the physics puts it. It
@@ -283,6 +321,10 @@ pinned at its coldest clear dawn (about 268 K at Terminus).
 7. **Off shift, out of the story** `short` · `player`. At shift end the hand
    leaves, with a line a watching player sees, and comes back at shift start in
    the state honest physics gives a frozen body.
+7a. **Nowhere is timeless** `short` · `player`. A hand goes off shift at dusk
+    carrying fresh milk, its kit back on the peg. At dawn it returns no
+    hungrier, colder or more tired than it left, and the milk is exactly as
+    fresh. A hand mid-act at shift end stops with a line saying why.
 8. **Nobody watching** `short` · `staged`. A player leaves the Delight for six
    game hours of winter and comes back. Every Cast there is alive and where its
    work and needs put it. The house's fuel is lower and its water drawn, by
@@ -335,6 +377,12 @@ pinned at its coldest clear dawn (about 268 K at Terminus).
 - A Cast posted where nothing can keep it alive is found dead there, and the
   death appears somewhere a person reads.
 - On a hot day no Cast wears its winter layers.
+- A Cast coming back from off shift is no hungrier, colder or older than when
+  it left, and nothing it carried has aged. The house's pegs are full for the
+  next shift.
+- A Cast in an empty room is in the story: time passes for it. A Cast out of
+  the story has no time pass. A player can tell the two apart, because only
+  the first can be found.
 - A new character can walk out into the first winter, feel it, and fix it with
   the coat offered where they wake.
 - An author can add a second dairy, quay or shop whose cast survive winter

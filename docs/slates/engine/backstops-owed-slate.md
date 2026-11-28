@@ -171,4 +171,5 @@ reuse it or generalize it. Every row must be accounted for in the plan.
 | outdoor kit | wardrobe/outfit (player-only), `Costumed` (once-flag) | **genuinely new?** dressing from a post's peg; check whether a Locker / kept container plus `wear` covers it |
 | the death report | `DiagnosticApi` store, the `errors` verb | reuse where a person reads it; no new log |
 | the backstop | `Vitals.diesOfNeglect` (`lib/vitals/Vitals.ts:1649`), its 4 gates | **delete** |
+| null is timeless | nothing: thermal's `baseAmbientK` returns the setpoint for a null container; metabolism's `integratesLongAbsence` skip; spoilage/growth/maturation run on the clock wherever the thing is | **genuinely new as a rule**: one stamp on leaving the narrative and one rebase on re-entry for the held subtree, not per subsystem. The plan must find every derive-on-read clock |
 | act identity per turn | tropes (build-1, in flight) | coordinate: the needs turns carry it |
