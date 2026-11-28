@@ -24,15 +24,26 @@ to remove, which is "enable authors, never impose" broken in code.
 
 **Decided:** no implicit behavior. Looking after your own body is declared
 once on a **person kind** row that every NPC inherits, where it's visible and
-an author can override it. Keeping the house fire is declared on the **role
-kinds** that tend fires. Those kinds come from the **agents pass of the
-template taxonomy refactor**, which runs before this build and retires
-`/stuff/agent/costume/student`.
+an author can override it. Keeping the house fire is **a job, so it's
+declared on the seat** whose work it is (owner, 2026-11-28: *put job behaviors
+on the seat*). Whoever holds that seat tends the fire on shift, and the
+seat's **kit** is the work clothes (the dairy's outdoor layers among them).
+The person kind and seat-declared work and kit both come from the **agents
+pass of the template taxonomy refactor**
+([agent-taxonomy-requirements](../requirements/agent-taxonomy-requirements.md),
+on `reqs/agent-taxonomy`). It runs before this build, retires
+`/stuff/agent/costume/student`, and makes behaviors merge entry by entry, so
+an inherited `fends` survives a row that lists its own behaviors and a row
+can visibly remove it.
 
 - **W0–W5 do not depend on it** and may proceed in parallel. They cover the
   heat budget, room heat, sleeves, timeless null, watched and presence.
-- **W6 and later wait** for the agents pass to merge. The `fends` and
-  `stokes` specs then go on its kind rows, not in `NPC.onCreate`. Every
+- **W6 and later wait** for the agents pass to merge. `fends` then goes on
+  the person kind row, and `stokes` on the seats that tend a fire, not in
+  `NPC.onCreate`. W6's kit work builds on the seat's kit: the agents pass
+  makes a holder wear the seat's kit; this build turns that into dressing
+  from the peg with the weather and the shift (D14's `dress()`). It is the
+  same declaration, not a second one (C2). Every
   "`NPC.onCreate` adds the spec" below is superseded by this section.
 
 ### Exception cases W6 must resolve (owner review, 2026-11-28)
@@ -59,8 +70,8 @@ the owner when W6 starts.
 7. **`stokes` tends its own house's declared fire only.** The "first burner
    in the room" fallback is deleted, so a visitor never feeds another
    house's fire from that house's fuel.
-8. **`stokes` only on role kinds that tend a fire.** It isn't a universal
-   spec.
+8. **`stokes` only on seats whose job tends a fire.** It isn't a universal
+   spec, and it runs only while its holder is on shift.
 9. **Species:** W1 reads every NPC species' vital profile (sapiens,
    sensitivus, semiorcus, khazadicus, infernalis). If any differs, the bench
    calibrates it too.
@@ -463,7 +474,7 @@ word; its prose collisions are listed there. `Amenities` says what it is.
 - **`stokes` and `fends`** ~~are two implicit brains on every NPC~~ —
   **superseded (owner, 2026-11-28):** both are declared on kind rows from the
   agents pass. `fends` goes on the person kind, `stokes` on the fire-tending
-  role kinds. Nothing is implicit (see § Sequencing).
+  seats. Nothing is implicit (see § Sequencing).
 - **`presenceGated = false` brains keep a nightly beat while `fends` is
   settled by arithmetic.** Two answers to "what happens unwatched". **Debt**:
   destination unobserved-economy-slate.

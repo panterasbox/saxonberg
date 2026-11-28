@@ -110,8 +110,9 @@ first winter). The reuse ledger is at the end of that slate.
   household-lifecycle-slate. This build gives a home only to a Cast whose author
   writes one. The default off shift is out of the story.
 - **Retiring the student costume parent and building the agent taxonomy** →
-  the agents pass of the template taxonomy refactor, which follows this build
-  and uses its outfit needs as evidence.
+  the agents pass of the template taxonomy refactor, which (decided
+  2026-11-28) runs BEFORE this build's W6: it supplies the person kind and
+  seat-declared work and kit.
 - **NPC trade and production while nobody watches** → unobserved-economy-slate.
   Reconcile debits what a body consumed. It doesn't run the body's work.
 - **A logged-out player's body** → absent-body-slate. Players are unchanged,
