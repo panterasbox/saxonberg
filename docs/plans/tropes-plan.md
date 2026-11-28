@@ -230,6 +230,31 @@ all five ledgers; `fromParty`/`toParty`/`heldBefore` (bank); `basis`/`txId` (cha
 (transcript); `trope`/`actId`/`counterparty` (disposition); `act` (operation rows); `credit` (the
 gather row).
 
+**The command layer — every verb and controller this build touches** (one layer above the
+Standard Model: the CLI's views, controllers and affordances). The rule held throughout: **controllers
+stay IO** — none fires a beat or writes a reading (P5; D-list), so every row below is a view, an
+argument, or a call moved onto a model.
+
+| verb / controller | change | player-visible? |
+|---|---|---|
+| `give` — `give.yaml` + `GiveController` | ⭐ new option **`--lend`**; default now passes title when the giver owns the thing (D7); help states both | **yes** |
+| `talk` — the dialogue effect | new effect `assert` (an asserted beat) on the clerk's and officer's rows, replacing `regard` there; the lounge and Katie unchanged (D21) | the same choices; new authored lines for the clerk (a rude line, a confession) |
+| `introduce` — `IntroduceController` | the regard bump leaves the controller; the `tell` occurrence comes from the model's identity-learning path (D21, P5) | no — regard moves only with the roster installed |
+| `pet` — `PetController` | `PET_REGARD` deleted; the reading moves to *Pet the Dog* | no — same direction and size with the roster |
+| `operate` — `OperateController` | lists only `forAct('operate')` rows, so new operation rows do not appear as choices; credit from the row | no — exactly today's five choices (tested) |
+| `suture` · `set` · `bleed` · `transfuse` · `prescribe` · `test` (trade-medicine) | Discipline from the operation row's `exercises:`, not a literal; the patient on the record | no |
+| `tie` · `splice` (rope, the rope jack) | `ropework` from the knot's joint row | no |
+| the glass bench (gather, blowpipe) | `glasswork` from the gather and blowpipe rows; the gather at **hard** | `competence` weighs glass more |
+| `donate` (blood) | the gift's trait and renown move to tropes | no — same with the roster |
+| `title transfer` · `buy` · `sell` · `shelf consign` / `reclaim` | each chattel transfer states its basis (gift · sale · terms · restored) | no |
+| `job claim` / `complete` / `abandon`, `attack` / `fight yield` / `finish`, `pay` | no view change; their models write the new row fields | no |
+| `traits` · `chronicle` · `standing` · `competence` | no view change; `chronicle` shows a trope's telling (said only when surprising) | **yes** — tellings appear |
+| `help beats` | new help topic for the published beat vocabulary | **yes** |
+| `testharness act` | ⚠ owed **test-only** verb (drive step 15) — reads an act's id and owner | test worlds only |
+
+**No new player verb. No affordance moves.** One new option (`give --lend`), one new dialogue effect
+(`assert`), one help topic, one test-only verb.
+
 **Retired:** `ActSignature.dispositionValence`; `BLOOD_GIFT_SIGNATURE`, `BLOOD_GIFT_RENOWN`; dials
 `combatRegardUnlawfulKill`, `combatRegardDuelWin`, `contractBreachRegardPenalty`; `PET_REGARD`,
 `ILL_FROM_HAND_REGARD`, `REGARD_INTRODUCE_BUMP`; `captureActor`/`runAsCaptured` and the two private

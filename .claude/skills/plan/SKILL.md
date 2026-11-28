@@ -138,6 +138,11 @@ thing doing an old job), P12 (a new name for an existing call) or P13
 - **Fields, per host row/class** — and the share of hosts for which the
   field is empty (the quiet form of P2).
 - **Retired** — every member, constant and dial deleted.
+- **The command layer** — one layer above the Standard Model, the CLI-MVC
+  surface: every verb, view (`*.yaml`), controller, option, argument,
+  affordance and dialogue effect the build adds or changes, and whether
+  the player sees the difference. Controllers stay IO (P5) — a row here
+  that has a controller deciding something is a finding, not a change.
 - ⚠ **Names** — every new name checked against the existing vocabulary
   (subsystem docs, the command categories, other Apis) for a collision.
 
