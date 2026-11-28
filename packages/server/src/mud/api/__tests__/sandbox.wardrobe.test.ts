@@ -28,7 +28,7 @@ import {
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import Location from '../../lib/location/Location';
+import Location from '../../lib/place/Location';
 import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../lib/sandbox/SandboxCrossingExit';
 import type { Containable } from '../../lib/spatial/Containable';
@@ -135,8 +135,8 @@ beforeEach(() => {
     // The sandbox stands up a circle floor and a wire body — both
     // clones of rows now.
     {
-      path: '/platform/location/sandbox/CircleFloor',
-      class: '/platform/location/sandbox/CircleFloor',
+      path: '/platform/place/sandbox/CircleFloor',
+      class: '/platform/place/sandbox/CircleFloor',
       data: {},
     },
     {

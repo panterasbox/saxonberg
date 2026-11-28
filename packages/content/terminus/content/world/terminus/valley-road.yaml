@@ -19,7 +19,7 @@
 # Three rooms, and the climb is the whole content: 35 m at the towpath,
 # 130 m at the stop. Everything the suburb's water problem consists of
 # is in that hundred metres.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Valley Road
   cellSize: 6.0

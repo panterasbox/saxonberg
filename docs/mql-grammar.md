@@ -995,7 +995,7 @@ me:i:[prop.hp > 0]                      (comparison
                                          so missing prop.hp is excluded)
 
 # Rooms whose name or top-level detail names match "fountain"
-/platform/location/*:fountain                (chain narrow uses
+/platform/place/*:fountain                (chain narrow uses
                                          the detail-keyword extension,
                                          landing via.detailPath when
                                          a detail name matched)

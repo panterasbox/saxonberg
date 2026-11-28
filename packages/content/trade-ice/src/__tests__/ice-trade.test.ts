@@ -26,7 +26,7 @@ import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Actor } from '@saxonberg/server/mud/lib/creature/Actor';
-import Pool from '@saxonberg/server/mud/platform/location/Pool';
+import Pool from '@saxonberg/server/mud/platform/place/Pool';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';

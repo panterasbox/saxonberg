@@ -72,7 +72,7 @@ beforeEach(() => {
   }, SUPPLIER_COUNTER);
   // The supplier business: its operating locations name the shelf. Loaded
   // on use (`StuffApi.singleton`), never by the line.
-  const pottery = { getOperatingLocations: () => ["/test/stock-backstop/location/shop", SUPPLIER_COUNTER] };
+  const pottery = { getOperatingLocations: () => ["/test/stock-backstop/place/shop", SUPPLIER_COUNTER] };
   vi.spyOn(StuffApi, "singleton").mockImplementation((async (path: string) => {
     if (path === POTTERY) return pottery as unknown as Stuff;
     throw new Error(`no singleton at ${path}`);

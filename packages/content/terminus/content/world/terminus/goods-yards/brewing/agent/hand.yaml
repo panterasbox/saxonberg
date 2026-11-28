@@ -49,13 +49,13 @@ data:
     - brain: /lib/behavior/cellars
       trigger: candidate
       config:
-        home: /world/terminus/goods-yards/brewing/location/floor
-        counterRoom: /trade/distribution/location/cash-and-carry
+        home: /world/terminus/goods-yards/brewing/place/floor
+        counterRoom: /trade/distribution/place/cash-and-carry
         crushes: [mash]
         pitchJar: true
         lagerLeg:
           recipe: /trade/brewing/recipes/lager-mash
-          room: /world/terminus/goods-yards/brewing/location/cold-store
+          room: /world/terminus/goods-yards/brewing/place/cold-store
         buyKeyword: malt
         inputMin: 1
         vesselCategory: keg
@@ -68,8 +68,8 @@ data:
     - brain: /lib/behavior/cellars
       trigger: candidate
       config:
-        home: /world/terminus/goods-yards/brewing/location/cold-store
-        counterRoom: /trade/distribution/location/cash-and-carry
+        home: /world/terminus/goods-yards/brewing/place/cold-store
+        counterRoom: /trade/distribution/place/cash-and-carry
         crushes: []
         buyEvery: 0
         vesselCategory: keg

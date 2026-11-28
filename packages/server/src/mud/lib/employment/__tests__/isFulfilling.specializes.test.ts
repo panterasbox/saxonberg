@@ -36,7 +36,7 @@ import { TemplatePaths } from '../../paths';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 const HOUSE = '/test/idea/house';
-const BAR = '/test/location/floor';
+const BAR = '/test/place/floor';
 
 class Room extends ContainerMixin(ContainableMixin(Idea)) {
   static _mixinName = 'Room';

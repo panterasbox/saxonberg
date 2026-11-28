@@ -63,12 +63,12 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
 const STORE = '/world/terminus/general-store/shop-floor';
-const SHED = '/world/terminus/rejection/location/provisioning';
-const SMELTER = '/world/terminus/rejection/location/smelter';
+const SHED = '/world/terminus/rejection/place/provisioning';
+const SMELTER = '/world/terminus/rejection/place/smelter';
 const CROSSROADS = '/world/terminus/delight-road/crossroads';
-const COBBLER = '/world/terminus/mayfield-row/cobbler/location/shop';
+const COBBLER = '/world/terminus/mayfield-row/cobbler/place/shop';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
 

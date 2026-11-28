@@ -45,8 +45,8 @@ import {
 } from '../../../../../lib/security/__tests__/test-setup';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 
-const SHOP = '/stuff/test/apply/location/shop';
-const YARD = '/stuff/test/apply/location/yard';
+const SHOP = '/stuff/test/apply/place/shop';
+const YARD = '/stuff/test/apply/place/yard';
 const BIZ = '/stuff/test/apply/idea/business';
 const ALICE = '/platform/agent/Avatar/alice';
 

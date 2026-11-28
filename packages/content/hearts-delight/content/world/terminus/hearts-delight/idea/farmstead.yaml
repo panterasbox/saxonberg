@@ -33,7 +33,7 @@ data:
   zoneNaming: key
   joins: parcel
   extent: /world/terminus/hearts-delight/farmstead
-  entrance: /world/terminus/hearts-delight/farmstead/location/yard
+  entrance: /world/terminus/hearts-delight/farmstead/place/yard
   footprintM2: 670
   buildings:
     - /world/terminus/hearts-delight/idea/farmstead-house

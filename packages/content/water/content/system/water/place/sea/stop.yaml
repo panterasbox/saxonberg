@@ -1,0 +1,9 @@
+# The kind zone of a sea stop: the sea over a ship that went
+# down. It stands EMPTY: every stop is minted with a zone of its own from
+# this row (its identity under this path), as a sea patch is.
+class: /system/water/place/SeaZone
+data:
+  name: the sea
+  cellSize: 100
+  # Copied by its warren, one copy per place, never kept (zone-instancing D13).
+  mintedBy: /system/water/idea/SeaWarren

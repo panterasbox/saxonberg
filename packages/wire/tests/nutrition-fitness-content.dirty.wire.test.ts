@@ -37,7 +37,7 @@ declareFile({
 });
 
 const BANK = '/world/terminus/counting-houses/banking-hall';
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BAKERY = '/world/terminus/market/bakery';
 

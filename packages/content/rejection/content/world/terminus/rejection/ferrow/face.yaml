@@ -12,7 +12,7 @@
 # enforces *descriptor ∩ material keywords = ∅*, and mining prose has to
 # be able to say slate and quartz and malachite. The idea transfers; the
 # document kind does not.
-class: /trade/mining/location/MineRoom
+class: /trade/mining/place/MineRoom
 data:
   shortDescription: working face
   keywords: [face, working, heading]

@@ -14,7 +14,7 @@ import { CombatApi } from '../../../api/combat';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeBody, tool, hold, wornBag } from './carrying-fixture';
 import { makeStuff } from '../../security/__tests__/test-setup';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import type { CombatSession } from '../../combat/CombatSession';
 
 describe('Carrying — tiers and readying (D15/D16)', () => {

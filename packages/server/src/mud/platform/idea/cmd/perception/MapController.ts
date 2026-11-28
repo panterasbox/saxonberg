@@ -29,7 +29,7 @@ import { NavigationApi } from '../../../../api/navigation';
 import { WorldClockApi } from '../../../../api/worldclock';
 import { CardApi } from '../../../../api/card';
 import { MixinApi } from '../../../../api/mixin';
-import type { MapClaim, MapDocument } from '../../../../lib/location/MapClaim';
+import type { MapClaim, MapDocument } from '../../../../lib/place/MapClaim';
 
 const TOPIC = 'sense.survey';
 

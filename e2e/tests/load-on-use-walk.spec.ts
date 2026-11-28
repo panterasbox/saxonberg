@@ -14,12 +14,12 @@ import { openWorldAs, runCommand } from './helpers';
  * Goods are handed through the test seam (`/auth/test-hand`).
  */
 
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const SQUARE = '/world/terminus/market/square';
-const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
+const SAWMILL = '/world/terminus/hearts-delight/place/sawmill';
 const WARD = '/world/terminus/infirmary/ward';
-const TAILOR = '/world/terminus/mayfield-row/tailor/location/shop';
-const DYEHOUSE = '/world/terminus/wharfside/dyehouse/location/floor';
+const TAILOR = '/world/terminus/mayfield-row/tailor/place/shop';
+const DYEHOUSE = '/world/terminus/wharfside/dyehouse/place/floor';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 const COLD = /not resident|DocumentNotResident|went wrong/i;
 

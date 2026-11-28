@@ -14,8 +14,8 @@ import { SecurityError } from '../../lib/security/errors';
 import { StuffApi } from '../stuff';
 import { Boundary } from '../../lib/boundary/Boundary';
 import Exit from '../../lib/boundary/Exit';
-import Location from '../../lib/location/Location';
-import CartesianZone from '../../platform/idea/location/CartesianZone';
+import Location from '../../lib/place/Location';
+import CartesianZone from '../../platform/idea/place/CartesianZone';
 import {
   makeStuff,
   seedKernelContentStore,

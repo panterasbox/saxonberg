@@ -17,7 +17,7 @@ data:
   registerOwner: /world/terminus/waponi-woo
   registerPrefix: /world/terminus/waponi-woo/berths
   registerKind: berth-book
-  office: /world/terminus/waponi-woo/location/store
+  office: /world/terminus/waponi-woo/place/store
   seat:
     business: /world/terminus/waponi-woo/idea/estate
     positionKey: harbormaster
@@ -28,4 +28,4 @@ data:
   rates:
     duesPerMeterPerDay: 0.05
   quays:
-    - { place: /world/terminus/waponi-woo/location/landing, lengthM: 40 }
+    - { place: /world/terminus/waponi-woo/place/landing, lengthM: 40 }

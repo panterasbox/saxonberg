@@ -50,7 +50,7 @@ requires:
 # `producer`: its postRegister produces state nothing else would.
 boot:
   - { template: /platform/idea/EventRegistry, role: sync-read, reason: every EventApi emit resolves it synchronously }
-  - { template: /platform/location/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
+  - { template: /platform/place/void, role: producer, reason: the evacuation fallback ContainerMixin resolves synchronously on destruct }
   # The economic bootstrap's two seat-held organizations: an
   # organization-held title admits nobody until the org is resident, and
   # the Treasury's account is keyed on this row's path.

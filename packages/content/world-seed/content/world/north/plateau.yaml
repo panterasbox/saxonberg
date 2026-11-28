@@ -2,7 +2,7 @@
 # the same snow sky, but polar air holds little water and almost nothing
 # lands. A dusting, and its pass open. Amount is the Locality's, not the
 # temperature's — the Seattle-versus-Minneapolis lever's sibling.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Plateau
   cellSize: 3.0

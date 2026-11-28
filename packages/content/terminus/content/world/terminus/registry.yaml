@@ -6,7 +6,7 @@
 # the gated `parcels` collection (`/world/terminus/registry` → the
 # managed `terminus` group; mud/config/parcels.yaml), the governing
 # security invariant.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Terminus Registry
   cellSize: 3.0

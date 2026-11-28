@@ -15,7 +15,7 @@
  */
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import PersistentLocation from "../../platform/location/PersistentLocation";
+import PersistentLocation from "../../platform/place/PersistentLocation";
 import { StuffApi } from "../stuff";
 import { PersistableApi } from "../persistable";
 import {
@@ -23,7 +23,7 @@ import {
   makeStuffAtPath,
 } from "../../lib/security/__tests__/test-setup";
 
-const ROOM_PATH = "/platform/location/PersistentLocation";
+const ROOM_PATH = "/platform/place/PersistentLocation";
 
 describe("StuffApi.singleton establishes a persistable singleton", () => {
   let room: PersistentLocation;
@@ -143,7 +143,7 @@ describe("StuffApi.singletonOrClone on a warren member that keeps no record", ()
   it("routes through singleton(), never a second clone", async () => {
     StuffApi.clearAll();
     const { default: Compartment } = await import(
-      "../../platform/location/Compartment"
+      "../../platform/place/Compartment"
     );
     vi.spyOn(StuffApi, "classForRef").mockResolvedValue(Compartment as never);
     const room = makeStuff(() => new Compartment());

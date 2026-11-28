@@ -22,7 +22,7 @@ import Place from "../../../../lib/stuff/Place";
 import Thing from "../../../thing/Thing";
 import { ContainmentApi } from "../../../../api/containment";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
-import { attachGraph } from "../../../../lib/location/__tests__/attachments-fixture";
+import { attachGraph } from "../../../../lib/place/__tests__/attachments-fixture";
 
 const PH = TemplateApplier.templatePath;
 const FIXTURE_A = "/world/test/emp/fixture-a";

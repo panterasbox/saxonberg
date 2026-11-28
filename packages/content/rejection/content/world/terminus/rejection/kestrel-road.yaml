@@ -13,7 +13,7 @@
 # ⚠ It carries no `deposit:` — the region zone above it does, and the
 # outward walk is what makes `measure strike` work at the yard gate as
 # well as in the yard.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Kestrel Road
   cellSize: 20.0

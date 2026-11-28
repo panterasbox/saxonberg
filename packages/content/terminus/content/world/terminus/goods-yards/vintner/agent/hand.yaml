@@ -46,8 +46,8 @@ data:
     - brain: /lib/behavior/cellars
       trigger: candidate
       config:
-        home: /world/terminus/goods-yards/vintner/location/floor
-        counterRoom: /trade/distribution/location/cash-and-carry
+        home: /world/terminus/goods-yards/vintner/place/floor
+        counterRoom: /trade/distribution/place/cash-and-carry
         crushes: [crush, white-crush]
         compounds: [dry-vermouth, sweet-vermouth]
         buys:

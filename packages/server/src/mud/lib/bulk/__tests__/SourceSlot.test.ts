@@ -17,7 +17,7 @@ import { NamedMixin } from '../../description/Named';
 import { Idea } from '../../stuff/Idea';
 import Material from '../../material/Material';
 import type { Stuff } from '../../stuff/Stuff';
-import type { WaterRead } from '../../location/WaterSource';
+import type { WaterRead } from '../../place/WaterSource';
 import { Quantity } from '../../quantity';
 import { StuffApi } from '../../../api/stuff';
 import { ShadowApi } from '../../../api/shadow';

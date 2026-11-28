@@ -8,7 +8,7 @@ scratch dir `ranching/orig/` for diffing. Code was verified in
 `WorkingAnimal.ts`, `Herdbook.ts`, `HerdRegistry.ts`, `lib/Producing.ts`,
 `lib/Handled.ts`, `lib/HeadSeed.ts`, `behavior/herds.ts`, `behavior/raids.ts`,
 the eight `cmd/ranching/*.yaml` views, the five `__tests__`),
-`packages/content/trade-farming/src/location/Field.ts` + `src/lib/Sward.ts`,
+`packages/content/trade-farming/src/place/Field.ts` + `src/lib/Sward.ts`,
 `packages/server/src/mud/lib/metabolism/Metabolic.ts`,
 `lib/thermal/ThermalRegulation.ts`, `lib/creature/{Creature,KeptAnimal}.ts`,
 `lib/husbandry/{Handling,Feeder,Bonded}.ts`, `lib/species/Organism.ts`,
@@ -20,7 +20,7 @@ doc — the midden is a description, nothing produces muck).
 Four findings a reviewer should know first:
 
 1. ⚠⚠ **Nothing grazes, and nothing feeds a head.**
-   `Field.swardGrazingDemandPerGameDay()` (`trade-farming/src/location/Field.ts:418`)
+   `Field.swardGrazingDemandPerGameDay()` (`trade-farming/src/place/Field.ts:418`)
    sums `grazingDemandPerGameDay()` over the field's occupants — and **no
    class anywhere in `packages/` declares that method** (the only other
    hits are the field's own call and `Sward.test.ts`, which overrides the

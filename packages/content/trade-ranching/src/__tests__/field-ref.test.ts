@@ -6,14 +6,14 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import HerdRegistry from '../idea/HerdRegistry';
-import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Tract from '@saxonberg/content-trade-farming/src/place/Tract';
 import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 
 const REGISTRY_PATH = '/trade/ranching/idea/HerdRegistry';
-const TRACT_PATH = '/world/_test/farm/location/home-field';
+const TRACT_PATH = '/world/_test/farm/place/home-field';
 
 function tractWith(keys: string[], key?: string): Tract {
   const tract = makeStuffAtPath(() => new Tract(), TRACT_PATH);

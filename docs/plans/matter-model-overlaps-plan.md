@@ -309,7 +309,7 @@ time.
   under a roof.
 - `D/spoilage.md` § Drying is a RATE (686–695): held moisture is *not* on
   `WetMixin`; the coupling between the two is *"a term, not the carrier."*
-- `C/hearts-delight/…/brickfield/location/hacks.yaml` is its own roofed
+- `C/hearts-delight/…/brickfield/place/hacks.yaml` is its own roofed
   place; the weathering ground is open.
 
 ### The harness

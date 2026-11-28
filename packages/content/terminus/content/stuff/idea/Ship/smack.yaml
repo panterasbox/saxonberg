@@ -27,8 +27,8 @@ data:
     mast stepped well forward and a tiller over her transom.
   # Her deck row — the face of the way aboard her; the deck itself is her
   # warren's keyed room.
-  extent: /stuff/location/ship/smack
-  entrance: /stuff/location/ship/smack/deck
+  extent: /stuff/place/ship/smack
+  entrance: /stuff/place/ship/smack/deck
   warren: /stuff/idea/ShipWarren/smack
   heightM: 10
   deckHeightM: 2

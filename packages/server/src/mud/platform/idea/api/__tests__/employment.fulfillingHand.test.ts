@@ -27,7 +27,7 @@ import { ContainableMixin } from "../../../../lib/spatial/Containable";
 import { ContainerMixin } from "../../../../lib/spatial/Container";
 import { Idea } from "../../../../lib/stuff/Idea";
 import { makeStuffAtPath } from "../../../../lib/security/__tests__/test-setup";
-import { attachGraph } from "../../../../lib/location/__tests__/attachments-fixture";
+import { attachGraph } from "../../../../lib/place/__tests__/attachments-fixture";
 import { TestHarnessApi } from "../../../../api/test-harness";
 
 class Worker extends EmployedMixin(MobileMixin(ContainerMixin(ContainableMixin(Idea)))) {

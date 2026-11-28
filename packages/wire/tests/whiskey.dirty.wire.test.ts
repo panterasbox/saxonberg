@@ -88,7 +88,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const FLOOR = '/world/terminus/goods-yards/crowsfoot/location/floor';
+const FLOOR = '/world/terminus/goods-yards/crowsfoot/place/floor';
 const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';

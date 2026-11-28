@@ -58,13 +58,13 @@ describe("the yard ships the kit that makes it workable", () => {
     // Each lot's house is a zone of its own (zone-instancing D9), so the
     // yard's row authors its cell — every copy claims it once, on its own
     // grid.
-    expect(yard.class).toBe("/platform/location/PersistentLocation");
+    expect(yard.class).toBe("/platform/place/PersistentLocation");
     expect(yard.data?.coords).toEqual({ x: 0, y: 0, z: 0 });
   });
 });
 
 describe("the lane authors no exit into a lot", () => {
-  const lane = read(`${HINKLEY}/location/lane.yaml`);
+  const lane = read(`${HINKLEY}/place/lane.yaml`);
   const exits = (lane.data?.exits ?? {}) as Record<
     string,
     { destination?: string }
@@ -140,7 +140,7 @@ describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
   it("its bathroom is the house's own row, with a tub, its tap and a copper", () => {
     expect(rooms.bathroom).toBeDefined();
     const row = read(`${HINKLEY}/house/indoors/bathroom.yaml`);
-    expect(row.class).toBe("/platform/location/PersistentRoom");
+    expect(row.class).toBe("/platform/place/PersistentRoom");
     expect(row.data?.props).toEqual(
       expect.arrayContaining([
         "/stuff/thing/fixture/tub",
@@ -154,7 +154,7 @@ describe("⭐ a Hinkley house has hot water (cleanliness)", () => {
 describe("⭐ a Hinkley house has a garden — a tract of its layout (tracts build W4)", () => {
   it("the garden is open ground, the lot's share of what the house leaves", () => {
     expect(rooms.garden?.data?.share).toBe(1);
-    expect(read(`${HINKLEY}/house/garden.yaml`).class).toBe("/trade/farming/location/Tract");
+    expect(read(`${HINKLEY}/house/garden.yaml`).class).toBe("/trade/farming/place/Tract");
   });
 
   it("the house and yard stand on 220 m² of a quarter-acre: the garden is about 780", () => {

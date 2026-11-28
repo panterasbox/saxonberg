@@ -9,8 +9,8 @@ data:
   name: Waponi Woo
   alternateNames: [waponi, woo, "waponi woo", island]
   kind: place
-  destination: /world/terminus/waponi-woo/location/landing
+  destination: /world/terminus/waponi-woo/place/landing
   # ⭐ The station a ship lying here hails: the
   # estate store keeps the island's harbor book — `hail office`.
-  hail: /world/terminus/waponi-woo/location/store
+  hail: /world/terminus/waponi-woo/place/store
   focus: { rho: 444480, theta: 180, radius: 1852 }

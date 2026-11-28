@@ -80,7 +80,7 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: { name: 'Narnia' },
       },
     ]);
@@ -89,14 +89,14 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     expect(tpl).toBeInstanceOf(ZoneTemplate);
     expect(tpl).toBeInstanceOf(Template);
     expect(tpl).not.toBeInstanceOf(LeafTemplate);
-    expect(tpl!.class).toBe('/platform/idea/location/CartesianZone');
+    expect(tpl!.class).toBe('/platform/idea/place/CartesianZone');
   });
 
   it('findByPath returns a LeafTemplate for non-folder-class docs', async () => {
     installInMemoryStore([
       {
         path: '/narnia/foyer',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: {},
       },
     ]);
@@ -118,12 +118,12 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     const store = installInMemoryStore([
       {
         path: '/narnia',
-        class: '/platform/idea/location/SphericalZone',
+        class: '/platform/idea/place/SphericalZone',
         data: {},
       },
       {
         path: '/narnia/plaza',
-        class: '/platform/location/SphericalLocation',
+        class: '/platform/place/SphericalLocation',
         data: {},
       },
     ]);
@@ -139,17 +139,17 @@ describe('Template subclass dispatch (Phase Z2)', () => {
     installInMemoryStore([
       {
         path: '/narnia',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
       {
         path: '/narnia/castle',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
       {
         path: '/narnia/castle/foyer',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: {},
       },
     ]);

@@ -46,9 +46,9 @@ import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 const BUSINESS = '/test/idea/house';
 const MARA = '/test/agent/rostered';
 const DAVE = '/test/agent/proprietor';
-const BAR = '/test/location/floor';
-const CELLAR = '/test/location/back';
-const OFFSTAGE = '/test/location/offstage';
+const BAR = '/test/place/floor';
+const CELLAR = '/test/place/back';
+const OFFSTAGE = '/test/place/offstage';
 
 class Worker extends EmployedMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'Worker';
@@ -269,7 +269,7 @@ describe('⭐⭐ a ROUND is roster slots — one shift, a station per hour (repa
 
   it('a stop that is not standing is skipped, and taken on the next pass', async () => {
     const world = seed({ out: true });
-    const YARD = '/test/location/yard';
+    const YARD = '/test/place/yard';
     round(world, [{ hours: [6, 8] }, { hours: [8, 12], station: YARD }]);
     const mara = makeStuffAtPath(() => new Worker(), MARA);
     ContainmentApi.move(mara as never, world.rooms.get(OFFSTAGE) as never);
@@ -291,7 +291,7 @@ describe('⭐⭐ a ROUND is roster slots — one shift, a station per hour (repa
 
   it('⭐ a hand who is not resident is fetched to a stop somebody stands in — and to no other (potash drive)', async () => {
     const world = seed({ out: true });
-    const YARD = '/test/location/yard';
+    const YARD = '/test/place/yard';
     round(world, [{ hours: [6, 8], station: YARD }, { hours: [8, 12], station: CELLAR }]);
     // She is evicted: nothing live at her path. Loading her mints her.
     const real = StuffApi.singleton.bind(StuffApi);

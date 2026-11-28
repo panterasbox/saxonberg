@@ -2,7 +2,7 @@
 # keeps its own record (persistence is the exception) —
 # what is stowed in it is her cargo, still there after a restart; her deck
 # comes up from its row. A member of her warren.
-class: /platform/location/Hold
+class: /platform/place/Hold
 data:
   shortDescription: hold
   keywords: [hold, below]

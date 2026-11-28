@@ -15,8 +15,8 @@ import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/_
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import IceCrossingExit from '../idea/IceCrossingExit';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
-import Locale from '@saxonberg/server/mud/platform/location/Locale';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
+import Locale from '@saxonberg/server/mud/platform/place/Locale';
 import { installModes } from './transport-fixtures';
 
 const CATALOGUE = '/system/water/idea/WatercourseCatalogue';

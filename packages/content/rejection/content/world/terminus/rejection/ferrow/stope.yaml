@@ -2,7 +2,7 @@
 # mine is the rock that is no longer here, and a stope is what that looks
 # like: a big open room, well over the span the ground wants, standing on
 # whatever the last crew left in it.
-class: /trade/mining/location/MineRoom
+class: /trade/mining/place/MineRoom
 data:
   shortDescription: worked stope
   keywords: [stope, void, chamber, worked]

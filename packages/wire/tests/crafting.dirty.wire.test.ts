@@ -49,8 +49,8 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 const STORE = '/world/terminus/general-store/shop-floor';
 
 /** The verb reached its own gate rather than the parser. */

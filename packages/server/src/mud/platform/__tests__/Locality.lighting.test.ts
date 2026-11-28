@@ -21,8 +21,8 @@
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Locality from '../idea/Locality';
-import Location from '../../lib/location/Location';
-import CartesianZone from '../idea/location/CartesianZone';
+import Location from '../../lib/place/Location';
+import CartesianZone from '../idea/place/CartesianZone';
 import { BankingApi } from '../../api/banking';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';

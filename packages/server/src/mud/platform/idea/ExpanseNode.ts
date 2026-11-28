@@ -39,7 +39,7 @@ import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { NamedMixin } from '../../lib/description/Named';
-import { SphericalCoordinatesMixin } from '../../lib/location/SphericalCoordinates';
+import { SphericalCoordinatesMixin } from '../../lib/place/SphericalCoordinates';
 import { GeoPosition, M_PER_NM } from '../../lib/expanse/GeoPosition';
 import { Expanse } from '../../lib/expanse/Expanse';
 import { AppApi } from '../../api/app';

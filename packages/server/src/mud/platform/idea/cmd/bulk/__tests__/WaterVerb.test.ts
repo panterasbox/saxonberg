@@ -662,7 +662,7 @@ describe('water <crop> [at <patch>] — on a field', () => {
       if (parts.length === 0) f.setReserve(soil(300, 0));
       f.parts = parts;
       return f;
-    }, freshPath('/trade/farming/location/_water-field'));
+    }, freshPath('/trade/farming/place/_water-field'));
     const giver = makeStuff(() => {
       const g = new TestGiver();
       g.setName('Alice');

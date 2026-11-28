@@ -92,7 +92,7 @@ data:
         # bar's operating location, so the venue-records carve-out
         # (canWriteVenueRecord) authorizes Dave (the proprietor) to write
         # it, while the wizard `lounge` group keeps the whole parcel.
-        recordsPath: /world/lounge/location/bar/records/eighty-six
+        recordsPath: /world/lounge/place/bar/records/eighty-six
     - brain: /lib/behavior/idles
       trigger: candidate
       config:

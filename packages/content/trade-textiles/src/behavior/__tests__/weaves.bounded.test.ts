@@ -77,7 +77,7 @@ const MILL_FLOOR = YAML.parse(
   readFileSync(
     fileURLToPath(
       new URL(
-        '../../../../terminus/content/world/terminus/wharfside/mill/location/floor.yaml',
+        '../../../../terminus/content/world/terminus/wharfside/mill/place/floor.yaml',
         import.meta.url,
       ),
     ),
@@ -210,7 +210,7 @@ describe('the mill floor is wired', () => {
     const beat = behaviors.find((b) => b.brain.endsWith('/weaves'));
     expect(beat, 'the spinner runs the producer beat').toBeTruthy();
     expect(beat!.config?.stock).toBe('/world/terminus/wharfside/mill/thing/stock');
-    expect(beat!.config?.floor).toBe('/world/terminus/wharfside/mill/location/floor');
+    expect(beat!.config?.floor).toBe('/world/terminus/wharfside/mill/place/floor');
     // ⭐⭐ **This used to assert the spinner's cadence ran AHEAD of the
     // consigning beat's 120 s, "or the cart arrives to an empty shelf".**
     // Under the deliberation beat it cannot: both agents run on their own

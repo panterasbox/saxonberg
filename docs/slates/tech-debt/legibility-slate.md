@@ -241,8 +241,8 @@ in the bar. Twelve identical coupes in the glass rack. Twelve identical
 limes in every one of thirteen crate rows.
 
 And the substitution case, which no merge *operator* can express:
-`trade-hospitality/…/location/bar.yaml` and
-`saxonberg-lounge/…/location/bar.yaml` carry **21-entry `props:` lists
+`trade-hospitality/…/place/bar.yaml` and
+`saxonberg-lounge/…/place/bar.yaml` carry **21-entry `props:` lists
 that differ by exactly one line** — the lounge swaps
 `/trade/hospitality/thing/house-tablet` for its own. Append gives 22
 entries and two tablets; replace means restating all 21, which is

@@ -39,7 +39,7 @@ function templateExists(path: string): boolean {
 
 describe('The Drowned Substation — content integrity', () => {
   it('the zone is a CartesianZone', () => {
-    expect(seed('world/substation').class).toBe('/platform/idea/location/CartesianZone');
+    expect(seed('world/substation').class).toBe('/platform/idea/place/CartesianZone');
   });
 
   it('the flooded-cell room is a Location subclass at authored coords', () => {

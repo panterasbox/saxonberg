@@ -55,23 +55,23 @@ declareFile({
 });
 
 const W = '/world/terminus/goods-yards/rubber-works';
-const WORKS = `${W}/location/ground/works/floor`;
-const STOVE_HOUSE = `${W}/location/ground/stove-house`;
-const STORE = `${W}/location/ground/wing/store`;
-const LOFT = `${W}/location/loft/loft`;
-const TOWER = `${W}/location/tower/tower`;
-const TERRACE = `${W}/location/terrace/terrace`;
+const WORKS = `${W}/place/ground/works/floor`;
+const STOVE_HOUSE = `${W}/place/ground/stove-house`;
+const STORE = `${W}/place/ground/wing/store`;
+const LOFT = `${W}/place/loft/loft`;
+const TOWER = `${W}/place/tower/tower`;
+const TERRACE = `${W}/place/terrace/terrace`;
 const YARD = '/world/terminus/goods-yards/yard';
-const HALL = '/world/terminus/terminal/location/hall';
+const HALL = '/world/terminus/terminal/place/hall';
 const SQUARE = '/world/terminus/market/square';
-const AWNING = '/world/terminus/market/location/under-the-awning';
+const AWNING = '/world/terminus/market/place/under-the-awning';
 const SHOP = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const CATWALK = '/world/substation/catwalk';
 const CELL = '/world/substation/flooded-cell';
-const MILLSITE = '/world/terminus/hearts-delight/location/millsite';
-const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
+const MILLSITE = '/world/terminus/hearts-delight/place/millsite';
+const BYRE = '/world/terminus/hearts-delight/dairy/place/byre';
 
 const ROW = {
   raw: '/trade/rubber/thing/raw-rubber',

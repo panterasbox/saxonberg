@@ -6,7 +6,7 @@
 # curve; until now nothing read the curve and nothing ended the clock, so
 # a body simply lay where it fell until the residency sweep took it. A
 # grave is the honest terminus, and somebody is paid to dig it.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Necropolis
   cellSize: 4.0

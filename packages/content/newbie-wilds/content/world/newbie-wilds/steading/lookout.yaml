@@ -1,6 +1,6 @@
 # The lookout platform — up the ladder on the yard's post (size and
 # carrying W6, drive 10). A ladder wants both hands.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: lookout platform
   keywords: [lookout, platform]

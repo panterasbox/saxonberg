@@ -75,20 +75,20 @@ declareFile({
 });
 
 // The rooms the drive names. Each is a DIFFERENT way a floor is decided.
-const CROSSING = '/world/terminus/university-avenue/location/crossing';   // rung 1, a row with a detail
+const CROSSING = '/world/terminus/university-avenue/place/crossing';   // rung 1, a row with a detail
 const SQUARE = '/world/terminus/market/square';                            // rung 2, three words
 const YARD = '/world/terminus/goods-yards/yard';                           // rung 1, the gutter
-const LANE = '/world/terminus/hinkley-hills/location/lane';                // rung 2, graded dirt
+const LANE = '/world/terminus/hinkley-hills/place/lane';                // rung 2, graded dirt
 const HEATH = '/world/moor/stormy-heath';                                  // an authored peat floor
-const SMITHY = '/world/terminus/hearthworks/location/smithy';              // the forge floor
+const SMITHY = '/world/terminus/hearthworks/place/smithy';              // the forge floor
 // ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
 // orphan room with no unit, no door and no copy — which can no longer exist:
 // each let unit is a zone of its own and its row refuses a room
 // (zone-instancing D4). The furnishing archetype is the same kind of row,
 // outside any copied zone.
-const DORM = '/stuff/location/room/bedroom';      // an interior, minted
+const DORM = '/stuff/place/room/bedroom';      // an interior, minted
 const CLEARING = '/world/terminus/rejection/hanging-wood/oak-clearing';    // a Wood, on grade
-const HALL = '/world/terminus/terminal/location/hall';                     // a big interior, unauthored
+const HALL = '/world/terminus/terminal/place/hall';                     // a big interior, unauthored
 
 /**
  * Every session the file opens, closed together.
@@ -376,7 +376,7 @@ suite('13 · a place that is not standable has no floor, and says so', () => {
     // The `noDefaultFloor` opt-out, live. It was documented in three places
     // for two builds while NO CODE READ IT; the void row uses it now, and
     // mid-air and mid-water will.
-    const s = await at('/platform/location/void', 'void');
+    const s = await at('/platform/place/void', 'void');
     const r = await s.cmd('sit');
     // Either nothing to sit on, or a refusal — never a floor made of earth.
     const said = plain(await r.said());

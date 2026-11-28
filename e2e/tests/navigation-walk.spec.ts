@@ -21,7 +21,7 @@ import { openWorldAs, reenterWorld, runCommand, tipText } from './helpers';
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
 const BANK = '/world/terminus/wharfside/bank';
 const YARD = '/world/newbie-wilds/steading/yard';
-const SEEP = '/world/terminus/rejection/location/seep-hollow';
+const SEEP = '/world/terminus/rejection/place/seep-hollow';
 const GALLERY = '/world/terminus/rejection/hush/gallery';
 const DECK = '/world/terminus/hesper/deck';
 const TORCH = '/world/terminus/general-store/thing/torch';

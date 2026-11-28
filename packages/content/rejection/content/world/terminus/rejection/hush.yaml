@@ -14,6 +14,6 @@
 # forbids. Seeded pockets that are not authored stay grid cells with their
 # own prose. Whether chamber zones can be keyed instances the way rooms
 # are is a later build's question.
-class: /platform/idea/location/SphericalZone
+class: /platform/idea/place/SphericalZone
 data:
   name: the Hush

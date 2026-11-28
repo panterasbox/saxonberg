@@ -3,7 +3,7 @@
 # here worth the axe, and saying so with a class is honest — a player
 # standing here has no `fell`, and that is the first thing the wood
 # teaches about itself.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: treeline above the yard
   keywords: [treeline, edge, scrub, trees, wood, "hanging wood"]
@@ -19,7 +19,7 @@ data:
   coords: { x: 0, y: 0, z: 0 }
   exits:
     south:
-      destination: /world/terminus/rejection/location/hillside
+      destination: /world/terminus/rejection/place/hillside
       edgeMinutes: 4
     north:
       destination: /world/terminus/rejection/hanging-wood/ride

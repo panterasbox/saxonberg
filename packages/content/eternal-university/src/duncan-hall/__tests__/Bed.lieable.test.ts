@@ -12,7 +12,7 @@
 import "@saxonberg/server/test-bootstrap";
 import { describe, it, expect, beforeEach } from "vitest";
 import Bed from "../thing/Bed";
-import DormRoom from "../location/DormRoom";
+import DormRoom from "../place/DormRoom";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";

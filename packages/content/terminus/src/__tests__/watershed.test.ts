@@ -427,7 +427,7 @@ describe("⭐ Hinkley's is a HEAD problem, not a rights problem (D20 / D27)", ()
     // 145 m of tank over 130 m of ground: fifteen meters of head, and
     // that IS the pressure at the tap.
     expect(await tank.headOverServedGroundM()).toBe(15);
-    expect(tank.serves('/world/terminus/hinkley-hills/location/lane')).toBe(true);
+    expect(tank.serves('/world/terminus/hinkley-hills/place/lane')).toBe(true);
   });
 
   it('⭐ the buffer is an OUTAGE TOLERANCE measured in days, not hours', () => {
@@ -463,7 +463,7 @@ describe('⭐ the valley road — a walkable chain, no wizard anywhere (D23)', (
       ['world/terminus/wharfside/bank.yaml', 'west', '/world/terminus/valley-road/towpath'],
       ['world/terminus/valley-road/towpath.yaml', 'west', '/world/terminus/valley-road/the-narrows'],
       ['world/terminus/valley-road/the-narrows.yaml', 'west', '/world/terminus/valley-road/the-shoulder'],
-      ['world/terminus/valley-road/the-shoulder.yaml', 'west', '/world/terminus/hinkley-hills/location/arrival'],
+      ['world/terminus/valley-road/the-shoulder.yaml', 'west', '/world/terminus/hinkley-hills/place/arrival'],
     ];
     for (const [file, dir, dest] of chain) {
       expect(roomExits(file)[dir]?.destination, `${file} ${dir}`).toBe(dest);
@@ -472,7 +472,7 @@ describe('⭐ the valley road — a walkable chain, no wizard anywhere (D23)', (
 
   it('and it walks BACK — a one-way road into a suburb is a trap', () => {
     const back: Array<[string, string, string]> = [
-      ['world/terminus/hinkley-hills/location/arrival.yaml', 'east', '/world/terminus/valley-road/the-shoulder'],
+      ['world/terminus/hinkley-hills/place/arrival.yaml', 'east', '/world/terminus/valley-road/the-shoulder'],
       ['world/terminus/valley-road/the-shoulder.yaml', 'east', '/world/terminus/valley-road/the-narrows'],
       ['world/terminus/valley-road/the-narrows.yaml', 'east', '/world/terminus/valley-road/towpath'],
       ['world/terminus/valley-road/towpath.yaml', 'east', '/world/terminus/wharfside/bank'],
@@ -494,14 +494,14 @@ describe('⭐ the valley road — a walkable chain, no wizard anywhere (D23)', (
       // ⚠ A PREFIX, not one exact class name. This pinned
       // `Locale` verbatim, which made an honest
       // reparent read as a regression: `wharfside/bank` became a
-      // `/platform/location/Street` when the public-lighting service
+      // `/platform/place/Street` when the public-lighting service
       // moved off the `Location` catch-all and onto the class
       // that actually has lamps (review, 2026-09-24). The claim this
       // test makes is *ordinary platform content, no gate* — so it
       // checks that, and any platform location class satisfies it.
       // ⭐ …or the transport pack's harbor quay: the bank is a
       // quay of the port's book, still ordinary content with no gate.
-      expect(String(doc.class)).toMatch(/^\/(platform|system\/transport)\/location\//);
+      expect(String(doc.class)).toMatch(/^\/(platform|system\/transport)\/place\//);
       expect(JSON.stringify(doc)).not.toContain('wizard');
     }
   });

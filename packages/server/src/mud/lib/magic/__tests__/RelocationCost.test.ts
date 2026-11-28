@@ -24,7 +24,7 @@ import { ZoneApi } from '../../../api/zone';
 import { BiomeApi } from '../../../api/biome';
 import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -42,7 +42,7 @@ const elevations = new Map<Stuff, number | null>();
 
 function room(elevation: number | null): Stuff & Container {
   const r = makeStuff(() => new Locale());
-  stampTemplatePathForTest(r, `/platform/location/test/reloc-${seq++}`);
+  stampTemplatePathForTest(r, `/platform/place/test/reloc-${seq++}`);
   elevations.set(r as unknown as Stuff, elevation);
   return r as unknown as Stuff & Container;
 }

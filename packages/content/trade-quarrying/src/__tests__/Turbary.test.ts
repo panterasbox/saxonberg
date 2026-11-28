@@ -22,9 +22,9 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Turbary from '../location/Turbary';
+import Turbary from '../place/Turbary';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import SolidFuel from '@saxonberg/server/mud/platform/idea/material/SolidFuel';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
@@ -275,7 +275,7 @@ describe('the composition, and what it claims', () => {
     // that does nothing is the antipattern a gate exists for. The requirement's
     // *"you ditch a road, a yard and a quarry"* is honoured as the reason for
     // the KERNEL home, not as a shipped act on a quarry face.
-    const { default: OpenWorking } = await import('../location/OpenWorking');
+    const { default: OpenWorking } = await import('../place/OpenWorking');
     expect(MixinApi.hasMixin(OpenWorking, 'ImprovableMixin' as never)).toBe(false);
     expect(MixinApi.hasMixin(Turbary, 'ImprovableMixin' as never)).toBe(true);
   });

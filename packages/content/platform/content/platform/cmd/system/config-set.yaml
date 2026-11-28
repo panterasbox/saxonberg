@@ -12,7 +12,7 @@ help: |
   not set here: the seat sets it through its own verb (the Minister of
   Finance's `treasury set`, the Governor's `reserve set`), on the record.
 examples:
-  - cmd: config defaultStartLocation /world/lounge/location/lounge
+  - cmd: config defaultStartLocation /world/lounge/place/lounge
     note: Set a setting to a new value
 validators:
   - /lib/command/validators/requiresPrimeMinister

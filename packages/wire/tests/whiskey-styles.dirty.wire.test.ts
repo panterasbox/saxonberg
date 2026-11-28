@@ -104,7 +104,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const FLOOR = '/world/terminus/goods-yards/crowsfoot/location/floor';
+const FLOOR = '/world/terminus/goods-yards/crowsfoot/place/floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 
 let k: Session;

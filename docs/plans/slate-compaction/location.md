@@ -16,7 +16,7 @@ slate — the lounge revisit). This batch is the first to compact
 The status block (already re-stamped by an earlier "sort the backlog"
 pass, commit `720d9db06`) was directionally right but the body still
 described 2026-08's design conversation as if none of it had shipped.
-Verified against `packages/server/src/mud/lib/location/{Warren,RoomWarren,CirculationWarren,WarrenMember}.ts`,
+Verified against `packages/server/src/mud/lib/place/{Warren,RoomWarren,CirculationWarren,WarrenMember}.ts`,
 `packages/server/src/mud/world/lounge/idea/LoungeWarren.ts`,
 `packages/content/saxonberg-lounge/content/world/lounge.yaml` (the
 `CartesianZone` — "EVERY LOCATION PLOTS"), `docs/subsystems/location.md`
@@ -72,7 +72,7 @@ Q6 and Q7 are still open and fold into `Left`.
 ### Cut (SHIPPED · DOCUMENTED)
 - Decisions 1–3 (32–51, 20 lines) — Zone/Warren orthogonality, the
   Warren's definition, host→Warren→members — code:
-  `lib/location/Warren.ts` (class doc + `_hostMember`/`_members`);
+  `lib/place/Warren.ts` (class doc + `_hostMember`/`_members`);
   doc: `location.md § Core model`, `§ The pieces`. Replaced by a
   4-line pointer (one of the three graduated below)
 - `### host → Warren → members`'s intro + table + "un-reapable" para
@@ -84,7 +84,7 @@ Q6 and Q7 are still open and fold into `Left`.
   `§ Concurrency`. The closing "honest general definition" parenthetical
   is KEPT (feeds the summoned-graph-host `Left` item)
 - `### Roles + cardinality`'s "Membership discriminator" subsection
-  (190–198 orig, 9 lines) — code: `world/lounge/location/bar.yaml` +
+  (190–198 orig, 9 lines) — code: `world/lounge/place/bar.yaml` +
   `LoungeWarren`'s member set (Dave's Bar never joins it); doc:
   graduated to `location.md § Core model` (see Graduated, below)
 - `### The Warren class hierarchy`'s "hierarchy stays shallow" framing
@@ -155,7 +155,7 @@ Q6 and Q7 are still open and fold into `Left`.
   `WarrenMemberMixin`. Noted in place
 - Open question 3, exit kind + the cardinal-only-intra-zone invariant
   — by `packages/content/saxonberg-lounge/content/world/lounge.yaml`
-  (`class: /platform/idea/location/CartesianZone`, "EVERY LOCATION
+  (`class: /platform/idea/place/CartesianZone`, "EVERY LOCATION
   PLOTS" doctrine comment) and `zone.md § Cardinal-only-intra-zone exit
   invariant` (cardinal exits are unconditional within one zone). The
   slate's own lean — "the lounge isn't on a Cartesian frame at all" —

@@ -3,7 +3,7 @@
 # says "no frost"), warm enough that cane grows all year but for the
 # coolest winter nights (~284 K on a January night, measured). An island:
 # no continentality to speak of. The volcano is why the ground is rich.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Waponi Woo
   cellSize: 20.0

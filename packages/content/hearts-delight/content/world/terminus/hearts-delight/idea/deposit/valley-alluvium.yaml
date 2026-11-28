@@ -18,7 +18,7 @@
 # is two hundred yards off and the gravel under the sand is full of it, so
 # a pit taken down to the gravel stands in water and stops — the brickfield
 # does not dig deeper, it opens a new pit beside the old one, and the old
-# one fills (`brickfield/location/old-pit`). ⚠ The dynamic flood of a
+# one fills (`brickfield/place/old-pit`). ⚠ The dynamic flood of a
 # working that reaches the water is mining-slate's; the old pit is
 # authored flooded.
 class: /system/ground/idea/Deposit

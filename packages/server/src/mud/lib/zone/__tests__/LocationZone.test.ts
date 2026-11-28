@@ -1,9 +1,9 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SpatialZone } from '../SpatialZone';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import SphericalZone from '../../../platform/idea/location/SphericalZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import SphericalZone from '../../../platform/idea/place/SphericalZone';
+import Location from '../../place/Location';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, seedKernelContentStore } from '../../security/__tests__/test-setup';

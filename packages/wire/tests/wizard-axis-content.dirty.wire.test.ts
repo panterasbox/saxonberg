@@ -32,7 +32,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const SEZNICK_LOBBY = '/world/terminus/mayfield-row/seznick-house/lobby';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();

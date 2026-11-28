@@ -14,7 +14,7 @@
 # `(room row, <unit extent>/<leaf>)`; the plan's rows are never served.
 #
 # ⭐ Each unit is a ZONE of its own (zone-instancing D1): a copy of
-# `location.yaml`, named by its key — the unit's extent — and joined to
+# `place.yaml`, named by its key — the unit's extent — and joined to
 # the world through the unit's parcel.
 #
 # ⭐ It names NO `buildings`: a flat is not a building of its own, it is in
@@ -25,5 +25,5 @@ data:
   upkeepTerm: landlord-shell
   zoneNaming: key
   joins: parcel
-  extent: /world/terminus/mayfield-row/seznick-house/location
-  entrance: /world/terminus/mayfield-row/seznick-house/location/hall
+  extent: /world/terminus/mayfield-row/seznick-house/place
+  entrance: /world/terminus/mayfield-row/seznick-house/place/hall

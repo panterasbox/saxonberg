@@ -7,7 +7,7 @@
 # and no `down` — nobody had ever climbed anything in this game. The
 # foot is the same class as the head (an authored working), one level
 # lower, and it says the air is worse without saying it in a number.
-class: /trade/mining/location/AuthoredWorking
+class: /trade/mining/place/AuthoredWorking
 data:
   shortDescription: winze foot
   keywords: [winze, foot, "winze foot", sump, bottom]

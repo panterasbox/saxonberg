@@ -10,7 +10,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import DeferredDestinationExit from '../DeferredDestinationExit';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import type { Stuff } from '../../stuff/Stuff';

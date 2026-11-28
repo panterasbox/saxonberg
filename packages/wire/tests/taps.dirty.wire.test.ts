@@ -96,7 +96,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const PROVISIONING = '/world/terminus/rejection/location/provisioning';
+const PROVISIONING = '/world/terminus/rejection/place/provisioning';
 const SUGARBUSH = '/world/terminus/rejection/hanging-wood/sugarbush';
 const REJECTION = '/world/terminus/rejection';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';

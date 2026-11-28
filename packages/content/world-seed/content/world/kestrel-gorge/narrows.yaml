@@ -1,7 +1,7 @@
 # The narrows — the Kestrel gorge (the river build, D36). A river place:
 # the line's water at its km (current: inherit), walls both sides, handed
 # in at its head and out at its foot.
-class: /system/water/location/RiverPlace
+class: /system/water/place/RiverPlace
 data:
   shortDescription: narrows
   keywords: [gorge, river, kestrel, water, narrows]

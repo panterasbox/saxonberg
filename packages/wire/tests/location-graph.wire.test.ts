@@ -97,7 +97,7 @@ suite('3 — two of a kind are both addressable, and the world can list them', (
     // object and pass.
     const out = await wizard.cmd(
       `eval --parcel ${TESTBED} return (() => {` +
-        `const row = '/platform/location/tombstone';` +
+        `const row = '/platform/place/tombstone';` +
         `const before = StuffApi.findAllByTemplatePath(row).length;` +
         `return 'row read works: ' + (typeof before === 'number');` +
         `})()`,

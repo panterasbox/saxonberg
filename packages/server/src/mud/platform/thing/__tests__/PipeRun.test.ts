@@ -12,7 +12,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import PipeRun from '../PipeRun';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Metal from '../../idea/material/Metal';
 import ToxicMetal from '../../idea/material/ToxicMetal';
 import Water from '../../idea/material/Water';

@@ -1,7 +1,7 @@
 # The dirty face — the iron-stained fringe of the pit. `dig sand` here
 # wins a load rusty with iron: green bottles, and no clearer. Same
 # material, same verb, a different grade — the sand pit's whole lesson.
-class: /trade/quarrying/location/OpenWorking
+class: /trade/quarrying/place/OpenWorking
 data:
   shortDescription: iron-stained sand face
   keywords: [face, pit, sand, working, dirty, rusty]

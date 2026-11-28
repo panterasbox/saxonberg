@@ -16,7 +16,7 @@ import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__
 import { installShapes } from '../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, wornGarment } from '../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
-import Location from '../../../lib/location/Location';
+import Location from '../../../lib/place/Location';
 
 const ALIKE: PlacementEntry[] = [
   { member: Placements.IN, name: 'left pocket', mouth: { width: 0.12, height: 0.035 }, volumeM3: 0.0006 },

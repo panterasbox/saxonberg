@@ -172,7 +172,7 @@ resolution, then what repair changed under you that no conflict shows.
 
 - `wiki-spoiler-fields.snapshot.test.ts` — the review log, as above.
 - ⭐ **`lint:biome-sky` fails on the merge**: repair added an interior you
-  never saw — `/world/terminus/mayfield-row/cobbler/location/shop` (the
+  never saw — `/world/terminus/mayfield-row/cobbler/place/shop` (the
   cobbler's). It needs `enclosure:` and `roof:` when you merge (a town
   shop on Mayfield Row: brick or timber walls, a slate or tile roof —
   your call, it is your vocabulary). Nothing else of repair's is an

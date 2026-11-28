@@ -78,7 +78,7 @@ import { AppSettingKeys } from '../../lib/config/AppSettings';
 import { WaterHardness } from '../../lib/cleanliness/WaterHardness';
 import PipeRun from './PipeRun';
 import type WaterHose from './WaterHose';
-import Street from '../location/Street';
+import Street from '../place/Street';
 import WaterStore from './WaterStore';
 import '../../lib/supply/WaterChemistry';
 import { WaterDrawableMixin } from '../../lib/bulk/WaterDrawable';

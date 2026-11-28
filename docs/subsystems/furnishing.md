@@ -226,7 +226,7 @@ exactly as it did before the fields existed.
 
 ## The room class and its archetypes
 
-`lib/location/PersistentLocation` is the **one class** every archetype is a
+`lib/place/PersistentLocation` is the **one class** every archetype is a
 template row over. Its composition is **`DormRoom`'s stack minus
 `WarrenMember`**:
 
@@ -307,10 +307,10 @@ barbell); its `pace` slot waits for the first treadmill. See
 
 **Three trade bundles** joined them in libations, each a `PersistentLocation`
 row with a `props:` of the trade's own fixtures: hospitality's
-**`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,
+**`bar`** (`/trade/hospitality/place/bar` — back-bar, well, the tools,
 tap, ice bin, water tap, basin, the glass rack with its pool, seating,
 the house tablet) and **`cellar`** (racking, a keg, a cold store);
-distilling's **`warehouse`** (`/trade/distilling/location/warehouse` —
+distilling's **`warehouse`** (`/trade/distilling/place/warehouse` —
 racking; each yard adds its own Stock + hand), which the cash-and-carry
 and every producer's yard used to spell out in full. ⭐ Since the
 template-inheritance build they `extends:` the bundle row instead and
@@ -340,7 +340,7 @@ Warren wires) and lists the bundle's fixtures by reference.
 > seedBornWith`). A bare `clone` never calls it — and cannot, having no unit
 > key to decide with.
 >
-> Verified in a live world: cloning `/stuff/location/room/bathroom` and walking in
+> Verified in a live world: cloning `/stuff/place/room/bathroom` and walking in
 > gives the room's **prose** and **no fixtures at all**. That is correct
 > spine behaviour, not a defect — but the consequence is sharper than
 > "Wave 6 is deferred": **the four archetypes are content that nothing in

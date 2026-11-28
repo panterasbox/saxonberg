@@ -40,5 +40,5 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/goods-yards/crowsfoot/location/floor
+    - /world/terminus/goods-yards/crowsfoot/place/floor
     - /world/terminus/goods-yards/crowsfoot/thing/stock

@@ -26,7 +26,7 @@ import { MessageApi } from '../../../api/message';
 import '../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Species from '../../../platform/idea/species/Species';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import { Idea } from '../../stuff/Idea';

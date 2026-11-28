@@ -37,8 +37,8 @@ declareFile({
 // creates its own channel rather than touching a shipped one, and a
 // second run makes a second channel instead of colliding with the first.
 
-const BAR = '/world/lounge/location/bar';
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const BAR = '/world/lounge/place/bar';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 
 let bar: Session;
 let lobby: Session;

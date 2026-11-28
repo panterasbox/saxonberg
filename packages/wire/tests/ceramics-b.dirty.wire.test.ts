@@ -70,13 +70,13 @@ declareFile({
 });
 
 const QUARRY = '/world/terminus/rejection/quarry/pit';
-const SMELTER = '/world/terminus/rejection/location/smelter';
-const PITHEAD = '/world/terminus/rejection/location/pithead-yard';
-const PROVISIONING = '/world/terminus/rejection/location/provisioning';
+const SMELTER = '/world/terminus/rejection/place/smelter';
+const PITHEAD = '/world/terminus/rejection/place/pithead-yard';
+const PROVISIONING = '/world/terminus/rejection/place/provisioning';
 const GLASSHOUSE = '/world/terminus/rejection/hanging-wood/glasshouse';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
-const B = '/world/terminus/hearts-delight/brickfield/location';
+const B = '/world/terminus/hearts-delight/brickfield/place';
 const SHED = `${B}/moulding-shed`;
 const HACKS = `${B}/hacks`;
 const SHOP = `${B}/potters-shop`;

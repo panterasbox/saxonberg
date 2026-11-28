@@ -151,8 +151,8 @@ beforeEach(async () => {
     () => Money.of(balanceMinor, 'crown' as never),
   );
 
-  shop = makeStuffAtPath(() => new Place(), '/test/eats/location/shop');
-  home = makeStuffAtPath(() => new Place(), '/test/eats/location/home');
+  shop = makeStuffAtPath(() => new Place(), '/test/eats/place/shop');
+  home = makeStuffAtPath(() => new Place(), '/test/eats/place/home');
   counter = makeStuffAtPath(() => new Stock(), COUNTER);
   counter.stockLines = [
     { itemTemplatePath: LEAN, par: 4 },
@@ -245,14 +245,14 @@ describe('every act is a verb a player could type', () => {
     // ⚠ `eat` is absent because the forced `buy` is a no-op in this
     // fixture, so no loaf is in hand — and the brain checks rather than
     // assuming. A forced command reports no outcome.
-    expect(buyer.typed[0]).toContain('/test/eats/location/shop');
-    expect(buyer.typed[buyer.typed.length - 1]).toContain('/test/eats/location/home');
+    expect(buyer.typed[0]).toContain('/test/eats/place/shop');
+    expect(buyer.typed[buyer.typed.length - 1]).toContain('/test/eats/place/home');
   });
 
   it('⭐ home is re-taken even when nothing is bought', async () => {
     balanceMinor = 0;
     await eats.act(ctxFor(buyer));
-    expect(buyer.typed[buyer.typed.length - 1]).toContain('/test/eats/location/home');
+    expect(buyer.typed[buyer.typed.length - 1]).toContain('/test/eats/place/home');
   });
 });
 

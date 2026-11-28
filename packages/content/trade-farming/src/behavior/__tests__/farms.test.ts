@@ -93,7 +93,7 @@ import {
 } from '@saxonberg/server/mud/lib/banking/__tests__/banking-test-harness';
 import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 
-const GROVE = '/trade/farming/location/test-grove';
+const GROVE = '/trade/farming/place/test-grove';
 const STALL = '/test/farm/market/stalls';
 const MARKET = '/test/farm/market/square';
 const FARM_BIZ = '/trade/farming/idea/test-farm-biz';
@@ -547,8 +547,8 @@ describe('the farms beat on a FIELD — fields read at the hand\'s band', () => 
       (async () => {}) as unknown as typeof PersistableApi.captureHostOf,
     );
     w5Scene += 1;
-    FIELD = `/trade/farming/location/_w5-field-${w5Scene}`;
-    YARD = `/trade/farming/location/_w5-yard-${w5Scene}`;
+    FIELD = `/trade/farming/place/_w5-field-${w5Scene}`;
+    YARD = `/trade/farming/place/_w5-yard-${w5Scene}`;
     field = makeStuffAtPath(() => new TestField(), FIELD);
     yard = makeStuffAtPath(() => new Place(), YARD);
   });

@@ -22,7 +22,7 @@ import { ExecutionContextApi, OMNI_SCOPE } from '../execution-context';
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import Location from '../../lib/location/Location';
+import Location from '../../lib/place/Location';
 import SandboxCrossing from '../../platform/thing/sandbox/SandboxCrossing';
 import type { Containable } from '../../lib/spatial/Containable';
 import type { Container } from '../../lib/spatial/Container';
@@ -62,8 +62,8 @@ async function bootRegistry(): Promise<void> {
 beforeEach(() => {
   seedKernelContentStore([
   {
-    path: '/platform/location/sandbox/CircleFloor',
-    class: '/platform/location/sandbox/CircleFloor',
+    path: '/platform/place/sandbox/CircleFloor',
+    class: '/platform/place/sandbox/CircleFloor',
     data: {},
   },
   {

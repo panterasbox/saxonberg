@@ -12,4 +12,4 @@ data:
     - { name: bank, at: /world/terminus/wharfside/bank }
     - { name: square, at: /world/terminus/market/square }
     - { name: avenue, at: /world/terminus/counting-houses/avenue-block }
-    - { name: crossing, at: /world/terminus/university-avenue/location/crossing }
+    - { name: crossing, at: /world/terminus/university-avenue/place/crossing }

@@ -2,7 +2,7 @@
 # walkable open ground, sized at wake as its share of the holding's open
 # ground, and marked into fields by its holder (`mark`). Nothing is marked
 # on a fresh copy.
-class: /trade/farming/location/Tract
+class: /trade/farming/place/Tract
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:
@@ -24,4 +24,4 @@ data:
   share: 0.25
   exits:
     southwest:
-      destination: /world/terminus/hearts-delight/farmstead/location/yard
+      destination: /world/terminus/hearts-delight/farmstead/place/yard

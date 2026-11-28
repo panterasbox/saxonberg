@@ -17,12 +17,12 @@ data:
   rosterSlots:
     - positionKey: attendant
       assignee: /world/terminus/market/bathhouse/agent/attendant
-      station: /world/terminus/market/bathhouse/location/baths
+      station: /world/terminus/market/bathhouse/place/baths
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 22] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/market/bathhouse/location/vestibule
-    - /world/terminus/market/bathhouse/location/baths
-    - /world/terminus/market/bathhouse/location/gym
+    - /world/terminus/market/bathhouse/place/vestibule
+    - /world/terminus/market/bathhouse/place/baths
+    - /world/terminus/market/bathhouse/place/gym
     - /world/terminus/market/bathhouse/thing/tariff

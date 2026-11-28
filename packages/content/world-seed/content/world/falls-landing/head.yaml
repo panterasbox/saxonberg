@@ -2,7 +2,7 @@
 # bank where the gorge walls step back, just above the drop — the one place
 # between the headwaters and the landing where you can climb out of the
 # Kestrel, and where the portage path starts down.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: head of the falls
   keywords: [ledge, head, falls, rock]

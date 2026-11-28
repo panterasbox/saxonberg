@@ -36,7 +36,7 @@ import { CommandApi } from '../command';
 import { CommandLineApi } from '../command-line';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ContainmentApi } from '../containment';
-import Location from '../../lib/location/Location';
+import Location from '../../lib/place/Location';
 
 class TestGiverBase extends EnvironmentMixin(
   FocusedMixin(

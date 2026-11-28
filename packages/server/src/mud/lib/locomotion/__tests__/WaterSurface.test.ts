@@ -21,7 +21,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { Actor } from '../../creature/Actor';
-import Pool from '../../../platform/location/Pool';
+import Pool from '../../../platform/place/Pool';
 import WaterSurface from '../../../platform/thing/WaterSurface';
 import Floor from '../../../platform/thing/Floor';
 import Good from '../../../platform/thing/Good';

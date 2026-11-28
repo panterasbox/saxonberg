@@ -2,7 +2,7 @@
 # death: a fall blocks a FACE and never a room, every exit stays open, and
 # nothing in this build can trap or bury anybody. What a fall costs is a
 # shift spent barring it down, which is exactly what neglect should cost.
-class: /trade/mining/location/MineRoom
+class: /trade/mining/place/MineRoom
 data:
   shortDescription: fall of ground
   keywords: [fall, collapse, rubble, ground]

@@ -4,7 +4,7 @@ How Stuff relates spatially: the **containment** chokepoint, **surface**
 placement, and the **locomotion** that moves actors between rooms — the
 substrate now in `lib/spatial/` (Container, Containable, Mobile,
 Placing, Sealable). The room/coordinate/zone **geometry** that used to
-live here has moved to `lib/location/` — see the sibling doc below.
+live here has moved to `lib/place/` — see the sibling doc below.
 
 Sibling docs cover related ground without overlap:
 
@@ -12,11 +12,11 @@ Sibling docs cover related ground without overlap:
   (`Location`, `Location`, `SphericalLocation`, the coordinate
   mixins, `CartesianZone`, `SphericalZone`, `ZoneApi` resolution) plus
   the Warren elastic-graph (MultiLocation) substrate. All in
-  `lib/location/`.
+  `lib/place/`.
 - [zone.md](./zone.md) — the Zone-hierarchy roots (`Zone`,
   `SpatialZone`, `FolderZone`) and the field-inheritance walk. The
   hierarchy lives in `lib/zone/`; the concrete coordinate zones
-  (`CartesianZone`, `SphericalZone`) live in `lib/location/`.
+  (`CartesianZone`, `SphericalZone`) live in `lib/place/`.
 - [templates.md](./templates.md) — clone pipeline,
   `ZoneApi.resolveZoneForPath`, the folder/leaf invariant on `domain`.
 - [state-model.md](./state-model.md) — the universal `zone` field
@@ -38,7 +38,7 @@ Sibling docs cover related ground without overlap:
 
 The room / coordinate / zone classes (`Location`, `Location`,
 `SphericalLocation`, the coordinate mixins, `CartesianZone`,
-`SphericalZone`, `ZoneApi`) live in `lib/location/` — see
+`SphericalZone`, `ZoneApi`) live in `lib/place/` — see
 [location.md](./location.md); the `Zone` hierarchy roots are in
 [zone.md](./zone.md). This doc's cast is the containment / movement
 substrate in `lib/spatial/`:
@@ -1003,7 +1003,7 @@ validator. See [carrying.md](./carrying.md).
 
 ## Locations, Coordinates, Zones
 
-Moved out of `lib/spatial/` and into `lib/location/`. Rooms
+Moved out of `lib/spatial/` and into `lib/place/`. Rooms
 (`Location` / `Location` / `SphericalLocation`), the coordinate
 mixins (`CartesianCoordinatesMixin` / `SphericalCoordinatesMixin`), and
 the concrete spatial zones (`CartesianZone`, `SphericalZone`) — together

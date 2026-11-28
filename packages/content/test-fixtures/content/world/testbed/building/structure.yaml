@@ -4,7 +4,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/testbed/building
-  entrance: /world/testbed/building/location/hall
+  entrance: /world/testbed/building/place/hall
   shortDescription: testbed building
   register: definite
   keywords: [building, testbed]

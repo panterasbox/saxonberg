@@ -36,8 +36,8 @@ to **any** warren, not just residential ones:
 
 | | members are | occupancy means | it owns | base |
 |---|---|---|---|---|
-| **`RoomWarren`** | ROOMS you stand in (a house's hall and kitchen, the lounge's satellites) | who is standing in a member | the rooms | `lib/location/RoomWarren` |
-| **`CirculationWarren`** | HOLDINGS (each a `RoomWarren`) | who is anywhere inside a member's rooms | the CIRCULATION that reaches them — lane reaches, corridors, stairs, minted from a `PlatPlan` as holdings fill and reaped outside-in | `lib/location/CirculationWarren` |
+| **`RoomWarren`** | ROOMS you stand in (a house's hall and kitchen, the lounge's satellites) | who is standing in a member | the rooms | `lib/place/RoomWarren` |
+| **`CirculationWarren`** | HOLDINGS (each a `RoomWarren`) | who is anywhere inside a member's rooms | the CIRCULATION that reaches them — lane reaches, corridors, stairs, minted from a `PlatPlan` as holdings fill and reaped outside-in | `lib/place/CirculationWarren` |
 
 ⭐ Named for what each IS, not for being the other's opposite (the user,
 2026-10-18, in the cleanliness review: *"InnerWarren and OuterWarren …
@@ -66,8 +66,8 @@ into the right one is almost always the whole design decision.
 
 | Role | Class | Question it answers |
 |---|---|---|
-| The institution | `lib/location/CirculationWarren` (kernel, abstract) | *Which holdings exist, and how do you get to them?* |
-| The layout | `lib/location/PlatPlan` (kernel, value object) | *Where does the next holding GO?* |
+| The institution | `lib/place/CirculationWarren` (kernel, abstract) | *Which holdings exist, and how do you get to them?* |
+| The layout | `lib/place/PlatPlan` (kernel, value object) | *Where does the next holding GO?* |
 | The holding | `residence/idea/HoldingWarren` (pack, an `RoomWarren`) | *What rooms is this one made of, and what shape is it in?* |
 | The way in | `residence/idea/FrontDoorExit` (pack) + the entry door the institution hangs in it | *Where does this threshold lead, and may you cross it?* — the exit answers the first (a deferred destination), the door the second (keyed to the holding, `freeFrom` the inside) |
 
@@ -342,7 +342,7 @@ which side theirs is on, because a cardinal gate is otherwise a guessing
 game.
 
 ⚠ **The let rung has not moved to this yet.** A landing's unit doors are
-still `unit-<n>` and still cross the `seznick-house/location` zone to be
+still `unit-<n>` and still cross the `seznick-house/place` zone to be
 legal. The same ring applies (a corridor is a road with a heading), and
 it is the obvious next step — but a landing is not a street and the
 `right/left` framing wants a second look before it is copied over.
@@ -752,7 +752,7 @@ only ever a thing standing in the world**:
   (`ShipWarren.planOf`, the `FloorplanWarren.planOf` `@hook`);
 - a **mine** copies none (its spine is singletons, its workings carved).
 
-`lib/location/Floorplan.ts` (`new Floorplan(owner, fields).load()`) reads
+`lib/place/Floorplan.ts` (`new Floorplan(owner, fields).load()`) reads
 the rows — FOLLOWED, never searched (`lint:template-scans`): the entrance,
 then every room a way inside the extent leads to from a room already
 found. A room no way reaches is in no copy. A one-room plan (the dorm's)
@@ -766,9 +766,9 @@ plan derives none. The shipped plans:
 |---|---|---|
 | Hinkley `house-programme` | `hinkley-hills/house` | `hinkley-hills/house/*` (the house's own rooms under `house/indoors/`, its building's extent; `living`/`bedroom` extend the generic rows), own zone `house.yaml` |
 | valley `farmstead` | `hearts-delight/farmstead` | `hearts-delight/farmstead/{location,tract}/*` (+ `location/house` extends the generic bedroom), own zone `farmstead.yaml` |
-| Seznick `unit-programme` | `seznick-house/location` | `seznick-house/location/*` (its zone; + `bathroom` extends the generic row) |
+| Seznick `unit-programme` | `seznick-house/place` | `seznick-house/place/*` (its zone; + `bathroom` extends the generic row) |
 | Duncan Hall `dorm-programme` | `duncan-hall/unit` — a zone row of its own (zone-instancing D5; the one plan whose extent had not been a zone) | `duncan-hall/unit/room`, keyed `<extent>/room` |
-| `Ship/smack` (the kind) | `/stuff/location/ship/smack` | its deck, cabin and hold (each room's own `floorM`); `ShipWarren/smack` names nothing |
+| `Ship/smack` (the kind) | `/stuff/place/ship/smack` | its deck, cabin and hold (each room's own `floorM`); `ShipWarren/smack` names nothing |
 | `ShipWarren/authored` | her own zone row (each authored ship's) — she is a single copy of her kind (zone-instancing D12) | her own rooms, copied under her `serial` |
 
 **The copy** (`FloorplanWarren.wake`): every room row is cloned keyed
@@ -825,7 +825,7 @@ ship, under its coat, on the `structure.weather.daysToWorn` dial. Of
 everything the floorplan owns, **only the upkeep term is residential**
 (`FloorplanWarren.getUpkeepTerm`, which a holding answers).
 
-`packages/server/src/mud/lib/location/FloorplanWarren.ts` (abstract,
+`packages/server/src/mud/lib/place/FloorplanWarren.ts` (abstract,
 `Persistable(WarrenMember(Container(RoomWarren)))`) now owns the plan's
 fields — `extent`, `entrance`, `footprintM2`, `buildings` (it was a
 `floorplan` list until harbors review 3, then a `blueprint` row until

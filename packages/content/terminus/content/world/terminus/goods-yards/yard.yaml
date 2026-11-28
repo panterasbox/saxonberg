@@ -4,7 +4,7 @@
 # ⭐ It is the reason the producer floors have doors at all, and the
 # doors are the reason a hauler can do the job the hands post. Nothing
 # is made here; everything passes through.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: goods yards
   keywords: [yards, goods]
@@ -33,39 +33,39 @@ data:
       edgeMinutes: 3
     # ⭐ The plumber's yard (water-supply W5).
     plumbers:
-      destination: /world/terminus/goods-yards/plumbing/location/yard
+      destination: /world/terminus/goods-yards/plumbing/place/yard
       media: [ground]
       edgeMinutes: 1
     # ⚠ Each of these has its far half authored in the trade's own pack.
     # Neither pack reaches into the other's files.
     northwest:
-      destination: /world/terminus/goods-yards/bottling/location/floor
+      destination: /world/terminus/goods-yards/bottling/place/floor
       media: [ground]
       edgeMinutes: 2
     north:
-      destination: /world/terminus/goods-yards/pantry/location/floor
+      destination: /world/terminus/goods-yards/pantry/place/floor
       media: [ground]
       edgeMinutes: 2
     northeast:
-      destination: /world/terminus/goods-yards/crowsfoot/location/floor
+      destination: /world/terminus/goods-yards/crowsfoot/place/floor
       media: [ground]
       edgeMinutes: 2
     southeast:
-      destination: /world/terminus/goods-yards/hollis/location/floor
+      destination: /world/terminus/goods-yards/hollis/place/floor
       media: [ground]
       edgeMinutes: 2
     south:
-      destination: /world/terminus/goods-yards/veshko/location/distillery
+      destination: /world/terminus/goods-yards/veshko/place/distillery
       media: [ground]
       edgeMinutes: 2
     southwest:
-      destination: /world/terminus/goods-yards/farm/location/yard
+      destination: /world/terminus/goods-yards/farm/place/yard
       media: [ground]
       edgeMinutes: 4
     # ⭐ (rubber build) The rubber works' door — the works floor; the
     # stove house's vent opens onto the yard too, one way.
     west:
-      destination: /world/terminus/goods-yards/rubber-works/location/ground/works/floor
+      destination: /world/terminus/goods-yards/rubber-works/place/ground/works/floor
       media: [ground]
       edgeMinutes: 1
   # ⭐ The carrier's people wait here, because this is where the work is.

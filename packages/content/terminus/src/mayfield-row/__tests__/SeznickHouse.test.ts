@@ -35,7 +35,7 @@ import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { CommandApi, type CommandContext, type ModelData } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -146,30 +146,30 @@ function seedDomain(): void {
   // extent (zone-instancing D1).
   add(PROGRAMME, '/system/residence/idea/HoldingWarren', {
     upkeepTerm: 'landlord-shell',
-    extent: `${HOUSE}/location`,
-    entrance: `${HOUSE}/location/hall`,
+    extent: `${HOUSE}/place`,
+    entrance: `${HOUSE}/place/hall`,
     zoneNaming: 'key',
     joins: 'parcel',
   });
-  add(`${HOUSE}/location`, '/platform/idea/location/MintedZone', {
+  add(`${HOUSE}/place`, '/platform/idea/place/MintedZone', {
     name: 'Seznick House units',
     cellSize: 3,
     mintedBy: PROGRAMME,
   });
-  add(`${HOUSE}/location/hall`, '/platform/location/PersistentLocation', {
+  add(`${HOUSE}/place/hall`, '/platform/place/PersistentLocation', {
     shortDescription: 'the entry hall',
     coords: { x: 0, y: 0, z: 0 },
-    exits: { north: { destination: `${HOUSE}/location/main` } },
+    exits: { north: { destination: `${HOUSE}/place/main` } },
   });
-  add(`${HOUSE}/location/main`, '/platform/location/PersistentLocation', {
+  add(`${HOUSE}/place/main`, '/platform/place/PersistentLocation', {
     shortDescription: 'the main room',
     coords: { x: 0, y: 1, z: 0 },
-    exits: { south: { destination: `${HOUSE}/location/hall` } },
+    exits: { south: { destination: `${HOUSE}/place/hall` } },
   });
-  add(CORRIDOR, '/platform/location/PersistentLocation', {
+  add(CORRIDOR, '/platform/place/PersistentLocation', {
     shortDescription: 'a Seznick House landing',
   });
-  add(LOBBY, '/platform/location/PersistentLocation', {
+  add(LOBBY, '/platform/place/PersistentLocation', {
     shortDescription: 'the Seznick House lobby',
     props: [{ template: BOXROOM, as: 'storeroom' }],
   });
@@ -582,7 +582,7 @@ describe('Seznick House — the lease loop', () => {
     expect(w.nodeReachable('main:1')).toBe(true);
     const reborn = await w.admit(unit);
     expect(reborn.isDestroyed()).toBe(false);
-    expect(reborn.getTemplatePath()).toBe(`${HOUSE}/location/hall`);
+    expect(reborn.getTemplatePath()).toBe(`${HOUSE}/place/hall`);
   });
 
   /**

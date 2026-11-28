@@ -33,7 +33,7 @@
 # true. What it is NOT is a claim that the ecology is alive — see
 # [authored-vs-procedural-slate](../../../../../../docs/slates/world/authored-vs-procedural-slate.md),
 # which this and the glowcap together forced.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: the Ferrow diggings
   cellSize: 10.0

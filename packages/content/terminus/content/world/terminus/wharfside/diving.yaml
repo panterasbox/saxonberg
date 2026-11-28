@@ -1,6 +1,6 @@
 # The dive shop at Wharfside (underwater C5) — a sub-zone of the wharfside
 # so the shop keeps its own coords.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Dive Shop
   # Covered by a Locality, so a walk here files claims on your map

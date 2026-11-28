@@ -42,20 +42,20 @@ import { reaches } from "./check-mass";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const CONTENT = join(HERE, "..", "..", "content");
 
-const FURNISHABLE = "/platform/location/PersistentLocation";
-const MINTED = "/platform/location/Location";
+const FURNISHABLE = "/platform/place/PersistentLocation";
+const MINTED = "/platform/place/Location";
 /**
  * ⭐ The room rung's permissive class (water-supply review, 2026-11-07):
  * an interior minted many times. Same discipline as `Location` — a row on
  * it is a KIND, and an authored interior belongs on `Hall`. ⚠ The NAME
- * `/platform/location/Room` once meant the singleton (see below); it came
+ * `/platform/place/Room` once meant the singleton (see below); it came
  * back meaning one-of-many, and this roster is what keeps that honest.
  */
-const MINTED_ROOM = "/platform/location/Room";
+const MINTED_ROOM = "/platform/place/Room";
 /** The kernel's own spatial-zone classes — the roots of the walk below. */
 const ZONE_ROOTS = [
-  "/platform/idea/location/CartesianZone",
-  "/platform/idea/location/SphericalZone",
+  "/platform/idea/place/CartesianZone",
+  "/platform/idea/place/SphericalZone",
 ];
 
 /**
@@ -88,10 +88,10 @@ const ZONE_ROOTS = [
  * how a gate becomes a gate-shaped comment.
  */
 const CARTESIAN_ROOTS = [
-  "/platform/location/Location",
-  "/platform/location/Locale",
-  "/platform/location/PersistentLocation",
-  "/lib/location/Location",
+  "/platform/place/Location",
+  "/platform/place/Locale",
+  "/platform/place/PersistentLocation",
+  "/lib/place/Location",
 ];
 
 /*
@@ -117,8 +117,8 @@ function isCartesianClass(classPath: string): boolean {
  * a KIND of place, minted many times.
  *
  * ⚠⚠ This roster exists because the name is a **semantic trap across
- * branches**. `/platform/location/Location` used to be
- * `/platform/location/Room`, and it carried `SingletonMixin` — one row
+ * branches**. `/platform/place/Location` used to be
+ * `/platform/place/Room`, and it carried `SingletonMixin` — one row
  * WAS one place, and a second `clone()` was refused. This build flipped
  * the axis: the mixin SUBTRACTS (a class without it still backs a
  * singleton template through `StuffApi.singleton()`; a class with it can
@@ -140,11 +140,11 @@ function isCartesianClass(classPath: string): boolean {
  */
 const MINTED_ROWS = [
   "hinkley-hills/content/world/terminus/hinkley-hills/lots/road-segment.yaml",
-  "platform/content/platform/location/venue.yaml",
+  "platform/content/platform/place/venue.yaml",
   "terminus/content/world/terminus/mayfield-row/seznick-house/corridor.yaml",
   // A valley farmstead's yard (tracts build): a plain kind, one copy per
   // holding, keeping nothing.
-  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/yard.yaml",
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/place/yard.yaml",
 ];
 
 /**
@@ -160,9 +160,9 @@ const FURNISHED = [
   // carrying the correct composition all along"*. The warren assigns
   // its position at runtime, which is exactly what this list is for.
   "eternal-university/content/world/terminus/eternal/duncan-hall/unit/room.yaml",
-  "generic-objects/content/stuff/location/room/bathroom.yaml",
-  "generic-objects/content/stuff/location/room/bedroom.yaml",
-  "generic-objects/content/stuff/location/room/living.yaml",
+  "generic-objects/content/stuff/place/room/bathroom.yaml",
+  "generic-objects/content/stuff/place/room/bedroom.yaml",
+  "generic-objects/content/stuff/place/room/living.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/bathroom.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/hall.yaml",
   "hinkley-hills/content/world/terminus/hinkley-hills/house/indoors/kitchen.yaml",
@@ -172,10 +172,10 @@ const FURNISHED = [
   "hinkley-hills/content/world/terminus/hinkley-hills/house/yard.yaml",
   // ⭐ The valley farmstead's barn (tracts build): the farm's store, where a
   // holder's goods are laid back down; its holding places every copy.
-  "hearts-delight/content/world/terminus/hearts-delight/farmstead/location/barn.yaml",
-  "terminus/content/world/terminus/mayfield-row/seznick-house/location/bedroom.yaml",
-  "terminus/content/world/terminus/mayfield-row/seznick-house/location/hall.yaml",
-  "terminus/content/world/terminus/mayfield-row/seznick-house/location/main.yaml",
+  "hearts-delight/content/world/terminus/hearts-delight/farmstead/place/barn.yaml",
+  "terminus/content/world/terminus/mayfield-row/seznick-house/place/bedroom.yaml",
+  "terminus/content/world/terminus/mayfield-row/seznick-house/place/hall.yaml",
+  "terminus/content/world/terminus/mayfield-row/seznick-house/place/main.yaml",
   // ⚠ The KITCHEN archetype, and its pack is misleading: it ships in
   // trade-cooking but it is one of the four D6 furnishing
   // archetypes — a HOME kitchen, whose whole point is the errand
@@ -183,7 +183,7 @@ const FURNISHED = [
   // landlord's and the cook pot is the tenant's. It is not a trade
   // floor, and a sweep by pack name took it for one until
   // `room-archetypes.test.ts` said otherwise.
-  "trade-cooking/content/trade/cooking/location/kitchen.yaml",
+  "trade-cooking/content/trade/cooking/place/kitchen.yaml",
 ];
 
 export interface Row {
@@ -357,12 +357,12 @@ export function classify(rows: readonly Row[]): {
  * months — and it re-arms it in the world, not in a suite, because a
  * fixture that omits zone rows skips the rule entirely. It has happened
  * twice: `seznick-house/rooms.yaml` was left behind by the branch-
- * directory sort while its rooms moved to `location/`.
+ * directory sort while its rooms moved to `place/`.
  */
 export function orphanedZones(rows: readonly Row[], files: readonly string[]): string[] {
   // Every ANCESTOR directory, not just immediate parents: a zone governs
   // its whole subtree, so `duncan-hall.yaml` is doing its job even when
-  // every room underneath sits in `duncan-hall/location/`.
+  // every room underneath sits in `duncan-hall/place/`.
   const dirs = new Set<string>();
   for (const f of files) {
     let d = f.slice(0, f.lastIndexOf("/"));
@@ -489,12 +489,12 @@ export const WARREN_PLACED = [
   "rejection/content/world/terminus/rejection/ferrow/fall.yaml",
   "rejection/content/world/terminus/rejection/ferrow/junction.yaml",
   "rejection/content/world/terminus/rejection/ferrow/stope.yaml",
-  "trade-farming/content/trade/farming/location/tract.yaml",
-  "water/content/system/water/location/band/bed.yaml",
-  "water/content/system/water/location/band/dark.yaml",
-  "water/content/system/water/location/band/lit.yaml",
-  "eternal-university/content/world/terminus/eternal/duncan-hall/location/corridor.yaml",
-  "saxonberg-lounge/content/world/lounge/location/lounge.yaml",
+  "trade-farming/content/trade/farming/place/tract.yaml",
+  "water/content/system/water/place/band/bed.yaml",
+  "water/content/system/water/place/band/dark.yaml",
+  "water/content/system/water/place/band/lit.yaml",
+  "eternal-university/content/world/terminus/eternal/duncan-hall/place/corridor.yaml",
+  "saxonberg-lounge/content/world/lounge/place/lounge.yaml",
 ];
 
 /**
@@ -505,14 +505,14 @@ export const WARREN_PLACED = [
  * one exit out. Nothing assigns a cell because there is no other cell.
  */
 export const OWN_FRAME = [
-  "platform/content/platform/location/sandbox/CircleFloor.yaml",
-  "platform/content/platform/location/tombstone.yaml",
+  "platform/content/platform/place/sandbox/CircleFloor.yaml",
+  "platform/content/platform/place/tombstone.yaml",
   // ⭐ The river build (D5, D38): a reach patch and a stop are each the one
   // place in a zone of their own, minted with them at a position on the
   // line — the origin of their own frame, as a circle's floor is.
-  "water/content/system/water/location/reach/patch/water.yaml",
-  "water/content/system/water/location/reach/stop/water.yaml",
-  "water/content/system/water/location/reach/bank/ground.yaml",
+  "water/content/system/water/place/reach/patch/water.yaml",
+  "water/content/system/water/place/reach/stop/water.yaml",
+  "water/content/system/water/place/reach/bank/ground.yaml",
 ];
 
 export function unplottedLocations(rows: readonly Row[]): string[] {
@@ -537,7 +537,7 @@ export function unplottedLocations(rows: readonly Row[]): string[] {
 /* ── zone-instancing D10: what content says about copies ─────────── */
 
 /** The kernel class every copied zone row's class is (or extends). */
-const MINTED_ZONE = "/platform/idea/location/MintedZone";
+const MINTED_ZONE = "/platform/idea/place/MintedZone";
 /** The capability a warren composes to mint copies. */
 const ZONE_MINTING = "ZoneMintingMixin";
 
@@ -560,7 +560,7 @@ function isZoneMintingClass(classPath: string): boolean {
  * accepts, with no second list.
  */
 function vocabulary(name: "ZONE_NAMINGS" | "COPY_JOINS"): string[] {
-  const src = readFileSync(join(MUD, "lib", "location", "ZoneMinting.ts"), "utf8");
+  const src = readFileSync(join(MUD, "lib", "place", "ZoneMinting.ts"), "utf8");
   const m = new RegExp(`export const ${name} = \\[([^\\]]*)\\]`).exec(src);
   if (!m) throw new Error(`check-location-classes: ${name} not found in ZoneMinting.ts`);
   return [...m[1]!.matchAll(/'([^']+)'/g)].map((x) => x[1]!);
@@ -1059,7 +1059,7 @@ function main(): void {
         `  ⚠ If these arrived from a branch where this class was named ` +
         `Room and carried SingletonMixin, they are AUTHORED PLACES and ` +
         `the merge has silently stripped their singleton guard. They ` +
-        `want /platform/location/Locale (an interior: Hall). Only a row ` +
+        `want /platform/place/Locale (an interior: Hall). Only a row ` +
         `that describes a KIND of place, minted many times, belongs ` +
         `here — and it goes in the roster in this file:`,
     );

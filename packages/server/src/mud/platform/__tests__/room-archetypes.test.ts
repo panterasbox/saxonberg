@@ -25,10 +25,10 @@ import { parse } from "yaml";
 // bundle lives with the trade whose instruments it collects).
 const CONTENT = fileURLToPath(new URL("../../../../../content/", import.meta.url));
 const ROW: Record<string, string> = {
-  bedroom: "generic-objects/content/stuff/location/room/bedroom.yaml",
-  kitchen: "trade-cooking/content/trade/cooking/location/kitchen.yaml",
-  bathroom: "generic-objects/content/stuff/location/room/bathroom.yaml",
-  living: "generic-objects/content/stuff/location/room/living.yaml",
+  bedroom: "generic-objects/content/stuff/place/room/bedroom.yaml",
+  kitchen: "trade-cooking/content/trade/cooking/place/kitchen.yaml",
+  bathroom: "generic-objects/content/stuff/place/room/bathroom.yaml",
+  living: "generic-objects/content/stuff/place/room/living.yaml",
 };
 
 interface Seed {
@@ -49,7 +49,7 @@ describe("the four archetypes are template rows over ONE class (D6)", () => {
   it("all four exist and share `PersistentRoom` — a kept, plumbed interior", () => {
     for (const name of ARCHETYPES) {
       const seed = read(name);
-      expect(seed.class).toBe("/platform/location/PersistentRoom");
+      expect(seed.class).toBe("/platform/place/PersistentRoom");
     }
   });
 

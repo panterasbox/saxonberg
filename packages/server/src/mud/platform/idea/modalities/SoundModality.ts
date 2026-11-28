@@ -27,8 +27,8 @@ import type { Container } from '../../../lib/spatial/Container';
 import { Sound, type SoundSourceRef, SOUND_SOURCE_CAP } from '../../../lib/perception/Sound';
 import { MAX_HOPS, EXIT_TAU } from '../../../lib/perception/Modality';
 import { MixinApi } from '../../../api/mixin';
-import { Traversal } from '../../../lib/location/Traversal';
-import type { Leg } from '../../../lib/location/Traversal';
+import { Traversal } from '../../../lib/place/Traversal';
+import type { Leg } from '../../../lib/place/Traversal';
 import { StuffApi } from '../../../api/stuff';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { PerceptionApi } from '../../../api/perception';
@@ -188,7 +188,7 @@ function ownSound(loc: Stuff & Container, depth: number): LinearAccumulator {
 
 /**
  * The acoustic walk, on the shared skeleton
- * (`lib/location/Traversal.ts` — *one traversal, or none*).
+ * (`lib/place/Traversal.ts` — *one traversal, or none*).
  *
  * ⭐ What is this walk's own, and therefore stayed: the ambient floor
  * that only applies at depth 0, the vacuum refusal, and

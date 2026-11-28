@@ -73,11 +73,11 @@ declareFile({
 });
 
 const VALLEY_GATE =
-  '/world/terminus/hearts-delight/location/valley-gate';
-const MILLSITE = '/world/terminus/hearts-delight/location/millsite';
+  '/world/terminus/hearts-delight/place/valley-gate';
+const MILLSITE = '/world/terminus/hearts-delight/place/millsite';
 const LOBBY = '/world/terminus/mayfield-row/seznick-house/lobby';
 const AVENUE = '/world/terminus/counting-houses/avenue-block';
-const HINKLEY = '/world/terminus/hinkley-hills/location/lane';
+const HINKLEY = '/world/terminus/hinkley-hills/place/lane';
 
 const open: Session[] = [];
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();

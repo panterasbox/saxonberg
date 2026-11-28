@@ -39,9 +39,9 @@
  * way she came to be.
  */
 
-import { FloorplanWarren } from '../../lib/location/FloorplanWarren';
-import { ZoneMintingMixin } from '../../lib/location/ZoneMinting';
-import type { FloorplanRoom } from '../../lib/location/Floorplan';
+import { FloorplanWarren } from '../../lib/place/FloorplanWarren';
+import { ZoneMintingMixin } from '../../lib/place/ZoneMinting';
+import type { FloorplanRoom } from '../../lib/place/Floorplan';
 import { ContainmentApi } from '../../api/containment';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';

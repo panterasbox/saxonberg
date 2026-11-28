@@ -21,7 +21,7 @@ class: /platform/idea/Structure
 data:
   name: the peak of Waponi Woo
   extent: /world/terminus/waponi-woo
-  entrance: /world/terminus/waponi-woo/location/landing
+  entrance: /world/terminus/waponi-woo/place/landing
   shortDescription: peak of Waponi Woo
   register: definite
   keywords: [peak, cone, volcano, mountain, island, "waponi woo"]

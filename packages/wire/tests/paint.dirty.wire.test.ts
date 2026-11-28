@@ -63,11 +63,11 @@ declareFile({
 });
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const SHOP = '/world/terminus/wharfside/colorman/location/shop';
-const YARD = '/world/terminus/wharfside/colorman/location/yard';
-const SHED = '/world/terminus/wharfside/colorman/location/shed';
+const SHOP = '/world/terminus/wharfside/colorman/place/shop';
+const YARD = '/world/terminus/wharfside/colorman/place/yard';
+const SHED = '/world/terminus/wharfside/colorman/place/shed';
 const TOWPATH = '/world/terminus/valley-road/towpath';
-const COTTAGE_ROOM = '/world/terminus/wharfside/cottage/location/room';
+const COTTAGE_ROOM = '/world/terminus/wharfside/cottage/place/room';
 const COTTAGE = '/world/terminus/wharfside/cottage';
 const KIT = '/system/residence/thing/householders-kit';
 /** What `measure paint` reads a wall with — a rule or a gauging rod. */

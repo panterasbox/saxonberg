@@ -75,7 +75,7 @@ declareFile({
 const GLASSHOUSE = '/world/terminus/rejection/hanging-wood/glasshouse';
 const CLEAN = '/world/terminus/rejection/sand-pit/clean-face';
 const DIRTY = '/world/terminus/rejection/sand-pit/dirty-face';
-const HUT = '/world/terminus/rejection/location/glaziers-hut';
+const HUT = '/world/terminus/rejection/place/glaziers-hut';
 
 /** The `controller-rejected` reason on a result, or null. */
 function refusedFor(r: { notes: readonly unknown[] }): string | null {

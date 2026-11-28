@@ -26,6 +26,6 @@ data:
     - brain: /trade/sericulture/behavior/tends
       trigger: candidate
       config:
-        floor: /world/terminus/hearts-delight/silk-house/location/floor
-        walk: /world/terminus/hearts-delight/silk-house/location/walk
+        floor: /world/terminus/hearts-delight/silk-house/place/floor
+        walk: /world/terminus/hearts-delight/silk-house/place/walk
         counter: /world/terminus/hearts-delight/silk-house/thing/counter

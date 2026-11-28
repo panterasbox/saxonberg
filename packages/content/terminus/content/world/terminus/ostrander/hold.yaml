@@ -2,7 +2,7 @@
 # ashore and she comes up (river D28, lightening). A `Hold`: her one room
 # that keeps a record — her deck and saloon come up
 # from their rows.
-class: /platform/location/Hold
+class: /platform/place/Hold
 data:
   shortDescription: hold
   keywords: [hold, below]

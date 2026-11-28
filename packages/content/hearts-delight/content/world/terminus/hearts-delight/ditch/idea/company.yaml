@@ -36,5 +36,5 @@ data:
         - { days: [1, 3, 5], hours: [22, 4] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/hearts-delight/ditch/location/bank
-    - /world/terminus/hearts-delight/ditch/location/headgate
+    - /world/terminus/hearts-delight/ditch/place/bank
+    - /world/terminus/hearts-delight/ditch/place/headgate

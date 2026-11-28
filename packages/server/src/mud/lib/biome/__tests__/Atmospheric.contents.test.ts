@@ -14,8 +14,8 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
 import Exit from '../../boundary/Exit';
 import { BiomeApi } from '../../../api/biome';

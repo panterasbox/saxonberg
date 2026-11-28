@@ -11,7 +11,7 @@
  * names the framework rather than their row. A file-level gate tells
  * them the row and the direction before any process starts.
  *
- * ⭐ **The rules live in `lib/location/GraphInvariants.ts`, not here.**
+ * ⭐ **The rules live in `lib/place/GraphInvariants.ts`, not here.**
  * `NavigationLogic.checkGraph` runs the same instance over the projected
  * nodes at runtime, so a CMS save answers in the same request. Two
  * copies would drift, and a gate and a runtime check disagreeing about
@@ -26,7 +26,7 @@
  * enumerated list here would silently stop seeing them, which is how a
  * gate becomes a gate-shaped comment.
  *
- * ⚠ And **place rows are NOT all under a `/location/` segment** —
+ * ⚠ And **place rows are NOT all under a `/place/` segment** —
  * `/world/terminus/counting-houses/banking-hall`,
  * `/world/terminus/general-store/shop-floor` and
  * `/world/terminus/mayfield-row/seznick-house/corridor` predate the path
@@ -67,7 +67,7 @@ import {
   type GraphFinding,
   type GraphNode,
   type GraphRule,
-} from "../src/mud/lib/location/GraphInvariants";
+} from "../src/mud/lib/place/GraphInvariants";
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 
@@ -80,19 +80,19 @@ const HERE = dirname(fileURLToPath(import.meta.url));
  */
 const LOCATION_ROOTS = [
   "/lib/stuff/Place",
-  "/platform/location/Location",
-  "/platform/location/Locale",
-  "/platform/location/PersistentLocation",
-  "/lib/location/Location",
-  "/lib/location/SphericalLocation",
-  "/platform/location/SphericalLocation",
-  "/platform/location/SphericalLocale",
+  "/platform/place/Location",
+  "/platform/place/Locale",
+  "/platform/place/PersistentLocation",
+  "/lib/place/Location",
+  "/lib/place/SphericalLocation",
+  "/platform/place/SphericalLocation",
+  "/platform/place/SphericalLocale",
 ];
 
 /** The kernel's spatial-zone roots — derived onward, never listed. */
 const ZONE_ROOTS = [
-  "/platform/idea/location/CartesianZone",
-  "/platform/idea/location/SphericalZone",
+  "/platform/idea/place/CartesianZone",
+  "/platform/idea/place/SphericalZone",
 ];
 
 /**

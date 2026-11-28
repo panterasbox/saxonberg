@@ -37,7 +37,7 @@ import { BankingApi } from '../../api/banking';
  * `settings` kind is the source of values.
  */
 export const AppSettingFallbacks: Readonly<Record<string, string>> = {
-  defaultStartLocation: "/platform/location/void",
+  defaultStartLocation: "/platform/place/void",
 };
 
 export const AppSettingKeys = {

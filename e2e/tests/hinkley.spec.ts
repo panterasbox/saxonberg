@@ -41,7 +41,7 @@ import {
  */
 
 const REGISTRY = '/world/terminus/registry/office';
-const LANE = '/world/terminus/hinkley-hills/location/lane';
+const LANE = '/world/terminus/hinkley-hills/place/lane';
 
 /**
  * The lot that ships already sold — seeded in `config/parcels.yaml`, held
@@ -129,7 +129,7 @@ test('the suburb is reachable and the lane describes the empty lots', async ({
   browser,
 }) => {
   const { page, close } = await openWorldAs(browser, 'hh-reach', {
-    startLocation: '/world/terminus/hinkley-hills/location/arrival',
+    startLocation: '/world/terminus/hinkley-hills/place/arrival',
   });
   try {
     await sendUntil(page, 'look', page.getByText(/Hinkley Hills/i).first());
@@ -160,7 +160,7 @@ test('the TPA carries a route to the suburb, priced as a commute', async ({
   // NOT a wizard: `teleport` is dual-mode and the privileged fork
   // self-powers past the TPA entirely.
   const { page, close } = await openWorldAs(browser, 'hh-board', {
-    startLocation: '/world/terminus/terminal/location/departure-gate-a',
+    startLocation: '/world/terminus/terminal/place/departure-gate-a',
   });
   try {
     await sendUntil(

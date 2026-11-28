@@ -131,7 +131,7 @@ data:
   # v1: Goodkin, the one real branch; a rival bank is one edit away.
   banksAt: goodkin
   operatingLocations:
-    - /world/lounge/location/bar
+    - /world/lounge/place/bar
     # ⚠ AFTER the room: index 0 is where the house stands its people.
     # The counter is the one a sale settles at (lint:shopfronts).
     - /world/lounge/thing/bar-counter

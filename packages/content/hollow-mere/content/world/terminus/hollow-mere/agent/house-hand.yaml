@@ -19,7 +19,7 @@ data:
     - brain: /lib/behavior/frequents
       trigger: candidate
       config:
-        place: /world/terminus/hollow-mere/shed/location/shed
+        place: /world/terminus/hollow-mere/shed/place/shed
         visits:
           - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
     - brain: /trade/ice/behavior/keeps-house

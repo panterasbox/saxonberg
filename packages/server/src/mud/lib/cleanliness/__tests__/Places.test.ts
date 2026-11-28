@@ -17,7 +17,7 @@ import Chair from '../../../platform/thing/Chair';
 import { StuffApi } from '../../../api/stuff';
 import Material from '../../material/Material';
 import SolidFood from '../../../platform/idea/material/SolidFood';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { GROUND_KINDS } from '../../ground/GroundKind';
 import { Condition } from '../../employment/Condition';
 import { ContainmentApi } from '../../../api/containment';

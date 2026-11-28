@@ -2,7 +2,7 @@
 # top of the tower (geography D12). ⭐ A room with a point and a height of
 # its own: thirty metres over the sea, the eye here raises what the
 # landing below cannot (the drive's step 5).
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: lantern gallery on Gannet Rock
   keywords: [gallery, lantern, walk, rail, top]

@@ -1,0 +1,89 @@
+# The KITCHEN — a BUNDLE, and that is the finding (D12).
+#
+# It has no room-level function, and the shipped code says so out loud:
+# `CookPot.yaml` is already "reachable heat + a pot is a kitchen, anywhere."
+# Cooking is conferred by the instruments; a kitchen ROOM confers nothing.
+# What it delivers is the ERRAND COLLAPSE — standing heat, plumbed water, a
+# work surface and food in reach, in the home you already live in.
+#
+# The built-ins below are the LANDLORD'S: authored fixtures under the unit's
+# parcel extent, so `ownerOf` resolves them to the parcel owner and carrying
+# one off is theft, recoverable (D5). The cook pot is the tenant's — its own
+# docstring already calls it portable capital, and portable capital is
+# chattel. Two independent guards: mass (the anvil rule) and title.
+#
+# ⚠ THE ONE AUTHORED DECISION WITH TEETH: the `air` reserve, copied from
+# `hearthworks/cellar.yaml`. This is the only room in the build where you
+# deliberately run a fire indoors. `FireLogic` computes
+# `ventilated = isSkyExposed || openNeighbours.length > 0`; a scope with a
+# finite air budget, a lit fire and NO ventilation burns incomplete — smoke
+# and carbon monoxide, the medium turns un-breathable, respiration takes the
+# CO on as a burden, and the fire self-smothers.
+#
+# Forgiving by construction: ANY open neighbour ventilates, and a kitchen
+# has a doorway. The failure mode of getting it wrong is "the stove went out
+# and the room stinks", not death by accident. Deleting the block restores
+# `airReserveOf -> null` -> open air, with nothing else touched.
+class: /platform/place/PersistentRoom
+data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
+  # ⚠⚠ **No `coords:`, and that is the warren exception.** This row looks
+  # like a trade floor and is not: it is one of the four D6 FURNISHING
+  # ARCHETYPES — a HOME kitchen a floorplan clones into a house, where
+  # the programme stamps the cell. It ships from `trade-cooking`
+  # only because that pack owns cooking, and a coords sweep by pack name
+  # took it for a trade floor until `check-location-classes`'s FURNISHED
+  # roster said otherwise. It is on that roster for exactly this reason.
+  shortDescription: kitchen
+  keywords: [kitchen, room]
+  register: indefinite
+  longDescription: |
+    A working kitchen — a range against one wall, a counter down the other, a larder in the corner and a basin under the window. It smells of woodsmoke and yesterday's cooking.
+  # ⚠ A FLUX, read over the room's area — its zone's 3 m cell in /trade/cooking
+  # (9 m²): 315 reads the 35 lux this row was tuned to (B54).
+  ambientIntensity: 315
+  ambientColorTemperature: 4500
+  # ⭐⭐ No air budget, and the archetype is the reason this matters. A
+  # kitchen used to be *the only room in the game where you deliberately
+  # run a fire indoors* — because it was the only room that authored an
+  # air Reserve. That was never a decision anybody made; it was the one
+  # row somebody remembered. Every scope with a volume starves a fire now,
+  # and every scope with a doorway does not.
+  # Order matters: the counter is populated before anything that could rest
+  # on it (the dorm's desk-then-pot precedent).
+  props:
+    - /stuff/thing/fixture/range
+    # ⭐ The window the basin sits under, as a real pane (cleanliness D19).
+    - /stuff/thing/fixture/window
+    - /stuff/thing/fixture/counter
+    - /stuff/thing/fixture/larder
+    # ⭐ Seeded SHUT — it holds cold by being shut, which is the exact
+    # inverse of the larder above it. The ice is carried in; the box
+    # arrives warm and empty, and `analyze rooms` says so until somebody puts
+    # a block in it.
+    - /stuff/thing/fixture/icebox
+    - /stuff/thing/fixture/basin
+    # A furnished let comes with something to eat off and something to eat
+    # with. Movables rather than built-ins, but they belong to the let the
+    # way the basin does — and without them the errand collapse the kitchen
+    # exists FOR is only half delivered.
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/plated-dish
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/table-knife
+    # ⭐⭐ **Fuel, in reach of the fire.** The fire build made a burner's
+    # fuel a BED somebody fills — before it, a `%` Reserve the row
+    # authored once meant a forge arrived pre-fuelled and could never be
+    # fed again. The consequence is systemic and this is its content
+    # half: **every room with a fire somebody is expected to light needs
+    # fuel they can pick up.** Nine rooms did not.
+    #
+    # ⚠ Bounded props, never a faucet (the fuel yard's own four baskets
+    # are the precedent): a starting condition, not a supply. What
+    # restocks it is the trade that makes it.
+    - { template: /stuff/thing/items/dry-log, count: 3 }

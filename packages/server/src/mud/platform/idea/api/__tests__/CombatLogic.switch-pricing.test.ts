@@ -20,7 +20,7 @@ import { installV1QuantityMarshallers } from '../../../../lib/persistence/__test
 import { makeBody, tool, hold, wornBag } from '../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff, stampTemplatePathForTest } from '../../../../lib/security/__tests__/test-setup';
 import EventRegistry from '../../EventRegistry';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 
 const opened: CombatSession[] = [];
 

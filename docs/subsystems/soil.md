@@ -275,7 +275,7 @@ every instance is keyed `<holding extent>/<leaf>`.
 The ground a farm is made of comes in two sizes, and each has its own
 word. A **tract** is walkable open ground — the bench above a farmyard,
 the meadow below it, a cottage garden — and it is a *place*
-(`trade-farming/src/location/Tract.ts`, the class this doc called
+(`trade-farming/src/place/Tract.ts`, the class this doc called
 `Field` until then). A **field** is what you plant: a named part of a
 tract with soil, grass and a history of its own (`src/thing/Field.ts`,
 a fixture of the tract — the "patch" of the field-population build,
@@ -375,7 +375,7 @@ and get the aggregate. A divided field has NO soil of its own.
 
 **`Field`** (`trade-farming/src/thing/Field.ts`, a "patch" until the
 tracts build renamed it; the walkable ground it is marked on is a
-**`Tract`**, `src/location/Tract.ts`) is a fixture, minted get-or-create
+**`Tract`**, `src/place/Tract.ts`) is a fixture, minted get-or-create
 in slot `field:<key>` (the `ensureFloor` shape) by `Tract.ensureFields`: `CharacteredSoilMixin(SoilMixin(ReservedMixin(
 AdornmentMixin(VisibleMixin(Thing)))))`. Its ground is the field's
 sample with the spec's **lean** applied LAST

@@ -74,13 +74,13 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const B = '/world/terminus/hearts-delight/brickfield/location';
+const B = '/world/terminus/hearts-delight/brickfield/place';
 const SHOP = `${B}/potters-shop`;
 const PIT = `${B}/clay-pit`;
 const TEMPER = `${B}/temper-pit`;
 const YARD = `${B}/weathering-ground`;
-const GATE = '/world/terminus/hearts-delight/location/valley-gate';
-const MILL = '/world/terminus/hearts-delight/location/mill-house';
+const GATE = '/world/terminus/hearts-delight/place/valley-gate';
+const MILL = '/world/terminus/hearts-delight/place/mill-house';
 const SQUARE = '/world/terminus/market/square';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';

@@ -80,8 +80,8 @@ async function makePlayer(playerId: string): Promise<Avatar> {
 beforeEach(() => {
   seedKernelContentStore([
   {
-    path: '/platform/location/sandbox/CircleFloor',
-    class: '/platform/location/sandbox/CircleFloor',
+    path: '/platform/place/sandbox/CircleFloor',
+    class: '/platform/place/sandbox/CircleFloor',
     data: {},
   },
   {

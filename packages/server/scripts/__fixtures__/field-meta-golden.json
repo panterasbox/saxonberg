@@ -1843,7 +1843,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/location/CartesianCoordinates.ts",
+    "file": "packages/server/src/mud/lib/place/CartesianCoordinates.ts",
     "index": 0,
     "className": "CartesianCoordinatesMixin",
     "persistentFields": [
@@ -1854,7 +1854,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/location/Location.ts",
+    "file": "packages/server/src/mud/lib/place/Location.ts",
     "index": 0,
     "className": "Location",
     "persistentFields": [
@@ -1866,7 +1866,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/location/SphericalCoordinates.ts",
+    "file": "packages/server/src/mud/lib/place/SphericalCoordinates.ts",
     "index": 0,
     "className": "SphericalCoordinatesMixin",
     "persistentFields": [
@@ -1878,7 +1878,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/location/WarrenMember.ts",
+    "file": "packages/server/src/mud/lib/place/WarrenMember.ts",
     "index": 0,
     "className": "WarrenMemberMixin",
     "persistentFields": [],
@@ -3902,7 +3902,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/location/CartesianZone.ts",
+    "file": "packages/server/src/mud/platform/idea/place/CartesianZone.ts",
     "index": 0,
     "className": "CartesianZone",
     "persistentFields": [
@@ -3914,7 +3914,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/idea/location/SphericalZone.ts",
+    "file": "packages/server/src/mud/platform/idea/place/SphericalZone.ts",
     "index": 0,
     "className": "SphericalZone",
     "persistentFields": [
@@ -4098,7 +4098,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/location/PersistentLocation.ts",
+    "file": "packages/server/src/mud/platform/place/PersistentLocation.ts",
     "index": 0,
     "className": "PersistentLocation",
     "persistentFields": [
@@ -4109,7 +4109,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/location/Offstage.ts",
+    "file": "packages/server/src/mud/platform/place/Offstage.ts",
     "index": 0,
     "className": "Offstage",
     "persistentFields": [],
@@ -4118,7 +4118,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/location/SphericalLocation.ts",
+    "file": "packages/server/src/mud/platform/place/SphericalLocation.ts",
     "index": 0,
     "className": "SphericalLocation",
     "persistentFields": [
@@ -4129,7 +4129,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/platform/location/sandbox/CircleFloor.ts",
+    "file": "packages/server/src/mud/platform/place/sandbox/CircleFloor.ts",
     "index": 0,
     "className": "CircleFloor",
     "persistentFields": [],
@@ -4352,7 +4352,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/world/lounge/location/Bar.ts",
+    "file": "packages/server/src/mud/world/lounge/place/Bar.ts",
     "index": 0,
     "className": "Bar",
     "persistentFields": [],
@@ -4361,7 +4361,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/world/lounge/location/GlassAlley.ts",
+    "file": "packages/server/src/mud/world/lounge/place/GlassAlley.ts",
     "index": 0,
     "className": "GlassAlley",
     "persistentFields": [],
@@ -4370,7 +4370,7 @@
     "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/world/lounge/location/Lounge.ts",
+    "file": "packages/server/src/mud/world/lounge/place/Lounge.ts",
     "index": 0,
     "className": "Lounge",
     "persistentFields": [],

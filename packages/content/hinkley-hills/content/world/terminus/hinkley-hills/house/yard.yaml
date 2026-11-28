@@ -15,11 +15,11 @@
 # born-with path — after which the yard's own record carries it and the
 # specs sit unused (never double-seeded).
 #
-# `/platform/location/PersistentLocation`: a persistence host (this room's
+# `/platform/place/PersistentLocation`: a persistence host (this room's
 # contents are the owner's) that composes Populates and is not
 # singleton-shaped. It authors no `air` reserve, which is exactly what
 # "outdoors" means to FireLogic.
-class: /platform/location/PersistentLocation
+class: /platform/place/PersistentLocation
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:

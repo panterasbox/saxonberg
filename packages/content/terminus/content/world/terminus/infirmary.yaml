@@ -10,7 +10,7 @@
 # and nothing else; this is a business row, a room row, a tariff row, a
 # cot and a medic — which is the second-instance test: the next town's
 # infirmary is the same six files with different prose.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Infirmary
   cellSize: 3.0

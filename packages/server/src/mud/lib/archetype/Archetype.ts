@@ -49,7 +49,7 @@ const RECIPES_PATH = '/platform/idea/RecipeCatalogue';
  * {@link ArchetypeData.materializesOnto}, no longer the only thing
  * {@link Archetype.materialize} can clone.
  */
-const VENUE_PATH = '/platform/location/venue';
+const VENUE_PATH = '/platform/place/venue';
 
 /**
  * One row of the EFFECTIVE floor: an authored slot, a derived one, or an

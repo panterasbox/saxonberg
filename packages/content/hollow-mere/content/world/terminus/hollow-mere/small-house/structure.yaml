@@ -4,7 +4,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/hollow-mere/small-house
-  entrance: /world/terminus/hollow-mere/small-house/location/house
+  entrance: /world/terminus/hollow-mere/small-house/place/house
   shortDescription: small icehouse
   register: definite
   keywords: [house, icehouse, small]

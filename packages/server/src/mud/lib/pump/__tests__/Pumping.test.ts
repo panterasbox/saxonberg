@@ -29,7 +29,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../backend/PersistenceManager';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Biome from '../../biome/Biome';
 import Material from '../../material/Material';
 import Polymer from '../../../platform/idea/material/Polymer';
@@ -163,7 +163,7 @@ beforeEach(() => {
   // Every dial falls back to its literal: the test pins the physics, not a
   // seeded settings row.
   vi.spyOn(AppApi, 'setting').mockReturnValue('');
-  installInMemoryStore([{ path: '/hill', class: '/platform/idea/location/CartesianZone', data: {} }]);
+  installInMemoryStore([{ path: '/hill', class: '/platform/idea/place/CartesianZone', data: {} }]);
   installRootBiome();
   material(WATER, 'water', 1000);
 });

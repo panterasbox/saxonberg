@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../idea/DormWarren';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import Pack from '@saxonberg/server/mud/platform/thing/equipment/Pack';
-import Location from '@saxonberg/server/mud/platform/location/Location';
+import Location from '@saxonberg/server/mud/platform/place/Location';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';

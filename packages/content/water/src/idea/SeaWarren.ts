@@ -26,12 +26,12 @@
  */
 
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
-import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
-import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import { RoomWarren } from '@saxonberg/server/mud/lib/place/RoomWarren';
+import type { Attachment } from '@saxonberg/server/mud/lib/place/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
-import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
-import type MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
+import { LaunchableMixin } from '@saxonberg/server/mud/lib/place/Launchable';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/place/ZoneMinting';
+import type MintedZone from '@saxonberg/server/mud/platform/idea/place/MintedZone';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -45,20 +45,20 @@ import type { Voyaging } from '@saxonberg/server/mud/lib/expanse/Voyaging';
 import type { Positioned } from '@saxonberg/server/mud/lib/expanse/Positioned';
 import Structure from '@saxonberg/server/mud/lib/structure/Structure';
 import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
-import type SeaPatch from '../location/SeaPatch';
-import type SeaStop from '../location/SeaStop';
+import type SeaPatch from '../place/SeaPatch';
+import type SeaStop from '../place/SeaStop';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import type SeaZone from '../location/SeaZone';
+import type SeaZone from '../place/SeaZone';
 import SeaPatchExit from './exits/SeaPatchExit';
 import type WaterExpanse from './WaterExpanse';
 
 type MemberStuff = Stuff & Container;
 
-const PATCH_ROW = '/system/water/location/sea/patch/water';
-const PATCH_ZONE = '/system/water/location/sea/patch';
+const PATCH_ROW = '/system/water/place/sea/patch/water';
+const PATCH_ZONE = '/system/water/place/sea/patch';
 const EXIT_KIND = '/system/water/idea/exits/sea-patch';
-const STOP_ROW = '/system/water/location/sea/stop/water';
-const STOP_ZONE = '/system/water/location/sea/stop';
+const STOP_ROW = '/system/water/place/sea/stop/water';
+const STOP_ZONE = '/system/water/place/sea/stop';
 /** How far you can call to somebody in the water, m (`expanse.hailRangeM`). */
 const HAIL_M = 100;
 /** One nautical mile, m. */

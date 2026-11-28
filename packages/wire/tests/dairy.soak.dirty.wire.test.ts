@@ -93,17 +93,17 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const YARD = '/world/terminus/hearts-delight/dairy/location/yard';
-const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
-const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
-const CHEESE_ROOM = '/world/terminus/hearts-delight/creamery/location/cheese-room';
+const YARD = '/world/terminus/hearts-delight/dairy/place/yard';
+const BYRE = '/world/terminus/hearts-delight/dairy/place/byre';
+const CREAMERY = '/world/terminus/hearts-delight/creamery/place/floor';
+const CHEESE_ROOM = '/world/terminus/hearts-delight/creamery/place/cheese-room';
 const GOAT_PEN = '/world/terminus/rejection/kestrel-road/goat-pen';
-const DRY = '/world/terminus/rejection/location/the-dry';
-const SMELTER = '/world/terminus/rejection/location/smelter';
-const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
+const DRY = '/world/terminus/rejection/place/the-dry';
+const SMELTER = '/world/terminus/rejection/place/smelter';
+const FUEL_YARD = '/world/terminus/rejection/place/fuel-yard';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
-const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
+const FARMSTEAD = '/world/terminus/hearts-delight/place/farmstead-yard';
 const DELIGHT = '/world/terminus/hearts-delight';
 
 let k: Session;

@@ -50,7 +50,7 @@ import { RecordApi } from "../../api/record";
 import { PersistableMixin } from "../persistence/Persistable";
 import { ForkableMixin } from "../persistence/Forkable";
 import { PersistableApi } from "../../api/persistable";
-import { CartographerMixin } from "../location/Cartographer";
+import { CartographerMixin } from "../place/Cartographer";
 import { HasInteractiveMixin } from "../connection/HasInteractive";
 import { ClientStateMixin } from "../connection/ClientState";
 import { BroadcastMixin } from "../livestream/Broadcast";

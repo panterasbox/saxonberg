@@ -16,8 +16,8 @@ import { KERNEL_CONTENT_ROWS } from '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import SearchController from '../../../platform/idea/cmd/perception/SearchController';
 import GoController from '../../../platform/idea/cmd/movement/GoController';
-import Bar from '../location/Bar';
-import Location from '../../../lib/location/Location';
+import Bar from '../place/Bar';
+import Location from '../../../lib/place/Location';
 import Exit from '../../../lib/boundary/Exit';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -72,14 +72,14 @@ function installStore(): void {
   const docs: Array<Record<string, unknown> & { path: string }> = [
     { path: PH, class: PH, data: {} },
     {
-      path: '/world/lounge/location/bar',
-      class: '/world/lounge/location/Bar',
+      path: '/world/lounge/place/bar',
+      class: '/world/lounge/place/Bar',
       data: {
         shortDescription: "Dave's Bar",
         primaryKeyword: 'bar',
         exits: {
           north: {
-            destination: '/world/lounge/location/office',
+            destination: '/world/lounge/place/office',
             concealment: 'hidden',
             hint: HINT,
             bidirectional: false,
@@ -88,8 +88,8 @@ function installStore(): void {
       },
     },
     {
-      path: '/world/lounge/location/office',
-      class: '/platform/location/Locale',
+      path: '/world/lounge/place/office',
+      class: '/platform/place/Locale',
       data: { shortDescription: "Dave's office", primaryKeyword: 'office' },
     },
     // The default locomotion mode so `go north` (defaultModeFor → walk) can
@@ -195,7 +195,7 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
   });
 
   it('the seed authors a concealed north exit with a hint', async () => {
-    const bar = await StuffApi.singleton<Bar>('/world/lounge/location/bar');
+    const bar = await StuffApi.singleton<Bar>('/world/lounge/place/bar');
     const north = bar.getExit('north');
     expect(north).toBeInstanceOf(Exit);
     expect(north!.isConcealed()).toBe(true);
@@ -206,7 +206,7 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
   });
 
   it('search reveals the office exit, and go north then works', async () => {
-    const bar = await StuffApi.singleton<Bar>('/world/lounge/location/bar');
+    const bar = await StuffApi.singleton<Bar>('/world/lounge/place/bar');
     const north = bar.getExit('north')!;
     const patron = makeStuff(() => new Patron());
     patron.setName('Patron');
@@ -235,7 +235,7 @@ describe('bar office reveal — search unlocks the concealed north exit', () => 
 
     // `go north` succeeds — the patron ends up in the office.
     const office = await StuffApi.singleton<Location>(
-      '/world/lounge/location/office',
+      '/world/lounge/place/office',
     );
     const goC = makeStuff(() => new GoController());
     await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => goC.execute({ target: resolveTarget(patron, 'north') } as CommandModel, ctx$)))(ctx(patron, bar as never, 'go'));

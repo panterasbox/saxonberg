@@ -3,7 +3,7 @@
 # and the yard stand on it. A house lot is zoned residential, so it takes
 # beds and not fields — `mark` is refused in the zoning's own words, and
 # the bed here takes a planting.
-class: /trade/farming/location/Tract
+class: /trade/farming/place/Tract
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:

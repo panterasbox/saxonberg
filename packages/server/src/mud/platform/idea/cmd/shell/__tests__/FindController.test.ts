@@ -30,7 +30,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { PerceptibleMixin } from '../../../../../lib/description/Perceptible';
 import { VisibleMixin } from '../../../../../lib/description/Visible';
-import Location from '../../../../../lib/location/Location';
+import Location from '../../../../../lib/place/Location';
 import { ContainmentApi } from '../../../../../api/containment';
 import { SubscriptionApi } from '../../../../../api/subscription';
 import type { MqlManyResult } from '../../../../../api/mql';

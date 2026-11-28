@@ -1,5 +1,5 @@
 # The ride — the main ride under the canopy, edged with standards. A
-# STAND (`/trade/forestry/location/Wood`): the room is ground, the soil
+# STAND (`/trade/forestry/place/Wood`): the room is ground, the soil
 # is its own, and what stands on it is the `mix:` below until the first
 # capture, and the record ever after.
 #
@@ -12,7 +12,7 @@
 # ⚠ `mix:` is inert after the first capture (the record wins) — tune it
 # on a live world and nothing changes until the DB is dropped, exactly
 # as a `props:` edit never reaches a booted world.
-class: /trade/forestry/location/Wood
+class: /trade/forestry/place/Wood
 data:
   shortDescription: main ride
   keywords: [ride, wood, "hanging wood", path, canopy]

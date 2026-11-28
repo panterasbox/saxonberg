@@ -45,7 +45,7 @@ import type {
   BrainStatics,
 } from '@saxonberg/server/mud/lib/behavior/brain';
 import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import HoldingWarren from '../idea/HoldingWarren';
 
 const DEFAULT_BATCH = 3;

@@ -55,7 +55,7 @@ import { DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
 import type { GroundSample } from '@saxonberg/content-ground/src/idea/Deposit';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';
 
 /** The Discipline every geological read is banded by, and credits. */

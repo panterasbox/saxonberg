@@ -16,7 +16,7 @@ import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import TextileStock from '@saxonberg/content-trade-textiles/src/thing/TextileStock';
 import Rope from '@saxonberg/server/mud/platform/thing/Rope';
-import Location from '@saxonberg/server/mud/platform/location/Location';
+import Location from '@saxonberg/server/mud/platform/place/Location';
 import Muscle from '@saxonberg/server/mud/platform/idea/material/Muscle';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

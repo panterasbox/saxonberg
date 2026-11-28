@@ -50,7 +50,7 @@ function seedBusiness(): BusinessEntity {
       schedule: [{ days: [0, 1, 2, 3, 4], hours: [6, 14] }],
     },
   ];
-  b.operatingLocations = ['/world/lounge/location/bar'];
+  b.operatingLocations = ['/world/lounge/place/bar'];
   return b;
 }
 

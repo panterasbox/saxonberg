@@ -49,8 +49,8 @@ declareFile({
 });
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const WALK = '/world/terminus/wharfside/ropewalk/location/walk';
-const SHOP = '/world/terminus/wharfside/diving/location/shop';
+const WALK = '/world/terminus/wharfside/ropewalk/place/walk';
+const SHOP = '/world/terminus/wharfside/diving/place/shop';
 const BANK = '/world/terminus/wharfside/bank';
 const PUT_IN = '/world/terminus/rejection/put-in/landing';
 const LIP = '/world/newbie-wilds/delve/corridor-2';

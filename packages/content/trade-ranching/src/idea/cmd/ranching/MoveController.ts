@@ -35,7 +35,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Tract from '@saxonberg/content-trade-farming/src/place/Tract';
 import type Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import HerdRegistry, { type HerdRecord } from '../../HerdRegistry';
 import { RANCHING_TOPIC, HERD_REGISTRY_PATH } from './DraftController';

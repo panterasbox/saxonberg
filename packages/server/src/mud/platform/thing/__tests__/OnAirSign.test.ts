@@ -13,7 +13,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi, type AnyConstructor } from '../../../api/mixin';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
-import Location from '../../../lib/location/Location';
+import Location from '../../../lib/place/Location';
 import Thing from '../../../lib/stuff/Thing';
 import OnAirSign from '../OnAirSign';
 import BroadcastDesk from '../BroadcastDesk';

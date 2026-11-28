@@ -13,7 +13,7 @@ import Exit from '../../boundary/Exit';
 import { ContainerMixin } from '../../spatial/Container';
 import { PersistableMixin } from '../../persistence/Persistable';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
-import { WarrenMemberMixin } from '../../location/WarrenMember';
+import { WarrenMemberMixin } from '../../place/WarrenMember';
 import { BehavedMixin } from '../../behavior/Behaved';
 import type { BehaviorSpec } from '../../behavior/brain';
 import { Shadow } from '../Shadow';

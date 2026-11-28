@@ -26,7 +26,7 @@
 # only what differs — where it is seated, and what it looks like.
 extends: /system/arcana/thing/mana-main
 data:
-  seatIn: /world/terminus/terminal/location/arrival-gate
+  seatIn: /world/terminus/terminal/place/arrival-gate
   shortDescription: district mana line
   keywords: [line, main, conduit, mains, district, mana]
   register: definite

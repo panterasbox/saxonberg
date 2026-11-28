@@ -19,10 +19,10 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '@saxonberg/server/mud/lib/mixin';
-import type { MovingWater } from '@saxonberg/server/mud/lib/location/MovingWater';
+import type { MovingWater } from '@saxonberg/server/mud/lib/place/MovingWater';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import type { WaterPlace } from '@saxonberg/server/mud/lib/location/WaterPlace';
-import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
+import type { WaterPlace } from '@saxonberg/server/mud/lib/place/WaterPlace';
+import type { Shore } from '@saxonberg/server/mud/lib/place/Shore';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { LinePosition } from './RiverLine';

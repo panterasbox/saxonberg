@@ -21,7 +21,7 @@
 # slope — declares its own and the walk stops there. That is the
 # inheritance rule doing its job: say it once, override where it is
 # false.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Terminus
   elevation: 35

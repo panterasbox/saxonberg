@@ -802,7 +802,7 @@ than a silent half-truth.
 
 ### The town's lamps are a PROPERTY of the street
 
-`PublicLightingMixin` on **`platform/location/Street`** — the singleton
+`PublicLightingMixin` on **`platform/place/Street`** — the singleton
 public way, which is the only kind of place a town lights. A street
 declares that the service runs here (`flux`, a `detail` id, and a `seniority`); whether it
 is burning is **derived** — funded, after dusk, therefore lit. The lamps

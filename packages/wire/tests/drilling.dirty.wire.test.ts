@@ -91,7 +91,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const PROVISIONING = '/world/terminus/rejection/location/provisioning';
+const PROVISIONING = '/world/terminus/rejection/place/provisioning';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 /**
  * Provisioning → the pithead yard → the claims office → the hillside →

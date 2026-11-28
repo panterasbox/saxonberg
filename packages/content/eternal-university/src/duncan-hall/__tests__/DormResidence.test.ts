@@ -12,7 +12,7 @@ import { withHands } from '@saxonberg/server/mud/lib/slot/__tests__/carrying-fix
 import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import DormWarren from '../idea/DormWarren';
-import DormRoom from '../location/DormRoom';
+import DormRoom from '../place/DormRoom';
 import Desk from '../thing/Desk';
 import ProvisionController from '../idea/cmd/ProvisionController';
 import UnprovisionController from '../idea/cmd/UnprovisionController';
@@ -112,7 +112,7 @@ function seedDomain(): void {
   // row): its extent is the room's row.
   // ⭐ Each let unit is a copy of the unit's zone (zone-instancing D5),
   // named by the unit extent; its one room is keyed `<extent>/room`.
-  add(UNIT_ZONE, '/platform/idea/location/MintedZone', {
+  add(UNIT_ZONE, '/platform/idea/place/MintedZone', {
     name: 'a dorm unit',
     cellSize: 3,
     mintedBy: DormWarren.PROGRAMME_PATH,
@@ -131,16 +131,16 @@ function seedDomain(): void {
     extent: DormRoom.SCOPE,
     entrance: DormRoom.SCOPE,
   });
-  add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/location/DormRoom', {
+  add(DormRoom.SCOPE, '/world/terminus/eternal/duncan-hall/place/DormRoom', {
     coords: { x: 0, y: 0, z: 0 },
     shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     props: FIXTURES,
   });
-  add(DormWarren.CORRIDOR_TEMPLATE, '/world/terminus/eternal/duncan-hall/location/Corridor', {
+  add(DormWarren.CORRIDOR_TEMPLATE, '/world/terminus/eternal/duncan-hall/place/Corridor', {
     shortDescription: 'a dorm corridor',
   });
-  add(DormWarren.LOBBY_PATH, '/world/terminus/eternal/duncan-hall/location/Corridor', {
+  add(DormWarren.LOBBY_PATH, '/world/terminus/eternal/duncan-hall/place/Corridor', {
     shortDescription: 'the lobby',
     props: [{ template: STOREROOM, as: 'storeroom' }],
   });

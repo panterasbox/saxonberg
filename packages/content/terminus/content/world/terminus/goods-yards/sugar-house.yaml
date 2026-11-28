@@ -2,7 +2,7 @@
 # dissolves it, tempers and skims it, boils it to the strike in a copper
 # on a brick arch, and cures the loaves in cones while the molasses
 # drains (W2). A CartesianZone, the rubber works' shape.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Sugar House
   cellSize: 3.0
