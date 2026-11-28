@@ -3,7 +3,7 @@
 # ⭐ A Shore (size and carrying drive, step 16): the only way off the reed
 # bank is back across the pond, so `swim` must be sayable here. As a plain
 # Locale anyone who swam over was stranded — no verb took them back.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: reed bank
   keywords: [bank, reeds, reed]

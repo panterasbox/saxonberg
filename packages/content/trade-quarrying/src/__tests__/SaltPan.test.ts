@@ -15,7 +15,7 @@ import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import EdibleSalt from '@saxonberg/server/mud/platform/idea/material/EdibleSalt';
 import MaturationProfile from '@saxonberg/server/mud/lib/maturation/MaturationProfile';
-import Location from '@saxonberg/server/mud/lib/location/Location';
+import Location from '@saxonberg/server/mud/lib/place/Location';
 import Provision from '@saxonberg/server/mud/platform/thing/Provision';
 import WorldClockRegistry from '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

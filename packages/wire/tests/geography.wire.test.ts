@@ -66,18 +66,18 @@ declareFile({
 });
 
 const MARKET = '/world/terminus/market/square';
-const HINKLEY = '/world/terminus/hinkley-hills/location/arrival';
-const HINKLEY_LANE = '/world/terminus/hinkley-hills/location/lane';
+const HINKLEY = '/world/terminus/hinkley-hills/place/arrival';
+const HINKLEY_LANE = '/world/terminus/hinkley-hills/place/lane';
 const LANDING = '/world/terminus/gannet-rock/landing';
 const GALLERY = '/world/terminus/gannet-rock/gallery';
 const LADDER_LOW = '/world/terminus/gannet-rock/ladder-low';
-const HALL = '/world/terminus/terminal/location/hall';
-const AVENUE = '/world/terminus/university-avenue/location/crossing';
+const HALL = '/world/terminus/terminal/place/hall';
+const AVENUE = '/world/terminus/university-avenue/place/crossing';
 const BANK = '/world/terminus/wharfside/bank';
 const QUAY = '/world/terminus/harbor/fish-quay';
 const STRAND = '/world/terminus/estuary/strand';
 const BROW = '/world/terminus/estuary/headland/brow';
-const MILL = '/world/terminus/wharfside/mill/location/floor';
+const MILL = '/world/terminus/wharfside/mill/place/floor';
 const MOOR = '/world/moor/stormy-heath';
 const HESPER = '/world/terminus/hesper/structure';
 const HESPER_DECK = '/world/terminus/hesper/deck';

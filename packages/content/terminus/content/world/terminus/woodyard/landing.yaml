@@ -1,7 +1,7 @@
 # The woodyard landing — where the Ostrander comes in to wood up (river
 # D29): `buy cordwood` at the woodhawk's rick, `put cordwood in bin`
 # aboard. No verb of its own.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: woodyard landing
   keywords: [woodyard, landing, yard, rick]

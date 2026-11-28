@@ -17,7 +17,7 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Good from '../../stuff/Good';
 import Floor from '../../../platform/thing/Floor';
 import { AdornmentMixin } from '../Adornment';

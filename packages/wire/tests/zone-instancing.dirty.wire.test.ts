@@ -67,12 +67,12 @@ declareFile({
 const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const HINKLEY = '/world/terminus/hinkley-hills';
-const HINKLEY_LANE = `${HINKLEY}/location/lane`;
+const HINKLEY_LANE = `${HINKLEY}/place/lane`;
 const LOTS = `${HINKLEY}/lots`;
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const SHED = '/world/terminus/harbor/yard/shed';
 const YARD = '/world/terminus/harbor/yard/quay';
-const SMACK_ZONE = '/stuff/location/ship/smack';
+const SMACK_ZONE = '/stuff/place/ship/smack';
 const HESPER = '/world/terminus/hesper/structure';
 const HESPER_BERTH = '/world/terminus/estuary/estuary-mouth';
 const REACH_WARREN = '/system/water/idea/ReachWarren';
@@ -573,8 +573,8 @@ suite.skipIf(!isOwnedTestWorld())('stage B — ships and water', () => {
       '/system/water',
       YARD,
     );
-    expect(stop.row).toBe('/system/water/location/reach/stop');
-    expect(stop.id.startsWith('/system/water/location/reach/stop/')).toBe(true);
+    expect(stop.row).toBe('/system/water/place/reach/stop');
+    expect(stop.id.startsWith('/system/water/place/reach/stop/')).toBe(true);
     expect(stop.copy).toBe(true);
   }, 300_000);
 });

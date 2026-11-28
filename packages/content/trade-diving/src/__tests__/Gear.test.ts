@@ -12,7 +12,7 @@ import AirBag from '../thing/AirBag';
 import Rope from '@saxonberg/server/mud/platform/thing/Rope';
 import RopeEnd from '@saxonberg/server/mud/platform/thing/RopeEnd';
 import LineEnd from '@saxonberg/server/mud/platform/thing/LineEnd';
-import Location from '@saxonberg/server/mud/platform/location/Location';
+import Location from '@saxonberg/server/mud/platform/place/Location';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Gas from '@saxonberg/server/mud/platform/idea/material/Gas';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';

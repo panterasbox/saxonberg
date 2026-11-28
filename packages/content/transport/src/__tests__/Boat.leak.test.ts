@@ -20,7 +20,7 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import Material from '@saxonberg/server/mud/lib/material/Material';
-import SeaPatch from '@saxonberg/content-water/src/location/SeaPatch';
+import SeaPatch from '@saxonberg/content-water/src/place/SeaPatch';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Boat from '../thing/Boat';
 

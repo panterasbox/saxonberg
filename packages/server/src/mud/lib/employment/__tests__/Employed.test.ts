@@ -22,7 +22,7 @@ class EmployedTestRoom extends ContainerMixin(Idea) {
 }
 
 const BUSINESS = '/world/lounge/idea/business';
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 
 function rec(over: Partial<EmploymentData> = {}): EmploymentData {
   return {

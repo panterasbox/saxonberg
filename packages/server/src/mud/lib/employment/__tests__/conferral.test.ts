@@ -36,8 +36,8 @@ import {
 } from '../../security/__tests__/test-setup';
 
 const BUSINESS = '/world/lounge/idea/business';
-const BAR = '/world/lounge/location/bar';
-const SMITHY = '/world/elsewhere/location/smithy';
+const BAR = '/world/lounge/place/bar';
+const SMITHY = '/world/elsewhere/place/smithy';
 
 /** An employable body that can stand somewhere. Composes no capability. */
 class Worker extends EmployedMixin(ContainableMixin(Idea)) {

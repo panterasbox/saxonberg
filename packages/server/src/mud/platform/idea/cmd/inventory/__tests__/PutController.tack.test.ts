@@ -20,7 +20,7 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, carry, hold, Bag } from '../../../../../lib/slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
-import Location from '../../../../../lib/location/Location';
+import Location from '../../../../../lib/place/Location';
 import { Actor } from '../../../../../lib/creature/Actor';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 

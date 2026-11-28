@@ -414,7 +414,7 @@ export class Mml {
    * `getPresentation()` baseline.
    *
    * This is the single seam that makes the whole prose name path
-   * viewer-aware: every `Mml.actor/thing/player/npc/location` caller
+   * viewer-aware: every `Mml.actor/thing/player/npc/place` caller
    * (and there are many) keeps composing exactly as before — the
    * per-recipient resolution rides `Scene.send`'s existing
    * `body.toString(recipient)` materialization. See

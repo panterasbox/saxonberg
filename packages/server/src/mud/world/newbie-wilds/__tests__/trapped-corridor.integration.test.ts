@@ -155,7 +155,7 @@ function trapsStore(): Doc[] {
     // void (the real treeline, with its wolf, is never stood up by a test).
     {
       path: '/world/newbie-wilds/crossroads/treeline',
-      class: '/platform/location/Void',
+      class: '/platform/place/Void',
       data: { shortDescription: 'the treeline' },
     },
   ];

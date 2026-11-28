@@ -13,7 +13,7 @@
     "./mud/platform/idea/api/*": null,
     "./mud/platform/idea/hooks/*": null,
     "./mud/platform/agent/*": "./src/mud/platform/agent/*.ts",
-    "./mud/platform/location/*": "./src/mud/platform/location/*.ts",
+    "./mud/platform/place/*": "./src/mud/platform/place/*.ts",
     "./test-bootstrap": "./src/test-bootstrap.ts",
     "./services/loader/vite-plugin": "./src/services/loader/vite-plugin.js"
   },

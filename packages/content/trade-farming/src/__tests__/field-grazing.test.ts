@@ -13,7 +13,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Tract from '../location/Tract';
+import Tract from '../place/Tract';
 import Field from '../thing/Field';
 import { markedField } from './marked-tract';
 import Feeder from '@saxonberg/server/mud/platform/thing/Feeder';

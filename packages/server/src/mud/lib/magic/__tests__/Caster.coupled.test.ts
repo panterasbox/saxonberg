@@ -38,7 +38,7 @@ import Wand from '../../../../../../content/arcana/src/thing/Wand';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import { Quantity } from '../../quantity';
 import { Postures } from '../../slot/Postured';
 import { MANA_RESERVE_KEY } from '../Caster';

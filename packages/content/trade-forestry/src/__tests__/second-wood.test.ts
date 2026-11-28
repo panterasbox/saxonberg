@@ -3,7 +3,7 @@
  * wood is rows and nothing else.**
  *
  * Two clearings authored as a second locality would author them —
- * literal rows on `/trade/forestry/location/Wood` with a `mix:` each,
+ * literal rows on `/trade/forestry/place/Wood` with a `mix:` each,
  * hydrated through the shipped `TemplateApplier` — register, derive
  * their own standing from their own block, afford `fell` to whoever
  * stands in them, and felling one leaves the other untouched. No pack
@@ -12,7 +12,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Wood from '../location/Wood';
+import Wood from '../place/Wood';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

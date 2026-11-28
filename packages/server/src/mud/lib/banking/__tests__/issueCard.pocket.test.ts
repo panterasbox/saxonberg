@@ -18,7 +18,7 @@ import { BankingApi } from '../../../api/banking';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import PaymentCard from '../../../platform/thing/PaymentCard';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { makeBody, wornGarment } from '../../slot/__tests__/carrying-fixture';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installShapes } from '../../spatial/__tests__/size-fixture';

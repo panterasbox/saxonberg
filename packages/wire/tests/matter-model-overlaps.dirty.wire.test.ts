@@ -114,18 +114,18 @@ const SEATS = [TERMINUS, HD, REJ];
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
 const SH = '/world/terminus/goods-yards/sugar-house';
-const BOILING = `${SH}/location/ground/boiling-floor`;
-const CURING = `${SH}/location/ground/curing-house`;
-const SUGAR_STORE = `${SH}/location/ground/store`;
-const PROVISIONING = '/world/terminus/rejection/location/provisioning';
+const BOILING = `${SH}/place/ground/boiling-floor`;
+const CURING = `${SH}/place/ground/curing-house`;
+const SUGAR_STORE = `${SH}/place/ground/store`;
+const PROVISIONING = '/world/terminus/rejection/place/provisioning';
 const SUGARBUSH = '/world/terminus/rejection/hanging-wood/sugarbush';
 const MOUTH = '/world/terminus/estuary/estuary-mouth';
-const CROWSFOOT = '/world/terminus/goods-yards/crowsfoot/location/floor';
-const BF = '/world/terminus/hearts-delight/brickfield/location';
+const CROWSFOOT = '/world/terminus/goods-yards/crowsfoot/place/floor';
+const BF = '/world/terminus/hearts-delight/brickfield/place';
 const POTTERS_SHOP = `${BF}/potters-shop`;
 const WEATHERING = `${BF}/weathering-ground`;
 const HACKS = `${BF}/hacks`;
-const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
+const CREAMERY = '/world/terminus/hearts-delight/creamery/place/floor';
 const PUT_IN = '/world/terminus/rejection/put-in/landing';
 const TOWN_QUAY = '/world/terminus/harbor/town-quay';
 const HESPER = '/world/terminus/hesper/structure';
@@ -134,7 +134,7 @@ const HESPER_CO = '/world/terminus/hesper/idea/outfit';
 const KESTREL = '/stuff/idea/Watercourse/kestrel';
 /** The water pack's extent — where an `eval` may read the river's own catalogue. */
 const WATER = '/system/water';
-const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
+const CHANDLERY = '/world/terminus/wharfside/chandlery/place/floor';
 
 /* ───────────────────────────── rows ───────────────────────────── */
 

@@ -49,7 +49,7 @@ declareFile({
 });
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const SHOP = '/world/terminus/wharfside/diving/location/shop';
+const SHOP = '/world/terminus/wharfside/diving/place/shop';
 const BANK = '/world/terminus/wharfside/bank';
 const FORD = '/world/terminus/delight-road/ford';
 const LOWER = '/world/terminus/estuary/lower-towpath';

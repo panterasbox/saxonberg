@@ -50,8 +50,8 @@
  * kernel's does — inherited, never instanced (TPA reform P2a amended
  * `lint:instanceable`'s invariant 8 to say so). This module is a mixin
  * factory and the types its surface speaks, and nothing else; the
- * classes that compose it are `location/MineRoom` and
- * `location/AuthoredWorking`. A bespoke mine composes `WorkingMixin`
+ * classes that compose it are `place/MineRoom` and
+ * `place/AuthoredWorking`. A bespoke mine composes `WorkingMixin`
  * over a room class of its own.
  */
 
@@ -60,7 +60,7 @@ import { BulkableApi } from '@saxonberg/server/mud/api/bulk';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
-import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
+import { Traversal } from '@saxonberg/server/mud/lib/place/Traversal';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { Atmospheric } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';

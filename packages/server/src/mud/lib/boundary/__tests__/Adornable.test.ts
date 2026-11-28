@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, afterEach } from 'vitest';
-import Location from '../../location/Location';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import Good from '../../stuff/Good';
 import { AdornmentMixin } from '../Adornment';
 import { MixinApi } from '../../../api/mixin';

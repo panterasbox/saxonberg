@@ -30,7 +30,7 @@ subcommands:
       set, reference it anywhere on the command line as `$name`.
       Reserved built-in names are rejected.
     examples:
-      - cmd: var set spot /world/lounge/location/lounge
+      - cmd: var set spot /world/lounge/place/lounge
         note: Store a value under "$spot"
     args:
       - name: name

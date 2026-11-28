@@ -1,0 +1,14 @@
+# The lot — the annex's one place (test-world-lifecycle D2). Outdoor, lit by
+# the sky. Southeast back to the plaza. ⚠ TEST-ONLY.
+class: /platform/place/Locale
+data:
+  shortDescription: annex lot
+  keywords: [lot, annex, testbed]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    An empty lot, staked out at its corners. The plaza is back to the southeast.
+  coords: { x: 0, y: 0, z: 0 }
+  exits:
+    southeast:
+      destination: /world/testbed/place/plaza

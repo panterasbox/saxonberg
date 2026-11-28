@@ -14,8 +14,8 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../location/Location';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import Material from '../../material/Material';
 import Glass from '../../../platform/idea/material/Glass';
 import Biome from '../Biome';

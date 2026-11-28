@@ -23,12 +23,12 @@
 # them here would be inventing geography. The grid is the fix; the
 # address is a locality build's to declare.
 # ⚠ The zone sits at the INDUSTRY ROOT (`/trade/winemaking`) rather than at
-# `/trade/winemaking/location`. A class row must be at
+# `/trade/winemaking/place`. A class row must be at
 # `<root>/<branch>/<leaf>` — `lint:instanceable`'s invariant 7 — so a row
 # AT the branch directory is illegal, and the industry root is where a
 # zone covering the whole trade belongs anyway. `/world/terminus/rejection.yaml`
 # is the same shape: the region zone one level above its rooms.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Vintner Floors
   cellSize: 3.0

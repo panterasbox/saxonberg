@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 import { parse } from 'yaml';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mixins } from '@saxonberg/server/mud/lib/mixin';
-import SealedCellar from '../location/SealedCellar';
+import SealedCellar from '../place/SealedCellar';
 
 const PACK = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -30,8 +30,8 @@ describe('SealedCellar (hearthworks)', () => {
 
   it('is the class the cellar row names, at the pack path', () => {
     const row = parse(
-      readFileSync(`${PACK}content/world/terminus/hearthworks/location/cellar.yaml`, 'utf8'),
+      readFileSync(`${PACK}content/world/terminus/hearthworks/place/cellar.yaml`, 'utf8'),
     ) as { class: string };
-    expect(row.class).toBe('/world/terminus/hearthworks/location/SealedCellar');
+    expect(row.class).toBe('/world/terminus/hearthworks/place/SealedCellar');
   });
 });

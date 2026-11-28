@@ -71,7 +71,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const B = '/world/terminus/hearts-delight/brickfield/location';
+const B = '/world/terminus/hearts-delight/brickfield/place';
 const GROUND = `${B}/weathering-ground`;
 const PIT = `${B}/clay-pit`;
 const HACKS = `${B}/hacks`;

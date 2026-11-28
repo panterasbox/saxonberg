@@ -484,10 +484,10 @@ Census matches: **Placing, Wet, Visible, Detailed, Perceptible, Tangible, Contai
 
 What's on it:
 - the trade bundle props `house-tablet (as: tablet)` and `tip-jar` with `on: back-bar`
-  (`trade-hospitality/.../location/bar.yaml`; the lounge replaces the tablet with its own row
+  (`trade-hospitality/.../place/bar.yaml`; the lounge replaces the tablet with its own row
   via `as: tablet`);
 - the bottles Mara buys against the par sheet. The rail **boots empty**
-  (`saxonberg-lounge/.../location/bar.yaml` header). A full par is about 8 gin, 8 vodka,
+  (`saxonberg-lounge/.../place/bar.yaml` header). A full par is about 8 gin, 8 vodka,
   8 whiskey, 4 + 4 rum, 4 tequila, 2 each of the liqueurs and vermouths, 4 + 4 + 4 wine… — 50+
   bottles.
 

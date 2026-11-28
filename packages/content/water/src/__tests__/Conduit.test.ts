@@ -88,18 +88,18 @@ const WORLD: Row[] = [
   // `hydratorClass` silently discarded every key) is structurally gone.
   {
     path: '/world/lowtown',
-    class: '/platform/idea/location/CartesianZone',
+    class: '/platform/idea/place/CartesianZone',
     data: { elevation: 5 },
   },
   {
     path: '/world/hightown',
-    class: '/platform/idea/location/CartesianZone',
+    class: '/platform/idea/place/CartesianZone',
     data: { elevation: 900 },
   },
   // A zone that declares NO elevation — the unresolved-head case.
   {
     path: '/world/nowhere',
-    class: '/platform/idea/location/CartesianZone',
+    class: '/platform/idea/place/CartesianZone',
     data: {},
   },
 ];
@@ -432,7 +432,7 @@ describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
   };
   const POLAR_ZONE: Row = {
     path: '/world/polar',
-    class: '/platform/idea/location/CartesianZone',
+    class: '/platform/idea/place/CartesianZone',
     // Cold by LATITUDE, not height: below the falls (400 m), so the main
     // is gravity-fed. Since the pump build a main that would need a pump
     // and has none reads `off`, which outranks `frozen`.
@@ -467,7 +467,7 @@ describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
     installWorld([
       {
         path: '/world/confluence-bank',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: { elevation: 40, latitude: 42 },
       },
     ]);
@@ -476,7 +476,7 @@ describe('⭐ frozen is read at BOTH ends (the climate build, D7)', () => {
     const { WorldClockApi } = await import('@saxonberg/server/mud/api/worldclock');
     const { Stuff } = await import('@saxonberg/server/mud/lib/stuff/Stuff');
     const { default: Location } = await import(
-      '@saxonberg/server/mud/lib/location/Location'
+      '@saxonberg/server/mud/lib/place/Location'
     );
     const { SkyExposedBiome } = await import(
       '@saxonberg/server/mud/platform/idea/SkyExposedBiome'

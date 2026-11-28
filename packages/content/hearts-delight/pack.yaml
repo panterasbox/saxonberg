@@ -44,7 +44,7 @@ requires:
     # claim is the only declarative seam (`PackApi.install` →
     # `ParcelApi.grant`), it reconciles idempotently, and this pack's
     # README forbids code.
-    - extent: /world/terminus/hearts-delight/bench-field/location/orchard-close
+    - extent: /world/terminus/hearts-delight/bench-field/place/orchard-close
       parentParcel: /world/terminus/hearts-delight
       holder: { organization: /world/terminus/hearts-delight/idea/farm-business }
       landUse: agricultural
@@ -99,7 +99,7 @@ requires:
       holder: { organization: /world/terminus/hearts-delight/paper-mill/idea/business }
       landUse: industrial
       powerBand: off-grid
-    - extent: /world/terminus/hearts-delight/brickfield/location/potters-shop
+    - extent: /world/terminus/hearts-delight/brickfield/place/potters-shop
       waterSource: none
       parentParcel: /world/terminus/hearts-delight/brickfield
       holder: { organization: /world/terminus/hearts-delight/brickfield/idea/pottery }

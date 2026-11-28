@@ -5,7 +5,7 @@ import StructureBase from '../../../lib/structure/Structure';
 import Ship from '../Ship';
 import Building from '../Building';
 import { NavigationApi } from '../../../api/navigation';
-import { attachGraph } from '../../../lib/location/__tests__/attachments-fixture';
+import { attachGraph } from '../../../lib/place/__tests__/attachments-fixture';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../../lib/security/__tests__/test-setup';

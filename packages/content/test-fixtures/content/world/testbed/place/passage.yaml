@@ -1,0 +1,27 @@
+# The passage — an unlit passage with a trap on the way through
+# (test-world-lifecycle D2; the delve's corridor-3 is the exemplar). It opens
+# only off the cellar: an open way passes light undimmed, so a passage beside
+# any lit place would be lit, and the shut cellar door is the one way in D2
+# that passes none. ⚠ TEST-ONLY.
+class: /platform/place/Locale
+data:
+  shortDescription: testbed passage
+  keywords: [passage, testbed]
+  register: definite
+  enclosure: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  roof: { material: /stuff/idea/material/rock/granite, thicknessM: 0.45 }
+  longDescription: |
+    A narrow stone passage running east from the cellar and ending in a blank wall. A single flag in the floor sits a shade proud of the rest.
+
+    West is the way back to the cellar.
+  coords: { x: 2, y: 0, z: -1 }
+  exits:
+    west:
+      destination: /world/testbed/place/cellar
+  props:
+    - /world/testbed/thing/trap
+  details:
+    flag:
+      keywords: [flag, slot, plate]
+      description: |
+        One flag sits proud before a coin-thin slot in the wall at ankle height.

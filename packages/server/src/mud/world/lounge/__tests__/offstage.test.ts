@@ -2,7 +2,7 @@
  * The lounge parks its cast off-shift — now as **one fact on the house**.
  *
  * ⭐ Until the agent-coordination build this was four cast rows each
- * repeating `offstage: /world/lounge/location/offstage` inside a `shifts`
+ * repeating `offstage: /world/lounge/place/offstage` inside a `shifts`
  * brain's config, plus a 30-second poll per person to notice an hourly
  * flip. Presence is a consequence of employment state, so the fact moved
  * to the employer (`offstage:` on the Business, `station:` on the seat)
@@ -49,7 +49,7 @@ const cast = (): readonly (readonly [string, Row])[] =>
 describe('the lounge: off shift, its cast is out of the narrative', () => {
   it('⭐ the HOUSE says its hands leave the narrative off shift (persistence-model D15) — no room means "nowhere"', () => {
     expect((load('idea/business.yaml').data as { offShift?: string }).offShift).toBe('out');
-    expect(() => load('location/offstage.yaml')).toThrow();
+    expect(() => load('place/offstage.yaml')).toThrow();
   });
 
   it('⚠ and no cast row names a retired brain', () => {
@@ -69,9 +69,9 @@ describe('the lounge: off shift, its cast is out of the narrative', () => {
     const biz = load('idea/business.yaml').data;
     // ⚠ Index 0 is the room; the bar COUNTER follows it (a sale settles at
     // the counter's path — lint:shopfronts) and is never a place to stand.
-    expect(biz.operatingLocations![0]).toBe('/world/lounge/location/bar');
-    expect(biz.operatingLocations!.filter((p: string) => p.includes('/location/'))).toEqual([
-      '/world/lounge/location/bar',
+    expect(biz.operatingLocations![0]).toBe('/world/lounge/place/bar');
+    expect(biz.operatingLocations!.filter((p: string) => p.includes('/place/'))).toEqual([
+      '/world/lounge/place/bar',
     ]);
     for (const slot of biz.rosterSlots ?? []) {
       expect(slot.station, slot.positionKey).toBeUndefined();

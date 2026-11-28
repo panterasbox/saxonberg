@@ -11,11 +11,11 @@ import { ExpanseApi } from '@saxonberg/server/mud/api/expanse';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import SeaStop from '../location/SeaStop';
+import SeaStop from '../place/SeaStop';
 import SeaWarren from '../idea/SeaWarren';
 
 const SEA = '/sea';
-const STOP_ROW = '/system/water/location/sea/stop/water';
+const STOP_ROW = '/system/water/place/sea/stop/water';
 
 /** A thing with ways: records what is installed on it, by direction. */
 function exitable(name: string) {

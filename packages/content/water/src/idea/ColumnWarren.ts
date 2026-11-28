@@ -25,12 +25,12 @@
  * (`river-slate`): nothing that ships has two water places side by side.
  */
 
-import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
-import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import { RoomWarren } from '@saxonberg/server/mud/lib/place/RoomWarren';
+import type { Attachment } from '@saxonberg/server/mud/lib/place/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { WaterColumnMixin, type ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
-import type { WaterPlace } from '@saxonberg/server/mud/lib/location/WaterPlace';
-import type { Shore } from '@saxonberg/server/mud/lib/location/Shore';
+import { WaterColumnMixin, type ColumnBand } from '@saxonberg/server/mud/lib/place/WaterColumn';
+import type { WaterPlace } from '@saxonberg/server/mud/lib/place/WaterPlace';
+import type { Shore } from '@saxonberg/server/mud/lib/place/Shore';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -38,7 +38,7 @@ import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Exitable } from '@saxonberg/server/mud/lib/boundary/Exitable';
-import type Band from '../location/Band';
+import type Band from '../place/Band';
 import type ColumnExit from './exits/ColumnExit';
 import type { ColumnTarget } from './exits/ColumnExit';
 
@@ -47,7 +47,7 @@ type ExitableContainer = Stuff & Container & Exitable;
 type SurfaceStuff = Stuff & Container & WaterPlace & Shore;
 
 /** The band rows — the system's, never a venue's. */
-const BAND_ROW = '/system/water/location/band/';
+const BAND_ROW = '/system/water/place/band/';
 
 /** The exit kind a band's way to an authored room beside it is cloned from. */
 const UNDERWATER_EXIT_KIND = '/system/water/idea/exits/underwater';

@@ -499,19 +499,19 @@ these files changed in dairy.
 - Roads: wharfside `bank` → (west) valley-road towpath; `delight-road/ford`
   north → `wharfside/bank`, south → `milestone` → `drove` → `flats` →
   `crossroads` (north flats, west `rejection/kestrel-road/lower-climb`,
-  south `hearts-delight/location/valley-gate`); `lower-climb` →
+  south `hearts-delight/place/valley-gate`); `lower-climb` →
   `upper-climb` → `the-pass` → `tips` → `yard-gate` (northeast
-  `rejection/location/pithead-yard`). Rejection's heat + anvil are at
-  `rejection/location/smelter.yaml` (`/trade/smelting/thing/furnace`,
+  `rejection/place/pithead-yard`). Rejection's heat + anvil are at
+  `rejection/place/smelter.yaml` (`/trade/smelting/thing/furnace`,
   `/trade/smithing/thing/anvil`, the smith's hammer, two charcoal; since
   dairy D19 also a `crucible` and an `ingot-mould` — the smelt pours
   molten metal into the mould, which is not this build's concern but IS
   in the room the tinker works in); the provisioning shed has none.
-  `hearts-delight/location/valley-gate.yaml` gained `south` (the dairy
+  `hearts-delight/place/valley-gate.yaml` gained `south` (the dairy
   yard) and `southwest` (the creamery) exits in dairy — the tinker's
   stop there is unchanged.
 - Venue exemplar: `terminus/content/world/terminus/mayfield-row/tailor.yaml`
-  (CartesianZone) · `tailor/location/shop.yaml` · `tailor/idea/outfit.yaml`
+  (CartesianZone) · `tailor/place/shop.yaml` · `tailor/idea/outfit.yaml`
   (Business, `requires {discipline, band}`, `headcount 2`) ·
   `tailor/thing/counter.yaml` · `tailor/agent/tailor.yaml`; the street
   (`mayfield-row/street.yaml`) exits `avenue · house · realty · graves`
@@ -544,7 +544,7 @@ these files changed in dairy.
   residence.yaml`, 45), stamp-forward, no scheduler; `conditionBand()`
   `:570`; `conditionCause()` `:579` (two fixed sentences);
   `restoreShell()` `:589`. `CirculationWarren.conditionOf`
-  (`lib/location/CirculationWarren.ts:340–361`) reads both BY SHAPE for the
+  (`lib/place/CirculationWarren.ts:340–361`) reads both BY SHAPE for the
   ascent gate.
 - **`survey`** — `platform/idea/cmd/perception/SurveyController.ts`:
   `HoldingShape` `:54` (duck-typed — the kernel never imports the pack),
@@ -960,7 +960,7 @@ rule: never solve a cross-cutting capability in a trade build). § Risks
 3 names it for the owner.
 
 **D15 — The tinker.** A Cast at a booted home yard
-(`/world/terminus/wharfside/tinker/location/yard`, exits to the bank),
+(`/world/terminus/wharfside/tinker/place/yard`, exits to the bank),
 employed by his own house (`…/tinker/idea/round`, proprietor = himself,
 `call: rota`, seat `fulfills [smithing, carpentry, tailoring]`, time
 basis), five roster slots: yard 6–8, crossroads 8–10, valley-gate
@@ -986,7 +986,7 @@ a function of the clock, read on arrival. The requirements' § 8 and drive 6 mee
 the smelter (§ Risks, conflict 1).
 
 **D16 — The cobbler is rows, on the tailor's pattern.**
-`/world/terminus/mayfield-row/cobbler{.yaml, /location/shop, /idea/outfit,
+`/world/terminus/mayfield-row/cobbler{.yaml, /place/shop, /idea/outfit,
 /thing/slate, /agent/cobbler}`; the street gains a `cobbler` exit; the
 seat `cobbler` (`fulfills [leatherwork, tailoring]`, `headcount 2`,
 `requires {discipline: leatherwork, band: novice}`, `compensation
@@ -1233,7 +1233,7 @@ hall leaves rubber's census — ⛔ **not `steps`** (an outdoor room,
 dark) and ⚠ **`cistern`** only if its drown-here proof tests still pass
 (rubber, 2026-10-17). Seznick `hall/main/bedroom`: `[brick 0.23]`,
 `roof: [{slate 0.008}, {pine 0.02}]` — ⚠ authored on **Seznick's own
-room rows**, never on the shared `/stuff/location/room/{living,
+room rows**, never on the shared `/stuff/place/room/{living,
 bedroom, bathroom}` rows that feed every programme. Hinkley
 `house-programme`'s **enclosed** rooms (⛔ not `lots/yard` — it is outdoors; cleanliness, 2026-10-17): lime over brick, `roof: [{thatch 0.3}]` —
 where thatch lives in the world (AC 15's *slate and thatch on one
@@ -1294,7 +1294,7 @@ Checked at plan time against `CLAUDE.md` and the current tree:
   `props:` on a Cast row (D14). No `populates:`, no `container:`.
 - **Locations, not rooms** — new places are `Locale`
   under a `CartesianZone` (the tailor's shape); the tinker's offstage is
-  a `/platform/location/Offstage` row.
+  a `/platform/place/Offstage` row.
 - **The five axes / `<root>/<branch>/`** — smithing parts at
   `/trade/smithing/thing/…`, the grip at `/trade/carpentry/thing/grip`,
   the round-knife at `/trade/tanning/thing/round-knife`; the reading row
@@ -1628,7 +1628,7 @@ infirmary line and the Rejection slate go. Implements D12, D19, AC 5–7.
   repair arm (D12); `order.yaml` help.
 - `content/terminus/content/world/terminus/infirmary/thing/tariff.yaml`
   — drop `repair` (both maps); its header comment.
-- `content/rejection/content/world/terminus/rejection/location/provisioning.yaml`
+- `content/rejection/content/world/terminus/rejection/place/provisioning.yaml`
   — drop the slate from `props:` **and delete
   `thing/mending-slate.yaml`** (`lint:reachability` arm R holds
   unreached thing rows at ceiling 0, so an unpropped row fails the
@@ -1738,15 +1738,15 @@ D14 (the tinker's class), D15–D18, the edge rows, AC 7–10, 12, 14
 - General store: `general-store/counter.yaml` stock line
   `/trade/forestry/thing/billhook`, par 1.
 - Cobbler (D16): `terminus/content/world/terminus/mayfield-row/cobbler.yaml`,
-  `cobbler/location/shop.yaml`, `cobbler/idea/outfit.yaml`,
+  `cobbler/place/shop.yaml`, `cobbler/idea/outfit.yaml`,
   `cobbler/thing/slate.yaml`, `cobbler/thing/last-and-awl.yaml`
   (`/platform/thing/MendingTool`, `mending`), `cobbler/agent/cobbler.yaml`
   (dossier leatherwork competent, tailoring novice, appraisal competent;
   `idles`); `mayfield-row/street.yaml` exit `cobbler`.
 - Tinker (D15): `terminus/content/world/terminus/wharfside/tinker.yaml`
-  (zone), `tinker/location/yard.yaml` (exit `bank` ↔ a new `yard` exit
+  (zone), `tinker/place/yard.yaml` (exit `bank` ↔ a new `yard` exit
   on `wharfside/bank.yaml`; `cast: [agent/tinker]`),
-  `tinker/location/offstage.yaml`, **`terminus/src/wharfside/agent/
+  `tinker/place/offstage.yaml`, **`terminus/src/wharfside/agent/
   Tinker.ts`** (`CastMixin(StagedMixin(NPC))` — copy `Walter.ts`'s
   shape; D14) and `tinker/agent/tinker.yaml` (`class:
   /world/terminus/wharfside/agent/Tinker`; dossier;
@@ -2246,7 +2246,7 @@ generated file.
 2. **Noted.** An exit is an open side only when the place across it is outside — the dorm corridor's doorless exits are not missing walls.
 3. **Accepted** (already P5): brick and canvas are rubber's rows; thatch and lime plaster in base-library.
 4. **Accepted.** `packages/server/scripts/check-biome-sky.ts` is in W7's files: W7 deletes the ceiling-list lines for rows it authors both keys on.
-5. **Accepted (corrections to D27):** `steps` stays open; Hinkley `lots/yard` is outdoor; Seznick's layers go on its own room rows, never the shared `/stuff/location/room/*` rows; `cistern` only if its drown-here tests still pass.
+5. **Accepted (corrections to D27):** `steps` stays open; Hinkley `lots/yard` is outdoor; Seznick's layers go on its own room rows, never the shared `/stuff/place/room/*` rows; `cistern` only if its drown-here tests still pass.
 6. **Accepted.** Rubber's boots/gloves/apron are one-piece casts mended by the monolith path under the boot-mould's `castDiscipline` (chemistry); repair's D1 test gains the rubber-boot case once rubber lands, and D1's grounding line *"no shipped cast composes Crafted except the Wheel"* is stale from then on.
 7. **Already in the plan (P3):** the stock draw is the same MATERIAL path first, then a family tag, never `organic` — so a rubber good is mended from rubber stock; a raw-rubber patch is exactly that draw. If no rubber stock is in reach the mend refuses naming it (no leather patch).
 8. **Noted.** Rubber's moulds and coagulating pan state iron; repair's metal path mends them.
@@ -2385,9 +2385,9 @@ Read first, in this order:
 For W7, additionally:
 
 16. `packages/content/residence/src/idea/HoldingWarren.ts:60–130, 540–600`, `src/idea/cmd/crafting/MaintainController.ts`, `src/behavior/maintains.ts`, `src/thing/HouseholdersKit.ts`, `content/system/residence/cmd/crafting/maintain.yaml`, `content/system/residence/thing/householders-kit.yaml`, `src/__tests__/HoldingWarren.test.ts:360–640`
-17. `packages/server/src/mud/platform/idea/cmd/perception/SurveyController.ts`, `lib/location/CirculationWarren.ts:340–361`, `lib/behavior/restocks.ts`, `lib/spatial/Enclosed.ts`, `lib/biome/Atmospheric.ts:420–540, 1100–1160`, `lib/material/Material.ts:800–880`, `platform/idea/Business.ts`, `lib/employment/Position.ts`, `api/grammar.ts:270–300`
+17. `packages/server/src/mud/platform/idea/cmd/perception/SurveyController.ts`, `lib/place/CirculationWarren.ts:340–361`, `lib/behavior/restocks.ts`, `lib/spatial/Enclosed.ts`, `lib/biome/Atmospheric.ts:420–540, 1100–1160`, `lib/material/Material.ts:800–880`, `platform/idea/Business.ts`, `lib/employment/Position.ts`, `api/grammar.ts:270–300`
 18. `docs/subsystems/construction.md` (rubber's D1–D4, D14 and host placement — `roof`/`exposure()` on `AtmosphericMixin` — and its deferred seams; the plan retired at rubber's sweep), then the MERGED files (re-ground, § W7)
-19. `eternal-university/…/duncan-hall/{idea/college, idea/dorm-programme, location/dormroom, agent/katie}.yaml`, `terminus/…/mayfield-row/{idea/agency, agent/walter, seznick-house/unit-programme, seznick-house/location/*}.yaml`, `hinkley-hills/…/idea/house-programme.yaml`, `general-store/{business, counter}.yaml`, `trade-apiculture/…/thick-hive.yaml` (the Good that authors `enclosure:`)
+19. `eternal-university/…/duncan-hall/{idea/college, idea/dorm-programme, location/dormroom, agent/katie}.yaml`, `terminus/…/mayfield-row/{idea/agency, agent/walter, seznick-house/unit-programme, seznick-house/place/*}.yaml`, `hinkley-hills/…/idea/house-programme.yaml`, `general-store/{business, counter}.yaml`, `trade-apiculture/…/thick-hive.yaml` (the Good that authors `enclosure:`)
 
 ---
 

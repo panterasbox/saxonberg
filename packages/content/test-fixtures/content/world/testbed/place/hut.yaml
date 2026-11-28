@@ -1,0 +1,26 @@
+# The hut — a place lit through a window onto the plaza (test-world-lifecycle
+# D2; the glazier's hut is the exemplar). Enclosed and roofed, with no lamp:
+# its light is the day through the window and the open way to the approach.
+# The window passes light and sight, never a body. ⚠ TEST-ONLY.
+class: /platform/place/Hall
+data:
+  shortDescription: testbed hut
+  keywords: [hut, testbed]
+  register: definite
+  enclosure: { material: /stuff/idea/material/wood/oak, thicknessM: 0.05 }
+  roof: { material: /stuff/idea/material/rock/slate, thicknessM: 0.02 }
+  longDescription: |
+    A small timber hut. A window in the northeast corner looks onto the plaza, and the doorway opens east onto the approach.
+  coords: { x: -1, y: -1, z: 0 }
+  exits:
+    east:
+      destination: /world/testbed/place/approach
+    northeast:
+      destination: /world/testbed/place/plaza
+      door: /world/testbed/thing/hut-window
+  # ⭐ A broadcaster's corner (stream arrival C3): the desk and the on-air
+  # sign, so a wire drive can stand at a desk without naming a locality.
+  props:
+    - /world/testbed/thing/broadcast-desk
+  adornments:
+    - { template: /world/testbed/thing/on-air-sign, slot: sign:window }

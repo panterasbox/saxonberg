@@ -6,7 +6,7 @@
 # security invariant); ownership rides the pack's own title claim
 # (`/world/terminus/market` → the managed `terminus` group). The market
 # owns its *Business* (commission attribution), not the ground.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Farmers Market
   cellSize: 3.0

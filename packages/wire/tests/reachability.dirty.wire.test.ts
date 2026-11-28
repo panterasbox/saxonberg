@@ -82,15 +82,15 @@ declareFile({
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BAKERY = '/world/terminus/market/bakery';
-const CROSSING = '/world/terminus/university-avenue/location/crossing';
+const CROSSING = '/world/terminus/university-avenue/place/crossing';
 const REACH = '/world/terminus/estuary/reach';
 const BANK = '/world/terminus/wharfside/bank';
-const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
+const FARMSTEAD = '/world/terminus/hearts-delight/place/farmstead-yard';
 const DRIFT = '/world/terminus/rejection/ferrow/timbered-drift';
 const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 // ⭐ The stones moved indoors with the cleanliness build (D22): the mill
 // house, west of the race.
-const MILLSITE = '/world/terminus/hearts-delight/location/mill-house';
+const MILLSITE = '/world/terminus/hearts-delight/place/mill-house';
 
 const open: Session[] = [];
 let k: Session;

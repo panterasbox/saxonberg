@@ -286,7 +286,7 @@ outside the kernel's `platform/**` (a pack's book) is not a counter class.
 transfers its title (the good's own `transferChattel`) and moves nothing;
 the place it lies in keeps it, whoever holds title ([chattel.md](./chattel.md)
 § Title is a claim, never storage). Such a landing is
-**kept** — `platform/location/PersistentShore` (`Persistable(Shore)`):
+**kept** — `platform/place/PersistentShore` (`Persistable(Shore)`):
 it lays its `props:` down once and its record is authoritative after, so
 the boat sold does not come back at the next restart (⚠ never a quay a
 ship makes fast at; her lines re-tie from her own record). The yard's

@@ -6,7 +6,7 @@ import { BiomeApi } from '../biome';
 import { Quantity } from '../../lib/quantity';
 import { StuffApi } from '../stuff';
 import { Stuff } from '../../lib/stuff/Stuff';
-import CartesianZone from '../../platform/idea/location/CartesianZone';
+import CartesianZone from '../../platform/idea/place/CartesianZone';
 import {
   makeStuff,
   makeStuffAtPath,

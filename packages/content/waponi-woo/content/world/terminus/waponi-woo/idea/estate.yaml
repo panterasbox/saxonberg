@@ -53,40 +53,40 @@ data:
   rosterSlots:
     - positionKey: cutter
       assignee: /world/terminus/waponi-woo/agent/cutter-1
-      station: /world/terminus/waponi-woo/location/cane-piece
+      station: /world/terminus/waponi-woo/place/cane-piece
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 14] }
     - positionKey: cutter
       assignee: /world/terminus/waponi-woo/agent/cutter-2
-      station: /world/terminus/waponi-woo/location/cane-piece
+      station: /world/terminus/waponi-woo/place/cane-piece
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 14] }
     - positionKey: miller
       assignee: /world/terminus/waponi-woo/agent/miller
-      station: /world/terminus/waponi-woo/location/mill-yard
+      station: /world/terminus/waponi-woo/place/mill-yard
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [7, 17] }
     - positionKey: boiler
       assignee: /world/terminus/waponi-woo/agent/boiler
-      station: /world/terminus/waponi-woo/boiling-house/location/train-floor
+      station: /world/terminus/waponi-woo/boiling-house/place/train-floor
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [8, 20] }
     - positionKey: hand
       assignee: /world/terminus/waponi-woo/agent/hand
-      station: /world/terminus/waponi-woo/location/store
+      station: /world/terminus/waponi-woo/place/store
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
     - positionKey: harbormaster
       assignee: /world/terminus/waponi-woo/agent/owner
-      station: /world/terminus/waponi-woo/location/store
+      station: /world/terminus/waponi-woo/place/store
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/waponi-woo/location/store
-    - /world/terminus/waponi-woo/location/mill-yard
-    - /world/terminus/waponi-woo/boiling-house/location/train-floor
-    - /world/terminus/waponi-woo/boiling-house/location/curing-house
-    - /world/terminus/waponi-woo/location/cane-piece
-    - /world/terminus/waponi-woo/location/lower-piece
+    - /world/terminus/waponi-woo/place/store
+    - /world/terminus/waponi-woo/place/mill-yard
+    - /world/terminus/waponi-woo/boiling-house/place/train-floor
+    - /world/terminus/waponi-woo/boiling-house/place/curing-house
+    - /world/terminus/waponi-woo/place/cane-piece
+    - /world/terminus/waponi-woo/place/lower-piece
     - /world/terminus/waponi-woo/thing/stock

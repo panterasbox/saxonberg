@@ -20,7 +20,7 @@ import { DrivableMixin } from '../../lib/slot/Drivable';
 import { PropertiedMixin } from '../../lib/stuff/Propertied';
 import { ContainmentApi } from '../containment';
 import Exit from '../../lib/boundary/Exit';
-import Pool from '../../platform/location/Pool';
+import Pool from '../../platform/place/Pool';
 import {
   makeStuff,
   makeStuffAtPath,

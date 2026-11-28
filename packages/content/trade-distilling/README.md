@@ -16,7 +16,7 @@ The distilling trade — a **capability** pack (it ships `src/`).
   consigned by the "small outfit" until the distillery build replaces it),
   the cash-and-carry `counter` (a `Stock` with **no** `stockLines` — a pure
   brokerage), the two outfit stocks, the racking, the still.
-- `content/trade/distilling/location/` — the `cash-and-carry` (the
+- `content/trade/distilling/place/` — the `cash-and-carry` (the
   distributor's showroom), the `warehouse` bundle exemplar, the two floors.
 - `content/trade/distilling/idea/` — the distributor Business (`clerk`,
   `keeper` (purchases)), the two outfits (`hand` (purchases)), and the

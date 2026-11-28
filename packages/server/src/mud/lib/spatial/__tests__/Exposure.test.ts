@@ -15,8 +15,8 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { Stuff } from '../../stuff/Stuff';
-import Location from '../../location/Location';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import Material from '../../material/Material';
 import Biome from '../../biome/Biome';
 import { SkyExposedMixin } from '../../biome/SkyExposed';
@@ -26,7 +26,7 @@ import { BiomeApi } from '../../../api/biome';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import { attachGraph } from '../../location/__tests__/attachments-fixture';
+import { attachGraph } from '../../place/__tests__/attachments-fixture';
 import type { Exposure } from '../Exposure';
 import type { RoofSpec, EnclosurePartSpec } from '../Enclosed';
 
@@ -112,17 +112,17 @@ describe('a structure: the storey tree decides the top', () => {
     const s = makeStuffAtPath(() => new Structure(), `${WORKS}/structure`);
     s.setExtent(WORKS);
     s.setStoreys([
-      { key: 'ground', extent: `${WORKS}/location/ground` },
-      { key: 'works', extent: `${WORKS}/location/ground/works` },
-      { key: 'loft', extent: `${WORKS}/location/loft`, on: 'works' },
-      { key: 'terrace', extent: `${WORKS}/location/terrace`, on: 'loft' },
+      { key: 'ground', extent: `${WORKS}/place/ground` },
+      { key: 'works', extent: `${WORKS}/place/ground/works` },
+      { key: 'loft', extent: `${WORKS}/place/loft`, on: 'works' },
+      { key: 'terrace', extent: `${WORKS}/place/terrace`, on: 'loft' },
     ]);
     attachGraph({ [WORKS]: [[`${WORKS}/structure`, 'structure']] });
     const yard = place('/world/_exp/yard', { biome: OUTDOOR });
-    const floor = place(`${WORKS}/location/ground/works/floor`, { enclosure: brick, roof: slate });
-    const stove = place(`${WORKS}/location/ground/stove-house`, { enclosure: glass, roof: glass });
-    const loft = place(`${WORKS}/location/loft/loft`, { enclosure: brick, roof: slate });
-    const terrace = place(`${WORKS}/location/terrace/terrace`, { enclosure: 'none', roof: 'none' });
+    const floor = place(`${WORKS}/place/ground/works/floor`, { enclosure: brick, roof: slate });
+    const stove = place(`${WORKS}/place/ground/stove-house`, { enclosure: glass, roof: glass });
+    const loft = place(`${WORKS}/place/loft/loft`, { enclosure: brick, roof: slate });
+    const terrace = place(`${WORKS}/place/terrace/terrace`, { enclosure: 'none', roof: 'none' });
     link(floor, [['up', loft], ['east', stove, true], ['west', yard, true]]);
     link(stove, [['west', floor, true], ['south', yard]]);
     link(loft, [['down', floor], ['up', terrace]]);

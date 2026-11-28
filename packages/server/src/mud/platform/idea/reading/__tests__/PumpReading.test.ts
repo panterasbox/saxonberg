@@ -13,7 +13,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { withRow } from './row';
 import { driveAnalyze } from './drive';
 import PumpReading from '../PumpReading';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import Biome from '../../../../lib/biome/Biome';
 import Pump from '../../../thing/Pump';
 import Tool from '../../../thing/Tool';

@@ -74,7 +74,7 @@ data:
       # ⭐ `station:` because this house operates TWO rooms and the default
       # (operatingLocations[0]) is the smithy. A shift is somewhere, and
       # which somewhere is the seat's business, not the person's.
-      station: /world/terminus/hearthworks/location/cookhouse
+      station: /world/terminus/hearthworks/place/cookhouse
       schedule:
         # ⭐ Real hours (envelope S8). This authored `[0, 24]` — a house
         # staffed around the clock — which was never true of it and made
@@ -86,7 +86,7 @@ data:
     # two-handed and the call rule has somebody to choose between.
     - positionKey: kitchen-hand
       assignee: /world/terminus/hearthworks/agent/cookhand
-      station: /world/terminus/hearthworks/location/cookhouse
+      station: /world/terminus/hearthworks/place/cookhouse
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [11, 19] }
   # ⭐⭐ **The par sheet, and why it is here** (trades-and-labor D16).
@@ -110,8 +110,8 @@ data:
     - { category: ice, unit: count, level: 1, supplier: /world/terminus/hollow-mere/idea/ice-company, exemplar: /stuff/thing/ice-block }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/hearthworks/location/smithy
-    - /world/terminus/hearthworks/location/cookhouse
+    - /world/terminus/hearthworks/place/smithy
+    - /world/terminus/hearthworks/place/cookhouse
   # Where the cast wait off shift — one fact on the house (see
   # docs/subsystems/employment.md). The roster tick moves them.
   # ⭐ Off shift a hand is out of the narrative (persistence-model D15).

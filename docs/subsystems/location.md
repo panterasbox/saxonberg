@@ -1,20 +1,20 @@
 # Location subsystem
 
-Source of truth for `packages/server/src/mud/lib/location/` — the
+Source of truth for `packages/server/src/mud/lib/place/` — the
 world's **geometry** (rooms, coordinates, concrete spatial zones) plus
 the **Warren** elastic-graph substrate (the "multilocation" pattern) —
 and the lounge content that rides it
 (`packages/server/src/mud/world/lounge/`). Read this before editing in
 the area.
 
-`lib/location/` carves the room/coordinate/zone geometry out of what was
+`lib/place/` carves the room/coordinate/zone geometry out of what was
 `lib/spatial/`; `lib/spatial/` now holds only the containment/movement
 substrate (Container, Containable, Mobile, Placing, Sealable — see
 [spatial.md](./spatial.md)). The base Zone hierarchy (`Zone` /
 `SpatialZone` / `FolderZone`) lives in `lib/zone/` (see
 [zone.md](./zone.md)); only the concrete coordinate zones
 (`CartesianZone`, `SphericalZone`) — whose identity *is* a coordinate
-frame — sit here under `lib/location/`.
+frame — sit here under `lib/place/`.
 
 This doc has two parts: the **geometry** (Locations, Coordinates, Zones)
 that everything spatial builds on, and the **MultiLocation / Warren**
@@ -108,10 +108,10 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   remains `PersistentLocation`; the spherical twin is derived the same way
   when a spherical venue first needs one.
 
-- ⭐ **A place beside a named water** — `platform/location/Shore`
+- ⭐ **A place beside a named water** — `platform/place/Shore`
   (`ShoreMixin` over `Locale`: a mere's shore, the
   heath by its tarn, a ship's deck, the headland) and
-  `platform/location/Quay` (`ShoreMixin` over `Street`: a lit public
+  `platform/place/Quay` (`ShoreMixin` over `Street`: a lit public
   waterfront, the wharfside bank). Maritime revision 3. Like `Street`,
   a class those rows PICK — never a field every room carries blank. The
   place names its water as one of its own features (`waters: { river:
@@ -119,7 +119,7 @@ Concrete rooms layer Visible, Exitable, and a coordinate mixin on top:
   the place, and `fill`/`drink`/`wash` draw from it. ⚠ A waterside place
   of any OTHER class (a riverside dyehouse) needs its own composed class
   — the recorded cost (`shore-as-place-slate`).
-- ⭐ **A place that IS a small water** — `platform/location/Pool`
+- ⭐ **A place that IS a small water** — `platform/place/Pool`
   (`SwimmableMixin(ShoreMixin(Locale))`: the cove
   off the estuary strand). The PLACE is the water: being in it makes its
   ways swimmable, an exit whose destination is one is swimmable INTO it
@@ -193,7 +193,7 @@ authors a band; the geometry decides. See
 
 The base `Zone` hierarchy (`Zone` / `SpatialZone` / `FolderZone`) and
 `ZoneApi` are documented in [zone.md](./zone.md); the concrete
-coordinate zones below live in `lib/location/`. Every zone owns:
+coordinate zones below live in `lib/place/`. Every zone owns:
 
 - `name: string` — human-readable ("Narnia Castle").
 - `rooms: Set<Location>` — membership. Maintained by `addRoom` /
@@ -394,7 +394,7 @@ Promoted from `docs/slates/engine/multilocation-slate.md` +
 
 ## The pieces
 
-**Warren substrate — `lib/location/` (generic, reusable; alongside the
+**Warren substrate — `lib/place/` (generic, reusable; alongside the
 geometry classes documented above):**
 
 | File | Role |
@@ -715,7 +715,7 @@ bound to the zone — if it's not that's a bug"*); an authored `extent`
 overrides it, nothing else does. So a holding's rooms stand in the zone the
 HOLDING does — `StuffApi.clone`'s `zoneFrom: <room key>` resolves the zone
 from `…/lots/lot-7/bedroom` while the identity stays the row (the
-`(scope, key)` record's scope) — and a generic `/stuff/location/room/*` row
+`(scope, key)` record's scope) — and a generic `/stuff/place/room/*` row
 is a 6 m room in a Hinkley house and a 3 m one in Seznick House.
 
 ⚠ An authored `ambientIntensity` is a FLUX, read over that area. The
@@ -724,7 +724,7 @@ by its cell's area to read the lux it was tuned to (the yard 600 → 21,600
 on 36 m²). A generic row is lit for the one plat that uses it; a second
 user of a different cell size wants lux authoring, not a flux.
 
-The grid geometry the cartesian pair shares is `lib/location/Location` (the
+The grid geometry the cartesian pair shares is `lib/place/Location` (the
 twin shares its instanceable class's name, as every lib/platform pair
 does), so a `Locale` IS-A grid `Location` in code while meaning *one place*
 in the taxonomy.
@@ -771,7 +771,7 @@ workings (`MineRoom`, `AuthoredWorking` — cut ground); a delve, a meadow, a
 yard, a pit, a lean-to and an awning are places. A pack's interior class
 extends the rung (`DormRoom`, `ColdRoom`, `HarborOffice`, `SealedCellar`,
 the lounge's `Bar`/`Lounge`, `FloodedCell`, Duncan's `Corridor`).
-⚠ The NAME `/platform/location/Room` once meant the singleton (it became
+⚠ The NAME `/platform/place/Room` once meant the singleton (it became
 `Locale`, !213) and came back meaning one-of-many; `lint:locations` keeps
 rows on it to the enumerated minted kinds, as it does for `Location`.
 
@@ -790,7 +790,7 @@ place", in any kind of name or prose, says *place* — `place`, `here`,
    sleep, store or work — the room rung's classes (§ The room rung). A dorm
    room, a ship's saloon or hold (a `Compartment`), a cold room,
    the furnishing archetypes (`FurnishableRoom`), a holding's rooms
-   (`/stuff/location/room/*`). If you would not say "come into the
+   (`/stuff/place/room/*`). If you would not say "come into the
    room", it is not one.
 2. **Never a room**: a deck, a quay, a towpath, a street, a field, a wood,
    a yard, a beach, and **any water — a river, the sea, a pool, a patch of
@@ -812,18 +812,18 @@ place", in any kind of name or prose, says *place* — `place`, `here`,
 **Rename status — the vocabulary is decided, the sweep is not finished.**
 Done: the classes (`Place` · `Locale` · `Location` · `PersistentLocale` ·
 `PersistentLocation` · `SphericalLocale`, the cleanliness MR !380); the
-stray `/platform/location/Room` class (→ `Locale`, the farming MR !213);
+stray `/platform/place/Room` class (→ `Locale`, the farming MR !213);
 the river build's sea place (`SeaRoom` → `SeaPatch`, W15). **Not yet**,
 each a deliberate standalone sweep rather than piecemeal edits:
 
 | still named the old way | becomes | notes |
 |---|---|---|
-| the `/location/` path segment — `lib/location/`, `platform/location/`, every `…/location/…` row path | `/place/` | a pack-wide path rename; rows, census and the class table move together |
+| the `/place/` path segment — `lib/place/`, `platform/place/`, every `…/place/…` row path | `/place/` | a pack-wide path rename; rows, census and the class table move together |
 | `Location`-for-*place* APIs and fields — `startLocation`, `LocationZone`, `location_graph`, `getLocation…` readers | `…Place…` | where it means *any place*; `Location` the class (one of many laid out to a plan) keeps its name |
 | `room` as the code idiom for *the place someone is in* — controllers, brains, the kernel | `place` / `here` | mechanical, file by file; new code uses `place` now |
 | `Voyaging.watchRoom` | `watchPlace` | the deck where the watch is kept is outdoors |
 | `MineRoom` | (decide) | a cut working underground is enclosed but not furnished — the mining owner's call |
 | `RoomWarren` | `PlaceWarren` | its own header says what it is — *members are places you stand in, the bottom of the nesting* — and its members include lounge satellites, mine cells, underwater bands and river patches; six subclasses across four packs |
 
-`DormRoom`, `ColdRoom` and the holding rows (`/stuff/location/room/*`) are
+`DormRoom`, `ColdRoom` and the holding rows (`/stuff/place/room/*`) are
 rooms by rule 1 and keep the word.

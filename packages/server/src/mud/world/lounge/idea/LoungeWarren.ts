@@ -19,11 +19,11 @@
  * code constants headed for app settings (`AppApi`)).
  */
 
-import { type Attachment } from '../../../lib/location/Warren';
+import { type Attachment } from '../../../lib/place/Warren';
 // The lounge's members are ROOMS (the host and its satellites), so it is
 // an inner warren — the tier that says occupancy is who is standing in a
 // member. `Warren` makes that choice explicit, not defaulted.
-import { RoomWarren } from '../../../lib/location/RoomWarren';
+import { RoomWarren } from '../../../lib/place/RoomWarren';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
@@ -44,9 +44,9 @@ export default class LoungeWarren extends SingletonMixin(RoomWarren) {
   /** Seeded Warren-definition path; the `startLocation` spawn reference. */
   static readonly WARREN_PATH = '/world/lounge/idea/warren';
   /** The one lounge-room template every instance clones from. */
-  static readonly LOUNGE_TEMPLATE = '/world/lounge/location/lounge';
+  static readonly LOUNGE_TEMPLATE = '/world/lounge/place/lounge';
   /** Dave's Bar — the singleton external-neighbor shell. */
-  static readonly BAR_PATH = '/world/lounge/location/bar';
+  static readonly BAR_PATH = '/world/lounge/place/bar';
   /** The venue's grid. ⚠ A `CartesianZone` since the coords sweep — it
    *  was a `FolderZone`, which cannot hold a cell. */
   static readonly ZONE_PATH = '/world/lounge';

@@ -21,7 +21,7 @@ const OUT = process.env.HARBORS_WALK_OUT ?? 'test-results/harbors-walk';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const MOUTH = '/world/terminus/estuary/estuary-mouth';
 const PUT_IN = '/world/terminus/rejection/put-in/landing';
-const HINKLEY = process.env.HARBORS_WALK_LOT ?? '/world/terminus/hinkley-hills/location/lane';
+const HINKLEY = process.env.HARBORS_WALK_LOT ?? '/world/terminus/hinkley-hills/place/lane';
 
 const INPUT = /Enter command|Type your answer|y \/ n|Type a number|Click a choice/;
 

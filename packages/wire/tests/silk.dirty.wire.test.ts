@@ -94,12 +94,12 @@ declareFile({
 });
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const BENCH_LANE = '/world/terminus/hearts-delight/location/bench-lane';
-const LOFT = '/world/terminus/hearts-delight/silk-house/location/floor';
+const BENCH_LANE = '/world/terminus/hearts-delight/place/bench-lane';
+const LOFT = '/world/terminus/hearts-delight/silk-house/place/floor';
 const STORE = '/world/terminus/general-store/shop-floor';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
-const MILL = '/world/terminus/wharfside/mill/location/floor';
-const DYEHOUSE = '/world/terminus/wharfside/dyehouse/location/floor';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
+const MILL = '/world/terminus/wharfside/mill/place/floor';
+const DYEHOUSE = '/world/terminus/wharfside/dyehouse/place/floor';
 
 let handle = '';
 

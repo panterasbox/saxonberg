@@ -27,11 +27,11 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
-import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { attachGraph } from '@saxonberg/server/mud/lib/place/__tests__/attachments-fixture';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
-import Locale from '@saxonberg/server/mud/platform/location/Locale';
+import Locale from '@saxonberg/server/mud/platform/place/Locale';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import {
   makeStuff,
@@ -43,7 +43,7 @@ import HoldingWarren from '../../idea/HoldingWarren';
 import type { ConditionWord } from '@saxonberg/server/mud/lib/material/Durable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import type { Attachment } from '@saxonberg/server/mud/lib/place/Warren';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 
 const DORMS = '/test/duncan/dorms';

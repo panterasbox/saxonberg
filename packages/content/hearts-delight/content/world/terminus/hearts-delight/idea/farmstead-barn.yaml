@@ -6,8 +6,8 @@
 class: /system/residence/idea/HoldingBuilding
 extends: /system/residence/idea/holding-building
 data:
-  extent: /world/terminus/hearts-delight/farmstead/location/barn
-  entrance: /world/terminus/hearts-delight/farmstead/location/barn
+  extent: /world/terminus/hearts-delight/farmstead/place/barn
+  entrance: /world/terminus/hearts-delight/farmstead/place/barn
   shortDescription: barn
   keywords: [barn, building]
   longDescription: >-

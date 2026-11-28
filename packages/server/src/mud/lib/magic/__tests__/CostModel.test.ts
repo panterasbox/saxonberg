@@ -37,7 +37,7 @@ import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import { Template } from '../../stuff/Template';
 import Good from '../../stuff/Good';
 import Species from '../../../platform/idea/species/Species';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import { Character } from '../../character/Character';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
@@ -110,7 +110,7 @@ async function installCatalogue(): Promise<void> {
 
 function room(elevation: number | null): Stuff & Container {
   const r = makeStuff(() => new Locale());
-  stampTemplatePathForTest(r, `/platform/location/test/cost-${seq++}`);
+  stampTemplatePathForTest(r, `/platform/place/test/cost-${seq++}`);
   elevations.set(r as unknown as Stuff, elevation);
   return r as unknown as Stuff & Container;
 }
@@ -240,7 +240,7 @@ describe('the computed cost — the two doors', () => {
     vi.spyOn(ExecutionContextApi, 'getCurrentCommandGiver').mockReturnValue(
       wielder as never,
     );
-    const summitPath = `/platform/location/test/summit-${seq++}`;
+    const summitPath = `/platform/place/test/summit-${seq++}`;
     stampTemplatePathForTest(summit as unknown as Stuff, summitPath);
     vi.spyOn(StuffApi, 'singletonOrClone').mockResolvedValue(
       summit as unknown as Stuff,

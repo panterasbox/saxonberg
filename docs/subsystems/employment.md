@@ -817,7 +817,7 @@ retired.
   stands in (potash, 2026-10-21: the ash-man was evicted from home and
   his round ran with nobody on it).
 - ⛔ **`Offstage` is retired** (persistence-model D15, 2026-11-24). It was
-  an off-shift parking ROOM (`OffstageMixin`, `platform/location/Offstage`,
+  an off-shift parking ROOM (`OffstageMixin`, `platform/place/Offstage`,
   one row per venue) — a place meaning "nowhere". Nowhere is null: the
   world still conserves identity (an off-duty hand is never destroyed and
   respawned), it simply has no environment until it is called back. The
@@ -1055,7 +1055,7 @@ drops its
 `shifts` schedule, carries no employment block (materialized by the tick).
 The Business seed (`/world/lounge/idea/business`) authors the `bartender`
 Position (`fulfills: [bartending]`, `wageRate` a tuning placeholder), the
-roster, and `operatingLocations: [/world/lounge/location/bar]`. Positions
+roster, and `operatingLocations: [/world/lounge/place/bar]`. Positions
 are rows on a Business — there is no industry-level position artifact,
 so the hospitality trade ships none and the venue keeps them.
 

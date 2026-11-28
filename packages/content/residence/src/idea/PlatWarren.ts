@@ -20,7 +20,7 @@
  * before — the designed swap seam, swapped.
  */
 
-import { CirculationWarren } from "@saxonberg/server/mud/lib/location/CirculationWarren";
+import { CirculationWarren } from "@saxonberg/server/mud/lib/place/CirculationWarren";
 import { SingletonMixin } from "@saxonberg/server/mud/lib/stuff/Singleton";
 import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";

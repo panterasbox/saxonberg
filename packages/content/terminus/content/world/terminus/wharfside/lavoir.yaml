@@ -5,7 +5,7 @@
 #
 # On the bank, upstream of the noxious trades and fed from the fell, not
 # the river: the laundresses wash here because the water is SOFT.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Lavoir
   # Covered by a Locality, so a walk here files claims on your map

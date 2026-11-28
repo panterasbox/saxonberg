@@ -686,7 +686,7 @@ room, same `teleport`; the schedule and the move now live together. See
 [employment.md](../../subsystems/employment.md) § Presence and cover.
 
 Now read what an `Offstage` room already says
-(`hearthworks/location/offstage.yaml`):
+(`hearthworks/place/offstage.yaml`):
 
 > *A low back room behind the cookhouse: a cot, a row of pegs heavy with
 > aprons, a bench with a whetstone and a bowl of cold stew on it. Where
@@ -1096,7 +1096,7 @@ the seasons) — the compaction ledger has each with its pointer.*
   via `teleport`. ⚠ Was the `shifts` brain, RETIRED 2026-10-01 (MR !316):
   relocation is not a decision an agent makes, so it belongs on the tick
   that already knew the hours, not on a brain beating against the clock.
-- **`Offstage`** is `/platform/location/Offstage`, no `Exitable`,
+- **`Offstage`** is `/platform/place/Offstage`, no `Exitable`,
   materialized on demand by `singletonOrClone`.
 - **Shift schedules**: only the Lounge, the budget, the general store and
   the counting-houses have non-24/7 rosters. Rejection and Hearthworks are

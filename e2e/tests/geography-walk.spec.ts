@@ -14,7 +14,7 @@ import { openWorldAs, runCommand } from './helpers';
  */
 
 const MARKET = '/world/terminus/market/square';
-const HINKLEY = '/world/terminus/hinkley-hills/location/arrival';
+const HINKLEY = '/world/terminus/hinkley-hills/place/arrival';
 const BROW = '/world/terminus/estuary/headland/brow';
 
 async function transcript(page: Page): Promise<string> {

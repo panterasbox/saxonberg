@@ -12,7 +12,7 @@
 # and the chandler is a trader who happens to dip. What is hard here is
 # which fat you bought at what price against what the parish will pay
 # for its lamp oil.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Chandlery
   # Covered by a Locality, so a walk here files claims on your map

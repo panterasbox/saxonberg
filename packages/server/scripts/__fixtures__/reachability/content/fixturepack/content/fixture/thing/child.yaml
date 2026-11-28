@@ -1,4 +1,4 @@
 extends: /fixture/thing/base
 data:
   shortDescription: child widget
-  seatIn: /fixture/location/yard
+  seatIn: /fixture/place/yard

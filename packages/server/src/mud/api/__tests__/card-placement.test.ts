@@ -14,7 +14,7 @@ import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
 import { SubscriptionApi } from '../subscription';
 import { makeHarness, makeContext, type Harness } from './card-harness';
-import Locale from '../../platform/location/Locale';
+import Locale from '../../platform/place/Locale';
 
 beforeEach(() => {
   StuffApi.clearAll();

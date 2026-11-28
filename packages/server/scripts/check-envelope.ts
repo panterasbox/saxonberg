@@ -122,40 +122,40 @@ export const AUTHORED_TEMPERATURES: ReadonlyArray<{
   reason: string;
 }> = [
   {
-    path: "/trade/hospitality/location/cellar",
+    path: "/trade/hospitality/place/cellar",
     reason:
       "285 K — a maturation cellar. The bar's cellar holds its own " +
       "temperature the year round by being underground, and the " +
       "maturation clock reads this number directly.",
   },
   {
-    path: "/world/terminus/goods-yards/brewing/location/cold-store",
+    path: "/world/terminus/goods-yards/brewing/place/cold-store",
     reason:
       "279 K — a cold store, kept deliberately near freezing. The " +
       "coldest authored room in the realm and the one most obviously " +
       "not a consequence of its walls.",
   },
   {
-    path: "/world/terminus/goods-yards/brewing/location/floor",
+    path: "/world/terminus/goods-yards/brewing/place/floor",
     reason:
       "288 K — a brewery floor, held cool for the ferment. Its " +
       "temperature is a fact about the trade practised in it.",
   },
   {
-    path: "/world/terminus/goods-yards/vintner/location/floor",
+    path: "/world/terminus/goods-yards/vintner/place/floor",
     reason:
       "285 K — a vintner's floor, held at cellar temperature for the " +
       "same reason and read by the same maturation clock.",
   },
   {
-    path: "/world/terminus/goods-yards/crowsfoot/location/floor",
+    path: "/world/terminus/goods-yards/crowsfoot/place/floor",
     reason:
       "289 K — the crowsfoot floor, cool for maturation. The warmest " +
       "of the five, and the first to argue with if this list is ever " +
       "paid down.",
   },
   {
-    path: "/world/terminus/hearts-delight/creamery/location/cheese-room",
+    path: "/world/terminus/hearts-delight/creamery/place/cheese-room",
     reason:
       "284 K — a cheese cave cut into the bank under the creamery (dairy " +
       "D14). A cellar the same the year round is the case this list " +
@@ -164,7 +164,7 @@ export const AUTHORED_TEMPERATURES: ReadonlyArray<{
       "goes over or dies.",
   },
   {
-    path: "/world/terminus/hearts-delight/creamery/location/floor",
+    path: "/world/terminus/hearts-delight/creamery/place/floor",
     reason:
       "293 K — a creamery workroom, held warm for the curd: renneted and " +
       "soured milk is a maturation clock that stalls below 283 K, the " +
@@ -175,7 +175,7 @@ export const AUTHORED_TEMPERATURES: ReadonlyArray<{
       "the first to pay down when it does.",
   },
   {
-    path: "/world/terminus/rejection/location/the-dry",
+    path: "/world/terminus/rejection/place/the-dry",
     reason:
       "293 K — the Dry, the drying room the miners keep warm by its stove " +
       "(its prose: \"a stove in the middle that somebody keeps going\"); " +

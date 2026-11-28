@@ -25,14 +25,14 @@ import { MessageApi } from '../../../../../api/message';
 import { MixinApi } from '../../../../../api/mixin';
 import { StuffApi } from '../../../../../api/stuff';
 import LocationGraphRegistry from '../../../LocationGraphRegistry';
-import type { MapClaim } from '../../../../../lib/location/MapClaim';
+import type { MapClaim } from '../../../../../lib/place/MapClaim';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import {
   makeStuff,
   seedKernelContentStore,
 } from '../../../../../lib/security/__tests__/test-setup';
-import Location from '../../../../../lib/location/Location';
-import CartesianZone from '../../../location/CartesianZone';
+import Location from '../../../../../lib/place/Location';
+import CartesianZone from '../../../place/CartesianZone';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 

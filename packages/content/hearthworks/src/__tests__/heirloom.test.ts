@@ -39,7 +39,7 @@ describe('the heirloom over the hearth', () => {
   });
 
   it('is propped in the smithy', () => {
-    const smithy = load('hearthworks/content/world/terminus/hearthworks/location/smithy.yaml');
+    const smithy = load('hearthworks/content/world/terminus/hearthworks/place/smithy.yaml');
     expect(JSON.stringify(smithy.data.props)).toMatch(/hearthworks\/thing\/heirloom/);
   });
 });

@@ -13,7 +13,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
 import Good from '../../../platform/thing/Good';
 import Handcart from '../../../platform/thing/equipment/Handcart';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { makeBody } from './carrying-fixture';

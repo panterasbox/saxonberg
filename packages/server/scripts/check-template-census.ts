@@ -991,7 +991,7 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
   // ⭐ A structure's STOREYS (rubber build) are extents too — each a
   // membership prefix resolved longest-prefix, like the structure's own
   // `extent`. A storey prefix very often names a folder no row backs
-  // (`…/location/ground` holds rooms, and is not one), and a storey whose
+  // (`…/place/ground` holds rooms, and is not one), and a storey whose
   // prefix covers nothing has no members, which fails closed.
   'storeys',
   // ⭐ A mining claim's block names a parcel EXTENT — ground somebody

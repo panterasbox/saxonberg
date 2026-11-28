@@ -28,7 +28,7 @@ import type { Positioned } from './Positioned';
 import type { LinePositionRecord } from './LineFrame';
 import type { GeoPosition } from './GeoPosition';
 import { Trajectory, type MarkRecord, type TrajectoryAt, type TrajectoryRecord } from './Trajectory';
-import { Drift } from '../location/Drift';
+import { Drift } from '../place/Drift';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';

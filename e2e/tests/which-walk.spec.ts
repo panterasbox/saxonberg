@@ -14,7 +14,7 @@ import { openWorldAs, runCommand, commandInput } from './helpers';
  * Stood in the testbed (`SAXONBERG_TEST_WORLD=1`).
  */
 
-const PLAZA = '/world/testbed/location/plaza';
+const PLAZA = '/world/testbed/place/plaza';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();

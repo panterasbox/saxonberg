@@ -22,7 +22,7 @@
 import '../../../../test-bootstrap';
 import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Floor from '../../../platform/thing/Floor';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
@@ -77,7 +77,7 @@ const ROWS: Doc[] = [
   // ── the two rooms, authored the two ways an author would ──
   {
     path: '/test/limbo/lane',
-    class: '/platform/location/Location',
+    class: '/platform/place/Location',
     data: {
       shortDescription: 'Limbo Lane',
       coordinates: [0, 0, 0],
@@ -86,7 +86,7 @@ const ROWS: Doc[] = [
   },
   {
     path: '/test/limbo/alley',
-    class: '/platform/location/Location',
+    class: '/platform/place/Location',
     data: {
       shortDescription: 'Limbo Alley',
       coordinates: [9, 9, 0],

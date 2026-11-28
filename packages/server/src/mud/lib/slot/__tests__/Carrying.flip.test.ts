@@ -12,7 +12,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MessageApi } from '../../../api/message';
 import { Quantity } from '../../quantity';
 import Good from '../../../platform/thing/Good';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { installShapes } from '../../spatial/__tests__/size-fixture';
 import { makeBody, tool, wornGarment, wornBag, carryWords } from './carrying-fixture';

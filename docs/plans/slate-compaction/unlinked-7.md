@@ -111,7 +111,7 @@ six held-side R2.4 unhooks are still `cleanupOnDestruct`-form
 **`DormWarren._unitsByKey` / `_corridorsByFloor` / `_doorsByKey` no
 longer exist** — the residences build lifted them to
 `CirculationWarren._holdingsByKey` / `_circulationByNode` / `_entriesByKey`
-(`lib/location/CirculationWarren.ts:137-141`) and `HoldingWarren._roomsByKey`
+(`lib/place/CirculationWarren.ts:137-141`) and `HoldingWarren._roomsByKey`
 (`packages/content/residence/src/idea/HoldingWarren.ts:127`), all still
 undeclared (only `UnprovisionController.ts:14` and `Corridor.ts:4`
 mention the old names in comments); and **`ref: 'identity'` is no longer

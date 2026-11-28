@@ -11,7 +11,7 @@
 # by day and wants a light at night. Its own sub-zone, hung off the
 # treeline by ONE ordinary ground way (the delve and hollow precedent): an
 # added exit pulls it into no standup or fast-travel cascade.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Old Steading
   cellSize: 3.0

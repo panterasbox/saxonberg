@@ -46,7 +46,7 @@ import {
   type SampleRequest,
 } from '@saxonberg/server/mud/lib/instrument/Sampleable';
 import Deposit, { type Point, type GroundSample } from '../idea/Deposit';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 
 /**
  * A cell of a workings grid — integer coordinates, `z` negative down.

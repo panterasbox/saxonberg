@@ -81,7 +81,7 @@ declareFile({
 // each let unit is a zone of its own and its row refuses a room
 // (zone-instancing D4). The furnishing archetype is the same kind of row,
 // outside any copied zone.
-const DORM = '/stuff/location/room/bedroom';
+const DORM = '/stuff/place/room/bedroom';
 
 const squash = (s: string): string => s.replace(/\s+/g, ' ').trim();
 

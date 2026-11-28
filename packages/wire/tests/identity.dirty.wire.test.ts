@@ -56,7 +56,7 @@ declareFile({
 });
 
 const REGISTRY = '/world/terminus/registry/office';
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 const WATCHPOST = '/world/newbie-wilds/crossroads/watchpost';
 
 let a: Session; // the registry

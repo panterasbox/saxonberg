@@ -20,7 +20,7 @@
 import { BulkSlot, type Bulkable, type BulkPayload, type ClosureLevel } from './Bulkable';
 import type { Stuff } from '../stuff/Stuff';
 import type Material from '../material/Material';
-import type { WaterRead } from '../location/WaterSource';
+import type { WaterRead } from '../place/WaterSource';
 import { Quantity } from '../quantity';
 import { StuffApi } from '../../api/stuff';
 // The `hardnessDgh` payload field is declared by WaterHardness's merge;

@@ -20,7 +20,7 @@ import { installV1QuantityMarshallers } from '../../lib/persistence/__tests__/qu
 import ArchetypeCatalogue from '../idea/ArchetypeCatalogue';
 import { Archetype } from '../../lib/archetype/Archetype';
 import RecipeCatalogue from '../idea/RecipeCatalogue';
-import Locale from '../location/Locale';
+import Locale from '../place/Locale';
 import Good from '../../lib/stuff/Good';
 import { ToolMixin } from '../../lib/craft/Tool';
 import { PlacingMixin } from '../../lib/spatial/Placing';
@@ -113,7 +113,7 @@ describe('the venue archetype', () => {
     vi.spyOn(StuffApi, 'clone').mockImplementation(async (path: string) => {
       cloned.push(path);
       const s: Stuff =
-        path === '/platform/location/venue'
+        path === '/platform/place/venue'
           ? (makeStuff(() => new Locale()) as unknown as Stuff)
           : path.endsWith('bench')
             ? (makeStuff(() => new Bench()) as unknown as Stuff)
@@ -123,7 +123,7 @@ describe('the venue archetype', () => {
       return s;
     });
     const venue = await catalogue.getArchetype('hospitality')!.materialize();
-    expect(cloned).toEqual(['/platform/location/venue', '/fx/thing/bench', '/fx/thing/tap']);
+    expect(cloned).toEqual(['/platform/place/venue', '/fx/thing/bench', '/fx/thing/tap']);
     expect(venue.getContents().length).toBe(2);
   });
 

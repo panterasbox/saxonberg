@@ -2,7 +2,7 @@
 # navigation: as far up the Kestrel as a boat comes. Freight that wants to
 # go further goes by the road from here, and that is why there is anything
 # here at all.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: landing below the falls
   keywords: [landing, falls, quay]

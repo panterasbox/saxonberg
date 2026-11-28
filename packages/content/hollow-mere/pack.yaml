@@ -21,4 +21,4 @@ requires:
 
 boot:
   - { template: /world/terminus/hollow-mere/idea/ice-company, role: producer, reason: "the crew works the ice and the house hand keeps the house with nobody present; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
-  - { template: /world/terminus/hollow-mere/icehouse/location/house, role: producer, reason: "the house hand stands here and the stack melts by its own physics, so the house must be live for its beat to fire; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }
+  - { template: /world/terminus/hollow-mere/icehouse/place/house, role: producer, reason: "the house hand stands here and the stack melts by its own physics, so the house must be live for its beat to fire; kept booted because its NPCs act while nobody is present (unobserved-economy-slate)" }

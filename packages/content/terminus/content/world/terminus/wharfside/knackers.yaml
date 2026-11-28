@@ -20,7 +20,7 @@
 # somebody brings it. The works-board is how that is said, and droving
 # live animals through streets is not expressible yet — recorded in the
 # plan, and the shambles waits on it.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Knacker's Yard
   # Covered by a Locality, so a walk here files claims on your map

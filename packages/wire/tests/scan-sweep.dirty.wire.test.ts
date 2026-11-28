@@ -69,14 +69,14 @@ declareFile({
 });
 
 const DECK = '/world/terminus/hesper/deck';
-const FARM_YARD = '/world/terminus/eternal/campus-farm/location/yard';
+const FARM_YARD = '/world/terminus/eternal/campus-farm/place/yard';
 const REGISTRY = '/world/terminus/registry/office';
 const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const RIVER_BANK = '/world/terminus/wharfside/bank';
-const DISTILLERY = '/world/terminus/goods-yards/veshko/location/distillery';
-const PUBLIC_WORKS = '/world/terminus/hearts-delight/public-works/location/yard';
-const FARMSTEAD = '/world/terminus/hearts-delight/location/farmstead-yard';
+const DISTILLERY = '/world/terminus/goods-yards/veshko/place/distillery';
+const PUBLIC_WORKS = '/world/terminus/hearts-delight/public-works/place/yard';
+const FARMSTEAD = '/world/terminus/hearts-delight/place/farmstead-yard';
 
 const squash = (t: string): string => plain(t).replace(/\s+/g, ' ').trim();
 

@@ -21,8 +21,8 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Lounge from '../location/Lounge';
-import Bar from '../location/Bar';
+import Lounge from '../place/Lounge';
+import Bar from '../place/Bar';
 import type Place from '../../../lib/stuff/Place';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';

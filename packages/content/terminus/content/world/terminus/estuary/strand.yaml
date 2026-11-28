@@ -3,7 +3,7 @@
 # water it is beside (maritime review, 2026-10-13). `swim east` takes you
 # into it — admitted because the place that way IS the water (a `Pool`),
 # never because the strand is swimmable.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: strand
   keywords: [strand, beach, sand, shore]

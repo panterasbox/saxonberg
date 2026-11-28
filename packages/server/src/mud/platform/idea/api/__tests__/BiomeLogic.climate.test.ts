@@ -30,7 +30,7 @@ import {
   PersistenceManager,
   Collections,
 } from '../../../../../backend/PersistenceManager';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import Biome from '../../../../lib/biome/Biome';
 import { SkyExposedBiome } from '../../SkyExposedBiome';
 import { Zone } from '../../../../lib/zone/Zone';
@@ -104,7 +104,7 @@ async function zoneAt(
   levers: { latitude?: number; elevation?: number; continentality?: number },
 ): Promise<Zone> {
   installInMemoryStore([
-    { path, class: '/platform/idea/location/CartesianZone', data: {} },
+    { path, class: '/platform/idea/place/CartesianZone', data: {} },
   ]);
   const zone = await StuffApi.singleton<SpatialZone>(path);
   if (levers.latitude !== undefined) zone.setLatitude(levers.latitude);

@@ -56,7 +56,7 @@ describe("config controllers", () => {
         _id: "r",
         values: {
           [AppSettingKeys.defaultStartLocation]: "/world/lounge/idea/warren",
-          [AppSettingKeys.evacuationFallback]: "/platform/location/void",
+          [AppSettingKeys.evacuationFallback]: "/platform/place/void",
         },
       },
     ]);
@@ -110,13 +110,13 @@ describe("config controllers", () => {
     await run({});
     const text = output.join("\n");
     expect(text).toContain(`${AppSettingKeys.defaultStartLocation} = /world/lounge/idea/warren`);
-    expect(text).toContain(`${AppSettingKeys.evacuationFallback} = /platform/location/void`);
+    expect(text).toContain(`${AppSettingKeys.evacuationFallback} = /platform/place/void`);
   });
 
   it("shows a single setting", async () => {
     await run({ key: AppSettingKeys.evacuationFallback });
     expect(output.join("\n")).toContain(
-      `${AppSettingKeys.evacuationFallback} = /platform/location/void`,
+      `${AppSettingKeys.evacuationFallback} = /platform/place/void`,
     );
   });
 

@@ -56,7 +56,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
+const FUEL_YARD = '/world/terminus/rejection/place/fuel-yard';
 const HAZEL = '/stuff/idea/material/wood/hazel';
 const OAK = '/stuff/idea/material/wood/oak';
 const RIDE = '/world/terminus/rejection/hanging-wood/ride';

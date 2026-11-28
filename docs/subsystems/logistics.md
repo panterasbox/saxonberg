@@ -816,7 +816,7 @@ spot, and a city-sized zone would report *the corridor has water*
 because a fountain exists a quarter-mile away. The shipped roads read
 correctly only because they happen to be zoned one-road-per-zone.
 
-⭐ It asks the realm's **`WayIndex`** (`lib/location/WayIndex.ts`, a
+⭐ It asks the realm's **`WayIndex`** (`lib/place/WayIndex.ts`, a
 kernel seam mixin; controller-liquidity W21) — the singleton the
 `ways.indexPath` setting names, narrowed by `MixinApi.isWayIndex`. The
 transport pack's `LaneCatalogue` composes it (`waysideOf(here)` — the union

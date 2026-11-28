@@ -35,7 +35,7 @@ import type { Container } from './Container';
 import type { Containable } from './Containable';
 import type { CommandContributions } from '../../api/command';
 import type { FieldMeta } from '../mixin';
-import type { Buoy } from '../location/Buoy';
+import type { Buoy } from '../place/Buoy';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
 import { ContainmentApi } from '../../api/containment';

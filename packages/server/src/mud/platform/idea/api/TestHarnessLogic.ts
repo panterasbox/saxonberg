@@ -1093,12 +1093,12 @@ export class TestHarnessLogic extends ApiLogic {
     for (const row of rows) {
       if (!row.path || !row.path.startsWith(SCAFFOLD_ROOT)) continue;
       await this.retireAccountsOf(row.path, report);
-      // Only a PLACE is swept — a row under a `location/` segment (the
+      // Only a PLACE is swept — a row under a `place/` segment (the
       // pack's convention). Every other row (an NPC a drive clones, a thing)
       // may have many instances and is no host here. ⚠ Not "a row with
       // props or cast": the approach authors neither, and its strays were
       // never swept (the indifference drive's reuse pass).
-      if (!/\/location\//.test(row.path)) continue;
+      if (!/\/place\//.test(row.path)) continue;
       const place = StuffApi.findByTemplatePath(row.path);
       if (!place || !MixinApi.isContainer(place)) continue;
       const authored = new Set(

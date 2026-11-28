@@ -108,7 +108,7 @@ describe("TitleSubdivideController", () => {
     getZoneSpy = vi
       .spyOn(Stuff.prototype, "getZone")
       .mockReturnValue({
-        getTemplatePath: () => "/world/lounge/location/bar",
+        getTemplatePath: () => "/world/lounge/place/bar",
       } as never);
     vi.spyOn(ParcelApi, "coveringParcelOf").mockResolvedValue(
       fakeParcel("/world/lounge", LOUNGE_OWNER),

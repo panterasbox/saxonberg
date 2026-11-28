@@ -5,7 +5,7 @@
 # classes, brains — stays with the brewing trade; these rows name it by path.
 # A sub-zone of its own so the floor keeps its authored coords (the
 # seznick-house / veshko shape); the district zone is its parent.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Brewhouse
   cellSize: 3.0

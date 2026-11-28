@@ -26,7 +26,7 @@ data:
     stope: /world/terminus/rejection/ferrow/stope
     fall: /world/terminus/rejection/ferrow/fall
   zonePath: /world/terminus/rejection/ferrow
-  aditPath: /world/terminus/rejection/location/adit
+  aditPath: /world/terminus/rejection/place/adit
   mineExtent: /world/terminus/rejection/ferrow
   # Two blocks are recorded from the start: the co-op's ground off the
   # Timbered Drift, and the independent's block out on the iron fringe.

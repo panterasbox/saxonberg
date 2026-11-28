@@ -16,7 +16,7 @@ import { withRow } from './row';
 import { driveAnalyze, driveMeasure, instrumentWith } from './drive';
 import PaintReading from '../PaintReading';
 import ConditionReading from '../ConditionReading';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import BuildingBase from '../../../../lib/structure/Building';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../lib/message/Sensor';

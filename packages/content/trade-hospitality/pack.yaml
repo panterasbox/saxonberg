@@ -13,7 +13,7 @@ description: >-
   bundles a venue populates by reference, and the `hospitality` venue
   archetype. The bottles are a venue's own stock bought from the
   cash-and-carry (trade-distilling); the positions are rows on a venue's
-  Business (employment.md). Dave's Bar (/world/lounge/location/bar) is the
+  Business (employment.md). Dave's Bar (/world/lounge/place/bar) is the
   venue that hosts this trade.
 requires:
   # The trade is placeless (economic bootstrap D6/D7): its mechanism is

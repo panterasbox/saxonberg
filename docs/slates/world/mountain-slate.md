@@ -13,6 +13,10 @@
 > retrofitted
 > **Size:** a build
 
+⭐ **Designed with the biome conversation** (owner, 2026-11-28) →
+[biome-normalization-slate](../tech-debt/biome-normalization-slate.md)
+§ *The conversation still to have*.
+
 **Sits on:** [expanse.md](../../subsystems/expanse.md) (landmarks, sight by
 curvature, `Sighted`) · [construction.md](../../subsystems/construction.md)
 (`Structure` — membership, storeys) ·

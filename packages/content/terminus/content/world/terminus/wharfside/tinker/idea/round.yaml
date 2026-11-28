@@ -26,7 +26,7 @@ data:
   rosterSlots:
     - positionKey: tinker
       assignee: /world/terminus/wharfside/tinker/agent/tinker
-      station: /world/terminus/wharfside/tinker/location/yard
+      station: /world/terminus/wharfside/tinker/place/yard
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 8] }
     - positionKey: tinker
@@ -36,7 +36,7 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 10] }
     - positionKey: tinker
       assignee: /world/terminus/wharfside/tinker/agent/tinker
-      station: /world/terminus/hearts-delight/location/valley-gate
+      station: /world/terminus/hearts-delight/place/valley-gate
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [10, 12] }
     - positionKey: tinker
@@ -46,18 +46,18 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [12, 14] }
     - positionKey: tinker
       assignee: /world/terminus/wharfside/tinker/agent/tinker
-      station: /world/terminus/rejection/location/smelter
+      station: /world/terminus/rejection/place/smelter
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [14, 17] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/wharfside/tinker/location/yard
+    - /world/terminus/wharfside/tinker/place/yard
     - /world/terminus/wharfside/tinker/thing/slate
     - /world/terminus/delight-road/crossroads
     - /world/terminus/delight-road/thing/tinkers-slate
-    - /world/terminus/hearts-delight/location/valley-gate
+    - /world/terminus/hearts-delight/place/valley-gate
     - /world/terminus/hearts-delight/thing/tinkers-slate
-    - /world/terminus/rejection/location/smelter
+    - /world/terminus/rejection/place/smelter
     - /world/terminus/rejection/thing/mending-slate
   # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
   offShift: out

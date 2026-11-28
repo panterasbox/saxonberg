@@ -3,7 +3,7 @@
 # A place that IS the water: three meters over the mud at mean water, more
 # at the flood. What floats here when the tide turns ends up on the
 # strandline.
-class: /system/water/location/RiverPlace
+class: /system/water/place/RiverPlace
 data:
   shortDescription: channel
   keywords: [channel, tide, water, "deep water"]

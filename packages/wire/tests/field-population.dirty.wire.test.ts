@@ -87,25 +87,25 @@ declareFile({
 
 const DAY = 86_400;
 
-const BENCH = '/world/terminus/hearts-delight/bench-field/location/upper-bench';
-const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
+const BENCH = '/world/terminus/hearts-delight/bench-field/place/upper-bench';
+const BYRE = '/world/terminus/hearts-delight/dairy/place/byre';
 const STORE = '/world/terminus/general-store/shop-floor';
 const SQUARE = '/world/terminus/market/square';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 /** Where a watering can lies to be picked up (the store sells none). */
 const CANS = [
-  '/world/terminus/goods-yards/rubber-works/location/ground/stove-house',
+  '/world/terminus/goods-yards/rubber-works/place/ground/stove-house',
   '/world/terminus/hinkley-hills/house/yard',
 ];
-const YARD = '/world/terminus/eternal/campus-farm/location/yard';
-const HOME_FIELD = '/world/terminus/eternal/campus-field/location/home-field';
-const CANE_PIECE = '/world/terminus/waponi-woo/location/cane-piece';
+const YARD = '/world/terminus/eternal/campus-farm/place/yard';
+const HOME_FIELD = '/world/terminus/eternal/campus-field/place/home-field';
+const CANE_PIECE = '/world/terminus/waponi-woo/place/cane-piece';
 // ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
 // orphan room with no unit, no door and no copy — which can no longer exist:
 // each let unit is a zone of its own and its row refuses a room
 // (zone-instancing D4). The furnishing archetype is the same kind of row,
 // outside any copied zone.
-const DORM = '/stuff/location/room/bedroom';
+const DORM = '/stuff/place/room/bedroom';
 
 /**
  * The founder's jurisdiction for staging the home field. ⚠ Not

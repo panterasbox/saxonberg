@@ -9,7 +9,7 @@
 # No inbound exit is wired from another content area (the treeline / substation
 # precedent — keeps content-area standup clean); reachable by teleport / a
 # future travel node. Collects nothing, so no ownerGroup this cycle.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Weeping Moor
   cellSize: 3.0

@@ -1,0 +1,21 @@
+# The yard — an open yard east of the approach (test-world-lifecycle D2).
+# Outdoor, lit by the sky. North is a locked gate into the back of the shop:
+# a keyway, and no key for it anywhere. East is the shaft head.
+# ⚠ TEST-ONLY.
+class: /platform/place/Locale
+data:
+  shortDescription: testbed yard
+  keywords: [yard, testbed]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A bare yard behind the shop. A gate in the north wall leads into the back of the shop. The approach is to the west and a shaft head to the east.
+  coords: { x: 1, y: -1, z: 0 }
+  exits:
+    west:
+      destination: /world/testbed/place/approach
+    north:
+      destination: /world/testbed/building/place/shop
+      door: /world/testbed/thing/gate
+    east:
+      destination: /world/testbed/place/shaft-head

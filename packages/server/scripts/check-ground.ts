@@ -146,7 +146,7 @@ const REPO = join(SERVER, "..", "..");
  *   - **Idiom and simile.** *"rooms let by the floor"* (a storey), *"when
  *     they're not on the floor"*, *"a ledger the size of a paving slab"*.
  *   - **A trade FLOOR is a room, not a ground.** Six goods-yards rows are
- *     *named* `…/location/floor` and their prose describes the space — *"a
+ *     *named* `…/place/floor` and their prose describes the space — *"a
  *     hangar of a floor"*, *"a cool cellar under a trapdoor"*. Two of the six
  *     do name a material (tiled, wet stone) and those two ARE listed.
  *   - **Other things made of boards.** Bulletin boards in the Duncan Hall
@@ -174,8 +174,8 @@ const REPO = join(SERVER, "..", "..");
  */
 export const UNBACKED_GROUND_CLAIMS: readonly string[] = [
   // ── the commons ──
-  '/stuff/location/room/bathroom',                    // "a small TILED room"
-  '/trade/distilling/location/warehouse',             // "the CONCRETE stained in rings"
+  '/stuff/place/room/bathroom',                    // "a small TILED room"
+  '/trade/distilling/place/warehouse',             // "the CONCRETE stained in rings"
 
   // ── the newbie wilds: the delve is four rooms of named stone ──
   '/world/newbie-wilds/delve/vestibule',              // "its floor laid in flat SLABS"
@@ -193,28 +193,28 @@ export const UNBACKED_GROUND_CLAIMS: readonly string[] = [
 
   // ── the working city ──
   '/world/terminus/market/bakery',                    // "the floor is STONE and the stone is damp"
-  '/world/terminus/goods-yards/bottling/location/floor',  // "a bright TILED floor"
-  '/world/terminus/goods-yards/brewing/location/floor',   // "a wet STONE floor"
-  '/world/terminus/wharfside/dyehouse/location/floor',    // "the floor is STAINED past explaining"
+  '/world/terminus/goods-yards/bottling/place/floor',  // "a bright TILED floor"
+  '/world/terminus/goods-yards/brewing/place/floor',   // "a wet STONE floor"
+  '/world/terminus/wharfside/dyehouse/place/floor',    // "the floor is STAINED past explaining"
 
   // ── Mayfield Row: the let rooms, and the one that claims TWO floors ──
   '/world/terminus/mayfield-row/seznick-house/lobby',            // "diamond floor TILE"
-  '/world/terminus/mayfield-row/seznick-house/location/hall',    // "bare BOARDS"
-  '/world/terminus/mayfield-row/seznick-house/location/main',    // ⚠ BOARDS *and* light through gaps in them — see the docblock
+  '/world/terminus/mayfield-row/seznick-house/place/hall',    // "bare BOARDS"
+  '/world/terminus/mayfield-row/seznick-house/place/main',    // ⚠ BOARDS *and* light through gaps in them — see the docblock
   '/world/terminus/necropolis/ground',                // "each one a shallow trough cut into the FLOOR"
 
   // ── the farms and the barn ──
-  '/world/terminus/eternal/campus-farm/location/yard', // "a square of trodden MUD"
-  '/world/terminus/hearts-delight/location/barn',      // ⭐ "a threshing floor of BEATEN EARTH worn hollow in the middle"
+  '/world/terminus/eternal/campus-farm/place/yard', // "a square of trodden MUD"
+  '/world/terminus/hearts-delight/place/barn',      // ⭐ "a threshing floor of BEATEN EARTH worn hollow in the middle"
 
   // ── Hinkley Hills: the lots nobody has built on ──
-  '/world/terminus/hinkley-hills/location/arrival',   // "a CONCRETE apron at the end of the line"
+  '/world/terminus/hinkley-hills/place/arrival',   // "a CONCRETE apron at the end of the line"
   '/world/terminus/hinkley-hills/house/indoors/hall',          // "a worn runner on the BOARDS"
   '/world/terminus/hinkley-hills/lots/road-segment',  // "the made road gives out here into graded DIRT"
 
   // ── Rejection: the yards above the mine ──
-  '/world/terminus/rejection/location/fuel-yard',     // "a wide flat of beaten EARTH"
-  '/world/terminus/rejection/location/pithead-yard',  // "a flat of trodden MUD and grey SPOIL"
+  '/world/terminus/rejection/place/fuel-yard',     // "a wide flat of beaten EARTH"
+  '/world/terminus/rejection/place/pithead-yard',  // "a flat of trodden MUD and grey SPOIL"
   '/world/terminus/rejection/hanging-wood/ride',      // "bare EARTH in the middle"
   '/world/terminus/rejection/hanging-wood/treeline',  // "worn to bare EARTH by everything that has come down it"
 ];

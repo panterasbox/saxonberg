@@ -38,7 +38,7 @@ data:
     - brain: /trade/sericulture/behavior/reels
       trigger: candidate
       config:
-        floor: /world/terminus/wharfside/mill/location/floor
+        floor: /world/terminus/wharfside/mill/place/floor
         bin: /world/terminus/wharfside/mill/thing/crib
         stock: /world/terminus/wharfside/mill/thing/silk-stock
         count: 8

@@ -27,7 +27,7 @@ data:
         segments: 9
         frontagesPerSegment: 4
         authored:
-          "1": /world/terminus/hinkley-hills/location/lane
+          "1": /world/terminus/hinkley-hills/place/lane
       - key: hinkley-court
         segments: 1
         frontagesPerSegment: 4

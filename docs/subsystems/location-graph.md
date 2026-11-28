@@ -80,7 +80,7 @@ copy node above). The elastic half of the world is perceived
 live and never stored — which is also why a lounge satellite is nothing
 here, and nothing on anybody's map.
 
-⚠ **Place rows are not all under a `/location/` segment.** Several
+⚠ **Place rows are not all under a `/place/` segment.** Several
 predate the `<root>/<branch>/` path pattern, so enumeration is **by
 class**, always — never by path infix.
 
@@ -88,7 +88,7 @@ class**, always — never by path infix.
 
 ## The invariants
 
-`lib/location/GraphInvariants.ts` is one instance value class over
+`lib/place/GraphInvariants.ts` is one instance value class over
 plain data, run by **two** callers: `check-location-graph` over the rows
 on disk, and `NavigationApi.checkGraph` over the projected nodes at
 runtime. Two copies would drift, and a gate and a runtime check
@@ -402,7 +402,7 @@ optional-hook dispatcher, and no controller has ever had to know that
 `CartographerMixin` exists. `Perceiver` now has the same dispatcher for
 the same reason.
 
-⭐⭐ **The implementer is `CartographerMixin`** (`lib/location/`), not
+⭐⭐ **The implementer is `CartographerMixin`** (`lib/place/`), not
 `Avatar`. It encapsulates one concern with three parts: **the policy**
 (do I keep a map, and under whose key), **the conversion** (live `Stuff`
 into plain claims — the durable handle, the locality address, the
@@ -595,7 +595,7 @@ The index exists so somebody can plan over it, and this is that
 somebody. The whole of it is four reads on `NavigationApi`
 (`routeBetween` · `routeOnMap` · `reachFrom` · `costMatrix`, plus
 `routeOverEdges` for an authored lane), one value class
-(`lib/location/Traversal.ts`), and a gate that makes *one traversal*
+(`lib/place/Traversal.ts`), and a gate that makes *one traversal*
 literal rather than aspirational.
 
 ### The skeleton, and what it refuses to own

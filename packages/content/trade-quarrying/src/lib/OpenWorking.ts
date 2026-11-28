@@ -83,7 +83,7 @@ import {
   CompetenceBand,
   type CompetenceBandName,
 } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const OPEN_WORKING_MIXIN = 'OpenWorkingMixin';

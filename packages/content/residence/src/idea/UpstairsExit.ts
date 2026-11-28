@@ -11,7 +11,7 @@
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
 import { type TraversalGuard, type TraverseOptions } from '@saxonberg/server/mud/lib/boundary/Exit';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import type { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import type { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';

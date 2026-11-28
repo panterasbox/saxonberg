@@ -17,7 +17,7 @@ manifest, no `seeds/` tree. The table is in *§ The shipped packs*. The
 short version: **platform** is pack zero — the controller templates, the
 registries and catalogues, the marshallers, the closed vocabularies, the
 Compact's institutions (`/compact/executive`, `/compact/press`), the
-namespace roots and the landing shell (`/platform/location/void`), plus the
+namespace roots and the landing shell (`/platform/place/void`), plus the
 settings, the standing subjects, the curated blueprints and every engine
 verb's command view — and **it alone is a bootable world** (the
 platform-only e2e proves it every pipeline). Everything else `dependsOn`
@@ -1181,7 +1181,7 @@ dependsOn? }`: `template` an absolute template path the pack ships;
 synchronously — it must be resident before the first read) or
 **`producer`** (a row whose `onCreate` *produces* something — warms
 a cache, installs a stair, rebuilds a floor — or that nothing else would
-ever instantiate: `/platform/location/void`, the TPA network's eager root);
+ever instantiate: `/platform/place/void`, the TPA network's eager root);
 `reason` mandatory prose (refused when blank — the manifest is where the
 *why* lives, next to the row, readable in `git blame`); `dependsOn`
 other boot templates that must clone first (`/platform/idea/ChannelCatalogue`
@@ -1208,7 +1208,7 @@ boots its engine wardens and registries (`/platform/idea/EventRegistry`
 first — every emit resolves it; `/platform/idea/AccessRegistry`,
 `/platform/idea/ParcelRegistry` after `/platform/idea/GroupRegistry`; the
 scheduler chain under `/platform/idea/WorldClockRegistry`),
-`/platform/idea/PressBoard` and `/platform/location/void`; and a content
+`/platform/idea/PressBoard` and `/platform/place/void`; and a content
 pack boots only the houses and premises whose NPCs act while nobody is
 present — the unobserved economy (→ `unobserved-economy-slate`), each
 reason citing it. Organizations (`/compact/*`, the corpos) are resolved
@@ -1256,7 +1256,7 @@ every pipeline: `e2e/playwright.platform.config.ts` boots the server
 with that filter on its own ports (2011 / 5174, stdout captured to a
 log), and `tests-platform/platform-only.spec.ts` proves the founder — as
 head of the executive, a member of no group — logs in and lands in the
-shell room (`/platform/location/void`, the code fallback when no pack contributed
+shell room (`/platform/place/void`, the code fallback when no pack contributed
 `defaultStartLocation`: that setting moved out of the platform into
 `saxonberg-lounge`), that `pack status` knows exactly one pack **in this
 build**, and that the boot logged no `error` / `failed` line. The config
@@ -1273,7 +1273,7 @@ the installer's walk mirrored in a script; zero is green).
 
 **The platform ships the SOCKET; content ships the FURNITURE** (slate
 A26.1). Casting is platform, the spellbook content; the landing slot is
-platform (`/platform/location/void`, the code fallback), the lounge that
+platform (`/platform/place/void`, the code fallback), the lounge that
 first-login lands in is content (the `defaultStartLocation` the lounge
 pack's settings contribute — merge-missing, so an operator's override
 wins forever after); the teleport verb is platform, the network's works a
@@ -1296,7 +1296,7 @@ defined who reviews packs would review itself.
 
 | Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
 |---|---|---|---|---|---|
-| **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 30 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/location/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue` (the address index, the material/biome/condition rosters and the profile/schedule catalogues load on use since load-on-use round two) |
+| **platform** | — | organization `/compact/executive` | `/platform`, `/stuff`, `/blueprints`, `/compact`, `/studio`, `/home`, `/world`; `/wiki` → group `wiki-editors` | `wiki-editors`; `soul` (PM-owned — the soul committee) | 30 entries: the registries + catalogues (sync-read), the two organizations, `/platform/idea/PressBoard`, `/platform/place/void`, `/platform/idea/BlueprintCatalogue`, `/platform/idea/HelpCatalogue` (the address index, the material/biome/condition rosters and the profile/schedule catalogues load on use since load-on-use round two) |
 | **test-fixtures** (⚠ TEST-ONLY — `testOnly: true`; the wire suite's scaffold, test-world-lifecycle 2026-11) | platform, trade-shopkeeping | `testbed` | `/world/testbed` → group `testbed`; `/world/testbed/annex` → group `testbed-annex` (the one title a drive may take; the purge hands it back) | `testbed`, `testbed-annex` | — (both Businesses stand up on use off `operatingLocations`) |
 | **base-library** | platform | `base-library-maintainers` (default) | — (rides `/obj`) | — | — |
 | **species-and-names** | platform | default | — (rides `/obj`) | — | — |
@@ -1503,7 +1503,7 @@ a manifest declares which, so the script still says).
 - `packages/content/platform/` — pack zero: `content/platform/<branch>/` (the
   controllers, registries, catalogues, marshallers, vocabularies, the
   Avatar seed), `content/compact/` (the executive, the press),
-  `content/platform/location/void.yaml`, the namespace roots (`home.yaml`,
+  `content/platform/place/void.yaml`, the namespace roots (`home.yaml`,
   `studio.yaml`, `wiki.yaml`, `content/wiki/*.yaml`), `content/settings/`,
   `content/subjects/`, `content/blueprints/`, `content/platform/cmd/` (every
   engine verb's view).
@@ -1557,7 +1557,7 @@ a manifest declares which, so the script still says).
   common), including the domain-local command views
   (`content/world/<…>/cmd/`) and their controllers.
 - `mud/lib/employment/Offstage.ts` (`OffstageMixin`, the off-shift
-  parking role) + `mud/platform/location/Offstage.ts` (the clonable every
+  parking role) + `mud/platform/place/Offstage.ts` (the clonable every
   venue's `offstage` row names — both retired 2026-11-24,
   persistence-model D15); `mud/lib/time/MechanicalMovement.ts`;
   the commons classes `mud/platform/thing/{CraftVessel,GradedReceptacle,
@@ -1715,7 +1715,7 @@ lounge introduced (the four stations, the tip-jar template, the
 cocktail recipes) and cooking's second pass rides along —
 `generic-objects` ships no recipes. The A23 graduations: `Offstage` →
 `lib/employment` (`OffstageMixin` + the concrete
-`platform/location/Offstage`; both venues' casts park through it, the
+`platform/place/Offstage`; both venues' casts park through it, the
 hearthworks gaining an `offstage` row — and the `shifts` brain it gained here was retired onto the roster tick by MR !316),
 `MechanicalMovement` → `lib/time`, and the composition-only classes
 (`CraftVessel`, `GradedReceptacle`, `NeonSign`, `CocktailShaker`,

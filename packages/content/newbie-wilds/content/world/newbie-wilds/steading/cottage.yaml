@@ -1,7 +1,7 @@
 # The roofless cottage — through the steading's low door (size and
 # carrying W6, drive 9). Its back wall has fallen into the old drain, and
 # the gap left is a crawlway east to the charcoal pit. Open to the sky.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: roofless cottage
   keywords: [cottage, roofless, ruin]

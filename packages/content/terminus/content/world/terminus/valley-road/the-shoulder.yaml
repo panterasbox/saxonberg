@@ -5,7 +5,7 @@
 # here). Rather than split the zone, the SHOULDER is where the road
 # meets Hinkley's own zone through its exit — walk one more step west
 # and you are at 130 m, on ground that has to fetch its own water.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: shoulder
   keywords: [shoulder]
@@ -27,7 +27,7 @@ data:
     east:
       destination: /world/terminus/valley-road/the-narrows
     west:
-      destination: /world/terminus/hinkley-hills/location/arrival
+      destination: /world/terminus/hinkley-hills/place/arrival
     # ⭐ Up the valley to the falls landing (the river build): the road a
     # boat's cargo takes on from the head of navigation.
     falls:

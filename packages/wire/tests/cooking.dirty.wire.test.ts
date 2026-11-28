@@ -59,7 +59,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 
 let cook: Session;
 

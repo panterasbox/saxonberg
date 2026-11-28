@@ -39,24 +39,24 @@ data:
   rosterSlots:
     - positionKey: host
       assignee: /world/testbed/agent/host
-      station: /world/testbed/building/location/hall
+      station: /world/testbed/building/place/hall
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
     - positionKey: host
       assignee: /world/testbed/agent/greeter
-      station: /world/testbed/location/plaza
+      station: /world/testbed/place/plaza
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
     - positionKey: attendant
       assignee: /world/testbed/agent/attendant
-      station: /world/testbed/building/location/shop
+      station: /world/testbed/building/place/shop
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
     # The day clerk (persistence-model W0): a shift that ends, so a drive
     # can see a hand leave and come back.
     - positionKey: attendant
       assignee: /world/testbed/agent/clerk
-      station: /world/testbed/building/location/shop
+      station: /world/testbed/building/place/shop
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [8, 18] }
   banksAt: testbed-bank
@@ -67,6 +67,6 @@ data:
     # ⚠ Both the counter and the room it stands in (the general store's
     # precedent): a sale settles at the counter's path, a supplier is found
     # by its counter's room.
-    - /world/testbed/building/location/hall
-    - /world/testbed/building/location/shop
+    - /world/testbed/building/place/hall
+    - /world/testbed/building/place/shop
     - /world/testbed/thing/counter

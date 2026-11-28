@@ -68,7 +68,7 @@ declareFile({
   ],
 });
 
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 
 const open: Session[] = [];
 

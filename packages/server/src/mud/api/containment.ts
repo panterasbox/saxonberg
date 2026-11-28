@@ -35,7 +35,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import type { Container } from '../lib/spatial/Container';
 import type { Containable } from '../lib/spatial/Containable';
 import type { Placing } from '../lib/spatial/Placing';
-import type { Warren } from '../lib/location/Warren';
+import type { Warren } from '../lib/place/Warren';
 import type { ActPlan } from '../lib/craft/ActPlan';
 import { StuffApi } from './stuff';
 import { MixinApi } from './mixin';

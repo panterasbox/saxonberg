@@ -99,7 +99,7 @@ describe('the Ferrow body is zoned along strike as well as down', () => {
     // Under the yard, 20 m out: the oxide cap the co-op works.
     expect(d.sampleAt([0, 20, -10], SEED).mineralPath).toBe(MALACHITE);
     // Ninety metres out along the same plane: rust.
-    const fringe = metresOf('location/fringe-claim.yaml');
+    const fringe = metresOf('place/fringe-claim.yaml');
     expect(d.sampleAt(fringe, SEED).mineralPath).toBe(GOETHITE);
   });
 
@@ -120,10 +120,10 @@ describe('the Ferrow body is zoned along strike as well as down', () => {
 
 describe('the four fringe rooms sit where the geology says they do', () => {
   const ROOMS = {
-    hillside: 'location/hillside.yaml',
-    'old workings': 'location/old-workings.yaml',
-    'fringe claim': 'location/fringe-claim.yaml',
-    'far fringe': 'location/far-fringe.yaml',
+    hillside: 'place/hillside.yaml',
+    'old workings': 'place/old-workings.yaml',
+    'fringe claim': 'place/fringe-claim.yaml',
+    'far fringe': 'place/far-fringe.yaml',
   } as const;
 
   it('⚠ every one of them is ON the lode — a room off the plane yields nothing', () => {
@@ -204,15 +204,15 @@ describe('the claim geometry the fringe rooms were placed to satisfy', () => {
       ) ?? null;
 
     // The independent walked out here first, and first come is the rule.
-    expect(claimFor(cellOf('location/fringe-claim.yaml'))?.parcelExtent)
+    expect(claimFor(cellOf('place/fringe-claim.yaml'))?.parcelExtent)
       .toBe('/world/terminus/rejection/ferrow/claims/2');
     // Further on, nobody has spoken for it.
-    expect(claimFor(cellOf('location/far-fringe.yaml'))).toBeNull();
+    expect(claimFor(cellOf('place/far-fringe.yaml'))).toBeNull();
   });
 
   it('⭐⭐ the two blocks do not RUN INTO each other — extents, not centres', () => {
-    const a = (row('location/fringe-claim.yaml').data as { coords: { x: number; y: number } }).coords;
-    const b = (row('location/far-fringe.yaml').data as { coords: { x: number; y: number } }).coords;
+    const a = (row('place/fringe-claim.yaml').data as { coords: { x: number; y: number } }).coords;
+    const b = (row('place/far-fringe.yaml').data as { coords: { x: number; y: number } }).coords;
     // ⚠ Seven cells of clearance on an axis, not four. A block is
     // BLOCK_HALF each way, so two centres four apart still SHARE nine
     // columns of ground — which `stake` used to admit, because it tested

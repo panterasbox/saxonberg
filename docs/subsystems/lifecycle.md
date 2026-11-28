@@ -444,7 +444,7 @@ cleanup walk. Its policy for each direct content item:
 |---|---|
 | Non-null, host NOT dormant (the destructing Container is itself contained) | Re-parent every item to the outer via `ContainmentApi.move`. |
 | Non-null, host **dormant** (it composes `PersistableMixin` and `shouldPersist()` — a signed-out body) | Its record holds its contents, so they are cascade-destructed, not dropped on the floor (an owner-persisted chattel keeps its title through the destruct). A `HasInteractive` it holds still steps out to the outer. |
-| Null AND item composes `HasInteractive` (live avatar) | Evacuate to the `evacuationFallback` app setting (default `/platform/location/void`) via `ContainmentApi.move`. Active sessions never end up with a null environment. |
+| Null AND item composes `HasInteractive` (live avatar) | Evacuate to the `evacuationFallback` app setting (default `/platform/place/void`) via `ContainmentApi.move`. Active sessions never end up with a null environment. |
 | Null AND item is not `HasInteractive` | Cascade-destruct via `StuffApi.destruct(item)`. |
 
 Before the walk, a contained host tells the command stacks around it that it and

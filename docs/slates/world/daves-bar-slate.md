@@ -294,7 +294,7 @@ payment method.
 
 ## How it's modeled — objects, persistence, presentation
 
-> *Superseded:* the bar has exactly one class of its own, `world/lounge/location/Bar` (a `SingletonMixin` room the Warren wires); everything else is content over general substrate → [crafting.md § Dave's Bar content](../../subsystems/crafting.md).
+> *Superseded:* the bar has exactly one class of its own, `world/lounge/place/Bar` (a `SingletonMixin` room the Warren wires); everything else is content over general substrate → [crafting.md § Dave's Bar content](../../subsystems/crafting.md).
 
 
 > *Superseded by the persistence spine:* nothing saves back to a template; the venue's rows are templates, records are Documents, crafted drinks are transient → [persistence.md](../../subsystems/persistence.md), [crafting.md § Persistence story](../../subsystems/crafting.md).

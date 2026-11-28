@@ -4,7 +4,7 @@
 # a boundary crossing with a known inverse. Only the booth is built; the
 # Dial, the lease, the piano and the rest of the building are the Hallett's
 # content build's.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Hallett's
   cellSize: 3.0

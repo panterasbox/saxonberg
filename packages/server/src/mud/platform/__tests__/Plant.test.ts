@@ -563,7 +563,7 @@ describe('Plant — the root zone', () => {
         ),
       );
       return g;
-    }, `/trade/farming/location/_zone-${groundSeq}`);
+    }, `/trade/farming/place/_zone-${groundSeq}`);
   }
 
   /** A mature plant that drinks nothing — so only the exchange moves it. */

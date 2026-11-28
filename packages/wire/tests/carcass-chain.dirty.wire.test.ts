@@ -172,7 +172,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const YARD = '/world/terminus/hearts-delight/location/farmstead-yard';
+const YARD = '/world/terminus/hearts-delight/place/farmstead-yard';
 /**
  * ⚠ (soak repair 2026-11-16) The knacker keeps the flock: only a keeper
  * drafts, culls or serves (controller liquidity D9) — whoever holds the

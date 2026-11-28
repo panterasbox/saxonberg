@@ -9,7 +9,7 @@
 # restocked — the Hearthworks shape). The sand you win yourself at the pit.
 # ⭐ (ceramics W5) Persistent: its furnace's lining is worn state that must
 # survive a restart (a Locale keeps nothing).
-class: /platform/location/PersistentLocale
+class: /platform/place/PersistentLocale
 data:
   shortDescription: glasshouse
   keywords: [glasshouse, glassworks, furnace, "glass house"]

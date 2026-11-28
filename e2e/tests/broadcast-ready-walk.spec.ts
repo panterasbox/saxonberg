@@ -16,7 +16,7 @@ import { openWorldAs, runCommand } from './helpers';
  * (the overlay's own vite server).
  */
 
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();

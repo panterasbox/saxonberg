@@ -22,7 +22,7 @@ import { openWorldAs, runCommand } from './helpers';
  * shopping. Screenshots land in `test-results/size-and-carrying-walk/`.
  */
 
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
 const YARD = '/world/newbie-wilds/steading/yard';
 const COAT = '/trade/tailoring/thing/coat';

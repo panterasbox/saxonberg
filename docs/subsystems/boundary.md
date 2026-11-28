@@ -290,7 +290,7 @@ reached for a neighbour:
 1. an exit may name **no room at all** — the sandbox wardrobe passage
    names the WIRE, and walking it lands on a non-`Container`;
 2. its destination template may have **many live clones** (a Warren hub
-   exit names `/world/lounge/location/lounge` once a satellite exists)
+   exit names `/world/lounge/place/lounge` once a satellite exists)
    and the singleton lookup **throws** on it;
 3. `getDestination()` may throw for its own reasons;
 4. the far side may not be a `Container`;
@@ -815,7 +815,7 @@ side** (the far side authors nothing for that direction) **or as the same
 ```yaml
 # the bank
 exits:
-  pumphouse: { destination: …/pumphouse/location/house, door: …/thing/pump-house-door }
+  pumphouse: { destination: …/pumphouse/place/house, door: …/thing/pump-house-door }
 # the pump house
 exits:
   out: { destination: …/wharfside/bank, door: …/thing/pump-house-door }

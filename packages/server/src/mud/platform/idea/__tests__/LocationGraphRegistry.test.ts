@@ -16,7 +16,7 @@ import { NavigationApi } from '../../../api/navigation';
 import { ParcelApi } from '../../../api/parcel';
 import { PersistenceManager } from '../../../../backend/PersistenceManager';
 import LocationGraphRegistry from '../LocationGraphRegistry';
-import type { CopyRoom } from '../../../lib/location/PlaceNode';
+import type { CopyRoom } from '../../../lib/place/PlaceNode';
 import {
   makeStuffAtPath,
   seedKernelContentStore,
@@ -44,10 +44,10 @@ beforeEach(() => {
   graph = [];
 
   seedKernelContentStore([
-    { path: ZONE, class: '/platform/idea/location/CartesianZone', data: {} },
+    { path: ZONE, class: '/platform/idea/place/CartesianZone', data: {} },
     {
       path: HALL,
-      class: '/platform/location/Locale',
+      class: '/platform/place/Locale',
       data: {
         _address: 'test/hall',
         exits: { north: { destination: YARD, bidirectional: true } },
@@ -55,11 +55,11 @@ beforeEach(() => {
     },
     {
       path: YARD,
-      class: '/platform/location/Locale',
+      class: '/platform/place/Locale',
       data: {},
     },
     // A KIND: a plain Location, minted many times.
-    { path: KIND, class: '/platform/location/Location', data: {} },
+    { path: KIND, class: '/platform/place/Location', data: {} },
     /*
      * ⭐ Two exit KINDS and a place that names them. The kind rows are
      * what carry `media` / `wheelPassable` / `conditional` in real
@@ -80,7 +80,7 @@ beforeEach(() => {
     },
     {
       path: BANK,
-      class: '/platform/location/Locale',
+      class: '/platform/place/Locale',
       data: {
         exits: {
           up: { destination: HALL, kind: STAIR_KIND },

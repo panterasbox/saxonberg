@@ -1,0 +1,55 @@
+# The sealed cellar — the CO-death / ventilation lesson. A `SealedCellar` with
+# a finite `air` Reserve. A fire lit here starves as it eats the air: it burns
+# incomplete (smoke + carbon monoxide), the medium turns un-breathable, and it
+# self-smothers — an enclosed fire kills by CO, not flame.
+class: /world/terminus/hearthworks/place/SealedCellar
+data:
+  # What its walls are made of when no `enclosure:` says (load-on-use W8).
+  wallMaterial: /stuff/idea/material/rock/granite
+  shortDescription: sealed cellar
+  keywords: [cellar, sealed]
+  register: indefinite
+  longDescription: |
+    A cramped stone cellar behind a heavy, ill-fitting door. The air is close and still; there is no window, no flue.
+  # ⚠⚠ **An interior with no authored ambient and nothing lit inside it
+  # is PITCH BLACK, and only its contents go nameless.** Every `Location`
+  # composes `AmbientLitMixin`, whose `ambientIntensity` defaults to 0;
+  # `VisionModality.signalAt` then sums only what is actually emitting,
+  # so an unlit room falls under the band `canSee` needs for a figure and
+  # `RecognitionLogic.obscured()` renders every object as "something".
+  # The room's own prose still reads normally, which is what makes it so
+  # quiet a failure.
+  #
+  # ⭐ The trap this closes is circular: the cookhouse's only light was
+  # the hearth, and the hearth is UNLIT until somebody lights it — so a
+  # cook walked into a dark room whose one fix was an object they could
+  # not see to name. A banked fire, a lamp on a hook, an open shed side:
+  # every one of these rooms has a reason to be dim rather than blind,
+  # and the shipped kitchen archetype (35 lux) and a dozen Terminus rooms
+  # already author exactly this.
+  # ⭐ DARK, on purpose. A cellar. The whole point of a cellar is that nothing gets in, light included.
+  # ⚠ Under the cookhouse, not IN its cell: both authored (2,0,0), and the
+  # grid keeps one room per cell silently (the place taxonomy found it).
+  coords:
+    x: 2
+    y: 0
+    z: -1
+  # ⭐⭐ The cellar's lesson — run a fire in here and it kills you — needs
+  # no authored air budget. A shut stone room has almost no openings, so
+  # the derived air change is the leak rate and nothing else: the fire
+  # fills it with its own exhaust, you are warned, and then it smothers.
+  # The `%` Reserve this row used to author said the same thing by hand,
+  # and said it only here.
+  props:
+    # ⭐⭐ **A brazier, and the fire build is why it has to be here.** The
+    # cellar's whole job is the ventilation lesson — light a fire in a
+    # sealed room, be warned, watch it smother — and a single split log
+    # smouldering at a half-percent a minute takes most of a game DAY to
+    # spend 27 m³ of air. That is honest arithmetic and a useless
+    # demonstrator. A 3 kW brazier spends it in tens of ticks, which is
+    # what makes the lesson land inside a session.
+    #
+    # ⚠ It ships COLD and EMPTY, which is the point: a player stokes it,
+    # lights it, and the room does the rest.
+    - /stuff/thing/brazier
+    - { template: /stuff/thing/items/dry-log, count: 3 }

@@ -2,7 +2,7 @@
 #
 # Still at the city's elevation (35 m, inherited from `/world/terminus`).
 # The climb has not begun.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: towpath
   keywords: [towpath]
@@ -29,12 +29,12 @@ data:
     # exit: every compass point off the bank is taken, and the walk is
     # somewhere you go in to.
     ropewalk:
-      destination: /world/terminus/wharfside/ropewalk/location/walk
+      destination: /world/terminus/wharfside/ropewalk/place/walk
       media: [ground]
       edgeMinutes: 1
     # ⭐ The colorman's (paint D20) — a shop off the towpath.
     colorman:
-      destination: /world/terminus/wharfside/colorman/location/shop
+      destination: /world/terminus/wharfside/colorman/place/shop
       media: [ground]
       edgeMinutes: 1
     # ⭐ The towpath cottage (paint D20) — the towpath is where it meets the
@@ -42,7 +42,7 @@ data:
     # ⚠ The exit is its DOOR, not "cottage": an exit's name is a candidate
     # in the room's pool and would take the word from the building.
     door:
-      destination: /world/terminus/wharfside/cottage/location/room
+      destination: /world/terminus/wharfside/cottage/place/room
       media: [ground]
       edgeMinutes: 1
   details:

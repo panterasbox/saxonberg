@@ -4,7 +4,7 @@
 # zone fields — latitude, continentality, elevation, offset — and no room
 # says how cold it is: on the equinox the station reads ≈ 255 K, the mere
 # below it has carried ice since the autumn, and the sun goes round low.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The North
   cellSize: 3.0

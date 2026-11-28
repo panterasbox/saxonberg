@@ -528,7 +528,7 @@ right about the half it was defending and wrong about the half it was
 conceding.
 
 All four walks — vision, smell, sound, and `AudienceGather`'s outward
-push — now run on `lib/location/Traversal.ts`
+push — now run on `lib/place/Traversal.ts`
 ([location-graph.md § Routing](./location-graph.md)) and keep their own
 accumulator. ⭐ What genuinely was not shareable: light caps **all** its
 openings as one (`mergeCapped` — *an opening cannot make you brighter

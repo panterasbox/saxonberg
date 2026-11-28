@@ -17,7 +17,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 const BUSINESS = '/world/lounge/idea/business';
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 const DAVE = '/world/lounge/agent/dave';
 const MARA = '/world/lounge/agent/mara';
 
@@ -75,7 +75,7 @@ describe('EmploymentApi / EmploymentLogic', () => {
   it('finds the business operating at a location', () => {
     const biz = seedBusiness();
     expect(EmploymentApi.businessAt(BAR)).toBe(biz);
-    expect(EmploymentApi.businessAt('/platform/location/void')).toBeNull();
+    expect(EmploymentApi.businessAt('/platform/place/void')).toBeNull();
   });
 
   it('finds the business a subject proprietors', () => {

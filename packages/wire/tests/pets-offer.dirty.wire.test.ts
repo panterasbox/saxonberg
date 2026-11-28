@@ -49,7 +49,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const LANE = '/world/terminus/hinkley-hills/location/lane';
+const LANE = '/world/terminus/hinkley-hills/place/lane';
 const BANK = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
 const PARCEL = '--parcel /world/terminus/hinkley-hills';

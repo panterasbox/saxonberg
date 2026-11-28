@@ -10,8 +10,8 @@
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
 import { VisionModality } from '../VisionModality';
-import Location from '../../../../lib/location/Location';
-import CartesianZone from '../../location/CartesianZone';
+import Location from '../../../../lib/place/Location';
+import CartesianZone from '../../place/CartesianZone';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import { StuffApi } from '../../../../api/stuff';
 import { WorldClockApi } from '../../../../api/worldclock';

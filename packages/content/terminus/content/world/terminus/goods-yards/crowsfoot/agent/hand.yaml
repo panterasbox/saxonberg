@@ -73,8 +73,8 @@ data:
     - brain: /lib/behavior/cellars
       trigger: candidate
       config:
-        home: /world/terminus/goods-yards/crowsfoot/location/floor
-        counterRoom: /trade/distribution/location/cash-and-carry
+        home: /world/terminus/goods-yards/crowsfoot/place/floor
+        counterRoom: /trade/distribution/place/cash-and-carry
         crushes: [wash-mash]
         buys:
           - { keyword: malt, count: 2 }

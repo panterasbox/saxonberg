@@ -5,7 +5,7 @@
 # the floor goods): it stands DEEP on the unbranded rail (what every bar
 # pours by default) and deeper still on Volk, the mark it puts on the same
 # liquid.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Veshko Yard
   cellSize: 3.0

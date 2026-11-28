@@ -696,7 +696,7 @@ RAW row an author means to state:
 
 ```typescript
 await TemplateApi.saveTemplate('/narnia/castle/foyer', {
-  class: '/lib/location/Location',
+  class: '/lib/place/Location',
   data: { /* persistent fields */ },
 });
 ```

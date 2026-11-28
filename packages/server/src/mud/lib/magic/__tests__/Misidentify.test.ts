@@ -37,7 +37,7 @@ import SpellCatalogue from '../../../platform/idea/SpellCatalogue';
 import Spell from '../../../platform/idea/magic/Spell';
 import Scroll from '../../../../../../content/arcana/src/thing/Scroll';
 import IdentifiableThing from '../../../platform/thing/IdentifiableThing';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import Species from '../../../platform/idea/species/Species';
 import { Character } from '../../character/Character';
 import { Template } from '../../stuff/Template';

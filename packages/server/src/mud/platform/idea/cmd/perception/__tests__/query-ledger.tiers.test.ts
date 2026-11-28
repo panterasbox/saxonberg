@@ -21,7 +21,7 @@ import { CommandDefinition } from '../../../../../lib/command/CommandDefinition'
 import { Placements } from '../../../../../lib/spatial/Placement';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import Place from '../../../../../lib/stuff/Place';
-import Location from '../../../../../lib/location/Location';
+import Location from '../../../../../lib/place/Location';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { installShapes } from '../../../../../lib/spatial/__tests__/size-fixture';
 import { makeBody, tool, hold, wornBag, wornGarment, pack, type Body } from '../../../../../lib/slot/__tests__/carrying-fixture';

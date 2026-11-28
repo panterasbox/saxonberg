@@ -6,7 +6,7 @@
 # which inherits from the lot it stands on (its government, its weather).
 # Nothing stands in this row's own instance: a room joins a copy, never the
 # row.
-class: /platform/idea/location/MintedZone
+class: /platform/idea/place/MintedZone
 data:
   name: the Hinkley house
   # Covered by a Locality, so a walk here files claims on your map

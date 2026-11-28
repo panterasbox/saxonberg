@@ -13,7 +13,7 @@
 
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import { BulkableMixin } from '@saxonberg/server/mud/lib/bulk/Bulkable';
-import { BuoyMixin } from '@saxonberg/server/mud/lib/location/Buoy';
+import { BuoyMixin } from '@saxonberg/server/mud/lib/place/Buoy';
 import { TieableMixin, type TieOutcome } from '@saxonberg/server/mud/lib/spatial/Tieable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';

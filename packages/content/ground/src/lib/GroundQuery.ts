@@ -42,7 +42,7 @@ import Deposit, {
   type StructureReading,
 } from '../idea/Deposit';
 import type { MixinCtor } from './Strata';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 
 /** The mixin's marker, and the string `MixinApi.isActive` narrows on. */
 export const GROUND_QUERY_MIXIN = 'GroundQueryMixin';

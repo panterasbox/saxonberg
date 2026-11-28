@@ -60,20 +60,20 @@ declareFile({
 });
 
 /** The instrument case — the one room where a dial can be borrowed. */
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 /** A dorm room: interior, unlit, and nobody's instrument in it. */
 // ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
 // orphan room with no unit, no door and no copy — which can no longer exist:
 // each let unit is a zone of its own and its row refuses a room
 // (zone-instancing D4). The furnishing archetype is the same kind of row,
 // outside any copied zone.
-const DORM = '/stuff/location/room/bedroom';
+const DORM = '/stuff/place/room/bedroom';
 /** Open ground with a sky over it — where a sundial has something to cast. */
-const CROSSING = '/world/terminus/university-avenue/location/crossing';
+const CROSSING = '/world/terminus/university-avenue/place/crossing';
 /** A working face at Rejection — where a sample comes from. */
 const FACE = '/world/terminus/rejection/ferrow/face';
 /** The assay shed: the bench, the kit, the field tools, the buyer. */
-const SHED = '/world/terminus/rejection/location/assay-shed';
+const SHED = '/world/terminus/rejection/place/assay-shed';
 /** ⭐ The SECOND bench, in the city's goods yards. Rows only. */
 const YARDS = '/world/terminus/goods-yards/yard';
 

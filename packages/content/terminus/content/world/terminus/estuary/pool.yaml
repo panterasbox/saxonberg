@@ -6,7 +6,7 @@
 # water object stands in it). Being in it is what makes its ways
 # swimmable, and it cites the water it is, so `look pool` reads the
 # Greywater here and `fill` / `drink` / `wash` draw it — salt.
-class: /platform/location/Pool
+class: /platform/place/Pool
 data:
   shortDescription: pool
   keywords: [pool, cove, water]

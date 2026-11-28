@@ -40,8 +40,8 @@ declareFile({
 });
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const SHOP = '/world/terminus/wharfside/colorman/location/shop';
-const SHED = '/world/terminus/wharfside/colorman/location/shed';
+const SHOP = '/world/terminus/wharfside/colorman/place/shop';
+const SHED = '/world/terminus/wharfside/colorman/place/shed';
 const TOWPATH = '/world/terminus/valley-road/towpath';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();

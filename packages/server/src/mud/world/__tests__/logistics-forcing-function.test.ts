@@ -151,12 +151,12 @@ describe('the content the switchover needed', () => {
     // the hand teleports". The hands still never travel; the doors are
     // for the people who come to collect.
     const floors = [
-      'terminus/content/world/terminus/goods-yards/bottling/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/pantry/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/crowsfoot/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/hollis/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/veshko/location/distillery.yaml',
-      'terminus/content/world/terminus/goods-yards/farm/location/yard.yaml',
+      'terminus/content/world/terminus/goods-yards/bottling/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/pantry/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/crowsfoot/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/hollis/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/veshko/place/distillery.yaml',
+      'terminus/content/world/terminus/goods-yards/farm/place/yard.yaml',
     ];
     for (const rel of floors) {
       const data = (yamlAt(rel).data ?? {}) as Record<string, unknown>;
@@ -183,12 +183,12 @@ describe('the content the switchover needed', () => {
      * coordination lesson.
      */
     const floors = [
-      'terminus/content/world/terminus/goods-yards/bottling/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/pantry/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/crowsfoot/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/hollis/location/floor.yaml',
-      'terminus/content/world/terminus/goods-yards/veshko/location/distillery.yaml',
-      'terminus/content/world/terminus/goods-yards/farm/location/yard.yaml',
+      'terminus/content/world/terminus/goods-yards/bottling/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/pantry/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/crowsfoot/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/hollis/place/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/veshko/place/distillery.yaml',
+      'terminus/content/world/terminus/goods-yards/farm/place/yard.yaml',
     ];
     for (const rel of floors) {
       const data = (yamlAt(rel).data ?? {}) as Record<string, unknown>;
@@ -201,7 +201,7 @@ describe('the content the switchover needed', () => {
     // the Authority's network — D2's own limit case, a lane with no
     // intermediate stops and no duration — which is not a loophole but
     // that mechanism doing exactly the work D2 says it does.
-    const bar = yamlAt('saxonberg-lounge/content/world/lounge/location/bar.yaml');
+    const bar = yamlAt('saxonberg-lounge/content/world/lounge/place/bar.yaml');
     const data = (bar.data ?? {}) as Record<string, unknown>;
     expect(data.exits ?? {}).not.toHaveProperty('goods-yards');
     expect(data.props).toContain('/trade/haulage/thing/works-board');
