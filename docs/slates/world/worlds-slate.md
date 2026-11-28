@@ -40,6 +40,11 @@ stuff? Different venues in those stories call for different notions of time and 
 
 ## 2. ⭐⭐⭐ A body is a biome; the root is space **[DECIDED — the owner]**
 
+> ⭐ **2026-11-28 → [biome design D8](../tech-debt/biome-normalization-slate.md):** the tree is renamed
+> for what it holds — **`CelestialBody`**, with interplanetary space as the root. "Biome" now means a
+> kind of country or water; the medium and free fall are states of a place; atmosphere is a property
+> of a body; temperature is derived everywhere, underground from the ground's annual mean.
+
 The owner: *"Why isn't the celestial body just a biome itself? Our biomes are hierarchical, so why not
 mint different roots for different planets, with maybe a single ancestor of everything that's just
 0g interplanetary space — if you're not on a planet it falls back to that."* biome.md anticipated it:
