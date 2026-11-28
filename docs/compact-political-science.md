@@ -497,3 +497,7 @@ Two invented subjects, one natural and one social, demonstrating that
 the method generalizes across a catalog rather than that magic was a
 special case. That generalization is the actual claim; this document
 is its second leg.
+
+> **See also — the morality engine.** The trope is the platform's first prescriptive unit; the
+> constituencies' decision history is meant to amend its roster through the Compact (tier B → tier
+> C). [tropes-slate § 1a](./slates/engine/tropes-slate.md).

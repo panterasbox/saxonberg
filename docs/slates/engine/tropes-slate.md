@@ -88,6 +88,34 @@ hard-coded: no — that is the blood gift's constant.)
 | **N6** | **Must it survive?** Record what a later arc may need — nothing more. |
 | **N7** | **Who supplies the telling?** The author's style when there is one; the trope's default prose when not. |
 
+## 1a. ⭐⭐⭐ The morality engine **[DECIDED — the owner, 2026-11-28]**
+
+> The owner: *"even though we have the nazi test, in actuality this platform is built to be a big
+> morality engine. we capture the morality of the constituents along three dimensions, capital,
+> labor, and consumer, and then feed it back into the game via the laws of the Compact … I feel like
+> on some level, this trope idea is our most primitive unit now of where the game engine is being
+> prescriptive. everything below that, the act and all the simulation that supports it is
+> descriptive … the narrative is fundamentally how morality is shaped in the history of humanity. we
+> dream in narratives."*
+
+- ⭐ **The line is the architecture.** Everything up to and including the **beat** is
+  **descriptive** — acts, cost, cause, who saw. The **trope is the first prescriptive unit**: it
+  says *this pattern of choices is generous, that one cruel*. The system on top of the acts is a
+  **morality system**; the kernel beneath it is narrative and physics.
+- **Aristotle says the same.** The Poetics' word for character is *ethos*, *"that which reveals
+  moral purpose"* — character is revealed in choice, and the choice is moral. The trope is a
+  narrative unit and a moral unit at once.
+- ⭐⭐ **The Nazi test (§ 3.10) is about who holds the pen, not whether morality exists.** The kernel
+  stays descriptive; the morality is content, so another community may hold another. Ours is not
+  ours forever: the three constituencies — capital, labor, consumer — shape it through the Compact,
+  and the game's moral axis is revealed by its own decision history.
+- ⭐ **The roster's governance path:** it starts at [measurement.md](../../measurement.md) **tier B**
+  (whoever ships the pack — us) and is meant to become **tier C**, amendable by the polity through
+  the Compact. Not build 1 — but nothing in build 1 may close it off.
+- **Names mark the line:** the trope rows live under the root **`/morality`**, in the pack
+  **`morality-commons`** (our community's morality, one of possible others). The kernel's
+  descriptive side — acts, beats, the matcher — keeps **narrative** names.
+
 ## 2. What the game does — the census (2026-11-24)
 
 Four surveys over the kernel and every pack. Grouped by the kind of interaction, not by any beat
@@ -111,7 +139,9 @@ What it taught:
 2. **Nothing ties one act's records together** — no ledger stores an act id; the causing-command id
    exists at runtime and is never written. Each harm producer invents its own session id.
 3. **NPCs perform a large share of acts** (nurses, herders, reelers, consigners, the fox).
-4. **Only success earns anything** — failure, persistence and abandonment, the raw material of
+4. **Only success earns anything** — ⚠ crafting has **no failure outcome** at all (only the glass
+   gather records one); failure in crafting is **its own conversation** (the owner, 2026-11-28),
+   not this slate's. Failure, persistence and abandonment, the raw material of
    diligence and patience, are almost never recorded.
 5. **Most physical acts run through three shapes** — a timed build, an engaged act, a worked or
    tapped host — and every act already loads some definition (§ 3.2).
@@ -272,7 +302,7 @@ governance earn a place in the narrative later is open (§ 8); today they are no
   kernel never says which pole is good.
 - ⭐ **Every reading of what an act means for someone — trait, regard, renown, both layers — is a
   trope row in an optional content pack.** No load-bearing pack (a trade, a system — water,
-  arcana, residence) may depend on it. Without the roster pack, giving blood characterizes nothing,
+  arcana, residence) may depend on it. Without the roster pack (`morality-commons`, root `/morality` — § 1a), giving blood characterizes nothing,
   and that is correct.
 - **Interpretive rules are the pack's too:** relative-to-means vs absolute, *no known intent fires
   nothing*, how fast repetition diminishes — the kernel supports each, the trope sets it.
@@ -521,7 +551,7 @@ refused automated fetches, so its pages were not read directly) found:
   decide it; the shape of the capture.
 - Intent: whether consent and cost are enough to tell a gift from extortion; a fact with no known
   intent fires no trope on the actor's character.
-- Where tropes live: the mechanism in the kernel; ⭐ the roster in its own optional content pack that no load-bearing pack depends on (§ 3.10) — its name and root open.
+- ~~Where tropes live~~ → § 1a: `morality-commons` at `/morality`. Kept for the record: the mechanism in the kernel; ⭐ the roster in its own optional content pack that no load-bearing pack depends on (§ 3.10) — its name and root open.
 - Collusion and Sybil rings pumping generosity — inherited from measurement.md's open flank (§ 4b).
 - When the author surfaces must land — before the first trade adopts tropes (§ 4b).
 - Whether worldcrafting and governance earn a place in the narrative (§ 3.9).
@@ -583,6 +613,8 @@ beats, `befall`, `take`/`return`, `flee`, `protect` · the ~100-site credit swee
 
 
 ## Cross-references
+
+The morality engine (§ 1a) and the Compact: [compact-political-science.md](../../compact-political-science.md).
 
 [quest-modeling-slate](../world/quest-modeling-slate.md) and [narration-slate](./narration-slate.md) read their plot work through § 1.
 

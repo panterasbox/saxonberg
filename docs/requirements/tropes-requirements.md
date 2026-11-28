@@ -60,7 +60,8 @@ matcher; the roster pack; and the gate. The ledgers, the reads and the player ve
 - **One trope writes both halves**: the killer in plain sight loses compassion as well as the
   witnesses' regard.
 - **Solitary work characterizes**: failing at hard work and later finishing it makes you more
-  patient, at any trade.
+  patient, wherever work can fail today (the glass bench); crafting's missing failure outcome is
+  its own conversation.
 - **The kernel holds no moral opinion**: without the roster pack installed, nothing characterizes
   anyone, and no trade or system pack depends on it.
 - **The old way is unwriteable**: no trait, regard or renown write in code can merge; no new
@@ -86,13 +87,17 @@ matcher; the roster pack; and the gate. The ledgers, the reads and the player ve
 - **Tropes sharing a cast as a quest** → [quest-modeling-slate](../slates/world/quest-modeling-slate.md).
 - **Worldcrafting and governance in the narrative** → nowhere for now, deliberately: the labor plane
   mints nothing (§ 3.9).
+- **Crafting's missing failure outcome** → its own conversation (the owner, 2026-11-28).
+- **The roster's path to the polity** (tier B → tier C through the Compact) → slate § 1a; build 1
+  must not close it off.
 - **The transfusion's unreachable revival deed** → its own defect fix.
 
 ## Placement
 
 - **The kernel** owns the mechanism: the actor and cause on every ledger, the work record, the beat
   vocabulary (detected beats are a closed kernel list), the matcher. All descriptive; no opinion.
-- **A new optional roster pack** owns every reading: the build-1 tropes and the asserted beats
+- **A new optional roster pack, `morality-commons` at the root `/morality`** (slate § 1a — the trope
+  is the platform's first prescriptive unit; everything below it is descriptive) owns every reading: the build-1 tropes and the asserted beats
   (*confess · slight · honor*). ⭐ **No load-bearing pack may depend on it** (the Nazi test, slate
   § 3.10) — a different community may ship a different roster. Its name and root are the plan's.
 - **Trades** own their Discipline credit, on their own definitions.
@@ -132,6 +137,8 @@ All settled in the slate; the product-level answers:
 - **Tellings** (§ 3.4): a closing trope keeps its telling in the chronicle, in the fiction; the
   write is visible, never its value; it is announced only when surprising.
 - **NPCs** are characterized by their acts like anyone.
+- **`give` passes title by default** when the giver owns the thing (a gift); `give … --lend` hands
+  it over and keeps title. Today `give` moves custody only.
 - **The roster for this build** (§ 6): The Gift (blood; goods and money) · Answering the Call ·
   Murder in Plain Sight · The Fair Fight · Sparing the Yielded · The Broken Promise · The Word Kept ·
   Seeing It Through · Walking Off the Job · Tending the Stranger · Abandoning Ship · Pet the Dog ·
@@ -167,7 +174,7 @@ The full pass is slate § 4b. In short:
 | 5 | short · staged | Two players fight a consented duel to a yield, a third watching; the victor spares. | *The Fair Fight* (boldness; the watcher's regard) and *Sparing the Yielded*. |
 | 6 | instant · staged | A player kills an unconsenting NPC with a witness present. | The killer's compassion down **and** the witness's regard down. |
 | 7 | short · player | Claim a job and let it lapse; claim and fulfil another. | *The Broken Promise* and *The Word Kept*. |
-| 8 | short · player | At a forge (or any trade), fail a hard piece of work, then finish one of the same kind. `competence`, `traits`. | The failure credited with its outcome; *Seeing It Through* — patience and diligence. |
+| 8 | short · player | At the glass bench, fail a hard piece of work, then finish one of the same kind. `competence`, `traits`. | The failure credited with its outcome; *Seeing It Through* — patience and diligence. |
 | 9 | instant · player | Start a piece of work and walk away from it. | *Walking Off the Job*. |
 | 10 | instant · player | Tie a knot; `competence`. | Ropework credited from the knot's own row; same as today. |
 | 11 | short · staged | Treat a wounded stranger (a staged NPC patient). | *Tending the Stranger*: the helper's compassion, the patient's regard; the patient is on the record. |
@@ -194,7 +201,7 @@ The full pass is slate § 4b. In short:
   bad meal, petting, introductions, the placeholder dialogue) move the same people the same direction, at
   about the same size.
 - Killing in plain sight changes the killer's character, not only the witnesses' opinion.
-- Failing at hard work and then finishing it makes a character more patient, in any trade.
+- Failing at hard work and then finishing it makes a character more patient, wherever work can fail.
 - A work act that finishes later belongs to the choice that began it, and to the person who made it.
 - A trope added as rows only works with no code change.
 - A dialogue choice asserting a beat fires tropes exactly as a detected one would.

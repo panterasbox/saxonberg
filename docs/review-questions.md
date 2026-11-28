@@ -203,6 +203,18 @@ Delay is never a cost outside a budgeted clock (combat's beats). *Evidence:*
 as an invented main chamber; "closed is never a tier" erasing authored
 closures.
 
+### P15. Is this fork really a choice to impose, or an option the player can pass?
+When a design lands on "should the verb do X or Y?", the answer is almost
+never to pick one for the player. The command definition is expressive
+enough to carry several intents: give the verb an **option** (`give … --lend`,
+`--keep-title`) and impose **nothing**. The only question left for the owner
+is **which behavior is the default** — ask that one, never "X or Y?".
+*Evidence (the owner, 2026-11-28):* *"over and over again you give me these
+choices where I don't even understand why you're forcing a choice in the
+first place … USE COMMAND LINE OPTIONS!!! … the only thing you could ask me
+about is what should be the default."* (The tropes plan asked whether `give`
+should pass title; the answer is an option.)
+
 ---
 
 ## B — build

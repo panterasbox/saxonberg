@@ -187,7 +187,7 @@ Each item cites the slate's § 10 reuse-ledger row, or says *genuinely new* and 
 | N12 | `NarrativeApi` (`S/api/narrative.ts`) + `NarrativeLogic` (`S/platform/idea/api/NarrativeLogic.ts`) — the matcher | *genuinely new*. Searched `api/` for an existing home: `EventApi` is ruled out by the slate; `AccountabilityApi`, `RenownApi` each own one ledger; the matcher orchestrates across five ledgers and three write doors, which is what an Api is for |
 | N13 | `DispositionedMixin.imprintFromTrope` — **replaces** `imprintSignature` / `imprintDeed` | **reuses** *trait ledger + write*; the old two are deleted with their one caller |
 | N14 | dialogue effect `assert` — **replaces** `regard` for the clerk and officer | **replaces** *dialogue effects* (the `regard` effect stays for the lounge and Katie, counted by the gate) |
-| N15 | pack `narrative-roster`, root `/narrative` (content only) | *genuinely new* — slate § 10's `/system/narrative` is superseded by § 3.10 (not a system pack) |
+| N15 | pack `morality-commons`, root `/morality` (content only) | *genuinely new* — slate § 10's `/system/narrative` is superseded by § 3.10 (not a system pack) |
 | N16 | `lint:characterization`, `lint:credit-by-name`, `lint:tropes` | **reuses** *ratchet gate pattern* |
 | — | **retired:** `ActSignature.dispositionValence`, the `creditSignature` graft, `BLOOD_GIFT_SIGNATURE`, `BLOOD_GIFT_RENOWN`, dials `combatRegardUnlawfulKill`, `combatRegardDuelWin`, `contractBreachRegardPenalty`, constants `PET_REGARD`, `ILL_FROM_HAND_REGARD`, `REGARD_INTRODUCE_BUMP` | *act signature shape*, *hand-written writers to delete* |
 
@@ -327,9 +327,10 @@ taken into a business → `terms`; `title transfer` and `give` → `unrequited`)
 gift or sale **by itself**, which is what lets a trope look back at it after a restart.
 ⭐ `GiveController` gains one step: after the move, when the giver is the good's stamped owner,
 `item.transferChattel(recipient, { kind: 'unrequited' })`. A giver who is not the owner hands over
-custody only, as today, and no `give` beat exists. **Lens 1 chose** (the world is derivable: *I
-gave it to you* means it is yours; lending already has its own institution in the contract loan).
-`give`'s help says so (P9). ⚠ A behavior change the owner should see — Risks R1.
+custody only, as today, and no `give` beat exists. ⭐ **An option, not an imposed choice (review
+question P15; the owner, 2026-11-28):** `give` gains **`--lend`** — hand it over and keep title
+(custody only, no `give` beat). **Passing title is the default** (the owner). The view gains the
+option; `give`'s help says both (P9).
 
 **D8 — Witnesses are captured once per act, with perception, and stored on harm rows.**
 `NarrativeLogic` computes the audience lazily, once per `actId`: every sensor in the actor's
@@ -511,10 +512,10 @@ Terminus therefore does not `requires:` the roster.
 
 ### The roster pack (wave 4)
 
-**D22 — Pack `narrative-roster`, root `/narrative`, content only.** `C/narrative-roster/`
+**D22 — Pack `morality-commons`, root `/morality`, content only.** `C/morality-commons/`
 (`pack.yaml`, `package.json`, `README.md`, `content/tropes/*.yaml`, `content/beats/*.yaml`; no
 `src/`), on the "what is written down" axis like `/expression`. Documents land at
-`/narrative/tropes/<key>` and `/narrative/beats/<key>`. ⛔ No pack lists it in `requires:` and
+`/morality/tropes/<key>` and `/morality/beats/<key>`. ⛔ No pack lists it in `requires:` and
 `lint:tropes` enforces that. It is in the default boot union; a world without it is a world
 whose `SAXONBERG_PACKS` / `declareFile({ packs })` omits it. The root name, the pack id and its
 title holder are the owner's to confirm — Risks R2.
@@ -613,7 +614,7 @@ Risks R3.
   literal, and any `new WorkCredit(` outside its own file.
 - **`lint:tropes`** (`check-tropes.ts`) — every trope and beat document in the repo parses
   (through the catalogues' `parse`, read off disk as the installer does); every `assert` effect
-  names a shipped beat; no `pack.yaml` `requires:` names `narrative-roster`.
+  names a shipped beat; no `pack.yaml` `requires:` names `morality-commons`.
 A ceiling here rises only by the lint family's rule: a caller audit, never a quotation.
 
 **D28 — The drive is four files.** See Test & gate strategy.
@@ -653,7 +654,7 @@ re-plans (B1).
   and scaffold rows in `test-fixtures`; no `populates:`, no `container:`.
 - **Places, not rooms** — no new place. Step 18 looks at four existing ones.
 - **`<root>/<branch>/`** — no new class in a pack. The roster pack ships documents only, under
-  `/narrative/<shipped dir>/`. Kernel files follow D20.
+  `/morality/<shipped dir>/`. Kernel files follow D20.
 - **Module scope declares** — no executable statement at module scope; `NarrativeApi` ends with
   the sanctioned `decorateApiClass`.
 - **Import boundary** — `lib/narrative/*` imports nothing outside `src/mud`; row classes import
@@ -770,7 +771,7 @@ gone, the roster is W4) — W3 and W4 land in one push if master is live-deploye
 
 **Goal:** today's characterization, as rows; the hand-written writers gone.
 
-1. `C/narrative-roster/` — 18 trope rows, 3 beat rows; register it in the workspace and the
+1. `C/morality-commons/` — 18 trope rows, 3 beat rows; register it in the workspace and the
    default pack union (`pnpm install` after adding the package).
 2. Delete: `BLOOD_GIFT_SIGNATURE` / `BLOOD_GIFT_RENOWN` and `creditGift` (replace with D26's
    occurrence); `runResolutionConsumers`' regard loop and `roomBelievers`; the breach regard block
@@ -818,11 +819,11 @@ No new verb and no new affordance. The five links, per capability:
 
 | capability | verb | affordance | data | load | arg gate |
 |---|---|---|---|---|---|
-| a trope fires | every existing verb that reaches one of the eight writers | existing | `narrative-roster` `content/tropes/` | `TropeCatalogue` `whole`, on the first occurrence in the process | n/a |
+| a trope fires | every existing verb that reaches one of the eight writers | existing | `morality-commons` `content/tropes/` | `TropeCatalogue` `whole`, on the first occurrence in the process | n/a |
 | an asserted beat | `talk` → a choice | the NPC's existing dialogue affordance | the `assert` effect on the row + `content/beats/` | `BeatCatalogue.byWord` at the effect | the effect's `beat` is required; `lint:tropes` checks it |
 | credit from a definition | every moved act's own verb | existing | `credit` / `competence` / `difficulty` on the definition row | the definition is already loaded by the act (that is the rule) | a definition with no discipline credits nothing — say so in each catalogue's parse doc |
 | abandonment | the existing cancel paths (the player's own cancel, a replacing act) | existing | none | n/a | only engagements that implement `WorkActivity` |
-| `give` passes title | `give` | existing | none | n/a | giver must be the stamped owner; otherwise custody only, stated in help |
+| `give` passes title (default) · `--lend` keeps it | `give` | existing; the view gains `--lend` | none | n/a | giver must be the stamped owner; otherwise custody only; both stated in help |
 | the telling | `chronicle` | existing | the trope's `telling` | with the trope | n/a |
 
 Fail-closed risks to check in the drive, each of which would be silent: the roster pack missing
@@ -869,9 +870,9 @@ deferred finish (15), and that the converted dialogue reads right (13).
 
 | file | steps | world |
 |---|---|---|
-| `W/tests/tropes.dirty.wire.test.ts` | 1–7, 9–12, 14, 15, 17 and 13 against the scaffold greeter | scaffold + `narrative-roster` + the trades staged on; names no placeholder content |
+| `W/tests/tropes.dirty.wire.test.ts` | 1–7, 9–12, 14, 15, 17 and 13 against the scaffold greeter | scaffold + `morality-commons` + the trades staged on; names no placeholder content |
 | `W/tests/tropes-content.dirty.wire.test.ts` | 8 (glasshouse), 13 (the terminal clerk; the officer), 18 (bank, work board, forge, terminal in their own light; Dave unchanged — assert his lines and his regard deltas byte-for-byte against values read before the build) | the placeholder world; **raises `WIRE_CONTENT_CEILING` by one** (test-only ratchet; the reason is that the regression target *is* placeholder content) |
-| `W/tests/tropes-no-roster.dirty.wire.test.ts` | 16 — give blood, forge, tie a knot, pet; assert no trait row, no regard change, no telling, and each act's own result | same packs **minus** `narrative-roster` |
+| `W/tests/tropes-no-roster.dirty.wire.test.ts` | 16 — give blood, forge, tie a knot, pet; assert no trait row, no regard change, no telling, and each act's own result | same packs **minus** `morality-commons` |
 | `W/tests/tropes.soak.dirty.wire.test.ts` | S1, S2 | soak lane |
 
 Pace and staging, per step:
@@ -913,12 +914,12 @@ pet the animal; `traits` and `standing` render with no number that was not there
 
 **For the owner — decisions this plan made that the requirements did not:**
 
-- **R1 — `give` now passes title (D7).** Today it moves custody only. Without it the `give` beat
-  has no fact for goods, and drive step 3 cannot pass. Chosen by lens 1; lending keeps its own
-  institution. If the owner wants `give` to stay custody-only, the `give` beat for goods needs a
-  different fact and step 3 changes — stop and ask rather than build both.
-- **R2 — the pack's name, root and title holder (D22).** `narrative-roster` at `/narrative` adds
-  a top-level document root beside `/expression`. The holder in `requires.title` is not decided
+- **R1 — `give` passes title by default; `--lend` keeps it (D7).** ✅ Ruled by the owner
+  2026-11-28.
+- **R2 — the pack's name, root and title holder (D22).** ✅ Name and root ruled 2026-11-28:
+  `morality-commons` at **`/morality`** (slate § 1a — the trope is the platform's first
+  prescriptive unit; the kernel's descriptive side keeps *narrative* names). It adds a top-level
+  document root beside `/expression` — CLAUDE.md's namespace table gains the row at the sweep. The holder in `requires.title` is not decided
   (`C/expression/pack.yaml` names a group; `C/wiki-starter/pack.yaml` names none); unless told
   otherwise the build ships with no title claim, as wiki-starter does, and records it here.
 - **R3 — the regard ceiling is 2, not 0 (D27).** Slate § 9 says 0. Two writes cannot move this
@@ -931,7 +932,8 @@ pet the animal; `traits` and `standing` render with no number that was not there
   can only fire on the incapacitation path and drive step 5 (*"to a yield … the victor spares"*)
   must be staged as a lethal duel to a downed opponent. Verify in W3 before writing the row; do
   not record `spare` where nobody chose.
-- **R5 — the forge cannot fail.** Requirements step 8 says *"at a forge (or any trade)"*. No
+- **R5 — the forge cannot fail.** ✅ Ruled 2026-11-28: drive at the glass bench; crafting's failure
+  outcome is its own conversation, not this build's. Requirements step 8 says *"at a forge (or any trade)"*. No
   craft resolve has a failure outcome; glass does. The plan drives step 8 at the glass bench and
   adds glass forms to wave 2's moves. *Seeing It Through* will be unreachable at the forge until
   some build gives forging a failure — a fact about smithing, not about tropes.
