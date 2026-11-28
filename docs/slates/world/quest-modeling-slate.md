@@ -18,6 +18,10 @@ library and the cast bindings are content.
 > **trope**, this slate's § 2 "happening" beat standing alone; tropes and quest templates are **one
 > catalog at two sizes**, and several tropes sharing a cast is a quest.
 
+> ⭐ **2026-11-28 → [bestiary-slate](./bestiary-slate.md) § 18d–18e:** a hunt quest's arc is a causal
+> chain across systems (economy → field → beasts → people) that players uncover and choose where to
+> cut; authors set up loaded situations, never outcomes; tropes read and name what happened.
+
 ## Load-bearing decisions (the spine)
 
 1. **The engine serves narrative, not the reverse.** Quests are an

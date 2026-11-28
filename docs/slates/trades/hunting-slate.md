@@ -169,6 +169,14 @@ sets its close season wrong is making a discoverable mistake.
 
 ## ⭐ A wild population is a record that materializes on encounter
 
+> ⭐ **2026-11-28 → [the biome design](../tech-debt/biome-normalization-slate.md) § D12:** a biome (and
+> an anthrome beside it) NAMES species; how names become what you find — counts, stock and recovery,
+> the area a population covers, the owning pack, making an individual on encounter — is left open for
+> this design, with no lean. ⛔ The shipped fishing trade is not a precedent; it is rebuilt to match.
+> ⭐ **And one requirement** ([bestiary-slate](../world/bestiary-slate.md) § 18d): whatever population
+> model is chosen must let a shortage move a beast, a removed predator change its prey, and two beasts
+> compete for one supply — the quest arc is made of those links.
+
 The **third consumer** of a pattern this design family keeps producing: the herd
 is a herdbook (farmstead D20), a hive is that record with the individual end
 amputated (D34), and a wild population is the same shape again — **a population
