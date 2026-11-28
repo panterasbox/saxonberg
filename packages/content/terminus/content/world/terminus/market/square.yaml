@@ -16,7 +16,7 @@
 #
 # NORTHEAST back up the lane to the avenue block (cross-zone, both sides
 # explicit — the block declares SOUTHWEST here).
-class: /platform/location/Street
+class: /platform/place/Street
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street
@@ -72,13 +72,13 @@ data:
     # ⭐ (rubber build) Under the fish stall's awning — a lone place with a
     # canvas roof and no walls (cleanliness's bathhouse takes `north`).
     east:
-      destination: /world/terminus/market/location/under-the-awning
+      destination: /world/terminus/market/place/under-the-awning
     west:
       destination: /world/terminus/market/bakery
     # ⭐ North to the bathhouse (cleanliness D28): hot baths, washing taken
     # in, and a gym sharing the door. `north` was free.
     north:
-      destination: /world/terminus/market/bathhouse/location/vestibule
+      destination: /world/terminus/market/bathhouse/place/vestibule
       media: [ground]
       edgeMinutes: 1
   props:

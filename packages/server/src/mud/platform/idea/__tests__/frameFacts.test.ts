@@ -5,8 +5,8 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import CartesianZone from '../location/CartesianZone';
-import SphericalZone from '../location/SphericalZone';
+import CartesianZone from '../place/CartesianZone';
+import SphericalZone from '../place/SphericalZone';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 
 describe('SpatialZone.frameFacts', () => {

@@ -27,11 +27,11 @@ declareFile({
 });
 
 const SQUARE = '/world/terminus/market/square';
-const BATHS = '/world/terminus/market/bathhouse/location/baths';
+const BATHS = '/world/terminus/market/bathhouse/place/baths';
 const BANK = '/world/terminus/wharfside/bank';
 const WARD = '/world/terminus/infirmary/ward';
-const HEADGATE = '/world/terminus/hearts-delight/ditch/location/headgate';
-const DITCH_BANK = '/world/terminus/hearts-delight/ditch/location/bank';
+const HEADGATE = '/world/terminus/hearts-delight/ditch/place/headgate';
+const DITCH_BANK = '/world/terminus/hearts-delight/ditch/place/bank';
 
 let handle = '';
 let p: Session | null = null;

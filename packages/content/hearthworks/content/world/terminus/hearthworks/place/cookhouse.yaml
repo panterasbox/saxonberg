@@ -1,0 +1,181 @@
+# The cookhouse — the Hearthworks' cooking venue: a hearth (an Oven-class
+# furnace at gentle cooking heat), a cook pot, a pantry chest (the
+# open-container gather path — flip the lid, cook), the kitchen board,
+# and the cook. Order a meal, or make it yourself with their tools — the
+# DIY floor.
+# ⭐ Persistent (cleanliness D31): a kept place — its floor, its fire,
+# what is curing on its shelves — outlives a restart.
+class: /platform/place/PersistentHall
+data:
+  # ⭐ Daylight reaches this room through a real opening, and the
+  # opening is named so the claim is something a player can walk up
+  # to and look at. The room follows the sun: bright at noon, dark
+  # at night unless somebody lights something.
+  ambientSource: sky
+  ambientOpening: window
+  shortDescription: cookhouse
+  keywords: [cookhouse]
+  register: indefinite
+  longDescription: |
+    A low cookhouse warm with woodsmoke, a clay hearth glowing along one wall and a scrubbed table down the middle. A pantry chest stands against the wall, and the smell of stew never quite leaves the rafters.
+  # ⚠⚠ **An interior with no authored ambient and nothing lit inside it
+  # is PITCH BLACK, and only its contents go nameless.** Every `Location`
+  # composes `AmbientLitMixin`, whose `ambientIntensity` defaults to 0;
+  # `VisionModality.signalAt` then sums only what is actually emitting,
+  # so an unlit room falls under the band `canSee` needs for a figure and
+  # `RecognitionLogic.obscured()` renders every object as "something".
+  # The room's own prose still reads normally, which is what makes it so
+  # quiet a failure.
+  #
+  # ⭐ The trap this closes is circular: the cookhouse's only light was
+  # the hearth, and the hearth is UNLIT until somebody lights it — so a
+  # cook walked into a dark room whose one fix was an object they could
+  # not see to name. A banked fire, a lamp on a hook, an open shed side:
+  # every one of these rooms has a reason to be dim rather than blind,
+  # and the shipped kitchen archetype (35 lux) and a dozen Terminus rooms
+  # already author exactly this.
+  # Here: the fire-glow of a working kitchen: enough to cook by, warm and low.
+  ambientIntensity: 35
+  ambientColorTemperature: 2700
+  coords:
+    x: 2
+    y: 0
+    z: 0
+  props:
+    - /stuff/thing/Oven
+    # ⭐ The opening the daylight comes in by, as a real pane: the hearth's
+    # soot greys it and the room darkens (cleanliness D19).
+    - /stuff/thing/fixture/window
+    - /trade/cooking/thing/cook-pot
+    # ⭐ The water butt is load-bearing, not scenery: a wet recipe declares
+    # `medium: water` and must MATCH an input carrying the water tag, so a
+    # cookhouse without a water source cannot boil a stew.
+    - /stuff/thing/fixture/water-butt
+    - /world/terminus/hearthworks/thing/kitchen-menu
+    # ⭐ The receiving bench and the table the cook clears it onto
+    # (trades-and-labor D16). The bench exists for a MECHANICAL reason: a
+    # gig is refused when its condition already holds, and a kitchen
+    # short of a line usually still has some on the table — so an order
+    # aimed at the table would be refused precisely when the kitchen most
+    # wanted it. The bench is empty by construction.
+    - /trade/haulage/thing/receiving-bench
+    - /stuff/thing/fixture/table
+    # ⭐⭐ **The hall's public noticeboard, on the kitchen wall** — and it
+    # is the SAME board, not a second one. A gig is posted to a board's
+    # TEMPLATE PATH, so every room propping this row shares one pool:
+    # exactly the mechanism the nine works boards already run on (nine
+    # floors, one pool). The cook writes his docket here and a newcomer
+    # reads it in the terminal hall, which is where somebody looking for
+    # work actually stands.
+    #
+    # ⚠ It is load-bearing, not decoration, and driving is what found
+    # that out: `job` is afforded by a `JobBoard` **in the room**
+    # (`JobBoard.commandContributions.peers`), so without this line the
+    # cook's beat fires every 90 s and every posting answers
+    # `unknown-verb(job)` — silently, forever, with the board that a new
+    # arrival reads staying empty. A brain must not walk to a board; the
+    # board comes to the floor. That is the works-board doctrine
+    # (logistics D11) applied to a kitchen.
+    - /world/terminus/terminal/thing/job-board
+    - /world/terminus/hearthworks/thing/pantry-chest
+    # ⭐⭐ **Somewhere cold — and the only one a player can WALK TO.**
+    # (Placement build, D23, decided by driving.) The two kitchens the
+    # plan named are both right and neither STANDS: trade-cooking's is
+    # the venue template a locality clones, and a Hinkley lot kitchen
+    # exists only once somebody buys the lot. A capability with no
+    # reachable instance is the shipped-but-dead class, so the standing
+    # cooking venue gets one too — which is also just better content: a
+    # working cookhouse that keeps meat would have somewhere cold.
+    #
+    # ⚠ Seeded SHUT, and its contents are therefore out of the craft
+    # gather walk until somebody opens it — the exact inverse of the
+    # pantry chest above, which is seeded open so `cook` reaches its
+    # ingredients. Same lid, opposite intent.
+    # ⚠ The venue's own row: the generic icebox with a block of ice
+    # already in it (`extends:` + one `props:` line). Ice left LOOSE in
+    # a warm kitchen is gone in game-minutes — correct physics, and the
+    # reason a cookhouse keeps its ice in the box rather than beside
+    # it. Nobody sells ice yet (the icehouse-keeper is the preservation
+    # slate's), so this is where the world's first block lives.
+    - /world/terminus/hearthworks/thing/stocked-icebox
+    # Working stock out on the table (the DIY floor's hand-reach; the
+    # chest holds the dear cuts the gather walk reaches for a craft —
+    # hand-retrieval from containers isn't a shipped verb yet).
+    - /stuff/thing/items/root-vegetables
+    - /stuff/thing/items/root-vegetables
+    - /stuff/thing/items/stew-meat
+    # ⭐ Empty dinnerware — and it is now load-bearing for BOTH paths. A
+    # served meal is CLAIMED from this pool, not cloned into existence, so
+    # a cookhouse with no clean crockery serves out of the pot. One of
+    # each kind the roster names, twice over, so a second order while the
+    # first is still on the table has somewhere to go.
+    - /stuff/thing/items/plated-dish
+    - /stuff/thing/items/plated-dish
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/bowl
+    - /stuff/thing/items/platter
+    # Cutlery. ⚠ Never a gate: `eat` uses one when there is one and says
+    # so, and eats with your fingers when there is not. It is here because
+    # a cookhouse that serves stew and hands you nothing to eat it with is
+    # a worse lie than one that does.
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/horn-spoon
+    - /stuff/thing/cutlery/table-knife
+    # ⭐ And a FORK, which the reachability sweep found had never stood
+    # anywhere in the realm. The comment above says in terms that *"a
+    # cookhouse that serves stew and hands you nothing to eat it with is
+    # a worse lie than one that does"* — and it was handing out two
+    # spoons and a knife while an authored fork row sat in the commons
+    # reached by nothing.
+    - /stuff/thing/cutlery/table-fork
+    # The roster's instruments beyond the pot: a sieve makes a broth clear,
+    # a press makes the oil, and the crock and bottle are what rendering
+    # and pressing FILL (claimed from the pool like every other vessel).
+    - /trade/cooking/thing/kitchen-sieve
+    - /trade/cooking/thing/fruit-press
+    - /trade/cooking/thing/tallow-crock
+    - /trade/cooking/thing/oil-bottle
+    # ⭐ The larder side of the kitchen — and it is four separate stations
+    # on purpose. Each affords exactly the verb it performs: you butcher at
+    # the block, salt in the trough, hang on the rack, and smoke in the
+    # chimney. They were all briefly conferred by the COOK POT, which
+    # handed a saucepan the power to take a hog apart; see `CookPot.ts`.
+    #
+    # ⭐⭐ Butchering is learnable where the trade is practised — a cook
+    # should not have to hunt before finding out what a knife does to a
+    # carcass — and a hog hands you far more meat than one sitting, which
+    # is what turns preserving it from a curiosity into a decision.
+    - /trade/cooking/thing/butcher-block
+    - /trade/cooking/thing/salting-trough
+    - /trade/cooking/thing/drying-rack
+    # ⭐ The hook is the one drying support a ham hangs FROM rather than
+    # sits ON, and it is a ROW — one `Fitting` naming one placement
+    # member. It affords nothing: the rack beside it affords `dry`, and
+    # a hung ham dries with no verb at all, because the drying model
+    # reads the hook's own airiness off the placement.
+    - /trade/cooking/thing/meat-hook
+    - /trade/cooking/thing/smoke-chimney
+    - /trade/cooking/thing/boning-knife
+    # ⚠ And the SALT, because a kitchen has salt. The live drive found
+    # this: the pantry outfit stocks its sacks in its own storeroom, which
+    # is not in reach of the hearth, so `cure` declined with "there isn't
+    # enough salt" in the one room the whole build is proven at.
+    - /trade/cooking/thing/kitchen-salt
+    # ⚠ The carcass is a PROP, not cast, and the live drive is what said
+    # so: `applyCast` refuses anything that is not `Behaved`, and a corpse
+    # has no brain by construction. `cast:` is for things that ACT.
+    - /trade/cooking/agent/hanging-carcass
+    # ⭐⭐ **Fuel, in reach of the fire.** The fire build made a burner's
+    # fuel a BED somebody fills — before it, a `%` Reserve the row
+    # authored once meant a forge arrived pre-fuelled and could never be
+    # fed again. The consequence is systemic and this is its content
+    # half: **every room with a fire somebody is expected to light needs
+    # fuel they can pick up.** Nine rooms did not.
+    #
+    # ⚠ Bounded props, never a faucet (the fuel yard's own four baskets
+    # are the precedent): a starting condition, not a supply. What
+    # restocks it is the trade that makes it.
+    - { template: /stuff/thing/items/dry-log, count: 3 }
+  cast:
+    - /world/terminus/hearthworks/agent/cook
+    - /world/terminus/hearthworks/agent/cookhand

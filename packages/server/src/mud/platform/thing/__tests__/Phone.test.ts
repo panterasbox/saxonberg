@@ -15,7 +15,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { MixinApi } from '../../../api/mixin';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../../lib/security/__tests__/test-setup';
-import Location from '../../../lib/location/Location';
+import Location from '../../../lib/place/Location';
 import Phone from '../Phone';
 import { WorldClockApi } from '../../../api/worldclock';
 import App from '../../idea/App';

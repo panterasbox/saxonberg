@@ -108,7 +108,7 @@ does**. Authoring these is the thing the trades doctrine forbids.
 ## Part 2 — ⭐ The university owns them, and that is a content decision
 
 An earlier framing put lab archetypes in **trade packs**
-(`/trade/hospitality/location/bar` precedent). **That was wrong here.**
+(`/trade/hospitality/place/bar` precedent). **That was wrong here.**
 
 The `bar` archetype ships with hospitality because libations shipped a
 *trade pack with capability* — verbs and classes — and the archetype

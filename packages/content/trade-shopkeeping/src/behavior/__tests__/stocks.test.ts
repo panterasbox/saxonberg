@@ -36,8 +36,8 @@ import Good from '@saxonberg/server/mud/platform/thing/Good';
 import BankCounter from '@saxonberg/server/mud/platform/thing/BankCounter';
 import BusinessEntity from '@saxonberg/server/mud/platform/idea/Business';
 import Place from '@saxonberg/server/mud/lib/stuff/Place';
-import Location from '@saxonberg/server/mud/platform/location/Location';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import Location from '@saxonberg/server/mud/platform/place/Location';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import { EmploymentApi } from '@saxonberg/server/mud/api/employment';
@@ -56,11 +56,11 @@ import { NavigationApi } from '@saxonberg/server/mud/api/navigation';
 // fixture over the base is the whole of what these tests need.
 class Stock extends StockBase {}
 
-const SHOP = '/test/stocks/location/shop';
-// ⭐ Another district, so a row that knows only `/test/stocks/location`
+const SHOP = '/test/stocks/place/shop';
+// ⭐ Another district, so a row that knows only `/test/stocks/place`
 // does not know the wholesaler.
 const MARKET = '/test/stocks/elsewhere/market';
-const HALL = '/test/stocks/location/hall';
+const HALL = '/test/stocks/place/hall';
 const COUNTER = '/test/stocks/thing/counter';
 const SUPPLIER_COUNTER = '/test/stocks/thing/cash-and-carry';
 const BANK = '/test/stocks/thing/bank-counter';
@@ -97,7 +97,7 @@ let balance = 0;
 let typed: string[] = [];
 
 /** What the keeper's row says she knows: her street (the window's side). */
-const STREET = '/test/stocks/location';
+const STREET = '/test/stocks/place';
 
 function ctxFor(config: Record<string, unknown> = {}): BrainContext {
   const full = { counter: COUNTER, ...config };

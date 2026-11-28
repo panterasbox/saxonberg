@@ -6,7 +6,7 @@
 # revision 3) — `look sea`, `fish`, a bucket over the side; the lead and the sextant are how you
 # find out where you are; the rigging and the pump are what an unwatched
 # deck wears out; the dinghy is what goes over the side.
-class: /platform/location/Compartment
+class: /platform/place/Compartment
 data:
   shortDescription: Hesper's deck
   keywords: [deck, hesper deck, ketch deck, ship deck]
@@ -53,7 +53,7 @@ data:
     # she lies stopped — worked out by the sea's warren when taken.
     side:
       kind: /system/water/idea/exits/sea-side
-      destination: /system/water/location/sea/patch
+      destination: /system/water/place/sea/patch
   # ⭐ The sea over the side, and which water it is — the Greywater, read
   # wherever she has got to (the position comes from her, never from this
   # row). The rail is a feature, not water.

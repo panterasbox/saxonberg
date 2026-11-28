@@ -1,7 +1,7 @@
 # The line's desk — the shipping line's counter on the Town
 # Quay, under an awning against the wall. ⭐ Where the Hesper and the line's
 # regulars are chartered: its CharterBook comes with the charter.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: line's desk
   keywords: [desk, "line's desk", awning, counter]

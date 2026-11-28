@@ -7,7 +7,7 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Crossing from '../location/Crossing';
+import Crossing from '../place/Crossing';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import '../idea/WorldClockRegistry';

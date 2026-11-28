@@ -26,8 +26,8 @@ import { MessageApi } from '../../../../../api/message';
 import { CommandApi, type CommandContext } from '../../../../../api/command';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { Idea } from '../../../../../lib/stuff/Idea';
-import Location from '../../../../../lib/location/Location';
-import CartesianZone from '../../../location/CartesianZone';
+import Location from '../../../../../lib/place/Location';
+import CartesianZone from '../../../place/CartesianZone';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { PerceptionMixin } from '../../../../../lib/perception/Perception';
@@ -35,7 +35,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { VisibleMixin } from '../../../../../lib/description/Visible';
-import { Traversal } from '../../../../../lib/location/Traversal';
+import { Traversal } from '../../../../../lib/place/Traversal';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -102,7 +102,7 @@ beforeEach(() => {
   buildAllModalities();
   const zone = makeStuff(() => new CartesianZone());
   zone.setCellSize(3);
-  room = makeStuffAtPath(() => new Room(), '/stuff/test/held-light/location/lean-to') as Room;
+  room = makeStuffAtPath(() => new Room(), '/stuff/test/held-light/place/lean-to') as Room;
   room.setName('the lean-to');
   room.setLongDescription('An open-fronted shed against the wood.');
   room.setAmbientFlux(30 * 9);
@@ -125,7 +125,7 @@ describe('`look` holds the light steady while it describes a room', () => {
     buildAllModalities();
     const zone = makeStuff(() => new CartesianZone());
     zone.setCellSize(3);
-    room = makeStuffAtPath(() => new Room(), '/stuff/test/held-light/location/lean-to') as Room;
+    room = makeStuffAtPath(() => new Room(), '/stuff/test/held-light/place/lean-to') as Room;
     room.setName('the lean-to');
     room.setLongDescription('An open-fronted shed against the wood.');
     room.setAmbientFlux(30 * 9);

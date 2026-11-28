@@ -34,7 +34,7 @@ it). *Is it a ship?* is `instanceof Ship`.
 
 - **A ship of a KIND** (the smack, `/stuff/idea/Ship/smack`, terminus
   pack): one row every smack is cloned from. ⭐ **Her plan is the kind
-  row's own** (`extent: /stuff/location/ship/smack`, `entrance: …/deck`),
+  row's own** (`extent: /stuff/place/ship/smack`, `entrance: …/deck`),
   named exactly as an authored ship names hers. The plan rows (deck, cabin,
   hold) are ordinary rows with ordinary `exits:` and each room's own
   `floorM`. They are never served: the location graph attaches nothing for
@@ -119,14 +119,14 @@ keyed `(warren row, her serial)` (her row for an authored ship) by
   every member. A smack's deck row is every smack's, so no path can tell
   two apart.
 
-**Every ship room is a `Compartment`** (`platform/location/Compartment.ts`
+**Every ship room is a `Compartment`** (`platform/place/Compartment.ts`
 = `WaterPlace(Swimmable(Shore(WarrenMember(Location))))`): one kind of
 room, instanced keyed for a kind and by its own row for an authored ship.
 A deck that cites a `sea` feature stamps itself a shore of whatever sea
 she lies on as it wakes (`Compartment.onWarrenWake`, the one wake hook).
 
 ⭐ **Only her HOLD keeps a record** (review 2, *persistence is the
-exception*). `platform/location/Hold` = `Persistable(Compartment)` is
+exception*). `platform/place/Hold` = `Persistable(Compartment)` is
 named on every hold row. Her cargo survives her sleep, a restart and her
 going down. Her deck and cabin come up from their rows each wake.
 
@@ -602,10 +602,10 @@ file's header.
 ## Files
 
 - Kernel (`packages/server/src/mud/`): `platform/idea/{Ship,ShipWarren,ShipRegister,BerthExit,AshoreExit,Company}.ts`;
-  `platform/location/{Compartment,Hold,PersistentShore}.ts`;
+  `platform/place/{Compartment,Hold,PersistentShore}.ts`;
   `platform/thing/{Bollard,BilgeWell,CharterBook,HireBook,Flag,Flagstaff,RegisterBook}.ts`;
   `platform/idea/reading/BilgeReading.ts`; `lib/expanse/{Voyaging,Bilge,Hailable,Berthing,FrameSited}.ts`;
-  `lib/location/{FloorplanWarren,Floorplan}.ts`; `lib/persistence/KeyedHosts.ts`;
+  `lib/place/{FloorplanWarren,Floorplan}.ts`; `lib/persistence/KeyedHosts.ts`;
   `lib/employment/CapTable.ts`; `lib/retail/{ForSale,Hirable}.ts`;
   `lib/structure/Structure.ts` (`memberExtent`, `onLineLetGo`);
   `lib/stuff/Place.ts` (`structure`, `structureNow`, `craftHere`);
@@ -616,11 +616,11 @@ file's header.
   helm gate (the readout too).
 - Transport pack: `src/thing/{HullBook,Boat}.ts`; tests `HullBook.test`,
   `Boat.float.test`, `Boat.leak.test`.
-- Water pack: `src/lib/WreckSite.ts`, `src/location/{SeaStop,ReachStop}.ts`.
+- Water pack: `src/lib/WreckSite.ts`, `src/place/{SeaStop,ReachStop}.ts`.
 - Residence pack: `src/idea/cmd/crafting/MaintainController.ts` (the hull's
   words).
 - Content: the smack kind (`packages/content/terminus/content/stuff/idea/Ship/smack.yaml`,
-  `…/ShipWarren/smack.yaml`, `…/stuff/location/ship/smack{,/deck,/cabin,/hold}.yaml`);
+  `…/ShipWarren/smack.yaml`, `…/stuff/place/ship/smack{,/deck,/cabin,/hold}.yaml`);
   `packages/content/platform/content/platform/idea/ShipWarren/authored.yaml`;
   the register (`…/platform/idea/ShipRegister/terminus-city.yaml`,
   `content/ships/terminus-city/*.yaml`, `Government/terminus-city.yaml`

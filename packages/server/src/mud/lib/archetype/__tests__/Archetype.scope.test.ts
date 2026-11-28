@@ -27,7 +27,7 @@ describe('Archetype — materializesOnto / roomsScope', () => {
 
   it('the shipped shape is unchanged with both fields absent (AC15k)', () => {
     const a = Archetype.fromData({ ...BARE }, '/test/archetypes/test-bare');
-    expect(a.getMaterializesOnto()).toBe('/platform/location/venue');
+    expect(a.getMaterializesOnto()).toBe('/platform/place/venue');
     expect(a.getRoomsScope()).toBe('space');
   });
 
@@ -100,6 +100,6 @@ describe('Archetype — materializesOnto / roomsScope', () => {
     // …and the unauthored case still builds the bare venue row.
     cloned.length = 0;
     await Archetype.fromData({ ...BARE, capabilities: [] }, '/test/archetypes/test-bare').materialize();
-    expect(cloned).toEqual(['/platform/location/venue']);
+    expect(cloned).toEqual(['/platform/place/venue']);
   });
 });

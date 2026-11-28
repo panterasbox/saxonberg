@@ -1,0 +1,13 @@
+# The smack's zone — a zone that is COPIED (zone-instancing D11): every
+# smack's decks are a copy of it, minted by the smack's warren under her
+# serial (`/stuff/place/ship/smack/<serial>`) — a zone of her own, whose
+# rooms take the cells their rows author, and whose own settings come from
+# this row (her kind). What is around her — the sea, the river, the
+# government of the water she lies in — is read where she lies.
+# ⭐ A ship's rooms are never the quay's zone: her way aboard crosses into
+# somewhere else. Nothing stands in this row's own instance.
+class: /platform/idea/place/MintedZone
+data:
+  name: a smack
+  cellSize: 3.0
+  mintedBy: /stuff/idea/ShipWarren/smack

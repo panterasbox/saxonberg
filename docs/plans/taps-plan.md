@@ -181,16 +181,16 @@ premise in the requirements or the task brief, it says so.
   **`growthStage: mature`** — a row can be born mature.
 - Venue: `rejection/content/world/terminus/rejection/hanging-wood/
   {ride,oak-clearing,hazel-cant,treeline}.yaml` + `thing/{panel-north,
-  panel-west}.yaml`. `oak-clearing.yaml` is a `/trade/forestry/location/Wood`
+  panel-west}.yaml`. `oak-clearing.yaml` is a `/trade/forestry/place/Wood`
   (`mix:` oak 12/14, ash 4/6; `props: panel-north`; coords 0,2,0).
-  `treeline.yaml` is a `/platform/location/Locale`
+  `treeline.yaml` is a `/platform/place/Locale`
   (coords 0,0,0; exits south→hillside, north→ride) and affords no `fell`.
   `panel-north.yaml`: `staticSlots plant capacity 8`, six `hazel-stool`
   props, `interiorAmount 180`, reserves moisture/nitrogen.
   `rejection/pack.yaml` already `requires` the Hanging Wood title
   (`agricultural`) and `package.json` already depends on
   `content-trade-forestry`.
-- `hearts-delight/…/bench-field/location/orchard-close.yaml` — three
+- `hearts-delight/…/bench-field/place/orchard-close.yaml` — three
   cherries as `{ template, as: cherry-north }`. ⚠ **`as:` is an
   identity for the `by-entry` merge (`lib/stuff/Template.ts:75-81`), not
   a keyword** — the apiculture wire test's own header (`:134`) records
@@ -643,7 +643,7 @@ was built for.
   panel, pan and evaporator; the panel row uses `props:` for its six
   trees as distinct paths (not `as:`, which is not a keyword).
 - **Locations, not rooms** — the sugarbush is a
-  `/platform/location/Locale` with the woodland
+  `/platform/place/Locale` with the woodland
   biome (the treeline's shape), not a `Wood` (an empty `mix:` would
   render *nothing stands here worth the axe* over six standards).
 - **The five axes / `<root>/<branch>/`** — kernel substrate at
@@ -1651,7 +1651,7 @@ Read first, in this order:
     `content/trade/forestry/thing/plant/oak-standard.yaml` ·
     `content/trade/forestry/cmd/forestry/fell.yaml`
 11. `packages/content/rejection/content/world/terminus/rejection/hanging-wood/*`
-    · `…/thing/store-counter.yaml` · `…/location/provisioning.yaml`
+    · `…/thing/store-counter.yaml` · `…/place/provisioning.yaml`
 12. `packages/content/trade-quarrying/content/trade/quarrying/{idea/maturation/brine,thing/salt-pan,thing/brine-hearth}.yaml`
     · `packages/server/src/mud/lib/maturation/Maturing.ts:920-975`
 13. `packages/content/trade-textiles/src/idea/cmd/textiles/SpinController.ts:80-100, 231`

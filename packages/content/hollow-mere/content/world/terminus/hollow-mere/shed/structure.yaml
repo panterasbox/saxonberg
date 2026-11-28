@@ -3,7 +3,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/hollow-mere/shed
-  entrance: /world/terminus/hollow-mere/shed/location/shed
+  entrance: /world/terminus/hollow-mere/shed/place/shed
   shortDescription: empty shed
   register: definite
   keywords: [shed]

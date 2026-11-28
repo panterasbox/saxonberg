@@ -8,7 +8,7 @@ import { vi } from 'vitest';
 import { ContainmentApi } from '../../../api/containment';
 import Material from '../../material/Material';
 import Good from '../../stuff/Good';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { ContainerMixin } from '../Container';
 import { SealableMixin } from '../Sealable';
 import { PlacingMixin } from '../Placing';

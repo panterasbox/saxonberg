@@ -91,16 +91,16 @@ const ROOMS = ['treeline', 'ride', 'oak-clearing', 'hazel-cant'].map((n) => join
 describe('the Hanging Wood', () => {
   it('is a sub-zone of its own at the region’s cell size, addressed', () => {
     const zone = row(join(REJECTION, 'hanging-wood.yaml'));
-    expect(zone.class).toBe('/platform/idea/location/CartesianZone');
+    expect(zone.class).toBe('/platform/idea/place/CartesianZone');
     expect(zone.data.cellSize).toBe(10);
     expect(zone.data.address).toBe('terminus/rejection/hanging-wood');
   });
 
   it('⭐ three clearings are STANDS on the forestry Wood; the treeline is not', () => {
     const classes = Object.fromEntries(ROOMS.map((f) => [f.split('/').pop(), row(f).class]));
-    expect(classes['treeline.yaml']).toBe('/platform/location/Locale');
+    expect(classes['treeline.yaml']).toBe('/platform/place/Locale');
     for (const r of ['ride.yaml', 'oak-clearing.yaml', 'hazel-cant.yaml']) {
-      expect(classes[r], r).toBe('/trade/forestry/location/Wood');
+      expect(classes[r], r).toBe('/trade/forestry/place/Wood');
     }
   });
 
@@ -108,7 +108,7 @@ describe('the Hanging Wood', () => {
     let standards = 0;
     for (const f of ROOMS) {
       const r = row(f);
-      if (r.class !== '/trade/forestry/location/Wood') continue;
+      if (r.class !== '/trade/forestry/place/Wood') continue;
       expect(r.data.mix, f).toBeDefined();
       for (const sp of r.data.mix!) {
         expect(shipped(sp.speciesPath), `${f}: ${sp.speciesPath}`).toBe(true);
@@ -133,9 +133,9 @@ describe('the Hanging Wood', () => {
         expect(shipped(exit.destination), `${f} ${dir} → ${exit.destination}`).toBe(true);
       }
     }
-    const hillside = row(join(REJECTION, 'location', 'hillside.yaml'));
+    const hillside = row(join(REJECTION, 'place', 'hillside.yaml'));
     expect(hillside.data.exits!.north!.destination).toBe('/world/terminus/rejection/hanging-wood/treeline');
-    expect(row(join(WOOD, 'treeline.yaml')).data.exits!.south!.destination).toBe('/world/terminus/rejection/location/hillside');
+    expect(row(join(WOOD, 'treeline.yaml')).data.exits!.south!.destination).toBe('/world/terminus/rejection/place/hillside');
   });
 
   it('every room plots on its own cell, and no two rooms prop one panel', () => {
@@ -169,16 +169,16 @@ describe('the Hanging Wood', () => {
     // build it is brighter WITHOUT AUTHORING A NUMBER: it dropped its
     // calibration and takes the derived sky, while the wood keeps one
     // because a canopy is a reason to be darker than the sky.
-    const hillside = row(join(REJECTION, 'location', 'hillside.yaml'));
+    const hillside = row(join(REJECTION, 'place', 'hillside.yaml'));
     expect(hillside.data.ambientIntensity, 'hillside.yaml authors no calibration').toBeUndefined();
-    expect(lux(join(REJECTION, 'location', 'hillside.yaml'), 10)).toBeGreaterThan(
+    expect(lux(join(REJECTION, 'place', 'hillside.yaml'), 10)).toBeGreaterThan(
       lux(join(WOOD, 'treeline.yaml'), 10),
     );
   });
 
   it('⭐ daylight over Rejection: every room NAMES A SOURCE — open rooms clear `dim` at 10 m, every Kestrel room `bright` at 20 m', () => {
     // ⚠⚠ This used to require an authored `ambientIntensity` on every
-    // file in `location/`, which was wrong in two ways the envelope
+    // file in `place/`, which was wrong in two ways the envelope
     // build made visible. Half of those rooms are INTERIORS — the adit,
     // the assay shed, the claims office, the store, the smelter, the
     // dry — and an interior open to no sky is dark, which is the point
@@ -188,8 +188,8 @@ describe('the Hanging Wood', () => {
     // ⭐ So the claim is the one S2 actually makes: **every room's light
     // has a named source.** Sky-lit rooms clear `dim`; the rest are
     // honestly dark and say so by authoring no ambient.
-    for (const f of readdirSync(join(REJECTION, 'location'))) {
-      const r = row(join(REJECTION, 'location', f));
+    for (const f of readdirSync(join(REJECTION, 'place'))) {
+      const r = row(join(REJECTION, 'place', f));
       if (skyLit(r)) {
         expect(noonLuxOf(r, 10), f).toBeGreaterThanOrEqual(5);
         continue;
@@ -238,7 +238,7 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     // (sugar W1) A `PersistentLocale`: the arch's woodpile is burnt down
     // and the pan's syrup kept across a restart — still not a `Wood`.
     const bush = row(BUSH);
-    expect(bush.class).toBe('/platform/location/PersistentLocale');
+    expect(bush.class).toBe('/platform/place/PersistentLocale');
     expect(bush.data._biomePath).toBe('/stuff/idea/biome/outdoor/woodland');
   });
 
@@ -350,7 +350,7 @@ describe('the sugarbush — the taps build\u2019s first consumer', () => {
     // same not-afforded answer, so the design is legible from where the
     // verbs ARE afforded.
     const treeline = row(join(WOOD, 'treeline.yaml'));
-    expect(treeline.class).toBe('/platform/location/Locale');
+    expect(treeline.class).toBe('/platform/place/Locale');
     expect(treeline.data.props ?? []).toEqual([]);
   });
 });

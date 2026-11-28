@@ -33,9 +33,9 @@ describe('the cobbler (D16)', () => {
     expect(outfit.operatingLocations).toContain('/world/terminus/mayfield-row/cobbler/thing/slate');
     const street = row(TERMINUS, 'world/terminus/mayfield-row/street.yaml').data!;
     expect((street.exits as Record<string, { destination: string }>).cobbler!.destination).toBe(
-      '/world/terminus/mayfield-row/cobbler/location/shop',
+      '/world/terminus/mayfield-row/cobbler/place/shop',
     );
-    const shop = row(TERMINUS, 'world/terminus/mayfield-row/cobbler/location/shop.yaml').data!;
+    const shop = row(TERMINUS, 'world/terminus/mayfield-row/cobbler/place/shop.yaml').data!;
     expect(JSON.stringify(shop.props)).toMatch(/needle-case/);
     expect(JSON.stringify(shop.props)).toMatch(/thing\/sole/);
   });
@@ -92,9 +92,9 @@ describe('the tinker\'s round (D15)', () => {
   });
 
   it('⭐ the Rejection stop is the SMELTER — a fire for iron (D15, D19)', () => {
-    const smelter = row(`${PACKS}rejection/content/`, 'world/terminus/rejection/location/smelter.yaml');
+    const smelter = row(`${PACKS}rejection/content/`, 'world/terminus/rejection/place/smelter.yaml');
     expect(JSON.stringify(smelter.data!.props)).toMatch(/mending-slate/);
-    const shed = row(`${PACKS}rejection/content/`, 'world/terminus/rejection/location/provisioning.yaml');
+    const shed = row(`${PACKS}rejection/content/`, 'world/terminus/rejection/place/provisioning.yaml');
     expect(JSON.stringify(shed.data!.props)).not.toMatch(/mending-slate/);
   });
 });

@@ -86,7 +86,7 @@ declareFile({
 
 const WARD = '/world/terminus/infirmary/ward';
 const GRAVES = '/world/terminus/necropolis/ground';
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
 
 let patient: Session;
 

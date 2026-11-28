@@ -82,8 +82,8 @@ async function makeRig(): Promise<{ avatar: Avatar }> {
 beforeEach(async () => {
   seedKernelContentStore([
     {
-      path: '/platform/location/sandbox/CircleFloor',
-      class: '/platform/location/sandbox/CircleFloor',
+      path: '/platform/place/sandbox/CircleFloor',
+      class: '/platform/place/sandbox/CircleFloor',
       data: {},
     },
     { path: WIRE_ROW, class: WIRE_ROW, data: { playerId: '' } },

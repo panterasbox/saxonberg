@@ -97,8 +97,8 @@ beforeEach(() => {
     // The sandbox stands up a circle floor and a wire body — both
     // clones of rows now.
     {
-      path: '/platform/location/sandbox/CircleFloor',
-      class: '/platform/location/sandbox/CircleFloor',
+      path: '/platform/place/sandbox/CircleFloor',
+      class: '/platform/place/sandbox/CircleFloor',
       data: {},
     },
     {

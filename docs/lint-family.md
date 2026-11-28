@@ -1311,7 +1311,7 @@ Locality's address, both runtime facts. So an on-grade default reads
 does* — and the drive is what reads them out loud.
 
 ⭐ **The Location count is 139, not 184.** The plan's opening figure counted
-`/platform/idea/location/*` ZONE rows with the rooms. 139 Locations + 57
+`/platform/idea/place/*` ZONE rows with the rooms. 139 Locations + 57
 zones.
 
 **List 2** is hand-curated, and the docblock states the inclusion test so it
@@ -1320,7 +1320,7 @@ the room authors neither.* 28 entries, against **66** the `--seed` heuristic
 proposed. What curation removed is the interesting part — idiom (*"rooms let
 by the floor"*), similes (*"a ledger the size of a paving slab"*), **a trade
 FLOOR being a room and not a ground** (six goods-yards rows are *named*
-`…/location/floor`), other things made of boards (bulletin boards, a price
+`…/place/floor`), other things made of boards (bulletin boards, a price
 board, boards over a shaft), dust and sawdust, a detail's own floor, and
 ⭐ rooms this build now ANSWERS (the mine's workings read their host rock
 through rung 3; that is the mechanism working, not a debt).
@@ -1732,7 +1732,7 @@ mutable `visited` through a DFS, so neighbour order decides which room
 is charged at which depth, the dB a listener hears, and the compass
 direction printed with it. Nobody chose that; it is what a copy does.
 
-The skeleton is `src/mud/lib/location/Traversal.ts`. The gate's job is
+The skeleton is `src/mud/lib/place/Traversal.ts`. The gate's job is
 to make *"one traversal"* literal rather than aspirational, which is
 the same job `lint:object-verbs` does for verbs-on-objects: it counts
 frontier loops outside the skeleton, gates today's count as the
@@ -1817,7 +1817,7 @@ moment, from a stack trace naming the framework rather than their row.
 So the gate reads the ROWS ON DISK and names the row and the direction
 before any process starts.
 
-⭐ **The rules live in `lib/location/GraphInvariants.ts`, not in the
+⭐ **The rules live in `lib/place/GraphInvariants.ts`, not in the
 script.** `NavigationApi.checkGraph` runs the same instance value class
 over the projected nodes at runtime, so a CMS save answers in the same
 request. Two copies would drift — and a gate and a runtime check
@@ -1830,7 +1830,7 @@ effective class extends a Location root AND composes `SingletonMixin`
 many times through a warren or a programme. The walk goes through mixin
 calls (`pack-roots.extendsAny`, lifted there at this second consumer),
 so a pack's own room class is found. ⚠ And **place rows are not all
-under a `/location/` segment** — `counting-houses/banking-hall`,
+under a `/place/` segment** — `counting-houses/banking-hall`,
 `general-store/shop-floor` predate the path pattern — so enumerating by
 path infix would skip them. By class, always.
 

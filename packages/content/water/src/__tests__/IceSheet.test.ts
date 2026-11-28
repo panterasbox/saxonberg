@@ -27,7 +27,7 @@ import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Actor } from '@saxonberg/server/mud/lib/creature/Actor';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
-import Pool from '@saxonberg/server/mud/platform/location/Pool';
+import Pool from '@saxonberg/server/mud/platform/place/Pool';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WatercourseCatalogue, { WATERCOURSE_CATALOGUE_PATH } from '../idea/WatercourseCatalogue';

@@ -16,7 +16,7 @@ import { TemplatePaths } from '../../paths';
 import { Evaporation } from '../../material/Evaporation';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { ContainmentApi } from '../../../api/containment';
 import type { PartLine } from '../Assembled';
 import type { Stuff } from '../../stuff/Stuff';

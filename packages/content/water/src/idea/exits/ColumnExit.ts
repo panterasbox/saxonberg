@@ -18,14 +18,14 @@ import type { TraversalGuard, TraverseOptions } from '@saxonberg/server/mud/lib/
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import type { ColumnBand } from '@saxonberg/server/mud/lib/location/WaterColumn';
+import type { ColumnBand } from '@saxonberg/server/mud/lib/place/WaterColumn';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { BiomeApi } from '@saxonberg/server/mud/api/biome';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
-import Band from '../../location/Band';
+import Band from '../../place/Band';
 
 /** Where a column exit leads: a band, or back up to the surface. */
 export type ColumnTarget = ColumnBand | 'surface';

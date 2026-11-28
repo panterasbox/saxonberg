@@ -852,7 +852,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
      * applies:
      *
      *   - `HasInteractive` items (Avatars with a live connection)
-     *     escape to the void singleton (`/platform/location/void`) so an
+     *     escape to the void singleton (`/platform/place/void`) so an
      *     active session never ends up with a null environment.
      *     The void is in the bootstrap manifest, so the sync
      *     `findByTemplatePath` lookup here is guaranteed to find
@@ -889,7 +889,7 @@ export function ContainerMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Pre-resolve the evacuation fallback exactly once — only the
       // null-outer branch needs it, and only when at least one item exists.
       // The target is the `evacuationFallback` app setting (default
-      // `/platform/location/void`), read sync from the warmed cache.
+      // `/platform/place/void`), read sync from the warmed cache.
       const evacuationFallback =
         outer === null && snapshot.length > 0
           ? StuffApi.findByTemplatePath<Stuff & Container>(

@@ -1,0 +1,51 @@
+# ⭐ The Spring Hollow — the free evidence, and the first thing a
+# prospector in this country sees.
+#
+# ⚠⚠ The ground under this room is the trap's RIM. A bore here reaches
+# the salt leg and finds about a metre of it, because the beds have
+# almost nothing left under them this far out from the crest. That is
+# not a trap laid for the player: `measure structure` says so, from this
+# very room, before anybody has spent a penny — *you are out on the edge
+# of it* — and names the bearing and distance to the top.
+#
+# The whole lesson of the trade is in the geometry of these two rooms:
+# the place the ground tells you about is not the place to dig.
+class: /platform/place/Locale
+data:
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  shortDescription: spring hollow
+  keywords: [hollow, spring, "spring hollow", salt]
+  register: definite
+  longDescription: |
+    A fold in the hill where the slope flattens before it climbs again, and the grass in it is the wrong colour — pale, then grey, then gone altogether around a pool the size of a hat.
+
+    Sheep have been here. So has somebody with a cart: there are two ruts coming in from the southwest and none going out, which means whatever they came for they carried. Beside the pool an old rig stands over a capped hole, and nobody is working it.
+
+    East and down, the hill opens into a long bare flat with nothing growing on it at all.
+  coords: { x: 3, y: 5, z: 0 }
+  props:
+    - /world/terminus/rejection/thing/salt-spring
+    # ⭐⭐ The old brine bore (the pump build) — sunk where the brine showed,
+    # standing in a metre of the leg, with no head of its own. And the
+    # rig they left over it, because a bailer needs a derrick to hang from.
+    - /world/terminus/rejection/thing/old-brine-bore
+    - /trade/drilling/thing/derrick
+    # …and the bailer, still on its rope. Whoever left did not take it, and
+    # it means the old hole can be bailed without emptying the claims
+    # office's rack — which a prospector staking new ground needs more.
+    - /trade/drilling/thing/bailer
+  exits:
+    # On along the same line to the fringe claim (boundary build: the
+    # spring stands on the track from the old workings, so the walk goes
+    # through it).
+    northeast:
+      destination: /world/terminus/rejection/place/fringe-claim
+      kind: /platform/idea/exits/track
+      edgeMinutes: 4
+    southwest:
+      destination: /world/terminus/rejection/place/old-workings
+      edgeMinutes: 4
+    southeast:
+      destination: /world/terminus/rejection/place/salt-flat
+      kind: /platform/idea/exits/track
+      edgeMinutes: 3

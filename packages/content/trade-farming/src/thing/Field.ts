@@ -81,7 +81,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import HayBale from './HayBale';
-import Tract, { type FieldSpec } from '../location/Tract';
+import Tract, { type FieldSpec } from '../place/Tract';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { TemplatePaths } from '@saxonberg/server/mud/lib/paths';
 import { MaterialApi } from '@saxonberg/server/mud/api/material';

@@ -43,8 +43,8 @@ function installInMemoryStore(): void {
   }) as unknown as PersistenceManager);
 }
 
-const BAR_LOC = "/test/lounge/location/bar";
-const RECORDS = "/test/lounge/location/bar/records/eighty-six";
+const BAR_LOC = "/test/lounge/place/bar";
+const RECORDS = "/test/lounge/place/bar/records/eighty-six";
 const DAVE = "/platform/agent/Avatar/dave";
 
 async function bootRegistry(): Promise<AccessRegistry> {
@@ -124,7 +124,7 @@ describe("AccessRegistry — the venue-records carve-out", () => {
       await AccessApi.canAtPath(
         dave,
         "write-document" as never,
-        "/test/lounge/location/bar/menu",
+        "/test/lounge/place/bar/menu",
       ),
     ).toBe(false);
   });
@@ -135,7 +135,7 @@ describe("AccessRegistry — the venue-records carve-out", () => {
       await AccessApi.canAtPath(
         dave,
         "write-document" as never,
-        "/test/lounge/location/lounge/records/x",
+        "/test/lounge/place/lounge/records/x",
       ),
     ).toBe(false);
   });

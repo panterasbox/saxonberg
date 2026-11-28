@@ -16,7 +16,7 @@ import { spyPersistSaveMany } from '@saxonberg/server/mud/lib/persistence/__test
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
-import Wood from '../location/Wood';
+import Wood from '../place/Wood';
 import { STAND_MIXIN } from '../lib/Stand';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
@@ -63,11 +63,11 @@ describe('Wood — the stack', () => {
 
   it('imports the singleton cell by the specifier `lint:locations` derives from', () => {
     // The gate reads the class file's `extends` chain and resolves each
-    // identifier through its import; `@saxonberg/server/mud/platform/location/Locale`
+    // identifier through its import; `@saxonberg/server/mud/platform/place/Locale`
     // is in CARTESIAN_ROOTS. A relative or lib import would make every
     // Wood row "unplotted" — the no-roster-edit claim rests on this line.
-    const src = readFileSync(fileURLToPath(new URL('../location/Wood.ts', import.meta.url)), 'utf8');
-    expect(src).toMatch(/from '@saxonberg\/server\/mud\/platform\/location\/Locale'/);
+    const src = readFileSync(fileURLToPath(new URL('../place/Wood.ts', import.meta.url)), 'utf8');
+    expect(src).toMatch(/from '@saxonberg\/server\/mud\/platform\/place\/Locale'/);
   });
 
   it('answers the soil’s hooks as ground: its own scope, its whole area, the stand’s drink', () => {

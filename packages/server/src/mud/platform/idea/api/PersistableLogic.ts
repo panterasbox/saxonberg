@@ -383,7 +383,7 @@ async function resolvePlacementAnchor(
     // (the log-out-in-your-yard seam, residences D16) — exact room,
     // exact state, never a fresh clone of the shared row.
     const { CirculationWarren } = await import(
-      '../../../lib/location/CirculationWarren'
+      '../../../lib/place/CirculationWarren'
     );
     const room = await CirculationWarren.admitFor(place.containerKey);
     if (room && MixinApi.isContainer(room)) return room as Stuff & Container;
@@ -1168,7 +1168,7 @@ async function roomOwnedByInstitution(
 ): Promise<Stuff | null> {
   if (!key.startsWith('/')) return null;
   const { CirculationWarren } = await import(
-    '../../../lib/location/CirculationWarren'
+    '../../../lib/place/CirculationWarren'
   );
   const room = await CirculationWarren.admitFor(key);
   if (room === null) return null;

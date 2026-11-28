@@ -56,9 +56,9 @@ declareFile({
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
-const COLORMAN = '/world/terminus/wharfside/colorman/location/shop';
-const VAT_HOUSE = '/world/terminus/hearts-delight/paper-mill/location/vat-house';
-const LOFT = '/world/terminus/hearts-delight/paper-mill/location/loft';
+const COLORMAN = '/world/terminus/wharfside/colorman/place/shop';
+const VAT_HOUSE = '/world/terminus/hearts-delight/paper-mill/place/vat-house';
+const LOFT = '/world/terminus/hearts-delight/paper-mill/place/loft';
 const GAZETTE = '/world/terminus/gazette/office';
 const DEPOT = '/world/terminus/estuary/lower-towpath';
 

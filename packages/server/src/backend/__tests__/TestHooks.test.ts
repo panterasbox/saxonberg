@@ -126,13 +126,13 @@ describe('TestHooks.provisionCharacter', () => {
     vi.spyOn(User, 'findById').mockResolvedValue(user as never);
     const clone = stubSeedClone();
 
-    await TestHooks.provisionCharacter('u1', 'Tester', '/test/location/bar');
+    await TestHooks.provisionCharacter('u1', 'Tester', '/test/place/bar');
     // The override wins over the app-config default — the avatar is
     // pinned to the named singleton room rather than the lounge Warren.
     const opts = clone.mock.calls[0]![2] as {
       dataOverlay: Record<string, unknown>;
     };
-    expect(opts.dataOverlay.startLocation).toBe('/test/location/bar');
+    expect(opts.dataOverlay.startLocation).toBe('/test/place/bar');
   });
 
   it('is idempotent — no-op when the user already has a character', async () => {

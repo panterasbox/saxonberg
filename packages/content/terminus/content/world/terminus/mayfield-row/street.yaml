@@ -4,7 +4,7 @@
 # declares `mayfield` in) — non-cardinal names are admissible across a
 # zone boundary, and a street you turn INTO reads better named than
 # compassed (the lot-gate precedent).
-class: /platform/location/Street
+class: /platform/place/Street
 data:
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
   # street, not objects on it. NOTHING IS MINTED: nobody binds a street
@@ -58,11 +58,11 @@ data:
     # good light. Siting is a real decision in this chain, and the
     # answer differs at each end of it.
     tailor:
-      destination: /world/terminus/mayfield-row/tailor/location/shop
+      destination: /world/terminus/mayfield-row/tailor/place/shop
     # ⭐ The cobbler's, beside the tailor (repair D16) — mending boots is a
     # city trade with a door; the shop declares `row` back.
     cobbler:
-      destination: /world/terminus/mayfield-row/cobbler/location/shop
+      destination: /world/terminus/mayfield-row/cobbler/place/shop
   props:
     # ⭐ The Mayfield spur's manhole (energy build) — the residential turning's
     # access to its BURIED branch of the main (storm-safe; the overhead/buried

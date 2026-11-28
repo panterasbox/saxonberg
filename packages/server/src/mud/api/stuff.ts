@@ -488,7 +488,7 @@ export class StuffApi {
        * identity path. A holding names its rooms by the shared row (the
        * `(scope, key)` record's scope) while each room stands in the zone
        * its HOLDING does (`…/lots/lot-7/bedroom`): a room's size is its
-       * zone's cell, and a generic `/stuff/location/room/*` row resolves
+       * zone's cell, and a generic `/stuff/place/room/*` row resolves
        * no zone of its own (the place taxonomy, cleanliness B54).
        */
       zoneFrom?: string;

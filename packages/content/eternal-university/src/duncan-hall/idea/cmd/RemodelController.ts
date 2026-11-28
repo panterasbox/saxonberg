@@ -22,7 +22,7 @@ import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { PromptApi } from '@saxonberg/server/mud/api/prompt';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import DormWarren from '../DormWarren';
-import DormRoom from '../../location/DormRoom';
+import DormRoom from '../../place/DormRoom';
 import DormThemes, {
   DormThemeError,
 } from '../DormThemes';

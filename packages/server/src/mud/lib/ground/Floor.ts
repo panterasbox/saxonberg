@@ -82,7 +82,7 @@ import {
   type GroundKind,
   type GroundMaterialClass,
 } from './GroundKind';
-import CartesianZone from '../../platform/idea/location/CartesianZone';
+import CartesianZone from '../../platform/idea/place/CartesianZone';
 import { SweepableMixin, type SweepPlan, type SweepRefusal, type SweepRequest } from '../cleanliness/Sweepable';
 
 /** A floor's sweep with a broom, real ms; bare hands take three times as long. */

@@ -22,7 +22,7 @@ describe('check-shopfronts', () => {
       counter,
       row('/x/idea/house', {
         class: '/platform/idea/Business',
-        data: { operatingLocations: ['/x/thing/yard', '/x/location/room'] },
+        data: { operatingLocations: ['/x/thing/yard', '/x/place/room'] },
       }),
     ]);
     expect(checkShopfronts(rows)).toEqual([]);
@@ -33,7 +33,7 @@ describe('check-shopfronts', () => {
       counter,
       row('/x/idea/house', {
         class: '/platform/idea/Business',
-        data: { operatingLocations: ['/x/location/room'] },
+        data: { operatingLocations: ['/x/place/room'] },
       }),
     ]);
     const f = checkShopfronts(rows);

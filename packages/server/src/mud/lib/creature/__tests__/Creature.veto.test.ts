@@ -19,7 +19,7 @@ import { Character } from '../../character/Character';
 import PrimaryAvatar from '../../../platform/agent/PrimaryAvatar';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { Body, tool } from '../../slot/__tests__/carrying-fixture';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 
 const mug = () => tool('mug', 0.35, [0.09, 0.09, 0.1]);
 

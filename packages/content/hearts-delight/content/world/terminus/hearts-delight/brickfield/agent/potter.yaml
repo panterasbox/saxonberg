@@ -32,9 +32,9 @@ data:
     - brain: /trade/ceramics/behavior/pots
       trigger: candidate
       config:
-        shop: /world/terminus/hearts-delight/brickfield/location/potters-shop
+        shop: /world/terminus/hearts-delight/brickfield/place/potters-shop
         kiln: /trade/ceramics/thing/updraft-kiln
-        pit: /world/terminus/hearts-delight/brickfield/location/clay-pit
+        pit: /world/terminus/hearts-delight/brickfield/place/clay-pit
         forms: [mug, jug, jar, crock, bowl, "plant pot"]
         glaze: { tub: "lead tub", forms: [jar, crock] }
         # ⭐ Salt glaze (matter-model-overlaps D16): she throws salt into the

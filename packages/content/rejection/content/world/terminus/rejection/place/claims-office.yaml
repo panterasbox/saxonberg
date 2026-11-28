@@ -1,0 +1,89 @@
+# P2 · The Claims Office — where title is real.
+#
+# ⭐ The whole pedagogical payload of the parcel layer, in one room: you
+# find ground, you post a notice, and the recorder writes it down. A claim
+# is STAKED, not bought — `title buy` is buying from a catalogue and
+# staking is a first-come registration, which is a different act with a
+# different verb.
+class: /platform/place/Hall
+data:
+  shortDescription: claims office
+  keywords: [office, "claims office", claims]
+  register: definite
+  # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
+  # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
+  # 6000 — open hill under the sun. No row here authored a value before the forestry build,
+  # ⭐ No ambient of its own: this room is LIT BY SPILL from
+  # the pithead yard, through a doorway that stands open. The light walk
+  # already carries daylight one hop at full strength, so the room is
+  # bright by day and DARK at night — which is the whole point, and it
+  # costs no authored number at all.
+  longDescription: |
+    One room, one counter, and a stove that has not been lit this month. Behind the counter the whole of the wall is a map: the diggings in plan, claims inked in and numbered, the untitled ground left white. More of it is white than is not.
+
+    The register itself is a ledger the size of a paving slab, and it is chained to the counter.
+
+    Against the end wall there is a rack of hire tools going rusty at the tips — a bailer, lengths of tube, a brass gauge, somebody's dial in a leather case — and a jar of glowcap on the shelf above it. Nobody has written anything down about any of it.
+  coords: { x: 0, y: 1, z: 0 }
+  exits:
+    south:
+      destination: /world/terminus/rejection/place/pithead-yard
+    # ⭐ The way out onto the outcrop, and it is deliberately THROUGH the
+    # claims office. You pass the register on your way to the ground and
+    # on your way back from it, which is the shape a claim actually has.
+    north:
+      destination: /world/terminus/rejection/place/hillside
+  props:
+    - /world/terminus/rejection/thing/claims-counter
+    # ⭐⭐⭐ **A rack of hire tools, and it is the honest answer to a
+    # problem four other shapes could not solve.**
+    #
+    # The drilling kit has to reach a prospector's hands, and in this
+    # valley it cannot be bought: ⚠⚠ Rejection's provisioning till
+    # **cannot take money** — `settleSale` returns null and the player is
+    # told `insufficient-funds`, which is a shop that cannot trade rather
+    # than a buyer who is broke. That is a pre-existing venue defect (the
+    # taps build hit it first) and not drilling's to fix.
+    #
+    # ⛔ And it must NOT be fixed by putting a trade's goods on the
+    # CITY's shelf — that was tried, and the terminus pack's own suite
+    # refused it: *`/trade/drilling/thing/bailer`: no pack owns this
+    # prefix.* Pushing a trade's rows into a locality makes the locality
+    # depend on the trade, which is the line this repo keeps.
+    #
+    # ⭐ So: a rack at the claims office, which is where a prospector
+    # already goes to stake, and which is exactly what a claims office in
+    # a boom valley would have. Free hand-tools break nothing the design
+    # cares about — the trade's own thesis is that **the derrick is cheap
+    # and the payroll is the cost.**
+    - /trade/drilling/thing/bailer
+    # ⚠ ONE length, not three. `lint:census` clause (e) refused the
+    # repeat: *the same path twice in one list with no `as` is
+    # `count: N` written longhand — and a repeat with no identity is an
+    # entry no child row can ever replace.* One is what a rack would
+    # hold anyway, and `carve liner` takes two of timber.
+    - /trade/drilling/thing/liner
+    - /trade/drilling/thing/pressure-gauge
+    # The surveying instrument is MINING's — this trade adds none for its
+    # structural read, which is the whole of *a second reading is a row*.
+    - /trade/mining/thing/miners-dial
+    # ⭐ The force pump (the pump build) — the answer to the deep well the
+    # village pump will not draw from, on the rack for the same reason the
+    # bailer is: the provisioning till cannot take money (two drives have
+    # recorded it) and nobody in the valley makes pumps to sell.
+    - /stuff/thing/gear/force-pump
+    # …and a spare packing, because the leather goes. ⚠ It cannot be
+    # bought (the till), and no verb makes one yet: the packing recipe
+    # takes leather and a cutting tool, and nothing cuts leather (carving is
+    # wood only) — a stranded recipe (scripting-decouple census). The rack
+    # is the shipped answer to the till.
+    - /trade/tanning/thing/packing
+    # A light, because the sites are outdoor rooms and the sun sets.
+    - /world/terminus/rejection/thing/glowcap-jar
+  cast:
+    - /world/terminus/rejection/agent/registrar
+  details:
+    map:
+      keywords: [map, wall, plan, claims]
+      description: |
+        Claims inked in and numbered as they were recorded, the white ground between them the part nobody has spoken for. Two of the numbered blocks have been crossed through and re-lettered, which is what a lapse looks like when somebody remembers to write it down.

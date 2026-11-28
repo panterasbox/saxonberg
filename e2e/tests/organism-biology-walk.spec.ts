@@ -12,7 +12,7 @@ import { openWorldAs, runCommand } from './helpers';
  *    names `herd enter`, the act that writes a steer into the ox register.
  */
 
-const YARD = '/world/testbed/location/yard';
+const YARD = '/world/testbed/place/yard';
 
 test.describe('organism biology — what a person sees', () => {
   test('15 · a wounded eye is told to its owner when they look at themselves', async ({ browser }) => {

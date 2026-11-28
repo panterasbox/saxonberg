@@ -25,7 +25,7 @@
  * answering `null` is what makes the taps go quiet without a guard.
  */
 
-import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
+import { Traversal } from '@saxonberg/server/mud/lib/place/Traversal';
 import { Vessel } from '@saxonberg/server/mud/lib/stuff/Vessel';
 import { AtmosphericMixin } from '@saxonberg/server/mud/lib/biome/Atmospheric';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
@@ -67,7 +67,7 @@ import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable'
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import type { CompositionEntry } from '@saxonberg/server/mud/lib/material/Material';
-import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Tract from '@saxonberg/content-trade-farming/src/place/Tract';
 import { ColonyMixin, APICULTURE } from '../lib/Colony';
 import type { Colonial } from '../lib/Colony';
 import HiveBox from './HiveBox';

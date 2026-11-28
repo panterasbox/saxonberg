@@ -7,7 +7,7 @@ import { LocomotionControllerBase, type LocomotionModel } from './LocomotionCont
 import type { CommandContext } from '../../../../api/command';
 import type { CommandModel } from '../../../../api/command';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import type { WaterEntryRefusal } from '../../../../lib/location/Shore';
+import type { WaterEntryRefusal } from '../../../../lib/place/Shore';
 import { MixinApi } from '../../../../api/mixin';
 
 export default class SwimController extends LocomotionControllerBase {

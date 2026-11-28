@@ -23,7 +23,7 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { DocumentApi } from '@saxonberg/server/mud/api/document';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
-import Location from '@saxonberg/server/mud/lib/location/Location';
+import Location from '@saxonberg/server/mud/lib/place/Location';
 import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import {
   makeStuff,
@@ -142,7 +142,7 @@ function hole(
     stubZone(10, depositPath);
   const w = makeStuff(() => new Wellhead());
   (w as unknown as { getContainer(): unknown }).getContainer = () => room;
-  w.setClaimPath('/world/terminus/test/location/flat');
+  w.setClaimPath('/world/terminus/test/place/flat');
   // The trough at the wellhead — authored on the SEED ROW in the shipped
   // world (`interiorBulk: true`, `interiorCapacity: 60`), and a bare
   // `makeStuff` applies no row, so it is set here. ⚠ `interiorBulk` is a

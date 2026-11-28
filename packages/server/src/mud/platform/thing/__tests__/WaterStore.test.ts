@@ -9,7 +9,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import WaterStore from '../WaterStore';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Material from '../../../lib/material/Material';
 import { StuffApi } from '../../../api/stuff';
 import { WeatherApi } from '../../../api/weather';

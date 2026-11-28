@@ -9,7 +9,7 @@
 # authors its own `enclosure:` (walls) and `roof:` — the place owns its
 # materials — and `structure.yaml` beside it says only which rooms stand
 # on which (D3). A second works is rows.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Rubber Works
   cellSize: 3.0

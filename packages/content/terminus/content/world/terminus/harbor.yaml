@@ -10,7 +10,7 @@
 # One way in from the city: the estuary mouth's `south`. The harbor's book
 # is the harbor's own row (`harbor/idea/harbor`), its office the room a hail
 # reaches, its harbormaster a seat on the harbor works.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Harbor
   cellSize: 30.0

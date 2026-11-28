@@ -28,5 +28,5 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/wharfside/dyehouse/location/floor
+    - /world/terminus/wharfside/dyehouse/place/floor
     - /world/terminus/wharfside/dyehouse/thing/counter

@@ -30,4 +30,4 @@ data:
   rosterSlots: []
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/wharfside/knackers/location/yard
+    - /world/terminus/wharfside/knackers/place/yard

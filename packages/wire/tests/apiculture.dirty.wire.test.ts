@@ -769,7 +769,7 @@ suite('⭐⭐ 23. the tail — and the rung that was never built', () => {
     // not `no-recipe` and not `not-learned`. An unknown verb is neither.
     // `src/thing/DipPot.ts` is the fix; this is the second instrument
     // that reads it, from the bees' end rather than the tallow's.
-    const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
+    const CHANDLERY = '/world/terminus/wharfside/chandlery/place/floor';
     const chandler = await Session.open(handle, { startLocation: CHANDLERY });
     try {
       await chandler.drainProse();

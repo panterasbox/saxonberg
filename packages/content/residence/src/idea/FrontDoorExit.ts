@@ -16,7 +16,7 @@
 
 import DeferredDestinationExit from '@saxonberg/server/mud/lib/boundary/DeferredDestinationExit';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import type { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import type { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 

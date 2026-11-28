@@ -61,8 +61,8 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const BAR = '/world/lounge/location/bar';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const BAR = '/world/lounge/place/bar';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 const MARKET = '/world/terminus/market/square';
 
 /** The drink nobody on the rail can make — the build's deliberate finding. */

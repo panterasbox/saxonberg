@@ -16,8 +16,8 @@ import { openWorldAs, runCommand, tipText } from './helpers';
  */
 
 const BANK = '/world/terminus/wharfside/bank';
-const HUT = '/world/terminus/rejection/location/glaziers-hut';
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const HUT = '/world/terminus/rejection/place/glaziers-hut';
+const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const PUMP_DOOR = '/world/terminus/wharfside/thing/pump-house-door';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 

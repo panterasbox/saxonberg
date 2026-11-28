@@ -48,7 +48,7 @@ describe('the oil works outfit', () => {
     expect(slots[0]!.assignee).toBe(HAND_PATH);
     expect(outfit.data.operatingLocations).toEqual(
       expect.arrayContaining([
-        '/world/terminus/goods-yards/oilworks/location/floor',
+        '/world/terminus/goods-yards/oilworks/place/floor',
         STOCK_PATH,
       ]),
     );
@@ -89,7 +89,7 @@ describe('the oil works outfit', () => {
   });
 
   it("the floor props the stock and has a door onto the yard", () => {
-    const floor = doc(`${OILWORKS}/location/floor.yaml`);
+    const floor = doc(`${OILWORKS}/place/floor.yaml`);
     expect(floor.data.props).toEqual(expect.arrayContaining([STOCK_PATH]));
     const exits = floor.data.exits as Record<string, { destination: string }>;
     expect(exits.southeast?.destination).toBe('/world/terminus/goods-yards/yard');

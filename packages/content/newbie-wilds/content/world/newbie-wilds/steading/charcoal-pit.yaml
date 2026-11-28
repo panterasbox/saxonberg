@@ -1,7 +1,7 @@
 # The charcoal pit — reached from the cottage by the crawlway through its
 # fallen back wall (size and carrying W6, drive 9). A sunken earth floor
 # where the steading burned its charcoal, open to the sky.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: old charcoal pit
   keywords: [pit, charcoal, hollow]

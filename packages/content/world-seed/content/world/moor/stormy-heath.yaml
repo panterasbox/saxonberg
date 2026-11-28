@@ -7,7 +7,7 @@
 #
 # Its Floor pool is authored **empty** (`adornments:`); the rain fills it. No
 # exits wired (reachable by teleport — the substation precedent).
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: storm-lashed heath
   keywords: [heath, storm-lashed]

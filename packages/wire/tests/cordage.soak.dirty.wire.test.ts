@@ -40,7 +40,7 @@ declareFile({
 });
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const WALK = '/world/terminus/wharfside/ropewalk/location/walk';
+const WALK = '/world/terminus/wharfside/ropewalk/place/walk';
 
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 const open: Session[] = [];

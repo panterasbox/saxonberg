@@ -13,8 +13,8 @@ import Exit from '../Exit';
 import Door from '../../../platform/thing/Door';
 import Thing from '../../../platform/thing/Thing';
 import Pack from '../../../platform/thing/equipment/Pack';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import { Creature } from '../../creature/Creature';
 import { CarryingMixin } from '../../slot/Carrying';
 

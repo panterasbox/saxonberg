@@ -53,14 +53,14 @@ declareFile({
 });
 
 const VALLEY = '/world/terminus/hearts-delight/valley';
-const VALLEY_LANE = '/world/terminus/hearts-delight/location/valley-lane';
-const QUIST_YARD = '/world/terminus/hearts-delight/location/farmstead-yard';
-const PASTURE = '/world/terminus/hearts-delight/dairy/location/pasture';
-const YARD = '/world/terminus/eternal/campus-farm/location/yard';
+const VALLEY_LANE = '/world/terminus/hearts-delight/place/valley-lane';
+const QUIST_YARD = '/world/terminus/hearts-delight/place/farmstead-yard';
+const PASTURE = '/world/terminus/hearts-delight/dairy/place/pasture';
+const YARD = '/world/terminus/eternal/campus-farm/place/yard';
 const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';
-const HINKLEY_LANE = '/world/terminus/hinkley-hills/location/lane';
+const HINKLEY_LANE = '/world/terminus/hinkley-hills/place/lane';
 
 const record: string[] = [];
 function note(line: string): void {

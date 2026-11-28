@@ -4,7 +4,7 @@
 # routes satisfy D4 (lounge free + paid destination both reachable from A).
 class: /system/tpa/thing/TpaTerminal
 data:
-  seatIn: /world/terminus/terminal/location/departure-gate-a
+  seatIn: /world/terminus/terminal/place/departure-gate-a
   shortDescription: Teleport Authority terminal
   keywords: [terminal, gate-a, teleport, authority]
   register: indefinite

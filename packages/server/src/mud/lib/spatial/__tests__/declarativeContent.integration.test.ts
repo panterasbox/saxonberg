@@ -2,8 +2,8 @@ import "../../../../test-bootstrap";
 import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { EXIT_KIND_TEST_ROWS } from '../../security/__tests__/test-setup';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../location/Location';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import Window from '../../../platform/thing/Window';
 import TemplateApplier from '../../../platform/idea/TemplateApplier';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
@@ -88,13 +88,13 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // The zone.
       {
         path: '/test/declarative/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: { name: 'test zone', cellSize: 25 },
       },
       // Location A — has coords + exits → roomB.
       {
         path: '/test/declarative/zone/roomA',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: {
           coords: { x: 0, y: 0, z: 0 },
           exits: {
@@ -110,7 +110,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // clone when the applier resolves the destination via singleton.
       {
         path: '/test/declarative/zone/roomB',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: {
           coords: { x: 0, y: 1, z: 0 },
           exits: {
@@ -202,12 +202,12 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       },
       {
         path: '/back/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
       {
         path: '/back/zone/a',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: {
           coords: { x: 0, y: 0, z: 0 },
           exits: { north: { destination: '/back/zone/b' } },
@@ -218,7 +218,7 @@ describe('Declarative content lazy hydrate — CartesianZone + rooms + Window', 
       // and no-op.
       {
         path: '/back/zone/b',
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: {
           coords: { x: 0, y: 1, z: 0 },
           exits: { south: { destination: '/back/zone/a' } },

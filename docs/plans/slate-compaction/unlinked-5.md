@@ -467,7 +467,7 @@ Wholly unbuilt. No `minimap` / `three.js` / `react-three` /
 `packages/client/src` or its `package.json` (the one `minimap` hit is
 `CardBodies.tsx:1119`'s survey card saying it is *not a map and not a
 minimap*); no `canPlace` on `lib/zone/SpatialZone.ts`, `Zone.ts` or
-`platform/idea/location/SphericalZone.ts`, whose own header (`:28`)
+`platform/idea/place/SphericalZone.ts`, whose own header (`:28`)
 says *"Multiple locations may share a key (nothing prevents overlap)"*
 — the owed check is still owed; `zone.md` / `spatial.md` / `location.md`
 have no overlap invariant. The premise holds: `CartesianZone` grids

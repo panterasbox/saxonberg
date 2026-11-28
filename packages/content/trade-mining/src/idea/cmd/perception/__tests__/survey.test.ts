@@ -38,8 +38,8 @@ import {
 import { applyRowFrom } from '@saxonberg/server/mud/platform/idea/reading/__tests__/row';
 import SurveyInstrument from '../../../../thing/instrument/SurveyInstrument';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
-import MineRoom from '../../../../location/MineRoom';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import MineRoom from '../../../../place/MineRoom';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

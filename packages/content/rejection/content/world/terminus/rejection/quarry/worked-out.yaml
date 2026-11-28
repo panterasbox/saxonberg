@@ -23,7 +23,7 @@
 # pit's own 20 m run: drift 1 m → 2 lifts × 40 = 80; clay 1 m → 80; granite
 # 4 m → 8 × 40 = 320. They are above capacity on purpose, so a later change
 # to `faceRunM` cannot silently un-exhaust the room.
-class: /trade/quarrying/location/OpenWorking
+class: /trade/quarrying/place/OpenWorking
 data:
   shortDescription: abandoned quarry face
   keywords: [quarry, pit, face, working, abandoned]

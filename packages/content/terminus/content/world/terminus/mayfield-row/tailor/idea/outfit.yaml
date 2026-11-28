@@ -60,5 +60,5 @@ data:
     - { category: textile, unit: count, level: 3, supplier: /world/terminus/general-store/business, exemplar: /trade/textiles/thing/bolt }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/mayfield-row/tailor/location/shop
+    - /world/terminus/mayfield-row/tailor/place/shop
     - /world/terminus/mayfield-row/tailor/thing/counter

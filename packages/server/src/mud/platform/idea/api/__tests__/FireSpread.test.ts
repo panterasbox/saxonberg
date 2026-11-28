@@ -9,8 +9,8 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach  } from 'vitest';
-import CartesianZone from '../../location/CartesianZone';
-import Location from '../../../../lib/location/Location';
+import CartesianZone from '../../place/CartesianZone';
+import Location from '../../../../lib/place/Location';
 import Exit from '../../../../lib/boundary/Exit';
 import Door from '../../../thing/Door';
 import Good from '../../../../lib/stuff/Good';

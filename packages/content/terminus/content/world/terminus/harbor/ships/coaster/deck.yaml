@@ -1,7 +1,7 @@
 # Corrigan's deck — the entrance. The helm affords
 # `course`/`anchor`/`hail`; her two mooring lines are what she makes fast
 # with alongside a quay; the deck is a shore of the sea under her.
-class: /platform/location/Compartment
+class: /platform/place/Compartment
 data:
   shortDescription: Corrigan's deck
   keywords: [deck, corrigan deck, ship deck]
@@ -35,7 +35,7 @@ data:
       oneWay: true
     side:
       kind: /system/water/idea/exits/sea-side
-      destination: /system/water/location/sea/patch
+      destination: /system/water/place/sea/patch
   details:
     sea:
       keywords: [sea, water]

@@ -3,7 +3,7 @@
 # m below the surface, so a body swims it. Swim west to the reed bank and
 # what you carry has been under water: a letter in an ordinary pack comes
 # out wet, the same letter in a shut oilskin pouch comes out dry.
-class: /platform/location/Pool
+class: /platform/place/Pool
 data:
   shortDescription: steading pond
   keywords: [pond, water]

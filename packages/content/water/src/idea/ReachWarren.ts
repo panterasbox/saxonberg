@@ -37,15 +37,15 @@
 
 import { TrajectoryBuilder } from '@saxonberg/server/mud/lib/expanse/Trajectory';
 import type { FramePos } from '@saxonberg/server/mud/lib/expanse/Frame';
-import { RoomWarren } from '@saxonberg/server/mud/lib/location/RoomWarren';
-import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import { RoomWarren } from '@saxonberg/server/mud/lib/place/RoomWarren';
+import type { Attachment } from '@saxonberg/server/mud/lib/place/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import { LaunchableMixin } from '@saxonberg/server/mud/lib/location/Launchable';
-import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/location/ZoneMinting';
-import type MintedZone from '@saxonberg/server/mud/platform/idea/location/MintedZone';
+import { LaunchableMixin } from '@saxonberg/server/mud/lib/place/Launchable';
+import { ZoneMintingMixin } from '@saxonberg/server/mud/lib/place/ZoneMinting';
+import type MintedZone from '@saxonberg/server/mud/platform/idea/place/MintedZone';
 import WaterLedger, { type Ledgered } from './WaterLedger';
 import type { HydrationSource, HydrateOutcome } from '@saxonberg/server/mud/lib/persistence/PersistenceSlice';
-import { Drift } from '@saxonberg/server/mud/lib/location/Drift';
+import { Drift } from '@saxonberg/server/mud/lib/place/Drift';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -66,10 +66,10 @@ import type { LinePosition, RiverSide } from '../lib/RiverLine';
 import { WATERCOURSE_PATH_PREFIX } from './Watercourse';
 import type WatercourseCatalogue from './WatercourseCatalogue';
 import type { LinePlace } from './WatercourseCatalogue';
-import type ReachPatch from '../location/ReachPatch';
-import ReachStop from '../location/ReachStop';
-import type BankPatch from '../location/BankPatch';
-import type ReachZone from '../location/ReachZone';
+import type ReachPatch from '../place/ReachPatch';
+import ReachStop from '../place/ReachStop';
+import type BankPatch from '../place/BankPatch';
+import type ReachZone from '../place/ReachZone';
 import type ReachExit from './exits/ReachExit';
 import RiverHazard from '../thing/RiverHazard';
 import { RIVER_WATER_MIXIN } from '../lib/RiverWater';
@@ -81,20 +81,20 @@ type MemberStuff = Stuff & Container;
 type ReachPlace = ReachPatch | ReachStop;
 
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
-const PATCH_ZONE = '/system/water/location/reach/patch';
-const STOP_ZONE = '/system/water/location/reach/stop';
-const PATCH_ROW = '/system/water/location/reach/patch/water';
-const BANK_ZONE = '/system/water/location/reach/bank';
-const BANK_ROW = '/system/water/location/reach/bank/ground';
+const PATCH_ZONE = '/system/water/place/reach/patch';
+const STOP_ZONE = '/system/water/place/reach/stop';
+const PATCH_ROW = '/system/water/place/reach/patch/water';
+const BANK_ZONE = '/system/water/place/reach/bank';
+const BANK_ROW = '/system/water/place/reach/bank/ground';
 /** One walk along a bank, km (`water.river.bankStepM`). */
 const BANK_STEP_KM = 0.1;
 /** Walking and running pace along a bank, m/s. */
 const WALK_MPS = 1.4;
 const RUN_MPS = 2.5;
-const STOP_ROW = '/system/water/location/reach/stop/water';
+const STOP_ROW = '/system/water/place/reach/stop/water';
 const EXIT_KIND = '/system/water/idea/exits/reach';
 /** What a river way names as its far side until it is taken. */
-const REACH_DIR = '/system/water/location/reach';
+const REACH_DIR = '/system/water/place/reach';
 /** Where a river row lives — the frame a position on it names. */
 const LINE_PREFIX = '/stuff/idea/Watercourse/';
 

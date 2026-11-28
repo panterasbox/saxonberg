@@ -56,7 +56,7 @@ import { SpawnerMixin } from '../Spawner';
 import { SpawnedMixin } from '../Spawned';
 import { ContainerMixin } from '../../spatial/Container';
 import { PlacingMixin } from '../../spatial/Placing';
-import { WarrenMemberMixin } from '../../location/WarrenMember';
+import { WarrenMemberMixin } from '../../place/WarrenMember';
 import { ExitableMixin } from '../../boundary/Exitable';
 import { AdornableMixin } from '../../boundary/Adornable';
 import { AdornmentMixin } from '../../boundary/Adornment';

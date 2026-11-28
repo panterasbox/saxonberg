@@ -250,7 +250,7 @@ weather field plus the lean, fetch and depth from the band — `Hs ≈
 water is shallower than eight wave heights. Rendered in words.
 
 A deck is a **shore of the sea under it** (maritime revision 3): the
-deck row is a `/platform/location/Shore` whose `sea` feature cites the
+deck row is a `/platform/place/Shore` whose `sea` feature cites the
 expanse, and `WaterExpanse` — a `WaterSourceMixin` implementer — derives
 the cell from the craft's position (a beach's from its nearest landing,
 `peekShorePositionFor`) as `"<expanse path>@<lat>,<lon>"` quantized to
@@ -373,7 +373,7 @@ gradient (see [river.md](./river.md)).
 ### A ship of a kind is a copy of her kind's plan (harbors review 3, 2026-11-03)
 
 A ship KIND (`/stuff/idea/Ship/smack`) owns her PLAN: her row names
-`extent` (`/stuff/location/ship/smack` — her deck, cabin and hold
+`extent` (`/stuff/place/ship/smack` — her deck, cabin and hold
 authored as an ordinary place, ordinary `exits:` between them, each
 room's own `floorM`) and `entrance` (her deck), exactly as the authored
 Hesper's row does. ⛔ There is no blueprint row — a `Structure` is only
@@ -387,7 +387,7 @@ Structure row whose rooms a `warren:` mints, and a kind's membership is
 her warren's, never a path (`Structure.memberExtent` answers `''` for
 her). An AUTHORED ship (the Hesper) is a single copy of her kind: her
 warren (`ShipWarren/authored`) copies her own rows into her zone,
-`<her zone row>/<serial>`, as a smack's are (zone-instancing D12). ⭐ Only her HOLD keeps a record (`platform/location/Hold`
+`<her zone row>/<serial>`, as a smack's are (zone-instancing D12). ⭐ Only her HOLD keeps a record (`platform/place/Hold`
 = `Persistable(Compartment)`); her deck and cabin are plain rooms the
 warren stands up again at wake, and before she sleeps `ShipWarren.stow`
 moves what is loose up top into the hold. Her register, her company's
@@ -518,7 +518,7 @@ instead of a 9.81 literal.
   `query all sea` on a deck names the sea, not the deck.
 - **Maritime review — a pool IS the water (2026-10-13, `b6d9f5211`).**
   D27's `StillWater` (a fixed swimmable thing propped in the pool and on
-  the strand) retired for `platform/location/Pool` and a strand that is
+  the strand) retired for `platform/place/Pool` and a strand that is
   a `Shore`; the locomotion gate reads an exit's far side. See
   [location.md](./location.md), [locomotion.md](./locomotion.md).
 - **Maritime review — a Ship is a Structure (2026-10-13, `df5f24d0d`).**

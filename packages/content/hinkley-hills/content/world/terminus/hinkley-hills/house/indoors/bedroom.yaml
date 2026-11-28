@@ -1,6 +1,6 @@
 # A Hinkley house's bedroom — the generic bedroom, as a room of the
 # house plan.
-extends: /stuff/location/room/bedroom
+extends: /stuff/place/room/bedroom
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:

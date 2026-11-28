@@ -22,9 +22,9 @@ import HouseholdersKit from '../thing/HouseholdersKit';
 import MaintainController from '../idea/cmd/crafting/MaintainController';
 import FrontDoorExit from '../idea/FrontDoorExit';
 import type Exit from '@saxonberg/server/mud/lib/boundary/Exit';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
-import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
+import PersistentLocation from '@saxonberg/server/mud/platform/place/PersistentLocation';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
 import Avatar from '@saxonberg/server/mud/platform/agent/PrimaryAvatar';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
@@ -174,21 +174,21 @@ function seedDomain(): void {
   // The plan's own zone — COPIED: each holding's rooms stand in its own
   // copy, minted at the holding's extent — and the lots' zone, which the
   // copies are filed under.
-  add('/world/prog-test/house', '/platform/idea/location/MintedZone', { name: 'the house', cellSize: 6, mintedBy: PROGRAMME });
-  add(PARENT, '/platform/idea/location/CartesianZone', { name: 'the lots', cellSize: 4 });
-  add(ROOM_A, '/platform/location/PersistentLocation', {
+  add('/world/prog-test/house', '/platform/idea/place/MintedZone', { name: 'the house', cellSize: 6, mintedBy: PROGRAMME });
+  add(PARENT, '/platform/idea/place/CartesianZone', { name: 'the lots', cellSize: 4 });
+  add(ROOM_A, '/platform/place/PersistentLocation', {
     shortDescription: 'the hall',
     coords: { x: 0, y: 0, z: 0 },
     props: ['/world/prog-test/coatrack'],
     exits: { north: { destination: ROOM_B }, east: { destination: ROOM_C } },
   });
-  add(ROOM_B, '/platform/location/PersistentLocation', {
+  add(ROOM_B, '/platform/place/PersistentLocation', {
     shortDescription: 'a bedroom',
     coords: { x: 0, y: 1, z: 0 },
     exits: { south: { destination: ROOM_A } },
   });
   // A PLAIN room: keeps nothing, so has no record (tracts build review).
-  add(ROOM_C, '/platform/location/Location', {
+  add(ROOM_C, '/platform/place/Location', {
     shortDescription: 'a porch',
     coords: { x: 1, y: 0, z: 0 },
     // Open to the sky — but that is not why it is no building's: no
@@ -200,7 +200,7 @@ function seedDomain(): void {
   // ⭐ A building of its own (paint review), across the open porch.
   // (A room that knows its warren — a plain Location does not, so no
   // place could ask it which building it is in.)
-  add(ROOM_D, '/platform/location/PersistentLocation', {
+  add(ROOM_D, '/platform/place/PersistentLocation', {
     shortDescription: 'a shed',
     coords: { x: 1, y: 1, z: 0 },
     exits: { south: { destination: ROOM_C } },
@@ -208,7 +208,7 @@ function seedDomain(): void {
   add('/world/prog-test/coatrack', '/platform/thing/Thing', {
     shortDescription: 'a coat rack',
   });
-  add(STREET, '/platform/location/PersistentLocation', {
+  add(STREET, '/platform/place/PersistentLocation', {
     shortDescription: 'the lane',
   });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });

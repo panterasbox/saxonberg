@@ -26,7 +26,7 @@ import { Creature } from '../../../../lib/creature/Creature';
 import Species from '../../species/Species';
 import BodyPlan, { type BodyPart } from '../../species/BodyPlan';
 import Glass from '../../material/Glass';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import Thing from '../../../thing/Thing';
 import Holder from '../../../../lib/stuff/Holder';
 import { SealableMixin } from '../../../../lib/spatial/Sealable';

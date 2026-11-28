@@ -1,4 +1,4 @@
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: beyond the Circle pass
   keywords: [beyond]

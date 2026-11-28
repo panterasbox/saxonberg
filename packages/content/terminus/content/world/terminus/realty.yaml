@@ -6,7 +6,7 @@
 # Ownership is NOT declared here — it lives in the gated `parcels`
 # collection (the pack manifest's title claim), the governing security
 # invariant.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Mayfield & Co.
   cellSize: 3.0

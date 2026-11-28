@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { withRow } from './row';
 import { driveAnalyze, driveMeasure, instrumentWith } from './drive';
 import DensityReading from '../DensityReading';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import Vat from '../../../thing/Vat';
 import Material from '../../../../lib/material/Material';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';

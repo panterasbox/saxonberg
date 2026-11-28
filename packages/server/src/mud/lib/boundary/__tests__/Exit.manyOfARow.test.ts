@@ -1,7 +1,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Exit from '../Exit';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { Vessel } from '../../stuff/Vessel';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';

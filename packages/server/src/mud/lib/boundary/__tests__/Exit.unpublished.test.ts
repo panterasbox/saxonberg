@@ -18,8 +18,8 @@ import Exit from '../Exit';
 import { ParcelApi } from '../../../api/parcel';
 import { StuffApi } from '../../../api/stuff';
 import { BoundaryApi } from '../../../api/boundary';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import Door from '../../../platform/thing/Door';
 import {
   makeStuff,

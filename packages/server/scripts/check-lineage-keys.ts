@@ -62,7 +62,7 @@ export const LINEAGE_KEY_EXEMPTIONS: ReadonlyArray<{
   why: string;
 }> = [
   {
-    file: "lib/location/FloorplanWarren.ts",
+    file: "lib/place/FloorplanWarren.ts",
     name: "owner",
     why: "the plan's owner is the STRUCTURE whose row carries the floorplan — a lineage, by design",
   },

@@ -161,7 +161,7 @@ describe('trade-farming — the ten grown families resolve end to end', () => {
     expect(avenueExits.southwest?.destination).toBe('/world/terminus/market/square');
     // The zone row is the sibling .yaml.
     expect(byPath.get('/world/terminus/market')!.class).toBe(
-      '/platform/idea/location/CartesianZone',
+      '/platform/idea/place/CartesianZone',
     );
 
     const stalls = byPath.get('/world/terminus/market/stalls');

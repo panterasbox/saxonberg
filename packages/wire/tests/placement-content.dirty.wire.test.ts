@@ -92,7 +92,7 @@ declareFile({
  * re-learning, so the standing cooking venue got an icebox too (D23) —
  * and the whole drive is one room richer for it.
  */
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 
 let cook: Session;
 

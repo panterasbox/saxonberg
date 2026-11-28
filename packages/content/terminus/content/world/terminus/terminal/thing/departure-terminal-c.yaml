@@ -4,7 +4,7 @@
 # expansion capacity.
 class: /system/tpa/thing/TpaTerminal
 data:
-  seatIn: /world/terminus/terminal/location/departure-gate-c
+  seatIn: /world/terminus/terminal/place/departure-gate-c
   shortDescription: Teleport Authority terminal
   keywords: [terminal, gate-c, teleport, authority]
   register: indefinite

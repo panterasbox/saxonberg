@@ -25,10 +25,10 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Hive from '../thing/Hive';
-import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Tract from '@saxonberg/content-trade-farming/src/place/Tract';
 import Field from '@saxonberg/content-trade-farming/src/thing/Field';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
-import Location from '@saxonberg/server/mud/lib/location/Location';
+import Location from '@saxonberg/server/mud/lib/place/Location';
 import Exit from '@saxonberg/server/mud/lib/boundary/Exit';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Species from '@saxonberg/server/mud/platform/idea/species/Species';

@@ -29,7 +29,7 @@ import {
 import EventRegistry from '../../../../platform/idea/EventRegistry';
 import Interactive from '../../../../platform/idea/Interactive';
 import Avatar from '../../../../platform/agent/PrimaryAvatar';
-import Location from '../../../location/Location';
+import Location from '../../../place/Location';
 import SandboxCrossing from '../../../../platform/thing/sandbox/SandboxCrossing';
 import SandboxCrossingExit from '../../SandboxCrossingExit';
 import type { Containable } from '../../../spatial/Containable';
@@ -201,8 +201,8 @@ describe('sandbox-escape: the round-trip criterion', () => {
     store.set(Collections.Content, [
       ...(KERNEL_CONTENT_ROWS as unknown as FakeRow[]),
       {
-        path: '/platform/location/sandbox/CircleFloor',
-        class: '/platform/location/sandbox/CircleFloor',
+        path: '/platform/place/sandbox/CircleFloor',
+        class: '/platform/place/sandbox/CircleFloor',
         data: {},
       } as unknown as FakeRow,
       {
@@ -268,7 +268,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         // author a template under the circle namespace — the deliberate save
         await PersistApi.save(Collections.Content, {
           path: `${SCOPE}/workshop`,
-          class: '/platform/location/Locale',
+          class: '/platform/place/Locale',
         });
         // fight + transact — material ledger rows
         await PersistApi.save(Collections.BankLedger, {
@@ -329,7 +329,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
     // "the content collection holds exactly one row".
     expect(store.get(Collections.Content)).toContainEqual({
       path: `${SCOPE}/workshop`,
-      class: '/platform/location/Locale',
+      class: '/platform/place/Locale',
     });
     // …and the epistemic record exists, wire-marked.
     //

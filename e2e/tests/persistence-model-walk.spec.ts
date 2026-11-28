@@ -22,7 +22,7 @@ import { openWorldAs, runCommand, tipText } from './helpers';
  * Goods are handed through the test seam (`/auth/test-hand`).
  */
 
-const PLAZA = '/world/testbed/location/plaza';
+const PLAZA = '/world/testbed/place/plaza';
 const NOTEBOOK = '/platform/thing/book';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 

@@ -37,9 +37,9 @@ import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup'
 import type { Stuff } from '../../stuff/Stuff';
 import type { Container } from '../../spatial/Container';
 
-const DORM_ROW = '/test/handle/location/keyed-room';
-const BAR_ROW = '/test/handle/location/lone-room';
-const LOUNGE_ROW = '/test/handle/location/satellite';
+const DORM_ROW = '/test/handle/place/keyed-room';
+const BAR_ROW = '/test/handle/place/lone-room';
+const LOUNGE_ROW = '/test/handle/place/satellite';
 
 /* ⚠ Synthetic rows under `/test/**`, deliberately: a KERNEL test
  * proves the kernel, and naming shipped content here would couple the

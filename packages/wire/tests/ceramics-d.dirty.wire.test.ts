@@ -84,10 +84,10 @@ declareFile({
 });
 
 const R = '/world/terminus/rejection';
-const SALT_FLAT = `${R}/location/salt-flat`;
-const FOUNDRY = `${R}/location/foundry`;
-const CASTING_YARD = `${R}/location/foundry-yard`;
-const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
+const SALT_FLAT = `${R}/place/salt-flat`;
+const FOUNDRY = `${R}/place/foundry`;
+const CASTING_YARD = `${R}/place/foundry-yard`;
+const CREAMERY = '/world/terminus/hearts-delight/creamery/place/floor';
 const SQUARE = '/world/terminus/market/square';
 const WHARF_BANK = '/world/terminus/wharfside/bank';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
@@ -459,7 +459,7 @@ async function clearFloor(only?: RegExp): Promise<void> {
     if (ids.length > 0) {
       const r = await gov.cmd(
         `eval --parcel ${R} return (() => { const ids = ${JSON.stringify(ids)};` +
-          ` const yard = StuffApi.findByTemplatePath('${R}/location/dry-rise');` +
+          ` const yard = StuffApi.findByTemplatePath('${R}/place/dry-rise');` +
           // By identity, never by walking the room: the room's contents
           // include whoever is passing, and a person may not be read at all
           // (peek() denied — the sweep threw and left the old casts, run 20).

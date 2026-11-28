@@ -51,7 +51,7 @@ describe('the bank', () => {
   it("⭐ is a quay whose own river feature cites the confluence — no edge object — and casts the fisher", () => {
     const bankRow = rowAt('/world/terminus/wharfside/bank');
     // ⭐ A quay of the harbor's book: the harbor works keeps it.
-    expect(bankRow.class).toBe('/system/transport/location/HarborQuay');
+    expect(bankRow.class).toBe('/system/transport/place/HarborQuay');
     const bank = data('/world/terminus/wharfside/bank') as {
       props: Array<string | { template: string }>;
       cast: string[];
@@ -166,7 +166,7 @@ describe('the store', () => {
 
 describe('the moor', () => {
   it("⭐ the heath is a shore whose tarn cites the Holloway's HEAD, with no trade dependency", () => {
-    expect(rowAt('/world/moor/stormy-heath').class).toBe('/platform/location/Shore');
+    expect(rowAt('/world/moor/stormy-heath').class).toBe('/platform/place/Shore');
     const heath = data('/world/moor/stormy-heath') as {
       waters: Record<string, string>;
       details: Record<string, { keywords: string[] }>;

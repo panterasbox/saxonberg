@@ -7,7 +7,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Provision from '../../../platform/thing/Provision';
 import Midden from '../../../platform/thing/Midden';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Food from '../../../platform/idea/material/Food';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ScheduleApi } from '../../../api/schedule';

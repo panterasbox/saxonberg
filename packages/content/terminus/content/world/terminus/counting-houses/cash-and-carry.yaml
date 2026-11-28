@@ -22,7 +22,7 @@
 # row joins a zone, so a cartesian room without it is not at the origin,
 # it is in no grid at all and silently inherits nothing: no address, no
 # locality, no atmosphere override, no celestial profile, no `stocks`.
-# This row previously sat at `/trade/distilling/location/`, where no zone
+# This row previously sat at `/trade/distilling/place/`, where no zone
 # covers anything, so its `coords: {0,0,0}` threw at boot and the block
 # was deleted to get the server up. That was the wrong direction: the
 # room needed a grid, not less position.
@@ -31,7 +31,7 @@
 # also makes the cardinal exit pair honest — `Location.addExit`
 # wants cardinal exits INTRA-zone, and until now one end of this door was
 # in no zone at all.
-class: /platform/location/Hall
+class: /platform/place/Hall
 data:
   coords:
     x: 0

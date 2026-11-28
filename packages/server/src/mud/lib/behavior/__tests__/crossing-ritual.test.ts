@@ -40,8 +40,8 @@ import { ContainableMixin } from '../../spatial/Containable';
 import { SensorMixin } from '../../message/Sensor';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import { EngagedMixin } from '../../activity/Engaged';
-import Location from '../../location/Location';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { PerceptionApi } from '../../../api/perception';
@@ -163,8 +163,8 @@ beforeEach(() => {
     // The sandbox stands up a circle floor and a wire body — both
     // clones of rows now.
     {
-      path: '/platform/location/sandbox/CircleFloor',
-      class: '/platform/location/sandbox/CircleFloor',
+      path: '/platform/place/sandbox/CircleFloor',
+      class: '/platform/place/sandbox/CircleFloor',
       data: {},
     },
     {

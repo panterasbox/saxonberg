@@ -516,7 +516,7 @@ export function ExitableMixin<TBase extends MixinConstructor<Stuff & Container>>
      *      non-`Container`;
      *   2. its destination template may have **many live clones** (a
      *      Warren hub exit names
-     *      `/world/lounge/location/lounge` once a satellite exists) and
+     *      `/world/lounge/place/lounge` once a satellite exists) and
      *      the singleton lookup THROWS on it;
      *   3. `getDestination()` may throw for its own reasons;
      *   4. the far side may not be a `Container`;

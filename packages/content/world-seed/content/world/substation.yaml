@@ -9,7 +9,7 @@
 # travel node.
 #
 # No ownerGroup this cycle: it collects nothing.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Drowned Substation
   cellSize: 3.0

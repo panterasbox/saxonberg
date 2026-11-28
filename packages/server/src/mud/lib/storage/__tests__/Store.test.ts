@@ -18,8 +18,8 @@
 import '../../../../test-bootstrap';
 import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../location/Location';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import type Material from '../../material/Material';
 import Water from '../../../platform/idea/material/Water';
 import Wood from '../../../platform/idea/material/Wood';

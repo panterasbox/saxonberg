@@ -38,7 +38,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Piecewise, type Stretch } from '@saxonberg/server/mud/lib/Trajectory';
-import { Traversal } from '@saxonberg/server/mud/lib/location/Traversal';
+import { Traversal } from '@saxonberg/server/mud/lib/place/Traversal';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { EvictionContext } from '@saxonberg/server/mud/lib/stuff/Stuff';

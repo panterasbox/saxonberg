@@ -72,8 +72,8 @@ declareFile({
 });
 
 const PIT = '/world/terminus/rejection/quarry/pit';
-const OLD_WORKINGS = '/world/terminus/rejection/location/old-workings';
-const CLAIMS = '/world/terminus/rejection/location/claims-office';
+const OLD_WORKINGS = '/world/terminus/rejection/place/old-workings';
+const CLAIMS = '/world/terminus/rejection/place/claims-office';
 const ESTUARY = '/world/terminus/estuary/estuary-mouth';
 const HEATH = '/world/moor/stormy-heath';
 

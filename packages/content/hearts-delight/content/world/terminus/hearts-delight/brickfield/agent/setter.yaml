@@ -27,9 +27,9 @@ data:
     - brain: /trade/ceramics/behavior/sets
       trigger: candidate
       config:
-        home: /world/terminus/hearts-delight/brickfield/location/clamp-ground
+        home: /world/terminus/hearts-delight/brickfield/place/clamp-ground
         clamp: /trade/ceramics/thing/clamp
-        hacks: /world/terminus/hearts-delight/brickfield/location/hacks
+        hacks: /world/terminus/hearts-delight/brickfield/place/hacks
         batch: 40
         burn: 3 days
         # ⭐ What this worker knows of the world — an extent; every walk is

@@ -24,8 +24,8 @@ sail. Her crew can walk off her.
 |---|---|---|
 | the harbor | `Harbor` (`/system/transport/idea/Harbor`) = `Registrar(Singleton(Idea))`, one row per port | the **posted rules** (quays, rates, seat, office, roads, exempt) and how they are applied. It holds no state; it **files** the berth book's record. |
 | the berth book | `HarborBook` (`/system/transport/thing/HarborBook`) = `Marked(Payable(Good))`, a fixture on the office desk | where **the record** is kept and read: lines (berths given, ships alongside, debts, dues stamped paid) and the last hail of each ship. The record itself is a `berth-book` document the harbor files. |
-| a kept quay | `HarborQuay` (`/system/transport/location/HarborQuay`) = `Berthing(Quay)` | a quay where a ship comes alongside only at the berth she was given; it asks its `harbor:` |
-| the office | `HarborOffice` (`/system/transport/location/HarborOffice`) = `Payable(Hailable(FrameSited(Locale)))` | the room a hail reaches and where dues are paid; sited on the river with `frameSite.landing: false` |
+| a kept quay | `HarborQuay` (`/system/transport/place/HarborQuay`) = `Berthing(Quay)` | a quay where a ship comes alongside only at the berth she was given; it asks its `harbor:` |
+| the office | `HarborOffice` (`/system/transport/place/HarborOffice`) = `Payable(Hailable(FrameSited(Locale)))` | the room a hail reaches and where dues are paid; sited on the river with `frameSite.landing: false` |
 | the berth roll | a `berth-roll` **document** at `/platform/berths<landing path>` (kernel) | a landing's list of who lies at it, each ship writing her own line. It is not the book (see below). |
 | the register | `RegisterBook` (kernel) on the office desk | `read register`. See [ship.md § The register](./ship.md). |
 | the charter book | `CharterBook` (kernel) at the line's desk and in a ship's hold | `charter` (below) |
@@ -347,7 +347,7 @@ have **sunk** a neglected smack rather than settling her on the mud.
 
 - Transport pack (`packages/content/transport/`):
   `src/idea/Harbor.ts`, `src/thing/HarborBook.ts`,
-  `src/location/HarborQuay.ts`, `src/location/HarborOffice.ts`,
+  `src/place/HarborQuay.ts`, `src/place/HarborOffice.ts`,
   `src/idea/cmd/harbor/BerthAtController.ts` + `BerthRoadsController.ts` (over `BerthControllerBase`),
   `content/system/transport/cmd/harbor/berth.yaml`; tests
   `src/__tests__/Harbor.test.ts`.

@@ -8,8 +8,8 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect } from "vitest";
 import { makeStuff } from "../../../lib/security/__tests__/test-setup";
-import Lounge from "../location/Lounge";
-import Bar from "../location/Bar";
+import Lounge from "../place/Lounge";
+import Bar from "../place/Bar";
 
 describe("the lounge sanctuary split", () => {
   it("a Lounge room refuses combat with house prose", () => {

@@ -275,7 +275,7 @@ describe('sample <crop> at <patch> / label <crop> [text] at <patch>', () => {
       f.setAmbientFlux(400);
       f.parts = [top, lane];
       return f;
-    }, freshPath('/trade/farming/location/_specimen-field'));
+    }, freshPath('/trade/farming/place/_specimen-field'));
     const stand = (part: TestPart): Plant => {
       const p = makeStuffAtPath(
         () => newPlant(),

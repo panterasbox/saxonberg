@@ -58,12 +58,12 @@ function seed(relFromSeeds: string, path: string): Doc {
   };
 }
 
-const CROSSING = "/world/terminus/university-avenue/location/crossing";
-const ARRIVAL_GATE = "/world/terminus/terminal/location/arrival-gate";
-const HALL = "/world/terminus/terminal/location/hall";
-const GATE_C = "/world/terminus/terminal/location/departure-gate-c";
+const CROSSING = "/world/terminus/university-avenue/place/crossing";
+const ARRIVAL_GATE = "/world/terminus/terminal/place/arrival-gate";
+const HALL = "/world/terminus/terminal/place/hall";
+const GATE_C = "/world/terminus/terminal/place/departure-gate-c";
 const AVENUE_BLOCK = "/world/terminus/counting-houses/avenue-block";
-const CAMPUS_GATE = "/world/terminus/university-avenue/location/campus-gate";
+const CAMPUS_GATE = "/world/terminus/university-avenue/place/campus-gate";
 const DOOR = "/world/terminus/university-avenue/thing/campus-gate-door";
 // ⭐ The crossing's paving (ground build) — a floor ROW rather than a
 // `floor:` one-liner, because the worn diagonal track the room's prose has
@@ -111,8 +111,8 @@ function docs(): Doc[] {
     ),
     seed("world/terminus/terminal.yaml", "/world/terminus/terminal"),
     // The crossing area.
-    seed("world/terminus/university-avenue/location/crossing.yaml", CROSSING),
-    seed("world/terminus/university-avenue/location/campus-gate.yaml", CAMPUS_GATE),
+    seed("world/terminus/university-avenue/place/crossing.yaml", CROSSING),
+    seed("world/terminus/university-avenue/place/campus-gate.yaml", CAMPUS_GATE),
     seed("world/terminus/university-avenue/thing/campus-gate-door.yaml", DOOR),
     seed("world/terminus/university-avenue/thing/crossing-paving.yaml", PAVING),
     seed("world/terminus/university-avenue/thing/camp-chair.yaml", OBJECTS[0]!),
@@ -135,27 +135,27 @@ function docs(): Doc[] {
       data: { name: "human", _bodyPlanPath: BIPED },
     },
     // The reoriented terminal frontage across the avenue.
-    seed("world/terminus/terminal/location/arrival-gate.yaml", ARRIVAL_GATE),
-    seed("world/terminus/terminal/location/hall.yaml", HALL),
+    seed("world/terminus/terminal/place/arrival-gate.yaml", ARRIVAL_GATE),
+    seed("world/terminus/terminal/place/hall.yaml", HALL),
     // The hall's populates list stands the public noticeboard up (the
     // labor market's discovery surface — see contract.md).
     seed(
       "world/terminus/terminal/thing/job-board.yaml",
       "/world/terminus/terminal/thing/job-board",
     ),
-    seed("world/terminus/terminal/location/departure-gate-c.yaml", GATE_C),
+    seed("world/terminus/terminal/place/departure-gate-c.yaml", GATE_C),
   ];
   // Light stubs for the rest of the hub the cascade reaches.
-  const stub = (p: string, cls = "/platform/location/Void"): Doc => ({
+  const stub = (p: string, cls = "/platform/place/Void"): Doc => ({
     path: p,
     class: cls,
     data: { shortDescription: p.split("/").pop()! },
   });
   const stubs: Doc[] = [
     stub(AVENUE_BLOCK),
-    stub("/world/terminus/terminal/location/departure-gate-a"),
-    stub("/world/terminus/terminal/location/departure-gate-b"),
-    stub("/world/terminus/terminal/location/office"),
+    stub("/world/terminus/terminal/place/departure-gate-a"),
+    stub("/world/terminus/terminal/place/departure-gate-b"),
+    stub("/world/terminus/terminal/place/office"),
     // The registry annex off the arrival gate's east frontage (civics).
     stub("/world/terminus/registry/office"),
     stub("/world/terminus/terminal/thing/departure-terminal-c", "/platform/thing/Thing"),

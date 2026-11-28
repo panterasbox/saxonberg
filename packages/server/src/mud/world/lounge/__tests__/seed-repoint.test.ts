@@ -3,7 +3,7 @@
  * longer a seed-YAML literal or a code constant: it's the
  * `defaultStartLocation` app setting (shipped by the platform pack's settings,
  * default the lounge Warren), stamped into each avatar at mint time. The
- * `evacuationFallback` app setting (default `/platform/location/void`) is the separate,
+ * `evacuationFallback` app setting (default `/platform/place/void`) is the separate,
  * container-typed evac target. The two remain distinct concerns — the ★
  * regression guard ensures evac never points at the non-Container Warren.
  */
@@ -56,7 +56,7 @@ describe('avatar seed landing repoint', () => {
     // bootstrap-pinned, destruct-refusing one. Repointing it at the
     // (non-Container) Warren would destruct stranded players in
     // Container.cleanupOnDestruct.
-    expect(appSettings()[AppSettingKeys.evacuationFallback]).toBe('/platform/location/void');
+    expect(appSettings()[AppSettingKeys.evacuationFallback]).toBe('/platform/place/void');
     expect(appSettings()[AppSettingKeys.evacuationFallback]).not.toBe(
       LoungeWarren.WARREN_PATH,
     );

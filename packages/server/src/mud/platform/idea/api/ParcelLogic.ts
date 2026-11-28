@@ -11,7 +11,7 @@ import { MixinApi } from "../../../api/mixin";
 import { DiagnosticApi } from "../../../api/diagnostics";
 import { AppApi } from "../../../api/app";
 import { ExecutionContextApi } from "../../../api/execution-context";
-import { TOMBSTONE_ROW } from "../../location/Tombstone";
+import { TOMBSTONE_ROW } from "../../place/Tombstone";
 import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";

@@ -3,7 +3,7 @@
 # the Counting-Houses and the dorms. Its own CartesianZone at the city's
 # 3 m cells. Ownership lives in `parcels` (the terminus municipality
 # holds the street; Mayfield Holdings the building), never here.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Mayfield Row
   cellSize: 3.0

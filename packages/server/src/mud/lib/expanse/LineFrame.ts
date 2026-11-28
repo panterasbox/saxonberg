@@ -30,7 +30,7 @@ import { TrajectoryBuilder, type Trajectory } from './Trajectory';
 import type { Craft } from './Voyage';
 import type { Container } from '../spatial/Container';
 import type { Hailable } from './Hailable';
-import type { WaterTide } from '../location/WaterSource';
+import type { WaterTide } from '../place/WaterSource';
 import { AppApi } from '../../api/app';
 
 /** Where on a river: km from the mouth, m from river left. */

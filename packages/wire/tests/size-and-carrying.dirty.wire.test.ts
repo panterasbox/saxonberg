@@ -76,7 +76,7 @@ const COTTAGE = `${STEADING}/cottage`;
 const BARN = `${STEADING}/barn`;
 const POND = `${STEADING}/pond`;
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
-const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const HALL_LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 
 const T = {
   mug: '/trade/hospitality/thing/mug',

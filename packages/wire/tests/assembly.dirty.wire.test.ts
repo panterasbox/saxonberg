@@ -68,17 +68,17 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
 // ⭐ The cookhouse next door has the water butt (`clone` will not stand a
 // second one up: a live butt exists where the founder holds no title).
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
-const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
+const SAWMILL = '/world/terminus/hearts-delight/place/sawmill';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const REGISTRY = '/world/terminus/registry/business';
 const REGISTRY_OFFICE = '/world/terminus/registry/office';
 const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
-const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
+const FUEL_YARD = '/world/terminus/rejection/place/fuel-yard';
 
 const T = {
   pickHead: '/trade/smithing/thing/pick-head',

@@ -148,7 +148,7 @@ describe('published on the record', () => {
     // Longest-prefix, synchronous, resolves nothing at the path — which
     // is the whole requirement: `Exit.canTraverse` is sync and must be
     // able to refuse a far side it has not loaded.
-    expect(ParcelApi.isPathPublished(`${EXTENT}/location/hall`)).toBe(false);
+    expect(ParcelApi.isPathPublished(`${EXTENT}/place/hall`)).toBe(false);
   });
 
   it('⚠ an UNTITLED path reads as published — there is no parcel to be a wall', async () => {
@@ -266,7 +266,7 @@ describe('the flip, and the chain of title', () => {
     // the formula lives with the offlining rather than as a static on
     // the class.
     const { StuffApi: SA } = await import('../../api/stuff');
-    const { TOMBSTONE_ROW } = await import('../location/Tombstone');
+    const { TOMBSTONE_ROW } = await import('../place/Tombstone');
     await boot();
     await ParcelApi.grant({ extent: EXTENT, holder: HOLDER });
     // One node in the extent, so the eviction path actually engages.

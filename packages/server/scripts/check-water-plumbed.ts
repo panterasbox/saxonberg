@@ -115,7 +115,7 @@ function defaultRunWord(): string | null {
 }
 
 const FIXTURE_CLASS = '/platform/thing/WaterFixture';
-const STREET_CLASS = '/platform/location/Street';
+const STREET_CLASS = '/platform/place/Street';
 const STORE_CLASS = '/platform/thing/WaterStore';
 
 function main(): void {
@@ -147,7 +147,7 @@ function main(): void {
         findings.push(`${relative(REPO_ROOT, row.file)}: plumbing: ${word} names no run (${RUN_ROW(word)})`);
       }
     }
-    if (!/\/location\//.test(path) && !(row.class ?? '').includes('/location/')) continue;
+    if (!/\/place\//.test(path) && !(row.class ?? '').includes('/place/')) continue;
     const props = propsOf(all, path);
     // ⭐ A tap that needs a pipe stands in a room: anywhere else it reads
     // unplumbed for ever. Not one on a named source (`suppliedBy:`), in a

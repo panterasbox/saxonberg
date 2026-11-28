@@ -45,7 +45,7 @@ declareFile({
 
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const BANK = '/world/terminus/wharfside/bank';
-const SHOP = '/world/terminus/wharfside/diving/location/shop';
+const SHOP = '/world/terminus/wharfside/diving/place/shop';
 const TOWPATH = '/world/terminus/valley-road/towpath';
 const REACH = '/world/terminus/estuary/reach';
 

@@ -11,14 +11,14 @@ import { openWorldAs, runCommand } from './helpers';
  * none of it loaded at startup, all of it there when typed.
  */
 
-const YARD = '/world/terminus/wharfside/tannery/location/yard';
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const YARD = '/world/terminus/wharfside/tannery/place/yard';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 // ⭐ A minted bedroom interior. It was the dorm row stood up alone — an
 // orphan room with no unit, no door and no copy — which can no longer exist:
 // each let unit is a zone of its own and its row refuses a room
 // (zone-instancing D4). The furnishing archetype is the same kind of row,
 // outside any copied zone.
-const DORM = '/stuff/location/room/bedroom';
+const DORM = '/stuff/place/room/bedroom';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();

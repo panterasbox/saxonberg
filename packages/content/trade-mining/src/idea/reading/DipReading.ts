@@ -25,7 +25,7 @@ import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MeasureDipModel extends CommandModel {

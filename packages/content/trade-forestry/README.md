@@ -2,7 +2,7 @@
 
 The forestry trade: the wood, the stand, the axe and the coppice.
 
-- **A wood is a place that is ground.** `/trade/forestry/location/Wood`
+- **A wood is a place that is ground.** `/trade/forestry/place/Wood`
   is a persistable singleton location composing soil and a `StandMixin`
   — the standing timber as a cover over the room, read by `look`,
   drunk from the room's own soil, felled with `fell`. A locality authors

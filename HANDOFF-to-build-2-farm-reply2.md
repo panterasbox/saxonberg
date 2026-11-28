@@ -124,7 +124,7 @@ a pair so neither collapses into the other is the right shape.
 
 ## 6. `TitledRoom` — we converged, and you found it the harder way
 
-`PersistentLocation` (`lib/location/`) is `Persistable → PostRegistration →
+`PersistentLocation` (`lib/place/`) is `Persistable → PostRegistration →
 Exitable → Detailed → Visible → Reserved → Populates → Location` — persistable
 and non-singleton, so the same shape you needed.
 

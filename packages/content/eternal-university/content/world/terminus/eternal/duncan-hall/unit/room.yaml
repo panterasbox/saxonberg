@@ -9,7 +9,7 @@
 # restores the captured prose instead of re-seeding. Edit the fixture set here
 # in content — no code change. Rooms are runtime clones minted by
 # `DormWarren.admit`. A plain non-coordinate Location; generic label, no Named.
-class: /world/terminus/eternal/duncan-hall/location/DormRoom
+class: /world/terminus/eternal/duncan-hall/place/DormRoom
 data:
   # Its cell on its copy's grid (zone-instancing D9) — every copy is a zone of its own.
   coords:

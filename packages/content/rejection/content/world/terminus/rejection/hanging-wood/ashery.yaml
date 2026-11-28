@@ -9,7 +9,7 @@
 # the kiln outlive a restart (cleanliness D31).
 #
 # ⚠ The prose is invariant: it never says how much ash is in anything.
-class: /platform/location/PersistentLocale
+class: /platform/place/PersistentLocale
 data:
   shortDescription: ashery
   keywords: [ashery, potashery, clearing]

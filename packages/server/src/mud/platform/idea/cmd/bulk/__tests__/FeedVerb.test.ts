@@ -732,7 +732,7 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
       f.setAmbientFlux(400);
       f.parts = [top, lane];
       return f;
-    }, freshPath('/trade/farming/location/_feed-field'));
+    }, freshPath('/trade/farming/place/_feed-field'));
     const giver = makeStuff(() => {
       const g = new TestGiver();
       g.setName('Alice');
@@ -807,7 +807,7 @@ describe('feed <crop|ground> [at <patch>] — on a field', () => {
       f.setAmbientFlux(400);
       f.parts = [top];
       return f;
-    }, freshPath('/trade/farming/location/_feed-field'));
+    }, freshPath('/trade/farming/place/_feed-field'));
     const giver = makeStuff(() => {
       const g = new TestGiver();
       g.setName('Alice');

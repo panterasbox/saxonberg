@@ -13,8 +13,8 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import type LocationGraphRegistry from '../LocationGraphRegistry';
-import type { CopyRoom, PlaceNode } from '../../../lib/location/PlaceNode';
-import type { GraphFinding } from '../../../lib/location/GraphInvariants';
+import type { CopyRoom, PlaceNode } from '../../../lib/place/PlaceNode';
+import type { GraphFinding } from '../../../lib/place/GraphInvariants';
 import { DocumentApi } from '../../../api/document';
 import { SubscriptionApi } from '../../../api/subscription';
 import { SUBSCRIPTION_SOURCES } from '@saxonberg/types';
@@ -23,27 +23,27 @@ import { WorldClockApi } from '../../../api/worldclock';
 import type {
   MapClaim,
   MapDocument,
-} from '../../../lib/location/MapClaim';
+} from '../../../lib/place/MapClaim';
 import type { CardinalDirection } from '../../../api/navigation';
-import { Traversal } from '../../../lib/location/Traversal';
-import type { Leg } from '../../../lib/location/Traversal';
+import { Traversal } from '../../../lib/place/Traversal';
+import type { Leg } from '../../../lib/place/Traversal';
 import {
   TravelProfile,
   OmnivorousTravelProfile,
   type TravelProfileSpec,
-} from '../../../lib/location/TravelProfile';
+} from '../../../lib/place/TravelProfile';
 import {
   KnowledgeGraph,
   type ClaimLike,
   type KnownWay,
-} from '../../../lib/location/KnowledgeGraph';
+} from '../../../lib/place/KnowledgeGraph';
 import type {
   RouteAssumption,
   RouteLeg,
   RouteOutcome,
   RoutePlan,
   RouteSource,
-} from '../../../lib/location/RoutePlan';
+} from '../../../lib/place/RoutePlan';
 import { ScheduleApi } from '../../../api/schedule';
 
 /** Where the graph registry stands. */

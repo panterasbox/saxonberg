@@ -43,7 +43,7 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
       // is shared" has somewhere in the realm to happen.
       'agent/cook.yaml', 'agent/cookhand.yaml', 'agent/smith.yaml',
       'idea/business.yaml',
-      'location/cellar.yaml', 'location/cookhouse.yaml', 'location/smithy.yaml', 'location/woodshed.yaml',
+      'place/cellar.yaml', 'place/cookhouse.yaml', 'place/smithy.yaml', 'place/woodshed.yaml',
       'thing/forge-floor.yaml',
       // ⭐ The house's sword, *Hollin*, on its rack in the smithy: three
       // hilts and one blade (the repair build — a name that rides a part).

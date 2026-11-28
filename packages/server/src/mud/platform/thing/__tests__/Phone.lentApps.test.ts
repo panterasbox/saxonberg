@@ -18,7 +18,7 @@ import { AetherMixin } from '../../../lib/message/Aether';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, stampTemplatePathForTest } from '../../../lib/security/__tests__/test-setup';
-import Location from '../../../lib/location/Location';
+import Location from '../../../lib/place/Location';
 import Phone from '../Phone';
 import App from '../../idea/App';
 import Thing from '../Thing';

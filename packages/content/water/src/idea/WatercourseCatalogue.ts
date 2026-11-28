@@ -51,8 +51,8 @@ import { WaterHardness } from '@saxonberg/server/mud/lib/cleanliness/WaterHardne
 import {
   WaterSourceMixin,
   type WaterRead,
-} from '@saxonberg/server/mud/lib/location/WaterSource';
-import type { WaterTide } from '@saxonberg/server/mud/lib/location/WaterSource';
+} from '@saxonberg/server/mud/lib/place/WaterSource';
+import type { WaterTide } from '@saxonberg/server/mud/lib/place/WaterSource';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { Tide } from '../lib/Tide';
 import {

@@ -15,7 +15,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { NavigationApi } from '../../../../api/navigation';
 import { ParcelApi } from '../../../../api/parcel';
 import LocationGraphRegistry from '../../LocationGraphRegistry';
-import { PlaceNode } from '../../../../lib/location/PlaceNode';
+import { PlaceNode } from '../../../../lib/place/PlaceNode';
 import { PersistenceManager } from '../../../../../backend/PersistenceManager';
 import {
   makeStuffAtPath,
@@ -36,10 +36,10 @@ let graph: Array<Record<string, unknown>>;
 
 function install(rows: readonly Row[]): void {
   seedKernelContentStore([
-    { path: ZONE, class: '/platform/idea/location/CartesianZone', data: {} },
+    { path: ZONE, class: '/platform/idea/place/CartesianZone', data: {} },
     ...rows.map((r) => ({
       path: P(r.leaf),
-      class: '/platform/location/Locale',
+      class: '/platform/place/Locale',
       data: { ...(r.exits ? { exits: r.exits } : {}) },
     })),
   ]);
@@ -588,15 +588,15 @@ describe('costMatrix — the matrix, and no order', () => {
 describe('the extent scope is the AUTHOR\'s to choose', () => {
   beforeEach(() => {
     seedKernelContentStore([
-      { path: ZONE, class: '/platform/idea/location/CartesianZone', data: {} },
+      { path: ZONE, class: '/platform/idea/place/CartesianZone', data: {} },
       {
         path: `${ZONE}/quarter/a`,
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: { exits: { north: { destination: `${ZONE}/far/b` } } },
       },
       {
         path: `${ZONE}/far/b`,
-        class: '/platform/location/Locale',
+        class: '/platform/place/Locale',
         data: {},
       },
     ]);

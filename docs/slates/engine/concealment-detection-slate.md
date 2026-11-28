@@ -43,7 +43,7 @@ See [concealment.md](../../subsystems/concealment.md) § "The gate —
 > unified accountability ledger. See [stealth.md](../../subsystems/stealth.md).
 
 Stealth is **managing others' belief about you** — the fog engine pointed at
-your own presence/location/intent. Not a stat-vs-stat roll.
+your own presence/place/intent. Not a stat-vs-stat roll.
 
 - **Awareness is the pivot / the initiation seam:** a fight has a
   pre-awareness window → mutual awareness ("on"). Awareness is *graded*

@@ -27,10 +27,10 @@
  * verbs'.
  */
 
-import { CirculationWarren } from "@saxonberg/server/mud/lib/location/CirculationWarren";
-import { Warren } from "@saxonberg/server/mud/lib/location/Warren";
-import { FloorplanWarren } from "@saxonberg/server/mud/lib/location/FloorplanWarren";
-import { Floorplan } from "@saxonberg/server/mud/lib/location/Floorplan";
+import { CirculationWarren } from "@saxonberg/server/mud/lib/place/CirculationWarren";
+import { Warren } from "@saxonberg/server/mud/lib/place/Warren";
+import { FloorplanWarren } from "@saxonberg/server/mud/lib/place/FloorplanWarren";
+import { Floorplan } from "@saxonberg/server/mud/lib/place/Floorplan";
 import { Template } from "@saxonberg/server/mud/lib/stuff/Template";
 import { Character } from "@saxonberg/server/mud/lib/character/Character";
 import { Lock, type LockType } from "@saxonberg/server/mud/lib/lock/Lock";

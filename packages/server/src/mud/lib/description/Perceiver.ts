@@ -508,7 +508,7 @@ export function PerceiverMixin<TBase extends MixinConstructor>(Base: TBase) {
       ]);
       // Lazily: a static import of Location from a mixin runs the chain
       // before it is ready (the SandboxLogic precedent).
-      const { default: Location } = await import('../location/Location');
+      const { default: Location } = await import('../place/Location');
       // ⭐ A room's own coords, else its cell in the grid — a warren plots
       // its rooms through the zone (`addLocation`), which sets the grid's
       // coordinates and not `coords`, so the lounge sent no position at all.

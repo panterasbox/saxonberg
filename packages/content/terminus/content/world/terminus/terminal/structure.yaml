@@ -10,7 +10,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/terminal
-  entrance: /world/terminus/terminal/location/arrival-gate
+  entrance: /world/terminus/terminal/place/arrival-gate
   shortDescription: terminal clock tower
   register: definite
   keywords: [tower, clock, terminal, clocktower]

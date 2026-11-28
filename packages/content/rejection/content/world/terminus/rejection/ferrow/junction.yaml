@@ -2,7 +2,7 @@
 # hold up. The span cost in `stabilityAt` is per open neighbour, so a
 # four-way junction in slate genuinely wants timber and the same junction
 # in granite does not. The prose says which without saying the number.
-class: /trade/mining/location/MineRoom
+class: /trade/mining/place/MineRoom
 data:
   shortDescription: junction
   keywords: [junction, crossing, meeting]

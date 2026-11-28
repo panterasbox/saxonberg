@@ -186,7 +186,7 @@ describe('refsOf reads the mining and deposit citations', () => {
 describe('castRefsOf — the cast list, including the one at end-of-file', () => {
   it('⭐ reads a `cast:` that is the LAST key in the row (the \\Z bug)', () => {
     const row = [
-      'class: /trade/mining/location/MineRoom',
+      'class: /trade/mining/place/MineRoom',
       'data:',
       '  shortDescription: a drift',
       '  cast:',

@@ -24,12 +24,12 @@ data:
   rosterSlots:
     - positionKey: keeper
       assignee: /world/terminus/wharfside/ropewalk/agent/ropekeeper
-      station: /world/terminus/wharfside/ropewalk/location/walk
+      station: /world/terminus/wharfside/ropewalk/place/walk
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
   banksAt: goodkin
   # ⭐ Off shift a hand is out of the narrative (persistence-model D15).
   offShift: out
   operatingLocations:
-    - /world/terminus/wharfside/ropewalk/location/walk
+    - /world/terminus/wharfside/ropewalk/place/walk
     - /world/terminus/wharfside/ropewalk/thing/counter

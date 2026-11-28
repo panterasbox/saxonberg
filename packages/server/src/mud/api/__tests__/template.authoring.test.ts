@@ -46,7 +46,7 @@ function col(name: string): Record<string, unknown>[] {
   return a;
 }
 
-const LEAF = '/lib/location/Location';
+const LEAF = '/lib/place/Location';
 const PATH = '/world/gallery/mural';
 const ALICE = '/platform/agent/Avatar/alice';
 

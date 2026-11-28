@@ -193,15 +193,15 @@ Every fact verified by opening the file on `reqs/dairy` at `2c0a6c139`
   (`producer`) and the species rows (`sync-read`) with the reasoning
   written in. `thing/ox-book.yaml` (`herdId: delight-oxen`, tally 2,
   `foundingMeanAgeDays 2920`, home `location/farmstead-yard`),
-  `flock-book.yaml` (12 ewes, home `bench-field/location/upper-bench`),
+  `flock-book.yaml` (12 ewes, home `bench-field/place/upper-bench`),
   `hen-book.yaml` (6, 85 % female by the literal — some are cocks).
   `idea/farm-business.yaml` (`Business`, `appointingAuthority: {kind:
   entity, path: …/agent/farmer}`, one position, `banksAt: goodkin`).
   Rooms: `valley-gate` (Street, coords 0,0,0; exits north crossroads, west
   bench-lane, east public-works yard), `bench-lane` (−12,0,6; east gate,
   west yard, south millsite), `farmstead-yard` (−20,0,7; north barn, up
-  bench), `barn`, `millsite` (−13,−6,4), `bench-field/location/upper-bench`
-  (a `Field`), `public-works/location/yard`. `thing/farm-shelf.yaml` is a
+  bench), `barn`, `millsite` (−13,−6,4), `bench-field/place/upper-bench`
+  (a `Field`), `public-works/place/yard`. `thing/farm-shelf.yaml` is a
   `ConsignmentShelf` (so `consign` already works in the yard). The pack
   ships **no `src/`** (README: load-bearing), 20 m cells.
 - Rejection: rows only; `location/hillside.yaml` (0,2,0; exits SW
@@ -1517,7 +1517,7 @@ holds nothing or the same metal — else the hearth lump; the bulk run
 through a transient `UnboundedReceptacle` at `heldK`; the tap scene says
 *"the metal runs bright into the crucible"* or *"…pools on the hearth"*);
 rows `content/trade/smelting/thing/{ingot, ingot-mould, crucible}.yaml`;
-`packages/content/rejection/content/world/terminus/rejection/location/smelter.yaml`
+`packages/content/rejection/content/world/terminus/rejection/place/smelter.yaml`
 props an `ingot-mould` in the room and a `crucible` **in the furnace**
 (Staged `{ template: …/crucible, in: <the furnace entry> }` if `Staged`
 places into an earlier prop as it places onto one — the pump W0 finding;

@@ -3,7 +3,7 @@
 # change. ⭐ A HarborQuay: a ship comes alongside only at the berth the
 # harbormaster gave her (`hail office`), and is in the harbor's book while
 # she lies here. Her way aboard is named for her (`go hesper`).
-class: /system/transport/location/HarborQuay
+class: /system/transport/place/HarborQuay
 data:
   shortDescription: Town Quay
   keywords: [quay, "town quay", wall, berth]

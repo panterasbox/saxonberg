@@ -68,21 +68,21 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 const STORE = '/world/terminus/general-store/shop-floor';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const BANK = '/world/terminus/wharfside/bank';
-const LAVOIR = '/world/terminus/wharfside/lavoir/location/lavoir';
-const LAUNDRY = '/world/terminus/wharfside/lavoir/location/laundry';
+const LAVOIR = '/world/terminus/wharfside/lavoir/place/lavoir';
+const LAUNDRY = '/world/terminus/wharfside/lavoir/place/laundry';
 const SQUARE = '/world/terminus/market/square';
-const BATHS = '/world/terminus/market/bathhouse/location/baths';
-const VESTIBULE = '/world/terminus/market/bathhouse/location/vestibule';
+const BATHS = '/world/terminus/market/bathhouse/place/baths';
+const VESTIBULE = '/world/terminus/market/bathhouse/place/vestibule';
 const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
-const CELLAR = '/world/terminus/hearthworks/location/cellar';
+const CELLAR = '/world/terminus/hearthworks/place/cellar';
 const WARD = '/world/terminus/infirmary/ward';
-const MILL_HOUSE = '/world/terminus/hearts-delight/location/mill-house';
-const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
-const CAMPUS_YARD = '/world/terminus/eternal/campus-farm/location/yard';
+const MILL_HOUSE = '/world/terminus/hearts-delight/place/mill-house';
+const BYRE = '/world/terminus/hearts-delight/dairy/place/byre';
+const CAMPUS_YARD = '/world/terminus/eternal/campus-farm/place/yard';
 
 const T = {
   carcass: '/trade/cooking/agent/hanging-carcass',
@@ -530,7 +530,7 @@ suite('⭐ drive 11 — sulfur burnt in a shut room sours the air (AC 11)', () =
     // ⚠ Its OWN player: an hour in a shut room with sulfur burning kills
     // you — the first drive that tried it left the cook a shade (*"your
     // hand passes through it"* at the next wash), which is the feature.
-    const buyer = await newPlayer('fumes', '/world/terminus/wharfside/chandlery/location/floor');
+    const buyer = await newPlayer('fumes', '/world/terminus/wharfside/chandlery/place/floor');
     const fumesHandle = buyer.handle;
     // ⚠ One nodule (0.05 kg) in a ~27 m³ cellar sits under the trained
     // nose's 0.2% — the chandlery's whole stock of four is what reads.

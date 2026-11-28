@@ -53,7 +53,7 @@ import type { WorkDifficulty } from '@saxonberg/server/mud/lib/ground/Workable';
 import type { TapLanded } from '@saxonberg/server/mud/lib/husbandry/Producing';
 import type { Bulkable } from '@saxonberg/server/mud/lib/bulk/Bulkable';
 import { STOCKMANSHIP } from '../idea/cmd/ranching/HandleController';
-import Tract from '@saxonberg/content-trade-farming/src/location/Tract';
+import Tract from '@saxonberg/content-trade-farming/src/place/Tract';
 import { HeadSeed } from '../lib/HeadSeed';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';

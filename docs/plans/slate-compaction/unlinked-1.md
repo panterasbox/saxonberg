@@ -181,7 +181,7 @@ method (`:145`), `lint:binder-models` (`package.json:69`,
 `lint-family.md:197`), `trait.md:12` (*the Api OO sweep retired
 `TraitApi`*). Still static and unruled: `GroundCharacter.forZone` /
 `resolve` (`packages/content/trade-farming/src/idea/GroundCharacter.ts:202,233`),
-`CirculationWarren.conditionOf`/`admitFor` (`lib/location/CirculationWarren.ts:355,383`),
+`CirculationWarren.conditionOf`/`admitFor` (`lib/place/CirculationWarren.ts:355,383`),
 `HoldingWarren.entryRowOf` (`residence/src/idea/HoldingWarren.ts:193`),
 `Login.generateGuestName` (`Login.ts:200`); `readInt` in 5 files,
 `linearToDb` in 2, `scoreEvents` in 3.

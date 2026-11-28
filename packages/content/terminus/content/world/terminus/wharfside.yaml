@@ -10,7 +10,7 @@
 # ⭐ Standing here and seeing where the city drinks and where it
 # discharges is what makes *the map is the argument* something a player
 # can look at rather than infer.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Wharfside
   cellSize: 4.0

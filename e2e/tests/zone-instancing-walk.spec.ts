@@ -24,7 +24,7 @@ import { openWorldAs, openWorldAsFounder, sendUntil } from './helpers';
 const OUT = process.env.ZONE_WALK_OUT ?? 'test-results/zone-instancing-walk';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const REGISTRY = '/world/terminus/registry/office';
-const LANE = '/world/terminus/hinkley-hills/location/lane';
+const LANE = '/world/terminus/hinkley-hills/place/lane';
 const MOUTH = '/world/terminus/estuary/estuary-mouth';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 const DAY = 86_400;

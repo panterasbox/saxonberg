@@ -45,7 +45,7 @@ function directEntries(state: unknown): string[] {
 /** A scope's prefix: its path to the branch and the class (`/platform/agent/Avatar/…` → `/platform/agent/Avatar`). */
 function prefixOf(scope: string): string {
   const parts = scope.split('/').filter(Boolean);
-  const branch = parts.findIndex((p) => ['agent', 'thing', 'location', 'idea'].includes(p));
+  const branch = parts.findIndex((p) => ['agent', 'thing', 'place', 'idea'].includes(p));
   return '/' + parts.slice(0, branch >= 0 ? Math.min(parts.length, branch + 2) : parts.length).join('/');
 }
 

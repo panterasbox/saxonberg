@@ -45,7 +45,7 @@ import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
-import Tract, { type PlowDone, type PlowRefusal } from '../../../location/Tract';
+import Tract, { type PlowDone, type PlowRefusal } from '../../../place/Tract';
 
 type Composed = ReturnType<typeof Mml.compose>;
 

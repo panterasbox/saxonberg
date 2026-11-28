@@ -27,7 +27,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const WIZARD = { wizard: true, committees: ['/world/terminus'] };
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 

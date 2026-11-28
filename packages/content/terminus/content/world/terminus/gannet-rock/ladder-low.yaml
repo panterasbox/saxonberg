@@ -1,7 +1,7 @@
 # The iron ladder up the outside of the light on Gannet Rock — one storey
 # of it (geography W3: the tower's cells meet one above the other, so the
 # lantern gallery is reached a storey at a time). Open to the sky.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: iron ladder up the light
   keywords: [ladder, rungs, tower, iron]

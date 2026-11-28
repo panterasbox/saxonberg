@@ -14,5 +14,5 @@ data:
       headcount: 1
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/goods-yards/plumbing/location/yard
+    - /world/terminus/goods-yards/plumbing/place/yard
     - /world/terminus/goods-yards/plumbing/thing/counter

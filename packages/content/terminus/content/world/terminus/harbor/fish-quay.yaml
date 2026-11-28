@@ -1,7 +1,7 @@
 # The Fish Quay — the short berth upstream of the Town Quay,
 # twenty-five meters of timber staging where the smacks lie. A HarborQuay of
 # the same book.
-class: /system/transport/location/HarborQuay
+class: /system/transport/place/HarborQuay
 data:
   shortDescription: Fish Quay
   keywords: [quay, "fish quay", staging, berth]

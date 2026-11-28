@@ -9,13 +9,13 @@
 # `address:` resolves every clearing to the Locality at
 # `terminus/rejection/hanging-wood`.
 #
-# ⭐ **Three of its four rooms are STANDS** — `/trade/forestry/location/Wood`,
+# ⭐ **Three of its four rooms are STANDS** — `/trade/forestry/place/Wood`,
 # a place that is ground with a standing cover of trees on it, read by
 # `look`, felled with an axe, refilled only by the increment and by
 # planting. The wood is their sum; each clearing reads and depletes its
 # own. The rows are all this venue ships: no code, which is the claim a
 # second wood in a second locality rests on.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: the Hanging Wood
   cellSize: 10.0

@@ -15,7 +15,7 @@
 # Its own generic classes only (CartesianZone / Location / Trap /
 # Thing) — zero new code; every trap "kind" is a Trap field combination.
 # See docs/subsystems/concealment.md.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Sunken Delve
   cellSize: 3.0

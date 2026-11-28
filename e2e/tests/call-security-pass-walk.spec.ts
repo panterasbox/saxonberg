@@ -13,7 +13,7 @@ import { openWorldAs, openWorldAsFounder, runCommand } from './helpers';
  * yes, typed into the command bar the way a person answers it.
  */
 
-const PUMP_HOUSE = '/world/terminus/wharfside/pumphouse/location/house';
+const PUMP_HOUSE = '/world/terminus/wharfside/pumphouse/place/house';
 const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 

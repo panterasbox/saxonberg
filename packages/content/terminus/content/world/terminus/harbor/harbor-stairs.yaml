@@ -2,7 +2,7 @@
 # wall into the river below the Town Quay: where a boat puts somebody ashore
 # and where a swimmer comes out. A Shore on the Kestrel's line, so the river
 # gives it its way into the water the first time it is used.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: harbor stairs
   keywords: [stairs, steps, "harbor stairs"]

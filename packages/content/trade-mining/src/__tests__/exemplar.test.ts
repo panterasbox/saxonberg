@@ -136,7 +136,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
       expect(path.startsWith('/world/terminus/rejection/')).toBe(true);
       const rel = `content${path}.yaml`;
       expect(existsSync(join(REJECTION, rel))).toBe(true);
-      expect(row(rel).class).toBe('/trade/mining/location/MineRoom');
+      expect(row(rel).class).toBe('/trade/mining/place/MineRoom');
     }
   });
 
@@ -245,13 +245,13 @@ describe('the venue itself', () => {
     // one-particular interior — for the buildings. The four TYPE rows take
     // the permissive class instead, because they are minted many times.
     for (const n of ['pithead-yard', 'adit']) {
-      expect(row(`content/world/terminus/rejection/location/${n}.yaml`).class).toBe(
-        '/platform/location/Locale',
+      expect(row(`content/world/terminus/rejection/place/${n}.yaml`).class).toBe(
+        '/platform/place/Locale',
       );
     }
     for (const n of ['claims-office', 'assay-shed', 'provisioning', 'the-dry']) {
-      expect(row(`content/world/terminus/rejection/location/${n}.yaml`).class).toBe(
-        '/platform/location/Hall',
+      expect(row(`content/world/terminus/rejection/place/${n}.yaml`).class).toBe(
+        '/platform/place/Hall',
       );
     }
     // ⚠⚠ …and the galleries are NOT plain singletons, which is the fix
@@ -263,7 +263,7 @@ describe('the venue itself', () => {
     // bespoke mine works with no warren* a thing an author can DO.
     for (const n of ['cage-bottom', 'timbered-drift', 'winze-head', 'hush-mouth']) {
       expect(row(`content/world/terminus/rejection/ferrow/${n}.yaml`).class).toBe(
-        '/trade/mining/location/AuthoredWorking',
+        '/trade/mining/place/AuthoredWorking',
       );
     }
   });
@@ -319,7 +319,7 @@ describe('the venue itself', () => {
      * region fields, and the subclass is deleted: a region that declares
      * what is under it is just a region.
      */
-    expect(region.class).toBe('/platform/idea/location/CartesianZone');
+    expect(region.class).toBe('/platform/idea/place/CartesianZone');
     /*
      * ⭐ And the region declares the ADDRESS, which is what lets every
      * room here — including the ones the warren mints at runtime, which
@@ -332,7 +332,7 @@ describe('the venue itself', () => {
     // outward, so the pithead inherits it and `measure strike` works
     // standing in the yard. A deposit declared only on the mine zone
     // would leave a prospector on the outcrop with nothing to measure.
-    const pithead = row('content/world/terminus/rejection/location.yaml');
+    const pithead = row('content/world/terminus/rejection/place.yaml');
     expect(pithead.data).not.toHaveProperty('deposit');
     const mine = row('content/world/terminus/rejection/ferrow.yaml');
     expect(mine.data).not.toHaveProperty('deposit');
@@ -350,10 +350,10 @@ describe('the venue itself', () => {
     // ⭐ Cartesian workings, spherical cavern: the grid represents what
     // labour cut, and a cavern was not cut.
     expect(row('content/world/terminus/rejection/hush.yaml').class).toBe(
-      '/platform/idea/location/SphericalZone',
+      '/platform/idea/place/SphericalZone',
     );
     expect(row('content/world/terminus/rejection/ferrow.yaml').class).toBe(
-      '/platform/idea/location/CartesianZone',
+      '/platform/idea/place/CartesianZone',
     );
     // ⚠ And the deposit's authored pin must sit at the mouth's own cell,
     // in metres. A pin the rooms do not match is a feature nobody can
@@ -374,8 +374,8 @@ describe('the venue itself', () => {
     // discovered chamber would be the rowless mint D17 forbids. Seeded
     // pockets that are not authored stay grid cells with their own prose.
     const zones = files(REJECTION, (f) => f.endsWith('.yaml')).filter((rel) =>
-      (row(rel).class ?? '').includes('/location/CartesianZone') ||
-      (row(rel).class ?? '').includes('/location/SphericalZone'),
+      (row(rel).class ?? '').includes('/place/CartesianZone') ||
+      (row(rel).class ?? '').includes('/place/SphericalZone'),
     );
     /*
      * ⭐ FIVE, and the region is one of them. It used to be listed
@@ -418,7 +418,7 @@ describe('the venue itself', () => {
       'content/world/terminus/rejection/hanging-wood.yaml',
       'content/world/terminus/rejection/hush.yaml',
       'content/world/terminus/rejection/kestrel-road.yaml',
-      'content/world/terminus/rejection/location.yaml',
+      'content/world/terminus/rejection/place.yaml',
       'content/world/terminus/rejection/put-in.yaml',
       'content/world/terminus/rejection/quarry.yaml',
       'content/world/terminus/rejection/sand-pit.yaml',

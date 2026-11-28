@@ -14,7 +14,7 @@ import { PerceptionApi } from '../../../../api/perception';
 import { installV1QuantityMarshallers } from '../../../persistence/__tests__/quantity-marshaller-test-helpers';
 import { makeBody, tool, wornBag } from '../../../slot/__tests__/carrying-fixture';
 import { makeStuff } from '../../../security/__tests__/test-setup';
-import Location from '../../../location/Location';
+import Location from '../../../place/Location';
 import type { Stuff } from '../../../stuff/Stuff';
 
 function staged() {

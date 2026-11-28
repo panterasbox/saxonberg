@@ -4,7 +4,7 @@
 # A grid, so every place here plots (the lounge's zone is the exemplar).
 # Ownership (`/world/testbed` → the `testbed` group) lives in the gated
 # `parcels` collection, from the pack's title claim, never on this row.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: testbed
   # ⭐ Where the testbed sits in the address namespace — the Locality

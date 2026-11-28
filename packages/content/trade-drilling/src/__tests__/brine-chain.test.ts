@@ -69,7 +69,7 @@ describe('⭐⭐⭐ the brine meets the pan by TAG', () => {
     // Brine is ninety-odd per cent water and salt is light: you boil it
     // where it comes out of the ground and carry the salt. A fact about
     // freight, and the reason a saltern is a place rather than a shop.
-    const flat = data(`${REJECTION}location/salt-flat.yaml`);
+    const flat = data(`${REJECTION}place/salt-flat.yaml`);
     const props = ((flat.props ?? []) as Array<string | { template: string; on?: string }>).map(
       (p) => (typeof p === 'string' ? p : p.template),
     );
@@ -179,7 +179,7 @@ describe('the labour pool is content, and the hands have no brain', () => {
     // revision — the MINE's changing shack, a different business's
     // building, and a room a brainless hand can never leave, which made
     // the trade depend on relocating somebody who cannot walk.
-    const flat = data(`${REJECTION}location/salt-flat.yaml`);
+    const flat = data(`${REJECTION}place/salt-flat.yaml`);
     const cast = (flat.cast ?? []) as string[];
     expect(cast).toContain('/world/terminus/rejection/agent/roustabout-a');
     expect(cast).toContain('/world/terminus/rejection/agent/roustabout-b');
@@ -188,7 +188,7 @@ describe('the labour pool is content, and the hands have no brain', () => {
       '/world/terminus/rejection/agent/roustabout-a',
     );
     // ...and the Dry is a changing shack again.
-    const dry = data(`${REJECTION}location/the-dry.yaml`);
+    const dry = data(`${REJECTION}place/the-dry.yaml`);
     expect((dry.cast ?? []) as string[]).not.toContain(
       '/world/terminus/rejection/agent/roustabout-a',
     );
@@ -200,7 +200,7 @@ describe('the labour pool is content, and the hands have no brain', () => {
     // and ⛔ putting a trade's goods on the CITY's shelf was refused by
     // the terminus suite — *no pack owns this prefix* — because it makes
     // a locality depend on a trade.
-    const office = data(`${REJECTION}location/claims-office.yaml`);
+    const office = data(`${REJECTION}place/claims-office.yaml`);
     const props = (office.props ?? []) as string[];
     for (const path of [
       '/trade/drilling/thing/bailer',

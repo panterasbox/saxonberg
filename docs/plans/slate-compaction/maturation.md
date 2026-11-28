@@ -38,7 +38,7 @@ pipeline, a deliberate documented choice in `maturation.md` itself).
 ### Cut (SHIPPED · DOCUMENTED)
 - `# Part 0 — the magic is four lines, and the fix is a deletion` (full
   body, ~30 lines) — code: `packages/content/saxonberg-lounge/content/
-  world/lounge/location/bar.yaml` (no `populates:` bottles; comment:
+  world/lounge/place/bar.yaml` (no `populates:` bottles; comment:
   *"the rail is stocked by the keeper BUYING against the par sheet"*),
   the `restocks` brain; doc: `employment.md § restocks — the keeper reads
   the par sheet and buys` (line ~402). Heading + pointer left.
