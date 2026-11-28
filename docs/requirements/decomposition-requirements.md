@@ -235,7 +235,7 @@ of one (repair's rule).*
 ### Rust removal is `brush` with a wire brush
 One verb per act. Brushing rust off is brushing, with a harder tool. It
 clears bloom and flaking, and it **cannot** undo pitting or restore lost
-metal. A wire brush is a tool you can buy at the Rejection claims office.
+metal. A wire brush is on the Rejection claims office's free rack.
 
 ### The probe
 `analyze soundness`, holding a blade, presses into a wooden part. Every
@@ -294,17 +294,18 @@ Nothing in this build runs on the clock, so there is **no soak drive**.
 2. **Rust costs metal.** `instant` · `staged`. Weigh the authored
    anchor against a fresh clone of a sound one: the rusted one is
    lighter.
-3. **A rotten haft gives way.** `instant` · `staged`. Wizard-clone a
-   hatchet authored `rot: punky` on the haft. `look` names the soft haft.
-   `analyze soundness` with a knife: a novice reads *soft*, a competent
-   reader reads *punky*. Use the hatchet: the haft fails within the first
-   uses at its work (the plan names the verb that wears a hatchet's
-   haft), in the shipped failure words, and the hatchet stops working.
+3. **A rotten haft gives way.** `instant` · `player`. Take the hire
+   pick (authored `rot: punky` on the haft) from the Rejection claims
+   office rack. `look` names the soft haft. `analyze soundness` with a
+   knife: a novice reads *soft*, a competent reader reads *punky*.
+   `hew` with it: the haft fails within the first blows, in the shipped
+   failure words, and the pick stops working. *(Was a staged hatchet;
+   no hatchet row exists and no verb wears an axe's haft — plan D14.)*
 4. **Rot is cut out.** `instant` · `player`. `fit` a new haft: the
-   hatchet reads sound and works.
+   pick reads sound and works.
 5. **Rust comes off and the metal stays lost.** `instant` · `player`.
-   At the Rejection claims office, buy a wire brush and a rusty hire
-   tool. `brush` the tool with the wire brush: the bloom is gone, the
+   At the Rejection claims office, take a wire brush and a rusty hire
+   tool from the rack (it is a free rack; the till cannot sell). `brush` the tool with the wire brush: the bloom is gone, the
    pitting remains, and its weight does not come back. `brush` without
    a wire brush does not take rust off, and says so.
 6. **History derives state.** `instant` · `player` then `staged`. Walk
@@ -319,7 +320,7 @@ Nothing in this build runs on the clock, so there is **no soak drive**.
 8. **One-piece things decay.** `instant` · `player`. `look` at the
    mooring ring and the tarnished silver ring: decay read on the whole.
 9. **Restart.** `instant` · `staged`. Restart the world. The anchor,
-   the repaired hatchet, the brushed tool and the bog sword read exactly
+   the re-hafted pick, the brushed tool and the bog sword read exactly
    as they did. The repaired bog sword is not re-decayed from its
    history.
 10. **No clock.** `short` · `staged`. Jump a game day with the bog sword
