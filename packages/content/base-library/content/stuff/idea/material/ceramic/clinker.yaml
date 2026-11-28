@@ -5,6 +5,8 @@
 # outcome — a peak too hot for the body (ceramics M1).
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: clinker
   keywords: [clinker, klinker, brick, vitrified, burnt]
   appearance: fused, blistered clinker, burnt nearly black at the edges

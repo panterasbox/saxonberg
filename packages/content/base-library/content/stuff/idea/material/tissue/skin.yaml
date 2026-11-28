@@ -2,6 +2,8 @@
 # name what it leaves a carcass as. Nothing cites it before its wave.
 class: /platform/idea/material/Hide
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.2 }, mold: { perYear: 0.15 } }
   smells: [{ aroma: /base-library/aromas/hide, strength: 200 }]
   name: skin
   keywords: [skin]

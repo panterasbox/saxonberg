@@ -2,6 +2,8 @@
 # name what it leaves a carcass as. Nothing cites it before its wave.
 class: /platform/idea/material/HideHorn
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.006 }, mold: { perYear: 0.01 } }
   name: ivory
   keywords: [ivory, tusk]
   appearance: creamy ivory, faintly cross-hatched

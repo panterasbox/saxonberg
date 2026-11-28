@@ -40,6 +40,12 @@
  * next reader can see the question was actually asked rather than the
  * snapshot blessed.
  *
+ * **Decomposition W0 (2026-11-28).**
+ *   - `DegradationMixin.degradation` — **1 (name 0)**, the measured-response
+ *     tag its siblings carry (`waterAbsorptionCapacity`, `thermalExpansion`):
+ *     *that oak rots and iron rusts* is open — the field shows; how fast,
+ *     in which ground, is what the probe and the trade teach.
+ *
  * **Matter-model overlaps W4 (2026-11-20).**
  *   - `ToxicityMixin.leaches` → `ExtractionMixin.leaches`, its level kept
  *     (1, name 0): the same field moved to the capability that says *what a

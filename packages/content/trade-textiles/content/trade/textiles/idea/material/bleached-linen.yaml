@@ -14,6 +14,8 @@
 # needs its tannin.
 class: /platform/idea/material/Fiber
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.05 }, mold: { perYear: 0.06 }, fade: { perYear: 0.03 } }
   name: bleached linen
   keywords: [linen, bleached, white, "bleached linen"]
   appearance: bright bleached linen

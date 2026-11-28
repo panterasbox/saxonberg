@@ -2,6 +2,8 @@
 # insulator (near still air): a thin down layer authors a high `clo`.
 class: /platform/idea/material/HideHorn
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.06 }, mold: { perYear: 0.06 } }
   name: down
   keywords: [down]
   appearance: soft lofted down

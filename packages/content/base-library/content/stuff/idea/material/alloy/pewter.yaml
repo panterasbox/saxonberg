@@ -13,6 +13,8 @@
 # figure for pewter.
 class: /platform/idea/material/ToxicAlloy
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.004, product: tarnish } }
   name: pewter
   keywords: [pewter]
   appearance: soft grey pewter

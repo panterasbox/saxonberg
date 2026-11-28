@@ -13,11 +13,15 @@
 # elements are `ElementalMetal`, `ToxicMetal` or `NonMetal`.
 class: /platform/idea/material/RadioactiveMetal
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.02, product: black oxide } }
   name: uranium
   keywords: [uranium]
   density: 19050
   specificHeat: 116
   thermalConductivity: 27
+  # Linear thermal expansion (1/K), the handbook figure (decomposition W0 fill).
+  thermalExpansion: 1.4e-05
   tags: ["element", "metal", "actinide", "radioactive", "heavy"]
   symbol: U
   atomicNumber: 92

@@ -8,6 +8,8 @@
 # gave it (W1).
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: terracotta
   keywords: [terracotta, clay, earthenware, fired]
   appearance: porous orange-red terracotta

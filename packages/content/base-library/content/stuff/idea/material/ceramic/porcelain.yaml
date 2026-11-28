@@ -4,6 +4,8 @@
 # realm digs kaolin, so a porcelain streak plate comes from away.
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: porcelain
   keywords: [porcelain, china, fired]
   appearance: hard white porcelain, unglazed and faintly rough

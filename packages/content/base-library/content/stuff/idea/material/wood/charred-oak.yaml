@@ -13,6 +13,8 @@
 class: /platform/idea/material/Wood
 extends: /stuff/idea/material/wood/oak
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.005 } }
   smells: [{ aroma: /base-library/aromas/char, strength: 3 }]
   name: charred oak
   keywords: ["charred oak"]

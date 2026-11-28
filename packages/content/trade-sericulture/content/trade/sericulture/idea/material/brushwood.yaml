@@ -3,6 +3,8 @@
 # a tray with none on it spins a day late, on its own floor, and lighter.
 class: /platform/idea/material/Fiber
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.08 }, mold: { perYear: 0.06 } }
   smells: [{ aroma: /base-library/aromas/wood, strength: 10 }]
   burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: brushwood

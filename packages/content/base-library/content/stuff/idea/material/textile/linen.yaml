@@ -16,6 +16,8 @@
 # plant fibre from a protein one.
 class: /platform/idea/material/Fiber
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.05 }, mold: { perYear: 0.06 }, fade: { perYear: 0.03 } }
   burning: [{ aroma: /base-library/aromas/smoke/paper-smoke, strength: 300 }]
   name: linen
   keywords: [flax, linen]

@@ -186,6 +186,7 @@ import type { Fusion } from '../lib/material/Fusion';
 import type { Volatility } from '../lib/material/Volatility';
 import type { Solidity } from '../lib/material/Solidity';
 import type { Porosity } from '../lib/material/Porosity';
+import type { Degradation } from '../lib/material/Degradation';
 import type { Edibility } from '../lib/material/Edibility';
 import type { Toxicity } from '../lib/material/Toxicity';
 import type { Extraction } from '../lib/material/Extraction';
@@ -2036,6 +2037,10 @@ export class MixinApi {
 
   public static hasPorosity(obj: Stuff): obj is Stuff & Porosity {
     return this.hasMixin(obj, Mixins.Porosity);
+  }
+
+  public static hasDegradation(obj: Stuff): obj is Stuff & Degradation {
+    return this.hasMixin(obj, Mixins.Degradation);
   }
 
   public static hasEdibility(obj: Stuff): obj is Stuff & Edibility {

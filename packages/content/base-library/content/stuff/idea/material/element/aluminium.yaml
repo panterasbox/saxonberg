@@ -11,11 +11,15 @@
 # point of this row — see the aluminium-can slate.
 class: /platform/idea/material/ElementalMetal
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.002, product: white oxide } }
   name: aluminium
   keywords: [aluminium]
   density: 2700
   specificHeat: 897
   thermalConductivity: 237
+  # Linear thermal expansion (1/K), the handbook figure (decomposition W0 fill).
+  thermalExpansion: 2.3e-05
   # Electrical conductivity (S/m) — ~3.5×10⁷, ~60 % of copper by volume
   # but twice copper per unit mass (overhead power lines are aluminium).
   electricalConductivity: 3.5e7

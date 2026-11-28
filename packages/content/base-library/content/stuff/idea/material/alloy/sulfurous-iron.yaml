@@ -18,6 +18,8 @@
 # not is `forgeable`, which is the one tag a smith's hand reaches for.
 class: /platform/idea/material/Alloy
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.05, product: rust } }
   name: hot-short iron
   keywords: [iron, "hot-short", sulfurous, bloom]
   appearance: dull grey iron showing a sickly yellow bloom in the fracture

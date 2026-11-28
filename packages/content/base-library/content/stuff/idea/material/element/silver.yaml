@@ -1,0 +1,34 @@
+# Silver — Ag, atomic number 47. A soft white metal, the best electrical and
+# thermal conductor of any metal, and the one that tarnishes: it does not
+# rust in air, but the trace of sulfur in the air (and in eggs, rubber and
+# wool) lays a film of black silver sulfide on it, which is why an old ring
+# reads dark at its edges. Authored for the ring of veil (decomposition W0),
+# which says it is tarnished silver and had no material to be.
+class: /platform/idea/material/ElementalMetal
+data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.01, product: tarnish } }
+  name: silver
+  keywords: [silver]
+  density: 10490
+  specificHeat: 235
+  thermalConductivity: 429
+  # Linear thermal expansion (1/K), the handbook figure (decomposition W0 fill).
+  thermalExpansion: 1.9e-05
+  # Elasticity (% strain it springs back from; rubber build) — yield over modulus.
+  elasticity: 0.07
+  # Electrical conductivity (S/m) — the best of any metal, ~6.3×10⁷.
+  electricalConductivity: 6.3e7
+  # Mechanical response (materials-response): softer than copper and as
+  # tough — silver is worked cold, drawn to wire and beaten to leaf.
+  hardness: 100
+  toughness: 100
+  # Phase change (thermal): melts at 1235 K, boils at 2435 K.
+  meltingPoint: 1235
+  latentHeatOfFusion: 105000
+  boilingPoint: 2435
+  latentHeatOfVaporization: 2390000
+  tags: ["element", "metal", "non-ferrous", "forgeable", "crystalline", "conductor"]
+  symbol: Ag
+  atomicNumber: 47
+  molarMass: 107.868

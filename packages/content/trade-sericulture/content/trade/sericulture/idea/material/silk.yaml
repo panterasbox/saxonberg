@@ -3,6 +3,8 @@
 # other fibre. What boiling raw silk in the piece leaves behind.
 class: /platform/idea/material/HideHorn
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.04 }, mold: { perYear: 0.05 }, fade: { perYear: 0.04 } }
   name: silk
   keywords: [silk]
   appearance: soft, white, lustrous silk

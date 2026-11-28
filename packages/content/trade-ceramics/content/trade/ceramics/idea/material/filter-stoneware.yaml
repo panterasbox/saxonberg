@@ -9,6 +9,8 @@
 # glaze closes the pores, and a filter that holds water is a jar.
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: filter stoneware
   keywords: [stoneware, "filter stoneware", pottery, fired]
   appearance: fine, chalky buff stoneware, dry to the touch and faintly absorbent

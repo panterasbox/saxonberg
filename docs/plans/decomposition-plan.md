@@ -367,6 +367,14 @@ Rows (starting figures; W0's outcome test is the contract):
 - wool, linen, canvas, hemp, jute: rot 0.05 / mold 0.06 / fade 0.03;
 - `frost: {}` on granite, limestone, chalk, slate, gypsum, brick,
   terracotta, earthenware.
+- ⚠ **Re-planned at W0:** frost goes on the fired bodies only (every
+  `Ceramic` row) — `Stone` is the base of `Glass`, `Soil`, `Clay`, `Ore`,
+  `Crystal` and `Plaster`, and glass and sand do not spall; chalk is a
+  `PigmentPaint`. The rocks' frost waits for brickmaking-slate. And
+  `lint:material-kinds` arm (d) counts a composed field no row authors,
+  so EVERY row of the five kinds now authors `degradation` (88 rows
+  across 11 packs, not just the list above); the `-brash` rows do not
+  `extends:` their wood, so they author their own.
 
 No family parent rows are invented: none exist, and the template
 taxonomy pass (build-2's queue) owns that tree. The inheritance that is
@@ -552,7 +560,7 @@ doc (`docs/subsystems/decay.md`) is written at `/finalize`.
 |---|---|---|---|
 | `decay`, `history` (seed), `decayMarks`, `lostKg`, the four methods | `DurableMixin` | every thing with a condition can carry a decay mark | every Durable host is a material article with a condition; each can honestly be rusted, rotted or spalled. Hosts that will never be authored so carry two empty fields, the cost `mends` already has. No guard re-narrows: legality is the MATERIAL's (`degradation`), not the class's |
 | `decay?`, `lostKg?` | `PartLine` | a line can be decayed | a line is a material member; yes |
-| `degradation`, `decayOver` | `DegradationMixin` on `Metal`, `Wood`, `Fiber`, `HideHorn` (kind classes in `platform/idea/material/`) and on `Stone`, `Ceramic` | every metal, wood, fibre, hide, stone and fired body breaks down in its surroundings | true of each kind; a noble metal is a row with no `corrosion` key, which is a fact about that metal. NOT on `Material` (gases, water, foods — the mirror failure: "inert" on 300 rows) |
+| `degradation`, `decayOver` | `DegradationMixin` on `Metal`, `Wood`, `Fiber`, `HideHorn` (kind classes in `platform/idea/material/`) and on `Ceramic` (⚠ not `Stone` — re-planned at W0, see D6) | every metal, wood, fibre, hide, stone and fired body breaks down in its surroundings | true of each kind; a noble metal is a row with no `corrosion` key, which is a fact about that metal. NOT on `Material` (gases, water, foods — the mirror failure: "inert" on 300 rows) |
 | `DurableMixin` | `Bollard` | a bollard has a condition | a post or ring in the weather; four rows; yes |
 | `DurableMixin` | arcana `Ring` | a ring has a condition | a worn metal article; yes. It gains no `repair` verb (that is Assembled's) |
 | mass loss | `Tangible.getMass` reading `Durable.getLostMass` | mass knows about lost metal | the wet-law precedent in the same method; `Durable` does not override mass (that would put mass on the wear axis) |
@@ -625,7 +633,7 @@ Checked this cycle, not recalled.
 Each wave ends green on `pnpm test:near`, every touched pack's vitest,
 and `pnpm -C packages/server lint:family`, and at the named commit.
 
-### W0 — the vocabulary and what materials suffer
+### W0 — the vocabulary and what materials suffer ✅ done
 
 Implements D2 (table only), D6.
 
@@ -646,6 +654,17 @@ Implements D2 (table only), D6.
 - Acceptance: every listed material answers `suffers`; iron's product is
   rust, bronze's verdigris, silver's tarnish; nothing reads them yet.
 - Commit: `build(decomposition W0): the decay vocabulary and material susceptibility`
+
+**W0 ✅ done (SHA_W0).** `DecayMark.ts` carries a second value class,
+`DecayScale` (one mechanism's ladder: `bands`, `hasBand`, `bandAt`,
+`mark`) — that is the "instance-reachable" home for `bandAt`, no statics;
+`DECAY_MECHANISMS` is declared in `lint:closed-vocabularies`'
+`CLOSED_BY_DESIGN`. `Degradation` also answers `ratePerYear` for W3.
+Deviations: composed on `Ceramic`, not `Stone` (D6 note); all 88 rows of
+the five kinds author `degradation` so the data-gap ratchet holds, and
+the new silver row's gaps are offset by handbook `thermalExpansion` /
+`elasticity` fills on eight metal rows (6170 / 6170). Spoiler snapshot:
+`degradation` at 1 (name 0), logged.
 
 ### W1 — a part can be decayed, and it behaves
 

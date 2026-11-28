@@ -146,6 +146,13 @@ export const CLOSED_BY_DESIGN: Readonly<Record<string, string>> = {
     'the same and must not borrow this reason: ~400 receptor types, no ' +
     'agreed basis set, and "primary odors" is a research programme that ' +
     'failed. Aroma words are rows for that reason.',
+  DECAY_MECHANISMS:
+    'How a thing breaks down in its surroundings (decomposition D2): each ' +
+    'mechanism is engine arithmetic — a driver over an environment, a ' +
+    'ladder of bands with condition ceilings and metal lost, and a cure ' +
+    'some verb applies (scouring, brushing, dye). A row cannot add one ' +
+    'nothing derives or cures; a sixth (abrasion, shipworm) is code, and ' +
+    'the NUMBERS are rows already (`degradation:` on every material).',
   DIFFICULTIES:
     'A designed ladder of act difficulty. The rungs ARE the design, and ' +
     'the advancement maths reads their ordinal — a sixth rung is a ' +

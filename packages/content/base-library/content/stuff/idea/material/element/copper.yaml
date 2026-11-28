@@ -3,11 +3,17 @@
 # non-magnetic.
 class: /platform/idea/material/ElementalMetal
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.008, product: verdigris } }
   name: copper
   keywords: [copper]
   density: 8960
   specificHeat: 385
   thermalConductivity: 401
+  # Linear thermal expansion (1/K), the handbook figure (decomposition W0 fill).
+  thermalExpansion: 1.7e-05
+  # Elasticity (% strain it springs back from; rubber build) — yield over modulus.
+  elasticity: 0.06
   # Electrical conductivity (S/m) — the wiring standard, ~6×10⁷.
   electricalConductivity: 6.0e7
   # ⚠ Mechanical response (materials-response): MPa / MJ·m⁻³. Copper

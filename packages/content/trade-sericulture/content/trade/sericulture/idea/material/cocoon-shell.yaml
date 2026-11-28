@@ -13,6 +13,8 @@
 # shelf.
 class: /platform/idea/material/HideHorn
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.05 }, mold: { perYear: 0.05 } }
   smells: [{ aroma: /base-library/aromas/animal/silkworm, strength: 30 }]
   name: spun silk
   keywords: [cocoon, cocoons]

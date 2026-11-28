@@ -8,6 +8,8 @@
 # bleeds. Neither is this row's: sizing is a COAT on the sheet.
 class: /platform/idea/material/Fiber
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.1 }, mold: { perYear: 0.15 } }
   burning: [{ aroma: /base-library/aromas/smoke/paper-smoke, strength: 300 }]
   name: paper
   keywords: [paper]

@@ -23,6 +23,8 @@
 # about the tanning trade. The trade is what does something with it.
 class: /platform/idea/material/Hide
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.15 }, mold: { perYear: 0.1 } }
   smells: [{ aroma: /base-library/aromas/hide, strength: 800 }]
   name: rawhide
   keywords: [rawhide, hide, skin, green, pelt]

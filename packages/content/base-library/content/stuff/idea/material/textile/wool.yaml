@@ -3,6 +3,8 @@
 # thermalConductivity is why a wool layer authors meaningful `clo`.
 class: /platform/idea/material/HideHorn
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.05 }, mold: { perYear: 0.06 }, fade: { perYear: 0.03 } }
   smells: [{ aroma: /base-library/aromas/animal/sheep/wet-wool, strength: 20 }]
   name: wool
   keywords: [wool]

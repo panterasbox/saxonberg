@@ -442,6 +442,8 @@ export const Mixins = {
   Volatility: 'VolatilityMixin',
   Solidity: 'SolidityMixin',
   Porosity: 'PorosityMixin',
+  // What breaks it down in its surroundings — rust, rot, mold, fade, frost (decomposition).
+  Degradation: 'DegradationMixin',
   Edibility: 'EdibilityMixin',
   Toxicity: 'ToxicityMixin',
   // What a wall of it gives what it holds — a leach, an aroma (matter-model-overlaps D11).

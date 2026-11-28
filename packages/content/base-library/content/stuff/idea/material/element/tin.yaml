@@ -15,11 +15,15 @@
 # claim, not an omission.
 class: /platform/idea/material/ElementalMetal
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.003, product: grey oxide } }
   name: tin
   keywords: [tin]
   density: 7310
   specificHeat: 228
   thermalConductivity: 67
+  # Linear thermal expansion (1/K), the handbook figure (decomposition W0 fill).
+  thermalExpansion: 2.2e-05
   # Electrical conductivity (S/m) — a conductor, but a poor one beside
   # copper's 6×10⁷.
   electricalConductivity: 9.17e6

@@ -15,6 +15,8 @@
 # (`/stuff/idea/material/food/maple-sap`), and that is the species row's.
 class: /platform/idea/material/Wood
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.07 }, mold: { perYear: 0.06 } }
   smells: [{ aroma: /base-library/aromas/wood, strength: 1 }]
   burning: [{ aroma: /base-library/aromas/smoke/wood-smoke, strength: 300 }]
   name: maple

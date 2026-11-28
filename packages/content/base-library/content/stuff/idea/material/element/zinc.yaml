@@ -7,6 +7,8 @@
 # harder, and lowers the melt by a hundred and fifty degrees.
 class: /platform/idea/material/ElementalMetal
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.01, product: white rust } }
   name: zinc
   keywords: [zinc, spelter]
   density: 7140

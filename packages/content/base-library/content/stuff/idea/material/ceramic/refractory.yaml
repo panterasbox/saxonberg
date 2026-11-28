@@ -4,6 +4,8 @@
 # gritty, and it wears — a lining is a part that burns away.
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: refractory fireclay
   keywords: [refractory, fireclay, firebrick, fired]
   appearance: pale, gritty refractory fireclay

@@ -4,6 +4,8 @@
 # heat history.
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: earthenware
   keywords: [earthenware, pottery, clay, fired]
   appearance: hard-fired buff-red earthenware

@@ -5,6 +5,8 @@
 # author's numbers.
 extends: /stuff/idea/material/wood/hazel
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.07 }, mold: { perYear: 0.06 } }
   name: hazel brash
   keywords: ["hazel brash", brash]
   ashFraction: 0.03

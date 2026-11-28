@@ -2,6 +2,8 @@
 # turned to the grey-green the Chinese called celadon. ⭐ The reducing twin.
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: celadon stoneware
   keywords: [stoneware, celadon, grey, reduced, fired]
   appearance: grey-green celadon stoneware, fired starved of air

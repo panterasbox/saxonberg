@@ -4,6 +4,8 @@
 # piece becomes is decided by the firing's air, not by a recipe.
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: grey terracotta
   keywords: [terracotta, clay, grey, reduced, fired]
   appearance: smoke-grey terracotta, fired starved of air

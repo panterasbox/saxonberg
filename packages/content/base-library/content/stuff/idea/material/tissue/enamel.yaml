@@ -2,6 +2,8 @@
 # name what it leaves a carcass as. Nothing cites it before its wave.
 class: /platform/idea/material/HideHorn
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: enamel
   keywords: [enamel, tooth]
   appearance: glassy white tooth enamel

@@ -15,11 +15,15 @@
 # with.
 class: /platform/idea/material/ToxicMetal
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.004, product: white crust } }
   name: lead
   keywords: [lead]
   density: 11340
   specificHeat: 128
   thermalConductivity: 35
+  # Linear thermal expansion (1/K), the handbook figure (decomposition W0 fill).
+  thermalExpansion: 2.9e-05
   electricalConductivity: 4.55e6
   # Mechanical response: softer than tin is hard, and no use for an edge.
   hardness: 38

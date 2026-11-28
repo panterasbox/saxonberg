@@ -4,6 +4,8 @@
 # firing are the temper of the next.
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: grog
   keywords: [grog, grit, chamotte]
   appearance: coarse reddish grit of crushed fired clay

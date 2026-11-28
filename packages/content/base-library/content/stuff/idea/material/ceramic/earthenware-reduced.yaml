@@ -3,6 +3,8 @@
 # Staffordshire blue. ⭐ The reducing twin (ceramics D3).
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: blue earthenware
   keywords: [earthenware, blue, brick, reduced, fired]
   appearance: dense blue-black earthenware, fired starved of air

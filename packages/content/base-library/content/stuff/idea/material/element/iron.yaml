@@ -3,11 +3,15 @@
 # slash/blunt resistance baseline for weapon-grade materials.
 class: /platform/idea/material/ElementalMetal
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { corrosion: { perYear: 0.04, product: rust } }
   name: iron
   keywords: [iron]
   density: 7874
   specificHeat: 449
   thermalConductivity: 80
+  # Linear thermal expansion (1/K), the handbook figure (decomposition W0 fill).
+  thermalExpansion: 1.2e-05
   # Elasticity (% strain it springs back from; rubber build).
   elasticity: 0.2
   # Electrical conductivity (S/m) — a good conductor, ~1×10⁷.

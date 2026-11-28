@@ -3,6 +3,8 @@
 # dormant animal, not food going off, and it keeps through a winter.
 class: /platform/idea/material/HideHorn
 data:
+  # ⭐ Decomposition: what breaks it down in its surroundings (progress per game year at a driver of 1).
+  degradation: { rot: { perYear: 0.3 }, mold: { perYear: 0.2 } }
   name: silkworm egg
   keywords: [eggs, seed, graine]
   appearance: a scatter of tiny grey eggs like poppy seed

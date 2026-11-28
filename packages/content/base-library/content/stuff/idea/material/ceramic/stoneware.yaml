@@ -4,6 +4,8 @@
 # glassy body cannot take a cook fire (the thermal-shock read, W2).
 class: /platform/idea/material/Ceramic
 data:
+  # ⭐ Decomposition: frost spalls it — authorable as a state; not derived from a history yet.
+  degradation: { frost: {} }
   name: stoneware
   keywords: [stoneware, pottery, clay, fired]
   appearance: dense grey stoneware that rings when tapped
