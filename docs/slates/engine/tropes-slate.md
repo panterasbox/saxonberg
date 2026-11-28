@@ -573,7 +573,7 @@ The test (§ 0): **stop the bleeding with a framework trades and jobs adopt as t
 | **2. the work record** | the credit call takes the act's **definition**, never a Discipline name; failure and abandonment recorded; the counterparty carried; rope's knots and the medicine operations onto their rows | this is what a trade adopts — it must exist before the next trade |
 | **3. beats and the matcher** | the detected beats the roster needs — work · give · exchange · harm · kill · spare · yield · promise · keep · break · aid · provide · abandon · tell (introductions only); asserted beats as rows; look-back by ledger query; writes cite trope and act; tellings by the reading rules | the mechanism, all kernel, no opinion |
 | **4. the roster pack** | a new optional pack: the § 6 build-1 roster and the asserted beats; the hand-written writers moved onto it and **deleted** | proves it on real behavior, today's as the regression check |
-| **5. the ratchet** | trait, regard and renown writes outside the matcher at **0**; Discipline credit by name at today's count, falling | stops the bleeding — a new trade cannot do it the old way |
+| **5. the ratchet** | trait, regard and renown writes outside the matcher at **2 named residuals** (the lounge's dialogue effect until motives; the hand-fed bond, which is mechanics), falling to 0; Discipline credit by name at today's count, falling | stops the bleeding — a new trade cannot do it the old way |
 
 Rulings for build 1:
 

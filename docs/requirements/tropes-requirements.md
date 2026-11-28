@@ -209,7 +209,9 @@ The full pass is slate § 4b. In short:
 - NPCs are characterized by their acts.
 - With the roster pack absent, nothing characterizes anyone and every trade still runs.
 - After a restart, every trope write is there, and a trope that looks back still completes.
-- No hand-written trait, regard or renown write can merge; no new Discipline-by-name credit can
+- No hand-written trait, regard or renown write can merge — except two named, counted residuals:
+  the lounge's dialogue regard effect (untouched until motives) and the hand-fed bond's regard
+  (bond mechanics, not a reading); no new Discipline-by-name credit can
   merge; rope's knots and the medicine operations credit from their rows.
 
 ## Cross-references
