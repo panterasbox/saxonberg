@@ -37,7 +37,7 @@ import { ContainmentApi } from '../../../api/containment';
 import { Quantity } from '../../quantity';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { chargeWood } from './burner-fuel';
 import type { Stuff } from '../../stuff/Stuff';
 import type { Burner } from '../Burner';

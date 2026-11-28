@@ -165,7 +165,7 @@ function circleScopeFor(playerId: string): string {
 }
 
 /** The circle entry-room template (generic prose; skinnable later). */
-const CIRCLE_FLOOR_PATH = '/platform/location/sandbox/CircleFloor';
+const CIRCLE_FLOOR_PATH = '/platform/place/sandbox/CircleFloor';
 
 /**
  * Lazy circle materialization: ensure the session has its space, minted
@@ -194,7 +194,7 @@ async function ensureCircle(state: SessionState): Promise<Stuff & Container> {
     null,
     'sandbox.ensureCircle',
     async () => {
-      // ⚠ No fallback. A missing `/platform/location/sandbox/CircleFloor`
+      // ⚠ No fallback. A missing `/platform/place/sandbox/CircleFloor`
       // row is a boot fault, not a case to paper over — the bare
       // stand-in meant a circle could silently open onto an undescribed
       // room and nobody would know which one they were in.

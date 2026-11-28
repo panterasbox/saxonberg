@@ -126,13 +126,13 @@ function installStore(): void {
   // Each smack is a copy of her kind's zone, named under its row by her
   // serial (zone-instancing D11).
   add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
-  add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
-  add(DECK, '/platform/location/Compartment', { coords: { x: 0, y: 0, z: 0 },
+  add(ROOMS, '/platform/idea/place/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
+  add(DECK, '/platform/place/Compartment', { coords: { x: 0, y: 0, z: 0 },
     floorM: 1.8, exits: { down: { destination: HOLD } },
     shortDescription: 'smack deck',
     props: [{ template: STAFF, as: 'flagstaff' }, { template: FLAG, on: 'flagstaff' }],
   });
-  add(HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
+  add(HOLD, '/platform/place/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(STAFF, '/platform/thing/Flagstaff', { shortDescription: 'flagstaff' });
   add(FLAG, '/platform/thing/Flag', { shortDescription: 'test ensign', keywords: ['flag', 'ensign'], brand: 'flag-test-city' });
   add(COMPANY, '/platform/idea/Company', {
@@ -143,7 +143,7 @@ function installStore(): void {
     startsShiftOnHire: true,
   });
   // A landing on a frame keeps who lies at it (its roll); a Shore is the plain one.
-  add(LANDING, '/platform/location/Shore', { shortDescription: 'a landing', props: [BOLLARD] });
+  add(LANDING, '/platform/place/Shore', { shortDescription: 'a landing', props: [BOLLARD] });
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
   add('/stuff/thing/Key', '/platform/thing/Key', { shortDescription: 'a key' });
   add('/platform/idea/Government/test-city', '/platform/idea/Government', { key: 'test-city', name: 'the City of Test', shipRegister: REG });

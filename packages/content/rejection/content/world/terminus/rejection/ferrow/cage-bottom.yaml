@@ -5,7 +5,7 @@
 # shaft was abandoned and the adit took over, which is how mining
 # vocabulary works: the word outlives the machine. A called,
 # capacity-limited lift is a later stage's, and an adit needs none.
-class: /trade/mining/location/AuthoredWorking
+class: /trade/mining/place/AuthoredWorking
 data:
   shortDescription: cage bottom
   keywords: [bottom, "cage bottom", cage, junction]
@@ -18,7 +18,7 @@ data:
   coords: { x: 0, y: -1, z: -1 }
   exits:
     north:
-      destination: /world/terminus/rejection/location/adit
+      destination: /world/terminus/rejection/place/adit
     west:
       destination: /world/terminus/rejection/ferrow/timbered-drift
   props:

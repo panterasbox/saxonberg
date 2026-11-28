@@ -16,9 +16,9 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import Location from '../../location/Location';
-import StreetClass from '../../../platform/location/Street';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
+import Location from '../../place/Location';
+import StreetClass from '../../../platform/place/Street';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
 import Locality from '../../../platform/idea/Locality';
 import { VisionModality } from '../../../platform/idea/modalities/VisionModality';
 import { MixinApi } from '../../../api/mixin';

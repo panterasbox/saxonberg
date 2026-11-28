@@ -107,14 +107,14 @@ The band phrase, tint and notices reach the transcript *because* they are sent u
 
 ---
 
-## 1. Dave's Bar: `content/saxonberg-lounge/content/world/lounge/location/bar.yaml`
+## 1. Dave's Bar: `content/saxonberg-lounge/content/world/lounge/place/bar.yaml`
 
 ### a. Chain and mixins
-- **Row chain:** `bar.yaml` (class `/world/lounge/location/Bar`) `extends: /trade/hospitality/location/bar` (class `/platform/location/Locale`).
+- **Row chain:** `bar.yaml` (class `/world/lounge/place/Bar`) `extends: /trade/hospitality/place/bar` (class `/platform/place/Locale`).
 - **Class chain:**
-  - `world/lounge/location/Bar.ts` → `platform/location/Locale.ts`
-  - → `lib/location/Locale.ts` = `SingletonMixin(Location)`
-  - → `lib/location/Location.ts` = `Staged(Exitable(CartesianCoordinates(Place)))`
+  - `world/lounge/place/Bar.ts` → `platform/place/Locale.ts`
+  - → `lib/place/Locale.ts` = `SingletonMixin(Location)`
+  - → `lib/place/Location.ts` = `Staged(Exitable(CartesianCoordinates(Place)))`
   - → `lib/stuff/Place.ts` = `Addressable(AmbientLit(Atmospheric(Adornable(Container(Visible(Detailed(Perceptible(Stuff))))))))`
 - **Verified mixins:** Perceptible, Detailed, Visible, Container, Adornable, Atmospheric, AmbientLit, Addressable, CartesianCoordinates, Exitable, Staged, Singleton. The census also lists `Slotted`, which I didn't find in the chain; it probably comes in through Container or Adornable, but I didn't verify it.
   - With **markupAugmenters:** Detailed (`wrapDetailKeysAugmenter`) and Visible (`senseStripAugmenter`). That's all.
@@ -128,10 +128,10 @@ The band phrase, tint and notices reach the transcript *because* they are sent u
   - `shortDescription: Dave's Bar`, `register: proper`, `keywords [bar, "dave's", dave]`, `illustration: location/bar.png`, `coords 0,0,0` in zone `/world/lounge` (`cellSize: 4.0`).
   - The long description has two paragraphs. It starts *"A narrow, warm room that smells of citrus peel and old wood…"*, mentions *"Neon signs and brass tap handles wash the far wall in an amber haze"*, and ends *"The lounge is back through the doorway to the south."*
   - `details`: signs, photos, mug, bills, slab, stools, each with keywords and a story.
-  - `exits.north`: `/world/lounge/location/office`, `concealment: hidden`, `hint: "A hairline seam runs up the north wall behind the taps, and a thread of cooler air leaks from it — as though a door were pretending to be a wall."`
+  - `exits.north`: `/world/lounge/place/office`, `concealment: hidden`, `hint: "A hairline seam runs up the north wall behind the taps, and a thread of cooler air leaks from it — as though a door were pretending to be a wall."`
   - `adornments`: the `neon-veshko` NeonSign ("Volk neon sign", 95 lm, 2000 K) and the `neon-aevex` NeonSign ("aevex zero sign", 90 lm, 6500 K). NeonSign = `Adornment(Branded(LightSource(Thing)))`.
   - Props added: works-board, receiving-bench, 2× bandage (`as: dressing-1/2`, **no `on:`**, so they are loose on the floor despite the "behind the rail" comment), house-tablet (replaces the parent's), bar-counter ("bar", definite), and bar-menu ("chalkboard menu").
-  - Cast: mara, remy, sloane, augie, dave. Shifts come from `idea/business.yaml` `rosterSlots`, and off-shift staff go to `/world/lounge/location/offstage`.
+  - Cast: mara, remy, sloane, augie, dave. Shifts come from `idea/business.yaml` `rosterSlots`, and off-shift staff go to `/world/lounge/place/offstage`.
 - **South exit:** wired at runtime by `LoungeWarren.wireHostFixtures` (`world/lounge/idea/LoungeWarren.ts:252-276`) as a doorless bidirectional north/south pair.
 
 ### c. `look` output reconstructed
@@ -234,10 +234,10 @@ None from the room itself. Verbs live on the props: `order` on the bar-counter, 
 
 ---
 
-## 2. The lounge: `content/saxonberg-lounge/content/world/lounge/location/lounge.yaml`
+## 2. The lounge: `content/saxonberg-lounge/content/world/lounge/place/lounge.yaml`
 
 ### a. Chain and mixins
-- `class: /world/lounge/location/Lounge` = `LoungeMixin(WarrenMemberMixin(lib/location/Location))` (`world/lounge/location/Lounge.ts`). It is **not** a Locale and **not** a Singleton.
+- `class: /world/lounge/place/Lounge` = `LoungeMixin(WarrenMemberMixin(lib/place/Location))` (`world/lounge/place/Lounge.ts`). It is **not** a Locale and **not** a Singleton.
 - Mixins: the Bar's set minus Singleton, plus WarrenMember and Lounge. Augmenters are again only Detailed and Visible.
 - The Warren (`idea/warren.yaml`, class `LoungeWarren` = `Singleton(RoomWarren)`) owns membership.
 - **Host vs satellite:**
@@ -308,7 +308,7 @@ None from the room. The terminal (`teleport`/route verbs), the check-rack (`chec
 I chose this one because it is under the sky, has a biome, has derived stand prose, and ties to specimen 4 (oak). Zone: `hanging-wood/rejection.yaml`… the zone is `/world/terminus/rejection/hanging-wood`, a CartesianZone with `cellSize: 10.0`, so 100 m².
 
 ### a. Chain and mixins
-- `class: /trade/forestry/location/Wood` (`content/trade-forestry/src/location/Wood.ts`) = `Persistable(Stand(Soil(Reserved(Locale))))`.
+- `class: /trade/forestry/place/Wood` (`content/trade-forestry/src/place/Wood.ts`) = `Persistable(Stand(Soil(Reserved(Locale))))`.
 - Mixins: the Bar set + Reserved, Soil, Stand, Persistable (census agrees).
 - **Augmenters:** Detailed, Visible, and **Stand** (`standAugmenter`, `content/trade-forestry/src/lib/Stand.ts:226-231, 267`), which runs last.
 - `commandContributions.inventory = [fell.yaml, tap.yaml]` (`Stand.ts:258-264`). These are subject-sourced verbs for people standing here.

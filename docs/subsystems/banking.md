@@ -296,7 +296,7 @@ reissue).
 - **Tabs** — ⚠ **retired** (the Attendant + Goodkin cycle, below: *"the
   tab is gone — zero credit anywhere until credit is designed for real"*).
   The Phase-4 `TabMixin` / `tab` verb described here no longer exist
-  (`world/lounge/location/Bar.ts` records the retirement; no `tab.yaml`,
+  (`world/lounge/place/Bar.ts` records the retirement; no `tab.yaml`,
   no controller). Soft credit at a venue is the credit ladder's rung 2 in
   [economic-bootstrap-requirements](../requirements/economic-bootstrap-requirements.md);
   the original tab design survives in the crafting slate. *(Corrected

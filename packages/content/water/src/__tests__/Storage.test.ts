@@ -86,7 +86,7 @@ const WORLD: Row[] = [
     // ⭐ Terminus is FLAT by construction — 5 m of ground, which is
     // exactly why it needs a tower to get any head at all.
     path: '/world/flatcity',
-    class: '/platform/idea/location/CartesianZone',
+    class: '/platform/idea/place/CartesianZone',
     data: { elevation: 5 },
   },
 ];

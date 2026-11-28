@@ -26,7 +26,7 @@
  * See docs/subsystems/electricity.md.
  */
 
-import Hall from '../../platform/location/Hall';
+import Hall from '../../platform/place/Hall';
 import { MixinApi } from '../../api/mixin';
 import { ElectricityApi } from '../../api/electricity';
 import { MessageApi } from '../../api/message';

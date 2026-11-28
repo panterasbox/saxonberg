@@ -40,7 +40,7 @@ describe("AppSettings", () => {
         _id: "r",
         values: {
           [AppSettingKeys.defaultStartLocation]: "/world/lounge/idea/warren",
-          [AppSettingKeys.evacuationFallback]: "/platform/location/void",
+          [AppSettingKeys.evacuationFallback]: "/platform/place/void",
         },
       },
     ]);

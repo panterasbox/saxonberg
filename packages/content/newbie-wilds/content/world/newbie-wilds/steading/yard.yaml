@@ -7,7 +7,7 @@
 # ⭐ A Shore (size and carrying drive, step 16): the pond is a water the
 # yard stands beside, so `swim` is sayable here and `swim west` takes the
 # way in. As a plain Locale the yard told you to swim and offered no verb.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: yard of an old steading
   keywords: [yard, steading, farmstead]

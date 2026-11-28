@@ -23,7 +23,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Vat from '../../../platform/thing/Vat';
 import MaturationProfile from '../../../lib/maturation/MaturationProfile';
 import Material from '../../material/Material';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { WorldClockApi } from '../../../api/worldclock';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

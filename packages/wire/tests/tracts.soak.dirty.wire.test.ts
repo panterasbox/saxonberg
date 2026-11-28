@@ -34,7 +34,7 @@ declareFile({
 
 const DAY = 86_400;
 const VALLEY = '/world/terminus/hearts-delight/valley';
-const VALLEY_LANE = '/world/terminus/hearts-delight/location/valley-lane';
+const VALLEY_LANE = '/world/terminus/hearts-delight/place/valley-lane';
 const REALTY = '/world/terminus/realty/office';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const STORE = '/world/terminus/general-store/shop-floor';

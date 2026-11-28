@@ -1,4 +1,4 @@
-import { attachGraph } from '../../location/__tests__/attachments-fixture';
+import { attachGraph } from '../../place/__tests__/attachments-fixture';
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { Expanse } from '../Expanse';

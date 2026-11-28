@@ -1,6 +1,6 @@
 collection: location_graph
 owner: PlaceNode
-ownerModule: /lib/location/PlaceNode
+ownerModule: /lib/place/PlaceNode
 subsystem: location-graph.md
 summary: >-
   The world's shape: one row per PLACE and the exits leading out of it.

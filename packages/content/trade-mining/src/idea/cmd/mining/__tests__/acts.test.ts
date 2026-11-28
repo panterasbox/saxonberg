@@ -31,9 +31,9 @@ import SinkController from '../SinkController';
 import RaiseController from '../RaiseController';
 import MineWarren from '../../../MineWarren';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
-import MineRoom from '../../../../location/MineRoom';
+import MineRoom from '../../../../place/MineRoom';
 import Ore from '../../../../thing/Ore';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
@@ -72,10 +72,10 @@ const GRANITE = '/stuff/idea/material/rock/granite';
 const MALACHITE = '/stuff/idea/material/mineral/malachite';
 const QUARTZ = '/stuff/idea/material/mineral/quartz';
 const TYPE_ROWS = {
-  face: '/world/fx-mine/location/face',
-  junction: '/world/fx-mine/location/junction',
-  stope: '/world/fx-mine/location/stope',
-  fall: '/world/fx-mine/location/fall',
+  face: '/world/fx-mine/place/face',
+  junction: '/world/fx-mine/place/junction',
+  stope: '/world/fx-mine/place/stope',
+  fall: '/world/fx-mine/place/fall',
 };
 
 const VIEWS = fileURLToPath(

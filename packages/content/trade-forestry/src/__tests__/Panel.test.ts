@@ -43,7 +43,7 @@ import {
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
-import Wood from '../location/Wood';
+import Wood from '../place/Wood';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';

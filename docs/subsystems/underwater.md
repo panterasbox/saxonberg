@@ -11,9 +11,9 @@ and what lives by the water, and magic below the surface.
 
 This doc is the source of truth for:
 
-- kernel — `lib/location/WaterPlace.ts` (`WaterPlaceMixin`),
-  `lib/location/WaterColumn.ts` (the `WaterColumnMixin` seam),
-  the water half of `lib/location/Shore.ts` (`wayIntoWater`, the depth in
+- kernel — `lib/place/WaterPlace.ts` (`WaterPlaceMixin`),
+  `lib/place/WaterColumn.ts` (the `WaterColumnMixin` seam),
+  the water half of `lib/place/Shore.ts` (`wayIntoWater`, the depth in
   words, `onWaterRead`), `lib/biome/Medium.ts` (the medium vocabulary),
   `BiomeApi.mediumFor`, the in-water burden in
   `lib/encumbrance/LoadBearing.ts`, the water branch of
@@ -22,11 +22,11 @@ This doc is the source of truth for:
   `platform/idea/cmd/movement/LocomotionControllerBase.ts`,
   `AscendController` + `DescendController` (over `SwimVerticalControllerBase`), the water branches of `SwimController` and
   `LieController`, `lib/spatial/{Pullable,Tossable}.ts`, `BuoyMixin`;
-- the water pack — `packages/content/water/src/location/Band.ts`,
+- the water pack — `packages/content/water/src/place/Band.ts`,
   `idea/ColumnWarren.ts`, `idea/exits/ColumnExit.ts`, `lib/AirPocket.ts`,
   `lib/Tide.ts`, the tide halves of `WaterExpanse` and
   `WatercourseCatalogue`, and the band rows under
-  `content/system/water/location/band/`;
+  `content/system/water/place/band/`;
 - `packages/content/trade-diving/` entire.
 
 The breath itself — the store, the urge, cold shock, the ears, the bends,
@@ -187,7 +187,7 @@ the system's, so a second water needs zero rows):
 - ⚠ **Sideways** between two neighboring waters' columns was not built —
   nothing that ships has two water places side by side (river-slate).
 
-**`Band`** (`/system/water/location/Band`) =
+**`Band`** (`/system/water/place/Band`) =
 `WaterPlaceMixin(SwimmableMixin(ShoreMixin(PersistableMixin(WarrenMemberMixin(Location)))))`,
 stamped at bud with `surface` and `band` and its surface's water. It
 authors nothing of its own water — every read is the surface's. Its
@@ -376,7 +376,7 @@ physiology-slate's.
 ## Rescue
 
 ⭐ Getting something out of a water by hand — `pullOut`, `loadNamed`,
-`deliverOut` — is `HaulOutMixin`'s (`lib/location/HaulOut.ts`), carved off
+`deliverOut` — is `HaulOutMixin`'s (`lib/place/HaulOut.ts`), carved off
 `WaterPlaceMixin` at controllers-are-io D6. Every water place composes both
 (a co-use split); `pull` and a line's landing narrow on `MixinApi.isHaulOut`.
 
@@ -601,7 +601,7 @@ breath burn (respiration.md).
 
 ## Files
 
-- kernel: `lib/location/{WaterPlace,WaterColumn,Shore,WaterSource}.ts`,
+- kernel: `lib/place/{WaterPlace,WaterColumn,Shore,WaterSource}.ts`,
   `lib/biome/Medium.ts`, `lib/encumbrance/LoadBearing.ts`,
   `lib/spatial/{Pullable,Tossable}.ts`, `lib/stuff/Place.ts`
   (`groundRefusal`), `lib/boundary/Exit.ts` (`crossingRealS`,
@@ -610,9 +610,9 @@ breath burn (respiration.md).
   `platform/idea/cmd/posture/LieController.ts`,
   `platform/idea/cmd/inventory/{PullController,WriteOnController}.ts`;
   views `platform/cmd/movement/{descend,ascend,swim}.yaml`.
-- water pack: `src/location/Band.ts`, `src/idea/ColumnWarren.ts`,
+- water pack: `src/place/Band.ts`, `src/idea/ColumnWarren.ts`,
   `src/idea/exits/ColumnExit.ts`, `src/lib/{AirPocket,Tide}.ts`; rows
-  `content/system/water/location/band/{lit,dark,bed}.yaml`,
+  `content/system/water/place/band/{lit,dark,bed}.yaml`,
   `content/system/water/idea/exits/{column,underwater}.yaml`.
 - trade-diving: `src/thing/{Lifeline,LineEnd,Bell,Hoist,AirPump,AirBag,SignalBell,Slate,Spear,TideAlmanac}.ts`,
   `src/behavior/{tends,cranks,surveys}.ts`,

@@ -1,0 +1,105 @@
+# The farmstead yard — somebody's place, on the poor ground.
+class: /platform/place/Locale
+data:
+  shortDescription: farmstead yard
+  keywords: [yard, farmstead, farm, house]
+  register: definite
+  _address: terminus/hearts-delight/farmstead-yard
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 40000
+  ambientColorTemperature: 5800
+  longDescription: |
+    A hard-swept yard between a low stone house and a barn a good deal bigger than the house. Hens. A cart with one wheel off, up on a block, which has clearly been that way a while.
+
+    The ground here is the colour of the road — pale, dry and full of small stones. It is not the flats and nobody here pretends it is.
+
+    A shelf under the barn eaves has sacks on it and a slate with prices chalked up, and the flock book lying open beside them. A scrubbed block stands against the barn wall with a gutter cut round three sides of it and a drain under the fourth.
+
+    There are sheep somewhere up the hill — you can hear them before you see them — and two dogs in the yard, one of them working and one of them asleep in the sun.
+  coords: { x: -20, y: 0, z: 7 }
+  exits:
+    east:
+      destination: /world/terminus/hearts-delight/place/bench-lane
+      kind: /platform/idea/exits/track
+      media: [ground]
+      edgeMinutes: 6
+    north:
+      destination: /world/terminus/hearts-delight/place/barn
+      media: [ground]
+      edgeMinutes: 1
+    up:
+      destination: /world/terminus/hearts-delight/bench-field/place/upper-bench
+      kind: /platform/idea/exits/track
+      media: [ground]
+      edgeMinutes: 4
+    west:
+      destination: /world/terminus/hearts-delight/bench-field/place/lower-meadow
+      media: [ground]
+      edgeMinutes: 1
+    # The way back up to the close — it always had a way down (the
+    # location graph saw it once the close became a place, cover W6).
+    # ⚠ Cardinal: the close is in this zone (Location.addExit), and `up`
+    # is the bench's.
+    northwest:
+      destination: /world/terminus/hearts-delight/bench-field/place/orchard-close
+      kind: /platform/idea/exits/track
+      media: [ground]
+      edgeMinutes: 3
+  props:
+    - /world/terminus/hearts-delight/thing/farm-shelf
+    # ⭐ (ceramics W6) A few old clay pots by the door for the seedlings —
+    # bought in years ago, before the store's pot line came from the
+    # Delight pottery. Bounded; nothing restocks them.
+    - { template: /trade/farming/thing/pot/small, count: 2 }
+    - /trade/farming/thing/pot/large
+    # ⭐ The flock book — on the shelf with the price slate, because that
+    # is where a farmer keeps the paperwork he actually uses. `draft` and
+    # `return` are afforded by it, so the flock is reachable from here.
+    - /world/terminus/hearts-delight/thing/flock-book
+    # ⭐⭐ The ox book and the hen book — and NEITHER STOOD HERE until the
+    # reachability sweep, which is why the yard's own prose describes a
+    # plough team and a verb could not reach one. `draft` and `return`
+    # are afforded by the BOOK (`Herdbook.ts:70-74`), so a book nobody
+    # propped is a herd that does not exist: the refusal was
+    # `unknown-target` on a register the room describes.
+    #
+    # ⚠ The ox book was in neither this file nor `pack.yaml`'s warm list,
+    # while the flock book was in both. One herd reachable, one not, by
+    # omission.
+    - /world/terminus/hearts-delight/thing/ox-book
+    # ⭐ The hens (authorized 2026-10-07). There was no chicken anywhere in
+    # the realm: a full species row with an egg tap and a butchery yield,
+    # named by no herdbook and no cast. See the row's own header.
+    - /world/terminus/hearts-delight/thing/hen-book
+    # ⭐⭐ **The killing place is a BLOCK and a sentence**, not a premises.
+    # A smallholder does not have a slaughterhouse; he has a scrubbed
+    # block against the barn wall and a bad morning twice a year. The
+    # block is cooking's shipped row — the same one a kitchen uses — which
+    # is the point: there is one butchery and this is where it happens on
+    # a farm.
+    - /trade/cooking/thing/butcher-block
+    # ⭐⭐ **And a KNIFE, because a farm with a butcher block has one.**
+    # The drive found this by not finding it: `butcher` is afforded by an
+    # EDGE rather than a class, and a farmyard where the only blade is
+    # three miles away in a shop made the most ordinary act in the build
+    # — a smallholder killing a sheep — reachable only by going shopping
+    # first. A block with no knife beside it was the odd thing, not the
+    # knife.
+    - /trade/cooking/thing/boning-knife
+  cast:
+    - /world/terminus/hearts-delight/agent/farmer
+    # ⭐⭐ TWO dogs, and the pair is the content: the unnamed collie is
+    # refused the knife for having no butchery yield (a fact about dogs);
+    # Moss is refused for having been named (a fact about somebody's
+    # choice). AC4 and AC5 need both, and they must not read alike.
+    - /world/terminus/hearts-delight/agent/sheepdog
+    - /world/terminus/hearts-delight/agent/moss
+  details:
+    block:
+      keywords: [block, butcher-block, gutter, drain]
+      description: |
+        A section of elm trunk, waist high, scrubbed pale and dished in the middle from years of use. A gutter is cut round three sides and the fourth runs out to a drain in the yard. It is the cleanest thing in the yard by a long way, and nobody has to be told why.
+    slate:
+      keywords: [slate, prices, board, chalk]
+      description: |
+        Wheat, and a price, and the price has been rubbed out and written again twice. Underneath, in a smaller hand: *"no credit."*

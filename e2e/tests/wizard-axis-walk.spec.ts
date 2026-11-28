@@ -19,7 +19,7 @@ import { openWorldAs, runCommand } from './helpers';
  *    Minister to whoever is not one.
  */
 
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();

@@ -76,9 +76,9 @@ declareFile({
 });
 
 const STREET = '/world/terminus/mayfield-row/street';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 const STORE = '/world/terminus/general-store/shop-floor';
-const YARD = '/world/terminus/eternal/campus-farm/location/yard';
+const YARD = '/world/terminus/eternal/campus-farm/place/yard';
 
 const COACH_ROW = '/system/transport/thing/coach';
 // ⚠⚠ **Only rows under a TITLED root can be cloned by anybody.**
@@ -94,8 +94,8 @@ const RATIONS_ROW = '/world/terminus/general-store/thing/rations';
 
 /* Part E's places. */
 const CORRIDOR = '/world/newbie-wilds/delve/corridor-1';
-const LANE = '/world/terminus/hinkley-hills/location/lane';
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const LANE = '/world/terminus/hinkley-hills/place/lane';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
 const HORSE_ROW = '/system/transport/agent/draft-horse';
 /*
@@ -1221,7 +1221,7 @@ suite('H — a room can be named, and a cellar can be read', () => {
      * visited has no instance for MQL to bind.
      */
     const cellar = await at(
-      '/trade/hospitality/location/cellar',
+      '/trade/hospitality/place/cellar',
       'cellarer',
       true,
     );
@@ -1255,7 +1255,7 @@ suite('H — a room can be named, and a cellar can be read', () => {
      * bare `Location` has no extent to cube. A volume means the room
      * resolved a zone.
      */
-    const barkeep = await at('/world/lounge/location/bar', 'barkeep', true);
+    const barkeep = await at('/world/lounge/place/bar', 'barkeep', true);
     const said = squash(
       plain(await (await barkeep.cmd('trace atmosphere')).said()),
     );

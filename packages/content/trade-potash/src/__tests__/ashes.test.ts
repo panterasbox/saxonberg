@@ -5,7 +5,7 @@
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../behavior/ashes';
-import Location from '@saxonberg/server/mud/lib/location/Location';
+import Location from '@saxonberg/server/mud/lib/place/Location';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
 import Stock from '@saxonberg/server/mud/lib/retail/Stock';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';

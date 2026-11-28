@@ -66,12 +66,12 @@ declareFile({
 });
 
 const SH = '/world/terminus/goods-yards/sugar-house';
-const FLOOR = `${SH}/location/ground/boiling-floor`;
-const CURING = `${SH}/location/ground/curing-house`;
-const STORE = `${SH}/location/ground/store`;
-const PROVISIONING = '/world/terminus/rejection/location/provisioning';
-const PANTRY = '/world/terminus/goods-yards/pantry/location/floor';
-const DISTILLERY = '/world/terminus/goods-yards/veshko/location/distillery';
+const FLOOR = `${SH}/place/ground/boiling-floor`;
+const CURING = `${SH}/place/ground/curing-house`;
+const STORE = `${SH}/place/ground/store`;
+const PROVISIONING = '/world/terminus/rejection/place/provisioning';
+const PANTRY = '/world/terminus/goods-yards/pantry/place/floor';
+const DISTILLERY = '/world/terminus/goods-yards/veshko/place/distillery';
 const SUGARBUSH = '/world/terminus/rejection/hanging-wood/sugarbush';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
 const GLOWCAP = '/world/terminus/rejection/thing/glowcap-jar';
@@ -306,11 +306,11 @@ async function buyEstateBlocks(want: number): Promise<number> {
   // the boiler's beats skipped (the probes saw juice go to burnt toffee).
   await toWorkMorning(0);
   sailor.close();
-  sailor = await goTo(sailorHandle, `${W}/boiling-house/location/train-floor`);
+  sailor = await goTo(sailorHandle, `${W}/boiling-house/place/train-floor`);
   await new Promise((r) => setTimeout(r, 60 * 60_000));
   await toWorkMorning(4);
   sailor.close();
-  sailor = await goTo(sailorHandle, `${W}/location/store`);
+  sailor = await goTo(sailorHandle, `${W}/place/store`);
   let bought = 0;
   for (let minute = 0; minute < 60 && bought < want; minute++) {
     await new Promise((r) => setTimeout(r, 60_000));
@@ -720,7 +720,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
   it('14. ⭐ warm air, rich ground, the volcano, and sulfur won at the vents', async () => {
     sailor.close();
     await daylight();
-    sailor = await goTo(sailorHandle, `${W}/location/cane-piece`);
+    sailor = await goTo(sailorHandle, `${W}/place/cane-piece`);
     // ⭐ Warmer than Terminus — not "warm": thirty degrees in January is
     // Madeira's winter (a night reads ~284 K against the estuary's 273).
     const feel = await say(sailor, 'analyze temperature');
@@ -731,10 +731,10 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     const soil = await say(sailor, 'analyze soil');
     expect(soil.length).toBeGreaterThan(10);
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/location/volcano`);
+    sailor = await goTo(sailorHandle, `${W}/place/volcano`);
     expect(await say(sailor, 'look')).toMatch(/cone|plume|ash/i);
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/location/fumaroles`);
+    sailor = await goTo(sailorHandle, `${W}/place/fumaroles`);
     await say(sailor, 'get spade');
     const dug = await act(sailor, 'dig with spade');
     expect(dug.length).toBeGreaterThan(0);
@@ -743,14 +743,14 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
   it('15. ⭐ cut cane, milled at once: juice and bagasse; a bundle left a day reads inverted', async () => {
     sailor.close();
     await daylight();
-    sailor = await goTo(sailorHandle, `${W}/location/cane-piece`);
+    sailor = await goTo(sailorHandle, `${W}/place/cane-piece`);
     // ⭐ By hand, a swath at a time (cover build): bare hands cut about
     // half a bundle a stroke, so the sailor cuts until two are in hand.
     for (let i = 0; i < 8 && (await sailor.query('me:i:bundle')).length < 2; i++) {
       await act(sailor, 'harvest cane');
     }
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/location/mill-yard`);
+    sailor = await goTo(sailorHandle, `${W}/place/mill-yard`);
     // Two bundles in hand: one is crushed, the other is KEPT in hand for the
     // day-old read — a bundle left in the yard is the miller's to crush
     // (drive 11 found nothing left to read).
@@ -772,7 +772,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
   it('16. ⭐ wet bagasse will not light; the train burns better than the open kettle', async () => {
     sailor.close();
     await daylight();
-    sailor = await goTo(sailorHandle, `${W}/boiling-house/location/train-floor`);
+    sailor = await goTo(sailorHandle, `${W}/boiling-house/place/train-floor`);
     const train = await examine(sailor, 'train');
     expect(train).toMatch(/copper|flue|train/i);
     expect(await say(sailor, 'look')).toMatch(/kettle|arch|train/i);
@@ -781,12 +781,12 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
   it('17. ⭐ cane sells at the estate counter, and the owner is a named person', async () => {
     sailor.close();
     await daylight();
-    sailor = await goTo(sailorHandle, `${W}/location/lower-piece`);
+    sailor = await goTo(sailorHandle, `${W}/place/lower-piece`);
     for (let i = 0; i < 4 && (await sailor.query('me:i:bundle')).length < 1; i++) {
       await act(sailor, 'harvest cane');
     }
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/location/store`);
+    sailor = await goTo(sailorHandle, `${W}/place/store`);
     // ⭐ The estate pays for cane out of what its till has taken. In an idle
     // world it has taken nothing (drive 11: "The house cannot pay for that
     // just now" — the idle-economy finding in the plan), so money goes in
@@ -808,7 +808,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     // She stays ON the island through the wait: its hands work while it is
     // loaded, and a sailor who leaves takes the island's attention with her.
     const bought = await buyEstateBlocks(1);
-    if (bought < 1) await books(`${W}/location/store`);
+    if (bought < 1) await books(`${W}/place/store`);
     expect(bought, 'the estate never shelved a block of its own sugar').toBe(1);
   }, 9_000_000);
 
@@ -856,11 +856,11 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
 
     // Over the sea: buy at the estate, aboard, home over the bar, ashore.
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/location/store`);
+    sailor = await goTo(sailorHandle, `${W}/place/store`);
     // The estate sells only what it has boiled; earlier steps bought the
     // shelf out, so a hauler waits for the next blocks off the curing floor.
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/location/store`);
+    sailor = await goTo(sailorHandle, `${W}/place/store`);
     // ⭐ ONE island block is what this step proves — bought at the estate,
     // sailed home in the hold, landed on the bench. The house posts what
     // it is short of up to a par of 8 (four, drive 25), and the estate
@@ -871,7 +871,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     let bought = 0;
     if (/you buy/i.test(await say(sailor, 'buy block'))) bought++;
     if (bought < 1) bought += await buyEstateBlocks(1);
-    if (bought < 1) await books(`${W}/location/store`);
+    if (bought < 1) await books(`${W}/place/store`);
     expect(bought, 'the estate never had a block to sell').toBe(1);
     // ⭐ Cleared before she sails: the jetty's dues and
     // step 13's charter days are paid at the estate store — the island's
@@ -879,7 +879,7 @@ suite.skipIf(!isOwnedTestWorld())('⭐⭐ sugar — Stage B, Waponi Woo and the 
     const paidUp = await say(sailor, 'pay office');
     expect(paidUp, `pay office: ${paidUp}`).toMatch(/You pay|owe nothing/i);
     sailor.close();
-    sailor = await goTo(sailorHandle, `${W}/location/landing`);
+    sailor = await goTo(sailorHandle, `${W}/place/landing`);
     await say(sailor, 'go hesper');
     // ⭐ Chartered again from the book in her hold: her helm is
     // the charterer's until she next berths at a kept quay.

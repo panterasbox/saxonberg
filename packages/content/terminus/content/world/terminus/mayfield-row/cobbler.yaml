@@ -2,7 +2,7 @@
 # boots and shoes, under the `mayfield-row` district beside the tailor.
 # The MECHANISM — the mend, the band table, the paid service — is the
 # kernel's; this is rows. A second cobbler is a copy of this directory.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Cobbler's
   # Covered by a Locality, so a walk here files claims on your map

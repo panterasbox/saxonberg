@@ -115,7 +115,7 @@ describe('a zone row cannot author a field the hydrator will discard', () => {
   });
 
   it('⚠ the two that were silently discarded are declared now', async () => {
-    const declared = (await fieldsOf('/platform/idea/location/CartesianZone'))!;
+    const declared = (await fieldsOf('/platform/idea/place/CartesianZone'))!;
     // `deposit` — vanished off a plain CartesianZone; cost a live drive.
     expect(declared.has('deposit')).toBe(true);
     // `address` — AddressLogic's documented step 2, unreachable until now.

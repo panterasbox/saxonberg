@@ -72,7 +72,7 @@ data:
   # longest prefix either way.
   homeExtent: /world/terminus/hearts-delight
   # ⭐ In the close under the cherries (cover build D8) — applied once.
-  grazing: /world/terminus/hearts-delight/bench-field/location/orchard-close
+  grazing: /world/terminus/hearts-delight/bench-field/place/orchard-close
   grazingField: sward
   details:
     lambed:

@@ -1,0 +1,34 @@
+# The plaza — the testbed's square (test-world-lifecycle D2). Outdoor, lit by
+# the sky. The building's three rooms open off it (the hall north through its
+# doors, the bank west, the shop east), the hut's window looks onto it from
+# the southwest, and the annex lies northwest. A noticeboard and the greeter.
+# ⚠ TEST-ONLY.
+class: /platform/place/Street
+data:
+  shortDescription: testbed plaza
+  keywords: [plaza, square, testbed]
+  register: definite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  longDescription: |
+    A small paved square. A noticeboard stands at its center. Double doors lead north into the hall, the bank is to the west and the shop to the east. A hut's window looks onto the square from the southwest, a lane leads northwest to the annex, and the approach runs south.
+  coords: { x: 0, y: 0, z: 0 }
+  exits:
+    north:
+      destination: /world/testbed/building/place/hall
+      door: /world/testbed/thing/hall-doors
+    west:
+      destination: /world/testbed/building/place/bank
+    east:
+      destination: /world/testbed/building/place/shop
+    south:
+      destination: /world/testbed/place/approach
+    southwest:
+      destination: /world/testbed/place/hut
+      door: /world/testbed/thing/hut-window
+    northwest:
+      destination: /world/testbed/annex/place/lot
+  props:
+    - /world/testbed/thing/job-board
+  cast:
+    - /world/testbed/agent/greeter
+    - /world/testbed/agent/cat

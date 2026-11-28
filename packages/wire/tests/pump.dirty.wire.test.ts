@@ -66,9 +66,9 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
-const YARD = '/world/terminus/rejection/location/pithead-yard';
-const HINKLEY = '/world/terminus/hinkley-hills/location/arrival';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
+const YARD = '/world/terminus/rejection/place/pithead-yard';
+const HINKLEY = '/world/terminus/hinkley-hills/place/arrival';
 /** The yard → the claims office → the hillside the deep well is on. */
 const TO_THE_HILLSIDE = ['north', 'north'] as const;
 const BACK_TO_THE_OFFICE = ['southwest'] as const;
@@ -546,8 +546,8 @@ suite('7. a dead brine bore: bail it once, then fit a pump', () => {
 
 const BANK = '/world/terminus/wharfside/bank';
 const SQUARE = '/world/terminus/market/square';
-const LANE = '/world/terminus/hinkley-hills/location/lane';
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const LANE = '/world/terminus/hinkley-hills/place/lane';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
 
 suite('8. the intake draws real power; the aqueduct draws none', () => {
   it('⭐⭐ analyze water the intake reads the kilowatts — and says it is short of them', async () => {

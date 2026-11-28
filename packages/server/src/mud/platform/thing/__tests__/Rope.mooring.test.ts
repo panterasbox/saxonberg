@@ -15,7 +15,7 @@ import RopeEnd from '../RopeEnd';
 import Bollard from '../Bollard';
 import Structure from '../../../lib/structure/Structure';
 import { TemplatePaths } from '../../../lib/paths';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import { Character } from '../../../lib/character/Character';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

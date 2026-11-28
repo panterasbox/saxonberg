@@ -25,8 +25,8 @@ data:
     - brain: /lib/behavior/cellars
       trigger: candidate
       config:
-        home: /world/terminus/goods-yards/veshko/location/distillery
-        counterRoom: /trade/distribution/location/cash-and-carry
+        home: /world/terminus/goods-yards/veshko/place/distillery
+        counterRoom: /trade/distribution/place/cash-and-carry
         crushes: [light-rum-wash, dark-rum-wash]
         buys:
           - { keyword: molasses, count: 1 }

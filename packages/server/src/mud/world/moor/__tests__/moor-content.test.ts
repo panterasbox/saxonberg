@@ -30,7 +30,7 @@ function templateExists(path: string): boolean {
 
 describe('The Weeping Moor — content integrity', () => {
   it('the zone is a CartesianZone', () => {
-    expect(seed('world/moor').class).toBe('/platform/idea/location/CartesianZone');
+    expect(seed('world/moor').class).toBe('/platform/idea/place/CartesianZone');
   });
 
   it('the Locality carries an alive storm pin over the `moor` prefix', () => {
@@ -44,7 +44,7 @@ describe('The Weeping Moor — content integrity', () => {
     const heath = seed('world/moor/stormy-heath');
     // A SHORE since the maritime build's revision 3: a Locale
     // that names its tarn as the Holloway's head.
-    expect(heath.class).toBe('/platform/location/Shore');
+    expect(heath.class).toBe('/platform/place/Shore');
     expect(heath.data?.waters).toEqual({ tarn: 'holloway:head' });
     expect(heath.data?._biomePath).toBe('/stuff/idea/biome/outdoor/baseline');
     expect(heath.data?._address).toBe('moor/heath');
@@ -56,7 +56,7 @@ describe('The Weeping Moor — content integrity', () => {
 
   it('the weeping chamber is an indoor scope-pinned rain room', () => {
     const chamber = seed('world/moor/weeping-chamber');
-    expect(chamber.class).toBe('/platform/location/Locale');
+    expect(chamber.class).toBe('/platform/place/Locale');
     expect(chamber.data?._biomePath).toBe('/stuff/idea/biome/indoor/baseline');
     expect(chamber.data?._weatherPin).toEqual({ type: 'rain', mode: 'frozen' });
     expect(chamber.data?._humidity).toBe(98); // authored sodden air

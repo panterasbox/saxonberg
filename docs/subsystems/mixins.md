@@ -191,9 +191,9 @@ hosts): `HeatedMixin` (`lib/fire/`, `heat`), `WashableMixin` and
 `SweepableMixin` (`lib/cleanliness/`), `SampleableMixin` (`lib/instrument/`),
 `ReadableMixin` (`lib/description/`), `WaterDrawableMixin` (`lib/bulk/`,
 water in reach), `AnchoringMixin` (`lib/expanse/`) and `LaunchableMixin`
-(`lib/location/`); and in packs' `src/lib/`: `FellableMixin`
+(`lib/place/`); and in packs' `src/lib/`: `FellableMixin`
 (trade-forestry), `AssayingMixin` (trade-mining), `HammerableMixin` and
-`QuenchableMixin` (trade-smithing). `WayIndexMixin` (`lib/location/`, W21)
+`QuenchableMixin` (trade-smithing). `WayIndexMixin` (`lib/place/`, W21)
 is a capability, not a protocol — no verb calls it. Table:
 [architecture.md § Available Mixins](../architecture.md).
 ⚠ `FormingMixin` is NOT one — it carries authored state (`forms`,

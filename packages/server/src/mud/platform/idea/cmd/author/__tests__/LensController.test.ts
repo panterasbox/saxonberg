@@ -11,7 +11,7 @@ import LensController from '../LensController';
 import LensOnController from '../LensOnController';
 import LensOffController from '../LensOffController';
 import Avatar from '../../../../agent/PrimaryAvatar';
-import Location from '../../../../../lib/location/Location';
+import Location from '../../../../../lib/place/Location';
 import Thing from '../../../../thing/Thing';
 import Holder from '../../../../../lib/stuff/Holder';
 import { SealableMixin } from '../../../../../lib/spatial/Sealable';

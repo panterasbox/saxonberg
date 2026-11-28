@@ -118,7 +118,7 @@ the Delight's flats hold trout and carp. **No table anywhere.**
 
 ⭐⭐ **The shore is a PLACE, not an object in it** (maritime revision 3,
 2026-10-11 — the water pack's `Shore` Thing and `Gunwale` retired). A
-waterside place is a `/platform/location/Shore` (or a `Quay`, the lit
+waterside place is a `/platform/place/Shore` (or a `Quay`, the lit
 public waterfront: the wharfside bank) — the kernel's `ShoreMixin`, on
 those two classes only. It already describes its water as one of its own
 features (`details: { river: … }`), in its own words, and says which
@@ -130,7 +130,7 @@ wins), the three mere shores, the *Hesper*'s deck and the headland brow
 (`sea` → the Greywater, its position derived — see below).
 
 The kernel never parses the citation. It asks a **`WaterSourceMixin`**
-(`lib/location/WaterSource.ts`, the `GroundSource` shape): a cited path
+(`lib/place/WaterSource.ts`, the `GroundSource` shape): a cited path
 is its own source (a sea), anything else goes to the realm's default
 source, `water.sourcePath` → `WatercourseCatalogue`. Two implementers:
 the catalogue (a reach) and `WaterExpanse` (a sea).

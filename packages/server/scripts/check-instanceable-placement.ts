@@ -186,7 +186,7 @@ function classResolves(classPath: string, sources: readonly PackSource[]): boole
  * `/trade/<industry>/` must sit under that industry's `obj/` or
  * `command/` segment. Exported for the test beside this script.
  */
-export const BRANCHES = ['thing', 'idea', 'agent', 'location'] as const;
+export const BRANCHES = ['thing', 'idea', 'agent', 'place'] as const;
 export function tradePlacementOk(
   path: string,
   hasClass: boolean,
@@ -208,7 +208,7 @@ export function tradePlacementOk(
 /**
  * Invariant 8, the pure decision: a capability pack's `src/` has the
  * kernel's taxonomy and nothing else — every module under a branch
- * directory (`thing/`, `idea/`, `agent/`, `location/`), or the pack's
+ * directory (`thing/`, `idea/`, `agent/`, `place/`), or the pack's
  * `behavior/` (a brain — one file per brain, flat), or `lib/`
  * (substrate that is only ever inherited — see {@link packLibShapeOk}).
  * `rel` is `src/`-relative with forward slashes; tests are not modules.

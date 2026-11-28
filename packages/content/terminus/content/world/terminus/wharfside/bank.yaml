@@ -7,7 +7,7 @@
 # a quay of the Port of Terminus's book — a ship left here owes dues like one
 # left at the Town Quay. The Ostrander, the city's own river service, is
 # exempt.
-class: /system/transport/location/HarborQuay
+class: /system/transport/place/HarborQuay
 data:
   harbor: /world/terminus/harbor/idea/harbor
   # ⭐⭐ The town lights this street (envelope W5) — a PROPERTY of the
@@ -66,7 +66,7 @@ data:
     # ⭐ The tinker's yard (repair D15), behind the warehouses — his round
     # starts and ends here; the yard declares `bank` back.
     tinkers:
-      destination: /world/terminus/wharfside/tinker/location/yard
+      destination: /world/terminus/wharfside/tinker/place/yard
       media: [ground]
       edgeMinutes: 1
     northwest:
@@ -92,11 +92,11 @@ data:
     # routed to, and the whole point of the logistics build is that goods
     # move because somebody carried them.
     southeast:
-      destination: /world/terminus/wharfside/mill/location/floor
+      destination: /world/terminus/wharfside/mill/place/floor
       media: [ground]
       edgeMinutes: 5
     southwest:
-      destination: /world/terminus/wharfside/dyehouse/location/floor
+      destination: /world/terminus/wharfside/dyehouse/place/floor
       media: [ground]
       edgeMinutes: 5
     # ⭐⭐ **The three noxious trades, and they are DOWNSTREAM.** The
@@ -133,7 +133,7 @@ data:
     # graph cannot see is a floor no hauler can be routed to, and a
     # knacker who cannot be reached by a cart is a knacker with no trade.
     down:
-      destination: /world/terminus/wharfside/knackers/location/yard
+      destination: /world/terminus/wharfside/knackers/place/yard
       media: [ground]
       edgeMinutes: 7
     # ⭐ Into the river itself (underwater D23). The bank is a QUAY —
@@ -144,28 +144,28 @@ data:
     # ⭐ Into the river itself — the stream past the foot of the steps
     # (the river build): `swim` from the quay goes here, into the current.
     river:
-      destination: /world/terminus/wharfside/water/location/stream
+      destination: /world/terminus/wharfside/water/place/stream
       media: [water, vertical]
     # The still basin beside it, where the dive shop works.
     basin:
-      destination: /world/terminus/wharfside/water/location/basin
+      destination: /world/terminus/wharfside/water/place/basin
       media: [water, vertical]
     # ⭐ Morrow's dive shop, a tarred shed on the quay (underwater C5).
     divers:
-      destination: /world/terminus/wharfside/diving/location/shop
+      destination: /world/terminus/wharfside/diving/place/shop
       media: [ground]
       edgeMinutes: 1
     # ⭐ The lavoir (cleanliness D27) — the town's washing place, on soft
     # fell water. A NAMED exit: every compass point off the bank is a road
     # or a trade floor already, and the lavoir is somewhere you go IN to.
     lavoir:
-      destination: /world/terminus/wharfside/lavoir/location/lavoir
+      destination: /world/terminus/wharfside/lavoir/place/lavoir
       media: [ground]
       edgeMinutes: 1
     # ⭐ The pump house (water-supply W1): the city's water behind a locked
     # door, keyed to the works keeper's seat.
     pumphouse:
-      destination: /world/terminus/wharfside/pumphouse/location/house
+      destination: /world/terminus/wharfside/pumphouse/place/house
       media: [ground]
       edgeMinutes: 1
       door: /world/terminus/wharfside/thing/pump-house-door

@@ -3,7 +3,7 @@
 # the harbor's posted criteria — a berth at a named quay, or the roads and
 # why. Its frameSite places it by the river so the hail can find it, and
 # `landing: false` says no ship comes alongside an office.
-class: /system/transport/location/HarborOffice
+class: /system/transport/place/HarborOffice
 data:
   shortDescription: harbor office
   keywords: [office, "harbor office", harbormaster]

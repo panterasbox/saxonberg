@@ -313,12 +313,12 @@ Every row is one the plan must account for: reuse, generalize, or say why not.
 
 | concept | what already does it | this build |
 |---|---|---|
-| a claim | `MapClaim` (`lib/location/MapClaim.ts`); writers `Cartographer.recordPerceived` / `recordTimetable` / `recordTraversal`, `Charted.ts` | extend — add zone, coords, level; no new writer |
+| a claim | `MapClaim` (`lib/place/MapClaim.ts`); writers `Cartographer.recordPerceived` / `recordTimetable` / `recordTraversal`, `Charted.ts` | extend — add zone, coords, level; no new writer |
 | the push | `SaxonbergClient.refreshNavigator` → `touchCard(…, {kind:'navigation', where})`, only while the `map` card is open; card-surface's card-touched wire | reuse the card wire before any third path; the copy's transport is the open question |
 | live results | MQL subscriptions (per-Stuff field descriptors) | consider for the copy's deltas; say why not if unused |
 | zone facts | the zone class is the kind; `CartesianZone.getCellSize`; `SpatialZone.getExtentM` (⛔ never sent) | read only |
 | Locality chain | `AddressApi.coverageChainOf` (Whereabouts, `Perceiver.ts:252`); `_governmentKey` | add government + kind (kind derives from the address tier — no field) |
-| route | `RoutePlan` (`lib/location/RoutePlan.ts`), `RouteController` prints MML | send the same plan as data |
+| route | `RoutePlan` (`lib/place/RoutePlan.ts`), `RouteController` prints MML | send the same plan as data |
 | a way | `Exit.wayRecord()`; flags `oneWay`/`muffled`/`media`/…; `canTraverse` → `TraversalGuard` (overrides: KeptDoor, AshoreExit, BerthExit, SandboxCrossingExit) | extend; ⚠ verify every override is side-effect free before using it as a dry run |
 | boundary projection | none — lock/door mixins have no subscribable fields | new, by composition |
 | horizon | `PerceptionApi.horizonFor` → `HorizonView`; `HorizonWatch` (never pushes) | send on arrival only |

@@ -8,7 +8,7 @@
  * hand-written walks over the location graph, each with its own
  * frontier, its own visited set and its own bound — four of them
  * order-dependent in ways players can perceive. The skeleton is
- * `src/mud/lib/location/Traversal.ts`; every other walk is a copy of
+ * `src/mud/lib/place/Traversal.ts`; every other walk is a copy of
  * machinery that now exists once.
  *
  * ## Check 1 — the census
@@ -136,10 +136,10 @@ const ADJACENCY_RECEIVERS = new Set<string>(["adjacency", "succ"]);
 
 /** The core modules whose import list is gated by check 2. */
 const CORE_MODULES = [
-  "mud/lib/location/Traversal.ts",
-  "mud/lib/location/KnowledgeGraph.ts",
-  "mud/lib/location/TravelProfile.ts",
-  "mud/lib/location/RoutePlan.ts",
+  "mud/lib/place/Traversal.ts",
+  "mud/lib/place/KnowledgeGraph.ts",
+  "mud/lib/place/TravelProfile.ts",
+  "mud/lib/place/RoutePlan.ts",
 ];
 
 /**
@@ -551,7 +551,7 @@ function main(): void {
     console.error(
       `check-graph-walks: ${walks.length} walks exceeds the ceiling of ` +
         `${WALK_CEILING}. One traversal, or none — the skeleton is ` +
-        `src/mud/lib/location/Traversal.ts. A walk that genuinely does ` +
+        `src/mud/lib/place/Traversal.ts. A walk that genuinely does ` +
         `not belong on it goes in RESIDUE_REASONS with its reason, and ` +
         `the ceiling moves in the same diff.`
     );

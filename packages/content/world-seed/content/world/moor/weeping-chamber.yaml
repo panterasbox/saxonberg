@@ -9,7 +9,7 @@
 # The field deviations stay SkyExposed-gated (an indoor scope gets no storm
 # wind-chill); the precipitation read is NOT sky-gated (the pin rains). No
 # exits wired (reachable by teleport).
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: weeping chamber
   keywords: [chamber, weeping]

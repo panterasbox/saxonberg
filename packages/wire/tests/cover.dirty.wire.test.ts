@@ -71,18 +71,18 @@ declareFile({
 
 const DAY = 86_400;
 
-const BENCH = '/world/terminus/hearts-delight/bench-field/location/upper-bench';
-const CLOSE = '/world/terminus/hearts-delight/bench-field/location/orchard-close';
-const PASTURE = '/world/terminus/hearts-delight/dairy/location/pasture';
-const BYRE = '/world/terminus/hearts-delight/dairy/location/byre';
+const BENCH = '/world/terminus/hearts-delight/bench-field/place/upper-bench';
+const CLOSE = '/world/terminus/hearts-delight/bench-field/place/orchard-close';
+const PASTURE = '/world/terminus/hearts-delight/dairy/place/pasture';
+const BYRE = '/world/terminus/hearts-delight/dairy/place/byre';
 const STORE = '/world/terminus/general-store/shop-floor';
 const SQUARE = '/world/terminus/market/square';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const YARD = '/world/terminus/eternal/campus-farm/location/yard';
-const HOME_FIELD = '/world/terminus/eternal/campus-field/location/home-field';
-const PADDOCK = '/world/terminus/eternal/campus-field/location/back-paddock';
-const CANE_PIECE = '/world/terminus/waponi-woo/location/cane-piece';
-const SMALLHOLDING = '/world/terminus/waponi-woo/location/smallholding-b';
+const YARD = '/world/terminus/eternal/campus-farm/place/yard';
+const HOME_FIELD = '/world/terminus/eternal/campus-field/place/home-field';
+const PADDOCK = '/world/terminus/eternal/campus-field/place/back-paddock';
+const CANE_PIECE = '/world/terminus/waponi-woo/place/cane-piece';
+const SMALLHOLDING = '/world/terminus/waponi-woo/place/smallholding-b';
 const GOAT_PEN = '/world/terminus/rejection/kestrel-road/goat-pen';
 
 /** The words a field crop's stage is read in (requirements step 6). */

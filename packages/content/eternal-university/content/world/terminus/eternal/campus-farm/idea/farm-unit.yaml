@@ -54,12 +54,12 @@ data:
       assignee: /world/terminus/eternal/campus-farm/agent/farm-hand
       # Her station is the field she keeps, not the yard the house names
       # first: on shift she is fetched to where somebody can see her work.
-      station: /world/terminus/eternal/campus-field/location/home-field
+      station: /world/terminus/eternal/campus-field/place/home-field
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/eternal/campus-farm/location/yard
-    - /world/terminus/eternal/campus-field/location/home-field
+    - /world/terminus/eternal/campus-farm/place/yard
+    - /world/terminus/eternal/campus-field/place/home-field
     # ⭐ The second field (cover build W6): the herd's other ground.
-    - /world/terminus/eternal/campus-field/location/back-paddock
+    - /world/terminus/eternal/campus-field/place/back-paddock

@@ -28,7 +28,7 @@ import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { ImprovementCost } from '@saxonberg/server/mud/lib/ground/Improvable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { GroundSample } from '@saxonberg/content-ground/src/idea/GroundCharacter';
-import Tract from '../../../location/Tract';
+import Tract from '../../../place/Tract';
 import type Field from '../../../thing/Field';
 import type { Soil } from '@saxonberg/server/mud/lib/husbandry/Soil';
 

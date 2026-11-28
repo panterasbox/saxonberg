@@ -8,7 +8,7 @@
 #
 # It is also where newbie-wilds attaches: the road does not stop at the
 # diggings, it goes on past them into country nobody has counted.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: yard gate
   keywords: [gate, yard]
@@ -36,7 +36,7 @@ data:
       media: [ground]
       edgeMinutes: 8
     northeast:
-      destination: /world/terminus/rejection/location/pithead-yard
+      destination: /world/terminus/rejection/place/pithead-yard
       media: [ground]
       edgeMinutes: 3
     # ⭐ Past the diggings, the road runs on into uncounted country. The

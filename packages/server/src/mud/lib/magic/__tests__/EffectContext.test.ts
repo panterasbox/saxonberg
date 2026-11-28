@@ -35,7 +35,7 @@ import { Template } from '../../stuff/Template';
 import Good from '../../stuff/Good';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import { ArcaneMixin } from '../Arcane';
 import { ChargedMixin } from '../Charged';
 import { IdentifiableMixin } from '../../identification/Identifiable';

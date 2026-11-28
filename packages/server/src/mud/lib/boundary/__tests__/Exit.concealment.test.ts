@@ -1,8 +1,8 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import Exit from '../Exit';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins } from '../../mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';

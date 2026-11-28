@@ -55,10 +55,10 @@ condition) ([painting.md](./painting.md)).
 
 ```yaml
 storeys:
-  - { key: ground,  extent: …/location/ground }
-  - { key: works,   extent: …/location/ground/works }   # longest prefix wins
-  - { key: loft,    extent: …/location/loft,    on: works }
-  - { key: terrace, extent: …/location/terrace, on: loft }
+  - { key: ground,  extent: …/place/ground }
+  - { key: works,   extent: …/place/ground/works }   # longest prefix wins
+  - { key: loft,    extent: …/place/loft,    on: works }
+  - { key: terrace, extent: …/place/terrace, on: loft }
 ```
 
 No `storeys` is one implicit storey; a storey with no `on` stands on the
@@ -100,7 +100,7 @@ paint cottage` and `paint cottage` bind from the lane with no new MQL seed.
 copies (an `extent` of room rows, an `entrance`) lives on its OWNER — a
 holding's programme row (a warren, not a structure), or a ship kind's
 own `Ship` row, whose `extent` is her plan rather than rooms of her own —
-and is read by `lib/location/Floorplan.ts`. See
+and is read by `lib/place/Floorplan.ts`. See
 [holding.md § Plans](./holding.md).
 
 A holding's keyed rooms have no path of their own, so a place asks its

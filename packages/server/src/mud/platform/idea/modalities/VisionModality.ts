@@ -38,8 +38,8 @@ import { StuffApi } from '../../../api/stuff';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { PerceptionApi } from '../../../api/perception';
 import { CelestialApi } from '../../../api/celestial';
-import { Traversal } from '../../../lib/location/Traversal';
-import type { Leg } from '../../../lib/location/Traversal';
+import { Traversal } from '../../../lib/place/Traversal';
+import type { Leg } from '../../../lib/place/Traversal';
 
 const DEFAULT_VISION_PROFILE: VisionProfile = {
   scotopicMin: 'pitch-black',
@@ -670,7 +670,7 @@ function ownFlux(loc: Stuff & Container, skyFactor: number): FluxAccumulator {
 
 /**
  * The light walk, on the shared skeleton
- * (`lib/location/Traversal.ts` — *one traversal, or none*).
+ * (`lib/place/Traversal.ts` — *one traversal, or none*).
  *
  * ⭐⭐ **The skeleton is the frontier; the physics stayed here.** What
  * moved out is the depth gate, the visited set and the recursion —

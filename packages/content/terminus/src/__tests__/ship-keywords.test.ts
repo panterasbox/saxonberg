@@ -53,7 +53,7 @@ describe('a ship and her deck answer to different words', () => {
 
   it('a smack of a kind and her deck row too', () => {
     const smack = YAML.parse(readFileSync(join(ROOT, 'stuff/idea/Ship/smack.yaml'), 'utf8')) as Row;
-    const deck = YAML.parse(readFileSync(join(ROOT, 'stuff/location/ship/smack/deck.yaml'), 'utf8')) as Row;
+    const deck = YAML.parse(readFileSync(join(ROOT, 'stuff/place/ship/smack/deck.yaml'), 'utf8')) as Row;
     const words = new Set(deck.data?.keywords ?? []);
     expect((smack.data?.keywords ?? []).filter((w) => words.has(w))).toEqual([]);
   });

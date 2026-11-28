@@ -17,7 +17,7 @@ import { GeoPosition } from '@saxonberg/server/mud/lib/expanse/GeoPosition';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import WaterExpanse from '@saxonberg/content-water/src/idea/WaterExpanse';
 import WaterBand from '@saxonberg/content-water/src/idea/WaterBand';
-import SeaPatch from '@saxonberg/content-water/src/location/SeaPatch';
+import SeaPatch from '@saxonberg/content-water/src/place/SeaPatch';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Boat from '../thing/Boat';
 

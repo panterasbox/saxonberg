@@ -9,9 +9,9 @@ import { openWorldAs, runCommand } from './helpers';
  * how it went.
  */
 
-const YARD = '/world/terminus/wharfside/tannery/location/yard';
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const YARD = '/world/terminus/wharfside/tannery/place/yard';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();

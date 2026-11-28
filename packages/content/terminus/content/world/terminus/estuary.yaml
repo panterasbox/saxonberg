@@ -20,7 +20,7 @@
 # 20-metre cell, read under two lux — the estuary was too dark to describe
 # at noon. With nothing authored, each room follows the sky over its own
 # floor area, as an outdoor room should.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: The Estuary
   cellSize: 20.0

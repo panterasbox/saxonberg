@@ -3305,7 +3305,7 @@ minted scaffolding got one that way.
 about what a class INHERITS, and re-listing a mixin stack instead of
 extending the class that owns the behaviour produces something that
 type-checks, passes every test, and has quietly dropped an override.
-`platform/location/Location` shipped re-composed for one commit
+`platform/place/Location` shipped re-composed for one commit
 and had lost `Location.addExit` — the cardinal-only-intra-zone
 rule — so minted road reaches accepted non-cardinal exits while the
 authored lane beside them still refused one.
@@ -3321,14 +3321,14 @@ export default class TitledRoom extends PersistableMixin(Location) {}
 
 ```typescript
 // Singleton: one row IS one place, so the scope is unambiguous.
-class: /platform/location/Locale
+class: /platform/place/Locale
 
 // …or KEYED: a WarrenMember whose provisioner supplies the key, which
 // is what makes N instances from one row addressable.
-class: /platform/location/PersistentLocation
+class: /platform/place/PersistentLocation
 ```
 
-Enforced by `platform/location/__tests__/PersistableLocations.test.ts`,
+Enforced by `platform/place/__tests__/PersistableLocations.test.ts`,
 which **walks the directory** rather than naming classes — the classes it
 most needs to cover are the ones that do not exist yet.
 
@@ -4947,8 +4947,8 @@ knock it down), so *"no ladder, no climb"* is true of the world. Water is
 not something you set down.
 
 **INSTEAD**, water is a fact about the PLACE: the place IS a small water
-(`platform/location/Pool` — swimmable, and it cites the water it is) or
-the place is BESIDE one (`platform/location/Shore` / `Quay`, citing it
+(`platform/place/Pool` — swimmable, and it cites the water it is) or
+the place is BESIDE one (`platform/place/Shore` / `Quay`, citing it
 under one of the place's own features). Both read the water through the
 water seam, so frozen, fouled, salt and fresh are derived. To swim INTO
 a pool from its shore, the locomotion gate reads the exit's far side —

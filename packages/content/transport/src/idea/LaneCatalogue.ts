@@ -39,7 +39,7 @@
 
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
-import { WayIndexMixin } from '@saxonberg/server/mud/lib/location/WayIndex';
+import { WayIndexMixin } from '@saxonberg/server/mud/lib/place/WayIndex';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';

@@ -447,10 +447,10 @@ describe('⭐⭐ a maple on freeze–thaw (the climate build)', () => {
   /** A mature maple standing in a place at `latitude` and `elevationM`. */
   async function mapleAt(latitude: number, elevationM: number): Promise<SapStandard> {
     const { default: CartesianZone } = await import(
-      '@saxonberg/server/mud/platform/idea/location/CartesianZone'
+      '@saxonberg/server/mud/platform/idea/place/CartesianZone'
     );
     const { default: Location } = await import(
-      '@saxonberg/server/mud/lib/location/Location'
+      '@saxonberg/server/mud/lib/place/Location'
     );
     const { Stuff } = await import('@saxonberg/server/mud/lib/stuff/Stuff');
     const zone = makeStuff(() => new CartesianZone());

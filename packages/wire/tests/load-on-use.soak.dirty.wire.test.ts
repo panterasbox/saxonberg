@@ -22,7 +22,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const DISTILLERY = '/world/terminus/goods-yards/veshko/location/distillery';
+const DISTILLERY = '/world/terminus/goods-yards/veshko/place/distillery';
 const squash = (t: string) => plain(t).replace(/\s+/g, ' ').trim();
 
 async function say(s: Session, line: string): Promise<string> {

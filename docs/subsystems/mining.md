@@ -19,7 +19,7 @@ Four packs:
 > **Reads go to the space. Mutation goes to the warren.**
 
 Every read a mine needs lives on **`WorkingMixin`**
-(`trade-mining/src/location/Working.ts`) and derives from the room and
+(`trade-mining/src/place/Working.ts`) and derives from the room and
 its zone:
 
 | Read | Derived from |

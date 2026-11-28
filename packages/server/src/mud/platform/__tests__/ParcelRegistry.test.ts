@@ -219,7 +219,7 @@ describe("ParcelApi.ownerOf — the resolution chain", () => {
   it("rung 1 — an explicit parcel title (covering, longest-prefix)", async () => {
     seedParcel({ extent: "/world/lounge", owner: { kind: "group", name: "lounge" } });
     await boot();
-    const owner = await ParcelApi.ownerOf("/world/lounge/location/bar/stool");
+    const owner = await ParcelApi.ownerOf("/world/lounge/place/bar/stool");
     expect(owner).toEqual({ kind: "group", name: "lounge" });
   });
 

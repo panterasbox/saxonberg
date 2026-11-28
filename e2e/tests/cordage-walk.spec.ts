@@ -16,7 +16,7 @@ import { openWorldAs, runCommand } from './helpers';
  * about the verbs and the words, not the shopping.
  */
 
-const WALK = '/world/terminus/wharfside/ropewalk/location/walk';
+const WALK = '/world/terminus/wharfside/ropewalk/place/walk';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 
 async function transcript(page: Page): Promise<string> {

@@ -29,7 +29,7 @@ import {
   WaterSourceMixin,
   type WaterRead,
   type WaterTide,
-} from '@saxonberg/server/mud/lib/location/WaterSource';
+} from '@saxonberg/server/mud/lib/place/WaterSource';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { Tide } from '../lib/Tide';

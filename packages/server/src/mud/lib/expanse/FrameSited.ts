@@ -38,7 +38,7 @@
  *   nothing authored attaches to a frame — and she re-wires her way as she
  *   loads. Nothing asks a register where ships lie.
  *
- * Composed on the waterside classes (`platform/location/Shore`, `Quay`).
+ * Composed on the waterside classes (`platform/place/Shore`, `Quay`).
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';

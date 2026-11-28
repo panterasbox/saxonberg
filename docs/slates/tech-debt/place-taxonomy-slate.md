@@ -1,10 +1,13 @@
 # The place taxonomy — Place, Locale, Location
 
-> **Status: CLASSES RENAMED (cleanliness MR !380, 2026-10-18).**
-> **Left:** the `/…/location/` path segment (branch folder + content trees)
-> · ⭐ **the material folder sweep rides with it** (§ The material folders,
-> below — one path sweep, not two) · ✅ `VoidLocation` → `Void` (B53).
-> **Size:** a build — a sweep.
+> **Status: CLASSES RENAMED (cleanliness MR !380, 2026-10-18) · PATH
+> SEGMENT RENAMED (`refactor/place-path`, 2026-11-28).**
+> **Left:** the material folder sweep, now carried by the IDEAS pass of the
+> template taxonomy refactor (§ The material folders) · the `*Location*`
+> identifiers that mean the root rather than the plan-laid kind, and the
+> `location` StuffKind value (§ What the path rename left) · ✅
+> `VoidLocation` → `Void` (B53).
+> **Size:** a tail — a decided list.
 
 ## The decision (user, 2026-10-18)
 
@@ -30,7 +33,7 @@ Rules the user set on the way:
 
 | | transient | kept |
 |---|---|---|
-| one particular place (one row = one place) | **`Locale`** | **`PersistentLocale`** ✅ shipped (cleanliness, `platform/location/PersistentLocale.ts`) |
+| one particular place (one row = one place) | **`Locale`** | **`PersistentLocale`** ✅ shipped (cleanliness, `platform/place/PersistentLocale.ts`) |
 | one of many, laid out to a plan | **`Location`** | **`PersistentLocation`** |
 | spherical, one place | **`SphericalLocale`** | `PersistentSphericalLocale` (when needed) |
 | spherical, one of many | **`SphericalLocation`** | `PersistentSphericalLocation` (when needed) |
@@ -44,16 +47,16 @@ line says it.
 | today | becomes | reach |
 |---|---|---|
 | `lib/stuff/Location` (the root) | `Place`; `isLocation()` → `isPlace()` | 21 importers, 5 predicate calls; the four branch predicates read person · place · thing · idea |
-| `platform/location/SingletonCartesianLocation` | `Locale` | ~196 files |
-| the instanceable `platform/location/CartesianLocation` (its lib base too) | `Location` | rows naming it; the lib geometry root's name to settle (`CartesianPlace`?) |
-| `platform/location/FurnishableRoom` | `PersistentLocation` | 48 files |
-| `platform/location/SingletonSphericalLocation` | `SphericalLocale` | 1 row |
-| `platform/location/SphericalLocation` | unchanged | — |
-| `platform/location/VoidLocation` | `Void` ✅ — the one place with no coordinates, on bare `Place` (B53) | 14 files |
+| `platform/place/SingletonCartesianLocation` | `Locale` | ~196 files |
+| the instanceable `platform/place/CartesianLocation` (its lib base too) | `Location` | rows naming it; the lib geometry root's name to settle (`CartesianPlace`?) |
+| `platform/place/FurnishableRoom` | `PersistentLocation` | 48 files |
+| `platform/place/SingletonSphericalLocation` | `SphericalLocale` | 1 row |
+| `platform/place/SphericalLocation` | unchanged | — |
+| `platform/place/VoidLocation` | `Void` ✅ — the one place with no coordinates, on bare `Place` (B53) | 14 files |
 | `PersistentCartesianLocation` | `PersistentLocale` | ✅ done (14 rows) |
 | `Field`, `MineRoom` (minted, kept, keyed) | keep their names, the `PersistentLocation` shape | — |
 | `Wood`, `OpenWorking`, `Turbary` (authored, kept) | keep their names, the `PersistentLocale` shape | — |
-| path segment `/platform/location/` | `/platform/place/`? | 175 rows name a class there; 101 content rows live under a `location/` path — whether the CONTENT segment renames too is the sweep's call |
+| path segment `/platform/place/` | `/platform/place/`? | 175 rows name a class there; 101 content rows live under a `location/` path — whether the CONTENT segment renames too is the sweep's call |
 
 - A DB drop, no migration (no users, no data).
 - ⚠ The sibling builds (rubber, storage-and-ice) name these classes: the
@@ -63,7 +66,7 @@ line says it.
 - ⚠ The spatial vocabulary keeps `placement` (`on`·`in`·`from`), the
   `Placing` mixin and the `place` verb: a Place is the NOUN, a placement the
   RELATION — the root's header says so.
-- `PersistableLocations.test` walks `platform/location/` — it must walk the
+- `PersistableLocations.test` walks `platform/place/` — it must walk the
   new directory if the segment renames.
 
 ## Done in !380 — and what was left
@@ -77,12 +80,37 @@ branch-file allowlist (`Stuff._registerTopLevelBranch`) and four gates
 (`lint:module-scope`, `lint:ground`'s root-class probe, the field-meta
 golden, Studio's base list) named the root by string and were fixed by hand.
 
-⏸ **The path segment** stays `location` for now: ~1,100 references in 50+
-content trees, nearly all of them room identity paths that exits and
-warren plans point at — a different kind of change (directory moves, every
-exit target), and the three sibling builds author rows under those paths.
-Whether `/platform/location/` → `/platform/place/` (and every
-`<root>/location/` content tree with it) is the open question.
+✅ **The path segment** — `/location/` → `/place/`, every directory and every
+reference (2026-11-28, `refactor/place-path`, while all four builds were
+idle; the owner: *"do the room rename now while things are quiet"*). 81
+directories moved — the branch folders (`platform/place/`, every
+`<root>/place/` content tree, every pack's `src/place/`), the
+`lib/place/` subsystem folder, `platform/idea/place/` (the zone classes) —
+plus the two folder-zone rows named for their folder
+(`…/seznick-house/place.yaml`, `…/rejection/place.yaml`). A script did it
+and a second script proved the branch equals master plus that transform,
+file by file, listing the hand edits (path joins and bare `place/`
+prefixes in tests, the gates' branch list). A DB drop, no migration.
+
+### What the path rename left — deliberately
+
+The MR was kept to paths so it could be reviewed as a transform. Not
+renamed, and each is a decision rather than a substitution:
+
+- **`Location` the class** — it is the plan-laid kind (*you fill a
+  location*), so it keeps its name by this slate's own table.
+- **Identifiers that mean the ROOT** — `startLocation`,
+  `operatingLocations`, `addLocation`, `mustBeInLocation`,
+  `LocationGraphRegistry` / `location_graph`, `LocationZone`, the
+  `check-location-*` gates, `location.md` / `location-graph.md`. Each needs
+  a read: some mean any place (→ `Place`), some mean the plan-laid kind.
+- **The `location` StuffKind value** (`Stuff.stuffKind()`, the card's
+  `subjectKind`, the client's layout switch) — it reads in MQL and on the
+  wire, so it is vocabulary, not a path.
+- **The MML `<location>` tag and the prose `location` filter** — authored
+  vocabulary.
+- **Media keys** (`illustration: location/bar.png`) — keys in the media
+  bucket, not template paths.
 
 ## ⭐ The material folders — the same sweep (owner, 2026-11-07)
 
@@ -100,6 +128,8 @@ one rewrite tool and one drop-the-database is cheaper than two.
 - **What references them:** every `_materialPath`, `interiorMaterial`, `extends:`, recipe input,
   composition entry and test that names a material path. `MaterialCatalogue` selects by the
   `/idea/material/` infix and the class, so the warm itself is unaffected.
-- **Order:** after the material decomposition build has merged (the kinds must exist first), together
-  with the `/location/` → `/place/` segment.
+- **Order:** ⚠ moved (2026-11-28): no longer with the path segment, which shipped alone so it could be
+  reviewed as a mechanical transform. Sorting 199 materials into kind folders is classification, which
+  is taxonomy work, so it rides with the **ideas pass** of the template taxonomy refactor and reuses the
+  path-rename script.
 

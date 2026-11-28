@@ -64,8 +64,8 @@
  * care. That is the falsifiable test the whole trade is built on.
  */
 
-import { FloorplanWarren } from '@saxonberg/server/mud/lib/location/FloorplanWarren';
-import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import { FloorplanWarren } from '@saxonberg/server/mud/lib/place/FloorplanWarren';
+import type { Attachment } from '@saxonberg/server/mud/lib/place/Warren';
 import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
 import type { Persistable } from '@saxonberg/server/mud/lib/persistence/Persistable';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';

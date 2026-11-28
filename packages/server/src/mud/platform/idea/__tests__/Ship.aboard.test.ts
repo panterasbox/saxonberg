@@ -25,7 +25,7 @@ import { candidatesForHere } from '../../../api/mql/scope-walk';
 import { CardApi } from '../../../api/card';
 import { MqlApi } from '../../../api/mql';
 import type BerthExit from '../BerthExit';
-import type Compartment from '../../location/Compartment';
+import type Compartment from '../../place/Compartment';
 import type { Exitable } from '../../../lib/boundary/Exitable';
 import { Document } from '../../../lib/persistence/Document';
 import { StuffApi } from '../../../api/stuff';
@@ -41,7 +41,7 @@ import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
 import type Rope from '../../thing/Rope';
-import type { MapClaim } from '../../../lib/location/MapClaim';
+import type { MapClaim } from '../../../lib/place/MapClaim';
 import { PersistenceManager } from '../../../lib/persistence/__tests__/backend-store';
 import { makeStuff } from '../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -116,11 +116,11 @@ function installStore(): void {
   // Each smack is a copy of her kind's zone, named under its row by her
   // serial (zone-instancing D11).
   add(WARREN, '/platform/idea/ShipWarren', { zoneNaming: 'under-row', joins: 'berth' });
-  add(ROOMS, '/platform/idea/location/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
-  add(DECK, '/platform/location/Compartment', { coords: { x: 0, y: 0, z: 0 }, shortDescription: 'smack deck', floorM: 1.8, exits: { down: { destination: HOLD } } });
-  add(HOLD, '/platform/location/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
+  add(ROOMS, '/platform/idea/place/MintedZone', { name: 'a smack', cellSize: 3, mintedBy: WARREN });
+  add(DECK, '/platform/place/Compartment', { coords: { x: 0, y: 0, z: 0 }, shortDescription: 'smack deck', floorM: 1.8, exits: { down: { destination: HOLD } } });
+  add(HOLD, '/platform/place/Hold', { coords: { x: 0, y: 0, z: -1 }, shortDescription: 'fish hold', floorM: 0.3, exits: { up: { destination: DECK } } });
   add(CRATE, '/platform/thing/Thing', { shortDescription: 'a crate' });
-  add(LANDING, '/platform/location/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
+  add(LANDING, '/platform/place/Locale', { shortDescription: 'a landing', props: [BOLLARD] });
   add(BOLLARD, '/platform/thing/Bollard', { shortDescription: 'a bollard', fixedInPlace: true });
 
   const save = vi.fn(async (c: string, doc: Doc) => {

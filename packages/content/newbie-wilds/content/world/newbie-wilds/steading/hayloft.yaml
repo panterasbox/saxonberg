@@ -1,6 +1,6 @@
 # The hayloft — up the barn's turning stair (size and carrying W6, drive
 # 11). Open to the sky where the roof has gone.
-class: /platform/location/Locale
+class: /platform/place/Locale
 data:
   shortDescription: hayloft
   keywords: [hayloft, loft]

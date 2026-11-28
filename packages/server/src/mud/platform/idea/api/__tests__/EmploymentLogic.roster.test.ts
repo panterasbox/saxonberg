@@ -27,7 +27,7 @@ import { StuffApi } from '../../../../api/stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
 const BUSINESS = '/test/roster/idea/business';
-const BAR = '/test/roster/location/bar';
+const BAR = '/test/roster/place/bar';
 const DAVE = '/test/roster/agent/dave';
 const MARA = '/test/roster/agent/mara';
 const KIT = '/test/roster/agent/kit';

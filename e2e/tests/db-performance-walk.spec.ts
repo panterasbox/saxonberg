@@ -14,7 +14,7 @@
 import { test, expect } from '@playwright/test';
 import { openWorldAs, runCommand, sendUntil } from './helpers';
 
-const START = '/world/lounge/location/bar';
+const START = '/world/lounge/place/bar';
 const PARCEL = '/world/lounge';
 const DENIED = /sandbox boundary denied|hold no authority|no targets matched/i;
 

@@ -31,8 +31,8 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const HALL = '/world/terminus/terminal/location/hall';
-const LOUNGE_BAR = '/world/lounge/location/bar';
+const HALL = '/world/terminus/terminal/place/hall';
+const LOUNGE_BAR = '/world/lounge/place/bar';
 const MARKET = '/world/terminus/market/square';
 
 let hall: Session; // step 1 — reads the board where a new arrival stands

@@ -7,7 +7,7 @@
 #
 # ⭐ Persistent: a hopper leaching overnight, two pots boiling down over
 # hours, a cake in a pot — a kept place outlives a restart.
-class: /platform/location/PersistentLocale
+class: /platform/place/PersistentLocale
 data:
   shortDescription: lean-to
   keywords: ["lean-to", shed, shelter]

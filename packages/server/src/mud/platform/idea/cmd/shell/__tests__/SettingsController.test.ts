@@ -21,7 +21,7 @@ import { SensorMixin } from '../../../../../lib/message/Sensor';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../../../lib/spatial/Container';
-import Location from '../../../../../lib/location/Location';
+import Location from '../../../../../lib/place/Location';
 import { ContainmentApi } from '../../../../../api/containment';
 import type Interactive from '../../../Interactive';
 import type Place from '../../../../../lib/stuff/Place';

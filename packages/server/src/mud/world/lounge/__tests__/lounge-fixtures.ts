@@ -30,12 +30,12 @@ export function loungeDocs(extra: Doc[] = []): Doc[] {
     },
     {
       path: LoungeWarren.LOUNGE_TEMPLATE,
-      class: '/world/lounge/location/Lounge',
+      class: '/world/lounge/place/Lounge',
       data: { warren: LoungeWarren.WARREN_PATH, shortDescription: 'the lounge' },
     },
     {
       path: LoungeWarren.BAR_PATH,
-      class: '/world/lounge/location/Bar',
+      class: '/world/lounge/place/Bar',
       data: { shortDescription: "Dave's Bar" },
     },
     // ⭐ The default floor. Since the ground build every Location mints one

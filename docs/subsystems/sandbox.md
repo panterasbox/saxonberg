@@ -277,7 +277,7 @@ check + deny-receipt in the boundary wave):
 | `ParcelRegistry` | trie writers (`subdivide`/`transfer`/`grantUse`/`revokeUse`/`retire`) | live coverage trie beside the REFUSE'd rows |
 | `HotReloadApi` | `reload`/`unload` | path-keyed global class registry (wizard-gated, but a circle wizard's reload is field-visible) |
 
-Scope-aware (no guard): `ReactionRegistry` (commandId/location/channel
+Scope-aware (no guard): `ReactionRegistry` (commandId/place/channel
 keyed + GC'd), `MqlSubscriptionRegistry` (Interactive-keyed),
 `EventSubscriptions` (bounded, name-keyed), `ChattelRegistry` (minted
 unique ids; rows REFUSE'd anyway), `PlayerApi` registry
@@ -966,7 +966,7 @@ them are fixed on this branch.
   mirrors `/studio`. **Deploy step** (historical — the seeder is gone): `SeederManager` was insert-only, so
   an existing environment kept its stale `/home` row — delete
   `domain { path: '/home' }` once and restart to re-seed. Same for
-  `/world/lounge/location/wire-alcove` and `/platform/location/sandbox/CircleFloor` if they
+  `/world/lounge/place/wire-alcove` and `/platform/place/sandbox/CircleFloor` if they
   were seeded before the light fixtures landed.
 
 - **A crossing exit is not a spatial exit.** The wardrobe passage

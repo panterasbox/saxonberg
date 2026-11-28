@@ -36,22 +36,22 @@ data:
   rosterSlots:
     - positionKey: master
       assignee: /world/terminus/hearts-delight/brickfield/agent/brickmaster
-      station: /world/terminus/hearts-delight/brickfield/location/weathering-ground
+      station: /world/terminus/hearts-delight/brickfield/place/weathering-ground
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
     - positionKey: moulder
       assignee: /world/terminus/hearts-delight/brickfield/agent/moulder-a
-      station: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      station: /world/terminus/hearts-delight/brickfield/place/moulding-shed
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [5, 19] }
     - positionKey: moulder
       assignee: /world/terminus/hearts-delight/brickfield/agent/moulder-b
-      station: /world/terminus/hearts-delight/brickfield/location/moulding-shed
+      station: /world/terminus/hearts-delight/brickfield/place/moulding-shed
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [5, 19] }
     - positionKey: setter
       assignee: /world/terminus/hearts-delight/brickfield/agent/setter
-      station: /world/terminus/hearts-delight/brickfield/location/clamp-ground
+      station: /world/terminus/hearts-delight/brickfield/place/clamp-ground
       schedule:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 20] }
   banksAt: goodkin
@@ -61,10 +61,10 @@ data:
     # ⚠ Room FIRST, then the counter (the sawmill's lesson: a sale settles
     # to the house found at the COUNTER's path, and a supplier is found by
     # the room its counter stands in).
-    - /world/terminus/hearts-delight/brickfield/location/clamp-ground
+    - /world/terminus/hearts-delight/brickfield/place/clamp-ground
     - /world/terminus/hearts-delight/brickfield/thing/brick-stack
-    - /world/terminus/hearts-delight/brickfield/location/weathering-ground
-    - /world/terminus/hearts-delight/brickfield/location/clay-pit
-    - /world/terminus/hearts-delight/brickfield/location/temper-pit
-    - /world/terminus/hearts-delight/brickfield/location/moulding-shed
-    - /world/terminus/hearts-delight/brickfield/location/hacks
+    - /world/terminus/hearts-delight/brickfield/place/weathering-ground
+    - /world/terminus/hearts-delight/brickfield/place/clay-pit
+    - /world/terminus/hearts-delight/brickfield/place/temper-pit
+    - /world/terminus/hearts-delight/brickfield/place/moulding-shed
+    - /world/terminus/hearts-delight/brickfield/place/hacks

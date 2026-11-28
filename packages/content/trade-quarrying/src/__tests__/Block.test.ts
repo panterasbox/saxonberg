@@ -15,7 +15,7 @@ import Block, { BLOCK_PIECES, PIECE_MASS_KG } from '../thing/Block';
 import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Good from '@saxonberg/server/mud/lib/stuff/Good';
-import Location from '@saxonberg/server/mud/lib/location/Location';
+import Location from '@saxonberg/server/mud/lib/place/Location';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';

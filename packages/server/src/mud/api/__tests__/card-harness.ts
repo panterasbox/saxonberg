@@ -16,7 +16,7 @@ import { stampTemplatePathForTest } from '../../lib/security/__tests__/test-setu
 import EventRegistry from '../../platform/idea/EventRegistry';
 import Interactive from '../../platform/idea/Interactive';
 import Avatar from '../../platform/agent/PrimaryAvatar';
-import Locale from '../../platform/location/Locale';
+import Locale from '../../platform/place/Locale';
 import { ContainmentApi } from '../containment';
 import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import type { CommandContext } from '../command';

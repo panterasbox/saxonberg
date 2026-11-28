@@ -95,9 +95,9 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const FUEL_YARD = '/world/terminus/rejection/location/fuel-yard';
-const CELLAR = '/world/terminus/hearthworks/location/cellar';
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const FUEL_YARD = '/world/terminus/rejection/place/fuel-yard';
+const CELLAR = '/world/terminus/hearthworks/place/cellar';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
 const DRIFT = '/world/terminus/rejection/ferrow/timbered-drift';
 /**
  * ⭐ The deepest authored room in Ferrow, at `z: -2` → **−20 m**, which

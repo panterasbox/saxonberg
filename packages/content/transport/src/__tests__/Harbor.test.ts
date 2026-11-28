@@ -23,7 +23,7 @@ import Business from '@saxonberg/server/mud/platform/idea/Business';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Harbor from '../idea/Harbor';
-import HarborQuay from '../location/HarborQuay';
+import HarborQuay from '../place/HarborQuay';
 import HarborBook from '../thing/HarborBook';
 import { TestHarnessApi } from '@saxonberg/server/mud/api/test-harness';
 

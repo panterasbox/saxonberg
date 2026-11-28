@@ -29,7 +29,7 @@ import EventRegistry from '../../../EventRegistry';
 import { SlottableMixin } from '../../../../../lib/slot/Slottable';
 import { Quantity } from '../../../../../lib/quantity';
 import Thing from '../../../../thing/Thing';
-import Location from '../../../../../lib/location/Location';
+import Location from '../../../../../lib/place/Location';
 import { TestHarnessApi } from '../../../../../api/test-harness';
 
 /** A cup: a hand takes it, nothing wields it. */

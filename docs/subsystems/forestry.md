@@ -60,7 +60,7 @@ sealable, every sugarbush affordance dies silently.**
 
 ## The Wood — a place that is ground
 
-`/trade/forestry/location/Wood` (`trade-forestry/src/location/Wood.ts`):
+`/trade/forestry/place/Wood` (`trade-forestry/src/place/Wood.ts`):
 
 ```
 PersistableMixin(StandMixin(SoilMixin(ReservedMixin(Locale))))
@@ -106,7 +106,7 @@ booted world.
 
 `lint:locations` needs no roster entry: the gate derives cartesian-ness
 from the class file's `extends` chain through the import specifier
-`@saxonberg/server/mud/platform/location/Locale`
+`@saxonberg/server/mud/platform/place/Locale`
 (`Wood.test.ts` pins the specifier textually).
 
 ## The stand — `StandMixin`
@@ -414,7 +414,7 @@ what perception does, not what prose says.
 ## The second instance — a locality authors a wood
 
 Zero code: a `CartesianZone` row (its own cell size, `address:`), rooms
-on `/trade/forestry/location/Wood` with a `mix:` each (and any number of
+on `/trade/forestry/place/Wood` with a `mix:` each (and any number of
 plain rooms), `props:` naming panel rows on `/trade/forestry/thing/Panel`
 (one row per panel, shipped full of earth), a `_biomePath`, an
 `ambientIntensity` each, cardinal exits, and a title entry whose land use
@@ -527,7 +527,7 @@ when they write a farm where the wood used to be, not a verb.
 | file | what |
 |---|---|
 | `packages/content/trade-forestry/src/lib/Stand.ts` | `StandMixin` — the cover; `STAND_MIXIN` |
-| `…/src/location/Wood.ts` | the place that is ground |
+| `…/src/place/Wood.ts` | the place that is ground |
 | `…/src/thing/Panel.ts` | the kernel `PermanentBed` + the ready line, `fell` and the deed hook |
 | `…/src/thing/Bole.ts` | the felled trunk; `lengthsLeft`, `takeLength()`; affords its cut |
 | `…/src/idea/cmd/forestry/FellController.ts` | `fell` — the standard, the bole, the planted tree |

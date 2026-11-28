@@ -9,7 +9,7 @@
 # room joins a copy, never the row.
 #
 # `cellSize`: the hall's 3 m — a narrow single room.
-class: /platform/idea/location/MintedZone
+class: /platform/idea/place/MintedZone
 data:
   name: a Duncan Hall dorm unit
   cellSize: 3.0

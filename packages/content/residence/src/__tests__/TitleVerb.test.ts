@@ -27,7 +27,7 @@ import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import PlatWarren from '../idea/PlatWarren';
 import PlatBook from '../idea/PlatBook';
 import DeedDesk from '../thing/DeedDesk';
-import { attachGraph } from '@saxonberg/server/mud/lib/location/__tests__/attachments-fixture';
+import { attachGraph } from '@saxonberg/server/mud/lib/place/__tests__/attachments-fixture';
 import HoldingWarren from '../idea/HoldingWarren';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
@@ -40,7 +40,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { ParcelEvent } from '@saxonberg/server/mud/lib/parcel/ParcelEvent';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
-import { CirculationWarren } from '@saxonberg/server/mud/lib/location/CirculationWarren';
+import { CirculationWarren } from '@saxonberg/server/mud/lib/place/CirculationWarren';
 import { QuantityMarshaller } from '@saxonberg/server/mud/platform/idea/persistence/QuantityMarshaller';
 import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
 import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
@@ -202,16 +202,16 @@ function installStore(): void {
     zoneNaming: 'key',
     joins: 'parcel',
   });
-  add(HOUSE_ZONE, '/platform/idea/location/MintedZone', {
+  add(HOUSE_ZONE, '/platform/idea/place/MintedZone', {
     name: 'the house',
     cellSize: 6,
     mintedBy: PROGRAMME,
   });
-  add(YARD_ROW, '/platform/location/PersistentLocation', {
+  add(YARD_ROW, '/platform/place/PersistentLocation', {
     shortDescription: 'the yard behind the house',
     coords: { x: 0, y: 0, z: 0 },
   });
-  add(ROAD_ROW, '/platform/location/PersistentLocation', {
+  add(ROAD_ROW, '/platform/place/PersistentLocation', {
     shortDescription: 'a reach of the lane',
   });
   // The sale WRITES an area, so a real m² marshaller is needed.

@@ -109,7 +109,7 @@ import { TestHarnessApi } from '../../../api/test-harness';
 class Stock extends StockBase {}
 
 const BANK = '/stuff/test/lounge/bank-counter';
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 const BAR_BIZ = '/world/lounge/idea/business';
 const SHELF = '/trade/hospitality/thing/back-bar';
 const RACK = '/trade/hospitality/thing/glass-rack';
@@ -120,7 +120,7 @@ const CASH_AND_CARRY = '/world/terminus/counting-houses/cash-and-carry';
 const COUNTER = '/world/terminus/counting-houses/distributor/thing/counter';
 const DISTRIBUTION = '/world/terminus/counting-houses/distributor/idea/business';
 const OUTFIT = '/world/terminus/goods-yards/veshko/idea/outfit';
-const FLOOR = '/world/terminus/goods-yards/veshko/location/distillery';
+const FLOOR = '/world/terminus/goods-yards/veshko/place/distillery';
 const GIN = '/trade/distilling/idea/material/gin';
 const CARD = '/stuff/thing/PaymentCard';
 // The two logistics fixtures the D11 keeper works off, at the paths the

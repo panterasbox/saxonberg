@@ -24,11 +24,11 @@ data:
   rosterSlots:
     - positionKey: vatman
       assignee: /world/terminus/hearts-delight/paper-mill/agent/vatman
-      station: /world/terminus/hearts-delight/paper-mill/location/vat-house
+      station: /world/terminus/hearts-delight/paper-mill/place/vat-house
       schedule:
         - { days: [0, 1, 2, 3, 4, 5], hours: [6, 18] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/hearts-delight/paper-mill/location/vat-house
-    - /world/terminus/hearts-delight/paper-mill/location/loft
+    - /world/terminus/hearts-delight/paper-mill/place/vat-house
+    - /world/terminus/hearts-delight/paper-mill/place/loft
     - /world/terminus/hearts-delight/paper-mill/thing/rag-counter

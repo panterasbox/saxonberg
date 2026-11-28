@@ -22,8 +22,8 @@ const LOBBY = '/world/terminus/mayfield-row/seznick-house/lobby';
 const AVENUE = '/world/terminus/counting-houses/avenue-block';
 const SQUARE = '/world/terminus/market/square';
 const MAYFIELD = '/world/terminus/mayfield-row/street';
-const VALLEY_GATE = '/world/terminus/hearts-delight/location/valley-gate';
-const HINKLEY_LANE = '/world/terminus/hinkley-hills/location/lane';
+const VALLEY_GATE = '/world/terminus/hearts-delight/place/valley-gate';
+const HINKLEY_LANE = '/world/terminus/hinkley-hills/place/lane';
 
 async function transcript(page: Page): Promise<string> {
   return page.getByTestId('terminal').innerText();

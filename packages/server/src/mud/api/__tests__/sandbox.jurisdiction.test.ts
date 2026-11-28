@@ -137,7 +137,7 @@ describe('governed eval — the jurisdiction bound', () => {
   it('admits a clone standing in the parcel (a corpse, say)', async () => {
     const corpse = probeAt(
       '/stuff/thing/Corpse',
-      roomAt('/world/lounge/location/bar'),
+      roomAt('/world/lounge/place/bar'),
     );
     await SandboxApi.runGoverned(BOUND, async () => {
       corpse.setName('examined');
@@ -213,7 +213,7 @@ describe('governed eval — the jurisdiction bound', () => {
    */
 
   it('⭐⭐ admits a HOSTED thing — the exit shape, pathed by KIND', async () => {
-    const room = roomAt('/world/lounge/location/bar');
+    const room = roomAt('/world/lounge/place/bar');
     const hosted = makeStuff(() => new Hosted(room));
     // The defect in one line: its own path is the kernel's.
     stampTemplatePathForTest(hosted, '/platform/idea/exits/passage');
@@ -226,7 +226,7 @@ describe('governed eval — the jurisdiction bound', () => {
   it('⚠ and DENIES one whose host is outside the parcel', async () => {
     // The reason the hook answers the SOURCE and never the destination:
     // an exit has two ends and the far one may be somebody else's.
-    const far = roomAt('/world/moor/location/heath');
+    const far = roomAt('/world/moor/place/heath');
     const hosted = makeStuff(() => new Hosted(far));
     stampTemplatePathForTest(hosted, '/platform/idea/exits/passage');
     await expect(
@@ -241,7 +241,7 @@ describe('governed eval — the jurisdiction bound', () => {
     // Found by the field-population build: the founder's `eval` of a
     // patch's moisture was refused inside the founder's own extent,
     // because a fixture is pathed by its kind row and is not contained.
-    const field = roomAt('/world/lounge/location/home-field');
+    const field = roomAt('/world/lounge/place/home-field');
     const patch = makeStuff(() => new Fixture());
     stampTemplatePathForTest(patch, '/trade/farming/thing/field');
     field.addFixture(patch as never, 'patch:top-end');
@@ -252,7 +252,7 @@ describe('governed eval — the jurisdiction bound', () => {
   });
 
   it('⚠ and DENIES a fixture of a place outside it, and a detached one', async () => {
-    const far = roomAt('/world/moor/location/heath');
+    const far = roomAt('/world/moor/place/heath');
     const patch = makeStuff(() => new Fixture());
     stampTemplatePathForTest(patch, '/trade/farming/thing/field');
     far.addFixture(patch as never, 'patch:far');

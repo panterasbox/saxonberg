@@ -15,7 +15,7 @@ import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import StockBase from '@saxonberg/server/mud/lib/retail/Stock';
 import Good from '@saxonberg/server/mud/platform/thing/Good';
 import Holder from '@saxonberg/server/mud/lib/stuff/Holder';
-import Location from '@saxonberg/server/mud/platform/location/Location';
+import Location from '@saxonberg/server/mud/platform/place/Location';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';

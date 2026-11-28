@@ -10,7 +10,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/goods-yards/rubber-works
-  entrance: /world/terminus/goods-yards/rubber-works/location/ground/works/floor
+  entrance: /world/terminus/goods-yards/rubber-works/place/ground/works/floor
   shortDescription: rubber works
   register: definite
   keywords: [works, "rubber works", chimney, tower]
@@ -21,9 +21,9 @@ data:
     of sulfur.
   heightM: 12
   storeys:
-    - { key: ground, extent: /world/terminus/goods-yards/rubber-works/location/ground }
-    - { key: works, extent: /world/terminus/goods-yards/rubber-works/location/ground/works }
-    - { key: wing, extent: /world/terminus/goods-yards/rubber-works/location/ground/wing }
-    - { key: loft, extent: /world/terminus/goods-yards/rubber-works/location/loft, on: works }
-    - { key: tower, extent: /world/terminus/goods-yards/rubber-works/location/tower, on: wing }
-    - { key: terrace, extent: /world/terminus/goods-yards/rubber-works/location/terrace, on: loft }
+    - { key: ground, extent: /world/terminus/goods-yards/rubber-works/place/ground }
+    - { key: works, extent: /world/terminus/goods-yards/rubber-works/place/ground/works }
+    - { key: wing, extent: /world/terminus/goods-yards/rubber-works/place/ground/wing }
+    - { key: loft, extent: /world/terminus/goods-yards/rubber-works/place/loft, on: works }
+    - { key: tower, extent: /world/terminus/goods-yards/rubber-works/place/tower, on: wing }
+    - { key: terrace, extent: /world/terminus/goods-yards/rubber-works/place/terrace, on: loft }

@@ -1,6 +1,6 @@
 # The blackmere shore. West across the mere is a crossing that exists only
 # while the ice bears you — it has borne a cart since the autumn.
-class: /platform/location/Shore
+class: /platform/place/Shore
 data:
   shortDescription: mere shore
   keywords: [shore, bank]

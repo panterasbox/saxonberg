@@ -23,7 +23,7 @@ import { ShadowApi } from '../shadow';
 import { SubscriptionApi } from '../subscription';
 import { ContainmentApi } from '../containment';
 import { CARDS } from '../../lib/connection/Cards';
-import Locale from '../../platform/location/Locale';
+import Locale from '../../platform/place/Locale';
 import Thing from '../../platform/thing/Thing';
 import { makeHarness, makeContext, type Harness } from './card-harness';
 import type { Register } from '../../lib/description/NounPhrase';

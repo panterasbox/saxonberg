@@ -935,7 +935,7 @@ possible.
 
 > ⭐ **The vehicle moved; the ruling stands** (maritime revision 3,
 > 2026-10-11). *Cited, never contained, never containing* is unchanged —
-> but the citation is now on the PLACE (a `/platform/location/Shore` or
+> but the citation is now on the PLACE (a `/platform/place/Shore` or
 > `Quay`, `waters: { <feature>: <reach> }`), not on a `Shore` object in
 > it; the room's own feature is what you look at, fish and draw from.
 > The prop defect below closes because the read is the water's own look,

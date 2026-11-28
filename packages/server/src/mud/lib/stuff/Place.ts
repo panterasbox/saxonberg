@@ -7,7 +7,7 @@
  * mixin, the `place` verb) is the RELATION of a thing to where it sits.
  *
  * ⭐⭐ **Every place has coordinates, cartesian or spherical — except the
- * void** (`platform/location/Void`, the one class that extends this bare).
+ * void** (`platform/place/Void`, the one class that extends this bare).
  * Everything else extends `Location` or `SphericalLocation`: an authored
  * row says its `coords:`; a place a warren mints takes the cell its
  * wiring says it is in (`Location.plotBesideNeighbour`); a holding lays
@@ -59,7 +59,7 @@ import { HorizonOverride, type HorizonOverrideRecord } from '../perception/Horiz
 import { Vantage } from '../perception/Vantage';
 import type Structure from '../structure/Structure';
 import type { Positioned } from '../expanse/Positioned';
-import type { MapClaimPosition } from '../location/MapClaim';
+import type { MapClaimPosition } from '../place/MapClaim';
 import type { Floor } from '../ground/Floor';
 import type { FieldMeta } from '../mixin';
 import { Placements } from '../spatial/Placement';

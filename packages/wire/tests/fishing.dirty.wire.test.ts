@@ -63,7 +63,7 @@ const STORE = '/world/terminus/general-store/shop-floor';
 const BANK = '/world/terminus/wharfside/bank';
 const SQUARE = '/world/terminus/market/square';
 const HEATH = '/world/moor/stormy-heath';
-const MILLSITE = '/world/hearts-delight/location/millsite';
+const MILLSITE = '/world/hearts-delight/place/millsite';
 const PARCEL = '--parcel /world/terminus/market';
 /**
  * The angler's login when it stages by `eval`: the wizard axis (it types

@@ -12,7 +12,7 @@ never has:
 | class | where it actually lives |
 |---|---|
 | `Zone`, `SpatialZone` | `lib/zone/` (abstract) |
-| `CartesianZone`, `SphericalZone` | `platform/idea/location/` |
+| `CartesianZone`, `SphericalZone` | `platform/idea/place/` |
 | `FolderZone`, `WikiNamespaceZone`, `HomeZone` | `platform/idea/` |
 | `Clade` | `platform/idea/species/` |
 
@@ -92,7 +92,7 @@ class that can mean something by it.**
    /     \         idea/)          └ HomeZone  (platform/idea/)
   /       \         │            - Clade     (platform/idea/species/)
 CartesianZone  SphericalZone      WikiNamespaceZone (platform/idea/)
-(platform/idea/location/, both)
+(platform/idea/place/, both)
 ```
 
 - **`Zone`** — bare scope abstraction. Carries a name and the
@@ -292,14 +292,14 @@ only *which copies exist now* is runtime, and the location graph records
 them as they stand.
 
 **The zone ROW says it is copied, and by whom.** A copied zone's row is a
-`MintedZone` (`platform/idea/location/MintedZone.ts`, or a pack subclass —
+`MintedZone` (`platform/idea/place/MintedZone.ts`, or a pack subclass —
 `ReachZone`, `SeaZone`) and authors `mintedBy:` naming the warren ROW that
 copies it. **The row's own instance holds no room** (`addLocation` throws
 *"a room joins a copy, never the row"*); a thing or idea filed under the row
 is only stamped. `isCopy()` = the identity differs from the template.
 
 **The warren says how copies are named and where they join** —
-`ZoneMintingMixin` (`lib/location/ZoneMinting.ts`), composed by exactly the
+`ZoneMintingMixin` (`lib/place/ZoneMinting.ts`), composed by exactly the
 four warrens that mint zones (`HoldingWarren`, `ShipWarren`, `ReachWarren`,
 `SeaWarren`; not `Warren`, not `FloorplanWarren` — a mine carves on its own
 zone's grid). Its row authors:

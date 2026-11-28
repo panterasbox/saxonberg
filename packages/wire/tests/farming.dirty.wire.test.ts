@@ -56,7 +56,7 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const HALL = '/world/terminus/terminal/location/hall';
+const HALL = '/world/terminus/terminal/place/hall';
 const LANE = '/world/terminus/hinkley-hills/lane';
 
 let g: Session;

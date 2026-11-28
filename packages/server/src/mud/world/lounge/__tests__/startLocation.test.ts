@@ -6,7 +6,7 @@
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi  } from 'vitest';
 import LoungeWarren from '../idea/LoungeWarren';
-import Lounge from '../location/Lounge';
+import Lounge from '../place/Lounge';
 import Avatar from '../../../platform/agent/PrimaryAvatar';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

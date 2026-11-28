@@ -1,7 +1,7 @@
 import "../../../../test-bootstrap";
 import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Door from '../../../platform/thing/Door';
 import { PersistenceManager, Collections } from '../../../../backend/PersistenceManager';
 import { StuffApi } from '../../../api/stuff';
@@ -75,7 +75,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -96,7 +96,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -115,7 +115,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -139,7 +139,7 @@ describe('Exitable.applyExits', () => {
 
   it('⭐ each side authoring the same door: attaches to the ONE singleton', async () => {
     installInMemoryStore([
-      { path: '/zone', class: '/platform/idea/location/CartesianZone', data: {} },
+      { path: '/zone', class: '/platform/idea/place/CartesianZone', data: {} },
     ]);
     const a = makeStuffAtPath(() => new Location(), '/zone/a');
     const b = makeStuffAtPath(() => new Location(), '/zone/b');
@@ -159,7 +159,7 @@ describe('Exitable.applyExits', () => {
 
   it('⭐ D4: a door on one side only walls the doorless side and tells the author', async () => {
     installInMemoryStore([
-      { path: '/zone', class: '/platform/idea/location/CartesianZone', data: {} },
+      { path: '/zone', class: '/platform/idea/place/CartesianZone', data: {} },
     ]);
     const record = vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined);
     const a = makeStuffAtPath(() => new Location(), '/zone/a');
@@ -180,7 +180,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -199,7 +199,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);
@@ -216,7 +216,7 @@ describe('Exitable.applyExits', () => {
     installInMemoryStore([
       {
         path: '/zone',
-        class: '/platform/idea/location/CartesianZone',
+        class: '/platform/idea/place/CartesianZone',
         data: {},
       },
     ]);

@@ -2,7 +2,7 @@
 # beach where the high water stops. Dry most of the day; at the top of a
 # big tide the sea comes up over it. What floated in the channel lies here
 # after the next high water.
-class: /platform/location/Pool
+class: /platform/place/Pool
 data:
   shortDescription: strandline
   keywords: [strandline, wrack, "tide line", tideline, weed]

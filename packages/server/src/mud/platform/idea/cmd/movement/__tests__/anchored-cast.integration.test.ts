@@ -32,7 +32,7 @@ import { Quantity } from '../../../../../lib/quantity';
 import '../../../../../platform/idea/WorldClockRegistry';
 import SpellCatalogue from '../../../../../platform/idea/SpellCatalogue';
 import { Template } from '../../../../../lib/stuff/Template';
-import Locale from '../../../../../platform/location/Locale';
+import Locale from '../../../../../platform/place/Locale';
 import { Character } from '../../../../../lib/character/Character';
 import {
   makeStuff,
@@ -97,7 +97,7 @@ async function installCatalogue(): Promise<void> {
 
 function room(elevation: number | null): Locale {
   const r = makeStuff(() => new Locale());
-  stampTemplatePathForTest(r, `/platform/location/test/anch-${seq++}`);
+  stampTemplatePathForTest(r, `/platform/place/test/anch-${seq++}`);
   elevations.set(r as unknown as Stuff, elevation);
   return r;
 }

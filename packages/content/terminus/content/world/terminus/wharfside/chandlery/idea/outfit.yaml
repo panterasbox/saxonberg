@@ -32,5 +32,5 @@ data:
   rosterSlots: []
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/wharfside/chandlery/location/floor
+    - /world/terminus/wharfside/chandlery/place/floor
     - /world/terminus/wharfside/chandlery/thing/counter

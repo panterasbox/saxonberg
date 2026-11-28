@@ -26,7 +26,7 @@ import { CirculatingMixin } from '../Circulating';
 import { BlessableMixin } from '../../magic/Blessable';
 import { ArcaneMixin } from '../../magic/Arcane';
 import Good from '../../stuff/Good';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import type { Stuff } from '../../stuff/Stuff';
 import {
   makeStuff,

@@ -1,0 +1,78 @@
+# The millsite — ⭐⭐ **at the FALL, which is the only place a mill can
+# be**, and the siting is the lesson.
+#
+# The obvious place for a mill is the biggest water. It is wrong: power
+# is `rho*g*dh*Q*eta` and the drop and the flow MULTIPLY, so a great slow
+# river across flat country has all the flow in the world and no power
+# at all. A mill goes where the water FALLS.
+#
+# ⚠ And it is not at the Kestrel falls, which was the first siting and
+# was wrong for a different reason: those falls sit between the MINE and
+# the city, with no grain within a day of them. A grain mill goes where
+# the grain is — von Thünen, and the reason every valley in Europe had
+# its own mill rather than one big one.
+class: /platform/place/Street
+data:
+  # ⭐ Lit by the valley's oil after dusk (energy build). Seniority 3 — the
+  # JUNIOR way, the FIRST to stand cold when the store runs short: a lamp at
+  # the fall matters less than a lamp at the gate, and the order is recorded
+  # in advance so nobody is judged at the moment of refusal.
+  publicLighting:
+    flux: 300
+    colorTemperature: 2200
+    detail: lamps
+    seniority: 3
+  shortDescription: millsite
+  keywords: [millsite, mill, wheel, weir, fall]
+  register: definite
+  alternateNames: [millhouse, "mill house"]
+  _address: terminus/hearts-delight/millsite
+  _biomePath: /stuff/idea/biome/outdoor/baseline
+  ambientIntensity: 20000
+  ambientColorTemperature: 5400
+  longDescription: |
+    The Delight comes round a shoulder of rock here and drops — not far, twenty feet at most, but all at once and all the year round. Somebody a long time ago threw a weir across above the drop and cut a race along the bank, and the water goes down the race and onto the wheel instead of over the ledge.
+
+    The mill is built into the slope so the stones sit at the top of the wheel shaft, in the mill house above you. The door stands open on a room dusted white, and the smell of warm flour comes out of it.
+  coords: { x: -13, y: -6, z: 4 }
+  exits:
+    north:
+      destination: /world/terminus/hearts-delight/place/bench-lane
+      kind: /platform/idea/exits/track
+      media: [ground]
+      edgeMinutes: 5
+    # ⭐ Downstream, the sawmill — the same water, taken again below the
+    # tailrace. A fall is worth more than one wheel.
+    south:
+      destination: /world/terminus/hearts-delight/place/sawmill
+      kind: /platform/idea/exits/track
+      media: [ground]
+      edgeMinutes: 2
+    # ⭐ The stones are indoors now (cleanliness D22): the mill house, at
+    # the top of the wheel shaft, west of the race.
+    west:
+      destination: /world/terminus/hearts-delight/place/mill-house
+      media: [ground]
+      edgeMinutes: 1
+    # ⭐ East, the paper mill (paper W2): the same race, a third wheel's worth.
+    east:
+      destination: /world/terminus/hearts-delight/paper-mill/place/vat-house
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /world/terminus/hearts-delight/thing/millrace
+  details:
+    # ⭐ The static detail MQL binds `look lamps` to; PublicLightingMixin
+    # appends the live state. Seniority 3 — the first to stand cold.
+    lamps:
+      keywords: [lamps, lamp, standards, lighting]
+      description: |
+        A single gaslamp standard by the mill door, iron post and glass head, fed from the valley's oil store — the junior lamp of the three, and the first to go dark when the oil runs low.
+    weir:
+      keywords: [weir, dam, race, millrace, ledge, fall]
+      description: |
+        A low stone weir across the whole river, backing the water up into a wide still pool, with the race taken off the near end. ⭐ The weir is the DROP, built: the river fell here anyway, and the weir is what turns falling into a head you can point at a wheel. It passes everything it takes — nothing is diverted away, nothing is lost downstream. The valley below would notice at once if it were.
+    wheel:
+      keywords: [wheel, waterwheel]
+      description: |
+        Overshot, because there is head enough for it — the water comes onto the top of the wheel and its weight does the work rather than its push. Perhaps twelve feet across, elm buckets, turning slow. In August it turns slower.

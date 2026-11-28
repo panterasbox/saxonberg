@@ -14,7 +14,7 @@ import Rope from '../../../platform/thing/Rope';
 import RopeEnd from '../../../platform/thing/RopeEnd';
 import LineEnd from '../../../platform/thing/LineEnd';
 import Good from '../../../platform/thing/Good';
-import Location from '../../../platform/location/Location';
+import Location from '../../../platform/place/Location';
 import { Character } from '../../character/Character';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';

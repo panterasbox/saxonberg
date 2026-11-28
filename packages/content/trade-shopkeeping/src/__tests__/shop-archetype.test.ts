@@ -92,7 +92,7 @@ function contentRows(): Row[] {
       'platform/idea/persistence/QuantityMarshaller',
       '/platform/idea/persistence/QuantityMarshaller',
     ),
-    ...yamlDir('platform', 'platform/location', '/platform/location'),
+    ...yamlDir('platform', 'platform/place', '/platform/place'),
     ...yamlDir('trade-shopkeeping', 'trade/shopkeeping/thing', `${ROOT}/thing`),
   ];
   for (const r of rows) {

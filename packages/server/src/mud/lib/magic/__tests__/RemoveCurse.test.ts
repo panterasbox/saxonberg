@@ -49,7 +49,7 @@ import { MagicEffects, EFFECT_KINDS } from '../Effect';
 import { Template } from '../../stuff/Template';
 import { Character } from '../../character/Character';
 import Species from '../../../platform/idea/species/Species';
-import Locale from '../../../platform/location/Locale';
+import Locale from '../../../platform/place/Locale';
 import {
   makeStuff,
   stampTemplatePathForTest,

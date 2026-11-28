@@ -17,7 +17,7 @@
 #
 # Ownership is NOT here. Each lot's title is a row in the gated `parcels`
 # collection, keyed on its extent under this branch.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Hinkley Hills lots
   # Covered by a Locality, so a walk here files claims on your map

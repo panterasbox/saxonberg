@@ -69,11 +69,11 @@ function ferrow(): Deposit {
 
 /** A shipped room's cell, in zone metres — the pithead's cells are 10 m. */
 function metresOf(roomFile: string): [number, number] {
-  const coords = data(`${REJECTION}location/${roomFile}`).coords as {
+  const coords = data(`${REJECTION}place/${roomFile}`).coords as {
     x: number;
     y: number;
   };
-  const cellSize = Number(data(`${REJECTION}location.yaml`).cellSize);
+  const cellSize = Number(data(`${REJECTION}place.yaml`).cellSize);
   return [coords.x * cellSize, coords.y * cellSize];
 }
 
@@ -215,8 +215,8 @@ describe('`stake` reaches both sites with no second mechanism', () => {
 
   it('both bore sites are entries in the register that already existed', () => {
     const paths = workings.map((w) => w.path);
-    expect(paths).toContain('/world/terminus/rejection/location/salt-spring');
-    expect(paths).toContain('/world/terminus/rejection/location/salt-flat');
+    expect(paths).toContain('/world/terminus/rejection/place/salt-spring');
+    expect(paths).toContain('/world/terminus/rejection/place/salt-flat');
     // ⭐ And the quarry's entry is untouched: a bore site is one MORE
     // entry, which is the falsifiable line.
     expect(paths).toContain('/world/terminus/rejection/quarry/pit');
@@ -234,29 +234,29 @@ describe('`stake` reaches both sites with no second mechanism', () => {
 
   it('the two rooms exist, are outdoors, and are reachable from the hillside (by the old workings)', () => {
     for (const file of ['salt-spring.yaml', 'salt-flat.yaml']) {
-      const d = data(`${REJECTION}location/${file}`);
+      const d = data(`${REJECTION}place/${file}`);
       expect(d._biomePath).toBe('/stuff/idea/biome/outdoor/baseline');
       expect(d.coords).toBeDefined();
     }
     // ⭐ The walk over the shoulder leaves from the old workings now (the
     // boundary build put the glazier's hut's window in the hillside's
     // `east`): hillside → old workings → salt spring.
-    const hillside = data(`${REJECTION}location/hillside.yaml`);
+    const hillside = data(`${REJECTION}place/hillside.yaml`);
     const hx = hillside.exits as Record<string, { destination: string }>;
     expect(hx.northeast?.destination).toBe(
-      '/world/terminus/rejection/location/old-workings',
+      '/world/terminus/rejection/place/old-workings',
     );
-    const workings = data(`${REJECTION}location/old-workings.yaml`);
+    const workings = data(`${REJECTION}place/old-workings.yaml`);
     const wx = workings.exits as Record<string, { destination: string }>;
     expect(wx.northeast?.destination).toBe(
-      '/world/terminus/rejection/location/salt-spring',
+      '/world/terminus/rejection/place/salt-spring',
     );
   });
 
   it('⭐ the free evidence is a PROP with a `showing` detail, and the channel reads that', () => {
     // The channel knows nothing about springs: it asks the room what is
     // showing. A third kind of surface showing is a row.
-    const spring = data(`${REJECTION}location/salt-spring.yaml`);
+    const spring = data(`${REJECTION}place/salt-spring.yaml`);
     expect(spring.props).toContain(
       '/world/terminus/rejection/thing/salt-spring',
     );
@@ -268,7 +268,7 @@ describe('`stake` reaches both sites with no second mechanism', () => {
     // is mostly water and salt is light. None of them shows anything.)
     // ⭐ (ceramics W8) An entry may be `{ template, on }` — the pan stands
     // on its bittern tub.
-    const flatProps = ((data(`${REJECTION}location/salt-flat.yaml`).props ??
+    const flatProps = ((data(`${REJECTION}place/salt-flat.yaml`).props ??
       []) as Array<string | { template: string }>).map((p) =>
       typeof p === 'string' ? p : p.template,
     );

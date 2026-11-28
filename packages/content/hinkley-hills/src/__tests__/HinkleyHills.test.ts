@@ -33,7 +33,7 @@ import GardenBed from '@saxonberg/server/mud/platform/thing/GardenBed';
 import PlantPot from '@saxonberg/server/mud/platform/thing/PlantPot';
 import Seed from '@saxonberg/server/mud/platform/thing/Seed';
 import Plant from '@saxonberg/server/mud/platform/thing/Plant';
-import PersistentLocation from '@saxonberg/server/mud/platform/location/PersistentLocation';
+import PersistentLocation from '@saxonberg/server/mud/platform/place/PersistentLocation';
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
 import { Reserve } from '@saxonberg/server/mud/lib/reserve/Reserved';

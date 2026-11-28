@@ -14,13 +14,13 @@ import { makeStuffAtPath, seedKernelContentStore } from '@saxonberg/server/mud/l
 import ReachWarren from '../idea/ReachWarren';
 
 const WARREN = '/system/water/idea/ReachWarren';
-const PATCH_ZONE = '/system/water/location/reach/patch';
+const PATCH_ZONE = '/system/water/place/reach/patch';
 
 function seed(mintedBy: string = WARREN): void {
   seedKernelContentStore([
     { path: '/system', class: '/platform/idea/FolderZone', data: {} },
     { path: WARREN, class: WARREN, data: { zoneNaming: 'under-row', joins: 'frame' } },
-    { path: PATCH_ZONE, class: '/system/water/location/ReachZone', data: { name: 'the river', cellSize: 100, mintedBy } },
+    { path: PATCH_ZONE, class: '/system/water/place/ReachZone', data: { name: 'the river', cellSize: 100, mintedBy } },
   ]);
 }
 

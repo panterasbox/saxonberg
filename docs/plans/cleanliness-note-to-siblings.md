@@ -184,7 +184,7 @@ build's review-log entry kept, `pnpm install` for the lock,
 Decided in review (`docs/slates/tech-debt/place-taxonomy-slate.md`): the root
 `Location` → `Place`; one particular place is a **Locale**, one of many a
 **Location**, either `Persistent…`. Concretely:
-(all done in !380, by name; the `/platform/location/` path segment is
+(all done in !380, by name; the `/platform/place/` path segment is
 unchanged):
 
 | was | now |

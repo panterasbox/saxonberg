@@ -4,7 +4,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/hollow-mere/icehouse
-  entrance: /world/terminus/hollow-mere/icehouse/location/platform
+  entrance: /world/terminus/hollow-mere/icehouse/place/platform
   shortDescription: icehouse
   register: definite
   keywords: [icehouse, house, sheds]

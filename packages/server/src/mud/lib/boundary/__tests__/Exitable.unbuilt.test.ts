@@ -19,8 +19,8 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { StuffApi } from '../../../api/stuff';
 import { DiagnosticApi } from '../../../api/diagnostics';
-import CartesianZone from '../../../platform/idea/location/CartesianZone';
-import Location from '../../location/Location';
+import CartesianZone from '../../../platform/idea/place/CartesianZone';
+import Location from '../../place/Location';
 import {
   makeStuffAtPath,
   seedKernelContentStore,
@@ -38,8 +38,8 @@ beforeEach(() => {
   StuffApi.clearAll();
   recorded = [];
   seedKernelContentStore([
-    { path: HERE, class: '/platform/location/Location', data: {} },
-    { path: THERE, class: '/platform/location/Location', data: {} },
+    { path: HERE, class: '/platform/place/Location', data: {} },
+    { path: THERE, class: '/platform/place/Location', data: {} },
   ]);
   vi.spyOn(DiagnosticApi, 'record').mockImplementation(
     (async (d: RuntimeDiagnostic) => {
@@ -119,9 +119,9 @@ describe('an exit onto nothing', () => {
 
     // The author creates the room they meant.
     seedKernelContentStore([
-      { path: HERE, class: '/platform/location/Location', data: {} },
-      { path: THERE, class: '/platform/location/Location', data: {} },
-      { path: MISSING, class: '/platform/location/Location', data: {} },
+      { path: HERE, class: '/platform/place/Location', data: {} },
+      { path: THERE, class: '/platform/place/Location', data: {} },
+      { path: MISSING, class: '/platform/place/Location', data: {} },
     ]);
     await here.applyExits({ north: { destination: MISSING } });
 

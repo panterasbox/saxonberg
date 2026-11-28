@@ -12,7 +12,7 @@ import '../../../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import BroadcastController from '../BroadcastController';
 import Avatar from '../../../../agent/PrimaryAvatar';
-import Locale from '../../../../location/Locale';
+import Locale from '../../../../place/Locale';
 import { AccessApi } from '../../../../../api/access';
 import { ParcelApi } from '../../../../../api/parcel';
 import { MessageApi } from '../../../../../api/message';

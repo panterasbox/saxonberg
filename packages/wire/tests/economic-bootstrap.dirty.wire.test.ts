@@ -29,8 +29,8 @@ declareFile({
 const HALL = '/world/terminus/counting-houses/banking-hall';
 const COUNTING_HOUSES = '/world/terminus/counting-houses/business';
 const DISTRIBUTOR = '/world/terminus/counting-houses/distributor/idea/business';
-const FARM_YARD = '/world/terminus/goods-yards/farm/location/yard';
-const PANTRY_FLOOR = '/world/terminus/goods-yards/pantry/location/floor';
+const FARM_YARD = '/world/terminus/goods-yards/farm/place/yard';
+const PANTRY_FLOOR = '/world/terminus/goods-yards/pantry/place/floor';
 const SHOP_FLOOR = '/world/terminus/general-store/shop-floor';
 const STORE_COUNTER = '/world/terminus/general-store/counter';
 /** The goods, by the keyword only a crate of limes / a sack of coffee carries. */

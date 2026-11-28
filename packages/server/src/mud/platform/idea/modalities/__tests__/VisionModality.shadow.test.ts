@@ -7,8 +7,8 @@ import type { LightBand, VisionProfile } from '../../../../lib/perception/Light'
 import { VisionModality } from '../VisionModality';
 import { ShadowApi } from '../../../../api/shadow';
 import { StuffApi } from '../../../../api/stuff';
-import Location from '../../../../lib/location/Location';
-import CartesianZone from '../../location/CartesianZone';
+import Location from '../../../../lib/place/Location';
+import CartesianZone from '../../place/CartesianZone';
 import { LightSourceMixin } from '../../../../lib/perception/LightSource';
 import { AmbientLitMixin } from '../../../../lib/perception/AmbientLit';
 import Good from '../../../../lib/stuff/Good';

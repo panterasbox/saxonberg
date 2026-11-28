@@ -31,8 +31,8 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 19] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/hearts-delight/location/farmstead-yard
-    - /world/terminus/hearts-delight/bench-field/location/upper-bench
+    - /world/terminus/hearts-delight/place/farmstead-yard
+    - /world/terminus/hearts-delight/bench-field/place/upper-bench
     # ⭐ The stock's fields (cover build W6).
-    - /world/terminus/hearts-delight/bench-field/location/lower-meadow
-    - /world/terminus/hearts-delight/bench-field/location/orchard-close
+    - /world/terminus/hearts-delight/bench-field/place/lower-meadow
+    - /world/terminus/hearts-delight/bench-field/place/orchard-close

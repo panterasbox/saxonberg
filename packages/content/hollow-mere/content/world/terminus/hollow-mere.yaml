@@ -6,7 +6,7 @@
 # pins it) so a fresh world's day 0 is the mere's first days of cold: the
 # ice will not hold a person on day 0, holds one by day 2, a horse by
 # about day 13, and goes out before day 280.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: Hollow Mere
   cellSize: 20.0

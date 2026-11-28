@@ -38,21 +38,21 @@ data:
     # finds a metre of brine; the flat is over the crest and finds forty.
     # The survey says so before a penny is spent, which is what makes
     # staking the wrong one a decision somebody made.
-    - path: /world/terminus/rejection/location/salt-spring
+    - path: /world/terminus/rejection/place/salt-spring
       keywords: [spring, "salt spring", seep, hollow]
-    - path: /world/terminus/rejection/location/salt-flat
+    - path: /world/terminus/rejection/place/salt-flat
       keywords: [flat, "salt flat", "the flat", bare]
     # ⭐ Gas country, and the fourth entry is still zero code. The
     # falsifiable line holds: a second kind of well is a row.
-    - path: /world/terminus/rejection/location/gas-flat
+    - path: /world/terminus/rejection/place/gas-flat
       keywords: [burnt, "burnt ground", blow]
     # ⭐⭐ Oil country: the whaleback over the charged trap, and the cairn
     # over the one that reads just as well and holds nothing. BOTH are
     # stakeable, and that is the point — the register cannot tell them
     # apart either.
-    - path: /world/terminus/rejection/location/oil-rise
+    - path: /world/terminus/rejection/place/oil-rise
       keywords: [whaleback, rise, back]
-    - path: /world/terminus/rejection/location/dry-rise
+    - path: /world/terminus/rejection/place/dry-rise
       keywords: [cairn, "cairn rise", stones]
   details:
     marks:

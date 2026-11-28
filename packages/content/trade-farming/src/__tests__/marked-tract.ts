@@ -5,7 +5,7 @@
  * Test-only; lives under `__tests__/`.
  */
 
-import Tract, { type FieldSpec } from '../location/Tract';
+import Tract, { type FieldSpec } from '../place/Tract';
 import Field from '../thing/Field';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 

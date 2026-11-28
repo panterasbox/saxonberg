@@ -6,7 +6,7 @@
  */
 import '../../../../test-bootstrap';
 import { ContainmentApi } from '../../../api/containment';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Floor from '../../../platform/thing/Floor';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ProducingMixin } from '../Producing';

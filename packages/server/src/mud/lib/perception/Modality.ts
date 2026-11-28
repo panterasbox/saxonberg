@@ -80,7 +80,7 @@ export type Percept = unknown;
  * and the gather pushes a level down and emits pre-order — but the
  * FRONTIER was identical in all four, and four copies of a frontier
  * is four behaviours. All four now walk
- * `lib/location/Traversal.ts` and keep their own accumulator; the
+ * `lib/place/Traversal.ts` and keep their own accumulator; the
  * narrowed decision is *one skeleton, four accumulators.* What is
  * still shared here is the depth budget and the per-exit attenuation
  * tuning, on the substrate's neutral home.

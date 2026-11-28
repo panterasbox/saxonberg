@@ -55,6 +55,6 @@ data:
     - brain: /trade/textiles/behavior/weaves
       trigger: candidate
       config:
-        floor: /world/terminus/wharfside/mill/location/floor
+        floor: /world/terminus/wharfside/mill/place/floor
         stock: /world/terminus/wharfside/mill/thing/stock
         batch: 4

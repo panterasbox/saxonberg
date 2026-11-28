@@ -19,9 +19,9 @@ data:
         - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 19] }
   banksAt: goodkin
   operatingLocations:
-    - /world/terminus/hearts-delight/dairy/location/yard
-    - /world/terminus/hearts-delight/dairy/location/byre
+    - /world/terminus/hearts-delight/dairy/place/yard
+    - /world/terminus/hearts-delight/dairy/place/byre
     # ⭐ The fields the dairy works (cover build W6): the cows' pasture and
     # the meadow shut up for hay.
-    - /world/terminus/hearts-delight/dairy/location/pasture
-    - /world/terminus/hearts-delight/dairy/location/hay-meadow
+    - /world/terminus/hearts-delight/dairy/place/pasture
+    - /world/terminus/hearts-delight/dairy/place/hay-meadow

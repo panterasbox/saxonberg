@@ -74,10 +74,10 @@ Every other shared piece is "keep both". The conflict map lists them.
      row. Unauthored, they read as interiors and also fail the
      snow/rain/sky reads your IceSheet needs.
 5. **Your icehouse Structure's extent.** Membership is the extent prefix.
-   With flat siblings under `…/hollow-mere/location/`, an extent of
-   `…/location` pulls in the shed (your empty control), the small house
+   With flat siblings under `…/hollow-mere/place/`, an extent of
+   `…/place` pulls in the shed (your empty control), the small house
    and the pool. Nest the icehouse's rooms under their own prefix (e.g.
-   `…/location/icehouse/{platform, house}`), or keep the icehouse a lone
+   `…/place/icehouse/{platform, house}`), or keep the icehouse a lone
    place.
    - ⚠ Once rubber lands, a house that is a member with an interior face
      to the platform couples heat to it. The lone shed doesn't. Your
@@ -131,7 +131,7 @@ Every other shared piece is "keep both". The conflict map lists them.
    room (`outdoor/baseline`, its light follows the sun). A slate roof
    would make it dry and dark. Leave it open.
    - Hinkley's `lots/yard.yaml` is outdoor too.
-   - The shared `/stuff/location/room/{living, bedroom, bathroom}` rows
+   - The shared `/stuff/place/room/{living, bedroom, bathroom}` rows
      feed every programme. Authoring layers there changes Seznick's
      bathroom as well.
    - `cistern.yaml` is the drown-here proof room. Check its tests if it

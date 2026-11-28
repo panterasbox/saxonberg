@@ -2,7 +2,7 @@
 # the pass, where the road comes nearest the river, and the outfitter who
 # hires and sells the boats people put in with. Its own small zone: a bank
 # on the river's line.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: the put-in
   cellSize: 10.0

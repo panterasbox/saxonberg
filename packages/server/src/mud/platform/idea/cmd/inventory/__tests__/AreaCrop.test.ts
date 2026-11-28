@@ -202,7 +202,7 @@ function makeGround(): TestGround {
       ),
     );
     return g;
-  }, freshPath('/trade/farming/location/_test-field'));
+  }, freshPath('/trade/farming/place/_test-field'));
 }
 
 function makeSickle(swathM2: number): Tool {
@@ -768,7 +768,7 @@ describe('the area crop', () => {
         const g = new DividedGround();
         g.setAmbientFlux(400);
         return g;
-      }, freshPath('/trade/farming/location/_test-divided'));
+      }, freshPath('/trade/farming/place/_test-divided'));
       field.parts = keys.map(([k, a]) => makePart(k, a));
       const giver = makeStuffAtPath(() => {
         const g = new TestGiver();

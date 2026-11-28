@@ -73,14 +73,14 @@ declareFile({
   dirtyReason: DIRTY_REASON,
 });
 
-const LOBBY = '/world/terminus/eternal/duncan-hall/location/lobby';
+const LOBBY = '/world/terminus/eternal/duncan-hall/place/lobby';
 const SQUARE = '/world/terminus/market/square';
-const SAWMILL = '/world/terminus/hearts-delight/location/sawmill';
+const SAWMILL = '/world/terminus/hearts-delight/place/sawmill';
 const WARD = '/world/terminus/infirmary/ward';
-const DISTILLERY = '/world/terminus/goods-yards/veshko/location/distillery';
-const BATHS = '/world/terminus/market/bathhouse/location/baths';
-const TAILOR = '/world/terminus/mayfield-row/tailor/location/shop';
-const DYEHOUSE = '/world/terminus/wharfside/dyehouse/location/floor';
+const DISTILLERY = '/world/terminus/goods-yards/veshko/place/distillery';
+const BATHS = '/world/terminus/market/bathhouse/place/baths';
+const TAILOR = '/world/terminus/mayfield-row/tailor/place/shop';
+const DYEHOUSE = '/world/terminus/wharfside/dyehouse/place/floor';
 
 const T = {
   bowl: '/stuff/thing/items/bowl',

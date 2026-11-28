@@ -323,7 +323,7 @@ continue`) — `card-opened/touched/pinned/closed` and
 :563 (no topic, meta, payload). `world.ts` helpers: `advanceWorldClock`
 :178, `nourish` :242, `dress` :270, `hand` :310, `pinWeather` :452.
 Multi-player = one `Session` each (`tests/identity.dirty.wire.test.ts`).
-Dave's Bar = `/world/lounge/location/bar`.
+Dave's Bar = `/world/lounge/place/bar`.
 
 ### Composition facts that constrain host placement
 

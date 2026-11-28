@@ -20,7 +20,7 @@ const NPC_DIR = fileURLToPath(
   new URL('../../../../../../content/saxonberg-lounge/content/world/lounge/agent/', import.meta.url)
 );
 const BAR_YAML = fileURLToPath(
-  new URL('../../../../../../content/saxonberg-lounge/content/world/lounge/location/bar.yaml', import.meta.url)
+  new URL('../../../../../../content/saxonberg-lounge/content/world/lounge/place/bar.yaml', import.meta.url)
 );
 
 interface Spec {

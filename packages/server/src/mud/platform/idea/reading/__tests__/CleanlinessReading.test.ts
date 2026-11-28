@@ -12,7 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { withRow } from './row';
 import { driveAnalyze } from './drive';
 import CleanlinessReading from '../CleanlinessReading';
-import Location from '../../../../lib/location/Location';
+import Location from '../../../../lib/place/Location';
 import Rug from '../../../thing/Rug';
 import Floor from '../../../thing/Floor';
 import { CommandGiverMixin } from '../../../../lib/command/CommandGiver';

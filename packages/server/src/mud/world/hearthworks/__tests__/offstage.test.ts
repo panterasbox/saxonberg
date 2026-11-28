@@ -21,8 +21,8 @@ const VENUE = fileURLToPath(
     import.meta.url,
   ),
 );
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
-const COOKHOUSE = '/world/terminus/hearthworks/location/cookhouse';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
+const COOKHOUSE = '/world/terminus/hearthworks/place/cookhouse';
 
 interface Spec {
   brain: string;

@@ -8,7 +8,7 @@ import { openWorldAs, runCommand } from './helpers';
  * click away; identical things grouped and expandable; a picture in its
  * declared shape, never cropped.
  */
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 
 test('the room card says what look said, by source', async ({ browser }) => {
   const { page, close } = await openWorldAs(browser, 'inspect', {

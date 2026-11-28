@@ -38,8 +38,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse } from 'yaml';
 import { LAND_USES } from '../../lib/parcel/LandUse';
-import { Traversal } from '../../lib/location/Traversal';
-import { TravelProfile } from '../../lib/location/TravelProfile';
+import { Traversal } from '../../lib/place/Traversal';
+import { TravelProfile } from '../../lib/place/TravelProfile';
 
 const CONTENT = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 
@@ -166,7 +166,7 @@ const MARKET = '/world/terminus/market/square';
 const BANK = '/world/terminus/wharfside/bank';
 const CROSSROADS = '/world/terminus/delight-road/crossroads';
 const PASS = '/world/terminus/rejection/kestrel-road/the-pass';
-const YARD = '/world/terminus/rejection/location/pithead-yard';
+const YARD = '/world/terminus/rejection/place/pithead-yard';
 const WILDS = '/world/newbie-wilds/crossroads/hub';
 const ESTUARY_MOUTH = '/world/terminus/estuary/estuary-mouth';
 const TOWPATH = '/world/terminus/valley-road/towpath';

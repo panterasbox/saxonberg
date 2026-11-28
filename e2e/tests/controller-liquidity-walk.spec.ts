@@ -21,7 +21,7 @@ import { openWorldAs, openWorldAsFounder, runCommand } from './helpers';
 
 const SQUARE = '/world/terminus/market/square';
 const STORE = '/world/terminus/general-store/shop-floor';
-const SMITHY = '/world/terminus/hearthworks/location/smithy';
+const SMITHY = '/world/terminus/hearthworks/place/smithy';
 const PUT_IN = '/world/terminus/rejection/put-in/landing';
 const REALTY = '/world/terminus/realty/office';
 const TERMINUS = '/world/terminus';

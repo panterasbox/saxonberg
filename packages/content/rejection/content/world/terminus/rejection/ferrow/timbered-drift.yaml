@@ -5,7 +5,7 @@
 # adit is two rooms away. `hew`, `shore` and `drift` are all learnable in
 # a room where the consequences of getting them wrong are visible and
 # survivable — which is what a tutorial face IS, historically and here.
-class: /trade/mining/location/AuthoredWorking
+class: /trade/mining/place/AuthoredWorking
 data:
   shortDescription: timbered drift
   keywords: [drift, "timbered drift", timbered]

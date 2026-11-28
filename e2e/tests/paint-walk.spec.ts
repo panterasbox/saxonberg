@@ -14,7 +14,7 @@ import { openWorldAs, runCommand } from './helpers';
  * words, and the colorman's counter sells.
  */
 
-const SHOP = '/world/terminus/wharfside/colorman/location/shop';
+const SHOP = '/world/terminus/wharfside/colorman/place/shop';
 const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 
 async function transcript(page: Page): Promise<string> {

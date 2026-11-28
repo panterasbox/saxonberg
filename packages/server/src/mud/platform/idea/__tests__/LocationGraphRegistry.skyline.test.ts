@@ -47,7 +47,7 @@ beforeEach(() => {
     { path: '/test/sea/rock', class: '/platform/idea/Business', data: {
       destination: '/test/sky/rock/landing', focus: { rho: 18520, theta: 90 },
     } },
-    { path: '/test/sky', class: '/platform/idea/location/CartesianZone', data: { elevation: 40, address: 'skyland/town' } },
+    { path: '/test/sky', class: '/platform/idea/place/CartesianZone', data: { elevation: 40, address: 'skyland/town' } },
     { path: '/test/sky/light', class: '/platform/idea/Building', data: {
       extent: '/test/sky/rock', entrance: '/test/sky/rock/landing', heightM: 30, landmark: true, showsLight: true,
     } },

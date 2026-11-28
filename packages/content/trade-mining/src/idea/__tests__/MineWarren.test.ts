@@ -19,13 +19,13 @@ import { KERNEL_CONTENT_ROWS } from '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import MineWarren from '../MineWarren';
 import Deposit from '@saxonberg/content-ground/src/idea/Deposit';
-import MineRoom from '../../location/MineRoom';
+import MineRoom from '../../place/MineRoom';
 import type { Working } from '../../lib/Working';
-import CartesianZone from '@saxonberg/server/mud/platform/idea/location/CartesianZone';
+import CartesianZone from '@saxonberg/server/mud/platform/idea/place/CartesianZone';
 import Stone from '@saxonberg/server/mud/platform/idea/material/Stone';
 import Tool from '@saxonberg/server/mud/platform/thing/Tool';
 import Thing from '@saxonberg/server/mud/platform/thing/Thing';
-import Locale from '@saxonberg/server/mud/platform/location/Locale';
+import Locale from '@saxonberg/server/mud/platform/place/Locale';
 import TemplateApplier from '@saxonberg/server/mud/platform/idea/TemplateApplier';
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
@@ -46,13 +46,13 @@ const PH = TemplateApplier.templatePath;
 const ZONE = '/world/fx-mine/mine';
 const DEPOSIT = '/world/fx-mine/idea/deposit/fx';
 const WARREN = '/world/fx-mine/idea/fx-warren';
-const ADIT = '/world/fx-mine/location/adit';
-const WORKING_CLASS = '/trade/mining/location/MineRoom';
+const ADIT = '/world/fx-mine/place/adit';
+const WORKING_CLASS = '/trade/mining/place/MineRoom';
 const TYPE_ROWS = {
-  face: '/world/fx-mine/location/face',
-  junction: '/world/fx-mine/location/junction',
-  stope: '/world/fx-mine/location/stope',
-  fall: '/world/fx-mine/location/fall',
+  face: '/world/fx-mine/place/face',
+  junction: '/world/fx-mine/place/junction',
+  stope: '/world/fx-mine/place/stope',
+  fall: '/world/fx-mine/place/fall',
 };
 const SLATE = '/stuff/idea/material/rock/slate';
 const GRANITE = '/stuff/idea/material/rock/granite';
@@ -295,7 +295,7 @@ describe('the mine — reads on the space, mutation on the warren', () => {
 
     // Hole it through to a second adit two steps off: the distance drops
     // and the air comes back. ⭐ Planning a connection is a real decision.
-    const second = makeStuffAtPath(() => new Locale(), '/world/fx-mine/location/adit2');
+    const second = makeStuffAtPath(() => new Locale(), '/world/fx-mine/place/adit2');
     surface.addLocation(second as unknown as never, 4, 0, 0);
     await (far as unknown as { addBidirectionalExit(o: unknown, d: string, opts: unknown): Promise<void> })
       .addBidirectionalExit(second, 'east', { opposite: 'west', keepLiveDestination: true });

@@ -6,7 +6,7 @@
 # walks her off the ground to a kedge; the lead tells the leadsman how much
 # water is under her; her boat is what takes a kedge out. Over the side is
 # the river wherever she is.
-class: /platform/location/Compartment
+class: /platform/place/Compartment
 data:
   shortDescription: Ostrander's deck
   keywords: [deck, ostrander deck, steamer deck]
@@ -41,7 +41,7 @@ data:
     # ⭐ Over the side: the river where she is now, under way or not.
     side:
       kind: /system/water/idea/exits/overside
-      destination: /system/water/location/reach/patch
+      destination: /system/water/place/reach/patch
   details:
     river:
       keywords: [river, water, rail]

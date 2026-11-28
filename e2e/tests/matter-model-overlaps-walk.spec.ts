@@ -42,12 +42,12 @@ const SERVER_URL = process.env.E2E_SERVER_URL ?? 'http://localhost:2010';
 /* ───────────────────────────── places ───────────────────────────── */
 
 const SH = '/world/terminus/goods-yards/sugar-house';
-const BOILING = `${SH}/location/ground/boiling-floor`;
+const BOILING = `${SH}/place/ground/boiling-floor`;
 const MOUTH = '/world/terminus/estuary/estuary-mouth';
-const CROWSFOOT = '/world/terminus/goods-yards/crowsfoot/location/floor';
-const POTTERS_SHOP = '/world/terminus/hearts-delight/brickfield/location/potters-shop';
-const CREAMERY = '/world/terminus/hearts-delight/creamery/location/floor';
-const CHANDLERY = '/world/terminus/wharfside/chandlery/location/floor';
+const CROWSFOOT = '/world/terminus/goods-yards/crowsfoot/place/floor';
+const POTTERS_SHOP = '/world/terminus/hearts-delight/brickfield/place/potters-shop';
+const CREAMERY = '/world/terminus/hearts-delight/creamery/place/floor';
+const CHANDLERY = '/world/terminus/wharfside/chandlery/place/floor';
 
 /* ───────────────────────────── rows ───────────────────────────── */
 

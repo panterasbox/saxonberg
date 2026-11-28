@@ -71,9 +71,9 @@ describe('three premises, and all three are VACANT', () => {
     // graph attaches each house to the places its `operatingLocations`
     // name, and loading the place stands it up. Authored once, on the house.
     const rooms: Record<string, string> = {
-      knackers: '/world/terminus/wharfside/knackers/location/yard',
-      tannery: '/world/terminus/wharfside/tannery/location/yard',
-      chandlery: '/world/terminus/wharfside/chandlery/location/floor',
+      knackers: '/world/terminus/wharfside/knackers/place/yard',
+      tannery: '/world/terminus/wharfside/tannery/place/yard',
+      chandlery: '/world/terminus/wharfside/chandlery/place/floor',
     };
     const pack = readFileSync(PACK, 'utf8');
     for (const p of PREMISES) {
@@ -138,29 +138,29 @@ describe('the chain — each one\'s product is the next one\'s feedstock', () =>
       { destination: string }
     >;
     expect(exits['down']!.destination).toBe(
-      '/world/terminus/wharfside/knackers/location/yard',
+      '/world/terminus/wharfside/knackers/place/yard',
     );
     const ways = Object.values(exits).map((e) => e.destination);
     expect(ways).not.toContain(
-      '/world/terminus/wharfside/tannery/location/yard',
+      '/world/terminus/wharfside/tannery/place/yard',
     );
     expect(ways).not.toContain(
-      '/world/terminus/wharfside/chandlery/location/floor',
+      '/world/terminus/wharfside/chandlery/place/floor',
     );
   });
 
   it('⭐ the knacker reaches both, and both reach back', () => {
-    const yard = doc(`${WHARFSIDE}/knackers/location/yard.yaml`);
+    const yard = doc(`${WHARFSIDE}/knackers/place/yard.yaml`);
     const out = Object.values(
       yard.data['exits'] as Record<string, { destination: string }>,
     ).map((e) => e.destination);
-    expect(out).toContain('/world/terminus/wharfside/tannery/location/yard');
+    expect(out).toContain('/world/terminus/wharfside/tannery/place/yard');
     expect(out).toContain(
-      '/world/terminus/wharfside/chandlery/location/floor',
+      '/world/terminus/wharfside/chandlery/place/floor',
     );
     expect(out).toContain('/world/terminus/wharfside/bank');
 
-    for (const p of ['tannery/location/yard', 'chandlery/location/floor']) {
+    for (const p of ['tannery/place/yard', 'chandlery/place/floor']) {
       const back = Object.values(
         doc(`${WHARFSIDE}/${p}.yaml`).data['exits'] as Record<
           string,
@@ -168,7 +168,7 @@ describe('the chain — each one\'s product is the next one\'s feedstock', () =>
         >,
       ).map((e) => e.destination);
       expect(back, p).toContain(
-        '/world/terminus/wharfside/knackers/location/yard',
+        '/world/terminus/wharfside/knackers/place/yard',
       );
     }
   });
@@ -178,9 +178,9 @@ describe('the chain — each one\'s product is the next one\'s feedstock', () =>
     // and a knacker who cannot be reached by a cart is a knacker with no
     // trade.
     for (const p of [
-      'knackers/location/yard',
-      'tannery/location/yard',
-      'chandlery/location/floor',
+      'knackers/place/yard',
+      'tannery/place/yard',
+      'chandlery/place/floor',
     ]) {
       const exits = doc(`${WHARFSIDE}/${p}.yaml`).data['exits'] as Record<
         string,
@@ -196,7 +196,7 @@ describe('the chain — each one\'s product is the next one\'s feedstock', () =>
 
 describe('the premises have what the trades need', () => {
   it('⭐ the tanyard has pits and running water', () => {
-    const props = doc(`${WHARFSIDE}/tannery/location/yard.yaml`).data[
+    const props = doc(`${WHARFSIDE}/tannery/place/yard.yaml`).data[
       'props'
     ] as string[];
     expect(props).toContain('/trade/tanning/thing/tanpit');
@@ -207,7 +207,7 @@ describe('the premises have what the trades need', () => {
     // A knacker is a venue and a seat, not a third pack: the mechanism
     // is already shipped, so what the yard needs is cooking's own block
     // and pot. *Trade is the mechanism; locality is the expression.*
-    const props = doc(`${WHARFSIDE}/knackers/location/yard.yaml`).data[
+    const props = doc(`${WHARFSIDE}/knackers/place/yard.yaml`).data[
       'props'
     ] as string[];
     expect(props).toContain('/trade/cooking/thing/butcher-block');
@@ -225,7 +225,7 @@ describe('the premises have what the trades need', () => {
   });
 
   it('⭐ the chandlery has the pot and the district\'s only shop front', () => {
-    const props = doc(`${WHARFSIDE}/chandlery/location/floor.yaml`).data[
+    const props = doc(`${WHARFSIDE}/chandlery/place/floor.yaml`).data[
       'props'
     ] as string[];
     expect(props).toContain('/trade/chandlery/thing/dip-pot');

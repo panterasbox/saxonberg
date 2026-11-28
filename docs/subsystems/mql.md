@@ -1103,7 +1103,7 @@ There are **no permission tiers** (content-packs wave 3 deleted them
 along with the `core` group and the "author tier" — see
 [access.md](./access.md)). Every seed, relation, scope, namespace filter and
 predicate resolves for every giver: a guest may type `~contacts:flower`,
-`~reachable:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
+`~reachable:[mixin.Door]` or `/platform/place/*:fountain` and get the honest
 answer — the same answer anyone gets, which the verb then shows through
 `PerceptionApi.perceived`, exactly as `look` is fogged. ⚠ **The one thing
 that is gated is not a permission tier**: `world:` reads every object

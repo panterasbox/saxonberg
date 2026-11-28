@@ -167,21 +167,21 @@ const TERMINUS = '/world/terminus';
 const LOUNGE = '/world/lounge';
 const SQUARE = '/world/terminus/market/square';
 const BANK_HALL = '/world/terminus/counting-houses/banking-hall';
-const BAR = '/world/lounge/location/bar';
+const BAR = '/world/lounge/place/bar';
 const WARD = '/world/terminus/infirmary/ward';
-const LAVOIR = '/world/terminus/wharfside/lavoir/location/lavoir';
-const BATHS = '/world/terminus/market/bathhouse/location/baths';
+const LAVOIR = '/world/terminus/wharfside/lavoir/place/lavoir';
+const BATHS = '/world/terminus/market/bathhouse/place/baths';
 // ⚠ Not the tinker: he walks a round, so whether he is in his yard is the hour's.
-const COBBLER = '/world/terminus/mayfield-row/cobbler/location/shop';
+const COBBLER = '/world/terminus/mayfield-row/cobbler/place/shop';
 const NECROPOLIS = '/world/terminus/necropolis/ground';
 const GAZETTE = '/world/terminus/gazette/office';
 const TREELINE = '/world/newbie-wilds/crossroads/treeline';
 const BAKERY = '/world/terminus/market/bakery';
 const DEPOT = '/world/terminus/estuary/lower-towpath';
-const MILL = '/world/terminus/wharfside/mill/location/floor';
+const MILL = '/world/terminus/wharfside/mill/place/floor';
 const FISH_BANK = '/world/terminus/wharfside/bank';
 const FACE = '/world/terminus/rejection/ferrow/face';
-const SHORE = '/world/terminus/hollow-mere/location/shore';
+const SHORE = '/world/terminus/hollow-mere/place/shore';
 const FISHING_ROD = '/trade/fishing/thing/rod';
 const FISHING_WORM = '/trade/fishing/thing/worm';
 
@@ -493,7 +493,7 @@ suite('6. `pour` is one act, unscoped', () => {
 const NOUNS: { noun: string; where: string; subs: string[] }[] = [
   { noun: 'bank', where: BANK_HALL, subs: ['open', 'balance', 'statement', 'deposit', 'withdraw', 'borrow', 'book', 'transfer'] },
   { noun: 'title', where: '/world/terminus/registry/office', subs: ['list', 'buy', 'publish', 'offline', 'transfer', 'subdivide'] },
-  { noun: 'job', where: '/world/terminus/terminal/location/hall', subs: ['post', 'claim', 'complete', 'abandon', 'fulfill', 'apply', 'quit'] },
+  { noun: 'job', where: '/world/terminus/terminal/place/hall', subs: ['post', 'claim', 'complete', 'abandon', 'fulfill', 'apply', 'quit'] },
   { noun: 'party', where: SQUARE, subs: ['form', 'invite', 'enlist', 'accept', 'leave', 'kick', 'disband', 'transfer', 'side', 'adopt', 'assign', 'muster', 'standdown', 'list', 'show'] },
   { noun: 'chat', where: SQUARE, subs: ['list', 'join', 'leave', 'mute', 'unmute', 'who', 'make', 'on', 'rename', 'disband', 'history', 'anonymity', 'promote'] },
   { noun: 'wiki', where: SQUARE, subs: ['create', 'edit', 'read', 'history', 'diff', 'rollback', 'move', 'delete', 'undelete', 'purge', 'protect', 'preview', 'links', 'wanted', 'orphans', 'dangling', 'list'] },
@@ -573,7 +573,7 @@ suite('7. the binder paths the last waves could not see', () => {
   }, 180_000);
 
   it('7. `job` binds the board in reach (`class:JobBoard`), and says when there is none', async () => {
-    const s = await stager(uniqueHandle('caio-hand'), '/world/terminus/terminal/location/hall');
+    const s = await stager(uniqueHandle('caio-hand'), '/world/terminus/terminal/place/hall');
     const list = await s.cmd('job');
     expectOk(list);
     const claim = await s.cmd('job claim 999999');

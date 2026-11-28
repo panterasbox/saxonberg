@@ -119,7 +119,7 @@ kernel interprets nowhere). The **address** crosses the seam, never a seed:
 each model derives its own.
 
 ⭐ **The shape's second instance is the shore** (maritime revision 3):
-`WaterSourceMixin` (`lib/location/WaterSource.ts`) — a waterside place
+`WaterSourceMixin` (`lib/place/WaterSource.ts`) — a waterside place
 cites a water as a string the kernel never parses, and the water pack's
 `WatercourseCatalogue` (a reach) and `WaterExpanse` (a sea) answer for
 it, found the same way (a cited path is its own source; else the realm's

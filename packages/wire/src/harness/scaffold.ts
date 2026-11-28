@@ -41,34 +41,34 @@ export const ANNEX_ADDRESS = "testbed/annex";
 // ── the places ─────────────────────────────────────────────────────────────
 
 /** Outdoor square, sky-lit. Noticeboard + the greeter. */
-export const PLAZA = "/world/testbed/location/plaza";
+export const PLAZA = "/world/testbed/place/plaza";
 /** Outdoor lane south of the plaza, sky-lit. */
-export const APPROACH = "/world/testbed/location/approach";
+export const APPROACH = "/world/testbed/place/approach";
 /** Outdoor yard, sky-lit; its north gate is locked with no key anywhere. */
-export const YARD = "/world/testbed/location/yard";
+export const YARD = "/world/testbed/place/yard";
 /** Enclosed hut lit through its window onto the plaza (no lamp). */
-export const HUT = "/world/testbed/location/hut";
+export const HUT = "/world/testbed/place/hut";
 /** Lit forge room with a basin and a cistern, entered by a low door. */
-export const WORKS = "/world/testbed/location/works";
+export const WORKS = "/world/testbed/place/works";
 /** Small sealed UNLIT room behind the locked cellar door. */
-export const CELLAR = "/world/testbed/location/cellar";
+export const CELLAR = "/world/testbed/place/cellar";
 /** UNLIT dead-end passage off the cellar, with a trap. */
-export const PASSAGE = "/world/testbed/location/passage";
+export const PASSAGE = "/world/testbed/place/passage";
 /** Top of the climbable drop, sky-lit. */
-export const SHAFT_HEAD = "/world/testbed/location/shaft-head";
+export const SHAFT_HEAD = "/world/testbed/place/shaft-head";
 /** Bottom of the climbable drop, lamp-lit. */
-export const SHAFT_FOOT = "/world/testbed/location/shaft-foot";
+export const SHAFT_FOOT = "/world/testbed/place/shaft-foot";
 /** The annex's one place, sky-lit. */
-export const LOT = "/world/testbed/annex/location/lot";
+export const LOT = "/world/testbed/annex/place/lot";
 
 /** The named building over the bank, the hall and the shop. */
 export const BUILDING = "/world/testbed/building/structure";
 /** Lit bank with the teller counter. */
-export const BANK = "/world/testbed/building/location/bank";
+export const BANK = "/world/testbed/building/place/bank";
 /** Lit venue hall: a shelf of three notebooks, a tablet, three chairs. */
-export const HALL = "/world/testbed/building/location/hall";
+export const HALL = "/world/testbed/building/place/hall";
 /** Lit shopfront: the stock counter, a consignment shelf, a hearth. */
-export const SHOP = "/world/testbed/building/location/shop";
+export const SHOP = "/world/testbed/building/place/shop";
 
 // ── the exit words ─────────────────────────────────────────────────────────
 

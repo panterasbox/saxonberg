@@ -3,7 +3,7 @@
 class: /platform/idea/Building
 data:
   extent: /world/terminus/wharfside/chandlery
-  entrance: /world/terminus/wharfside/chandlery/location/floor
+  entrance: /world/terminus/wharfside/chandlery/place/floor
   shortDescription: chandlery
   register: definite
   keywords: [chandlery, building, "chandler's"]

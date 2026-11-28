@@ -9,7 +9,7 @@ import { withSaveMany } from '../../persistence/__tests__/pm-fake';
 import { MixinApi } from '../../../api/mixin';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Floor from '../../../platform/thing/Floor';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Biome from '../../biome/Biome';
 import Material from '../../material/Material';
 import { SkyExposedBiome } from '../../../platform/idea/SkyExposedBiome';
@@ -74,7 +74,7 @@ async function floorAt(
 ): Promise<{ room: Location; floor: Floor }> {
   seq += 1;
   const zonePath = `/test/zone-${seq}`;
-  rows.push({ path: zonePath, class: '/platform/idea/location/CartesianZone', data: {} });
+  rows.push({ path: zonePath, class: '/platform/idea/place/CartesianZone', data: {} });
   installStore();
   const zone = await StuffApi.singleton<SpatialZone>(zonePath);
   zone.setLatitude(levers.latitude);

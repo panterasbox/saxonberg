@@ -22,7 +22,7 @@ import { EventApi } from '../event';
 import { ShadowApi } from '../shadow';
 import { SubscriptionApi } from '../subscription';
 import { ContainmentApi } from '../containment';
-import Locale from '../../platform/location/Locale';
+import Locale from '../../platform/place/Locale';
 import { makeHarness, makeContext } from './card-harness';
 
 describe('a card owns its subscription handle', () => {

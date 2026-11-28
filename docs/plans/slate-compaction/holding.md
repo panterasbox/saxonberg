@@ -296,7 +296,7 @@ clinic, store or academic hall (`grep -rli "registrar\|health center\|
 campus store\|outfitter\|academic hall\|the quad"` over every pack's
 `content/` hits only Rejection's registrar and Terminus's registry). The
 campus gate on University Avenue is a locked `Door` into a dead-end
-gatehouse stub (`terminus/.../university-avenue/location/campus-gate.yaml`:
+gatehouse stub (`terminus/.../university-avenue/place/campus-gate.yaml`:
 *"the real campus entry replaces it when EU content lands"*). No TPA node
 in the lobby (`lobby.yaml` has no `TravelNode`; the network's rows are the
 Terminus terminal + newbie-wilds). No elevator (batch finding 1).

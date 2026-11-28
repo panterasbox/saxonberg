@@ -47,7 +47,7 @@ backwards from sinks*), [freight-slate](./freight-slate.md),
 ✅ **SHIPPED.** Dave's Bar carries no `populates:` bottles: the rail is
 stocked by the keeper buying against the par sheet, and what she bought
 persists as chattel of the business across a reboot
-(`world/lounge/location/bar.yaml`; the `restocks` brain,
+(`world/lounge/place/bar.yaml`; the `restocks` brain,
 [employment.md § the keeper reads the par sheet and buys](../../subsystems/employment.md)).
 
 ---

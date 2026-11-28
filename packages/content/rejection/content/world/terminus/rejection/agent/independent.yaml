@@ -46,7 +46,7 @@ data:
     - brain: /trade/mining/behavior/delves
       trigger: candidate
       config:
-        home: /world/terminus/rejection/location/fringe-claim
+        home: /world/terminus/rejection/place/fringe-claim
         shelf: /world/terminus/rejection/thing/assay-counter
         ask: 6
         batch: 3

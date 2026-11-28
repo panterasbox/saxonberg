@@ -22,7 +22,7 @@ import {
   BRASH_FRACTION_OF_BOLE,
 } from '../lib/Fellable';
 import Standard from '../thing/Standard';
-import Wood from '../location/Wood';
+import Wood from '../place/Wood';
 import CutController from '@saxonberg/server/mud/platform/idea/cmd/crafting/CutController';
 import Bole, { BOLE_LENGTHS } from '../thing/Bole';
 import Panel from '../thing/Panel';

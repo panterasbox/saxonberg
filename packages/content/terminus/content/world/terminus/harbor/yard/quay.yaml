@@ -3,7 +3,7 @@
 # ⭐ A HarborQuay of the Port of Terminus' own book (lens 6): a ship left
 # here owes dues like any other, from the day she is sold — a yard that
 # berthed her free would undercut the harbor.
-class: /system/transport/location/HarborQuay
+class: /system/transport/place/HarborQuay
 data:
   shortDescription: yard quay
   keywords: [quay, "yard quay", "fitting-out berth", berth, yard]

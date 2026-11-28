@@ -2,7 +2,7 @@
 # its gorge and goes over the falls, and the landing below them that is as
 # far as any boat comes up the river: the head of navigation. A ledge at the
 # head of the falls, a portage path down the side of them, and the landing.
-class: /platform/idea/location/CartesianZone
+class: /platform/idea/place/CartesianZone
 data:
   name: the falls landing
   cellSize: 10.0

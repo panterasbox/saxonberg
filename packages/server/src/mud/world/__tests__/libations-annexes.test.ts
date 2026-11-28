@@ -33,7 +33,7 @@ import { makeStuff, stampTemplatePathForTest,
   seedKernelContentStore,
 } from '../../lib/security/__tests__/test-setup';
 import Crate from '../../platform/thing/Crate';
-import CartesianZone from '../../platform/idea/location/CartesianZone';
+import CartesianZone from '../../platform/idea/place/CartesianZone';
 
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-cooking'];
@@ -43,7 +43,7 @@ const HOLLIS = '/world/terminus/goods-yards/hollis';
 /** The Hollis floor's rows sit in the city (economic bootstrap D6); its two
  *  products stay at the distilling trade's paths, homed there by `container:`. */
 const HOLLIS_ROWS = [
-  ...['agent/hand', 'idea/outfit', 'location/floor', 'thing/stock'].map((r) => `${HOLLIS}/${r}`),
+  ...['agent/hand', 'idea/outfit', 'place/floor', 'thing/stock'].map((r) => `${HOLLIS}/${r}`),
   '/trade/distilling/thing/old-hollis',
   '/trade/distilling/thing/hollis-cane',
 ];
@@ -408,7 +408,7 @@ describe('libations annexes — the serving recipes and the zone', () => {
     // The zone's census `stocks:` table retired in the scan sweep's
     // review: how many stand in the yard is the stock's own fact.
     const zoneRow = byPath.get(VESHKO)!;
-    expect(zoneRow.class).toBe('/platform/idea/location/CartesianZone');
+    expect(zoneRow.class).toBe('/platform/idea/place/CartesianZone');
     expect(zoneRow.data.stocks).toBeUndefined();
     expect(parOf(`${VESHKO}/thing/volk`)).toBe(24);
     expect(parOf('/trade/distilling/thing/gin')).toBe(18);

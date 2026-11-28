@@ -26,7 +26,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MqlApi } from '../../../api/mql';
 import { ContainmentApi } from '../../../api/containment';
-import Location from '../../location/Location';
+import Location from '../../place/Location';
 import Floor from '../../../platform/thing/Floor';
 import { ContainerMixin } from '../../spatial/Container';
 import { ContainableMixin } from '../../spatial/Containable';
