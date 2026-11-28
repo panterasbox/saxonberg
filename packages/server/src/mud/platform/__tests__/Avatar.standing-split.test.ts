@@ -59,6 +59,13 @@ import ProducerStanding, {
  * the host has it*. That is the assertion that lets a descriptor sit on
  * a concrete class forever.
  */
+/** The seam's figure, asserting it is shown HERE (front-page-sources D12). */
+function here(host: Avatar, stock: 'producer' | 'consumer' = 'producer') {
+  const answer = InfluenceApi.standingForHost(host as unknown as Stuff, stock);
+  expect(answer.at).toBe('here');
+  return answer.at === 'here' ? answer.standing : undefined;
+}
+
 function readField(name: string, host: Stuff, viewer: Stuff = host): unknown {
   const d = collectSubscribableFields(host).get(name);
   expect(d, `no subscribable field '${name}' on ${host.constructor.name}`).toBeDefined();
@@ -119,19 +126,35 @@ describe('standing splits by level', () => {
     seedProducer(alice, 3);
     seedProducer(bob, 4);
 
-    const viaSeam = InfluenceApi.standingForHost(
-      alice as unknown as Stuff,
-      'producer',
-    );
+    const viaSeam = here(alice);
     expect(viaSeam?.scalar).toBe(7);
 
-    // And it is genuinely the ACCOUNT's figure: bob reads the same one.
-    const bobSeam = InfluenceApi.standingForHost(
-      bob as unknown as Stuff,
-      'producer',
+    // ⭐ And it is genuinely the ACCOUNT's figure, SHOWN on one body: bob
+    // is not the account's Compact character, so his read names where
+    // the figure lives and carries no number (front-page-sources D12).
+    expect(InfluenceApi.standingForHost(bob as unknown as Stuff, 'producer')).toEqual({
+      at: 'compact-character',
+      subject: Avatar.getTemplatePath('alice'),
+      playerId: 'alice',
+    });
+  });
+
+  it('moves to the character the account designates, and the figure is unchanged', () => {
+    seedProducer(alice, 3);
+    seedProducer(bob, 4);
+    alice.getUser()!.setCompactCharacter('bob');
+    expect(here(bob)?.scalar).toBe(7);
+    expect(InfluenceApi.standingForHost(alice as unknown as Stuff, 'producer').at).toBe(
+      'compact-character',
     );
-    expect(bobSeam?.scalar).toBe(7);
-    expect(bobSeam?.band.name).toBe(viaSeam?.band.name);
+    expect(readField('makeStanding', alice as unknown as Stuff)).toEqual({ elsewhere: true });
+    expect(readField('makeStanding', bob as unknown as Stuff)).toEqual({
+      band: here(bob)!.band.name,
+    });
+  });
+
+  it('a character-level stock is always shown here, on any body', () => {
+    expect(InfluenceApi.standingForHost(bob as unknown as Stuff, 'consumer').at).toBe('here');
   });
 
   /*
@@ -162,10 +185,7 @@ describe('standing splits by level', () => {
       'producer',
     );
     // What every in-world surface computes, from a body.
-    const viaHost = InfluenceApi.standingForHost(
-      alice as unknown as Stuff,
-      'producer',
-    );
+    const viaHost = here(alice);
 
     expect(viaAccount.scalar).toBe(viaHost?.scalar);
     expect(viaAccount.band.name).toBe(viaHost?.band.name);
@@ -185,17 +205,11 @@ describe('standing splits by level', () => {
   it('is unchanged by how the work is split across characters', () => {
     seedProducer(alice, 7);
     seedProducer(bob, 0);
-    const together = InfluenceApi.standingForHost(
-      alice as unknown as Stuff,
-      'producer',
-    )!.scalar;
+    const together = here(alice)!.scalar;
 
     seedProducer(alice, 3);
     seedProducer(bob, 4);
-    const split = InfluenceApi.standingForHost(
-      alice as unknown as Stuff,
-      'producer',
-    )!.scalar;
+    const split = here(alice)!.scalar;
 
     expect(split).toBe(together);
   });
@@ -210,10 +224,7 @@ describe('standing splits by level', () => {
   it('bands the sum through the same cutoffs a single read uses', () => {
     seedProducer(alice, 5);
     seedProducer(bob, 0);
-    const rolled = InfluenceApi.standingForHost(
-      alice as unknown as Stuff,
-      'producer',
-    );
+    const rolled = here(alice);
     const single = InfluenceApi.standingOf(
       alice.getTemplatePath()!,
       'producer',
@@ -236,10 +247,7 @@ describe('standing splits by level', () => {
     const viaField = readField('makeStanding', alice as unknown as Stuff) as {
       band: string;
     };
-    const viaSeam = InfluenceApi.standingForHost(
-      alice as unknown as Stuff,
-      'producer',
-    );
+    const viaSeam = here(alice);
     expect(viaField.band).toBe(viaSeam!.band.name);
   });
 
@@ -297,7 +305,7 @@ describe('standing splits by level', () => {
     expect(readField('makeStanding', loner as unknown as Stuff)).toBeUndefined();
     expect(
       InfluenceApi.standingForHost(loner as unknown as Stuff, 'producer'),
-    ).toBeUndefined();
+    ).toEqual({ at: 'unresolved' });
   });
 
   /*
@@ -310,8 +318,8 @@ describe('standing splits by level', () => {
     stampTemplatePathForTest(loner, Avatar.getTemplatePath('loner2'));
     loner.setPlayerId('loner2');
     expect(
-      InfluenceApi.standingForHost(loner as unknown as Stuff, 'consumer'),
-    ).toBeDefined();
+      InfluenceApi.standingForHost(loner as unknown as Stuff, 'consumer').at,
+    ).toBe('here');
   });
 
   /*

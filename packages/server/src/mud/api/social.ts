@@ -60,6 +60,12 @@ export interface ProfileDigest {
    * one. See `InfluenceApi.standingForHost`.
    */
   influence?: { play: string; make?: string };
+  /**
+   * The name of the account's Compact character, when this body is not
+   * it: the account's Make and Fund are shown there (front-page-sources
+   * D13). Self-only, like the whole digest.
+   */
+  accountShownOn?: string;
   competence?: { discipline: string; band: string }[];
   traits?: { axis: string; band: string }[];
 }

@@ -321,6 +321,17 @@ no new hook, no new module category, no new exported helper function.** One new 
   unresolved. Character select: the roster payload carries `compactPlayerId`; the account figures
   render on that card, and the other cards say where they are.
 
+- **D13a — (build) the profile pointer is a digest field, and character select's figures moved
+  off the header.** `ProfileDigest.accountShownOn?: string` (the Compact character's name) is set
+  only in `selfDigest` — the owner's own card — and `ProfileControllerBase` prints the sentence;
+  a stranger's card never composes a digest, so it cannot carry it. On character select the
+  account's Make/Fund meters left the header band and render in the Compact character's detail
+  (`compact-figures`); every other detail says where they are and carries *Make this my Compact
+  character* (`compact-elsewhere`), which sends `compact character <playerId>`; the Compact card's
+  roster row wears a `COMPACT` flag. The client stores `compactPlayerId` from the roster frame and
+  from any `shell.result` frame whose payload carries one (the designation's answer).
+  *Chosen by:* D13 + the nearest pattern (the roster's honest-state figures).
+
 ### Notices, the archive, the calendar
 
 - **D14 — content, not code, makes the one voice.** `press.frontPage` → `/compact/executive`;
@@ -600,6 +611,16 @@ profile; another player's profile of the non-Compact character carries no pointe
 renders the figures on the Compact card and a *Make this my Compact character* control on the others
 that sends `compact character <playerId>` (client test).
 **Commit:** `feat(standing): Make and Fund are shown on the Compact character`
+
+✅ **W2 done.** `AccountSubjects.compact` (`{ subject, playerId }`, filled by
+`Avatar.getAccountSubjects()` from `compactCharacterId()`); `InfluenceApi.standingForHost` answers
+`HostStanding` (`here` · `compact-character` · `unresolved`) and its three callers switch on it:
+`standing` prints one *shown on <name>* line in place of Make and Fund, the self profile drops
+`make` and adds `accountShownOn`, the `makeStanding` field sends `{ elsewhere: true }`, and the
+shelf's MAKE row says where. Decided: D13a. Surprise: none of the arithmetic moved — every
+`standing-split` assertion about sums still holds, read through a `here()` helper; the one new
+behavior is that a non-Compact body now reads `compact-character` where it read the account's
+band.
 
 ### W3 — wall time: a program's slot, a release's event date, the archive
 **Implements** D14–D19. **Files:** `lib/time/WallTime.ts`, `lib/livestream/WeeklySlot.ts`;

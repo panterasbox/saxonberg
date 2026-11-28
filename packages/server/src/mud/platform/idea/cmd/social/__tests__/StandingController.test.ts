@@ -14,6 +14,7 @@ import StandingController from '../StandingController';
 import { ConsumerApi } from '../../../../../api/consumer';
 import { RenownApi } from '../../../../../api/renown';
 import { InfluenceApi } from '../../../../../api/influence';
+import { PlayerApi } from '../../../../../api/player';
 import { Band } from '../../../../../lib/standing/Band';
 import { InfluenceStanding } from '../../../../../lib/standing/InfluenceStanding';
 import { MessageApi } from '../../../../../api/message';
@@ -61,14 +62,15 @@ afterEach(() => {
  * `bandOf` would silently stop influencing the make line.
  */
 function mockMakeBand(band: Band): void {
-  vi.spyOn(InfluenceApi, 'standingForHost').mockImplementation((host, stock) =>
-    new InfluenceStanding(
+  vi.spyOn(InfluenceApi, 'standingForHost').mockImplementation((host, stock) => ({
+    at: 'here',
+    standing: new InfluenceStanding(
       host.getTemplatePath() ?? host.stuffId,
       stock,
       0,
       band,
     ),
-  );
+  }));
 }
 
 describe('StandingController render', () => {
@@ -125,5 +127,27 @@ describe('StandingController render', () => {
     expect(body).toContain('Fund');
     expect(body).toContain('not yet earnable'); // patron intake-gated
     expect(/\d/.test(body)).toBe(false); // still no raw scalar
+  });
+
+  it('on a character that is not the Compact character, says where Make and Fund are shown', async () => {
+    vi.spyOn(ConsumerApi, 'participationOf').mockReturnValue(3);
+    vi.spyOn(RenownApi, 'renownOf').mockReturnValue(1);
+    vi.spyOn(InfluenceApi, 'bandOf').mockReturnValue(Band.of('familiar'));
+    vi.spyOn(InfluenceApi, 'standingForHost').mockReturnValue({
+      at: 'compact-character',
+      subject: '/platform/agent/Avatar/first',
+      playerId: 'first',
+    });
+    vi.spyOn(PlayerApi, 'storedNameOf').mockResolvedValue('Odile Marsh');
+
+    const actor = makeStuffAtPath(() => new Actor(), '/platform/agent/Avatar/second');
+    const ctrl = makeStuff(() => new StandingController());
+    await ((ctx$) => TestHarnessApi.actAs(ctx$.commandGiver, () => ctrl.execute({} as CommandModel, ctx$)))(ctxFor(actor));
+
+    const body = captured!.toString();
+    expect(body).toContain('familiar'); // play is still this character's
+    expect(body).toContain("Make and Fund are your account");
+    expect(body).toContain('shown on Odile Marsh, your Compact character');
+    expect(body).not.toContain('Make (creation)');
   });
 });

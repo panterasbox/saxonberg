@@ -125,6 +125,13 @@ export abstract class ProfileControllerBase extends CommandController<ProfileMod
         ];
         lines.push(Mml.escape(parts.join(' · ')));
       }
+      if (d.accountShownOn) {
+        lines.push(
+          Mml.escape(
+            `Make and Fund are your account's — they are shown on ${d.accountShownOn}, your Compact character.`
+          )
+        );
+      }
       if (d.traits?.length) {
         lines.push(
           Mml.escape(

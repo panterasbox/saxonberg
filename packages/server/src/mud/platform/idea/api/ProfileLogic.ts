@@ -315,16 +315,26 @@ export class ProfileLogic extends ApiLogic {
     subjectId: string
   ): Promise<ProfileDigest> {
     // ⚠ Through the shared host seam — see StandingController. It
-    // returns `undefined` when the account cannot be resolved; the
+    // answers `unresolved` when the account cannot be resolved; the
     // digest then OMITS make rather than reporting the per-character
-    // figure under an account-level label.
+    // figure under an account-level label. ⭐ On a body that is not the
+    // account's Compact character it names where the figures are — this
+    // digest is the owner's own (another player's view never carries it,
+    // so the account's other characters stay unlinked; D13).
     const make = InfluenceApi.standingForHost(target, 'producer');
+    const shownOn =
+      make.at === 'compact-character'
+        ? await PlayerApi.storedNameOf(make.playerId)
+        : null;
     const digest: ProfileDigest = {
       renown: Band.fromScalar(RenownApi.renownOf(subjectId)).name,
       influence: {
         play: InfluenceApi.bandOf(subjectId, 'consumer').name,
-        ...(make ? { make: make.band.name } : {}),
+        ...(make.at === 'here' ? { make: make.standing.band.name } : {}),
       },
+      ...(make.at === 'compact-character'
+        ? { accountShownOn: shownOn ?? 'your Compact character' }
+        : {}),
     };
     const competence = MixinApi.isAdvancing(target)
       ? await target.competenceBands()

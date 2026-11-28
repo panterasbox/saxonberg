@@ -35,7 +35,7 @@
 import { PlayerDock } from "./embed/PlayerDock";
 import { useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
-import type { CharGenRosterEntry } from "@saxonberg/types";
+import type { AccountStandingPayload, CharGenRosterEntry } from "@saxonberg/types";
 import { useStore } from "../store/index";
 import { arrivalWatching, watchSuffix } from "../services/arrival";
 import { signOut } from "../services/auth";
@@ -502,6 +502,19 @@ const BackLink = styled.button`
  * the gap; rendering it live would promise a command that does not
  * exist.
  */
+/** The one live control on another character's Compact section. */
+const CompactAction = styled.button`
+  min-height: 44px;
+  padding: ${tokens.space.sm} ${tokens.space.lg};
+  border: 1px solid ${tokens.color.border};
+  border-radius: ${tokens.radius.md};
+  background: transparent;
+  color: ${tokens.color.fg};
+  font-family: inherit;
+  font-size: ${tokens.font.small};
+  cursor: pointer;
+`;
+
 const DisabledAction = styled.button`
   min-height: 44px;
   padding: ${tokens.space.sm} ${tokens.space.lg};
@@ -588,6 +601,91 @@ function playFigure(entry: CharGenRosterEntry): FigureState {
     : { state: "empty", reason: "no play standing measured yet" };
 }
 
+/**
+ * ⚠ Account standing, as meters rather than cards. Make is LIVE when the
+ * server resolved the account; Fund never is — the capital stock has no
+ * faucet — and each says which.
+ */
+function AccountMeters({ account }: { account: AccountStandingPayload }) {
+  return (
+    <Meters data-testid="account-standing">
+      <Meter>
+        <MeterHead>
+          <span>Make</span>
+          <MeterValue $live={Boolean(account.make)}>
+            {account.make ?? "╌╌"}
+          </MeterValue>
+        </MeterHead>
+        <MeterBar $live={Boolean(account.make)} />
+        <MeterNote>
+          {account.make
+            ? "summed across your characters"
+            : "this account could not be resolved"}
+        </MeterNote>
+      </Meter>
+      <Meter>
+        <MeterHead>
+          <span>Fund</span>
+          <MeterValue>╌╌</MeterValue>
+        </MeterHead>
+        <MeterBar />
+        <MeterNote>the capital stock has no faucet yet</MeterNote>
+      </Meter>
+    </Meters>
+  );
+}
+
+/**
+ * ⭐ The Compact section of a character's detail (front-page-sources D13).
+ * On the account's Compact character: the account's Make and Fund. On any
+ * other: where they are, and the one control that moves them — which
+ * sends the same `compact character` line the game takes.
+ */
+function CompactSection({
+  entry,
+  onSendCommand,
+}: {
+  entry: CharGenRosterEntry;
+  onSendCommand: (text: string) => void;
+}) {
+  const roster = useStore((s) => s.charGenRoster);
+  const account = useStore((s) => s.accountStanding);
+  const compactPlayerId = useStore((s) => s.compactPlayerId);
+  if (compactPlayerId === undefined) return null;
+  if (entry.playerId === compactPlayerId) {
+    return (
+      <div data-testid="compact-figures">
+        <SectionLabel>Your Compact character</SectionLabel>
+        <CharacterMeta>
+          Your account takes part in the Compact through {entry.name}: its
+          Make and Fund are shown here, and its vote is cast here.
+        </CharacterMeta>
+        <AccountMeters account={account} />
+      </div>
+    );
+  }
+  const compact = roster.find((r) => r.playerId === compactPlayerId);
+  const cmd = `compact character ${entry.playerId}`;
+  return (
+    <div data-testid="compact-elsewhere">
+      <SectionLabel>Make and Fund</SectionLabel>
+      <CharacterMeta>
+        Make and Fund are your account&apos;s — they are shown on{" "}
+        {compact?.name ?? "your Compact character"}, your Compact character.
+      </CharacterMeta>
+      <EnterBlock>
+        <CompactAction
+          data-testid={`roster-compact-${entry.playerId}`}
+          onClick={() => onSendCommand(cmd)}
+        >
+          Make this my Compact character
+        </CompactAction>
+        <SendsAs>sends as {cmd}</SendsAs>
+      </EnterBlock>
+    </div>
+  );
+}
+
 interface CharacterSelectProps {
   /** The real command channel — every affordance routes through it. */
   onSendCommand: (text: string) => void;
@@ -602,6 +700,7 @@ function RosterCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const compact = useStore((s) => s.compactPlayerId === entry.playerId);
   return (
     <CharacterCard
       $selected={selected}
@@ -618,6 +717,9 @@ function RosterCard({
             <CharacterSpecies as="span">{entry.species}</CharacterSpecies>
           ) : null}
           {entry.lastSeen === undefined ? <Flag>NEW</Flag> : null}
+          {compact ? (
+            <Flag data-testid={`roster-compact-flag-${entry.playerId}`}>COMPACT</Flag>
+          ) : null}
         </NameRow>
         {entry.description ? (
           <CharacterSpecies as="div">{entry.description}</CharacterSpecies>
@@ -726,6 +828,8 @@ function CharacterDetail({
         <Figure label="Play" variant="row" figure={playFigure(entry)} />
       </div>
 
+      <CompactSection entry={entry} onSendCommand={onSendCommand} />
+
       <div>
         <SectionLabel>Practice</SectionLabel>
         {entry.practice && entry.practice.length > 0 ? (
@@ -786,7 +890,6 @@ function CharacterDetail({
 
 export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
   const roster = useStore((s) => s.charGenRoster);
-  const account = useStore((s) => s.accountStanding);
   const accountName = useStore((s) => s.accountName);
   const isCompact = useIsCompact();
 
@@ -895,35 +998,10 @@ export function CharacterSelect({ onSendCommand }: CharacterSelectProps) {
           </HeaderIdentity>
 
           {/*
-            ⚠ Account standing, as meters rather than cards. Make is
-            LIVE when the server resolved the account; Fund never is —
-            the capital stock has no faucet — and each says which.
+            ⭐ The account's figures moved off the header: they render on
+            the account's Compact character's card (front-page-sources
+            D13), and every other card says where they are.
           */}
-          <Meters data-testid="account-standing">
-            <Meter>
-              <MeterHead>
-                <span>Make</span>
-                <MeterValue $live={Boolean(account.make)}>
-                  {account.make ?? "╌╌"}
-                </MeterValue>
-              </MeterHead>
-              <MeterBar $live={Boolean(account.make)} />
-              <MeterNote>
-                {account.make
-                  ? "summed across your characters"
-                  : "this account could not be resolved"}
-              </MeterNote>
-            </Meter>
-            <Meter>
-              <MeterHead>
-                <span>Fund</span>
-                <MeterValue>╌╌</MeterValue>
-              </MeterHead>
-              <MeterBar />
-              <MeterNote>the capital stock has no faucet yet</MeterNote>
-            </Meter>
-          </Meters>
-
           <SignOutLink onClick={() => void signOut()}>Sign out</SignOutLink>
         </HeaderInner>
       </HeaderBand>

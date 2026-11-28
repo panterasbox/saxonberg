@@ -2552,9 +2552,12 @@ export interface SelfFigureRecord {
   playStanding?: { band: string };
   /**
    * Influence earned by building — the ACCOUNT's band, summed across
-   * its characters. Absent when the account could not be resolved.
+   * its characters. It is shown on the account's **Compact character**
+   * only: on any other body it is `{ elsewhere: true }`, which says where
+   * the figure lives and carries no number. Absent when the account could
+   * not be resolved.
    */
-  makeStanding?: { band: string };
+  makeStanding?: { band: string } | { elsewhere: true };
   /** Signed standing. Present only when the scope is materialized. */
   renown?: { value: number };
   /**

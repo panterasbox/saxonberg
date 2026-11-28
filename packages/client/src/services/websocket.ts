@@ -244,10 +244,20 @@ class WebSocketClient {
             (payload as CharGenRosterPayload).characters,
             (payload as CharGenRosterPayload).account,
             (payload as CharGenRosterPayload).accountName,
+            (payload as CharGenRosterPayload).compactPlayerId,
           );
         return;
       }
       useStore.getState().setCharGenState(payload as CharGenStatePayload);
+    });
+    // ⭐ The answer to `compact` / `compact character` carries the account's
+    // Compact character, so character select moves its figures with no
+    // second read (front-page-sources D6). The prose still reaches the
+    // catch-all like any other result.
+    this.onTopic("shell.result", (frame) => {
+      const payload = frame.payload as { compactPlayerId?: unknown } | undefined;
+      if (typeof payload?.compactPlayerId !== "string") return;
+      useStore.getState().setCompactPlayerId(payload.compactPlayerId);
     });
     // `shell.control` is every "the server is changing your interface"
     // frame — clear, layout, mode, style, command-schema deltas. One

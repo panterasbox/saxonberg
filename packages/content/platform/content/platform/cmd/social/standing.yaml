@@ -19,5 +19,11 @@ help: |
   - **Fund** (capital): not yet earnable — capital standing arrives with
     paid capital.
 
+  Play is your character's own. Make and Fund are your ACCOUNT's — every
+  one of your characters earns toward one figure — and they are shown on
+  one character only: your Compact character (see `help compact`). On any
+  of your other characters, `standing` says which character they are
+  shown on instead.
+
   It's a read-only, self-only view — each stock shown as a band, not a
   precise score, and the verb takes no arguments.

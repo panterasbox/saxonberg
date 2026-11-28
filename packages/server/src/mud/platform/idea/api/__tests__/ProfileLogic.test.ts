@@ -118,9 +118,10 @@ function stubSubstrate(recognized: boolean): void {
   // stays about "the digest carries make", which is what this test is
   // for; the account resolution itself is covered in
   // `Avatar.standing-split.test.ts`.
-  vi.spyOn(InfluenceApi, 'standingForHost').mockReturnValue(
-    new InfluenceStanding('acct', 'producer', 0, Band.of('dormant'))
-  );
+  vi.spyOn(InfluenceApi, 'standingForHost').mockReturnValue({
+    at: 'here',
+    standing: new InfluenceStanding('acct', 'producer', 0, Band.of('dormant')),
+  });
 }
 
 afterEach(() => {
@@ -243,5 +244,24 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
     stubRow('active', 'anyone');
     const row = await composer.composeRow(viewer(), makeAvatarTarget());
     expect(row.status).toBeUndefined();
+  });
+
+  it("on a self-card that is not the account's Compact character, names where Make is shown — and a stranger's card never does", async () => {
+    stubSubstrate(true);
+    vi.spyOn(InfluenceApi, 'standingForHost').mockReturnValue({
+      at: 'compact-character',
+      subject: '/platform/agent/Avatar/first',
+      playerId: 'first',
+    });
+    vi.spyOn(PlayerApi, 'storedNameOf').mockResolvedValue('Odile Marsh');
+    const me = makeTarget();
+    const mine = await composer.composeCard(me, me);
+    expect(mine.digest?.influence?.make).toBeUndefined();
+    expect(mine.digest?.accountShownOn).toBe('Odile Marsh');
+
+    // Another player's view of the same character carries no pointer: the
+    // account's characters stay unlinked for others (D13).
+    const theirs = await composer.composeCard(makeViewer(), me);
+    expect(JSON.stringify(theirs)).not.toContain('Odile Marsh');
   });
 });

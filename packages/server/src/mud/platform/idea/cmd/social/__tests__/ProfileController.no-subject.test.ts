@@ -13,6 +13,8 @@ import { CommandApi, type CommandModel } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { TestHarnessApi } from '../../../../../api/test-harness';
+import { MessageApi } from '../../../../../api/message';
+import type { ProfileCard } from '../../../../../api/social';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -30,5 +32,35 @@ describe('profile <a name nobody answers to>', () => {
     expect(context.getNotes()).toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected', reason: 'profile-no-subject' }),
     );
+  });
+});
+
+describe('your own profile on a character that is not your Compact character', () => {
+  it('says where your account’s Make and Fund are shown (front-page-sources D13)', async () => {
+    const viewer = makeStuff(() => new Avatar());
+    const card: ProfileCard = {
+      handle: 'second',
+      header: 'Tamsin Reed',
+      isSelf: true,
+      recognized: true,
+      digest: { influence: { play: 'dormant' }, accountShownOn: 'Odile Marsh' },
+    };
+    vi.spyOn(viewer, 'composeProfileCard').mockResolvedValue(card);
+    let said = '';
+    vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+      const b: Record<string, unknown> = {};
+      b.topic = () => b;
+      b.toSelf = (m: unknown) => {
+        said += String(m);
+        return b;
+      };
+      b.send = () => {};
+      return b as never;
+    });
+    const controller = makeStuff(() => new ProfileController());
+    const context = CommandApi.createCommandContext({ commandGiver: viewer } as never);
+    await TestHarnessApi.actAs(context.commandGiver, () => controller.execute({} as CommandModel, context));
+    expect(said).toContain('shown on Odile Marsh, your Compact character');
+    expect(said).not.toContain('Make:');
   });
 });

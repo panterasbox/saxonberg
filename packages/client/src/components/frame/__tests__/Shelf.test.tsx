@@ -313,6 +313,18 @@ describe('Shelf', () => {
       expect(make.getAttribute('aria-label') ?? '').toMatch(/account/i);
     });
 
+    /* ⭐ On a body that is not the Compact character, the row says where — no number. */
+    it("MAKE says it is shown on the Compact character on any other body", () => {
+      pinAll();
+      useStore.setState({
+        shelfFigures: { ...LIVE_FIGURES, makeStanding: { elsewhere: true } },
+      });
+      render(<Shelf />);
+      const make = groupFor('MAKE');
+      expect(make.getAttribute('data-figure-state')).toBe('empty');
+      expect(make.getAttribute('aria-label') ?? '').toMatch(/Compact character/);
+    });
+
     /*
      * ⭐ The three claims must stay three. They tell the next builder
      * WHERE to look — a missing field is one field away, an

@@ -24,6 +24,7 @@ import { Mml } from '../../../../api/mml';
 import { ConsumerApi } from '../../../../api/consumer';
 import { RenownApi } from '../../../../api/renown';
 import { InfluenceApi } from '../../../../api/influence';
+import { PlayerApi } from '../../../../api/player';
 
 /** Identity-family self readout — reuse, don't invent a topic. */
 const TOPIC = 'act.deed';
@@ -46,7 +47,7 @@ export default class StandingController extends CommandController<CommandModel> 
     // `profile` digest and the live dashboard field cannot report
     // different make standings — they run the same roll-up.
     //
-    // ⭐ `undefined` = the account could not be resolved. The verb says
+    // ⭐ `unresolved` = the account could not be resolved. The verb says
     // so in the machine voice rather than printing the per-character
     // band under an account-level label. "Commands refuse honestly" is
     // the same convention the hatched surfaces follow.
@@ -69,16 +70,31 @@ export default class StandingController extends CommandController<CommandModel> 
           ? 'The Compact regards you poorly.'
           : 'The Compact has yet to form a view of you.';
 
+    // ⭐ Make and Fund are the ACCOUNT's, shown on its Compact character
+    // only (front-page-sources D13); on any other body, say where.
+    const accountLines: string[] =
+      makeStanding.at === 'here'
+        ? [
+            `Make (creation): ${makeStanding.standing.band.name}.`,
+            'Fund (capital): not yet earnable.',
+          ]
+        : makeStanding.at === 'compact-character'
+          ? [
+              `Make and Fund are your account's — they are shown on ${
+                (await PlayerApi.storedNameOf(makeStanding.playerId)) ??
+                'your Compact character'
+              }, your Compact character.`,
+            ]
+          : [
+              'Make (creation): not measurable — Make is account-level and this body is not attached to an account.',
+              'Fund (capital): not yet earnable.',
+            ];
+
     const blocks: string[] = [
       Mml.strong('Your standing').toString(),
       Mml.escape(`Play (engagement): ${playBand.name}.`),
       Mml.escape(`${presence} ${regard}`),
-      Mml.escape(
-        makeStanding
-          ? `Make (creation): ${makeStanding.band.name}.`
-          : 'Make (creation): not measurable — Make is account-level and this body is not attached to an account.',
-      ),
-      Mml.escape('Fund (capital): not yet earnable.'),
+      ...accountLines.map((line) => Mml.escape(line)),
     ];
 
     const body = Mml.fromMarkup(blocks.join('\n\n'));

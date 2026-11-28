@@ -657,12 +657,22 @@ interface StoreState
    * the account, not any one character on it.
    */
   accountName?: string;
+  /**
+   * The account's **Compact character** — the one character it takes part
+   * in the Compact through, whose card carries the account's figures. From
+   * the roster frame, and moved by the answer to `compact character`.
+   * Absent until the server names one.
+   */
+  compactPlayerId?: string;
   /** Store the roster and flip to `character-select`. */
   setCharGenRoster: (
     roster: CharGenRosterEntry[],
     account?: AccountStandingPayload,
     accountName?: string,
+    compactPlayerId?: string,
   ) => void;
+  /** The server's answer to `compact` / `compact character`. */
+  setCompactPlayerId: (compactPlayerId: string) => void;
   /**
    * The current char-gen step state, from the most recent
    * `session.identity` frame. `null` until char-gen begins.
@@ -1389,13 +1399,16 @@ export const useStore = create<StoreState>((set, get) => ({
   charGenRoster: [],
   accountStanding: {},
 
-  setCharGenRoster: (roster, account, accountName) =>
+  setCharGenRoster: (roster, account, accountName, compactPlayerId) =>
     set(() => ({
       charGenRoster: roster,
       accountStanding: account ?? {},
       accountName,
+      compactPlayerId,
       connectionPhase: "character-select",
     })),
+
+  setCompactPlayerId: (compactPlayerId) => set(() => ({ compactPlayerId })),
 
   charGenState: null,
 

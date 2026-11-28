@@ -308,14 +308,20 @@ export function figureFor(
           { state: "live", value: band };
     }
     case "make": {
-      const band = figures?.makeStanding?.band;
+      const make = figures?.makeStanding;
       // ⚠ Absent means the server could not resolve the account — it
       // does NOT mean zero, and it must not fall back to a
       // per-character figure. That substitution is the defect the
       // roll-up was built to end.
-      return band === undefined
-        ? { state: "empty", reason: "no account resolved for this session" }
-        : { state: "live", value: band };
+      if (make === undefined) {
+        return { state: "empty", reason: "no account resolved for this session" };
+      }
+      // ⭐ The account's figure lives on its Compact character
+      // (front-page-sources D13): this body says where, never a number.
+      if ("elsewhere" in make) {
+        return { state: "empty", reason: "your account's Make is shown on your Compact character" };
+      }
+      return { state: "live", value: make.band };
     }
     case "renown": {
       const value = figures?.renown?.value;

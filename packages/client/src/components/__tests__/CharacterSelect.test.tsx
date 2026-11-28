@@ -33,11 +33,14 @@ function entry(over: Partial<CharGenRosterEntry> = {}): CharGenRosterEntry {
 function seed(
   roster: CharGenRosterEntry[],
   account: { make?: string; fund?: string } = {},
+  // The account's Compact character — the first, as the server defaults it.
+  compactPlayerId: string | undefined = roster[0]?.playerId,
 ): void {
   act(() => {
     useStore.setState({
       charGenRoster: roster,
       accountStanding: account,
+      compactPlayerId,
       autoEnterPending: false,
     });
   });
@@ -116,7 +119,7 @@ describe('CharacterSelect', () => {
     renderSelect();
 
     const since = screen.getByTestId('since-you-left').textContent ?? '';
-    // Account standing is a METER band in the header now, not a card.
+    // Account standing is a METER band on the Compact character's card.
     const meters = screen.getByTestId('account-standing').textContent ?? '';
     const retire =
       screen.getByTestId('roster-unbuilt-retire').textContent ?? '';
@@ -243,5 +246,43 @@ describe('CharacterSelect', () => {
     seed([]);
     renderSelect();
     expect(within(screen.getByTestId('roster-screen')).getByText(/Connecting/));
+  });
+
+  describe('the Compact character (front-page-sources D13)', () => {
+    const two = (): CharGenRosterEntry[] => [
+      entry({ playerId: 'p1', name: 'Maren Vask' }),
+      entry({ playerId: 'p2', name: 'Odile Marsh' }),
+    ];
+
+    it("renders the account's figures on the Compact character's card", () => {
+      seed(two(), { make: 'rising' }, 'p1');
+      renderSelect();
+      act(() => screen.getByTestId('roster-card-p1').click());
+      const figures = screen.getByTestId('compact-figures');
+      expect(within(figures).getByTestId('account-standing').textContent).toMatch(/rising/);
+      expect(screen.queryByTestId('compact-elsewhere')).toBeNull();
+      expect(screen.getByTestId('roster-compact-flag-p1')).toBeTruthy();
+      expect(screen.queryByTestId('roster-compact-flag-p2')).toBeNull();
+    });
+
+    it('says where the figures are on another card, and its control sends compact character', () => {
+      seed(two(), { make: 'rising' }, 'p1');
+      const send = renderSelect();
+      act(() => screen.getByTestId('roster-card-p2').click());
+      expect(screen.queryByTestId('account-standing')).toBeNull();
+      const elsewhere = screen.getByTestId('compact-elsewhere');
+      expect(elsewhere.textContent).toMatch(/shown on Maren Vask, your Compact character/);
+      act(() => screen.getByTestId('roster-compact-p2').click());
+      expect(send).toHaveBeenCalledWith('compact character p2');
+    });
+
+    it('moves the figures when the answer names a new Compact character', () => {
+      seed(two(), { make: 'rising' }, 'p1');
+      renderSelect();
+      act(() => screen.getByTestId('roster-card-p2').click());
+      act(() => useStore.getState().setCompactPlayerId('p2'));
+      expect(screen.getByTestId('compact-figures')).toBeTruthy();
+      expect(screen.getByTestId('roster-compact-flag-p2')).toBeTruthy();
+    });
   });
 });

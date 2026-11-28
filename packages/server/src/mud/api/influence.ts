@@ -53,6 +53,18 @@ export const STOCK_LEVEL: Readonly<Record<Stock, StandingLevel>> = {
   capital: 'account',
 };
 
+/**
+ * ⭐ Where a host's standing in a stock is shown (front-page-sources D12):
+ * `here` with the figure; `compact-character` — an account-level stock on
+ * a body that is not its account's Compact character, where the figure is
+ * shown instead (carrying no number, only where); or `unresolved` — no
+ * account in hand. A character-level stock is always `here`.
+ */
+export type HostStanding =
+  | { at: 'here'; standing: InfluenceStanding }
+  | { at: 'compact-character'; subject: string; playerId: string }
+  | { at: 'unresolved' };
+
 export class InfluenceApi {
   /**
    * A subject's measured standing in `stock`, carrying the `stock` tag and
@@ -116,28 +128,43 @@ export class InfluenceApi {
    * already returns it for an unmaterialized scope, precisely so a
    * reader can tell *never measured* from *measured at zero*.
    *
-   * Character-level stocks never return `undefined`.
+   * Character-level stocks are always `here`.
+   *
+   * ⭐ And an account-level figure is shown on ONE body — the account's
+   * Compact character. Asked of any other body it answers
+   * `compact-character`, naming where (front-page-sources D12); the
+   * arithmetic is untouched, every character still counts.
    */
   public static standingForHost(
     host: Stuff,
     stock: Stock
-  ): InfluenceStanding | undefined {
+  ): HostStanding {
     // The durable subject the faucets re-key storage to; the live
     // stuffId is re-minted on re-clone. Matches the faucet's own
     // fallback so the key always agrees.
     const subject = host.getIdentityPath() ?? host.stuffId;
 
     if (STOCK_LEVEL[stock] === 'character') {
-      return InfluenceApi.standingOf(subject, stock);
+      return { at: 'here', standing: InfluenceApi.standingOf(subject, stock) };
     }
 
     const account = InfluenceApi.#accountOf(host);
-    if (!account) return undefined;
-    return InfluenceApi.standingForAccount(
-      account.subject,
-      account.members,
-      stock
-    );
+    if (!account?.compact) return { at: 'unresolved' };
+    if (account.compact.subject !== subject) {
+      return {
+        at: 'compact-character',
+        subject: account.compact.subject,
+        playerId: account.compact.playerId,
+      };
+    }
+    return {
+      at: 'here',
+      standing: InfluenceApi.standingForAccount(
+        account.subject,
+        account.members,
+        stock
+      ),
+    };
   }
 
   /**

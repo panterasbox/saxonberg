@@ -540,9 +540,12 @@ export default abstract class Avatar extends AvatarBase {
         // `renown` draws below. Substituting the per-character figure
         // here is exactly the silent downgrade this roll-up replaced.
         const standing = InfluenceApi.standingForHost(stuff, 'producer');
-        if (!standing) return undefined;
+        if (standing.at === 'unresolved') return undefined;
+        // ⭐ On any body but the account's Compact character the figure
+        // is SHOWN elsewhere — say where, carry no number (D13).
+        if (standing.at === 'compact-character') return { elsewhere: true as const };
         // Band NAME on the wire, as `playStanding` — see there.
-        return { band: standing.band.name };
+        return { band: standing.standing.band.name };
       },
       durableKey: (stuff) => stuff.getIdentityPath() ?? undefined,
     },
@@ -754,9 +757,13 @@ export default abstract class Avatar extends AvatarBase {
     if (!user) return undefined;
     const ids = user.playerIds ?? [];
     if (!ids.length) return undefined;
+    const compact = user.compactCharacterId();
     return {
       subject: `account:${String(user._id ?? '')}`,
       members: ids.map((id) => Avatar.getTemplatePath(id)),
+      ...(compact
+        ? { compact: { subject: Avatar.getTemplatePath(compact), playerId: compact } }
+        : {}),
     };
   }
 

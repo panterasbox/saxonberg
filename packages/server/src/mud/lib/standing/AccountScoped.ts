@@ -39,6 +39,17 @@ export interface AccountSubjects {
    * keeps the roll-up honest for the overwhelmingly common account.
    */
   readonly members: readonly string[];
+  /**
+   * ⭐ The account's **Compact character** — the one character its
+   * account-level figures are SHOWN on (front-page-sources D12). Absent
+   * only when the account has no character. The arithmetic never reads
+   * it: every member still counts toward the one figure.
+   */
+  readonly compact?: {
+    /** Its durable subject key — one of `members`. */
+    readonly subject: string;
+    readonly playerId: string;
+  };
 }
 
 /**
