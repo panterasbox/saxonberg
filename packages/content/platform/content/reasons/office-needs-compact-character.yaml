@@ -1,0 +1,9 @@
+# `office assign` naming a character that is not its account's Compact
+# character (front-page-sources D10): offices seat characters, and only the
+# one an account takes part in the Compact through. ⛔ It never names that
+# account's Compact character: which characters share an account stays
+# unlinked for other players (requirements, Non-goals).
+facts:
+  name: text
+says: "{{ name }} is not their account's Compact character, and only an account's Compact character may hold a Compact office."
+topic: shell.error

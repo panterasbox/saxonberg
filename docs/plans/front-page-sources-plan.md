@@ -292,6 +292,18 @@ no new hook, no new module category, no new exported helper function.** One new 
   with no character → `null` → no host line. `StreamLogic.frontListing` attaches it as `host`;
   `programListing` (in-game) does not compute it. No field of `FrontHost` can carry a credential.
 
+- **D10a — (build) the hand-off refusal never names the other account's Compact character.** D10's
+  `facts: { name, compact }` would tell the founder which character shares an account with the one
+  refused — exactly the link the requirements' non-goal keeps closed ("the others stay unlinked to
+  it for other players"). The row says only that the named character is not its account's Compact
+  character; `facts: { name }`. *Chosen by:* the requirements (Non-goals), lens 4.
+- **D10b — (build) `OfficeAssignResult` is a union with two refusal arms.** `{ ok: true, changed,
+  priorHolderId }` · `{ ok: false, reason: 'no-such-name', facts }` (the registry's unknown key, in
+  the shipped naming row's words) · `{ ok: false, reason: 'office-needs-compact-character', facts }`.
+  The controller's worded `unknown-office` fail is gone: `if (!result.ok) return this.refuse(context,
+  result)`. `GroupControllerBase` got its own three-line `presentHolder` (no shared base with
+  `OfficeControllerBase`); an explicit holder there now prints a name, where it printed a raw id.
+
 ### Standing
 
 - **D12 — `standingForHost` answers three ways.** `HostStanding = { at: 'here', standing } | { at:
@@ -563,6 +575,18 @@ the env value; `publicFaceOf` gives `acting: true` on the default and drops it a
 ⚠ Run the wire files that seat offices (`grep -l "offices:" packages/wire/tests`) with
 `pnpm wire <file>` for two of them before committing — this wave changes who holds a default seat.
 **Commit:** `feat(governance): offices seat characters — the founder default is a Compact character`
+
+✅ **W1 done.** `OfficeRegistry.founderSeatHolder()` (credential → profile → `User` →
+`compactCharacterId()`) feeds `holderOf`/`holdsOffice`/`officesOf`/`roster`; `founderLabel` is
+gone from every type, method and test (`grep` empty); `CompactLogic.assignOfficeImpl` refuses a
+non-Compact character for the verb and its test twin alike; `CompactApi.publicFaceOf`. `office
+list` prints `<name> (by default — the founder)`. Decided: D10a, D10b. Surprises: the wire purge
+read `holderPlayerId` as "seated by this run" — on a default seat it is now the founder's
+character, so the purge also checks `!isFounderDefault`. Wire: `wizard-axis` 10/10 green;
+`stream-arrival` timed out its restart step at 300 s with the machine at load ~10 (sibling
+builds), and the PM seat it strands on failure broke `wizard-axis`'s PM steps on the shared run —
+re-run alone after clearing `office_holders`, green. `stream-arrival` is owed a re-run on a quiet
+machine (W7's drive restarts the same way).
 
 ### W2 — standing is shown on the Compact character
 **Implements** D12–D13. **Files:** `lib/standing/AccountScoped.ts`; `api/influence.ts`;

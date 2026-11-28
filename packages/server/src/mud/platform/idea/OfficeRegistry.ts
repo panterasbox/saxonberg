@@ -16,8 +16,10 @@
  *     — there is nothing to seed and "re-seeding never clobbers
  *     occupants" is trivial. `onCreate` does **no DB work**: it only
  *     reads the founder credential env into instance fields.
- *   - **Occupancy is founder-default + sparse handoffs.** The founder is
- *     the computed default holder of every office. The `office_holders`
+ *   - **Occupancy is founder-default + sparse handoffs.** The founder
+ *     account's **Compact character** is the computed default holder of
+ *     every office — a character, never the account, so the founder's other
+ *     characters hold no default seat. The `office_holders`
  *     collection stores only explicit handoffs (empty at founding, one
  *     row per handed-off office). `holderOf` = explicit holder if a row
  *     exists, else the founder; `assign` upserts the row, `vacate`
@@ -27,7 +29,9 @@
  *     through `User` ↔ `GoogleProfile`/`TwitchProfile`. Orthogonal to the
  *     `streamers` axis and the `isWizard` code-trust axis. Returns false
  *     until the founder has logged in (no matching `User` yet) —
- *     appointment is simply inert until then, which is correct.
+ *     appointment is simply inert until then, which is correct. The
+ *     credential is the RECOGNIZER only: it is never a label (no email or
+ *     handle reaches any output — front-page-sources D9).
  *
  * Resolution is **per-check** (no founder-playerId cache) so a founder
  * logging in after boot is recognized immediately; call frequency is low
@@ -87,8 +91,6 @@ export default class OfficeRegistry extends OfficeRegistryBase {
   private founderGoogleEmail: string | null = null;
   /** Founder Twitch login (lowercased handle), at warm (null = unset). */
   private founderTwitchLogin: string | null = null;
-  /** Original-case display handle for offline founder presentation. */
-  private founderDisplay: string | null = null;
 
   public override async onCreate(_context?: unknown): Promise<void> {
     const rawEmail = (process.env.FOUNDER_GOOGLE_EMAIL ?? '').trim();
@@ -97,22 +99,15 @@ export default class OfficeRegistry extends OfficeRegistryBase {
       rawEmail.length > 0 ? rawEmail.toLowerCase() : null;
     this.founderTwitchLogin =
       rawHandle.length > 0 ? rawHandle.toLowerCase() : null;
-    // Prefer the original-case Twitch handle for display, else the email.
-    this.founderDisplay =
-      rawHandle.length > 0
-        ? rawHandle
-        : rawEmail.length > 0
-          ? rawEmail
-          : null;
     if (this.founderGoogleEmail === null && this.founderTwitchLogin === null) {
       // Mirrors the absent-WIZARD_PLAYER_IDS degrade: with no credential
       // configured `isFounder` is always false and every office resolves
-      // to "(founder unset)". The deploy contract — set the env to seat
-      // the founder.
+      // to a default seat nobody is in. The deploy contract — set the env
+      // to seat the founder.
       console.warn(
         '[OfficeRegistry] neither FOUNDER_GOOGLE_EMAIL nor ' +
           'FOUNDER_TWITCH_HANDLE is set; isFounder will always be false ' +
-          'and every office shows "(founder unset)" until configured.',
+          'and every default seat is empty until configured.',
       );
     }
   }
@@ -123,12 +118,6 @@ export default class OfficeRegistry extends OfficeRegistryBase {
   @CallSecurity(OfficeApiCallers)
   public async isFounder(playerId: string): Promise<boolean> {
     return this.computeIsFounder(playerId);
-  }
-
-  /** The configured founder display handle (for offline presentation). */
-  @CallSecurity(OfficeApiCallers)
-  public founderLabel(): string {
-    return this.resolveFounderLabel();
   }
 
   // ── Occupancy reads (gated) ──
@@ -149,11 +138,16 @@ export default class OfficeRegistry extends OfficeRegistryBase {
     return {
       kind: 'founder',
       officeKey: office.getKey(),
-      founderLabel: this.resolveFounderLabel(),
+      holderPlayerId: await this.founderSeatHolder(),
     };
   }
 
-  /** Does `playerId` hold `officeKey`? Explicit match, or founder default. */
+  /**
+   * Does `playerId` hold `officeKey`? Explicit match, or — on the founder
+   * default — is it the founder account's Compact character. ⚠ The
+   * founder's OTHER characters do not hold the default seats: offices seat
+   * characters, never accounts (front-page-sources D7).
+   */
   @CallSecurity(OfficeApiCallers)
   public async holdsOffice(
     playerId: string,
@@ -165,15 +159,18 @@ export default class OfficeRegistry extends OfficeRegistryBase {
     if (id.length === 0) return false;
     const row = await OfficeHolder.findByOfficeKey(office.getKey());
     if (row && row.holderId.length > 0) return row.holderId === id;
-    return this.computeIsFounder(id);
+    return (await this.founderSeatHolder()) === id;
   }
 
-  /** Every office key `playerId` holds (the founder's full set if no rows). */
+  /**
+   * Every office key `playerId` holds — every default seat when it is the
+   * founder's Compact character, plus its handed-off ones.
+   */
   @CallSecurity(OfficeApiCallers)
   public async officesOf(playerId: string): Promise<string[]> {
     const id = (playerId ?? '').trim();
     if (id.length === 0) return [];
-    const founder = await this.computeIsFounder(id);
+    const founder = (await this.founderSeatHolder()) === id;
     const out: string[] = [];
     for (const office of OFFICE_APPARATUS) {
       const row = await OfficeHolder.findByOfficeKey(office.getKey());
@@ -189,7 +186,7 @@ export default class OfficeRegistry extends OfficeRegistryBase {
   /** The public transparency surface: every office + its current holder. */
   @CallSecurity(OfficeApiCallers)
   public async roster(): Promise<OfficeRosterRow[]> {
-    const label = this.resolveFounderLabel();
+    const founderSeat = await this.founderSeatHolder();
     const out: OfficeRosterRow[] = [];
     for (const office of OFFICE_APPARATUS) {
       const identity = office.toRosterRow();
@@ -197,9 +194,8 @@ export default class OfficeRegistry extends OfficeRegistryBase {
       const explicit = !!(row && row.holderId.length > 0);
       out.push({
         ...identity,
-        holderPlayerId: explicit ? row!.holderId : null,
+        holderPlayerId: explicit ? row!.holderId : founderSeat,
         isFounderDefault: !explicit,
-        founderLabel: label,
       });
     }
     return out;
@@ -207,14 +203,28 @@ export default class OfficeRegistry extends OfficeRegistryBase {
 
   // ── Mutations (gated) ──
 
-  /** Upsert the explicit-holder row (auditable replace). */
+  /**
+   * Upsert the explicit-holder row (auditable replace). A write: whether
+   * `playerId` MAY be seated is the Compact's question, asked before this
+   * (`CompactLogic`, D10).
+   */
   @CallSecurity(OfficeApiCallers)
   public async assign(
     playerId: string,
     officeKey: string,
   ): Promise<OfficeAssignResult> {
     const office = Office.byKey(officeKey);
-    if (!office) return { changed: false, priorHolderId: null, ok: false };
+    if (!office) {
+      return {
+        ok: false,
+        reason: 'no-such-name',
+        facts: {
+          what: officeKey,
+          noun: 'office',
+          offered: OFFICE_APPARATUS.map((o) => o.getDisplayName()).join(', '),
+        },
+      };
+    }
     const id = (playerId ?? '').trim();
     if (id.length === 0) {
       return { changed: false, priorHolderId: null, ok: true };
@@ -252,8 +262,40 @@ export default class OfficeRegistry extends OfficeRegistryBase {
   // gated public methods, since an intra-singleton self-call resolves the
   // caller to this Registry, which is outside the office-face allowlist) ──
 
-  private resolveFounderLabel(): string {
-    return this.founderDisplay ?? '(founder unset)';
+  /**
+   * ⭐ The founder default's holder (D7): the founder account's Compact
+   * character, found from the configured credential (the profile, then the
+   * account that links it) — or `null` while the founder has never signed
+   * in or has no character. Per check, like `isFounder`, so a designation
+   * change moves every default seat with no write.
+   */
+  private async founderSeatHolder(): Promise<string | null> {
+    const user = await this.founderUser();
+    return user?.compactCharacterId() ?? null;
+  }
+
+  private async founderUser(): Promise<User | null> {
+    if (this.founderGoogleEmail !== null) {
+      const profiles = await GoogleProfile.find<GoogleProfile>({
+        email: this.founderGoogleEmail,
+      });
+      for (const profile of profiles) {
+        if (!profile._id) continue;
+        const [user] = await User.find<User>({ googleProfileId: String(profile._id) });
+        if (user) return user;
+      }
+    }
+    if (this.founderTwitchLogin !== null) {
+      const profiles = await TwitchProfile.find<TwitchProfile>({
+        login: this.founderTwitchLogin,
+      });
+      for (const profile of profiles) {
+        if (!profile._id) continue;
+        const [user] = await User.find<User>({ twitchProfileId: String(profile._id) });
+        if (user) return user;
+      }
+    }
+    return null;
   }
 
   private async computeIsFounder(playerId: string): Promise<boolean> {

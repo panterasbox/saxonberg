@@ -38,13 +38,9 @@ export default class OfficeAssignController extends OfficeControllerBase {
     if (!office) return;
 
     const result = await CompactApi.assignOffice(playerId, office.getKey());
-    if (!result.ok) {
-      return this.fail(
-        context,
-        `No such office: ${model.office ?? '(none)'}.`,
-        'unknown-office',
-      );
-    }
+    // Refused by the Compact — not its account's Compact character (D10),
+    // or no such office — and worded by the reason's row.
+    if (!result.ok) return this.refuse(context, result);
     if (!result.changed) {
       return this.fail(
         context,

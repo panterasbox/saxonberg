@@ -65,15 +65,24 @@ export abstract class GroupControllerBase extends CommandController<GroupModel> 
         return owner.templatePath;
       case 'office': {
         const holder = await CompactApi.officeHolderOf(owner.office);
+        // A character's name, never an id and never the founder's
+        // credential (front-page-sources D9).
         const held =
-          holder.kind === 'explicit'
-            ? holder.holderPlayerId
-            : holder.kind === 'founder'
-              ? holder.founderLabel
-              : 'nobody — unknown office';
+          holder.kind === 'unknown'
+            ? 'nobody — unknown office'
+            : holder.holderPlayerId
+              ? await this.presentHolder(holder.holderPlayerId)
+              : 'the founder';
         return `the office of ${owner.office} (held by ${held})`;
       }
     }
+  }
+
+  /** A seat's holder by their body if they are here, else the name on their record. */
+  private async presentHolder(playerId: string): Promise<string> {
+    const avatar = PlayerApi.findAvatarByPlayerId(playerId);
+    if (avatar) return avatar.getPresentation();
+    return (await PlayerApi.storedNameOf(playerId)) ?? 'somebody no longer on the rolls';
   }
 
   protected async findGroupByName(name: string): Promise<Group | null> {

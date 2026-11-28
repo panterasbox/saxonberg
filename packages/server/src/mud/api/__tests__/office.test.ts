@@ -50,7 +50,6 @@ describe('CompactApi facade', () => {
     ).resolves.toBe(false);
     await expect(CompactApi.officesOf(makeAvatar('x'))).resolves.toEqual([]);
     await expect(CompactApi.officeRoster()).resolves.toEqual([]);
-    expect(CompactApi.founderLabel()).toBe('(founder unset)');
     const held = await CompactApi.officeHolderOf('prime-minister');
     expect(held.kind).toBe('unknown');
   });

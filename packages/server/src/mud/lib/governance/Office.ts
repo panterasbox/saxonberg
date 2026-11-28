@@ -200,33 +200,47 @@ export const OFFICE_APPARATUS: readonly Office[] = [
 
 /**
  * Who holds an office. `explicit` = a handed-off holder (a row in
- * `office_holders`); `founder` = the computed default (no row);
- * `unknown` = the key isn't an authored office.
+ * `office_holders`); `founder` = the computed default (no row), held by
+ * the founder account's **Compact character** — `holderPlayerId` is that
+ * character, or `null` while the founder has never signed in or has no
+ * character (front-page-sources D7); `unknown` = the key isn't an
+ * authored office. ⛔ No arm carries a credential: offices seat
+ * characters, and the founder's email or handle is never a label (D9).
  */
 export type OfficeHolderResult =
   | { kind: 'explicit'; officeKey: string; holderPlayerId: string }
-  | { kind: 'founder'; officeKey: string; founderLabel: string }
+  | { kind: 'founder'; officeKey: string; holderPlayerId: string | null }
   | { kind: 'unknown'; officeKey: string };
 
 /** A public-roster row: authored identity joined with current holder. */
 export interface OfficeRosterRow extends OfficeRosterIdentity {
-  /** The explicit handed-off holder's playerId, or null on the default. */
+  /**
+   * The character in the seat: the explicit handed-off holder, or — on the
+   * founder default — the founder's Compact character. `null` only on a
+   * default seat whose founder has no character yet.
+   */
   holderPlayerId: string | null;
   /** True when no handoff exists and the seat rests on the founder. */
   isFounderDefault: boolean;
-  /** The configured founder display handle (for offline presentation). */
-  founderLabel: string;
 }
 
-/** The outcome of an `assign` handoff. */
-export interface OfficeAssignResult {
-  /** Whether anything changed (false = the seat already held by them). */
-  changed: boolean;
-  /**
-   * The displaced explicit holder's playerId, or null when the seat was
-   * on the founder default (the auditable replace).
-   */
-  priorHolderId: string | null;
-  /** False when the office key isn't an authored office. */
-  ok: boolean;
-}
+/**
+ * The outcome of an `assign` handoff: done (`changed` false when the seat
+ * was already theirs; `priorHolderId` the displaced explicit holder, null
+ * when the seat was on the founder default), or refused — the office key
+ * names no office (`no-such-name`), or the character is not its account's
+ * Compact character (`office-needs-compact-character`, D10). A refusal's
+ * row words it; the controller passes it on.
+ */
+export type OfficeAssignResult =
+  | { ok: true; changed: boolean; priorHolderId: string | null }
+  | {
+      ok: false;
+      reason: 'no-such-name';
+      facts: { what: string; noun: string; offered: string };
+    }
+  | {
+      ok: false;
+      reason: 'office-needs-compact-character';
+      facts: { name: string };
+    };

@@ -19,6 +19,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import OfficeRegistry from '../idea/OfficeRegistry';
 import Avatar from '../agent/PrimaryAvatar';
 import { CompactApi } from '../../api/compact';
+import { PlayerApi } from '../../api/player';
 import { StuffApi } from '../../api/stuff';
 import { Document } from '../../lib/persistence/Document';
 import { OfficeHolder } from '../../lib/governance/OfficeHolder';
@@ -250,9 +251,9 @@ describe('OfficeRegistry', () => {
     for (const office of OFFICE_APPARATUS) {
       const held = await CompactApi.officeHolderOf(office.getKey());
       expect(held.kind).toBe('founder');
-      if (held.kind === 'founder') {
-        expect(held.founderLabel).toBe('Bobalu_Smallberries');
-      }
+      // The founder's Compact character holds it — never the handle (D7/D9).
+      if (held.kind === 'founder') expect(held.holderPlayerId).toBe('founder');
+      expect(JSON.stringify(held)).not.toContain('Bobalu_Smallberries');
       expect(await CompactApi.holdsOffice(founder, office.getKey())).toBe(true);
     }
   });
@@ -317,8 +318,10 @@ describe('OfficeRegistry', () => {
     expect(pm.holderPlayerId).toBe('alice');
     const gov = roster.find((r) => r.key === 'central-bank-governor')!;
     expect(gov.isFounderDefault).toBe(true);
-    expect(gov.holderPlayerId).toBeNull();
-    expect(gov.founderLabel).toBe('Bobalu_Smallberries');
+    // The default seat names the founder's Compact character (D7), and no
+    // roster row carries the credential (D9).
+    expect(gov.holderPlayerId).toBe('founder');
+    expect(JSON.stringify(roster)).not.toContain('Bobalu_Smallberries');
   });
 
   it('an explicit handoff persists across a registry reload (nothing to clobber)', async () => {
@@ -368,5 +371,93 @@ describe('OfficeRegistry', () => {
     expect(
       await CompactApi.holdsOffice(makeAvatar('founder'), 'prime-minister'),
     ).toBe(true);
+  });
+
+  describe('the founder default seats a CHARACTER (front-page-sources D7–D8)', () => {
+    /** The founder's account with two characters, linked by Twitch. */
+    function seedFounderWithTwo(compact?: string): void {
+      const tid = seedDoc('twitch_profiles', {
+        twitchUserId: 't-founder',
+        login: 'bobalu_smallberries',
+        displayName: 'Bobalu_Smallberries',
+      });
+      seedDoc('users', {
+        playerIds: ['founder', 'founder-alt'],
+        twitchProfileId: tid,
+        ...(compact ? { compactPlayerId: compact } : {}),
+      });
+    }
+
+    it("the founder's Compact character holds each default seat; their other character does not", async () => {
+      process.env[TWITCH_ENV] = 'Bobalu_Smallberries';
+      installInMemoryStore();
+      seedFounderWithTwo();
+      await bootRegistry();
+      for (const office of OFFICE_APPARATUS) {
+        expect(await CompactApi.holdsOffice(makeAvatar('founder'), office.getKey())).toBe(true);
+        expect(await CompactApi.holdsOffice(makeAvatar('founder-alt'), office.getKey())).toBe(false);
+      }
+      expect(await CompactApi.officesOf(makeAvatar('founder-alt'))).toEqual([]);
+    });
+
+    it('a designation change moves every default seat, with no write to the seats', async () => {
+      process.env[TWITCH_ENV] = 'Bobalu_Smallberries';
+      installInMemoryStore();
+      seedFounderWithTwo('founder-alt');
+      await bootRegistry();
+      const held = await CompactApi.officeHolderOf('prime-minister');
+      expect(held).toEqual({ kind: 'founder', officeKey: 'prime-minister', holderPlayerId: 'founder-alt' });
+      expect(await CompactApi.holdsOffice(makeAvatar('founder-alt'), 'prime-minister')).toBe(true);
+      expect(await CompactApi.holdsOffice(makeAvatar('founder'), 'prime-minister')).toBe(false);
+      expect(col('office_holders')).toEqual([]);
+    });
+
+    it('founding authority stays the account’s: isFounder is true for both characters', async () => {
+      process.env[TWITCH_ENV] = 'Bobalu_Smallberries';
+      installInMemoryStore();
+      seedFounderWithTwo('founder-alt');
+      await bootRegistry();
+      expect(await CompactApi.isFounder(makeAvatar('founder'))).toBe(true);
+      expect(await CompactApi.isFounder(makeAvatar('founder-alt'))).toBe(true);
+    });
+
+    it('a default seat whose founder has never signed in names nobody', async () => {
+      process.env[TWITCH_ENV] = 'Bobalu_Smallberries';
+      installInMemoryStore();
+      await bootRegistry();
+      expect(await CompactApi.officeHolderOf('prime-minister')).toEqual({
+        kind: 'founder',
+        officeKey: 'prime-minister',
+        holderPlayerId: null,
+      });
+    });
+
+    it('publicFaceOf: Acting on the default, the seat alone after a hand-off, nothing for another character', async () => {
+      process.env[TWITCH_ENV] = 'Bobalu_Smallberries';
+      installInMemoryStore();
+      seedFounderWithTwo();
+      await bootRegistry();
+      vi.spyOn(PlayerApi, 'storedNameOf').mockImplementation(async (id: string) =>
+        id === 'founder' ? 'Odile Marsh' : id === 'alice' ? 'Alice Fenn' : 'Alt Body',
+      );
+      expect(await CompactApi.publicFaceOf('founder-alt')).toEqual({
+        name: 'Odile Marsh',
+        seat: 'Prime Minister',
+        acting: true,
+      });
+      seedDoc('users', { playerIds: ['alice'] });
+      seedDoc('office_holders', { officeKey: 'prime-minister', holderId: 'alice' });
+      expect(await CompactApi.publicFaceOf('alice')).toEqual({
+        name: 'Alice Fenn',
+        seat: 'Prime Minister',
+        acting: false,
+      });
+      // The founder still holds the other defaults, but not the PM's seat.
+      const founderFace = await CompactApi.publicFaceOf('founder');
+      expect(founderFace?.seat).not.toBe('Prime Minister');
+      expect(founderFace?.acting).toBe(true);
+      // An account with no character has no face.
+      expect(await CompactApi.publicFaceOf('nobody')).toBeNull();
+    });
   });
 });

@@ -32,6 +32,7 @@ import type {
   CommitteeView,
   CommitteeChannelView,
   CompactCharacterView,
+  CompactPublicFace,
 } from "../../../api/compact";
 
 const CompactApiCallers = SecurityPolicies.FromModule(
@@ -242,6 +243,72 @@ async function designateImpl(
   return { playerId: target, name };
 }
 
+/**
+ * ⭐ D10 — a Compact seat goes only to its account's Compact character.
+ * Shared by the verb's narrow entry and its test twin, so the harness
+ * cannot seat what the game would refuse. The registry's `assign` stays a
+ * write.
+ */
+async function assignOfficeImpl(
+  playerId: string,
+  officeKey: string
+): Promise<OfficeAssignResult> {
+  const reg = lookupOfficeRegistry();
+  if (!reg) {
+    return {
+      ok: false,
+      reason: "no-such-name",
+      facts: { what: officeKey, noun: "office", offered: "" },
+    };
+  }
+  const id = playerId.trim();
+  const account = id.length > 0 ? await accountOfPlayer(id) : null;
+  const compact = account?.compactCharacterId() ?? null;
+  if (compact !== id) {
+    return {
+      ok: false,
+      reason: "office-needs-compact-character",
+      // ⛔ Never the account's Compact character's name: that would link
+      // two characters to one account for the person assigning (D10a).
+      facts: { name: await characterName(id) },
+    };
+  }
+  return reg.assign(id, officeKey);
+}
+
+/**
+ * ⭐ D11 — the public face of the account behind `playerId`: its Compact
+ * character's name and the first Compact seat (apparatus order — the Prime
+ * Minister's first) that character holds, `acting` while that seat rests
+ * on the founder default. `null` when the account has no character or its
+ * character has no recorded name. ⛔ Nothing here can carry a credential.
+ */
+async function publicFaceOfImpl(
+  playerId: string
+): Promise<CompactPublicFace | null> {
+  const account = await accountOfPlayer(playerId);
+  const compact = account?.compactCharacterId() ?? null;
+  if (compact === null) return null;
+  const live = PlayerApi.findAvatarByPlayerId(compact);
+  const name = live
+    ? live.getFullName()
+    : await PlayerApi.storedNameOf(compact);
+  if (!name) return null;
+  const reg = lookupOfficeRegistry();
+  if (reg) {
+    for (const office of OFFICE_APPARATUS) {
+      const held = await reg.holderOf(office.getKey());
+      if (held.kind === "unknown" || held.holderPlayerId !== compact) continue;
+      return {
+        name,
+        seat: office.getDisplayName(),
+        acting: held.kind === "founder",
+      };
+    }
+  }
+  return { name };
+}
+
 // ──────────────────────── the committee half ───────────────────────
 
 /**
@@ -445,14 +512,6 @@ export class CompactLogic extends ApiLogic {
     return reg.roster();
   }
 
-  /** See {@link CompactApi.founderLabel}. */
-  @CallSecurity(CompactApiCallers)
-  public founderLabel(): string {
-    const reg = lookupOfficeRegistry();
-    if (!reg) return "(founder unset)";
-    return reg.founderLabel();
-  }
-
   /** See {@link CompactApi.compactCharacterOf}. */
   @CallSecurity(CompactApiCallers)
   public async compactCharacterOf(
@@ -489,15 +548,19 @@ export class CompactLogic extends ApiLogic {
     return designateImpl(subject, playerId);
   }
 
-  /** See {@link CompactApi.assignOffice}. */
+  /** See {@link CompactApi.assignOffice} (and its test twin). */
   @CallSecurity(CompactApiCallers)
   public async assignOffice(
     playerId: string,
     officeKey: string
   ): Promise<OfficeAssignResult> {
-    const reg = lookupOfficeRegistry();
-    if (!reg) return { changed: false, priorHolderId: null, ok: false };
-    return reg.assign(playerId, officeKey);
+    return assignOfficeImpl(playerId, officeKey);
+  }
+
+  /** See {@link CompactApi.publicFaceOf}. */
+  @CallSecurity(CompactApiCallers)
+  public async publicFaceOf(playerId: string): Promise<CompactPublicFace | null> {
+    return publicFaceOfImpl(playerId);
   }
 
   /** See {@link CompactApi.vacateOffice}. */

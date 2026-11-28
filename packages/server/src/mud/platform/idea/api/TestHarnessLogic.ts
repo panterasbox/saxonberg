@@ -1000,7 +1000,7 @@ export class TestHarnessLogic extends ApiLogic {
 
     // Offices: back to the founder default.
     for (const row of roster) {
-      if (row.holderPlayerId && pids.has(row.holderPlayerId) && (await CompactApi.vacateOfficeForTest(row.key))) {
+      if (!row.isFounderDefault && row.holderPlayerId && pids.has(row.holderPlayerId) && (await CompactApi.vacateOfficeForTest(row.key))) {
         report.offices++;
       }
     }

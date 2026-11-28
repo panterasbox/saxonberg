@@ -27,6 +27,7 @@ import { CommandApi, type CommandContext, type CommandModel } from '../../../../
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import Place from '../../../../../lib/stuff/Place';
 import { User } from '../../../../../lib/identity/User';
+import { OfficeHolder } from '../../../../../lib/governance/OfficeHolder';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { ExecutionContextApi } from '../../../../../api/execution-context';
 import { PersistenceManager } from '../../../../../../backend/PersistenceManager';
@@ -288,7 +289,12 @@ describe('compact (the Compact character)', () => {
 
   it('the lock is the CURRENT Compact character’s: another character’s seat does not lock it', async () => {
     const user = await account(['p1', 'p2']);
-    await CompactApi.assignOfficeForTest('p2', 'prime-minister');
+    // A seat held by the account's OTHER character (a row from before the
+    // hand-off refusal could seat it) — written directly.
+    const row = new OfficeHolder();
+    row.officeKey = 'prime-minister';
+    row.holderId = 'p2';
+    await row.save();
     const ctx = await run(body('p1', user), { subcommand: 'character', character: 'p2' } as CommandModel);
     expect(refusedWith(ctx)).toBeUndefined();
   });

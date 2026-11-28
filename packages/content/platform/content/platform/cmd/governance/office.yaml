@@ -8,17 +8,21 @@ help: |
   House Speakers (Producer / Capital / Consumer), the Governor of the
   Central Bank, the Minister of Finance (the Treasury), the Minister of
   Trade (the trades and the commons) and the Registrar of Corporations
-  (the corpos' committees). Every office is held by the founder by default
-  until it is explicitly handed off; vacating a seat reverts it to the
-  founder.
+  (the corpos' committees). Offices seat characters, never accounts. Every
+  office is held by default by the founder's Compact character (see
+  `help compact`) until it is explicitly handed off; vacating a seat
+  reverts it to that default.
 
-  `office list` shows the public roster — every office, its
-  branch and origin, and who currently holds it. The roster is public:
+  `office list` shows the public roster — every office, its branch and
+  origin, and the character who holds it; a seat still on the default
+  shows its holder marked "(by default — the founder)", or "the founder"
+  alone while the founder has no character. The roster is public:
   governance is transparent by constitutional design.
 
-  `office assign <player> <office>` hands a seat to a player and `office
-  vacate <office>` reverts it to the founder. Those two are restricted to
-  the founder — if you aren't the founder, the game won't let you run them.
+  `office assign <player> <office>` hands a seat to a character and `office
+  vacate <office>` reverts it to the default. Those two are restricted to
+  the founder (any of the founder's characters) — if you aren't the
+  founder, the game won't let you run them.
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
@@ -26,9 +30,11 @@ subcommands:
     controller: /platform/idea/cmd/governance/OfficeAssignController
     description: "Hand an office to a player (founder-only)"
     help: |
-      Set a player as the explicit holder of an office, replacing whoever
-      held it. Name the player, then the office (by key or name, e.g.
-      `prime-minister`). Founder-only.
+      Set a character as the explicit holder of an office, replacing
+      whoever held it. Name the character, then the office (by key or name,
+      e.g. `prime-minister`). Only a character that is its account's
+      Compact character may be seated — any other is refused, saying so.
+      Founder-only.
     validators:
       - /lib/command/validators/requiresFoundingAuthority
     examples:
@@ -49,7 +55,7 @@ subcommands:
     description: "Revert an office to the founder (founder-only)"
     help: |
       Clear an office's explicit holder; the seat reverts to the founder
-      default. Name the office only — there is no empty state. Founder-only.
+      default (the founder's Compact character). Name the office only — there is no empty state. Founder-only.
     validators:
       - /lib/command/validators/requiresFoundingAuthority
     examples:

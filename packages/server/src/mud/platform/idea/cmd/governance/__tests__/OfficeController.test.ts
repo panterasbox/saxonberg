@@ -195,6 +195,10 @@ describe('office (assign / vacate / list controllers)', () => {
     CompactApi._resetOfficeRegistryRefForReload();
     StuffApi.clearAll();
     seedFounder();
+    // Every seated player has an account whose Compact character it is
+    // (front-page-sources D10: only that character may be seated).
+    seedDoc('users', { playerIds: ['alice'] });
+    seedDoc('users', { playerIds: ['bob'] });
     const reg = makeStuffAtPath(
       () => new OfficeRegistry(),
       '/platform/idea/OfficeRegistry',
@@ -367,5 +371,50 @@ describe('office (assign / vacate / list controllers)', () => {
     expect(ctx.getNotes()).not.toContainEqual(
       expect.objectContaining({ kind: 'controller-rejected' }),
     );
+  });
+
+  it("assign refuses a character that is not its account's Compact character, and seats the one that is", async () => {
+    seedDoc('users', { playerIds: ['carol', 'carol-alt'] });
+    const giver = founderGiver();
+    let ctx = makeContext(giver);
+    await run(
+      giver,
+      {
+        subcommand: 'assign',
+        target: { stuff: makeAvatar('carol-alt'), raw: 'carol-alt' } as MqlOneResult,
+        office: 'prime-minister',
+      } as CommandModel,
+      ctx,
+    );
+    expect(ctx.getNotes()).toContainEqual(
+      expect.objectContaining({ kind: 'refused', reason: 'office-needs-compact-character' }),
+    );
+    expect((await CompactApi.officeHolderOf('prime-minister')).kind).toBe('founder');
+
+    ctx = makeContext(giver);
+    await run(
+      giver,
+      {
+        subcommand: 'assign',
+        target: { stuff: makeAvatar('carol'), raw: 'carol' } as MqlOneResult,
+        office: 'prime-minister',
+      } as CommandModel,
+      ctx,
+    );
+    const held = await CompactApi.officeHolderOf('prime-minister');
+    expect(held.kind === 'explicit' && held.holderPlayerId).toBe('carol');
+  });
+
+  it('list names the founder default by its character, and never the founder credential', async () => {
+    vi.spyOn(PlayerApi, 'storedNameOf').mockImplementation(async (id: string) =>
+      id === FOUNDER_PID ? 'Odile Marsh' : null,
+    );
+    const composed = vi.spyOn(Mml, 'fromMarkup');
+    const giver = makeAvatar('rando');
+    await run(giver, { subcommand: 'list' } as CommandModel, makeContext(giver));
+    const said = composed.mock.calls.map(([text]) => String(text)).join('\n');
+    expect(said).toContain('Odile Marsh (by default — the founder)');
+    expect(said).not.toContain(FOUNDER_HANDLE);
+    expect(said).not.toContain(FOUNDER_LOGIN);
   });
 });

@@ -81,6 +81,18 @@ export interface CompactCharacterView {
   name: string;
 }
 
+/**
+ * The public face of an account (D11): its Compact character's name and
+ * the Compact seat that character holds, if any.
+ */
+export interface CompactPublicFace {
+  name: string;
+  /** The display name of the first Compact office it holds, if any. */
+  seat?: string;
+  /** True while that seat rests on the founder default. */
+  acting?: boolean;
+}
+
 /** A committee's chat channel, by well-known name. */
 export interface CommitteeChannelView {
   name: string;
@@ -123,8 +135,9 @@ export class CompactApi {
 
   /**
    * Who holds an office — the explicit handed-off holder if one is
-   * stored, else the founder (presented by handle even while offline).
-   * Public read.
+   * stored, else the founder default, held by the founder account's
+   * Compact character (`holderPlayerId`, null while it has none). Public
+   * read.
    */
   public static async officeHolderOf(
     officeKey: string
@@ -134,8 +147,9 @@ export class CompactApi {
 
   /**
    * Does `subject` (an Avatar) hold `officeKey`? Explicit-holder match,
-   * OR (no explicit holder AND the subject is the founder). Public
-   * read; non-Avatar / null subjects fail closed.
+   * OR (no explicit holder AND the subject is the founder account's
+   * Compact character — the founder's other characters hold no default
+   * seat). Public read; non-Avatar / null subjects fail closed.
    */
   public static async holdsOffice(
     subject: Stuff | null,
@@ -195,6 +209,8 @@ export class CompactApi {
    * Is `subject` the founder? Resolves the Avatar → its `User` → the
    * configured `FOUNDER_GOOGLE_EMAIL`/`FOUNDER_TWITCH_HANDLE`
    * credential. False until the founder has logged in. Public read.
+   * ⭐ True for EVERY character of the founder's account: founding
+   * authority (handing a seat off) is the account's, not a seat's (D8).
    */
   public static async isFounder(subject: Stuff | null): Promise<boolean> {
     return logic().isFounder(subject);
@@ -209,14 +225,23 @@ export class CompactApi {
     return logic().officeRoster();
   }
 
-  /** The configured founder display handle (offline presentation). */
-  public static founderLabel(): string {
-    return logic().founderLabel();
+  /**
+   * ⭐ The public face of the account behind `playerId` (D11): its Compact
+   * character's name, and the first Compact seat that character holds —
+   * `acting` while the seat rests on the founder default (no hand-off
+   * recorded). `null` when the account has no character. The show's host
+   * line reads this; nothing in it can carry an email or a handle.
+   */
+  public static async publicFaceOf(
+    playerId: string
+  ): Promise<CompactPublicFace | null> {
+    return logic().publicFaceOf(playerId);
   }
 
   /**
    * Narrow-entry mutation: set the explicit holder of an office
-   * (replacing any prior — auditable). Gated to the
+   * (replacing any prior — auditable). Refuses a character that is not
+   * its account's Compact character (`office-needs-compact-character`). Gated to the
    * `OfficeAssignController` (the `office assign` verb) via the string-keyed `FromModule` policy;
    * the *authority* is the `requiresFoundingAuthority` subcommand
    * validator's job. Structurally the single entry to the handoff write.

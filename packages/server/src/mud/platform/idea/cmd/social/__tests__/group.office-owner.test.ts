@@ -182,7 +182,7 @@ describe('the appointment ceremony', () => {
     vi.spyOn(CompactApi, 'officeHolderOf').mockResolvedValue({
       kind: 'founder',
       officeKey: 'prime-minister',
-      founderLabel: 'the founder',
+      holderPlayerId: null,
     });
     let shown = '';
     vi.spyOn(MessageApi, 'scene').mockImplementation(() => {

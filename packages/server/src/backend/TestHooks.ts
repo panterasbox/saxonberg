@@ -244,7 +244,7 @@ export class TestHooks {
     if (committees.length > 0) await TestHooks.#seatOnCommittees(playerId, committees);
     for (const office of offices) {
       const r = await CompactApi.assignOfficeForTest(playerId, office);
-      if (!r.ok) throw new Error(`TestHooks: '${office}' is not an office`);
+      if (!r.ok) throw new Error(`TestHooks: '${office}' refused: ${r.reason}`);
     }
     if (parcels.length > 0) await TestHooks.#grantParcels(playerId, parcels);
   }
