@@ -212,7 +212,8 @@ no single condition. A one-piece thing that an author wants decayed
 names a class that already carries condition — `/platform/thing/Assembly`
 with no bill is exactly *a monolith is an assembly of one* (repair D4),
 and it exists. Three classes gain `DurableMixin` because a converted row
-must stay that class: `Bollard`, arcana `Ring`, arcana `Wand` (D12).
+must stay that class: `Bollard` and arcana `Ring` (D12). ⛔ Wands are
+OUT (owner, 2026-11-28): see D12's wand row.
 
 **D2 — State is a list of marks beside condition; the mark is a
 ceiling.** `DecayMarkRecord = { mechanism, band, scoured? }`. A part's
@@ -476,7 +477,7 @@ reads).
 | plough | recipe output (D11): `trade-farming`'s row loses "and rusted on the other" and gains no state; NEW `hearts-delight/.../farmstead/thing/old-plough.yaml` `extends:` it with `decay: { share: { corrosion: bloom } }`, and `tract/upper-bench.yaml` props that instead |
 | claims-office hire tools | NEW rejection rows `thing/hire-pinch-bar.yaml` (`extends: /trade/mining/thing/pinch-bar`, `decay: { whole: { corrosion: pitted } }`) and `thing/hire-pick.yaml` (`extends: /trade/mining/thing/pick`, `decay: { haft: { rot: punky } }`); both, and `/stuff/thing/gear/wire-brush`, join the rack's `props:`; the room's prose loses "going rusty at the tips" |
 | ring of veil | arcana `Ring` gains `DurableMixin`; row gains `_materialPath: /stuff/idea/material/element/silver` and `decay: { whole: { corrosion: bloom } }`; prose loses "tarnished" |
-| wand of firebolt (+ cursed) | arcana `Wand` gains `AssembledMixin(DurableMixin(…))`; rows gain a bill (`shaft` ash structural, `band` brass facing; two part rows in arcane-library) and `decay: { band: { corrosion: bloom } }`; prose loses "tarnished". ⚠ Owner's eye — Risks 1 |
+| wand of firebolt (+ cursed) | ⛔ **OUT** (owner, 2026-11-28). The wand class is untouched and its prose keeps "tarnished". Making a wand an assembly opens charge questions nobody has designed (does a broken wand fire; what `salvage` does to the stored charge and bound working; does `fit` keep the working), handed to [magic-items-slate](../slates/engine/magic-items-slate.md) § *Wands as made things*. |
 | bog sword (new) | `world-seed/content/world/moor/thing/bog-sword.yaml`, `extends: /stuff/thing/arms/sword`, bill restated with a leather grip, `history: [{ in: /platform/decay-environments/peat-bog, years: 50 }]`, its own prose; a prop of `turf-bank.yaml` |
 | curfew bell's oak frame | place fabric (the square's fixture the bell hangs in) — prose stays. "Green at the lip" is patina on bronze, not decay → patina-design-pack |
 | garden bed's weathered boards | a `fixedGround` kind — ground, not a good; "weathered" is none of the five mechanisms — prose stays |
@@ -554,14 +555,11 @@ doc (`docs/subsystems/decay.md`) is written at `/finalize`.
 | `degradation`, `decayOver` | `DegradationMixin` on `Metal`, `Wood`, `Fiber`, `HideHorn` (kind classes in `platform/idea/material/`) and on `Stone`, `Ceramic` | every metal, wood, fibre, hide, stone and fired body breaks down in its surroundings | true of each kind; a noble metal is a row with no `corrosion` key, which is a fact about that metal. NOT on `Material` (gases, water, foods — the mirror failure: "inert" on 300 rows) |
 | `DurableMixin` | `Bollard` | a bollard has a condition | a post or ring in the weather; four rows; yes |
 | `DurableMixin` | arcana `Ring` | a ring has a condition | a worn metal article; yes. It gains no `repair` verb (that is Assembled's) |
-| `AssembledMixin(DurableMixin)` | arcana `Wand` | a wand is made of parts and answers `fit`/`repair`/`salvage`/`name` | a banded wand IS a shaft and a band. ⚠ the claim is larger than the tarnish that prompted it — Risks 1 |
 | mass loss | `Tangible.getMass` reading `Durable.getLostMass` | mass knows about lost metal | the wet-law precedent in the same method; `Durable` does not override mass (that would put mass on the wear axis) |
 | nothing | plain `Good`, `Thing`, `Material` | — | deliberately untouched (D1) |
 
 Order of composition: `DegradationMixin` is an additive attribute mixin
-(order moot). On `Wand`, `AssembledMixin` goes outermost of the two and
-`NameTakingMixin` arrives with it — check against `LabelledMixin` /
-`IdentifiableMixin`'s naming (Risks 1).
+(order moot).
 
 ## Convention conformance
 
@@ -731,7 +729,7 @@ Implements D9.
 Implements D12.
 
 - Class changes: `platform/thing/Bollard.ts`;
-  `content/arcana/src/thing/Ring.ts`, `Wand.ts`.
+  `content/arcana/src/thing/Ring.ts` (⛔ not `Wand.ts`, D12).
 - Rows per the D12 table, across terminus, platform, trade-farming,
   hearts-delight, rejection, arcane-library, world-seed,
   generic-objects. Grep `packages/content` for every trimmed phrase
@@ -779,7 +777,7 @@ catalogue).
 
 | AC | waves |
 |---|---|
-| converted goods read their decay part by part, said once | W2, W5 — ⚠ the plough reads it on the Hearts Delight instance, not on the kind (D11); the wand bands depend on Risks 1 |
+| converted goods read their decay part by part, said once | W2, W5 — ⚠ the plough reads it on the Hearts Delight instance, not on the kind (D11); the wand bands are OUT (D12, owner) |
 | a rotten part fails under use; `fit` restores | W1, W5 (hire pick), W6 |
 | a wire brush clears rust; lighter and pitted; another brush does not | W1 (weight), W4, W6 |
 | `analyze soundness` tells punky from sound; a novice reads less | W2, W6 |
@@ -841,16 +839,8 @@ content file (a test-only ratchet move; say so in the MR).
 
 ## Risks & opens
 
-1. **Wands become assemblies.** Making the brass band a part gives every
-   wand `fit` / `repair` / `salvage` / `name` and a "made of" look line,
-   and layers `NameTakingMixin` over arcana's own naming and
-   identification. The plan does it because the acceptance criteria name
-   the wand bands and a band IS a part. If the arcana pack's vitest or
-   the identification flow breaks on it, or `salvage wand` yields
-   something arcana's design has not priced, the build does NOT improvise
-   a guard: it drops the wand conversion, trims "tarnished" from the two
-   rows (the prose stops claiming it), and records the unmet AC line in
-   the MR for the owner.
+1. ~~Wands become assemblies~~ — dropped by the owner (D12); the wand
+   class and rows are not touched.
 2. **`lint:mixin-clusters` on Durable / Assembled.** The new fields are
    co-used with condition and should join that cluster. A reported
    split is evidence, not a ceiling to raise: stop and re-read D2.

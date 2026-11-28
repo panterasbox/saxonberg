@@ -467,3 +467,24 @@ cursed = stuck. Resistances are mostly *existing drivers*, not combat.
 - **the blessing economy** beyond v1 (altars, sacrifice-to-convert, holy-water
   farming) — v1 ships spawn-state + one remove-curse + honest holy water.
 - **genocide's disposition** — a narrative/stance call, not a mechanics call.
+
+## Wands as made things (from the decomposition build, 2026-11-28)
+
+The decomposition build wanted the firebolt wand's "tarnished brass
+band" to be true, which would make a wand an assembly (shaft + band) and
+give it `fit`, `repair`, `salvage` and `name`. The owner dropped it:
+*the important part of wands is how they're discharged and recharged*,
+and an assembly opens three charge questions nobody has designed.
+
+1. **Does a broken wand fire?** Only a broken TOOL loses its
+   capabilities; a wand is not a tool. Condition on a wand changes
+   nothing unless damage is decided to cut discharge.
+2. **What does `salvage` do to the stored charge and the bound
+   working?** It is gone, released, or carried into the scrap. Salvage is
+   a new way to destroy a charged item, which matters if wand supply is
+   census-gated.
+3. **Does `fit` keep the working?** If a wand's parts are replaced,
+   is a fully re-made wand still the same charged item?
+
+Until these are decided, wands carry no condition and their decay stays
+in prose.

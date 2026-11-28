@@ -181,7 +181,9 @@ refitting, wet weight, reading by competence) is reused.
   - the stakes on the pass ("rusted where they do not go");
   - the curfew bell's "weathered oak frame";
   - the garden bed's "weathered boards";
-  - the tarnished silver ring and wand bands;
+  - the tarnished silver ring (⛔ the wands' tarnished bands stay prose:
+    owner, 2026-11-28 — making a wand an assembly opens undesigned charge
+    questions, handed to magic-items-slate);
   - the rotted-wood fill in the glowcap jar and fixture.
 
   ⭐ Each is either given its state, with its description trimmed so the
@@ -337,8 +339,8 @@ None. No step depends on the clock.
 ## Acceptance criteria
 
 - A player looking at any of the converted goods (the anchor, the
-  plough, the hire tools, the mooring ring, the tarnished ring, the
-  wand bands) reads its decay part by part in words, and the description
+  plough, the hire tools, the mooring ring, the tarnished ring;
+  not the wands) reads its decay part by part in words, and the description
   does not say it a second time.
 - A rotten part on a tool fails under use, and `fit` restores the tool.
 - A wire brush clears rust from a tool; the tool stays lighter and
