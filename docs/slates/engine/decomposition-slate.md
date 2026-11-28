@@ -203,3 +203,26 @@ freeze–thaw count).
 3. Whether a non-assembly thing (a single-material object, a bill of one)
    carries condition the same way — repair's *a monolith is an assembly of
    one* says yes.
+
+## 8. Reuse ledger for the plan (2026-11-28, decomposition requirements)
+
+Every concept the build needs, with what already does it. Code survey of
+master at `eb8abed66`. Kernel paths are under `packages/server/src/mud`.
+
+| concept | already does it | reuse / generalize / new |
+|---|---|---|
+| per-part condition and failure | `lib/craft/Assembled.ts`: `PartLine.condition` / `failed`, `wearLine` (the broken dial), `isBroken`, `failedLines` | **reuse**. Decay is a second writer of `condition`; a last band is `failed` |
+| the bill cannot author state | `BillPart` (`part, template, count, role, …`); a found thing reads the bill at defaults until `ensureParts()` | **generalize**. An authored per-part decay state, applied at materialization |
+| one-piece condition | `lib/material/Durable.ts` (`_condition`, mends); `isOnePiece()` | **generalize**. ⚠ Plain `Good` composes no `Durable`, so the lost anchor has no condition; host placement is the plan's question (P2) |
+| failure wording on look | `Assembled` `assemblyAugmenter` (failed lines, slack joints) | **extend**. Name a decayed-but-holding part |
+| reading condition by competence | `platform/idea/reading/ConditionReading.ts` + `reading/condition.yaml` (per part at proficient) | **reuse**. Add the mechanism word |
+| the probe | the `Reading` row ladder (58 rows) | **new row**, `soundness`, eye plus a held blade |
+| mending | `CraftingLogic.mendAssembly` (the repair ladder, `diagnose`), the one-piece mend | **reuse**. Rust loss is not condition and is never mended |
+| replacing a part | `fit` (failed members first) | **reuse**. Rot is cut out with `fit` |
+| rust removal | `brush` (cleaning, `cmd/inventory/brush.yaml`) | **extend**. A wire brush tool takes corrosion off; no new verb |
+| wet weight and soaking | `lib/wetness/Wet.ts`, `Tangible.getMass()` wet law, `Integrity` sodden | **reuse**. Authored wetness at creation |
+| material susceptibility | none. `Porosity.waterAbsorptionCapacity`, `Acidity.corrosiveTo` (the agent's side), `Coating.weatheringMPerGameYear` (coats only) | **new**. Per-mechanism susceptibility on material rows, on family parents via `extends:` |
+| integrating a rate over an environment | `lib/maturation/MaturationClock.ts` (host-agnostic), `MaturationMechanism` (closed five: `microbial · photochemical · chemical · evaporative · enzymatic`) | **reuse the clock** for the one-time history integration; corrosion is `chemical`, rot and mold are `microbial`, fade is `photochemical`; frost is authored only |
+| named environments | none. Biomes describe air, not burial | **new rows**: peat bog · salt water · fresh-water silt · damp ground · open air · dry shelter |
+| the weather on coats | `lib/material/Faced.ts` `reconcileWeather`, `bareWearPerDay` | **untouched**. No live clock in this build |
+| Law 2 | `lib/structure/__tests__/Structure.condition.test.ts:124`; `residence` `HoldingWarren.test.ts:830` | **stay green** |
