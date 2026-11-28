@@ -366,3 +366,25 @@ home in time; this instance stays at mud.panterasbox.com.
 3. The Fund sentence's public wording after the lawyer's read.
 5. The journal's first accounts and the export's shape (budget-slate's open questions).
 4. The demand digest's ranking — which three of many entries the page shows (newest, largest, or a rotation).
+
+## Reuse ledger for the plan
+
+For [front-page-sources-requirements](../../requirements/front-page-sources-requirements.md) (build 1,
+2026-11-28). Every row is one the plan must account for.
+
+| concept the build needs | what already does it | reuse / generalize |
+|---|---|---|
+| which character speaks for an account | `user.playerIds` (state-model.md); `standingForAccount` sums members (influence.md § Standing levels); `STOCK_LEVEL` | **genuinely new**: one designation on the account's own record; the roll-up stays as is, only its display host changes |
+| a seat's public holder | `OfficeRegistry.roster()` / `holderOf` (`explicit` · `founder` · `unknown`); `founderLabel` from env | generalize: the founder kind resolves to the founder account's Compact character; the env label stops being public |
+| refusing an ineligible seat | the `office` hand-off; `Refusal` + reason rows | reuse: a new reason row |
+| the anonymous front read | `FrontRoutes` (`/api/front`), `StreamApi.frontListing` | generalize: new slices beside `show`, each independently absent |
+| the front page's notices | `PressApi.pressRoom()` over `press.frontPage`; `repost` kind + `source` | reuse: settings + content change (`/compact/executive` public) |
+| the archive | `GET /api/press/archive` (signed-in) | generalize: an anonymous public-only variant |
+| an event's date | `ReleaseData` has `publishedAtS`/`expiresAtS` only | new field on the release |
+| the next show | `Program.nextShow` free text | replace with a schedule (weekly slot + returns-on); words derived |
+| open gigs world-wide | `contracts` collection, `findByKind('gig','open')`, lazy `expireStale` | reuse; must honour `postingExpiresAt` |
+| open seats | `Organization.openings()`, `EmploymentApi.noticesAt`; roster tick (live businesses only); no business catalogue | ⚠ world-wide needs a source that does not load every business — the plan's hardest call |
+| goods a house wants | `StockLine.par`, `buys: true` lines, `sell`; `pricing: stocking` | reuse: "short of par on a bought line" |
+| a tick-written public summary | the Gazette's `prints` beat (posts a release from `BankingApi.priceIndex()`) | precedent; ⚠ document-store.md § derivable state must not persist |
+| operator-set links | AppSettings + `settings/*.yaml` | reuse: new keys |
+| visitor time zone | the browser | client only |
