@@ -1,6 +1,8 @@
 # Row composition slate — what `extends:` is actually doing, and why the next step is a measurement
 
-> **Status: MEASURED, NOT READY — and the measurement says wait.**
+> **Status: MEASURED, NOT READY — and the measurement says wait.** Items 1–4
+> (the student row, abstract rows, the naming rule, removal) → the agents pass
+> of the template taxonomy refactor, in requirements 2026-11-28 (ledger at the end).
 > `extends:` shipped 2026-09-25 (legibility slate Parts A+B) and is in
 > production on **68 of 1,972 rows**. ⭐⭐ Measured 2026-10-01: it is
 > inheriting **one field** (`costume`), on **47 children of one parent**,
@@ -321,3 +323,26 @@ row shape, so the two must not be in flight together.
   verbs — which is what [eotl-census.md](../../eotl-census.md) § *What
   this settles* says the ancestor's authoring effort went into — is a
   product question and belongs to a content slate.
+
+## Reuse ledger for the plan (agent taxonomy, 2026-11-28)
+
+The agents pass of the template taxonomy refactor
+([requirements](../../requirements/agent-taxonomy-requirements.md)) builds
+this slate's items 1–4 (the student row, abstract rows, the naming rule,
+removal). For every concept it needs: what already does it, and whether the
+plan should reuse it or generalize it.
+
+| concept | already doing it | reuse / generalize |
+|---|---|---|
+| one parent per row | `extends:`, resolved at read (templates.md § Inheritance) | reuse |
+| per-field merge rule | `FieldMetaEntry.inherit` (`replace` · `by-key` · `by-entry` · `never`) | reuse; **declare `by-entry` on `behaviors`** (keyed by brain path), which today declares none (`lib/behavior/Behaved.ts` ~201–205) and so replaces |
+| entry-keyed merge | `costume` (`lib/stuff/Costumed.ts` ~88, `as:` → template → bare string), `props`, `cast` | reuse the same keying for behaviors |
+| removing one inherited entry | nothing (`null` replaces a whole field) | **genuinely new**: an entry-level removal marker, distinct from `null`, readable on the row; first consumer is this pass's fixture, then cast-in-winter's `fends` opt-outs |
+| abstract rows | nothing ("the parent is an ordinary row") | **genuinely new**: a row that refuses `clone` with a line; check `lint:instanceable`'s invariants for where it belongs |
+| the person kind | `/stuff/agent/costume/student` (class Extra; costume only) | **replace**: one abstract person row named for what it is; the student row is deleted |
+| a job's standing work | brains on each Cast row (`consigns`, `restocks`, `relines`, `cellars`, `stokes`, `cuts`, `delves`…) | **generalize**: the seat (employment.md: positions, seats, `fulfills`/`purchases` read off the shift) declares behaviors its holder runs on shift |
+| a job's kit | one garment added per Cast row's `costume:` (field jacket 38, white coat 3…) | **generalize**: the seat declares kit worn while held; cast-in-winter later turns it into dress-from-peg (its `dress()`) |
+| openings | derived openings + the help-wanted sign (employment.md) | reuse; the read names the seat's duties |
+| the archetype label | Cast row `archetype:` string, stamped on seeded claims (`platform/agent/Cast.ts` ~148/217/258; identity.md) | reuse unchanged; backing it is cast-archetype-slate's |
+| misfiled rows | `trade/cooking/agent/hanging-carcass` (Corpse), `duncan-hall/agent/master-ring` (Key), the registry clerk outside `agent/` | move to the honest branch |
+| verifying no visible change | none | **build once**: a resolved-row diff (effective class + data after inheritance, before vs after) whose only differences are the plan's per-row table |
