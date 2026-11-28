@@ -102,7 +102,7 @@ describe('sandbox-escape: subscriptions', () => {
   });
       },
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
 
     expect(SubscriptionApi._getRegistrySizeForTesting()).toBe(2);

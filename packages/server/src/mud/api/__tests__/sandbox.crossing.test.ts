@@ -56,7 +56,7 @@ vi.setConfig({ testTimeout: 20_000 });
 
 /** Run circle-side reads under a system root (tests are field-context). */
 function asSystem<T>(fn: () => T): T {
-  return ExecutionContextApi.runRoot(null, 'test.system', fn, {
+  return ExecutionContextApi.runRoot(null, 'test.system', fn, { acting: { boundary: 'test' },
     circleScope: OMNI_SCOPE,
   });
 }
@@ -208,7 +208,7 @@ describe('sandbox crossing', () => {
         } as Parameters<Avatar['addContact']>[0]);
         wireBody.setName('Imposter');
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
 
     await SandboxApi.exit(wireBody);
@@ -295,7 +295,7 @@ describe('sandbox crossing', () => {
       null,
       'test.circle-death',
       () => ConditionApi.die(vessel, 'slain'),
-      { circleScope: SCOPE },
+      { acting: { boundary: 'test' }, circleScope: SCOPE },
     );
 
     // The player is back in their own body, out of the circle.
@@ -371,7 +371,7 @@ describe('sandbox crossing', () => {
       null,
       'test.circle-death',
       () => ConditionApi.die(vessel, 'slain'),
-      { circleScope: SCOPE },
+      { acting: { boundary: 'test' }, circleScope: SCOPE },
     );
 
     const death = rows.find((r) => r.kind === 'death');
@@ -455,7 +455,7 @@ describe('sandbox crossing', () => {
         null,
         'test.circle-death',
         () => ConditionApi.die(vessel, 'slain'),
-        { circleScope: SCOPE },
+        { acting: { boundary: 'test' }, circleScope: SCOPE },
       );
     };
 
@@ -520,7 +520,7 @@ describe('sandbox crossing', () => {
           fired = true;
         });
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
 
     await SandboxApi.exit(wireBody);

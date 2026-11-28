@@ -290,7 +290,7 @@ describe('failure model W3 — late failures are owned', () => {
     ExecutionContextApi.runRoot(null, 'late', () => {
       ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: giver });
       return fn();
-    }) as Promise<T>;
+    }, { acting: { boundary: 'test' } }) as Promise<T>;
 
   it('a late Refusal reaches the causing author worded, and records nothing', async () => {
     await asCausedBy(() => CommandApi.reportFailure(new Refusal('locked', { target: giver })));
@@ -374,7 +374,7 @@ describe('failure model — a late completion refusal is said ONCE', () => {
       ExecutionContextApi.updateCurrentFrameMetadata({ causingAuthor: giver });
       await makeStuff(() => new LateRefusingController()).engage(ctx, door);
       await settle();
-    });
+    }, { acting: { boundary: 'test' } });
     expect(said(giver).match(/The lock holds/g)).toHaveLength(1);
   });
 });

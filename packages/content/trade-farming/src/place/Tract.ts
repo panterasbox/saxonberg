@@ -800,7 +800,7 @@ export default class Tract extends TractBase {
         continue;
       }
       await (stamped
-        ? crop.transferChattel(operator)
+        ? crop.transferChattel(operator, { kind: 'terms' })
         : crop.stampChattel(operator));
     }
   }

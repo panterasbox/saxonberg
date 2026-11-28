@@ -78,7 +78,7 @@ async function asActor<T>(fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'wiki.test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
     return fn();
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 /** Pin the access ladder: what the actor may do. */
@@ -580,7 +580,7 @@ describe('permissions (19, 20, 21)', () => {
       return ExecutionContextApi.runRoot(null, 'wiki.test', async () => {
         ExecutionContextApi.tagActingAuthor(guest);
         return fn();
-      });
+      }, { acting: { boundary: 'test' } });
     }
 
     it('refuses a create, naming the way out rather than a rung', async () => {
@@ -635,7 +635,7 @@ describe('permissions (19, 20, 21)', () => {
     pinAccess({ wizard: true, avatar: true, editor: true, moderator: true });
     await expect(
       ExecutionContextApi.runRoot(null, 'anon', () =>
-        raw().createPage({ slug: 'oak' }),
+        raw().createPage({ slug: 'oak' }), { acting: { boundary: 'test' } },
       ),
     ).rejects.toBeInstanceOf(Refusal);
   });

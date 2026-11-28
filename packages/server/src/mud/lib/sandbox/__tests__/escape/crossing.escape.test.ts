@@ -139,7 +139,7 @@ describe('sandbox-escape: crossing', () => {
         return item;
       },
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     ))!;
     expect(loot.getCircleScope()).toBe(SCOPE);
 
@@ -176,7 +176,7 @@ describe('sandbox-escape: crossing', () => {
       () => {
         wireBody.setName('CrimeLord');
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
 
     await SandboxApi.exit(wireBody);

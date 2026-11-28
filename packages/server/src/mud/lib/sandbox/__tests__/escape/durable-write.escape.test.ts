@@ -133,7 +133,7 @@ function installFakeStore(pm: PersistenceManager): Map<string, FakeRow[]> {
 }
 
 function inScope<T>(fn: () => Promise<T>): Promise<T | undefined> {
-  return ExecutionContextApi.runRootGuarded(null, 'escape', fn, 'rethrow', {
+  return ExecutionContextApi.runRootGuarded(null, 'escape', fn, 'rethrow', { acting: { boundary: 'test' },
     circleScope: SCOPE,
   });
 }

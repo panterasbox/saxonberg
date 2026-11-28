@@ -58,7 +58,7 @@ async function render(body: string, opts: RenderOptions = {}): Promise<string> {
     ExecutionContextApi.tagActingAuthor(reader);
     const result = await raw().render(body, opts);
     return result.body;
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 describe('the renderer parses the ARTICLE dialect, not the chat one', () => {
@@ -160,7 +160,7 @@ describe('the stored source is the author’s own text', () => {
     const out = await ExecutionContextApi.runRoot(null, 'wiki.read', () => {
       ExecutionContextApi.tagActingAuthor(reader);
       return raw().redactSource(body);
-    });
+    }, { acting: { boundary: 'test' } });
     expect(out).toBe(body);
   });
 });

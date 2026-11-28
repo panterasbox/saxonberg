@@ -58,7 +58,7 @@ async function run(
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
     await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
-  });
+  }, { acting: { boundary: 'test' } });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
 
@@ -132,7 +132,7 @@ async function excerpt(ref: string) {
   return ExecutionContextApi.runRoot(null, 'wiki.excerpt', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
     return WikiApi.excerpt(ref);
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 const BODY = [
@@ -181,7 +181,7 @@ describe('WikiApi.excerpt — the wiki through its own gate', () => {
         pageId: page._id ?? '',
         spoilerDefault: page.getSpoilerLevel(),
       });
-    }).catch(() => null);
+    }, { acting: { boundary: 'test' } }).catch(() => null);
     // The renderer refuses a caller that is not the verb or the registry —
     // the test cannot read it directly, which is the point of the gate.
     expect(viaVerb).toBeNull();

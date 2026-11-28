@@ -30,8 +30,8 @@
  * carry `@CallSecurity(FromModule('/api/condition#ConditionApi'))`, so only
  * this Api forwards in); this Api is the thin forwarding shell trusted
  * producers reach. The **inflicter is un-spoofable** — derived from
- * execution context inside `ConditionLogic`
- * (`ExecutionContextApi.getActingAuthor`), never a caller-supplied
+ * execution context inside `ConditionLogic` (`ExecutionContextApi.getActor`
+ * — who is acting in the fiction, never the labor-plane author), never a caller-supplied
  * parameter (the gated-Api actor-from-context rule). `dest
  * /platform/idea/api/condition` reloads it.
  *

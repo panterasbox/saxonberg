@@ -127,7 +127,7 @@ async function fire(hold?: string): Promise<CommandContext> {
       { kiln: { stuff: kiln, raw: 'kiln' }, ...(hold ? { hold: GrammarApi.parseDuration(hold) } : {}) } as never,
       context,
     ));
-  });
+  }, { acting: { boundary: 'test' } });
   return context;
 }
 

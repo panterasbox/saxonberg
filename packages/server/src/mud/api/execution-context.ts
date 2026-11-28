@@ -130,18 +130,70 @@ export const OMNI_SCOPE = '*';
  * APIs.
  */
 export interface RunRootOpts {
+  /**
+   * ⭐⭐ **Who this root's work is for — required** (tropes D3: *no work
+   * starts with nobody acting*). A person or object (`{ actor }`), a named
+   * system (`{ system }` — engine work nobody in the world asked for, which
+   * is admitted at protective checks, so name one only where that is
+   * true), or the continuation of an act already begun
+   * (`{ continuation }`, from {@link ExecutionContextApi.captureContinuation}).
+   * An empty claim throws.
+   */
+  acting: Acting;
   circleScope?: string;
   jurisdictionBound?: string;
 }
 
 /**
- * Who is acting, as a continuation carries it
- * ({@link ExecutionContextApi.captureActor}): a person or object, or the
- * named system — at most one of the two is set.
+ * Who a root's work is for — see {@link RunRootOpts.acting}. ⭐ `boundary`
+ * names something OUTSIDE the fiction acting for no in-world person (an
+ * anonymous web request, a unit test): it is somebody, so the work is not
+ * anonymous, but it is neither an actor ({@link ExecutionContextApi.getActor}
+ * answers `null`) nor a system (no protective check admits it).
+ */
+export type Acting =
+  | { actor: unknown }
+  | { system: string }
+  | { boundary: string }
+  // A `null` continuation (nobody was acting to continue) throws at the root.
+  | { continuation: ContinuationClaim | null };
+
+/**
+ * Who is acting, as a continuation carries it: a person or object, the
+ * named system, or a boundary outside the fiction — at most one is set.
  */
 export interface ActorClaim {
   actor: unknown | null;
   system: string | null;
+  boundary?: string | null;
+}
+
+/**
+ * ⭐⭐ What a deferred continuation carries from the act that began it
+ * (tropes D2) — the ONE capture: who was acting, the act it continues
+ * (`actId` — a continuation is the same act, never a new one), that act's
+ * cause, the causing command a client correlates output to, and the
+ * labor-plane author. Built only by
+ * {@link ExecutionContextApi.captureContinuation}; replanted by
+ * {@link ExecutionContextApi.runAsContinuation} or a root's
+ * `{ acting: { continuation } }`.
+ */
+export interface ContinuationClaim {
+  readonly actor: ActorClaim;
+  readonly actId: string | null;
+  readonly causeId: string | null;
+  readonly commandId: string | null;
+  readonly author: unknown | null;
+}
+
+/**
+ * The act the current work belongs to (tropes D1): `actId` is the choice's
+ * id (a typed command's id, a brain turn's minted id, or the act a
+ * continuation carries on); `causeId` the act it follows from, or `null`.
+ */
+export interface CurrentAct {
+  readonly actId: string;
+  readonly causeId: string | null;
 }
 
 /**
@@ -365,17 +417,73 @@ function _assertFrameMutatorAllowed(op: string): void {
  * Build root-frame metadata from scope opts, or `undefined` when no
  * scope rides this root (the common case — zero allocation).
  */
-function _scopeMetadata(
-  opts: RunRootOpts | undefined
-): Record<string, unknown> | undefined {
-  if (!opts || (opts.circleScope == null && opts.jurisdictionBound == null)) {
-    return undefined;
+function _rootMetadata(
+  opts: RunRootOpts,
+  method: string
+): Record<string, unknown> {
+  // ⭐ No work starts with nobody acting (tropes D3). The type requires the
+  // claim; this is the backstop for a JS-level bypass or an empty claim.
+  const acting = (opts as Partial<RunRootOpts> | undefined)?.acting;
+  if (acting == null) {
+    throw new SecurityError(`runRoot('${method}'): no one is acting — name an actor, a system or a continuation`);
   }
-  const md: Record<string, unknown> = {};
+  const md: Record<string, unknown> = _actingMetadata(acting, method);
   if (opts.circleScope != null) md.circleScope = opts.circleScope;
   if (opts.jurisdictionBound != null) {
     md.jurisdictionBound = opts.jurisdictionBound;
   }
+  return md;
+}
+
+/** The frame metadata an {@link Acting} claim plants; throws on an empty one. */
+function _actingMetadata(acting: Acting, method: string): Record<string, unknown> {
+  // Read the claim's fields by value (the union's arms share no key).
+  const claim = acting as {
+    actor?: unknown;
+    system?: unknown;
+    boundary?: unknown;
+    continuation?: ContinuationClaim | null;
+  };
+  if (claim.continuation !== undefined) {
+    const c = claim.continuation;
+    if (c == null || !_claimsSomeone(c.actor)) {
+      throw new SecurityError(`runRoot('${method}'): the continuation carries no one acting`);
+    }
+    return _continuationMetadata(c);
+  }
+  if (claim.system !== undefined) {
+    if (typeof claim.system !== 'string' || claim.system === '') {
+      throw new SecurityError(`runRoot('${method}'): the system must be named`);
+    }
+    return { actingSystem: claim.system };
+  }
+  if (claim.boundary !== undefined) {
+    if (typeof claim.boundary !== 'string' || claim.boundary === '') {
+      throw new SecurityError(`runRoot('${method}'): the boundary must be named`);
+    }
+    return { actingBoundary: claim.boundary };
+  }
+  if (claim.actor == null) {
+    throw new SecurityError(`runRoot('${method}'): the actor is null`);
+  }
+  return { actor: claim.actor };
+}
+
+/** Does the claim name anybody — an actor, a system or a boundary? */
+function _claimsSomeone(claim: ActorClaim): boolean {
+  return claim.actor != null || claim.system != null || claim.boundary != null;
+}
+
+/** The metadata a continuation replants — see {@link ContinuationClaim}. */
+function _continuationMetadata(c: ContinuationClaim): Record<string, unknown> {
+  const md: Record<string, unknown> = {};
+  if (c.actor.system != null) md.actingSystem = c.actor.system;
+  else if (c.actor.actor != null) md.actor = c.actor.actor;
+  else if (c.actor.boundary != null) md.actingBoundary = c.actor.boundary;
+  if (c.commandId != null) md.causingCommandId = c.commandId;
+  if (c.actId != null) md.actId = c.actId;
+  if (c.causeId != null) md.causeId = c.causeId;
+  if (c.author != null) md.causingAuthor = c.author;
   return md;
 }
 
@@ -721,9 +829,15 @@ export class ExecutionContextApi {
       }
       const md = f.metadata;
       if (md === undefined) continue;
-      if (typeof md.actingSystem === 'string') return { actor: null, system: md.actingSystem };
+      // ⚠ Within ONE frame a person outranks a system: a boundary root names
+      // its system and then tags the principal it runs for
+      // (`tagActingAuthor`); the tag is who is acting (tropes D3).
       if (md.actor != null) return { actor: md.actor, system: null };
       if (md.actingAuthor != null) return { actor: md.actingAuthor, system: null };
+      if (typeof md.actingSystem === 'string') return { actor: null, system: md.actingSystem };
+      if (typeof md.actingBoundary === 'string') {
+        return { actor: null, system: null, boundary: md.actingBoundary };
+      }
     }
     return null;
   }
@@ -749,27 +863,67 @@ export class ExecutionContextApi {
   }
 
   /**
-   * Capture who is acting now, for a continuation to carry
-   * ({@link runAsCaptured}). Both halves null when nobody is.
+   * ⭐⭐ Capture the act now running, for a continuation to carry (tropes D2)
+   * — who is acting, the act's id and cause, the causing command and the
+   * labor-plane author. The ONE capture: a scheduled callback, an
+   * engagement's completion and a world-clock firing all carry this, so a
+   * finish hours later is the end of the act begun at the choice.
+   * `null` when nobody is acting — there is no act to continue (D3).
    */
-  public static captureActor(): ActorClaim {
-    return ExecutionContextApi.#actorBearer() ?? { actor: null, system: null };
+  public static captureContinuation(): ContinuationClaim | null {
+    const actor = ExecutionContextApi.#actorBearer();
+    if (actor === null) return null;
+    const act = ExecutionContextApi.getCurrentAct();
+    return Object.freeze({
+      actor,
+      actId: act?.actId ?? null,
+      causeId: act?.causeId ?? null,
+      commandId: ExecutionContextApi.getCurrentCausingCommandId(),
+      author: ExecutionContextApi.getCausingAuthor(),
+    });
   }
 
   /**
-   * Run `fn` as the actor a continuation {@link captureActor captured}. A
-   * frame pushed over the current one, keeping its target (so no
-   * `@CallSecurity` gate sees a different caller); a no-op claim runs `fn`
-   * as is. Framework only — the frame-mutator allowlist.
+   * Run `fn` as the continuation of the act a {@link captureContinuation}
+   * captured: a frame pushed over the current one, keeping its target (so
+   * no `@CallSecurity` gate sees a different caller), carrying the
+   * claim's actor, act and author. A claim with nobody acting runs `fn` as
+   * is. Framework only — the frame-mutator allowlist.
    */
-  public static runAsCaptured<T>(claim: ActorClaim, fn: () => T): T {
-    _assertFrameMutatorAllowed('runAsCaptured');
-    if (claim.actor == null && claim.system == null) return fn();
-    return ExecutionContextApi.#pushActor(
-      claim.system != null ? { actingSystem: claim.system } : { actor: claim.actor },
-      'runAsCaptured',
-      fn,
-    );
+  public static runAsContinuation<T>(claim: ContinuationClaim, fn: () => T): T {
+    _assertFrameMutatorAllowed('runAsContinuation');
+    if (!_claimsSomeone(claim.actor)) return fn();
+    return ExecutionContextApi.#pushActor(_continuationMetadata(claim), 'runAsContinuation', fn);
+  }
+
+  /**
+   * ⭐⭐ **Which choice this is, and what caused it** (tropes D1). `actId` is
+   * the nearest frame's act (`metadata.actId`, else its
+   * `causingCommandId` — a typed command's id); `causeId` is the next
+   * DIFFERENT act further up the stack (the script, alias or forced chain
+   * a nested command runs inside), else the cause a continuation
+   * replanted, else `null`. `null` when no act is running (system work).
+   *
+   * Distinct from {@link getCurrentCausingCommandId}, which answers *which
+   * typed command should a client match this output to* (commands only);
+   * a brain's turn is an act with no command.
+   */
+  public static getCurrentAct(): CurrentAct | null {
+    let actId: string | null = null;
+    let replantedCause: string | null = null;
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const md = n.frame.metadata;
+      if (md === undefined) continue;
+      const id =
+        typeof md.actId === 'string' ? md.actId
+        : typeof md.causingCommandId === 'string' ? md.causingCommandId
+        : null;
+      if (id === null) continue;
+      if (actId === null) actId = id;
+      else if (id !== actId) return { actId, causeId: id };
+      if (replantedCause === null && typeof md.causeId === 'string') replantedCause = md.causeId;
+    }
+    return actId === null ? null : { actId, causeId: replantedCause };
   }
 
   /**
@@ -808,12 +962,18 @@ export class ExecutionContextApi {
    * call), so an object can only ever become ITSELF. Throws outside any
    * frame (no self to be).
    */
-  public static runAsSelf<T>(fn: () => T): T {
+  public static runAsSelf<T>(fn: () => T, opts?: { act?: boolean }): T {
     const self = ExecutionContextApi.getCurrentTarget();
     if (self == null || typeof self !== 'object') {
       throw new SecurityError('runAsSelf: no object is running to act as itself');
     }
-    return ExecutionContextApi.#pushActor({ actor: self }, 'runAsSelf', fn);
+    // ⭐ `act: true` — this is a CHOICE (a brain's turn), so it is an act of
+    // its own with a fresh id (tropes D1/D25), its cause whatever act it
+    // runs inside. A separate key from `causingCommandId`: no command was
+    // issued, and no client output should claim one.
+    const md: Record<string, unknown> = { actor: self };
+    if (opts?.act === true) md.actId = SecurityApi.uuid();
+    return ExecutionContextApi.#pushActor(md, 'runAsSelf', fn);
   }
 
   /** Push an actor-bearing frame that keeps the current frame's target. */
@@ -1187,7 +1347,7 @@ export class ExecutionContextApi {
     target: unknown | null,
     method: string,
     fn: () => T,
-    opts?: RunRootOpts
+    opts: RunRootOpts
   ): T {
     _assertFrameMutatorAllowed('runRoot');
     const root: CallFrame = {
@@ -1195,7 +1355,7 @@ export class ExecutionContextApi {
       target,
       method,
       kind: FrameKind.Root,
-      metadata: _scopeMetadata(opts),
+      metadata: _rootMetadata(opts, method),
     };
     return _als.run(_linkFrame(root, null), fn);
   }
@@ -1225,7 +1385,7 @@ export class ExecutionContextApi {
     method: string,
     fn: () => T | Promise<T>,
     policy: 'absorb' | 'rethrow' | 'swallow',
-    opts?: RunRootOpts
+    opts: RunRootOpts
   ): Promise<T | undefined> {
     _assertFrameMutatorAllowed('runRootGuarded');
     const root: CallFrame = {
@@ -1233,7 +1393,7 @@ export class ExecutionContextApi {
       target,
       method,
       kind: FrameKind.Root,
-      metadata: _scopeMetadata(opts),
+      metadata: _rootMetadata(opts, method),
     };
     try {
       return await _als.run(
@@ -1262,6 +1422,26 @@ export class ExecutionContextApi {
   public static _clearForTesting(): void {
     SecurityApi.assertTestOnly('_clearForTesting');
     _als.enterWith(undefined as unknown as FrameNode);
+  }
+
+  /**
+   * ⭐ Test-only seam (tropes D3): a unit test that drives model code with
+   * no root of its own runs AS THE TEST — the boundary `'test'`, neither an
+   * actor nor a system, so `getActor()` answers `null` as it did and a
+   * protective check still refuses a claim made for somebody else. `test-bootstrap` calls it before each test, so work a
+   * test starts is never anonymous; a test that asserts a root's own claim
+   * plants one. Replaces any in-flight context. @internal
+   */
+  public static _actAsTestForTesting(): void {
+    SecurityApi.assertTestOnly('_actAsTestForTesting');
+    const root: CallFrame = {
+      caller: null,
+      target: null,
+      method: 'test',
+      kind: FrameKind.Root,
+      metadata: { actingBoundary: 'test' },
+    };
+    _als.enterWith(_linkFrame(root, null));
   }
 
   /**

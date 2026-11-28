@@ -37,7 +37,7 @@ function runAs<T>(fn: () => T | Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(Stuff, 'test', () => {
     ExecutionContextApi.tagActingAuthor(actor);
     return fn();
-  }) as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as Promise<T>;
 }
 
 beforeEach(() => {

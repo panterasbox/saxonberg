@@ -42,7 +42,9 @@
  * @internal — test surface. Never imported by production code.
  */
 
+import { beforeAll, beforeEach } from "vitest";
 import { BootstrapManager } from "./backend/BootstrapManager";
+import { ExecutionContextApi } from "./mud/api/execution-context";
 import { PackApi } from "./mud/api/pack";
 import { readdirSync, readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
@@ -335,3 +337,8 @@ function rememberKernelDocuments(): void {
 }
 
 ensureFrameworkWiring();
+
+// ⭐ No work starts with nobody acting (tropes D3): a test that drives model
+// code directly runs as the test — a plain actor, never a system.
+beforeAll(() => ExecutionContextApi._actAsTestForTesting());
+beforeEach(() => ExecutionContextApi._actAsTestForTesting());

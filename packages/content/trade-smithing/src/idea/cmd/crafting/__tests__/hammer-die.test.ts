@@ -72,7 +72,7 @@ describe('hammer on a die', () => {
         { target: ref(blank, 'blank'), striker: many(striker), anvil: many(die) } as never,
         ctx,
       ));
-    });
+    }, { acting: { boundary: 'test' } });
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(false);
     await completeStep(5000);
     for (let i = 0; i < 4; i++) await new Promise<void>((r) => setTimeout(r, 0));

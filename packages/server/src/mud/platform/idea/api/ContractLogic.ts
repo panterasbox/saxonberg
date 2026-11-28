@@ -146,10 +146,13 @@ async function appendEvent(
   contractId: string,
   event: ContractEventKind,
   fields: Partial<
-    Pick<ContractEvent, "actor" | "counterparty" | "txId" | "memo">
+    Pick<ContractEvent, "actor" | "counterparty" | "txId" | "memo" | "actId" | "causeId">
   > = {},
 ): Promise<void> {
+  const act = ExecutionContextApi.getCurrentAct();
   const row = new ContractEvent();
+  row.actId = fields.actId ?? act?.actId ?? "";
+  row.causeId = fields.actId !== undefined ? (fields.causeId ?? null) : (act?.causeId ?? null);
   row.contractId = contractId;
   row.event = event;
   row.actor = fields.actor ?? actorKey() ?? "system";
@@ -446,8 +449,12 @@ function issuerPersonOf(record: ContractRecord): Stuff | null {
 async function breachClaim(
   record: ContractRecord,
   reason: string,
+  lapsed = false,
 ): Promise<void> {
   const claimant = record.claimant;
+  // ⭐ A lapse is the end of the claim's own act (tropes D5) — read from the
+  // contract's events, never the reader whose touch noticed it.
+  const claimedAct = lapsed ? await claimActOf(record) : undefined;
   let txId = "";
   if (BankingApi.escrowBalanceOf(record.contractId).minor > 0) {
     txId = await BankingApi.escrowRevert(
@@ -461,6 +468,7 @@ async function breachClaim(
     counterparty: record.issuer.templatePath,
     txId,
     memo: reason,
+    ...(claimedAct ? { actId: claimedAct.actId, causeId: claimedAct.causeId } : {}),
   });
   // Breach must be felt, cheaply: the issuer's regard for the breaching
   // claimant drops (per-viewer, no global reputation write). Best-effort —
@@ -480,7 +488,21 @@ async function breachClaim(
   record.claimExpiresAt = 0;
   record.state = "open";
   await saveRecord(record);
-  await appendEvent(record.contractId, "released-back", { actor: claimant });
+  await appendEvent(record.contractId, "released-back", {
+    actor: claimant,
+    ...(claimedAct ? { actId: claimedAct.actId, causeId: claimedAct.causeId } : {}),
+  });
+}
+
+/** The act of the claim now standing — its latest `claimed` event's (tropes D5). */
+async function claimActOf(
+  record: ContractRecord,
+): Promise<{ actId: string; causeId: string | null } | undefined> {
+  const claims = (await ContractEvent.findByContractId(record.contractId)).filter(
+    (e) => e.event === "claimed" && e.actor === record.claimant,
+  );
+  const last = claims[claims.length - 1];
+  return last ? { actId: last.actId, causeId: last.causeId } : undefined;
 }
 
 /**
@@ -496,7 +518,7 @@ async function expireStale(record: ContractRecord): Promise<ContractRecord> {
     record.claimExpiresAt > 0 &&
     now >= record.claimExpiresAt
   ) {
-    await breachClaim(record, "claim expired");
+    await breachClaim(record, "claim expired", true);
   }
   if (
     record.state === "open" &&
@@ -1820,7 +1842,8 @@ async function repossess(loan: ContractRecord): Promise<void> {
     if (!owner || owner.kind === "group" || owner.templatePath !== loan.issuer.templatePath) continue;
     // A bound title never moves (aether-devices D10); it stays where it is.
     if (item.isTitleBound()) continue;
-    await item.transferChattel(lender as unknown as Stuff);
+    // Taken under the loan's security terms (tropes D7).
+    await item.transferChattel(lender as unknown as Stuff, { kind: "terms" });
     ContainmentApi.move(item as unknown as Stuff & Containable, lenderCounter);
     if (MixinApi.isConsignmentShelf(shelf)) shelf.removeListing(item.getChattelId());
     taken += 1;

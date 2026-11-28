@@ -73,7 +73,20 @@ import type { FieldMeta } from '../mixin';
  * the water, deliberately (`course … --leaving-them`): a fact, not a harm —
  * it names the person left and is never terminal, so blame reads past it.
  */
-export type AccountabilityKind = 'opened' | 'violated' | 'death' | 'harm' | 'abandonment';
+/**
+ * What a row records. ⭐ `yielded` and `spared` (tropes D5) record how a
+ * fight ENDED — a person yielding, a victor declining the finishing stroke —
+ * so the ledger holds the fight's choices, not only its harm; `deriveBlame`
+ * reads only `death` / `harm`, so they never move blame.
+ */
+export type AccountabilityKind =
+  | 'opened'
+  | 'violated'
+  | 'death'
+  | 'harm'
+  | 'abandonment'
+  | 'yielded'
+  | 'spared';
 
 /**
  * The derived verdict of the accountability ledger for a victim — who is
@@ -286,8 +299,23 @@ export default class AccountabilityEvent extends Document {
     at: { persistent: true },
     realAt: { persistent: true },
     circleScope: { persistent: true },
+    actId: { persistent: true },
+    causeId: { persistent: true },
+    witnesses: { persistent: true },
   };
 
+  /** ⭐ The act this row is part of (tropes D1); `''` for system work. */
+  actId = '';
+  /** The act {@link actId} follows from, or `null`. */
+  causeId: string | null = null;
+  /**
+   * ⭐ Who SAW it (tropes D8) — identity paths of everyone in the harmer's
+   * place who perceived the harmer as the row was written (light and
+   * concealment decide it, the rule every surface uses), minus the row's
+   * own parties. Computed by the one writer, so a look-back after a
+   * restart reads the same audience. `[]` with no live harmer.
+   */
+  witnesses: string[] = [];
   kind: AccountabilityKind = 'opened';
   /** The producing session's id — indexed (a fight's whole chain). */
   sessionId = '';

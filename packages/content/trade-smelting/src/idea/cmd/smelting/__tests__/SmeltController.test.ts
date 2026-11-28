@@ -176,7 +176,7 @@ async function smelt(): Promise<ReturnType<typeof makeContext>> {
       { furnace: { stuff: furnace, raw: 'furnace' } } as never,
       context,
     ));
-  });
+  }, { acting: { boundary: 'test' } });
   return context;
 }
 

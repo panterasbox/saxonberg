@@ -27,7 +27,7 @@ import type {
 import { Application } from './Application';
 import type { InboundClientMessage } from './inbound';
 import { ConnectionApi } from '../mud/api/connection';
-import { ExecutionContextApi } from '../mud/api/execution-context';
+import { ExecutionContextApi, type Acting } from '../mud/api/execution-context';
 import { SecurityApi } from '../mud/api/security';
 import { StreamApi } from '../mud/api/stream';
 import type { ConnectOptions } from './Application';
@@ -184,7 +184,7 @@ export class Backend implements IBackend {
     if (this.application) {
       const app = this.application;
       ExecutionContextApi.runRoot(Backend, 'handleUserConnect', () =>
-        app.handleUserConnect(userId, sessionId, socketId, opts)
+        app.handleUserConnect(userId, sessionId, socketId, opts), { acting: { system: 'connection' } }
       );
     }
   }
@@ -198,7 +198,7 @@ export class Backend implements IBackend {
     raw: string,
   ): Promise<{ playerId: string; scope: 'overlay' | 'control' } | null> {
     return ExecutionContextApi.runRoot(Backend, 'resolveStreamToken', () =>
-      StreamApi.resolveToken(raw),
+      StreamApi.resolveToken(raw), { acting: { system: 'auth' } },
     );
   }
 
@@ -239,7 +239,7 @@ export class Backend implements IBackend {
       ExecutionContextApi.runRoot(Backend, 'processUserMessage', () => {
         this.establishInboundScope(socketId);
         return app.processUserMessage(socketId, message);
-      }),
+      }, { acting: this.actingFor(socketId) }),
     );
   }
 
@@ -254,6 +254,18 @@ export class Backend implements IBackend {
    * unscoped would be field-scoped while its author stands inside
    * their circle, and the boundary would deny reads of their own body.
    */
+  /**
+   * ⭐ Who an inbound message is FROM (tropes D3): the body the socket
+   * drives, else the connection boundary (a login before any body, an
+   * unknown socket) — never a system, which protective checks admit for
+   * anyone.
+   */
+  private actingFor(socketId: string): Acting {
+    const interactive = ConnectionApi.getInteractive(socketId);
+    const holder = interactive?.getHolder?.() ?? null;
+    return holder ? { actor: holder } : { boundary: 'connection' };
+  }
+
   private establishInboundScope(socketId: string): void {
     const holder = ConnectionApi.getInteractive(socketId)?.getHolder?.() as
       | { getCircleScope?: () => string | null }
@@ -285,7 +297,7 @@ export class Backend implements IBackend {
       const app = this.application;
       const intentional = code === INTENTIONAL_LEAVE_CLOSE_CODE;
       ExecutionContextApi.runRoot(Backend, 'handleUserDisconnect', () =>
-        app.handleUserDisconnect(socketId, intentional)
+        app.handleUserDisconnect(socketId, intentional), { acting: { system: 'connection' } }
       );
     }
   }
@@ -331,7 +343,7 @@ export class Backend implements IBackend {
       const userId = await ExecutionContextApi.runRoot(
         Backend,
         'findOrCreateUserFromProvider',
-        () => app.findOrCreateUserFromProvider(provider, profile)
+        () => app.findOrCreateUserFromProvider(provider, profile), { acting: { system: 'auth' } }
       );
       // Session principal carries authProvider for downstream
       // name-refraction (reserved this build).
@@ -368,7 +380,7 @@ export class Backend implements IBackend {
       const result = await ExecutionContextApi.runRoot(
         Backend,
         'linkProvider',
-        () => app.linkProvider(userId, provider, profile)
+        () => app.linkProvider(userId, provider, profile), { acting: { system: 'auth' } }
       );
       done(null, result);
     } catch (error) {
@@ -390,7 +402,7 @@ export class Backend implements IBackend {
     if (!this.application) throw new Error('Backend: Application not initialized');
     const app = this.application;
     return ExecutionContextApi.runRoot(Backend, 'youtubeStepUp', () =>
-      app.storeYoutubeStepUp(userId, googleId, refreshToken),
+      app.storeYoutubeStepUp(userId, googleId, refreshToken), { acting: { system: 'auth' } },
     );
   }
 
@@ -416,7 +428,7 @@ export class Backend implements IBackend {
       const result = await ExecutionContextApi.runRoot(
         Backend,
         'unlinkProvider',
-        () => app.unlinkProvider(userId, provider)
+        () => app.unlinkProvider(userId, provider), { acting: { system: 'auth' } }
       );
       done(null, result);
     } catch (error) {

@@ -121,7 +121,7 @@ async function executeAs(
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(who);
     await fn();
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 let seq = 0;
@@ -215,7 +215,7 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
         recipeRef: 'belt-knife',
         makerMode: 'fulfilling-bartender',
       });
-    });
+    }, { acting: { boundary: 'test' } });
     expect((ordered as { ok: boolean }).ok).toBe(true);
 
     // The by-hand path, start to finish (bystander watching).
@@ -261,7 +261,7 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
       ExecutionContextApi.runRoot(null, 'test', () => {
         ExecutionContextApi.tagActingAuthor(builder);
         return CraftingApi.craft({ recipeRef: 'belt-knife', makerMode: 'self' });
-      });
+      }, { acting: { boundary: 'test' } });
     ContainmentApi.move(makeIngot(), room);
     const first = (await craftSelf()) as { ok: boolean; learned?: boolean };
     expect(first.ok).toBe(true);

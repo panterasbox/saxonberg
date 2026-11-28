@@ -156,6 +156,17 @@ function actingActorKey(): string {
   return principal?.getIdentityPath?.() ?? "system";
 }
 
+/**
+ * ⭐ WHO owns an account — a person's identity path or an institution's
+ * path, read off the warmed account index (tropes D6: the ledger names
+ * people, not accounts). `''` for a sentinel or an account the index has
+ * not seen saved. Sync: never an await on the posting path.
+ */
+function partyOf(accountId: string): string {
+  if (Account.isSentinel(accountId)) return "";
+  return AccountBalance.cached().get(accountId)?.row?.owner ?? "";
+}
+
 /** Coin-shaped duck type — avoids importing the Coin class here. */
 interface CashLike {
   getCurrency(): string;
@@ -2304,6 +2315,16 @@ async function postTransaction(
     }
   }
 
+  // ⭐ What the payers held BEFORE this posting (tropes D6) — read off the
+  // same warmed cache the floor just read, once per paying account.
+  const heldBefore = new Map<string, number>();
+  for (const leg of legs) {
+    if (!Account.isSentinel(leg.from) && !heldBefore.has(leg.from)) {
+      heldBefore.set(leg.from, balanceMinor(leg.from));
+    }
+  }
+  const act = ExecutionContextApi.getCurrentAct();
+
   const at = WorldClockApi.getNow().rawValue();
   const realAt = Date.now();
   const actor = actingActorKey();
@@ -2329,6 +2350,11 @@ async function postTransaction(
     row.txId = txId;
     row.at = at;
     row.realAt = realAt;
+    row.actId = act?.actId ?? "";
+    row.causeId = act?.causeId ?? null;
+    row.fromParty = partyOf(leg.from);
+    row.toParty = partyOf(leg.to);
+    row.heldBefore = heldBefore.get(leg.from) ?? 0;
     await row.save();
 
     if (circleScope !== null) {

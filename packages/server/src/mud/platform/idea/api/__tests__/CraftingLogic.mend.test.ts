@@ -136,7 +136,7 @@ function as<T>(who: Stuff, fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(who);
     return fn();
-  }) as unknown as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as unknown as Promise<T>;
 }
 
 const mend = (who: Stuff, item: Stuff): Promise<RepairOutcome> =>

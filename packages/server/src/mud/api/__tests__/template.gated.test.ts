@@ -35,7 +35,7 @@ function as<T>(who: Stuff, fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'test.as', async () => {
     ExecutionContextApi.tagActingAuthor(who);
     return fn();
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 interface FakeRow {

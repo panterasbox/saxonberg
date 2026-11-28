@@ -332,7 +332,7 @@ describe('EvalScript', () => {
         'sandbox.runScoped',
         async () => EvalGuardProbe.probe(),
         'rethrow',
-        { circleScope: '/home/t' },
+        { acting: { boundary: 'test' }, circleScope: '/home/t' },
       );
       expect(r).toBe('ran');
     });

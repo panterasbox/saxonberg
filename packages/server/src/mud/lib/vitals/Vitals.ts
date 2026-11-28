@@ -31,7 +31,7 @@
 
 import { GrammarApi } from '../../api/grammar';
 import type { MixinConstructor, FieldMeta } from '../mixin';
-import type { Stuff } from '../stuff/Stuff';
+import { Stuff } from '../stuff/Stuff';
 import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
@@ -4389,8 +4389,9 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // un-spoofable rule `ConditionApi.inflict` already follows — and
       // never overwriting a stamp a producer set deliberately.
       if (condition.kind === 'affliction' && condition.inflictedBy === undefined) {
-        const author = ExecutionContextApi.getActingAuthor();
-        const path = author ? (author as Stuff).getTemplatePath?.() : null;
+        // ⭐ Who is ACTING, never the labor-plane author (tropes D4).
+        const actor = ExecutionContextApi.getActor();
+        const path = actor instanceof Stuff ? actor.getIdentityPath() : null;
         if (path) condition.inflictedBy = path;
       }
       // Pure add this build — no onset()/tick() invocation, nothing ticks.

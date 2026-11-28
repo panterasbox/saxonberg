@@ -83,7 +83,7 @@ async function run(model: Partial<CommandModel>): Promise<void> {
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
     await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 beforeEach(() => {

@@ -243,7 +243,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         if (!open) continue;
         const npc = this as unknown as Stuff;
         const config = spec.config ?? {};
-        return ExecutionContextApi.runAsSelf(() => open.call(brain, { player, npc, config, interactive }));
+        return ExecutionContextApi.runAsSelf(() => open.call(brain, { player, npc, config, interactive }), { act: true });
       }
       return { ok: false, reason: 'not-conversational' };
     }
@@ -860,7 +860,7 @@ export function BehavedMixin<TBase extends MixinConstructor<Stuff>>(
         // ⭐ A brain's act is the NPC's OWN act (call-security pass D10) —
         // even when a witness fired it inside a player's command, or its
         // timer was armed while a player loaded the room.
-        await ExecutionContextApi.runAsSelf(() => descriptor.act(ctx));
+        await ExecutionContextApi.runAsSelf(() => descriptor.act(ctx), { act: true });
       } catch (e) {
         this._warn(`brain '${wiring.spec.brain}' threw: ${asMsg(e)}`);
       }

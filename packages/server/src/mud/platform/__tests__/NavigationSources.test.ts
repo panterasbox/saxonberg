@@ -150,7 +150,7 @@ function asCommand(id: string, fn: () => void): void {
       kind: FrameKind.Command,
       metadata: { causingCommandId: id },
     }, fn);
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 describe('⭐⭐ WhereaboutsSource — ONE declared wake table (navigation-server review)', () => {

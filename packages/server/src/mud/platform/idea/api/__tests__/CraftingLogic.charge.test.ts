@@ -75,7 +75,7 @@ function mintAs(maker: Stuff, v: CompoundingVessel): ReturnType<typeof CraftingA
   return ExecutionContextApi.runRoot(null, "test", () => {
     ExecutionContextApi.tagActingAuthor(maker);
     return CraftingApi.mintFromBuild({ charge: v });
-  }) as ReturnType<typeof CraftingApi.mintFromBuild>;
+  }, { acting: { boundary: 'test' } }) as ReturnType<typeof CraftingApi.mintFromBuild>;
 }
 
 beforeEach(async () => {

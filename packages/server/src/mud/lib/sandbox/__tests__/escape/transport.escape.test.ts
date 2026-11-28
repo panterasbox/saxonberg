@@ -75,7 +75,7 @@ async function mintIn<T extends Idea>(
     null,
     'test.mint',
     () => StuffApi.create(make),
-    scope === null ? undefined : { circleScope: scope }
+    scope === null ? { acting: { boundary: 'test' } } : { acting: { boundary: 'test' }, circleScope: scope }
   )) as T;
 }
 
@@ -97,7 +97,7 @@ describe('sandbox-escape: transport direction', () => {
         null,
         'in-circle',
         () => fieldHost.onLinkdead(),
-        { circleScope: SCOPE }
+        { acting: { boundary: 'test' }, circleScope: SCOPE }
       )
     ).toThrow(SecurityError);
 
@@ -108,7 +108,7 @@ describe('sandbox-escape: transport direction', () => {
         null,
         'read',
         () => fieldHost.linkdeadCount,
-        { circleScope: OMNI_SCOPE }
+        { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
       )
     ).toBe(0);
   });
@@ -116,7 +116,7 @@ describe('sandbox-escape: transport direction', () => {
   it('DENIES the close-code write outbound too', async () => {
     const fieldHost = await mintIn(null, () => new FakeHost());
     expect(() =>
-      ExecutionContextApi.runRoot(null, 'in-circle', () => fieldHost.setLeaveIntent(true), { circleScope: SCOPE }),
+      ExecutionContextApi.runRoot(null, 'in-circle', () => fieldHost.setLeaveIntent(true), { acting: { boundary: 'test' }, circleScope: SCOPE }),
     ).toThrow(SecurityError);
   });
 
@@ -129,14 +129,14 @@ describe('sandbox-escape: transport direction', () => {
     ExecutionContextApi.runRoot(null, 'connection-layer', () => {
       vessel.setLeaveIntent(true);
       vessel.onLinkdead();
-    });
+    }, { acting: { boundary: 'test' } });
 
     expect(
       ExecutionContextApi.runRoot(
         null,
         'read',
         () => vessel.linkdeadCount,
-        { circleScope: OMNI_SCOPE }
+        { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
       )
     ).toBe(1);
   });
@@ -147,7 +147,7 @@ describe('sandbox-escape: transport direction', () => {
 
     // Field → circle: the delivery redirect asks a vessel for its state.
     expect(
-      ExecutionContextApi.runRoot(null, 'field', () => vessel.isConnected())
+      ExecutionContextApi.runRoot(null, 'field', () => vessel.isConnected(), { acting: { boundary: 'test' } })
     ).toBe(true);
 
     // Circle → field: `forwardingTargets` asks the parked body too.
@@ -156,7 +156,7 @@ describe('sandbox-escape: transport direction', () => {
         null,
         'in-circle',
         () => fieldHost.isConnected(),
-        { circleScope: SCOPE }
+        { acting: { boundary: 'test' }, circleScope: SCOPE }
       )
     ).toBe(true);
   });
@@ -169,7 +169,7 @@ describe('sandbox-escape: transport direction', () => {
         null,
         'in-circle',
         () => otherVessel.onLinkdead(),
-        { circleScope: SCOPE }
+        { acting: { boundary: 'test' }, circleScope: SCOPE }
       )
     ).toThrow(SecurityError);
   });

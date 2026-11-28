@@ -130,7 +130,7 @@ async function craftAs(
   return ExecutionContextApi.runRoot(null, 'test', () => {
     if (principal) ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft(req);
-  }) as ReturnType<typeof CraftingApi.craft>;
+  }, { acting: { boundary: 'test' } }) as ReturnType<typeof CraftingApi.craft>;
 }
 
 let room: TestRoom;

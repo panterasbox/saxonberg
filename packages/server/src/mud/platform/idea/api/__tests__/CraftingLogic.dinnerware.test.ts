@@ -130,7 +130,7 @@ async function craftAs(
   return ExecutionContextApi.runRoot(null, 'test', () => {
     if (principal) ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft(req);
-  }) as unknown as Awaited<ReturnType<typeof CraftingApi.craft>>;
+  }, { acting: { boundary: 'test' } }) as unknown as Awaited<ReturnType<typeof CraftingApi.craft>>;
 }
 
 beforeEach(async () => {

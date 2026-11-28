@@ -86,14 +86,14 @@ async function render(body: string): Promise<string> {
   return ExecutionContextApi.runRoot(null, 'wiki.read', async () => {
     ExecutionContextApi.tagActingAuthor(reader);
     return (await raw().render(body)).body;
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 async function renderFull(body: string) {
   return ExecutionContextApi.runRoot(null, 'wiki.read', async () => {
     ExecutionContextApi.tagActingAuthor(reader);
     return raw().render(body);
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 /** The minimal component shape: a named class-expression. */
@@ -292,7 +292,7 @@ describe('⭐ components annotate; they never gate (54)', () => {
     await ExecutionContextApi.runRoot(null, 'r', async () => {
       ExecutionContextApi.tagActingAuthor(reader);
       await raw().render('<spy/>', { pageId: 'page-1' });
-    });
+    }, { acting: { boundary: 'test' } });
     expect((seen! as ComponentContext).pageId).toBe('page-1');
   });
 
@@ -542,7 +542,7 @@ describe('⭐ stage order, asserted BY OBSERVATION', () => {
         resolveLink: async () => ({ handle: 'main:oak', title: 'Oak' }),
       });
       return r.body;
-    });
+    }, { acting: { boundary: 'test' } });
     // The snippet expanded (stage 2 ran) and the component resolved
     // (stage 4 ran) — but the link it produced is still literal,
     // proving stage 3 ran between them.
@@ -558,7 +558,7 @@ describe('⭐ stage order, asserted BY OBSERVATION', () => {
         resolveLink: async () => ({ handle: 'main:oak', title: 'Oak' }),
       });
       return r.body;
-    });
+    }, { acting: { boundary: 'test' } });
     expect(out).toBe('<link href="mudcmd:wiki main:oak">Oak</link>');
   });
 
@@ -570,7 +570,7 @@ describe('⭐ stage order, asserted BY OBSERVATION', () => {
         resolveSnippet: async () => '<emit/>',
       });
       return r.body;
-    });
+    }, { acting: { boundary: 'test' } });
     expect(out).toBe('RESOLVED');
   });
 });

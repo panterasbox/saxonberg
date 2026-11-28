@@ -65,7 +65,7 @@ async function salvageAs(item: Stuff): Promise<SalvageOutcome> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(wrecker);
     return CraftingApi.salvage({ item });
-  }) as unknown as Promise<SalvageOutcome>;
+  }, { acting: { boundary: 'test' } }) as unknown as Promise<SalvageOutcome>;
 }
 
 beforeEach(async () => {

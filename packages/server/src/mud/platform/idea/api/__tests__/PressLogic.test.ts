@@ -131,7 +131,7 @@ async function publishAs<T>(
   return ExecutionContextApi.runRoot(null, 'test', () => {
     if (principal) ExecutionContextApi.tagActingAuthor(principal);
     return fn();
-  }) as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as Promise<T>;
 }
 
 beforeEach(() => {

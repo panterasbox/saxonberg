@@ -92,7 +92,7 @@ export class YoutubeRelayReader {
                 senderDisplay: m.authorName,
                 text: m.text,
               }),
-            { circleScope: OMNI_SCOPE },
+            { acting: { system: 'youtube-relay' }, circleScope: OMNI_SCOPE },
           ),
         onEnd: () => this.onStreamEnd(liveChatId),
       },
@@ -112,7 +112,7 @@ export class YoutubeRelayReader {
       null,
       'youtube.streamEnd',
       () => StreamApi.dropChannel('youtube', liveChatId),
-      { circleScope: OMNI_SCOPE },
+      { acting: { system: 'youtube-relay' }, circleScope: OMNI_SCOPE },
     );
   }
 }

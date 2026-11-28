@@ -66,7 +66,7 @@ async function render(
       resolveLink: resolverOver(pages),
     });
     return result.body;
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 const OAK: LinkTarget = { handle: 'main:oak', title: 'Oak' };
@@ -188,7 +188,7 @@ describe('what link resolution must NOT touch', () => {
     const out = await ExecutionContextApi.runRoot(null, 'r', async () => {
       ExecutionContextApi.tagActingAuthor(reader);
       return (await raw().render('[[oak]]')).body;
-    });
+    }, { acting: { boundary: 'test' } });
     expect(out).toBe('[[oak]]');
   });
 

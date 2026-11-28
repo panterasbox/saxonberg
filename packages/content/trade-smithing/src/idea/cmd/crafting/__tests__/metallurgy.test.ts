@@ -80,7 +80,7 @@ async function step(
         striker: many(striker),
         anvil: many(anvil),
       } as never, ctx$)))(makeContext(actor, room, 'step') as never);
-  });
+  }, { acting: { boundary: 'test' } });
   await completeStep(ms);
   // ⚠ Consolidation clones its bar from a row (a store round-trip), so
   // the completion is several awaits deep — one drain lands between the
@@ -248,7 +248,7 @@ describe('⚠⚠ cast iron refuses, and the refusal says what it is', () => {
         { target: ref(p, 'pig'), striker: many(striker), anvil: many(anvil) } as never,
         context,
       ));
-    });
+    }, { acting: { boundary: 'test' } });
     expect(
       context.getNotes().find((n) => n.kind === 'controller-rejected')?.reason,
     ).toBe('unforgeable');

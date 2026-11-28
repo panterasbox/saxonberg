@@ -58,6 +58,8 @@ export class ContractEvent extends Document {
     memo: { persistent: true },
     at: { persistent: true },
     realAt: { persistent: true },
+    actId: { persistent: true },
+    causeId: { persistent: true },
   };
 
   contractId = "";
@@ -74,6 +76,14 @@ export class ContractEvent extends Document {
   at = 0;
   /** Real-time epoch MILLISECONDS. */
   realAt = 0;
+  /**
+   * ⭐ The act this event is part of (tropes D1). A breach by a claim's
+   * lapse carries the CLAIM's act — the promise was the choice, the lapse
+   * is its end — not whoever's read noticed the lapse.
+   */
+  actId = "";
+  /** The act {@link actId} follows from, or `null`. */
+  causeId: string | null = null;
 
   /** The event chain for `contractId`, oldest-first (the ChattelEvent shape). */
   static async findByContractId(contractId: string): Promise<ContractEvent[]> {

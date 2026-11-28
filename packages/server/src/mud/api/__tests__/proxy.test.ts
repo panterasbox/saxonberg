@@ -102,7 +102,7 @@ describe('command frame plumbing (via test seam)', () => {
         () => {
           observed = ExecutionContextApi.getCurrentCommandGiver();
         }
-      )
+      ), { acting: { boundary: 'test' } }
     );
     expect(observed).toBe(issuer);
   });

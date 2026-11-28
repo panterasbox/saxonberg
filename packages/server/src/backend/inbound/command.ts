@@ -107,7 +107,7 @@ export const handleCommand: InboundHandler = async (ctx, message) => {
         barId,
       });
     },
-    'absorb'
+    'absorb', { acting: { actor: giver } }
   );
 };
 
@@ -174,7 +174,7 @@ export async function handleControlCommand(
       onOutcome: (s) => {
         status = s;
       },
-    }),
+    }), { acting: { actor: avatar } },
   );
   if (status === null) return refuse('no-outcome');
   feed.sendControlResult(socketId, text, status === 'ok', status === 'ok' ? undefined : status);

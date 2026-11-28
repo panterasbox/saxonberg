@@ -50,7 +50,7 @@ async function executeAs(who: Stuff, fn: () => void | Promise<void>): Promise<vo
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(who);
     await fn();
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 function material(path: string, name: string, tags: string[]): Material {

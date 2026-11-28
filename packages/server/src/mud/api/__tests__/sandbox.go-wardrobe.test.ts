@@ -43,7 +43,7 @@ const PLAYER = 'go-wardrobe-tester';
 const SCOPE = `/home/${PLAYER}`;
 
 function asSystem<T>(fn: () => T): T {
-  return ExecutionContextApi.runRoot(null, 'test.system', fn, {
+  return ExecutionContextApi.runRoot(null, 'test.system', fn, { acting: { boundary: 'test' },
     circleScope: OMNI_SCOPE,
   });
 }

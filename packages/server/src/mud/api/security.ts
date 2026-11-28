@@ -971,8 +971,13 @@ export class SecurityApi {
       // adds frames that can push the originating `.test.ts` past the
       // captured stack window — and a fixture under `__tests__/` is
       // itself test code, never reachable from production.
+      // ⭐ And `src/test-bootstrap` — the explicit import every wired test
+      // takes, whose hooks run with no spec frame on the stack (it plants
+      // the test's acting claim, tropes D3); production never imports it.
       const isTest =
-        /\.test\.(ts|js)(\?|$|:)/.test(url) || /\/__tests__\//.test(url);
+        /\.test\.(ts|js)(\?|$|:)/.test(url) ||
+        /\/__tests__\//.test(url) ||
+        /\/src\/test-bootstrap\.(ts|js)(\?|$|:)/.test(url);
       SecurityApi.#testCallerCache.set(url, isTest);
       return isTest;
     });
@@ -1398,7 +1403,14 @@ export class SecurityApi {
     // singleton's own per-facade `FromModule` gate would then
     // refuse its own facade. The caller passes itself; the aperture
     // changes the SCOPE, never the principal.
+    // ⭐ …and never who is ACTING (tropes D3): the act running carries on;
+    // with nobody acting, the boundary is named.
+    const continuation = ExecutionContextApi.captureContinuation();
+    const acting = continuation !== null
+      ? { continuation }
+      : { boundary: 'boundary-projection' };
     return ExecutionContextApi.runRoot(principal, 'boundary.project', fn, {
+      acting,
       circleScope: OMNI_SCOPE,
     });
   }

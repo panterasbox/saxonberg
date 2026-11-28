@@ -101,7 +101,7 @@ async function craftAs(principal: Stuff, req: CraftRequest): Promise<Stuff> {
   const outcome = await (ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft(req);
-  }) as ReturnType<typeof CraftingApi.craft>);
+  }, { acting: { boundary: 'test' } }) as ReturnType<typeof CraftingApi.craft>);
   if (!outcome.ok) {
     throw new Error(`craft declined: ${JSON.stringify(outcome)}`);
   }

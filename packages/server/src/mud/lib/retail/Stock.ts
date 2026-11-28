@@ -575,7 +575,7 @@ export default class Stock extends StockBase {
     if (!paid) return this.refusedBroke(item, word, price);
     const owner = await this.purchaserOf(giver, paid.receipt);
     if (MixinApi.isChattel(item)) {
-      await item.transferChattel(owner);
+      await item.transferChattel(owner, { kind: "sale", txId: paid.receipt.txId ?? "" });
       // ⚠ Nothing moved, so the movement primitive recorded nothing: where
       // the new owner keeps her is recorded here, as a move would.
       await item.followCustody();
@@ -764,9 +764,10 @@ export default class Stock extends StockBase {
     if (bid === null) return no("not-priced", "The house will not put a price on that.");
     const sellerAccount = await BankingApi.primaryAccountIdOf(who);
     if (!sellerAccount) return no("no-account", "You have no bank account to be paid into.");
+    let boughtTx = "";
     try {
       const houseAccount = await EmploymentApi.operatingAccountOf(business);
-      await BankingApi.payTerms(houseAccount, sellerAccount, Money.of(bid, BankingApi.compactCurrency()), `bought: ${item.getPresentation()}`);
+      boughtTx = await BankingApi.payTerms(houseAccount, sellerAccount, Money.of(bid, BankingApi.compactCurrency()), `bought: ${item.getPresentation()}`);
     } catch {
       this._shortOfMoney = true;
       return no("house-cannot-pay", "The house cannot pay for that just now.");
@@ -775,7 +776,7 @@ export default class Stock extends StockBase {
     // The house's from the moment it is paid for — BEFORE the store can
     // adopt it as a line's face, or the seller could `get` it back as
     // theirs and sell it twice (the pre-merge audit).
-    if (MixinApi.isChattel(item)) await item.transferChattel(business);
+    if (MixinApi.isChattel(item)) await item.transferChattel(business, { kind: "sale", txId: boughtTx });
     if (store !== null) {
       const taken = await store.receive(item, store.getBusinessPath());
       if (taken.ok) return { ok: true, paidMinor: bid, intoStore: true };

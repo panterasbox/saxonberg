@@ -26,7 +26,7 @@ describe('getCircleScope', () => {
   it('is null under an unscoped root', () => {
     ExecutionContextApi.runRoot(null, 'test', () => {
       expect(ExecutionContextApi.getCircleScope()).toBeNull();
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('reads the scope planted on the root, at any depth', () => {
@@ -40,7 +40,7 @@ describe('getCircleScope', () => {
           expect(ExecutionContextApi.getCircleScope()).toBe(SCOPE);
         });
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -51,7 +51,7 @@ describe('getCircleScope', () => {
       () => {
         expect(ExecutionContextApi.getCircleScope()).toBe(OMNI_SCOPE);
       },
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
   });
 
@@ -64,7 +64,7 @@ describe('getCircleScope', () => {
         expect(ExecutionContextApi.getCircleScope()).toBe(SCOPE);
       },
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -75,10 +75,10 @@ describe('getCircleScope', () => {
       () => {
         ExecutionContextApi.runRoot(null, 'inner', () => {
           expect(ExecutionContextApi.getCircleScope()).toBeNull();
-        });
+        }, { acting: { boundary: 'test' } });
         expect(ExecutionContextApi.getCircleScope()).toBe(SCOPE);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 });
@@ -92,7 +92,7 @@ describe('establishCircleScope', () => {
       ExecutionContextApi.run(null, null, 'inner', undefined, () => {
         expect(ExecutionContextApi.getCircleScope()).toBe(SCOPE);
       });
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('throws on re-establish (set-once)', () => {
@@ -104,7 +104,7 @@ describe('establishCircleScope', () => {
           ExecutionContextApi.establishCircleScope('/home/other')
         ).toThrow(SecurityError);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -127,7 +127,7 @@ describe('getJurisdictionBound', () => {
         );
         expect(ExecutionContextApi.getCircleScope()).toBeNull();
       },
-      { jurisdictionBound: '/world/terminus' }
+      { acting: { boundary: 'test' }, jurisdictionBound: '/world/terminus' }
     );
   });
 });

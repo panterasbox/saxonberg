@@ -114,20 +114,22 @@ export const brain = class {
     const owner = await heap.chattelOwner();
     const bid = counter.bidFor(heap.getTemplatePath() ?? '');
     let paid = false;
+    let txId = '';
     // A person or a firm is paid; a group (a committee) has nobody to pay.
     const ownerKey = owner && 'templatePath' in owner ? owner.templatePath : null;
     if (ownerKey && account && bid !== null && bid > 0) {
       const to = await BankingApi.primaryAccountIdOf(ownerKey);
       if (to && to !== account) {
         try {
-          await BankingApi.payTerms(account, to, Money.of(bid, BankingApi.compactCurrency()), `ash round: ${heap.getPresentation()}`);
+          txId = await BankingApi.payTerms(account, to, Money.of(bid, BankingApi.compactCurrency()), `ash round: ${heap.getPresentation()}`);
           paid = true;
         } catch {
           paid = false;
         }
       }
     }
-    await heap.transferChattel(buyer);
+    // Bought on the round's terms; unpaid, it is still taken on them (tropes D7).
+    await heap.transferChattel(buyer, paid ? { kind: 'sale', txId } : { kind: 'terms' });
     return paid;
   }
 

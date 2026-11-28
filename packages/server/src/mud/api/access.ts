@@ -70,7 +70,14 @@ function asAuthorityQuery<T>(fn: () => Promise<T>): Promise<T> {
   // (`FromModule('/api/access#AccessApi')`) reads the caller off the
   // current frame's target, so a null-target root would erase this
   // facade's identity and the registry would deny its own facade.
+  // ⭐ The aperture changes the SCOPE, never who is acting (tropes D3): the
+  // act running carries on; with nobody acting, the boundary is named.
+  const continuation = ExecutionContextApi.captureContinuation();
+  const acting = continuation !== null
+    ? { continuation }
+    : { boundary: 'access' };
   return ExecutionContextApi.runRoot(AccessApi, 'access.query', fn, {
+    acting,
     circleScope: OMNI_SCOPE,
   });
 }

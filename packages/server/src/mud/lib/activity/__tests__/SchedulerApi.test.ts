@@ -41,6 +41,9 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 import { SchedulerLogic } from '../../../platform/idea/api/SchedulerLogic';
 import { StuffApi } from '../../../api/stuff';
 import { SecurityError } from '../../security/errors';
+import { ExecutionContextApi, FrameKind } from '../../../api/execution-context';
+import { ScheduleApi } from '../../../api/schedule';
+import { Quantity } from '../../quantity';
 
 /* ─────────────────────────── Fixtures ─────────────────────────── */
 
@@ -906,5 +909,114 @@ describe('SchedulerLogic singleton encapsulation', () => {
     // The test module is not `mud/api/scheduler#SchedulerApi`, so the
     // FromModule gate on the logic's own methods denies the call.
     expect(() => logic!.getActivityClass('foo')).toThrow(SecurityError);
+  });
+});
+
+/* ───────────── ⭐ the act a continuation keeps (tropes D1/D2) ───────────── */
+
+describe('⭐ a continuation is the end of the act begun at the choice (tropes D1/D2)', () => {
+  let actor: TestActor;
+
+  beforeEach(() => {
+    WorldClockApi._resetForTesting();
+    WorldClockApi.setScale(1);
+    SchedulerApi._clearAllForTesting();
+    actor = makeStuff(() => new TestActor());
+  });
+
+  afterEach(() => {
+    SchedulerApi._clearAllForTesting();
+    WorldClockApi._resetForTesting();
+  });
+
+  /** Run `fn` inside a command frame whose id is `id`, given by `giver`. */
+  function inCommand(id: string, giver: unknown, fn: () => void): void {
+    ExecutionContextApi.runRoot(null, 'r', () => {
+      ExecutionContextApi.run(null, giver, 'executeCommand', {
+        kind: FrameKind.Command,
+        metadata: { causingCommandId: id, commandContext: { commandGiver: giver } },
+      }, fn);
+    }, { acting: { boundary: 'test' } });
+  }
+
+  it('a durative completion reads the originating act and actor', () => {
+    let seen: { act: unknown; actor: unknown } | null = null;
+    const e = makeDurative(actor, {
+      duration: 1000,
+      onComplete: () => {
+        seen = { act: ExecutionContextApi.getCurrentAct(), actor: ExecutionContextApi.getActor() };
+      },
+    });
+    inCommand('cmd-forge', actor, () => {
+      SchedulerApi.start(e);
+    });
+    WorldClockApi._advanceForTesting(1000);
+    expect(seen).not.toBeNull();
+    expect(seen!.act).toEqual({ actId: 'cmd-forge', causeId: null });
+    expect(seen!.actor).toBe(actor);
+  });
+
+  it('a world-clock callback armed in an act reads that act', () => {
+    const acts: unknown[] = [];
+    inCommand('cmd-tend', actor, () => {
+      WorldClockApi.after(Quantity.of(1, 's'), () => {
+        acts.push(ExecutionContextApi.getCurrentAct()?.actId);
+      });
+    });
+    WorldClockApi._advanceForTesting(1000);
+    expect(acts).toEqual(['cmd-tend']);
+  });
+
+  it('a nested command reads the enclosing act as its cause', () => {
+    let act: unknown = null;
+    inCommand('cmd-script', actor, () => {
+      ExecutionContextApi.run(null, actor, 'executeCommand', {
+        kind: FrameKind.Command,
+        metadata: { causingCommandId: 'cmd-step', commandContext: { commandGiver: actor } },
+      }, () => {
+        act = ExecutionContextApi.getCurrentAct();
+      });
+    });
+    expect(act).toEqual({ actId: 'cmd-step', causeId: 'cmd-script' });
+  });
+
+  it('a scheduled callback inside a nested act keeps both the act and its cause', () => {
+    vi.useFakeTimers();
+    try {
+      let act: unknown = null;
+      inCommand('cmd-script', actor, () => {
+        ExecutionContextApi.run(null, actor, 'executeCommand', {
+          kind: FrameKind.Command,
+          metadata: { causingCommandId: 'cmd-step', commandContext: { commandGiver: actor } },
+        }, () => {
+          ScheduleApi.schedule(10, () => {
+            act = ExecutionContextApi.getCurrentAct();
+          });
+        });
+      });
+      vi.advanceTimersByTime(10);
+      expect(act).toEqual({ actId: 'cmd-step', causeId: 'cmd-script' });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('an engagement begun with nobody acting is refused (D3)', () => {
+    ExecutionContextApi._clearForTesting();
+    expect(() => SchedulerApi.start(makeDurative(actor))).toThrow(SecurityError);
+  });
+
+  it("a brain's turn is an act of its own, its cause the act it runs inside (D25)", () => {
+    let act: { actId: string; causeId: string | null } | null = null;
+    inCommand('cmd-talk', actor, () => {
+      ExecutionContextApi.run(null, actor, 'think', {}, () => {
+        ExecutionContextApi.runAsSelf(() => {
+          act = ExecutionContextApi.getCurrentAct();
+        }, { act: true });
+      });
+    });
+    expect(act).not.toBeNull();
+    expect(act!.actId).not.toBe('cmd-talk');
+    expect(act!.causeId).toBe('cmd-talk');
   });
 });

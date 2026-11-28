@@ -249,7 +249,7 @@ describe("Dave's Bar — order, drink, feel it", () => {
         recipeRef: recipeId!,
         makerMode: 'fulfilling-bartender',
       });
-    });
+    }, { acting: { boundary: 'test' } });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
 
@@ -302,7 +302,7 @@ describe('resolveMaker — the asker is the last fulfiller, not an excluded one'
         recipeRef: 'martini',
         makerMode: 'fulfilling-bartender',
       });
-    });
+    }, { acting: { boundary: 'test' } });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(DAVE);
@@ -332,7 +332,7 @@ describe('resolveMaker — the asker is the last fulfiller, not an excluded one'
         recipeRef: 'martini',
         makerMode: 'fulfilling-bartender',
       });
-    });
+    }, { acting: { boundary: 'test' } });
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(BulkableApi.slotFor(outcome.output, undefined)!.getPayload()?.maker).toBe(SELF);

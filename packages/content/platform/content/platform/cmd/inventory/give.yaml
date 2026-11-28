@@ -17,9 +17,22 @@ help: |
   Nothing is lost. A creature that carries nothing at all (a fish)
   refuses, and you keep it exactly where it was. Tack goes on with
   `put saddle on mule` — handed, a mule just sets it down.
+
+  ⭐ Giving something that is yours makes it theirs: the title passes with
+  it, a gift. To hand something over and keep it yours, lend it:
+  `give lantern to ada --lend`. Something you hold but do not own (a
+  borrowed tool, a parcel you are carrying) only ever changes hands — its
+  title stays where it was.
 examples:
   - cmd: give coin to the merchant
-    note: Hand over a single item
+    note: Hand over a single item — and, if it is yours, the title with it
+  - cmd: give lantern to ada --lend
+    note: Hand it over but keep it yours
+options:
+  lend:
+    type: boolean
+    field: lend
+    description: "Hand it over and keep the title — a loan, not a gift"
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

@@ -10,6 +10,45 @@ import AccountabilityEvent, {
   type AccountabilityFields,
   type BlameVerdict,
 } from '../../../lib/accountability/AccountabilityEvent';
+import { ExecutionContextApi } from '../../../api/execution-context';
+import { StuffApi } from '../../../api/stuff';
+import { MixinApi } from '../../../api/mixin';
+import { MessageApi } from '../../../api/message';
+import { PerceptionApi } from '../../../api/perception';
+import type { Stuff } from '../../../lib/stuff/Stuff';
+
+/**
+ * ⭐ **Who saw it** (tropes D8) — computed by the one writer, synchronously,
+ * as the row is built: the harmer (`killer`, else `initiator`) resolved to
+ * its live body by identity; every sensor in that body's place who
+ * perceives the harmer (`PerceptionApi.perceives` — light and concealment
+ * decide, the rule every surface uses), minus the row's own parties. `[]`
+ * when the harmer has no live body (an environmental death, nobody).
+ */
+function witnessesOf(fields: AccountabilityFields): string[] {
+  const harmerId = fields.killer || fields.initiator;
+  if (!harmerId) return [];
+  const harmer = StuffApi.findByIdentityPath(harmerId).find(
+    (b): b is Stuff => MixinApi.isContainable(b) && b.getContainer() !== null,
+  );
+  if (!harmer || !MixinApi.isContainable(harmer)) return [];
+  const place = harmer.getContainer();
+  if (!place || !MixinApi.isContainer(place)) return [];
+  const parties = new Set(
+    [fields.initiator, fields.opponent, fields.victim, fields.killer].filter((p): p is string => !!p),
+  );
+  const out = new Set<string>();
+  for (const sensor of MessageApi.getSensors(place)) {
+    const id = (sensor as Stuff).getIdentityPath();
+    if (!id || parties.has(id)) continue;
+    try {
+      if (PerceptionApi.perceives(sensor as Stuff, harmer)) out.add(id);
+    } catch {
+      // @quiet a sensor that cannot answer perceives nothing
+    }
+  }
+  return [...out];
+}
 
 const AccountabilityApiCallers = SecurityPolicies.FromModule(
   '/api/accountability#AccountabilityApi',
@@ -53,8 +92,15 @@ function refusalReason(fields: AccountabilityFields): string | null {
 
 /** Build and persist one row from the supplied fields (defaulting the
  * combat-only + clock fields). */
-async function appendRow(fields: AccountabilityFields): Promise<void> {
+async function appendRow(
+  fields: AccountabilityFields,
+  witnesses: string[],
+  act: { actId: string; causeId: string | null } | null,
+): Promise<void> {
   const ev = new AccountabilityEvent();
+  ev.witnesses = witnesses;
+  ev.actId = act?.actId ?? '';
+  ev.causeId = act?.causeId ?? null;
   ev.kind = fields.kind;
   ev.sessionId = fields.sessionId;
   ev.initiator = fields.initiator;
@@ -157,7 +203,10 @@ export class AccountabilityLogic extends ApiLogic {
       console.error(`AccountabilityApi.record refused ${refusal}.`);
       return;
     }
-    void appendRow(fields).catch(() => {
+    // Synchronous, before the row's first await: the audience as it stood.
+    const witnesses = witnessesOf(fields);
+    const act = ExecutionContextApi.getCurrentAct();
+    void appendRow(fields, witnesses, act).catch(() => {
       /* the ledger is best-effort; a write failure never breaks the beat */
     });
   }

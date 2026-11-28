@@ -27,9 +27,9 @@ import {
   ChattelRecord,
   type ChattelOwner,
 } from "../../lib/chattel/ChattelRecord";
-import { ChattelEvent, type ChattelEventKind } from "../../lib/chattel/ChattelEvent";
+import { ChattelEvent, type ChattelBasis, type ChattelEventKind } from "../../lib/chattel/ChattelEvent";
 import type { VetoResult } from "../../lib/errors";
-import type { Stuff } from "../../lib/stuff/Stuff";
+import { Stuff } from "../../lib/stuff/Stuff";
 
 import type { BoundaryRole } from '../../lib/security/BoundaryRole';
 const ChattelRegistryBase = Idea;
@@ -105,10 +105,11 @@ export default class ChattelRegistry extends ChattelRegistryBase {
   public async transfer(
     chattelId: string,
     newOwner: ChattelOwner,
+    basis: ChattelBasis,
   ): Promise<void> {
     const prior = this.index.get(chattelId) ?? null;
     await this.upsert(chattelId, newOwner);
-    await this.appendEvent("transfer", chattelId, prior, newOwner);
+    await this.appendEvent("transfer", chattelId, prior, newOwner, basis);
     this.index.set(chattelId, newOwner);
   }
 
@@ -164,20 +165,33 @@ export default class ChattelRegistry extends ChattelRegistryBase {
     chattelId: string,
     from: ChattelOwner | null,
     to: ChattelOwner | null,
+    basis?: ChattelBasis,
   ): Promise<void> {
     const event = new ChattelEvent();
     event.chattelId = chattelId;
     event.event = kind;
     event.from = from;
     event.to = to;
-    event.actor = this.actingAuthorPath();
+    event.actor = this.actingPersonPath();
     event.at = Date.now();
+    const act = ExecutionContextApi.getCurrentAct();
+    event.actId = act?.actId ?? "";
+    event.causeId = act?.causeId ?? null;
+    if (basis) {
+      event.basis = basis.kind;
+      if (basis.kind === "sale") event.txId = basis.txId;
+    }
     await event.save();
   }
 
-  private actingAuthorPath(): string {
-    const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
-    return actor?.getTemplatePath() ?? "";
+  /**
+   * ⭐ Who is ACTING, as a durable person key (tropes D4): never the
+   * labor-plane author, and never `getTemplatePath()` — every player shares
+   * one lineage path.
+   */
+  private actingPersonPath(): string {
+    const actor = ExecutionContextApi.getActor();
+    return actor instanceof Stuff ? actor.getIdentityPath() ?? "" : "";
   }
 
   private async rebuildIndex(): Promise<void> {

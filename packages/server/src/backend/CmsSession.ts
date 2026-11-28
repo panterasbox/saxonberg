@@ -85,7 +85,11 @@ export class CmsSession {
         }
         return fn();
       },
-      'rethrow'
+      'rethrow',
+      // ⭐ Who is acting (tropes D3): the session's avatar; an anonymous
+      // request is the CMS boundary — never a system, which protective
+      // checks admit for anyone.
+      { acting: actor ? { actor } : { boundary: 'cms' } }
     ) as Promise<T>;
   }
 

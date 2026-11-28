@@ -73,7 +73,7 @@ describe('sandbox-escape: shadow', () => {
       () => {
         expect(() => ShadowApi.attach(host, sh)).toThrow(SecurityError);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     // nothing installed — the host behaves plainly
     expect(host.describe()).toBe('plain');
@@ -94,7 +94,7 @@ describe('sandbox-escape: shadow', () => {
         sh: await StuffApi.create(() => new ReplaceShadow()),
       }),
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     ))!;
     expect(() => ShadowApi.attach(host, sh)).toThrow(SecurityError);
   });
@@ -120,7 +120,7 @@ describe('sandbox-escape: shadow', () => {
         expect(host.describe()).toBe('plain');
       },
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -134,7 +134,7 @@ describe('sandbox-escape: shadow', () => {
       () => {
         expect(() => ShadowApi.detach(sh)).toThrow(SecurityError);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(host.describe()).toBe('SHADOWED');
   });

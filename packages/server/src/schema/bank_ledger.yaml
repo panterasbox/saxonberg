@@ -36,6 +36,15 @@ invariants:
   - >-
     STAMP under the sandbox: the economy genuinely runs in-circle, then
     reverts on exit.
+  - >-
+    ⭐ Every leg names its act and its people (tropes D1/D6): `actId` and
+    `causeId` (the choice and what it follows from; `''` for a named
+    system's work), `fromParty` / `toParty` (each account's recorded owner
+    — a person's identity path or an institution's path; `''` for a
+    sentinel or escrow leg) and `heldBefore` (what the paying account held
+    before the posting, so a gift reads as a share of the giver's means).
+    Stamped by the chokepoint from execution context and the warmed index —
+    never passed in.
 sandbox: stamp
 reset: wipe
 indexes:

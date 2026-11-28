@@ -246,7 +246,7 @@ async function ensureCircle(state: SessionState): Promise<Stuff & Container> {
       return entry;
     },
     'rethrow',
-    { circleScope: state.scope }
+    { acting: { system: 'sandbox' }, circleScope: state.scope }
   );
   state.entryRoom = room as unknown as Stuff & Container;
   return state.entryRoom;
@@ -378,7 +378,7 @@ async function enterImpl(
       return body;
     },
     'rethrow',
-    { circleScope: scope }
+    { acting: { system: 'sandbox' }, circleScope: scope }
   )) as Avatar;
 
   // Park the field body: presence-freeze + eviction veto + a durable
@@ -407,7 +407,7 @@ async function enterImpl(
         moved.push(interactive as Interactive);
       }
     },
-    { circleScope: OMNI_SCOPE }
+    { acting: { system: 'sandbox' }, circleScope: OMNI_SCOPE }
   );
 
   // Run the session ceremony on the vessel for each moved socket: the
@@ -422,7 +422,7 @@ async function enterImpl(
       'sandbox.enterCeremony',
       () => wireBody.enter(interactive),
       'swallow',
-      { circleScope: scope }
+      { acting: { actor: wireBody }, circleScope: scope }
     );
     // The socket now drives a different body — re-render its cards.
     interactive.refreshMqlSubscriptions();
@@ -477,7 +477,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
       await StuffApi.destruct(wireBody as unknown as Stuff);
     },
     'rethrow',
-    { circleScope: OMNI_SCOPE }
+    { acting: { system: 'sandbox' }, circleScope: OMNI_SCOPE }
   );
 
   // Re-orient each returning socket on the field body: the client
@@ -489,7 +489,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
       null,
       'sandbox.exitCeremony',
       () => avatar!.enter(interactive),
-      'swallow'
+      'swallow', { acting: { actor: avatar! } }
     );
     interactive.refreshMqlSubscriptions();
   }
@@ -505,7 +505,7 @@ async function exitImpl(wireBody: Avatar): Promise<void> {
       avatar?.setParked(false);
     },
     'rethrow',
-    { circleScope: OMNI_SCOPE }
+    { acting: { system: 'sandbox' }, circleScope: OMNI_SCOPE }
   );
 
   if (state) {
@@ -595,7 +595,7 @@ async function seedCopyImpl(actor: Avatar, target: Stuff): Promise<Stuff> {
       return fields;
     },
     'rethrow',
-    { circleScope: OMNI_SCOPE }
+    { acting: { system: 'sandbox' }, circleScope: OMNI_SCOPE }
   );
 
   // Mint in the AMBIENT circle context (auto-stamped circle-born), then
@@ -637,14 +637,14 @@ async function reconnectImpl(
     () => {
       interactive.transferTo(wireBody);
     },
-    { circleScope: OMNI_SCOPE }
+    { acting: { system: 'sandbox' }, circleScope: OMNI_SCOPE }
   );
   await ExecutionContextApi.runRootGuarded(
     null,
     'sandbox.reenter',
     () => wireBody.enter(interactive),
     'rethrow',
-    { circleScope: state.scope }
+    { acting: { actor: wireBody }, circleScope: state.scope }
   );
   return true;
 }
@@ -674,10 +674,10 @@ function handleWireLinkdeadImpl(wireBody: Avatar): void {
           await exitImpl(live);
         },
         'swallow',
-        { circleScope: OMNI_SCOPE }
+        { acting: { system: 'sandbox' }, circleScope: OMNI_SCOPE }
       );
     },
-    { propagateAttribution: false }
+    { propagateAttribution: false, system: 'sandbox' }
   );
   state.graceHandles.set(playerId, handle);
 }
@@ -848,13 +848,13 @@ export class SandboxLogic extends ApiLogic {
     // ⭐ The root is fresh, but the code running in it is still somebody's:
     // replant who is ACTING (call-security pass D2), so `eval` acts as the
     // wizard who typed it and can claim nobody else.
-    const acting = ExecutionContextApi.captureActor();
+    const continuation = ExecutionContextApi.captureContinuation();
     return (await ExecutionContextApi.runRootGuarded(
       null,
       'sandbox.runScoped',
-      () => ExecutionContextApi.runAsCaptured(acting, fn),
+      fn,
       'rethrow',
-      { circleScope: parcelPath }
+      { acting: { continuation }, circleScope: parcelPath }
     )) as T;
   }
 
@@ -871,13 +871,13 @@ export class SandboxLogic extends ApiLogic {
     // ⭐ The root is fresh, but the code running in it is still somebody's:
     // replant who is ACTING (call-security pass D2), so `eval` acts as the
     // wizard who typed it and can claim nobody else.
-    const acting = ExecutionContextApi.captureActor();
+    const continuation = ExecutionContextApi.captureContinuation();
     return (await ExecutionContextApi.runRootGuarded(
       null,
       'sandbox.runGoverned',
-      () => ExecutionContextApi.runAsCaptured(acting, fn),
+      fn,
       'rethrow',
-      { jurisdictionBound: parcelPath }
+      { acting: { continuation }, jurisdictionBound: parcelPath }
     )) as T;
   }
 }

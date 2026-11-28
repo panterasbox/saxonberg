@@ -39,6 +39,7 @@ import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
+import { SecurityError } from '../../lib/security/errors';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import {
   type Engaged,
@@ -49,7 +50,8 @@ import { Events } from '../../lib/events';
 import {
   ExecutionContextApi,
   OMNI_SCOPE,
-  type ActorClaim,
+  type ContinuationClaim,
+  type RunRootOpts,
 } from '../../api/execution-context';
 import { HotReloadApi } from '../../api/hot-reload';
 import { MixinApi } from '../../api/mixin';
@@ -133,19 +135,13 @@ export default class SchedulerRegistry extends Idea {
   private completionTimers: Map<string, ClockHandle> = new Map();
   private emissionTimers: Map<string, ClockHandle[]> = new Map();
   /**
-   * ⭐ Who started each engagement (`ExecutionContextApi.getCausingAuthor`
-   * at start) — planted on its completion and emission roots, so what a
-   * durative act makes when it finishes is the actor's (a firing an hour
-   * after `fire kiln` returned). Absent for a forced start: a brain's act
-   * has no author.
+   * ⭐⭐ The act each engagement continues (tropes D2) — captured at start
+   * and planted on its completion and emission roots, so a durative act's
+   * finish hours later is the end of the act begun at the choice: the same
+   * actor (an NPC's engagement completes as the NPC), the same `actId`, its
+   * cause, and the labor-plane author.
    */
-  private causingAuthors: Map<string, unknown> = new Map();
-  /**
-   * ⭐ Who was ACTING when each engagement started (call-security pass D2)
-   * — planted beside the author. Unlike the author it is set for a forced
-   * start: an NPC's engagement completes as the NPC.
-   */
-  private causingActors: Map<string, ActorClaim> = new Map();
+  private continuations: Map<string, ContinuationClaim> = new Map();
   private hostSubscriptions: Map<string, Subscription<unknown>> = new Map();
   private activityRegistry: Map<string, ActivityClass> = new Map();
 
@@ -394,8 +390,7 @@ export default class SchedulerRegistry extends Idea {
       for (const h of handles) h.cancel();
     }
     this.emissionTimers.clear();
-    this.causingAuthors.clear();
-    this.causingActors.clear();
+    this.continuations.clear();
     for (const sub of this.hostSubscriptions.values()) {
       try {
         sub.unsubscribe();
@@ -417,10 +412,15 @@ export default class SchedulerRegistry extends Idea {
 
   private register(e: Engagement): void {
     const actor = e.actor;
-    const author = ExecutionContextApi.getCausingAuthor();
-    if (author != null) this.causingAuthors.set(e.engagementId, author);
-    const acting = ExecutionContextApi.captureActor();
-    if (acting.actor != null || acting.system != null) this.causingActors.set(e.engagementId, acting);
+    // ⭐ No work starts with nobody acting (tropes D3): an engagement is
+    // begun by somebody's act (a command, a brain's turn) or a named system.
+    const continuation = ExecutionContextApi.captureContinuation();
+    if (continuation === null) {
+      throw new SecurityError(
+        `SchedulerApi: '${e.type}' started with no one acting — begin it inside an act`,
+      );
+    }
+    this.continuations.set(e.engagementId, continuation);
     // Direct participant call: `_setEngagement` is gated on THIS
     // registry (`FromTemplate('/platform/idea/SchedulerRegistry')`), so the
     // registry calls as itself — no synthetic SchedulerApi root needed.
@@ -445,7 +445,7 @@ export default class SchedulerRegistry extends Idea {
               if (!live) return;
               this.terminate(live, 'host-destroyed');
             },
-            { circleScope: OMNI_SCOPE },
+            { acting: { system: 'scheduler' }, circleScope: OMNI_SCOPE },
           );
         },
       );
@@ -471,12 +471,9 @@ export default class SchedulerRegistry extends Idea {
             void ExecutionContextApi.runRootGuarded(
               SchedulerApi,
               'emission',
-              () => {
-                ExecutionContextApi.updateCurrentFrameMetadata(this.continuationMetadata(e.engagementId));
-                this.fireEmission(e, em);
-              },
+              () => this.fireEmission(e, em),
               'swallow',
-              actorScope !== null ? { circleScope: actorScope } : undefined
+              this.continuationOpts(e.engagementId, actorScope),
             );
           },
         );
@@ -495,12 +492,11 @@ export default class SchedulerRegistry extends Idea {
             SchedulerApi,
             'completion',
             () => {
-              ExecutionContextApi.updateCurrentFrameMetadata(this.continuationMetadata(id));
               const live = this.engagementsById.get(id);
               if (!live || !isDurativeActivity(live)) return;
               this.completeFromTimer(live);
             },
-            actorScope !== null ? { circleScope: actorScope } : undefined,
+            this.continuationOpts(id, actorScope),
           );
         },
       );
@@ -684,25 +680,21 @@ export default class SchedulerRegistry extends Idea {
   }
 
   /**
-   * What the engagement's continuation root carries: its author and ⭐ who
-   * was acting when it started (call-security pass D2). RETURNED, and planted
-   * by the caller on its own root — ⚠ a method call is a proxied frame of
-   * its own, so planting from inside one wrote the metadata onto that frame
-   * and it vanished on return (the author plant had been lost the same way).
+   * The root an engagement's continuation runs on: the act it continues
+   * (tropes D2), under its actor's stamped scope. An engagement already
+   * ended (its claim cleared) fires as the scheduler, and the callback
+   * finds nothing live.
    */
-  private continuationMetadata(id: string): Record<string, unknown> {
-    const md: Record<string, unknown> = {};
-    const author = this.causingAuthors.get(id);
-    if (author != null) md.causingAuthor = author;
-    const acting = this.causingActors.get(id);
-    if (acting?.system != null) md.actingSystem = acting.system;
-    else if (acting?.actor != null) md.actor = acting.actor;
-    return md;
+  private continuationOpts(id: string, circleScope: string | null): RunRootOpts {
+    const continuation = this.continuations.get(id);
+    return {
+      acting: continuation ? { continuation } : { system: 'scheduler' },
+      ...(circleScope !== null ? { circleScope } : {}),
+    };
   }
 
   private clearTimersAndSubs(id: string): void {
-    this.causingAuthors.delete(id);
-    this.causingActors.delete(id);
+    this.continuations.delete(id);
     const timer = this.completionTimers.get(id);
     if (timer) {
       timer.cancel();

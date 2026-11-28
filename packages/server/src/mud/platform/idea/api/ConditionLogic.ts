@@ -4,7 +4,7 @@
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
-import type { Stuff } from '../../../lib/stuff/Stuff';
+import { Stuff } from '../../../lib/stuff/Stuff';
 import type Interactive from '../../../platform/idea/Interactive';
 import { MixinApi } from '../../../api/mixin';
 import { MaterialApi } from '../../../api/material';
@@ -187,17 +187,17 @@ function primaryTissueMaterial(part: {
 }
 
 /**
- * Resolve the inflicter's durable `templatePath` from execution context —
- * the command-frame giver (non-forced, single-consistent) or the REST
- * acting-author stamp. Never a caller-supplied parameter (the gated-Api
- * actor-from-context rule); `undefined` for an environmental / far-cause
- * / unattributable insult (forced dispatch, cross-actor cascade).
+ * Resolve the inflicter's durable identity from execution context — ⭐ WHO
+ * IS ACTING in the fiction (tropes D4), never the labor-plane author: a
+ * forced NPC's blow is the NPC's, and every player shares one lineage path,
+ * so the person is keyed by `getIdentityPath()`. Never a caller-supplied
+ * parameter (the gated-Api actor-from-context rule); `undefined` when no
+ * person is acting (a system, the environment, a far cause).
  */
 function resolveInflicter(): string | undefined {
-  const author = ExecutionContextApi.getActingAuthor();
-  if (author == null) return undefined;
-  const path = (author as Stuff).getTemplatePath?.();
-  return path ?? undefined;
+  const actor = ExecutionContextApi.getActor();
+  if (!(actor instanceof Stuff)) return undefined;
+  return actor.getIdentityPath() ?? undefined;
 }
 
 /** In-session game-time seconds, or `null` when no world clock is running. */

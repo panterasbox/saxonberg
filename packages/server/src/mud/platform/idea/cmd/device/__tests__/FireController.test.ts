@@ -86,7 +86,7 @@ async function fire(model: Record<string, unknown> = {}): Promise<CommandContext
       { kiln: { stuff: kiln, raw: 'kiln' }, ...model } as never,
       context,
     ));
-  });
+  }, { acting: { boundary: 'test' } });
   return context;
 }
 

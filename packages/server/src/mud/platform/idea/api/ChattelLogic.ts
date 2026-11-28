@@ -33,8 +33,9 @@ import type {
 import type { Chattel } from "../../../lib/chattel/Chattel";
 import type { Adornment } from "../../../lib/boundary/Adornment";
 import type { ChattelStampResult } from "../../../api/chattel";
+import type { ChattelBasis } from "../../../lib/chattel/ChattelEvent";
 import type ChattelRegistry from "../ChattelRegistry";
-import type { Stuff } from "../../../lib/stuff/Stuff";
+import { Stuff } from "../../../lib/stuff/Stuff";
 import { ContentsTitle } from "../../../lib/chattel/ContentsTitle";
 
 const REGISTRY_PATH = TemplatePaths.chattelRegistry;
@@ -254,7 +255,9 @@ export class ChattelLogic extends ApiLogic {
     const at = good.getContainer();
     if (at === null || at.isAgent() || !MixinApi.isContainer(at) || at.isKept()) return;
     const owner = good.stampedOwner();
-    const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
+    // ⭐ Who is ACTING in the fiction, never the labor-plane author (tropes D4).
+    const acting = ExecutionContextApi.getActor();
+    const actor = acting instanceof Stuff ? acting : null;
     if (owner?.kind !== "player" || !actor || owner.templatePath !== actor.getIdentityPath()) return;
     const { default: Avatar } = await import("../../../lib/character/Avatar");
     if (!(actor instanceof Avatar) || !actor.hasLiveSession()) return;
@@ -311,7 +314,9 @@ export class ChattelLogic extends ApiLogic {
       return ownerKeyOf(to);
     }
     if (ExecutionContextApi.getCommandStack().length > 0) {
-      const actor = ExecutionContextApi.getActingAuthor() as Stuff | null;
+      // ⭐ Who is ACTING — a forced NPC's make is the NPC's (tropes D4).
+      const acting = ExecutionContextApi.getActor();
+      const actor = acting instanceof Stuff ? acting : null;
       if (actor && to !== null && isWhere(actor, to)) return ownerKeyOf(actor);
     } else {
       const author = ExecutionContextApi.getCausingAuthor() as Stuff | null;
@@ -384,6 +389,7 @@ export class ChattelLogic extends ApiLogic {
   public async transfer(
     item: Stuff,
     newOwner: ChattelOwner,
+    basis: ChattelBasis,
   ): Promise<ChattelStampResult> {
     if (isFungibleStack(item)) return { ok: false, reason: GLOB_REFUSAL };
     if (!MixinApi.isChattel(item)) {
@@ -395,7 +401,7 @@ export class ChattelLogic extends ApiLogic {
     // ⭐ A bound title never moves (aether-devices D10) — the one
     // chokepoint every transfer already passes.
     if (reg.isBound(id)) return { ok: false, reason: BOUND_REFUSAL };
-    await reg.transfer(id, newOwner);
+    await reg.transfer(id, newOwner, basis);
     return { ok: true, chattelId: id };
   }
 

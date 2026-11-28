@@ -102,7 +102,7 @@ async function mint(
   return ExecutionContextApi.runRoot(null, "test", () => {
     ExecutionContextApi.tagActingAuthor(maker);
     return CraftingApi.mintFromBuild(req);
-  }) as ReturnType<typeof CraftingApi.mintFromBuild>;
+  }, { acting: { boundary: 'test' } }) as ReturnType<typeof CraftingApi.mintFromBuild>;
 }
 
 /**

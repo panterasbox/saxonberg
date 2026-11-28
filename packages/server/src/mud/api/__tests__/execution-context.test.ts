@@ -29,7 +29,7 @@ describe('ExecutionContextApi', () => {
       expect(ExecutionContextApi.getCaller()).toBeNull();
       expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
       expect(ExecutionContextApi.getCallStack()).toHaveLength(1);
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('run pushes a frame on top of the stack', () => {
@@ -43,7 +43,7 @@ describe('ExecutionContextApi', () => {
         expect(stack[1]!.target).toBe(b);
         expect(ExecutionContextApi.getCurrentTarget()).toBe(b);
       });
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('survives await boundary', async () => {
@@ -52,7 +52,7 @@ describe('ExecutionContextApi', () => {
       expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
       await new Promise((r) => setTimeout(r, 5));
       expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('survives Promise.then', async () => {
@@ -60,7 +60,7 @@ describe('ExecutionContextApi', () => {
     await ExecutionContextApi.runRoot(target, 'thenEntry', () =>
       Promise.resolve().then(() => {
         expect(ExecutionContextApi.getCurrentTarget()).toBe(target);
-      })
+      }), { acting: { boundary: 'test' } }
     );
   });
 
@@ -68,7 +68,7 @@ describe('ExecutionContextApi', () => {
     const target = new Target();
     ExecutionContextApi.runRoot(target, 'tmp', () => {
       expect(ExecutionContextApi.getCallStack()).toHaveLength(1);
-    });
+    }, { acting: { boundary: 'test' } });
     expect(ExecutionContextApi.getCallStack()).toEqual([]);
   });
 
@@ -87,7 +87,7 @@ describe('ExecutionContextApi', () => {
           });
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('getCurrentCommandGiver returns null with no command frame', () => {
@@ -95,7 +95,7 @@ describe('ExecutionContextApi', () => {
       ExecutionContextApi.run(null, new Target(), 'inner', undefined, () => {
         expect(ExecutionContextApi.getCurrentCommandGiver()).toBeNull();
       });
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   describe('getCommandStack / getParentCommandContext', () => {
@@ -161,7 +161,7 @@ describe('ExecutionContextApi', () => {
             );
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('skips non-Command frames in the walk', () => {
@@ -186,7 +186,7 @@ describe('ExecutionContextApi', () => {
             });
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('forced defaults to false when metadata omits the flag', () => {
@@ -205,7 +205,7 @@ describe('ExecutionContextApi', () => {
             expect(stack[0]!.forced).toBe(false);
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('getParentCommandContext returns null with only one Command frame', () => {
@@ -223,7 +223,7 @@ describe('ExecutionContextApi', () => {
             expect(ExecutionContextApi.getParentCommandContext()).toBeNull();
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
     });
   });
 
@@ -236,7 +236,7 @@ describe('ExecutionContextApi', () => {
         expect(dump).toContain('outer');
         expect(dump).toContain('inner');
       });
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   describe('frame-mutator allowlist', () => {
@@ -333,7 +333,7 @@ describe('ExecutionContextApi', () => {
           expect(frame?.target).toBe(target);
           expect(frame?.method).toBe('m');
         });
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('tagCurrentFrame throws outside any frame context', () => {
@@ -350,7 +350,7 @@ describe('ExecutionContextApi', () => {
             expect(ExecutionContextApi.findFrame(FrameKind.Command)?.target).toBe(b);
           });
         });
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('runRoot stamps the synthetic frame with FrameKind.Root', () => {
@@ -358,7 +358,7 @@ describe('ExecutionContextApi', () => {
         const root = ExecutionContextApi.findFrame(FrameKind.Root);
         expect(root).not.toBeNull();
         expect(root?.method).toBe('r');
-      });
+      }, { acting: { boundary: 'test' } });
     });
   });
 
@@ -369,14 +369,14 @@ describe('ExecutionContextApi', () => {
       ExecutionContextApi.run(c, t, 'inner', undefined, () => {
         expect(() => ExecutionContextApi.assertCaller(Target)).toThrow(SecurityError);
       });
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   describe('command-attribution accessors', () => {
     it('getCurrentCommandContext returns null outside any command frame', () => {
       ExecutionContextApi.runRoot(null, 'r', () => {
         expect(ExecutionContextApi.getCurrentCommandContext()).toBeNull();
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('getCurrentCommandContext reads commandContext off the Command frame metadata', () => {
@@ -405,7 +405,7 @@ describe('ExecutionContextApi', () => {
             });
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('getCurrentCausingCommandId walks top-down for the first metadata hit', () => {
@@ -437,7 +437,7 @@ describe('ExecutionContextApi', () => {
             ).toBe('cmd-outer');
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('getCurrentCausingCommandId returns null when no frame carries the metadata', () => {
@@ -447,7 +447,7 @@ describe('ExecutionContextApi', () => {
             ExecutionContextApi.getCurrentCausingCommandId()
           ).toBeNull();
         });
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('updateCurrentFrameMetadata merges into the top frame', () => {
@@ -465,7 +465,7 @@ describe('ExecutionContextApi', () => {
             ExecutionContextApi.getCurrentCausingCommandId()
           ).toBe('abc');
         });
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('updateCurrentFrameMetadata throws outside any frame context', () => {
@@ -503,7 +503,7 @@ describe('ExecutionContextApi', () => {
         ExecutionContextApi.run(null, player, 'executeCommand', cmd(player), () => {
           expect(ExecutionContextApi.getActingAuthor()).toBe(player);
         });
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('returns the tagged acting author when there is no command frame (CMS/runRoot)', () => {
@@ -513,7 +513,7 @@ describe('ExecutionContextApi', () => {
         // target (which stays the boundary's own principal).
         ExecutionContextApi.tagActingAuthor(avatar);
         expect(ExecutionContextApi.getActingAuthor()).toBe(avatar);
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('a command frame takes precedence over a stray acting-author tag', () => {
@@ -524,7 +524,7 @@ describe('ExecutionContextApi', () => {
         ExecutionContextApi.run(null, player, 'executeCommand', cmd(player), () => {
           expect(ExecutionContextApi.getActingAuthor()).toBe(player);
         });
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('fails closed (null) for a forced command frame', () => {
@@ -542,7 +542,7 @@ describe('ExecutionContextApi', () => {
             expect(ExecutionContextApi.getActingAuthor()).toBeNull();
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('fails closed (null) for a cross-actor cascade (two different givers)', () => {
@@ -554,7 +554,7 @@ describe('ExecutionContextApi', () => {
             expect(ExecutionContextApi.getActingAuthor()).toBeNull();
           });
         });
-      });
+      }, { acting: { boundary: 'test' } });
     });
 
     it('returns null outside any frame', () => {

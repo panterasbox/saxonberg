@@ -109,7 +109,7 @@ function fit(part: GreenHandle, whole: GreenJug): Promise<FitOutcome> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(potter);
     return CraftingApi.fit({ part, whole });
-  }) as unknown as Promise<FitOutcome>;
+  }, { acting: { boundary: 'test' } }) as unknown as Promise<FitOutcome>;
 }
 
 beforeEach(() => {

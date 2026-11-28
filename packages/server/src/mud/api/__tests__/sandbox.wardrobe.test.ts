@@ -64,7 +64,7 @@ const PLAYER = 'wardrobe-tester';
 const SCOPE = `/home/${PLAYER}`;
 
 function asSystem<T>(fn: () => T): T {
-  return ExecutionContextApi.runRoot(null, 'test.system', fn, {
+  return ExecutionContextApi.runRoot(null, 'test.system', fn, { acting: { boundary: 'test' },
     circleScope: OMNI_SCOPE,
   });
 }
@@ -405,7 +405,7 @@ describe('the seeding aperture (Wave 4)', () => {
       'in-circle',
       () => SandboxApi.seedCopy(wireBody, trinket as unknown as Stuff),
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     ))!;
 
     // the copy is circle-born with the same template identity…
@@ -429,7 +429,7 @@ describe('the seeding aperture (Wave 4)', () => {
         () =>
           SandboxApi.seedCopy(wireBody, strangersItem as unknown as Stuff),
         'rethrow',
-        { circleScope: SCOPE }
+        { acting: { boundary: 'test' }, circleScope: SCOPE }
       )
     ).rejects.toThrow(/you own/);
   });

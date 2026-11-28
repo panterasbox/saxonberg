@@ -66,7 +66,7 @@ function mintAs(
   return ExecutionContextApi.runRoot(null, "test", () => {
     if (principal) ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.mintFromBuild(req);
-  }) as ReturnType<typeof CraftingApi.mintFromBuild>;
+  }, { acting: { boundary: 'test' } }) as ReturnType<typeof CraftingApi.mintFromBuild>;
 }
 
 beforeEach(async () => {

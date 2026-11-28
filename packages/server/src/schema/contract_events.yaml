@@ -23,6 +23,10 @@ invariants:
     transaction where money moved.
   - >-
     REFUSE under the sandbox.
+  - >-
+    ⭐ Every row names its act (`actId`, `causeId` — tropes D1). A breach by
+    a claim's lapse carries the CLAIM's act — the promise was the choice,
+    the lapse its end — never the act of whoever's read noticed it.
 sandbox: refuse
 reset: wipe
 indexes:

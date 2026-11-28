@@ -38,7 +38,7 @@ describe('circle-scope stamping at mint', () => {
       'test',
       () => StuffApi.create(() => new ScopeProbe()),
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(obj!.getCircleScope()).toBe(SCOPE);
   });
@@ -49,7 +49,7 @@ describe('circle-scope stamping at mint', () => {
       'test',
       () => StuffApi.create(() => new ScopeProbe()),
       'rethrow',
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
     expect(obj!.getCircleScope()).toBeNull();
   });
@@ -62,7 +62,7 @@ describe('circle-scope stamping at mint', () => {
         const obj = StuffApi.createSync(() => new ScopeProbe());
         expect(obj.getCircleScope()).toBe(SCOPE);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -72,7 +72,7 @@ describe('circle-scope stamping at mint', () => {
       'test',
       () => StuffApi.create(() => new ScopeProbe()),
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     (obj as unknown as Record<string, unknown>)['circleScope'] = null;
     (obj as unknown as Record<string, unknown>)['#circleScope'] = null;

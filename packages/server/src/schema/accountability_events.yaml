@@ -22,6 +22,12 @@ invariants:
   - >-
     PASS(mark) under the sandbox: harm inside a circle happened to
     somebody, and the mark records the circle.
+  - >-
+    ⭐ Every row names its act (`actId`, `causeId` — tropes D1) and who SAW
+    it (`witnesses` — identity paths of those in the harmer's place who
+    perceived the harmer as the row was written, minus its parties; D8).
+    Kinds `yielded` and `spared` record how a fight ended; blame derives
+    from `death` / `harm` only, so they never move it.
 sandbox:
   verb: "pass"
   mark: true

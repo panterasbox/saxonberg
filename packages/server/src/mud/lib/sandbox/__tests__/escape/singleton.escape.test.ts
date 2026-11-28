@@ -49,7 +49,7 @@ describe('sandbox-escape: singleton', () => {
       null,
       'maintenance',
       () => SecurityApi.assertFieldMutation({}, 'probe'),
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
     // circle: denied
     ExecutionContextApi.runRoot(
@@ -60,7 +60,7 @@ describe('sandbox-escape: singleton', () => {
           SecurityError
         );
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -76,7 +76,7 @@ describe('sandbox-escape: singleton', () => {
           HotReloadApi.unload('/obj/anything')
         ).toThrow(SecurityError);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     await tick();
     const receipt = record.mock.calls.find((c) =>

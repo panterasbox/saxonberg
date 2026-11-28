@@ -79,7 +79,7 @@ describe('the ash round', () => {
     expect(brain.urgency(ctx()).band).toBe('wanted');
     await brain.act(ctx());
     expect(pay).toHaveBeenCalledWith('his-acct', 'owner-acct', expect.anything(), expect.stringMatching(/ash round/));
-    expect(paidFor.transferChattel).toHaveBeenCalledWith(hand);
+    expect(paidFor.transferChattel).toHaveBeenCalledWith(hand, expect.objectContaining({ kind: 'sale' }));
   });
 
   it('⭐ a heap with nobody to pay is taken all the same — and said', async () => {
@@ -90,7 +90,7 @@ describe('the ash round', () => {
     vi.spyOn(g, 'rakeGrate').mockResolvedValue({ kg: 0.4, ash: [nobodys] });
     await brain.act(ctx());
     expect(pay).not.toHaveBeenCalled();
-    expect(nobodys.transferChattel).toHaveBeenCalledWith(hand);
+    expect(nobodys.transferChattel).toHaveBeenCalledWith(hand, { kind: 'terms' });
   });
 
   it('a stop with a clean grate is nothing to do', () => {

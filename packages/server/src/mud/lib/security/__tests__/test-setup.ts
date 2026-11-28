@@ -69,7 +69,7 @@ export function makeStuff<T extends Stuff>(factory: () => T): T {
  * @internal
  */
 export function withRootContext<T>(target: unknown, method: string, fn: () => T): T {
-  return ExecutionContextApi.runRoot(target, method, fn);
+  return ExecutionContextApi.runRoot(target, method, fn, { acting: { boundary: 'test' } });
 }
 
 /**

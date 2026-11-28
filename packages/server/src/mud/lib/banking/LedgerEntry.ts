@@ -253,6 +253,11 @@ export default class LedgerEntry extends Document {
     txId: { persistent: true },
     at: { persistent: true },
     realAt: { persistent: true },
+    actId: { persistent: true },
+    causeId: { persistent: true },
+    fromParty: { persistent: true },
+    toParty: { persistent: true },
+    heldBefore: { persistent: true },
   };
 
   /** The transaction kind. */
@@ -291,4 +296,25 @@ export default class LedgerEntry extends Document {
   at = 0;
   /** Real-time epoch MILLISECONDS — the wall clock. */
   realAt = 0;
+  /**
+   * ⭐ The act this leg is part of (tropes D1) — the choice's id, kept by a
+   * continuation; `''` for a named system's work with no act.
+   */
+  actId = "";
+  /** The act {@link actId} follows from, or `null` (tropes D1). */
+  causeId: string | null = null;
+  /**
+   * ⭐ WHO paid — the paying account's recorded owner (a person's identity
+   * path, or an institution's path), not the account (tropes D6). `''` for
+   * a sentinel or escrow leg.
+   */
+  fromParty = "";
+  /** WHO was paid — the receiving account's recorded owner (tropes D6). */
+  toParty = "";
+  /**
+   * What the paying account held just before this posting, minor units —
+   * with `amount`, the share of their means the payer spent (tropes D6).
+   * `0` for a sentinel-paid leg.
+   */
+  heldBefore = 0;
 }

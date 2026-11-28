@@ -300,7 +300,7 @@ describe("the maker's mark on the batch (P3/D9)", () => {
       ExecutionContextApi.tagActingAuthor(founder);
       fillWithMust(vat);
       vat.getMaturationPhase();
-    });
+    }, { acting: { boundary: 'test' } });
     // The founder signs the BATCH, by identity; the time made is its start.
     expect(batch(vat)?.maker).toBe('/stuff/idea/maturation-test/agent/founder');
     expect(batch(vat)?.craftedAt).toBeTypeOf('number');

@@ -67,7 +67,7 @@ async function run(
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
     await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
-  });
+  }, { acting: { boundary: 'test' } });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
 
@@ -511,7 +511,7 @@ describe('the envelope contract', () => {
     const result = await ExecutionContextApi.runRoot(null, 'x', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
       return TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ subcommand: 'read' } as never, ctx));
-    });
+    }, { acting: { boundary: 'test' } });
     expect(result).toBeUndefined();
     expect(ctx.getNotes().length).toBeGreaterThan(0);
   });
@@ -530,7 +530,7 @@ describe('the envelope contract', () => {
     await ExecutionContextApi.runRoot(null, 'x', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
       await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute({ subcommand: 'read' } as never, ctx));
-    });
+    }, { acting: { boundary: 'test' } });
     expect(ctx.getStatus()).toBe('declined');
   });
 });

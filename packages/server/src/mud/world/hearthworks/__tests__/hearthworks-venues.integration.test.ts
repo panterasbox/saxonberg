@@ -279,7 +279,7 @@ async function craftAs(
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft({ recipeRef, makerMode });
-  }) as unknown as Awaited<ReturnType<typeof CraftingApi.craft>>;
+  }, { acting: { boundary: 'test' } }) as unknown as Awaited<ReturnType<typeof CraftingApi.craft>>;
 }
 
 let store: Record<string, Record<string, unknown>[]>;

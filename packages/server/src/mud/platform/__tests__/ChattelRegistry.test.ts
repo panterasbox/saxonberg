@@ -42,6 +42,7 @@ import { EstateMixin } from "../../lib/chattel/Estate";
 import { Idea } from "../../lib/stuff/Idea";
 import TemplateApplier from "../idea/TemplateApplier";
 import { ChattelEvent } from "../../lib/chattel/ChattelEvent";
+import { TestHarnessApi } from "../../api/test-harness";
 import { Document } from "../../lib/persistence/Document";
 import { PersistenceManager } from "../../../backend/PersistenceManager";
 import { ChattelRecord } from "../../lib/chattel/ChattelRecord";
@@ -210,7 +211,7 @@ describe("chattel possession core", () => {
     const before = await torch.chattelOwner();
     expect(before).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
 
-    await torch.transferChattel(bob);
+    await torch.transferChattel(bob, { kind: "unrequited" });
     const after = await torch.chattelOwner();
     expect(after).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
 
@@ -221,12 +222,46 @@ describe("chattel possession core", () => {
     expect(events[1]?.to).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
   });
 
+  it("⭐ handed over, a good's title follows it — unless lent, or not the giver's (tropes D7)", async () => {
+    const alice = makeOwner("alice");
+    const bob = makeOwner("bob");
+    const gift = makeTorch();
+    await gift.stampChattel(alice);
+    expect(await TestHarnessApi.actAs(alice, () => gift.handedOver(alice, bob))).toBe(true);
+    expect(await gift.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
+    const events = await ChattelEvent.findByChattelId(gift.getChattelId());
+    expect(events[events.length - 1]?.basis).toBe("unrequited");
+
+    const loan = makeStuffAtPath(() => new Torch(), "/test/loan");
+    await loan.stampChattel(alice);
+    expect(await TestHarnessApi.actAs(alice, () => loan.handedOver(alice, bob, { lend: true }))).toBe(false);
+    expect((await loan.chattelOwner())?.templatePath).toBe("/platform/agent/Avatar/alice");
+
+    // Bob carries Alice's torch: handing it on only changes hands.
+    expect(await TestHarnessApi.actAs(bob, () => loan.handedOver(bob, makeOwner("cy")))).toBe(false);
+    expect((await loan.chattelOwner())?.templatePath).toBe("/platform/agent/Avatar/alice");
+  });
+
+  it("⭐ a transfer states its basis — a sale carries its money leg, a gift says so (tropes D7)", async () => {
+    const torch = makeTorch();
+    const alice = makeOwner("alice");
+    await torch.stampChattel(alice);
+    await torch.transferChattel(makeOwner("bob"), { kind: "sale", txId: "tx-1" });
+    await torch.transferChattel(makeOwner("cy"), { kind: "unrequited" });
+    const events = await ChattelEvent.findByChattelId(torch.getChattelId());
+    expect(events.map((e) => [e.event, e.basis, e.txId])).toEqual([
+      ["mint", "", ""],
+      ["transfer", "sale", "tx-1"],
+      ["transfer", "unrequited", ""],
+    ]);
+  });
+
   it("⭐ a stamp and a transfer write the title in one keyed write — no read of the row (db-performance H4)", async () => {
     const torch = makeTorch();
     // The production read path (the test's fake builds its saveMany on its own find).
     const find = vi.spyOn(PersistApi, "find");
     await torch.stampChattel(makeOwner("alice"));
-    await torch.transferChattel(makeOwner("bob"));
+    await torch.transferChattel(makeOwner("bob"), { kind: "unrequited" });
     expect(find.mock.calls.filter(([c]) => c === "chattel")).toHaveLength(0);
     const rows = await ChattelRecord.find<ChattelRecord>({ chattelId: torch.getChattelId() });
     expect(rows).toHaveLength(1);
@@ -429,7 +464,7 @@ describe("a bound title (aether-devices D10)", () => {
     expect((await pal.stampChattel(alice, { bound: true })).ok).toBe(true);
     expect(pal.isTitleBound()).toBe(true);
 
-    const moved = await pal.transferChattel(bob);
+    const moved = await pal.transferChattel(bob, { kind: "unrequited" });
     expect(moved).toEqual({ ok: false, reason: "bound" });
     expect(await pal.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
 
@@ -447,6 +482,6 @@ describe("a bound title (aether-devices D10)", () => {
     const torch = makeTorch();
     await torch.stampChattel(makeOwner("alice"));
     expect(torch.isTitleBound()).toBe(false);
-    expect((await torch.transferChattel(makeOwner("bob"))).ok).toBe(true);
+    expect((await torch.transferChattel(makeOwner("bob"), { kind: "unrequited" })).ok).toBe(true);
   });
 });

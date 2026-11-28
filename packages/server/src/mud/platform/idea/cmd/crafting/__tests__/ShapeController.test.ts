@@ -75,7 +75,7 @@ async function shape(model: Record<string, unknown>): Promise<CommandContext> {
   const ctx = makeContext(actor, room, 'shape');
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     await TestHarnessApi.actAs(ctx.commandGiver, () => makeStuff(() => new ShapeController()).execute(model as never, ctx));
-  });
+  }, { acting: { boundary: 'test' } });
   return ctx;
 }
 

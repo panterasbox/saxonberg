@@ -20,7 +20,7 @@ describe('runRootGuarded', () => {
       null,
       'ok',
       () => 42,
-      'absorb'
+      'absorb', { acting: { boundary: 'test' } }
     );
     expect(out).toBe(42);
     expect(DiagnosticApi.record).not.toHaveBeenCalled();
@@ -33,7 +33,7 @@ describe('runRootGuarded', () => {
       () => {
         throw new Error('boom');
       },
-      'absorb'
+      'absorb', { acting: { boundary: 'test' } }
     );
     expect(out).toBeUndefined();
     expect(DiagnosticApi.record).toHaveBeenCalledTimes(1);
@@ -50,7 +50,7 @@ describe('runRootGuarded', () => {
         async () => {
           throw new Error('kaboom');
         },
-        'rethrow'
+        'rethrow', { acting: { boundary: 'test' } }
       )
     ).rejects.toThrow('kaboom');
     expect(DiagnosticApi.record).toHaveBeenCalledTimes(1);
@@ -63,7 +63,7 @@ describe('runRootGuarded', () => {
       () => {
         throw new Error('tickfail');
       },
-      'swallow'
+      'swallow', { acting: { boundary: 'test' } }
     );
     expect(out).toBeUndefined();
     expect(DiagnosticApi.record).toHaveBeenCalledTimes(1);
@@ -77,7 +77,7 @@ describe('runRootGuarded', () => {
       () => {
         throw new Error('x');
       },
-      'swallow'
+      'swallow', { acting: { boundary: 'test' } }
     );
     expect(vi.mocked(DiagnosticApi.record).mock.calls[0]?.[0]?.path).toBe(
       '/mud/lib/lounge/Bar'

@@ -65,7 +65,7 @@ async function render(
         snippets[name.trim().toLowerCase()] ?? null,
     });
     return result.body;
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 describe('expansion and substitution (16)', () => {
@@ -286,7 +286,7 @@ describe('what expansion must NOT touch', () => {
     const out = await ExecutionContextApi.runRoot(null, 'r', async () => {
       ExecutionContextApi.tagActingAuthor(reader);
       return (await raw().render('{{Hello}}')).body;
-    });
+    }, { acting: { boundary: 'test' } });
     expect(out).toBe('{{Hello}}');
   });
 });

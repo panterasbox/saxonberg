@@ -14,6 +14,7 @@ import { DiagnosticApi } from '../diagnostics';
 import { TestHarnessApi } from '../test-harness';
 import { ProxyApi } from '../proxy';
 import { Refusal } from '../../lib/errors';
+import { SecurityError } from '../../lib/security/errors';
 import { Idea } from '../../lib/stuff/Idea';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
@@ -46,7 +47,7 @@ describe('getActor — who is acting', () => {
       asCommand(ryn, false, () => {
         expect(ExecutionContextApi.getActor()).toBe(ryn);
         expect(ExecutionContextApi.getActingAuthor()).toBe(ryn);
-      }),
+      }), { acting: { boundary: 'test' } },
     );
   });
 
@@ -56,7 +57,7 @@ describe('getActor — who is acting', () => {
       asCommand(dave, true, () => {
         expect(ExecutionContextApi.getActor()).toBe(dave);
         expect(ExecutionContextApi.getActingAuthor()).toBeNull();
-      }),
+      }), { acting: { boundary: 'test' } },
     );
   });
 
@@ -88,7 +89,7 @@ describe('getActor — who is acting', () => {
           seen = ExecutionContextApi.getActor();
           author = ExecutionContextApi.getCausingAuthor();
         });
-      }),
+      }), { acting: { boundary: 'test' } },
     );
     vi.advanceTimersByTime(5);
     expect(seen).toBe(dave);
@@ -121,11 +122,27 @@ describe('getActor — who is acting', () => {
     });
   });
 
-  it('an unnamed root is nobody', () => {
+  it('⭐ no root starts with nobody acting (tropes D3)', () => {
+    const run = (opts: unknown) => () =>
+      ExecutionContextApi.runRoot(null, 'timer', () => undefined, opts as never);
+    expect(run(undefined)).toThrow(SecurityError);
+    expect(run({})).toThrow(SecurityError);
+    expect(run({ acting: { actor: null } })).toThrow(SecurityError);
+    expect(run({ acting: { system: '' } })).toThrow(SecurityError);
+    expect(run({ acting: { boundary: '' } })).toThrow(SecurityError);
+    const empty = { actor: { actor: null, system: null }, actId: null, causeId: null, commandId: null, author: null };
+    expect(run({ acting: { continuation: empty } })).toThrow(SecurityError);
+    expect(run({ acting: { continuation: null } })).toThrow(SecurityError);
     ExecutionContextApi.runRoot(null, 'timer', () => {
       expect(ExecutionContextApi.getActor()).toBeNull();
+      expect(ExecutionContextApi.actingSystem()).toBe('test');
+    }, { acting: { system: 'test' } });
+    ExecutionContextApi.runRoot(null, 'web', () => {
+      // A boundary is somebody, but neither an actor nor a system.
+      expect(ExecutionContextApi.getActor()).toBeNull();
       expect(ExecutionContextApi.actingSystem()).toBeNull();
-    });
+      expect(ExecutionContextApi.captureContinuation()?.actor.boundary).toBe('web');
+    }, { acting: { boundary: 'web' } });
   });
 
   it('runAsSelf makes the running object the actor — and only it', () => {
@@ -143,21 +160,19 @@ describe('getActor — who is acting', () => {
     });
   });
 
-  it('captureActor + runAsCaptured carry the actor across a fresh root (the eval root)', () => {
+  it('captureContinuation carries the actor across a fresh root (the eval root)', () => {
     const wiz = person('wiz');
-    const acting = TestHarnessApi.actAs(wiz, () => ExecutionContextApi.captureActor());
-    ExecutionContextApi.runRoot(null, 'sandbox.runScoped', () =>
-      ExecutionContextApi.runAsCaptured(acting, () => {
-        expect(ExecutionContextApi.getActor()).toBe(wiz);
-      }),
-    );
+    const continuation = TestHarnessApi.actAs(wiz, () => ExecutionContextApi.captureContinuation());
+    ExecutionContextApi.runRoot(null, 'sandbox.runScoped', () => {
+      expect(ExecutionContextApi.getActor()).toBe(wiz);
+    }, { acting: { continuation } });
   });
 
   it('a pack (or anything outside the Api tier) may not name the system on a schedule', () => {
     const outsider = person('outsider');
     expect(() =>
       ExecutionContextApi.runRoot(outsider, 'arm', () =>
-        ScheduleApi.schedule(1, () => undefined, { system: 'residency' }),
+        ScheduleApi.schedule(1, () => undefined, { system: 'residency' }), { acting: { boundary: 'test' } },
       ),
     ).toThrow(/only the Api tier or a kernel singleton/);
   });
@@ -195,10 +210,10 @@ describe('AccessApi.requireActor — the check', () => {
     );
   });
 
-  it('refuses a claim made where nobody is acting', () => {
+  it('refuses a claim made by something that is not the one claimed', () => {
     const ryn = person('ryn');
     vi.spyOn(DiagnosticApi, 'record').mockResolvedValue(undefined);
-    expect(() => ExecutionContextApi.runRoot(null, 'timer', () => AccessApi.requireActor(ryn))).toThrow(Refusal);
+    expect(() => ExecutionContextApi.runRoot(null, 'timer', () => AccessApi.requireActor(ryn), { acting: { boundary: 'timer' } })).toThrow(Refusal);
   });
 
   it("refuses a forgery that answers the actor's stuffId, identity path and raw target", () => {
@@ -231,7 +246,7 @@ describe('getActingCodePath — whose code made the claim', () => {
     ExecutionContextApi.runRoot(ctl, 'execute', () =>
       ExecutionContextApi.run(ctl, logic, 'requireActor', undefined, () => {
         expect(ExecutionContextApi.getActingCodePath()).toBe('/platform/idea/cmd/system/ClaimProbeController');
-      }),
+      }), { acting: { boundary: 'test' } },
     );
   });
 });

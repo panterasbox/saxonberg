@@ -48,7 +48,7 @@ export const handleLocalityFacts: InboundHandler = async (ctx, message) => {
         // ⚠ One answer for *no such place*, *a place you have not been* and
         // a failure: `null`, never a reason.
         return factsFor(viewer, address).catch(() => null);
-      })
+      }, { acting: { actor: viewer } })
     : null;
 
   const template: Omit<LocalityFactsResultEnvelope, 'frameId'> = {

@@ -296,7 +296,7 @@ describe('Scene attribution stamping', () => {
             .send();
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
 
     expect(alice.received).toHaveLength(1);
     expect(alice.received[0]!.meta.commandId).toBe('cmd-XYZ');

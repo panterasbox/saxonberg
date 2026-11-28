@@ -112,7 +112,7 @@ function as<T>(fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(smith);
     return fn();
-  }) as unknown as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as unknown as Promise<T>;
 }
 
 async function makeAxe(): Promise<TestPart> {

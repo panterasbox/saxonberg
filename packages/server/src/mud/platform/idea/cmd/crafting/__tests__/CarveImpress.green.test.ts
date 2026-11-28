@@ -66,7 +66,7 @@ async function run(
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
     await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
-  });
+  }, { acting: { boundary: 'test' } });
   return ctx;
 }
 

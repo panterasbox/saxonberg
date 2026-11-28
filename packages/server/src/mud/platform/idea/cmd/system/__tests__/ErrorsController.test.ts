@@ -152,7 +152,7 @@ describe('errors controllers', () => {
     const r = await ExecutionContextApi.runRoot(null, 'direct', async () => {
       ExecutionContextApi.tagActingAuthor(ctx.commandGiver);
       return DiagnosticApi.rawTail();
-    });
+    }, { acting: { boundary: 'test' } });
     expect(r).toBeNull();
     expect(CompactApi.holdsOffice).toHaveBeenCalledWith(
       ctx.commandGiver,

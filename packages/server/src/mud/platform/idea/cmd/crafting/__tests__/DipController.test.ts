@@ -76,7 +76,7 @@ async function dip(target: Stuff | null, baths: Stuff[], face?: string): Promise
       } as never,
       context,
     ));
-  });
+  }, { acting: { boundary: 'test' } });
   return context;
 }
 

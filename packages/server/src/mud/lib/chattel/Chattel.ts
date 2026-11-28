@@ -30,9 +30,11 @@ import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import { StuffApi } from "../../api/stuff";
 import { MixinApi } from "../../api/mixin";
+import { AccessApi } from "../../api/access";
 // eslint-disable-next-line no-restricted-imports -- the F1 object face: a good's chattelOwner()/stampChattel()/transferChattel() forward into the chattel logic singleton exactly as the api/chattel facade does (the Combustible/Energized precedent)
 import { ChattelLogic } from "../../platform/idea/api/ChattelLogic";
 import type { ChattelOwner } from "./ChattelRecord";
+import type { ChattelBasis } from "./ChattelEvent";
 import type { MarkupAugmenter } from "../../api/mml";
 
 /** The outcome of a stamp/transfer — the minted id, or a refusal reason. */
@@ -101,8 +103,20 @@ export interface Chattel {
   stampChattel(owner: Stuff, opts?: { bound?: boolean }): Promise<ChattelStampResult>;
   /** Is this good's title bound — never transferable? Sync dry read. */
   isTitleBound(): boolean;
-  /** Transfer ownership — re-stamp to `newOwner` (chain-of-title event). */
-  transferChattel(newOwner: Stuff): Promise<ChattelStampResult>;
+  /**
+   * Transfer ownership — re-stamp to `newOwner` (chain-of-title event),
+   * stating WHY it moved (tropes D7): a gift, a sale (its money leg), terms
+   * or a restoration. The basis is a fact the caller holds; the row keeps it.
+   */
+  transferChattel(newOwner: Stuff, basis: ChattelBasis): Promise<ChattelStampResult>;
+  /**
+   * ⭐ This good was handed from `from` to `to` (tropes D7): its title
+   * follows it — a gift, unrequited — when it was `from`'s and is not lent
+   * (`{ lend: true }`) or bound. A good `from` held but did not own only
+   * changed hands. `from` must be the one acting. Answers whether the
+   * title passed.
+   */
+  handedOver(from: Stuff, to: Stuff, opts?: { lend?: boolean }): Promise<boolean>;
 }
 
 /**
@@ -194,6 +208,20 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
       return chattelLogic().stampedOwnerOf(this as unknown as Stuff);
     }
 
+    /** See {@link Chattel.handedOver} — the good decides its own title. */
+    @Final
+    @Unshadowable
+    public async handedOver(from: Stuff, to: Stuff, opts?: { lend?: boolean }): Promise<boolean> {
+      AccessApi.requireActor(from);
+      if (opts?.lend === true || this.isTitleBound()) return false;
+      const owner = this.stampedOwner();
+      if (owner === null || owner.kind === "group" || owner.templatePath !== from.getIdentityPath()) {
+        return false;
+      }
+      const moved = await this.transferChattel(to, { kind: "unrequited" });
+      return moved.ok;
+    }
+
     /**
      * See {@link Chattel.isStamped}. Synchronous, and that is the point
      * — the persistence capture walk cannot await, and the stamp IS the
@@ -232,10 +260,11 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
     /** See {@link Chattel.transferChattel} — auditable re-stamp. */
     @Final
     @Unshadowable
-    public transferChattel(newOwner: Stuff): Promise<ChattelStampResult> {
+    public transferChattel(newOwner: Stuff, basis: ChattelBasis): Promise<ChattelStampResult> {
       return chattelLogic().transfer(
         this as unknown as Stuff,
         ownerKeyOf(newOwner),
+        basis,
       );
     }
 

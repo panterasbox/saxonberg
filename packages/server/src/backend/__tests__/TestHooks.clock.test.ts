@@ -122,7 +122,7 @@ describe('TestHooks.advanceClock', () => {
           await TestHooks.advanceClock('2 days', { soak: true });
         },
         'rethrow',
-        { circleScope: '/home/somebody' },
+        { acting: { boundary: 'test' }, circleScope: '/home/somebody' },
       );
       expect(WorldClockApi.getNow().rawValue() - before).toBeCloseTo(
         2 * DAY_S,
@@ -139,7 +139,7 @@ describe('TestHooks.advanceClock', () => {
           await TestHooks.advanceClock('1 day');
         },
         'rethrow',
-        { jurisdictionBound: '/world/_test/field' },
+        { acting: { boundary: 'test' }, jurisdictionBound: '/world/_test/field' },
       );
       expect(WorldClockApi.getNow().rawValue() - before).toBeCloseTo(
         DAY_S,

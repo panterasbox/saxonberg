@@ -103,7 +103,7 @@ async function asAuthor<T>(fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(acting);
     return fn();
-  }) as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as Promise<T>;
 }
 
 beforeEach(() => {

@@ -157,7 +157,7 @@ describe("the sewing machine (a MendingTool row)", () => {
     const outcome = await ExecutionContextApi.runRoot(null, "test", () => {
       ExecutionContextApi.tagActingAuthor(smith as unknown as Stuff);
       return CraftingApi.repair({ item: jerkin });
-    });
+    }, { acting: { boundary: 'test' } });
     expect(outcome.ok).toBe(true);
     expect(jerkin.getCondition()).toBe(1);
     expect(

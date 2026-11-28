@@ -61,7 +61,7 @@ describe('sandbox-escape: deferred', () => {
           fieldThing.poke();
         });
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     vi.advanceTimersByTime(20);
     vi.useRealTimers();
@@ -81,7 +81,7 @@ describe('sandbox-escape: deferred', () => {
         ScheduleApi.schedule(10, () => fieldThing.poke());
         ScheduleApi.recurring(10, () => fieldThing.poke());
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(ScheduleApi.cancelAllForScope(SCOPE)).toBe(2);
     vi.advanceTimersByTime(50);

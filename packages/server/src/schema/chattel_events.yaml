@@ -19,6 +19,14 @@ invariants:
     `chattel` is derivable from this log.
   - >-
     REFUSE under the sandbox.
+  - >-
+    ⭐ Every row names its act (`actId`, `causeId` — tropes D1) and its
+    actor by WHO IS ACTING, keyed by identity path (D4; never the
+    labor-plane author, never the shared lineage path). A `transfer` states
+    its `basis` — `unrequited` (a gift), `sale` (with the money leg's
+    `txId`), `terms` or `restored` — the fact the transferring site holds,
+    so the row says gift or sale by itself (D7). `''` on a mint, a release
+    or a restamp.
 sandbox: refuse
 reset: wipe
 indexes: []

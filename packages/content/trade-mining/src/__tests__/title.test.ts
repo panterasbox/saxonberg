@@ -190,7 +190,7 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
         { block, register: { stuff: register, raw: 'register' } } as never,
         context,
       ));
-    });
+    }, { acting: { boundary: 'test' } });
     expect(
       context.getNotes().filter((n) => n.kind === 'controller-rejected'),
       `stake ${block} was declined`,
@@ -257,7 +257,7 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
         { block: '24,20,0', register: { stuff: register, raw: 'register' } } as never,
         context,
       ));
-    });
+    }, { acting: { boundary: 'test' } });
     expect(
       context.getNotes().find((n) => n.kind === 'controller-rejected')?.reason,
     ).toBe('already-claimed');

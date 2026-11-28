@@ -174,7 +174,7 @@ export class TestHooks {
             );
           }
           return id;
-        }
+        }, { acting: { system: 'test-harness' } }
       );
       const user = await User.findById(userId);
       const playerId = user?.playerIds[0];
@@ -317,7 +317,7 @@ export class TestHooks {
           onOutcome: (s) => {
             status = s;
           },
-        })
+        }), { acting: { actor: body } }
       );
       return status;
     };
@@ -538,7 +538,7 @@ export class TestHooks {
     // `TestHarnessApi` — the one implementation the in-world `testharness`
     // command calls too, so both doors meet the same rule once.
     return ExecutionContextApi.runRoot(TestHooks, 'advanceClock', () =>
-      TestHarnessApi.advanceClock(duration, opts)
+      TestHarnessApi.advanceClock(duration, opts), { acting: { system: 'test-harness' } }
     );
   }
 
@@ -558,7 +558,7 @@ export class TestHooks {
     return ExecutionContextApi.runRoot(TestHooks, 'pinWeather', () =>
       type === null
         ? TestHarnessApi.unpinWeather(scope)
-        : TestHarnessApi.pinWeather(scope, type, mode)
+        : TestHarnessApi.pinWeather(scope, type, mode), { acting: { system: 'test-harness' } }
     );
   }
 
@@ -570,7 +570,7 @@ export class TestHooks {
    */
   public static async stage(path: string, method: string, args: readonly unknown[]): Promise<StageReport> {
     TestHooks.#assertTestMode('stage');
-    return ExecutionContextApi.runRoot(TestHooks, 'stage', () => TestHarnessApi.stage(path, method, args));
+    return ExecutionContextApi.runRoot(TestHooks, 'stage', () => TestHarnessApi.stage(path, method, args), { acting: { system: 'test-harness' } });
   }
 
   /**
@@ -582,14 +582,14 @@ export class TestHooks {
   public static async stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
     TestHooks.#assertTestMode('stageShip');
     return ExecutionContextApi.runRoot(TestHooks, 'stageShip', () =>
-      TestHarnessApi.stageShip(handle, spec)
+      TestHarnessApi.stageShip(handle, spec), { acting: { system: 'test-harness' } }
     );
   }
 
   /** TEST-ONLY: purge what wire runs left (test-world-lifecycle D4) — `TestHarnessApi.purgeTestLitter`. */
   public static async purgeLitter(): Promise<PurgeReport> {
     TestHooks.#assertTestMode('purgeLitter');
-    return ExecutionContextApi.runRoot(TestHooks, 'purgeLitter', () => TestHarnessApi.purgeTestLitter());
+    return ExecutionContextApi.runRoot(TestHooks, 'purgeLitter', () => TestHarnessApi.purgeTestLitter(), { acting: { system: 'test-harness' } });
   }
 
   /** TEST-ONLY: stage an outage — the next `calls` record reads/writes fail (failure-model D8). */
@@ -617,14 +617,14 @@ export class TestHooks {
     data: Record<string, unknown>,
   ): Promise<{ path: string; kind: string }> {
     TestHooks.#assertTestMode('forceDocument');
-    return ExecutionContextApi.runRoot(TestHooks, 'forceDocument', () => TestHarnessApi.forceDocument(path, kind, data));
+    return ExecutionContextApi.runRoot(TestHooks, 'forceDocument', () => TestHarnessApi.forceDocument(path, kind, data), { acting: { system: 'test-harness' } });
   }
 
   /** TEST-ONLY: game-seconds now. The read half of {@link advanceClock}. */
   public static clockNow(): number {
     TestHooks.#assertTestMode('clockNow');
     return ExecutionContextApi.runRoot(TestHooks, 'clockNow', () =>
-      TestHarnessApi.clockNow()
+      TestHarnessApi.clockNow(), { acting: { system: 'test-harness' } }
     );
   }
 
@@ -729,7 +729,7 @@ export class TestHooks {
         }
       }
       return out;
-    });
+    }, { acting: { system: 'test-harness' } });
   }
 
   /**
@@ -749,7 +749,7 @@ export class TestHooks {
       const avatar = PlayerApi.findAvatarByName(handle);
       if (!avatar) throw new Error(`no resident character named '${handle}'`);
       return ContractApi.issueNote(avatar.getIdentityPath() ?? '');
-    });
+    }, { acting: { system: 'test-harness' } });
   }
 
   /**
@@ -816,7 +816,7 @@ export class TestHooks {
         }
       }
       return thing.stuffId;
-    });
+    }, { acting: { system: 'test-harness' } });
   }
 
   /**

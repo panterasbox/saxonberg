@@ -179,7 +179,7 @@ export class RecordApi {
       async (): Promise<StoredFrameRecord[]> => {
         ExecutionContextApi.tagActingAuthor(owner);
         return RecordApi.recent(limit);
-      },
+      }, { acting: { actor: owner } },
     );
   }
 

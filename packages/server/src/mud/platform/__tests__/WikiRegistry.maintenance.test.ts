@@ -45,7 +45,7 @@ async function asActor<T>(fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'wiki.test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
     return fn();
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 async function create(

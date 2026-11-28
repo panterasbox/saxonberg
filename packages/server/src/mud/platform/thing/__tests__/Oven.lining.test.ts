@@ -129,7 +129,7 @@ describe('the lining', () => {
     const out = await ExecutionContextApi.runRoot(null, 'test', () => {
       ExecutionContextApi.tagActingAuthor(mason);
       return CraftingApi.fit({ part: bricks, whole: o });
-    });
+    }, { acting: { boundary: 'test' } });
     expect(out, JSON.stringify(out)).toMatchObject({ ok: true });
     expect(o.liningHealth()!).toBeGreaterThan(0.8);
     expect(o.ignite()).toMatchObject({ lit: true });

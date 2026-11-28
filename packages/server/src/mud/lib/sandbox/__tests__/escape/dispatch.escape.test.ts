@@ -71,7 +71,7 @@ describe('sandbox-escape: dispatch', () => {
       () => {
         expect(() => fieldThing.poke()).toThrow(SecurityError);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(fieldThing.wasPoked()).toBe(false);
   });
@@ -82,7 +82,7 @@ describe('sandbox-escape: dispatch', () => {
       'escape',
       () => StuffApi.create(() => new Pokeable()),
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(() => circleThing!.poke()).toThrow(SecurityError);
   });
@@ -101,7 +101,7 @@ describe('sandbox-escape: dispatch', () => {
         expect(circleThing.wasPoked()).toBe(true);
       },
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -112,7 +112,7 @@ describe('sandbox-escape: dispatch', () => {
       'escape',
       () => StuffApi.create(() => new Pokeable()),
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     ExecutionContextApi.runRoot(
       null,
@@ -123,7 +123,7 @@ describe('sandbox-escape: dispatch', () => {
         expect(fieldThing.wasPoked()).toBe(true);
         expect(circleThing!.wasPoked()).toBe(true);
       },
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
   });
 
@@ -136,7 +136,7 @@ describe('sandbox-escape: dispatch', () => {
         // field-resident proxy dispatch that must pass via Decision J.
         expect(SandboxApi.sessionForScope(SCOPE)).toBeNull();
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 
@@ -151,7 +151,7 @@ describe('sandbox-escape: dispatch', () => {
       () => {
         expect(() => fieldThing.poke()).toThrow(SecurityError);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     await tick();
     expect(record).toHaveBeenCalled();

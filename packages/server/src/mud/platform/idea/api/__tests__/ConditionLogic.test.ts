@@ -102,12 +102,12 @@ describe('ConditionLogic.inflict — producer spine', () => {
           });
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
 
     expect(trauma(body).inflictedBy).toBe('/platform/agent/Avatar/attacker');
   });
 
-  it('leaves the inflicter undefined under a forced dispatch', () => {
+  it('⭐ names the forced actor — a forced NPC\'s blow is its own (tropes D4)', () => {
     const giver = makeStuff(() => new Creature());
     stampTemplatePathForTest(giver, '/platform/agent/Avatar/forcer');
     const body = makeStuff(() => new Creature());
@@ -126,9 +126,9 @@ describe('ConditionLogic.inflict — producer spine', () => {
           });
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
 
-    expect(trauma(body).inflictedBy).toBeUndefined();
+    expect(trauma(body).inflictedBy).toBe('/platform/agent/Avatar/forcer');
   });
 
   it('leaves the inflicter undefined outside any command frame', () => {

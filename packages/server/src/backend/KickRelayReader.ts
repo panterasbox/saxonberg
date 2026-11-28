@@ -119,7 +119,7 @@ export class KickRelayReader {
       null,
       'kick.inbound',
       () => StreamApi.dispatchInbound('kick', norm),
-      { circleScope: OMNI_SCOPE }
+      { acting: { system: 'kick-relay' }, circleScope: OMNI_SCOPE }
     );
   }
 }

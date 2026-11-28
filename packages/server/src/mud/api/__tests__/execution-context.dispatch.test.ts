@@ -28,13 +28,14 @@ afterEach(() => ExecutionContextApi._clearForTesting());
 
 describe('the dispatch context', () => {
   it('is null with no stack, and the current node under one', () => {
+    ExecutionContextApi._clearForTesting();
     expect(ExecutionContextApi._dispatchContext()).toBeNull();
     const root = { r: 1 };
     ExecutionContextApi.runRoot(root, 'root', () => {
       const node = ExecutionContextApi._dispatchContext();
       expect(node?.frame.target).toBe(root);
       expect(node?.root).toBe(node);
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('a push given the parent it read builds the same stack as one that reads it', () => {
@@ -48,7 +49,7 @@ describe('the dispatch context', () => {
       const without = push(root, a, 'm', undefined, () => push(a, b, 'n', undefined, targets));
       expect(withParent).toEqual([root, a, b]);
       expect(without).toEqual(withParent);
-    });
+    }, { acting: { boundary: 'test' } });
   });
 
   it('a push with no parent after an await links under the frame that awaited', async () => {
@@ -60,7 +61,7 @@ describe('the dispatch context', () => {
       push(root, awaiting, 'wait', undefined, async () => {
         await new Promise((r) => setTimeout(r, 1));
         return push(awaiting, after, 'after', undefined, targets);
-      })
+      }), { acting: { boundary: 'test' } }
     );
     expect(seen).toEqual([root, awaiting, after]);
   });
@@ -83,8 +84,8 @@ describe('through the real gate', () => {
     const x = { chain: 'x' };
     const y = { chain: 'y' };
     const [fromX, fromY] = await Promise.all([
-      ExecutionContextApi.runRoot(x, 'x', () => e.rootTargetLater()),
-      ExecutionContextApi.runRoot(y, 'y', () => e.rootTargetLater()),
+      ExecutionContextApi.runRoot(x, 'x', () => e.rootTargetLater(), { acting: { boundary: 'test' } }),
+      ExecutionContextApi.runRoot(y, 'y', () => e.rootTargetLater(), { acting: { boundary: 'test' } }),
     ]);
     expect(fromX).toBe(x);
     expect(fromY).toBe(y);
@@ -98,7 +99,7 @@ describe('through the real gate', () => {
     }
     const p = makeStuff(() => new Probe());
     const root = { r: 1 };
-    expect(ExecutionContextApi.runRoot(root, 'root', () => p.stack())).toEqual([root, p]);
+    expect(ExecutionContextApi.runRoot(root, 'root', () => p.stack(), { acting: { boundary: 'test' } })).toEqual([root, p]);
   });
 
   it('a dispatch under a circle root reads that circle', () => {
@@ -109,7 +110,7 @@ describe('through the real gate', () => {
     }
     const s = makeStuff(() => new Scoped());
     const SCOPE = '*';
-    const seen = ExecutionContextApi.runRoot(null, 'root', () => s.scope(), { circleScope: SCOPE });
+    const seen = ExecutionContextApi.runRoot(null, 'root', () => s.scope(), { acting: { boundary: 'test' }, circleScope: SCOPE });
     expect(seen).toBe(SCOPE);
   });
 });

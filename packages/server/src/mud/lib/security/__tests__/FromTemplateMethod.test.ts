@@ -171,7 +171,7 @@ describe('FromTemplateMethod', () => {
     // admit anyone. This is why the residency spawn sweep re-enters
     // through its own Api instead of calling the free function.
     expect(() =>
-      ExecutionContextApi.runRoot(null, 'knock', () => vault.open()),
+      ExecutionContextApi.runRoot(null, 'knock', () => vault.open(), { acting: { boundary: 'test' } }),
     ).toThrow();
   });
 

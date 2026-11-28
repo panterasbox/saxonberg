@@ -49,7 +49,7 @@ async function asReader<T>(who: Stuff | null, fn: () => Promise<T>): Promise<T> 
   return ExecutionContextApi.runRoot(null, 'wiki.read', async () => {
     if (who !== null) ExecutionContextApi.tagActingAuthor(who);
     return fn();
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 /**

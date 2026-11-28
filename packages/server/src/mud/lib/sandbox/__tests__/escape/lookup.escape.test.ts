@@ -76,7 +76,7 @@ describe('sandbox-escape: lookup', () => {
         return { actor, circleItem, room };
       },
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     ))!;
     // …with one FIELD object physically smuggled into the pool's walk
     // by system context (the adversarial setup).
@@ -87,7 +87,7 @@ describe('sandbox-escape: lookup', () => {
       () => {
         ContainmentApi.move(fieldItem, staged.room);
       },
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
     return { actor: staged.actor, circleItem: staged.circleItem, fieldItem };
   }
@@ -103,7 +103,7 @@ describe('sandbox-escape: lookup', () => {
         expect(ids).toContain(circleItem.stuffId);
         expect(ids).not.toContain(fieldItem.stuffId);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
 
     ExecutionContextApi.runRoot(
@@ -113,7 +113,7 @@ describe('sandbox-escape: lookup', () => {
         const ids = reachableFrom(actor).map((s) => s.stuffId);
         expect(ids).toContain(fieldItem.stuffId);
       },
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
   });
 
@@ -125,7 +125,7 @@ describe('sandbox-escape: lookup', () => {
       () => {
         expect(() => fieldItem.snatch()).toThrow(SecurityError);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
   });
 });

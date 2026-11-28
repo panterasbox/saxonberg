@@ -67,7 +67,7 @@ async function run(
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
     await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
-  });
+  }, { acting: { boundary: 'test' } });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
 
@@ -229,7 +229,7 @@ describe('⭐ compare-and-swap on rev (34)', () => {
         { subcommand: 'edit', page: 'oak', body: 'y', rev: '1' } as never,
         ctx,
       ));
-    });
+    }, { acting: { boundary: 'test' } });
     // Declined, not error: the page is fine, the edit simply did not
     // go through, and the author is expected to reapply it.
     expect(ctx.getStatus()).toBe('declined');

@@ -1180,7 +1180,7 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
       ScheduleApi.schedule(
         (Date.now() - started) * DRAIN_REST_FACTOR,
         () => this.drainDirty(),
-        { propagateAttribution: false },
+        { propagateAttribution: false, system: 'subscription' },
       );
     } else {
       this.scheduled = false;
@@ -1214,9 +1214,15 @@ export default class MqlSubscriptionRegistry extends SubscriptionSourceMixin(Ide
         'mql.reresolve',
         () => this.reresolveAndEmit(sub),
         'swallow',
-        effectiveScope !== null
-          ? { circleScope: effectiveScope }
-          : undefined,
+        // ⭐ The subscription is its viewer's query (tropes D3): the body the
+        // socket drives, else the subscription boundary.
+        {
+          acting: (() => {
+            const holder = sub.interactive.getHolder();
+            return holder ? { actor: holder } : { boundary: 'subscription' };
+          })(),
+          ...(effectiveScope !== null ? { circleScope: effectiveScope } : {}),
+        },
       );
     }
   }

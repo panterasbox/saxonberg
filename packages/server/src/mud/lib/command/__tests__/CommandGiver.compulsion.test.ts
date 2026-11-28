@@ -173,21 +173,21 @@ args:
     expect(prompt).not.toHaveBeenCalled();
   });
 
-  it('code with nobody acting never compels', async () => {
+  it('code acting as something else never compels', async () => {
     await expect(
-      ExecutionContextApi.runRoot(null, 'timer', () => giver.forceCommand('buyit lot 4')),
+      ExecutionContextApi.runRoot(null, 'timer', () => giver.forceCommand('buyit lot 4'), { acting: { boundary: 'timer' } }),
     ).rejects.toBeInstanceOf(Refusal);
     expect(prompt).not.toHaveBeenCalled();
   });
 
   it('sandboxed code (an eval, a circle) never compels, even a consent verb (D14)', async () => {
-    const acting = TestHarnessApi.actAs(asker, () => ExecutionContextApi.captureActor());
+    const continuation = TestHarnessApi.actAs(asker, () => ExecutionContextApi.captureContinuation());
     await expect(
       ExecutionContextApi.runRoot(
         null,
         'sandbox.runGoverned',
-        async () => ExecutionContextApi.runAsCaptured(acting, () => giver.forceCommand('buyit lot 4')),
-        { jurisdictionBound: '/home/asker' },
+        async () => giver.forceCommand('buyit lot 4'),
+        { acting: { continuation }, jurisdictionBound: '/home/asker' },
       ),
       // The sandbox boundary refuses a body outside the extent first; the
       // gate is the second wall for one inside it.

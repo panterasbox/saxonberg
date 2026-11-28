@@ -30,10 +30,12 @@ import { Mml } from '../../../../api/mml';
 interface GiveModel extends CommandModel {
   item: MqlOneResult;
   recipient: MqlOneResult;
+  /** `--lend`: hand it over and keep the title (tropes D7). */
+  lend?: boolean;
 }
 
 export default class GiveController extends CommandController<GiveModel> {
-  execute(model: GiveModel, context: CommandContext): void {
+  async execute(model: GiveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const item = model.item.stuff;
     const recipient = model.recipient.stuff;
@@ -124,6 +126,10 @@ export default class GiveController extends CommandController<GiveModel> {
       .toSelf(Mml.compose`${Mml.actor(giver)} gives you ${Mml.thing(item)}.`)
       .send();
     ContainmentApi.move(item as Stuff & Containable, recipient as Stuff & Container);
+    // ⭐ A gift (tropes D7): the good decides whether its title follows it.
+    if (MixinApi.isChattel(item)) {
+      await item.handedOver(giver, recipient, { lend: model.lend === true });
+    }
   }
 
   /** The recipient does not carry, and the giver keeps it. */

@@ -438,7 +438,7 @@ function runDetachedBody(
       forced: false,
     });
     return fn();
-  });
+  }, { acting: { actor: ctx.commandGiver } });
 }
 
 /** Bucket of a recency-stack entry — categorical metadata, not ordering. */

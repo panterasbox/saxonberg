@@ -18,7 +18,7 @@
  */
 
 import { ExecutionContextApi } from './execution-context';
-import type { ActorClaim } from './execution-context';
+import type { ContinuationClaim } from './execution-context';
 import { StuffApi } from './stuff';
 import { SecurityApi } from './security';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
@@ -139,20 +139,16 @@ interface InternalHandle {
  * yields; only the error path changes.
  */
 /**
- * What a deferred callback carries from the act that scheduled it: the
- * command that caused it, and ⭐ WHO acted (`causingAuthor`) — so a
- * deferred mint is still the actor's (`ExecutionContextApi.getCausingAuthor`).
+ * ⭐⭐ What a deferred callback carries from the act that scheduled it — the
+ * ONE continuation capture (tropes D2): who was acting, the act (a
+ * callback is the same act, never a new one), its cause, the causing
+ * command and the labor-plane author. `system` names engine work instead.
+ *
+ * ⭐ No work starts with nobody acting (tropes D3): scheduling with nobody
+ * acting and no system named throws HERE, at the site that started the
+ * work, rather than at the fire an hour later where nobody could tell who.
  */
-interface Attribution {
-  commandId: string | null;
-  author: unknown | null;
-  /** ⭐ Who is ACTING (call-security pass D2) — not the author: a forced start has an actor. */
-  actor: ActorClaim;
-}
-
-const NOBODY: ActorClaim = { actor: null, system: null };
-
-function captureAttribution(opts: ScheduleOptions | undefined): Attribution {
+function captureAttribution(opts: ScheduleOptions | undefined): ContinuationClaim {
   const system = opts?.system;
   if (system !== undefined) {
     const caller = ExecutionContextApi.getCaller();
@@ -161,18 +157,29 @@ function captureAttribution(opts: ScheduleOptions | undefined): Attribution {
         `ScheduleApi: only the Api tier or a kernel singleton may run work as the system ('${system}')`,
       );
     }
+    if (system === '') throw new SecurityError('ScheduleApi: the system must be named');
   }
   const propagate = opts?.propagateAttribution ?? true;
-  if (!propagate) return { commandId: null, author: null, actor: system ? { actor: null, system } : NOBODY };
-  return {
-    commandId: ExecutionContextApi.getCurrentCausingCommandId(),
-    author: ExecutionContextApi.getCausingAuthor(),
-    actor: system ? { actor: null, system } : ExecutionContextApi.captureActor(),
-  };
+  const carried = ExecutionContextApi.captureContinuation();
+  if (carried === null && system === undefined) {
+    throw new SecurityError(
+      'ScheduleApi: no one is acting — schedule from inside an act, or name the system',
+    );
+  }
+  // `propagateAttribution: false` severs the ACT (no causing command, act
+  // id or author rides along) — never who is acting.
+  const keep = propagate && carried !== null;
+  return Object.freeze({
+    actor: system !== undefined ? { actor: null, system } : carried!.actor,
+    actId: keep ? carried.actId : null,
+    causeId: keep ? carried.causeId : null,
+    commandId: keep ? carried.commandId : null,
+    author: keep ? carried.author : null,
+  });
 }
 
 function planRun(
-  causing: Attribution,
+  causing: ContinuationClaim,
   fn: () => void,
   circleScope: string | null = null
 ): void {
@@ -180,41 +187,25 @@ function planRun(
   // context re-plants that scope on its fresh root, so the four
   // containment layers govern the deferred work exactly as they governed
   // the scheduling act (the `causingCommandId` precedent, verbatim).
-  const opts = circleScope !== null ? { circleScope } : undefined;
   // A scheduled callback is a fresh root — never part of the clone tree
   // that armed it (see `StuffApi.outsideCloneTree`).
-  StuffApi.outsideCloneTree(() => planRunInner(causing, fn, opts));
+  StuffApi.outsideCloneTree(() => planRunInner(causing, fn, circleScope));
 }
 
 function planRunInner(
-  causing: Attribution,
+  causing: ContinuationClaim,
   fn: () => void,
-  opts: { circleScope: string } | undefined
+  circleScope: string | null
 ): void {
-  const { actor, system } = causing.actor;
-  if (causing.commandId === null && causing.author === null && actor == null && system == null) {
-    void ExecutionContextApi.runRootGuarded(
-      ScheduleApi,
-      'fire',
-      fn,
-      'swallow',
-      opts
-    );
-    return;
-  }
   void ExecutionContextApi.runRootGuarded(
     ScheduleApi,
     'fire',
-    () => {
-      ExecutionContextApi.updateCurrentFrameMetadata({
-        ...(causing.commandId !== null ? { causingCommandId: causing.commandId } : {}),
-        ...(causing.author !== null ? { causingAuthor: causing.author } : {}),
-        ...(system != null ? { actingSystem: system } : actor != null ? { actor } : {}),
-      });
-      fn();
-    },
+    fn,
     'swallow',
-    opts
+    {
+      acting: { continuation: causing },
+      ...(circleScope !== null ? { circleScope } : {}),
+    }
   );
 }
 

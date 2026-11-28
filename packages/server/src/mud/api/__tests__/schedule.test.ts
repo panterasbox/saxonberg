@@ -47,7 +47,7 @@ describe('ScheduleApi.schedule', () => {
           });
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
     vi.advanceTimersByTime(50);
     expect(observed).toBe('cmd-A');
   });
@@ -60,7 +60,7 @@ describe('ScheduleApi.schedule', () => {
       ScheduleApi.schedule(50, () => {
         observed = ExecutionContextApi.getCausingAuthor();
       });
-    });
+    }, { acting: { boundary: 'test' } });
     vi.advanceTimersByTime(50);
     expect(observed).toBe(alice);
   });
@@ -86,7 +86,7 @@ describe('ScheduleApi.schedule', () => {
           );
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
     vi.advanceTimersByTime(10);
     expect(observed).toBeNull();
   });
@@ -111,7 +111,7 @@ describe('ScheduleApi.schedule', () => {
           });
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
     vi.advanceTimersByTime(10);
     vi.advanceTimersByTime(10);
     expect(observed).toBe('cmd-C');
@@ -205,7 +205,7 @@ describe('ScheduleApi.recurring', () => {
           });
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
     vi.advanceTimersByTime(50);
     vi.advanceTimersByTime(50);
     vi.advanceTimersByTime(50);
@@ -235,7 +235,7 @@ describe('ScheduleApi.recurring', () => {
           );
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
     vi.advanceTimersByTime(50);
     vi.advanceTimersByTime(50);
     expect(observations).toEqual([null, null]);

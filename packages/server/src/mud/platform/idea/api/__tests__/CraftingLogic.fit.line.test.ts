@@ -123,7 +123,7 @@ function fitLine(o: Oven) {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(mason);
     return CraftingApi.fit({ whole: o, line: 'lining' });
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 describe('fit lining to <furnace>', () => {

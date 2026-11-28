@@ -312,7 +312,7 @@ describe('vitals — the affliction inflicter', () => {
     ExecutionContextApi.runRoot(null, 'test', () => {
       ExecutionContextApi.tagActingAuthor(poisoner);
       victim.afflict(record);
-    });
+    }, { acting: { boundary: 'test' } });
     expect(record.inflictedBy).toBe('/test/poisoner');
   });
 
@@ -344,7 +344,7 @@ describe('vitals — the affliction inflicter', () => {
     ExecutionContextApi.runRoot(null, 'test', () => {
       ExecutionContextApi.tagActingAuthor(other);
       body.afflict(record);
-    });
+    }, { acting: { boundary: 'test' } });
     expect(record.inflictedBy).toBe('/test/the-real-culprit');
   });
 });

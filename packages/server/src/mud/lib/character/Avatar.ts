@@ -38,6 +38,7 @@ import { MagicApi } from "../../api/magic";
 import { Mml } from "../../api/mml";
 import { WorldClockApi } from "../../api/worldclock";
 import { ScheduleApi, type ScheduleHandle } from "../../api/schedule";
+import { ExecutionContextApi } from "../../api/execution-context";
 import {
   SettingTypes,
   type SettingsSchemaEntry,
@@ -1556,7 +1557,8 @@ export default abstract class Avatar extends AvatarBase {
     const intervalMs =
       ShellApi.resolveSetting<number>(this, "world.autosave.interval") ??
       5 * 60 * 1000;
-    this.periodicSaveHandle = ScheduleApi.recurring(
+    // ⭐ The body's own upkeep: it saves itself (tropes D3), with no act.
+    this.periodicSaveHandle = ExecutionContextApi.runAsSelf(() => ScheduleApi.recurring(
       intervalMs,
       () => {
         // Fire-and-forget; errors logged but don't crash the session.
@@ -1568,7 +1570,7 @@ export default abstract class Avatar extends AvatarBase {
         });
       },
       { propagateAttribution: false, mode: "fixed-delay" },
-    );
+    ));
   }
 
   /**
@@ -1955,7 +1957,8 @@ export default abstract class Avatar extends AvatarBase {
   }
 
   private recheckSignOutLater(): void {
-    this.signOutRecheck = ScheduleApi.schedule(
+    // ⭐ The body's own upkeep: it rechecks itself (tropes D3), with no act.
+    this.signOutRecheck = ExecutionContextApi.runAsSelf(() => ScheduleApi.schedule(
       Avatar.SIGN_OUT_RECHECK_MS,
       () => {
         this.signOutRecheck = null;
@@ -1963,7 +1966,7 @@ export default abstract class Avatar extends AvatarBase {
         void this.retireSignedOutBody();
       },
       { propagateAttribution: false },
-    );
+    ));
   }
 
   /**

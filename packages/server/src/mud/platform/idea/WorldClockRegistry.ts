@@ -31,6 +31,7 @@ import { SecurityApi } from '../../api/security';
 import { GrammarApi } from '../../api/grammar';
 import { Idea } from '../../lib/stuff/Idea';
 import type { VetoResult } from '../../lib/errors';
+import { SecurityError } from '../../lib/security/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 import { CallSecurity } from '../../lib/security/decorators';
 import { SecurityPolicies } from '../../lib/security/SecurityPolicies';
@@ -41,7 +42,7 @@ import { DefaultCalendar } from '../../lib/time/DefaultCalendar';
 import { WorldClockState } from '../../lib/time/WorldClockState';
 import { ScheduleApi, type ScheduleHandle } from '../../api/schedule';
 import {
-  type ActorClaim,
+  type ContinuationClaim,
   ExecutionContextApi,
   OMNI_SCOPE,
 } from '../../api/execution-context';
@@ -111,12 +112,13 @@ interface Schedule {
   /** Fire once for a backlog of missed periods (`ScheduleOpts.coalesce`). */
   coalesce: boolean;
   /**
-   * ⭐ Who was acting when it was armed (call-security pass D2), or the
-   * system it names (`ScheduleOpts.system`) — replanted on every fire, so a
-   * clock callback acts as its starter and never as whoever moved the
+   * ⭐⭐ The act it continues (tropes D2) — who was acting when it was armed
+   * (or the system it names, `ScheduleOpts.system`), that act's id and
+   * cause — replanted on every fire, so a clock callback acts as its
+   * starter, within the starter's act, and never as whoever moved the
    * clock.
    */
-  actor: ActorClaim;
+  continuation: ContinuationClaim;
 }
 
 const WorldClockRegistryBase = Idea;
@@ -550,7 +552,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
         () => {
           this.onHeartbeat();
         },
-        { circleScope: OMNI_SCOPE },
+        { acting: { system: 'world-clock' }, circleScope: OMNI_SCOPE },
       );
       if (++guard > 1_000_000) {
         throw new Error(
@@ -779,9 +781,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
       birthScope:
         registrantScope === OMNI_SCOPE ? null : registrantScope,
       coalesce: spec.opts?.coalesce === true,
-      actor: spec.opts?.system !== undefined
-        ? { actor: null, system: spec.opts.system }
-        : ExecutionContextApi.captureActor(),
+      continuation: this.armingContinuation(spec.opts?.system),
     };
     s.handle = {
       id,
@@ -808,7 +808,7 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
             () => {
               this.cancelInternal(s);
             },
-            { circleScope: OMNI_SCOPE },
+            { acting: { system: 'world-clock' }, circleScope: OMNI_SCOPE },
           );
         },
       ) as unknown as Subscription<unknown>;
@@ -872,11 +872,36 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
           () => {
             this.onHeartbeat();
           },
-          { circleScope: OMNI_SCOPE },
+          { acting: { system: 'world-clock' }, circleScope: OMNI_SCOPE },
         );
       },
-      { propagateAttribution: false },
+      { propagateAttribution: false, system: 'world-clock' },
     );
+  }
+
+  /**
+   * The act a clock schedule continues (tropes D2): the one running as it
+   * is armed, or the system it names. ⭐ No work starts with nobody acting
+   * (D3): arming with nobody acting and no system named throws here, at
+   * the site that started the work.
+   */
+  private armingContinuation(system: string | undefined): ContinuationClaim {
+    const carried = ExecutionContextApi.captureContinuation();
+    if (system !== undefined) {
+      return Object.freeze({
+        actId: carried?.actId ?? null,
+        causeId: carried?.causeId ?? null,
+        commandId: carried?.commandId ?? null,
+        author: carried?.author ?? null,
+        actor: { actor: null, system },
+      });
+    }
+    if (carried === null) {
+      throw new SecurityError(
+        'WorldClockApi: no one is acting — arm a schedule inside an act, or name the system',
+      );
+    }
+    return carried;
   }
 
   private onHeartbeat(): void {
@@ -940,12 +965,12 @@ export default class WorldClockRegistry extends WorldClockRegistryBase {
         ExecutionContextApi.runRoot(
           WorldClockApi,
           'fire',
-          () => ExecutionContextApi.runAsCaptured(s.actor, () => s.cb(s.handle)),
-          { circleScope: s.birthScope },
+          () => s.cb(s.handle),
+          { acting: { continuation: s.continuation }, circleScope: s.birthScope },
         );
         return;
       }
-      ExecutionContextApi.runAsCaptured(s.actor, () => s.cb(s.handle));
+      ExecutionContextApi.runAsContinuation(s.continuation, () => s.cb(s.handle));
     } catch (err) {
       console.error(
         `WorldClockApi: schedule '${s.id}' callback threw (continuing)`,

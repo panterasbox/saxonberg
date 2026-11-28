@@ -40,7 +40,7 @@ async function asClerk<T>(fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'haulage.test', () => {
     ExecutionContextApi.tagActingAuthor(clerk());
     return fn();
-  }) as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as Promise<T>;
 }
 
 const TERMINUS = '/world/terminus/estuary/lower-towpath';

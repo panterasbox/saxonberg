@@ -353,7 +353,7 @@ describe('⭐ a spoiler-declared field is gated ON A REAL RENDER (27)', () => {
     return ExecutionContextApi.runRoot(null, 'wiki.read', async () => {
       ExecutionContextApi.tagActingAuthor(reader);
       return (await raw.render(body)).body;
-    });
+    }, { acting: { boundary: 'test' } });
   }
 
   beforeEach(() => {

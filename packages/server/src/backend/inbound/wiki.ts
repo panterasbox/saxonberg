@@ -36,7 +36,7 @@ export const handleWikiExcerpt: InboundHandler = async (ctx, message) => {
         // ⚠ One answer for *no page* and *nothing you may read*: a failure
         // to render is the same `null`, never an error that says why.
         return WikiApi.excerpt(ref).catch(() => null);
-      })
+      }, { acting: { actor: viewer } })
     : null;
 
   const template: Omit<WikiExcerptResultEnvelope, 'frameId'> = {

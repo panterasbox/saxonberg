@@ -66,7 +66,7 @@ async function run(
   await ExecutionContextApi.runRoot(null, 'wiki.cmd', async () => {
     ExecutionContextApi.tagActingAuthor(giver);
     await TestHarnessApi.actAs(ctx.commandGiver, () => ctrl.execute(model as never, ctx));
-  });
+  }, { acting: { boundary: 'test' } });
   return { body: sent.join(''), notes: ctx.getNotes() };
 }
 
@@ -341,12 +341,12 @@ describe('⭐ history is gated too (9, 67, 68)', () => {
       ExecutionContextApi.runRoot(null, 'direct', async () => {
         ExecutionContextApi.tagActingAuthor(giver);
         return registry.historyFor(moderator, page!._id ?? '');
-      }),
+      }, { acting: { boundary: 'test' } }),
     ).rejects.toMatchObject({ reason: 'not-acting-for' });
     const views = await ExecutionContextApi.runRoot(null, 'direct', async () => {
       ExecutionContextApi.tagActingAuthor(giver);
       return registry.historyFor(giver, page!._id ?? '');
-    });
+    }, { acting: { boundary: 'test' } });
     expect(views.map((v) => v.body).join(' ')).not.toContain('secret');
     expect(views.find((v) => v.rev === 2)?.visibleChange).toBe(false);
     // The rows themselves are not on the view.

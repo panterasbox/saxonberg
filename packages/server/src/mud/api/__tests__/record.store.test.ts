@@ -68,14 +68,14 @@ async function recentAs(avatar: Avatar, limit = 300) {
   return ExecutionContextApi.runRoot(null, 'test.recall', async () => {
     ExecutionContextApi.tagActingAuthor(avatar);
     return RecordApi.recent(limit);
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 async function recallAs(avatar: Avatar, scope: 'frames', search: string) {
   return ExecutionContextApi.runRoot(null, 'test.recall', async () => {
     ExecutionContextApi.tagActingAuthor(avatar);
     return RecordApi.recall(scope, search);
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 /** The store's rows for one owner, oldest first. */
@@ -303,7 +303,7 @@ describe('owner-only', () => {
     const orphan = await ExecutionContextApi.runRoot(
       null,
       'test.no-actor',
-      async () => RecordApi.recent(),
+      async () => RecordApi.recent(), { acting: { boundary: 'test' } },
     );
     expect(orphan).toEqual([]);
   });

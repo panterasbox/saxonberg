@@ -63,7 +63,7 @@ export class TwitchRelayReader {
         null,
         'twitch.inbound',
         () => StreamApi.dispatchInbound('twitch', norm),
-        { circleScope: OMNI_SCOPE }
+        { acting: { system: 'twitch-relay' }, circleScope: OMNI_SCOPE }
       );
     });
 

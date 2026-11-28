@@ -56,7 +56,7 @@ async function executeAs(
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(who);
     await fn();
-  });
+  }, { acting: { boundary: 'test' } });
 }
 
 function rejected(ctx: CommandContext): boolean {

@@ -382,7 +382,8 @@ export function ConsignmentShelfMixin<TBase extends MixinConstructor<Stuff>>(
       }
       const buyer = await this.purchaserOf(giver, paid.receipt);
       if (MixinApi.isChattel(item)) {
-        await item.transferChattel(buyer); // stamp → buyer (or their house)
+        // stamp → buyer (or their house), a sale on its money leg (tropes D7)
+        await item.transferChattel(buyer, { kind: "sale", txId: paid?.receipt.txId ?? "" });
       }
       if (MixinApi.isChattel(item)) this.removeListing(item.getChattelId());
       // Named before the move: a piece that meets its like merges into it.

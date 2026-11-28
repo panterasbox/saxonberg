@@ -156,14 +156,14 @@ describe('WorldClockState persistence (AC3)', () => {
     const caller = { id: 'in-world-actor' };
     expect(() =>
       ExecutionContextApi.runRoot(caller, 'attack', () =>
-        WorldClockApi.shutdown()
+        WorldClockApi.shutdown(), { acting: { boundary: 'test' } }
       )
     ).toThrow(SecurityError);
     const registry = StuffApi.findByTemplatePath<WorldClockRegistry>(
       TemplatePaths.worldClockRegistry,
     )!;
     expect(() =>
-      ExecutionContextApi.runRoot(caller, 'attack', () => registry.boot())
+      ExecutionContextApi.runRoot(caller, 'attack', () => registry.boot(), { acting: { boundary: 'test' } })
     ).toThrow(SecurityError);
     expect(pm.saves).toHaveLength(0);
   });

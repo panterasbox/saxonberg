@@ -30,7 +30,7 @@ function runAs<T>(fn: () => T | Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(Stuff, 'test', () => {
     ExecutionContextApi.tagActingAuthor(actor);
     return fn();
-  }) as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as Promise<T>;
 }
 
 async function refusalOf(p: Promise<unknown>): Promise<Refusal> {
@@ -140,7 +140,7 @@ describe('filed records, ledgers and secret kinds (A2)', () => {
     const path = '/trade/drilling/bores/b1';
     const call = (lines: unknown[]): Promise<void> =>
       ExecutionContextApi.runRoot(register as unknown as Stuff, 'test', () =>
-        DocumentApi.saveToRegister(register, path, { wellhead: 'w', claim: 'c', since: 0, lines }),
+        DocumentApi.saveToRegister(register, path, { wellhead: 'w', claim: 'c', since: 0, lines }), { acting: { boundary: 'test' } },
       ) as Promise<void>;
     await call([{ depthM: 1 }]);
     await call([{ depthM: 1 }, { depthM: 2 }]);

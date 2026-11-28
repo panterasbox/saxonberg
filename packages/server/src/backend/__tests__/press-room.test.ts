@@ -128,7 +128,7 @@ async function publish(
       ...(opts.visibility ? { visibility: opts.visibility } : {}),
       ...(opts.pinned ? { pinned: true } : {}),
     });
-  }) as ReturnType<typeof PressApi.publish>);
+  }, { acting: { boundary: 'test' } }) as ReturnType<typeof PressApi.publish>);
   return release.getReleaseId();
 }
 
@@ -189,7 +189,7 @@ describe("GET /api/press/releases — the anonymous press room", () => {
         kind: "repost",
         source: EXEC,
       });
-    }) as Promise<unknown>);
+    }, { acting: { boundary: 'test' } }) as Promise<unknown>);
 
     const res = await request(makeApp()).get("/api/press/releases");
     expect(res.body[0].source).toBe(EXEC);

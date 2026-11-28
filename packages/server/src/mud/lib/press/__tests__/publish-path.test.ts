@@ -108,7 +108,7 @@ async function asActor<T>(path: string, fn: () => Promise<T>): Promise<T> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(acting);
     return fn();
-  }) as Promise<T>;
+  }, { acting: { boundary: 'test' } }) as Promise<T>;
 }
 
 function contextFor(giver: Stuff): CommandContext {

@@ -13,9 +13,10 @@
  * read a hedged clause. Server-authoritative — the client is never sent
  * hidden state.
  *
- * Reactions are producer-driven: the adapter mints its own `commandId`
- * (`SecurityApi.uuid()` — the beat runs in a detached scheduler root with
- * no command frame), stamps it on every frame, and — on **dramatic beats
+ * Reactions are producer-driven: the adapter keys its frames on THE ACT the
+ * beat narrates (tropes D33 — the fight's continuation carries the attack's
+ * `actId`, so a reaction to a blow is a reaction to the attack), minting a
+ * key only for a beat no act is running under; stamps it on every frame, and — on **dramatic beats
  * only** — calls `ReactionApi.noteReactableAct` itself (the `Vocal`/`Soul`
  * precedent). Tick/pressed beats stay silent.
  *
@@ -28,6 +29,7 @@ import type { Sensor } from "../message/Sensor";
 import type { Channel } from "../material/Channel";
 import type { OutcomeBand } from "../../api/material";
 import { MessageApi } from "../../api/message";
+import { ExecutionContextApi } from "../../api/execution-context";
 import { ProseApi } from "../../api/prose";
 import { Mml } from "../../api/mml";
 import { ReactionApi } from "../../api/reaction";
@@ -182,6 +184,15 @@ function listOf(items: readonly string[]): string {
 }
 
 /**
+ * The act a beat narrates (tropes D33): the one running — the attack the
+ * fight's continuation carries — else a fresh key, so a beat with no act
+ * still has something to be reacted to.
+ */
+function actKey(): string {
+  return ExecutionContextApi.getCurrentAct()?.actId ?? SecurityApi.uuid();
+}
+
+/**
  * @internal every caller of this class sits in the `combat` subsystem —
  * it is that subsystem's private collaborator, not author surface.
  */
@@ -193,7 +204,7 @@ export class CombatNarration {
    * perception tier. Returns the minted `commandId` (tests assert on it).
    */
   static narrate(report: ExchangeReport): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const fragment = CombatNarration.fragmentFor(report);
 
     for (const viewer of CombatNarration.witnesses(report.attacker)) {
@@ -244,7 +255,7 @@ export class CombatNarration {
    * reaction-worthy beat of all).
    */
   static narrateResolution(report: ResolutionReport): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const primary = report.combatants[0];
     const anchor = report.killer ?? report.victim ?? primary;
     if (!anchor) return commandId;
@@ -275,7 +286,7 @@ export class CombatNarration {
    * loudly to every witness. Reactable (a charged, dramatic beat).
    */
   static narrateCoupTelegraph(executioner: Stuff, victim: Stuff): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const E = Mml.actor(executioner);
     const V = Mml.actor(victim);
     for (const viewer of CombatNarration.witnesses(executioner)) {
@@ -315,7 +326,7 @@ export class CombatNarration {
     protectee: Stuff,
     attacker: Stuff,
   ): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const I = Mml.actor(interposer);
     const P = Mml.actor(protectee);
     const A = Mml.actor(attacker);
@@ -359,7 +370,7 @@ export class CombatNarration {
    * the decision is the captain's.
    */
   static narrateCoupHeld(executioner: Stuff, victim: Stuff): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const E = Mml.actor(executioner);
     const V = Mml.actor(victim);
     for (const viewer of CombatNarration.witnesses(executioner)) {
@@ -394,7 +405,7 @@ export class CombatNarration {
    * is spared; every witness gets the line so the drama resolves cleanly.
    */
   static narrateCoupStayed(executioner: Stuff, victim: Stuff): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const E = Mml.actor(executioner);
     const V = Mml.actor(victim);
     for (const viewer of CombatNarration.witnesses(executioner)) {
@@ -427,7 +438,7 @@ export class CombatNarration {
    * (flavor is garnish, not a beat).
    */
   static narrateFlavor(anchor: Stuff, line: string): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const body = Mml.fromMarkup(Mml.escape(line));
     for (const viewer of CombatNarration.witnesses(anchor)) {
       try {
@@ -467,7 +478,7 @@ export class CombatNarration {
     from: PoiseBand,
     to: PoiseBand,
   ): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const worse = POISE_RANK[to] > POISE_RANK[from];
     const C = Mml.actor(combatant);
     const selfTpl = worse
@@ -502,7 +513,7 @@ export class CombatNarration {
    * in the moment, that you are not going to get all of this back.
    */
   static narrateFootingCapped(combatant: Stuff, deep: boolean): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const C = Mml.actor(combatant);
     const selfTpl = deep
       ? "The wound tells. Whatever you get back now, it will not be all of it."
@@ -536,7 +547,7 @@ export class CombatNarration {
    * the point — the engine models the stakes, the choice stays theirs.
    */
   static narrateMorale(combatant: Stuff, band: string): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const C = Mml.actor(combatant);
     const selfTpl =
       band === "breaking"
@@ -569,7 +580,7 @@ export class CombatNarration {
    * needs to learn the rule at the moment it matters.
    */
   static narrateYieldRefused(combatant: Stuff): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     for (const viewer of CombatNarration.witnesses(combatant)) {
       if ((viewer as Stuff) !== (combatant as Stuff)) continue;
       try {
@@ -608,7 +619,7 @@ export class CombatNarration {
    * player learns that fights credit the skills they use.
    */
   static narrateAftermath(report: AftermathReport): string {
-    const commandId = SecurityApi.uuid();
+    const commandId = actKey();
     const parts: string[] = [];
     parts.push(
       report.worstWound

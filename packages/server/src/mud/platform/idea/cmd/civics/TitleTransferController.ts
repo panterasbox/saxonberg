@@ -279,7 +279,7 @@ export default class TitleTransferController extends TitleControllerBase<Transfe
         "declined",
       );
     }
-    const done = await good.transferChattel(receiver);
+    const done = await good.transferChattel(receiver, { kind: "unrequited" });
     if (!done.ok) {
       return this.fail(context, `The title would not move: ${done.reason}.`, "refused");
     }

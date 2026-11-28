@@ -64,7 +64,7 @@ describe('MudlogApi recipient resolution', () => {
           MudlogApi.info(Mml.compose`from inside cmd`);
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
     expect(giver.received).toHaveLength(1);
     expect(giver.received[0]!.topic).toBe('shell.diagnostic');
   });
@@ -98,7 +98,7 @@ describe('MudlogApi recipient resolution', () => {
           expect(() => MudlogApi.info(Mml.compose`x`)).toThrow(/recipient/);
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
   });
 });
 
@@ -162,7 +162,7 @@ describe('MudlogApi attribution stamping', () => {
           MudlogApi.info('command', Mml.compose`look: ok`);
         }
       );
-    });
+    }, { acting: { boundary: 'test' } });
     expect(s.received).toHaveLength(1);
     expect(s.received[0]!.meta.commandId).toBe('cmd-A');
     expect(s.received[0]!.meta.causingCommandId).toBe('cmd-A');
@@ -198,7 +198,7 @@ describe('MudlogApi attribution stamping', () => {
             });
           }
         );
-      });
+      }, { acting: { boundary: 'test' } });
       vi.advanceTimersByTime(50);
       // CommandContext is gone (no live commandId), but the chain
       // re-planted causingCommandId on the Root frame ScheduleApi

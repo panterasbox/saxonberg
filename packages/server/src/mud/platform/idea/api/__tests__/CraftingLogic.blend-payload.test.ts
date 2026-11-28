@@ -112,7 +112,7 @@ async function craftAs(principal: Stuff, recipeRef: string) {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft({ recipeRef, makerMode: 'self' } as CraftRequest);
-  }) as ReturnType<typeof CraftingApi.craft>;
+  }, { acting: { boundary: 'test' } }) as ReturnType<typeof CraftingApi.craft>;
 }
 
 /**

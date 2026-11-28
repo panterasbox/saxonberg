@@ -1758,7 +1758,7 @@ export class PersistableLogic extends ApiLogic {
         }
         return { slices, factories };
       },
-      { circleScope: OMNI_SCOPE }
+      { acting: { system: 'persistence' }, circleScope: OMNI_SCOPE }
     );
 
     // APPLY in the caller's ambient context (the circle root at a
@@ -1793,7 +1793,7 @@ export class PersistableLogic extends ApiLogic {
       () => {
         source.applyForkedState(fork.collectForkSlices(), allowlist);
       },
-      { circleScope: '*' }
+      { acting: { system: 'persistence' }, circleScope: '*' }
     );
   }
 }

@@ -105,7 +105,7 @@ export class TestHarnessApi {
     // root carries no scope and no jurisdiction, which is what a GLOBAL
     // jump needs; the async body keeps it across every await.
     return ExecutionContextApi.runRoot(TestHarnessApi, 'advanceClock', () =>
-      logic().advanceClock(duration, opts),
+      logic().advanceClock(duration, opts), { acting: { system: 'test-harness' } },
     );
   }
 
@@ -174,7 +174,7 @@ export class TestHarnessApi {
     return ExecutionContextApi.runRoot(person, 'actAs', () => {
       ExecutionContextApi.tagActingAuthor(person);
       return fn();
-    });
+    }, { acting: { actor: person } });
   }
 
   /**
@@ -191,7 +191,7 @@ export class TestHarnessApi {
   )
   public static stageShip(handle: string, spec: ShipStageSpec): Promise<ShipStageReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'stageShip', () =>
-      logic().stageShip(handle, spec),
+      logic().stageShip(handle, spec), { acting: { system: 'test-harness' } },
     );
   }
 
@@ -204,7 +204,7 @@ export class TestHarnessApi {
   @TestOnly('In a test world, set a room\u2019s gravity with `testharness gravity-set <m/s²> [--at <place>]`.')
   public static setGravity(scope: string, ms2: number | null): Promise<GravityReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'setGravity', () =>
-      logic().setGravity(scope, ms2),
+      logic().setGravity(scope, ms2), { acting: { system: 'test-harness' } },
     );
   }
 
@@ -216,7 +216,7 @@ export class TestHarnessApi {
   @TestOnly('In a test world, afflict a body with `testharness afflict <body> <condition> [stage]`.')
   public static afflict(body: string, conditionPath: string, stage?: number): Promise<AfflictReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'afflict', () =>
-      logic().afflict(body, conditionPath, stage),
+      logic().afflict(body, conditionPath, stage), { acting: { system: 'test-harness' } },
     );
   }
 
@@ -232,14 +232,14 @@ export class TestHarnessApi {
    */
   @TestOnly('In a test world, read a body with `testharness body <target> [perceiving <other>]`.')
   public static bodyReport(body: string, other: string | null = null): Promise<BodyReport> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'bodyReport', () => logic().bodyReport(body, other));
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'bodyReport', () => logic().bodyReport(body, other), { acting: { system: 'test-harness' } });
   }
 
   /** ⭐ Wound one part through `ConditionApi.inflict` — the channel's own fold, as in play. */
   @TestOnly('In a test world, wound a part with `testharness body-wound <target> <part> <channel> [magnitude]`.')
   public static woundBody(body: string, part: string, channel: string, magnitude: number): Promise<BodyWoundReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'woundBody', async () =>
-      logic().woundBody(body, part, channel, magnitude),
+      logic().woundBody(body, part, channel, magnitude), { acting: { system: 'test-harness' } },
     );
   }
 
@@ -251,14 +251,14 @@ export class TestHarnessApi {
   @TestOnly('In a test world, sever a part with `testharness body-sever <target> <part> [heat|corrosion]`.')
   public static severBodyPart(body: string, part: string, sealedBy: string | null = null): Promise<BodyWoundReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'severBodyPart', async () =>
-      logic().severBodyPart(body, part, sealedBy),
+      logic().severBodyPart(body, part, sealedBy), { acting: { system: 'test-harness' } },
     );
   }
 
   /** ⭐ Kill a body through the single death transition (`ConditionApi.die`). */
   @TestOnly('In a test world, kill a body with `testharness body-kill <target>`.')
   public static killBody(body: string): Promise<{ body: string; alive: boolean }> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'killBody', () => logic().killBody(body));
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'killBody', () => logic().killBody(body), { acting: { system: 'test-harness' } });
   }
 
   /**
@@ -268,14 +268,14 @@ export class TestHarnessApi {
    */
   @TestOnly('In a test world, pin the daylength with `testharness daylight-pin <fraction>` (and `daylight-unpin`).')
   public static pinDaylight(fraction: number | null): Promise<DaylightPinReport> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'pinDaylight', async () => logic().pinDaylight(fraction));
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'pinDaylight', async () => logic().pinDaylight(fraction), { acting: { system: 'test-harness' } });
   }
 
   /** ⭐ A staged body of another species: the species set and the mass re-seeded from it. */
   @TestOnly('In a test world, stage a body of another species with `testharness species <name> <species>`.')
   public static setSpecies(handle: string, speciesPath: string): Promise<SpeciesReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'setSpecies', () =>
-      logic().setSpecies(handle, speciesPath),
+      logic().setSpecies(handle, speciesPath), { acting: { system: 'test-harness' } },
     );
   }
 
@@ -288,14 +288,14 @@ export class TestHarnessApi {
   @TestOnly('In a test world, stage past players with `testharness standing-history <count>`.')
   public static stageStandingHistory(count: number): Promise<StandingHistoryReport> {
     return ExecutionContextApi.runRoot(TestHarnessApi, 'stageStandingHistory', () =>
-      logic().stageStandingHistory(count),
+      logic().stageStandingHistory(count), { acting: { system: 'test-harness' } },
     );
   }
 
   /** ⭐ Take a thing out of the world by id, wherever it is (a wizard's reach into a shut pack). */
   @TestOnly('In a test world, remove a thing with `testharness vanish #<id>`.')
   public static removeThing(stuffId: string): Promise<{ removed: string }> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'removeThing', () => logic().removeThing(stuffId));
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'removeThing', () => logic().removeThing(stuffId), { acting: { system: 'test-harness' } });
   }
 
   /**
@@ -329,7 +329,7 @@ export class TestHarnessApi {
    */
   @TestOnly('In a test world, refuse a character\u2019s saves with the wire harness\u2019s failSavesOf() (POST /auth/test-save-fail).')
   public static failSavesOf(handle: string, on: boolean): Promise<{ scope: string; refusing: boolean }> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'failSavesOf', () => logic().failSavesOf(handle, on));
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'failSavesOf', () => logic().failSavesOf(handle, on), { acting: { system: 'test-harness' } });
   }
 
   /**
@@ -339,7 +339,7 @@ export class TestHarnessApi {
    */
   @TestOnly('In a test world, save a batch with the wire harness\u2019s saveBatch() (POST /auth/test-save).')
   public static captureBatch(handles: readonly string[]): Promise<{ captured: number; failed: number; refused: string[] }> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'captureBatch', () => logic().captureBatch(handles));
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'captureBatch', () => logic().captureBatch(handles), { acting: { system: 'test-harness' } });
   }
 
   /**
@@ -349,7 +349,7 @@ export class TestHarnessApi {
    */
   @TestOnly('In a test world, force a bad row with the wire harness\u2019s forceDocument() (POST /auth/test-force-document).')
   public static forceDocument(path: string, kind: string, data: Record<string, unknown>): Promise<{ path: string; kind: string }> {
-    return ExecutionContextApi.runRoot(TestHarnessApi, 'forceDocument', () => logic().forceDocument(path, kind, data));
+    return ExecutionContextApi.runRoot(TestHarnessApi, 'forceDocument', () => logic().forceDocument(path, kind, data), { acting: { system: 'test-harness' } });
   }
 
   /** The pin on the Locality covering `scope`, if any. */

@@ -41,7 +41,7 @@ describe('ScheduleApi circle-scope propagation', () => {
           observed = ExecutionContextApi.getCircleScope();
         });
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     await flushTimersAndMicrotasks(20);
     expect(observed).toBe(SCOPE);
@@ -54,7 +54,7 @@ describe('ScheduleApi circle-scope propagation', () => {
       ScheduleApi.schedule(10, () => {
         observed = ExecutionContextApi.getCircleScope();
       });
-    });
+    }, { acting: { boundary: 'test' } });
     await flushTimersAndMicrotasks(20);
     expect(observed).toBeNull();
   });
@@ -71,13 +71,13 @@ describe('ScheduleApi circle-scope propagation', () => {
           scopedFired = true;
         });
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     ExecutionContextApi.runRoot(null, 'test', () => {
       ScheduleApi.schedule(10, () => {
         fieldFired = true;
       });
-    });
+    }, { acting: { boundary: 'test' } });
 
     const cancelled = ScheduleApi.cancelAllForScope(SCOPE);
     expect(cancelled).toBe(1);
@@ -96,7 +96,7 @@ describe('ScheduleApi circle-scope propagation', () => {
         expect(ScheduleApi.cancelAllForScope(OMNI_SCOPE)).toBe(0);
         ScheduleApi.cancel(h);
       },
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
   });
 
@@ -108,7 +108,7 @@ describe('ScheduleApi circle-scope propagation', () => {
         const h = ScheduleApi.recurring(10_000, () => {});
         ScheduleApi.cancel(h);
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(ScheduleApi.cancelAllForScope(SCOPE)).toBe(0);
   });

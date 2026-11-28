@@ -68,7 +68,7 @@ describe('sandbox-escape: comms', () => {
       'escape',
       () => StuffApi.create(() => new Listener()),
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     ))!;
     // A field speaker delivers to a wire-side sensor: allowed.
     circleListener.onMessage(frame('hello in there'));
@@ -83,7 +83,7 @@ describe('sandbox-escape: comms', () => {
       () => {
         fieldListener.onMessage(frame('hello out there'));
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(fieldListener.heard).toEqual(['hello out there']);
   });
@@ -100,7 +100,7 @@ describe('sandbox-escape: comms', () => {
         expect(() => fieldListener.renameTo('gotcha')).toThrow(SecurityError);
         expect(() => fieldListener.heard).toBeDefined; // field read via proxy getter
       },
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
     expect(fieldListener.heard).toEqual(['bait']);
   });

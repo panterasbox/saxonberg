@@ -292,7 +292,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         expect(transcripts).toHaveLength(2);
       },
       'rethrow',
-      { circleScope: SCOPE }
+      { acting: { boundary: 'test' }, circleScope: SCOPE }
     );
 
     // Field reads exclude the scoped rows while the session lives.
@@ -310,7 +310,7 @@ describe('sandbox-escape: the round-trip criterion', () => {
         ).getExit('out');
         return (wireBody as unknown as Mobile).traverse(out, 'walk');
       },
-      { circleScope: OMNI_SCOPE }
+      { acting: { boundary: 'test' }, circleScope: OMNI_SCOPE }
     );
 
     // Field state unchanged on every material ledger…

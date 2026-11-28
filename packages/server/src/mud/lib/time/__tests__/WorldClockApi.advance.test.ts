@@ -211,7 +211,7 @@ describe('WorldClockApi.advance', () => {
         'sandbox.runScoped',
         fn,
         'rethrow',
-        { circleScope: '/world/_test/circle' },
+        { acting: { boundary: 'test' }, circleScope: '/world/_test/circle' },
       )) as T;
 
     it('⛔⛔ `advance` is denied, and the refusal says WHY', async () => {
@@ -273,7 +273,7 @@ describe('WorldClockApi.advance', () => {
         'sandbox.runGoverned',
         () => WorldClockApi.advance('1 day'),
         'rethrow',
-        { jurisdictionBound: '/world/_test/field' },
+        { acting: { boundary: 'test' }, jurisdictionBound: '/world/_test/field' },
       );
       expect(WorldClockApi.getNow().rawValue() - before).toBeCloseTo(DAY_S, 3);
     });

@@ -137,7 +137,7 @@ async function craftAs(
   return ExecutionContextApi.runRoot(null, 'test', () => {
     if (principal) ExecutionContextApi.tagActingAuthor(principal);
     return CraftingApi.craft(req);
-  }) as unknown as Awaited<ReturnType<typeof CraftingApi.craft>>;
+  }, { acting: { boundary: 'test' } }) as unknown as Awaited<ReturnType<typeof CraftingApi.craft>>;
 }
 
 /** A wet/fat/dry recipe over one meat item, at the demanded heat. */
@@ -552,7 +552,7 @@ describe('the by-hand build clamps the same way', () => {
         contributions: [waterIn, meatIn],
         heatedToK: 800,
       });
-    })) as Awaited<ReturnType<typeof CraftingApi.mintFromBuild>>;
+    }, { acting: { boundary: 'test' } })) as Awaited<ReturnType<typeof CraftingApi.mintFromBuild>>;
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     expect(outcome.recipeId).toBe('wet-simmer');
@@ -566,7 +566,7 @@ describe('the by-hand build clamps the same way', () => {
         contributions: [meatIn],
         heatedToK: 800,
       });
-    })) as Awaited<ReturnType<typeof CraftingApi.mintFromBuild>>;
+    }, { acting: { boundary: 'test' } })) as Awaited<ReturnType<typeof CraftingApi.mintFromBuild>>;
     // Nothing declined and nothing was flagged: the wet recipes simply
     // could not be what happened, and the 450 K dry one could. The medium
     // is an input, so leaving it out changes the DISH.

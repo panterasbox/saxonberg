@@ -111,7 +111,7 @@ async function repairAs(item: Stuff): Promise<RepairOutcome> {
   return ExecutionContextApi.runRoot(null, 'test', () => {
     ExecutionContextApi.tagActingAuthor(smith);
     return CraftingApi.repair({ item });
-  }) as unknown as Promise<RepairOutcome>;
+  }, { acting: { boundary: 'test' } }) as unknown as Promise<RepairOutcome>;
 }
 
 beforeEach(async () => {
