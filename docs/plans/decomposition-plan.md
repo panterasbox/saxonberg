@@ -633,7 +633,7 @@ Checked this cycle, not recalled.
 Each wave ends green on `pnpm test:near`, every touched pack's vitest,
 and `pnpm -C packages/server lint:family`, and at the named commit.
 
-### W0 — the vocabulary and what materials suffer ✅ done
+### W0 — the vocabulary and what materials suffer ✅ done (c37a64cc3)
 
 Implements D2 (table only), D6.
 
@@ -655,7 +655,7 @@ Implements D2 (table only), D6.
   rust, bronze's verdigris, silver's tarnish; nothing reads them yet.
 - Commit: `build(decomposition W0): the decay vocabulary and material susceptibility`
 
-**W0 ✅ done (SHA_W0).** `DecayMark.ts` carries a second value class,
+**W0 ✅ done (c37a64cc3).** `DecayMark.ts` carries a second value class,
 `DecayScale` (one mechanism's ladder: `bands`, `hasBand`, `bandAt`,
 `mark`) — that is the "instance-reachable" home for `bandAt`, no statics;
 `DECAY_MECHANISMS` is declared in `lint:closed-vocabularies`'
