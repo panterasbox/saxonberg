@@ -8,6 +8,7 @@
 > something about the physics or rules of the game are wrong that we need to talk about
 > what the real 7 lens solution is for it… the backstops aren't bad but they can be really
 > really bad if they prevent me from ever dealing with the issues for real."*
+> **In requirements:** §§ 1, 2, 4 → cast-in-winter (2026-11-28; the reuse ledger is at the end).
 > **Left:** one conversation per section below. The headline is § 1 (the world's cast
 > dying). The others are calibrations and decisions to confirm or overturn.
 > **Size:** a tail per section; § 1 may be a build (the cast's daily life)
@@ -142,3 +143,32 @@ stands in), or is it each author's job not to give a room its contents' names?
   an honest model fix. No drive has proven it yet (ceramics-a's setup times out on master).
 - `PersistenceManager.whenQuiet` with no database answers at once: test infrastructure.
 - A dog eats one portion of a carcass (`takeBite`): the honest model, already there.
+
+## Reuse ledger for the plan (cast-in-winter, 2026-11-28)
+
+§§ 1, 2 and 4 are being built as **cast-in-winter**
+([requirements](../../requirements/cast-in-winter-requirements.md)). For every
+concept that build needs: what already does it, and whether the plan should
+reuse it or generalize it. Every row must be accounted for in the plan.
+
+| concept | already doing it (shipped or in flight) | reuse / generalize |
+|---|---|---|
+| a body's core temperature | `lib/thermal/ThermalRegulation.ts` `integrateThermalSlice`, a comfort band (`THERMAL_DEFAULTS` in `Thermal.ts`) | **generalize** into a heat budget: metabolic W by activity, loss through clo, wind and wet. The band's cues (shivering, sweating) stay |
+| work heat | `Exerting.absorbHeatLoad` (`lib/exertion/Exerting.ts`) | reuse; make it count in the losing branch |
+| room temperature | `lib/biome/Atmospheric.ts` envelope, `roomHeatExchange()` on SpaceHeating / Store | **generalize**: a body answers `roomHeatExchange()` with its own output, people and animals alike |
+| clothing insulation | `Wearable.getClo`, `Attired.insulationAt` (+`ENCLOSED_AIR_CLO` 0.5), `bodyInsulation()` by Meeh share | reuse; re-derive or confirm the 0.5 against published figures; fix arm coverage |
+| arm coverage | biped body plan `torso` → `body.torso` only (`species-and-names/.../BodyPlan/biped.yaml`) | **generalize**: a sleeved garment's coverage reaches `body.arm.*` |
+| the cold bench | `Thermal.cold.gym.test.ts` (gym job, fixed clo overrides) | reuse; re-pin to published tables, both resting and working |
+| reconcile on read | growth, wounds, spoilage, soil; metabolism `integratesLongAbsence` (skips gaps over 4 h for unowned bodies) | **generalize** to bodies: closed-form reconcile on the heat budget, replacing the skip |
+| watched / unwatched | the card surface's attention scoping; residency's cold-tail eviction | reuse the attention signal; no new watcher registry |
+| one deliberation | `lib/behavior` deliberation beat + `Urgency` four bands × five `TaskKind`s | reuse; needs enter as candidates, no new brain per need |
+| eating | `eats` brain (2 users) | fold into the needs deliberation's hunger act |
+| keeping a fire | `stokes` brain (2 Cast) | reuse as the post's fire act; widen the users through supply |
+| off shift | employment roster tick, `offShift: out` (10 of 89 houses) | reuse; becomes the default for a Cast |
+| a role whose body is fresh | the Extra rung (identity.md) | reuse; the presence route "a role" |
+| supply on places | `stocks:`, house stock lines, `fulfills`/`purchases` on seats | **ask first**: extend the house/place declarations; do not mint a new document kind unless none fits |
+| the commons | market `standpipe`, `bread-counter`, `fountain`; the bar's free water | reuse; mark as commons supply |
+| outdoor kit | wardrobe/outfit (player-only), `Costumed` (once-flag) | **genuinely new?** dressing from a post's peg; check whether a Locker / kept container plus `wear` covers it |
+| the death report | `DiagnosticApi` store, the `errors` verb | reuse where a person reads it; no new log |
+| the backstop | `Vitals.diesOfNeglect` (`lib/vitals/Vitals.ts:1649`), its 4 gates | **delete** |
+| act identity per turn | tropes (build-1, in flight) | coordinate: the needs turns carry it |
