@@ -474,6 +474,13 @@ The vocabulary (`DETECTED_BEATS`, each with its roles and whether it is durable)
 `category` a bare `pay` posts; whether a yield under lethal terms opens the finishing window —
 Risks R4).
 
+**D29 — The detected-beat vocabulary is public contract (the owner, 2026-11-28).** Acts and beats are
+the Standard Model's measurement surface for the Compact (standard-model.md § *the Compact's
+measurement contract*; measurement.md A17/A18, proposed). `lib/narrative/Beat.ts` therefore carries
+a **version** and its header says so; a test pins the closed list, so adding, removing or redefining
+a detected beat fails until the vocabulary's version is bumped in the same change. The build adds
+exactly the D13 list and no other.
+
 **D14 — Three beats are not durable in build 1, and the catalogue refuses to look back at them.**
 `provide`, `tell` and asserted beats have no ledger; each is handed to the matcher by its one
 kernel site and exists for that act only. A trope may **close** on one (every build-1 use does);
