@@ -501,17 +501,18 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public getMass(): Quantity<'kg'> {
       const self = this as unknown as Stuff;
+      const dry = this.getDryMass();
       if (!MixinApi.isWet(self) || MixinApi.isOrganism(self)) {
-        return this._mass;
+        return dry;
       }
       const wetness = self.getWetness();
-      if (!(wetness > 0)) return this._mass;
+      if (!(wetness > 0)) return dry;
       const wetMat = this.getMaterial();
       const capacity =
         wetMat && MixinApi.hasPorosity(wetMat) ? wetMat.getWaterAbsorptionCapacity().rawValue() : 0;
-      if (!(capacity > 0)) return this._mass;
+      if (!(capacity > 0)) return dry;
       return Quantity.of(
-        this._mass.rawValue() * (1 + (wetness * capacity) / 100),
+        dry.rawValue() * (1 + (wetness * capacity) / 100),
         'kg',
       );
     }
@@ -521,9 +522,17 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * soaked up. The ledger a store keeps counts matter, not the water it
      * took on (storage-and-ice D2: wet sawdust is the same sawdust, its
      * wetness is the line's state).
+     *
+     * ⭐ Less the metal corrosion has eaten (decomposition D4): *corroded
+     * matter weighs less* is a fact about matter, so it lives where the wet
+     * law does and every reader of mass sees it at once. Not a one-time
+     * `setMass` — `mass` is authored, and a go-live would put the metal back.
      */
     public getDryMass(): Quantity<'kg'> {
-      return this._mass;
+      const self = this as unknown as Stuff;
+      const lost = MixinApi.isDurable(self) ? self.getLostMass() : 0;
+      if (!(lost > 0)) return this._mass;
+      return Quantity.of(Math.max(0, this._mass.rawValue() - lost), 'kg');
     }
 
     /**

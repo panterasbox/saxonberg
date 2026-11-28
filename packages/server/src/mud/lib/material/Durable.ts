@@ -1,7 +1,13 @@
 /**
- * DurableMixin — the **wear-state axis** of a physical object: a thing that
- * wears out with **use, not the clock** (economy Law 2: you dull the knife
- * by cutting, never by time on the wall).
+ * DurableMixin — **the condition axis**: worn by use, decayed by authored
+ * state, never by the clock (economy Law 2: you dull the knife by cutting,
+ * never by time on the wall).
+ *
+ * ⭐ Decay (decomposition D2) is a list of marks beside condition — rust,
+ * rot, mold, frost — each a CEILING the condition cannot be mended past
+ * while it stands; a pitted part has also lost metal (`getLostMass`, which
+ * `Tangible.getMass` subtracts). Marks are authored on a row (`decay:`) and
+ * written ONCE, at mint (the applier's phase 3); nothing advances them.
  *
  * Lives in `lib/material/` alongside the other physical-object axes — a made
  * thing has a *material* ({@link TangibleMixin}), a *form* ({@link
@@ -26,6 +32,7 @@ import type { Stuff } from '../stuff/Stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import { MixinApi } from '../../api/mixin';
+import { DecayMark, type DecayMarkRecord } from './DecayMark';
 
 export interface Durable {
   /**
@@ -62,7 +69,36 @@ export interface Durable {
   recordMend(record: MendRecord): void;
   /** The condition as a word anyone can see (repair D10). */
   getConditionWord(): ConditionWord;
+  /**
+   * The decay marks on the whole (no `part`, or `'whole'`) or on a named
+   * part — copies; `[]` when it carries none (decomposition D2).
+   */
+  getDecayMarks(part?: string): DecayMarkRecord[];
+  /** Metal corrosion has cost it, kg — `Tangible.getMass` subtracts it (D4). */
+  getLostMass(): number;
+  /**
+   * ⭐ The condition no mend can bring the whole (or `part`) past while its
+   * decay stands, and what would lift it: `brush` (scale or mold comes off),
+   * `fit` (a new part), `none` (the pits stay). `cure` is `null` with no
+   * mark (D10).
+   */
+  mendCeiling(part?: string): MendCeiling;
+  /**
+   * Seed field (`decay:` on a row, mint only — D3): `{ whole: { corrosion:
+   * pitted } }`. A thing of one piece takes only `whole`; a typed throw
+   * names the row, the part and what is wrong.
+   */
+  seedDecay(value: unknown): Promise<void>;
 }
+
+/** What caps a mend, and what would lift it (decomposition D10). */
+export interface MendCeiling {
+  ceiling: number;
+  cure: 'brush' | 'fit' | 'none' | null;
+}
+
+/** The bleach dose an authored fade band lays on a dyed thing (D8). */
+const FADE_DOSE: Readonly<Record<string, number>> = { faded: 0.5, bleached: 0.9 };
 
 /**
  * ⭐ One mend, remembered (repair D10). Written by `repair` and the paid
@@ -157,8 +193,17 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static markupAugmenters: MarkupAugmenter[] = [durableAugmenter];
 
     static fieldMeta: FieldMeta = {
+      // ⚠ The decay fields come BEFORE `condition`: a restore applies fields
+      // in declared order through `setCondition`, which clamps to the marks
+      // — so the restored marks must be in place first, or a seeded mark
+      // the player has since cleared would clamp the restored condition.
+      decayMarks: { persistent: true, runtimeState: true },
+      lostKg: { persistent: true, runtimeState: true },
       condition: { persistent: true, runtimeState: true },
       mends: { persistent: true, runtimeState: true },
+      // ⭐ The authored state (D3) — a seed: written once at mint, never
+      // persistent (the row's value is never state; the marks are).
+      decay: { authorable: true, seed: true },
     };
 
     /**
@@ -169,8 +214,15 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static captureSlice(host: Stuff): { fields: Record<string, unknown> } {
       if (MixinApi.isFaced(host) && !host.persistsCoats()) return { fields: {} };
-      const self = host as unknown as Durable & { mends: MendRecord[] };
-      return { fields: { condition: self.getWearCondition(), mends: self.mends.map((m) => ({ ...m })) } };
+      const self = host as unknown as Durable & { mends: MendRecord[]; lostKg: number };
+      return {
+        fields: {
+          decayMarks: self.getDecayMarks('whole'),
+          lostKg: self.lostKg,
+          condition: self.getWearCondition(),
+          mends: self.mends.map((m) => ({ ...m })),
+        },
+      };
     }
 
     /**
@@ -183,6 +235,12 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
      * persists with the host and needs no marshaller (repair D10).
      */
     public mends: MendRecord[] = [];
+
+    /** The whole's decay marks — plain records, persisted with the host (D2). */
+    public decayMarks: DecayMarkRecord[] = [];
+
+    /** Metal the whole's corrosion has cost, kg (D4). */
+    public lostKg = 0;
 
     protected get condition(): number {
       return this._condition;
@@ -203,7 +261,81 @@ export function DurableMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     setCondition(value: number): void {
-      this.condition = value;
+      // ⭐ The ceiling holds while the mark stands (D2) — the one write-side clamp.
+      this.condition = Math.min(value, this.mendCeiling().ceiling);
+    }
+
+    getDecayMarks(part?: string): DecayMarkRecord[] {
+      if (part !== undefined && part !== 'whole') return [];
+      return this.decayMarks.map((m) => ({ ...m }));
+    }
+
+    getLostMass(): number {
+      return Number.isFinite(this.lostKg) && this.lostKg > 0 ? this.lostKg : 0;
+    }
+
+    mendCeiling(_part?: string): MendCeiling {
+      const marks = this.decayMarks.map((r) => new DecayMark(r));
+      if (marks.length === 0) return { ceiling: 1, cure: null };
+      const ceiling = Math.min(...marks.map((m) => m.ceiling()));
+      const brushable = marks.some((m) => {
+        const c = m.clearedBy();
+        return c === 'scouring' || c === 'brushing';
+      });
+      return { ceiling, cure: brushable ? 'brush' : 'none' };
+    }
+
+    /**
+     * ⭐ The authored state, written once (D3). One piece takes only
+     * `whole`; an assembly's override takes its parts and hands `whole`
+     * here. The material decides what is legal (`marksFrom`); `fade` goes
+     * to the dye stack (D8) and keeps no mark.
+     */
+    async seedDecay(value: unknown): Promise<void> {
+      const host = this as unknown as Stuff;
+      const row = host.getTemplatePath() ?? host.constructor.name;
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+        throw new TypeError(`${row}: decay must be a map of part → { mechanism: band }`);
+      }
+      for (const key of Object.keys(value)) {
+        if (key !== 'whole') {
+          throw new RangeError(
+            `${row}: decay.${key} — a thing of one piece takes only 'whole'`,
+          );
+        }
+      }
+      const entry = (value as Record<string, unknown>).whole;
+      if (entry === undefined) return;
+      const material = MixinApi.isTangible(host) ? host.getMaterial() : null;
+      if (!material) throw new RangeError(`${row}: decay.whole — it has no material to decay`);
+      if (!MixinApi.hasDegradation(material)) {
+        throw new RangeError(
+          `${row}: decay.whole — ${material.getName() || 'its material'} does not break down`,
+        );
+      }
+      let records: DecayMarkRecord[];
+      try {
+        records = material.marksFrom(entry);
+      } catch (err) {
+        throw new RangeError(`${row}: decay.whole — ${(err as Error).message}`);
+      }
+      const marks: DecayMarkRecord[] = [];
+      for (const r of records) {
+        if (r.mechanism !== 'fade') {
+          marks.push(r);
+          continue;
+        }
+        if (!MixinApi.isDyed(host)) {
+          throw new RangeError(`${row}: decay.whole — fade is a dyed thing's, and this is not dyed`);
+        }
+        host.bleach(FADE_DOSE[r.band] ?? 0);
+      }
+      const rawKg = MixinApi.isTangible(host) ? host.getDryMass().rawValue() + this.getLostMass() : 0;
+      this.decayMarks = marks;
+      const read = marks.map((r) => new DecayMark(r));
+      this.lostKg = rawKg * read.reduce((sum, m) => sum + m.lostShare(), 0);
+      const ceiling = read.length === 0 ? 1 : Math.min(...read.map((m) => m.ceiling()));
+      this.condition = Math.min(this._condition, ceiling);
     }
 
     wear(amount: number = WEAR_PER_USE, _channel?: Channel): void {

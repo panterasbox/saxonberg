@@ -382,7 +382,14 @@ export type RepairDeclineReason =
    * overlaps D8): a patch is of the hull's OWN material, and with none
    * authored it is refused — never patched with whatever is at hand.
    */
-  | 'no-hull-material';
+  | 'no-hull-material'
+  /**
+   * ⭐ The part (or the thing) is as sound as its DECAY lets it be
+   * (decomposition D10): no mend goes through scale, rot or pits. `detail`
+   * names the cure — `brush` (the rust or mold comes off first), `fit` (a
+   * new part), `none` (the pits stay; nothing puts the metal back).
+   */
+  | 'decayed';
 
 export interface RepairSuccess {
   ok: true;
@@ -635,6 +642,15 @@ export class CraftingApi {
    */
   public static async repair(request: RepairRequest): Promise<RepairOutcome> {
     return logic().repair(request);
+  }
+
+  /**
+   * What one part of a thing weighs, kg — its row's `mass`, else
+   * `fallbackKg` (the salvage and repair read). Decay weighs a pitted part
+   * by it (decomposition D4). See {@link CraftingLogic.unitMassOf}.
+   */
+  public static async unitMassOf(template: string, fallbackKg: number): Promise<number> {
+    return logic().unitMassOf(template, fallbackKg);
   }
 
   /**

@@ -1,0 +1,11 @@
+# ⭐ A thing (or one part of it) is as sound as its DECAY lets it be
+# (decomposition D10): no mend goes through scale, rot or pits, and the
+# refusal names the cure — brush the rust or mold off first, fit a new
+# part, or nothing (pitting stays; no mending puts the metal back).
+# `repair` refuses with this row when nothing else in the thing can be
+# mended; the repair family's clause lists (a skipped part beside a mended
+# one) name the cure in their own clause, not this sentence.
+facts:
+  part: text?
+  cure: text
+says: "{% if part %}The {{ part }}{% else %}It{% endif %} will not mend past what has got into it.{% if cure == 'brush' %} Brush it off first — a wire brush, for rust.{% elsif cure == 'fit' %} It wants a new one fitted.{% else %} Nothing puts back what it has lost.{% endif %}"

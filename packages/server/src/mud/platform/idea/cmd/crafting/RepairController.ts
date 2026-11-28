@@ -68,6 +68,14 @@ export default class RepairController extends ManualBuildController<RepairModel>
           this.refuse(context, { ok: false, reason: outcome.reason, facts: {} });
           return;
         }
+        if (outcome.reason === 'decayed') {
+          this.refuse(context, {
+            ok: false,
+            reason: 'decayed',
+            facts: { ...(first?.part ? { part: first.part } : {}), cure: outcome.detail ?? 'none' },
+          });
+          return;
+        }
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
@@ -127,6 +135,10 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
       if (outcome.reason === 'no-hull-material') {
         // Late (the step's envelope went when it began): the row says it.
         await CommandApi.reportFailure(new Refusal(outcome.reason, {}));
+        return;
+      }
+      if (outcome.reason === 'decayed') {
+        await CommandApi.reportFailure(new Refusal('decayed', { cure: outcome.detail ?? 'none' }));
         return;
       }
       MessageApi.scene(giver)
@@ -243,6 +255,13 @@ function skippedPhrase(skip: SkippedPart): string {
         : `${part} has failed, and wants a new one fitted`;
     case 'not-skilled':
       return `${part} wants a surer hand — ${skip.detail ?? 'more skill than yours'}`;
+    case 'decayed':
+      // ⭐ The cure, named (decomposition D10).
+      return skip.detail === 'brush'
+        ? `${part} will not mend through what is on it — brush it off first`
+        : skip.detail === 'fit'
+          ? `${part} is too far gone to mend, and wants a new one fitted`
+          : `${part} is as sound as it will be — nothing puts back what it has lost`;
     case 'no-hull-material':
       return `the hole in ${part} cannot be patched: nothing says what ${part === 'it' ? 'it is' : 'she is'} planked with`;
     default:

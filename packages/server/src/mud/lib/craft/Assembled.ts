@@ -60,7 +60,8 @@ import type { CommandContributions } from '../../api/command';
 import type { Stuff } from '../stuff/Stuff';
 import type { Tangible } from '../material/Tangible';
 import type { VetoResult } from '../errors';
-import type { Durable, MendRecord } from '../material/Durable';
+import type { Durable, MendCeiling, MendRecord } from '../material/Durable';
+import { DecayMark, type DecayMarkRecord } from '../material/DecayMark';
 import type Material from '../material/Material';
 import { Construction } from '../material/Construction';
 import type { Channel } from '../material/Channel';
@@ -207,6 +208,15 @@ export interface PartLine {
   recipe?: string;
   /** The trade of the mould the member set in, when it was cast (D1). */
   castDiscipline?: string;
+  /**
+   * ⭐ The line's decay marks (decomposition D2) — rust, rot, mold, frost.
+   * Each is a ceiling on the line's condition while it stands; written once
+   * at mint from the row's `decay:`, cleared only by what cures it (a part
+   * fitted whole, a reforge).
+   */
+  decay?: DecayMarkRecord[];
+  /** Metal the line's corrosion has cost, kg (D4) — back only with new metal. */
+  lostKg?: number;
 }
 
 /** What a part carries into a line when it is fitted (repair D2). */
@@ -435,6 +445,17 @@ function materialAt(path: string): Material | null {
   return MaterialApi.materials().peek(path) ?? null;
 }
 
+/** A line's decay, read (decomposition D2). */
+function lineMarks(line: PartLine): DecayMark[] {
+  return (line.decay ?? []).map((r) => new DecayMark(r));
+}
+
+/** ⭐ The ONE read of a line's ceiling: what its marks let it be mended to. */
+function lineCeiling(line: PartLine): number {
+  const marks = lineMarks(line);
+  return marks.length === 0 ? 1 : Math.min(...marks.map((m) => m.ceiling()));
+}
+
 function constructionOf(form: string | undefined): Construction | null {
   if (!form || !Construction.isForm(form)) return null;
   return Construction.of(form);
@@ -570,6 +591,15 @@ function assemblyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
 
 /** How a failed line's member is described — by the joint it sits in. */
 function failureWordFor(host: Assembled, line: PartLine): string {
+  // ⭐ A line whose mark IS failure is worded by the mark (decomposition
+  // D13): *eaten through with rust*, *rotted through*. A line that failed
+  // by USE keeps its joint's word.
+  const failing = lineMarks(line).find((m) => m.isFailure());
+  if (failing) {
+    const mat = materialAt(line.material);
+    const product = mat && MixinApi.hasDegradation(mat) ? (mat.productOf(failing.mechanism()) ?? '') : '';
+    return failing.phrase(product);
+  }
   if (line.warped) return 'warped';
   if (line.role === 'wear') return 'worn through';
   for (const j of host.getJoints()) {
@@ -1107,6 +1137,10 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
           delete line.greenAt;
         }
         delete line.warped;
+        // ⭐ The whole line is new: its rot or rust went out with the old
+        // member, and so did the metal it had lost (decomposition D4).
+        delete line.decay;
+        delete line.lostKg;
         if (fitted.cupped) line.cupped = true;
         else delete line.cupped;
         if (fitted.parts && fitted.parts.length > 0) {
@@ -1126,6 +1160,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
         if (line.failed === 0) delete line.warped;
         if (fitted.cupped) line.cupped = true;
+        // A set that keeps some decayed members keeps their ceiling.
+        line.condition = Math.min(line.condition, lineCeiling(line));
       }
       if (fitted.maker && !line.makers.includes(fitted.maker)) {
         line.makers.push(fitted.maker);
@@ -1143,7 +1179,7 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     restoreAll(maker: string): void {
       this.ensureParts();
-      for (const l of this.parts) l.condition = 1;
+      for (const l of this.parts) l.condition = lineCeiling(l);
       for (const j of this.joints) {
         j.tension = 1;
         if (maker) j.maker = maker;
@@ -1279,6 +1315,10 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (mend.reforged) {
         line.failed = 0;
         delete line.warped;
+        // ⭐ Re-made from new stock: the decay and the lost metal go with
+        // the old (decomposition D4).
+        delete line.decay;
+        delete line.lostKg;
         line.condition = ceiling;
         // ⭐ Narsil's rule (repair D9, AC 14): a named part re-made loses
         // its name — and the mend says which, so the hand that re-made it
@@ -1290,6 +1330,8 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
       } else {
         line.condition = Math.max(line.condition, ceiling);
       }
+      // ⭐ No mend goes past what the line's decay lets it be (D2, D10).
+      line.condition = Math.min(line.condition, lineCeiling(line));
       if (mend.gradeLoss > 0) {
         line.grade = Grade.fromOrdinal(
           Grade.of(line.grade).getOrdinal() - mend.gradeLoss,
@@ -1340,8 +1382,120 @@ export function AssembledMixin<TBase extends MixinConstructor>(Base: TBase) {
     setCondition(value: number): void {
       (Base.prototype as unknown as Durable).setCondition.call(this, value);
       for (const l of this.parts) {
-        l.condition = Math.max(0, Math.min(1, value));
+        l.condition = Math.min(Math.max(0, Math.min(1, value)), lineCeiling(l));
       }
+    }
+
+    // ------------------------------------------------- decay, per part
+
+    /** The whole's marks (no `part`, or `'whole'`), else that line's. */
+    getDecayMarks(part?: string): DecayMarkRecord[] {
+      if (part === undefined || part === 'whole') {
+        return (Base.prototype as unknown as Durable).getDecayMarks.call(this, part);
+      }
+      const line = this.parts.find((l) => l.part === part);
+      return (line?.decay ?? []).map((m) => ({ ...m }));
+    }
+
+    /** The whole's lost metal and every line's (D4). */
+    getLostMass(): number {
+      const own = (Base.prototype as unknown as Durable).getLostMass.call(this);
+      return this.parts.reduce((kg, l) => kg + (Number.isFinite(l.lostKg) && (l.lostKg ?? 0) > 0 ? l.lostKg! : 0), own);
+    }
+
+    /** A line's ceiling and cure — brush it, or fit a new one (D10). */
+    mendCeiling(part?: string): MendCeiling {
+      if (part === undefined || part === 'whole') {
+        return (Base.prototype as unknown as Durable).mendCeiling.call(this, part);
+      }
+      const line = this.parts.find((l) => l.part === part);
+      const marks = line ? lineMarks(line) : [];
+      if (!line || marks.length === 0) return { ceiling: 1, cure: null };
+      const brushable = marks.some((m) => {
+        const c = m.clearedBy();
+        return c === 'scouring' || c === 'brushing';
+      });
+      return { ceiling: lineCeiling(line), cure: brushable ? 'brush' : 'fit' };
+    }
+
+    /**
+     * ⭐ The authored state, by part name (decomposition D3) — written once,
+     * at mint. The record is materialized first (a decayed found thing's
+     * record is its own from birth); each named line's marks REPLACE what
+     * it had, cap its condition (a failing band fails it), and cost a
+     * corroded line its share of metal. `whole` goes to the whole's own
+     * gauge. Every refusal names the row and the part.
+     */
+    async seedDecay(value: unknown): Promise<void> {
+      const host = this as unknown as Stuff;
+      const row = host.getTemplatePath() ?? host.constructor.name;
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+        throw new TypeError(`${row}: decay must be a map of part → { mechanism: band }`);
+      }
+      const table = value as Record<string, unknown>;
+      if (this.bill?.parts.some((p) => p.part === 'whole')) {
+        throw new RangeError(`${row}: its bill names a part 'whole', which decay: reserves for the thing itself`);
+      }
+      const keys = Object.keys(table).filter((k) => k !== 'whole');
+      if (keys.length > 0) {
+        this.ensureParts();
+        const masses = await this.partMasses();
+        for (const key of keys) {
+          const line = this.parts.find((l) => l.part === key);
+          if (!line) {
+            const names = this.parts.map((l) => l.part);
+            throw new RangeError(
+              `${row}: decay.${key} — not a part of it (${names.length > 0 ? `its parts: ${names.join(', ')}` : 'it is one piece'}; or 'whole')`,
+            );
+          }
+          if (!line.material) throw new RangeError(`${row}: decay.${key} — the ${key} has no material to decay`);
+          const material = await MaterialApi.materials().ensure(line.material);
+          if (!MixinApi.hasDegradation(material)) {
+            throw new RangeError(`${row}: decay.${key} — ${material.getName() || 'its material'} does not break down`);
+          }
+          let records: DecayMarkRecord[];
+          try {
+            records = material.marksFrom(table[key]);
+          } catch (err) {
+            throw new RangeError(`${row}: decay.${key} — ${(err as Error).message}`);
+          }
+          if (records.some((r) => r.mechanism === 'fade')) {
+            throw new RangeError(`${row}: decay.${key} — fade is the whole's (its dye), never a part's`);
+          }
+          const read = records.map((r) => new DecayMark(r));
+          if (records.length > 0) line.decay = records;
+          else delete line.decay;
+          if (read.some((m) => m.isFailure())) {
+            line.failed = line.count;
+            line.condition = 0;
+          } else {
+            line.condition = Math.min(line.condition, lineCeiling(line));
+          }
+          const lost = (masses.get(key) ?? 0) * read.reduce((sum, m) => sum + m.lostShare(), 0);
+          setOrDelete(line, 'lostKg', lost > 0 ? lost : undefined);
+        }
+      }
+      if ('whole' in table) {
+        await (Base.prototype as unknown as Durable).seedDecay.call(this, { whole: table.whole });
+      }
+    }
+
+    /**
+     * What each line weighs, kg — the repair read (`CraftingApi.unitMassOf`
+     * × count), scaled so the lines sum to the whole's dry mass (D4).
+     */
+    private async partMasses(): Promise<Map<string, number>> {
+      const host = this as unknown as Stuff;
+      const wholeKg = MixinApi.isTangible(host) ? host.getDryMass().rawValue() + this.getLostMass() : 0;
+      const fallback = wholeKg / Math.max(1, this.parts.length);
+      const raw = await Promise.all(
+        this.parts.map(async (l) => (await CraftingApi.unitMassOf(l.template, fallback)) * l.count),
+      );
+      const sum = raw.reduce((a, b) => a + b, 0);
+      const scale = sum > 0 && wholeKg > 0 ? wholeKg / sum : 1;
+      const out = new Map<string, number>();
+      this.parts.forEach((l, i) => out.set(l.part, (raw[i] ?? 0) * scale));
+      return out;
     }
 
     isBroken(): boolean {

@@ -368,6 +368,13 @@ function cureFor(f: Fault): string {
       return 'a surer hand';
     case 'no-hull-material':
       return 'a hull that says what she is planked with';
+    case 'decayed':
+      // ⭐ The decay's own cure (decomposition D10).
+      return f.detail === 'brush'
+        ? 'brushing off first'
+        : f.detail === 'fit'
+          ? 'a new one fitted'
+          : 'the metal it has lost, which no mending puts back';
     default:
       return 'more than can be done here';
   }

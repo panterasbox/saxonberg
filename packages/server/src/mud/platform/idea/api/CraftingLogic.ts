@@ -4312,6 +4312,13 @@ async function mendAssembly(
     const material = materialAtPath(line.material);
     const discipline = disciplineOf(line, m.catalogue);
     const { band, terms } = await termsFor(m.hand, discipline);
+    // ⭐ A decayed line mends only to its decay's ceiling (decomposition
+    // D10); at it, the fault is the decay, and the cure is named.
+    const cap = item.mendCeiling(line.part);
+    if (line.condition >= cap.ceiling - EPS) {
+      m.faults.push(unmendable(line.part, 'worn', 'mended', line.part, discipline, band, 'decayed', cap.cure ?? 'none'));
+      continue;
+    }
     const how = instrumentFor(material, m, metalHeatK);
     if (!how.ok) {
       m.faults.push(unmendable(line.part, 'worn', 'mended', line.part, discipline, band, how.reason, how.detail));
@@ -4324,7 +4331,7 @@ async function mendAssembly(
       m.faults.push(unmendable(line.part, 'worn', 'mended', line.part, discipline, band, 'insufficient-input', stock));
       continue;
     }
-    const result = Math.max(line.condition, terms.ceiling) >= 1 - EPS ? 'sound' : 'short';
+    const result = Math.min(Math.max(line.condition, terms.ceiling), cap.ceiling) >= 1 - EPS ? 'sound' : 'short';
     if (m.commit) {
       item.mendLine(line.part, {
         ceiling: terms.ceiling,
@@ -4443,6 +4450,13 @@ async function mendOnePiece(item: Stuff & Durable, m: MendContext): Promise<void
   };
   const discipline = disciplineOf(own, m.catalogue);
   const { band, terms } = await termsFor(m.hand, discipline);
+  // ⭐ Decay caps the mend (decomposition D10): at its ceiling, the fault is
+  // the decay itself, and the cure is named (brush it, or nothing will).
+  const cap = item.mendCeiling();
+  if (before >= cap.ceiling - EPS) {
+    m.faults.push(unmendable('', 'worn', 'mended', 'it', discipline, band, 'decayed', cap.cure ?? 'none'));
+    return;
+  }
   // ⭐ A BROKEN metal thing is re-made at its recipe's heat (D9), a worn
   // one at forge heat.
   const metalHeatK = dial(AppSettingKeys.craftingRepairMetalHeatK, 900);
@@ -4466,7 +4480,7 @@ async function mendOnePiece(item: Stuff & Durable, m: MendContext): Promise<void
     m.faults.push(unmendable('', kind, action, 'it', discipline, band, 'insufficient-input', stock));
     return;
   }
-  const after = Math.max(before, terms.ceiling);
+  const after = Math.min(Math.max(before, terms.ceiling), cap.ceiling);
   const result = after >= 1 - EPS ? 'sound' : 'short';
   if (m.commit) {
     item.setCondition(after);
@@ -5422,6 +5436,12 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async repair(request: RepairRequest): Promise<RepairOutcome> {
     return repairImpl(request);
+  }
+
+  /** See {@link CraftingApi.unitMassOf}. */
+  @CallSecurity(CraftingApiCallers)
+  public async unitMassOf(template: string, fallbackKg: number): Promise<number> {
+    return unitMassOf(template, fallbackKg);
   }
 
   /** See {@link CraftingApi.fulfillingHand}. */

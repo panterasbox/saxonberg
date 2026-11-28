@@ -18,7 +18,13 @@
 
 import type { FieldMeta, MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
-import { DecayScale, type DecayMechanism } from "./DecayMark";
+import type Material from "./Material";
+import {
+  DecayMark,
+  DecayScale,
+  type DecayMarkRecord,
+  type DecayMechanism,
+} from "./DecayMark";
 
 /** How one mechanism attacks this material. */
 export interface DegradationSpec {
@@ -37,6 +43,7 @@ export interface Degradation {
   suffers(mechanism: DecayMechanism): boolean;
   productOf(mechanism: DecayMechanism): string | null;
   ratePerYear(mechanism: DecayMechanism): number | null;
+  marksFrom(entry: unknown): DecayMarkRecord[];
 }
 
 export function DegradationMixin<TBase extends MixinConstructor<Stuff>>(
@@ -129,6 +136,33 @@ export function DegradationMixin<TBase extends MixinConstructor<Stuff>>(
     /** Progress per game year at a driver of 1; `null` = not derivable on this material. */
     public ratePerYear(mechanism: DecayMechanism): number | null {
       return this.degradation[mechanism]?.perYear ?? null;
+    }
+
+    /**
+     * ⭐ An authored decay state for a part of this material —
+     * `{ corrosion: pitted, mold: spotted }` — as marks, or a throw naming
+     * what is wrong: not a map, an unknown mechanism or band, or a
+     * mechanism this material does not suffer (*iron does not rot*). The
+     * legality is the MATERIAL's (decomposition D3, D6); the host decides
+     * where the marks go.
+     */
+    public marksFrom(entry: unknown): DecayMarkRecord[] {
+      if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+        throw new TypeError(
+          "a decay state is a map of mechanism → band ({ corrosion: pitted })",
+        );
+      }
+      // A capability of a material: its host IS one.
+      const name = (this as unknown as Material).getName() || "this material";
+      const out: DecayMarkRecord[] = [];
+      for (const [mechanism, band] of Object.entries(entry)) {
+        const scale = new DecayScale(mechanism);
+        if (!this.suffers(scale.mechanism)) {
+          throw new RangeError(`${name} does not suffer ${mechanism}`);
+        }
+        out.push(new DecayMark({ mechanism: scale.mechanism, band: String(band) as never }).record());
+      }
+      return out;
     }
   };
 }

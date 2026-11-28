@@ -250,4 +250,50 @@ describe('check-bills', () => {
       expect(out).toMatch(/\/x\/thing\/head: on UNMADE_PARTS but a recipe now makes it/);
     });
   });
+
+  describe('arm 9 — authored decay lands on a Durable instance row (decomposition D11)', () => {
+    const DURABLE = '/platform/thing/Assembly';
+    const probes = {
+      durable: (c: string) => c === DURABLE || c === '/platform/thing/Tool',
+      stackable: () => false,
+    };
+    const run = (extra: [string, TemplateRow][], recipes = [PICK_RECIPE]): string => {
+      const [templates, joints] = split([...SOUND, ...extra]);
+      return checkBills(templates, recipes, undefined, probes, undefined, undefined, joints)
+        .map((f) => f.detail)
+        .filter((d) => /decomposition D11/.test(d))
+        .join('\n');
+    };
+
+    it('is quiet on a Durable instance row', () => {
+      expect(
+        run([row('/x/thing/old-anchor', { class: DURABLE, data: { decay: { whole: { corrosion: 'pitted' } } } })]),
+      ).toBe('');
+    });
+
+    it('fires on `decay:` on a class that does not compose Durable', () => {
+      const out = run([row('/x/thing/loaf', { class: '/platform/thing/Good', data: { decay: { whole: { mold: 'spotted' } } } })]);
+      expect(out).toMatch(/`decay:` on a \/platform\/thing\/Good that does not compose DurableMixin/);
+    });
+
+    it('fires on `history:` on a recipe’s output row', () => {
+      const out = run([], [PICK_RECIPE]).length;
+      expect(out).toBe(0);
+      const [templates, joints] = split(
+        SOUND.map(([p, r]) =>
+          p === '/x/thing/pick'
+            ? row(p, { ...r.raw, data: { ...(r.raw.data as object), history: [{ in: '/platform/decay-environments/open-air', years: 5 }] } })
+            : [p, r],
+        ),
+      );
+      const found = checkBills(templates, [PICK_RECIPE], undefined, probes, undefined, undefined, joints).map((f) => f.detail);
+      expect(found.join('\n')).toMatch(/`history:` on \/x\/thing\/pick, which a recipe makes/);
+    });
+
+    it('⭐ an instance row that `extends:` the recipe’s kind carries it', () => {
+      expect(
+        run([row('/x/thing/old-pick', { extends: '/x/thing/pick', data: { decay: { haft: { rot: 'punky' } } } })]),
+      ).toBe('');
+    });
+  });
 });

@@ -54,6 +54,14 @@
  *    derivable (repair D1). Census-then-ratchet: {@link UNMADE_PARTS} names
  *    each part no recipe makes, with why; it may shrink, never grow, and a
  *    part that gains a recipe must leave it.
+ * 9. ⭐ **authored decay lands where it can be applied** (decomposition D11):
+ *    `decay:` / `history:` only on a row whose effective class composes
+ *    `DurableMixin` (anywhere else the key is never applied — an unapplied
+ *    key is a warning nobody reads), and NEVER on a row a recipe outputs:
+ *    the seed runs at every mint and a craft mints from the output row, so
+ *    decay there would deliver every new plough rusty. A locality row that
+ *    `extends:` the kind carries the state instead. Skipped without the
+ *    composition probes.
  * 5. ⛔ every `Joint` row's `competence.discipline` names a Discipline that
  *    exists — a joint gated on a Discipline nobody ships reads every
  *    salvager as a novice and nothing says why (found in the plan's
@@ -419,6 +427,35 @@ export function checkBills(
         out.push({
           where: t,
           detail: `on UNMADE_PARTS but no bill names it any more — take it off the list`,
+        });
+      }
+    }
+  }
+
+  // 9 — decay is authored on a Durable instance row, never a recipe's output.
+  if (probes) {
+    const outputs = new Set(recipes.map((r) => r.outputTemplate));
+    for (const [path, row] of rows) {
+      const eff = effectiveRow(path, rows);
+      const keys = (["decay", "history"] as const).filter((k) => eff.data[k] !== undefined);
+      if (keys.length === 0) continue;
+      const named = keys.map((k) => `\`${k}:\``).join(" / ");
+      if (!eff.class || !probes.durable(eff.class)) {
+        out.push({
+          where: at(row),
+          detail:
+            `${named} on a ${eff.class ?? "class-less row"} that does not compose DurableMixin — ` +
+            `a thing with no condition has nothing to decay, and the key would never be applied ` +
+            `(decomposition D11). Name a class that carries condition (\`/platform/thing/Assembly\`).`,
+        });
+      }
+      if (outputs.has(path)) {
+        out.push({
+          where: at(row),
+          detail:
+            `${named} on ${path}, which a recipe makes — the seed runs at every mint, so every ` +
+            `new one would come out decayed (decomposition D11). Author it on an instance row ` +
+            `that \`extends:\` this kind.`,
         });
       }
     }

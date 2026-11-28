@@ -44,6 +44,7 @@ import {
   stampTemplatePathForTest,
 } from '../../../../lib/security/__tests__/test-setup';
 import { rememberJoint } from '../../../../lib/craft/__tests__/joint-fixtures';
+import TemplateApplier from '../../TemplateApplier';
 
 class TestRoom extends ContainerMixin(Idea) {
   static _mixinName = 'TestRoomMend';
@@ -383,3 +384,62 @@ describe('repair W2 — the band decides, never a roll', () => {
     expect(p.getLine('head')!.condition).toBe(1);
   });
 });
+
+describe('⭐ decomposition D10 — a decayed part mends only to its decay’s ceiling', () => {
+  /** A found pick whose row carries `decay:` — seeded by the real applier at mint. */
+  async function decayedPick(decay: Record<string, unknown>): Promise<Tool> {
+    mat(IRON).setDegradation({ corrosion: { perYear: 0.04, product: 'rust' } });
+    const p = pick();
+    await makeStuff(() => new TemplateApplier()).apply(p, { decay }, { mode: 'mint' });
+    ContainmentApi.move(p, room);
+    return p;
+  }
+
+  it('⭐ at the ceiling the fault is the decay, and the cure is named — pitting: nothing', async () => {
+    ContainmentApi.move(hotForge(), room);
+    ContainmentApi.move(stock(IRON, 40), room);
+    const p = await decayedPick({ head: { corrosion: 'pitted' } });
+    expect(p.getLine('head')!.condition).toBeCloseTo(0.35, 9);
+    const out = await mend(hand({ smithing: 'expert' }, 'berta'), p);
+    expect(out).toMatchObject({ ok: false, reason: 'decayed', detail: 'none' });
+    expect(p.getLine('head')!.condition).toBeCloseTo(0.35, 9);
+  });
+
+  it('scale on it: the cure is a brush', async () => {
+    ContainmentApi.move(hotForge(), room);
+    const p = await decayedPick({ head: { corrosion: 'flaking' } });
+    const d = await as(hand({ smithing: 'expert' }, 'berta'), () => CraftingApi.diagnose({ item: p }));
+    expect(d.ok && d.faults.find((f) => f.part === 'head')).toMatchObject({
+      mendable: false, reason: 'decayed', detail: 'brush',
+    });
+  });
+
+  it('worn below the ceiling, a mend brings it up to the ceiling and comes back short', async () => {
+    ContainmentApi.move(hotForge(), room);
+    ContainmentApi.move(stock(IRON, 40), room);
+    const p = await decayedPick({ head: { corrosion: 'bloom' } });
+    p.getLine('head')!.condition = 0.4;
+    const out = await mend(hand({ smithing: 'expert' }, 'berta'), p);
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    if (!out.ok) return;
+    expect(out.mended[0]).toMatchObject({ part: 'head', result: 'short' });
+    expect(p.getLine('head')!.condition).toBeCloseTo(0.9, 9);
+  });
+
+  it('⭐ an eaten-through head is re-forged from new stock: the mark and the lost metal go', async () => {
+    ContainmentApi.move(hotForge(), room);
+    ContainmentApi.move(stock(IRON, 400), room);
+    const p = await decayedPick({ head: { corrosion: 'eaten through' } });
+    expect(p.getLine('head')!.failed).toBe(1);
+    const lighter = p.getMass().rawValue();
+    expect(lighter).toBeLessThan(2.6);
+    const smith = hand({ smithing: 'expert' }, 'berta');
+    smith.setTemperatureK?.(300);
+    const out = await mend(smith, p);
+    expect(out.ok, JSON.stringify(out)).toBe(true);
+    expect(p.getLine('head')!.decay).toBeUndefined();
+    expect(p.getLine('head')!.lostKg).toBeUndefined();
+    expect(p.getMass().rawValue()).toBeCloseTo(2.6, 9);
+  });
+});
+
